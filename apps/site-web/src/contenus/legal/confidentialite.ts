@@ -33,7 +33,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Si tu nous écris** (lieu à inscrire, candidature d'ambassadeur, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
-            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville et, si tu la coches, la case ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
+            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région et, si tu la coches, la case ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
             "**On ne vend jamais tes données**, et on ne les loue pas.",
             `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation.`,
           ],
@@ -110,16 +110,16 @@ export const documentConfidentialite: DocumentLegal = {
       id: "formulaire",
       titre: "Le formulaire « Préviens-moi »",
       blocs: [
-        "En bas de l'accueil du site, le formulaire « Préviens-moi » te demande ton adresse e-mail et ta ville (choisie dans une liste), et propose une case facultative « Je veux devenir ambassadeur fondateur ».",
+        "En bas de l'accueil du site, le formulaire « Préviens-moi » te demande ton adresse e-mail et ta ville ou ta région (que tu écris toi-même, avec des suggestions), et propose une case facultative « Je veux devenir ambassadeur fondateur ».",
         {
           liste: [
-            "**Ce qu'on enregistre** : ton adresse e-mail, ta ville, ton choix pour la case ambassadeur, la date de ta première et de ta dernière inscription, et le fait que l'inscription vient du site. Si tu remplis le formulaire plusieurs fois, on garde une seule ligne, mise à jour.",
+            "**Ce qu'on enregistre** : ton adresse e-mail, ta ville ou ta région, ton choix pour la case ambassadeur, la date de ta première et de ta dernière inscription, et le fait que l'inscription vient du site. Si tu remplis le formulaire plusieurs fois, on garde une seule ligne, mise à jour.",
             "**Pourquoi** : te prévenir du lancement dans ta ville, puis t'envoyer la newsletter, et, si tu as coché la case, te recontacter au sujet du programme des ambassadeurs fondateurs.",
             "**Base légale** : ton consentement (article 6.1.a du RGPD), que tu peux retirer à tout moment.",
             `**Où et qui** : dans une base de données sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès.`,
             "**Combien de temps** : comme pour la newsletter, tant que tu restes inscrit ; si tu te désinscris, ta ligne est effacée avant tout nouvel envoi ; après 3 ans sans aucun message de ta part, on te demande si tu veux continuer, sinon on efface.",
             "**Ton adresse IP** : le site la transmet à notre serveur pour limiter le nombre d'envois (5 toutes les 10 minutes), contre les robots. Elle reste seulement en mémoire, une dizaine de minutes, et n'est jamais enregistrée avec ton inscription.",
-            "**Obligatoire ?** L'e-mail est indispensable pour te prévenir et la ville nous dit où ; la case ambassadeur est facultative.",
+            "**Obligatoire ?** Seul l'e-mail est indispensable pour te prévenir. Ta ville ou ta région (qui nous dit quand te prévenir) et la case ambassadeur sont facultatives.",
           ],
         },
         "Comme toute visite, l'envoi du formulaire passe par Cloudflare et apparaît dans les journaux du serveur. Les journaux notent la page appelée, pas ce que tu as saisi. Cloudflare, lui, voit passer ce que tu envoies, comme pour toute requête.",

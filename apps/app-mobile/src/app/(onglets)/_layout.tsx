@@ -20,7 +20,11 @@ const ongletTransparent = {
   tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
 };
 
-/** Barre d'onglets du bas : Pour toi, Explorer, Scan, Potes, Profil. Transparente sur « Pour toi ». */
+/**
+ * Barre d'onglets du bas : Pour toi, Explorer, Scan, Potes, Profil. Transparente sur « Pour toi ».
+ * Elle est toujours posée par-dessus les écrans : ils gardent la même taille d'un onglet à l'autre (sinon le fil vidéo se recalcule en entier),
+ * et chaque écran laisse lui-même la place en bas avec useBottomTabBarHeight.
+ */
 export default function MiseEnPageOnglets() {
   return (
     <Tabs
@@ -28,7 +32,7 @@ export default function MiseEnPageOnglets() {
         headerShown: false,
         tabBarActiveTintColor: couleurs.encre,
         tabBarInactiveTintColor: couleurs.gris,
-        tabBarStyle: { backgroundColor: couleurs.creme, borderTopColor: couleurs.ligne },
+        tabBarStyle: { position: "absolute", backgroundColor: couleurs.creme, borderTopColor: couleurs.ligne },
       }}
     >
       {onglets.map((onglet) => (

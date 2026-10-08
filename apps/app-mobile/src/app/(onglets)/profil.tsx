@@ -1,3 +1,4 @@
+import { useBottomTabBarHeight } from "expo-router/tabs";
 import { Alert, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,6 +12,8 @@ import couleurs from "~/theme/couleurs";
 /** Onglet « Profil » : tes infos et tes envies, et de quoi tout effacer pour refaire l'inscription. */
 export default function Profil() {
   const { profil, effacer } = utiliserProfil();
+  // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
+  const hauteurBarreOnglets = useBottomTabBarHeight();
   if (!profil) return null;
 
   function refaireInscription() {
@@ -26,7 +29,7 @@ export default function Profil() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
-      <ScrollView contentContainerClassName="gap-6 px-5 py-6">
+      <ScrollView contentContainerClassName="gap-6 px-5 pt-6" contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 24 }}>
         <View className="flex-row items-center gap-4">
           <Mascotte expression="clin" taille={72} />
           <View className="flex-1">

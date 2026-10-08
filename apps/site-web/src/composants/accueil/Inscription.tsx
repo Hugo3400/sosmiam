@@ -4,14 +4,14 @@ import { Link, useActionData, useFetcher } from "react-router";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
-import { autresZones, villesLancement } from "~/contenus/villes";
+import { lieuxProposes } from "~/contenus/villes";
 
 /** Réponse de l'action de la page d'accueil (src/routes/public/accueil.tsx). */
 export type ReponseInscription = { ok: boolean; message: string };
 
 const champ = "rounded-full border-2 border-encre bg-white px-5 py-3.5 font-medium focus:outline-3 focus:outline-offset-2 focus:outline-encre";
 
-/** Dernier bloc de l'accueil : e-mail + ville pour être prévenu du lancement. Marche aussi sans JavaScript. */
+/** Dernier bloc de l'accueil : e-mail + ville ou région pour être prévenu du lancement. Marche aussi sans JavaScript. */
 export function Inscription() {
   const fetcher = useFetcher<ReponseInscription>();
   // Sans JavaScript (ou envoi avant la fin du chargement), la réponse arrive par l'action de la page.
@@ -34,7 +34,7 @@ export function Inscription() {
       <div className="rounded-carte border-2 border-encre bg-jaune px-5 py-12 text-center shadow-brut-grand md:px-12 md:py-16">
         <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24 md:h-28 md:w-28" />
         <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">Prêt à sauver ta première table ?</h2>
-        <p className="mt-3 mb-8 text-lg">L'app est encore en cuisine : laisse ton e-mail, on te prévient dès qu'elle sort dans ta ville.</p>
+        <p className="mt-3 mb-8 text-lg">L'app est encore en cuisine : laisse ton e-mail, on te prévient dès qu'elle arrive près de chez toi.</p>
 
         <fetcher.Form ref={formulaire} method="post" action="/?index#inscription" noValidate className="mx-auto flex max-w-2xl flex-wrap justify-center gap-3">
           <label htmlFor="inscription-email" className="sr-only">Adresse e-mail</label>
@@ -50,10 +50,20 @@ export function Inscription() {
             aria-describedby="inscription-message"
             className={`min-w-0 flex-[1_1_240px] ${champ}`}
           />
-          <label htmlFor="inscription-ville" className="sr-only">Ta ville</label>
-          <select id="inscription-ville" name="ville" className={`flex-[1_1_180px] sm:flex-none ${champ}`}>
-            {[...villesLancement, ...autresZones].map((ville) => <option key={ville}>{ville}</option>)}
-          </select>
+          <label htmlFor="inscription-ville" className="sr-only">Ta ville ou ta région</label>
+          <input
+            id="inscription-ville"
+            name="ville"
+            type="text"
+            list="inscription-lieux"
+            autoComplete="address-level2"
+            placeholder="Ta ville ou ta région"
+            maxLength={80}
+            className={`min-w-0 flex-[1_1_180px] sm:w-60 sm:flex-none ${champ}`}
+          />
+          <datalist id="inscription-lieux">
+            {lieuxProposes.map((lieu) => <option key={lieu.nom} value={lieu.nom} />)}
+          </datalist>
           <Bouton type="submit" variante="encre" className="flex-[1_1_100%] sm:flex-none">
             {envoi ? "Envoi…" : "Préviens-moi"}
           </Bouton>

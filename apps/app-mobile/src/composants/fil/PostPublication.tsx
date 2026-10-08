@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming, type SharedValue } from "react-native-reanimated";
 
@@ -33,25 +33,30 @@ type Props = {
   reduit: boolean;
   /** Avancée de la réduction, de 0 (fiche ouverte) à 1 (réduite), animée par le fil sans nouveau rendu */
   reduction: SharedValue<number>;
-  onReduire: () => void;
   /** Numéros des dernières animations (double appui, rescousse) */
   envolCoeur: number;
   envolBouee: number;
-  onJaime: () => void;
-  onDoubleAppui: () => void;
-  onCommentaires: () => void;
-  onGarder: () => void;
-  onPartager: () => void;
-  onMenu: () => void;
-  onVoir: () => void;
+  gestes: GestesPublication;
+};
+
+/** Ce que fait le fil quand on touche une publication : les mêmes fonctions pour toutes, pour ne redessiner que celles qui changent */
+export type GestesPublication = {
+  jaime: (publication: Publication) => void;
+  doubleAppui: (publication: Publication) => void;
+  commentaires: (publication: Publication) => void;
+  garder: (publication: Publication) => void;
+  partager: (publication: Publication) => void;
+  menu: (publication: Publication) => void;
+  voir: (publication: Publication) => void;
+  reduire: () => void;
 };
 
 const DELAI_DOUBLE_APPUI = 280;
 const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
-/** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. */
-export function PostPublication(props: Props) {
-  const { publication, lieu, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeBas, reduit, reduction } = props;
+/** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
+export const PostPublication = memo(function PostPublication(props: Props) {
+  const { publication, lieu, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -84,7 +89,7 @@ export function PostPublication(props: Props) {
     if (maintenant - dernierAppui.current < DELAI_DOUBLE_APPUI) {
       if (appuiSimple.current) clearTimeout(appuiSimple.current);
       dernierAppui.current = 0;
-      props.onDoubleAppui();
+      gestes.doubleAppui(publication);
       return;
     }
     dernierAppui.current = maintenant;
@@ -144,7 +149,7 @@ export function PostPublication(props: Props) {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Afficher la fiche de ${lieu.nom}`}
-            onPress={props.onReduire}
+            onPress={gestes.reduire}
             className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 px-4 active:opacity-70"
           >
             <Text className="text-base">{lieu.emoji}</Text>
@@ -191,7 +196,7 @@ export function PostPublication(props: Props) {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Voir l'adresse de ${lieu.nom}`}
-              onPress={props.onVoir}
+              onPress={() => gestes.voir(publication)}
               className="min-h-11 justify-center rounded-full bg-white/25 px-4 active:opacity-70"
             >
               <Text className="font-texte-semi text-[15px] text-white">Voir l'adresse →</Text>
@@ -199,7 +204,7 @@ export function PostPublication(props: Props) {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Réduire la fiche pour voir la vidéo en plein écran"
-              onPress={props.onReduire}
+              onPress={gestes.reduire}
               className="min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full bg-white/25 px-3 active:opacity-70"
             >
               <Ionicons name="chevron-down" size={18} color="#FFFFFF" />
@@ -216,14 +221,14 @@ export function PostPublication(props: Props) {
             icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
             libelle={formaterNombreCourt(publication.jaimes + (aime ? 1 : 0))}
             description={aime ? "Retirer ton J'aime" : `J'aime, ${publication.jaimes} personnes aiment`}
-            onPress={props.onJaime}
+            onPress={() => gestes.jaime(publication)}
             style="transparent"
           />
           <ActionPost
             icone={<Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />}
             libelle={formaterNombreCourt(publication.commentaires)}
             description={`Commentaires, ${publication.commentaires}`}
-            onPress={props.onCommentaires}
+            onPress={() => gestes.commentaires(publication)}
             style="transparent"
           />
           <ActionPost
@@ -231,21 +236,21 @@ export function PostPublication(props: Props) {
             icone={<Ionicons name={garde ? "bookmark" : "bookmark-outline"} size={26} color={garde ? couleurs.jaune : "#FFFFFF"} />}
             libelle={garde ? "Gardé" : "Garder"}
             description={garde ? `Ne plus garder ${lieu.nom}` : `Garder ${lieu.nom} pour plus tard`}
-            onPress={props.onGarder}
+            onPress={() => gestes.garder(publication)}
             style="transparent"
           />
           <ActionPost
             icone={<Ionicons name="arrow-redo" size={26} color="#FFFFFF" />}
             libelle="Partager"
             description={`Partager ${lieu.nom}`}
-            onPress={props.onPartager}
+            onPress={() => gestes.partager(publication)}
             style="transparent"
           />
           <ActionPost
             icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
             libelle=""
             description="Plus d'options : rescousse, adresse, pas intéressé, signaler"
-            onPress={props.onMenu}
+            onPress={() => gestes.menu(publication)}
             style="transparent"
           />
         </Animated.View>
@@ -258,4 +263,4 @@ export function PostPublication(props: Props) {
       <BoueeEnvol numero={envolBouee} />
     </View>
   );
-}
+});

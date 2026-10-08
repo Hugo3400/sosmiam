@@ -1,6 +1,7 @@
 import { useIsFocused, useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { startTransition, useCallback, useMemo, useState } from "react";
 import { FlatList, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,7 +10,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EnTeteFil, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FilVide } from "~/composants/fil/FilVide";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
-import { PostPublication } from "~/composants/fil/PostPublication";
+import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
 import { Annonce } from "~/composants/interface/Annonce";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
@@ -18,11 +19,12 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
-// Hauteur de la barre d'onglets d'Expo Router (sans la zone sûre du bas)
-const HAUTEUR_BARRE_ONGLETS = 49;
+// Une publication compte comme « à l'écran » quand on en voit plus de la moitié
+const VISIBILITE = { itemVisiblePercentThreshold: 60 };
 
 /** Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime. */
 export default function PourToi() {
@@ -47,14 +49,18 @@ export default function PourToi() {
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
   const publications = useMemo(() => ordonnerPublications(publicationsExemples, lieux, profil), [lieux, profil]);
 
-  const liste = publications.filter((p) => {
-    if (activite.estMasquee(p.id)) return false;
-    if (onglet === "tous") return true;
-    const lieu = lieuParId.get(p.lieuId);
-    // « SOS ce soir » : une publication par lieu (la sienne), seulement les lieux en SOS ou en alerte
-    return p.auteur.type === "lieu" && !!lieu && (!!lieu.sos || !!lieu.alerte);
-  });
-  if (onglet === "sos") liste.sort((a, b) => Number(!!lieuParId.get(b.lieuId)?.sos) - Number(!!lieuParId.get(a.lieuId)?.sos));
+  const { estMasquee } = activite;
+  const liste = useMemo(() => {
+    const gardees = publications.filter((p) => {
+      if (estMasquee(p.id)) return false;
+      if (onglet === "tous") return true;
+      const lieu = lieuParId.get(p.lieuId);
+      // « SOS ce soir » : une publication par lieu (la sienne), seulement les lieux en SOS ou en alerte
+      return p.auteur.type === "lieu" && !!lieu && (!!lieu.sos || !!lieu.alerte);
+    });
+    if (onglet === "sos") gardees.sort((a, b) => Number(!!lieuParId.get(b.lieuId)?.sos) - Number(!!lieuParId.get(a.lieuId)?.sos));
+    return gardees;
+  }, [publications, onglet, lieuParId, estMasquee]);
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -98,12 +104,26 @@ export default function PourToi() {
     Share.share({ message: `${lieu.emoji} ${lieu.nom} (${lieu.quartier}, ${lieu.ville}) a besoin de monde ! Je l'ai trouvé sur SOS Miam 🛟 https://sosmiam.fr` }).catch(() => {});
   }
 
-  // L'animation part dès l'appui sur le fil d'affichage, sans attendre le nouveau rendu de la liste
+  // L'animation part dès l'appui sur le fil d'affichage ; le nouveau rendu (accessibilité, appuis) passe ensuite, sans la bloquer
   function basculerReduction() {
     const suivant = !infosReduites;
     reduction.value = withTiming(suivant ? 1 : 0, { duration: 260, easing: Easing.out(Easing.cubic) });
-    setInfosReduites(suivant);
+    startTransition(() => setInfosReduites(suivant));
   }
+
+  const gestes = utiliserGestesStables<GestesPublication>({
+    jaime: (p) => void activite.basculerJaime(p.id),
+    doubleAppui: aimerParDoubleAppui,
+    commentaires: () => annoncer("Les commentaires arrivent très bientôt 💬"),
+    garder: (p) => {
+      const nom = lieuParId.get(p.lieuId)?.nom ?? "Ce lieu";
+      annoncer(activite.basculerGarde(p.lieuId) ? `🔖 ${nom} est gardé pour plus tard` : "Retiré de tes lieux gardés");
+    },
+    partager,
+    menu: setMenu,
+    voir: (p) => router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } }),
+    reduire: basculerReduction,
+  });
 
   const auChangementDeVisible = useCallback(({ viewableItems }: { viewableItems: ViewToken<Publication>[] }) => {
     setVisible(viewableItems[0]?.item.id ?? null);
@@ -111,7 +131,7 @@ export default function PourToi() {
 
   const lieuDuMenu = menu ? lieuParId.get(menu.lieuId) : undefined;
   // La barre d'onglets est posée, transparente, sur le fil (voir src/app/(onglets)/_layout.tsx)
-  const hauteurBarreOnglets = HAUTEUR_BARRE_ONGLETS + marges.bottom;
+  const hauteurBarreOnglets = useBottomTabBarHeight();
 
   return (
     <View
@@ -130,7 +150,10 @@ export default function PourToi() {
             showsVerticalScrollIndicator={false}
             getItemLayout={(_, index) => ({ length: taille.hauteur, offset: taille.hauteur * index, index })}
             onViewableItemsChanged={auChangementDeVisible}
-            viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+            viewabilityConfig={VISIBILITE}
+            // Peu de publications montées à la fois : chaque vidéo a son lecteur. Les premières ne sont jamais démontées.
+            initialNumToRender={2}
+            maxToRenderPerBatch={2}
             windowSize={3}
             renderItem={({ item }) => {
               const lieu = lieuParId.get(item.lieuId);
@@ -150,14 +173,7 @@ export default function PourToi() {
                   margeBas={hauteurBarreOnglets}
                   reduit={infosReduites}
                   reduction={reduction}
-                  onReduire={basculerReduction}
-                  onJaime={() => activite.basculerJaime(item.id)}
-                  onDoubleAppui={() => aimerParDoubleAppui(item)}
-                  onCommentaires={() => annoncer("Les commentaires arrivent très bientôt 💬")}
-                  onGarder={() => annoncer(activite.basculerGarde(lieu.id) ? `🔖 ${lieu.nom} est gardé pour plus tard` : "Retiré de tes lieux gardés")}
-                  onPartager={() => partager(item)}
-                  onMenu={() => setMenu(item)}
-                  onVoir={() => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } })}
+                  gestes={gestes}
                 />
               );
             }}
