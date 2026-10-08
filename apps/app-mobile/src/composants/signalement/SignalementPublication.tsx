@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -9,48 +9,52 @@ import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement"
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import { MerciSignalement } from "~/composants/signalement/MerciSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
-import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
 /** Ce que la personne a choisi et écrit ; le fil y ajoute la publication et la date. */
 export type ChoixSignalement = Pick<Signalement, "raison" | "precision" | "explication">;
 
+export type EtapeSignalement = "raison" | "details" | "merci";
+
 type Props = {
   nomLieu: string;
+  /** Étape affichée, tenue par le menu (le retour Android y recule d'une étape) */
+  etape: EtapeSignalement;
+  onChangerEtape: (etape: EtapeSignalement) => void;
   onEnvoyer: (choix: ChoixSignalement) => void;
   /** Retour au menu « ⋯ » depuis la première étape */
   onRetourMenu: () => void;
   onFermer: () => void;
 };
 
-type Etape = "raison" | "details" | "merci";
-
 /** Signaler une publication, en trois temps : la raison, les précisions et le pourquoi, puis merci. */
-export function SignalementPublication({ nomLieu, onEnvoyer, onRetourMenu, onFermer }: Props) {
-  const [etape, setEtape] = useState<Etape>("raison");
+export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoyer, onRetourMenu, onFermer }: Props) {
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");
+  const enTete = useRef<Text>(null);
 
-  const titre = etape === "details" && raison ? `${raison.emoji} ${raison.titre}` : "Pourquoi tu signales ?";
-  const sousTitre = etape === "details" ? "Dis-nous en plus, ça aide l'équipe." : `Publication sur ${nomLieu}`;
+  const details = etape === "details" && raison !== null;
+  const titre = details ? raison.titre : "Pourquoi tu signales ?";
+  const sousTitre = details ? "Dis-nous-en plus, ça aide l'équipe." : `Publication sur ${nomLieu}`;
 
-  // Le contenu change sous le doigt : VoiceOver annonce la nouvelle étape
+  // Le contenu change sous le doigt : le lecteur d'écran repart du titre de la nouvelle étape
   useEffect(() => {
-    if (etape !== "merci") AccessibilityInfo.announceForAccessibility(titre);
-  }, [etape, titre]);
+    if (etape === "merci") return;
+    const minuterie = setTimeout(() => enTete.current && AccessibilityInfo.sendAccessibilityEvent(enTete.current, "focus"), 150);
+    return () => clearTimeout(minuterie);
+  }, [etape]);
 
   function choisirRaison(choix: ChoixRaisonSignalement) {
     if (choix.cle !== raison?.cle) setPrecision(null);
     setRaison(choix);
-    setEtape("details");
+    onChangerEtape("details");
   }
 
   function envoyer() {
     if (!raison) return;
-    vibrerLegerement();
     onEnvoyer({ raison: raison.cle, precision, explication: explication.trim() });
-    setEtape("merci");
+    onChangerEtape("merci");
   }
 
   if (etape === "merci") {
@@ -66,16 +70,17 @@ export function SignalementPublication({ nomLieu, onEnvoyer, onRetourMenu, onFer
       <View className="flex-row items-center gap-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={etape === "details" ? "Retour aux raisons" : "Retour au menu"}
+          accessibilityLabel={details ? "Retour aux raisons" : "Retour au menu"}
           hitSlop={8}
-          onPress={() => (etape === "details" ? setEtape("raison") : onRetourMenu())}
+          onPress={() => (details ? onChangerEtape("raison") : onRetourMenu())}
           className="-ml-2 h-11 w-11 items-center justify-center rounded-full active:opacity-70"
         >
           <Ionicons name="chevron-back" size={26} color={couleurs.encre} />
         </Pressable>
         <View className="flex-1">
-          <Text accessibilityRole="header" numberOfLines={2} className="font-titre text-2xl text-encre">
-            {titre}
+          {/* L'emoji est affiché mais pas lu : le titre suffit au lecteur d'écran */}
+          <Text ref={enTete} accessibilityRole="header" accessibilityLabel={titre} numberOfLines={2} className="font-titre text-2xl text-encre">
+            {details ? `${raison.emoji} ${titre}` : titre}
           </Text>
           <Text numberOfLines={1} className="font-texte text-sm text-gris">
             {sousTitre}
@@ -84,7 +89,7 @@ export function SignalementPublication({ nomLieu, onEnvoyer, onRetourMenu, onFer
       </View>
 
       <Animated.View key={etape} entering={FadeIn.duration(180)}>
-        {etape === "details" && raison ? (
+        {details ? (
           <DetailsSignalement
             raison={raison}
             precision={precision}

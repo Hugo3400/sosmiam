@@ -46,7 +46,7 @@ type Region = {
 
 const regions: Region[] = [
   {
-    nom: "Occitanie", ou: "en Occitanie", alias: ["Languedoc-Roussillon", "Midi-Pyrénées"], lancement: true,
+    nom: "Occitanie", ou: "en Occitanie", alias: ["Languedoc", "Languedoc-Roussillon", "Midi-Pyrénées"], lancement: true,
     villesLancement: ["Montpellier", "Sète", "Béziers", "Pézenas", "Agde", "Lunel", "Lodève", "Palavas-les-Flots"],
     departement: ["Hérault", "dans l'Hérault"],
     villes: ["Toulouse", "Nîmes", "Perpignan", "Montauban"],
@@ -56,7 +56,7 @@ const regions: Region[] = [
   { nom: "Bretagne", ou: "en Bretagne", villes: ["Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo"] },
   { nom: "Centre-Val de Loire", ou: "en Centre-Val de Loire", alias: ["Centre"], villes: ["Tours", "Orléans", "Bourges", "Blois", "Châteauroux", "Joué-lès-Tours", "Chartres"] },
   { nom: "Corse", ou: "en Corse", villes: ["Ajaccio", "Bastia", "Porto-Vecchio", "Borgo", "Corte", "Biguglia"] },
-  { nom: "Grand Est", ou: "dans le Grand Est", alias: ["Alsace", "Lorraine", "Champagne-Ardenne"], villes: ["Strasbourg", "Reims", "Metz", "Mulhouse", "Nancy", "Colmar"] },
+  { nom: "Grand Est", ou: "dans le Grand Est", alias: ["Alsace", "Lorraine", "Champagne", "Champagne-Ardenne"], villes: ["Strasbourg", "Reims", "Metz", "Mulhouse", "Nancy", "Colmar"] },
   { nom: "Hauts-de-France", ou: "dans les Hauts-de-France", alias: ["Nord-Pas-de-Calais", "Picardie"], villes: ["Lille", "Amiens", "Tourcoing", "Roubaix", "Dunkerque", "Calais"] },
   { nom: "Île-de-France", ou: "en Île-de-France", alias: ["IDF", "Région parisienne"], villes: ["Paris", "Saint-Denis", "Boulogne-Billancourt", "Montreuil", "Argenteuil", "Nanterre"] },
   { nom: "Normandie", ou: "en Normandie", villes: [["Le Havre", "au Havre"], "Rouen", "Caen", "Cherbourg-en-Cotentin", "Évreux", "Saint-Étienne-du-Rouvray"] },
