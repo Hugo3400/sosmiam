@@ -162,7 +162,7 @@ export default function ReseauPersonne() {
         <View className="gap-4">
           {/* « Touche Suivre », dit l'encadré : le bouton est là aussi, juste au-dessus (rien s'il n'est pas permis) */}
           <BoutonSuivreProfil cle={ecrireCleSuivi({ type: "personne", id })} nom={pote.prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" />
-          <EncadreComptePrive prenom={pote.prenom} peutDemander={relation?.verdict.permis ?? false} />
+          <EncadreComptePrive prenom={pote.prenom} peutDemander={relation?.verdict.permis ?? false} listesSeules={relation?.visibilite === "complet"} />
         </View>
       );
     } else if (liste.length === 0) {

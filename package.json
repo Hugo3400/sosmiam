@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "verifier:lignes": "bash scripts/verifier-lignes.sh",
+    "commun:tester": "node --test \"packages/commun/tests/**/*.test.ts\"",
     "site:dev": "npm run dev -w apps/site-web",
     "site:build": "npm run build -w apps/site-web",
     "site:verifier": "npm run typecheck -w apps/site-web && npm test -w apps/site-web && npm run verifier:lignes",

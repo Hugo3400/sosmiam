@@ -10,7 +10,7 @@ type Props = {
   hauteur: number;
   /** Ce que l'en-tête du fil couvre en haut (zone sûre comprise) : une bande sombre, sous les onglets */
   margeHaut: number;
-  /** La barre d'onglets, posée par-dessus le fil */
+  /** La barre d'onglets, transparente et posée par-dessus le fil : une bande sombre dessous, pour ses icônes blanches */
   margeBas: number;
   /** « Retour à Pour toi » */
   onVoirTout: () => void;
@@ -35,7 +35,7 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-4 px-5 pt-6"
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: margeBas + 24 }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 24 }}
       >
         <View className="items-center gap-3">
           <Mascotte expression="clin" taille={110} />
@@ -54,6 +54,8 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
         <SuggestionsSuivre titre="Tu pourrais suivre" types={TYPES_PAGES} onAnnoncer={onAnnoncer} />
         <Bouton libelle="Retour à Pour toi" variante="blanc" indice="Revient au fil de toutes les adresses" onPress={onVoirTout} className="mt-2 self-stretch" />
       </ScrollView>
+      {/* Sous la barre d'onglets (blanche, transparente) : sur le jaune, ses icônes ne se verraient pas */}
+      <View style={{ height: margeBas }} className="bg-encre" />
     </View>
   );
 }

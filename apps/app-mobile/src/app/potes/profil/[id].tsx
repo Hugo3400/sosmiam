@@ -17,6 +17,7 @@ import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { EncadreComptePrive } from "~/composants/suivi/EncadreComptePrive";
+import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -265,7 +266,7 @@ export default function ProfilPote() {
           >
             <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${prenom}`} onTermine={() => setSignalementOuvert(false)} />
+              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil ${eliderDe(prenom)}`} onTermine={() => setSignalementOuvert(false)} />
             </ScrollView>
           </View>
         </KeyboardAvoidingView>

@@ -6,6 +6,7 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { eliderDe } from "~/fonctions/texte/elider-de";
 
 type Props = {
   pote: Pote;
@@ -70,7 +71,7 @@ export function LigneDemandeSuivi({ pote, acceptee, derniere, onAccepter, onRefu
           <View className="flex-row flex-wrap gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Accepter la demande de ${pote.prenom}`}
+              accessibilityLabel={`Accepter la demande ${eliderDe(pote.prenom)}`}
               accessibilityHint="Ça ne te fait pas suivre en retour : tu choisiras juste après"
               hitSlop={6}
               onPress={() => choisir(onAccepter)}
@@ -80,7 +81,7 @@ export function LigneDemandeSuivi({ pote, acceptee, derniere, onAccepter, onRefu
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Refuser la demande de ${pote.prenom}`}
+              accessibilityLabel={`Refuser la demande ${eliderDe(pote.prenom)}`}
               accessibilityHint="En toute discrétion : personne n'est prévenu"
               hitSlop={6}
               onPress={() => choisir(onRefuser)}

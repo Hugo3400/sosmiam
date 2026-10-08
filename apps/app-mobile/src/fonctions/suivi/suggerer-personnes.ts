@@ -1,4 +1,5 @@
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { eliderDe } from "~/fonctions/texte/elider-de";
 
 type Entree = {
   /** Ta bande (identifiants, sans les personnes bloquées) */
@@ -9,9 +10,6 @@ type Entree = {
   estCandidat: (id: string) => boolean;
   prenomDe: (id: string) => string;
 };
-
-// « Pote de Léa », mais « Pote d'Inès »
-const de = (prenom: string) => (/^[aeiouy]/i.test(prenom.normalize("NFD")) ? `d'${prenom}` : `de ${prenom}`);
 
 /**
  * Personnes à suivre : les potes de tes potes, de celui qui a le plus de potes en commun avec toi au moins (« Pote de Léa »,
@@ -37,7 +35,7 @@ export function suggererPersonnes({ bande, bandes, estCandidat, prenomDe }: Entr
       const premier = prenomDe(communs[0]);
       const autres = communs.length - 1;
       const raison =
-        autres === 0 ? `Pote ${de(premier)}` : autres === 1 ? `Pote ${de(premier)} et ${prenomDe(communs[1])}` : `Pote ${de(premier)} et ${autres} autres`;
+        autres === 0 ? `Pote ${eliderDe(premier)}` : autres === 1 ? `Pote ${eliderDe(premier)} et ${prenomDe(communs[1])}` : `Pote ${eliderDe(premier)} et ${autres} autres`;
       return { id, raison };
     });
   const deTaBande = bande.filter((id) => id !== ID_MOI && estCandidat(id)).map((id) => ({ id, raison: "Dans ta bande" }));
