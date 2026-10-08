@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "SOS Miam",
+    "slug": "sos-miam",
+    "scheme": "sosmiam",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icones/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "fr.sosmiam.app"
+    },
+    "android": {
+      "package": "fr.sosmiam.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFD60A",
+        "foregroundImage": "./assets/icones/android-icon-foreground.png",
+        "backgroundImage": "./assets/icones/android-icon-background.png",
+        "monochromeImage": "./assets/icones/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/icones/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
