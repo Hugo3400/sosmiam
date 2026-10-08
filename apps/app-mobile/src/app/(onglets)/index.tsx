@@ -83,8 +83,10 @@ export default function PourToi() {
     if (resultat === "annulee") return annoncer("Rescousse reprise");
     setBouees((b) => ({ ...b, [p.id]: Date.now() }));
     const reste = activite.restantes - 1;
-    if (lieu.nouveau && !lieu.decouvertPar) annoncer(`🚀 Premier sauveteur ! ${lieu.nom} est « Déniché par ${profil?.prenom ?? "toi"} »`);
-    else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
+    if (lieu.nouveau && !lieu.decouvertPar) {
+      activite.noterPremierSauvetage(lieu.id);
+      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} est « Déniché par ${profil?.prenom ?? "toi"} »`);
+    } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
   }
 
   function choixMenu(choix: ChoixMenu) {
