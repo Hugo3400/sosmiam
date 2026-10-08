@@ -9,8 +9,8 @@ type Props = {
   /** Ce que lit VoiceOver */
   description: string;
   actif?: boolean;
-  /** Style du rond : « sos » pour la rescousse (jaune), sinon translucide */
-  style?: "sos" | "normal";
+  /** Style du rond : « sos » (jaune), « normal » (translucide) ou « transparent » (icône seule, sur une vidéo) */
+  style?: "sos" | "normal" | "transparent";
   onPress: () => void;
 };
 
@@ -19,7 +19,9 @@ export function ActionPost({ icone, libelle, description, actif = false, style =
   const rond =
     style === "sos"
       ? actif ? "bg-encre border-[3px] border-jaune" : "bg-jaune border-[3px] border-encre"
-      : actif ? "bg-tomate" : "bg-white/25";
+      : style === "transparent" ? "" : actif ? "bg-tomate" : "bg-white/25";
+  // Sur une vidéo claire, une ombre garde l'icône lisible
+  const ombreIcone = style === "transparent" ? { shadowColor: "#000", shadowOpacity: 0.5, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } : undefined;
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,10 +34,12 @@ export function ActionPost({ icone, libelle, description, actif = false, style =
       }}
       className="items-center gap-1 active:scale-90"
     >
-      <View className={`h-[52px] w-[52px] items-center justify-center rounded-full ${rond}`}>{icone}</View>
-      <Text className="font-texte-gras text-xs text-white" style={{ textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 4 }}>
-        {libelle}
-      </Text>
+      <View style={ombreIcone} className={`h-[48px] w-[48px] items-center justify-center rounded-full ${rond}`}>{icone}</View>
+      {libelle ? (
+        <Text className="font-texte-gras text-xs text-white" style={{ textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 4 }}>
+          {libelle}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }

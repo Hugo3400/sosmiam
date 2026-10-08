@@ -5,18 +5,18 @@ import { calculerCleSemaine } from "~/fonctions/dates/calculer-cle-semaine";
 import { ContexteActivite, type ResultatRescousse } from "~/hooks/utiliser-activite";
 import { enregistrerActiviteLocale, lireActiviteLocale, type ActiviteLocale } from "~/stockage/activite-locale";
 
-/** Rescousses de la semaine (remises à 3 chaque lundi) et lieux gardés, enregistrés sur le téléphone à chaque changement. */
+/** Rescousses de la semaine (remises à 3 chaque lundi), lieux gardés, J'aime et masques, enregistrés sur le téléphone à chaque changement. */
 export function FournisseurActivite({ children }: { children: ReactNode }) {
-  const [activite, setActivite] = useState<ActiviteLocale>(() => ({ semaine: calculerCleSemaine(), rescousses: [], gardes: [] }));
+  const [activite, setActivite] = useState<ActiviteLocale>(() => ({ semaine: calculerCleSemaine(), rescousses: [], gardes: [], jaimes: [], masques: [] }));
   const chargee = useRef(false);
 
   useEffect(() => {
     lireActiviteLocale().then((lue) => {
       chargee.current = true;
       if (!lue) return;
-      // Nouvelle semaine : les rescousses reviennent, les lieux gardés restent
+      // Nouvelle semaine : les rescousses reviennent ; les lieux gardés, J'aime et masques restent
       const semaine = calculerCleSemaine();
-      setActivite(lue.semaine === semaine ? lue : { semaine, rescousses: [], gardes: lue.gardes });
+      setActivite(lue.semaine === semaine ? lue : { ...lue, semaine, rescousses: [] });
     });
   }, []);
 
@@ -48,6 +48,23 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
     [activite.gardes],
   );
 
+  const basculerJaime = useCallback(
+    (idPublication: string) => {
+      const aime = !activite.jaimes.includes(idPublication);
+      setActivite((a) => ({ ...a, jaimes: aime ? [...a.jaimes, idPublication] : a.jaimes.filter((id) => id !== idPublication) }));
+      return aime;
+    },
+    [activite.jaimes],
+  );
+
+  const aimer = useCallback((idPublication: string) => {
+    setActivite((a) => (a.jaimes.includes(idPublication) ? a : { ...a, jaimes: [...a.jaimes, idPublication] }));
+  }, []);
+
+  const masquer = useCallback((idPublication: string) => {
+    setActivite((a) => (a.masques.includes(idPublication) ? a : { ...a, masques: [...a.masques, idPublication] }));
+  }, []);
+
   const valeur = useMemo(
     () => ({
       restantes,
@@ -55,8 +72,13 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
       estGarde: (id: number) => activite.gardes.includes(id),
       basculerRescousse,
       basculerGarde,
+      aime: (id: string) => activite.jaimes.includes(id),
+      basculerJaime,
+      aimer,
+      estMasquee: (id: string) => activite.masques.includes(id),
+      masquer,
     }),
-    [restantes, activite, basculerRescousse, basculerGarde],
+    [restantes, activite, basculerRescousse, basculerGarde, basculerJaime, aimer, masquer],
   );
   return <ContexteActivite.Provider value={valeur}>{children}</ContexteActivite.Provider>;
 }
