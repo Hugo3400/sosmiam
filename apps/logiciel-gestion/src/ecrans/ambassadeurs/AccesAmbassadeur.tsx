@@ -1,17 +1,21 @@
-import { Copy, KeyRound, Mail, Trash2 } from "lucide-react";
+import { Copy, KeyRound, Mail, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { creerLienCourrielGroupe } from "~/fonctions/texte/creer-lien-courriel-groupe.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
-import { reinitialiserMotDePasse, supprimerCompteAmbassadeur, type FicheAmbassadeur } from "~/services/ambassadeurs.ts";
+import { reinitialiserMotDePasse, retirerDuProgramme, supprimerCompteAmbassadeur, type FicheAmbassadeur } from "~/services/ambassadeurs.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { copier, ouvrirLien } from "~/services/systeme.ts";
 
+/** onSupprime : le rôle ou le compte n'existe plus, la fiche se ferme */
 type Props = { fiche: FicheAmbassadeur; onSupprime: () => void };
 
-/** Le compte lui-même : mot de passe oublié (lien à lui transmettre), mail direct, suppression pour de bon. */
+/**
+ * Le compte lui-même : mot de passe oublié (lien à lui transmettre), mail direct, retrait du programme (le compte et l'app
+ * restent) ou suppression de tout le compte SOS Miam (un seul compte pour l'app, l'espace ambassadeur et l'espace pro).
+ */
 export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
   const [lien, setLien] = useState<{ adresse: string; expireLe: string } | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; texte: string | null }>({ enCours: false, texte: null });
@@ -32,9 +36,17 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
       setLien({ adresse, expireLe });
     });
 
+  const retirer = () =>
+    window.confirm(
+      `Retirer ${fiche.prenom} du programme ambassadeur ? Sa fiche d'ambassadeur, ses missions, ses messages et sa candidature fondateur partent. Son compte SOS Miam, l'app, ses points et ses badges restent.`,
+    ) && agir(async () => {
+      await retirerDuProgramme(fiche.id);
+      onSupprime();
+    });
+
   const supprimer = () =>
     window.confirm(
-      `Supprimer pour de bon le compte de ${fiche.prenom} ? Ses points, badges, missions, messages et candidature partent avec lui. Impossible de revenir en arrière.`,
+      `Supprimer TOUT le compte SOS Miam de ${fiche.prenom}, app comprise ? Points, badges, missions, messages, candidature : tout part. À faire seulement s'il le demande. Impossible de revenir en arrière.`,
     ) && agir(async () => {
       await supprimerCompteAmbassadeur(fiche.id);
       onSupprime();
@@ -50,7 +62,8 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
       <div className="flex flex-wrap gap-2">
         <Bouton petit icone={Mail} onClick={() => ouvrirLien(creerLienCourrielGroupe([fiche.email], "SOS Miam 🛟"))}>Écrire par mail</Bouton>
         <Bouton petit icone={KeyRound} chargement={etat.enCours && !lien} onClick={preparerLien}>Mot de passe oublié</Bouton>
-        <Bouton petit variante="danger" icone={Trash2} desactive={etat.enCours} onClick={supprimer}>Supprimer le compte</Bouton>
+        <Bouton petit icone={UserMinus} desactive={etat.enCours} onClick={retirer}>Retirer du programme</Bouton>
+        <Bouton petit variante="danger" icone={Trash2} desactive={etat.enCours} onClick={supprimer}>Supprimer tout le compte</Bouton>
       </div>
       {lien && (
         <div className="grid gap-2 rounded-xl bg-creme p-3 text-sm">

@@ -131,11 +131,14 @@ export default function ProfilPote() {
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
         {estMoi ? null : (
-          <View className="flex-row items-center gap-2 rounded-2xl bg-jaune-clair px-4 py-3">
+          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
               🧪
             </Text>
-            <Text className="flex-1 font-texte-semi text-sm leading-5 text-encre">{lierPonctuation("Potes d'exemple : tes vrais potes arriveront avec les comptes.")}</Text>
+            <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
+              <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
+              {lierPonctuation(" : tes vrais potes arriveront avec les comptes.")}
+            </Text>
           </View>
         )}
 
@@ -143,7 +146,9 @@ export default function ProfilPote() {
 
         {reserve ? (
           <View className="gap-1 rounded-2xl border-2 border-ligne bg-white px-4 py-4">
-            <Text className="font-texte-gras text-base text-encre">🔐 Profil réservé à sa bande</Text>
+            <Text accessibilityLabel="Profil réservé à sa bande" className="font-texte-gras text-base text-encre">
+              🔐 Profil réservé à sa bande
+            </Text>
             <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Pour ajouter cette personne, demande-lui son lien ou son QR code.")}</Text>
           </View>
         ) : null}

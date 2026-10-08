@@ -86,6 +86,8 @@ export const ajouterPoints = (id: number, points: number, detail: string) =>
   appeler<{ ok: true; points: number; palier: Palier }>("POST", `/ambassadeurs/${id}/points`, { corps: { points, detail } });
 export const changerPalierVille = (id: number, ville: boolean) => appeler<{ ok: true; palier: Palier }>("POST", `/ambassadeurs/${id}/palier-ville`, { corps: { ville } });
 export const reinitialiserMotDePasse = (id: number) => appeler<{ ok: true; lien: string; expireLe: string }>("POST", `/ambassadeurs/${id}/reinitialiser`, { corps: {} });
+export const retirerDuProgramme = (id: number) => appeler<{ ok: true }>("POST", `/ambassadeurs/${id}/retirer`, { corps: {} });
+/** Supprime tout le compte SOS Miam, app comprise (un seul compte pour l'app, l'espace ambassadeur et l'espace pro) */
 export const supprimerCompteAmbassadeur = (id: number) => appeler<{ ok: true }>("DELETE", `/ambassadeurs/${id}`);
 export const exporterAmbassadeurs = () => appeler<string>("GET", "/ambassadeurs/export", { reponse: "texte" });
 export const lireClassement = () => appeler<Classement>("GET", "/ambassadeurs/classement");

@@ -16,7 +16,7 @@ export const STATUTS_AMBASSADEUR: Record<StatutAmbassadeur, { libelle: string; t
 };
 
 export const BADGES: Record<string, string> = {
-  "premier-sauveteur": "🛟 Premier sauveteur",
+  "premier-sauveteur": "🚀 Premier sauveteur",
   "deniche-par-toi": "🔎 Déniché par toi",
   fondateur: "🏅 Fondateur",
 };

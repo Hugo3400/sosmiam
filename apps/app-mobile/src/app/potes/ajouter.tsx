@@ -40,11 +40,14 @@ export default function AjouterPote() {
 
   return (
     <EcranReglage titre="Ajouter un pote" sousTitre="Plus on est de fous, plus on sauve de lieux.">
-      <View className="mb-7 flex-row items-center gap-2 rounded-2xl bg-jaune-clair px-4 py-3">
+      <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
           🧪
         </Text>
-        <Text className="flex-1 font-texte-semi text-sm leading-5 text-encre">{lierPonctuation("Potes d'exemple : tes vrais potes arriveront avec les comptes.")}</Text>
+        <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
+          <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
+          {lierPonctuation(" : tes vrais potes arriveront avec les comptes.")}
+        </Text>
       </View>
 
       <SectionReglages titre="Ton QR code">

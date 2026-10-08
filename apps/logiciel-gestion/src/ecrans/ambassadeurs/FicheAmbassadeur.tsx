@@ -37,8 +37,8 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
   async function decider(statut: "actif" | "refuse" | "suspendu") {
     if (!fiche) return;
     const questions = {
-      refuse: `Refuser ${fiche.prenom} ? L'espace ambassadeur lui est fermé et ses connexions en cours sont coupées.`,
-      suspendu: `Suspendre ${fiche.prenom} ? Ses connexions sont coupées et l'espace lui reste fermé jusqu'à ce que tu réactives son compte.`,
+      refuse: `Refuser ${fiche.prenom} ? L'espace ambassadeur lui reste fermé ; son compte et l'app ne changent pas.`,
+      suspendu: `Suspendre ${fiche.prenom} ? L'espace ambassadeur lui est fermé tout de suite, jusqu'à ce que tu le réactives. Son compte et l'app ne changent pas.`,
       actif: null,
     };
     if (questions[statut] && !window.confirm(questions[statut])) return;
@@ -74,7 +74,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
                 <dt className="text-gris">Adresse</dt><dd className="truncate">{fiche.email}</dd>
                 <dt className="text-gris">Inscrit</dt><dd>{formaterDate(fiche.creeLe)}{fiche.ambassadeur?.decideLe && ` · décidé le ${formaterDate(fiche.ambassadeur.decideLe)}`}</dd>
-                <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(fiche.derniereConnexion)} · {fiche._count.sessions} connexion(s) ouverte(s)</dd>
+                <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(fiche.derniereConnexion)} · {fiche._count.sessions} connexion(s) ouverte(s), app comprise</dd>
                 <dt className="text-gris">Effacé le</dt><dd>{formaterDate(fiche.effaceLe)} s'il ne revient pas d'ici là</dd>
                 <dt className="text-gris">Conditions</dt><dd>acceptées (version du {fiche.cguVersion})</dd>
               </dl>
