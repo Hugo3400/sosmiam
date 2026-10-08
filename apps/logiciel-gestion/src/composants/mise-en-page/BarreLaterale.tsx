@@ -6,15 +6,13 @@ type Props = {
   ecran: Ecran;
   onChoisir: (ecran: Ecran) => void;
   poste: string;
-  /** Signalements à traiter, dont graves (publication masquée pour tous), demandes de lieux, ambassadeurs à valider */
-  moderation: { aTraiter: number; urgents: number; demandes: number; ambassadeurs: number };
-  /** Problèmes trouvés sur le serveur (programme arrêté, disque plein, sauvegarde manquante…) */
-  problemesServeur: number;
+  /** Pastille de chaque écran : combien attendent, ce que ça veut dire, et en rouge si c'est urgent */
+  pastilles: Partial<Record<Ecran, { nombre: number; libelle: string; urgent?: boolean }>>;
   onVerrouiller: () => void;
 };
 
 /** Le menu de gauche : les écrans, l'alerte de modération, le poste connecté et le cadenas. */
-export function BarreLaterale({ ecran, onChoisir, poste, moderation, problemesServeur, onVerrouiller }: Props) {
+export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouiller }: Props) {
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col bg-encre text-white">
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">
@@ -31,7 +29,7 @@ export function BarreLaterale({ ecran, onChoisir, poste, moderation, problemesSe
             <ul className="grid gap-0.5">
               {entrees.map(({ ecran: cible, libelle, icone: Icone, bientot }) => {
                 const choisi = cible === ecran;
-                const alerte = cible === "moderation" && moderation.aTraiter > 0;
+                const pastille = pastilles[cible];
                 return (
                   <li key={cible}>
                     <button
@@ -44,27 +42,12 @@ export function BarreLaterale({ ecran, onChoisir, poste, moderation, problemesSe
                     >
                       <Icone className="size-4 shrink-0" aria-hidden />
                       <span className="flex-1">{libelle}</span>
-                      {cible === "demandes" && moderation.demandes > 0 && (
-                        <span className={`chiffres rounded-full px-1.5 text-xs font-bold ${choisi ? "bg-encre text-jaune" : "bg-white/15"}`} aria-label={`${moderation.demandes} demande(s) à traiter`}>
-                          {moderation.demandes}
-                        </span>
-                      )}
-                      {cible === "ambassadeurs" && moderation.ambassadeurs > 0 && (
-                        <span className={`chiffres rounded-full px-1.5 text-xs font-bold ${choisi ? "bg-encre text-jaune" : "bg-white/15"}`} aria-label={`${moderation.ambassadeurs} inscription(s) ou candidature(s) à décider`}>
-                          {moderation.ambassadeurs}
-                        </span>
-                      )}
-                      {cible === "maintenance" && problemesServeur > 0 && (
-                        <span className="chiffres rounded-full bg-tomate px-1.5 text-xs font-bold text-white" aria-label={`${problemesServeur} problème(s) sur le serveur`}>
-                          {problemesServeur}
-                        </span>
-                      )}
-                      {alerte && (
+                      {pastille && pastille.nombre > 0 && (
                         <span
-                          className={`chiffres rounded-full px-1.5 text-xs font-bold ${moderation.urgents > 0 ? "animate-pulse bg-tomate text-white" : choisi ? "bg-encre text-jaune" : "bg-white/15"}`}
-                          aria-label={`${moderation.aTraiter} à traiter${moderation.urgents > 0 ? `, dont ${moderation.urgents} urgent${moderation.urgents > 1 ? "s" : ""}` : ""}`}
+                          className={`chiffres rounded-full px-1.5 text-xs font-bold ${pastille.urgent ? "animate-pulse bg-tomate text-white" : choisi ? "bg-encre text-jaune" : "bg-white/15"}`}
+                          aria-label={pastille.libelle}
                         >
-                          {moderation.aTraiter}
+                          {pastille.nombre}
                         </span>
                       )}
                     </button>
