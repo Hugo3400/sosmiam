@@ -20,8 +20,9 @@ export const links: Route.LinksFunction = () => [
 // Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
 export const middleware: Route.MiddlewareFunction[] = [
   async ({ request }, suite) => {
+    const debut = performance.now();
     const reponse = await suite();
-    if (reponse instanceof Response) signalerVue(request, reponse);
+    if (reponse instanceof Response) signalerVue(request, reponse, performance.now() - debut);
     return reponse;
   },
 ];

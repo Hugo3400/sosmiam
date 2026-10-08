@@ -31,7 +31,13 @@
 - **Recherche et filtres** : par nom, plat ou quartier ; type de lieu, ville, budget (€ à €€€), « ouvert maintenant ».
 - **SOS ce soir en tête** : les lieux en SOS ou en alerte, en carrousel au-dessus de la liste.
 - **La roulette** : « Tu sais pas où aller ? » tire un lieu au hasard parmi ceux qui correspondent aux filtres.
+- **Android après** (décidé le 8 octobre 2026) : on avance sur iPhone d'abord (Plans d'Apple, sans clé). Le fond de carte Android (Google Maps avec une clé, ou OpenStreetMap via un fournisseur) sera choisi à ce moment-là.
 - **Autour de moi** : tri par distance avec la position du téléphone, demandée seulement quand on touche le bouton, gardée le temps de l'écran, jamais enregistrée ni envoyée. Sans elle, la liste suit les envies (même score que le fil « Pour toi »).
+
+## Carte des lieux (décidé le 8 octobre 2026)
+- Chaque fiche de lieu montre sa **carte** (« 🍽️ La carte » ; « 🎟️ Les formules » pour une activité) : les plats phares sur la fiche, la carte complète sur un écran à part (sections, prix, repères végé / vegan / sans gluten / épicé / fait maison / local).
+- Les boissons alcoolisées de la carte sont masquées aux moins de 18 ans, comme le reste de l'alcool dans l'app. Prix indicatifs : le lieu a toujours le dernier mot.
+- Pour l'instant, cartes d'exemple dans l'app (`contenus/cartes-exemples.ts`) ; plus tard, chaque lieu remplit la sienne (espace pro), et elle servira aussi aux avis par plat.
 
 ## Signalements et modération (décidé le 8 octobre 2026)
 - Dans l'app, le menu « ⋯ » d'une publication → **Signaler** : une raison (faux lieu, pub cachée, arnaque, haine, violence ou contenu sexuel, danger, vie privée, contenu volé, autre chose), une précision facultative, puis le pourquoi avec ses mots (obligatoire pour « Autre chose »). Liste dans `apps/app-mobile/src/contenus/raisons-signalement.ts`, règles dans `packages/commun/src/regles/signalement.ts`.
@@ -73,4 +79,5 @@
 - Le site compte ses visites **côté serveur, sans cookie ni script** : pages vues, visites, visiteurs uniques par jour, semaine, mois et année, pages, provenances, appareils, navigateurs, systèmes, pays. Seulement des totaux, jamais d'adresse IP.
 - Visiteurs uniques : empreinte brouillée par un secret propre à chaque période, qui ne sert qu'à une esquisse HyperLogLog ; secret et esquisse effacés à la fin de la période. Détail par jour effacé au bout de 25 mois (conditions d'exemption de consentement de la CNIL).
 - Pas comptés : robots, préchargements, aperçu, signaux « Global Privacy Control » et « Do Not Track », et les personnes qui le refusent sur la page `/statistiques` (cookie de refus, 13 mois).
+- Depuis le 8 octobre au soir, aussi : langue du navigateur, région et ville approximatives (si le réglage « en-têtes de localisation du visiteur » est actif dans Cloudflare), jours et heures, parcours des visites (arrivée, sortie, rebond, durée ; gardé en mémoire 30 min au plus), campagnes (`?utm_campaign=`), clics des boutons de /liens (via /liens/aller/…), temps de réponse, pages introuvables, passages de robots (par leur nom). Tout reste des totaux ; la politique de confidentialité le décrit.
 - Plus tard, l'app enverra ses statistiques de la même façon (source « app »).

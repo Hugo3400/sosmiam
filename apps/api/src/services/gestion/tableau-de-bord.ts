@@ -1,7 +1,9 @@
 // Vue d'ensemble du logiciel de gestion : quelques chiffres de chaque partie, en une seule demande.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { calculerClesPeriodes } from "../../fonctions/dates/calculer-cles-periodes.ts";
 import { listerPeriodes } from "../../fonctions/dates/lister-periodes.ts";
 import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
+import { lireObjectifMois } from "./reglages.ts";
 
 const UN_JOUR = 86_400_000;
 
@@ -18,6 +20,9 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     urgents,
     beta,
     demandes,
+    objectif,
+    mois,
+    inscritsDuMois,
     lieux,
     publications,
     programmees,
@@ -38,6 +43,12 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.inscriptionNewsletter.count({ where: { beta: true } }),
     baseDeDonnees.demandeLieu.count({ where: { statut: "a-traiter" } }),
+    lireObjectifMois(),
+    baseDeDonnees.statPeriode.findMany({ where: { source: "site", type: "mois", cle: listerPeriodes("mois", 1, maintenant)[0]?.cle ?? "" }, select: { vues: true, visiteurs: true } }),
+    // Inscrits du mois en cours, à l'heure de Paris (marge d'un jour, puis tri exact par la clé du mois)
+    baseDeDonnees.inscriptionNewsletter
+      .findMany({ where: { premiereInscription: { gte: new Date(Date.parse(`${listerPeriodes("mois", 1, maintenant)[0]?.debut}T00:00:00Z`) - UN_JOUR) } }, select: { premiereInscription: true } })
+      .then((liste) => liste.filter((i) => calculerClesPeriodes(i.premiereInscription).mois === calculerClesPeriodes(maintenant).mois).length),
     baseDeDonnees.lieu.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.count({ where: { statut: "publiee", publieeLe: { gt: maintenant } } }),
@@ -54,6 +65,13 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     newsletter: { inscrits, recents: inscritsRecents, ambassadeurs, beta },
     moderation: { aTraiter: aModerer, urgents },
     demandes: { aTraiter: demandes },
+    objectif: objectif
+      ? {
+          ...objectif,
+          atteint: objectif.mesure === "inscriptions" ? inscritsDuMois : objectif.mesure === "vues" ? (mois[0]?.vues ?? 0) : (mois[0]?.visiteurs ?? 0),
+          mois: listerPeriodes("mois", 1, maintenant)[0] ?? null,
+        }
+      : null,
     lieux: compter(lieux),
     publications: { ...compter(publications), programmees },
     journal,

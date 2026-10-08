@@ -46,3 +46,41 @@ test("tailles et périodes lisibles", () => {
   assert.equal(nommerPeriode("2026"), "2026");
   assert.equal(nommerPeriode("2026-10-08"), "8 oct.");
 });
+
+import { construireGrilleCreneaux } from "../src/fonctions/statistiques/construire-grille-creneaux.ts";
+import { creerCsvStatistiques } from "../src/fonctions/statistiques/creer-csv-statistiques.ts";
+import { formaterDuree } from "../src/fonctions/texte/formater-duree.ts";
+import { nommerLangue } from "../src/fonctions/texte/nommer-langue.ts";
+
+test("la grille jours × heures range chaque créneau à sa place", () => {
+  const { grille, maximum } = construireGrilleCreneaux([{ valeur: "4-21", nombre: 5 }, { valeur: "1-0", nombre: 2 }, { valeur: "9-99", nombre: 7 }]);
+  assert.equal(grille[3]?.[21], 5);
+  assert.equal(grille[0]?.[0], 2);
+  assert.equal(maximum, 5);
+  assert.equal(grille.flat().reduce((a, b) => a + b, 0), 7);
+});
+
+test("durées et langues lisibles", () => {
+  assert.equal(formaterDuree(45), "45 s");
+  assert.equal(formaterDuree(155), "2 min 35 s");
+  assert.equal(formaterDuree(3900), "1 h 05");
+  assert.equal(nommerLangue("fr"), "Français");
+  assert.equal(nommerLangue("Inconnue"), "Inconnue");
+});
+
+test("l'export CSV des statistiques a une ligne par période puis les classements", () => {
+  const csv = creerCsvStatistiques(
+    {
+      echelle: "jour",
+      periodes: [{ cle: "2026-10-08", debut: "2026-10-08", fin: "2026-10-08", vues: 17, visites: 9, visiteurs: 7, visitesFinies: 8, rebonds: 3, dureeVisites: 400, tempsMoyen: 42 }],
+      precedentes: [],
+      conversions: [{ cle: "2026-10-08", inscriptions: 2, demandes: 1 }],
+      details: { page: [{ valeur: "=/piege", nombre: 3 }] },
+    },
+    { page: "Pages les plus vues" },
+  );
+  const lignes = csv.replace(/^﻿/, "").trim().split("\r\n");
+  assert.equal(lignes[1], "2026-10-08;2026-10-08;2026-10-08;7;9;17;8;3;400;42;2;1");
+  assert.equal(lignes[3], "Pages les plus vues;nombre");
+  assert.equal(lignes[4], `"'=/piege";3`);
+});

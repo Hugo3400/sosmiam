@@ -15,13 +15,19 @@ export type PointColonne = {
   details?: string[];
   /** Période pas encore finie : colonne plus claire */
   enCours?: boolean;
+  /** Valeur de la période correspondante juste avant (comparaison) */
+  avant?: number;
+  libelleAvant?: string;
 };
 
 const HAUTEUR = 220;
 const MARGE = { haut: 12, droite: 8, bas: 28, gauche: 44 };
 
-/** Colonnes d'une seule mesure dans le temps, avec info-bulle au survol et au clavier, et un tableau pour les lecteurs d'écran. */
-export function GraphiqueColonnes({ points, mesure }: { points: PointColonne[]; mesure: string }) {
+/**
+ * Colonnes d'une mesure dans le temps, avec info-bulle au survol et au clavier, et un tableau pour les lecteurs d'écran.
+ * `comparer` : chaque période a, juste à sa gauche, une colonne grise pour la même période d'avant (avec une légende).
+ */
+export function GraphiqueColonnes({ points, mesure, comparer = false }: { points: PointColonne[]; mesure: string; comparer?: boolean }) {
   const conteneur = useRef<HTMLDivElement>(null);
   const [largeur, setLargeur] = useState(640);
   const [actif, setActif] = useState<number | null>(null);
@@ -34,12 +40,13 @@ export function GraphiqueColonnes({ points, mesure }: { points: PointColonne[]; 
     return () => observateur.disconnect();
   }, []);
 
-  const graduations = calculerGraduations(Math.max(...points.map((p) => p.valeur), 0));
+  const graduations = calculerGraduations(Math.max(...points.map((p) => Math.max(p.valeur, comparer ? (p.avant ?? 0) : 0)), 0));
   const plafond = graduations[graduations.length - 1] ?? 1;
   const zoneL = largeur - MARGE.gauche - MARGE.droite;
   const zoneH = HAUTEUR - MARGE.haut - MARGE.bas;
   const bande = zoneL / Math.max(points.length, 1);
-  const epaisseur = Math.max(2, Math.min(24, bande - 2));
+  // Avec comparaison, deux colonnes par période (2 px d'écart entre elles)
+  const epaisseur = Math.max(2, Math.min(comparer ? 14 : 24, comparer ? (bande - 6) / 2 : bande - 2));
   const y = (valeur: number) => MARGE.haut + zoneH - (valeur / plafond) * zoneH;
   // Un libellé d'axe toutes les n colonnes, pour qu'ils ne se chevauchent pas
   const pasLibelles = Math.max(1, Math.ceil(48 / bande));
@@ -57,12 +64,21 @@ export function GraphiqueColonnes({ points, mesure }: { points: PointColonne[]; 
           </g>
         ))}
         {points.map((p, i) => {
-          const x = MARGE.gauche + i * bande + (bande - epaisseur) / 2;
+          const x = MARGE.gauche + i * bande + (comparer ? bande / 2 + 1 : (bande - epaisseur) / 2);
           const hauteur = Math.max(0, MARGE.haut + zoneH - y(p.valeur));
           const rayon = Math.min(4, hauteur, epaisseur / 2);
           const bas = MARGE.haut + zoneH;
+          const xAvant = MARGE.gauche + i * bande + bande / 2 - 1 - epaisseur;
+          const hauteurAvant = comparer ? Math.max(0, MARGE.haut + zoneH - y(p.avant ?? 0)) : 0;
+          const rayonAvant = Math.min(4, hauteurAvant, epaisseur / 2);
           return (
             <g key={p.cle}>
+              {hauteurAvant > 0 && (
+                <path
+                  d={`M${xAvant},${bas} V${bas - hauteurAvant + rayonAvant} Q${xAvant},${bas - hauteurAvant} ${xAvant + rayonAvant},${bas - hauteurAvant} H${xAvant + epaisseur - rayonAvant} Q${xAvant + epaisseur},${bas - hauteurAvant} ${xAvant + epaisseur},${bas - hauteurAvant + rayonAvant} V${bas} Z`}
+                  fill="#B8B2A6"
+                />
+              )}
               {hauteur > 0 && (
                 <path
                   d={`M${x},${bas} V${bas - hauteur + rayon} Q${x},${bas - hauteur} ${x + rayon},${bas - hauteur} H${x + epaisseur - rayon} Q${x + epaisseur},${bas - hauteur} ${x + epaisseur},${bas - hauteur + rayon} V${bas} Z`}
@@ -71,7 +87,7 @@ export function GraphiqueColonnes({ points, mesure }: { points: PointColonne[]; 
                 />
               )}
               {i % pasLibelles === 0 && (
-                <text x={x + epaisseur / 2} y={HAUTEUR - 8} textAnchor="middle" className="fill-gris text-[11px]">{p.libelle}</text>
+                <text x={MARGE.gauche + i * bande + bande / 2} y={HAUTEUR - 8} textAnchor="middle" className="fill-gris text-[11px]">{p.libelle}</text>
               )}
               {/* Zone de survol : toute la hauteur de la bande, plus facile à viser que la colonne */}
               <rect
@@ -102,14 +118,23 @@ export function GraphiqueColonnes({ points, mesure }: { points: PointColonne[]; 
           <p className="font-bold first-letter:uppercase">{point.libelleLong}{point.enCours ? " (en cours)" : ""}</p>
           <p className="chiffres">{formaterNombre(point.valeur)} {mesure.toLowerCase()}</p>
           {point.details?.map((ligne) => <p key={ligne} className="chiffres text-gris">{ligne}</p>)}
+          {comparer && point.avant !== undefined && (
+            <p className="chiffres mt-1 border-t border-ligne pt-1 text-gris">Période d'avant{point.libelleAvant ? ` (${point.libelleAvant})` : ""} : {formaterNombre(point.avant)}</p>
+          )}
         </div>
       )}
 
+      {comparer && (
+        <p className="mt-1 flex flex-wrap gap-4 text-[13px] text-gris">
+          <span className="inline-flex items-center gap-1.5"><span className="size-3 rounded-sm bg-graphique" aria-hidden /> Période affichée</span>
+          <span className="inline-flex items-center gap-1.5"><span className="size-3 rounded-sm bg-[#B8B2A6]" aria-hidden /> Période d'avant</span>
+        </p>
+      )}
       <table className="sr-only">
         <caption>{mesure}</caption>
-        <thead><tr><th scope="col">Période</th><th scope="col">{mesure}</th></tr></thead>
+        <thead><tr><th scope="col">Période</th><th scope="col">{mesure}</th>{comparer && <th scope="col">Période d'avant</th>}</tr></thead>
         <tbody>
-          {points.map((p) => <tr key={p.cle}><th scope="row">{p.libelleLong}</th><td>{p.valeur}</td></tr>)}
+          {points.map((p) => <tr key={p.cle}><th scope="row">{p.libelleLong}</th><td>{p.valeur}</td>{comparer && <td>{p.avant ?? 0}</td>}</tr>)}
         </tbody>
       </table>
     </div>

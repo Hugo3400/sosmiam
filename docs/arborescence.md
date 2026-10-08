@@ -58,7 +58,7 @@ sos-miam/
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
 | `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
-| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes…) |
+| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix…) |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/stockage/` | données gardées sur le téléphone (profil, avatar, activité, signalements en attente de l'API, préférences de notifications) |
@@ -74,7 +74,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/Application.tsx`, `src/main.tsx` | connexion (premier lancement, autorisation, déverrouillage), menu et écran choisi |
 | `src/ecrans/connexion/` | premier lancement (mot de passe), autorisation du poste sur le serveur, déverrouillage (mot de passe + code à 6 chiffres) |
 | `src/ecrans/tableau-de-bord/` | vue d'ensemble : visites, newsletter, modération, contenus, dernières actions |
-| `src/ecrans/statistiques/` | visites du site (et plus tard de l'app) par jour, semaine, mois, année ; pages, provenances, appareils, pays |
+| `src/ecrans/statistiques/` | visites du site (et plus tard de l'app) par jour, semaine, mois, année : en direct, jours × heures, parcours (arrivée, sortie, rebond, durée), provenances et campagnes, clics de /liens, appareils, langues, pays, régions, villes, conversions, vitesse, 404, robots ; comparaison et export CSV |
 | `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription) et rédaction des newsletters avec aperçu de l'e-mail |
 | `src/ecrans/lieux/` | fiches des lieux : liste, formulaire complet, créneaux d'ouverture, aperçu |
 | `src/ecrans/publications/` | fil « Pour toi » : publications, vidéos et photos, programmation, aperçu façon téléphone |
@@ -88,7 +88,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…), menu, bandeau de mise à jour |
 | `src/contenus/` | menu du logiciel, libellés des raisons de signalement |
 | `src/fonctions/securite/` | clé Ed25519 du poste, coffre chiffré par le mot de passe, message signé (même format que l'API) |
-| `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `publications/` | fonctions pures, une par fichier (formats, graduations, Markdown → e-mail…) |
+| `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `publications/`, `statistiques/`, `maintenance/` | fonctions pures, une par fichier (formats, graduations, Markdown → e-mail, grille jours × heures, export CSV, problèmes du serveur…) |
 | `src/services/` | client signé de l'API (`client-gestion.ts`) et un fichier par partie ; `systeme.ts` pour Windows (fichiers, notifications) |
 | `src/hooks/` | chargement des données, médias signés, verrouillage après inactivité, alertes de modération |
 | `src/stockage/` | le coffre (clé du poste chiffrée), gardé dans le profil Windows |

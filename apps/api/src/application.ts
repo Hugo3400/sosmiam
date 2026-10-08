@@ -22,6 +22,8 @@ type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
   /** Statistiques de visite (route absente si non fournie) */
   enregistrerVue?: (vue: Vue) => Promise<void>;
+  /** Clics des boutons de la page /liens */
+  enregistrerClic?: (cible: string) => Promise<void>;
   enregistrerSignalement?: (signalement: SignalementRecu) => Promise<void>;
   /** Commune qui contient une position, pour le bouton « Me localiser » du formulaire (route absente si non fournie) */
   trouverCommune?: (latitude: number, longitude: number) => Promise<Commune | null>;
@@ -36,7 +38,7 @@ type Dependances = {
 };
 
 export function creerApplication({
-  enregistrerInscription, enregistrerVue, enregistrerSignalement, trouverCommune, listerLieuxPublics, enregistrerDemandeLieu, bot, gestion,
+  enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, enregistrerDemandeLieu, bot, gestion,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -52,7 +54,7 @@ export function creerApplication({
   if (listerLieuxPublics) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics));
   if (enregistrerDemandeLieu) application.use("/demandes-lieux", creerRoutesDemandesLieux(enregistrerDemandeLieu));
   if (bot) application.use("/bot", creerRoutesBot(bot));
-  if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue));
+  if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
   if (enregistrerSignalement) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
 
   application.use((_requete, reponse) => {

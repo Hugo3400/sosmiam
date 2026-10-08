@@ -15,10 +15,12 @@ export type DependancesGestion = {
   horloge?: () => number;
   /** Où garder les sessions (la base en vrai ; en mémoire si absent) */
   sessions?: StockageSessions;
+  /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
+  lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services);
   const routes = Router();
@@ -54,6 +56,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions }: D
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/maj/jeton", (_requete, reponse) => void reponse.json(creerJetonMaj()));
   routes.get("/statistiques", c.statistiques);
+  routes.get("/statistiques/direct", (requete, reponse) => {
+    reponse.json(lireDirect ? lireDirect(requete.query.source === "app" ? "app" : "site") : { visites: 0, pages: [] });
+  });
+  routes.get("/objectif", c.objectif);
+  routes.put("/objectif", c.fixerObjectif);
   routes.get("/journal", c.journal);
 
   routes.get("/newsletter/inscrits", c.inscrits);

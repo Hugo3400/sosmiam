@@ -2,14 +2,42 @@ import { appeler, parametres } from "./client-gestion.ts";
 
 export type Echelle = "jour" | "semaine" | "mois" | "annee";
 export type SourceStatistiques = "site" | "app";
-export type Dimension = "page" | "provenance" | "appareil" | "navigateur" | "systeme" | "pays";
+export type Dimension =
+  | "page" | "provenance" | "appareil" | "navigateur" | "systeme" | "pays"
+  | "entree" | "sortie" | "campagne" | "langue" | "region" | "ville" | "creneau"
+  | "clic" | "robot" | "introuvable" | "temps" | "lente";
 
-export type PeriodeStatistiques = { cle: string; debut: string; fin: string; vues: number; visites: number; visiteurs: number };
+export type PeriodeStatistiques = {
+  cle: string;
+  debut: string;
+  fin: string;
+  vues: number;
+  visites: number;
+  visiteurs: number;
+  /** Visites terminées, dont celles d'une seule page (rebonds), et leur durée totale en secondes */
+  visitesFinies: number;
+  rebonds: number;
+  dureeVisites: number;
+  /** Temps de réponse moyen du serveur, en millisecondes (null si rien de mesuré) */
+  tempsMoyen: number | null;
+};
+export type ConversionsPeriode = { cle: string; inscriptions: number; demandes: number };
+export type Classement = { valeur: string; nombre: number }[];
+
 export type Statistiques = {
   echelle: Echelle;
   periodes: PeriodeStatistiques[];
-  details: Partial<Record<Dimension, { valeur: string; nombre: number }[]>>;
+  /** Les mêmes périodes juste avant, pour comparer */
+  precedentes: PeriodeStatistiques[];
+  conversions: ConversionsPeriode[];
+  details: Partial<Record<Dimension, Classement>>;
 };
+export type EnDirect = { visites: number; pages: Classement };
+export type ObjectifMois = { mesure: "visiteurs" | "vues" | "inscriptions"; valeur: number };
 
 export const lireStatistiques = (source: SourceStatistiques, echelle: Echelle, nombre: number) =>
   appeler<Statistiques>("GET", `/statistiques${parametres({ source, echelle, nombre })}`);
+export const lireEnDirect = (source: SourceStatistiques = "site") => appeler<EnDirect>("GET", `/statistiques/direct${parametres({ source })}`);
+export const lireObjectif = () => appeler<ObjectifMois | null>("GET", "/objectif");
+export const fixerObjectif = (objectif: ObjectifMois | null) =>
+  appeler<{ ok: true }>("PUT", "/objectif", { corps: objectif ?? { valeur: null } });

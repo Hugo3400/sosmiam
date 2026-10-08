@@ -6,7 +6,7 @@
 // 1. sectionAppAujourdhui : à intégrer dès que l'app est distribuée, même en test (TestFlight, Play Console).
 //    En l'intégrant dans confidentialite.ts, mettre aussi à jour : l'introduction (« l'app est en développement, et il n'y a
 //    ni compte ni pub ») ; une puce « L'app » dans « En bref » ; la section « destinataires » (géocodage d'Apple ou de Google,
-//    seulement si on autorise la position ; fond de carte d'Explorer : Plans d'Apple sur iPhone, Android à confirmer) ;
+//    seulement si on autorise la position ; fond de carte d'Explorer : Plans d'Apple sur iPhone, Android à décider par Hugo) ;
 //    la puce « L'app mobile » de « Ce qui arrivera plus tard » (garder le compte).
 // 2. sectionAppAvecComptes : à intégrer seulement le jour où la version à comptes sort, en remplaçant la première.
 //    Les repères « À DÉCIDER » et « À COMPLÉTER » doivent tous disparaître avant. Elle ne parle pas encore de la messagerie
@@ -25,7 +25,7 @@ export const sectionAppAujourdhui: SectionLegale = {
         "**Ta photo de profil, ton activité, tes signalements et tes préférences de notifications** : gardés dans les fichiers de l'app, sur ton téléphone. L'app ne les chiffre pas.",
         "**L'appareil photo et tes photos** : seulement si tu choisis une photo de profil. L'app ne reçoit que la photo que tu choisis (pas ta galerie), et ton téléphone te demande ton accord avant d'ouvrir l'appareil photo. La photo reste sur ton téléphone.",
         "**Ta position** : seulement si tu l'autorises et quand tu le demandes, pour trouver le nom de ta ville à l'inscription (cette conversion passe par le service de géocodage d'Apple sur iPhone ou de Google sur Android, selon leurs propres règles) ou pour te montrer les lieux autour de toi dans Explorer (le calcul se fait sur ton téléphone). L'app ne garde jamais ta position : seulement le nom de ta ville.",
-        "**La carte d'Explorer** : sur iPhone, le fond de carte est affiché par Plans d'Apple, qui reçoit la zone que tu regardes pour la dessiner, selon ses propres règles. **[À COMPLÉTER : le fond de carte sur Android, à confirmer par sos-miam-e9]**",
+        "**La carte d'Explorer** : sur iPhone, le fond de carte est affiché par Plans d'Apple, qui reçoit la zone que tu regardes pour la dessiner, selon ses propres règles. **[À DÉCIDER PAR HUGO avant toute version Android : le fond de carte sur Android, Google Maps (Google reçoit la zone affichée) ou OpenStreetMap (selon le fournisseur de tuiles) ; voir sos-miam-e9]**",
         "**L'âge** : l'app est ouverte à partir de 15 ans. Si tu as moins de 15 ans, elle ne garde qu'une chose : la date de tes 15 ans, dans le coffre-fort chiffré du téléphone (sur iPhone, elle reste même si tu supprimes l'app). L'inscription reste fermée sur ce téléphone jusqu'à ce jour-là ; la date de naissance que tu as donnée, elle, n'est pas gardée.",
         "**Ce que l'app ne fait pas** : pas de compte, pas de publicité, pas de suivi publicitaire, pas d'accès à tes contacts, et pas d'outil de suivi des plantages pour l'instant.",
         "**Tout effacer** : dans les réglages de l'app, « Effacer mes données et recommencer » efface tout ce que l'app a gardé, sauf la date de tes 15 ans si l'âge a bloqué l'inscription : elle s'efface toute seule ce jour-là. Sur iPhone, supprimer l'app ne vide pas le Trousseau : utilise d'abord ce bouton.",

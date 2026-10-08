@@ -29,12 +29,13 @@ void vider(); // ferme tout de suite les périodes terminées pendant que l'API 
 const serveur = creerApplication({
   enregistrerInscription,
   enregistrerVue: compteur.enregistrerVue,
+  enregistrerClic: (cible: string) => compteur.enregistrerClic("site", cible),
   enregistrerSignalement,
   trouverCommune,
   listerLieuxPublics,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
-  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions },
+  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source) },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });
@@ -45,7 +46,8 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     clearInterval(minuteur);
     arreterSauvegardes();
     serveur.close(() => {
-      vider().finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));
+      // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus
+      compteur.vider(new Date(), true).catch(() => {}).finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));
     });
   });
 }

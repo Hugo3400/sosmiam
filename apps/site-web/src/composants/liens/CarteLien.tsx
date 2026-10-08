@@ -17,7 +17,8 @@ type Props = {
 export function CarteLien({ lien }: Props) {
   return (
     <a
-      href={lien.adresse}
+      // Passe par /liens/aller/… pour compter le clic (statistiques sans cookie), puis redirige vers lien.adresse
+      href={`/liens/aller/${lien.reseau}`}
       className="group flex items-center gap-4 rounded-carte border-2 border-encre bg-white p-4 shadow-brut
         transition-[translate,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brut-grand
         active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre"

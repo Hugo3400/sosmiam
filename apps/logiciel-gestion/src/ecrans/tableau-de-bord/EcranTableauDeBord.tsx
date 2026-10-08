@@ -13,6 +13,8 @@ import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { nommerPeriode } from "~/fonctions/texte/nommer-periode.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { lireTableauDeBord } from "~/services/tableau-de-bord.ts";
+import { CarteEnDirect } from "~/ecrans/statistiques/CarteEnDirect.tsx";
+import { CarteObjectif } from "./CarteObjectif.tsx";
 
 const ecart = (aujourdhui: number, hier: number) => (hier === 0 ? null : ((aujourdhui - hier) / hier) * 100);
 const jourDuJour = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -64,6 +66,11 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
             <TuileChiffre libelle="Pages vues aujourd'hui" valeur={aujourdhui.vues} ecart={{ pourcentage: ecart(aujourdhui.vues, hier.vues), reference: "par rapport à hier" }} />
             <TuileChiffre libelle="Visiteurs cette semaine" valeur={donnees.visites.semaine.visiteurs} detail={`${formaterNombre(donnees.visites.semaine.visites)} visites, ${formaterNombre(donnees.visites.semaine.vues)} pages vues`} />
             <TuileChiffre libelle="Inscrits à la newsletter" valeur={donnees.newsletter.inscrits} detail={`+${formaterNombre(donnees.newsletter.recents)} ces 7 derniers jours`} />
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <CarteObjectif objectif={donnees.objectif} onChange={recharger} />
+            <CarteEnDirect />
           </div>
 
           <Carte titre="Visiteurs, 14 derniers jours" actions={<Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("statistiques")}>Toutes les statistiques</Bouton>}>

@@ -6,7 +6,7 @@ import type { Echelle } from "../../fonctions/dates/lister-periodes.ts";
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { TypeMedia } from "../../services/gestion/medias.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
-import { ChampInvalide, lireChoix, lireId, lireParametre, lireTexte } from "./lire-champs.ts";
+import { ChampInvalide, lireChoix, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
 import { lireIds, lireLieuSaisi, lireModificationLot } from "./lire-lieu.ts";
 import { lirePublicationSaisie } from "./lire-publication.ts";
 
@@ -48,6 +48,21 @@ export function creerControleursGestion(s: ServicesGestion) {
       reponse.json(await s.lireStatistiques(source, echelle, nombre));
     }),
 
+    objectif: verifier(async (_requete, reponse) => reponse.json(await s.lireObjectifMois())),
+    fixerObjectif: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      if (corps.valeur === null) {
+        await s.ecrireObjectifMois(null);
+        await noter(reponse, "Objectif du mois retiré");
+        return reponse.json({ ok: true });
+      }
+      const mesure = lireChoix(corps, "mesure", ["visiteurs", "vues", "inscriptions"] as const);
+      const valeur = lireNombre(corps, "valeur", 1, 1e9);
+      if (valeur === null) throw new ChampInvalide("valeur");
+      await s.ecrireObjectifMois({ mesure, valeur });
+      await noter(reponse, "Objectif du mois fixé", `${valeur} ${mesure}`);
+      reponse.json({ ok: true });
+    }),
     journal: verifier(async (requete, reponse) => reponse.json(await s.listerJournal(Math.max(1, lireId(requete.query.page) ?? 1)))),
 
     // ─── Newsletter ───

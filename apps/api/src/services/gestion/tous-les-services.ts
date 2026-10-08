@@ -15,6 +15,7 @@ import {
   changerStatutPublication, creerPublication, lirePublication, listerPublications, modifierPublication, supprimerPublication,
 } from "./publications.ts";
 import { lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde } from "./sauvegardes.ts";
+import { ecrireObjectifMois, lireObjectifMois } from "./reglages.ts";
 import { lireStatistiques } from "./statistiques.ts";
 import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
@@ -31,6 +32,7 @@ export const servicesGestion = {
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,
+  lireObjectifMois, ecrireObjectifMois,
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
 };

@@ -21,6 +21,7 @@ import { utiliserAlertesModeration } from "~/hooks/utiliser-alertes-moderation.t
 import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
 import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
 import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
+import { utiliserResumeSemaine } from "~/hooks/utiliser-resume-semaine.ts";
 import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts";
 import { fermerSession } from "~/services/session.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
@@ -41,6 +42,7 @@ export function Application() {
   const moderation = utiliserAlertesModeration(connecte);
   const alertesServeur = utiliserAlertesServeur(connecte);
   const miseAJour = utiliserMiseAJour(connecte);
+  utiliserResumeSemaine(connecte);
 
   // Session fermée par le serveur (inactivité, redémarrage) : la clé reste ouverte, seul le code est redemandé
   useEffect(() => {
