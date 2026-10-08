@@ -44,8 +44,8 @@ const AGRANDISSEMENT_MAX = 1.4;
 const AGRANDISSEMENT_MAX_PASTILLE = 1.2;
 // Fondu sur le bord de la bande quand des onglets y sont coupés : on devine qu'elle défile
 const LARGEUR_FONDU = 24;
-const FONDU_DROITE = ["rgba(0,0,0,0)", "rgba(0,0,0,0.45)"] as const;
-const FONDU_GAUCHE = ["rgba(0,0,0,0.45)", "rgba(0,0,0,0)"] as const;
+const FONDU_DROITE = ["rgba(0,0,0,0)", "rgba(0,0,0,0.3)"] as const;
+const FONDU_GAUCHE = ["rgba(0,0,0,0.3)", "rgba(0,0,0,0)"] as const;
 const HORIZONTAL = { debut: { x: 0, y: 0 }, fin: { x: 1, y: 0 } };
 
 type Mesure = { x: number; largeur: number };
