@@ -17,7 +17,7 @@ export function meta(_: Route.MetaArgs) {
 
 /**
  * Page /liens : le mini-site à mettre en bio TikTok et Instagram (liens dans src/contenus/liens-publics.ts).
- * Cadre à elle, sans le menu du site, car elle est servie aussi derrière la page « Bientôt » de sosmiam.fr.
+ * Cadre à elle, sans le menu du site : on y arrive depuis une bio, elle va droit aux liens.
  */
 export default function PageLiens() {
   return (

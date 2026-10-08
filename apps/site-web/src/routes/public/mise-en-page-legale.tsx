@@ -6,8 +6,9 @@ import { PiedDePageLegal } from "~/composants/mise-en-page/PiedDePageLegal";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
 
 /**
- * Cadre des pages légales : simple, sans le menu du site, car ces pages sont aussi servies derrière
- * la page « Bientôt » de sosmiam.fr. Les liens sont des <a> classiques (rechargement complet) pour la même raison.
+ * Cadre des pages légales : simple, sans le menu du site, pour une lecture sans distraction.
+ * Les liens sont des <a> classiques (rechargement complet), hérités de l'époque où ces pages étaient servies
+ * derrière la page « Bientôt » ; des <Link> marcheraient aussi maintenant que tout le site est en ligne.
  */
 export default function MiseEnPageLegale() {
   // Liens du sommaire sans « # » dans l'adresse

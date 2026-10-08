@@ -2,8 +2,8 @@ import { liensLegaux } from "~/contenus/legal/liens-legaux";
 import { site } from "~/contenus/legal/informations-legales";
 
 /**
- * Pied de page simple des pages servies aussi derrière la page « Bientôt » de sosmiam.fr (pages légales, /liens).
- * Les liens sont des <a> classiques (rechargement complet) pour la même raison.
+ * Pied de page simple des pages légales et de /liens.
+ * Les liens sont des <a> classiques (rechargement complet), hérités de l'époque de la page « Bientôt ».
  */
 export function PiedDePageLegal() {
   return (
