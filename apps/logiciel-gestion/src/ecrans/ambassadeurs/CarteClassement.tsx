@@ -6,11 +6,12 @@ import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { lireClassement } from "~/services/ambassadeurs.ts";
 import { RangsAmbassadeurs } from "./RangsAmbassadeurs.tsx";
 
-const moisEnCours = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "Europe/Paris" }).format(new Date());
+const mois = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "Europe/Paris" });
 
 /** Classement des ambassadeurs actifs : le mois en cours (de quoi féliciter) et depuis le début. */
 export function CarteClassement({ onOuvrirCompte, tour }: { onOuvrirCompte: (id: number) => void; tour: number }) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireClassement, [tour]);
+  const moisEnCours = mois.format(new Date());
   return (
     <div className="grid gap-5 xl:grid-cols-2">
       <div className="xl:col-span-2"><MessageErreur erreur={erreur} reessayer={recharger} /></div>
