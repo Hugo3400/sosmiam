@@ -25,7 +25,33 @@ const ABREVIATIONS = new Map([
 /** Rang d'une correspondance : 0 nom entier, 1 début du nom, 2 début d'un mot du milieu, 3 milieu d'un mot */
 type Trouvaille = { commune: CommuneIndexee; rang: number };
 
-/** Premier nom dont la clé est au moins `cle` (les noms sont triés par clé) */
+/** Négatif si `a` passe avant `b` : meilleur rang, puis la plus peuplée, puis le nom et le code */
+function comparer(a: Trouvaille, b: Trouvaille): number {
+  const { commune: x } = a;
+  const { commune: y } = b;
+  return a.rang - b.rang || y.population - x.population || x.nom.localeCompare(y.nom, "fr") || (x.code < y.code ? -1 : x.code > y.code ? 1 : 0);
+}
+
+/** Garde les `nombre` meilleures trouvailles, triées et une seule fois chaque commune, sans tout trier à la fin */
+function retenir(meilleures: Trouvaille[], nombre: number, commune: CommuneIndexee, rang: number): void {
+  if (meilleures.length >= nombre) {
+    const derniere = meilleures[meilleures.length - 1];
+    if (rang > derniere.rang || (rang === derniere.rang && commune.population < derniere.commune.population)) return;
+  }
+  const trouvaille = { commune, rang };
+  const deja = meilleures.findIndex((autre) => autre.commune === commune);
+  if (deja >= 0) {
+    if (comparer(trouvaille, meilleures[deja]) >= 0) return;
+    meilleures.splice(deja, 1);
+  }
+  let place = meilleures.length;
+  while (place > 0 && comparer(trouvaille, meilleures[place - 1]) < 0) place--;
+  if (place >= nombre) return;
+  meilleures.splice(place, 0, trouvaille);
+  if (meilleures.length > nombre) meilleures.pop();
+}
+
+/** Premier nom dont la clé vient au plus tôt après `cle` (les noms sont triés par clé) */
 function premierAPartirDe(noms: NomIndexe[], cle: string): number {
   let bas = 0;
   let haut = noms.length;
@@ -33,6 +59,18 @@ function premierAPartirDe(noms: NomIndexe[], cle: string): number {
     const milieu = (bas + haut) >>> 1;
     if (noms[milieu].cle < cle) bas = milieu + 1;
     else haut = milieu;
+  }
+  return bas;
+}
+
+/** Rang de la commune dont la clé contient cette position du texte de l'index */
+function rangALaPosition(debuts: Int32Array, position: number): number {
+  let bas = 0;
+  let haut = debuts.length - 1;
+  while (bas < haut) {
+    const milieu = (bas + haut + 1) >>> 1;
+    if (debuts[milieu] <= position) bas = milieu;
+    else haut = milieu - 1;
   }
   return bas;
 }
@@ -46,8 +84,9 @@ function vue(commune: CommuneIndexee, codePostal: string | null): CommuneTrouvee
  * Communes qui répondent à ce qui est tapé, sans tenir compte des accents, des majuscules ni des tirets ; « st » et
  * « ste » valent aussi « saint » et « sainte ». Un code postal à 5 chiffres donne ses communes. Le nom entier passe
  * avant le début du nom, qui passe avant le début d'un mot du milieu (« Denis » pour Saint-Denis), puis avant le milieu
- * d'un mot ; à égalité, la commune la plus peuplée d'abord. « Lyon 3 » ou « Paris 11 » trouvent l'arrondissement, rendu
- * comme sa commune. Texte vide ou de plus de 80 caractères : liste vide. `limite` : 8 par défaut, 20 au plus.
+ * d'un mot ; à égalité, la commune la plus peuplée d'abord. Le nom compte aussi sans son article (« Mans » est le nom
+ * entier de Le Mans). « Lyon 3 » ou « Paris 11 » trouvent l'arrondissement, rendu comme sa commune. Texte vide ou de
+ * plus de 80 caractères : liste vide. `limite` : 8 par défaut, 20 au plus.
  */
 export function chercherCommunes(texte: string, limite = LIMITE_PAR_DEFAUT, index?: IndexCommunes): CommuneTrouvee[] {
   if (typeof texte !== "string" || texte.length > LONGUEUR_MAX) return [];
@@ -61,29 +100,31 @@ export function chercherCommunes(texte: string, limite = LIMITE_PAR_DEFAUT, inde
 
   const mots = normaliserNomCommune(texte).split(" ").filter(Boolean);
   if (mots.length === 0) return [];
-  const { noms, mots: finsDeNom } = index ?? chargerIndexCommunes();
+  const { noms, mots: finsDeNom, texte: toutesLesCles, debuts, communesDuTexte } = index ?? chargerIndexCommunes();
   const cles = new Set([mots.map((mot) => ABREVIATIONS.get(mot) ?? mot).join(""), mots.join("")]);
+  const meilleures: Trouvaille[] = [];
 
-  const trouvailles = new Map<string, Trouvaille>();
-  const noter = (commune: CommuneIndexee, rang: number) => {
-    const deja = trouvailles.get(commune.code);
-    if (!deja || rang < deja.rang) trouvailles.set(commune.code, { commune, rang });
-  };
-  // Les rangs suivants ne servent que s'il reste de la place : ils passent toujours après les précédents.
   for (const cle of cles) {
-    for (let i = premierAPartirDe(noms, cle); i < noms.length && noms[i].cle.startsWith(cle); i++) noter(noms[i].commune, noms[i].cle === cle ? 0 : 1);
-  }
-  if (trouvailles.size < nombre) {
-    for (const cle of cles) {
-      for (let i = premierAPartirDe(finsDeNom, cle); i < finsDeNom.length && finsDeNom[i].cle.startsWith(cle); i++) noter(finsDeNom[i].commune, 2);
+    for (let i = premierAPartirDe(noms, cle); i < noms.length && noms[i].cle.startsWith(cle); i++) {
+      retenir(meilleures, nombre, noms[i].commune, noms[i].cle === cle ? 0 : 1);
     }
   }
-  if (trouvailles.size < nombre) {
-    for (const cle of cles) for (const nom of noms) if (!nom.arrondissement && nom.cle.includes(cle)) noter(nom.commune, 3);
+  // Les rangs suivants passent toujours après : inutile de les chercher quand la liste est déjà pleine.
+  if (meilleures.length < nombre) {
+    for (const cle of cles) {
+      for (let i = premierAPartirDe(finsDeNom, cle); i < finsDeNom.length && finsDeNom[i].cle.startsWith(cle); i++) {
+        retenir(meilleures, nombre, finsDeNom[i].commune, 2);
+      }
+    }
   }
-
-  return [...trouvailles.values()]
-    .sort((a, b) => a.rang - b.rang || b.commune.population - a.commune.population || a.commune.nom.localeCompare(b.commune.nom, "fr") || (a.commune.code < b.commune.code ? -1 : 1))
-    .slice(0, nombre)
-    .map(({ commune }) => vue(commune, null));
+  if (meilleures.length < nombre) {
+    for (const cle of cles) {
+      for (let position = toutesLesCles.indexOf(cle); position !== -1; ) {
+        const rang = rangALaPosition(debuts, position);
+        retenir(meilleures, nombre, communesDuTexte[rang], 3);
+        position = rang + 1 < debuts.length ? toutesLesCles.indexOf(cle, debuts[rang + 1]) : -1;
+      }
+    }
+  }
+  return meilleures.map(({ commune }) => vue(commune, null));
 }

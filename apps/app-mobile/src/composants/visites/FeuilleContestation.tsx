@@ -33,7 +33,7 @@ const COMPTEUR_DES = 400;
 /**
  * Feuille « C'est une erreur ? », ouverte depuis une visite refusée (ou annulée par le lieu) : un petit mot facultatif,
  * lu par l'équipe SOS Miam et jamais par le lieu, puis contesterRefus, et « On regarde ça de près. Un humain répondra. ».
- * VoiceOver est posé sur le titre à l'ouverture et à chaque changement (envoyée, échec). Animations réduites : en fondu.
+ * VoiceOver est posé sur le titre à l'ouverture et une fois envoyée, sur le message en cas d'échec. Animations réduites : en fondu.
  */
 export function FeuilleContestation({ visible, visite, onFermer, onContestee }: Props) {
   const services = utiliserServices();
@@ -41,30 +41,35 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
+  const refErreur = useRef<View>(null);
   const [etape, setEtape] = useState<Etape>("ecrire");
   const [mot, setMot] = useState("");
   const [erreur, setErreur] = useState<ErreurService | null>(null);
   const monte = useRef(true);
 
-  useEffect(
-    () => () => {
-      monte.current = false;
-    },
-    [],
-  );
-
-  // Chaque ouverture repart d'une page blanche
   useEffect(() => {
-    if (!visible) return;
-    setEtape("ecrire");
-    setMot("");
-    setErreur(null);
-  }, [visible]);
+    monte.current = true;
+    return () => {
+      monte.current = false;
+    };
+  }, []);
 
-  // VoiceOver sur le titre : à l'arrivée de la feuille, puis quand le message change (envoyée, échec)
+  // Chaque ouverture repart d'une page blanche (dès le premier rendu : rien de la fois d'avant ne s'affiche)
+  const [visibleAvant, setVisibleAvant] = useState(visible);
+  if (visible !== visibleAvant) {
+    setVisibleAvant(visible);
+    if (visible) {
+      setEtape("ecrire");
+      setMot("");
+      setErreur(null);
+    }
+  }
+
+  // VoiceOver sur le titre à l'arrivée de la feuille et une fois la contestation partie ; sur le message en cas d'échec
   useEffect(() => {
     if (!visible || etape === "envoi") return;
-    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refTitre.current), animationsReduites ? 150 : 400);
+    const cible = erreur ? refErreur.current : refTitre.current;
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(cible), animationsReduites ? 150 : 400);
     return () => clearTimeout(minuterie);
   }, [visible, etape, erreur, animationsReduites]);
 
@@ -151,7 +156,7 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
             )}
 
             {message ? (
-              <View accessible className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-rose-alerte p-3">
+              <View ref={refErreur} accessible className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-rose-alerte p-3">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
                   {message.emoji}
                 </Text>

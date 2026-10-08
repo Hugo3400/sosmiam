@@ -84,6 +84,7 @@ export function utiliserValidationComptoir(): {
   const monte = useRef(true);
   const occupe = useRef(false);
   const reponseFeuille = useRef<((acceptee: boolean) => void) | null>(null);
+  const explication = useRef<Promise<boolean> | null>(null);
   // La lecture lancée pendant qu'on vise (vraie position seulement), servie une fois au scan qui suit
   const lectureAvance = useRef<{ promesse: Promise<LectureDatee>; lanceeLeMs: number } | null>(null);
 
@@ -105,16 +106,25 @@ export function utiliserValidationComptoir(): {
     resoudre?.(acceptee);
   }, []);
 
-  /** « Petite vérif' de position », la toute première fois seulement (même mémoire que l'addition) */
-  const expliquer = useCallback(async (lieuNom: string | null): Promise<boolean> => {
-    if (await lireExplicationPositionVue()) return true;
-    reponseFeuille.current?.(false);
-    const acceptee = await new Promise<boolean>((resoudre) => {
-      reponseFeuille.current = resoudre;
-      setFeuille({ visible: true, lieuNom });
-    });
-    if (acceptee) await enregistrerExplicationPositionVue();
-    return acceptee;
+  /**
+   * « Petite vérif' de position », la toute première fois seulement (même mémoire que l'addition). Une explication déjà
+   * ouverte (préparation puis scan, ou deux préparations) est partagée : une seule feuille, une seule réponse pour tous.
+   */
+  const expliquer = useCallback((lieuNom: string | null): Promise<boolean> => {
+    explication.current ??= (async () => {
+      try {
+        if (await lireExplicationPositionVue()) return true;
+        const acceptee = await new Promise<boolean>((resoudre) => {
+          reponseFeuille.current = resoudre;
+          setFeuille({ visible: true, lieuNom });
+        });
+        if (acceptee) await enregistrerExplicationPositionVue();
+        return acceptee;
+      } finally {
+        explication.current = null;
+      }
+    })();
+    return explication.current;
   }, []);
 
   const lireDatee = useCallback(
@@ -151,34 +161,42 @@ export function utiliserValidationComptoir(): {
     [vraiePosition, lireDatee],
   );
 
-  /** Envoie le QR ; sans réseau, garde le texte et la position et réessaie toutes les 5 s pendant une minute */
+  /**
+   * Envoie le QR ; sans réseau, garde le texte et la position et réessaie toutes les 5 s pendant une minute.
+   * Vrai si la visite est validée (la célébration s'ouvre).
+   */
   const envoyer = useCallback(
-    async (texte: string, lecture: PositionDatee, lieu: Lieu, details: DetailsErreur) => {
+    async (texte: string, lecture: PositionDatee, lieu: Lieu, details: DetailsErreur): Promise<boolean> => {
       const debut = Date.now();
       let datee = lecture;
       setEtape("envoi");
       for (;;) {
         let position = vieillir(datee);
         if (!position) {
+          // Lecture trop vieille (une minute de nouveaux essais) : on en relit une toute fraîche
           const relue = await lireDatee(lieu.position ?? null);
-          if (!monte.current) return;
-          if (!relue.ok) return setEchec({ erreur: relue.erreur, details });
+          if (!monte.current) return false;
+          if (!relue.ok) {
+            setEchec({ erreur: relue.erreur, details });
+            return false;
+          }
           datee = relue.datee;
           position = relue.datee.position;
         }
         const reponse = await services.visites.validerComptoir(texte, position);
-        if (!monte.current) return;
+        if (!monte.current) return false;
         if (reponse.ok) {
           router.replace({ pathname: "/visite/[id]", params: { id: String(reponse.visite.id), celebrer: "1" } });
-          return;
+          return true;
         }
         if (reponse.erreur === "hors-ligne" && Date.now() - debut + INTERVALLE_NOUVEL_ESSAI_MS <= DUREE_NOUVEL_ESSAI_COMPTOIR_MS) {
           setEtape("nouvel-essai");
           await attendre(INTERVALLE_NOUVEL_ESSAI_MS);
-          if (!monte.current) return;
+          if (!monte.current) return false;
           continue;
         }
-        return setEchec({ erreur: reponse.erreur, details: { ...details, ...reponse.details } });
+        setEchec({ erreur: reponse.erreur, details: { ...details, ...reponse.details } });
+        return false;
       }
     },
     [services.visites, lireDatee],
@@ -186,9 +204,10 @@ export function utiliserValidationComptoir(): {
 
   const traiterTexte = useCallback(
     async (texte: string): Promise<void> => {
-      // Une seule lecture à la fois : les QR lus pendant qu'on traite le premier sont ignorés
+      // Une seule lecture à la fois : les QR lus pendant qu'on traite le premier sont ignorés, et plus rien une fois validé
       if (occupe.current) return;
       occupe.current = true;
+      let validee = false;
       setEchec(null);
       try {
         const code = classerCodeScanne(texte);
@@ -208,10 +227,13 @@ export function utiliserValidationComptoir(): {
         const lecture = await obtenirPosition(lieu.position ?? null);
         if (!monte.current) return;
         if (!lecture.ok) return setEchec({ erreur: lecture.erreur, details });
-        await envoyer(texte, lecture.datee, lieu, details);
+        validee = await envoyer(texte, lecture.datee, lieu, details);
       } finally {
-        occupe.current = false;
-        if (monte.current) setEtape("repos");
+        // Validée : la célébration remplace cet écran, on garde le verrou et l'étape jusqu'au bout
+        if (!validee) {
+          occupe.current = false;
+          if (monte.current) setEtape("repos");
+        }
       }
     },
     [majeur, services.source, expliquer, obtenirPosition, envoyer],

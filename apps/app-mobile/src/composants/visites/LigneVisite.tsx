@@ -110,7 +110,10 @@ export function LigneVisite({ visite, onPress }: Props) {
   const moment = decrireMoment(visite.valideLe ?? visite.creeLe);
   const mode = aEteValidee ? LIBELLES_MODE_VALIDATION[visite.mode] : MODE_TENTE[visite.mode];
   const puces = listerPuces(visite);
-  const libelle = [visite.lieu.nom, [moment.lu, mode.toLocaleLowerCase("fr-FR")].filter(Boolean).join(", "), ...puces.map((p) => p.lu)].join(". ");
+  // Une phrase par morceau, chacune avec sa majuscule : VoiceOver marque une petite pause entre elles
+  const libelle = [visite.lieu.nom, [moment.lu, mode.toLocaleLowerCase("fr-FR")].filter(Boolean).join(", "), ...puces.map((p) => p.lu)]
+    .map((morceau) => morceau.charAt(0).toLocaleUpperCase("fr-FR") + morceau.slice(1))
+    .join(". ");
   const fondRond = visite.statut === "validee" ? "bg-jaune" : visite.statut === "demandee" ? "bg-jaune-clair" : enRetrait ? "bg-creme" : "bg-white";
 
   return (

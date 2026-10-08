@@ -42,6 +42,8 @@ export type IndexCommunes = {
 };
 
 const parCle = (a: NomIndexe, b: NomIndexe) => (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : b.commune.population - a.commune.population);
+/** Article au début du nom (« Le Mans », « La Rochelle », « Les Abymes », « L'Haÿ-les-Roses ») : le nom compte aussi sans lui */
+const ARTICLES = new Set(["le", "la", "les", "l"]);
 
 /** Prépare la recherche : à faire une fois, au chargement du fichier (chargerIndexCommunes s'en occupe). */
 export function indexerCommunes(donnees: DonneesCommunes): IndexCommunes {
@@ -49,6 +51,8 @@ export function indexerCommunes(donnees: DonneesCommunes): IndexCommunes {
   const parCodePostal = new Map<string, CommuneIndexee[]>();
   const noms: NomIndexe[] = [];
   const mots: NomIndexe[] = [];
+  const clesDuTexte: string[] = [];
+  const communesDuTexte: CommuneIndexee[] = [];
   const ajouterCodePostal = (codePostal: string, commune: CommuneIndexee) => {
     const liste = parCodePostal.get(codePostal) ?? [];
     if (!liste.includes(commune)) liste.push(commune);
@@ -60,10 +64,14 @@ export function indexerCommunes(donnees: DonneesCommunes): IndexCommunes {
     parCode.set(code, commune);
     for (const codePostal of codesPostaux) ajouterCodePostal(codePostal, commune);
     const morceaux = normaliserNomCommune(nom).split(" ");
-    noms.push({ cle: morceaux.join(""), commune });
-    for (let debut = 1; debut < morceaux.length; debut++) mots.push({ cle: morceaux.slice(debut).join(""), commune });
+    const article = morceaux.length > 1 && ARTICLES.has(morceaux[0]) ? 1 : 0;
+    const cle = morceaux.join("");
+    noms.push({ cle, commune });
+    if (article) noms.push({ cle: morceaux.slice(1).join(""), commune });
+    for (let debut = 1 + article; debut < morceaux.length; debut++) mots.push({ cle: morceaux.slice(debut).join(""), commune });
+    clesDuTexte.push(cle);
+    communesDuTexte.push(commune);
   }
-  const nomsDesCommunes = [...noms];
   for (const [code, nom, codeCommune, codesPostaux] of donnees.arrondissements) {
     const commune = parCode.get(codeCommune);
     if (!commune) throw new Error(`Arrondissement ${nom} (${code}) : commune ${codeCommune} absente`);
@@ -75,19 +83,11 @@ export function indexerCommunes(donnees: DonneesCommunes): IndexCommunes {
   for (const liste of parCodePostal.values()) liste.sort((a, b) => b.population - a.population || (a.code < b.code ? -1 : 1));
   noms.sort(parCle);
   mots.sort(parCle);
-  const debuts = new Int32Array(nomsDesCommunes.length);
+  const debuts = new Int32Array(clesDuTexte.length);
   let position = 0;
-  nomsDesCommunes.forEach((nom, rang) => {
+  clesDuTexte.forEach((cle, rang) => {
     debuts[rang] = position;
-    position += nom.cle.length + 1;
+    position += cle.length + 1;
   });
-  return {
-    parCode,
-    parCodePostal,
-    noms,
-    mots,
-    texte: nomsDesCommunes.map((nom) => nom.cle).join("|"),
-    debuts,
-    communesDuTexte: nomsDesCommunes.map((nom) => nom.commune),
-  };
+  return { parCode, parCodePostal, noms, mots, texte: clesDuTexte.join("|"), debuts, communesDuTexte };
 }
