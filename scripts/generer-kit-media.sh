@@ -57,7 +57,7 @@ while read -r format visuel chemin largeur hauteur; do
       # les polices arriver (la page les attend : jamais de police de secours)
       "$chrome" --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --default-background-color=00000000 \
         --window-size="$largeur,$hauteur" --virtual-time-budget=15000 --screenshot="$nouveau/$chemin" \
-        "$site/rendu-kit/$visuel" >/dev/null 2>&1
+        "$site/rendu-kit/$visuel" </dev/null >/dev/null 2>&1
       if ! file -b "$nouveau/$chemin" 2>/dev/null | grep -q "PNG image data, $largeur x $hauteur,"; then
         echo "❌ $chemin : l'image n'a pas la taille attendue ($largeur × $hauteur)."
         exit 1

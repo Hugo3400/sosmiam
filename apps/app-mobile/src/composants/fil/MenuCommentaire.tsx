@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,6 +7,8 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 
 type Props = {
   /** Commentaire dont on ouvre les options (null : menu fermé) */
@@ -25,21 +27,35 @@ type Confirmation = "supprimer" | "bloquer" | null;
 /**
  * Les options d'un commentaire, posées au-dessus de la feuille des commentaires (pas de deuxième fenêtre, qu'iOS refuserait d'empiler) :
  * « Modifier » et « Supprimer » sur les tiens ; « Signaler » et « Bloquer » sur ceux des autres (pas de blocage pour le lieu).
+ * À la fermeture, la feuille remet le lecteur d'écran là où il était.
  */
 export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprimer, onSignaler, onBloquer, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  const { potes } = utiliserCommunaute();
   const titre = useRef<Text>(null);
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   // Un autre commentaire : on repart des options
-  const [ouvertSur, setOuvertSur] = useState(commentaire?.id ?? null);
-  if ((commentaire?.id ?? null) !== ouvertSur) {
-    setOuvertSur(commentaire?.id ?? null);
+  const idOuvert = commentaire?.id ?? null;
+  const [ouvertSur, setOuvertSur] = useState(idOuvert);
+  if (idOuvert !== ouvertSur) {
+    setOuvertSur(idOuvert);
     setConfirmation(null);
   }
+
+  // Ce n'est pas une vraie fenêtre : iOS n'y emmène pas VoiceOver tout seul (et la feuille dessous est cachée au lecteur d'écran).
+  // On l'y place nous-mêmes, une fois le menu monté
+  useEffect(() => {
+    if (idOuvert === null) return;
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(titre.current), 250);
+    return () => clearTimeout(minuterie);
+  }, [idOuvert]);
+
   if (!commentaire) return null;
 
   const estMoi = commentaire.auteur === ID_MOI;
   const estLieu = commentaire.auteur === "lieu";
+  // « Sort de ta bande » seulement pour quelqu'un qui en fait partie : on commente aussi chez des inconnus
+  const dansBande = potes.some((p) => p.id === commentaire.auteur);
 
   function confirmer(choix: Confirmation) {
     setConfirmation(choix);
@@ -87,7 +103,9 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
               <Text className="font-texte text-base leading-6 text-encre">
                 {confirmation === "supprimer"
                   ? "Il disparaîtra de la publication, et ses J'aime avec. Pas de retour en arrière possible."
-                  : `${nomAuteur} sort de ta bande, et tu ne verras plus ses commentaires ni ses messages.`}
+                  : lierPonctuation(
+                      `${dansBande ? `${nomAuteur} sortira de ta bande, et tu` : "Tu"} ne verras plus ses commentaires ni ses messages. Si tu changes d'avis, ça se passe dans Réglages, « Personnes bloquées ».`,
+                    )}
               </Text>
               <Pressable
                 accessibilityRole="button"

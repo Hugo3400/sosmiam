@@ -1,0 +1,48 @@
+// Statistiques de visite (site, puis app), sans cookie
+
+// Uniquement des totaux : aucune adresse IP, aucun identifiant de visiteur n'est enregistré.
+/// Totaux d'une période. Les visiteurs uniques sont estimés par une « esquisse » HyperLogLog :
+/// elle ne contient aucune empreinte de visiteur, et elle est effacée avec son secret à la fin de la période.
+model StatPeriode {
+  id            Int    @id @default(autoincrement())
+  /// « site » ou « app »
+  source        String @db.VarChar(10)
+  /// « jour », « semaine », « mois » ou « annee »
+  type          String @db.VarChar(10)
+  /// Repère de la période, à l'heure de Paris : « 2026-10-08 », « 2026-S41 », « 2026-10 », « 2026 »
+  cle           String @db.VarChar(10)
+  vues          Int    @default(0)
+  visites       Int    @default(0)
+  visiteurs     Int    @default(0)
+  /// Visites terminées (30 minutes sans page vue), et parmi elles celles d'une seule page (rebonds)
+  visitesFinies Int    @default(0) @map("visites_finies")
+  rebonds       Int    @default(0)
+  /// Durée totale des visites terminées, en secondes (de la première à la dernière page)
+  dureeVisites  Int    @default(0) @map("duree_visites")
+  /// Temps de réponse du serveur : somme en millisecondes et nombre de pages mesurées
+  tempsTotal    BigInt @default(0) @map("temps_total")
+  pagesMesurees Int    @default(0) @map("pages_mesurees")
+  /// Registres HyperLogLog, tant que la période est en cours
+  esquisse      Bytes?
+  /// Secret qui brouille les visiteurs de cette période, effacé à sa fin
+  secret        Bytes?
+
+  @@unique([source, type, cle])
+  @@map("stats_periodes")
+}
+
+/// Détail d'un jour : vues par page, visites par provenance, appareil, navigateur, système et pays.
+model StatDetail {
+  id        Int    @id @default(autoincrement())
+  source    String @db.VarChar(10)
+  /// Jour, à l'heure de Paris : « 2026-10-08 »
+  jour      String @db.VarChar(10)
+  /// « page », « provenance », « appareil », « navigateur », « systeme » ou « pays »
+  dimension String @db.VarChar(12)
+  valeur    String @db.VarChar(120)
+  nombre    Int    @default(0)
+
+  @@unique([source, jour, dimension, valeur])
+  @@index([source, dimension, jour])
+  @@map("stats_details")
+}

@@ -92,6 +92,8 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
       setTexte("");
       setErreur(null);
       collerEnBas.current = true;
+      // Tes propres messages ne sont pas relus : un mot suffit pour savoir que c'est parti (sinon on retouche « Envoyer » pour rien)
+      AccessibilityInfo.announceForAccessibility("Message envoyé à la bande");
       return;
     }
     setErreur(REFUS[resultat]);
@@ -157,6 +159,8 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
                   item.deMoi
                     ? undefined
                     : () => {
+                        // Clavier ouvert, il cacherait le bas de la feuille (« Signaler », « Bloquer », « Annuler ») : on le range d'abord
+                        Keyboard.dismiss();
                         setMenu({ message: item.message, auteur: item.auteur });
                         setMenuOuvert(true);
                       }

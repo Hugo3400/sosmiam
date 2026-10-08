@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
@@ -20,8 +21,8 @@ type Props = {
   /** Heure de référence pour « il y a 5 min » (rafraîchie par la feuille) */
   maintenant: number;
   onRepondre: (commentaire: Commentaire) => void;
-  /** Modifier, supprimer, signaler, bloquer */
-  onOptions: (commentaire: Commentaire) => void;
+  /** Modifier, supprimer, signaler, bloquer ; « declencheur » est ce qui a ouvert le menu, où le lecteur d'écran revient ensuite */
+  onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
 };
 
 const MOIS_COURTS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -54,6 +55,8 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
   const modifie = !!commentaire.modifieLe;
   const masque = !!commentaire.masqueParLieu && estMoi;
   const taille = reponse ? 30 : 40;
+  const zoneTexte = useRef<View>(null);
+  const boutonOptions = useRef<View>(null);
 
   const description = [
     estLieu ? `${nom}, le lieu` : `${nom}${estMoi ? ", toi" : ""}${pseudo ? `, ${pseudo}` : ""}`,
@@ -65,7 +68,10 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
   return (
     <View className={`flex-row gap-3 ${reponse ? "ml-[52px] py-1.5" : "py-2"} ${estLieu && !reponse ? "-mx-2 rounded-carte bg-jaune-clair px-2" : ""}`}>
       {pote ? (
-        <RondPote pote={pote} taille={taille} />
+        // Masqué par le lieu : seul l'avatar s'estompe, le texte reste bien lisible
+        <View className={masque ? "opacity-50" : ""}>
+          <RondPote pote={pote} taille={taille} />
+        </View>
       ) : (
         <View
           accessibilityElementsHidden
@@ -82,14 +88,16 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
       <View className="flex-1">
         {/* Appui long : les options, comme le bouton « ⋯ » plus bas (VoiceOver passe par ce bouton) */}
         <Pressable
+          ref={zoneTexte}
           accessible
           accessibilityLabel={description}
           onLongPress={() => {
             vibrerLegerement();
-            onOptions(commentaire);
+            onOptions(commentaire, zoneTexte.current);
           }}
           delayLongPress={350}
-          className={masque ? "opacity-60" : ""}
+          // Masqué par le lieu : un cadre en pointillés plutôt qu'un texte pâli (il doit rester lisible)
+          className={masque ? "rounded-xl border-2 border-dashed border-gris/60 px-2 py-1.5" : ""}
         >
           <View className="flex-row flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <Text numberOfLines={1} className="font-texte-gras text-sm text-encre">
@@ -105,7 +113,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
             ) : null}
           </View>
           <TexteAvecMentions texte={commentaire.texte} className="mt-0.5" />
-          {masque ? <Text className="mt-1 font-texte text-xs text-gris">🙈 Masqué par le lieu : toi seul le vois, le temps que l'équipe le relise.</Text> : null}
+          {masque ? <Text className="mt-1 font-texte-semi text-xs leading-4 text-gris">🙈 Masqué par le lieu : toi seul le vois, le temps que l'équipe le relise.</Text> : null}
         </Pressable>
 
         <View className="flex-row items-center">
@@ -122,9 +130,10 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
             <Text className="font-texte-semi text-[13px] text-gris">Répondre</Text>
           </Pressable>
           <Pressable
+            ref={boutonOptions}
             accessibilityRole="button"
             accessibilityLabel={estMoi ? "Options de ton commentaire : modifier, supprimer" : `Options du commentaire de ${nom} : signaler${estLieu ? "" : ", bloquer"}`}
-            onPress={() => onOptions(commentaire)}
+            onPress={() => onOptions(commentaire, boutonOptions.current)}
             className="min-h-11 min-w-11 items-center justify-center active:opacity-60"
           >
             <Ionicons name="ellipsis-horizontal" size={16} color={couleurs.gris} />

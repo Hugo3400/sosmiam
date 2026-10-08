@@ -5,6 +5,7 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
+import { choisirLieuGagnant } from "~/fonctions/communaute/choisir-lieu-gagnant";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -14,8 +15,10 @@ type Props = {
   sortie: Sortie;
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
-  /** Sortie déjà passée : un peu effacée, « C'était… » */
+  /** Sortie déjà passée : fond crème au lieu de blanc, « C'était… » */
   passee: boolean;
+  /** L'heure de l'onglet, rafraîchie par la section : la fin du vote et « aujourd'hui » restent justes */
+  maintenant: Date;
   onOuvrir: (id: string) => void;
 };
 
@@ -46,20 +49,25 @@ const formaterMoment = (iso: string, maintenant: Date) => {
 const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
 
 /** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc. */
-export function CarteSortie({ sortie, lieux, passee, onOuvrir }: Props) {
+export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir }: Props) {
   const { trouverPote, bloques } = utiliserCommunaute();
-  const maintenant = new Date();
+  const bloquesIds = new Set(bloques.map((b) => b.id));
 
   const participants = sortie.participants
-    .filter((id) => !bloques.some((b) => b.id === id))
+    .filter((id) => !bloquesIds.has(id))
     .map(trouverPote)
     .filter((p): p is Pote => p !== null);
   const visibles = participants.slice(0, MAX_RONDS);
   const enPlus = participants.length - visibles.length;
-  const organisateur = sortie.organisateur === ID_MOI ? "toi" : (trouverPote(sortie.organisateur)?.prenom ?? null);
+  // Une personne bloquée n'apparaît plus, même comme organisatrice
+  const organisateur =
+    sortie.organisateur === ID_MOI ? "toi" : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
 
-  const lieu = sortie.lieuChoisi !== null ? lieux.get(sortie.lieuChoisi) : undefined;
-  const voteEnCours = sortie.lieuChoisi === null && new Date(sortie.finVote).getTime() > maintenant.getTime();
+  // Comme l'écran de la sortie : fin du vote passée, le lieu le plus voté l'emporte (les propositions sont déjà filtrées)
+  const voteFini = sortie.lieuChoisi !== null || new Date(sortie.finVote).getTime() <= maintenant.getTime();
+  const lieuId = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions) : null);
+  const lieu = lieuId !== null ? lieux.get(lieuId) : undefined;
+  const voteEnCours = !voteFini;
   const aVote = sortie.propositions.some((p) => p.votes.includes(ID_MOI));
   // « Chez Nonna Lia » → « On va chez Nonna Lia »
   const etat = lieu
@@ -93,10 +101,11 @@ export function CarteSortie({ sortie, lieux, passee, onOuvrir }: Props) {
         vibrerLegerement();
         onOuvrir(sortie.id);
       }}
-      className={`gap-3 rounded-carte border-2 border-encre bg-white p-4 active:opacity-80 ${passee ? "opacity-70" : ""}`}
+      // Sortie passée : fond crème au lieu d'une opacité, qui ferait passer les textes gris sous le contraste lisible
+      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${passee ? "bg-creme" : "bg-white"}`}
     >
       <View className="flex-row items-center gap-3">
-        <View className="h-12 w-12 items-center justify-center rounded-2xl border-2 border-encre bg-jaune-clair">
+        <View className={`h-12 w-12 items-center justify-center rounded-2xl border-2 border-encre ${passee ? "bg-ligne" : "bg-jaune-clair"}`}>
           <Text allowFontScaling={false} className="text-2xl">
             {sortie.emoji}
           </Text>
@@ -115,14 +124,14 @@ export function CarteSortie({ sortie, lieux, passee, onOuvrir }: Props) {
       <View className="flex-row items-center gap-3">
         <View className="flex-row pl-2">
           {visibles.map((p) => (
-            <View key={p.id} className="-ml-2 rounded-full border-2 border-white">
+            <View key={p.id} className={`-ml-2 rounded-full border-2 ${passee ? "border-creme" : "border-white"}`}>
               <RondPote pote={p} taille={TAILLE_ROND} />
             </View>
           ))}
           {enPlus > 0 ? (
             <View
               style={{ width: TAILLE_ROND + 4, height: TAILLE_ROND + 4 }}
-              className="-ml-2 items-center justify-center rounded-full border-2 border-white bg-encre"
+              className={`-ml-2 items-center justify-center rounded-full border-2 bg-encre ${passee ? "border-creme" : "border-white"}`}
             >
               <Text allowFontScaling={false} className="font-texte-gras text-xs text-jaune">
                 +{enPlus}

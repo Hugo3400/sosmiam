@@ -1,0 +1,57 @@
+// Missions et messages des ambassadeurs (logiciel de gestion → espace ambassadeur, puis app)
+
+/**
+ * Mission confiée par l'équipe à un ambassadeur : une vérification sur place (BIG SOS, nouveau lieu…), à suivre.
+ */
+model MissionAmbassadeur {
+  id          Int       @id @default(autoincrement())
+  compteId    Int       @map("compte_id")
+  compte      Compte    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  titre       String    @db.VarChar(100)
+  detail      String    @default("") @db.VarChar(2000)
+  /// Lieu concerné, s'il y en a un (la mission reste si la fiche est supprimée)
+  lieuId      Int?      @map("lieu_id")
+  lieu        Lieu?     @relation(fields: [lieuId], references: [id], onDelete: SetNull)
+  echeance    DateTime? @db.Timestamptz(0)
+  /// « a-faire », « faite » ou « annulee »
+  statut      String    @default("a-faire") @db.VarChar(10)
+  /// Ce que l'ambassadeur raconte en la terminant
+  compteRendu String?   @map("compte_rendu") @db.VarChar(2000)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  faiteLe     DateTime? @map("faite_le") @db.Timestamptz(0)
+
+  @@index([compteId, statut])
+  @@index([statut, echeance])
+  @@map("missions_ambassadeurs")
+}
+
+/**
+ * Message de l'équipe : à un ambassadeur, ou à tous les ambassadeurs actifs (compteId vide).
+ */
+model MessageAmbassadeur {
+  id       Int              @id @default(autoincrement())
+  compteId Int?             @map("compte_id")
+  compte   Compte?          @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  titre    String           @db.VarChar(100)
+  texte    String           @db.VarChar(3000)
+  creeLe   DateTime         @default(now()) @map("cree_le") @db.Timestamptz(0)
+  lectures LectureMessage[]
+
+  @@index([compteId, creeLe])
+  @@map("messages_ambassadeurs")
+}
+
+/**
+ * Un ambassadeur a lu un message (pour « lu » dans son espace, et « lu par 3 » dans le logiciel).
+ */
+model LectureMessage {
+  messageId Int                @map("message_id")
+  message   MessageAmbassadeur @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  compteId  Int                @map("compte_id")
+  compte    Compte             @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  luLe      DateTime           @default(now()) @map("lu_le") @db.Timestamptz(0)
+
+  @@id([messageId, compteId])
+  @@index([compteId])
+  @@map("lectures_messages")
+}

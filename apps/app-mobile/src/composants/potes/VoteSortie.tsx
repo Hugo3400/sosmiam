@@ -126,7 +126,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
                 lieu={lieu}
                 km={calculerKmLieu(lieu, depart)}
                 image={trouverVignetteLieu(lieu.id, publications)}
-                proposePar={trouverPote(p.proposePar)}
+                proposePar={bloquesIds.has(p.proposePar) ? null : trouverPote(p.proposePar)}
                 votes={p.votes.length}
                 votants={votants}
                 aVote={aVote}

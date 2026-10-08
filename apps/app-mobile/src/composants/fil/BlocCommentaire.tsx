@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -16,7 +16,8 @@ type Props = {
   onBasculer: (commentaireId: string) => void;
   /** « Répondre » sur le commentaire ou sur une de ses réponses (un seul niveau : tout se range sous le commentaire) */
   onRepondre: (commentaire: Commentaire, reponseA: Commentaire) => void;
-  onOptions: (commentaire: Commentaire) => void;
+  /** Ouvre les options ; « declencheur » est ce qui les a ouvertes, où le lecteur d'écran revient ensuite */
+  onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
 };
 
 /** Un commentaire et ses réponses, repliables. */
@@ -44,7 +45,8 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={deplie ? "Masquer les réponses" : `Voir ${nombre} réponse${nombre > 1 ? "s" : ""}${dontLeLieu ? ", dont celle du lieu" : ""}`}
-          accessibilityState={{ expanded: deplie }}
+          // Le libellé dit déjà « Voir » ou « Masquer » : sur iPhone, l'état « déplié » serait lu en anglais (« expanded »)
+          accessibilityState={Platform.OS === "ios" ? undefined : { expanded: deplie }}
           onPress={() => onBasculer(commentaire.id)}
           className="ml-[52px] min-h-11 flex-row items-center gap-2 self-start active:opacity-60"
         >

@@ -14,6 +14,7 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import couleurs from "~/theme/couleurs";
@@ -29,8 +30,15 @@ type Props = {
 /** Le commentaire sous lequel ta réponse se range (toujours du premier niveau), la personne à qui tu réponds et son nom */
 type Reponse = { id: string; auteurs: string[]; nom: string };
 
+// Le bandeau honnête de la démo, affiché avec son éprouvette (🧪) mais lu sans
+const TEXTE_DEMO = "Potes d'exemple : tes vrais potes arriveront avec les comptes. D'ici là, tes commentaires restent sur ton téléphone";
+
 // « il y a 5 min » se met à jour tant que la feuille est ouverte
 const RAFRAICHISSEMENT = 30_000;
+// Le lecteur d'écran est replacé une fois la feuille redevenue lisible (le menu des options la cache pendant qu'il est ouvert)
+const DELAI_FOCUS = 150;
+// Après une suppression ou un blocage, le message part juste après le replacement : sinon, le titre relu le couperait
+const DELAI_ANNONCE_APRES_FOCUS = 400;
 
 /**
  * Les commentaires d'une publication, dans une feuille qui monte du bas comme sur TikTok (la vidéo reste visible au-dessus) :
@@ -44,6 +52,9 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const { trouverPote } = communaute;
   const champ = useRef<TextInput>(null);
   const liste = useRef<FlatList<FilCommentaire>>(null);
+  const titreFeuille = useRef<Text>(null);
+  // Ce qui a ouvert les options (le bouton « ⋯ » ou le commentaire, par appui long) : le lecteur d'écran y revient à la fermeture
+  const declencheurOptions = useRef<View | null>(null);
   const [texte, setTexte] = useState("");
   const [reponse, setReponse] = useState<Reponse | null>(null);
   const [edition, setEdition] = useState<string | null>(null);
@@ -63,6 +74,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     if (visible) {
       setOptions(null);
       setSignale(null);
+      // Un message pas encore effacé à la fermeture ne revient pas à la réouverture
+      setAnnonce(null);
       setReponse(null);
       if (edition) setTexte("");
       setEdition(null);
@@ -88,6 +101,11 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   }, []);
 
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
+  /** Replace le lecteur d'écran sur le titre de la feuille (ce qu'on vient de toucher a disparu), puis dit ce qui s'est passé */
+  const revenirAuTitre = (message?: string) => {
+    setTimeout(() => deplacerFocusLecteurEcran(titreFeuille.current), DELAI_FOCUS);
+    if (message) setTimeout(() => annoncer(message), DELAI_ANNONCE_APRES_FOCUS);
+  };
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const nomDe = (auteur: string) => (auteur === "lieu" ? lieu.nom : (trouverPote(auteur)?.prenom ?? "Quelqu'un"));
 
@@ -141,6 +159,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     return verdict;
   }
 
+  function ouvrirOptions(commentaire: Commentaire, declencheur: View | null) {
+    Keyboard.dismiss();
+    declencheurOptions.current = declencheur;
+    setOptions(commentaire);
+  }
+
+  /** Options fermées sans rien faire (« Annuler », le fond, retour) : le lecteur d'écran revient sur ce qui les a ouvertes */
+  function fermerOptions() {
+    setOptions(null);
+    setTimeout(() => deplacerFocusLecteurEcran(declencheurOptions.current ?? titreFeuille.current), DELAI_FOCUS);
+  }
+
   function supprimer(commentaire: Commentaire) {
     setOptions(null);
     communaute.supprimerCommentaire(commentaire.id);
@@ -149,7 +179,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       setTexte("");
     }
     if (reponse?.id === commentaire.id) setReponse(null);
-    annoncer("Commentaire supprimé 🗑️");
+    revenirAuTitre("Commentaire supprimé 🗑️");
   }
 
   function bloquer(commentaire: Commentaire) {
@@ -157,23 +187,26 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setOptions(null);
     communaute.bloquer(commentaire.auteur);
     if (reponse?.auteurs.includes(commentaire.auteur)) setReponse(null);
-    annoncer(`C'est fait, tu ne verras plus ${nom} ici 🚫`);
+    revenirAuTitre(`C'est fait, tu ne verras plus ${nom} ici 🚫`);
   }
 
+  // Le signalement prend la place de la liste et place lui-même le lecteur d'écran sur son titre
   function signaler(commentaire: Commentaire) {
     setOptions(null);
     Keyboard.dismiss();
     setSignale(commentaire);
   }
 
+  // Retour à la liste (qui vient d'être remontée) : le lecteur d'écran repart du titre
   function finSignalement() {
     if (signale && reponse?.id === signale.id) setReponse(null);
     setSignale(null);
+    revenirAuTitre();
   }
 
   // Retour Android et geste d'échappement de VoiceOver : on ferme d'abord ce qui est par-dessus
   function reculer() {
-    if (options) setOptions(null);
+    if (options) fermerOptions();
     else if (signale) finSignalement();
     else onFermer();
   }
@@ -213,15 +246,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
             <>
               <View className="flex-row items-center px-3">
                 <View className="w-11" />
-                <Text accessibilityRole="header" className="flex-1 text-center font-texte-gras text-base text-encre">
+                <Text ref={titreFeuille} accessibilityRole="header" className="flex-1 text-center font-texte-gras text-base text-encre">
                   {titre}
                 </Text>
                 <Pressable accessibilityRole="button" accessibilityLabel="Fermer les commentaires" onPress={onFermer} className="h-11 w-11 items-center justify-center active:opacity-60">
                   <Ionicons name="close" size={24} color={couleurs.encre} />
                 </Pressable>
               </View>
-              <Text className="mx-5 mb-1 text-center font-texte text-xs leading-4 text-gris">
-                🧪 Potes d'exemple : tes vrais potes arriveront avec les comptes. D'ici là, tes commentaires restent sur ton téléphone.
+              <Text
+                accessibilityLabel={`${TEXTE_DEMO}.`}
+                className="mx-5 mb-1 text-center font-texte text-xs leading-4 text-gris"
+              >
+                🧪 {TEXTE_DEMO}.
               </Text>
 
               <FlatList
@@ -255,10 +291,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     deplie={deplies[item.commentaire.id] ?? item.reponses.some((r) => r.auteur === "lieu")}
                     onBasculer={(id) => setDeplies((d) => ({ ...d, [id]: !(d[id] ?? item.reponses.some((r) => r.auteur === "lieu")) }))}
                     onRepondre={repondre}
-                    onOptions={(c) => {
-                      Keyboard.dismiss();
-                      setOptions(c);
-                    }}
+                    onOptions={ouvrirOptions}
                   />
                 )}
               />
@@ -289,7 +322,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
         onSupprimer={supprimer}
         onSignaler={signaler}
         onBloquer={bloquer}
-        onFermer={() => setOptions(null)}
+        onFermer={fermerOptions}
       />
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={finAnnonce} />
     </Modal>

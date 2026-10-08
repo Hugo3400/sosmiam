@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { SignalementContenu } from "@sos-miam/commun/types/signalement";
@@ -7,6 +7,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement";
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import couleurs from "~/theme/couleurs";
 
@@ -22,6 +23,7 @@ type Props = {
 /**
  * Signaler un commentaire, un message de sortie ou un profil, à placer dans une feuille : la raison, les précisions et
  * le pourquoi (mêmes étapes que pour une publication), puis merci. Le contenu signalé disparaît pour toi.
+ * À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
  */
 export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   const { signaler } = utiliserCommunaute();
@@ -29,11 +31,20 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");
   const [envoye, setEnvoye] = useState(false);
+  const titreEtape = useRef<Text>(null);
+  const titreMerci = useRef<Text>(null);
+
+  // Ce qu'on vient de toucher a disparu (le menu, une raison, « Envoyer ») : le lecteur d'écran repart du titre de la nouvelle étape.
+  // Aussi à l'ouverture, que l'on vienne d'un message, d'un commentaire ou d'une recommandation
+  useEffect(() => {
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran((envoye ? titreMerci : titreEtape).current), 250);
+    return () => clearTimeout(minuterie);
+  }, [raison, envoye]);
 
   if (envoye) {
     return (
       <View className="items-center gap-3 pb-2 pt-1">
-        <Text accessibilityRole="header" accessibilityLabel="Merci, c'est noté" className="text-center font-titre text-2xl text-encre">
+        <Text ref={titreMerci} accessibilityRole="header" accessibilityLabel="Merci, c'est noté" className="text-center font-titre text-2xl text-encre">
           Merci, c'est noté 🚩
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-encre">
@@ -60,7 +71,13 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
           <Ionicons name="chevron-back" size={26} color={couleurs.encre} />
         </Pressable>
         <View className="flex-1">
-          <Text accessibilityRole="header" accessibilityLabel={raison ? raison.titre : `Signaler ${sujet}`} numberOfLines={2} className="font-titre text-2xl text-encre">
+          <Text
+            ref={titreEtape}
+            accessibilityRole="header"
+            accessibilityLabel={raison ? raison.titre : `Signaler ${sujet}`}
+            numberOfLines={2}
+            className="font-titre text-2xl text-encre"
+          >
             {raison ? `${raison.emoji} ${raison.titre}` : `Signaler ${sujet}`}
           </Text>
           <Text numberOfLines={1} className="font-texte text-sm text-gris">

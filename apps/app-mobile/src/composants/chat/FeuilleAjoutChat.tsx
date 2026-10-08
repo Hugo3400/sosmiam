@@ -80,7 +80,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
   const tous = conversations.trouverConversation(conversationId)?.participants ?? AUCUN;
   const participants = useMemo(() => tous.filter((id) => id !== ID_MOI), [tous]);
   const medias = conversations.peutEnvoyerMedias(conversationId);
-  const mineurAvecToi = participants.some((id) => trouverPote(id)?.mineur);
+  const mineurDansLaConversation = participants.some((id) => trouverPote(id)?.mineur);
   // Pas de bar proposé quand un mineur est dans la conversation (toi compris)
   const permis = useCallback((lieu: Lieu) => lieuPermisDansSortie(lieu.id, participants), [lieuPermisDansSortie, participants]);
 
@@ -143,7 +143,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       cle: "lieu",
       emoji: "📍",
       titre: "Un lieu",
-      detail: mineurAvecToi ? "Sans les bars : il y a des 15-17 ans dans la conversation" : "Ta pépite du moment, avec un « On y va ? » pour tes potes",
+      detail: mineurDansLaConversation ? "Sans les bars : il y a des 15-17 ans dans la conversation" : "Ta pépite du moment, avec un « On y va ? » pour tes potes",
       permise: true,
     },
     { cle: "galerie", emoji: "🖼️", titre: "Une photo de ta galerie", detail: "Ton plat du jour, ta tête de gourmand…", permise: medias },

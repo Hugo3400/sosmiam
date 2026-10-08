@@ -1,0 +1,115 @@
+// Lieux, fil « Pour toi » et modération
+
+/// Fiche d'un lieu, saisie dans le logiciel de gestion (forme proche du type Lieu de packages/commun).
+model Lieu {
+  id           Int                  @id @default(autoincrement())
+  nom          String               @db.VarChar(80)
+  /// « resto », « patisserie », « bar » ou « sortie »
+  type         String               @db.VarChar(20)
+  emoji        String               @db.VarChar(16)
+  /// Ce que c'est, en quelques mots : « Trattoria », « Bar à cocktails »…
+  info         String               @db.VarChar(60)
+  texte        String               @db.VarChar(1000)
+  adresse      String?              @db.VarChar(160)
+  quartier     String               @db.VarChar(60)
+  ville        String               @db.VarChar(80)
+  latitude     Float?
+  longitude    Float?
+  /// « € », « €€ » ou « €€€ »
+  prix         String               @db.VarChar(3)
+  prixMoyen    Int?                 @map("prix_moyen")
+  /// Les deux couleurs du dégradé du lieu (« #FFD60A »)
+  couleurs     String[]             @db.VarChar(9)
+  /// Horaires lisibles : « Mar–sam, 12h–14h30 et 19h–23h »
+  horaires     String               @db.VarChar(160)
+  /// Créneaux d'ouverture : [{ jours: number[], de: "HH:MM", a: "HH:MM" }]
+  ouverture    Json                 @default("[]")
+  plat         String               @db.VarChar(80)
+  tags         String[]             @db.VarChar(40)
+  envies       String[]             @db.VarChar(20)
+  reservable   Boolean              @default(false)
+  telephone    String?              @db.VarChar(30)
+  siteWeb      String?              @map("site_web") @db.VarChar(200)
+  instagram    String?              @db.VarChar(60)
+  /// Prénom de la personne qui l'a fait découvrir
+  decouvertPar String?              @map("decouvert_par") @db.VarChar(40)
+  /// « brouillon », « publie » ou « masque »
+  statut       String               @default("brouillon") @db.VarChar(12)
+  /// Note interne, jamais montrée au public
+  note         String?              @db.VarChar(1000)
+  creeLe       DateTime             @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe    DateTime             @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  publications Publication[]
+  missions     MissionAmbassadeur[]
+
+  @@index([statut, ville])
+  @@map("lieux")
+}
+
+/// Une publication du fil « Pour toi » : une vidéo ou des photos d'un lieu, postées par le lieu ou par un créateur.
+model Publication {
+  id           Int                @id @default(autoincrement())
+  lieuId       Int                @map("lieu_id")
+  lieu         Lieu               @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// « lieu » ou « createur »
+  auteurType   String             @map("auteur_type") @db.VarChar(10)
+  auteurPseudo String?            @map("auteur_pseudo") @db.VarChar(40)
+  /// Ce que le lieu a offert ou payé au créateur : affiché « Collaboration commerciale »
+  partenariat  String?            @db.VarChar(120)
+  legende      String             @db.VarChar(500)
+  /// Média qui illustre le lieu sans y avoir été filmé : « Vidéo / Photos d'illustration »
+  illustration Boolean            @default(false)
+  /// « brouillon », « publiee » ou « masquee » (publiée avec une date future = programmée)
+  statut       String             @default("brouillon") @db.VarChar(12)
+  /// Masquée pour tout le monde par un signalement grave (« choquant »), en attendant la décision de la modération
+  suspendue    Boolean            @default(false)
+  publieeLe    DateTime?          @map("publiee_le") @db.Timestamptz(0)
+  creeLe       DateTime           @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe    DateTime           @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  medias       MediaPublication[]
+
+  @@index([statut, publieeLe])
+  @@map("publications")
+}
+
+/// Fichier d'une publication, rangé dans le dossier des médias (DOSSIER_MEDIAS) sous un nom tiré au hasard.
+model MediaPublication {
+  id            Int         @id @default(autoincrement())
+  publicationId Int         @map("publication_id")
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  /// « video », « affiche » (image de la vidéo) ou « photo »
+  type          String      @db.VarChar(10)
+  fichier       String      @unique @db.VarChar(80)
+  typeMime      String      @map("type_mime") @db.VarChar(40)
+  taille        Int
+  ordre         Int         @default(0)
+
+  @@map("medias_publications")
+}
+
+/// Un contenu signalé depuis l'app (forme : packages/commun/src/types/signalement.ts). Le signalement ne garde pas qui l'a fait.
+model Signalement {
+  id          Int       @id @default(autoincrement())
+  /// « publication » pour l'instant (plus tard : commentaire, avis, profil)
+  cible       String    @db.VarChar(12)
+  cibleId     String    @map("cible_id") @db.VarChar(40)
+  /// Lieu concerné, pour regrouper les signalements
+  lieuId      Int?      @map("lieu_id")
+  /// Une des RAISONS_SIGNALEMENT de packages/commun : « faux-lieu », « pub-cachee », « arnaque », « haine »…
+  raison      String    @db.VarChar(12)
+  /// Précision choisie parmi celles proposées pour la raison
+  precision   String?   @db.VarChar(80)
+  /// Ce que la personne a expliqué avec ses mots
+  explication String    @default("") @db.VarChar(500)
+  /// « app », « site » ou « discord »
+  source      String    @db.VarChar(10)
+  /// « a-traiter », « retenu » (contenu masqué) ou « rejete » (rien à redire)
+  statut      String    @default("a-traiter") @db.VarChar(10)
+  /// Note de la modération
+  decision    String?   @db.VarChar(500)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  traiteLe    DateTime? @map("traite_le") @db.Timestamptz(0)
+
+  @@index([statut, creeLe])
+  @@map("signalements")
+}

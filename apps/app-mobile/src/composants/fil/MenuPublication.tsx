@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,7 +24,7 @@ type Props = {
 type Vue = "options" | "signalement";
 
 /** Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours. */
-export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir, onSignaler, onFermer }: Props) {
+export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir, onSignaler, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const defilement = useRef<ScrollView>(null);
@@ -139,4 +139,4 @@ export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir,
       </KeyboardAvoidingView>
     </Modal>
   );
-}
+});

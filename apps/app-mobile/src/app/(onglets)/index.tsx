@@ -1,7 +1,7 @@
-import { useIsFocused, usePathname, useRouter } from "expo-router";
+import { useIsFocused, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Platform, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -45,7 +45,8 @@ const AUCUN_SUIVI: readonly string[] = [];
 export default function PourToi() {
   const router = useRouter();
   const focus = useIsFocused();
-  const chemin = usePathname();
+  // Quitter le fil met la vidéo en pause un instant après : la fiche ouverte se dessine d'abord, sans attendre le fil
+  const focusDiffere = useDeferredValue(focus);
   const marges = useSafeAreaInsets();
   const { profil } = utiliserProfil();
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
@@ -112,10 +113,6 @@ export default function PourToi() {
     }, DELAI_PRECHARGEMENT);
     return () => clearTimeout(minuterie);
   }, [focus, lieuAPrecharger, router]);
-
-  // Barre d'état claire sur le fil. La fiche préchargée reste montée en coulisses avec sa barre claire : partout ailleurs, le fil repose
-  // une barre sombre (une nouvelle, pour passer devant), sauf sur la fiche d'un lieu, qui garde la sienne
-  const barreEtat = chemin === "/" ? "light" : chemin.startsWith("/lieu/") ? null : "dark";
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -214,6 +211,9 @@ export default function PourToi() {
     },
   });
 
+  // Le menu (mémorisé) ne se redessine pas à chaque changement du fil
+  const actionsMenu = utiliserGestesStables({ choisir: choixMenu, signaler, fermer: () => setMenu(null) });
+
   const auChangementDeVisible = useCallback(({ viewableItems }: { viewableItems: ViewToken<Publication>[] }) => {
     setVisible(viewableItems[0]?.item.id ?? null);
   }, []);
@@ -230,7 +230,7 @@ export default function PourToi() {
       style={{ flex: 1, backgroundColor: couleurs.encre }}
       onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
     >
-      {barreEtat ? <StatusBar key={barreEtat} style={barreEtat} /> : null}
+      {focus ? <StatusBar style="light" /> : null}
       {taille.hauteur > 0 ? (
         liste.length > 0 ? (
           <FlatList
@@ -264,7 +264,7 @@ export default function PourToi() {
                   garde={activite.estGarde(lieu.id)}
                   suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}
                   nombreCommentaires={communaute.nombreCommentaires(item.id)}
-                  actif={focus && visible === item.id}
+                  actif={focusDiffere && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}
                   envolBouee={bouees[item.id] ?? 0}
                   margeHaut={hautIndications}
@@ -287,9 +287,9 @@ export default function PourToi() {
         nomLieu={lieuDuMenu?.nom ?? ""}
         sauve={lieuDuMenu ? activite.aSauve(lieuDuMenu.id) : false}
         restantes={activite.restantes}
-        onChoisir={choixMenu}
-        onSignaler={signaler}
-        onFermer={() => setMenu(null)}
+        onChoisir={actionsMenu.choisir}
+        onSignaler={actionsMenu.signaler}
+        onFermer={actionsMenu.fermer}
       />
       {commentairesAffiches && lieuCommente ? (
         <FeuilleCommentaires

@@ -165,7 +165,13 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
         <Modal visible={tiroirOuvert} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={() => setTiroirOuvert(false)}>
           <View className="flex-1 justify-end bg-encre/40">
             <Pressable accessibilityRole="button" accessibilityLabel="Fermer sans rien changer" onPress={() => setTiroirOuvert(false)} className="flex-1" />
-            <View accessibilityViewIsModal className="rounded-t-3xl border-2 border-b-0 border-encre bg-creme px-5 pt-5" style={{ paddingBottom: marges.bottom + 12 }}>
+            <View
+              accessibilityViewIsModal
+              // Le geste d'échappement de VoiceOver (Z à deux doigts) referme le tiroir sans rien changer, comme « Annuler »
+              onAccessibilityEscape={() => setTiroirOuvert(false)}
+              className="rounded-t-3xl border-2 border-b-0 border-encre bg-creme px-5 pt-5"
+              style={{ paddingBottom: marges.bottom + 12 }}
+            >
               <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
                 {tiroir === "time" ? "À quelle heure ?" : "Quel jour ?"}
               </Text>

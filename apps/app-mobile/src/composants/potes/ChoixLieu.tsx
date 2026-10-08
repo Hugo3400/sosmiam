@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useMemo, useState } from "react";
+import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
@@ -25,6 +27,8 @@ type Props = {
 /** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). */
 export function ChoixLieu({ visible, titre, dejaChoisis = [], permis, onChoisir, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
+  const animationsReduites = useReducedMotion();
   const { height } = useWindowDimensions();
   const { profil } = utiliserProfil();
   const [texte, setTexte] = useState("");
@@ -37,16 +41,37 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], permis, onChoisir,
       .filter((l) => mots.every((mot) => normaliserRecherche([l.nom, l.info, l.plat, l.quartier, l.ville].join(" ")).includes(mot)));
   }, [texte, age, permis]);
 
+  // Un clavier resté ouvert derrière (titre d'une sortie, message) cacherait le bas de la liste : on le range à l'ouverture
+  useEffect(() => {
+    if (visible) Keyboard.dismiss();
+  }, [visible]);
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onFermer}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View accessibilityViewIsModal style={{ maxHeight: height * 0.85, paddingBottom: marges.bottom + 8, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3">
+        <View
+          accessibilityViewIsModal
+          // VoiceOver ne voit que la feuille : le geste d'échappement (Z à deux doigts) la referme, en plus du bouton « Fermer sans choisir »
+          onAccessibilityEscape={onFermer}
+          style={{ maxHeight: height * 0.85, paddingBottom: marges.bottom + 8, flexShrink: 1 }}
+          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        >
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
           <View className="gap-3 px-5 pb-3">
-            <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-              {titre}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Text accessibilityRole="header" className="flex-1 font-titre text-2xl text-encre">
+                {titre}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Fermer sans choisir"
+                onPress={onFermer}
+                className="-mr-2 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+              >
+                <Ionicons name="close" size={24} color={couleurs.encre} />
+              </Pressable>
+            </View>
             <TextInput
               accessibilityLabel="Chercher un lieu"
               value={texte}

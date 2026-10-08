@@ -42,7 +42,8 @@ export function ChoixFinVote({ options, choisie, onChoisir }: Props) {
               <Text className={`text-base text-encre ${actif ? "font-texte-gras" : "font-texte"}`}>{o.libelle}</Text>
               <Text className="font-texte text-sm text-gris">{o.detail}</Text>
             </View>
-            {actif ? <Ionicons name="checkmark-circle" size={24} color={couleurs.encre} /> : <View className="h-6 w-6 rounded-full border-2 border-ligne" />}
+            {/* Rond vide bien visible (gris foncé sur crème) : on voit qu'un choix est possible */}
+            {actif ? <Ionicons name="checkmark-circle" size={24} color={couleurs.encre} /> : <View className="h-6 w-6 rounded-full border-2 border-gris" />}
           </Pressable>
         );
       })}

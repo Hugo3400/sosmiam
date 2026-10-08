@@ -1,5 +1,6 @@
-import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { AppState, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Recommandation } from "@sos-miam/commun/types/potes";
@@ -18,15 +19,34 @@ type Props = {
 
 // Une sortie reste « à venir » quelques heures après son début (le temps du repas)
 const DUREE_SORTIE = 4 * 3_600_000;
+// L'heure de l'onglet avance toute seule : une fin de vote passe sans qu'il faille changer d'onglet
+const RAFRAICHISSEMENT = 30_000;
 
 /** Onglet « Sorties » : les lieux reçus de tes potes, tes sorties à venir, « Nouvelle sortie », puis les sorties passées. */
 export function SectionSorties({ recommandations, lieux }: Props) {
   const router = useRouter();
   const { sorties, potes } = utiliserCommunaute();
-  const maintenant = Date.now();
-  const aVenir = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE >= maintenant);
+  const [maintenant, setMaintenant] = useState(() => new Date());
+
+  // Tant que l'onglet est affiché, et dès qu'on revient dans l'app : la fin du vote et le lieu retenu restent justes
+  useFocusEffect(
+    useCallback(() => {
+      setMaintenant(new Date());
+      const minuterie = setInterval(() => setMaintenant(new Date()), RAFRAICHISSEMENT);
+      const abonnement = AppState.addEventListener("change", (etat) => {
+        if (etat === "active") setMaintenant(new Date());
+      });
+      return () => {
+        clearInterval(minuterie);
+        abonnement.remove();
+      };
+    }, []),
+  );
+
+  const instant = maintenant.getTime();
+  const aVenir = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE >= instant);
   // Les plus récentes d'abord
-  const passees = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE < maintenant).reverse();
+  const passees = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE < instant).reverse();
   const ouvrir = (id: string) => router.push({ pathname: "/potes/sortie/[id]", params: { id } });
 
   return (
@@ -56,7 +76,7 @@ export function SectionSorties({ recommandations, lieux }: Props) {
             </Text>
           </View>
         ) : (
-          aVenir.map((s) => <CarteSortie key={s.id} sortie={s} lieux={lieux} passee={false} onOuvrir={ouvrir} />)
+          aVenir.map((s) => <CarteSortie key={s.id} sortie={s} lieux={lieux} passee={false} maintenant={maintenant} onOuvrir={ouvrir} />)
         )}
 
         {potes.length > 0 ? (
@@ -77,7 +97,7 @@ export function SectionSorties({ recommandations, lieux }: Props) {
             Déjà vécues
           </Text>
           {passees.map((s) => (
-            <CarteSortie key={s.id} sortie={s} lieux={lieux} passee onOuvrir={ouvrir} />
+            <CarteSortie key={s.id} sortie={s} lieux={lieux} passee maintenant={maintenant} onOuvrir={ouvrir} />
           ))}
         </View>
       ) : null}

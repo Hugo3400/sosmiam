@@ -12,6 +12,7 @@
     "site:build": "npm run build -w apps/site-web",
     "site:verifier": "npm run typecheck -w apps/site-web && npm run verifier:lignes",
     "site:deployer": "bash scripts/deployer-site.sh",
+    "site:kit-media": "bash scripts/generer-kit-media.sh",
     "inscrits:recuperer": "python3 scripts/recuperer-inscrits.py",
     "bot:dev": "npm run dev --prefix apps/bot-discord",
     "bot:verifier": "npm run typecheck --prefix apps/bot-discord && npm test --prefix apps/bot-discord && npm run verifier:lignes",

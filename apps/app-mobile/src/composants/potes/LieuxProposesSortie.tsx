@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { Keyboard, Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
@@ -88,7 +88,11 @@ export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, note, er
         petit
         desactive={complet}
         indice={complet ? undefined : "Ouvre la liste des lieux, avec une recherche"}
-        onPress={onAjouter}
+        onPress={() => {
+          // Le clavier du titre resterait ouvert par-dessus la liste des lieux : on le range avant
+          Keyboard.dismiss();
+          onAjouter();
+        }}
       />
     </View>
   );

@@ -1,6 +1,7 @@
 // Politique de confidentialité, section « Ton compte ambassadeur » (article 13 du RGPD), reprise par confidentialite.ts.
 // Ce qui est vraiment gardé : modèles Compte, Ambassadeur, SessionCompte, BadgeCompte, JournalPoints, CandidatureFondateur,
-// MissionAmbassadeur, MessageAmbassadeur, LectureMessage et DemandeLieu.compteId (apps/api/prisma/schema.prisma).
+// MissionAmbassadeur, MessageAmbassadeur, LectureMessage et DemandeLieu.compteId (apps/api/prisma/schema/comptes.prisma,
+// ambassadeurs.prisma et gestion.prisma pour DemandeLieu).
 // La date de naissance n'est jamais gardée. Durées et limites d'essais : docs/decisions.md, « Espace ambassadeur ».
 // « Déniché par » : le prénom est recopié sur la fiche du lieu accepté (Lieu.decouvertPar) ; il y reste si le compte est
 // supprimé, d'où la promesse de le retirer sur simple demande.

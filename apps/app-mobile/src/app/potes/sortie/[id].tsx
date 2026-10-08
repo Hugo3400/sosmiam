@@ -97,7 +97,7 @@ export default function EcranSortie() {
   const minutesRestantes = Math.ceil((fin.getTime() - maintenant.getTime()) / 60_000);
   const finVote = minutesRestantes < 60 ? `dans ${Math.max(1, minutesRestantes)} min` : `${decrireJour(fin, maintenant)} à ${decrireHeure(fin)}`;
 
-  // Les personnes bloquées ne sont plus montrées ; l'organisateur en premier
+  // Les personnes bloquées ne sont plus montrées (ni dans la liste, ni en « organisée par ») ; l'organisateur en premier
   const bloquesIds = new Set(bloques.map((b) => b.id));
   const participants = [sortie.organisateur, ...sortie.participants.filter((p) => p !== sortie.organisateur)]
     .filter((p) => sortie.participants.includes(p) && !bloquesIds.has(p))
@@ -146,7 +146,7 @@ export default function EcranSortie() {
             sortie={sortie}
             quand={`${capitaliser(decrireJour(quand, maintenant))} à ${decrireHeure(quand)}`}
             participants={participants}
-            organisateur={trouverPote(sortie.organisateur)}
+            organisateur={bloquesIds.has(sortie.organisateur) ? null : trouverPote(sortie.organisateur)}
             onRetour={retour}
           />
 

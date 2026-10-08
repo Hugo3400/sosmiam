@@ -1,0 +1,15 @@
+// Base de SOS Miam (PostgreSQL) : client Prisma et connexion. Le schéma est réparti en un fichier par domaine dans ce dossier.
+// Après chaque changement : npm run base:nouvelle-migration -- <nom>
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../../src/base-de-donnees/client-genere"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}

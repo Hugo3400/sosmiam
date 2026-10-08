@@ -40,7 +40,7 @@ sos-miam/
 | `src/composants/ambassadeur/` | espace ambassadeur : en-tête et pied de page du cadre, carte du palier, tuiles et statut de `/espace`, candidature fondateur, propositions de lieux, missions, messages |
 | `src/composants/compte/` | formulaires du compte : inscription (et refus d'âge), connexion, nouveau mot de passe, profil, changement de mot de passe, suppression, déconnexion, et leurs champs |
 | `src/composants/programme/` | blocs de la page `/programme` : le programme Ambassadeurs expliqué simplement |
-| `src/composants/kit-media/` | visuels du kit média dessinés à leur taille exacte (route `/rendu-kit`, capturés par `scripts/generer-kit-media.sh`) |
+| `src/composants/kit-media/` | visuels du kit média dessinés à leur taille exacte (route `/rendu-kit`, capturés par `scripts/generer-kit-media.sh`, `npm run site:kit-media`) et blocs de la page /espace/kit-media (cartes de téléchargement, bouton Copier, couleurs, polices, règles) |
 | `src/fonctions/texte/`, `dates/`, `prix/`, `seo/`, `navigation/` | fonctions pures, une par fichier (ex. `formater-prix.ts`) |
 | `src/fonctions/hotes/` | partage des adresses entre sosmiam.fr et ambassadeur.sosmiam.fr (`choisir-redirection-hote.ts`, middleware de `root.tsx`) |
 | `src/services/` | appels à l'API, côté serveur (un fichier par domaine : `lieux.server.ts`, `comptes.server.ts`, `espace-ambassadeur.server.ts`…) ; `session-compte.server.ts` : cookie de session de l'espace ambassadeur ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
@@ -106,7 +106,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 ## apps/api — le serveur
 | Dossier | Contenu |
 |---|---|
-| `prisma/`, `prisma.config.ts` | schéma de la base, migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
+| `prisma/`, `prisma.config.ts` | schéma de la base, un fichier par domaine dans `prisma/schema/` (base, newsletter, statistiques, lieux, gestion, comptes, ambassadeurs), migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
 | `src/demarrer.ts`, `src/application.ts` | lancement du serveur (127.0.0.1:5192, pm2 « sos-miam-api ») et assemblage d'Express |
 | `src/base-de-donnees/` | connexion Prisma ; `client-genere/` est recréé par `prisma generate` (jamais commité) |
 | `src/routes/` | adresses de l'API, un fichier par domaine : inscriptions, mesure (pages vues du site), signalements, gestion (`/api-gestion`, le logiciel de gestion), comptes de l'espace ambassadeur (`comptes.ts` : inscription, connexion, Mon compte, candidature fondateur, propositions de lieux), espace ambassadeur (`espace-ambassadeur.ts` : missions et messages du compte connecté)… |
