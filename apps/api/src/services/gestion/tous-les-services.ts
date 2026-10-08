@@ -10,6 +10,8 @@ import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagne
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
 import { creerBigSos, deciderBigSos, envoyerVerification, lireBigSos, listerBigSos, modifierBigSos, supprimerBigSos } from "./big-sos.ts";
 import { deconnecterPartout, exporterDonneesCompte, lireCompteGestion, listerComptes } from "./comptes-gestion.ts";
+import { estimerPush, lireEtatPush } from "../notifications/file-push.ts";
+import { annulerNotification, creerNotification, listerNotifications } from "./notifications-gestion.ts";
 import { accepterDemande, effacerContactDemande, listerDemandes, refuserDemande } from "./demandes.ts";
 import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
@@ -54,6 +56,7 @@ export const servicesGestion = {
   prevenirAmbassadeurValide, envoyerLienMotDePasse,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
+  lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
 };
 
 export type ServicesGestion = typeof servicesGestion;

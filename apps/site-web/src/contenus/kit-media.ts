@@ -8,7 +8,7 @@ import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
 /** Dossier des fichiers, depuis le dossier du site (apps/site-web), d'où le serveur est toujours lancé */
 export const DOSSIER_KIT_MEDIA = "kit-media";
 
-/** Le zip de tout le kit (avec a-lire.txt, les règles), refait par le script */
+/** Le zip de tout le kit (avec a-lire.txt : les règles et les textes prêts à poster), refait par le script */
 export const NOM_ZIP_KIT_MEDIA = "kit-media-sos-miam.zip";
 
 /** Lien des textes prêts à poster : les visites qu'il amène sont comptées dans la campagne « ambassadeurs » */

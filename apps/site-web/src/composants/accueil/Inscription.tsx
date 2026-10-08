@@ -159,8 +159,9 @@ export function Inscription() {
             <label className="flex cursor-pointer items-center gap-2.5 font-medium">
               <input type="checkbox" name="ambassadeur" value="oui" defaultChecked={valeurs?.ambassadeur ?? false} className="h-5 w-5 shrink-0 accent-encre" />
               {/* Pas une candidature « fondateur » : on invite ces inscrits à créer leur compte (dès 18 ans), puis la
-                  candidature fondateur se fait depuis l'espace (le logiciel de gestion se sert de ce champ « ambassadeur ») */}
-              <span>Je veux devenir ambassadeur (dès 18 ans) <span aria-hidden="true">🎖️</span></span>
+                  candidature fondateur se fait depuis l'espace (le logiciel de gestion se sert de ce champ « ambassadeur »).
+                  Espace insécable avant l'émoji : il ne part jamais seul à la ligne */}
+              <span>Je veux devenir ambassadeur (dès 18 ans)&nbsp;<span aria-hidden="true">🎖️</span></span>
             </label>
           </div>
 

@@ -1,0 +1,74 @@
+// Notifications push de l'app, envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire (décidé le
+// 8 octobre 2026). Anti-spam : 1 par jour et 4 par semaine au plus par téléphone, hors notifications demandées.
+
+/// Un téléphone qui accepte les notifications : son jeton (donné par Apple ou Google), enregistré par l'app.
+model AppareilPush {
+  id         Int             @id @default(autoincrement())
+  /// Jeton APNs (iPhone) ou FCM (Android)
+  jeton      String          @unique @db.VarChar(400)
+  /// « ios » ou « android »
+  plateforme String          @db.VarChar(8)
+  /// Compte connecté sur ce téléphone, s'il y en a un (le téléphone part avec le compte)
+  compteId   Int?            @map("compte_id")
+  compte     Compte?         @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// Ville choisie dans l'app (pour viser une ville), jamais une position
+  ville      String?         @db.VarChar(80)
+  /// Faux quand Apple ou Google disent que le jeton ne marche plus (app désinstallée…)
+  actif      Boolean         @default(true)
+  creeLe     DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
+  /// Dernière fois que l'app a confirmé ce jeton
+  vuLe       DateTime        @default(now()) @map("vu_le") @db.Timestamptz(0)
+  receptions ReceptionPush[]
+
+  @@index([actif, plateforme])
+  @@map("appareils_push")
+}
+
+/// Une notification écrite dans le logiciel : son texte, sa cible, sa date d'envoi et son bilan.
+model NotificationPush {
+  id           Int             @id @default(autoincrement())
+  titre        String          @db.VarChar(60)
+  texte        String          @db.VarChar(180)
+  /// Écran de l'app à ouvrir (« / », « /explorer », « /lieu/12 »…), ou null pour l'accueil
+  lien         String?         @db.VarChar(200)
+  /// À qui : { "ville": "Lyon" | null, "plateforme": "ios" | "android" | null }
+  cible        Json            @default("{}")
+  /// À qui, en clair (« Tout le monde · iPhone »)
+  description  String          @default("") @db.VarChar(300)
+  /// Demandée par la personne (« un SOS près de chez toi ») : pas comptée dans l'anti-spam
+  demandee     Boolean         @default(false)
+  programmeeLe DateTime        @default(now()) @map("programmee_le") @db.Timestamptz(0)
+  /// « programmee », « envoi », « envoyee » ou « annulee »
+  statut       String          @default("programmee") @db.VarChar(12)
+  total        Int             @default(0)
+  envoyees     Int             @default(0)
+  echecs       Int             @default(0)
+  /// Pas envoyées à cause de l'anti-spam
+  ignorees     Int             @default(0)
+  creeLe       DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
+  envoyeeLe    DateTime?       @map("envoyee_le") @db.Timestamptz(0)
+  receptions   ReceptionPush[]
+
+  @@index([statut, programmeeLe])
+  @@map("notifications_push")
+}
+
+/// Ce qu'un téléphone a reçu (ou pas) : sert à l'anti-spam et au bilan ; effacé après 90 jours.
+model ReceptionPush {
+  id             Int              @id @default(autoincrement())
+  notificationId Int              @map("notification_id")
+  notification   NotificationPush @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  appareilId     Int              @map("appareil_id")
+  appareil       AppareilPush     @relation(fields: [appareilId], references: [id], onDelete: Cascade)
+  /// « envoyee », « echec » ou « ignoree » (anti-spam)
+  statut         String           @db.VarChar(8)
+  /// Ce qu'ont dit Apple ou Google en cas d'échec
+  erreur         String?          @db.VarChar(200)
+  /// Comptée dans l'anti-spam (faux pour une notification demandée)
+  compte         Boolean          @default(true)
+  creeLe         DateTime         @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@unique([notificationId, appareilId])
+  @@index([appareilId, creeLe])
+  @@map("receptions_push")
+}

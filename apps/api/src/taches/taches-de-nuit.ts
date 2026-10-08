@@ -1,11 +1,12 @@
-// Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts des
-// demandes de lieux de plus de 3 ans, journal des mails de plus de 90 jours, puis les comptes : sessions expirées, comptes
-// refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés), les alertes par mail 30 jours avant
-// le retrait du rôle d'ambassadeur (1 an sans visite) et l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée
-// de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la dernière date de plus de 26 heures (serveur
-// arrêté pendant la nuit, première mise en route).
+// Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts
+// des demandes de lieux de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
+// comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés),
+// les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et l'effacement d'un compte
+// (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la
+// dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
+import { effacerReceptionsAnciennes } from "../services/notifications/file-push.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
@@ -32,6 +33,8 @@ async function faireLeMenage() {
     if (effaces > 0) await noterAction("serveur", "Contacts de demandes effacés (plus de 3 ans)", `${effaces} demande(s)`);
     const envois = await effacerEnvoisAnciens();
     if (envois > 0) await noterAction("serveur", "Journal des mails effacé (plus de 90 jours)", `${envois} mail(s)`);
+    const receptions = await effacerReceptionsAnciennes();
+    if (receptions > 0) await noterAction("serveur", "Détail des notifications effacé (plus de 90 jours)", `${receptions} réception(s)`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }

@@ -10,6 +10,7 @@ import {
 } from "./services/comptes.ts";
 import { compterPlacesFondateur, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
+import { traiterNotifications } from "./services/notifications/file-push.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { marquerMessageLu, messagesDuCompte, missionsDuCompte, terminerMission } from "./services/gestion/missions-messages.ts";
@@ -37,6 +38,9 @@ void vider(); // ferme tout de suite les périodes terminées pendant que l'API 
 // Mails en attente (newsletter, bienvenue…) : un passage toutes les 20 secondes, dans la limite d'envois par heure
 const passerLaFile = () => traiterFileCourriels().catch((erreur: unknown) => console.error("File des mails :", resumerErreur(erreur)));
 const minuteurCourriels = process.env.SCHEMA_BASE ? undefined : setInterval(passerLaFile, 20_000);
+// Notifications programmées (logiciel de gestion) : envoyées à Apple et Google dès leur heure, vérifié toutes les 30 secondes
+const envoyerLesNotifications = () => traiterNotifications().catch((erreur: unknown) => console.error("Notifications :", resumerErreur(erreur)));
+const minuteurNotifications = process.env.SCHEMA_BASE ? undefined : setInterval(envoyerLesNotifications, 30_000);
 
 const serveur = creerApplication({
   enregistrerInscription,
@@ -67,6 +71,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     clearInterval(minuteur);
     clearInterval(minuteurCourriels);
+    clearInterval(minuteurNotifications);
     arreterSauvegardes();
     serveur.close(() => {
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus

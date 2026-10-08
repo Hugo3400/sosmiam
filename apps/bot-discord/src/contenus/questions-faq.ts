@@ -225,7 +225,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "ambassadeurs",
     question: "Je suis créateur de contenu : comment ça marche ?",
     reponse:
-      "Les lieux publient des missions (« Viens filmer mon resto ») avec leurs conditions affichées à l'avance : repas offert ou rémunération. Tu choisis celles qui te plaisent. Et dès qu'un lieu offre un repas ou paie une vidéo, elle porte la mention « Collaboration commerciale », comme la loi l'exige.",
+      "Plus tard, les lieux pourront demander une vidéo à des créateurs (« Viens filmer mon resto »), avec leurs conditions affichées à l'avance : repas offert ou rémunération. Et dès qu'un lieu offre un repas ou paie une vidéo, elle porte la mention « Collaboration commerciale », comme la loi l'exige. Ce n'est pas encore ouvert.",
     motsCles: ["tiktok", "instagram", "video", "influenceur"],
   },
 ];

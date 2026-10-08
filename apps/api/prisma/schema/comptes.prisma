@@ -34,6 +34,7 @@ model Compte {
   messages      MessageAmbassadeur[]
   lectures      LectureMessage[]
   bigSos        BigSos[]
+  appareils     AppareilPush[]
 
   @@index([derniereConnexion])
   @@map("comptes")

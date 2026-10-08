@@ -4,6 +4,7 @@ import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs
 import { creerControleursBigSos } from "../controleurs/gestion/controleurs-big-sos.ts";
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
+import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -33,6 +34,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
+  const n = creerControleursNotifications(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
   // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
@@ -87,6 +89,10 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/newsletter/envois", m.lancer);
   routes.post("/newsletter/envois/:id/annuler", m.annuler);
   routes.get("/courriels/etat", m.etat);
+  routes.get("/notifications", n.liste);
+  routes.get("/notifications/estimation", n.estimation);
+  routes.post("/notifications", n.creer);
+  routes.post("/notifications/:id/annuler", n.annuler);
   routes.get("/big-sos", g.liste);
   routes.post("/big-sos", g.creer);
   routes.get("/big-sos/:id", g.fiche);

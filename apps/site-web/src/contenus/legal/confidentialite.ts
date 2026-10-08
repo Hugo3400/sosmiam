@@ -228,7 +228,7 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             `**${hebergeur.nom}** (${hebergeur.adresse}) : hébergement du serveur du site, en France.`,
-            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse, et c'est aussi par cette boîte que partent nos mails (la newsletter, et les mails de ton compte ambassadeur : bienvenue, alertes avant effacement, lien pour choisir un nouveau mot de passe). Notre serveur garde un journal de ces envois (adresse, type de mail, date, résultat) pendant 90 jours ; le contenu d'un mail est effacé dès qu'il est parti.`,
+            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse, et c'est aussi par cette boîte que partent nos mails (la newsletter, et les mails de ton compte ambassadeur : bienvenue, nouvelles du programme, alertes avant le retrait du rôle ou l'effacement, lien pour choisir un nouveau mot de passe). Notre serveur garde un journal de ces envois (adresse, type et objet du mail, date, résultat) pendant 90 jours ; le texte d'un mail est effacé dès qu'il est parti.`,
             `**${prestataires.reseau.nom}** (${prestataires.reseau.adresse}) : ${prestataires.reseau.role}. Pour la sécurité de son propre réseau, il utilise aussi certaines données pour son propre compte (voir « Cloudflare, qui protège le site »).`,
           ],
         },

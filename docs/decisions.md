@@ -19,6 +19,8 @@
 - Page : histoire racontée par le lieu, vidéos de créateurs + liens, objectif de mobilisation avec jauge, bons solidaires.
 - **BIG SOS gratuit, mais limité** (décidé le 8 octobre 2026). Les limites restent à définir (nombre, fréquence…) : n'en annoncer aucune tant qu'elles ne sont pas décidées.
 - Point ouvert : que devient un bon solidaire si le lieu ferme.
+- **Jauge « objectif de mobilisation » : pas encore décidée** (8 octobre 2026). En attendant l'app, c'est un objectif libre réglé et mis à jour à la main dans le logiciel pour chaque BIG SOS ; les visites validées ou les rescousses pourront la remplir quand l'app existera.
+- Le vote de la communauté arrivera avec l'app : d'ici là, un BIG SOS peut être validé sans vote.
 
 ## Comptes et données de l'app (décidé le 8 octobre 2026)
 - **Inscription à partir de 15 ans** (sous 15 ans, le RGPD exigerait l'accord des parents). **Anti-contournement (décidé le 8 octobre 2026)** : le choix de la date reste neutre (toutes les dates, pas d'annonce de l'âge minimum à côté du champ) ; continuer avec une date qui donne moins de 15 ans (écrite en toutes lettres dans le champ, donc on a pu corriger une faute de frappe) bloque l'inscription sur le téléphone jusqu'aux 15 ans (verrou dans le Trousseau ou le Keystore, qui garde le jour des 15 ans, ce qui revient à garder la date de naissance, uniquement sur le téléphone et jamais envoyé), même si on revient changer la date. Sur iPhone, le verrou survit à une désinstallation. Limite connue : le verrou suit l'horloge du téléphone, donc avancer la date le lève ; il sera vérifié avec l'heure du serveur quand l'API sera branchée. Aucune vérification d'identité : c'est une barrière, pas une preuve. Un bouton « Débloquer » existe seulement en mode développement (Expo Go), jamais dans l'app publiée. Entre 15 et 17 ans, tout ce qui touche à l'alcool (boissons alcoolisées, types de bar) est masqué. Règles dans `packages/commun/src/regles/ages.ts`.
@@ -153,6 +155,11 @@
 - **Tout le reste demande un compte** : rescousse, J'aime, commenter, suivre, garder, partager, envoyer à un pote, Pas intéressé, Signaler, Potes, chat, profil, défis, Scan. Une feuille « Crée ton compte » s'ouvre à la place.
 - **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou des moins de 15 ans reste actif sur le téléphone.
 
+## Notifications push (décidé le 8 octobre 2026)
+- **Envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire** (pas le service d'Expo). Il faut une clé APNs « .p8 » (developer.apple.com → Keys) et un compte de service d'un projet Firebase gratuit, déposés par Hugo dans /root/sos-miam-secrets.
+- **Anti-spam : au plus 1 notification par jour et 4 par semaine par téléphone**, hors notifications demandées par la personne (« un SOS près de chez toi »).
+- Une notification n'ouvre qu'un écran de l'app (jamais une adresse extérieure) ; détail des réceptions effacé après 90 jours.
+
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
 - **Deux badges distincts (décidé le 8 octobre 2026)** : « 🚀 Premier sauveteur » = donner la toute première rescousse à un lieu qui vient d'arriver (+20 points) ; « 🔎 Déniché par toi » = proposer un lieu qui rejoint SOS Miam, sa fiche affiche « Déniché par <prénom> » (+30 points, « proposer un lieu validé »).
@@ -181,7 +188,7 @@
 - Cookies : rien de facultatif sans accord, choix gardé 6 mois.
 
 ## Outils internes
-- **Logiciel ordinateur de gestion** (Tauri, Windows), commencé le 8 octobre 2026 : statistiques, newsletter, lieux, publications du fil, modération, maintenance (BIG SOS, notifications et comptes à venir). L'administration n'est pas sur le site.
+- **Logiciel ordinateur de gestion** (Tauri, Windows), commencé le 8 octobre 2026 : statistiques, newsletter (éditeur visuel, envoi), lieux, publications du fil, modération, comptes, ambassadeurs, BIG SOS, notifications, annonces Discord, maintenance. L'administration n'est pas sur le site.
 - **Réservé à Hugo** (décidé le 8 octobre 2026) : clé secrète propre à chaque PC, chiffrée par un mot de passe, **et** code à 6 chiffres d'une application d'authentification. Le serveur ne connaît que les clés publiques des postes autorisés ; chaque demande est signée. Seul le chemin `/api-gestion` de l'API est joignable de l'extérieur.
 - L'installateur est construit sur le serveur (comme TabulaDB), sans passer par GitHub ; depuis la 0.2.0, le logiciel **se met à jour tout seul** (installateurs signés, servis seulement à un poste connecté).
 - **Sauvegardes** : copie chiffrée de la base chaque nuit sur le serveur, 30 gardées ; clé de restauration notée par Hugo dans son gestionnaire de mots de passe.

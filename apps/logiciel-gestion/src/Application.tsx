@@ -6,8 +6,9 @@ import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
-import { EcranBientot } from "~/ecrans/bientot/EcranBientot.tsx";
+import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranComptes } from "~/ecrans/comptes/EcranComptes.tsx";
+import { EcranNotifications } from "~/ecrans/notifications/EcranNotifications.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
 import { EcranDeverrouillage } from "~/ecrans/connexion/EcranDeverrouillage.tsx";
 import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.tsx";
@@ -121,7 +122,8 @@ export function Application() {
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {ecran === "utilisateurs" && <EcranComptes />}
-          {(ecran === "big-sos" || ecran === "notifications") && <EcranBientot ecran={ecran} />}
+          {ecran === "big-sos" && <EcranBigSos />}
+          {ecran === "notifications" && <EcranNotifications />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "reglages" && (
             <EcranReglages

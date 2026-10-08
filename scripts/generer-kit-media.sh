@@ -3,7 +3,7 @@
 # 1. lit la liste des fichiers sur le serveur de développement du site (/rendu-kit/liste, tirée de src/contenus/kit-media.ts) ;
 # 2. capture chaque PNG à sa taille exacte avec le Chrome sans écran de Playwright (fond transparent pour les logos, la
 #    mascotte et les badges) et enregistre chaque SVG tel que la route le renvoie ; vérifie la taille de chaque image ;
-# 3. refait kit-media-sos-miam.zip : tous les fichiers, et a-lire.txt (les règles du kit).
+# 3. refait kit-media-sos-miam.zip : tous les fichiers, et a-lire.txt (les règles et les textes prêts à poster).
 # Tout est fabriqué à part, puis remplace l'ancien kit d'un coup : si une étape échoue, rien ne change.
 # Il faut que le serveur de développement tourne (pm2 « sos-miam-site-dev », 127.0.0.1:5190) : la route /rendu-kit
 # n'existe pas en ligne. Les fichiers produits sont commités avec le site.
