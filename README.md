@@ -18,3 +18,4 @@ Fais découvrir les lieux indépendants qui ont besoin de monde. Sauve une table
 - `npm run site:dev` : lance le site en développement
 - `npm run site:verifier` : vérifie les types et la limite de 700 lignes
 - `npm run site:deployer` : met en ligne le site sur l'aperçu (https://apercu.sosmiam.fr) et les pages légales de sosmiam.fr
+# sosmiam
