@@ -8,9 +8,10 @@ import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import couleurs from "~/theme/couleurs";
 
 type Props = {
-  /** « sombre » : posé sur le fil (fond noir transparent, cloche blanche) ; « claire » : rond blanc à bord noir, comme la roue des réglages du Profil */
+  /** « sombre » : posé sur le fil (fond noir transparent, cloche blanche) ; « claire » : rond blanc à bord noir, comme la roue des réglages du Profil et le bouton Messages de Potes */
   variante: "sombre" | "claire";
 };
 
@@ -47,15 +48,16 @@ export function BoutonNotifications({ variante }: Props) {
       onPress={toucher}
       className={`h-11 w-11 items-center justify-center rounded-full active:opacity-70 ${sombre ? "bg-black/30" : "border-2 border-encre bg-white"}`}
     >
-      {sombre ? <Ionicons name="notifications-outline" size={22} color="#FFFFFF" /> : <Text className="text-xl">🔔</Text>}
+      <Ionicons name={sombre ? "notifications-outline" : "notifications"} size={sombre ? 22 : 20} color={sombre ? "#FFFFFF" : couleurs.encre} />
       {nombre > 0 ? (
         <View
           // Décorative : le nombre est déjà dans le libellé du bouton
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full border-2 border-encre bg-tomate px-1"
+          // Comme la pastille des messages de Potes
+          className="absolute -right-2 -top-2 min-w-5 items-center rounded-full border-2 border-creme bg-rouge-texte px-1"
         >
-          <Text allowFontScaling={false} className="font-texte-gras text-[11px] leading-[13px] text-white">
+          <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
             {nombre > MAX_AFFICHE ? `${MAX_AFFICHE}+` : nombre}
           </Text>
         </View>

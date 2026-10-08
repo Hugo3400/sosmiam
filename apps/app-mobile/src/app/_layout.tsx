@@ -7,15 +7,17 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
+import { FournisseurNotifications } from "~/composants/notifications/FournisseurNotifications";
 import { FournisseurCommunaute } from "~/composants/potes/FournisseurCommunaute";
 import { FournisseurConversations } from "~/composants/potes/FournisseurConversations";
 import { PileRacine } from "~/composants/navigation/PileRacine";
 import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
+import { FournisseurSuivisPersonnes } from "~/composants/suivi/FournisseurSuivisPersonnes";
 
 // L'écran de démarrage reste visible jusqu'à ce que tout soit prêt (voir PileRacine)
 SplashScreen.preventAutoHideAsync();
 
-/** Racine de l'app : polices de la marque, profil (ou visite sans compte) et activité (rescousses, lieux gardés), puis la pile d'écrans. */
+/** Racine de l'app : polices de la marque, profil (ou visite sans compte), activité (rescousses, lieux gardés), communauté, notifications et suivis entre personnes, puis la pile d'écrans. */
 export default function RacineApp() {
   const [policesChargees, erreurPolices] = useFonts({
     BricolageGrotesque_700Bold,
@@ -33,9 +35,14 @@ export default function RacineApp() {
         {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
         <FournisseurActivite>
           <FournisseurCommunaute>
-            <FournisseurConversations>
-              <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
-            </FournisseurConversations>
+            {/* Notifications de l'app (cloche), puis abonnés et abonnements entre personnes, qui en ajoutent */}
+            <FournisseurNotifications>
+              <FournisseurSuivisPersonnes>
+                <FournisseurConversations>
+                  <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+                </FournisseurConversations>
+              </FournisseurSuivisPersonnes>
+            </FournisseurNotifications>
           </FournisseurCommunaute>
         </FournisseurActivite>
       </FournisseurInvite>

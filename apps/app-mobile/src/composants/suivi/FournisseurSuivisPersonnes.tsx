@@ -5,39 +5,30 @@ import { calculerVisibiliteProfil } from "@sos-miam/commun/regles/calculer-visib
 import { estComptePrive } from "@sos-miam/commun/regles/est-compte-prive";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
-import type { Pote } from "@sos-miam/commun/types/potes";
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
-import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, grapheSuivisExemples, reactionsExemples } from "~/contenus/suivis-exemples";
+import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, reactionsExemples } from "~/contenus/suivis-exemples";
 import { estAjouteEnVrai } from "~/fonctions/communaute/est-ajoute-en-vrai";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { appliquerReactionDemo, type ReactionDemo } from "~/fonctions/suivi/appliquer-reaction-demo";
 import { construireCibleSuivi } from "~/fonctions/suivi/construire-cible-suivi";
+import { convertirLiensEnPersonnes } from "~/fonctions/suivi/convertir-liens-en-personnes";
 import { creerLienSuivi } from "~/fonctions/suivi/creer-lien-suivi";
 import { filtrerLiensPermis, type ContexteLiensSuivi } from "~/fonctions/suivi/filtrer-liens-permis";
-import { listerAbonnementsDe } from "~/fonctions/suivi/lister-abonnements-de";
-import { listerAbonnesDe } from "~/fonctions/suivi/lister-abonnes-de";
+import { listerPotesLiesDe } from "~/fonctions/suivi/lister-potes-lies-de";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { nettoyerSuivisPersonnes } from "~/fonctions/suivi/nettoyer-suivis-personnes";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { ContexteSuivisPersonnes, type EtatSuivisPersonnes, type PersonneLiee, type RelationPersonne, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
+import { ContexteSuivisPersonnes, type EtatSuivisPersonnes, type RelationPersonne, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
 import { effacerSuivisPersonnesLocaux, enregistrerSuivisPersonnesLocaux, lireSuivisPersonnesLocaux, type SuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
 type NomListe = "abonnements" | "demandesEnvoyees" | "abonnes" | "demandesRecues";
 
 const AUCUNE_CLE: readonly string[] = [];
 const contient = (liens: LienSuivi[], id: string) => liens.some((l) => l.id === id);
-/** En personnes connues, la plus récente d'abord */
-const enPersonnes = (liens: LienSuivi[], trouverPote: (id: string) => Pote | null): PersonneLiee[] =>
-  liens
-    .flatMap((l) => {
-      const pote = trouverPote(l.id);
-      return pote ? [{ pote, depuis: l.depuis, ...(l.surveillance ? { surveillance: true } : {}) }] : [];
-    })
-    .sort((a, b) => b.depuis.localeCompare(a.depuis));
 
 /**
  * Abonnés, abonnements et demandes entre personnes (démo gardée sur le téléphone en attendant l'API). Les règles s'appliquent
@@ -147,9 +138,12 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
     [changer, ajouter],
   );
 
+  // Sans effet si la personne n'y est pas (deux appuis ne cassent rien), ni avant que la démo de ce profil soit prête
   const retirer = useCallback(
-    (liste: NomListe, id: string) => changer((e) => (contient(e[liste], id) ? { ...e, [liste]: e[liste].filter((l) => l.id !== id) } : e)),
-    [changer],
+    (liste: NomListe, id: string) => {
+      if (pret) changer((e) => (contient(e[liste], id) ? { ...e, [liste]: e[liste].filter((l) => l.id !== id) } : e));
+    },
+    [pret, changer],
   );
 
   const suivre = useCallback(
@@ -233,8 +227,8 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(lieuxExemples, age)).length, [activite.suivis, age]);
 
   const valeur = useMemo<EtatSuivisPersonnes>(() => {
-    const abonnes = propre ? enPersonnes(propre.abonnes, trouverPote) : [];
-    const abonnements = propre ? enPersonnes(propre.abonnements, trouverPote) : [];
+    const abonnes = propre ? convertirLiensEnPersonnes(propre.abonnes, trouverPote) : [];
+    const abonnements = propre ? convertirLiensEnPersonnes(propre.abonnements, trouverPote) : [];
     const idsAbonnes = abonnes.map((p) => p.pote.id);
     const idsAbonnements = abonnements.map((p) => p.pote.id);
     const bandeEnVrai = (id: string) => potes.some((p) => p.id === id) && estAjouteEnVrai(moyenAjout(id));
@@ -254,12 +248,8 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       };
     };
 
-    // Les listes d'une autre personne : graphe de la démo (et toi), sans bloqués ni inconnus ; un adulte n'y voit pas les mineurs
-    const potesLies = (id: string, sens: "abonnes" | "abonnements"): Pote[] =>
-      (sens === "abonnes" ? listerAbonnesDe(id, grapheSuivisExemples, idsAbonnements) : listerAbonnementsDe(id, grapheSuivisExemples, idsAbonnes)).flatMap((autre) => {
-        const pote = bloques.has(autre) ? null : trouverPote(autre);
-        return pote && (moiMineur || !pote.mineur) ? [pote] : [];
-      });
+    const lies = { mesAbonnes: idsAbonnes, mesAbonnements: idsAbonnements, bloques, moiMineur, trouverPote };
+    const potesLies = (id: string, sens: "abonnes" | "abonnements") => listerPotesLiesDe(id, sens, lies);
 
     const compteursDe = (id: string) => {
       if (!propre) return null;
@@ -269,7 +259,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       return { abonnes: potesLies(id, "abonnes").length, abonnements: potesLies(id, "abonnements").length };
     };
 
-    const listeDe = (id: string, sens: "abonnes" | "abonnements"): Pote[] | "ferme" => {
+    const listeDe = (id: string, sens: "abonnes" | "abonnements"): ReturnType<EtatSuivisPersonnes["abonnesDe"]> => {
       if (compteursDe(id) === null) return "ferme";
       if (id === ID_MOI) return (sens === "abonnes" ? abonnes : abonnements).map((p) => p.pote);
       return relationAvec(id)?.visibilite === "complet" ? potesLies(id, sens) : "ferme";
@@ -284,8 +274,8 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       changerConfidentialite,
       abonnes,
       abonnements,
-      demandesRecues: propre ? enPersonnes(propre.demandesRecues, trouverPote) : [],
-      demandesEnvoyees: propre ? enPersonnes(propre.demandesEnvoyees, trouverPote) : [],
+      demandesRecues: propre ? convertirLiensEnPersonnes(propre.demandesRecues, trouverPote) : [],
+      demandesEnvoyees: propre ? convertirLiensEnPersonnes(propre.demandesEnvoyees, trouverPote) : [],
       relationAvec,
       suivre,
       nePlusSuivre: (id) => retirer("abonnements", id),
@@ -297,7 +287,9 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       abonnesDe: (id) => listeDe(id, "abonnes"),
       abonnementsDe: (id) => listeDe(id, "abonnements"),
       suggestionsMasquees: propre?.suggestionsMasquees ?? AUCUNE_CLE,
-      masquerSuggestion: (cle) => changer((e) => (e.suggestionsMasquees.includes(cle) ? e : { ...e, suggestionsMasquees: [...e.suggestionsMasquees, cle] })),
+      masquerSuggestion: (cle) => {
+        if (pret) changer((e) => (e.suggestionsMasquees.includes(cle) ? e : { ...e, suggestionsMasquees: [...e.suggestionsMasquees, cle] }));
+      },
       effacer,
     };
   }, [pret, etat, propre, contexte, bloques, moiMineur, potes, trouverPote, moyenAjout, pagesSuivies, changerConfidentialite, suivre, accepterDemande, retirer, changer, effacer]);

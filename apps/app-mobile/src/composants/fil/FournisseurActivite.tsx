@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import { RESCOUSSES_PAR_SEMAINE } from "@sos-miam/commun/regles/rescousses";
 import { calculerCleSemaine } from "~/fonctions/dates/calculer-cle-semaine";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
+import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { ContexteActivite, type ResultatRescousse } from "~/hooks/utiliser-activite";
 import { effacerActiviteLocale, enregistrerActiviteLocale, lireActiviteLocale, type ActiviteLocale } from "~/stockage/activite-locale";
 
@@ -101,6 +102,9 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
 
   const basculerSuivi = useCallback(
     (cle: string) => {
+      // Seulement les lieux et les créateurs : les personnes se suivent dans FournisseurSuivisPersonnes (rien ne change ici)
+      const type = lireCleSuivi(cle)?.type;
+      if (type !== "lieu" && type !== "createur") return activite.suivis.includes(cle);
       const suivi = !activite.suivis.includes(cle);
       // Deux appuis avant le nouveau rendu n'ajoutent pas deux fois le même suivi
       setActivite((a) => ({ ...a, suivis: suivi ? (a.suivis.includes(cle) ? a.suivis : [...a.suivis, cle]) : a.suivis.filter((c) => c !== cle) }));

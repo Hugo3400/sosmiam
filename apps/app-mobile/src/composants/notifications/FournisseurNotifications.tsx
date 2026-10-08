@@ -47,8 +47,9 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   const [etat, setEtat] = useState<NotificationsLocales | null>(null);
   const [relu, setRelu] = useState(false);
   const minuteries = useRef<ReturnType<typeof setTimeout>[]>([]);
-  // Notifications arrivées avant que la démo soit prête (une minuterie des suivis, par exemple) : ajoutées dès qu'elle l'est
+  // Notifications arrivées avant que la démo de ce profil soit prête (le ménage des suivis, par exemple) : ajoutées dès qu'elle l'est
   const enAttente = useRef<NotificationSuivi[]>([]);
+  // Les notifications du profil actuel (null : pas encore relues, ou d'un autre profil)
   const etatCourant = useRef<NotificationsLocales | null>(null);
   // Profil pour lequel « Tout effacer » a été demandé : rien n'est recréé pour lui
   const effacePour = useRef<string | null>(null);
@@ -77,25 +78,25 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   // Démo de départ : rien de gardé, ou gardé pour un autre profil (jamais avec un âge inconnu)
   useEffect(() => {
     if (!relu || !profil || pourCeProfil || effacePour.current === profil.creeLe) return;
-    minuteries.current.forEach(clearTimeout);
-    minuteries.current = [];
+    // Vidé sur place (pas remplacé) : le nettoyage du démontage garde le même tableau
+    minuteries.current.splice(0).forEach(clearTimeout);
     suivisNotesPour.current = null;
     const mineur = calculerAge(profil.dateNaissance) < AGE_ALCOOL;
     setEtat({ version: 1, profilCreeLe: profil.creeLe, notifications: creerNotificationsDemo(mineur, new Date()), vuesLe: null, clesAnnoncees: [] });
   }, [relu, profil, pourCeProfil]);
 
-  // Enregistrée à chaque changement ; les notifications en attente rejoignent la liste dès qu'elle existe
+  // Enregistrée à chaque changement ; les notifications en attente rejoignent la liste dès qu'elle existe pour ce profil
   useEffect(() => {
-    etatCourant.current = etat;
+    etatCourant.current = pourCeProfil ? etat : null;
     if (!etat) return;
-    if (enAttente.current.length > 0) {
+    if (pourCeProfil && enAttente.current.length > 0) {
       const enFile = enAttente.current;
       enAttente.current = [];
       setEtat((e) => (e ? enFile.reduce(avecNotification, e) : e));
       return;
     }
     enregistrerNotificationsLocales(etat).catch(() => {});
-  }, [etat]);
+  }, [etat, pourCeProfil]);
 
   const ajouter = useCallback((nouvelle: NouvelleNotificationSuivi) => {
     const n = { ...nouvelle, id: creerIdentifiant("notification"), date: new Date().toISOString() } as NotificationSuivi;
@@ -138,8 +139,8 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   }, []);
 
   const effacer = useCallback(async () => {
-    minuteries.current.forEach(clearTimeout);
-    minuteries.current = [];
+    // Vidé sur place (pas remplacé) : le nettoyage du démontage garde le même tableau
+    minuteries.current.splice(0).forEach(clearTimeout);
     enAttente.current = [];
     effacePour.current = profil?.creeLe ?? null;
     setEtat(null);
