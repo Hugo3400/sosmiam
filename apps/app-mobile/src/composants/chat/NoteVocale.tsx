@@ -31,9 +31,20 @@ let lecteurQuiJoue: AudioPlayer | null = null;
 // Sans nouvelles du fichier au bout de ce délai, on le considère parti (une adresse du navigateur oubliée après rechargement)
 const ATTENTE_MAX = 8000;
 
-/** Vrai si le fichier est encore là (sur le web, on ne peut pas vérifier : la lecture dira elle-même si elle démarre). */
-function existeEncore(fichier: string): boolean {
-  if (Platform.OS === "web") return true;
+/**
+ * Vrai si le fichier est encore là. Sur le web, une note enregistrée vit à une adresse du navigateur (« blob: »),
+ * oubliée au rechargement de la page : on demande au navigateur s'il l'a encore, plutôt que de laisser la lecture planter.
+ */
+async function existeEncore(fichier: string): Promise<boolean> {
+  if (Platform.OS === "web") {
+    if (!fichier.startsWith("blob:")) return true;
+    try {
+      await fetch(fichier);
+      return true;
+    } catch {
+      return false;
+    }
+  }
   try {
     return new File(fichier).exists;
   } catch {
@@ -50,6 +61,8 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
   const lecteur = useRef<AudioPlayer | null>(null);
   const abonnement = useRef<{ remove: () => void } | null>(null);
   const attente = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // La bulle a quitté l'écran pendant une attente : plus de lecteur à créer
+  const demontee = useRef(false);
   const [etat, setEtat] = useState<Etat>("arret");
   const [position, setPosition] = useState(0);
   const [dureeLue, setDureeLue] = useState(0);
@@ -57,6 +70,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
   // La bulle disparaît (écran quitté, message signalé) : on coupe le son et on libère le lecteur
   useEffect(
     () => () => {
+      demontee.current = true;
       if (attente.current) clearTimeout(attente.current);
       abonnement.current?.remove();
       const l = lecteur.current;
@@ -74,7 +88,14 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
 
   const duree = dureeSecondes && dureeSecondes > 0 ? dureeSecondes : dureeLue;
 
-  function suivre(statut: AudioStatus) {
+  function suivre(statut: AudioStatus & { error?: string }) {
+    // Le web signale un fichier illisible par un champ « error » (absent du type d'expo-audio)
+    if (statut.error) {
+      if (attente.current) clearTimeout(attente.current);
+      attente.current = null;
+      setEtat("introuvable");
+      return;
+    }
     if (statut.isLoaded && attente.current) {
       clearTimeout(attente.current);
       attente.current = null;
@@ -93,13 +114,14 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
   }
 
   async function lire() {
-    if (!fichier || !existeEncore(fichier)) return setEtat("introuvable");
+    if (!fichier || !(await existeEncore(fichier))) return setEtat("introuvable");
     try {
       // Le son sort du haut-parleur, même quand le téléphone est en silencieux
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false });
     } catch {
       // Le web n'a pas de mode audio : rien à régler
     }
+    if (demontee.current) return;
     let l = lecteur.current;
     if (!l) {
       try {
@@ -133,7 +155,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
   const texte = deMoi ? "text-encre" : "text-gris";
   if (etat === "introuvable") {
     return (
-      <View accessible accessibilityLabel={`${libelle} : partie se promener, elle ne se lit plus`} className="min-h-11 flex-row items-center gap-2.5 py-0.5">
+      <View accessible accessibilityLabel={`${libelle} : partie se promener, elle ne se lit plus`} {...actionsLecteur} className="min-h-11 flex-row items-center gap-2.5 py-0.5">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
           🎙️
         </Text>

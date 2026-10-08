@@ -177,7 +177,14 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         setEtat((e) => ({ ...e, bande: [...e.bande, id], moyens: { ...e.moyens, [id]: moyen } }));
         return "ajoute";
       },
-      moyenAjout: (id) => etat.moyens[id] ?? (bandeExemple.includes(id) ? "exemple" : undefined),
+      // Démo : le code secret d'un lien ou d'un QR code n'est vérifié nulle part, et les potes d'exemple n'ont pas de vrai QR code.
+      // Un ajout par lien ou QR code ne compte donc pas encore « en vrai » (peutDiscuter) : un mineur ne discute pas avec un adulte
+      // grâce à un lien fabriqué avec son pseudo public. Ça couvre aussi un ajout enregistré avant ce garde-fou.
+      moyenAjout: (id) => {
+        const moyen = etat.moyens[id];
+        if (moyen === "lien" || moyen === "qr") return `${moyen}-non-verifie`;
+        return moyen ?? (bandeExemple.includes(id) ? "exemple" : undefined);
+      },
       estSignale: (cibleId) => signales.has(cibleId),
       retirerPote: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id) })),
       bloques,
