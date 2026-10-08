@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
 import type { MediaPublication } from "~/contenus/type-publication";
@@ -12,6 +12,8 @@ type Props = {
   hauteur: number;
   /** Publication affichée à l'écran : c'est là qu'on montre qu'on peut faire glisser les photos */
   actif: boolean;
+  /** Appui sur une photo (deux appuis rapprochés : « J'aime », géré par la publication) */
+  onAppui: () => void;
   /** Hauteur du compteur, juste sous l'en-tête du fil */
   haut: number;
 };
@@ -20,7 +22,7 @@ type Props = {
 const APERCU_GLISSEMENT = { delai: 700, distance: 56, retour: 380 };
 
 /** Photos d'une publication, en plein écran, à faire glisser de côté ; une pastille « photos 1/3 » les distingue des vidéos. */
-export function PhotosPublication({ photos, largeur, hauteur, actif, haut }: Props) {
+export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onAppui }: Props) {
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList>(null);
   const [actuelle, setActuelle] = useState(0);
@@ -55,7 +57,12 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut }: Pro
         }}
         onScroll={(e) => setActuelle(Math.round(e.nativeEvent.contentOffset.x / largeur))}
         scrollEventThrottle={32}
-        renderItem={({ item }) => <Image source={item} contentFit="cover" style={{ width: largeur, height: hauteur }} />}
+        renderItem={({ item }) => (
+          // Un appui laisse passer le glissement de côté ; deux appuis rapprochés font « J'aime » (VoiceOver passe par le bouton ❤️)
+          <Pressable onPress={onAppui} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <Image source={item} contentFit="cover" style={{ width: largeur, height: hauteur }} />
+          </Pressable>
+        )}
       />
       <View
         pointerEvents="none"

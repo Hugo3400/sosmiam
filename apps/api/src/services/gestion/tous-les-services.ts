@@ -1,4 +1,8 @@
 // Tous les services du logiciel de gestion, passés d'un bloc à creerApplication (des faux les remplacent dans les tests).
+import {
+  accepterCandidature, deciderAmbassadeur, exporterAmbassadeurs, lireAmbassadeur, lireClassement, lireCouverture,
+  listerAmbassadeurs, listerCandidatures, lirePrenom, modifierAmbassadeur, refuserCandidature, supprimerCompte,
+} from "./ambassadeurs.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
 import { accepterDemande, effacerContactDemande, listerDemandes, refuserDemande } from "./demandes.ts";
@@ -6,6 +10,9 @@ import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
 import { creerLieu, lireLieu, listerLieux, modifierLieu, modifierLieuxEnLot, supprimerLieu, supprimerLieuxEnLot } from "./lieux.ts";
 import { lireEtatServeur, relancerProcessus } from "./maintenance.ts";
+import {
+  changerStatutMission, creerMission, envoyerMessage, listerMessages, listerMissions, supprimerMessage, supprimerMission,
+} from "./missions-messages.ts";
 import { ajouterMedia, retirerMedia, trouverFichierMedia } from "./medias.ts";
 import { deciderSignalement, listerSignalements } from "./moderation.ts";
 import {
@@ -33,6 +40,9 @@ export const servicesGestion = {
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,
   lireObjectifMois, ecrireObjectifMois,
+  listerAmbassadeurs, lireAmbassadeur, deciderAmbassadeur, modifierAmbassadeur, lirePrenom, supprimerCompte, exporterAmbassadeurs,
+  lireClassement, lireCouverture, listerCandidatures, accepterCandidature, refuserCandidature,
+  listerMissions, creerMission, changerStatutMission, supprimerMission, listerMessages, envoyerMessage, supprimerMessage,
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
 };

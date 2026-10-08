@@ -14,11 +14,14 @@ export async function listerDemandes(statut: string) {
 export async function accepterDemande(id: number, lieu: LieuSaisi, reponse: string | null) {
   const demande = await baseDeDonnees.demandeLieu.findUnique({ where: { id } });
   if (!demande || demande.statut !== "a-traiter") return null;
-  return baseDeDonnees.$transaction(async (transaction) => {
-    const cree = await transaction.lieu.create({ data: lieu });
-    await transaction.demandeLieu.update({ where: { id }, data: { statut: "acceptee", lieuId: cree.id, reponse, traiteLe: new Date() } });
-    return cree;
+  // Proposé depuis l'espace ambassadeur : « Déniché par » son prénom (si la fiche n'en a pas déjà un)
+  const auteur = demande.compteId ? await baseDeDonnees.compte.findUnique({ where: { id: demande.compteId }, select: { prenom: true } }) : null;
+  const cree = await baseDeDonnees.$transaction(async (transaction) => {
+    const nouveau = await transaction.lieu.create({ data: { ...lieu, decouvertPar: lieu.decouvertPar ?? auteur?.prenom ?? null } });
+    await transaction.demandeLieu.update({ where: { id }, data: { statut: "acceptee", lieuId: nouveau.id, reponse, traiteLe: new Date() } });
+    return nouveau;
   });
+  return { ...cree, compteIdAuteur: auteur ? demande.compteId : null };
 }
 
 export async function refuserDemande(id: number, reponse: string | null) {

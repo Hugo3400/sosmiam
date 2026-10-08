@@ -1,0 +1,178 @@
+// Contrôleurs du logiciel de gestion pour les ambassadeurs : comptes, décisions, points, candidatures fondateur,
+// missions et messages. Les règles des points et des badges restent dans services/comptes.ts (passées en `comptes`).
+import type { Request, Response } from "express";
+
+import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
+import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
+import { ChampInvalide, lireChoix, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
+
+/** Ce que services/comptes.ts (session du site) fournit : une seule source pour les points, badges et réinitialisations */
+export type OutilsComptes = {
+  ajouterPoints: (compteId: number, points: number, raison: "equipe" | "proposer-lieu", detail?: string) => Promise<{ points: number; palier: string }>;
+  donnerBadge: (compteId: number, badge: string) => Promise<boolean>;
+  preparerReinitialisation: (compteId: number) => Promise<{ jeton: string; expireLe: Date }>;
+  nommerAmbassadeurVille: (compteId: number) => Promise<void>;
+  retirerAmbassadeurVille: (compteId: number) => Promise<string>;
+};
+
+/** Adresse écrite en dur (jamais tirée d'un en-tête de la demande) */
+const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
+const corpsDe = (requete: Request): Record<string, unknown> =>
+  typeof requete.body === "object" && requete.body !== null && !Buffer.isBuffer(requete.body) ? requete.body : {};
+const introuvable = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "introuvable" });
+const indisponible = (reponse: Response) => reponse.status(503).json({ ok: false, erreur: "bientot-disponible" });
+
+function verifier(controleur: (requete: Request, reponse: Response) => Promise<unknown>) {
+  return async (requete: Request, reponse: Response) => {
+    try {
+      await controleur(requete, reponse);
+    } catch (erreur) {
+      if (erreur instanceof ChampInvalide) return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: erreur.champ });
+      throw erreur;
+    }
+  };
+}
+
+export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: OutilsComptes) {
+  const noter = (reponse: Response, action: string, detail?: string) => s.noterAction((reponse.locals.gestion as ContexteGestion).poste.nom, action, detail);
+  const id = (requete: Request) => lireId(requete.params.id) ?? 0;
+
+  return {
+    liste: verifier(async (requete, reponse) =>
+      reponse.json(await s.listerAmbassadeurs({
+        statut: lireParametre(requete.query.statut, 12),
+        palier: lireParametre(requete.query.palier, 24),
+        recherche: lireParametre(requete.query.recherche),
+        ville: lireParametre(requete.query.ville, 80),
+      })),
+    ),
+    fiche: verifier(async (requete, reponse) => {
+      const ambassadeur = await s.lireAmbassadeur(id(requete));
+      return ambassadeur ? reponse.json(ambassadeur) : introuvable(reponse);
+    }),
+    decider: verifier(async (requete, reponse) => {
+      const statut = lireChoix(corpsDe(requete), "statut", ["actif", "refuse", "suspendu"] as const);
+      const resultat = await s.deciderAmbassadeur(id(requete), statut);
+      if (!resultat) return introuvable(reponse);
+      const actions = { actif: resultat.avant === "en-attente" ? "Ambassadeur validé" : "Ambassadeur réactivé", refuse: "Ambassadeur refusé", suspendu: "Ambassadeur suspendu" };
+      await noter(reponse, actions[statut], `${resultat.prenom} (compte n° ${id(requete)})`);
+      reponse.json({ ok: true });
+    }),
+    modifier: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const modification = {
+        ...(corps.ville !== undefined ? { ville: lireTexte(corps, "ville", 80, true) } : {}),
+        ...(corps.quartier !== undefined ? { quartier: lireTexte(corps, "quartier", 80) } : {}),
+        ...(corps.noteEquipe !== undefined ? { noteEquipe: lireTexte(corps, "noteEquipe", 2000) } : {}),
+      };
+      if (!(await s.modifierAmbassadeur(id(requete), modification))) return introuvable(reponse);
+      await noter(reponse, "Fiche d'ambassadeur modifiée", `compte n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    }),
+    points: verifier(async (requete, reponse) => {
+      if (!comptes) return indisponible(reponse);
+      const corps = corpsDe(requete);
+      const points = lireNombre(corps, "points", -10_000, 10_000);
+      if (!points) throw new ChampInvalide("points");
+      const detail = lireTexte(corps, "detail", 200, true);
+      const resultat = await comptes.ajouterPoints(id(requete), points, "equipe", detail);
+      await noter(reponse, points > 0 ? "Points ajoutés" : "Points retirés", `${points > 0 ? "+" : ""}${points} au compte n° ${id(requete)} : ${detail}`);
+      reponse.json({ ok: true, ...resultat });
+    }),
+    palierVille: verifier(async (requete, reponse) => {
+      if (!comptes) return indisponible(reponse);
+      const ville = corpsDe(requete).ville === true;
+      const prenom = await s.lirePrenom(id(requete));
+      if (!prenom) return introuvable(reponse);
+      let palier = "ambassadeur-ville";
+      if (ville) await comptes.nommerAmbassadeurVille(id(requete));
+      else palier = await comptes.retirerAmbassadeurVille(id(requete));
+      await noter(reponse, ville ? "Nommé ambassadeur de ville" : "Rôle d'ambassadeur de ville retiré", prenom);
+      reponse.json({ ok: true, palier });
+    }),
+    reinitialiser: verifier(async (requete, reponse) => {
+      if (!comptes) return indisponible(reponse);
+      if (!(await s.lirePrenom(id(requete)))) return introuvable(reponse);
+      const { jeton, expireLe } = await comptes.preparerReinitialisation(id(requete));
+      await noter(reponse, "Réinitialisation de mot de passe préparée", `compte n° ${id(requete)}`);
+      // Jeton après « # » : il reste dans le navigateur, et ne finit jamais dans les journaux du serveur
+      reponse.json({ ok: true, lien: `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`, expireLe });
+    }),
+    supprimer: verifier(async (requete, reponse) => {
+      const supprime = await s.supprimerCompte(id(requete));
+      if (!supprime) return introuvable(reponse);
+      await noter(reponse, "Compte d'ambassadeur supprimé", supprime.prenom);
+      reponse.json({ ok: true });
+    }),
+    exporter: verifier(async (_requete, reponse) => {
+      const csv = await s.exporterAmbassadeurs();
+      await noter(reponse, "Export des ambassadeurs (CSV)");
+      reponse.type("text/csv; charset=utf-8").send(`﻿${csv}`);
+    }),
+    classement: verifier(async (_requete, reponse) => reponse.json(await s.lireClassement())),
+    couverture: verifier(async (_requete, reponse) => reponse.json(await s.lireCouverture())),
+
+    candidatures: verifier(async (requete, reponse) => reponse.json(await s.listerCandidatures(lireParametre(requete.query.statut, 12)))),
+    accepterCandidature: verifier(async (requete, reponse) => {
+      const resultat = await s.accepterCandidature(id(requete));
+      if (!resultat) return introuvable(reponse);
+      if (resultat.complet) return reponse.status(409).json({ ok: false, erreur: "fondateurs-complets" });
+      if (comptes) await comptes.donnerBadge(resultat.compteId, "fondateur");
+      await noter(reponse, "Candidature fondateur acceptée", `fondateur n° ${resultat.numero} (compte n° ${resultat.compteId})`);
+      reponse.json({ ok: true, numero: resultat.numero });
+    }),
+    refuserCandidature: verifier(async (requete, reponse) => {
+      if (!(await s.refuserCandidature(id(requete)))) return introuvable(reponse);
+      await noter(reponse, "Candidature fondateur refusée", `candidature n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    }),
+
+    missions: verifier(async (requete, reponse) => reponse.json(await s.listerMissions(lireParametre(requete.query.statut, 10)))),
+    creerMission: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const compteId = lireNombre(corps, "compteId", 1, 1e9);
+      if (!compteId) throw new ChampInvalide("compteId");
+      let echeance: Date | null = null;
+      if (typeof corps.echeance === "string" && corps.echeance) {
+        echeance = new Date(corps.echeance);
+        if (Number.isNaN(echeance.getTime())) throw new ChampInvalide("echeance");
+      }
+      const mission = await s.creerMission({
+        compteId,
+        titre: lireTexte(corps, "titre", 100, true),
+        detail: lireTexte(corps, "detail", 2000) ?? "",
+        lieuId: lireNombre(corps, "lieuId", 1, 1e9),
+        echeance,
+      });
+      if (!mission) return reponse.status(400).json({ ok: false, erreur: "ambassadeur-non-actif" });
+      await noter(reponse, "Mission confiée", `${mission.titre} → ${mission.compte.prenom}`);
+      reponse.status(201).json(mission);
+    }),
+    statutMission: verifier(async (requete, reponse) => {
+      const statut = lireChoix(corpsDe(requete), "statut", ["a-faire", "annulee"] as const);
+      if (!(await s.changerStatutMission(id(requete), statut))) return introuvable(reponse);
+      await noter(reponse, statut === "annulee" ? "Mission annulée" : "Mission remise à faire", `mission n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    }),
+    supprimerMission: verifier(async (requete, reponse) => {
+      if (!(await s.supprimerMission(id(requete)))) return introuvable(reponse);
+      await noter(reponse, "Mission supprimée", `mission n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    }),
+
+    messages: verifier(async (_requete, reponse) => reponse.json(await s.listerMessages())),
+    envoyerMessage: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const compteId = corps.compteId === null || corps.compteId === undefined ? null : lireNombre(corps, "compteId", 1, 1e9);
+      const message = await s.envoyerMessage(compteId, lireTexte(corps, "titre", 100, true), lireTexte(corps, "texte", 3000, true));
+      if (!message) return introuvable(reponse);
+      await noter(reponse, "Message aux ambassadeurs", `${message.titre} → ${compteId ? `compte n° ${compteId}` : "tous les actifs"}`);
+      reponse.status(201).json(message);
+    }),
+    supprimerMessage: verifier(async (requete, reponse) => {
+      if (!(await s.supprimerMessage(id(requete)))) return introuvable(reponse);
+      await noter(reponse, "Message aux ambassadeurs retiré", `message n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    }),
+  };
+}

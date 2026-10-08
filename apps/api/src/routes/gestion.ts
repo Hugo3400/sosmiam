@@ -1,5 +1,6 @@
 import express, { Router } from "express";
 
+import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs/gestion/controleurs-ambassadeurs.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -15,14 +16,17 @@ export type DependancesGestion = {
   horloge?: () => number;
   /** Où garder les sessions (la base en vrai ; en mémoire si absent) */
   sessions?: StockageSessions;
+  /** Points, badges et réinitialisations des comptes (services/comptes.ts) ; actions absentes si non fourni */
+  comptes?: OutilsComptes;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
-  const c = creerControleursGestion(services);
+  const c = creerControleursGestion(services, comptes);
+  const a = creerControleursAmbassadeurs(services, comptes);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
   // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
@@ -101,6 +105,28 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/demandes/:id/accepter", c.accepterDemande);
   routes.post("/demandes/:id/refuser", c.refuserDemande);
   routes.delete("/demandes/:id/contact", c.effacerContactDemande);
+
+  routes.get("/ambassadeurs", a.liste);
+  routes.get("/ambassadeurs/export", a.exporter);
+  routes.get("/ambassadeurs/classement", a.classement);
+  routes.get("/ambassadeurs/couverture", a.couverture);
+  routes.get("/ambassadeurs/:id", a.fiche);
+  routes.put("/ambassadeurs/:id", a.modifier);
+  routes.delete("/ambassadeurs/:id", a.supprimer);
+  routes.post("/ambassadeurs/:id/decision", a.decider);
+  routes.post("/ambassadeurs/:id/points", a.points);
+  routes.post("/ambassadeurs/:id/palier-ville", a.palierVille);
+  routes.post("/ambassadeurs/:id/reinitialiser", a.reinitialiser);
+  routes.get("/candidatures", a.candidatures);
+  routes.post("/candidatures/:id/accepter", a.accepterCandidature);
+  routes.post("/candidatures/:id/refuser", a.refuserCandidature);
+  routes.get("/missions", a.missions);
+  routes.post("/missions", a.creerMission);
+  routes.post("/missions/:id/statut", a.statutMission);
+  routes.delete("/missions/:id", a.supprimerMission);
+  routes.get("/messages-ambassadeurs", a.messages);
+  routes.post("/messages-ambassadeurs", a.envoyerMessage);
+  routes.delete("/messages-ambassadeurs/:id", a.supprimerMessage);
 
   routes.get("/annonces", c.annonces);
   routes.post("/annonces", c.creerAnnonce);

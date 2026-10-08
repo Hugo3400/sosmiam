@@ -23,6 +23,9 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     objectif,
     mois,
     inscritsDuMois,
+    ambassadeursEnAttente,
+    candidaturesEnAttente,
+    missionsEnRetard,
     lieux,
     publications,
     programmees,
@@ -49,6 +52,9 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     baseDeDonnees.inscriptionNewsletter
       .findMany({ where: { premiereInscription: { gte: new Date(Date.parse(`${listerPeriodes("mois", 1, maintenant)[0]?.debut}T00:00:00Z`) - UN_JOUR) } }, select: { premiereInscription: true } })
       .then((liste) => liste.filter((i) => calculerClesPeriodes(i.premiereInscription).mois === calculerClesPeriodes(maintenant).mois).length),
+    baseDeDonnees.ambassadeur.count({ where: { statut: "en-attente" } }),
+    baseDeDonnees.candidatureFondateur.count({ where: { statut: "en-attente" } }),
+    baseDeDonnees.missionAmbassadeur.count({ where: { statut: "a-faire", echeance: { lt: maintenant } } }),
     baseDeDonnees.lieu.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.count({ where: { statut: "publiee", publieeLe: { gt: maintenant } } }),
@@ -65,6 +71,7 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     newsletter: { inscrits, recents: inscritsRecents, ambassadeurs, beta },
     moderation: { aTraiter: aModerer, urgents },
     demandes: { aTraiter: demandes },
+    ambassadeurs: { enAttente: ambassadeursEnAttente, candidatures: candidaturesEnAttente, missionsEnRetard },
     objectif: objectif
       ? {
           ...objectif,

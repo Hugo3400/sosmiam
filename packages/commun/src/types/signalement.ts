@@ -33,3 +33,15 @@ export type Signalement = {
   /** Date du signalement (ISO 8601) */
   date: string;
 };
+
+/** Un signalement de commentaire, de message de sortie ou de profil (mêmes raisons que pour une publication). */
+export type SignalementContenu = {
+  cible: "commentaire" | "message" | "profil";
+  /** Identifiant du commentaire, du message ou du pote */
+  cibleId: string;
+  raison: RaisonSignalement;
+  precision: string | null;
+  explication: string;
+  /** Date du signalement (ISO 8601) */
+  date: string;
+};

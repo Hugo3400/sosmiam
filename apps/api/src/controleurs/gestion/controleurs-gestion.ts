@@ -9,6 +9,7 @@ import type { ServicesGestion } from "../../services/gestion/tous-les-services.t
 import { ChampInvalide, lireChoix, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
 import { lireIds, lireLieuSaisi, lireModificationLot } from "./lire-lieu.ts";
 import { lirePublicationSaisie } from "./lire-publication.ts";
+import type { OutilsComptes } from "./controleurs-ambassadeurs.ts";
 
 const ECHELLES: Record<Echelle, { defaut: number; max: number }> = {
   jour: { defaut: 30, max: 400 },
@@ -34,7 +35,7 @@ function verifier(controleur: (requete: Request, reponse: Response) => Promise<u
   };
 }
 
-export function creerControleursGestion(s: ServicesGestion) {
+export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComptes) {
   const noter = (reponse: Response, action: string, detail?: string) => s.noterAction(posteDe(reponse), action, detail);
 
   return {
@@ -229,6 +230,11 @@ export function creerControleursGestion(s: ServicesGestion) {
       const lieu = lireLieuSaisi(typeof corps.lieu === "object" && corps.lieu !== null ? (corps.lieu as Record<string, unknown>) : {});
       const cree = await s.accepterDemande(lireId(requete.params.id) ?? 0, lieu, lireTexte(corps, "reponse", 1000));
       if (!cree) return introuvable(reponse);
+      // Lieu proposé par un ambassadeur : ses points (barème « proposer-lieu », +30) et le badge de son premier lieu
+      if (cree.compteIdAuteur && comptes) {
+        await comptes.ajouterPoints(cree.compteIdAuteur, 30, "proposer-lieu", cree.nom);
+        await comptes.donnerBadge(cree.compteIdAuteur, "deniche-par-toi");
+      }
       await noter(reponse, "Demande de lieu acceptée", `${cree.nom} (fiche n° ${cree.id}, ${cree.statut})`);
       reponse.status(201).json(cree);
     }),

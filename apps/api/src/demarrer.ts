@@ -4,6 +4,7 @@
 import { creerApplication } from "./application.ts";
 import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/annonces-discord.ts";
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
+import { ajouterPoints, donnerBadge, nommerAmbassadeurVille, preparerReinitialisation, retirerAmbassadeurVille } from "./services/comptes.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
@@ -35,7 +36,8 @@ const serveur = creerApplication({
   listerLieuxPublics,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
-  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source) },
+  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source),
+    comptes: { ajouterPoints, donnerBadge, preparerReinitialisation, nommerAmbassadeurVille, retirerAmbassadeurVille } },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

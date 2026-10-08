@@ -8,7 +8,7 @@ import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Pagination } from "~/composants/interface/Pagination.tsx";
-import { creerLienInvitationAmbassadeur } from "~/fonctions/texte/creer-lien-invitation-ambassadeur.ts";
+import { creerLienInvitationAmbassadeur, ESPACE_AMBASSADEUR_OUVERT } from "~/fonctions/texte/creer-lien-invitation-ambassadeur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerInscrits } from "~/services/newsletter.ts";
@@ -42,7 +42,7 @@ export function ListeCandidats() {
             <Bouton petit icone={Copy} onClick={() => copier(adresses.join(", ")).then(() => setMessage(`${adresses.length} adresse(s) copiée(s) : colle-les en copie cachée (Cci).`))}>
               Copier les adresses
             </Bouton>
-            <Bouton petit variante="principal" icone={Mail} onClick={() => ouvrirLien(creerLienInvitationAmbassadeur(adresses))}>Inviter cette page</Bouton>
+            <Bouton petit variante="principal" icone={Mail} desactive={!ESPACE_AMBASSADEUR_OUVERT} onClick={() => ouvrirLien(creerLienInvitationAmbassadeur(adresses))}>Inviter cette page</Bouton>
           </>
         )
       }
@@ -51,6 +51,11 @@ export function ListeCandidats() {
       <div className="flex flex-wrap items-end gap-4 border-b border-ligne px-5 py-4">
         <Champ libelle={<span className="inline-flex items-center gap-1"><Search className="size-3.5" aria-hidden /> Recherche</span>} valeur={saisie} onChange={setSaisie} placeholder="Adresse ou ville" className="w-72" />
         <p className="pb-2 text-[13px] text-gris">Ils ont coché « ambassadeur fondateur » en s'inscrivant à la newsletter. L'invitation part de ta messagerie, en copie cachée.</p>
+        {!ESPACE_AMBASSADEUR_OUVERT && (
+          <p className="w-full rounded-xl bg-jaune-clair px-3 py-2 text-sm font-semibold">
+            Invitations désactivées tant que l'espace ambassadeur et ses textes légaux (confidentialité, CGU) ne sont pas en ligne.
+          </p>
+        )}
       </div>
       {message && <p role="status" className="border-b border-ligne px-5 py-2 text-sm font-semibold text-vert">{message}</p>}
       <div className="px-5 pt-3"><MessageErreur erreur={erreur} reessayer={recharger} /></div>
@@ -66,7 +71,7 @@ export function ListeCandidats() {
                 <span className="flex-1 font-semibold">{inscrit.email}</span>
                 <span className="w-40 text-gris">{inscrit.ville ?? "—"}</span>
                 <span className="chiffres w-28 text-gris">{formaterDate(inscrit.premiereInscription)}</span>
-                <Bouton petit variante="discret" icone={Mail} titre={`Inviter ${inscrit.email}`} onClick={() => ouvrirLien(creerLienInvitationAmbassadeur([inscrit.email], inscrit.ville))} />
+                <Bouton petit variante="discret" icone={Mail} titre={`Inviter ${inscrit.email}`} desactive={!ESPACE_AMBASSADEUR_OUVERT} onClick={() => ouvrirLien(creerLienInvitationAmbassadeur([inscrit.email], inscrit.ville))} />
               </li>
             ))}
           </ul>

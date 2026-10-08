@@ -1,3 +1,9 @@
+/**
+ * L'espace ambassadeur et ses textes légaux sont-ils en ligne ? Tant que non, les invitations restent désactivées
+ * (le texte annonce que l'espace est ouvert : ce serait une fausse promesse). À passer à true au lancement.
+ */
+export const ESPACE_AMBASSADEUR_OUVERT = false;
+
 /** Adresse de l'espace ambassadeur, où l'on s'inscrit */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
 

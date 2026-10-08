@@ -120,14 +120,14 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     <View style={{ height: hauteur, width: largeur }} className="overflow-hidden bg-encre">
       <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
       {media ? (
-        <MediaPublication media={media} largeur={largeur} hauteur={hauteur} actif={actif} enPause={enPause} margeHaut={margeHaut} />
+        <MediaPublication media={media} largeur={largeur} hauteur={hauteur} actif={actif} enPause={enPause} margeHaut={margeHaut} onAppuiPhoto={appuiSurLeMedia} />
       ) : (
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: hauteur * 0.24, alignSelf: "center", fontSize: Math.min(140, hauteur * 0.17) }}>
           {lieu.emoji}
         </Text>
       )}
 
-      {/* Zone d'appui sur le média (VoiceOver passe par les boutons ❤️ et ⋯) ; les photos gardent leur glissement de côté */}
+      {/* Zone d'appui sur le média (VoiceOver passe par les boutons ❤️ et ⋯) ; les photos gèrent leurs appuis elles-mêmes, pour garder le glissement de côté */}
       {media?.type !== "photos" ? (
         <Pressable onPress={appuiSurLeMedia} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", inset: 0 }} />
       ) : null}

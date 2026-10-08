@@ -10,5 +10,5 @@ export default {
   // Domaines autorisés à envoyer les formulaires (actions). Derrière nginx, le serveur voit « http://sosmiam.fr » alors que
   // le navigateur annonce « https://sosmiam.fr » : sans cette liste, React Router croit à un envoi venu d'un autre site
   // et répond 400. Les autres sites restent refusés.
-  allowedActionOrigins: ["sosmiam.fr", "apercu.sosmiam.fr"],
+  allowedActionOrigins: ["sosmiam.fr", "apercu.sosmiam.fr", "ambassadeur.sosmiam.fr"],
 } satisfies Config;

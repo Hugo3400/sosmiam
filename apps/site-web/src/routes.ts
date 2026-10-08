@@ -18,6 +18,28 @@ export default [
     route("accessibilite", "routes/public/accessibilite.tsx"),
     route("statistiques", "routes/public/statistiques.tsx"),
   ]),
+  // Espace ambassadeur (https://ambassadeur.sosmiam.fr, dès 18 ans) : son propre cadre ; le partage des adresses entre
+  // sosmiam.fr et ambassadeur.sosmiam.fr est fait par fonctions/hotes/choisir-redirection-hote.ts
+  layout("routes/ambassadeur/mise-en-page-ambassadeur.tsx", [
+    route("programme", "routes/ambassadeur/programme.tsx"),
+    route("inscription", "routes/compte/inscription.tsx"),
+    route("connexion", "routes/compte/connexion.tsx"),
+    route("mot-de-passe-oublie", "routes/compte/mot-de-passe-oublie.tsx"),
+    route("nouveau-mot-de-passe", "routes/compte/nouveau-mot-de-passe.tsx"),
+    route("espace", "routes/ambassadeur/espace.tsx"),
+    route("espace/mon-compte", "routes/compte/mon-compte.tsx"),
+    route("espace/kit-media", "routes/ambassadeur/kit-media.tsx"),
+    route("espace/proposer-un-lieu", "routes/ambassadeur/proposer-un-lieu.tsx"),
+    route("espace/fondateur", "routes/ambassadeur/fondateur.tsx"),
+    route("espace/missions", "routes/ambassadeur/missions.tsx"),
+    route("espace/messages", "routes/ambassadeur/messages.tsx"),
+  ]),
+  // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
+  // et les fichiers du kit média, réservés aux ambassadeurs validés
+  route("deconnexion", "routes/compte/deconnexion.tsx"),
+  route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
+  // Visuels du kit média à leur taille exacte, pour les capturer (serveur de développement seulement)
+  route("rendu-kit/:visuel", "routes/ressources/rendu-kit.tsx"),
   // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »
   route("liens", "routes/public/liens.tsx"),
   // Boutons de /liens : compte le clic (statistiques, sans cookie), puis redirige vers le réseau
