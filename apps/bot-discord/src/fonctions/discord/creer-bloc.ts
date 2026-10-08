@@ -1,4 +1,4 @@
-import { ButtonStyle, ContainerBuilder, SeparatorSpacingSize } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SeparatorSpacingSize } from "discord.js";
 
 type OptionsBloc = {
   couleur: number;
@@ -33,14 +33,11 @@ export function creerBloc({ couleur, parties, vignette, image, liens, pied }: Op
     bloc.addTextDisplayComponents((t) => t.setContent(partie));
   }
   if (liens?.length) {
-    bloc.addActionRowComponents((rangee) =>
-      rangee.addComponents(
-        liens.map(({ libelle, url, emoji }) => {
-          const bouton = { type: 2, style: ButtonStyle.Link, label: libelle, url } as const;
-          return emoji ? { ...bouton, emoji: { name: emoji } } : bouton;
-        }),
-      ),
-    );
+    const boutons = liens.map(({ libelle, url, emoji }) => {
+      const bouton = new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(libelle).setURL(url);
+      return emoji ? bouton.setEmoji(emoji) : bouton;
+    });
+    bloc.addActionRowComponents(new ActionRowBuilder<ButtonBuilder>().addComponents(boutons));
   }
   if (pied) {
     bloc.addSeparatorComponents((s) => s.setSpacing(SeparatorSpacingSize.Small));
