@@ -64,13 +64,13 @@ export default function ReglagesNotifications() {
     <EcranReglage titre="Notifications" sousTitre="Choisis ce qui mérite de faire vibrer ta poche.">
       <View
         accessible
-        accessibilityLabel="Les notifications arrivent avec une prochaine version de l'app. Tes choix sont déjà gardés sur ton téléphone : ils seront appliqués dès qu'elles seront là."
+        accessibilityLabel="Les notifications sur ton téléphone arrivent avec une prochaine version : tes choix sont déjà gardés. En attendant, tes abonnés et tes demandes t'attendent derrière la cloche du fil."
         className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4"
       >
         <Text className="text-xl">🚧</Text>
         <Text className="flex-1 font-texte text-sm leading-5 text-encre">
           {lierPonctuation(
-            "Les notifications arrivent avec une prochaine version de l'app. Tes choix sont déjà gardés sur ton téléphone : ils seront appliqués dès qu'elles seront là.",
+            "Les notifications sur ton téléphone arrivent avec une prochaine version : tes choix sont déjà gardés. En attendant, tes abonnés et tes demandes t'attendent derrière la cloche du fil.",
           )}
         </Text>
       </View>
@@ -100,17 +100,38 @@ export default function ReglagesNotifications() {
             </Text>
           ) : null}
           <View className="mt-1">
-            {typesNotifications.map((t) => (
-              <Interrupteur
-                key={t.type}
-                emoji={t.emoji}
-                titre={t.titre}
-                detail={t.detail}
-                valeur={reglages.types[t.type]}
-                desactive={!reglages.actives}
-                onChanger={(valeur) => changerType(t.type, valeur)}
-              />
-            ))}
+            {typesNotifications
+              .filter((t) => t.groupe === "lieux")
+              .map((t) => (
+                <Interrupteur
+                  key={t.type}
+                  emoji={t.emoji}
+                  titre={t.titre}
+                  detail={t.detail}
+                  valeur={reglages.types[t.type]}
+                  desactive={!reglages.actives}
+                  onChanger={(valeur) => changerType(t.type, valeur)}
+                />
+              ))}
+          </View>
+
+          <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
+            Tes abonnements
+          </Text>
+          <View className="mt-1">
+            {typesNotifications
+              .filter((t) => t.groupe === "abonnements")
+              .map((t) => (
+                <Interrupteur
+                  key={t.type}
+                  emoji={t.emoji}
+                  titre={t.titre}
+                  detail={t.detail}
+                  valeur={reglages.types[t.type]}
+                  desactive={!reglages.actives}
+                  onChanger={(valeur) => changerType(t.type, valeur)}
+                />
+              ))}
           </View>
 
           <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
