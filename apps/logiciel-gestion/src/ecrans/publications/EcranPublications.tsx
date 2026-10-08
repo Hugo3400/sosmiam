@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -25,9 +25,13 @@ const FILTRES: { valeur: Filtre; libelle: string }[] = [
 ];
 
 /** Le fil « Pour toi » : les publications des lieux et des créateurs, à créer, programmer, masquer. */
-export function EcranPublications() {
+export function EcranPublications({ ouvrir }: { ouvrir?: { id: number } | null }) {
   const [filtre, setFiltre] = useState<Filtre>("");
   const [ouverte, setOuverte] = useState<number | "nouvelle" | null>(null);
+  // Ouvert depuis ailleurs (recherche Ctrl+K…) sur un élément précis
+  useEffect(() => {
+    if (ouvrir) setOuverte(ouvrir.id);
+  }, [ouvrir]);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerPublications(filtre), [filtre]);
 
   if (ouverte !== null) {

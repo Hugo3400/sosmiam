@@ -17,8 +17,8 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /**
- * Suggestions « Tu pourrais suivre », dans l'ordre de `types` (personnes : potes de potes puis ta bande ; créateurs : de ta ville
- * puis populaires ; lieux : les plus proches), coupées à `max`. Jamais : toi, une personne bloquée ou signalée, un mineur quand tu es
+ * Suggestions « Tu pourrais suivre », dans l'ordre de `types` (personnes : celles qui te suivent sans que tu les suives, potes de
+ * potes puis ta bande ; créateurs : de ta ville puis populaires ; lieux : les plus proches), coupées à `max`. Jamais : toi, une personne bloquée ou signalée, un mineur quand tu es
  * adulte (ni rien que la règle peutSuivre refuse), ce que tu suis ou as déjà demandé, une suggestion masquée (✕), une publication
  * masquée, un lieu que ton âge écarte (bars sous 18 ans). Vide tant que l'activité et les suivis ne sont pas relus.
  * Visite sans compte : des créateurs (et des lieux si ta ville est connue), aucune personne.
@@ -37,7 +37,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
   const { suivis: clesSuivies, estMasquee } = activite;
   const { potes, bloques, trouverPote, estSignale, moiMineur } = communaute;
-  const { relationAvec, suggestionsMasquees } = suivis;
+  const { relationAvec, suggestionsMasquees, abonnes } = suivis;
 
   return useMemo(() => {
     if (!pret) return [];
@@ -58,7 +58,11 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
           return relation !== null && relation.jeSuis === "aucun" && relation.verdict.permis;
         };
         const prenomDe = (id: string) => trouverPote(id)?.prenom ?? id;
-        return suggererPersonnes({ bande: potes.map((p) => p.id), bandes: bandesExemples, estCandidat, prenomDe }).flatMap(({ id, raison }) => {
+        // Celles qui te suivent déjà, en tête et avec « Te suit » : la carte n'a que le nom et la raison pour le dire
+        // (son bouton compact affiche « Suivre », pas « Suivre en retour »)
+        const teSuivent = abonnes.map((a) => a.pote.id).filter(estCandidat).map((id) => ({ id, raison: "Te suit" }));
+        const potesDePotes = suggererPersonnes({ bande: potes.map((p) => p.id), bandes: bandesExemples, estCandidat, prenomDe }).filter((s) => !teSuivent.some((t) => t.id === s.id));
+        return [...teSuivent, ...potesDePotes].flatMap(({ id, raison }) => {
           const pote = trouverPote(id);
           return pote
             ? [{ cle: `personne:${id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison, ouvrir: { pathname: "/potes/profil/[id]" as const, params: { id } } }]
@@ -94,5 +98,5 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
     const demandes = cleTypes.split(",").filter((t): t is TypeSuggestion => t === "personne" || t === "createur" || t === "lieu");
     return [...new Set(demandes)].flatMap((type) => listes[type]()).slice(0, max);
-  }, [pret, suivis.pret, cleTypes, max, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, moiMineur, relationAvec, suggestionsMasquees]);
+  }, [pret, suivis.pret, cleTypes, max, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, moiMineur, relationAvec, suggestionsMasquees, abonnes]);
 }

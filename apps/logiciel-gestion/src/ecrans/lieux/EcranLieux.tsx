@@ -18,11 +18,15 @@ import { CarteLieu } from "./CarteLieu.tsx";
 import { FormulaireLieu } from "./FormulaireLieu.tsx";
 
 /** Les fiches des lieux : liste, recherche, sélection de plusieurs fiches, et la fiche complète à créer ou modifier. */
-export function EcranLieux() {
+export function EcranLieux({ ouvrir }: { ouvrir?: { id: number } | null }) {
   const [statut, setStatut] = useState<StatutLieu | "">("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
+  // Ouvert depuis ailleurs (recherche Ctrl+K…) sur un élément précis
+  useEffect(() => {
+    if (ouvrir) setOuvert(ouvrir.id);
+  }, [ouvrir]);
   const [choisis, setChoisis] = useState<Set<number>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
   const dernierCoche = useRef<number | null>(null);

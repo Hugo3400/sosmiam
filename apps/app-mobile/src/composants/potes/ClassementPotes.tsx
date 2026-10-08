@@ -2,10 +2,12 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { RondPote } from "~/composants/potes/RondPote";
+import { calculerClassement } from "~/fonctions/communaute/calculer-classement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const MEDAILLES = ["🥇", "🥈", "🥉"];
@@ -13,10 +15,16 @@ const MEDAILLES = ["🥇", "🥈", "🥉"];
 /** « 1er », « 2e », « 3e » */
 const ordinal = (rang: number) => (rang === 1 ? "1er" : `${rang}e`);
 
-/** Le classement du mois entre toi et ta bande (points du mois, puis rescousses) ; ta ligne est mise en avant. */
+/**
+ * Le classement du mois entre toi et ta bande (points du mois, puis rescousses) ; ta ligne est mise en avant. Seulement les potes
+ * dont tu vois le profil en entier : les points d'un compte privé ajouté par son pseudo restent cachés, comme sur son profil.
+ */
 export function ClassementPotes() {
   const router = useRouter();
-  const { classement } = utiliserCommunaute();
+  const { potes, moi } = utiliserCommunaute();
+  const voitEnEntier = utiliserVoitEnEntier();
+  if (!voitEnEntier) return null;
+  const classement = calculerClassement(potes.filter((p) => voitEnEntier(p.id)), moi);
   const mois = MOIS[new Date().getMonth()];
   // « d'octobre », « de mars »
   const titre = `Classement ${/^[aeiouyéè]/.test(mois) ? "d'" : "de "}${mois}`;

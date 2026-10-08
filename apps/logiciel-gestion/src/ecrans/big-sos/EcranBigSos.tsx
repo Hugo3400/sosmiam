@@ -1,5 +1,5 @@
 import { Plus, RotateCw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
@@ -22,10 +22,14 @@ const VUES: Record<Vue, PhaseBigSos[]> = {
 };
 
 /** Les BIG SOS : un lieu en vraie difficulté, à la une pendant 7 jours. De la demande au bilan. */
-export function EcranBigSos() {
+export function EcranBigSos({ ouvrir }: { ouvrir?: { id: number } | null }) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(listerBigSos, []);
   const [vue, setVue] = useState<Vue>("a-traiter");
   const [ouvert, setOuvert] = useState<number | null>(null);
+  // Ouvert depuis ailleurs (recherche Ctrl+K…) sur un élément précis
+  useEffect(() => {
+    if (ouvrir) setOuvert(ouvrir.id);
+  }, [ouvrir]);
   const [creation, setCreation] = useState(false);
   const compter = (v: Vue) => donnees?.filter((b) => VUES[v].includes(b.phase)).length;
   const liste = donnees?.filter((b) => VUES[vue].includes(b.phase)) ?? [];

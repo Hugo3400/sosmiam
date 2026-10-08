@@ -20,12 +20,16 @@ import { listerComptes, type FiltresComptes } from "~/services/comptes.ts";
 import { FicheCompte } from "./FicheCompte.tsx";
 
 /** Tous les comptes SOS Miam (un seul par personne, pour l'app, l'espace ambassadeur et l'espace pro). */
-export function EcranComptes() {
+export function EcranComptes({ ouvrir }: { ouvrir?: { id: number } | null }) {
   const [role, setRole] = useState<FiltresComptes["role"]>("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(1);
   const [ouvert, setOuvert] = useState<number | null>(null);
+  // Ouvert depuis ailleurs (recherche Ctrl+K…) sur un élément précis
+  useEffect(() => {
+    if (ouvrir) setOuvert(ouvrir.id);
+  }, [ouvrir]);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerComptes({ recherche, role, page }), [recherche, role, page]);
   useEffect(() => {
     const minuteur = setTimeout(() => {

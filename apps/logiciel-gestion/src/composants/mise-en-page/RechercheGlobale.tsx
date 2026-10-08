@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import type { Ecran } from "~/contenus/menu.ts";
-import { listerResultatsRecherche } from "~/fonctions/alertes/lister-resultats-recherche.ts";
+import { listerResultatsRecherche } from "~/fonctions/recherche/lister-resultats-recherche.ts";
 import { rechercherPartout, type ResultatsRecherche } from "~/services/recherche.ts";
 
 type Props = { ouverte: boolean; onFermer: () => void; onAller: (ecran: Ecran, id: number | null) => void };

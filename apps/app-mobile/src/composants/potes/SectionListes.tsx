@@ -15,6 +15,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
@@ -31,6 +32,8 @@ export function SectionListes({ lieux }: Props) {
   const { estMasquee } = utiliserActivite();
   // Abonnements acceptés seulement (déjà sans les personnes bloquées) : leurs listes passent dans « À découvrir »
   const { abonnements } = utiliserSuivisPersonnes();
+  // Comme sur son profil : les listes d'un compte privé ajouté par son pseudo (sans son accord) ne s'affichent pas
+  const voitEnEntier = utiliserVoitEnEntier();
   const [creation, setCreation] = useState(false);
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
@@ -40,7 +43,11 @@ export function SectionListes({ lieux }: Props) {
   const miennes = visibles.filter((l) => l.auteur === ID_MOI);
   const suivies = visibles.filter((l) => l.auteur !== ID_MOI && l.abonnes.includes(ID_MOI));
   const aDecouvrir = visibles.filter(
-    (l) => l.auteur !== ID_MOI && !l.abonnes.includes(ID_MOI) && (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
+    (l) =>
+      l.auteur !== ID_MOI &&
+      !l.abonnes.includes(ID_MOI) &&
+      !!voitEnEntier?.(l.auteur) &&
+      (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
   );
 
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });

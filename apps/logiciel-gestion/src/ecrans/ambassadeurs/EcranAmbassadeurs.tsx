@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
@@ -27,9 +27,13 @@ const PARTIES: { valeur: Partie; libelle: string }[] = [
 ];
 
 /** Les ambassadeurs : leurs comptes (espace ambassadeur.sosmiam.fr), fondateurs, missions, messages, classement et villes. */
-export function EcranAmbassadeurs({ onDecision }: { onDecision: () => void }) {
+export function EcranAmbassadeurs({ onDecision, cible }: { onDecision: () => void; cible?: { id: number } | null }) {
   const [partie, setPartie] = useState<Partie>("comptes");
   const [fiche, setFiche] = useState<number | null>(null);
+  // Ouvert depuis ailleurs (recherche Ctrl+K…) sur la fiche d'un ambassadeur
+  useEffect(() => {
+    if (cible) setFiche(cible.id);
+  }, [cible]);
   // Change à chaque modification depuis une fiche : la partie affichée se recharge
   const [tour, setTour] = useState(0);
   const [message, setMessage] = useState<string | null>(null);

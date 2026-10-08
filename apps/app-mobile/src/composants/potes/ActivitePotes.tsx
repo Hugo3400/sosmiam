@@ -11,6 +11,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
@@ -56,11 +57,15 @@ const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null): { emoji: st
   }
 };
 
-/** Ce que fait ta bande : rescousses, adresses gardées, badges, listes. Toucher un lieu ouvre sa fiche, sinon le profil du pote. */
+/**
+ * Ce que fait ta bande : rescousses, adresses gardées, badges, listes. Toucher un lieu ouvre sa fiche, sinon le profil du pote.
+ * Seulement les potes dont tu vois le profil en entier : l'activité d'un compte privé ajouté par son pseudo reste cachée.
+ */
 export function ActivitePotes({ lieux }: Props) {
   const router = useRouter();
   const { activites, trouverPote } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const voitEnEntier = utiliserVoitEnEntier();
   const [tout, setTout] = useState(false);
   const maintenant = Date.now();
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
@@ -69,7 +74,7 @@ export function ActivitePotes({ lieux }: Props) {
   const lignes = activites.flatMap((activite): Ligne[] => {
     const pote = trouverPote(activite.pote);
     const lieu = activite.lieuId !== undefined ? (lieux.get(activite.lieuId) ?? null) : null;
-    if (!pote || (activite.lieuId !== undefined && !lieu)) return [];
+    if (!pote || !voitEnEntier?.(pote.id) || (activite.lieuId !== undefined && !lieu)) return [];
     if ((activite.type === "rescousse" || activite.type === "garde") && !lieu) return [];
     return [{ activite, pote, lieu }];
   });

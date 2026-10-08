@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import { Lock, Search } from "lucide-react";
 
 import { MENU, type Ecran } from "~/contenus/menu.ts";
 import type { Pastille } from "~/fonctions/alertes/calculer-pastilles.ts";
@@ -10,10 +10,11 @@ type Props = {
   /** Pastille de chaque écran : combien attendent, ce que ça veut dire, et en rouge si c'est urgent */
   pastilles: Partial<Record<Ecran, Pastille>>;
   onVerrouiller: () => void;
+  onRechercher: () => void;
 };
 
 /** Le menu de gauche : les écrans, l'alerte de modération, le poste connecté et le cadenas. */
-export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouiller }: Props) {
+export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouiller, onRechercher }: Props) {
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col bg-encre text-white">
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">
@@ -22,6 +23,17 @@ export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouille
           <p className="font-titre text-lg leading-none font-extrabold">SOS Miam</p>
           <p className="text-xs text-jaune">Gestion</p>
         </div>
+      </div>
+      <div className="px-3">
+        <button
+          type="button"
+          onClick={onRechercher}
+          className="flex h-9 w-full items-center gap-2.5 rounded-xl bg-white/10 px-3 text-left text-sm text-white/70 hover:bg-white/15 hover:text-white"
+        >
+          <Search className="size-4 shrink-0" aria-hidden />
+          <span className="flex-1">Rechercher…</span>
+          <kbd className="rounded border border-white/20 px-1 text-[11px]">Ctrl K</kbd>
+        </button>
       </div>
       <nav aria-label="Écrans" className="flex-1 overflow-y-auto px-3 pb-3">
         {MENU.map(({ groupe, entrees }) => (

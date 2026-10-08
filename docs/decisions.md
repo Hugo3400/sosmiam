@@ -123,7 +123,7 @@
   - pas de bar proposé.
 - Pour l'instant, démo locale : rien ne part du téléphone, les interlocuteurs sont des potes d'exemple.
 
-## Scan et validation des visites (décidé le 8 octobre 2026, en conception)
+## Scan et validation des visites (décidé le 8 octobre 2026)
 - **On valide son passage en payant**, comme le promet la FAQ. Trois façons pour la première version :
   - **l'addition demandée dans l'app**, que le lieu marque réglée d'un geste ;
   - **un QR qui change au comptoir** (renouvelé toutes les 30 s environ), affiché par le téléphone ou la tablette du lieu et scanné par le client après avoir payé ;
@@ -150,6 +150,17 @@
   - les avis sont signés « Léa M. » (« Léa » seulement pour un 15-17 ans), datés au mois, jamais à l'heure ; un ambassadeur donne un avis consultatif sur un avis louche, l'équipe tranche dans le logiciel ;
   - aucun texte libre d'un lieu vers un client en v1 (motifs de refus fermés) ;
   - la démo du mode pro et du mode ambassadeur n'existe qu'en développement (jamais dans une version publiée).
+- **Règles détaillées (plan du 8 octobre 2026)** :
+  - **QR du comptoir montré à la demande** : l'équipe touche « Montrer le QR » pour N personnes (1 par défaut, 12 au plus) ; il change toutes les 30 s, reste valable 60 s au plus et s'éteint après 2 min ou quand tout le monde a scanné. Pas d'affichage en continu en v1. Le QR de vitrine et des chevalets ouvre la fiche, il ne valide jamais une visite ;
+  - **réservation honorée** : la visite compte quand le lieu touche « Venu » **et** que le client a confirmé « Je suis là » (position vérifiée, d'une heure avant le créneau à 4 h après) ;
+  - **position** : comparée par le serveur (sur le téléphone dans la démo) ; refusée si l'imprécision dépasse 500 m, si la lecture a plus de 60 s ou si elle est simulée ; rayon de 200 m, tolérance plafonnée à 150 m. Jamais gardée ni écrite dans un journal ; seul le résultat est gardé ;
+  - **au comptoir** : dès 2 additions en attente, l'équipe tape le code à 4 chiffres ; jamais de « tout valider ». Une addition en attente à la fois par compte (30 min). Le lieu peut annuler une validation pendant 15 min. Motifs de refus fermés ; le client peut contester. Un compte n'est signalé que par des refus venant d'au moins 2 gérants ; le taux de refus des lieux est surveillé ;
+  - **rôles** : même compte ; modes pro (gérant ou équipe) et ambassadeur dans l'app et sur le site ; 18 ans et plus ; un 15-17 ans n'a qu'un mode. L'équipe d'un lieu ne valide ni ne note chez elle. Le lieu voit seulement le prénom, l'initiale, l'emoji, le code et les tampons chez lui. Aucun texte libre du lieu vers le client en v1 ;
+  - **avis vérifiés** : liés à une visite, ouverts 1 h après, pendant 14 jours ; signés « Prénom I. » (prénom seul avant 18 ans), datés au mois ; moyenne prudente ; part de clients qui reviennent à partir de 20 clients (jours distincts). Un ambassadeur relit sans voir l'auteur, jamais un avis de mineur ; son verdict est consultatif, l'équipe tranche. On ne masque jamais un avis automatiquement ;
+  - **fidélité** : un tampon par visite validée ; 3 à 10 visites (5 par défaut) ; récompense figée quand la carte se remplit, remise depuis « Récompenses à donner » ; une récompense avec alcool exige une version sans alcool, la seule montrée aux 15-17 ans ;
+  - **démo** : en développement seulement ; les visites de démo ne seront jamais importées dans un vrai compte ; dans une version publiée sans API, aucune fausse visite vérifiée ;
+  - **sanctions** décidées à la main dans le logiciel ; seuls des freins techniques temporaires sont automatiques.
+- **Limites assumées** (à écrire aussi dans les CGU) : la position est un frein, pas une preuve (sur iPhone, aucun indice d'une position simulée) ; un complice sur place avec plusieurs comptes peut tricher au prix d'un vrai effort, on le détecte après coup ; la règle « membre du lieu » se contourne avec un second compte ; l'âge est déclaratif, le lieu reste responsable de l'alcool qu'il sert.
 - **Points ouverts, à trancher avant de brancher l'API** : rattacher un pro à son lieu (SIREN + vérification), e-mail vérifié obligatoire pour valider, seuils anti-triche, durées de conservation des visites, adresse de l'espace pro (pro.sosmiam.fr ?).
 
 ## Visite sans compte (décidé le 8 octobre 2026, construite le 9 octobre)
