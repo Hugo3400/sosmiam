@@ -21,7 +21,7 @@ import {
   changerStatutMission, creerMission, envoyerMessage, listerMessages, listerMissions, supprimerMessage, supprimerMission,
 } from "./missions-messages.ts";
 import { ajouterMedia, retirerMedia, trouverFichierMedia } from "./medias.ts";
-import { deciderSignalement, listerSignalements } from "./moderation.ts";
+import { contesterSignalement, deciderSignalement, listerSignalements } from "./moderation.ts";
 import {
   creerBrouillon, desinscrire, exporterInscrits, lireBrouillon, listerBrouillons, listerInscrits, modifierBrouillon, supprimerBrouillon,
 } from "./newsletter.ts";
@@ -41,7 +41,7 @@ export const servicesGestion = {
   listerLieux, lireLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,
   listerPublications, lirePublication, creerPublication, modifierPublication, changerStatutPublication, supprimerPublication,
   ajouterMedia, retirerMedia, trouverFichierMedia,
-  listerSignalements, deciderSignalement,
+  listerSignalements, deciderSignalement, contesterSignalement,
   lireEtatServeur, relancerProcessus,
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,

@@ -9,7 +9,7 @@ import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
-import { listerSignalements, type Signalement, type StatutSignalement } from "~/services/moderation.ts";
+import { listerSignalements, type Signalement, type VueModeration } from "~/services/moderation.ts";
 import { CarteContenuSignale } from "./CarteContenuSignale.tsx";
 
 /** Regroupe les signalements par contenu visé : on juge une publication, pas chaque signalement. */
@@ -24,7 +24,7 @@ function regrouper(signalements: Signalement[]) {
 
 /** File de modération : les signalements de l'app, les graves (publication masquée pour tous) en tête. */
 export function EcranModeration() {
-  const [statut, setStatut] = useState<StatutSignalement>("a-traiter");
+  const [statut, setStatut] = useState<VueModeration>("a-traiter");
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerSignalements(statut), [statut]);
   const groupes = donnees ? regrouper(donnees.signalements) : [];
 
@@ -44,6 +44,7 @@ export function EcranModeration() {
             { valeur: "a-traiter", libelle: "À traiter", compteur: donnees?.compteurs["a-traiter"] },
             { valeur: "retenu", libelle: "Retenus" },
             { valeur: "rejete", libelle: "Rejetés" },
+            { valeur: "conteste", libelle: "Contestés", compteur: donnees?.compteurs.conteste },
           ]}
         />
       </div>

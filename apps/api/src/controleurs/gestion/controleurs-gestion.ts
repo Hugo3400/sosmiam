@@ -210,23 +210,6 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
       reponse.sendFile(media.chemin, { headers: { "Content-Type": media.typeMime, "Cache-Control": "private, no-store" } });
     }),
 
-    // ─── Modération ───
-    signalements: verifier(async (requete, reponse) =>
-      reponse.json(await s.listerSignalements(lireParametre(requete.query.statut, 10))),
-    ),
-    deciderSignalement: verifier(async (requete, reponse) => {
-      const corps = corpsDe(requete);
-      const decision = lireChoix(corps, "decision", ["retenu", "rejete"] as const);
-      const resultat = await s.deciderSignalement(lireId(requete.params.id) ?? 0, decision, lireTexte(corps, "note", 500));
-      if (!resultat) return introuvable(reponse);
-      await noter(
-        reponse,
-        decision === "retenu" ? "Signalement retenu (contenu retiré)" : "Signalement rejeté",
-        `${resultat.cible} n° ${resultat.cibleId}, ${resultat.regles} signalement(s) réglé(s)`,
-      );
-      reponse.json({ ok: true, ...resultat });
-    }),
-
     // ─── Demandes de lieux ───
     demandes: verifier(async (requete, reponse) => reponse.json(await s.listerDemandes(lireParametre(requete.query.statut, 10)))),
     accepterDemande: verifier(async (requete, reponse) => {

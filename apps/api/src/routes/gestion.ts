@@ -4,6 +4,7 @@ import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs
 import { creerControleursBigSos } from "../controleurs/gestion/controleurs-big-sos.ts";
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
+import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
@@ -35,6 +36,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
+  const o = creerControleursModeration(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
   // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
@@ -130,8 +132,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.delete("/publications/:id/medias/:idMedia", c.retirerMedia);
   routes.get("/medias/:fichier", c.media);
 
-  routes.get("/moderation", c.signalements);
-  routes.post("/moderation/:id/decision", c.deciderSignalement);
+  routes.get("/moderation", o.signalements);
+  routes.post("/moderation/:id/decision", o.decider);
+  routes.post("/moderation/:id/contestation", o.contester);
 
   routes.get("/demandes", c.demandes);
   routes.post("/demandes/:id/accepter", c.accepterDemande);
