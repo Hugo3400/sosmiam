@@ -6,7 +6,7 @@ import { Champ } from "~/composants/interface/Champ.tsx";
 import { ouvrirCoffre } from "~/fonctions/securite/ouvrir-coffre.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { aUneSession, configurerClient, ErreurApi } from "~/services/client-gestion.ts";
-import { ouvrirSession } from "~/services/session.ts";
+import { aUneSessionGardee, definirCleCoffre, ouvrirSession, reprendreSessionGardee } from "~/services/session.ts";
 import type { CoffreCle } from "~/stockage/coffre-local.ts";
 import { CadreConnexion } from "./CadreConnexion.tsx";
 
@@ -26,7 +26,8 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<{ texte: string; nonAutorise?: boolean } | null>(null);
   const [cleOuverte, setCleOuverte] = useState(cleEnMemoire);
-  const demanderCode = !aUneSession();
+  // Le code n'est demandé que s'il n'y a pas de session valable (en mémoire, ou gardée sur ce PC)
+  const [demanderCode, setDemanderCode] = useState(() => !aUneSession() && (cleEnMemoire || !aUneSessionGardee()));
 
   async function entrer(evenement: FormEvent) {
     evenement.preventDefault();
@@ -35,11 +36,21 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
     try {
       if (!cleOuverte) {
         try {
-          configurerClient(await ouvrirCoffre(coffre, motDePasse), coffre.idPoste);
+          const { cleSecrete, cleCoffre } = await ouvrirCoffre(coffre, motDePasse);
+          configurerClient(cleSecrete, coffre.idPoste);
+          await definirCleCoffre(cleCoffre);
           setCleOuverte(true);
           setMotDePasse("");
         } catch {
           setErreur({ texte: "Mauvais mot de passe." });
+          return;
+        }
+        // Session gardée sur ce PC : si le serveur la reconnaît, le mot de passe suffit
+        if (!aUneSession() && !demanderCode) {
+          const poste = await reprendreSessionGardee();
+          if (poste) return onConnecte(poste);
+          setDemanderCode(true);
+          setErreur({ texte: "Ta session a expiré (24 h sans t'en servir, ou 7 jours) : tape ton code." });
           return;
         }
       }

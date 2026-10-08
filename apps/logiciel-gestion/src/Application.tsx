@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { BandeauMiseAJour } from "~/composants/mise-en-page/BandeauMiseAJour.tsx";
+import { BandeauNouveautes } from "~/composants/mise-en-page/BandeauNouveautes.tsx";
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
@@ -23,7 +24,8 @@ import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
 import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
 import { utiliserResumeSemaine } from "~/hooks/utiliser-resume-semaine.ts";
 import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts";
-import { fermerSession } from "~/services/session.ts";
+import { definirCleCoffre, fermerSession } from "~/services/session.ts";
+import { oublierSessionLocale } from "~/stockage/session-locale.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { ecrireMinutesVerrou, lireMinutesVerrou } from "~/stockage/reglages-poste.ts";
 
@@ -53,9 +55,11 @@ export function Application() {
     return () => surSessionPerdue(null);
   }, []);
 
+  /** Oublie la clé (mot de passe redemandé) ; `fermer` ferme aussi la session (code redemandé). */
   function verrouiller(fermer: boolean) {
     if (fermer) void fermerSession().catch(() => {});
     configurerClient(null, null);
+    void definirCleCoffre(null);
     setCleEnMemoire(false);
     setPhase("deverrouillage");
   }
@@ -64,8 +68,9 @@ export function Application() {
   if (phase === "premier-lancement" || !coffre) {
     return (
       <EcranPremierLancement
-        onCree={(nouveau, cleSecrete) => {
+        onCree={(nouveau, cleSecrete, cleCoffre) => {
           configurerClient(cleSecrete, nouveau.idPoste);
+          void definirCleCoffre(cleCoffre);
           setCoffre(nouveau);
           setCleEnMemoire(true);
           setPhase("autorisation");
@@ -88,6 +93,7 @@ export function Application() {
         onRevoirAutorisation={() => setPhase("autorisation")}
         onOublierPoste={() => {
           oublierCoffre();
+          oublierSessionLocale();
           configurerClient(null, null);
           setCoffre(null);
           setPhase("premier-lancement");
@@ -100,6 +106,7 @@ export function Application() {
     <div className="flex h-full">
       <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} problemesServeur={alertesServeur.problemes.length} onVerrouiller={() => verrouiller(true)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
+        <BandeauNouveautes />
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
         <div className="mx-auto max-w-[1280px] px-8 py-7">
           {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={setEcran} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}

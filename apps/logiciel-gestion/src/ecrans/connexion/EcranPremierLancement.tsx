@@ -10,7 +10,7 @@ import { CadreConnexion } from "./CadreConnexion.tsx";
 const LONGUEUR_MIN = 12;
 
 /** Tout premier lancement : on choisit le mot de passe qui protège la clé secrète de ce PC. */
-export function EcranPremierLancement({ onCree }: { onCree: (coffre: CoffreCle, cleSecrete: CryptoKey) => void }) {
+export function EcranPremierLancement({ onCree }: { onCree: (coffre: CoffreCle, cleSecrete: CryptoKey, cleCoffre: CryptoKey) => void }) {
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [enCours, setEnCours] = useState(false);
@@ -23,9 +23,9 @@ export function EcranPremierLancement({ onCree }: { onCree: (coffre: CoffreCle, 
     setEnCours(true);
     setErreur(null);
     try {
-      const { coffre, cleSecrete } = await creerClePoste(motDePasse);
+      const { coffre, cleSecrete, cleCoffre } = await creerClePoste(motDePasse);
       ecrireCoffre(coffre);
-      onCree(coffre, cleSecrete);
+      onCree(coffre, cleSecrete, cleCoffre);
     } catch {
       setErreur("Impossible de créer la clé : ce PC est-il à jour (Windows et WebView2) ?");
       setEnCours(false);

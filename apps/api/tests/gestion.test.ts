@@ -205,3 +205,11 @@ test("une session survit à un redémarrage de l'API (le code n'est pas redemand
     await new Promise<void>((fini) => relancee.close(() => fini()));
   }
 });
+
+test("une session gardée sur le PC se vérifie sans redemander le code", async () => {
+  const session = await ouvrirSession();
+  const reponse = await demander("GET", "/session", { session });
+  assert.equal(reponse.status, 200);
+  assert.deepEqual(await reponse.json(), { ok: true, poste: "PC de test" });
+  assert.equal((await demander("GET", "/session", { session: "x".repeat(43) })).status, 401);
+});

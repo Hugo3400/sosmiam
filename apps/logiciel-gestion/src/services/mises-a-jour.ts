@@ -4,6 +4,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { isTauri } from "@tauri-apps/api/core";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 
+import { noterMiseAJourInstallee } from "~/stockage/nouveautes.ts";
 import { appeler } from "./client-gestion.ts";
 
 export type MiseAJour = { version: string; notes: string | null; installer: (progression: (pourcentage: number) => void) => Promise<void> };
@@ -22,6 +23,7 @@ export async function chercherMiseAJour(): Promise<MiseAJour | null> {
     version: miseAJour.version,
     notes: miseAJour.body ?? null,
     installer: async (progression) => {
+      noterMiseAJourInstallee({ version: miseAJour.version, notes: miseAJour.body ?? null });
       let total = 0;
       let recu = 0;
       // L'installateur se lance ensuite tout seul : le logiciel se ferme, puis se rouvre à jour

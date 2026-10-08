@@ -10,6 +10,7 @@ import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
@@ -102,6 +103,8 @@ export default function FicheLieu() {
               </View>
             ))}
           </View>
+
+          <ApercuCarte lieu={lieu} age={age} />
 
           <View className="flex-row flex-wrap gap-2">
             {lieu.tags.map((tag) => (

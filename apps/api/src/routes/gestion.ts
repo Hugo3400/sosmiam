@@ -52,6 +52,10 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/session", protection.ouvrirSession);
   routes.use(protection.verifierSession);
   routes.delete("/session", protection.fermerSession);
+  // Le logiciel vérifie qu'une session gardée sur le PC est encore valable (sinon il redemande le code)
+  routes.get("/session", (_requete, reponse) => {
+    reponse.json({ ok: true, poste: (reponse.locals.gestion as { poste: { nom: string } }).poste.nom });
+  });
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/maj/jeton", (_requete, reponse) => void reponse.json(creerJetonMaj()));

@@ -4,6 +4,7 @@ import { calculerEmpreinteSha256 } from "~/fonctions/securite/calculer-empreinte
 import { construireMessageGestion } from "~/fonctions/securite/construire-message-gestion.ts";
 import { encoderBase64Url } from "~/fonctions/securite/encoder-base64url.ts";
 import { signerMessage } from "~/fonctions/securite/signer-message.ts";
+import { oublierSessionLocale } from "~/stockage/session-locale.ts";
 
 /** Adresse de l'API de gestion. Pour un essai local : VITE_ADRESSE_API=http://127.0.0.1:5192/api-gestion npm run dev */
 export const ADRESSE_API: string = import.meta.env.VITE_ADRESSE_API || "https://sosmiam.fr/api-gestion";
@@ -32,6 +33,7 @@ export function definirSession(session: string | null) {
   etat.session = session;
 }
 export const aUneSession = () => etat.session !== null;
+export const lireSession = () => etat.session;
 /** Appelée quand l'API dit que la session est finie (inactivité, redémarrage du serveur) : il faut retaper le code. */
 export function surSessionPerdue(rappel: (() => void) | null) {
   quandSessionPerdue = rappel;
@@ -76,6 +78,7 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
     const erreur = new ErreurApi(corps?.erreur ?? "erreur-serveur", reponse.status, corps?.champ ?? null);
     if (erreur.code === "session-expiree" && etat.session) {
       etat.session = null;
+      oublierSessionLocale();
       quandSessionPerdue?.();
     }
     throw erreur;

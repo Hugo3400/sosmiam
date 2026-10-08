@@ -1,0 +1,59 @@
+import { useRouter } from "expo-router";
+import { Text, View } from "react-native";
+
+import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { Bouton } from "~/composants/interface/Bouton";
+import { ElementCarte } from "~/composants/lieux/ElementCarte";
+import { cartesExemples } from "~/contenus/cartes-exemples";
+import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
+
+type Props = {
+  lieu: Lieu;
+  /** Âge de la personne (null s'il est inconnu) : sous 18 ans, l'alcool est retiré de la carte */
+  age: number | null;
+};
+
+// Pas plus de trois éléments sur la fiche : la carte complète est à un toucher
+const NOMBRE_APERCU = 3;
+
+/**
+ * Bloc « La carte » de la fiche d'un lieu (« Les formules » pour une sortie) : ses spécialités, sinon ses premiers
+ * éléments, et un bouton vers la carte complète. Rien du tout si le lieu n'a pas (encore) de carte.
+ */
+export function ApercuCarte({ lieu, age }: Props) {
+  const router = useRouter();
+  const carteDuLieu = cartesExemples[lieu.id];
+  if (!carteDuLieu) return null;
+
+  const elements = filtrerCarteSelonAge(carteDuLieu, age).sections.flatMap((section) => section.elements);
+  if (elements.length === 0) return null;
+
+  const signatures = elements.filter((element) => element.signature);
+  const apercu = (signatures.length > 0 ? signatures : elements).slice(0, NOMBRE_APERCU);
+  const formules = lieu.type === "sortie";
+  const titre = formules ? "Les formules" : "La carte";
+
+  return (
+    <View className="gap-3">
+      <View className="gap-0.5">
+        <Text accessibilityRole="header" accessibilityLabel={titre} className="font-titre-gras text-[22px] leading-7 text-encre">
+          {formules ? "🎟️" : "🍽️"} {titre}
+        </Text>
+        <Text className="font-texte text-sm text-gris">{signatures.length > 0 ? "Ce que la maison fait de mieux" : "Un petit avant-goût"}</Text>
+      </View>
+
+      <View className="rounded-carte border-2 border-encre bg-white px-5 py-1.5">
+        {apercu.map((element, index) => (
+          <ElementCarte key={`${index}-${element.nom}`} element={element} separe={index > 0} />
+        ))}
+      </View>
+
+      <Bouton
+        libelle={`${formules ? "Voir toutes les formules" : "Voir toute la carte"} (${elements.length})`}
+        variante="blanc"
+        indice={`Ouvre ${formules ? "toutes les formules" : "la carte complète"} de ${lieu.nom}, rangée par sections`}
+        onPress={() => router.push({ pathname: "/lieu/[id]/carte", params: { id: String(lieu.id) } })}
+      />
+    </View>
+  );
+}

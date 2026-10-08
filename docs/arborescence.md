@@ -57,6 +57,7 @@ sos-miam/
 | `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
 | `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar |
+| `src/contenus/cartes/` | cartes (menus, formules) des lieux d'exemple, par zone, réunies dans `cartes-exemples.ts` |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
 | `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix…) |
 | `src/services/` | appels à l'API |

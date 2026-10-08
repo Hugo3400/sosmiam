@@ -8,6 +8,7 @@ import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { changerMotDePasseCoffre } from "~/fonctions/securite/changer-mot-de-passe-coffre.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ADRESSE_API } from "~/services/client-gestion.ts";
+import { definirCleCoffre } from "~/services/session.ts";
 import { copier } from "~/services/systeme.ts";
 import { ecrireCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
@@ -32,9 +33,10 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesV
     if (nouveau.length < 12) return setEtat({ enCours: false, message: null, erreur: "Le nouveau mot de passe doit faire 12 caractères au moins." });
     setEtat({ enCours: true, message: null, erreur: null });
     try {
-      const rechiffre = await changerMotDePasseCoffre(coffre, ancien, nouveau);
+      const { coffre: rechiffre, cleCoffre } = await changerMotDePasseCoffre(coffre, ancien, nouveau);
       ecrireCoffre(rechiffre);
       onCoffreChange(rechiffre);
+      await definirCleCoffre(cleCoffre);
       setAncien("");
       setNouveau("");
       setEtat({ enCours: false, message: "Mot de passe changé ✅ (rien à refaire sur le serveur)", erreur: null });

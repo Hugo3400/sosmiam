@@ -35,7 +35,7 @@ test("la clé du poste est gardée chiffrée, s'ouvre avec le bon mot de passe e
   // La clé en mémoire signe, mais ne peut pas être exportée
   await assert.rejects(() => crypto.subtle.exportKey("pkcs8", cleSecrete));
 
-  const cleOuverte = await ouvrirCoffre(coffre, "une bouée pour les restos");
+  const { cleSecrete: cleOuverte } = await ouvrirCoffre(coffre, "une bouée pour les restos");
   const message = "SOSMIAM-GESTION-1\nGET\n/tableau-de-bord\n1\nnonce\n-\ne3b0";
   const signature = await signerMessage(cleOuverte, message);
   const clePublique = createPublicKey({ key: { kty: "OKP", crv: "Ed25519", x: coffre.clePublique }, format: "jwk" });
@@ -45,10 +45,23 @@ test("la clé du poste est gardée chiffrée, s'ouvre avec le bon mot de passe e
 
 test("changer de mot de passe garde la même clé", async () => {
   const { coffre } = await creerClePoste("ancien mot de passe");
-  const rechiffre = await changerMotDePasseCoffre(coffre, "ancien mot de passe", "nouveau mot de passe");
+  const { coffre: rechiffre } = await changerMotDePasseCoffre(coffre, "ancien mot de passe", "nouveau mot de passe");
   assert.equal(rechiffre.clePublique, coffre.clePublique);
   assert.notEqual(rechiffre.chiffre, coffre.chiffre);
   await assert.rejects(() => ouvrirCoffre(rechiffre, "ancien mot de passe"));
   await ouvrirCoffre(rechiffre, "nouveau mot de passe");
   await assert.rejects(() => changerMotDePasseCoffre(coffre, "pas le bon", "peu importe"));
+});
+
+import { chiffrerTexte } from "../src/fonctions/securite/chiffrer-texte.ts";
+import { dechiffrerTexte } from "../src/fonctions/securite/dechiffrer-texte.ts";
+
+test("la session gardée sur le PC ne se relit qu'avec la clé du bon mot de passe", async () => {
+  const { coffre, cleCoffre } = await creerClePoste("mot de passe de Hugo");
+  const gardee = await chiffrerTexte(cleCoffre, "identifiant-de-session");
+  assert.ok(!gardee.chiffre.includes("identifiant"));
+  const { cleCoffre: rouverte } = await ouvrirCoffre(coffre, "mot de passe de Hugo");
+  assert.equal(await dechiffrerTexte(rouverte, gardee), "identifiant-de-session");
+  const { cleCoffre: autre } = await creerClePoste("un autre mot de passe");
+  await assert.rejects(() => dechiffrerTexte(autre, gardee));
 });
