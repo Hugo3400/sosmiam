@@ -6,6 +6,16 @@ export type ResultatRescousse = "donnee" | "annulee" | "epuisee";
 export type EtatActivite = {
   /** Rescousses qu'il reste à donner cette semaine */
   restantes: number;
+  /** Rescousses données depuis l'inscription (et pas reprises) */
+  rescoussesDonnees: number;
+  /** Lieux sauvés au moins une fois, du plus récent au plus ancien */
+  lieuxSauves: number[];
+  /** Lieux dont la personne a été le premier sauveteur */
+  premiersSauvetages: number[];
+  /** Lieux gardés (🔖), du plus récent au plus ancien */
+  gardes: number[];
+  /** Publications aimées (❤️), de la plus récente à la plus ancienne */
+  jaimes: string[];
   aSauve: (idLieu: number) => boolean;
   estGarde: (idLieu: number) => boolean;
   /** Donne une rescousse au lieu, ou la reprend si elle était déjà donnée */
@@ -19,6 +29,10 @@ export type EtatActivite = {
   aimer: (idPublication: string) => void;
   estMasquee: (idPublication: string) => boolean;
   masquer: (idPublication: string) => void;
+  /** Note que la personne est la première à sauver ce lieu (badge et points « Premier sauveteur ») */
+  noterPremierSauvetage: (idLieu: number) => void;
+  /** Efface toute l'activité (téléphone compris) */
+  effacer: () => Promise<void>;
 };
 
 export const ContexteActivite = createContext<EtatActivite | null>(null);
