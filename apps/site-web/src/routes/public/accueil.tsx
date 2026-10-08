@@ -49,7 +49,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   // Un lieu proposé reconnu (« sete ») est enregistré sous son vrai nom (« Sète »), le reste tel que tapé
   const lieu = trouverLieuPropose(ville);
   // nginx transmet l'adresse IP du visiteur : l'API s'en sert pour limiter les essais, sans la garder
-  const resultat = await inscrireNewsletter({ email, ville: lieu?.nom ?? ville, ambassadeur, piege }, request.headers.get("x-real-ip"));
+  const resultat = await inscrireNewsletter({ email, ville: lieu?.valeur ?? ville, ambassadeur, piege }, request.headers.get("x-real-ip"));
   if (resultat !== "ok") return { ok: false, message: messagesErreur[resultat] };
 
   const ou = lieu?.ou ?? "près de chez toi";

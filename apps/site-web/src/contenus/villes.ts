@@ -1,31 +1,95 @@
 // Suggestions du champ « Ta ville ou ta région » du formulaire d'inscription : on peut aussi taper autre chose.
-// « ou » est la façon de le dire dans le message de confirmation : « on te prévient dès que SOS Miam arrive … ».
+// Pour chaque région : son nom officiel, puis ses grandes villes, de la plus peuplée à la moins peuplée (population municipale
+// de l'INSEE), chef-lieu de région toujours compris. L'Occitanie, où l'on se lance, commence par nos villes de l'Hérault.
+// « ou » complète « On te prévient dès que SOS Miam arrive … ».
+import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 
-export type LieuPropose = { nom: string; ou: string };
+export type TypeLieu = "region" | "departement" | "ville";
 
-const ville = (nom: string): LieuPropose => ({ nom, ou: `à ${nom}` });
+export type Lieu = {
+  /** Identifiant unique dans la liste de suggestions */
+  id: string;
+  /** Nom affiché dans la liste : « Saint-Denis » */
+  nom: string;
+  /** Ce qui s'écrit dans le champ et s'enregistre, précisé quand deux villes ont le même nom : « Saint-Denis (La Réunion) » */
+  valeur: string;
+  /** « à Lyon », « au Havre », « en Occitanie » */
+  ou: string;
+  type: TypeLieu;
+};
 
-export const lieuxProposes: LieuPropose[] = [
-  // Villes où SOS Miam se lance en premier (voir docs/decisions.md)
-  ...["Montpellier", "Sète", "Béziers", "Pézenas", "Agde", "Lunel", "Lodève", "Palavas-les-Flots"].map(ville),
-  { nom: "Hérault", ou: "dans l'Hérault" },
-  // Régions françaises
-  { nom: "Auvergne-Rhône-Alpes", ou: "en Auvergne-Rhône-Alpes" },
-  { nom: "Bourgogne-Franche-Comté", ou: "en Bourgogne-Franche-Comté" },
-  { nom: "Bretagne", ou: "en Bretagne" },
-  { nom: "Centre-Val de Loire", ou: "en Centre-Val de Loire" },
-  { nom: "Corse", ou: "en Corse" },
-  { nom: "Grand Est", ou: "dans le Grand Est" },
-  { nom: "Hauts-de-France", ou: "dans les Hauts-de-France" },
-  { nom: "Île-de-France", ou: "en Île-de-France" },
-  { nom: "Normandie", ou: "en Normandie" },
-  { nom: "Nouvelle-Aquitaine", ou: "en Nouvelle-Aquitaine" },
-  { nom: "Occitanie", ou: "en Occitanie" },
-  { nom: "Pays de la Loire", ou: "dans les Pays de la Loire" },
-  { nom: "Provence-Alpes-Côte d'Azur", ou: "en Provence-Alpes-Côte d'Azur" },
-  { nom: "Guadeloupe", ou: "en Guadeloupe" },
-  { nom: "Martinique", ou: "en Martinique" },
-  { nom: "Guyane", ou: "en Guyane" },
-  { nom: "La Réunion", ou: "à La Réunion" },
-  { nom: "Mayotte", ou: "à Mayotte" },
+export type GroupeLieux = {
+  region: string;
+  /** Région où SOS Miam se lance en premier */
+  lancement: boolean;
+  lieux: Lieu[];
+};
+
+/** Une ville : son nom, ou son nom et sa préposition quand ce n'est pas « à » (« au Havre »). */
+type Ville = string | [nom: string, ou: string];
+
+type Region = {
+  nom: string;
+  ou: string;
+  lancement?: boolean;
+  /** Villes de lancement, proposées en premier */
+  villesLancement?: Ville[];
+  /** Département de lancement, proposé juste après */
+  departement?: [nom: string, ou: string];
+  villes: Ville[];
+};
+
+const regions: Region[] = [
+  {
+    nom: "Occitanie", ou: "en Occitanie", lancement: true,
+    villesLancement: ["Montpellier", "Sète", "Béziers", "Pézenas", "Agde", "Lunel", "Lodève", "Palavas-les-Flots"],
+    departement: ["Hérault", "dans l'Hérault"],
+    villes: ["Toulouse", "Nîmes", "Perpignan", "Montauban", "Narbonne", "Albi"],
+  },
+  { nom: "Auvergne-Rhône-Alpes", ou: "en Auvergne-Rhône-Alpes", villes: ["Lyon", "Saint-Étienne", "Grenoble", "Villeurbanne", "Clermont-Ferrand", "Annecy"] },
+  { nom: "Bourgogne-Franche-Comté", ou: "en Bourgogne-Franche-Comté", villes: ["Dijon", "Besançon", "Belfort", "Chalon-sur-Saône", "Auxerre", "Mâcon"] },
+  { nom: "Bretagne", ou: "en Bretagne", villes: ["Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo"] },
+  { nom: "Centre-Val de Loire", ou: "en Centre-Val de Loire", villes: ["Tours", "Orléans", "Bourges", "Blois", "Châteauroux", "Chartres"] },
+  { nom: "Corse", ou: "en Corse", villes: ["Ajaccio", "Bastia", "Porto-Vecchio"] },
+  { nom: "Grand Est", ou: "dans le Grand Est", villes: ["Strasbourg", "Reims", "Metz", "Mulhouse", "Nancy", "Colmar"] },
+  { nom: "Hauts-de-France", ou: "dans les Hauts-de-France", villes: ["Lille", "Amiens", "Roubaix", "Tourcoing", "Dunkerque", "Calais"] },
+  { nom: "Île-de-France", ou: "en Île-de-France", villes: ["Paris", "Boulogne-Billancourt", "Saint-Denis", "Argenteuil", "Montreuil", "Versailles"] },
+  { nom: "Normandie", ou: "en Normandie", villes: [["Le Havre", "au Havre"], "Rouen", "Caen", "Cherbourg-en-Cotentin", "Évreux", "Dieppe"] },
+  { nom: "Nouvelle-Aquitaine", ou: "en Nouvelle-Aquitaine", villes: ["Bordeaux", "Limoges", "Poitiers", "Pau", "La Rochelle", "Mérignac"] },
+  { nom: "Pays de la Loire", ou: "dans les Pays de la Loire", villes: ["Nantes", "Angers", ["Le Mans", "au Mans"], "Saint-Nazaire", "La Roche-sur-Yon", "Cholet"] },
+  { nom: "Provence-Alpes-Côte d'Azur", ou: "en Provence-Alpes-Côte d'Azur", villes: ["Marseille", "Nice", "Toulon", "Aix-en-Provence", "Avignon", "Antibes"] },
+  { nom: "Guadeloupe", ou: "en Guadeloupe", villes: [["Les Abymes", "aux Abymes"], "Baie-Mahault", ["Le Gosier", "au Gosier"], "Petit-Bourg", "Pointe-à-Pitre", "Basse-Terre"] },
+  { nom: "Guyane", ou: "en Guyane", villes: ["Cayenne", "Saint-Laurent-du-Maroni", "Matoury", "Kourou"] },
+  { nom: "La Réunion", ou: "à La Réunion", villes: ["Saint-Denis", "Saint-Paul", "Saint-Pierre", ["Le Tampon", "au Tampon"], "Saint-André", "Saint-Louis"] },
+  { nom: "Martinique", ou: "en Martinique", villes: ["Fort-de-France", ["Le Lamentin", "au Lamentin"], ["Le Robert", "au Robert"], "Schœlcher"] },
+  { nom: "Mayotte", ou: "à Mayotte", villes: ["Mamoudzou", "Koungou", "Dzaoudzi"] },
 ];
+
+const nomDe = (ville: Ville) => (typeof ville === "string" ? ville : ville[0]);
+const ouDe = (ville: Ville) => (typeof ville === "string" ? `à ${ville}` : ville[1]);
+const identifiant = (type: TypeLieu, texte: string) => `${type}-${normaliserRecherche(texte).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+
+// Noms portés par des villes de plusieurs régions (Saint-Denis) : on les précise avec la région
+const tousLesNoms = regions.flatMap((region) => [...(region.villesLancement ?? []), ...region.villes].map(nomDe));
+const homonymes = new Set(tousLesNoms.filter((nom, position) => tousLesNoms.indexOf(nom) !== position));
+
+function versLieu(ville: Ville, region: string): Lieu {
+  const nom = nomDe(ville);
+  const valeur = homonymes.has(nom) ? `${nom} (${region})` : nom;
+  return { id: identifiant("ville", valeur), nom, valeur, ou: ouDe(ville), type: "ville" };
+}
+
+export const groupesLieux: GroupeLieux[] = regions.map((region) => ({
+  region: region.nom,
+  lancement: region.lancement ?? false,
+  lieux: [
+    { id: identifiant("region", region.nom), nom: region.nom, valeur: region.nom, ou: region.ou, type: "region" },
+    ...(region.villesLancement ?? []).map((ville) => versLieu(ville, region.nom)),
+    ...(region.departement
+      ? [{ id: identifiant("departement", region.departement[0]), nom: region.departement[0], valeur: region.departement[0], ou: region.departement[1], type: "departement" as const }]
+      : []),
+    ...region.villes.map((ville) => versLieu(ville, region.nom)),
+  ],
+}));
+
+export const lieuxProposes: Lieu[] = groupesLieux.flatMap((groupe) => groupe.lieux);

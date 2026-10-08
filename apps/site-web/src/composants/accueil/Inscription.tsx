@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useActionData, useFetcher } from "react-router";
 
+import { ChampVilleOuRegion } from "~/composants/accueil/ChampVilleOuRegion";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
-import { lieuxProposes } from "~/contenus/villes";
 
 /** Réponse de l'action de la page d'accueil (src/routes/public/accueil.tsx). */
 export type ReponseInscription = { ok: boolean; message: string };
@@ -51,19 +51,7 @@ export function Inscription() {
             className={`min-w-0 flex-[1_1_240px] ${champ}`}
           />
           <label htmlFor="inscription-ville" className="sr-only">Ta ville ou ta région</label>
-          <input
-            id="inscription-ville"
-            name="ville"
-            type="text"
-            list="inscription-lieux"
-            autoComplete="address-level2"
-            placeholder="Ta ville ou ta région"
-            maxLength={80}
-            className={`min-w-0 flex-[1_1_180px] sm:w-60 sm:flex-none ${champ}`}
-          />
-          <datalist id="inscription-lieux">
-            {lieuxProposes.map((lieu) => <option key={lieu.nom} value={lieu.nom} />)}
-          </datalist>
+          <ChampVilleOuRegion id="inscription-ville" name="ville" className="min-w-0 flex-[1_1_180px] sm:w-60 sm:flex-none" classeChamp={champ} />
           <Bouton type="submit" variante="encre" className="flex-[1_1_100%] sm:flex-none">
             {envoi ? "Envoi…" : "Préviens-moi"}
           </Bouton>
