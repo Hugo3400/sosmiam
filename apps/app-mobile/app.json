@@ -52,6 +52,13 @@
           "locationAlwaysPermission": false,
           "motionUsagePermission": "SOS Miam ne se sert pas de tes mouvements : seuls tes petits creux nous intéressent."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR code d'un pote, et pour ta photo de profil si tu la prends.",
+          "recordAudioAndroid": false
+        }
       ]
     ],
     "experiments": {

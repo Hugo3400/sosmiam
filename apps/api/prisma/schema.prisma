@@ -231,7 +231,8 @@ model JournalGestion {
 /// Hugo l'accepte (une fiche de lieu est créée) ou la refuse, dans le logiciel de gestion.
 model DemandeLieu {
   id               Int       @id @default(autoincrement())
-  /// « lieu » (le lieu s'inscrit lui-même, depuis le site) ou « communaute » (proposition depuis Discord)
+  /// « lieu » (le lieu s'inscrit lui-même, depuis le site), « communaute » (proposition depuis Discord) ou « ambassadeur »
+  /// (proposition depuis l'espace ambassadeur du site, liée au compte)
   origine          String    @db.VarChar(12)
   nom              String    @db.VarChar(80)
   /// « resto », « patisserie », « bar », « sortie » ou « autre »
@@ -256,10 +257,14 @@ model DemandeLieu {
   reponse          String?   @db.VarChar(1000)
   /// Fiche créée à partir de la demande
   lieuId           Int?      @map("lieu_id")
+  /// Compte de l'ambassadeur qui propose (origine « ambassadeur ») ; vidé si le compte est supprimé
+  compteId         Int?      @map("compte_id")
+  compte           Compte?   @relation(fields: [compteId], references: [id], onDelete: SetNull)
   creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   traiteLe         DateTime? @map("traite_le") @db.Timestamptz(0)
 
   @@index([statut, creeLe])
+  @@index([compteId])
   @@map("demandes_lieux")
 }
 
@@ -300,4 +305,140 @@ model ReglageGestion {
   modifieLe DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
 
   @@map("reglages_gestion")
+}
+
+// ─── Comptes et espace ambassadeur (décidé le 8 octobre 2026, voir docs/decisions.md) ─────────────────────────────
+
+/// Un compte SOS Miam : celui de l'espace ambassadeur du site aujourd'hui, le même pour l'app plus tard (un compte par
+/// personne). Ni date de naissance ni nom : l'âge (18 ans au moins pour l'espace ambassadeur) est vérifié à l'inscription,
+/// puis oublié. Un compte sans visite connectée pendant 1 an est effacé (alerte avant dans le logiciel de gestion).
+model Compte {
+  id                    Int       @id @default(autoincrement())
+  /// Adresse de connexion, en minuscules et sans espaces
+  email                 String    @unique @db.VarChar(254)
+  /// Empreinte scrypt qui se décrit elle-même (« scrypt$N$r$p$sel$empreinte ») ; jamais le mot de passe
+  motDePasse            String    @map("mot_de_passe") @db.VarChar(200)
+  prenom                String    @db.VarChar(40)
+  /// Points du programme Ambassadeurs (barème dans docs/decisions.md), tenus par ajouterPoints avec le journal
+  points                Int       @default(0)
+  /// « curieux », « denicheur », « ambassadeur-quartier » ou « ambassadeur-ville » (ce dernier seulement à la main)
+  palier                String    @default("curieux") @db.VarChar(20)
+  /// Version des conditions d'utilisation acceptées à l'inscription (leur date de mise à jour, AAAA-MM-JJ)
+  cguVersion            String    @map("cgu_version") @db.VarChar(10)
+  /// Réinitialisation du mot de passe préparée par l'équipe : empreinte SHA-256 du jeton (valable 48 h)
+  jetonReinitialisation String?   @unique @map("jeton_reinitialisation") @db.VarChar(64)
+  jetonExpireLe         DateTime? @map("jeton_expire_le") @db.Timestamptz(0)
+  creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe             DateTime  @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  /// Dernière visite connectée (au plus une écriture par jour)
+  derniereConnexion     DateTime  @default(now()) @map("derniere_connexion") @db.Timestamptz(0)
+
+  ambassadeur   Ambassadeur?
+  sessions      SessionCompte[]
+  badges        BadgeCompte[]
+  journalPoints JournalPoints[]
+  candidatures  CandidatureFondateur[]
+  demandesLieux DemandeLieu[]
+
+  @@index([derniereConnexion])
+  @@map("comptes")
+}
+
+/// Ce qui est propre à l'espace ambassadeur du site : dès 18 ans, chaque inscription est validée par l'équipe dans le
+/// logiciel de gestion. Un compte refusé est effacé 30 jours après le refus.
+model Ambassadeur {
+  compteId   Int       @id @map("compte_id")
+  /// « en-attente » (à l'inscription), « actif », « refuse » ou « suspendu »
+  statut     String    @default("en-attente") @db.VarChar(12)
+  ville      String    @db.VarChar(80)
+  quartier   String?   @db.VarChar(80)
+  /// Note privée de l'équipe : jamais montrée dans l'espace (mais comprise dans les données transmises sur demande)
+  noteEquipe String?   @map("note_equipe") @db.VarChar(2000)
+  /// Date de la dernière décision de l'équipe (validation, refus ou suspension)
+  decideLe   DateTime? @map("decide_le") @db.Timestamptz(0)
+  creeLe     DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+
+  @@index([statut])
+  @@map("ambassadeurs")
+}
+
+/// Session d'un compte (site, plus tard app). Seule l'empreinte du jeton est gardée, ni adresse IP ni navigateur.
+model SessionCompte {
+  id        Int      @id @default(autoincrement())
+  /// SHA-256 (hexadécimal) du jeton de session
+  empreinte String   @unique @db.VarChar(64)
+  compteId  Int      @map("compte_id")
+  /// « site » (plus tard « app »)
+  support   String   @default("site") @db.VarChar(4)
+  creeLe    DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+  activite  DateTime @default(now()) @db.Timestamptz(3)
+
+  compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+
+  @@index([compteId])
+  @@map("sessions_comptes")
+}
+
+/// Badge obtenu : « premier-sauveteur », « deniche-par-toi », « fondateur »…
+model BadgeCompte {
+  id       Int      @id @default(autoincrement())
+  compteId Int      @map("compte_id")
+  badge    String   @db.VarChar(30)
+  obtenuLe DateTime @default(now()) @map("obtenu_le") @db.Timestamptz(0)
+
+  compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+
+  @@unique([compteId, badge])
+  @@map("badges_comptes")
+}
+
+/// Points gagnés ou retirés, et pourquoi. Le total et le palier du compte suivent (ajouterPoints, services/comptes.ts).
+model JournalPoints {
+  id       Int      @id @default(autoincrement())
+  compteId Int      @map("compte_id")
+  /// Positif (gagné) ou négatif (retiré)
+  points   Int
+  /// Code du barème (« visite », « visite-sos », « avis-photo », « proposer-lieu », « corriger-fiche »,
+  /// « premier-sauveteur », « rescousse », « defi ») ou « equipe » (à la main)
+  raison   String   @db.VarChar(40)
+  /// Précision lisible : « Chez Mamie Rose a rejoint SOS Miam »
+  detail   String?  @db.VarChar(200)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+
+  @@index([compteId, creeLe])
+  @@map("journal_points")
+}
+
+/// Candidature pour être l'un des 10 ambassadeurs fondateurs. Refusée : effacée 3 mois après la réponse.
+model CandidatureFondateur {
+  id               Int       @id @default(autoincrement())
+  compteId         Int       @map("compte_id")
+  /// Les 3 pépites du quartier, et pourquoi
+  pepites          String    @db.VarChar(1500)
+  /// Ce que la personne aimerait faire, séparé par des virgules : « denicher », « fiches », « selections », « faire-savoir »
+  envies           String    @db.VarChar(80)
+  /// Réseaux sociaux (facultatif)
+  reseaux          String?   @db.VarChar(200)
+  /// « Pourquoi toi ? »
+  motivation       String    @db.VarChar(600)
+  /// Partant pour faire connaissance 20 minutes, autour d'un café ou en visio
+  partantRencontre Boolean   @map("partant_rencontre")
+  /// Comment la personne a connu SOS Miam (facultatif)
+  connuPar         String?   @map("connu_par") @db.VarChar(120)
+  /// « en-attente », « acceptee » ou « refusee »
+  statut           String    @default("en-attente") @db.VarChar(12)
+  /// Numéro de la carte de fondateur (1 à 10), donné par l'équipe à l'acceptation
+  numero           Int?
+  creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe        DateTime? @map("repondu_le") @db.Timestamptz(0)
+
+  compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+
+  @@index([compteId])
+  @@index([statut, creeLe])
+  @@map("candidatures_fondateurs")
 }
