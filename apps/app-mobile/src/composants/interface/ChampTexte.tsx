@@ -32,6 +32,7 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
       </Text>
 
       <View className="relative">
+        {/* « relative » : sur le web, le champ doit passer au-dessus de son ombre */}
         {actif ? <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-2xl bg-encre" /> : null}
         <TextInput
           ref={ref}
@@ -49,7 +50,7 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
           placeholderTextColor={couleurs.gris}
           selectionColor={couleurs.encre}
           cursorColor={couleurs.encre}
-          className={`min-h-[52px] rounded-2xl border-2 bg-white px-4 py-3 font-texte text-[17px] text-encre
+          className={`relative min-h-[52px] rounded-2xl border-2 bg-white px-4 py-3 font-texte text-[17px] text-encre
             ${erreur ? "border-rouge-texte" : "border-encre"}`}
           {...autres}
         />

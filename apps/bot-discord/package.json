@@ -1,0 +1,22 @@
+{
+  "name": "@sos-miam/bot-discord",
+  "private": true,
+  "type": "module",
+  "description": "Bot Discord de SOS Miam : présentation, FAQ, BIG SOS, propositions de lieux et accueil des membres.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/demarrer.ts",
+    "start": "node --env-file-if-exists=.env src/demarrer.ts",
+    "typecheck": "tsc",
+    "test": "node --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  }
+}
