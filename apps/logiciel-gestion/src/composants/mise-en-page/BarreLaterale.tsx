@@ -24,7 +24,7 @@ export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouille
           <p className="text-xs text-jaune">Gestion</p>
         </div>
       </div>
-      <div className="px-3">
+      <div className="px-3 pb-2">
         <button
           type="button"
           onClick={onRechercher}
