@@ -8,6 +8,8 @@ type Props = {
   libelle: string;
   /** Ce que lit VoiceOver */
   description: string;
+  /** Ce qui se passe quand on le touche, lu par VoiceOver après une pause (en visite : il faudra un compte) */
+  indice?: string;
   actif?: boolean;
   /** Style du rond : « sos » (jaune), « normal » (translucide) ou « transparent » (icône seule, sur une vidéo) */
   style?: "sos" | "normal" | "transparent";
@@ -15,7 +17,7 @@ type Props = {
 };
 
 /** Un bouton rond de la colonne d'actions d'un lieu (rescousse, garder, partager), avec son libellé dessous. */
-export function ActionPost({ icone, libelle, description, actif = false, style = "normal", onPress }: Props) {
+export function ActionPost({ icone, libelle, description, indice, actif = false, style = "normal", onPress }: Props) {
   const rond =
     style === "sos"
       ? actif ? "bg-encre border-[3px] border-jaune" : "bg-jaune border-[3px] border-encre"
@@ -26,6 +28,7 @@ export function ActionPost({ icone, libelle, description, actif = false, style =
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={description}
+      accessibilityHint={indice}
       accessibilityState={{ selected: actif }}
       hitSlop={6}
       onPress={() => {

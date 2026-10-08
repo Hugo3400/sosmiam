@@ -14,7 +14,7 @@ export function FondateursProgramme() {
           <TitreSection
             aGauche
             clair
-            chapo={lierPonctuation("On cherche 10 ambassadeurs pour lancer l'aventure avec nous. Une fois ton compte validé, tu peux candidater depuis ton espace.")}
+            chapo={lierPonctuation("On cherche 10 ambassadeurs pour lancer l'aventure avec nous. Une fois ton compte validé, tu peux candidater depuis ton espace, tant qu'il reste des places.")}
           >
             Les 10 fondateurs
           </TitreSection>

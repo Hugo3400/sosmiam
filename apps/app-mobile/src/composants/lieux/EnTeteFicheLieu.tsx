@@ -5,10 +5,12 @@ import { Text, View } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
   lieu: Lieu;
@@ -32,6 +34,8 @@ const AUTEUR_LIEU = { type: "lieu" } as const;
  * (« Suivre » lit lui-même tes suivis, il est le seul à se redessiner quand tu suis le lieu).
  */
 export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
+  // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
+  const avecCompte = utiliserProfil().profil !== null;
   return (
     <>
       <LinearGradient
@@ -69,7 +73,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           libelle="Envoyer à un pote"
           variante="blanc"
           petit
-          indice="Choisis des potes de ta bande à qui envoyer ce lieu"
+          indice={avecCompte ? "Choisis des potes de ta bande à qui envoyer ce lieu" : INDICE_COMPTE}
           onPress={onEnvoyer}
           className="self-start"
         />

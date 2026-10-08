@@ -58,7 +58,7 @@ export function DevenirAmbassadeur() {
         <Bouton href={adresseEspaceAmbassadeur} variante="encre">Je deviens ambassadeur</Bouton>
       </div>
       <p className="mt-5 text-center text-[.95rem]">
-        {lierPonctuation("Dès 18 ans, sur ambassadeur.sosmiam.fr : crée ton compte, l'équipe le valide, et tu pourras candidater pour être fondateur.")}
+        {lierPonctuation("Dès 18 ans, sur ambassadeur.sosmiam.fr : crée ton compte, l'équipe le valide, et tu pourras candidater pour être fondateur, tant qu'il reste des places.")}
       </p>
     </Section>
   );

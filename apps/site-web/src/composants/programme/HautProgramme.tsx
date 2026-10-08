@@ -11,9 +11,9 @@ export function HautProgramme() {
         <div>
           <Badge className="mb-5">🎖️ Programme Ambassadeurs · dès 18&nbsp;ans</Badge>
           <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold tracking-tight">
-            Deviens{" "}
+            {"Deviens "}
             <mark className="bg-transparent bg-[linear-gradient(transparent_55%,var(--color-jaune)_55%)] px-1 text-encre">ambassadeur</mark>
-            {" "}SOS&nbsp;Miam
+            {" SOS\u00a0Miam"}
           </h1>
           <p className="mt-6 mb-8 max-w-[540px] text-lg text-gris">
             {lierPonctuation(

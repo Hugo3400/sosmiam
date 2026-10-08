@@ -2,12 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRef } from "react";
 import { Pressable, Text } from "react-native";
 
+import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
 type Props = {
   suivi: boolean;
   /** Auteur lu par VoiceOver : « @lea.mange » ou le nom du lieu */
   nom: string;
+  /** Faux en visite sans compte : le fil ouvrira « Crée ton compte », et VoiceOver le dit avant qu'on touche */
+  avecCompte: boolean;
   /** Pas suivi : suit tout de suite. Suivi : le fil demande confirmation avant de ne plus suivre */
   onPress: () => void;
 };
@@ -16,7 +19,7 @@ type Props = {
 const DELAI_ANTI_DOUBLE_APPUI = 700;
 
 /** « Suivre » (jaune) ou « Suivi » (discret, avec une coche) à côté du nom de l'auteur, sur la fiche posée sur la vidéo. */
-export function BoutonSuivre({ suivi, nom, onPress }: Props) {
+export function BoutonSuivre({ suivi, nom, avecCompte, onPress }: Props) {
   const dernierAppui = useRef(0);
   return (
     <Pressable
@@ -24,7 +27,7 @@ export function BoutonSuivre({ suivi, nom, onPress }: Props) {
       // L'état est dans le libellé, en français (pas d'état « sélectionné » en plus, il ferait doublon) ; il commence par le mot
       // affiché, pour que Commande vocale trouve le bouton (« Toucher Suivi »)
       accessibilityLabel={suivi ? `Suivi, tu suis ${nom}` : `Suivre ${nom}`}
-      accessibilityHint={suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil"}
+      accessibilityHint={!avecCompte ? INDICE_COMPTE : suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil"}
       // 32 pt de haut à l'écran, 48 pt sous le doigt
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
       onPress={() => {

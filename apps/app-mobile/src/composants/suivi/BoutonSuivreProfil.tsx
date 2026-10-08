@@ -3,10 +3,12 @@ import { useRef, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
+import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -36,6 +38,7 @@ type EtatFeuille = "jamais" | "ouverte" | "fermee";
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
   const { estSuivi, basculerSuivi } = utiliserActivite();
   const exiger = utiliserCompteRequis();
+  const avecCompte = utiliserProfil().profil !== null;
   const [feuille, setFeuille] = useState<EtatFeuille>("jamais");
   const dernierAppui = useRef(0);
   const bouton = useRef<View>(null);
@@ -68,7 +71,8 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     accessibilityRole: "button" as const,
     // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Suivi »)
     accessibilityLabel: suivi ? `Suivi, tu suis ${nom}` : `Suivre ${nom}`,
-    accessibilityHint: suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil",
+    // En visite, VoiceOver dit avant qu'on touche qu'un compte sera demandé (comme le menu « ⋯ » du fil)
+    accessibilityHint: !avecCompte ? INDICE_COMPTE : suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil",
   };
 
   // Préparée seulement au premier « Suivi » touché : rien de plus à dessiner à l'arrivée sur la fiche ou la liste

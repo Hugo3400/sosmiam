@@ -177,9 +177,8 @@ export function Inscription() {
         {!messageEnHaut && zoneMessage}
         <p className="mt-2 text-sm">
           On te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta,
-          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app{" "}; si tu coches ambassadeur, on t'invite par mail
-          à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données
-          {" "}(<Link to="/confidentialite" target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">confidentialité<span className="sr-only">, s'ouvre dans un nouvel onglet</span></Link>).
+          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app&nbsp;; si tu coches ambassadeur, on t'invite par mail
+          à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données (<Link to="/confidentialite" target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">confidentialité<span className="sr-only">, s'ouvre dans un nouvel onglet</span></Link>).
         </p>
       </div>
     </Section>

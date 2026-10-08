@@ -20,7 +20,7 @@ export function GainsProgramme() {
         ))}
       </ul>
       <p className="mt-8 text-center text-lg">
-        Et si tu fais partie des{" "}
+        {"Et si tu fais partie des "}
         <a href="#fondateurs" className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
           10 fondateurs
         </a>

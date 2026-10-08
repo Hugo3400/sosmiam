@@ -14,7 +14,7 @@ import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerInscrits } from "~/services/newsletter.ts";
 import { copier, ouvrirLien } from "~/services/systeme.ts";
 
-/** Les inscrits à la newsletter qui ont coché « ambassadeur fondateur » : à inviter à créer leur compte. */
+/** Les inscrits à la newsletter qui ont coché la case ambassadeur (« Je veux devenir ambassadeur (dès 18 ans) ») : à inviter à créer leur compte. */
 export function ListeCandidats() {
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
@@ -50,7 +50,7 @@ export function ListeCandidats() {
     >
       <div className="flex flex-wrap items-end gap-4 border-b border-ligne px-5 py-4">
         <Champ libelle={<span className="inline-flex items-center gap-1"><Search className="size-3.5" aria-hidden /> Recherche</span>} valeur={saisie} onChange={setSaisie} placeholder="Adresse ou ville" className="w-72" />
-        <p className="pb-2 text-[13px] text-gris">Ils ont coché « ambassadeur fondateur » en s'inscrivant à la newsletter. L'invitation part de ta messagerie, en copie cachée.</p>
+        <p className="pb-2 text-[13px] text-gris">Ils ont coché « Je veux devenir ambassadeur (dès 18 ans) » en s'inscrivant à la newsletter. L'invitation part de ta messagerie, en copie cachée.</p>
         {!ESPACE_AMBASSADEUR_OUVERT && (
           <p className="w-full rounded-xl bg-jaune-clair px-3 py-2 text-sm font-semibold">
             Invitations désactivées tant que l'espace ambassadeur et ses textes légaux (confidentialité, CGU) ne sont pas en ligne.
@@ -61,7 +61,7 @@ export function ListeCandidats() {
       <div className="px-5 pt-3"><MessageErreur erreur={erreur} reessayer={recharger} /></div>
       {!donnees && chargement && <Chargement />}
       {donnees && donnees.inscrits.length === 0 && (
-        <EtatVide emoji="🙋" titre="Pas encore de candidat">Les inscrits qui cochent « ambassadeur fondateur » sur le site arriveront ici.</EtatVide>
+        <EtatVide emoji="🙋" titre="Pas encore de candidat">Les inscrits qui cochent « Je veux devenir ambassadeur » sur le site arriveront ici.</EtatVide>
       )}
       {donnees && donnees.inscrits.length > 0 && (
         <>

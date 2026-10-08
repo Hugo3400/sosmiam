@@ -8,20 +8,20 @@ export const ESPACE_AMBASSADEUR_OUVERT = false;
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
 
 /**
- * Lien « mailto: » tout prêt pour inviter un candidat ambassadeur (inscrit à la newsletter, case « ambassadeur fondateur »
- * cochée) à créer son compte. Plusieurs adresses : elles partent en copie cachée, personne ne voit les autres.
+ * Lien « mailto: » tout prêt pour inviter un candidat ambassadeur (inscrit à la newsletter, case « Je veux devenir
+ * ambassadeur (dès 18 ans) » cochée) à créer son compte. Plusieurs adresses : elles partent en copie cachée, personne ne voit les autres.
  */
 export function creerLienInvitationAmbassadeur(adresses: string[], ville: string | null = null): string {
   const objet = "Deviens ambassadeur SOS Miam 🛟";
   const corps = [
     "Salut !",
     "",
-    `Tu as coché « ambassadeur fondateur » en t'inscrivant à SOS Miam${ville ? ` (${ville})` : ""} : merci, ça nous touche !`,
+    `Tu as coché la case ambassadeur en t'inscrivant à SOS Miam${ville ? ` (${ville})` : ""} : merci, ça nous touche !`,
     "",
-    "L'espace ambassadeur est ouvert. Tu peux y créer ton compte (à partir de 18 ans) pour faire découvrir tes pépites, gagner des points et des badges, et donner un coup de main aux lieux qui ont besoin de monde :",
+    "L'espace ambassadeur est ouvert. Crée ton compte (dès 18 ans) pour faire découvrir tes pépites, gagner des points et des badges, et donner un coup de main aux lieux qui ont besoin de monde :",
     ESPACE_AMBASSADEUR,
     "",
-    "On valide chaque inscription à la main : on te répond vite.",
+    "On valide chaque inscription à la main : on te répond vite. Une fois ton compte validé, tu pourras aussi candidater, depuis ton espace, pour être l'un des 10 ambassadeurs fondateurs.",
     "",
     "À très vite,",
     "Hugo, pour SOS Miam",

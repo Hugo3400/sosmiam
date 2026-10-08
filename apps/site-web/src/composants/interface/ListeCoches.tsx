@@ -14,7 +14,7 @@ export function ListeCoches({ elements, sombre = false }: { elements: Element[];
           >
             ✓
           </span>
-          <strong>{fort}</strong> {suite}
+          <strong>{fort}</strong>{` ${suite}`}
         </li>
       ))}
     </ul>

@@ -13,6 +13,7 @@ import { BoutonSuivre } from "~/composants/fil/BoutonSuivre";
 import { CoeurEnvol } from "~/composants/fil/CoeurEnvol";
 import { LegendeRepliable } from "~/composants/fil/LegendeRepliable";
 import { MediaPublication } from "~/composants/fil/MediaPublication";
+import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
@@ -35,6 +36,8 @@ type Props = {
   garde: boolean;
   /** Tu suis l'auteur (le lieu, ou le créateur) */
   suivi: boolean;
+  /** Faux en visite sans compte : J'aime, Suivre, Garder et Partager disent à VoiceOver qu'un compte sera demandé */
+  avecCompte: boolean;
   /** Vrai nombre de commentaires (réponses comprises), sans ceux des personnes bloquées */
   nombreCommentaires: number;
   /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et anime son cadre */
@@ -82,7 +85,7 @@ const DELAI_FOCUS_REDUCTION = 300;
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, suivi, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -193,6 +196,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
+  const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
   const actionsVideo = video
     ? [
         { name: "pause", label: enPause ? "Reprendre la vidéo" : "Mettre la vidéo en pause" },
@@ -289,7 +293,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                 </View>
                 <Text numberOfLines={1} className="shrink font-texte-gras text-[15px] text-white" style={ombreTexte}>{nomAuteur}</Text>
               </Pressable>
-              <BoutonSuivre suivi={suivi} nom={nomAuteur} onPress={() => gestes.suivre(publication)} />
+              <BoutonSuivre suivi={suivi} nom={nomAuteur} avecCompte={avecCompte} onPress={() => gestes.suivre(publication)} />
             </View>
             <View accessible accessibilityLabel={description} accessibilityActions={actionsVideo} onAccessibilityAction={video ? actionLecteurEcran : undefined} className="gap-1.5">
               {auteur.type === "createur" && auteur.partenariat ? (
@@ -353,6 +357,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
             libelle={formaterNombreCourt(publication.jaimes + (aime ? 1 : 0))}
             description={aime ? "Retirer ton J'aime" : `J'aime, ${publication.jaimes} personnes aiment`}
+            indice={indiceCompte}
             onPress={() => gestes.jaime(publication)}
             style="transparent"
           />
@@ -368,6 +373,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             icone={<Ionicons name={garde ? "bookmark" : "bookmark-outline"} size={26} color={garde ? couleurs.jaune : "#FFFFFF"} />}
             libelle={garde ? "Gardé" : "Garder"}
             description={garde ? `Ne plus garder ${lieu.nom}` : `Garder ${lieu.nom} pour plus tard`}
+            indice={indiceCompte}
             onPress={() => gestes.garder(publication)}
             style="transparent"
           />
@@ -375,6 +381,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             icone={<Ionicons name="arrow-redo" size={26} color="#FFFFFF" />}
             libelle="Partager"
             description={`Partager ${lieu.nom}`}
+            indice={indiceCompte}
             onPress={() => gestes.partager(publication)}
             style="transparent"
           />

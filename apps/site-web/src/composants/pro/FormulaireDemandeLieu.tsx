@@ -75,7 +75,7 @@ export function FormulaireDemandeLieu() {
     return (
       <div key={c.nom} className={c.type === "zone" ? "sm:col-span-2" : ""}>
         <label htmlFor={`lieu-${c.nom}`} className={libelle}>
-          {c.libelle} {!c.obligatoire && <span className="font-normal text-gris">(facultatif)</span>}
+          {c.libelle}{!c.obligatoire && <span className="font-normal text-gris">{" (facultatif)"}</span>}
         </label>
         {c.aide && <p id={`lieu-${c.nom}-aide`} className="mb-2 text-sm text-gris">{c.aide}</p>}
         {c.type === "zone" ? (

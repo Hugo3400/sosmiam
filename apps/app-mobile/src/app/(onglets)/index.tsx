@@ -1,7 +1,7 @@
 import { useIsFocused, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Platform, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,6 +49,10 @@ const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
 };
 // La fiche d'un lieu se prépare en coulisses quand tu t'arrêtes un moment sur une publication (pas pendant que tu fais défiler)
 const DELAI_PRECHARGEMENT = 1500;
+// Compte créé depuis le fil : le fil revient à l'écran dans ces quelques secondes (sinon, l'inscription venait d'ailleurs)
+const FENETRE_ACCUEIL = 3000;
+// « Compte créé ! » attend que l'inscription ait fini de s'effacer (VoiceOver annonce d'abord l'écran retrouvé)
+const DELAI_ACCUEIL = 600;
 const AUCUN_SUIVI: readonly string[] = [];
 
 /** Auteur que tu pourrais ne plus suivre : ce que la feuille de confirmation affiche, et la clé de ton suivi */
@@ -57,7 +61,7 @@ type AuteurSuivi = { nom: string; emoji: string; cle: string };
 /**
  * Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime.
  * En visite sans compte, on regarde tout (son, accéléré, fiche, commentaires…) ; J'aime, rescousse, garder, partager, suivre
- * et le reste du menu ouvrent la feuille « Crée ton compte ».
+ * et le reste du menu ouvrent la feuille « Crée ton compte ». Une fois le compte créé, on retrouve la même publication.
  */
 export default function PourToi() {
   const router = useRouter();
@@ -89,6 +93,7 @@ export default function PourToi() {
   const minuterieEnvoi = useRef<ReturnType<typeof setTimeout> | null>(null);
   // « Crée ton compte » demandé depuis le menu : la feuille attend que le menu ait fini de se refermer (comme « Envoyer à un pote »)
   const minuterieCompte = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const minuterieAccueil = useRef<ReturnType<typeof setTimeout> | null>(null);
   // « Ne plus suivre ? » : l'auteur reste affiché pendant que la feuille se referme (comme menuAffiche)
   const [nePlusSuivreVisible, setNePlusSuivreVisible] = useState(false);
   const [auteurSuivi, setAuteurSuivi] = useState<AuteurSuivi | null>(null);
@@ -105,6 +110,17 @@ export default function PourToi() {
   if (activite.chargee && tri?.onglet !== onglet) setTri({ onglet, suivis: activite.suivis });
   const suivisDuTri = tri?.suivis ?? AUCUN_SUIVI;
   const fichePrechargee = useRef(false);
+  // Le profil arrive (compte créé pendant la visite, envies changées) : le fil se retrie selon tes envies, et les bars arrivent
+  // pour les grands. La liste garderait sa place et montrerait une autre publication : on revient sur celle qui était à l'écran
+  const [profilVu, setProfilVu] = useState(profil);
+  const [recalage, setRecalage] = useState<string | null>(null);
+  // Compte tout juste créé : « À toi de jouer » quand le fil revient à l'écran (le geste qui demandait un compte est à refaire)
+  const [accueil, setAccueil] = useState(false);
+  if (profil !== profilVu) {
+    setProfilVu(profil);
+    setRecalage(visible);
+    if (profilVu === null && profil !== null) setAccueil(true);
+  }
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieux = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age), [age]);
@@ -127,7 +143,32 @@ export default function PourToi() {
   useEffect(() => () => {
     if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
     if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
+    if (minuterieAccueil.current) clearTimeout(minuterieAccueil.current);
   }, []);
+
+  // Avant que l'écran se dessine : la publication d'avant reprend sa place dans le nouvel ordre
+  useLayoutEffect(() => {
+    if (recalage === null) return;
+    setRecalage(null);
+    const index = liste.findIndex((p) => p.id === recalage);
+    if (index < 0) return;
+    refListe.current?.scrollToIndex({ index, animated: false });
+    setVisible(recalage);
+  }, [recalage, liste]);
+
+  // Inscription lancée d'un autre écran (Explorer, une fiche…) : le fil ne dira rien en y revenant plus tard
+  useEffect(() => {
+    if (!accueil) return;
+    const fin = setTimeout(() => setAccueil(false), FENETRE_ACCUEIL);
+    return () => clearTimeout(fin);
+  }, [accueil]);
+
+  useEffect(() => {
+    if (!accueil || !focus) return;
+    setAccueil(false);
+    if (minuterieAccueil.current) clearTimeout(minuterieAccueil.current);
+    minuterieAccueil.current = setTimeout(() => setAnnonce({ texte: "Compte créé ! À toi de jouer 💛", numero: Date.now() }), DELAI_ACCUEIL);
+  }, [accueil, focus]);
 
   // La fiche du lieu de la publication à l'écran est préparée en coulisses (une seule fois) : la première « Voir l'adresse » s'ouvre sans ramer.
   // Une autre fiche réutilise le même écran déjà monté, avec le bon lieu.
@@ -337,6 +378,7 @@ export default function PourToi() {
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
                   suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}
+                  avecCompte={profil !== null}
                   nombreCommentaires={communaute.nombreCommentaires(item.id)}
                   actif={focusDiffere && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}

@@ -62,7 +62,7 @@ sos-miam/
 | `src/app/createur/` | page d'un créateur : ses publications, ses partenariats déclarés, Suivre ; la liste « Tu suis » est dans `src/app/suivis.tsx` |
 | `src/app/potes/` | écrans ouverts depuis l'onglet Potes : sortie, nouvelle sortie, ajouter un pote, profil d'un pote, liste partagée, messages, discussion, nouveau groupe |
 | `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications, personnes bloquées |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre), profil, reglages, inscription, marque (mascotte), navigation |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre), invite (visite sans compte : feuille « Crée ton compte », écrans d'invitation), profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
 | `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar, potes, commentaires et conversations d'exemple (`potes-exemples.ts`, `commentaires-exemples.ts`, `conversations-exemples.ts`) |
 | `src/contenus/cartes/` | cartes (menus, formules) des lieux d'exemple, par zone, réunies dans `cartes-exemples.ts` |
@@ -70,7 +70,7 @@ sos-miam/
 | `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/`, `communaute/`, `chat/`, `suivi/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix, potes et sorties, messagerie, suivis…) |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil) |
+| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, mode visite, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil) |
 | `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone 6,9 et 6,3 pouces, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
