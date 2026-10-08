@@ -1,7 +1,7 @@
 import { useEventListener } from "expo";
 import type { VideoPlayer } from "expo-video";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Platform, Text, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
+import { AccessibilityInfo, Text, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 type Props = {
@@ -156,7 +156,6 @@ export function BarreProgressionVideo({ lecteur, actif, duree, largeur, bas }: P
         accessibilityActions={ACTIONS}
         onAccessibilityAction={ajuster}
         onStartShouldSetResponder={() => true}
-        onMoveShouldSetResponder={() => true}
         onResponderTerminationRequest={() => false}
         onResponderGrant={commencerGeste}
         onResponderMove={(e) => suivreDoigt(e.nativeEvent.pageX)}
@@ -176,6 +175,3 @@ export function BarreProgressionVideo({ lecteur, actif, duree, largeur, bas }: P
     </>
   );
 }
-
-// Sur le web (aperçu de développement), le lecteur ne dit pas toujours quand il a fini : rien de spécial à faire ici
-void Platform;
