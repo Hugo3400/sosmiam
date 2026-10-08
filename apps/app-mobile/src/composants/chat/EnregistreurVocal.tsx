@@ -95,6 +95,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
           rappels.current.onAbandon(MICRO_REFUSE);
           return;
         }
+        // Le petit « toc » du départ vient avant le micro : l'iPhone coupe les vibrations pendant qu'il enregistre
+        vibrerLegerement();
         await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
         await enregistreur.prepareToRecordAsync();
         // Écran quitté ou « Annuler » touché pendant la préparation : le micro ne s'allume pas
@@ -102,7 +104,6 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         enregistreur.record();
         lance.current = true;
         setPhase("enregistrement");
-        vibrerLegerement();
         AccessibilityInfo.announceForAccessibility("Enregistrement en cours");
         setTimeout(() => deplacerFocusLecteurEcran(chrono.current), 150);
       } catch {
@@ -169,8 +170,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
 
   async function annuler() {
     if (termine.current) return;
-    vibrerLegerement();
     const { uri } = await arreter();
+    vibrerLegerement();
     jeterFichierTemporaire(uri);
     if (monte.current) rappels.current.onAbandon(null);
   }

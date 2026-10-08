@@ -1,8 +1,8 @@
 // Kit média des ambassadeurs, réservé aux ambassadeurs validés (statut « actif ») : fichiers, couleurs, polices, textes
 // prêts à poster et règles (kit de marque de Hugo). Les fichiers sont dans apps/site-web/kit-media/ (pas dans public/,
 // servi à tout le monde) et se téléchargent par /kit-media/<nom> (routes/ressources/telecharger-kit.ts), seulement
-// s'ils sont dans la liste ci-dessous. Pour les refaire : bash scripts/generer-kit-media.sh, qui capture chaque visuel
-// sur la route de rendu du serveur de développement (/rendu-kit/<id>). Aucune ville, aucune promesse.
+// s'ils sont dans la liste ci-dessous. Pour les refaire : npm run site:kit-media (scripts/generer-kit-media.sh), qui
+// capture chaque visuel sur la route de rendu du serveur de développement (/rendu-kit/<id>). Aucune ville, aucune promesse.
 import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
 
 /** Dossier des fichiers, depuis le dossier du site (apps/site-web), d'où le serveur est toujours lancé */

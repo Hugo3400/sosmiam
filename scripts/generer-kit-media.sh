@@ -7,7 +7,7 @@
 # Tout est fabriqué à part, puis remplace l'ancien kit d'un coup : si une étape échoue, rien ne change.
 # Il faut que le serveur de développement tourne (pm2 « sos-miam-site-dev », 127.0.0.1:5190) : la route /rendu-kit
 # n'existe pas en ligne. Les fichiers produits sont commités avec le site.
-# Usage : bash scripts/generer-kit-media.sh
+# Usage : npm run site:kit-media   (ou bash scripts/generer-kit-media.sh)
 # Réglages possibles : ADRESSE_SITE (un autre serveur de développement), CHROME (un autre Chrome sans écran).
 set -euo pipefail
 
@@ -16,6 +16,10 @@ kit="$racine/apps/site-web/kit-media"
 site="${ADRESSE_SITE:-http://127.0.0.1:5190}"
 readonly ZIP="kit-media-sos-miam.zip"
 readonly DOSSIERS=(logos mascotte badges visuels)
+
+for outil in curl file zip; do
+  command -v "$outil" >/dev/null || { echo "❌ Il manque la commande « $outil » (apt install $outil)."; exit 1; }
+done
 
 chrome="${CHROME:-}"
 if [ -z "$chrome" ]; then
@@ -44,6 +48,11 @@ while read -r format visuel chemin largeur hauteur; do
       curl -fsS "$site/rendu-kit/$visuel.svg" -o "$nouveau/$chemin"
       ;;
     png)
+      # La page doit exister (sinon on capturerait une page d'erreur à la bonne taille)
+      if ! curl -fsS -o /dev/null "$site/rendu-kit/$visuel"; then
+        echo "❌ $site/rendu-kit/$visuel ne s'affiche pas (voir le journal du serveur de développement)."
+        exit 1
+      fi
       # Fenêtre à la taille exacte, sans barres de défilement, fond transparent par défaut ; le temps virtuel laisse
       # les polices arriver (la page les attend : jamais de police de secours)
       "$chrome" --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --default-background-color=00000000 \

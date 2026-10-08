@@ -38,7 +38,7 @@ type Vue = "options" | "signaler" | "bloquer";
 
 const TAILLE_REACTION = 52;
 
-/** « ce message », « cette photo », « cette note vocale », « ce lieu » : ce qu'on signale */
+/** Ce qu'on signale : « ce message », « cette photo », « cette note vocale », « ce lieu partagé » */
 const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale" };
 
 /** Le message en petit, en haut de la feuille, pour savoir de quoi on parle : ce qu'on voit, et ce que lit le lecteur d'écran (sans emoji) */
