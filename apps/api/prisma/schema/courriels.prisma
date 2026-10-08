@@ -1,0 +1,48 @@
+// Envoi des mails par l'hébergement mail de sosmiam.fr (SMTP de bonjour@, aucun prestataire d'envoi : décidé le
+// 8 octobre 2026). Une file d'attente qui respecte la limite d'envois par heure, et un journal effacé après 90 jours.
+
+/// Une newsletter envoyée : son contenu, une seule fois ; chaque destinataire a sa ligne dans envois_courriels.
+model CampagneNewsletter {
+  id          Int       @id @default(autoincrement())
+  /// Brouillon d'origine (gardé même si le brouillon est supprimé ensuite)
+  brouillonId Int?      @map("brouillon_id")
+  objet       String    @db.VarChar(150)
+  html        String
+  texte       String
+  /// Ville visée (comme dans la liste des inscrits), ou null pour tout le monde
+  ville       String?   @db.VarChar(80)
+  total       Int
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  envois EnvoiCourriel[]
+
+  @@map("campagnes_newsletter")
+}
+
+/// Un mail à envoyer ou envoyé. Les mails sensibles (lien de mot de passe) ne passent jamais par cette file.
+model EnvoiCourriel {
+  id            Int                 @id @default(autoincrement())
+  /// « newsletter », « essai », « ambassadeur-valide », « alerte-effacement »…
+  type          String              @db.VarChar(30)
+  destinataire  String              @db.VarChar(254)
+  /// Contenu propre au mail ; vide pour une newsletter (il est dans sa campagne), effacé une fois le mail parti
+  objet         String?             @db.VarChar(200)
+  html          String?
+  texte         String?
+  campagneId    Int?                @map("campagne_id")
+  campagne      CampagneNewsletter? @relation(fields: [campagneId], references: [id], onDelete: Cascade)
+  /// « en-attente », « envoye », « echec » ou « annule »
+  statut        String              @default("en-attente") @db.VarChar(12)
+  essais        Int                 @default(0)
+  prochainEssai DateTime            @default(now()) @map("prochain_essai") @db.Timestamptz(0)
+  /// Dernière erreur du serveur mail (sans le contenu du mail)
+  erreur        String?             @db.VarChar(300)
+  creeLe        DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
+  envoyeLe      DateTime?           @map("envoye_le") @db.Timestamptz(0)
+
+  @@index([statut, prochainEssai])
+  @@index([campagneId, statut])
+  @@index([type, destinataire])
+  @@index([envoyeLe])
+  @@map("envois_courriels")
+}

@@ -136,9 +136,11 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   // La liste rapetisse (clavier ouvert, enregistreur, message d'erreur sous le champ) : les derniers messages restent visibles
   function suivreTaille(evenement: LayoutChangeEvent) {
     const visible = evenement.nativeEvent.layout.height;
-    if (visible === hauteurs.current.visible) return;
+    const avant = hauteurs.current.visible;
+    if (visible === avant) return;
     hauteurs.current.visible = visible;
-    if (collerEnBas.current) defilerEnBas(false);
+    // En douceur, en même temps que le clavier monte (sauf à l'ouverture de l'écran)
+    if (collerEnBas.current) defilerEnBas(avant > 0 && !animationsReduites);
   }
 
   const ouvrirMenu = useCallback((ligne: LigneDiscussion) => {
