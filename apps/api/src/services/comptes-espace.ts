@@ -37,7 +37,7 @@ export type NouvelleProposition = {
 export async function lireCandidature(compteId: number): Promise<CandidatureVue | null> {
   const candidature = await baseDeDonnees.candidatureFondateur.findFirst({
     where: { compteId },
-    orderBy: { creeLe: "desc" },
+    orderBy: [{ creeLe: "desc" }, { id: "desc" }],
     select: { statut: true, numero: true, creeLe: true, reponduLe: true },
   });
   if (!candidature) return null;
@@ -63,7 +63,7 @@ export async function creerCandidature(compteId: number, { envies, ...candidatur
 export async function listerPropositions(compteId: number): Promise<PropositionVue[]> {
   const propositions = await baseDeDonnees.demandeLieu.findMany({
     where: { compteId },
-    orderBy: { creeLe: "desc" },
+    orderBy: [{ creeLe: "desc" }, { id: "desc" }],
     take: 100,
     select: { id: true, nom: true, ville: true, statut: true, creeLe: true },
   });

@@ -7,23 +7,26 @@ import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { ContexteActivite, type ResultatRescousse } from "~/hooks/utiliser-activite";
 import { effacerActiviteLocale, enregistrerActiviteLocale, lireActiviteLocale, type ActiviteLocale } from "~/stockage/activite-locale";
 
-const activiteVide = (): ActiviteLocale => ({ semaine: calculerCleSemaine(), rescousses: [], historique: [], premiersSauvetages: [], gardes: [], jaimes: [], masques: [] });
+const activiteVide = (): ActiviteLocale => ({ semaine: calculerCleSemaine(), rescousses: [], historique: [], premiersSauvetages: [], gardes: [], jaimes: [], masques: [], suivis: [] });
 
-/** Nouvelle semaine : les rescousses reviennent ; l'historique, les lieux gardés, J'aime et masques restent. Même semaine : la même activité (pas de nouveau rendu). */
+/** Nouvelle semaine : les rescousses reviennent ; l'historique, les lieux gardés, J'aime, masques et suivis restent. Même semaine : la même activité (pas de nouveau rendu). */
 const mettreAJourSemaine = (a: ActiviteLocale): ActiviteLocale => {
   const semaine = calculerCleSemaine();
   return a.semaine === semaine ? a : { ...a, semaine, rescousses: [] };
 };
 
-/** Rescousses de la semaine (remises à 3 chaque lundi) et leur historique, lieux gardés, J'aime et masques, enregistrés sur le téléphone à chaque changement. */
+/** Rescousses de la semaine (remises à 3 chaque lundi) et leur historique, lieux gardés, J'aime, masques et suivis, enregistrés sur le téléphone à chaque changement. */
 export function FournisseurActivite({ children }: { children: ReactNode }) {
   const [activite, setActivite] = useState<ActiviteLocale>(activiteVide);
   const chargee = useRef(false);
+  // La même chose, pour les écrans qui attendent l'activité relue (l'ordre du fil tient compte de tes suivis)
+  const [relue, setRelue] = useState(false);
 
   useEffect(() => {
     lireActiviteLocale().then((lue) => {
       chargee.current = true;
       if (lue) setActivite(mettreAJourSemaine(lue));
+      setRelue(true);
     });
   }, []);
 
@@ -96,6 +99,16 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
     setActivite((a) => (a.masques.includes(idPublication) ? a : { ...a, masques: [...a.masques, idPublication] }));
   }, []);
 
+  const basculerSuivi = useCallback(
+    (cle: string) => {
+      const suivi = !activite.suivis.includes(cle);
+      // Deux appuis avant le nouveau rendu n'ajoutent pas deux fois le même suivi
+      setActivite((a) => ({ ...a, suivis: suivi ? (a.suivis.includes(cle) ? a.suivis : [...a.suivis, cle]) : a.suivis.filter((c) => c !== cle) }));
+      return suivi;
+    },
+    [activite.suivis],
+  );
+
   const noterPremierSauvetage = useCallback((idLieu: number) => {
     setActivite((a) => (a.premiersSauvetages.includes(idLieu) ? a : { ...a, premiersSauvetages: [...a.premiersSauvetages, idLieu] }));
   }, []);
@@ -118,6 +131,8 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
       premiersSauvetages: activite.premiersSauvetages,
       gardes: [...activite.gardes].reverse(),
       jaimes: [...activite.jaimes].reverse(),
+      suivis: [...activite.suivis].reverse(),
+      chargee: relue,
       aSauve: (id: number) => activite.rescousses.includes(id),
       estGarde: (id: number) => activite.gardes.includes(id),
       basculerRescousse,
@@ -127,9 +142,11 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
       aimer,
       estMasquee: (id: string) => activite.masques.includes(id),
       masquer,
+      estSuivi: (cle: string) => activite.suivis.includes(cle),
+      basculerSuivi,
       noterPremierSauvetage,
       effacer,
     };
-  }, [restantes, activite, basculerRescousse, basculerGarde, basculerJaime, aimer, masquer, noterPremierSauvetage, effacer]);
+  }, [restantes, activite, relue, basculerRescousse, basculerGarde, basculerJaime, aimer, masquer, basculerSuivi, noterPremierSauvetage, effacer]);
   return <ContexteActivite.Provider value={valeur}>{children}</ContexteActivite.Provider>;
 }

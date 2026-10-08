@@ -40,6 +40,8 @@ export type EtatCommunaute = {
   /** Ajoute à ta bande ; un adulte ne peut ajouter un mineur que par lien ou QR code */
   ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "mineur" | "bloque" | "introuvable";
   retirerPote: (id: string) => void;
+  /** Comment ce pote a été ajouté : « lien », « qr », « pseudo », « exemple » (bande de la démo), ou undefined */
+  moyenAjout: (id: string) => string | undefined;
   bloques: Pote[];
   /** Bloque quelqu'un : il sort de ta bande, ses messages et commentaires disparaissent pour toi */
   bloquer: (id: string) => void;

@@ -60,7 +60,12 @@
           "recordAudioAndroid": false
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "SOS Miam utilise le micro seulement quand tu enregistres une note vocale pour tes potes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

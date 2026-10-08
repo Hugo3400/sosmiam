@@ -1,0 +1,32 @@
+// Conditions d'utilisation, section « Le programme Ambassadeurs », reprise par cgu.ts. Son id « ambassadeurs » ne doit pas
+// changer : la case à cocher de /inscription y renvoie (https://sosmiam.fr/cgu#ambassadeurs).
+// Décisions : docs/decisions.md, « Espace ambassadeur ». Influence commerciale : loi n° 2023-451 du 9 juin 2023.
+import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
+import { site } from "~/contenus/legal/informations-legales";
+import type { SectionLegale } from "~/contenus/legal/type-legal";
+
+const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
+const lienEspace = `[${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur})`;
+
+export const sectionAmbassadeursCgu: SectionLegale = {
+  id: "ambassadeurs",
+  titre: "Le programme Ambassadeurs",
+  blocs: [
+    `Sur ${lienEspace}, tu peux créer un compte pour devenir ambassadeur : faire découvrir les lieux indépendants de ton coin, nous en proposer et en parler autour de toi. En créant ce compte, tu acceptes ces conditions, et en particulier les règles ci-dessous.`,
+    {
+      liste: [
+        "**Dès 18 ans.** Ta date de naissance sert seulement à le vérifier à l'inscription : elle n'est pas gardée. Mentir sur ton âge est interdit ; si on apprend qu'un compte appartient à quelqu'un de moins de 18 ans, on le supprime.",
+        `**Un seul compte par personne**, avec des informations exactes. Ton prénom ou ton surnom peut s'afficher sur la fiche d'un lieu que tu as fait découvrir (« Déniché par… ») : choisis-en un que tu veux bien montrer. Garde ton mot de passe pour toi, et préviens-nous vite à ${lienContact} si quelqu'un d'autre utilise ton compte.`,
+        "**Chaque inscription est validée par l'équipe**, à la main. L'équipe peut refuser une inscription sans avoir à en donner la raison. Tant que ton compte n'est pas validé, tu peux seulement voir où en est ton inscription et gérer ton compte.",
+        "**Un programme de passionnés, pas un emploi** : pas de rémunération, ni horaires, ni objectifs. Tu participes quand tu veux, autant que tu veux, et tu peux arrêter à tout moment.",
+        "**Jamais payé par un lieu que tu mets en avant.** Si un lieu t'offre quelque chose (un repas, un cadeau…), tu l'indiques clairement dans ce que tu publies, avec la mention « Collaboration commerciale », comme l'exige la loi n° 2023-451 du 9 juin 2023 sur l'influence commerciale.",
+        "**Tu ne te fais pas passer pour SOS Miam** : tu parles en ton nom, comme ambassadeur, jamais au nom de SOS Miam ou de son équipe. Tu ne promets rien de notre part, ni à un lieu ni à personne (une fiche, une place à la une, un BIG SOS…). Et partout où tu parles de nous, les [règles de la communauté](#regles-communaute) s'appliquent aussi.",
+        "**Le kit média** (logos, mascotte, badges, visuels et textes à partager) est réservé aux ambassadeurs validés. On t'accorde le droit de l'utiliser gratuitement, pour toi seul et sans but commercial, uniquement pour parler de SOS Miam, en suivant ses règles (par exemple, ne pas déformer ni recolorer le logo). Ce droit prend fin si ton compte est supprimé, suspendu ou refusé.",
+        `**En cas d'abus** (fausses informations, faux lieux, collaboration commerciale cachée, kit média mal utilisé, propos blessants, se faire passer pour SOS Miam…), l'équipe peut suspendre ton compte. Un compte suspendu peut encore se connecter, voir son statut et se supprimer, mais plus rien d'autre. Si tu penses qu'il y a une erreur, écris-nous à ${lienContact}.`,
+        `**Supprimer ton compte** : à tout moment, depuis « Mon compte » dans ton espace (ton mot de passe t'est demandé), ou en nous écrivant à ${lienContact} depuis l'adresse de ton compte. Un compte sans aucune visite dans l'espace pendant 1 an est effacé, et un compte refusé l'est 30 jours après le refus : tout est détaillé dans la [politique de confidentialité](/confidentialite#compte-ambassadeur).`,
+        "**Les 10 fondateurs** : une fois ton compte validé, tu peux candidater depuis ton espace. Il n'y a que 10 places : une candidature peut ne pas être retenue, et tu restes alors ambassadeur, comme avant.",
+        "**Points et badges** : comme dans l'app, ils n'ont aucune valeur en argent (voir « Rescousses, visites et badges »).",
+      ],
+    },
+  ],
+};

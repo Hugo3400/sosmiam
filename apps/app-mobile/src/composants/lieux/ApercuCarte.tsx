@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -22,14 +23,22 @@ const NOMBRE_APERCU = 3;
  */
 export function ApercuCarte({ lieu, age }: Props) {
   const router = useRouter();
-  const carteDuLieu = cartesExemples[lieu.id];
-  if (!carteDuLieu) return null;
+  // Calculé une fois par lieu et par âge, pas à chaque rendu
+  const contenu = useMemo(() => {
+    const carteDuLieu = cartesExemples[lieu.id];
+    if (!carteDuLieu) return null;
+    const elements = filtrerCarteSelonAge(carteDuLieu, age).sections.flatMap((section) => section.elements);
+    if (elements.length === 0) return null;
+    const signatures = elements.filter((element) => element.signature);
+    return {
+      apercu: (signatures.length > 0 ? signatures : elements).slice(0, NOMBRE_APERCU),
+      nombre: elements.length,
+      avecSignatures: signatures.length > 0,
+    };
+  }, [lieu.id, age]);
+  if (!contenu) return null;
 
-  const elements = filtrerCarteSelonAge(carteDuLieu, age).sections.flatMap((section) => section.elements);
-  if (elements.length === 0) return null;
-
-  const signatures = elements.filter((element) => element.signature);
-  const apercu = (signatures.length > 0 ? signatures : elements).slice(0, NOMBRE_APERCU);
+  const { apercu, nombre, avecSignatures } = contenu;
   const formules = lieu.type === "sortie";
   const titre = formules ? "Les formules" : "La carte";
 
@@ -39,7 +48,7 @@ export function ApercuCarte({ lieu, age }: Props) {
         <Text accessibilityRole="header" accessibilityLabel={titre} className="font-titre-gras text-[22px] leading-7 text-encre">
           {formules ? "🎟️" : "🍽️"} {titre}
         </Text>
-        <Text className="font-texte text-sm text-gris">{signatures.length > 0 ? "Ce que la maison fait de mieux" : "Un petit avant-goût"}</Text>
+        <Text className="font-texte text-sm text-gris">{avecSignatures ? "Ce que la maison fait de mieux" : "Un petit avant-goût"}</Text>
       </View>
 
       <View className="rounded-carte border-2 border-encre bg-white px-5 py-1.5">
@@ -49,7 +58,7 @@ export function ApercuCarte({ lieu, age }: Props) {
       </View>
 
       <Bouton
-        libelle={`${formules ? "Voir toutes les formules" : "Voir toute la carte"} (${elements.length})`}
+        libelle={`${formules ? "Voir toutes les formules" : "Voir toute la carte"} (${nombre})`}
         variante="blanc"
         indice={`Ouvre ${formules ? "toutes les formules" : "la carte complète"} de ${lieu.nom}, rangée par sections`}
         onPress={() => router.push({ pathname: "/lieu/[id]/carte", params: { id: String(lieu.id) } })}

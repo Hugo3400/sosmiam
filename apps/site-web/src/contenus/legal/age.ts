@@ -1,6 +1,7 @@
 // Page /age : à partir de quel âge on utilise SOS Miam, et ce qu'on fait pour les plus jeunes.
 // C'est l'« URL d'adéquation à l'âge » de la fiche App Store. Règles d'âge : packages/commun/src/regles/ages.ts.
 // Classification App Store : 16+ (Apple n'a pas de 15+). À mettre à jour AVANT l'arrivée de la messagerie et de la pub.
+import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -23,6 +24,7 @@ export const documentAge: DocumentLegal = {
         "Pour créer un compte, il faut avoir **au moins 15 ans**. En France, c'est l'âge à partir duquel on peut accepter seul que ses données soient utilisées (loi Informatique et Libertés). En dessous, il faudrait l'accord des parents : on a préféré ouvrir l'app à partir de 15 ans seulement.",
         "À l'inscription, l'app demande ta date de naissance. Si tu as moins de 15 ans, elle te le dit gentiment et ne crée pas de compte : reviens nous voir un peu plus tard !",
         "On ne demande pas de pièce d'identité : on te fait confiance. Mentir sur son âge est interdit par nos [conditions d'utilisation](/cgu), et si on apprend qu'un compte appartient à quelqu'un de moins de 15 ans, on le supprime avec ses données.",
+        `Sur le site, l'espace ambassadeur ([${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur})) est réservé aux **18 ans et plus** : la date de naissance demandée à l'inscription sert seulement à le vérifier, et n'est pas gardée.`,
       ],
     },
     {

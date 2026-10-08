@@ -13,24 +13,15 @@ const fonds: Record<Fond, string> = {
 // Story (1080 × 1920) : le haut et le bas de l'écran sont couverts par Instagram et TikTok (pseudo, boutons,
 // légende), donc rien d'important n'y va. Post (1080 × 1350, le format 4:5 des fils) : des marges égales.
 const formats: Record<FormatVisuel, string> = {
-  story: "h-[1920px] px-[90px] pt-[230px] pb-[300px]",
+  story: "h-[1920px] px-[90px] pt-[250px] pb-[270px]",
   post: "h-[1350px] px-[80px] py-[76px]",
 };
 
-type Props = {
-  format: FormatVisuel;
-  fond: Fond;
-  /** Décor dessiné derrière le contenu (cercles…) */
-  decor?: ReactNode;
-  children: ReactNode;
-};
-
-/** Le cadre d'un visuel à poster, à sa taille exacte : fond, marges sûres, contenu en colonne centrée. */
-export function CadreVisuel({ format, fond, decor, children }: Props) {
+/** Le cadre d'un visuel à poster, à sa taille exacte : fond, marges sûres, contenu en colonne centrée et réparti. */
+export function CadreVisuel({ format, fond, children }: { format: FormatVisuel; fond: Fond; children: ReactNode }) {
   return (
-    <div className={`relative w-[1080px] overflow-hidden ${formats[format]} ${fonds[fond]}`}>
-      {decor && <div aria-hidden="true" className="absolute inset-0">{decor}</div>}
-      <div className="relative flex h-full flex-col items-center justify-between text-center">{children}</div>
+    <div className={`flex w-[1080px] flex-col items-center justify-between overflow-hidden text-center ${formats[format]} ${fonds[fond]}`}>
+      {children}
     </div>
   );
 }

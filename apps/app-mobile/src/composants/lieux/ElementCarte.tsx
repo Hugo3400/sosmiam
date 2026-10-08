@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Text, View } from "react-native";
 
 import type { ElementCarte as DonneesElement } from "@sos-miam/commun/types/carte";
@@ -20,8 +21,9 @@ function sansPointFinal(texte: string): string {
 /**
  * Une ligne de la carte : nom, description, prix aligné à droite (avec son unité) et petits repères (⭐ signature,
  * végé, fait maison…). VoiceOver et TalkBack la lisent d'un seul tenant, sans emoji, prix en toutes lettres.
+ * Mémorisée : tant que l'élément ne change pas, elle n'est pas redessinée (ni son libellé recalculé).
  */
-export function ElementCarte({ element, separe = false }: Props) {
+export const ElementCarte = memo(function ElementCarte({ element, separe = false }: Props) {
   const etiquettes = element.etiquettes ?? [];
   const gratuit = element.prix === 0;
   const prixLu = `${gratuit ? "gratuit" : formaterPrixLu(element.prix)}${element.unite ? ` ${element.unite}` : ""}`;
@@ -60,4 +62,4 @@ export function ElementCarte({ element, separe = false }: Props) {
       ) : null}
     </View>
   );
-}
+});

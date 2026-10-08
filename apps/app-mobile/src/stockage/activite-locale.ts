@@ -1,4 +1,4 @@
-// Ce que la personne fait dans l'app (rescousses, lieux gardés, J'aime, publications masquées),
+// Ce que la personne fait dans l'app (rescousses, lieux gardés, J'aime, publications masquées, lieux et créateurs suivis),
 // gardé sur le téléphone en attendant l'API.
 // Rien de sensible : AsyncStorage suffit.
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,6 +21,8 @@ export type ActiviteLocale = {
   jaimes: string[];
   /** Publications masquées (« Pas intéressé », « Signaler ») */
   masques: string[];
+  /** Lieux et créateurs suivis, du plus ancien au plus récent : « lieu:<id> » ou « createur:<pseudo> » (voir calculerCleSuivi) */
+  suivis: string[];
 };
 
 const CLE = "sosmiam.activite";
@@ -48,6 +50,8 @@ export async function lireActiviteLocale(): Promise<ActiviteLocale | null> {
       gardes: nombres(lu.gardes),
       jaimes: textes(lu.jaimes),
       masques: textes(lu.masques),
+      // Données d'avant les suivis : personne de suivi pour l'instant
+      suivis: textes(lu.suivis),
     };
   } catch {
     return null;

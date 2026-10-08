@@ -1,6 +1,7 @@
 // Mentions légales (LCEN, éditeur non professionnel). Coordonnées : voir informations-legales.ts.
 // Activité professionnelle dès que de la pub rémunérée est mise en place (contrat avec une régie, réseau publicitaire activé),
 // pas quand l'argent arrive : compléter l'éditeur AVANT ce démarrage (structure, adresse, SIRET…).
+import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -72,7 +73,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "À quoi sert le site",
       blocs: [
         `${site.nom} veut te faire découvrir les lieux indépendants (restos, pâtisseries, bars, bowlings, salles d'événements, sorties) qui ont besoin de monde, y compris ceux qui traversent une vraie période difficile. Le lancement est prévu partout en France.`,
-        "Le projet est en cours de développement : pour l'instant, le site présente SOS Miam et te permet de demander à être prévenu du lancement, de demander l'inscription de ton lieu ou de proposer ta candidature comme ambassadeur fondateur.",
+        `Le projet est en cours de développement : pour l'instant, le site présente SOS Miam et te permet de demander à être prévenu du lancement, de demander l'inscription de ton lieu ou, dès 18 ans, de devenir ambassadeur avec un compte sur [${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur}).`,
         "**Tout est gratuit**, pour toi comme pour les lieux : pas d'abonnement, pas d'offre payante, aucune commission. Rien n'est vendu sur le site, c'est pourquoi il n'y a pas de conditions générales de vente. Les règles d'utilisation du site se trouvent dans les [conditions d'utilisation](/cgu).",
         "À terme, SOS Miam prévoit de se financer grâce à de la publicité, toujours signalée comme telle et sans aucun effet sur le classement des lieux. Il n'y a aucune publicité aujourd'hui.",
       ],

@@ -1,8 +1,11 @@
 // Page « Cookies » : loi Informatique et Libertés (art. 82) et lignes directrices + recommandation de la CNIL (2020).
-// Aujourd'hui : aucun cookie de suivi. Exceptions possibles (exemptées) : cookies de sécurité de Cloudflare, et le cookie de refus
-// des statistiques (« sosmiam-sans-statistiques », posé seulement par la page /statistiques). Les statistiques de visite sont
-// comptées par le serveur, sans cookie. À mettre à jour AVANT l'arrivée de la pub ou des vidéos intégrées (voir docs/decisions.md).
+// Aujourd'hui : aucun cookie de suivi. Exceptions possibles (exemptées) : cookies de sécurité de Cloudflare, le cookie de refus
+// des statistiques (« sosmiam-sans-statistiques », posé seulement par la page /statistiques) et le cookie de session de
+// l'espace ambassadeur (« __Host-sosmiam-session », ambassadeur.sosmiam.fr seulement : apps/site-web/src/services/
+// session-compte.server.ts), exempté car il sert à s'authentifier (délibération CNIL n° 2020-091, point 49). Les statistiques
+// de visite sont comptées par le serveur, sans cookie. À mettre à jour AVANT l'arrivée de la pub ou des vidéos intégrées.
 // cf_clearance (défi anti-robots de Cloudflare) : à ajouter à la liste seulement après vérification du réglage « Challenge Passage ».
+import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 import { editeur, prestataires, site } from "~/contenus/legal/informations-legales";
 
@@ -14,11 +17,11 @@ const cloudflare = "Cloudflare";
 export const documentCookies: DocumentLegal = {
   titre: "Cookies et autres traceurs",
   description:
-    "Cookies sur SOS Miam : ni pub ni pistage, des statistiques sans cookie, seulement d'éventuels cookies de sécurité. Ce qui changera avec la pub, et comment les gérer.",
+    "Cookies sur SOS Miam : ni pub ni pistage, des statistiques sans cookie, juste le cookie de connexion de l'espace ambassadeur et d'éventuels cookies de sécurité. Ce qui changera avec la pub, et comment les gérer.",
   miseAJour: "8 octobre 2026",
   introduction: [
-    "Chez SOS Miam, les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. **Notre site ne dépose aucun cookie de suivi dans ton navigateur.** Pas de pub, pas de pistage, et des statistiques de visite comptées par notre serveur, sans cookie. Seules exceptions possibles : des cookies de sécurité de notre prestataire Cloudflare, et un cookie qui retient ton refus d'être compté, si tu le demandes. Tout est expliqué plus bas.",
-    `Cette page t'explique ce qu'est un cookie, ce qui se passe vraiment aujourd'hui quand tu visites ${site.adresse} (y compris la version du site en préparation), et comment ça marchera le jour où la pub arrivera : rien de facultatif sans ton accord.`,
+    "Chez SOS Miam, les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. **Notre site ne dépose aucun cookie de suivi dans ton navigateur.** Pas de pub, pas de pistage, et des statistiques de visite comptées par notre serveur, sans cookie. Seules exceptions possibles : des cookies de sécurité de notre prestataire Cloudflare, un cookie qui retient ton refus d'être compté, si tu le demandes, et celui qui te garde connecté à ton espace ambassadeur. Tout est expliqué plus bas.",
+    `Cette page t'explique ce qu'est un cookie, ce qui se passe vraiment aujourd'hui quand tu visites ${site.adresse} (y compris l'espace ambassadeur et la version du site en préparation), et comment ça marchera le jour où la pub arrivera : rien de facultatif sans ton accord.`,
   ],
   sections: [
     {
@@ -39,7 +42,8 @@ export const documentCookies: DocumentLegal = {
         {
           liste: [
             "des statistiques de visite comptées par notre serveur, **sans cookie ni script** dans ta page : on ne garde que des totaux, jamais ton adresse IP (détails dans la [politique de confidentialité](/confidentialite#statistiques)) ;",
-            "un seul cookie de notre part, et seulement si tu le demandes : **sosmiam-sans-statistiques**, posé quand tu refuses d'être compté sur la page [Tes visites et nos statistiques](/statistiques). Il retient ton refus pendant 13 mois et ne sert qu'à ça : la loi le dispense d'accord ;",
+            "un cookie de notre part, seulement si tu le demandes : **sosmiam-sans-statistiques**, posé quand tu refuses d'être compté sur la page [Tes visites et nos statistiques](/statistiques). Il retient ton refus pendant 13 mois et ne sert qu'à ça : la loi le dispense d'accord ;",
+            `un autre, seulement si tu te connectes à ton [espace ambassadeur](${adresseEspaceAmbassadeur}) : **__Host-sosmiam-session**, qui te garde connecté d'une page à l'autre. Il contient seulement une clé tirée au hasard, n'est envoyé qu'à ${adresseEspaceAmbassadeur.replace("https://", "")} (jamais à ${site.adresse} ni à un autre site), dure **90 jours au plus** et s'efface quand tu te déconnectes. Il est strictement nécessaire pour rester connecté : la loi le dispense d'accord, et il ne sert à rien d'autre ;`,
             "aucune publicité ;",
             "aucun contenu d'un autre site intégré dans nos pages : ni vidéo, ni carte, ni bouton de réseau social ;",
             "des polices de caractères hébergées avec le site, sur notre serveur chez notre hébergeur : pour afficher le site, ton navigateur n'appelle ni Google Fonts ni aucun autre service de polices ;",

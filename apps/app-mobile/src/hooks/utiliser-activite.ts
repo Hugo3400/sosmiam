@@ -18,6 +18,10 @@ export type EtatActivite = {
   gardes: number[];
   /** Publications aimées (❤️), de la plus récente à la plus ancienne */
   jaimes: string[];
+  /** Lieux et créateurs suivis (« lieu:<id> », « createur:<pseudo> », voir calculerCleSuivi), du plus récent au plus ancien */
+  suivis: string[];
+  /** Vrai une fois l'activité du téléphone relue (avant : une activité vide) */
+  chargee: boolean;
   aSauve: (idLieu: number) => boolean;
   estGarde: (idLieu: number) => boolean;
   /** Donne une rescousse au lieu, ou la reprend si elle était déjà donnée */
@@ -31,6 +35,9 @@ export type EtatActivite = {
   aimer: (idPublication: string) => void;
   estMasquee: (idPublication: string) => boolean;
   masquer: (idPublication: string) => void;
+  estSuivi: (cle: string) => boolean;
+  /** Suit le lieu ou le créateur, ou arrête de le suivre ; renvoie vrai s'il est maintenant suivi */
+  basculerSuivi: (cle: string) => boolean;
   /** Note que la personne est la première à sauver ce lieu (badge et points « Premier sauveteur ») */
   noterPremierSauvetage: (idLieu: number) => void;
   /** Efface toute l'activité (téléphone compris) */
@@ -39,7 +46,7 @@ export type EtatActivite = {
 
 export const ContexteActivite = createContext<EtatActivite | null>(null);
 
-/** Rescousses de la semaine, lieux gardés, J'aime et publications masquées (fourni par FournisseurActivite, à la racine). */
+/** Rescousses de la semaine, lieux gardés, J'aime, publications masquées et suivis (fourni par FournisseurActivite, à la racine). */
 export function utiliserActivite(): EtatActivite {
   const etat = useContext(ContexteActivite);
   if (!etat) throw new Error("utiliserActivite doit être appelé sous <FournisseurActivite>.");

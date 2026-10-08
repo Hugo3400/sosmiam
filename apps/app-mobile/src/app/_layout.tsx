@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurCommunaute } from "~/composants/potes/FournisseurCommunaute";
+import { FournisseurConversations } from "~/composants/potes/FournisseurConversations";
 import { PileRacine } from "~/composants/navigation/PileRacine";
 import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
 
@@ -29,7 +30,9 @@ export default function RacineApp() {
       {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
       <FournisseurActivite>
         <FournisseurCommunaute>
-          <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+          <FournisseurConversations>
+            <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+          </FournisseurConversations>
         </FournisseurCommunaute>
       </FournisseurActivite>
     </FournisseurProfil>

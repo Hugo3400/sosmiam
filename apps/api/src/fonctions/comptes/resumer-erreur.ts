@@ -6,9 +6,9 @@ export function resumerErreur(erreur: unknown): string {
   if (typeof erreur !== "object" || erreur === null) return `valeur ${typeof erreur}`;
   const nom = "name" in erreur && typeof erreur.name === "string" ? erreur.name : "Erreur";
   const code = "code" in erreur && (typeof erreur.code === "string" || typeof erreur.code === "number") ? ` ${erreur.code}` : "";
-  // Les lignes « at … » de la pile disent où, sans rien recopier des données (la 1re ligne, le message, est laissée)
+  // Les lignes « at fichier:ligne:colonne » de la pile disent où, sans rien recopier des données (le message est laissé)
   const pile = "stack" in erreur && typeof erreur.stack === "string"
-    ? erreur.stack.split("\n").filter((ligne) => /^\s+at /.test(ligne)).slice(0, 3).map((ligne) => ligne.trim())
+    ? erreur.stack.split("\n").filter((ligne) => /^\s+at .+:\d+:\d+\)?$/.test(ligne)).slice(0, 3).map((ligne) => ligne.trim())
     : [];
   return [`${nom}${code}`, ...pile].join(" | ");
 }

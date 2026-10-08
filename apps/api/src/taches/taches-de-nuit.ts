@@ -1,7 +1,7 @@
 // Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts des
 // demandes de lieux de plus de 3 ans, puis les comptes : sessions expirées, comptes refusés ou sans visite, candidatures
-// refusées, liens de réinitialisation expirés), puis une sauvegarde chiffrée de la base. Au démarrage, une sauvegarde tout
-// de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
+// refusées, liens de réinitialisation expirés), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une
+// sauvegarde tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
@@ -50,6 +50,13 @@ async function nettoyerComptes() {
   }
 }
 
+/** D'abord le ménage (contacts, puis comptes), ensuite la sauvegarde : ce qui a passé sa durée de conservation n'y part pas. */
+async function nettoyerPuisSauvegarder() {
+  await faireLeMenage();
+  await nettoyerComptes();
+  await sauvegarder();
+}
+
 /** Démarre les tâches de nuit ; renvoie de quoi les arrêter (arrêt propre de l'API). */
 export function planifierTachesDeNuit(): () => void {
   let derniereNuit = "";
@@ -59,12 +66,12 @@ export function planifierTachesDeNuit(): () => void {
     const jour = new Date().toISOString().slice(0, 10);
     if (heures === 3 && minutes === 30 && derniereNuit !== jour) {
       derniereNuit = jour;
-      void faireLeMenage().then(nettoyerComptes).then(sauvegarder);
+      void nettoyerPuisSauvegarder();
     }
   }, 60_000);
   const rattrapage = setTimeout(async () => {
     const [derniere] = await listerSauvegardes();
-    if (!derniere || Date.now() - new Date(derniere.creeLe).getTime() > 26 * UNE_HEURE) await sauvegarder();
+    if (!derniere || Date.now() - new Date(derniere.creeLe).getTime() > 26 * UNE_HEURE) await nettoyerPuisSauvegarder();
   }, 60_000);
   return () => {
     clearInterval(minuteur);

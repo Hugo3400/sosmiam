@@ -20,7 +20,7 @@ function lireTexteLong(corps: Record<string, unknown>, champ: string, minimum: n
 }
 
 /** Les champs de la candidature, dans l'ordre du formulaire. */
-function lireCandidature(corps: Record<string, unknown>): NouvelleCandidature {
+function lireChampsCandidature(corps: Record<string, unknown>): NouvelleCandidature {
   const pepites = lireTexteLong(corps, "pepites", 20, 1500);
   const envies = lireListe(corps, "envies", ENVIES.length, 20, ENVIES);
   if (envies.length === 0) throw new ChampInvalide("envies");
@@ -32,7 +32,7 @@ function lireCandidature(corps: Record<string, unknown>): NouvelleCandidature {
 }
 
 /** Une pépite proposée : mêmes règles que « J'inscris mon lieu » (POST /demandes-lieux), sans la partie contact. */
-function lireProposition(corps: Record<string, unknown>): NouvelleProposition {
+function lireChampsProposition(corps: Record<string, unknown>): NouvelleProposition {
   const nom = lireTexte(corps, "nom", 80, true);
   const type = typeof corps.type === "string" && TYPES_LIEUX.includes(corps.type) ? corps.type : null;
   const ville = lireTexte(corps, "ville", 80, true);
@@ -57,7 +57,7 @@ export function creerControleursEspaceComptes(services: ServicesComptes) {
     async candidater(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (estRobot(corps)) return reponse.status(201).json({ ok: true });
-      if (!(await services.creerCandidature(lireCompteId(reponse), lireCandidature(corps)))) {
+      if (!(await services.creerCandidature(lireCompteId(reponse), lireChampsCandidature(corps)))) {
         return reponse.status(409).json({ ok: false, erreur: "candidature-existante" });
       }
       reponse.status(201).json({ ok: true });
@@ -72,7 +72,7 @@ export function creerControleursEspaceComptes(services: ServicesComptes) {
     async proposer(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (estRobot(corps)) return reponse.status(201).json({ ok: true });
-      await services.creerProposition(lireCompteId(reponse), lireProposition(corps));
+      await services.creerProposition(lireCompteId(reponse), lireChampsProposition(corps));
       reponse.status(201).json({ ok: true });
     },
   };

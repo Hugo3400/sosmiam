@@ -1,21 +1,23 @@
 type Props = {
-  /** Centre et rayon du disque, en pixels du visuel */
-  x: number;
-  y: number;
   rayon: number;
-  /** Couleur du disque (« none » : l'anneau seul) */
+  /** Couleur du disque */
   fond: string;
   /** Couleur des points de l'anneau, un peu plus grand que le disque */
   points: string;
 };
 
-/** Grand disque et son anneau de points, derrière l'illustration d'un visuel (comme sur l'image de partage). */
-export function DisqueDecor({ x, y, rayon, fond, points }: Props) {
-  const anneau = rayon + 44;
+/**
+ * Grand disque et son anneau de points, centré derrière une illustration (comme sur l'image de partage). À placer dans
+ * un parent relatif, avant l'illustration (elle-même relative, pour passer devant).
+ */
+export function DisqueDecor({ rayon, fond, points }: Props) {
+  const anneau = rayon + 32;
   return (
     <svg
-      className="absolute"
-      style={{ left: x - anneau, top: y - anneau, width: anneau * 2, height: anneau * 2 }}
+      aria-hidden="true"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+      width={anneau * 2}
+      height={anneau * 2}
       viewBox={`${-anneau} ${-anneau} ${anneau * 2} ${anneau * 2}`}
     >
       <circle r={rayon} fill={fond} />

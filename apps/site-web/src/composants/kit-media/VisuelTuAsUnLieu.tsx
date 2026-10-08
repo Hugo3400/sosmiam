@@ -1,8 +1,6 @@
 import { Logo } from "~/composants/interface/Logo";
 import { CadreVisuel, type FormatVisuel } from "~/composants/kit-media/CadreVisuel";
-import { DisqueDecor } from "~/composants/kit-media/DisqueDecor";
 import { PastilleSite } from "~/composants/kit-media/PastilleSite";
-import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { CategorieLieu } from "~/types/lieux";
@@ -19,27 +17,24 @@ const pictos: { type: CategorieLieu; rotation: string }[] = [
 export function VisuelTuAsUnLieu({ format }: { format: FormatVisuel }) {
   const story = format === "story";
   return (
-    <CadreVisuel
-      format={format}
-      fond="encre"
-      decor={<DisqueDecor x={540} y={story ? 600 : 360} rayon={story ? 330 : 230} fond="none" points={c.jaune} />}
-    >
-      <Logo clair className={`w-auto ${story ? "h-[96px]" : "h-[76px]"}`} />
-      <ul className={`grid grid-cols-2 ${story ? "gap-10" : "gap-7"}`}>
+    <CadreVisuel format={format} fond="encre">
+      <Logo clair className={`w-auto ${story ? "h-[96px]" : "h-[72px]"}`} />
+      <ul className={`grid grid-cols-2 ${story ? "gap-11" : "gap-8"}`}>
         {pictos.map((picto) => (
           <li key={picto.type}>
-            <PictoCategorie type={picto.type} className={`${picto.rotation} ${story ? "size-[210px]" : "size-[150px]"}`} />
+            <PictoCategorie type={picto.type} className={`${picto.rotation} ${story ? "size-[220px]" : "size-[160px]"}`} />
           </li>
         ))}
       </ul>
-      <h1 className={`font-titre leading-[1.02] font-extrabold tracking-[-0.02em] ${story ? "text-[132px]" : "text-[104px]"}`}>
+      <h1 className={`font-titre leading-[1.05] font-extrabold tracking-[-0.02em] ${story ? "text-[112px]" : "text-[92px]"}`}>
         {lierPonctuation("Tu as un lieu ?")}
         <br />
-        <span className="text-jaune">C'est gratuit.</span>
+        <span className="text-jaune">C’est gratuit.</span>
       </h1>
-      <p className={`max-w-[880px] font-medium text-creme ${story ? "text-[44px] leading-[1.3]" : "text-[36px] leading-[1.3]"}`}>
-        {lierPonctuation("Resto, pâtisserie, bar ou sortie indépendante : inscris ton lieu sur sosmiam.fr. Sans abonnement, sans commission.")}
-      </p>
+      <div className={`max-w-[880px] leading-[1.3] text-balance ${story ? "text-[44px]" : "text-[35px]"}`}>
+        <p className="font-medium">{lierPonctuation("Resto, pâtisserie, bar ou sortie indépendante : inscris ton lieu sur SOS Miam.")}</p>
+        <p className={`font-bold text-jaune-clair ${story ? "mt-5" : "mt-3"}`}>Sans abonnement, sans commission.</p>
+      </div>
       <PastilleSite sombre grande={story} />
     </CadreVisuel>
   );

@@ -7,6 +7,9 @@
 // Modération : règlement européen sur les services numériques (DSA, art. 14, 16 et 17) : règles claires, signalement
 // ouvert à tous, décision expliquée. Apple (règle 1.2) : « tolérance zéro » écrite noir sur blanc.
 // Âge et règles de modération : docs/decisions.md ; page dédiée à l'âge : src/contenus/legal/age.ts.
+// Espace ambassadeur (8 octobre 2026, dès 18 ans) : section « ambassadeurs » dans cgu-ambassadeurs.ts.
+import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
+import { sectionAmbassadeursCgu } from "~/contenus/legal/cgu-ambassadeurs";
 import { editeur, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -15,11 +18,11 @@ const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
 export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
-    "Les règles du site et de l'app SOS Miam : gratuits, l'app à partir de 15 ans, ce que tu peux publier, comment on modère, et comment nous joindre.",
+    "Les règles du site et de l'app SOS Miam : gratuits, l'app à partir de 15 ans, l'espace ambassadeur dès 18 ans, ce que tu peux publier, comment on modère, et comment nous joindre.",
   miseAJour: "8 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
-    "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Le site s'utilise **sans compte** ; l'app demande un **compte gratuit, à partir de 15 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
+    "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Pour visiter le site, **pas besoin de compte** : seul l'**espace ambassadeur** en demande un, **dès 18 ans**. L'app demande un **compte gratuit, à partir de 15 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
   ],
   sections: [
     {
@@ -28,14 +31,14 @@ export const documentCgu: DocumentLegal = {
       blocs: [
         `Les présentes conditions d'utilisation (ci-après « les conditions ») encadrent l'accès et l'utilisation du site ${site.nom}, accessible à l'adresse ${site.adresse} et sur ses sous-domaines (ci-après « le site »), et de l'application mobile ${site.nom} pour iPhone et Android (ci-après « l'app »).`,
         `Le site et l'app sont édités par ${editeur.nom}, ${editeur.statut} (ci-après « l'éditeur »). Dans ces conditions, « SOS Miam », « on » et « nous » désignent l'éditeur ; « tu » désigne toute personne qui utilise le site ou l'app, ou qui nous écrit. Les informations sur l'éditeur et l'hébergeur sont dans les [mentions légales](/mentions-legales).`,
-        "Le site te permet de découvrir le projet SOS Miam et de nous écrire. L'app te fait découvrir des lieux indépendants près de chez toi, valider tes visites, donner ton avis et garder tes lieux préférés. Rien n'y est vendu : il n'y a ni paiement, ni abonnement, ni achat dans l'app, ni conditions générales de vente.",
+        `Le site te permet de découvrir le projet SOS Miam, de nous écrire et, dès 18 ans, de devenir ambassadeur avec un compte sur ${adresseEspaceAmbassadeur.replace("https://", "")} (voir « Le programme Ambassadeurs »). L'app te fait découvrir des lieux indépendants près de chez toi, valider tes visites, donner ton avis et garder tes lieux préférés. Rien n'y est vendu : il n'y a ni paiement, ni abonnement, ni achat dans l'app, ni conditions générales de vente.`,
       ],
     },
     {
       id: "acceptation",
       titre: "Acceptation des conditions",
       blocs: [
-        "En utilisant le site, tu acceptes ces conditions, dans leur version en ligne au moment de ta visite. Pour l'app, tu les acceptes en créant ton compte. Tu peux les relire à tout moment sur cette page, et les enregistrer ou les imprimer.",
+        "En utilisant le site, tu acceptes ces conditions, dans leur version en ligne au moment de ta visite. Pour l'app comme pour l'espace ambassadeur, tu les acceptes en créant ton compte. Tu peux les relire à tout moment sur cette page, et les enregistrer ou les imprimer.",
         "Si tu n'es pas d'accord avec elles, tu es libre de ne pas utiliser SOS Miam, et de supprimer ton compte à tout moment.",
         "Si tu télécharges l'app sur l'App Store ou sur Google Play, leurs propres conditions s'appliquent aussi, pour le téléchargement et la licence de l'app.",
       ],
@@ -44,7 +47,7 @@ export const documentCgu: DocumentLegal = {
       id: "acces",
       titre: "Un accès gratuit, aussi souvent que possible",
       blocs: [
-        "Le site et l'app sont **gratuits**. Le site est ouvert à tous, sans inscription ; l'app demande un compte (voir plus bas). Seuls ton matériel et ta connexion à internet (box, forfait mobile) restent à ta charge.",
+        "Le site et l'app sont **gratuits**. Le site est ouvert à tous, sans inscription, sauf l'espace ambassadeur (dès 18 ans) ; l'app demande un compte (voir plus bas). Seuls ton matériel et ta connexion à internet (box, forfait mobile) restent à ta charge.",
         "On fait de notre mieux pour que SOS Miam soit accessible 24 h/24 et 7 j/7, sans pouvoir le garantir. Le site ou l'app peuvent être interrompus ou ralentis, notamment :",
         {
           liste: [
@@ -72,7 +75,7 @@ export const documentCgu: DocumentLegal = {
       id: "age",
       titre: "À partir de 15 ans",
       blocs: [
-        "Pour créer un compte dans l'app, il faut avoir **au moins 15 ans** : c'est l'âge à partir duquel la loi française permet d'accepter seul l'utilisation de ses données. Le site, lui, reste ouvert à tous.",
+        "Pour créer un compte dans l'app, il faut avoir **au moins 15 ans** : c'est l'âge à partir duquel la loi française permet d'accepter seul l'utilisation de ses données. Le site, lui, reste ouvert à tous, sauf l'espace ambassadeur, réservé aux **18 ans et plus** (voir « Le programme Ambassadeurs »).",
         "Ta date de naissance doit être exacte : elle sert à vérifier ton âge et à adapter l'app. **Entre 15 et 17 ans**, les bars et tout ce qui touche à l'alcool sont masqués.",
         "Mentir sur ton âge est interdit. Si on apprend qu'un compte appartient à quelqu'un de moins de 15 ans, on le supprime avec ses données.",
         "Tous les détails, pour les ados comme pour les parents, sont sur la page [SOS Miam et l'âge](/age).",
@@ -82,7 +85,7 @@ export const documentCgu: DocumentLegal = {
       id: "compte",
       titre: "Ton compte",
       blocs: [
-        "Tu peux créer ton compte avec Apple, Google ou une adresse e-mail. Il est gratuit et personnel : **un seul compte par personne**, et tu gardes tes accès pour toi.",
+        "Dans l'app, tu peux créer ton compte avec Apple, Google ou une adresse e-mail. Il est gratuit et personnel : **un seul compte par personne**, et tu gardes tes accès pour toi.",
         `Tu es responsable de ce qui se fait depuis ton compte. Si tu penses que quelqu'un l'utilise à ta place, préviens-nous vite à ${lienContact}.`,
         "Tu peux **supprimer ton compte à tout moment**, depuis l'app ou en nous écrivant. On efface alors vraiment tes données, sauf ce que la loi nous oblige à garder.",
         "Si tu ne respectes pas ces conditions, on peut, selon la gravité : masquer ou retirer une publication, t'empêcher de publier pendant un temps, suspendre ton compte ou le supprimer. Dans tous les cas, on te dit pourquoi (voir « Signalements et modération »).",
@@ -97,6 +100,7 @@ export const documentCgu: DocumentLegal = {
         "Tricher fausse le jeu pour tout le monde, et surtout pour les lieux : les points gagnés en trichant (faux scans, comptes multiples…) peuvent être retirés.",
       ],
     },
+    sectionAmbassadeursCgu,
     {
       id: "publications",
       titre: "Ce que tu publies dans l'app",
@@ -172,7 +176,7 @@ export const documentCgu: DocumentLegal = {
           ],
         },
         "En dehors de ces cas et des exceptions prévues par la loi (article L122-5 du Code de la propriété intellectuelle), il est interdit, sans notre accord écrit, de reproduire, modifier, diffuser ou exploiter tout ou partie du site ou de l'app.",
-        `Il est notamment interdit d'utiliser le logo ou la mascotte à des fins commerciales, ou d'utiliser le nom SOS Miam d'une façon qui laisserait croire à un lien avec nous qui n'existe pas. Pour toute demande, écris-nous à ${lienContact}.`,
+        `Il est notamment interdit d'utiliser le logo ou la mascotte à des fins commerciales, ou d'utiliser le nom SOS Miam d'une façon qui laisserait croire à un lien avec nous qui n'existe pas. Seule exception : les ambassadeurs validés peuvent utiliser le kit média, dans les conditions prévues par « Le programme Ambassadeurs ». Pour toute autre demande, écris-nous à ${lienContact}.`,
       ],
     },
     {
@@ -196,7 +200,7 @@ export const documentCgu: DocumentLegal = {
       id: "contributions",
       titre: "Ce que tu nous envoies par e-mail ou par le site",
       blocs: [
-        `Pour t'inscrire à la newsletter, utilise le formulaire « Préviens-moi » en bas de l'accueil, ou écris-nous à ${lienContact}. Pour inscrire ton lieu, utilise le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) (ou écris-nous). Pour proposer ta candidature comme ambassadeur fondateur ou simplement nous poser une question, écris-nous aussi à cette adresse.`,
+        `Pour t'inscrire à la newsletter, utilise le formulaire « Préviens-moi » en bas de l'accueil, ou écris-nous à ${lienContact}. Pour inscrire ton lieu, utilise le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) (ou écris-nous). Pour devenir ambassadeur, crée ton compte sur [${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur}), dès 18 ans : c'est depuis ton espace que tu proposes des lieux et que tu candidates pour être fondateur. Pour une simple question, écris-nous à la même adresse.`,
         "Quand tu nous envoies des informations, tu garantis :",
         {
           liste: [
@@ -209,13 +213,13 @@ export const documentCgu: DocumentLegal = {
         "On lit tout avec attention, mais on reste libre de donner suite ou non. En particulier :",
         {
           liste: [
-            "une demande d'inscription de lieu ne nous oblige pas à publier ce lieu, ni maintenant ni au lancement ;",
-            "une candidature d'ambassadeur fondateur peut ne pas être retenue, par exemple quand toutes les places sont prises ;",
+            "une demande d'inscription de lieu, ou un lieu proposé par un ambassadeur, ne nous oblige pas à publier ce lieu, ni maintenant ni au lancement ;",
+            "une inscription d'ambassadeur peut ne pas être validée, et une candidature de fondateur ne pas être retenue (il n'y a que 10 places) ;",
             "une demande peut être refusée, notamment si elle ne correspond pas à l'esprit de SOS Miam (des lieux indépendants) ou si les informations sont inexactes.",
           ],
         },
         "Envoyer une demande ou une candidature est gratuit et ne crée d'engagement ni pour toi ni pour nous.",
-        "Tu restes titulaire de tes droits sur ce que tu nous envoies. On s'en sert uniquement pour ce pour quoi tu nous l'as envoyé : te prévenir du lancement près de chez toi si tu t'es inscrit à la newsletter, étudier ta demande ou ta candidature, et te répondre. On ne publie pas tes messages.",
+        "Tu restes titulaire de tes droits sur ce que tu nous envoies. On s'en sert uniquement pour ce pour quoi tu nous l'as envoyé : te prévenir du lancement près de chez toi si tu t'es inscrit à la newsletter, étudier ta demande ou ta candidature, et te répondre. On ne publie pas tes messages. Seule exception : si on accepte un lieu, ce que tu nous as dit de lui sert à créer sa fiche, qui est publique (et, s'il a été proposé depuis l'espace ambassadeur, elle peut afficher ton prénom : « Déniché par… »).",
         "Pour te désinscrire de la newsletter, un simple e-mail suffit. Ce qu'on fait de tes données est détaillé dans la [politique de confidentialité](/confidentialite).",
       ],
     },
@@ -251,10 +255,10 @@ export const documentCgu: DocumentLegal = {
       id: "donnees-cookies",
       titre: "Données personnelles et cookies",
       blocs: [
-        "On ne collecte que ce qui est utile pour faire tourner et protéger SOS Miam, te répondre, étudier tes demandes et, si tu l'as demandé, te prévenir du lancement. On ne vend jamais tes données, et on ne les loue pas non plus.",
+        "On ne collecte que ce qui est utile pour faire tourner et protéger SOS Miam, te répondre, étudier tes demandes, faire vivre ton compte ambassadeur si tu en as un et, si tu l'as demandé, te prévenir du lancement. On ne vend jamais tes données, et on ne les loue pas non plus.",
         "Dans l'app, ta date de naissance et ton nom sont chiffrés, et ton régime particulier (végétarien, sans gluten, allergies…) reste sur ton téléphone tant que tu n'as pas donné ton accord pour l'envoyer.",
         "La [politique de confidentialité](/confidentialite) explique quelles données, pourquoi, combien de temps, et comment exercer tes droits. Elle sera complétée pour l'app avant sa sortie.",
-        "Sur le site, aucun **cookie de suivi** aujourd'hui : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Seules exceptions possibles, strictement nécessaires : des cookies de sécurité de notre prestataire Cloudflare, et le cookie qui retient ton refus des statistiques. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
+        "Sur le site, aucun **cookie de suivi** aujourd'hui : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Seules exceptions possibles, strictement nécessaires : des cookies de sécurité de notre prestataire Cloudflare, le cookie qui retient ton refus des statistiques, et celui qui te garde connecté à ton espace ambassadeur. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
       ],
     },
     {
@@ -262,7 +266,7 @@ export const documentCgu: DocumentLegal = {
       titre: "Modification des conditions",
       blocs: [
         "Ces conditions peuvent évoluer, par exemple à l'arrivée de la messagerie ou de la publicité : elles seront mises à jour **avant** que ces nouveautés démarrent.",
-        "La date de la dernière mise à jour est indiquée en haut de cette page. Toute modification importante est annoncée sur le site et dans l'app avant de s'appliquer. Si elle change ce qu'on fait de ce que tu nous as envoyé ou publié, on te prévient aussi par e-mail ou dans l'app.",
+        "La date de la dernière mise à jour est indiquée en haut de cette page. Toute modification importante est annoncée sur le site et dans l'app avant de s'appliquer. Si elle change ce qu'on fait de ce que tu nous as envoyé ou publié, on te prévient aussi par e-mail, dans l'app ou dans ton espace ambassadeur.",
         "La version qui s'applique est celle en ligne au moment où tu utilises SOS Miam. Si une nouvelle version ne te convient pas, tu peux arrêter de l'utiliser à tout moment, supprimer ton compte et nous demander d'effacer ce que tu nous as envoyé.",
       ],
     },

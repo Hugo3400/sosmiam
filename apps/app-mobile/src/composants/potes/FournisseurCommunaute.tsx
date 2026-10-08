@@ -39,6 +39,7 @@ const creerEtatDemo = (maintenant: Date): CommunauteLocale => ({
   ...creerDonneesExemplePotes(maintenant),
   commentaires: creerCommentairesExemples(maintenant),
   signalements: [],
+  moyens: {},
 });
 
 const verifierTexte = (texte: string, max: number): ResultatTexte => {
@@ -170,9 +171,10 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         if (etat.bloques.includes(id)) return "bloque";
         if (etat.bande.includes(id)) return "deja";
         if (moyen === "pseudo" && !moiMineur && pote.mineur) return "mineur";
-        setEtat((e) => ({ ...e, bande: [...e.bande, id] }));
+        setEtat((e) => ({ ...e, bande: [...e.bande, id], moyens: { ...e.moyens, [id]: moyen } }));
         return "ajoute";
       },
+      moyenAjout: (id) => etat.moyens[id] ?? (bandeExemple.includes(id) ? "exemple" : undefined),
       retirerPote: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id) })),
       bloques,
       bloquer: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id), bloques: e.bloques.includes(id) ? e.bloques : [...e.bloques, id] })),

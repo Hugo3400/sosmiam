@@ -18,7 +18,7 @@ export function FondateursProgramme() {
           >
             Les 10 fondateurs
           </TitreSection>
-          <h3 className="mb-4 text-xl font-extrabold text-jaune">{lierPonctuation("Ce qu'ils reçoivent")}</h3>
+          <h3 className="mb-4 text-xl font-extrabold text-jaune">{lierPonctuation("Si tu es choisi, tu reçois :")}</h3>
           <ul className="grid gap-3.5">
             {cadeauxFondateurs.map((cadeau) => (
               <li key={cadeau.texte} className="flex items-start gap-3">

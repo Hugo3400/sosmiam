@@ -17,6 +17,8 @@ export type CommunauteLocale = {
   recommandations: Recommandation[];
   commentaires: Commentaire[];
   signalements: SignalementContenu[];
+  /** Comment chaque pote a été ajouté (lien, QR code ou pseudo) : un mineur ne discute qu'avec des potes ajoutés en vrai */
+  moyens: Record<string, "lien" | "qr" | "pseudo">;
 };
 
 const CLE = "sosmiam.communaute";
@@ -39,6 +41,7 @@ export async function lireCommunauteLocale(): Promise<CommunauteLocale | null> {
       recommandations: listeOuVide(lu.recommandations),
       commentaires: listeOuVide(lu.commentaires),
       signalements: listeOuVide(lu.signalements),
+      moyens: lu.moyens && typeof lu.moyens === "object" ? lu.moyens : {},
     };
   } catch {
     return null;
