@@ -27,6 +27,8 @@ type Props = {
   garde: boolean;
   /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et anime son cadre */
   actif: boolean;
+  /** Place à laisser en haut (en-tête du fil posé sur la publication) */
+  margeHaut: number;
   /** Place à laisser en bas (barre d'onglets transparente posée sur le fil) */
   margeBas: number;
   /** Fiche réduite : seule une pastille du lieu reste, pour voir la vidéo en plein écran */
@@ -56,7 +58,7 @@ const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -116,7 +118,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     <View style={{ height: hauteur, width: largeur }} className="overflow-hidden bg-encre">
       <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
       {media ? (
-        <MediaPublication media={media} largeur={largeur} hauteur={hauteur} actif={actif} enPause={enPause} />
+        <MediaPublication media={media} largeur={largeur} hauteur={hauteur} actif={actif} enPause={enPause} margeHaut={margeHaut} />
       ) : (
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: hauteur * 0.24, alignSelf: "center", fontSize: Math.min(140, hauteur * 0.17) }}>
           {lieu.emoji}
@@ -132,7 +134,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
       {/* Média libre d'exemple : on le dit clairement (lu par VoiceOver dans la description ci-dessous) */}
       {media && publication.illustration ? (
-        <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="absolute left-4 top-[104px] flex-row items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5">
+        <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ top: margeHaut }} className="absolute left-4 flex-row items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5">
           <Text className="text-xs">{media.type === "video" ? "🎬" : "📷"}</Text>
           <Text className="font-texte-semi text-xs text-white">{etiquetteIllustration}</Text>
         </View>

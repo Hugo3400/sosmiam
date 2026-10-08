@@ -11,6 +11,9 @@ type Props = {
   haut: number;
 };
 
+/** Hauteur de l'en-tête sous la zone sûre : 6 (marge) + 44 (onglets) + 8 (marge du bas) ; ce qui est posé dessous commence après */
+export const HAUTEUR_ENTETE_FIL = 58;
+
 const onglets: { cle: OngletFil; libelle: string }[] = [
   { cle: "tous", libelle: "Pour toi" },
   { cle: "sos", libelle: "SOS ce soir 🔥" },

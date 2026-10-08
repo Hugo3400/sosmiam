@@ -7,7 +7,7 @@ import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { EnTeteFil, type OngletFil } from "~/composants/fil/EnTeteFil";
+import { EnTeteFil, HAUTEUR_ENTETE_FIL, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FilVide } from "~/composants/fil/FilVide";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
@@ -132,6 +132,8 @@ export default function PourToi() {
   const lieuDuMenu = menu ? lieuParId.get(menu.lieuId) : undefined;
   // La barre d'onglets est posée, transparente, sur le fil (voir src/app/(onglets)/_layout.tsx)
   const hauteurBarreOnglets = useBottomTabBarHeight();
+  // Étiquette d'illustration et compteur de photos : juste sous l'en-tête, quelle que soit l'encoche du téléphone
+  const hautIndications = marges.top + HAUTEUR_ENTETE_FIL + 8;
 
   return (
     <View
@@ -170,6 +172,7 @@ export default function PourToi() {
                   actif={focus && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}
                   envolBouee={bouees[item.id] ?? 0}
+                  margeHaut={hautIndications}
                   margeBas={hauteurBarreOnglets}
                   reduit={infosReduites}
                   reduction={reduction}
