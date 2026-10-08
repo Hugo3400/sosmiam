@@ -31,6 +31,10 @@ export const stockageStats: StockageStats = {
     );
   },
 
+  async effacerDetailsAvant(source, jour) {
+    await baseDeDonnees.statDetail.deleteMany({ where: { source, jour: { lt: jour } } });
+  },
+
   async fermerPeriodesPassees(source, enCours) {
     for (const [type, cle] of Object.entries(enCours)) {
       await baseDeDonnees.statPeriode.updateMany({

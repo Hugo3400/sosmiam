@@ -63,9 +63,9 @@ export function Inscription() {
 
           <div role="radiogroup" aria-labelledby="inscription-telephone-titre" className="w-full pt-3">
             <p id="inscription-telephone-titre" className="mb-2.5 font-medium">Ton téléphone (pour savoir sur quel store sortir l'app) :</p>
-            <div className="flex flex-wrap justify-center gap-2.5">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:justify-center">
               {telephones.map((telephone, position) => (
-                <label key={telephone.valeur} className="cursor-pointer">
+                <label key={telephone.valeur} className="block cursor-pointer">
                   <input
                     ref={position === 0 ? premierTelephone : undefined}
                     type="radio"
@@ -74,7 +74,7 @@ export function Inscription() {
                     aria-describedby="inscription-message"
                     className="peer sr-only"
                   />
-                  <span className="inline-block rounded-full border-2 border-encre bg-white px-4 py-2 font-semibold transition-colors hover:bg-jaune-clair
+                  <span className="block rounded-full border-2 border-encre bg-white px-4 py-2.5 font-semibold transition-colors hover:bg-jaune-clair sm:py-2
                     peer-checked:bg-encre peer-checked:text-jaune peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre">
                     {telephone.libelle}
                   </span>

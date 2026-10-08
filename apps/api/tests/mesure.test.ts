@@ -69,6 +69,7 @@ function creerFauxStockage() {
   const periodes = new Map<string, EtatPeriode>();
   const details = new Map<string, number>();
   const fermetures: string[] = [];
+  const effacements: string[] = [];
   const stockage: StockageStats = {
     lirePeriode: async (source, type, cle) => periodes.get(`${source}|${type}|${cle}`) ?? null,
     ecrirePeriode: async (source, type, cle, etat) => {
@@ -84,8 +85,11 @@ function creerFauxStockage() {
       }
       fermetures.push(`${source}|${enCours.jour}`);
     },
+    effacerDetailsAvant: async (source, jour) => {
+      effacements.push(`${source}|${jour}`);
+    },
   };
-  return { stockage, periodes, details, fermetures };
+  return { stockage, periodes, details, fermetures, effacements };
 }
 
 test("le compteur compte vues, visites et visiteurs, et ignore les robots", async () => {
@@ -118,7 +122,7 @@ test("le compteur compte vues, visites et visiteurs, et ignore les robots", asyn
 });
 
 test("le lendemain, le même visiteur compte à nouveau, et la veille est fermée", async () => {
-  const { stockage, periodes, fermetures } = creerFauxStockage();
+  const { stockage, periodes, fermetures, effacements } = creerFauxStockage();
   const compteur = creerCompteurVisites(stockage);
   const jour1 = new Date("2026-10-08T10:00:00Z");
   const jour2 = new Date("2026-10-09T10:00:00Z");
@@ -133,4 +137,6 @@ test("le lendemain, le même visiteur compte à nouveau, et la veille est fermé
   // La veille a perdu son secret et son esquisse
   assert.equal(periodes.get("site|jour|2026-10-08")?.secret.length, 0);
   assert.deepEqual(fermetures.filter((f) => f === "site|2026-10-09").length, 1);
+  // Le détail de plus de 25 mois est effacé
+  assert.ok(effacements.includes("site|2024-09-09"));
 });

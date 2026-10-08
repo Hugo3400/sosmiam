@@ -125,7 +125,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "Données personnelles et cookies",
       blocs: [
         "SOS Miam ne vend ni ne loue jamais tes données. Ce qui est traité aujourd'hui, pourquoi, combien de temps et comment exercer tes droits : tout est expliqué dans la [politique de confidentialité](/confidentialite).",
-        `Le site ne dépose lui-même aucun cookie ni aucun autre traceur, et n'utilise ni mesure d'audience ni publicité. Seule exception possible : des cookies de sécurité que notre prestataire ${prestataires.reseau.nom} peut déposer pour protéger le site. Le détail est sur la page [cookies](/cookies).`,
+        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seules exceptions possibles : des cookies de sécurité que notre prestataire ${prestataires.reseau.nom} peut déposer pour protéger le site, et le cookie qui retient ton refus des statistiques. Le détail est sur la page [cookies](/cookies).`,
       ],
     },
     {

@@ -1,5 +1,7 @@
 // Politique de confidentialité : uniquement ce qui est réellement traité au 8 octobre 2026.
-// Toute nouveauté (app, pub, mesure d'audience, prestataire d'e-mails, bons solidaires) doit être ajoutée ici AVANT de démarrer.
+// Toute nouveauté (app, pub, cookies de mesure, prestataire d'e-mails, bons solidaires) doit être ajoutée ici AVANT de démarrer.
+// Statistiques de visite (8 octobre 2026) : comptage côté serveur, sans cookie, dans les conditions d'exemption de la CNIL
+// (apps/api/src/services/mesure.ts, apps/site-web/src/services/mesure.server.ts, page /statistiques pour s'y opposer).
 // À CONFIRMER AVEC FEELB AVANT MISE EN LIGNE : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189, Exoscale / Akenes SA,
 // Genève, Suisse). Qui exploite ce serveur, et où la boîte bonjour@ est-elle stockée ? Adapter « messagerie » ci-dessous.
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
@@ -14,7 +16,7 @@ const lienPolitiqueCloudflare = "[politique de confidentialité](https://www.clo
 export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
-    "Ce que SOS Miam fait de tes données : journaux du serveur, Cloudflare, e-mails et newsletter. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
+    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails et newsletter. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
   miseAJour: "8 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
@@ -28,8 +30,9 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "**Aucun cookie de notre part, aucun pistage, aucune pub, aucune mesure d'audience.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
             "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
+            "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Si tu nous écris** (lieu à inscrire, candidature d'ambassadeur, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
@@ -58,11 +61,31 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**Ce qui est enregistré** : ton adresse IP (transmise par Cloudflare, voir plus bas), la date et l'heure, la page demandée, le code de réponse du serveur, l'adresse de la page d'où tu arrives (le « referer ») et la signature de ton navigateur (le « user-agent » : type de navigateur, système, version). En cas d'erreur, un journal d'erreurs garde aussi ton adresse IP et la page demandée, pour la même durée.",
-            "**Pourquoi** : repérer et bloquer les attaques ou les abus, et comprendre une panne quand quelque chose casse. Ces journaux ne servent ni à te suivre, ni à faire des statistiques de visite.",
+            "**Pourquoi** : repérer et bloquer les attaques ou les abus, et comprendre une panne quand quelque chose casse. Ces journaux ne servent ni à te suivre, ni à faire des statistiques de visite (celles-ci sont comptées à part, sans garder ton adresse IP : voir la section suivante).",
             "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : assurer la sécurité et le bon fonctionnement du site.",
             `**Où et qui** : sur notre serveur, loué à ${hebergeur.nom} et situé en France. ${hebergeur.nom} agit comme sous-traitant : il héberge le serveur pour notre compte, et seul l'éditeur consulte ces journaux.`,
             "**Combien de temps** : **15 jours au plus**. Un nouveau journal démarre chaque jour ; on garde les 14 précédents, et le plus ancien est effacé automatiquement.",
             "**Obligatoire ?** Tu n'as rien à fournir : ces informations sont envoyées par ton navigateur dès qu'il demande une page.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "statistiques",
+      titre: "Les statistiques de visite",
+      blocs: [
+        "Pour savoir si SOS Miam intéresse du monde (combien de visites, quelles pages, d'où viennent les visiteurs), notre serveur compte lui-même les pages qu'il envoie. Pas de cookie de mesure, pas de script dans ta page, pas de service extérieur comme Google Analytics : tout se passe sur notre serveur.",
+        {
+          liste: [
+            "**Ce qui est regardé, au moment où tu ouvres une page** : la page demandée, le nom du site d'où tu arrives (par exemple « google.com », jamais l'adresse complète de la page), la grande famille de ton appareil, de ton navigateur et de ton système (« Mobile, Safari, iOS »), le pays indiqué par Cloudflare, ton adresse IP et la signature de ton navigateur.",
+            "**Ce qui est gardé** : uniquement des **totaux** (nombre de pages vues, de visites et de visiteurs par jour, semaine, mois et année, pages les plus vues, sites d'où l'on arrive, types d'appareils, navigateurs, systèmes et pays). **Jamais ton adresse IP**, jamais d'identifiant, jamais l'historique de ta navigation.",
+            "**Compter sans reconnaître** : pour savoir combien de personnes différentes sont venues, ton adresse IP et la signature de ton navigateur sont brouillées avec un code secret tiré au hasard (un par jour, un par semaine, un par mois et un par année). L'empreinte obtenue n'est jamais enregistrée : elle fait seulement évoluer un compteur statistique (une « esquisse HyperLogLog ») qui estime le nombre de visiteurs sans garder de liste. Chaque code secret est effacé à la fin de sa période, avec son compteur : après, plus personne ne peut refaire le calcul. Pour regrouper les pages d'une même visite, l'empreinte du jour reste en mémoire 30 minutes au plus après ta dernière page, sans jamais être écrite sur le disque.",
+            "**Pourquoi** : savoir ce qui plaît et améliorer le site. Ces statistiques servent uniquement à SOS Miam : elles ne sont ni vendues, ni transmises, ni croisées avec d'autres données (ton inscription à la newsletter, par exemple), et ne suivent pas ta navigation sur d'autres sites.",
+            "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : mesurer l'audience du site pour l'améliorer. Cette mesure respecte les conditions fixées par la CNIL pour se passer de ton accord : usage réservé à l'éditeur, statistiques anonymes uniquement, aucun croisement ni transmission, codes secrets qui vivent un an au plus.",
+            "**Combien de temps** : les codes secrets et les compteurs de visiteurs disparaissent à la fin de chaque période (le jour, la semaine, le mois ou l'année) ; le détail par jour (pages, provenances, appareils, pays…) est effacé au bout de **25 mois**. Seuls restent les totaux de vues, de visites et de visiteurs par période, anonymes.",
+            `**Ton choix** : tu peux refuser d'être compté, en un clic, sur la page [Tes visites et nos statistiques](/statistiques). Un petit cookie retient alors ton refus pendant 13 mois, et sert uniquement à ça. Si ton navigateur envoie le signal « Global Privacy Control » ou « Do Not Track », tu n'es pas compté du tout, sans rien faire. Comme on ne garde rien qui permette de te reconnaître, on ne peut pas retrouver ni retirer tes visites passées des totaux.`,
+            "**Pas comptés non plus** : les robots et les outils automatiques, les pages préchargées par ton navigateur sans que tu les ouvres, et la version du site en préparation.",
+            `**Où et qui** : sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur consulte ces statistiques.`,
           ],
         },
       ],
@@ -151,9 +174,9 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**On ne vend jamais tes données**, on ne les loue pas, et on ne les confie qu'aux prestataires techniques présentés plus bas, pour notre compte (sauf obligation légale).",
-            "**Aucun cookie de notre part** : à ce jour, nos pages n'en déposent aucun (seule exception possible : le cookie de sécurité de Cloudflare présenté plus haut). Détails sur la page [Cookies](/cookies).",
+            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, et le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes. Détails sur la page [Cookies](/cookies).",
             "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
-            "**Aucune mesure d'audience**, aucune statistique de visite et **aucune publicité** pour l'instant.",
+            "**Aucun outil de mesure d'audience extérieur** (ni Google Analytics, ni pixel de réseau social) : nos statistiques de visite sont comptées par notre serveur, sans cookie (voir « Les statistiques de visite »). Et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
             `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante. Si tu es bloqué à tort, écris-nous à ${lienEmail}.`,
           ],
@@ -209,7 +232,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Directives après ton décès** : nous dire ce que doivent devenir tes données après ta mort (conservation, effacement, communication) et désigner une personne chargée de les faire appliquer, comme le prévoit la loi Informatique et Libertés.",
           ],
         },
-        `**Ton droit d'opposition** : pour les journaux du serveur, Cloudflare et tes messages, fondés sur notre intérêt légitime, tu peux t'opposer à tout moment au traitement de tes données pour des raisons tenant à ta situation particulière (article 21 du RGPD). On arrête alors, sauf motif légitime et impérieux qui l'emporte, comme la sécurité du site, ou si ces données sont nécessaires pour faire valoir ou défendre des droits en justice. Écris à ${lienEmail}.`,
+        `**Ton droit d'opposition** : pour les journaux du serveur, les statistiques de visite, Cloudflare et tes messages, fondés sur notre intérêt légitime, tu peux t'opposer à tout moment au traitement de tes données pour des raisons tenant à ta situation particulière (article 21 du RGPD). On arrête alors, sauf motif légitime et impérieux qui l'emporte, comme la sécurité du site, ou si ces données sont nécessaires pour faire valoir ou défendre des droits en justice. Écris à ${lienEmail}. Pour les statistiques de visite, c'est encore plus simple : un clic sur la page [Tes visites et nos statistiques](/statistiques).`,
       ],
     },
     {
@@ -252,7 +275,7 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**L'app mobile**, avec un compte et, seulement si tu l'autorises, ta position pour te montrer les lieux autour de toi.",
-            "**La publicité**, toujours signalée comme telle, ainsi que la **mesure d'audience** et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
+            "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
             "**L'envoi des e-mails** (comme la newsletter) par un prestataire spécialisé.",
             "**Les bons solidaires**, pour payer à l'avance dans un lieu pendant son BIG SOS. La façon de payer n'est pas encore décidée.",
           ],

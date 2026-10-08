@@ -155,7 +155,7 @@ export const documentCgu: DocumentLegal = {
       blocs: [
         "On ne collecte que ce qui est utile pour faire tourner et protéger le site, te répondre, étudier tes demandes et, si tu l'as demandé, te prévenir du lancement. On ne vend jamais tes données, et on ne les loue pas non plus.",
         "Tout est expliqué dans la [politique de confidentialité](/confidentialite) : quelles données, pourquoi, combien de temps, et comment exercer tes droits.",
-        "Aujourd'hui, le site ne dépose **aucun cookie** et n'utilise aucun traceur : pas de pub, pas de mesure d'audience. Seule exception possible : des cookies de sécurité de notre prestataire Cloudflare, strictement nécessaires. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
+        "Aujourd'hui, le site ne dépose **aucun cookie de suivi** : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Seules exceptions possibles, strictement nécessaires : des cookies de sécurité de notre prestataire Cloudflare, et le cookie qui retient ton refus des statistiques. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
       ],
     },
     {

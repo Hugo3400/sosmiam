@@ -1,6 +1,7 @@
 // Page « Cookies » : loi Informatique et Libertés (art. 82) et lignes directrices + recommandation de la CNIL (2020).
-// Aujourd'hui : aucun cookie ni traceur de notre part. Seule exception possible : cookies de sécurité de Cloudflare (exemptés).
-// À mettre à jour AVANT l'arrivée de la pub, de la mesure d'audience ou des vidéos intégrées (voir docs/decisions.md).
+// Aujourd'hui : aucun cookie de suivi. Exceptions possibles (exemptées) : cookies de sécurité de Cloudflare, et le cookie de refus
+// des statistiques (« sosmiam-sans-statistiques », posé seulement par la page /statistiques). Les statistiques de visite sont
+// comptées par le serveur, sans cookie. À mettre à jour AVANT l'arrivée de la pub ou des vidéos intégrées (voir docs/decisions.md).
 // cf_clearance (défi anti-robots de Cloudflare) : à ajouter à la liste seulement après vérification du réglage « Challenge Passage ».
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 import { editeur, prestataires, site } from "~/contenus/legal/informations-legales";
@@ -13,10 +14,10 @@ const cloudflare = "Cloudflare";
 export const documentCookies: DocumentLegal = {
   titre: "Cookies et autres traceurs",
   description:
-    "Cookies sur SOS Miam : ni pub ni mesure d'audience, seulement d'éventuels cookies de sécurité. Ce qui changera avec la pub, et comment les gérer.",
+    "Cookies sur SOS Miam : ni pub ni pistage, des statistiques sans cookie, seulement d'éventuels cookies de sécurité. Ce qui changera avec la pub, et comment les gérer.",
   miseAJour: "8 octobre 2026",
   introduction: [
-    "Chez SOS Miam, les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. **Notre site ne dépose aucun cookie dans ton navigateur et n'utilise aucun autre traceur.** Pas de mesure d'audience, pas de pub, pas de pistage. Seule exception possible : des cookies de sécurité de notre prestataire Cloudflare, expliqués plus bas.",
+    "Chez SOS Miam, les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. **Notre site ne dépose aucun cookie de suivi dans ton navigateur.** Pas de pub, pas de pistage, et des statistiques de visite comptées par notre serveur, sans cookie. Seules exceptions possibles : des cookies de sécurité de notre prestataire Cloudflare, et un cookie qui retient ton refus d'être compté, si tu le demandes. Tout est expliqué plus bas.",
     `Cette page t'explique ce qu'est un cookie, ce qui se passe vraiment aujourd'hui quand tu visites ${site.adresse} (y compris la version du site en préparation), et comment ça marchera le jour où la pub arrivera : rien de facultatif sans ton accord.`,
   ],
   sections: [
@@ -32,19 +33,20 @@ export const documentCookies: DocumentLegal = {
     },
     {
       id: "aujourd-hui",
-      titre: "Aujourd'hui : aucun cookie ni traceur de notre part",
+      titre: "Aujourd'hui : aucun cookie de suivi",
       blocs: [
-        `**${site.nom} ne dépose lui-même aucun cookie et n'utilise aucun traceur.** C'est vrai pour la page d'attente de ${site.adresse} comme pour la version du site en préparation. Concrètement :`,
+        `**${site.nom} ne dépose aucun cookie de suivi.** Concrètement :`,
         {
           liste: [
-            "aucune mesure d'audience ni statistique de visite ;",
+            "des statistiques de visite comptées par notre serveur, **sans cookie ni script** dans ta page : on ne garde que des totaux, jamais ton adresse IP (détails dans la [politique de confidentialité](/confidentialite#statistiques)) ;",
+            "un seul cookie de notre part, et seulement si tu le demandes : **sosmiam-sans-statistiques**, posé quand tu refuses d'être compté sur la page [Tes visites et nos statistiques](/statistiques). Il retient ton refus pendant 13 mois et ne sert qu'à ça : la loi le dispense d'accord ;",
             "aucune publicité ;",
             "aucun contenu d'un autre site intégré dans nos pages : ni vidéo, ni carte, ni bouton de réseau social ;",
             "des polices de caractères hébergées avec le site, sur notre serveur chez notre hébergeur : pour afficher le site, ton navigateur n'appelle ni Google Fonts ni aucun autre service de polices ;",
             "rien n'est enregistré dans le stockage local de ton navigateur (« localStorage »). Seule exception, strictement nécessaire à la navigation : le site en préparation et ces pages légales gardent, dans le stockage de session (« sessionStorage »), la position où tu étais sur chaque page pour t'y ramener quand tu reviens en arrière. Aucun identifiant, rien ne quitte ton navigateur, et tout s'efface quand tu fermes l'onglet.",
           ],
         },
-        "C'est pour ça que tu ne vois pas de bandeau cookies : il n'y a rien à accepter ni à refuser. La seule exception possible vient de notre prestataire de sécurité, expliquée juste en dessous.",
+        "C'est pour ça que tu ne vois pas de bandeau cookies : il n'y a rien à accepter. L'autre exception possible vient de notre prestataire de sécurité, expliquée juste en dessous.",
         "Comme presque tous les sites, notre serveur note chaque visite dans un journal technique (adresse IP, page demandée, date et heure…), gardé 15 jours au plus pour la sécurité et le dépannage. Ce n'est pas un cookie : rien n'est déposé dans ton appareil. Tout est expliqué dans la [politique de confidentialité](/confidentialite).",
       ],
     },
@@ -66,14 +68,13 @@ export const documentCookies: DocumentLegal = {
     },
     {
       id: "plus-tard",
-      titre: "Quand la pub, la mesure d'audience ou les vidéos arriveront",
+      titre: "Quand la pub ou les vidéos arriveront",
       blocs: [
         "SOS Miam est gratuit, pour toi comme pour les lieux. Pour le financer, on prévoit de la **publicité, toujours signalée comme telle et sans aucun effet sur le classement des lieux**. Il n'y en a pas encore.",
         "Plus tard, certains outils pourront avoir besoin de cookies :",
         {
           liste: [
             "la publicité ;",
-            "la mesure d'audience, pour savoir quelles pages sont visitées et améliorer le site ;",
             "les vidéos intégrées depuis d'autres plateformes, par exemple celles des créateurs qui soutiennent un lieu pendant un BIG SOS.",
           ],
         },
@@ -99,7 +100,7 @@ export const documentCookies: DocumentLegal = {
           liste: [
             "un bandeau s'affichera à ta première visite, avant le dépôt de tout cookie facultatif ;",
             "**accepter et refuser seront aussi simples et aussi visibles l'un que l'autre**, en un clic chacun ;",
-            "tu pourras aussi choisir usage par usage (pub, mesure d'audience, vidéos) ;",
+            "tu pourras aussi choisir usage par usage (pub, vidéos…) ;",
             "si tu fermes le bandeau ou que tu continues ta visite sans choisir, rien de facultatif ne sera déposé ;",
             "une vidéo hébergée par une autre plateforme ne sera chargée qu'avec ton accord ;",
             "ton choix sera gardé **6 mois**, puis on te reposera la question ;",

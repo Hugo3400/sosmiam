@@ -42,6 +42,8 @@ export type StockageStats = {
   ajouterDetails: (lignes: LigneDetail[]) => Promise<void>;
   /** Efface secret et esquisse de toutes les périodes de cette source qui ne sont plus en cours */
   fermerPeriodesPassees: (source: SourceMesure, enCours: ClesPeriodes) => Promise<void>;
+  /** Efface le détail par jour (pages, provenances…) des jours antérieurs à celui-ci (« AAAA-MM-JJ ») */
+  effacerDetailsAvant: (source: SourceMesure, jour: string) => Promise<void>;
 };
 
 const TYPES: TypePeriode[] = ["jour", "semaine", "mois", "annee"];
@@ -50,6 +52,8 @@ const DUREE_VISITE = 30 * 60_000;
 const TAILLE_ESQUISSE = 4096;
 /** Valeurs différentes gardées par jour et par dimension : au-delà, « (autres) » (les adresses se forgent facilement) */
 const MAX_VALEURS = 300;
+/** Le détail par jour est effacé au bout de 25 mois (durée maximale fixée par la CNIL pour la mesure d'audience) */
+const MOIS_DETAILS = 25;
 
 type PeriodeEnMemoire = EtatPeriode & { source: SourceMesure; type: TypePeriode; cle: string; modifiee: boolean };
 
@@ -161,6 +165,8 @@ export function creerCompteurVisites(stockage: StockageStats, domaineSite = "sos
         if (periode.source === source && periode.cle !== cles[periode.type]) periodes.delete(repere);
       }
       await stockage.fermerPeriodesPassees(source, cles);
+      const [annee, mois, jour] = cles.jour.split("-").map(Number) as [number, number, number];
+      await stockage.effacerDetailsAvant(source, new Date(Date.UTC(annee, mois - 1 - MOIS_DETAILS, jour)).toISOString().slice(0, 10));
       dernieresCles.set(source, cles);
     }
     for (const famille of valeursDuJour.keys()) if (!famille.includes(`|${cles.jour}|`)) valeursDuJour.delete(famille);
