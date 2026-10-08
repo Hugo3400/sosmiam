@@ -79,6 +79,11 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
   const [chargee, setChargee] = useState(false);
   const [hauteur, setHauteur] = useState(0);
   const [lecteurEcran, setLecteurEcran] = useState(false);
+  // Région de départ (avant le premier cadrage) : ta ville, ou tout l'Hérault
+  const [regionDepart] = useState(() => {
+    const demi = estHerault(centre) ? DEMI_HERAULT : DEMI_VILLE;
+    return { ...centre, latitudeDelta: demi * 2, longitudeDelta: (demi * 2) / Math.cos((centre.latitude * Math.PI) / 180) };
+  });
   // Les gestes natifs ne sont pas prêts tant que la carte n'est ni chargée ni mesurée (Android plante en cadrant une carte de taille 0)
   const prete = chargee && hauteur > 0;
   const dernierAppuiMarqueur = useRef(0);
@@ -217,12 +222,6 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     if (selection !== null) onSelection(null);
   }
 
-  // Région de départ (avant le premier cadrage) : ta ville, ou tout l'Hérault
-  const [regionDepart] = useState(() => {
-    const demi = estHerault(centre) ? DEMI_HERAULT : DEMI_VILLE;
-    return { ...centre, latitudeDelta: demi * 2, longitudeDelta: (demi * 2) / Math.cos((centre.latitude * Math.PI) / 180) };
-  });
-
   return (
     <MapView
       ref={carte}
@@ -231,7 +230,7 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
       mapPadding={{ top: haut, right: 0, bottom: bas, left: 0 }}
       userInterfaceStyle="light"
       showsUserLocation={position !== null}
-      userLocationAnnotationTitle="Toi"
+      userLocationAnnotationTitle="Ta position"
       showsMyLocationButton={false}
       // Les autres restos du fond de carte embrouilleraient les nôtres
       showsPointsOfInterests={false}

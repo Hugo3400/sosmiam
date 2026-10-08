@@ -9,7 +9,7 @@ import { ajouterAEsquisse } from "../src/fonctions/mesure/ajouter-a-esquisse.ts"
 import { decrireNavigateur } from "../src/fonctions/mesure/decrire-navigateur.ts";
 import { estimerEsquisse } from "../src/fonctions/mesure/estimer-esquisse.ts";
 import { nettoyerProvenance } from "../src/fonctions/mesure/nettoyer-provenance.ts";
-import { creerCompteurVisites, type EtatPeriode, type LigneDetail, type StockageStats } from "../src/services/mesure.ts";
+import { creerCompteurVisites, type EtatPeriode, type FinsDeVisites, type LigneDetail, type StockageStats } from "../src/services/mesure.ts";
 
 const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 const WINDOWS_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
@@ -71,6 +71,7 @@ function creerFauxStockage() {
   const details = new Map<string, number>();
   const fermetures: string[] = [];
   const effacements: string[] = [];
+  const fins = new Map<string, { visitesFinies: number; rebonds: number; dureeVisites: number }>();
   const stockage: StockageStats = {
     lirePeriode: async (source, type, cle) => periodes.get(`${source}|${type}|${cle}`) ?? null,
     ecrirePeriode: async (source, type, cle, etat) => {
@@ -89,8 +90,14 @@ function creerFauxStockage() {
     effacerDetailsAvant: async (source, jour) => {
       effacements.push(`${source}|${jour}`);
     },
+    ajouterFinsDeVisites: async (lignes: FinsDeVisites[]) => {
+      for (const l of lignes) {
+        const avant = fins.get(`${l.type}|${l.cle}`) ?? { visitesFinies: 0, rebonds: 0, dureeVisites: 0 };
+        fins.set(`${l.type}|${l.cle}`, { visitesFinies: avant.visitesFinies + l.visitesFinies, rebonds: avant.rebonds + l.rebonds, dureeVisites: avant.dureeVisites + l.dureeVisites });
+      }
+    },
   };
-  return { stockage, periodes, details, fermetures, effacements };
+  return { stockage, periodes, details, fermetures, effacements, fins };
 }
 
 test("le compteur compte vues, visites et visiteurs, et ignore les robots", async () => {
@@ -140,4 +147,43 @@ test("le lendemain, le même visiteur compte à nouveau, et la veille est fermé
   assert.deepEqual(fermetures.filter((f) => f === "site|2026-10-09").length, 1);
   // Le détail de plus de 25 mois est effacé
   assert.ok(effacements.includes("site|2024-09-09"));
+});
+
+test("parcours des visites : arrivée, sortie, rebonds et durée, comptés à la fin de la visite", async () => {
+  const { stockage, details, fins } = creerFauxStockage();
+  const compteur = creerCompteurVisites(stockage);
+  const debut = new Date("2026-10-08T08:00:00Z");
+  const vue = (ip: string, minutes: number, adressePage: string) =>
+    compteur.enregistrerVue({ source: "site", adressePage, referent: null, signature: IPHONE, ip, pays: "FR", langues: "fr-FR,fr;q=0.9", moment: new Date(debut.getTime() + minutes * 60_000), duree: 120 });
+  await vue("203.0.113.1", 0, "/?utm_campaign=Video-Pates");
+  await vue("203.0.113.1", 4, "/faq");
+  await vue("203.0.113.1", 10, "/liens");
+  await vue("203.0.113.2", 2, "/cgu");
+  // Pendant les visites : rien n'est encore « fini », mais on les voit en direct
+  assert.equal(compteur.lireDirect("site", debut.getTime() + 11 * 60_000).visites, 1);
+  await compteur.vider(new Date(debut.getTime() + 11 * 60_000));
+  assert.equal(fins.size, 0);
+  await compteur.vider(new Date(debut.getTime() + 60 * 60_000));
+  assert.deepEqual(fins.get("jour|2026-10-08"), { visitesFinies: 2, rebonds: 1, dureeVisites: 600 });
+  assert.equal(details.get("2026-10-08|entree|/"), 1);
+  assert.equal(details.get("2026-10-08|sortie|/liens"), 1);
+  assert.equal(details.get("2026-10-08|sortie|/cgu"), 1);
+  assert.equal(details.get("2026-10-08|campagne|video-pates"), 1);
+  assert.equal(details.get("2026-10-08|langue|fr"), 2);
+  assert.equal(details.get("2026-10-08|creneau|4-10"), 2);
+  assert.equal(details.get("2026-10-08|temps|100–300 ms"), 4);
+});
+
+test("robots, pages introuvables et clics sont comptés à part, sans visiteur", async () => {
+  const { stockage, periodes, details } = creerFauxStockage();
+  const compteur = creerCompteurVisites(stockage);
+  const moment = new Date("2026-10-08T12:00:00Z");
+  await compteur.enregistrerVue({ source: "site", adressePage: "/", referent: null, signature: "Mozilla/5.0 (compatible; Googlebot/2.1)", ip: "66.249.66.1", pays: "US", moment });
+  await compteur.enregistrerVue({ source: "site", adressePage: "/ancienne-page", referent: null, signature: IPHONE, ip: "203.0.113.4", pays: "FR", statut: 404, moment });
+  await compteur.enregistrerClic("site", "tiktok", moment);
+  await compteur.vider(moment);
+  assert.equal(details.get("2026-10-08|robot|Google"), 1);
+  assert.equal(details.get("2026-10-08|introuvable|/ancienne-page"), 1);
+  assert.equal(details.get("2026-10-08|clic|tiktok"), 1);
+  assert.equal(periodes.get("site|jour|2026-10-08"), undefined);
 });
