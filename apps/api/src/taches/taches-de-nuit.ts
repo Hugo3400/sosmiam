@@ -1,7 +1,10 @@
 // Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts des
-// demandes de lieux de plus de 3 ans, puis les comptes : sessions expirées, comptes refusés ou sans visite, candidatures
-// refusées, liens de réinitialisation expirés), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une
+// demandes de lieux de plus de 3 ans, journal des mails de plus de 90 jours, puis les comptes : sessions expirées, comptes
+// refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés), l'alerte par mail 30 jours avant
+// l'effacement d'un compte inactif, puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une
 // sauvegarde tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
+import { prevenirAvantEffacement } from "../services/courriels/courriels-comptes.ts";
+import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
@@ -26,8 +29,20 @@ async function faireLeMenage() {
   try {
     const effaces = await effacerContactsAnciens();
     if (effaces > 0) await noterAction("serveur", "Contacts de demandes effacés (plus de 3 ans)", `${effaces} demande(s)`);
+    const envois = await effacerEnvoisAnciens();
+    if (envois > 0) await noterAction("serveur", "Journal des mails effacé (plus de 90 jours)", `${envois} mail(s)`);
   } catch (erreur) {
-    console.error("Ménage de nuit impossible :", erreur);
+    console.error("Ménage de nuit impossible :", resumerErreur(erreur));
+  }
+}
+
+/** Prévient par mail, une seule fois, les comptes qui seront effacés dans 30 jours faute de visite. */
+async function prevenirLesComptesInactifs() {
+  try {
+    const prevenus = await prevenirAvantEffacement();
+    if (prevenus > 0) await noterAction("serveur", "Comptes prévenus de leur effacement (dans 30 jours)", `${prevenus} mail(s)`);
+  } catch (erreur) {
+    console.error("Alerte avant effacement impossible :", resumerErreur(erreur));
   }
 }
 
@@ -54,6 +69,7 @@ async function nettoyerComptes() {
 async function nettoyerPuisSauvegarder() {
   await faireLeMenage();
   await nettoyerComptes();
+  await prevenirLesComptesInactifs();
   await sauvegarder();
 }
 

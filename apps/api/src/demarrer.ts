@@ -9,6 +9,7 @@ import {
   preparerReinitialisation, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
 } from "./services/comptes.ts";
 import { creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
+import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { marquerMessageLu, messagesDuCompte, missionsDuCompte, terminerMission } from "./services/gestion/missions-messages.ts";
@@ -22,6 +23,7 @@ import { creerCompteurVisites } from "./services/mesure.ts";
 import { stockageSessionsComptes } from "./services/stockage-sessions-comptes.ts";
 import { stockageStats } from "./services/stockage-stats.ts";
 import { planifierTachesDeNuit } from "./taches/taches-de-nuit.ts";
+import { resumerErreur } from "./fonctions/comptes/resumer-erreur.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT) || 5192;
@@ -32,6 +34,9 @@ const minuteur = setInterval(vider, 30_000);
 // Ménage et sauvegarde chiffrée de la base chaque nuit (pas pendant un essai sur un autre schéma)
 const arreterSauvegardes = process.env.SCHEMA_BASE ? () => {} : planifierTachesDeNuit();
 void vider(); // ferme tout de suite les périodes terminées pendant que l'API était arrêtée
+// Mails en attente (newsletter, bienvenue…) : un passage toutes les 20 secondes, dans la limite d'envois par heure
+const passerLaFile = () => traiterFileCourriels().catch((erreur: unknown) => console.error("File des mails :", resumerErreur(erreur)));
+const minuteurCourriels = process.env.SCHEMA_BASE ? undefined : setInterval(passerLaFile, 20_000);
 
 const serveur = creerApplication({
   enregistrerInscription,
@@ -61,6 +66,7 @@ const serveur = creerApplication({
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     clearInterval(minuteur);
+    clearInterval(minuteurCourriels);
     arreterSauvegardes();
     serveur.close(() => {
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus

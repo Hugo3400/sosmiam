@@ -27,6 +27,8 @@ const services = {
   noterAction: async (_poste: string, action: string) => void actions.push(action),
   lirePrenom: async (id: number) => (id === 7 ? "Léa" : null),
   deciderAmbassadeur: async (id: number, statut: string) => (id === 7 ? (appels.push({ decider: statut }), { prenom: "Léa", avant: "en-attente" }) : null),
+  prevenirAmbassadeurValide: async (id: number) => (appels.push({ bienvenue: id }), true),
+  envoyerLienMotDePasse: async (id: number, lien: string) => (appels.push({ lienEnvoye: id, lien }), { ok: true }),
   retirerDuProgramme: async (id: number) => (id === 7 ? (appels.push("retire"), { prenom: "Léa" }) : null),
   accepterCandidature: async (id: number) => (id === 1 ? { complet: false, numero: 3, compteId: 7 } : id === 2 ? { complet: true } : null),
   creerMission: async (saisie: { compteId: number; titre: string }) => (saisie.compteId === 7 ? { id: 1, ...saisie, compte: { prenom: "Léa" } } : null),
@@ -93,6 +95,7 @@ test("décisions : seuls actif, refuse et suspendu ; un compte inconnu est intro
   const session = await ouvrirSession();
   assert.equal((await demander("POST", "/ambassadeurs/7/decision", { session, corps: json({ statut: "actif" }) })).status, 200);
   assert.ok(actions.includes("Ambassadeur validé"));
+  assert.ok(appels.some((appel) => (appel as { bienvenue?: number }).bienvenue === 7), "le mail de bienvenue part à la validation");
   assert.equal((await demander("POST", "/ambassadeurs/7/decision", { session, corps: json({ statut: "roi" }) })).status, 400);
   assert.equal((await demander("POST", "/ambassadeurs/9/decision", { session, corps: json({ statut: "actif" }) })).status, 404);
 });
@@ -120,6 +123,11 @@ test("palier de ville, réinitialisation et candidature fondateur", async () => 
   const lien = (await (await demander("POST", "/ambassadeurs/7/reinitialiser", { session, corps: "{}" })).json()) as { lien: string };
   assert.equal(lien.lien, "https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe#jeton=jeton-secret");
   assert.equal((await demander("POST", "/ambassadeurs/9/reinitialiser", { session, corps: "{}" })).status, 404);
+  // Envoyé par mail : le lien part à son adresse et ne revient pas au logiciel
+  const envoye = (await (await demander("POST", "/ambassadeurs/7/reinitialiser", { session, corps: json({ envoyer: true }) })).json()) as Record<string, unknown>;
+  assert.equal(envoye.envoye, true);
+  assert.equal(envoye.lien, undefined);
+  assert.deepEqual(appels.at(-1), { lienEnvoye: 7, lien: "https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe#jeton=jeton-secret" });
   assert.deepEqual(await (await demander("POST", "/candidatures/1/accepter", { session, corps: "{}" })).json(), { ok: true, numero: 3 });
   assert.deepEqual(appels.at(-1), { badge: "fondateur", compteId: 7 });
   assert.equal((await demander("POST", "/candidatures/2/accepter", { session, corps: "{}" })).status, 409);

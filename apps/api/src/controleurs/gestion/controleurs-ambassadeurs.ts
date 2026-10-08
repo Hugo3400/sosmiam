@@ -56,7 +56,11 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       if (!resultat) return introuvable(reponse);
       const actions = { actif: resultat.avant === "en-attente" ? "Ambassadeur validé" : "Ambassadeur réactivé", refuse: "Ambassadeur refusé", suspendu: "Ambassadeur suspendu" };
       await noter(reponse, actions[statut], `${resultat.prenom} (compte n° ${id(requete)})`);
-      reponse.json({ ok: true });
+      // Inscription validée : le mail de bienvenue part tout seul (file d'attente ; la décision ne dépend pas de lui)
+      const bienvenue = statut === "actif" && resultat.avant === "en-attente"
+        ? await s.prevenirAmbassadeurValide(id(requete)).catch(() => false)
+        : false;
+      reponse.json({ ok: true, bienvenue });
     }),
     modifier: verifier(async (requete, reponse) => {
       const corps = corpsDe(requete);
@@ -94,9 +98,18 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       if (!comptes) return indisponible(reponse);
       if (!(await s.lirePrenom(id(requete)))) return introuvable(reponse);
       const { jeton, expireLe } = await comptes.preparerReinitialisation(id(requete));
-      await noter(reponse, "Réinitialisation de mot de passe préparée", `compte n° ${id(requete)}`);
       // Jeton après « # » : il reste dans le navigateur, et ne finit jamais dans les journaux du serveur
-      reponse.json({ ok: true, lien: `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`, expireLe });
+      const lien = `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`;
+      if (corpsDe(requete).envoyer === true) {
+        // Envoyé directement à son adresse : le lien ne passe même pas par le logiciel
+        const envoi = await s.envoyerLienMotDePasse(id(requete), lien, expireLe);
+        if (envoi.ok) {
+          await noter(reponse, "Lien de nouveau mot de passe envoyé par mail", `compte n° ${id(requete)}`);
+          return reponse.json({ ok: true, envoye: true, expireLe });
+        }
+      }
+      await noter(reponse, "Réinitialisation de mot de passe préparée", `compte n° ${id(requete)}`);
+      reponse.json({ ok: true, envoye: false, lien, expireLe });
     }),
     retirer: verifier(async (requete, reponse) => {
       const retire = await s.retirerDuProgramme(id(requete));
