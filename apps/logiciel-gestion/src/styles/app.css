@@ -6,6 +6,8 @@
   --color-jaune-clair: #FFF1A8;
   --color-creme: #FFF8E7;
   --color-encre: #1A1A1A;
+  /* Toujours foncé, même en thème sombre : menu, pastilles, texte sur le jaune vif */
+  --color-nuit: #1A1A1A;
   --color-gris: #5C5A55;
   --color-ligne: #EDE6D3;
   --color-tomate: #FF4D3D;
@@ -38,6 +40,39 @@
   /* Chiffres alignés dans les tableaux et les tuiles */
   .chiffres { font-variant-numeric: tabular-nums; }
 }
+
+/* Thème sombre (Réglages → Apparence) : les mêmes couleurs, inversées pour le soir. Le jaune et le tomate ne changent pas. */
+:root[data-theme="sombre"] {
+  color-scheme: dark;
+  --color-creme: #141414;
+  --color-encre: #F2EEE6;
+  --color-gris: #A8A296;
+  --color-ligne: #34312D;
+  --color-jaune-clair: #3D3510;
+  --color-vert: #6FD3A0;
+  --color-vert-clair: #163828;
+  --color-rouge-texte: #FF8F85;
+  --color-rose-alerte: #3D1A17;
+  --color-graphique: #FF6A55;
+  --shadow-brut-petit: 3px 3px 0 #000;
+  --shadow-brut: 4px 4px 0 #000;
+}
+/* Les surfaces blanches deviennent gris très foncé (sans toucher au texte blanc du menu) */
+:root[data-theme="sombre"] .bg-white { background-color: #1F1E1C; }
+/* Les écrans de connexion restent en clair, sur leur fond jaune */
+:root[data-theme="sombre"] .theme-clair {
+  color-scheme: light;
+  --color-creme: #FFF8E7;
+  --color-encre: #1A1A1A;
+  --color-gris: #5C5A55;
+  --color-ligne: #EDE6D3;
+  --color-jaune-clair: #FFF1A8;
+  --color-vert: #1F7A4D;
+  --color-vert-clair: #DDF3E6;
+  --color-rouge-texte: #B3261E;
+  --color-rose-alerte: #FFE1DD;
+}
+:root[data-theme="sombre"] .theme-clair .bg-white { background-color: #FFFFFF; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

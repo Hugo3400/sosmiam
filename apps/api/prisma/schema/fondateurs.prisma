@@ -1,0 +1,47 @@
+// Fondateurs par ville (décidé le 9 octobre 2026, voir docs/decisions.md) : des places par zone, et deux numéros de carte
+// donnés à l'acceptation, « Fondateur n° 3 de Lyon · n° 147 en France », qui ne font que monter et ne sont jamais
+// redonnés. Les candidatures (avec leurs numéros) sont dans comptes.prisma.
+
+/// Une zone de fondateurs : une ville (commune de 50 000 habitants ou plus, population municipale de l'Insee), ou un
+/// département (toutes ses communes de moins de 50 000 habitants ; une collectivité d'outre-mer compte comme un
+/// département). Remplie par la migration « fondateurs-par-ville », avec scripts/preparer-communes.ts (geo.api.gouv.fr
+/// et Code officiel géographique de l'Insee).
+model ZoneFondateur {
+  /// Code INSEE de la commune pour une ville (« 69123 ») ; « D » + code du département ou de la collectivité sinon
+  /// (« D69 », « D2A », « D987 »)
+  code            String  @id @db.VarChar(5)
+  /// « ville » ou « departement » (une collectivité d'outre-mer est un « departement » sans région)
+  type            String  @db.VarChar(12)
+  /// Nom affiché, homonymes rendus distincts : « Lyon », « Rhône », « Saint-Denis (La Réunion) »
+  nom             String  @db.VarChar(80)
+  /// Le nom précédé de « de », contracté comme il faut, pour la carte « Fondateur n° 3 de Lyon » : « de Lyon »,
+  /// « du Havre », « d'Angers », « de La Rochelle », « de la Creuse », « des Landes », « de l'Ain », « de La Réunion »,
+  /// « de Polynésie française » (article officiel de l'Insee, champ TNCC du Code officiel géographique). Sans le
+  /// département des homonymes : « de Saint-Denis »
+  nomAvecDe       String  @map("nom_avec_de") @db.VarChar(90)
+  /// Code du département ou de la collectivité d'outre-mer : « 69 », « 2A », « 974 », « 987 »
+  codeDepartement String  @map("code_departement") @db.VarChar(3)
+  /// Code de la région (visios des fondateurs de département, par région) ; vide pour une collectivité d'outre-mer
+  /// et pour ses villes (Nouméa)
+  codeRegion      String? @map("code_region") @db.VarChar(2)
+  /// Population municipale de la commune ; pour un département, somme de ses communes de moins de 50 000 habitants
+  population      Int
+  /// Places de fondateurs : 10, 5, 3 ou 1 pour une ville selon sa population, 1 pour un département. Un fondateur
+  /// « souvenir » (parti de sa zone) n'y compte plus
+  places          Int
+  /// Prochain numéro local à donner (« n° 3 de Lyon ») : il ne fait que monter, un numéro n'est jamais redonné
+  prochainNumero  Int     @default(1) @map("prochain_numero")
+
+  candidatures CandidatureFondateur[]
+
+  @@map("zones_fondateurs")
+}
+
+/// Compteur des numéros nationaux de fondateur (« n° 147 en France ») : une seule ligne, id 1, créée par la migration.
+model CompteurFondateurs {
+  id                     Int @id @default(1)
+  /// Prochain numéro national à donner : il ne fait que monter, un numéro n'est jamais redonné
+  prochainNumeroNational Int @default(1) @map("prochain_numero_national")
+
+  @@map("compteur_fondateurs")
+}

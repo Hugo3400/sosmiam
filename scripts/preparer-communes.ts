@@ -151,7 +151,7 @@ writeFileSync(
     `"source": ${JSON.stringify(source)},`,
     `"telechargeLe": "${aujourdhui}",`,
     `"colonnes": ${JSON.stringify({ communes: ["code", "nom", "codeDepartement", "population", "codesPostaux"], arrondissements: ["code", "nom", "codeCommune", "codesPostaux"] })},`,
-    `"departements": ${JSON.stringify(Object.fromEntries(departements.map((departement) => [departement.code, departement.nom])))},`,
+    `"departements": {${[...departements].sort((a, b) => (a.code < b.code ? -1 : 1)).map((d) => `${JSON.stringify(d.code)}:${JSON.stringify(d.nom)}`).join(",")}},`,
     `"arrondissements": [`,
     arrondissements.map((arrondissement) => JSON.stringify(arrondissement)).join(",\n"),
     "],",

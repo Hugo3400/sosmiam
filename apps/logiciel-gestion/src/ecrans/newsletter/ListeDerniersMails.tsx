@@ -9,6 +9,7 @@ const TYPES: Record<string, string> = {
   "alerte-retrait": "Alerte avant retrait du rôle",
   "alerte-effacement": "Alerte avant effacement",
   "mot-de-passe": "Lien mot de passe",
+  "verification-email": "Vérification d'adresse",
 };
 const STATUTS: Record<EnvoiRecent["statut"], { libelle: string; ton: "vert" | "jaune" | "rouge" | "neutre" }> = {
   envoye: { libelle: "Parti", ton: "vert" },

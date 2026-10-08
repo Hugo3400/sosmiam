@@ -24,3 +24,24 @@ export function ecrireMinutesVerrou(minutes: number | null): void {
     // Stockage indisponible : le choix vaut jusqu'à la fermeture du logiciel
   }
 }
+
+const CLE_THEME = "sosmiam-gestion:theme";
+/** « auto » suit le réglage clair ou sombre de Windows */
+export type ChoixTheme = "auto" | "clair" | "sombre";
+
+export function lireTheme(): ChoixTheme {
+  try {
+    const brut = localStorage.getItem(CLE_THEME);
+    return brut === "clair" || brut === "sombre" ? brut : "auto";
+  } catch {
+    return "auto";
+  }
+}
+
+export function ecrireTheme(theme: ChoixTheme): void {
+  try {
+    localStorage.setItem(CLE_THEME, theme);
+  } catch {
+    // Stockage indisponible : le choix vaut jusqu'à la fermeture du logiciel
+  }
+}

@@ -47,7 +47,7 @@ export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Pro
         aria-label={`Sélectionner ${lieu.nom}`}
         onClick={onCocher}
         className={`absolute top-1/2 left-3.5 grid size-6 -translate-y-1/2 place-items-center rounded-md border-2 transition-opacity ${
-          choisi ? "border-nuit bg-jaune" : `border-gris/50 bg-white hover:border-encre ${enSelection ? "" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`
+          choisi ? "border-nuit bg-jaune text-nuit" : `border-gris/50 bg-white hover:border-encre ${enSelection ? "" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`
         }`}
       >
         {choisi && <Check className="size-4" strokeWidth={3} aria-hidden />}

@@ -10,7 +10,7 @@ export function BandeauMiseAJour({ miseAJour }: { miseAJour: MiseAJour }) {
   const [ferme, setFerme] = useState(false);
   if (ferme) return null;
   return (
-    <div role="status" className="flex flex-wrap items-center gap-3 border-b-2 border-nuit bg-jaune px-8 py-2.5 text-sm">
+    <div role="status" className="flex flex-wrap items-center gap-3 border-b-2 border-nuit bg-jaune text-nuit px-8 py-2.5 text-sm">
       <Gift className="size-4 shrink-0" aria-hidden />
       <p className="min-w-0 flex-1">
         <strong>La version {miseAJour.version} du logiciel est prête.</strong>

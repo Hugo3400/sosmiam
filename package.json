@@ -21,6 +21,7 @@
     "api:dev": "npm run dev --prefix apps/api",
     "api:verifier": "npm run typecheck --prefix apps/api && npm test --prefix apps/api && npm run verifier:lignes",
     "api:migrer": "npm run base:migrer --prefix apps/api",
+    "api:communes": "node scripts/preparer-communes.ts",
     "gestion:dev": "npm run dev --prefix apps/logiciel-gestion",
     "gestion:verifier": "npm run typecheck --prefix apps/logiciel-gestion && npm test --prefix apps/logiciel-gestion && npm run verifier:lignes",
     "gestion:installateur": "bash apps/logiciel-gestion/scripts/construire-installateur.sh",

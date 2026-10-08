@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /** Cadre des écrans d'avant la connexion : la bouée, un titre, et le contenu dans une carte. */
 export function CadreConnexion({ titre, sousTitre, children }: { titre: string; sousTitre?: ReactNode; children: ReactNode }) {
   return (
-    <main className="grid min-h-full place-items-center bg-jaune p-6">
+    <main className="theme-clair grid min-h-full place-items-center bg-jaune p-6 text-encre">
       <div className="w-full max-w-[520px]">
         <div className="mb-5 flex items-center gap-3">
           <img src="/favicon.svg" alt="" className="size-12" />

@@ -120,3 +120,26 @@ export async function envoyerLienMotDePasse(compteId: number, lien: string, expi
     }),
   });
 }
+
+/**
+ * Envoie le lien pour confirmer l'adresse e-mail d'un compte (à l'inscription), tout de suite et sans passer par la
+ * file : le lien n'est gardé nulle part. Même ton que les autres mails des comptes.
+ */
+export async function envoyerLienVerificationEmail(compteId: number, lien: string, expireLe: Date) {
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  if (!compte) return { ok: false as const, erreur: "introuvable" };
+  const echeance = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(expireLe);
+  return envoyerToutDeSuite("verification-email", compte.email, {
+    objet: "Confirme ton adresse e-mail SOS Miam 🛟",
+    ...habillerCourriel({
+      titre: `Bienvenue, ${compte.prenom} !`,
+      paragraphes: [
+        "Encore un clic : confirme que cette adresse est bien la tienne, et ton inscription part à l'équipe, qui la regarde à la main.",
+        `Le lien marche jusqu'au ${echeance}, une seule fois.`,
+        "Tu n'as rien demandé ? Ignore ce mail : sans confirmation, rien ne se passe.",
+      ],
+      bouton: { texte: "Confirmer mon adresse", adresse: lien },
+      pied: "Tu reçois ce mail parce que quelqu'un (toi, on espère !) vient de créer un compte SOS Miam avec cette adresse.",
+    }),
+  });
+}
