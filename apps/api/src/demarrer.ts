@@ -4,9 +4,14 @@
 import { creerApplication } from "./application.ts";
 import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/annonces-discord.ts";
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
-import { ajouterPoints, donnerBadge, nommerAmbassadeurVille, preparerReinitialisation, retirerAmbassadeurVille } from "./services/comptes.ts";
+import {
+  ajouterPoints, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte, nommerAmbassadeurVille,
+  preparerReinitialisation, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
+} from "./services/comptes.ts";
+import { creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
+import { marquerMessageLu, messagesDuCompte, missionsDuCompte, terminerMission } from "./services/gestion/missions-messages.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
@@ -14,6 +19,7 @@ import { enregistrerInscription } from "./services/inscriptions.ts";
 import { listerLieuxPublics } from "./services/lieux-publics.ts";
 import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
+import { stockageSessionsComptes } from "./services/stockage-sessions-comptes.ts";
 import { stockageStats } from "./services/stockage-stats.ts";
 import { planifierTachesDeNuit } from "./taches/taches-de-nuit.ts";
 
@@ -38,6 +44,15 @@ const serveur = creerApplication({
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source),
     comptes: { ajouterPoints, donnerBadge, preparerReinitialisation, nommerAmbassadeurVille, retirerAmbassadeurVille } },
+  // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
+  comptes: {
+    services: {
+      creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
+      reinitialiserMotDePasse, lireCandidature, creerCandidature, listerPropositions, creerProposition,
+    },
+    sessions: stockageSessionsComptes,
+  },
+  espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

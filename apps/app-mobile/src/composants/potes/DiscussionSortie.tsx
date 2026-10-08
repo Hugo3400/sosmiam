@@ -48,7 +48,9 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
-  const dernierVu = useRef(lignes[lignes.length - 1]?.message.id);
+  // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
+  const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
+  const premierDefilement = useRef(true);
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
@@ -73,8 +75,8 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
   // Un pote répond : le lecteur d'écran le lit, sans qu'il faille aller le chercher
   const derniere = lignes[lignes.length - 1];
   useEffect(() => {
-    if (!derniere || derniere.message.id === dernierVu.current) return;
-    dernierVu.current = derniere.message.id;
+    if (!derniere || derniere.message.date <= dernierVu.current) return;
+    dernierVu.current = derniere.message.date;
     if (!derniere.deMoi) AccessibilityInfo.announceForAccessibility(`${derniere.auteur?.prenom ?? "Quelqu'un"} : ${derniere.message.texte}`);
   }, [derniere]);
 
@@ -110,12 +112,17 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
         onScroll={suivreDefilement}
         scrollEventThrottle={100}
         onContentSizeChange={() => {
-          if (collerEnBas.current) liste.current?.scrollToEnd({ animated: !animationsReduites });
+          // À l'ouverture, on arrive directement sur les derniers messages ; ensuite, on suit les nouveaux en douceur
+          if (collerEnBas.current) liste.current?.scrollToEnd({ animated: !premierDefilement.current && !animationsReduites });
+          premierDefilement.current = false;
         }}
         ListHeaderComponent={
           <View className="gap-2 pb-2">
             <BandeauDemoPotes />
-            <Text className="text-center font-texte text-[13px] leading-[18px] text-gris">
+            <Text
+              accessibilityLabel="Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler."
+              className="text-center font-texte text-[13px] leading-[18px] text-gris"
+            >
               {lierPonctuation("🔒 Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.")}
             </Text>
           </View>
