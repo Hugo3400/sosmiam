@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 
 import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
@@ -36,6 +37,8 @@ const LARGEUR_LIBELLES_LONGS = 450;
 // Au-delà, le texte des onglets dépasserait la bande de 44 pt (les onglets, eux, défilent s'ils sont trop larges)
 const AGRANDISSEMENT_MAX = 1.4;
 
+type Mesure = { x: number; largeur: number };
+
 /**
  * En-tête posé sur le fil : rescousses restantes, les trois fils (« Abonnements », « Pour toi », « SOS ce soir »), qui défilent
  * de côté si le texte est très grand, et la cloche des notifications (qui lit elle-même ce qu'elle compte).
@@ -44,10 +47,22 @@ const AGRANDISSEMENT_MAX = 1.4;
 export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerCompte }: Props) {
   const { width: largeur, fontScale } = useWindowDimensions();
   const court = largeur / fontScale < LARGEUR_LIBELLES_LONGS;
+  // Onglets trop larges pour l'écran (iPhone SE, très grand texte) : l'onglet choisi revient au milieu de la bande
+  const defilement = useRef<ScrollView>(null);
+  const mesures = useRef<Partial<Record<OngletFil, Mesure>>>({});
+  const bande = useRef({ visible: 0, contenu: 0 });
+  useEffect(() => {
+    const mesure = mesures.current[onglet];
+    const { visible, contenu } = bande.current;
+    if (!mesure || contenu <= visible) return;
+    const x = Math.min(Math.max(0, mesure.x + mesure.largeur / 2 - visible / 2), contenu - visible);
+    defilement.current?.scrollTo({ x, animated: true });
+  }, [onglet]);
   return (
     // La bande des onglets arrête le doigt (comme toujours) ; sous elle, seule la pastille : à côté, on touche toujours la vidéo
     <View pointerEvents="box-none" className="absolute inset-x-0 top-0">
-      <View style={{ paddingTop: haut + 6 }} className="flex-row items-center px-4 pb-2">
+      {/* Côtés au plus juste (bouée, cloche de 44 pt) : les trois onglets tiennent sans défiler dès 375 pt de large */}
+      <View style={{ paddingTop: haut + 6 }} className="flex-row items-center px-3 pb-2">
         <View className="w-14">
           {invite ? null : (
             <View
@@ -61,9 +76,16 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
           )}
         </View>
         <ScrollView
+          ref={defilement}
           horizontal
           accessibilityRole="tablist"
           showsHorizontalScrollIndicator={false}
+          onLayout={(e) => {
+            bande.current.visible = e.nativeEvent.layout.width;
+          }}
+          onContentSizeChange={(largeurContenu) => {
+            bande.current.contenu = largeurContenu;
+          }}
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 16 }}
         >
@@ -78,11 +100,14 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
                 accessibilityState={{ selected: actif }}
                 hitSlop={8}
                 onPress={() => onChoisir(cle)}
+                onLayout={(e) => {
+                  mesures.current[cle] = { x: e.nativeEvent.layout.x, largeur: e.nativeEvent.layout.width };
+                }}
                 className={`min-h-11 justify-center border-b-[3px] ${actif ? "border-jaune" : "border-transparent"}`}
               >
                 <Text
                   maxFontSizeMultiplier={AGRANDISSEMENT_MAX}
-                  className={`font-texte-gras text-base ${actif ? "text-white" : "text-white/65"}`}
+                  className={`font-texte-gras text-[15px] ${actif ? "text-white" : "text-white/65"}`}
                   style={{ textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 4 }}
                 >
                   {court && libelleCourt ? libelleCourt : libelle}
@@ -91,7 +116,7 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
             );
           })}
         </ScrollView>
-        <View className="w-14 items-end">
+        <View className="w-11 items-end">
           <BoutonNotifications variante="sombre" />
         </View>
       </View>

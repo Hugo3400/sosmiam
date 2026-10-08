@@ -9,7 +9,8 @@
       "@sos-miam/commun/*": [
         "../../packages/commun/src/*"
       ]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": [
     "**/*.ts",
