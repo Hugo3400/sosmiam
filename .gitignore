@@ -1,0 +1,23 @@
+# Dépendances et constructions
+node_modules/
+build/
+# Versions du site mises en ligne (scripts/deployer-site.sh) et lien « build » vers la version en cours
+apps/site-web/versions/
+apps/site-web/build
+dist/
+.react-router/
+.expo/
+*.tsbuildinfo
+apps/logiciel-gestion/src-tauri/target/
+
+# Secrets et environnements
+.env
+.env.*
+!.env.exemple
+
+# Fichiers envoyés par les utilisateurs (contenu, pas du code)
+apps/api/uploads/
+
+# Journaux et système
+*.log
+.DS_Store

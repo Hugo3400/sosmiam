@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/* Thème SOS Miam : mêmes valeurs que le prototype (et, plus tard, que packages/commun/src/theme) */
+@theme {
+  --color-jaune: #FFD60A;
+  --color-jaune-clair: #FFF1A8;
+  --color-creme: #FFF8E7;
+  --color-encre: #1A1A1A;
+  --color-gris: #5C5A55;
+  --color-ligne: #EDE6D3;
+  --color-tomate: #FF4D3D;
+  --color-rouge-sos: #C62828;
+  --color-rouge-texte: #B3261E;
+  --color-rose-alerte: #FFE1DD;
+
+  --font-titre: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-texte: "Inter Variable", system-ui, sans-serif;
+  --font-sans: var(--font-texte);
+
+  --shadow-brut-petit: 3px 3px 0 var(--color-encre);
+  --shadow-brut: 4px 4px 0 var(--color-encre);
+  --shadow-brut-grand: 6px 6px 0 var(--color-encre);
+  --shadow-brut-jaune: 6px 6px 0 var(--color-jaune);
+  --shadow-douce: 0 10px 30px rgb(26 26 26 / 0.08);
+  --shadow-telephone: 0 30px 60px rgb(26 26 26 / 0.25);
+
+  --radius-carte: 20px;
+
+  /* Une seule fois : un mouvement qui dure plus de 5 s devrait pouvoir être mis en pause (WCAG 2.2.2) */
+  --animate-flotte: flotte 5s ease-in-out 1;
+  @keyframes flotte {
+    50% { transform: translateY(-12px); }
+  }
+}
+
+@layer base {
+  /* Ni les sections visées ni l'élément qui a le focus ne passent sous l'en-tête collant (72 px).
+     Pas de scroll-behavior global : seuls les liens vers une section défilent en douceur (defilerVersElement). */
+  html { scroll-padding-top: 88px; }
+  body {
+    @apply bg-white font-texte text-encre antialiased;
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    @apply font-titre;
+    line-height: 1.1;
+  }
+  /* Focus donné par le défilement vers une section (defilerVersElement) : pas de contour */
+  [tabindex="-1"]:focus { outline: none; }
+  /* Texte indicatif des champs lisible : gris sur blanc 6,9:1 (Tailwind met l'encre à 50 %, soit 3,4:1) */
+  ::placeholder { color: var(--color-gris); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
