@@ -75,7 +75,7 @@ function ecrireALire(): string {
   const puces = (lignes: string[]) => lignes.map((ligne) => `- ${ligne}`).join("\n");
   return `${[
     "Kit média SOS Miam : à lire avant de poster",
-    "Ce kit est réservé aux ambassadeurs SOS Miam, pour parler de SOS Miam : un usage personnel et non commercial,\nqui prend fin si ton compte est supprimé, suspendu ou refusé (conditions d'utilisation : https://sosmiam.fr/cgu#ambassadeurs).",
+    "Ce kit est réservé aux ambassadeurs SOS Miam, pour parler de SOS Miam : un usage personnel et non commercial, qui prend fin si ton compte est supprimé, suspendu ou refusé (conditions d'utilisation : https://sosmiam.fr/cgu#ambassadeurs).",
     `Comment ça marche ?\n${etapesKitMedia.map((etape, i) => `${i + 1}. ${etape}`).join("\n")}`,
     `Tu peux :\n${puces(reglesKitMedia.peux)}`,
     `Tu ne peux pas :\n${puces(reglesKitMedia.peuxPas)}`,

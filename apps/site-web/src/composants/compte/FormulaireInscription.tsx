@@ -24,8 +24,9 @@ export function FormulaireInscription() {
           autoComplete="given-name"
           maximum={40}
           aide={lierPonctuation("Il pourra s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé.")}
+          className="sm:col-span-2"
         />
-        <ChampTexte nom="email" libelle="Ton e-mail" type="email" autoComplete="email" inputMode="email" maximum={254} exemple="ton@email.fr" />
+        <ChampTexte nom="email" libelle="Ton e-mail" type="email" autoComplete="email" inputMode="email" maximum={254} exemple="ton@email.fr" className="sm:col-span-2" />
         <ChampTexte
           nom="motDePasse"
           libelle="Ton mot de passe"

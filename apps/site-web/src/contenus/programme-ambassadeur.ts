@@ -87,7 +87,7 @@ export const questionsProgramme: QuestionFaq[] = [
     id: "question-paye",
     question: "C'est payé ?",
     reponse: [
-      "Non. C'est une aventure de passionnés : pas de salaire, ni de SOS Miam, ni des lieux. Un ambassadeur n'est jamais payé par un lieu qu'il met en avant, et si un lieu t'offre quelque chose, tu l'écris clairement : « Collaboration commerciale ».",
+      "Non. C'est une aventure de passionnés : un ambassadeur n'est payé ni par SOS Miam, ni par les lieux qu'il met en avant. Et si un lieu t'offre quelque chose, tu l'écris clairement : « Collaboration commerciale ».",
     ],
   },
   {

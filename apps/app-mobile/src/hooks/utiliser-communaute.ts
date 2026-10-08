@@ -85,6 +85,8 @@ export type EtatCommunaute = {
 
   /** Signale un commentaire, un message ou un profil : gardé sur le téléphone en attendant l'API, et le contenu disparaît pour toi */
   signaler: (signalement: Omit<SignalementContenu, "date">) => void;
+  /** Vrai si tu as déjà signalé ce commentaire, ce message ou ce profil (il est alors caché pour toi) */
+  estSignale: (cibleId: string) => boolean;
   /** Efface toute la communauté du téléphone (la démo repartira de zéro) */
   effacer: () => Promise<void>;
 };

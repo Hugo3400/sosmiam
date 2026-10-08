@@ -44,7 +44,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
     if (charge.current) enregistrerConversationsLocales(conversations).catch(() => {});
   }, [conversations]);
 
-  const { moi, trouverPote, moyenAjout } = communaute;
+  const { moi, trouverPote, moyenAjout, estSignale } = communaute;
   const bloques = useMemo(() => new Set(communaute.bloques.map((p) => p.id)), [communaute.bloques]);
   const participantsDe = useCallback((c: Conversation) => c.participants.map((id) => trouverPote(id)).filter((p): p is Pote => !!p), [trouverPote]);
   const peutDiscuterAvec = useCallback(
@@ -60,7 +60,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   }, []);
 
   // Démo : un pote de la conversation répond ou réagit un peu plus tard
-  const fairerReagir = useCallback(
+  const faireReagir = useCallback(
     (conversation: Conversation, messageId: string) => {
       const autres = conversation.participants.filter((id) => id !== ID_MOI && !bloques.has(id) && trouverPote(id));
       if (autres.length === 0) return;
@@ -84,11 +84,11 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   );
 
   const valeur = useMemo((): EtatConversations => {
-    // Visibles : celles où tu es, sans les conversations privées avec quelqu'un de bloqué ni les messages des personnes bloquées
+    // Visibles : celles où tu es, sans les conversations privées avec quelqu'un de bloqué, ni les messages bloqués ou signalés
     const visibles = conversations
       .filter((c) => c.participants.includes(ID_MOI))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
-      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !(m.lieuId !== undefined && moi.mineur && lieuxBars.has(m.lieuId))) }))
+      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id) && !(m.lieuId !== undefined && moi.mineur && lieuxBars.has(m.lieuId))) }))
       .sort((a, b) => dernierMessage(b).localeCompare(dernierMessage(a)));
     const nonLusDe = (id: string) => {
       const c = visibles.find((x) => x.id === id);
@@ -103,7 +103,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       if (!c) return "interdit";
       const complet: MessageChat = { id: creerIdentifiant("chat"), auteur: ID_MOI, date: new Date().toISOString(), reactions: {}, ...message };
       ajouterMessage(id, complet);
-      fairerReagir(c, complet.id);
+      faireReagir(c, complet.id);
       return "ok";
     };
     const envoyerFichier = async (id: string, uri: string, extension: string, autre: Partial<MessageChat> & { type: "photo" | "vocal" }) => {
@@ -179,7 +179,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsExemples(new Date()));
       },
     };
-  }, [conversations, bloques, moi.mineur, pret, peutDiscuterAvec, participantsDe, ajouterMessage, fairerReagir]);
+  }, [conversations, bloques, estSignale, moi.mineur, pret, peutDiscuterAvec, participantsDe, ajouterMessage, faireReagir]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }

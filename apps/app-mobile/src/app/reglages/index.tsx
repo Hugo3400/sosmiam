@@ -15,6 +15,7 @@ import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envi
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
@@ -37,6 +38,7 @@ export default function Reglages() {
   const { profil, avatar, effacer } = utiliserProfil();
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
+  const conversations = utiliserConversations();
   const [effacementEnCours, setEffacementEnCours] = useState(false);
   if (!profil) return null;
 
@@ -62,6 +64,7 @@ export default function Reglages() {
     try {
       await activite.effacer();
       await communaute.effacer();
+      await conversations.effacer();
       await effacerSignalementsLocaux();
       await effacerReglagesNotifications();
       // En dernier : sans profil, l'app repart toute seule à la bienvenue

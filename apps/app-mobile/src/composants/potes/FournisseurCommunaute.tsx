@@ -175,6 +175,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return "ajoute";
       },
       moyenAjout: (id) => etat.moyens[id] ?? (bandeExemple.includes(id) ? "exemple" : undefined),
+      estSignale: (cibleId) => signales.has(cibleId),
       retirerPote: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id) })),
       bloques,
       bloquer: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id), bloques: e.bloques.includes(id) ? e.bloques : [...e.bloques, id] })),
