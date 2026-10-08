@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SignalementPublication, type ChoixSignalement } from "~/composants/signalement/SignalementPublication";
+import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
@@ -26,12 +26,41 @@ type Vue = "options" | "signalement";
 export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir, onSignaler, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
+  const defilement = useRef<ScrollView>(null);
+  const titreOptions = useRef<Text>(null);
   const [vue, setVue] = useState<Vue>("options");
+  const [etape, setEtape] = useState<EtapeSignalement>("raison");
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
     setOuvert(visible);
-    if (visible) setVue("options");
+    if (visible) {
+      setVue("options");
+      setEtape("raison");
+    }
+  }
+
+  // Chaque vue ou étape commence en haut de la feuille
+  useEffect(() => {
+    defilement.current?.scrollTo({ y: 0, animated: false });
+  }, [vue, etape]);
+
+  function ouvrirSignalement() {
+    setEtape("raison");
+    setVue("signalement");
+  }
+
+  function revenirAuxOptions() {
+    setVue("options");
+    // Le lecteur d'écran reprend sur le titre du menu, l'élément qu'il lisait vient de disparaître
+    setTimeout(() => titreOptions.current && AccessibilityInfo.sendAccessibilityEvent(titreOptions.current, "focus"), 150);
+  }
+
+  // Retour Android et geste d'échappement de VoiceOver : une étape en arrière, sans perdre ce qui est écrit
+  function reculer() {
+    if (vue === "signalement" && etape === "details") setEtape("raison");
+    else if (vue === "signalement" && etape === "raison") revenirAuxOptions();
+    else onFermer();
   }
 
   const epuisees = !sauve && restantes <= 0;
@@ -49,32 +78,43 @@ export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir,
   ];
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onFermer}>
-      {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement */}
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <Pressable accessibilityLabel="Fermer le menu" onPress={onFermer} className="flex-1 bg-black/40" />
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={reculer}>
+      {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement (« padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre) */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
+        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <View
           accessibilityViewIsModal
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88 }}
+          onAccessibilityEscape={reculer}
+          // flexShrink : clavier ouvert, la feuille rétrécit et son contenu défile jusqu'au bouton d'envoi
+          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
           className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
         >
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+          <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
             {vue === "signalement" ? (
-              <SignalementPublication nomLieu={nomLieu} onEnvoyer={onSignaler} onRetourMenu={() => setVue("options")} onFermer={onFermer} />
+              <SignalementPublication
+                nomLieu={nomLieu}
+                etape={etape}
+                onChangerEtape={setEtape}
+                onEnvoyer={onSignaler}
+                onRetourMenu={revenirAuxOptions}
+                onFermer={onFermer}
+              />
             ) : (
               <>
-                <Text accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">{nomLieu}</Text>
+                <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">{nomLieu}</Text>
                 {options.map((o) => (
                   <Pressable
                     key={o.choix}
                     accessibilityRole="button"
+                    accessibilityLabel={o.titre}
                     accessibilityState={{ disabled: o.desactive }}
                     accessibilityHint={o.detail}
                     disabled={o.desactive}
                     onPress={() => {
                       vibrerLegerement();
-                      if (o.choix === "signaler") setVue("signalement");
+                      if (o.choix === "signaler") ouvrirSignalement();
                       else onChoisir(o.choix);
                     }}
                     className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${o.desactive ? "opacity-40" : ""}`}

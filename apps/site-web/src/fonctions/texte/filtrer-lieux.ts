@@ -1,24 +1,20 @@
-import type { GroupeLieux } from "~/contenus/villes";
-import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
-
-/** « Saint-Étienne » → « saint etienne » : sans accents, sans majuscules, tirets et apostrophes changés en espaces. */
-function simplifier(texte: string): string {
-  return normaliserRecherche(texte).replace(/[\s'’-]+/g, " ").trim();
-}
+import type { GroupeLieux, Lieu } from "~/contenus/villes";
+import { simplifierRecherche } from "~/fonctions/texte/simplifier-recherche";
 
 /**
  * Garde les suggestions qui commencent comme ce qui est tapé, ou dont un mot commence ainsi :
- * « etienne » trouve Saint-Étienne, « ile de » trouve Île-de-France. Taper une région montre toute la région.
- * Rien de tapé : toutes les suggestions.
+ * « etienne » trouve Saint-Étienne, « ile de » trouve Île-de-France, « paca » trouve Provence-Alpes-Côte d'Azur (noms courants).
+ * Taper une région montre toute la région. Rien de tapé : toutes les suggestions.
  */
 export function filtrerLieux(saisie: string, groupes: GroupeLieux[]): GroupeLieux[] {
-  const cherche = simplifier(saisie);
+  const cherche = simplifierRecherche(saisie);
   if (!cherche) return groupes;
-  const correspond = (nom: string) => {
-    const texte = simplifier(nom);
-    return texte.startsWith(cherche) || texte.split(" ").some((mot) => mot.startsWith(cherche));
+  const correspond = (texte: string) => {
+    const simple = simplifierRecherche(texte);
+    return simple.startsWith(cherche) || simple.split(" ").some((mot) => mot.startsWith(cherche));
   };
+  const lieuCorrespond = (lieu: Lieu) => [lieu.nom, ...lieu.alias].some(correspond);
   return groupes
-    .map((groupe) => (correspond(groupe.region) ? groupe : { ...groupe, lieux: groupe.lieux.filter((lieu) => correspond(lieu.nom)) }))
+    .map((groupe) => (lieuCorrespond(groupe.lieux[0]) ? groupe : { ...groupe, lieux: groupe.lieux.filter(lieuCorrespond) }))
     .filter((groupe) => groupe.lieux.length > 0);
 }

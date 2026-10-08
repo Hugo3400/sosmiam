@@ -37,9 +37,10 @@
   /* Ni les sections visées ni l'élément qui a le focus ne passent sous l'en-tête collant (72 px).
      Pas de scroll-behavior global : seuls les liens vers une section défilent en douceur (defilerVersElement). */
   html { scroll-padding-top: 88px; }
-  /* Site en thème clair : les éléments du navigateur (listes, barres de défilement, cases) restent clairs
-     même quand l'ordinateur est en mode sombre (sinon, Chrome dessine par exemple des listes noires) */
-  :root { color-scheme: light; }
+  /* Site en thème clair uniquement : empêche les navigateurs qui le font (Samsung Internet, assombrissement automatique de Chrome)
+     de foncer la page de force. Ne change rien aux bulles dessinées par le navigateur lui-même (suggestions du remplissage
+     automatique, ancienne liste <datalist>), qui suivent le thème de l'ordinateur : d'où la liste maison du champ ville. */
+  :root { color-scheme: only light; }
   body {
     @apply bg-white font-texte text-encre antialiased;
     line-height: 1.6;

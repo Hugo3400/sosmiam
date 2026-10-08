@@ -89,7 +89,7 @@ export function Inscription() {
               <span className="text-left">Je veux tester l'app avant sa sortie (bêta) 🧪</span>
             </label>
             <p id="inscription-beta-aide" className="max-w-md text-sm">
-              Sur Android, la bêta passe par le Play Store : mets l'adresse de ton compte Google (souvent ton Gmail).
+              Sur Android, la bêta passe par le Play Store : mets l'adresse de ton compte Google (souvent ton Gmail). Sur iPhone, celle de ton compte Apple, c'est plus simple.
             </p>
             <label className="flex cursor-pointer items-center gap-2.5 font-medium">
               <input type="checkbox" name="ambassadeur" value="oui" className="h-5 w-5 shrink-0 accent-encre" />

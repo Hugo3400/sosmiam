@@ -122,7 +122,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp }: Pr
         aria-label="Villes et régions proposées"
         hidden={!visible}
         onMouseDown={(evenement) => evenement.preventDefault()}
-        className="absolute top-full left-0 z-30 mt-2 max-h-[min(20rem,50vh)] w-full min-w-[18rem] overflow-y-auto overscroll-contain rounded-2xl border-2 border-encre bg-white py-1.5 text-left shadow-brut"
+        className="absolute top-full left-0 z-30 mt-2 max-h-[min(20rem,50vh)] w-full overflow-y-auto sm:min-w-[18rem] overscroll-contain rounded-2xl border-2 border-encre bg-white py-1.5 text-left shadow-brut"
       >
         {visible && groupes.map((groupe, position) => (
           <div key={groupe.region} role="group" aria-labelledby={`${idListe}-groupe-${position}`}>
