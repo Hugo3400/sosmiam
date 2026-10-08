@@ -11,7 +11,7 @@ const MESSAGES: Record<string, string> = {
   "champ-invalide": "Un champ ne va pas.",
   introuvable: "Introuvable : quelqu'un (toi ?) l'a peut-être supprimé.",
   "format-refuse": "Ce fichier n'est pas accepté : vidéo MP4, MOV ou WebM, image JPEG, PNG ou WebP.",
-  "fichier-trop-lourd": "Fichier trop lourd : 150 Mo au plus pour une vidéo, 15 Mo pour une image.",
+  "fichier-trop-lourd": "Fichier trop lourd : 95 Mo au plus pour une vidéo, 15 Mo pour une image.",
   "melange-video-photos": "Une publication, c'est soit une vidéo (et son affiche), soit des photos : pas les deux.",
   "trop-de-photos": "10 photos au plus par publication.",
   "processus-refuse": "Ce programme ne peut pas être relancé d'ici.",

@@ -13,15 +13,15 @@ type Reglages = {
  */
 export function limiterRequetes({ fenetre, maximum }: Reglages) {
   const compteurs = new Map<string, { nombre: number; finFenetre: number }>();
-  let dernierMenage = 0;
+  // Ménage chaque minute, même sans nouvelle requête : une adresse IP ne reste pas en mémoire plus d'une minute
+  // après la fin de sa fenêtre (la politique de confidentialité le promet). unref : ne retient pas l'arrêt du serveur.
+  setInterval(() => {
+    const maintenant = Date.now();
+    for (const [cle, compteur] of compteurs) if (compteur.finFenetre <= maintenant) compteurs.delete(cle);
+  }, 60_000).unref();
 
   return (requete: Request, reponse: Response, suite: NextFunction) => {
     const maintenant = Date.now();
-    // Ménage chaque minute : une adresse IP ne reste pas en mémoire après sa fenêtre (la politique de confidentialité le promet)
-    if (maintenant - dernierMenage > 60_000) {
-      for (const [cle, compteur] of compteurs) if (compteur.finFenetre <= maintenant) compteurs.delete(cle);
-      dernierMenage = maintenant;
-    }
     const cle = requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu";
     const compteur = compteurs.get(cle);
     if (!compteur || compteur.finFenetre <= maintenant) {

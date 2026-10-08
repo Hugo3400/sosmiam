@@ -143,3 +143,17 @@ test("la fenêtre du logiciel peut appeler l'API (CORS), pas un autre site", asy
   const autre = await fetch(`${adresse}/api-gestion/tableau-de-bord`, { method: "OPTIONS", headers: { Origin: "https://exemple.fr" } });
   assert.equal(autre.headers.get("access-control-allow-origin"), null);
 });
+
+test("un inconnu qui insiste ne bloque pas le poste de Hugo", async () => {
+  for (let i = 0; i < 40; i++) {
+    await fetch(`${adresse}/api-gestion/tableau-de-bord`, { headers: { "X-Gestion-Poste": "inconnu", "X-Gestion-Horodatage": String(horloge) } });
+  }
+  const session = await ouvrirSession();
+  assert.equal((await demander("GET", "/tableau-de-bord", { session })).status, 200);
+});
+
+test("rien de la gestion ne reste en cache", async () => {
+  const session = await ouvrirSession();
+  const reponse = await demander("GET", "/tableau-de-bord", { session });
+  assert.equal(reponse.headers.get("cache-control"), "private, no-store");
+});

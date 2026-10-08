@@ -45,9 +45,11 @@ export function creerProtectionGestion(lireAcces: () => AccesGestion | null, hor
     if (!acces) return refuser(reponse, "gestion-fermee", 503);
     const poste = acces.postes.find((p) => p.id === requete.get("x-gestion-poste"));
     const horodatage = Number(requete.get("x-gestion-horodatage"));
-    if (!poste || !Number.isFinite(horodatage) || Math.abs(horloge() - horodatage) > ECART_HORLOGE) {
+    // Poste inconnu : refusé sans compter d'échec, sinon n'importe qui pourrait bloquer Hugo en tapant l'adresse
+    if (!poste) return refuser(reponse);
+    if (!Number.isFinite(horodatage) || Math.abs(horloge() - horodatage) > ECART_HORLOGE) {
       noterEchec(echecs);
-      return refuser(reponse, poste ? "horloge-decalee" : "non-autorise");
+      return refuser(reponse, "horloge-decalee");
     }
     reponse.locals.gestion = { poste, session: null } satisfies ContexteGestion;
     suite();

@@ -63,7 +63,7 @@ export function GestionMedias({ idPublication, medias, onChange }: { idPublicati
         <Bouton petit icone={ImagePlus} desactive={aUneVideo || !!envoi.enCours} onClick={() => choisir("photo")}>Ajouter des photos</Bouton>
       </div>
       <p className="text-[13px] text-gris">
-        Une vidéo verticale (MP4 de préférence, 150 Mo au plus) avec son affiche, ou jusqu'à 10 photos verticales. Pas les deux.
+        Une vidéo verticale (MP4 de préférence, 95 Mo au plus) avec son affiche, ou jusqu'à 10 photos verticales. Pas les deux.
       </p>
       {envoi.enCours && <p role="status" className="text-sm font-semibold">{envoi.enCours}</p>}
       {envoi.erreur && <p role="alert" className="text-sm font-semibold text-rouge-texte">{envoi.erreur}</p>}

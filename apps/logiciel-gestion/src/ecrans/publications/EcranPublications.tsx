@@ -37,7 +37,7 @@ export function EcranPublications() {
     <>
       <EnTeteEcran
         titre="Publications"
-        sousTitre="Les vidéos et photos du fil « Pour toi ». Une collaboration payée ou offerte affiche toujours « Collaboration commerciale »."
+        sousTitre="Les vidéos et photos du fil « Pour toi ». Une collaboration payée ou offerte affiche toujours « Collaboration commerciale »."
         actions={<Bouton variante="principal" icone={Plus} onClick={() => setOuverte("nouvelle")}>Nouvelle publication</Bouton>}
       />
       <div className="mb-5"><Onglets libelle="Statut" valeur={filtre} onChange={setFiltre} options={FILTRES} /></div>

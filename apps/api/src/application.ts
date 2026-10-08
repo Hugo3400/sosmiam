@@ -5,10 +5,12 @@ import { gererErreurs } from "./middlewares/gerer-erreurs.ts";
 import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
 import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
+import { creerRoutesLocalisation } from "./routes/localisation.ts";
 import { creerRoutesMesure } from "./routes/mesure.ts";
 import { creerRoutesSignalements } from "./routes/signalements.ts";
 import type { SignalementRecu } from "./services/gestion/moderation.ts";
 import type { NouvelleInscription } from "./services/inscriptions.ts";
+import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
 
 type Dependances = {
@@ -16,11 +18,13 @@ type Dependances = {
   /** Statistiques de visite (route absente si non fournie) */
   enregistrerVue?: (vue: Vue) => Promise<void>;
   enregistrerSignalement?: (signalement: SignalementRecu) => Promise<void>;
+  /** Commune qui contient une position, pour le bouton « Me localiser » du formulaire (route absente si non fournie) */
+  trouverCommune?: (latitude: number, longitude: number) => Promise<Commune | null>;
   /** Logiciel de gestion (routes absentes si non fourni) */
   gestion?: DependancesGestion;
 };
 
-export function creerApplication({ enregistrerInscription, enregistrerVue, enregistrerSignalement, gestion }: Dependances) {
+export function creerApplication({ enregistrerInscription, enregistrerVue, enregistrerSignalement, trouverCommune, gestion }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
   // Avant le lecteur JSON : la gestion lit le corps brut, sur lequel porte la signature
@@ -31,6 +35,7 @@ export function creerApplication({ enregistrerInscription, enregistrerVue, enreg
     reponse.json({ ok: true });
   });
   application.use("/inscriptions", creerRoutesInscriptions(enregistrerInscription));
+  if (trouverCommune) application.use("/localisation", creerRoutesLocalisation(trouverCommune));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue));
   if (enregistrerSignalement) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
 

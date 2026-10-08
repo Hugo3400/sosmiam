@@ -163,7 +163,7 @@ export function creerControleursGestion(s: ServicesGestion) {
     media: verifier(async (requete, reponse) => {
       const media = await s.trouverFichierMedia(String(requete.params.fichier));
       if (!media) return introuvable(reponse);
-      reponse.sendFile(media.chemin, { headers: { "Content-Type": media.typeMime, "Cache-Control": "private, max-age=86400" } });
+      reponse.sendFile(media.chemin, { headers: { "Content-Type": media.typeMime, "Cache-Control": "private, no-store" } });
     }),
 
     // ─── Modération ───

@@ -36,8 +36,8 @@ export function Bouton({ children, variante = "secondaire", icone: Icone, charge
       className={[
         "inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 font-semibold transition-[background-color,transform,box-shadow] duration-100",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        petit ? "h-8 px-3 text-[13px]" : "h-10 px-4 text-sm",
-        !children ? (petit ? "w-8 px-0" : "w-10 px-0") : "",
+        // Bouton à icône seule : carré, sans marge intérieure (sinon l'icône est écrasée)
+        children ? (petit ? "h-8 px-3 text-[13px]" : "h-10 px-4 text-sm") : petit ? "size-8" : "size-10",
         STYLES[variante],
         className,
       ].join(" ")}

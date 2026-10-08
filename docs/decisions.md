@@ -42,6 +42,8 @@
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
 - Le premier à faire découvrir un lieu : « Déniché par … » + badge « Premier sauveteur ».
+- **Barème des points (décidé le 8 octobre 2026)** : visite validée +15, visite pendant un SOS +25, avis avec photo +10, proposer un lieu validé +30, corriger une fiche +5, premier sauveteur +20, **rescousse +2**. Les défis réussis rapportent leurs propres points. Règles dans `packages/commun/src/regles/ambassadeurs.ts`.
+- Écran Profil de l'app : avatar (emoji au choix, ou photo gardée sur le téléphone), palier et points, rescousses de la semaine, défis, badges, lieux gardés et publications aimées, réglages (infos, envies, notifications, confidentialité, tout effacer). La date de naissance ne se change pas depuis l'app (règle d'âge) : il faut nous écrire.
 
 ## Engagements publics (FAQ)
 - On peut passer faire la fiche avec le lieu (Montpellier et Hérault).

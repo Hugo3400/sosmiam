@@ -20,6 +20,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge }: Dependances
   const c = creerControleursGestion(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
+  // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
+  routes.use((_requete, reponse, suite) => {
+    reponse.set("Cache-Control", "private, no-store");
+    suite();
+  });
   routes.use(protection.controlerEnTetes);
   // Corps lu tel quel (la signature porte sur ses octets exacts), seulement une fois les en-têtes contrôlés
   routes.use(express.raw({ type: () => true, limit: TAILLE_MAX_VIDEO + 1024 }));

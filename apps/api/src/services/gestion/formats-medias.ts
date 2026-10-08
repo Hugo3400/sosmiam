@@ -9,5 +9,6 @@ export const FORMATS: Record<string, { extension: string; video: boolean; reconn
   "video/webm": { extension: "webm", video: true, reconnaitre: (d) => d.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 };
 export const TAILLE_MAX_IMAGE = 15 * 1024 * 1024;
-export const TAILLE_MAX_VIDEO = 150 * 1024 * 1024;
+// Cloudflare refuse les envois de plus de 100 Mo (offre gratuite) : on reste juste en dessous
+export const TAILLE_MAX_VIDEO = 95 * 1024 * 1024;
 export const PHOTOS_MAX = 10;

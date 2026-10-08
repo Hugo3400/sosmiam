@@ -18,4 +18,6 @@ export default [
   ]),
   // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »
   route("liens", "routes/public/liens.tsx"),
+  // Adresses sans page, appelées par le navigateur (réponses JSON)
+  route("localiser", "routes/ressources/localiser.ts"),
 ] satisfies RouteConfig;

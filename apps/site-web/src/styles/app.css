@@ -53,6 +53,22 @@
   [tabindex="-1"]:focus { outline: none; }
   /* Texte indicatif des champs lisible : gris sur blanc 6,9:1 (Tailwind met l'encre à 50 %, soit 3,4:1) */
   ::placeholder { color: var(--color-gris); }
+
+  /* Barres de défilement aux couleurs du site : rail crème, poignée jaune bordée d'encre, sans flèches.
+     Chrome, Edge et Safari lisent ::-webkit-scrollbar ; Firefox lit scrollbar-color (que Chrome ferait passer avant
+     ::-webkit-scrollbar, d'où le @supports). En mode de contraste élevé, le système reprend la main. */
+  ::-webkit-scrollbar { width: 14px; height: 14px; }
+  ::-webkit-scrollbar-track { background: var(--color-creme); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-jaune);
+    border: 2px solid var(--color-encre);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #F0B400; }
+  ::-webkit-scrollbar-corner { background: var(--color-creme); }
+  @supports not selector(::-webkit-scrollbar) {
+    * { scrollbar-color: var(--color-encre) var(--color-creme); }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

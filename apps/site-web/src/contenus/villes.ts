@@ -18,6 +18,8 @@ export type Lieu = {
   /** « à Lyon », « au Havre », « en Occitanie » */
   ou: string;
   type: TypeLieu;
+  /** Région du lieu (pour une région : elle-même) */
+  region: string;
   /** Autres noms courants, reconnus quand on les tape : « PACA », « Réunion » */
   alias: string[];
 };
@@ -70,30 +72,37 @@ const regions: Region[] = [
   { nom: "Mayotte", ou: "à Mayotte", villes: ["Mamoudzou", "Koungou", "Dzaoudzi", "Dembeni", "Bandraboua", "Tsingoni"] },
 ];
 
-const nomDe = (ville: Ville) => (typeof ville === "string" ? ville : ville[0]);
-const ouDe = (ville: Ville) => (typeof ville === "string" ? `à ${ville}` : ville[1]);
-const identifiant = (type: TypeLieu, texte: string) => `${type}-${normaliserRecherche(texte).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+const lireNom = (ville: Ville) => (typeof ville === "string" ? ville : ville[0]);
+const lirePreposition = (ville: Ville) => (typeof ville === "string" ? `à ${ville}` : ville[1]);
+const creerIdentifiant = (type: TypeLieu, texte: string) =>
+  `${type}-${normaliserRecherche(texte).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 
 // Noms portés par des villes de plusieurs régions (Saint-Denis) : on les précise avec la région
-const tousLesNoms = regions.flatMap((region) => [...(region.villesLancement ?? []), ...region.villes].map(nomDe));
+const tousLesNoms = regions.flatMap((region) => [...(region.villesLancement ?? []), ...region.villes].map(lireNom));
 const homonymes = new Set(tousLesNoms.filter((nom, position) => tousLesNoms.indexOf(nom) !== position));
 
-function versLieu(ville: Ville, region: string): Lieu {
-  const nom = nomDe(ville);
+function convertirEnLieu(ville: Ville, region: string): Lieu {
+  const nom = lireNom(ville);
   const valeur = homonymes.has(nom) ? `${nom} (${region})` : nom;
-  return { id: identifiant("ville", valeur), nom, valeur, ou: ouDe(ville), type: "ville", alias: [] };
+  return { id: creerIdentifiant("ville", valeur), nom, valeur, ou: lirePreposition(ville), type: "ville", region, alias: [] };
 }
 
 export const groupesLieux: GroupeLieux[] = regions.map((region) => ({
   region: region.nom,
   lancement: region.lancement ?? false,
   lieux: [
-    { id: identifiant("region", region.nom), nom: region.nom, valeur: region.nom, ou: region.ou, type: "region", alias: region.alias ?? [] },
-    ...(region.villesLancement ?? []).map((ville) => versLieu(ville, region.nom)),
+    {
+      id: creerIdentifiant("region", region.nom), nom: region.nom, valeur: region.nom, ou: region.ou,
+      type: "region", region: region.nom, alias: region.alias ?? [],
+    },
+    ...(region.villesLancement ?? []).map((ville) => convertirEnLieu(ville, region.nom)),
     ...(region.departement
-      ? [{ id: identifiant("departement", region.departement[0]), nom: region.departement[0], valeur: region.departement[0], ou: region.departement[1], type: "departement" as const, alias: [] }]
+      ? [{
+          id: creerIdentifiant("departement", region.departement[0]), nom: region.departement[0], valeur: region.departement[0],
+          ou: region.departement[1], type: "departement" as const, region: region.nom, alias: [],
+        }]
       : []),
-    ...region.villes.map((ville) => versLieu(ville, region.nom)),
+    ...region.villes.map((ville) => convertirEnLieu(ville, region.nom)),
   ],
 }));
 

@@ -1,6 +1,7 @@
 {
   "name": "sos-miam",
   "private": true,
+  "type": "module",
   "description": "SOS Miam : site, app mobile, logiciel de gestion et API",
   "workspaces": [
     "apps/site-web"
@@ -16,6 +17,10 @@
     "bot:verifier": "npm run typecheck --prefix apps/bot-discord && npm test --prefix apps/bot-discord && npm run verifier:lignes",
     "api:dev": "npm run dev --prefix apps/api",
     "api:verifier": "npm run typecheck --prefix apps/api && npm test --prefix apps/api && npm run verifier:lignes",
-    "api:migrer": "npm run base:migrer --prefix apps/api"
+    "api:migrer": "npm run base:migrer --prefix apps/api",
+    "gestion:dev": "npm run dev --prefix apps/logiciel-gestion",
+    "gestion:verifier": "npm run typecheck --prefix apps/logiciel-gestion && npm test --prefix apps/logiciel-gestion && npm run verifier:lignes",
+    "gestion:installateur": "bash apps/logiciel-gestion/scripts/construire-installateur.sh",
+    "gestion:autoriser": "node scripts/autoriser-poste-gestion.ts"
   }
 }

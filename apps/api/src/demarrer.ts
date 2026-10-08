@@ -7,6 +7,7 @@ import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
 import { enregistrerInscription } from "./services/inscriptions.ts";
+import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
 import { stockageStats } from "./services/stockage-stats.ts";
 
@@ -22,6 +23,7 @@ const serveur = creerApplication({
   enregistrerInscription,
   enregistrerVue: compteur.enregistrerVue,
   enregistrerSignalement,
+  trouverCommune,
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);

@@ -73,7 +73,7 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
       {aTraiter && (
         <div className="flex flex-col gap-2 lg:w-52">
           <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>Retirer la publication</Bouton>
-          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{urgent ? "Rien à redire, remettre en ligne" : "Rien à redire"}</Bouton>
+          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{urgent ? "Remettre en ligne" : "Rien à redire"}</Bouton>
         </div>
       )}
       <Modale

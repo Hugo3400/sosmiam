@@ -13,7 +13,7 @@ type Props<T extends string> = {
 export function Selecteur<T extends string>({ libelle, valeur, options, onChange, className = "", libelleMasque }: Props<T>) {
   const id = useId();
   return (
-    <div className={`grid gap-1.5 ${className}`}>
+    <div className={`grid content-start gap-1.5 ${className}`}>
       <label htmlFor={id} className={libelleMasque ? "sr-only" : "text-sm font-semibold"}>{libelle}</label>
       <select
         id={id}

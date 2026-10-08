@@ -12,7 +12,7 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> &
 export function Champ({ libelle, valeur, onChange, aide, erreur, className = "", ...reste }: Props) {
   const id = useId();
   return (
-    <div className={`grid gap-1.5 ${className}`}>
+    <div className={`grid content-start gap-1.5 ${className}`}>
       <label htmlFor={id} className="text-sm font-semibold">{libelle}</label>
       <input
         id={id}

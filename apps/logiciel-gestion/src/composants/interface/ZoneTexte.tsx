@@ -16,7 +16,7 @@ type Props = {
 export function ZoneTexte({ libelle, valeur, onChange, lignes = 4, maximum, aide, placeholder, className = "", police = "texte" }: Props) {
   const id = useId();
   return (
-    <div className={`grid gap-1.5 ${className}`}>
+    <div className={`grid content-start gap-1.5 ${className}`}>
       <div className="flex items-baseline justify-between gap-3">
         <label htmlFor={id} className="text-sm font-semibold">{libelle}</label>
         {maximum && <span className={`chiffres text-xs ${valeur.length > maximum ? "font-bold text-rouge-texte" : "text-gris"}`}>{valeur.length} / {maximum}</span>}

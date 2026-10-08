@@ -51,14 +51,15 @@ sos-miam/
 | `src/app/(onglets)/` | écrans des onglets : Pour toi, Explorer, Scan, Potes, Profil (Expo Router) |
 | `src/app/(inscription)/` | première ouverture : bienvenue (carrousel), compte, fais connaissance, envies, c'est prêt |
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, lieux, carte, scan, big-sos, potes, profil, inscription, marque (mascotte), navigation |
+| `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, lieux, carte, scan, big-sos, potes, profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
-| `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement |
+| `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
-| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances…) |
+| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes…) |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/stockage/` | données gardées sur le téléphone (profil, activité, signalements en attente de l'API) |
+| `src/stockage/` | données gardées sur le téléphone (profil, avatar, activité, signalements en attente de l'API, préférences de notifications) |
 | `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
