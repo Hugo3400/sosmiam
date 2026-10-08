@@ -10,6 +10,7 @@ import { Inscription, type ReponseInscription } from "~/composants/accueil/Inscr
 import { PourLesPros } from "~/composants/accueil/PourLesPros";
 import { BigSosEnBref } from "~/composants/big-sos/BigSosEnBref";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { inscrireNewsletter, type ResultatInscription } from "~/services/inscriptions.server";
@@ -44,13 +45,15 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   const telephoneSaisi = formulaire.get("telephone");
   const telephone = telephoneSaisi === "iphone" || telephoneSaisi === "android" ? telephoneSaisi : null;
   const piege = String(formulaire.get("piege") ?? "");
+  // Renvoyées avec un refus : sans JavaScript, le formulaire se remplit de nouveau avec ce qui avait été tapé
+  const valeurs = { email, ville, telephone: telephone ?? "", beta, ambassadeur };
 
   if (!verifierEmail(email)) {
-    return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide.", champ: "email" };
+    return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide.", champ: "email", valeurs };
   }
   // Pour inviter quelqu'un à la bêta, il faut savoir sur quel store : App Store (iPhone) ou Play Store (Android)
   if (beta && !telephone) {
-    return { ok: false, message: "Pour la bêta, dis-nous si tu as un iPhone ou un Android. 📱", champ: "telephone" };
+    return { ok: false, message: "Pour la bêta, dis-nous si tu as un iPhone ou un Android.", champ: "telephone", valeurs };
   }
 
   // Un lieu proposé reconnu (« sete ») est enregistré sous son vrai nom (« Sète »), le reste tel que tapé
@@ -60,14 +63,17 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     { email, ville: lieu?.valeur ?? ville, ambassadeur, telephone, beta, piege },
     request.headers.get("x-real-ip"),
   );
-  if (resultat !== "ok") return { ok: false, message: messagesErreur[resultat], champ: resultat === "email-invalide" ? "email" : undefined };
+  if (resultat !== "ok") {
+    return { ok: false, message: lierPonctuation(messagesErreur[resultat]), champ: resultat === "email-invalide" ? "email" : undefined, valeurs };
+  }
 
+  // Espace insécable avant chaque émoji : il ne part jamais seul à la ligne
   const ou = lieu?.ou ?? "près de chez toi";
   const suites = [
-    beta ? "On t'invite à tester la bêta dès qu'elle est prête. 🧪" : "",
-    ambassadeur ? "On revient aussi vers toi pour les ambassadeurs fondateurs. 🎖️" : "",
+    beta ? "On t'invite à tester la bêta dès qu'elle est prête.\u00a0🧪" : "",
+    ambassadeur ? "On revient aussi vers toi pour les ambassadeurs fondateurs.\u00a0🎖️" : "",
   ].filter(Boolean);
-  return { ok: true, message: [`C'est noté ! On te prévient dès que SOS Miam arrive ${ou}. 🛟`, ...suites].join(" ") };
+  return { ok: true, message: lierPonctuation([`C'est noté ! On te prévient dès que SOS Miam arrive ${ou}.\u00a0🛟`, ...suites].join(" ")) };
 }
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */

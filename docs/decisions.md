@@ -53,4 +53,14 @@
 - Cookies : rien de facultatif sans accord, choix gardé 6 mois.
 
 ## Outils internes
-- Un **logiciel ordinateur de gestion** (Tauri) servira à administrer le site et l'app : notifications, modération, validation des BIG SOS, maintenance. Il viendra après le site et l'app ; l'administration n'est pas sur le site.
+- **Logiciel ordinateur de gestion** (Tauri, Windows), commencé le 8 octobre 2026 : statistiques, newsletter, lieux, publications du fil, modération, maintenance (BIG SOS, notifications et comptes à venir). L'administration n'est pas sur le site.
+- **Réservé à Hugo** (décidé le 8 octobre 2026) : clé secrète propre à chaque PC, chiffrée par un mot de passe, **et** code à 6 chiffres d'une application d'authentification. Le serveur ne connaît que les clés publiques des postes autorisés ; chaque demande est signée. Seul le chemin `/api-gestion` de l'API est joignable de l'extérieur.
+- L'installateur est construit sur le serveur (comme TabulaDB), sans passer par GitHub.
+- Newsletter : le logiciel gère les inscrits et la rédaction ; **l'envoi arrivera avec Brevo** (pas d'envoi en masse par la boîte de l'hébergeur).
+- Les fiches des lieux et les publications du fil sont désormais dans la base, saisies dans le logiciel ; l'app les lira quand elle sera branchée à l'API.
+
+## Statistiques de visite (décidé le 8 octobre 2026)
+- Le site compte ses visites **côté serveur, sans cookie ni script** : pages vues, visites, visiteurs uniques par jour, semaine, mois et année, pages, provenances, appareils, navigateurs, systèmes, pays. Seulement des totaux, jamais d'adresse IP.
+- Visiteurs uniques : empreinte brouillée par un secret propre à chaque période, qui ne sert qu'à une esquisse HyperLogLog ; secret et esquisse effacés à la fin de la période. Détail par jour effacé au bout de 25 mois (conditions d'exemption de consentement de la CNIL).
+- Pas comptés : robots, préchargements, aperçu, signaux « Global Privacy Control » et « Do Not Track », et les personnes qui le refusent sur la page `/statistiques` (cookie de refus, 13 mois).
+- Plus tard, l'app enverra ses statistiques de la même façon (source « app »).

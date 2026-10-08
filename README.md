@@ -6,7 +6,7 @@ Fais découvrir les lieux indépendants qui ont besoin de monde. Sauve une table
 |---|---|
 | `apps/site-web` | le site (React Router 8) |
 | `apps/app-mobile` | l'app iOS + Android (Expo) |
-| `apps/logiciel-gestion` | le logiciel ordinateur de gestion (Tauri), plus tard |
+| `apps/logiciel-gestion` | le logiciel ordinateur de gestion (Tauri), réservé aux postes autorisés de Hugo |
 | `apps/api` | le serveur (Express + Prisma + PostgreSQL) |
 | `apps/bot-discord` | le bot du serveur Discord (discord.js) |
 | `packages/commun` | le code partagé |
@@ -22,3 +22,6 @@ Fais découvrir les lieux indépendants qui ont besoin de monde. Sauve une table
 # sosmiam
 - `npm run bot:dev` : lance le bot Discord en développement (relancé à chaque modification)
 - `npm run bot:verifier` : vérifie les types et les tests du bot, et la limite de 700 lignes
+- `npm run gestion:installateur` : construit l'installateur Windows du logiciel de gestion (mode d'emploi : `apps/logiciel-gestion/README.md`)
+- `npm run gestion:autoriser -- <clé publique>` : autorise un PC à utiliser le logiciel de gestion (à lancer soi-même, un secret s'affiche)
+- `npm run gestion:verifier` : vérifie les types et les tests du logiciel de gestion, et la limite de 700 lignes

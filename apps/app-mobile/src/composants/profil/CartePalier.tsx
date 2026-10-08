@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
+import { Jauge } from "~/composants/interface/Jauge";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -40,15 +41,7 @@ export function CartePalier({ points }: Props) {
         </View>
       </View>
 
-      <View
-        accessible
-        accessibilityRole="progressbar"
-        accessibilityLabel={suivant ? `Vers ${suivant.nom}` : "Palier"}
-        accessibilityValue={{ min: 0, max: 100, now: pourcentage, text: valeurJauge }}
-        className="h-3 overflow-hidden rounded-full border-2 border-encre bg-white"
-      >
-        <View className="h-full rounded-full bg-tomate" style={{ width: `${pourcentage}%` }} />
-      </View>
+      <Jauge avancee={pourcentage / 100} libelle={suivant ? `Vers ${suivant.nom}` : "Palier"} texteValeur={valeurJauge} />
       <Text className="font-texte-semi text-base text-encre">{lierPonctuation(prochaineEtape)}</Text>
 
       <Text className="font-texte text-sm leading-5 text-gris">

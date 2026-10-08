@@ -67,9 +67,25 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
     }
   }, [actif]);
 
+  // Chaque nouvelle recherche, ou réouverture, repart du haut de la liste (sauf si une option est surlignée au clavier)
+  useEffect(() => {
+    if (visible && !actif && liste.current) liste.current.scrollTop = 0;
+  }, [saisie, visible]);
+
   function fermer() {
     setOuvert(false);
     setActif(null);
+  }
+
+  /** Après un choix à la souris ou au doigt, le clic qui suit de près (double-clic, double appui) est ignoré :
+   *  sinon il traverserait la liste refermée et cocherait ou enverrait ce qui est dessous. */
+  function avalerClicSuivant() {
+    const avaler = (evenement: MouseEvent) => {
+      evenement.preventDefault();
+      evenement.stopPropagation();
+    };
+    document.addEventListener("click", avaler, { capture: true, once: true });
+    window.setTimeout(() => document.removeEventListener("click", avaler, { capture: true }), 400);
   }
 
   function remplir(valeur: string) {
@@ -186,7 +202,10 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
                     id={creerIdOption(lieu.id)}
                     role="option"
                     aria-selected={estActif}
-                    onClick={() => choisir(lieu)}
+                    onClick={() => {
+                      choisir(lieu);
+                      avalerClicSuivant();
+                    }}
                     onMouseMove={() => !estActif && setActif(lieu.id)}
                     className={`cursor-pointer px-4 py-2 ${estActif
                       ? "bg-encre text-jaune forced-colors:outline-3 forced-colors:-outline-offset-3 forced-colors:outline-[Highlight]"

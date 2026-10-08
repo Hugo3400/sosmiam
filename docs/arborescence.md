@@ -4,11 +4,11 @@
 sos-miam/
 ├── CLAUDE.md                  règles du projet
 ├── docs/                      arborescence (ce fichier) et décisions produit
-├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, recuperer-inscrits.py…)
+├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, recuperer-inscrits.py, autoriser-poste-gestion.ts…)
 ├── apps/
 │   ├── site-web/              LE SITE (React Router 8)
 │   ├── app-mobile/            L'APP iOS + Android (Expo)
-│   ├── logiciel-gestion/      LE LOGICIEL ORDINATEUR de gestion (Tauri) — plus tard
+│   ├── logiciel-gestion/      LE LOGICIEL ORDINATEUR de gestion (Tauri), réservé aux postes autorisés de Hugo
 │   ├── api/                   LE SERVEUR (Express + Prisma + PostgreSQL)
 │   └── bot-discord/           LE BOT du serveur Discord (discord.js)
 └── packages/
@@ -20,7 +20,8 @@ sos-miam/
 |---|---|
 | `public/images`, `public/icones` | fichiers servis tels quels (image de partage, favicon, icônes) ; `public/favicon.ico` reste à la racine, où les navigateurs le cherchent |
 | `src/root.tsx`, `src/routes.ts` | squelette HTML de toutes les pages, et la liste des adresses du site |
-| `src/routes/public/` | pages visibles par tous : accueil, FAQ, villes, fiches lieux, BIG SOS, pros, ambassadeurs, pages légales, et `/liens` (le mini-site à mettre en bio TikTok et Instagram) |
+| `src/routes/public/` | pages visibles par tous : accueil, FAQ, villes, fiches lieux, BIG SOS, pros, ambassadeurs, pages légales, `/statistiques` (ne plus compter ses visites) et `/liens` (le mini-site à mettre en bio TikTok et Instagram) |
+| `src/routes/ressources/` | adresses sans page appelées par le navigateur (réponses JSON) : `localiser` (bouton 📍 du formulaire d'inscription) |
 | `src/routes/compte/` | connexion, inscription, mot de passe oublié |
 | `src/routes/pro/` | espace restaurateur : fiche, SOS du soir, statistiques, abonnement, BIG SOS |
 | `src/routes/ambassadeur/` | espace ambassadeur : propositions, vérifications sur place |
@@ -36,7 +37,7 @@ sos-miam/
 | `src/composants/liens/` | cartes et icônes de la page `/liens` (site, Discord, TikTok, Instagram) |
 | `src/composants/pro/`, `ambassadeur/` | composants propres à chaque espace |
 | `src/fonctions/texte/`, `dates/`, `prix/`, `seo/`, `navigation/` | fonctions pures, une par fichier (ex. `formater-prix.ts`) |
-| `src/services/` | appels à l'API (un fichier par domaine : `lieux.ts`, `comptes.ts`…) |
+| `src/services/` | appels à l'API (un fichier par domaine : `lieux.ts`, `comptes.ts`…) ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/contenus/` | textes éditoriaux : étapes, ambassadeurs, ce qu'on offre aux lieux, villes, lieux d'exemple, liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram) |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
@@ -60,23 +61,35 @@ sos-miam/
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/stockage/` | données gardées sur le téléphone (profil, avatar, activité, signalements en attente de l'API, préférences de notifications) |
-| `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
+| `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone 6,9 et 6,3 pouces, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
-## apps/logiciel-gestion — le logiciel ordinateur de gestion (plus tard)
-L'administration de SOS Miam se fait ici, pas sur le site. Stack prévue : Tauri 2 + React + Vite (comme TabulaDB).
+## apps/logiciel-gestion — le logiciel ordinateur de gestion
+L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vite + Tailwind (comme TabulaDB), installateur Windows construit sur le serveur. Il ne parle qu'à l'API (`/api-gestion`), avec des demandes signées par la clé du poste. Mode d'emploi : `apps/logiciel-gestion/README.md`.
 | Dossier | Contenu |
 |---|---|
-| `src-tauri/` | partie native : fenêtre, notifications système, mises à jour du logiciel |
-| `src/ecrans/tableau-de-bord/` | vue d'ensemble : SOS en cours, BIG SOS, inscriptions, alertes |
-| `src/ecrans/moderation/` | avis signalés, photos, contenus à vérifier |
-| `src/ecrans/notifications/` | envoi et suivi des notifications aux utilisateurs |
-| `src/ecrans/big-sos/` | validation admin des BIG SOS, suivi des 7 jours, bilans |
-| `src/ecrans/lieux/`, `utilisateurs/` | gestion des fiches et des comptes (pros, ambassadeurs, clients) |
-| `src/ecrans/maintenance/` | état des serveurs, sauvegardes, journaux, mode maintenance |
-| `src/composants/interface/`, `mise-en-page/` | briques visuelles du logiciel |
-| `src/fonctions/`, `services/`, `hooks/` | fonctions pures, appels à l'API (routes réservées aux admins), hooks |
-| `tests/` | tests du logiciel |
+| `src-tauri/` | partie native : fenêtre, notifications Windows, une seule instance, enregistrement de fichiers ; icônes (`icons/source/icone-gestion.svg`) |
+| `scripts/` | `construire-installateur.sh` (compilation croisée vers Windows) ; l'installateur arrive dans `installateur/` (non commité) |
+| `src/Application.tsx`, `src/main.tsx` | connexion (premier lancement, autorisation, déverrouillage), menu et écran choisi |
+| `src/ecrans/connexion/` | premier lancement (mot de passe), autorisation du poste sur le serveur, déverrouillage (mot de passe + code à 6 chiffres) |
+| `src/ecrans/tableau-de-bord/` | vue d'ensemble : visites, newsletter, modération, contenus, dernières actions |
+| `src/ecrans/statistiques/` | visites du site (et plus tard de l'app) par jour, semaine, mois, année ; pages, provenances, appareils, pays |
+| `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription) et rédaction des newsletters avec aperçu de l'e-mail |
+| `src/ecrans/lieux/` | fiches des lieux : liste, formulaire complet, créneaux d'ouverture, aperçu |
+| `src/ecrans/publications/` | fil « Pour toi » : publications, vidéos et photos, programmation, aperçu façon téléphone |
+| `src/ecrans/moderation/` | signalements de l'app, les graves (publication masquée pour tous) en tête, décisions |
+| `src/ecrans/maintenance/` | état du serveur (API, base, site, disque, pm2), relance du site ou du bot, journal de gestion |
+| `src/ecrans/reglages/` | ce poste : identifiant, changement de mot de passe, retrait |
+| `src/ecrans/bientot/` | écran commun des parties à venir |
+| `src/ecrans/big-sos/`, `notifications/`, `utilisateurs/` | à venir : validation des BIG SOS, envoi des notifications, comptes |
+| `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…) et menu |
+| `src/contenus/` | menu du logiciel, libellés des raisons de signalement |
+| `src/fonctions/securite/` | clé Ed25519 du poste, coffre chiffré par le mot de passe, message signé (même format que l'API) |
+| `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `publications/` | fonctions pures, une par fichier (formats, graduations, Markdown → e-mail…) |
+| `src/services/` | client signé de l'API (`client-gestion.ts`) et un fichier par partie ; `systeme.ts` pour Windows (fichiers, notifications) |
+| `src/hooks/` | chargement des données, médias signés, verrouillage après inactivité, alertes de modération |
+| `src/stockage/` | le coffre (clé du poste chiffrée), gardé dans le profil Windows |
+| `tests/` | tests du logiciel (`npm test`) |
 
 ## apps/api — le serveur
 | Dossier | Contenu |
@@ -84,11 +97,11 @@ L'administration de SOS Miam se fait ici, pas sur le site. Stack prévue : Tauri
 | `prisma/`, `prisma.config.ts` | schéma de la base, migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
 | `src/demarrer.ts`, `src/application.ts` | lancement du serveur (127.0.0.1:5192, pm2 « sos-miam-api ») et assemblage d'Express |
 | `src/base-de-donnees/` | connexion Prisma ; `client-genere/` est recréé par `prisma generate` (jamais commité) |
-| `src/routes/` | adresses de l'API, un fichier par domaine : lieux, comptes, sos, big-sos, rescousses, visites… |
-| `src/controleurs/` | lecture de la requête et envoi de la réponse |
-| `src/services/` | logique métier (lancer un SOS, valider une visite…) |
-| `src/middlewares/` | connexion, rôles, erreurs, limite de requêtes |
-| `src/fonctions/geo/`, `securite/`, `dates/` | fonctions pures, une par fichier |
+| `src/routes/` | adresses de l'API, un fichier par domaine : inscriptions, mesure (pages vues du site), signalements, gestion (`/api-gestion`, le logiciel de gestion)… |
+| `src/controleurs/` | lecture de la requête et envoi de la réponse ; `gestion/` pour le logiciel de gestion (et la vérification de ses champs) |
+| `src/services/` | logique métier ; `mesure.ts` (compteur de visites sans cookie) et `stockage-stats.ts` ; `gestion/` pour le logiciel de gestion (accès autorisés, statistiques, newsletter, lieux, publications, médias, modération, maintenance, journal) |
+| `src/middlewares/` | erreurs, limite de requêtes, protection du logiciel de gestion (signature, code à 6 chiffres, session) et ses origines autorisées |
+| `src/fonctions/geo/`, `securite/`, `dates/`, `mesure/`, `texte/` | fonctions pures, une par fichier (signature Ed25519, code à 6 chiffres, périodes, esquisse HyperLogLog…) |
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |
 | `src/paiements/` | Stripe : abonnement Pro, bons solidaires |
 | `src/emails/` | modèles et envoi des e-mails |

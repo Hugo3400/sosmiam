@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 
+import { Jauge } from "~/composants/interface/Jauge";
 import type { Defi } from "~/contenus/defis-exemples";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
@@ -35,9 +36,7 @@ export function CarteDefi({ defi, fait }: Props) {
       </View>
 
       <View className="flex-row items-center gap-3">
-        <View className="h-3 flex-1 overflow-hidden rounded-full border-2 border-encre bg-white">
-          <View className="h-full rounded-full bg-tomate" style={{ width: `${pourcentage}%` }} />
-        </View>
+        <Jauge avancee={pourcentage / 100} className="flex-1" />
         <Text className="font-texte-gras text-sm text-encre">{reussi ? "Réussi ✅" : `${fait}/${defi.objectif}`}</Text>
       </View>
 

@@ -12,7 +12,7 @@ export function filtrerLieux(saisie: string, groupes: GroupeLieux[]): GroupeLieu
   // Le texte tapé doit commencer un mot du nom : « val de loire » trouve Centre-Val de Loire, « loire » aussi
   const correspondre = (texte: string) => ` ${simplifierRecherche(texte)}`.includes(` ${cherche}`);
   // On compare aussi la valeur, pour qu'un homonyme choisi (« Saint-Denis (La Réunion) ») soit retrouvé en rouvrant la liste
-  const verifierLieu = (lieu: Lieu) => [lieu.nom, lieu.valeur, ...lieu.alias].some(correspondre);
+  const verifierLieu = (lieu: Lieu) => [lieu.nom, lieu.valeur, ...lieu.alias, ...lieu.parties].some(correspondre);
   return groupes
     .map((groupe) => (verifierLieu(groupe.lieux[0]) ? groupe : { ...groupe, lieux: groupe.lieux.filter(verifierLieu) }))
     .filter((groupe) => groupe.lieux.length > 0);

@@ -1,6 +1,27 @@
-/** Les emoji qu'on peut choisir comme avatar (le premier est celui par défaut). */
-export const avatarsEmoji = [
-  "🦸", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐸",
-  "🐙", "🦉", "🐝", "🐞", "🦩", "🐧", "🦔", "🐢",
-  "🦄", "🐳", "🦋", "🐺", "🍕", "🌮", "🧁", "🍜",
+/** Les emoji qu'on peut choisir comme avatar, avec le nom lu par le lecteur d'écran (le premier est celui par défaut). */
+export const avatarsEmoji: { emoji: string; nom: string }[] = [
+  { emoji: "🦸", nom: "super-héros" },
+  { emoji: "🦊", nom: "renard" },
+  { emoji: "🐻", nom: "ours" },
+  { emoji: "🐼", nom: "panda" },
+  { emoji: "🐨", nom: "koala" },
+  { emoji: "🐯", nom: "tigre" },
+  { emoji: "🦁", nom: "lion" },
+  { emoji: "🐸", nom: "grenouille" },
+  { emoji: "🐙", nom: "pieuvre" },
+  { emoji: "🦉", nom: "hibou" },
+  { emoji: "🐝", nom: "abeille" },
+  { emoji: "🐞", nom: "coccinelle" },
+  { emoji: "🦩", nom: "flamant rose" },
+  { emoji: "🐧", nom: "manchot" },
+  { emoji: "🦔", nom: "hérisson" },
+  { emoji: "🐢", nom: "tortue" },
+  { emoji: "🦄", nom: "licorne" },
+  { emoji: "🐳", nom: "baleine" },
+  { emoji: "🦋", nom: "papillon" },
+  { emoji: "🐺", nom: "loup" },
+  { emoji: "🍕", nom: "pizza" },
+  { emoji: "🌮", nom: "taco" },
+  { emoji: "🧁", nom: "cupcake" },
+  { emoji: "🍜", nom: "bol de ramen" },
 ];

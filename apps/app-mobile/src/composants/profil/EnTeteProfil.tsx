@@ -26,7 +26,7 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Réglages"
-        accessibilityHint="Tes infos, tes envies, tes notifications et ta confidentialité"
+        accessibilityHint="Tes infos, tes envies et tes notifications"
         onPress={() => {
           vibrerLegerement();
           router.push("/reglages");

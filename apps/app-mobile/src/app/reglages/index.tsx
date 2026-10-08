@@ -147,7 +147,7 @@ export default function Reglages() {
             🔒
           </Text>
           <Text className="flex-1 font-texte text-sm leading-5 text-gris">
-            Tes infos restent sur ce téléphone, dans son coffre-fort chiffré. Elles rejoindront ton compte quand notre serveur sera prêt.
+            Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Ça rejoindra ton compte quand notre serveur sera prêt.
           </Text>
         </View>
         <LigneReglage
