@@ -67,6 +67,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge }: Dependances
 
   routes.get("/lieux", c.lieux);
   routes.post("/lieux", c.enregistrerLieu);
+  routes.post("/lieux/lot", c.lotLieux);
   routes.get("/lieux/:id", c.lieu);
   routes.put("/lieux/:id", c.enregistrerLieu);
   routes.delete("/lieux/:id", c.supprimerLieu);

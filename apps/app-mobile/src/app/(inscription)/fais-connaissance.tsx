@@ -29,7 +29,6 @@ export default function FaisConnaissance() {
 
   const prenom = brouillon.prenom.trim();
   const prenomValable = prenom.length >= 1 && prenom.length <= LONGUEUR_MAX_PRENOM;
-  const tropJeune = brouillon.dateNaissance !== null && calculerAge(brouillon.dateNaissance) < AGE_MINIMUM_INSCRIPTION;
   // L'âge ne grise pas « Continuer » : rien ne souffle la limite, c'est en continuant qu'une date trop récente bloque
   const valable = prenomValable && brouillon.dateNaissance !== null && brouillon.ville !== null;
 
@@ -42,9 +41,10 @@ export default function FaisConnaissance() {
   const texteManquants = manquants.length > 1 ? `${manquants.slice(0, -1).join(", ")} et ${manquants.at(-1)}` : manquants[0];
 
   const continuer = () => {
+    // Âge calculé au moment de l'appui (l'écran a pu rester ouvert pendant un passage à minuit).
     // Date trop récente, validée en connaissance de cause (elle est écrite en toutes lettres dans le champ) :
     // verrou jusqu'à l'anniversaire, et la date saisie est oubliée
-    if (tropJeune && brouillon.dateNaissance) {
+    if (brouillon.dateNaissance && calculerAge(brouillon.dateNaissance) < AGE_MINIMUM_INSCRIPTION) {
       bloquer(calculerDateAnniversaire(brouillon.dateNaissance, AGE_MINIMUM_INSCRIPTION));
       modifier({ dateNaissance: null });
       return;

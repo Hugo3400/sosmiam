@@ -6,12 +6,23 @@ export const typeParChoixLieu: Record<string, TypeLieu> = {
   restos: "resto",
   patisseries: "patisserie",
   bars: "bar",
+  glaciers: "patisserie",
+  "food-trucks": "resto",
+  "salons-de-the": "patisserie",
+  halles: "resto",
   caves: "bar",
+  plages: "resto",
+  cinemas: "sortie",
+  concerts: "sortie",
+  spectacles: "sortie",
+  musees: "sortie",
   bowlings: "sortie",
   "escape-games": "sortie",
   ateliers: "sortie",
+  "loisirs-sportifs": "sortie",
   nature: "sortie",
-  concerts: "sortie",
+  "balades-mer": "sortie",
+  domaines: "sortie",
 };
 
 /** Choix des catégories « moments » et « regimes » → ambiance du lieu */
@@ -22,6 +33,13 @@ export const envieParChoix: Record<string, EnvieLieu> = {
   festif: "potes",
   vegetarien: "vege",
   vegan: "vege",
+  "en-terrasse": "terrasse",
+  "premier-rendez-vous": "amoureux",
+  "avec-les-enfants": "famille",
+  "grande-tablee": "potes",
+  "coucher-de-soleil": "terrasse",
+  flexitarien: "vege",
+  pescetarien: "vege",
 };
 
 export const libelleParType: Record<TypeLieu, string> = {

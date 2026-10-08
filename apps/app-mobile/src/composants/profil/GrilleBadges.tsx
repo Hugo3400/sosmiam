@@ -10,7 +10,7 @@ type Props = {
   obtenus: string[];
 };
 
-// Badge verrouillé sans mesure suivie sur le téléphone : il attend les visites validées (API)
+// Badge verrouillé sans mesure suivie sur le téléphone : par défaut, il attend les visites validées (API), sinon son « attente »
 const ATTEND_VISITES = "Il arrivera avec les visites validées, bientôt dans l'app.";
 
 /** Tes badges en grille : les obtenus en couleur, les autres estompés avec 🔒. Touche un badge pour savoir comment l'obtenir. */
@@ -33,7 +33,7 @@ export function GrilleBadges({ obtenus }: Props) {
             <Pressable
               key={badge.id}
               accessibilityRole="button"
-              accessibilityLabel={`${badge.nom}, ${obtenu ? "obtenu" : "à débloquer"}. ${badge.texte}.${obtenu || badge.mesure ? "" : ` ${ATTEND_VISITES}`}`}
+              accessibilityLabel={`${badge.nom}, ${obtenu ? "obtenu" : "à débloquer"}. ${badge.texte}.${obtenu || badge.mesure ? "" : ` ${badge.attente ?? ATTEND_VISITES}`}`}
               accessibilityState={{ selected: selectionne }}
               onPress={() => {
                 vibrerLegerement();
@@ -62,7 +62,7 @@ export function GrilleBadges({ obtenus }: Props) {
             <Text className="font-texte-gras text-base text-encre">{detail.emoji} {detail.nom}</Text>
             <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(detail.texte)}</Text>
             <Text className="mt-1 font-texte-semi text-sm text-encre">
-              {lierPonctuation(obtenus.includes(detail.id) ? "✅ Obtenu, bravo !" : detail.mesure ? "🔒 À débloquer, c'est possible dès maintenant !" : `🔒 ${ATTEND_VISITES}`)}
+              {lierPonctuation(obtenus.includes(detail.id) ? "✅ Obtenu, bravo !" : detail.mesure ? "🔒 À débloquer, c'est possible dès maintenant !" : `🔒 ${detail.attente ?? ATTEND_VISITES}`)}
             </Text>
           </>
         ) : (

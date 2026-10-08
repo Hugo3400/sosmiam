@@ -25,7 +25,8 @@ export function ImageAvatar({ avatar, taille }: Props) {
       className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune-clair"
     >
       {photo ? (
-        <Image source={{ uri: photo }} contentFit="cover" onError={() => setPhotoCassee(photo)} style={{ width: "100%", height: "100%" }} />
+        // Cache en mémoire seulement : la photo est déjà un fichier du téléphone, pas besoin d'une copie sur le disque qui survivrait à « Retirer la photo »
+        <Image source={{ uri: photo }} cachePolicy="memory" contentFit="cover" onError={() => setPhotoCassee(photo)} style={{ width: "100%", height: "100%" }} />
       ) : (
         // Taille fixe : l'emoji suit le rond, pas la taille de texte du système (sinon il déborde)
         <Text allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }}>

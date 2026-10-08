@@ -7,7 +7,7 @@ import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { TypeMedia } from "../../services/gestion/medias.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 import { ChampInvalide, lireChoix, lireId, lireParametre, lireTexte } from "./lire-champs.ts";
-import { lireLieuSaisi } from "./lire-lieu.ts";
+import { lireIds, lireLieuSaisi, lireModificationLot } from "./lire-lieu.ts";
 import { lirePublicationSaisie } from "./lire-publication.ts";
 
 const ECHELLES: Record<Echelle, { defaut: number; max: number }> = {
@@ -119,6 +119,21 @@ export function creerControleursGestion(s: ServicesGestion) {
       if (!lieu) return introuvable(reponse);
       await noter(reponse, id ? "Lieu modifié" : "Lieu créé", `${lieu.nom} (n° ${lieu.id}, ${lieu.statut})`);
       reponse.status(id ? 200 : 201).json(lieu);
+    }),
+    /** POST /lieux/lot : { ids, action: « modifier » (avec les champs à changer) ou « supprimer » } */
+    lotLieux: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const ids = lireIds(corps);
+      const action = lireChoix(corps, "action", ["modifier", "supprimer"] as const);
+      if (action === "supprimer") {
+        const nombre = await s.supprimerLieuxEnLot(ids);
+        await noter(reponse, "Lieux supprimés en lot", `${nombre} lieu(x)`);
+        return reponse.json({ ok: true, nombre });
+      }
+      const modification = lireModificationLot(typeof corps.modification === "object" && corps.modification !== null ? (corps.modification as Record<string, unknown>) : {});
+      const nombre = await s.modifierLieuxEnLot(ids, modification);
+      await noter(reponse, "Lieux modifiés en lot", `${nombre} lieu(x) : ${Object.entries(modification).map(([cle, valeur]) => `${cle} → ${valeur}`).join(", ")}`);
+      reponse.json({ ok: true, nombre });
     }),
     supprimerLieu: verifier(async (requete, reponse) => {
       const supprime = await s.supprimerLieu(lireId(requete.params.id) ?? 0);

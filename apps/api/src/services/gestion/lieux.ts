@@ -26,6 +26,22 @@ export const lireLieu = (id: number) => baseDeDonnees.lieu.findUnique({ where: {
 export const creerLieu = (saisie: LieuSaisi) => baseDeDonnees.lieu.create({ data: saisie });
 export const modifierLieu = (id: number, saisie: LieuSaisi) => baseDeDonnees.lieu.update({ where: { id }, data: saisie }).catch(() => null);
 
+/** Ce qu'on peut changer d'un coup sur plusieurs fiches */
+export type ModificationLot = Partial<Pick<LieuSaisi, "statut" | "ville" | "quartier" | "type" | "prix" | "reservable">>;
+
+/** Applique la même modification à plusieurs fiches. Rend le nombre de fiches modifiées. */
+export async function modifierLieuxEnLot(ids: number[], modification: ModificationLot): Promise<number> {
+  const { count } = await baseDeDonnees.lieu.updateMany({ where: { id: { in: ids } }, data: modification });
+  return count;
+}
+
+/** Supprime plusieurs fiches (avec leurs publications et leurs fichiers). Rend le nombre de fiches supprimées. */
+export async function supprimerLieuxEnLot(ids: number[]): Promise<number> {
+  let supprimes = 0;
+  for (const id of ids) if (await supprimerLieu(id)) supprimes++;
+  return supprimes;
+}
+
 /** Supprime une fiche, ses publications et leurs fichiers. Faux si elle n'existe pas. */
 export async function supprimerLieu(id: number): Promise<{ nom: string } | null> {
   const lieu = await baseDeDonnees.lieu.findUnique({

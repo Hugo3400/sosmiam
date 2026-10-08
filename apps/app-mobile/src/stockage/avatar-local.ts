@@ -3,6 +3,7 @@
 // Sur le téléphone, on ne garde que le nom du fichier : iOS peut changer le dossier de l'app (mise à jour), on refait l'adresse à chaque lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory, File, Paths } from "expo-file-system";
+import { Image } from "expo-image";
 import { Platform } from "react-native";
 
 export type Avatar = { type: "emoji"; emoji: string } | { type: "photo"; uri: string };
@@ -70,6 +71,13 @@ export async function garderPhotoAvatar(uriTemporaire: string): Promise<string> 
   return destination.uri;
 }
 
+/** Vide le cache disque des images, qui a pu garder une copie de la photo (avant que l'avatar passe au cache en mémoire seulement). */
+function viderCacheImages(): void {
+  void Image.clearDiskCache().catch(() => {
+    // Cache déjà vide ou indisponible : rien de plus à faire
+  });
+}
+
 /** Supprime une photo d'avatar gardée dans les fichiers de l'app (remplacée, retirée, ou tout effacer). */
 export function supprimerPhotoAvatar(uri: string): void {
   if (surLeWeb) return;
@@ -80,6 +88,7 @@ export function supprimerPhotoAvatar(uri: string): void {
     // Déjà partie : rien à faire
   }
   viderCacheSelecteur();
+  viderCacheImages();
 }
 
 /** Efface l'avatar du téléphone, photo comprise (et celles qu'une ancienne version aurait oubliées). */
@@ -91,6 +100,7 @@ export async function effacerAvatarLocal(): Promise<void> {
       // Dossier illisible ou fichier déjà parti : rien de plus à faire
     }
     viderCacheSelecteur();
+    viderCacheImages();
   }
   await AsyncStorage.removeItem(CLE);
 }

@@ -167,3 +167,20 @@ test("mises à jour : le jeton s'obtient connecté, et ouvre le manifeste ; sans
   assert.ok([200, 204].includes(avecJeton.status));
   assert.equal((await fetch(`${adresse}/api-gestion/maj/fichiers/..%2F..%2Fetc%2Fpasswd`, { headers: { "X-Jeton-Maj": jeton } })).status, 404);
 });
+
+test("actions groupées sur les lieux : la sélection et la modification sont vérifiées", async () => {
+  const session = await ouvrirSession();
+  const appels: unknown[] = [];
+  (services as unknown as Record<string, unknown>).modifierLieuxEnLot = async (ids: number[], modification: unknown) => (appels.push({ ids, modification }), ids.length);
+  (services as unknown as Record<string, unknown>).supprimerLieuxEnLot = async (ids: number[]) => (appels.push({ supprimer: ids }), ids.length);
+  const lot = (corps: unknown) => demander("POST", "/lieux/lot", { session, corps: JSON.stringify(corps) });
+  const masquer = await lot({ ids: [3, 4, 4], action: "modifier", modification: { statut: "masque" } });
+  assert.equal(masquer.status, 200);
+  assert.deepEqual(await masquer.json(), { ok: true, nombre: 2 });
+  assert.deepEqual(appels[0], { ids: [3, 4], modification: { statut: "masque" } });
+  assert.equal((await lot({ ids: [], action: "supprimer" })).status, 400);
+  assert.equal((await lot({ ids: [1], action: "modifier", modification: {} })).status, 400);
+  assert.equal((await lot({ ids: [1], action: "modifier", modification: { statut: "publie-partout" } })).status, 400);
+  assert.equal((await lot({ ids: [5], action: "supprimer" })).status, 200);
+  assert.deepEqual(appels[1], { supprimer: [5] });
+});

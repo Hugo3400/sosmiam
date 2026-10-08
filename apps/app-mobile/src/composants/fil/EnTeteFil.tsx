@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 export type OngletFil = "tous" | "sos";
 
@@ -14,9 +14,10 @@ type Props = {
 /** Hauteur de l'en-tête sous la zone sûre : 6 (marge) + 44 (onglets) + 8 (marge du bas) ; ce qui est posé dessous commence après */
 export const HAUTEUR_ENTETE_FIL = 58;
 
-const onglets: { cle: OngletFil; libelle: string }[] = [
-  { cle: "tous", libelle: "Pour toi" },
-  { cle: "sos", libelle: "SOS ce soir 🔥" },
+// « lu » : le nom de l'onglet pour le lecteur d'écran, sans emoji
+const onglets: { cle: OngletFil; libelle: string; lu: string }[] = [
+  { cle: "tous", libelle: "Pour toi", lu: "Pour toi" },
+  { cle: "sos", libelle: "SOS ce soir 🔥", lu: "SOS ce soir" },
 ];
 
 /** En-tête posé sur le fil : rescousses restantes, et les deux fils (« Pour toi », « SOS ce soir »). */
@@ -34,12 +35,14 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut }: Props) {
         </View>
       </View>
       <View accessibilityRole="tablist" className="flex-1 flex-row justify-center gap-5">
-        {onglets.map(({ cle, libelle }) => {
+        {onglets.map(({ cle, libelle, lu }, i) => {
           const actif = cle === onglet;
+          // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
           return (
             <Pressable
               key={cle}
-              accessibilityRole="tab"
+              accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
+              accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${onglets.length}` : lu}
               accessibilityState={{ selected: actif }}
               hitSlop={8}
               onPress={() => onChoisir(cle)}

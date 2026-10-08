@@ -47,4 +47,10 @@ export const enregistrerLieu = (id: number | null, saisie: SaisieLieu) =>
 export type ResultatAdresse = { libelle: string; nom: string; ville: string; codePostal: string; latitude: number; longitude: number; score: number };
 /** Adresses trouvées par le service public de géocodage (IGN), pour remplir les coordonnées d'un lieu */
 export const chercherAdresse = (adresse: string) => appeler<ResultatAdresse[]>("GET", `/geocodage${parametres({ adresse })}`);
+/** Ce qu'on peut changer d'un coup sur plusieurs fiches */
+export type ModificationLot = Partial<Pick<SaisieLieu, "statut" | "ville" | "quartier" | "type" | "prix" | "reservable">>;
+export const modifierLieuxEnLot = (ids: number[], modification: ModificationLot) =>
+  appeler<{ ok: true; nombre: number }>("POST", "/lieux/lot", { corps: { ids, action: "modifier", modification } });
+export const supprimerLieuxEnLot = (ids: number[]) =>
+  appeler<{ ok: true; nombre: number }>("POST", "/lieux/lot", { corps: { ids, action: "supprimer" } });
 export const supprimerLieu = (id: number) => appeler<{ ok: true }>("DELETE", `/lieux/${id}`);

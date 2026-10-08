@@ -271,3 +271,16 @@ model AnnonceDiscord {
   @@index([statut])
   @@map("annonces_discord")
 }
+
+/// Session ouverte par un poste du logiciel de gestion (code à 6 chiffres). Seule l'empreinte de l'identifiant est
+/// gardée : la session ne sert de toute façon qu'avec des demandes signées par la clé du poste.
+model SessionGestion {
+  id        Int      @id @default(autoincrement())
+  /// SHA-256 (hexadécimal) de l'identifiant de session
+  empreinte String   @unique @db.VarChar(64)
+  posteId   String   @map("poste_id") @db.VarChar(20)
+  creeLe    DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+  activite  DateTime @default(now()) @db.Timestamptz(3)
+
+  @@map("sessions_gestion")
+}

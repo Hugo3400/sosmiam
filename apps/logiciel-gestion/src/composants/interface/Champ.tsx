@@ -20,7 +20,7 @@ export function Champ({ libelle, valeur, onChange, aide, erreur, className = "",
         onChange={(evenement) => onChange(evenement.target.value)}
         aria-invalid={erreur ? true : undefined}
         aria-describedby={aide || erreur ? `${id}-aide` : undefined}
-        className="h-10 rounded-xl border border-ligne bg-white px-3 text-[15px] outline-none transition-colors focus:border-encre aria-invalid:border-rouge-texte"
+        className="h-10 w-full min-w-0 rounded-xl border border-ligne bg-white px-3 text-[15px] outline-none transition-colors focus:border-encre aria-invalid:border-rouge-texte"
         {...reste}
       />
       {(aide || erreur) && (

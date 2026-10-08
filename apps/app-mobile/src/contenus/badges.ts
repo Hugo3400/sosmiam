@@ -6,8 +6,10 @@ export type Badge = {
   nom: string;
   /** Comment on l'obtient */
   texte: string;
-  /** Mesure suivie sur le téléphone ; sans mesure, le badge attend les visites validées (API) */
+  /** Mesure suivie sur le téléphone ; sans mesure, le badge attend l'API (les visites validées, sauf attente précisée) */
   mesure?: { type: MesureActivite; objectif: number };
+  /** Badge sans mesure : ce qu'il attend pour devenir possible (sinon : les visites validées) */
+  attente?: string;
 };
 
 /** Le catalogue des badges (repris du prototype). */
@@ -22,7 +24,13 @@ export const badges: Badge[] = [
     mesure: { type: "premiers-sauvetages", objectif: 1 },
   },
   // Proposer un lieu arrivera avec l'API : badge encore verrouillé
-  { id: "deniche", emoji: "🔎", nom: "Déniché par toi", texte: "Propose un lieu qui rejoint SOS Miam : sa fiche affichera ton prénom" },
+  {
+    id: "deniche",
+    emoji: "🔎",
+    nom: "Déniché par toi",
+    texte: "Propose un lieu qui rejoint SOS Miam : sa fiche affichera ton prénom",
+    attente: "Il arrivera avec les propositions de lieux, bientôt dans l'app.",
+  },
   { id: "bec-sucre", emoji: "🍬", nom: "Bec sucré", texte: "5 pâtisseries ou confiseries validées" },
   { id: "serie-4", emoji: "🔥", nom: "4 semaines d'affilée", texte: "Une visite validée par semaine pendant 4 semaines" },
   { id: "iode", emoji: "🦪", nom: "Iodé", texte: "Des huîtres de Bouzigues dégustées sur place" },

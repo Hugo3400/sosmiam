@@ -1,4 +1,4 @@
-import type { LieuSaisi } from "../../services/gestion/lieux.ts";
+import type { LieuSaisi, ModificationLot } from "../../services/gestion/lieux.ts";
 import { ChampInvalide, lireChoix, lireListe, lireNombre, lireTexte } from "./lire-champs.ts";
 
 // Mêmes valeurs que packages/commun/src/types/lieu.ts (TypeLieu, EnvieLieu)
@@ -18,6 +18,31 @@ function lireOuverture(valeur: unknown) {
     if (typeof de !== "string" || typeof a !== "string" || !HEURE.test(de) || !HEURE.test(a)) throw new ChampInvalide("ouverture");
     return { jours: [...new Set(jours as number[])].sort(), de, a };
   });
+}
+
+/** Identifiants d'une sélection (« ids » : 1 à 500 nombres entiers positifs, sans doublon). */
+export function lireIds(corps: Record<string, unknown>): number[] {
+  const ids = corps.ids;
+  if (!Array.isArray(ids) || ids.length === 0 || ids.length > 500 || ids.some((id) => !Number.isInteger(id) || id < 1 || id > 1e9)) {
+    throw new ChampInvalide("ids");
+  }
+  return [...new Set(ids as number[])];
+}
+
+/** Modification groupée de fiches : seuls les champs donnés changent (au moins un). */
+export function lireModificationLot(corps: Record<string, unknown>): ModificationLot {
+  const modification: ModificationLot = {};
+  if (corps.statut !== undefined) modification.statut = lireChoix(corps, "statut", STATUTS);
+  if (corps.ville !== undefined) modification.ville = lireTexte(corps, "ville", 80, true);
+  if (corps.quartier !== undefined) modification.quartier = lireTexte(corps, "quartier", 60, true);
+  if (corps.type !== undefined) modification.type = lireChoix(corps, "type", TYPES);
+  if (corps.prix !== undefined) modification.prix = lireChoix(corps, "prix", PRIX);
+  if (corps.reservable !== undefined) {
+    if (typeof corps.reservable !== "boolean") throw new ChampInvalide("reservable");
+    modification.reservable = corps.reservable;
+  }
+  if (Object.keys(modification).length === 0) throw new ChampInvalide("modification");
+  return modification;
 }
 
 /** Lit et vérifie une fiche de lieu envoyée par le logiciel. Lève ChampInvalide sur le premier champ qui ne va pas. */

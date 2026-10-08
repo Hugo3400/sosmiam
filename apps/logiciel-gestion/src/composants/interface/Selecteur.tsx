@@ -19,7 +19,7 @@ export function Selecteur<T extends string>({ libelle, valeur, options, onChange
         id={id}
         value={valeur}
         onChange={(evenement) => onChange(evenement.target.value as T)}
-        className="h-10 rounded-xl border border-ligne bg-white px-3 text-[15px] outline-none focus:border-encre"
+        className="h-10 w-full min-w-0 rounded-xl border border-ligne bg-white px-3 text-[15px] outline-none focus:border-encre"
       >
         {options.map((option) => <option key={option.valeur} value={option.valeur}>{option.libelle}</option>)}
       </select>

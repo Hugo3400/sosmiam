@@ -4,7 +4,7 @@ import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
 import { accepterDemande, effacerContactDemande, listerDemandes, refuserDemande } from "./demandes.ts";
 import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
-import { creerLieu, lireLieu, listerLieux, modifierLieu, supprimerLieu } from "./lieux.ts";
+import { creerLieu, lireLieu, listerLieux, modifierLieu, modifierLieuxEnLot, supprimerLieu, supprimerLieuxEnLot } from "./lieux.ts";
 import { lireEtatServeur, relancerProcessus } from "./maintenance.ts";
 import { ajouterMedia, retirerMedia, trouverFichierMedia } from "./medias.ts";
 import { deciderSignalement, listerSignalements } from "./moderation.ts";
@@ -23,7 +23,7 @@ export const servicesGestion = {
   lireTableauDeBord, lireStatistiques,
   listerInscrits, desinscrire, exporterInscrits,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
-  listerLieux, lireLieu, creerLieu, modifierLieu, supprimerLieu,
+  listerLieux, lireLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,
   listerPublications, lirePublication, creerPublication, modifierPublication, changerStatutPublication, supprimerPublication,
   ajouterMedia, retirerMedia, trouverFichierMedia,
   listerSignalements, deciderSignalement,

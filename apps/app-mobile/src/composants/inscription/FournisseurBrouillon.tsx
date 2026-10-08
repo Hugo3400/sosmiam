@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AppState } from "react-native";
 
 import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 import { ContexteBrouillon, type BrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
@@ -12,11 +13,18 @@ export function FournisseurBrouillon({ children }: { children: ReactNode }) {
   const [verrouAge, setVerrouAge] = useState<string | null>(null);
   const [verrouEnLecture, setVerrouEnLecture] = useState(true);
 
+  // Lu au lancement, puis relu à chaque retour au premier plan : l'app peut dormir en arrière-plan jusqu'au jour des 15 ans
   useEffect(() => {
-    lireVerrouAge().then((jusqua) => {
-      setVerrouAge(jusqua);
-      setVerrouEnLecture(false);
+    const relire = () =>
+      lireVerrouAge().then((jusqua) => {
+        setVerrouAge(jusqua);
+        setVerrouEnLecture(false);
+      });
+    relire();
+    const abonnement = AppState.addEventListener("change", (etat) => {
+      if (etat === "active") relire();
     });
+    return () => abonnement.remove();
   }, []);
 
   const bloquer = useCallback((jusqua: string) => {
