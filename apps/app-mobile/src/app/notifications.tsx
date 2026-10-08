@@ -37,6 +37,8 @@ export default function Notifications() {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
+  // La section des demandes montre au moins une ligne (en attente, ou traitée pendant la visite) : pas de « Calme plat » dessous
+  const [demandesAffichees, setDemandesAffichees] = useState(false);
 
   // La visite précédente, gardée à l'ouverture (undefined : pas encore prêt) ; puis tout devient vu
   const { pret, vuesLe, marquerToutVu } = notifications;
@@ -103,7 +105,7 @@ export default function Notifications() {
 
         {!pretAAfficher ? null : (
           <>
-            <SectionDemandesSuivi onAnnoncer={annoncer} />
+            <SectionDemandesSuivi onAnnoncer={annoncer} onAffichee={setDemandesAffichees} />
 
             {groupes.map((groupe) => (
               <View key={groupe.periode} className="gap-3">
@@ -125,7 +127,7 @@ export default function Notifications() {
               </View>
             ))}
 
-            {groupes.length === 0 ? (
+            {groupes.length === 0 && !demandesAffichees && suivis.demandesRecues.length === 0 ? (
               <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
                   🦗

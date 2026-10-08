@@ -40,6 +40,7 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
 
   return {
     tableauDeBord: verifier(async (_requete, reponse) => reponse.json(await s.lireTableauDeBord())),
+    alertes: verifier(async (_requete, reponse) => reponse.json(await s.lireAlertes())),
 
     statistiques: verifier(async (requete, reponse) => {
       const echelle = lireChoix({ echelle: requete.query.echelle ?? "jour" }, "echelle", ["jour", "semaine", "mois", "annee"] as const);

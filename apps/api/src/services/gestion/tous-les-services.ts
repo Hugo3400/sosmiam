@@ -3,6 +3,7 @@ import {
   accepterCandidature, deciderAmbassadeur, exporterAmbassadeurs, lireAmbassadeur, lireClassement, lireCouverture,
   listerAmbassadeurs, listerCandidatures, lirePrenom, modifierAmbassadeur, refuserCandidature, retirerDuProgramme, supprimerCompte,
 } from "./ambassadeurs.ts";
+import { lireAlertes } from "./alertes.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
@@ -35,7 +36,7 @@ import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
 export const servicesGestion = {
   noterAction, listerJournal,
-  lireTableauDeBord, lireStatistiques,
+  lireTableauDeBord, lireAlertes, lireStatistiques,
   listerInscrits, desinscrire, exporterInscrits,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
   listerLieux, lireLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,

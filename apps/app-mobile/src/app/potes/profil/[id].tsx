@@ -14,6 +14,7 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { BandeDemandeRecue } from "~/composants/suivi/BandeDemandeRecue";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { EncadreComptePrive } from "~/composants/suivi/EncadreComptePrive";
@@ -78,6 +79,10 @@ export default function ProfilPote() {
     jeSuisAvant.current = jeSuis;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- seulement quand ton lien avec cette personne change
   }, [jeSuis]);
+
+  // Sa demande à te suivre : la bande apparaît dès qu'il y en a une, et garde sa place (avec ta réponse) jusqu'à ton départ
+  const [bandeDemande, setBandeDemande] = useState(false);
+  if (relation?.demandeRecue && !bandeDemande) setBandeDemande(true);
 
   // Tant que les suivis (et la communauté) ne sont pas relus : un écran crème, comme l'onglet Potes, plutôt qu'un faux « introuvable »
   if (!suivis.pret) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
@@ -173,10 +178,12 @@ export default function ProfilPote() {
       },
     );
 
-  // Sous l'en-tête, dans cet ordre : Suivre, pourquoi pas de Suivre (ado), Suivre ou Ma bande, Ajouter, Écrire, et le dernier message
+  // Sous l'en-tête, dans cet ordre : sa demande à te suivre (s'il y en a une), Suivre, pourquoi pas de Suivre (ado), Suivre ou Ma bande,
+  // Ajouter, Écrire, et le dernier message
   const lignesActions = estMoi
     ? []
     : [
+        bandeDemande ? <BandeDemandeRecue key="demande" pote={pote} /> : null,
         suivreVisible ? <BoutonSuivreProfil key="suivre" cle={`personne:${pote.id}`} nom={prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" /> : null,
         refusAgeAdo ? (
           <Text key="age" className="text-center font-texte text-sm leading-5 text-gris">
@@ -236,7 +243,7 @@ export default function ProfilPote() {
           actions={actions}
         />
 
-        {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} peutDemander={!!relation?.verdict.permis} />}
+        {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} peutDemander={!!relation?.verdict.permis} demandeEnvoyee={jeSuis === "demande"} />}
 
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">

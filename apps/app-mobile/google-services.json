@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "9837909563",
+    "project_id": "sos-miam",
+    "storage_bucket": "sos-miam.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:9837909563:android:a282c81f9cc64bf53dae1e",
+        "android_client_info": {
+          "package_name": "fr.sosmiam.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADFyYGg7d8f46YdJ3rE_mDNahqQ5TWRhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

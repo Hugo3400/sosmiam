@@ -183,7 +183,7 @@
 - **Rencontre** : une visio d'environ 30 minutes avec les fondateurs de sa ville (de sa région pour les fondateurs de département), et un tête-à-tête si besoin. Remplace « café ou visio, 20 minutes ».
 - **Ville ou département au complet** : la candidature s'y ferme d'elle-même et rouvre quand une place se libère (fondateur retiré du programme, compte effacé ou déménagement). Pas de liste d'attente (confirmé par Hugo le 9 octobre 2026).
 - **Déménagement** : le fondateur garde son titre en souvenir, mais sa place dans son ancienne ville se libère. **Un numéro n'est jamais redonné** (confirmé par Hugo le 9 octobre 2026) : le fondateur suivant à Lyon sera le n° 11, même avec 10 places à la fois.
-- **Ambassadeur de ville** : nommé plus tard par l'équipe parmi les fondateurs de la ville (son capitaine).
+- **Ambassadeur de ville** : nommé plus tard par l'équipe parmi les fondateurs de la ville (son capitaine). Réservé aux fondateurs d'une ville : un fondateur de département garde son titre de fondateur, sans palier équivalent (décidé par Hugo le 9 octobre 2026).
 - **En attendant la nouvelle version** : la candidature reste ouverte avec l'ancien texte ; l'équipe n'accepte personne d'ici là ; chaque candidature reçue sera reprise dans la ville ou le département de la personne.
 
 ## Espace ambassadeur (décidé le 8 octobre 2026)
