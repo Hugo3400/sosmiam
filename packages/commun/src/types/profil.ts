@@ -7,6 +7,8 @@ export type Profil = {
   prenom: string;
   /** Facultatif : on ne collecte que le nécessaire (RGPD) */
   nom?: string;
+  /** Pseudo unique pour que les potes te trouvent (sans « @ ») ; absent dans les profils créés avant Potes */
+  pseudo?: string;
   /** Date de naissance au format AAAA-MM-JJ */
   dateNaissance: string;
   ville: string;

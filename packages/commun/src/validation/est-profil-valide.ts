@@ -1,6 +1,7 @@
 import type { Profil } from "../types/profil";
 import { AGE_MINIMUM_INSCRIPTION } from "../regles/ages";
 import { calculerAge } from "../regles/calculer-age";
+import { estPseudoValide } from "./est-pseudo-valide";
 
 /**
  * Vérifie qu'une donnée lue (téléphone, plus tard API) est bien un profil complet et cohérent :
@@ -11,6 +12,7 @@ export function estProfilValide(donnee: unknown): donnee is Profil {
   const p = donnee as Record<string, unknown>;
   if (typeof p.prenom !== "string" || p.prenom.trim() === "" || p.prenom.length > 40) return false;
   if (p.nom !== undefined && typeof p.nom !== "string") return false;
+  if (p.pseudo !== undefined && !estPseudoValide(p.pseudo)) return false;
   if (typeof p.ville !== "string" || p.ville === "") return false;
   if (typeof p.creeLe !== "string") return false;
   if (typeof p.dateNaissance !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.dateNaissance)) return false;
