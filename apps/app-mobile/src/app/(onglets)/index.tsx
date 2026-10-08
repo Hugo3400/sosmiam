@@ -11,6 +11,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
+import { FilVideAbonnements } from "~/composants/fil/FilVideAbonnements";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
 import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
@@ -26,6 +27,7 @@ import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
+import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
@@ -58,6 +60,7 @@ type AuteurSuivi = { nom: string; emoji: string; cle: string };
 
 /**
  * Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime.
+ * En haut, trois fils : « Abonnements » (seulement ce que publient les lieux et créateurs suivis), « Pour toi » (par défaut), « SOS ce soir ».
  * En visite sans compte, on regarde tout (son, accéléré, fiche, commentaires…) ; J'aime, rescousse, garder, partager, suivre
  * et le reste du menu ouvrent la feuille « Crée ton compte ». Une fois le compte créé, on retrouve la même publication.
  */
@@ -127,16 +130,24 @@ export default function PourToi() {
 
   const { estMasquee } = activite;
   const liste = useMemo(() => {
+    // « Abonnements » : ce que publient les lieux et créateurs suivis au moment du tri (la vidéo à l'écran reste après « Ne plus suivre »)
+    const suivis = new Set(suivisDuTri);
     const gardees = publications.filter((p) => {
       if (estMasquee(p.id)) return false;
       if (onglet === "tous") return true;
+      if (onglet === "abonnements") return estPublieeParSuivi(p, suivis);
       const lieu = lieuParId.get(p.lieuId);
       // « SOS ce soir » : une publication par lieu (la sienne), seulement les lieux en SOS ou en alerte
       return p.auteur.type === "lieu" && !!lieu && (!!lieu.sos || !!lieu.alerte);
     });
     if (onglet === "sos") gardees.sort((a, b) => Number(!!lieuParId.get(b.lieuId)?.sos) - Number(!!lieuParId.get(a.lieuId)?.sos));
     return gardees;
-  }, [publications, onglet, lieuParId, estMasquee]);
+  }, [publications, onglet, lieuParId, estMasquee, suivisDuTri]);
+  // « Abonnements » encore vide : tes suivis sont repris dès qu'ils changent (suivre depuis une suggestion fait arriver sa vidéo).
+  // Rien ne bouge sous ton doigt : il n'y a rien à l'écran. On compare le contenu, pas le tableau (sinon on reprendrait à chaque rendu)
+  if (onglet === "abonnements" && liste.length === 0 && tri !== null && tri.suivis.join("|") !== activite.suivis.join("|")) {
+    setTri({ onglet, suivis: activite.suivis });
+  }
 
   useEffect(() => () => {
     if (minuterieAccueil.current) clearTimeout(minuterieAccueil.current);
@@ -395,6 +406,14 @@ export default function PourToi() {
                 />
               );
             }}
+          />
+        ) : onglet === "abonnements" ? (
+          <FilVideAbonnements
+            hauteur={taille.hauteur}
+            margeHaut={marges.top + hauteurEnTete}
+            margeBas={hauteurBarreOnglets}
+            onVoirTout={() => setOnglet("tous")}
+            onAnnoncer={annoncer}
           />
         ) : (
           <FilVide hauteur={taille.hauteur} onVoirTout={() => setOnglet("tous")} />

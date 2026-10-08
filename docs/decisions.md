@@ -152,10 +152,11 @@
   - la démo du mode pro et du mode ambassadeur n'existe qu'en développement (jamais dans une version publiée).
 - **Points ouverts, à trancher avant de brancher l'API** : rattacher un pro à son lieu (SIREN + vérification), e-mail vérifié obligatoire pour valider, seuils anti-triche, durées de conservation des visites, adresse de l'espace pro (pro.sosmiam.fr ?).
 
-## Visite sans compte (décidé le 8 octobre 2026, à construire)
+## Visite sans compte (décidé le 8 octobre 2026, construite le 9 octobre)
 - **Sans compte, on regarde seulement** : fil, Explorer, fiches des lieux et leur carte, pages des créateurs, lecture des commentaires, « Y aller ».
 - **Tout le reste demande un compte** : rescousse, J'aime, commenter, suivre, garder, partager, envoyer à un pote, Pas intéressé, Signaler, Potes, chat, profil, défis, Scan. Une feuille « Crée ton compte » s'ouvre à la place.
 - **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou des moins de 15 ans reste actif sur le téléphone.
+- Entrée par « Juste jeter un œil » (bienvenue et écran du compte). Après une inscription lancée depuis la visite, on revient sur l'écran d'où l'on est parti, avec le compte. Une fiche de bar ouverte sans compte propose de s'inscrire (« tu as 18 ans ou plus ? »).
 
 ## Notifications push (décidé le 8 octobre 2026)
 - **Envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire** (pas le service d'Expo). Il faut une clé APNs « .p8 » (developer.apple.com → Keys) et un compte de service d'un projet Firebase gratuit, déposés par Hugo dans /root/sos-miam-secrets.

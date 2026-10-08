@@ -1,8 +1,9 @@
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 
+import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
-export type OngletFil = "tous" | "sos";
+export type OngletFil = "abonnements" | "tous" | "sos";
 
 type Props = {
   onglet: OngletFil;
@@ -22,22 +23,32 @@ export const HAUTEUR_ENTETE_FIL = 58;
 /** En visite, la pastille se pose sous les onglets (sur un iPhone SE, elle ne tiendrait pas à côté) : 36 (pastille) + 8 (marge du bas) en plus */
 export const HAUTEUR_PASTILLE_VISITE = 44;
 
-// « lu » : le nom de l'onglet pour le lecteur d'écran, sans emoji
-const onglets: { cle: OngletFil; libelle: string; lu: string }[] = [
+// « lu » : le nom de l'onglet pour le lecteur d'écran, sans emoji ; « court » : sur un écran étroit
+const onglets: { cle: OngletFil; libelle: string; court?: string; lu: string }[] = [
+  { cle: "abonnements", libelle: "Abonnements", lu: "Abonnements" },
   { cle: "tous", libelle: "Pour toi", lu: "Pour toi" },
-  { cle: "sos", libelle: "SOS ce soir 🔥", lu: "SOS ce soir" },
+  { cle: "sos", libelle: "SOS ce soir 🔥", court: "SOS 🔥", lu: "SOS ce soir" },
 ];
 
+// En dessous (en points, divisés par la taille de texte choisie), « SOS ce soir 🔥 » ne tient pas à côté des deux autres onglets,
+// de la bouée et de la cloche : « SOS 🔥 » (même un iPhone Pro Max, 430 pt, est trop étroit pour le libellé long)
+const LARGEUR_LIBELLES_LONGS = 450;
+// Au-delà, le texte des onglets dépasserait la bande de 44 pt (les onglets, eux, défilent s'ils sont trop larges)
+const AGRANDISSEMENT_MAX = 1.4;
+
 /**
- * En-tête posé sur le fil : rescousses restantes, et les deux fils (« Pour toi », « SOS ce soir »).
+ * En-tête posé sur le fil : rescousses restantes, les trois fils (« Abonnements », « Pour toi », « SOS ce soir »), qui défilent
+ * de côté si le texte est très grand, et la cloche des notifications (qui lit elle-même ce qu'elle compte).
  * En visite sans compte, pas de rescousses à compter : une pastille jaune, sous les onglets, propose de créer son compte.
  */
 export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerCompte }: Props) {
+  const { width: largeur, fontScale } = useWindowDimensions();
+  const court = largeur / fontScale < LARGEUR_LIBELLES_LONGS;
   return (
     // La bande des onglets arrête le doigt (comme toujours) ; sous elle, seule la pastille : à côté, on touche toujours la vidéo
     <View pointerEvents="box-none" className="absolute inset-x-0 top-0">
       <View style={{ paddingTop: haut + 6 }} className="flex-row items-center px-4 pb-2">
-        <View className="w-16">
+        <View className="w-14">
           {invite ? null : (
             <View
               accessible
@@ -49,8 +60,14 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
             </View>
           )}
         </View>
-        <View accessibilityRole="tablist" className="flex-1 flex-row justify-center gap-5">
-          {onglets.map(({ cle, libelle, lu }, i) => {
+        <ScrollView
+          horizontal
+          accessibilityRole="tablist"
+          showsHorizontalScrollIndicator={false}
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 16 }}
+        >
+          {onglets.map(({ cle, libelle, court: libelleCourt, lu }, i) => {
             const actif = cle === onglet;
             // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
             return (
@@ -64,16 +81,19 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
                 className={`min-h-11 justify-center border-b-[3px] ${actif ? "border-jaune" : "border-transparent"}`}
               >
                 <Text
+                  maxFontSizeMultiplier={AGRANDISSEMENT_MAX}
                   className={`font-texte-gras text-base ${actif ? "text-white" : "text-white/65"}`}
                   style={{ textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 4 }}
                 >
-                  {libelle}
+                  {court && libelleCourt ? libelleCourt : libelle}
                 </Text>
               </Pressable>
             );
           })}
+        </ScrollView>
+        <View className="w-14 items-end">
+          <BoutonNotifications variante="sombre" />
         </View>
-        <View className="w-16" />
       </View>
       {invite ? (
         <View pointerEvents="box-none" className="items-center px-4 pb-2">
