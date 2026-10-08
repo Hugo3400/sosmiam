@@ -7,7 +7,7 @@ const TONS: Record<Ton, string> = {
   jaune: "bg-jaune-clair text-encre",
   vert: "bg-vert-clair text-vert",
   rouge: "bg-rose-alerte text-rouge-texte",
-  encre: "bg-encre text-jaune",
+  encre: "bg-nuit text-jaune",
 };
 
 /** Petite étiquette d'état : « Publié », « Brouillon », « Urgent »… */

@@ -134,7 +134,7 @@ export function FormulaireDemandeLieu() {
       <div className="mt-2 flex flex-wrap items-center gap-4">
         <Bouton type="submit" className="w-full sm:w-auto sm:min-w-56">{envoi ? "Envoi…" : "Envoyer ma demande"}</Bouton>
         <p className="text-sm text-gris">
-          Ce qu'on fait de ces informations{"\u00a0"}:{" "}
+          {"Ce qu'on fait de ces informations\u00a0: "}
           <Link to="/confidentialite#demande-lieu" className="font-semibold text-encre underline underline-offset-2">confidentialité</Link>.
         </p>
       </div>

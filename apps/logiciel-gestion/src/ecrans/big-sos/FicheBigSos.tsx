@@ -76,7 +76,7 @@ export function FicheBigSos({ id, onFermer, onChange }: { id: number; onFermer: 
           {phase !== "refuse" && (
             <ol className="flex flex-wrap gap-1 text-xs font-semibold" aria-label="Étapes">
               {ETAPES_BIG_SOS.map((etape, i) => (
-                <li key={etape.libelle} className={`rounded-full px-2.5 py-1 ${i < etapeActuelle ? "bg-vert-clair text-vert" : i === etapeActuelle ? "bg-encre text-jaune" : "bg-ligne/70 text-gris"}`}>
+                <li key={etape.libelle} className={`rounded-full px-2.5 py-1 ${i < etapeActuelle ? "bg-vert-clair text-vert" : i === etapeActuelle ? "bg-nuit text-jaune" : "bg-ligne/70 text-gris"}`}>
                   {i + 1}. {etape.libelle}
                 </li>
               ))}

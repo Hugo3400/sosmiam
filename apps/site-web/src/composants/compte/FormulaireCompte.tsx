@@ -63,7 +63,8 @@ const classeDanger = `inline-flex items-center justify-center rounded-full borde
  */
 export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger, piege, viderApresReussite, reponseParDefaut, children, apres, className = "" }: Props) {
   const donnees = useActionData<ReponseFormulaire>();
-  const reponse = donnees?.formulaire === nom ? donnees : reponseParDefaut;
+  // Un autre formulaire de la page vient de répondre : la réussite d'avant (redirection) n'est plus à montrer
+  const reponse = donnees?.formulaire === nom ? donnees : donnees ? undefined : reponseParDefaut;
   // Réponse déjà là au premier affichage : envoi sans JavaScript (la page a été rechargée). Le message passe en haut du
   // formulaire et le premier champ en faute prend le focus au chargement (autofocus), sans attendre notre code.
   const [reponseInitiale] = useState(reponse);

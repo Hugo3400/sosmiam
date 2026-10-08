@@ -18,7 +18,7 @@ type Props = {
 };
 
 const STYLES: Record<Variante, string> = {
-  principal: "border-encre bg-jaune text-encre shadow-brut-petit hover:bg-[#ffdf3d] active:translate-x-px active:translate-y-px active:shadow-none",
+  principal: "border-nuit bg-jaune text-nuit shadow-brut-petit hover:bg-[#ffdf3d] active:translate-x-px active:translate-y-px active:shadow-none",
   secondaire: "border-encre bg-white text-encre hover:bg-creme",
   danger: "border-rouge-texte bg-white text-rouge-texte hover:bg-rose-alerte",
   discret: "border-transparent bg-transparent text-gris hover:bg-ligne/60 hover:text-encre",

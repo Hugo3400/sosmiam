@@ -16,7 +16,7 @@ export function ApercuPublication({ publication, lieu, medias }: Props) {
   const photo = medias.find((m) => m.type === "photo");
   const nombrePhotos = medias.filter((m) => m.type === "photo").length;
   return (
-    <div className="relative mx-auto aspect-[9/16] w-[260px] overflow-hidden rounded-[32px] border-[6px] border-encre bg-encre text-white shadow-brut">
+    <div className="relative mx-auto aspect-[9/16] w-[260px] overflow-hidden rounded-[32px] border-[6px] border-encre bg-nuit text-white shadow-brut">
       {video || photo ? (
         <VignetteMedia fichier={(video ?? photo)!.fichier} video={!!video} className="absolute inset-0 size-full" />
       ) : affiche ? (

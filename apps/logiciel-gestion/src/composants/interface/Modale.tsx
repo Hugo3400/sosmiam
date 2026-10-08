@@ -23,7 +23,7 @@ export function Modale({ titre, ouverte, onFermer, children, actions, large }: P
         evenement.preventDefault();
         onFermer();
       }}
-      className={`m-auto w-[min(100%-32px,var(--largeur))] rounded-carte border-2 border-encre bg-white p-0 text-encre shadow-brut backdrop:bg-encre/40 ${large ? "[--largeur:880px]" : "[--largeur:520px]"}`}
+      className={`m-auto w-[min(100%-32px,var(--largeur))] rounded-carte border-2 border-encre bg-white p-0 text-encre shadow-brut backdrop:bg-nuit/40 ${large ? "[--largeur:880px]" : "[--largeur:520px]"}`}
     >
       {ouverte && (
         <div className="grid max-h-[85vh] grid-rows-[auto_1fr_auto]">

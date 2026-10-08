@@ -50,3 +50,14 @@ export type StatistiquesCommunaute = {
   semaines: ({ cle: string } & Record<MesureCommunaute, number>)[];
 };
 export const lireStatistiquesCommunaute = () => appeler<StatistiquesCommunaute>("GET", "/statistiques/communaute");
+
+/** Les chiffres d'un mois (bilan à partager) */
+export type ChiffresMois = {
+  mois: string;
+  visiteurs: number; visites: number; vues: number;
+  inscrits: number; comptes: number; ambassadeurs: number; lieux: number; publications: number; demandes: number;
+  missions: number; signalements: number; mails: number; notifications: number;
+  bigSos: { debutLe: string; objectifTitre: string | null; objectifCible: number | null; objectifAtteint: number; bilan: string | null; lieu: { nom: string; ville: string } }[];
+};
+export type BilanMois = { actuel: ChiffresMois; precedent: ChiffresMois; totaux: { lieuxEnLigne: number; inscrits: number; ambassadeursActifs: number; comptes: number } };
+export const lireBilanMois = (mois: string) => appeler<BilanMois>("GET", `/statistiques/bilan?mois=${encodeURIComponent(mois)}`);

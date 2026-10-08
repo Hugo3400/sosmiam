@@ -16,7 +16,7 @@ type Props = {
 /** Le menu de gauche : les écrans, l'alerte de modération, le poste connecté et le cadenas. */
 export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouiller, onRechercher }: Props) {
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col bg-encre text-white">
+    <aside className="flex h-full w-60 shrink-0 flex-col bg-nuit text-white">
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">
         <img src="/favicon.svg" alt="" className="size-9" />
         <div>
@@ -50,14 +50,14 @@ export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouille
                       aria-current={choisi ? "page" : undefined}
                       onClick={() => onChoisir(cible)}
                       className={`flex h-9 w-full items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold transition-colors ${
-                        choisi ? "bg-jaune text-encre" : bientot ? "text-white/45 hover:bg-white/10 hover:text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
+                        choisi ? "bg-jaune text-nuit" : bientot ? "text-white/45 hover:bg-white/10 hover:text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
                       }`}
                     >
                       <Icone className="size-4 shrink-0" aria-hidden />
                       <span className="flex-1">{libelle}</span>
                       {pastille && pastille.nombre > 0 && (
                         <span
-                          className={`chiffres rounded-full px-1.5 text-xs font-bold ${pastille.urgent ? "animate-pulse bg-tomate text-white" : choisi ? "bg-encre text-jaune" : "bg-white/15"}`}
+                          className={`chiffres rounded-full px-1.5 text-xs font-bold ${pastille.urgent ? "animate-pulse bg-tomate text-white" : choisi ? "bg-nuit text-jaune" : "bg-white/15"}`}
                           aria-label={pastille.libelle}
                         >
                           {pastille.nombre}

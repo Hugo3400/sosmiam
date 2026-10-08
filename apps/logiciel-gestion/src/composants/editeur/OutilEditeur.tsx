@@ -12,7 +12,7 @@ export function OutilEditeur({ icone: Icone, titre, actif = false, desactive = f
       // Garder la sélection du texte : le bouton ne prend pas le focus au clic
       onMouseDown={(evenement) => evenement.preventDefault()}
       onClick={onClick}
-      className={`grid size-8 place-items-center rounded-lg transition-colors disabled:opacity-35 ${actif ? "bg-encre text-jaune" : "text-encre hover:bg-jaune-clair"}`}
+      className={`grid size-8 place-items-center rounded-lg transition-colors disabled:opacity-35 ${actif ? "bg-nuit text-jaune" : "text-encre hover:bg-jaune-clair"}`}
     >
       <Icone className="size-4" aria-hidden />
     </button>

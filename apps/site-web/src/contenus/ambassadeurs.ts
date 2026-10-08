@@ -3,22 +3,21 @@
 // l'autocollant « Déniché par » à leur prénom, les badges et l'app en avant-première (onglet « Recrutement ambassadeurs »
 // du document de Hugo du 7 octobre 2026). Ni avantage chez les commerçants, ni événement, ni groupe, ni rémunération.
 // Repris par l'accueil (DevenirAmbassadeur), la page /programme et la carte du palier de l'espace (CartePalier).
-import { site } from "~/contenus/legal/informations-legales";
 import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
 
 /** L'espace ambassadeur (dès 18 ans) : https://ambassadeur.sosmiam.fr, qui mène à /programme. */
 export const adresseEspaceAmbassadeur = `https://${HOTE_AMBASSADEUR}`;
 
-// Dans l'ordre : la position du palier donne le niveau de son badge (1 à 4). « Ambassadeur de ville » : on candidate par
-// mail, le seul moyen qui existe (l'espace ne propose que la candidature « fondateur »), ou l'équipe invite.
+// Dans l'ordre : la position du palier donne le niveau de son badge (1 à 4). « Ambassadeur de ville » : pas aux points,
+// l'équipe le choisit parmi les fondateurs de sa ville (docs/decisions.md, « Fondateurs par ville »).
 export const paliersAmbassadeurs = [
   { titre: "Curieux", seuil: "0 point", texte: "Tout le monde commence ici, les yeux grands ouverts.", sombre: false },
   { titre: "Dénicheur", seuil: "100 points", texte: "Tu as l'œil pour repérer les bonnes adresses.", sombre: false },
   { titre: "Ambassadeur de quartier", seuil: "300 points", texte: "Ton quartier n'a plus de secret pour toi.", sombre: false },
   {
     titre: "Ambassadeur de ville",
-    seuil: "Sur candidature ou invitation",
-    texte: `Pas une question de points : tu candidates par mail à ${site.emailContact}, ou l'équipe t'invite.`,
+    seuil: "Nommé par l'équipe",
+    texte: "Pas une question de points : l'équipe le choisit parmi les fondateurs de ta ville.",
     sombre: true,
   },
 ];

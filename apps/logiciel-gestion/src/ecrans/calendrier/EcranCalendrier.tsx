@@ -58,7 +58,7 @@ export function EcranCalendrier({ allerA }: { allerA: (ecran: Ecran, id: number 
             const evenements = duJour(donnees ?? [], jour);
             return (
               <div key={jour} className={`grid min-h-28 content-start gap-1 border-r border-b border-ligne/70 p-1.5 [&:nth-child(7n)]:border-r-0 ${dansLeMois ? "" : "bg-creme/60"}`}>
-                <span className={`chiffres justify-self-end rounded-full px-1.5 text-xs font-semibold ${jour === aujourdhuiTexte ? "bg-encre text-jaune" : dansLeMois ? "" : "text-gris"}`}>
+                <span className={`chiffres justify-self-end rounded-full px-1.5 text-xs font-semibold ${jour === aujourdhuiTexte ? "bg-nuit text-jaune" : dansLeMois ? "" : "text-gris"}`}>
                   {Number(jour.slice(8))}
                 </span>
                 {evenements.slice(0, 4).map((e) => {

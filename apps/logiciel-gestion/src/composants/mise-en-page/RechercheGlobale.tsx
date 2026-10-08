@@ -51,7 +51,7 @@ export function RechercheGlobale({ ouverte, onFermer, onAller }: Props) {
       aria-label="Rechercher partout"
       onClose={onFermer}
       onCancel={(e) => { e.preventDefault(); onFermer(); }}
-      className="mx-auto mt-[12vh] w-[min(100%-32px,640px)] rounded-carte border-2 border-encre bg-white p-0 text-encre shadow-brut backdrop:bg-encre/40"
+      className="mx-auto mt-[12vh] w-[min(100%-32px,640px)] rounded-carte border-2 border-encre bg-white p-0 text-encre shadow-brut backdrop:bg-nuit/40"
     >
       {ouverte && (
         <div className="grid">

@@ -18,11 +18,11 @@ export function Onglets<T extends string>({ libelle, valeur, options, onChange }
             role="radio"
             aria-checked={choisi}
             onClick={() => onChange(option.valeur)}
-            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors ${choisi ? "bg-encre text-jaune" : "text-gris hover:bg-creme hover:text-encre"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors ${choisi ? "bg-nuit text-jaune" : "text-gris hover:bg-creme hover:text-encre"}`}
           >
             {option.libelle}
             {option.compteur !== undefined && option.compteur > 0 && (
-              <span className={`chiffres rounded-full px-1.5 text-xs ${choisi ? "bg-jaune text-encre" : "bg-ligne text-encre"}`}>{option.compteur}</span>
+              <span className={`chiffres rounded-full px-1.5 text-xs ${choisi ? "bg-jaune text-nuit" : "bg-ligne text-nuit"}`}>{option.compteur}</span>
             )}
           </button>
         );

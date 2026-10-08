@@ -1,4 +1,4 @@
-import { ArrowRight, HeartHandshake, RotateCw, Server, Siren } from "lucide-react";
+import { ArrowRight, FileBarChart, HeartHandshake, RotateCw, Server, Siren } from "lucide-react";
 import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -18,6 +18,7 @@ import { lireStatistiques } from "~/services/statistiques.ts";
 import { lireTableauDeBord } from "~/services/tableau-de-bord.ts";
 import { CarteEnDirect } from "~/ecrans/statistiques/CarteEnDirect.tsx";
 import { CarteObjectif } from "./CarteObjectif.tsx";
+import { ModaleBilanMois } from "./ModaleBilanMois.tsx";
 
 const ecart = (aujourdhui: number, hier: number) => (hier === 0 ? null : ((aujourdhui - hier) / hier) * 100);
 const jourDuJour = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -28,6 +29,7 @@ type Props = { allerA: (ecran: Ecran) => void; problemesServeur: string[]; rever
 export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur }: Props) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireTableauDeBord, []);
   const [vue, setVue] = useState<"jours" | "semaines">("jours");
+  const [bilan, setBilan] = useState(false);
   const semaines = utiliserChargement(() => (vue === "semaines" ? lireStatistiques("site", "semaine", 12) : Promise.resolve(null)), [vue]);
   const jours = donnees?.visites.jours ?? [];
   const aujourdhui = jours[jours.length - 1] ?? { vues: 0, visites: 0, visiteurs: 0 };
@@ -44,7 +46,12 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
       <EnTeteEcran
         titre="Salut Hugo 👋"
         sousTitre={`On est ${jourDuJour.format(new Date())}. Voici comment se porte SOS Miam.`}
-        actions={<Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={() => { recharger(); reverifierServeur(); }}>Actualiser</Bouton>}
+        actions={
+          <>
+            <Bouton icone={FileBarChart} onClick={() => setBilan(true)}>Bilan du mois</Bouton>
+            <Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={() => { recharger(); reverifierServeur(); }}>Actualiser</Bouton>
+          </>
+        }
       />
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}
@@ -157,6 +164,7 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
           </Carte>
         </div>
       )}
+      {bilan && <ModaleBilanMois onFermer={() => setBilan(false)} />}
     </>
   );
 }

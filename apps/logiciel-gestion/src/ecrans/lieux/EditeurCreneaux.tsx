@@ -26,7 +26,7 @@ export function EditeurCreneaux({ creneaux, onChange }: { creneaux: CreneauOuver
                   aria-pressed={coche}
                   aria-label={NOMS[jour]}
                   onClick={() => modifier(i, { jours: coche ? creneau.jours.filter((j) => j !== jour) : [...creneau.jours, jour] })}
-                  className={`size-8 rounded-full text-xs font-bold ${coche ? "bg-encre text-jaune" : "bg-creme text-gris hover:bg-ligne"}`}
+                  className={`size-8 rounded-full text-xs font-bold ${coche ? "bg-nuit text-jaune" : "bg-creme text-gris hover:bg-ligne"}`}
                 >
                   {INITIALES[jour]}
                 </button>

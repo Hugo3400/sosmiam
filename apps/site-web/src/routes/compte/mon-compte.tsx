@@ -38,11 +38,15 @@ export function meta(_: Route.MetaArgs) {
 /** Ce que la page montre du compte : prénom, e-mail, ville et quartier ; et si le mot de passe vient d'être changé. */
 export async function loader({ request }: Route.LoaderArgs) {
   const { compte } = await exigerCompte(request);
+  // La marque est l'heure du changement (Date.now() en base 36) : passé 2 minutes (rechargement, retour arrière, adresse
+  // tapée à la main), plus de message
+  const marque = new URL(request.url).searchParams.get(PARAMETRE_CHANGE);
+  const recente = marque !== null && Math.abs(Date.now() - Number.parseInt(marque, 36)) < 2 * 60_000;
   return {
     prenom: compte.prenom,
     email: compte.email,
     lieu: compte.ambassadeur ? { ville: compte.ambassadeur.ville, quartier: compte.ambassadeur.quartier } : null,
-    motDePasseChange: new URL(request.url).searchParams.get(PARAMETRE_CHANGE),
+    motDePasseChange: recente ? marque : null,
   };
 }
 

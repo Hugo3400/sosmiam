@@ -37,7 +37,7 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
     agir(statut, () => modifierLieuxEnLot(ids, { statut }), (n) => `${n} lieu${n > 1 ? "x" : ""} ${libelle} ✅`);
 
   return (
-    <div className="sticky bottom-4 z-20 mt-6 flex flex-wrap items-center gap-2 rounded-full border-2 border-encre bg-encre py-2 pr-2 pl-5 text-white shadow-brut">
+    <div className="sticky bottom-4 z-20 mt-6 flex flex-wrap items-center gap-2 rounded-full border-2 border-encre bg-nuit py-2 pr-2 pl-5 text-white shadow-brut">
       <p className="mr-auto font-semibold">{lieux} sélectionné{nombre > 1 ? "s" : ""}</p>
       {erreur && <p role="alert" className="text-sm font-semibold text-tomate">{erreur}</p>}
       <Bouton petit icone={Globe} chargement={enCours === "publie"} onClick={() => changerStatut("publie", "en ligne")}>Mettre en ligne</Bouton>

@@ -5,11 +5,11 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MiniCarteFidelite } from "~/composants/fidelite/MiniCarteFidelite";
+import { ApercuVisite } from "~/composants/scan/ApercuVisite";
 import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { CarteDemandeEnCours } from "~/composants/scan/CarteDemandeEnCours";
 import { EtapesCommentCaMarche } from "~/composants/scan/EtapesCommentCaMarche";
 import { TuileScan } from "~/composants/scan/TuileScan";
-import { LigneVisite } from "~/composants/visites/LigneVisite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
@@ -162,7 +162,7 @@ export function AccueilScan() {
           {dernieres.length > 0 ? (
             <View className="gap-2">
               {dernieres.map((visite) => (
-                <LigneVisite key={visite.id} visite={visite} onPress={() => router.push({ pathname: "/visite/[id]", params: { id: String(visite.id) } })} />
+                <ApercuVisite key={visite.id} visite={visite} onPress={() => router.push({ pathname: "/visite/[id]", params: { id: String(visite.id) } })} />
               ))}
               <Text className="pt-1 font-texte-semi text-sm text-gris">
                 {validees} visite{validees > 1 ? "s" : ""} validée{validees > 1 ? "s" : ""} · {points} point{points > 1 ? "s" : ""} gagné{points > 1 ? "s" : ""}
