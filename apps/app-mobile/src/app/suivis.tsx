@@ -9,9 +9,8 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
+import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -51,12 +50,11 @@ export default function Suivis() {
 
   // Seulement ce qui existe encore et que ton âge autorise (comme dans le fil)
   const lieux = filtrerLieuxSelonAge(lieuxExemples, profil ? calculerAge(profil.dateNaissance) : null);
-  const suivis = (cles ?? []).map((cle) => ({ cle, suivi: lireCleSuivi(cle) }));
+  const suivis = listerSuivisAffichables(cles ?? [], lieux);
 
-  const lignesLieux: LigneAffichee[] = suivis.flatMap(({ cle, suivi }) => {
-    if (suivi?.type !== "lieu") return [];
-    const lieu = lieux.find((l) => l.id === suivi.id);
-    if (!lieu) return [];
+  const lignesLieux: LigneAffichee[] = suivis.flatMap((suivi) => {
+    if (suivi.type !== "lieu") return [];
+    const { cle, lieu } = suivi;
     return [
       {
         cle,
@@ -70,20 +68,19 @@ export default function Suivis() {
     ];
   });
 
-  const lignesCreateurs: LigneAffichee[] = suivis.flatMap(({ cle, suivi }) => {
-    if (suivi?.type !== "createur") return [];
-    const siennes = publicationsExemples.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === suivi.pseudo);
-    if (siennes.length === 0) return [];
+  const lignesCreateurs: LigneAffichee[] = suivis.flatMap((suivi) => {
+    if (suivi.type !== "createur") return [];
+    const { cle, pseudo } = suivi;
     // Comme sur sa page : sans ce qui est masqué ni les lieux que ton âge écarte
-    const visibles = siennes.filter((p) => !activite.estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId)).length;
+    const visibles = suivi.publications.filter((p) => !activite.estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId)).length;
     return [
       {
         cle,
         emoji: "🎬",
-        nom: `@${suivi.pseudo}`,
+        nom: `@${pseudo}`,
         sousTitre: `Créateur · ${visibles} publication${visibles > 1 ? "s" : ""}`,
         indice: "Ouvre sa page",
-        ouvrir: () => router.push({ pathname: "/createur/[pseudo]", params: { pseudo: suivi.pseudo } }),
+        ouvrir: () => router.push({ pathname: "/createur/[pseudo]", params: { pseudo } }),
       },
     ];
   });

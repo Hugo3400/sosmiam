@@ -19,7 +19,7 @@ const FICHIER_CSV = process.env.FICHIER_INSCRITS_CSV || "/root/sos-miam-donnees/
  * La liste complète des inscrits (formulaire et mails, désinscriptions retirées), telle que l'a écrite la dernière
  * synchronisation : c'est elle qui sert à l'envoi de la newsletter. Null si elle n'a jamais été écrite.
  */
-export async function lireListeInscrits(): Promise<{ adresse: string; ville: string; inscritLe: string }[] | null> {
+export async function lireListeInscrits(): Promise<{ adresse: string; ville: string; telephone: string; beta: string; inscritLe: string }[] | null> {
   let texte: string;
   try {
     texte = (await readFile(FICHIER_CSV, "utf8")).replace(/^\uFEFF/, "");
@@ -32,6 +32,8 @@ export async function lireListeInscrits(): Promise<{ adresse: string; ville: str
     .map((champs) => ({
       adresse: (champs[colonne("adresse")] ?? "").replace(/^'/, "").trim().toLowerCase(),
       ville: (champs[colonne("ville")] ?? "").replace(/^'/, ""),
+      telephone: (champs[colonne("telephone")] ?? "").replace(/^'/, "").toLowerCase(),
+      beta: (champs[colonne("beta")] ?? "").replace(/^'/, "").toLowerCase(),
       inscritLe: champs[colonne("inscrit_le")] ?? "",
     }))
     .filter((inscrit) => inscrit.adresse.includes("@"));
@@ -49,7 +51,10 @@ export async function lireEtatBoite() {
     boiteConfiguree,
     derniereSynchro,
     total: inscrits.length,
-    parMailSeulement: inscrits.filter((inscrit) => inscrit.adresse && !dansLaBase.has(inscrit.adresse)).slice(0, 300),
+    parMailSeulement: inscrits
+      .filter((inscrit) => inscrit.adresse && !dansLaBase.has(inscrit.adresse))
+      .slice(0, 300)
+      .map(({ adresse, ville, inscritLe }) => ({ adresse, ville, inscritLe })),
   };
 }
 

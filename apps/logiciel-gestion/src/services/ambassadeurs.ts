@@ -13,11 +13,12 @@ export type ResumeAmbassadeur = {
   derniereConnexion: string;
   ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null } | null;
   _count: { badges: number; demandesLieux: number };
-  /** Effacé après 1 an sans visite : la date prévue, et l'alerte 30 jours avant */
+  /** Sans visite : rôle d'ambassadeur retiré après 1 an, compte effacé après 2 ans ; alerte 30 jours avant le retrait */
+  retireLe: string;
   effaceLe: string;
-  bientotEfface: boolean;
+  bientotRetire: boolean;
 };
-export type ListeAmbassadeurs = { compteurs: Partial<Record<StatutAmbassadeur, number>>; bientotEffaces: number; ambassadeurs: ResumeAmbassadeur[] };
+export type ListeAmbassadeurs = { compteurs: Partial<Record<StatutAmbassadeur, number>>; bientotRetires: number; ambassadeurs: ResumeAmbassadeur[] };
 
 export type Mission = {
   id: number;
@@ -58,7 +59,7 @@ export type Candidature = {
   reponduLe: string | null;
   compte?: { id: number; prenom: string; email: string; points: number; palier: Palier; ambassadeur: { ville: string; quartier: string | null; statut: StatutAmbassadeur } | null };
 };
-export type FicheAmbassadeur = Omit<ResumeAmbassadeur, "_count" | "bientotEfface" | "ambassadeur"> & {
+export type FicheAmbassadeur = Omit<ResumeAmbassadeur, "_count" | "bientotRetire" | "ambassadeur"> & {
   cguVersion: string;
   ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; noteEquipe: string | null; decideLe: string | null; creeLe: string } | null;
   badges: { id: number; badge: string; obtenuLe: string }[];
@@ -79,13 +80,15 @@ export const listerAmbassadeurs = (filtres: { statut: string; palier: string; re
   appeler<ListeAmbassadeurs>("GET", `/ambassadeurs${parametres(filtres)}`);
 export const lireAmbassadeur = (id: number) => appeler<FicheAmbassadeur>("GET", `/ambassadeurs/${id}`);
 export const deciderAmbassadeur = (id: number, statut: "actif" | "refuse" | "suspendu") =>
-  appeler<{ ok: true }>("POST", `/ambassadeurs/${id}/decision`, { corps: { statut } });
+  appeler<{ ok: true; bienvenue: boolean }>("POST", `/ambassadeurs/${id}/decision`, { corps: { statut } });
 export const modifierAmbassadeur = (id: number, modification: { ville?: string; quartier?: string | null; noteEquipe?: string | null }) =>
   appeler<{ ok: true }>("PUT", `/ambassadeurs/${id}`, { corps: modification });
 export const ajouterPoints = (id: number, points: number, detail: string) =>
   appeler<{ ok: true; points: number; palier: Palier }>("POST", `/ambassadeurs/${id}/points`, { corps: { points, detail } });
 export const changerPalierVille = (id: number, ville: boolean) => appeler<{ ok: true; palier: Palier }>("POST", `/ambassadeurs/${id}/palier-ville`, { corps: { ville } });
-export const reinitialiserMotDePasse = (id: number) => appeler<{ ok: true; lien: string; expireLe: string }>("POST", `/ambassadeurs/${id}/reinitialiser`, { corps: {} });
+/** envoyer : le serveur l'envoie lui-même à son adresse (le lien ne revient pas) ; sinon, ou si l'envoi rate, le lien revient */
+export const reinitialiserMotDePasse = (id: number, envoyer: boolean) =>
+  appeler<{ ok: true; envoye: true; expireLe: string } | { ok: true; envoye: false; lien: string; expireLe: string }>("POST", `/ambassadeurs/${id}/reinitialiser`, { corps: { envoyer } });
 export const retirerDuProgramme = (id: number) => appeler<{ ok: true }>("POST", `/ambassadeurs/${id}/retirer`, { corps: {} });
 /** Supprime tout le compte SOS Miam, app comprise (un seul compte pour l'app, l'espace ambassadeur et l'espace pro) */
 export const supprimerCompteAmbassadeur = (id: number) => appeler<{ ok: true }>("DELETE", `/ambassadeurs/${id}`);

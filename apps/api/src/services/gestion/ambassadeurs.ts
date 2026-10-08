@@ -4,9 +4,15 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 
 const UN_JOUR = 86_400_000;
-/** Un compte sans visite connectée depuis 1 an est effacé ; on prévient 30 jours avant (décision du 8 octobre 2026) */
-const INACTIVITE_MAX = 365 * UN_JOUR;
+/** Sans visite connectée pendant 1 an : le rôle d'ambassadeur est retiré ; 2 ans : le compte est effacé. On prévient
+ * 30 jours avant chacun (décision du 8 octobre 2026 ; ménage : services/menage-comptes.ts, mails : courriels-comptes.ts). */
+const RETRAIT = 365 * UN_JOUR;
+const EFFACEMENT = 730 * UN_JOUR;
 const PREVENIR_AVANT = 30 * UN_JOUR;
+const echeances = (derniereConnexion: Date) => ({
+  retireLe: new Date(derniereConnexion.getTime() + RETRAIT).toISOString(),
+  effaceLe: new Date(derniereConnexion.getTime() + EFFACEMENT).toISOString(),
+});
 /** Nombre de fondateurs (numéros 1 à 10) */
 const FONDATEURS_MAX = 10;
 
@@ -21,8 +27,8 @@ export async function listerAmbassadeurs({ statut, palier, recherche, ville }: F
       ? { OR: [{ prenom: { contains: recherche, mode: "insensitive" } }, { email: { contains: recherche, mode: "insensitive" } }, { ambassadeur: { is: { quartier: { contains: recherche, mode: "insensitive" } } } }] }
       : {}),
   };
-  const limiteAlerte = new Date(maintenant.getTime() - INACTIVITE_MAX + PREVENIR_AVANT);
-  const [comptes, parStatut, bientotEffaces] = await Promise.all([
+  const limiteAlerte = new Date(maintenant.getTime() - RETRAIT + PREVENIR_AVANT);
+  const [comptes, parStatut, bientotRetires] = await Promise.all([
     baseDeDonnees.compte.findMany({
       where: ou,
       orderBy: [{ creeLe: "desc" }],
@@ -38,12 +44,8 @@ export async function listerAmbassadeurs({ statut, palier, recherche, ville }: F
   ]);
   return {
     compteurs: Object.fromEntries(parStatut.map((g) => [g.statut, g._count._all])),
-    bientotEffaces,
-    ambassadeurs: comptes.map((compte) => ({
-      ...compte,
-      effaceLe: new Date(compte.derniereConnexion.getTime() + INACTIVITE_MAX).toISOString(),
-      bientotEfface: compte.derniereConnexion < limiteAlerte,
-    })),
+    bientotRetires,
+    ambassadeurs: comptes.map((compte) => ({ ...compte, ...echeances(compte.derniereConnexion), bientotRetire: compte.derniereConnexion < limiteAlerte })),
   };
 }
 
@@ -64,7 +66,7 @@ export async function lireAmbassadeur(id: number) {
     },
   });
   if (!compte) return null;
-  return { ...compte, effaceLe: new Date(compte.derniereConnexion.getTime() + INACTIVITE_MAX).toISOString() };
+  return { ...compte, ...echeances(compte.derniereConnexion) };
 }
 
 /**

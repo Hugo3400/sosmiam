@@ -1,9 +1,10 @@
 // Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts des
 // demandes de lieux de plus de 3 ans, journal des mails de plus de 90 jours, puis les comptes : sessions expirées, comptes
-// refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés), l'alerte par mail 30 jours avant
-// l'effacement d'un compte inactif, puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une
-// sauvegarde tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
-import { prevenirAvantEffacement } from "../services/courriels/courriels-comptes.ts";
+// refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés), les alertes par mail 30 jours avant
+// le retrait du rôle d'ambassadeur (1 an sans visite) et l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée
+// de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la dernière date de plus de 26 heures (serveur
+// arrêté pendant la nuit, première mise en route).
+import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { noterAction } from "../services/gestion/journal.ts";
@@ -36,11 +37,12 @@ async function faireLeMenage() {
   }
 }
 
-/** Prévient par mail, une seule fois, les comptes qui seront effacés dans 30 jours faute de visite. */
+/** Prévient par mail, une seule fois, 30 jours avant le retrait du rôle d'ambassadeur (1 an) et l'effacement (2 ans). */
 async function prevenirLesComptesInactifs() {
   try {
-    const prevenus = await prevenirAvantEffacement();
-    if (prevenus > 0) await noterAction("serveur", "Comptes prévenus de leur effacement (dans 30 jours)", `${prevenus} mail(s)`);
+    const { retraits, effacements } = await prevenirAvantEcheances();
+    if (retraits > 0) await noterAction("serveur", "Ambassadeurs prévenus du retrait de leur rôle (dans 30 jours)", `${retraits} mail(s)`);
+    if (effacements > 0) await noterAction("serveur", "Comptes prévenus de leur effacement (dans 30 jours)", `${effacements} mail(s)`);
   } catch (erreur) {
     console.error("Alerte avant effacement impossible :", resumerErreur(erreur));
   }
@@ -53,7 +55,8 @@ async function nettoyerComptes() {
     const lignes: [number, string][] = [
       [bilan.sessions, "session(s) expirée(s)"],
       [bilan.comptesRefuses, "compte(s) refusé(s) depuis plus de 30 jours"],
-      [bilan.comptesInactifs, "compte(s) sans visite depuis 1 an"],
+      [bilan.ambassadeursRetires, "ambassadeur(s) retiré(s) du programme : 1 an sans visite"],
+      [bilan.comptesInactifs, "compte(s) effacé(s) : 2 ans sans connexion"],
       [bilan.candidatures, "candidature(s) refusée(s) depuis plus de 3 mois"],
       [bilan.liens, "lien(s) de réinitialisation expiré(s)"],
     ];

@@ -1,14 +1,18 @@
 // Politique de confidentialité : uniquement ce qui est réellement traité au 8 octobre 2026.
-// Toute nouveauté (app, pub, cookies de mesure, prestataire d'e-mails, bons solidaires) doit être ajoutée ici AVANT de démarrer.
+// Toute nouveauté (comptes de l'app, pub, cookies de mesure, bons solidaires) doit être ajoutée ici AVANT de démarrer.
+// Envoi des mails (8 octobre 2026) : par la boîte bonjour@ (SMTP de l'hébergement mail), sans autre prestataire ;
+// journal des envois effacé après 90 jours (apps/api/src/services/courriels/file-courriels.ts).
 // Statistiques de visite (8 octobre 2026) : comptage côté serveur, sans cookie, dans les conditions d'exemption de la CNIL
 // (apps/api/src/services/mesure.ts, apps/site-web/src/services/mesure.server.ts, page /statistiques pour s'y opposer).
 // Espace ambassadeur (8 octobre 2026) : comptes dès 18 ans, section « Ton compte ambassadeur » dans
 // confidentialite-compte-ambassadeur.ts (apps/api/src/services/comptes.ts ; durées et sécurité : docs/decisions.md).
+// App mobile (8 octobre 2026) : tout reste sur le téléphone ; comptes de l'app annoncés au futur ; voir confidentialite-app.ts.
 // À CONFIRMER AVEC FEELB AVANT MISE EN LIGNE : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189, Exoscale / Akenes SA,
 // Genève, Suisse). Qui exploite ce serveur, et où la boîte bonjour@ est-elle stockée ? Adapter « messagerie » ci-dessous.
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.
+import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
@@ -19,12 +23,12 @@ const lienPolitiqueCloudflare = "[politique de confidentialité](https://www.clo
 export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
-    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter et compte ambassadeur. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
+    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, compte ambassadeur et app mobile. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
   miseAJour: "8 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
-    `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
-    "SOS Miam est encore en préparation : l'app est en développement, et il n'y a pas de pub pour l'instant. Le seul compte qui existe aujourd'hui est celui de l'espace ambassadeur, dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
+    `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
+    "SOS Miam est encore en préparation : l'app n'est pas encore sur les stores, et tout ce que tu y fais reste sur ton téléphone ; il n'y a pas de pub pour l'instant. Le seul compte qui existe aujourd'hui est celui de l'espace ambassadeur, dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
   sections: [
     {
@@ -40,6 +44,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
             "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Sans aucune visite dans ton espace pendant 1 an, ton compte est effacé, et tu peux le supprimer toi-même à tout moment.",
+            "**L'app SOS Miam** (pas encore sur les stores) : tout ce que tu y fais reste sur ton téléphone, rien n'est envoyé à notre serveur. Ta position, seulement quand tu le demandes, sert à trouver ta ville (par le service d'Apple ou de Google) ou les lieux autour de toi, et n'est jamais gardée. Les comptes de l'app arriveront bientôt : on t'explique déjà ce qu'ils garderont.",
             "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
             "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
             "**On ne vend jamais tes données**, et on ne les loue pas.",
@@ -129,7 +134,8 @@ export const documentConfidentialite: DocumentLegal = {
             `**La liste des inscrits** : pour t'envoyer la newsletter, les inscriptions du formulaire et celles reçues par mail sont réunies dans une liste (ton adresse e-mail, ta ville, ton téléphone et ton choix pour la bêta si tu les as donnés dans le formulaire, la date de ton inscription et celle de ton dernier message), gardée sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès, et elle suit les mêmes règles de durée : si tu te désinscris, ta ligne est retirée de la liste et effacée de notre base avant tout nouvel envoi, ville comprise.`,
             "**Combien de temps** : tant que tu restes inscrit, tu continues de recevoir la newsletter, même après le lancement. Si on n'a plus aucun message de ta part pendant 3 ans, on te demande si tu veux continuer ; sans réponse, on efface ton adresse. Ton mail d'inscription ou de désinscription reste dans notre boîte comme preuve de ton choix, 3 ans au plus.",
             "**Obligatoire ?** Non, rien ne l'est. Sans adresse e-mail, on ne peut simplement pas te prévenir ; la ville nous aide à le faire au bon moment.",
-            `**Te désinscrire** : un simple mail à ${lienEmail} suffit, sans avoir à te justifier ; tu peux aussi répondre « STOP » à une newsletter.`,
+            `**L'envoi** : la newsletter part de notre boîte ${site.emailContact}, chez ${prestataires.messagerie.nom}, sans autre prestataire, et c'est l'éditeur qui la lance à la main. Juste avant chaque envoi, les désinscriptions reçues sont retirées de la liste. Le journal des envois (ton adresse, la date et le résultat de l'envoi) est effacé au bout de **90 jours** ; le texte de la newsletter, le même pour tout le monde, est gardé sans aucune adresse.`,
+            `**Te désinscrire** : un simple mail à ${lienEmail} suffit, sans avoir à te justifier ; tu peux aussi répondre « STOP » à une newsletter, ou toucher le bouton de désinscription que ta messagerie affiche (il nous envoie ce « STOP » pour toi).`,
           ],
         },
       ],
@@ -175,6 +181,8 @@ export const documentConfidentialite: DocumentLegal = {
       ],
     },
     sectionCompteAmbassadeur,
+    sectionApp,
+    sectionAppComptes,
     {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
@@ -217,12 +225,13 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             `**${hebergeur.nom}** (${hebergeur.adresse}) : hébergement du serveur du site, en France.`,
-            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse.`,
+            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse, et c'est aussi par cette boîte que partent nos mails (la newsletter, et les mails de ton compte ambassadeur : bienvenue, alertes avant effacement, lien pour choisir un nouveau mot de passe). Notre serveur garde un journal de ces envois (adresse, type de mail, date, résultat) pendant 90 jours ; le contenu d'un mail est effacé dès qu'il est parti.`,
             `**${prestataires.reseau.nom}** (${prestataires.reseau.adresse}) : ${prestataires.reseau.role}. Pour la sécurité de son propre réseau, il utilise aussi certaines données pour son propre compte (voir « Cloudflare, qui protège le site »).`,
           ],
         },
         "Ces prestataires peuvent eux-mêmes faire appel à d'autres prestataires techniques (des « sous-traitants ultérieurs »), qui doivent respecter les mêmes obligations de protection de tes données.",
         "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien. Enfin, si un lieu que tu as proposé depuis ton espace ambassadeur rejoint SOS Miam, ton prénom peut s'afficher sur sa fiche, visible par tous (« Déniché par »).",
+        "Dans l'app, et seulement quand tu le demandes, ta position est envoyée au service de ton téléphone (celui d'**Apple** sur iPhone, celui de **Google** sur Android) pour trouver le nom de ta ville ; sur iPhone, la carte d'Explorer est dessinée par **Plans d'Apple**, qui reçoit la zone que tu regardes. Ce sont alors leurs propres règles de confidentialité qui s'appliquent (voir « L'app SOS Miam, aujourd'hui »).",
         "Si la loi l'impose, certaines données peuvent être communiquées à une autorité qui les demande dans un cadre légal, par exemple sur décision d'un juge. Personne d'autre ne les reçoit.",
         `**Transferts hors de l'Union européenne** : le serveur du site est en France. Les e-mails envoyés à ${site.emailContact} sont reçus par un serveur situé en Suisse : la Suisse bénéficie d'une décision d'adéquation de la Commission européenne (décision 2000/518/CE du 26 juillet 2000), qui reconnaît que tes données y sont aussi bien protégées que dans l'Union européenne. Cloudflare peut traiter des données hors de l'Union européenne, notamment aux États-Unis, avec les garanties décrites dans la partie « Cloudflare, qui protège le site ». Enfin, si tu demandes la bêta, Google ou Apple peuvent traiter ton adresse aux États-Unis : pour Google, le transfert est encadré par le **Data Privacy Framework UE–États-Unis**, auquel Google LLC a adhéré (certification vérifiable sur [dataprivacyframework.gov](https://www.dataprivacyframework.gov/)) ; pour Apple, par les **clauses contractuelles types** de la Commission européenne, comme l'indique sa [politique de confidentialité](https://www.apple.com/fr/legal/privacy/fr-ww/).`,
       ],
@@ -294,6 +303,7 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam s'adresse à tout le monde, ados compris. En France, la loi Informatique et Libertés permet de consentir seul au traitement de ses données à partir de **15 ans**.",
         "Si tu as moins de 15 ans, il faut l'accord de tes parents (ou de la personne qui a l'autorité parentale), en plus du tien, avant de t'inscrire à la newsletter ou via le formulaire « Préviens-moi ».",
         `Si on apprend qu'un enfant de moins de 15 ans s'est inscrit sans cet accord, on efface ses données. Un parent peut nous le signaler à ${lienEmail}.`,
+        "L'app est ouverte à partir de **15 ans**, et de 15 à 17 ans, tout ce qui touche à l'alcool y est masqué (voir « L'app SOS Miam, aujourd'hui »).",
         "L'espace ambassadeur, lui, est réservé aux **18 ans et plus** : ta date de naissance sert seulement à le vérifier à l'inscription, et n'est pas gardée. Si on apprend qu'un compte ambassadeur appartient à quelqu'un de moins de 18 ans, on l'efface.",
       ],
     },
@@ -304,9 +314,8 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam va grandir. Voici ce qui est prévu, **mais ne fonctionne pas aujourd'hui** :",
         {
           liste: [
-            "**L'app mobile**, avec un compte et, seulement si tu l'autorises, ta position pour te montrer les lieux autour de toi.",
+            "**Les comptes de l'app**, puis la messagerie et les potes pour de vrai (aujourd'hui, ce sont des démos sur ton téléphone) : ce que les comptes garderont est déjà détaillé dans « L'app, bientôt avec un compte ».",
             "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
-            "**L'envoi des e-mails** (la newsletter, et les mails de ton compte ambassadeur, comme le lien pour choisir un nouveau mot de passe) par un prestataire spécialisé.",
             "**Les bons solidaires**, pour payer à l'avance dans un lieu pendant son BIG SOS. La façon de payer n'est pas encore décidée.",
           ],
         },

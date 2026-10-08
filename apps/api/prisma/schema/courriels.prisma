@@ -1,7 +1,8 @@
 // Envoi des mails par l'hébergement mail de sosmiam.fr (SMTP de bonjour@, aucun prestataire d'envoi : décidé le
 // 8 octobre 2026). Une file d'attente qui respecte la limite d'envois par heure, et un journal effacé après 90 jours.
 
-/// Une newsletter envoyée : son contenu, une seule fois ; chaque destinataire a sa ligne dans envois_courriels.
+/// Un envoi groupé (newsletter, ou mail aux ambassadeurs) : son contenu, une seule fois ; chaque destinataire a sa ligne
+/// dans envois_courriels.
 model CampagneNewsletter {
   id          Int       @id @default(autoincrement())
   /// Brouillon d'origine (gardé même si le brouillon est supprimé ensuite)
@@ -9,6 +10,10 @@ model CampagneNewsletter {
   objet       String    @db.VarChar(150)
   html        String
   texte       String
+  /// « newsletter » (inscrits de la liste) ou « ambassadeurs » (comptes d'ambassadeurs)
+  public      String    @default("newsletter") @db.VarChar(20)
+  /// À qui, en clair : « Inscrits · Montpellier · bêta-testeurs · 12 choisis à la main »
+  description String    @default("") @db.VarChar(300)
   /// Ville visée (comme dans la liste des inscrits), ou null pour tout le monde
   ville       String?   @db.VarChar(80)
   total       Int

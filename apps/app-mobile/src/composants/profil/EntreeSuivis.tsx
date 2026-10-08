@@ -3,10 +3,9 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { lieuxExemples } from "~/contenus/lieux-exemples";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
+import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
@@ -20,14 +19,9 @@ type Props = {
 export function EntreeSuivis({ suivis, age }: Props) {
   const router = useRouter();
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore et que ton âge autorise
-  const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
-  let nombreLieux = 0;
-  let nombreCreateurs = 0;
-  for (const cle of suivis) {
-    const suivi = lireCleSuivi(cle);
-    if (suivi?.type === "lieu" && lieux.some((l) => l.id === suivi.id)) nombreLieux++;
-    if (suivi?.type === "createur" && publicationsExemples.some((p) => p.auteur.type === "createur" && p.auteur.pseudo === suivi.pseudo)) nombreCreateurs++;
-  }
+  const affichables = listerSuivisAffichables(suivis, filtrerLieuxSelonAge(lieuxExemples, age));
+  const nombreLieux = affichables.filter((s) => s.type === "lieu").length;
+  const nombreCreateurs = affichables.length - nombreLieux;
 
   const parties = [
     nombreLieux > 0 ? `${nombreLieux} lieu${nombreLieux > 1 ? "x" : ""}` : null,

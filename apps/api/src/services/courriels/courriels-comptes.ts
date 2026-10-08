@@ -1,5 +1,6 @@
-// Les mails des comptes (espace ambassadeur aujourd'hui, l'app demain) : bienvenue à la validation, alerte avant
-// l'effacement d'un compte sans visite depuis presque 1 an, lien pour choisir un nouveau mot de passe.
+// Les mails des comptes (espace ambassadeur aujourd'hui, l'app demain) : bienvenue à la validation, alertes 30 jours
+// avant le retrait du rôle d'ambassadeur (1 an sans visite) et avant l'effacement du compte (2 ans sans visite), lien pour
+// choisir un nouveau mot de passe.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { habillerCourriel } from "../../fonctions/courriels/habiller-courriel.ts";
 import { envoyerToutDeSuite, mettreEnFile } from "./file-courriels.ts";
@@ -8,8 +9,10 @@ import { lireReglagesEnvoi } from "./reglages-envoi.ts";
 /** Adresse écrite en dur (jamais tirée d'une requête) */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
 const UN_JOUR = 86_400_000;
-/** Un compte sans visite pendant 1 an est effacé (docs/decisions.md) : on prévient 30 jours avant, une seule fois */
-const EFFACEMENT = 365 * UN_JOUR;
+/** Sans visite pendant 1 an : le rôle d'ambassadeur est retiré ; 2 ans : le compte est effacé (décision du 8 octobre 2026).
+ * On prévient 30 jours avant chacun, une seule fois. */
+const RETRAIT = 365 * UN_JOUR;
+const EFFACEMENT = 730 * UN_JOUR;
 const PREVENIR_AVANT = 30 * UN_JOUR;
 const jourEnLettres = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
 
@@ -38,42 +41,65 @@ export async function prevenirAmbassadeurValide(compteId: number) {
   return true;
 }
 
-/**
- * Tâche de nuit : prévient les comptes qui seront effacés dans 30 jours faute de visite (une seule fois par période :
- * pas de nouveau mail s'il y en a déjà eu un dans les 60 derniers jours). Rend le nombre de mails mis en file.
- */
-export async function prevenirAvantEffacement(maintenant = new Date()) {
-  if (!(await envoiPret())) return 0;
+type Alerte = { type: "alerte-retrait" | "alerte-effacement"; delai: number; seulementAmbassadeurs: boolean };
+
+/** Les comptes arrivés à 30 jours de l'échéance, et pas déjà prévenus dans les 60 derniers jours. */
+async function trouverAPrevenir({ type, delai, seulementAmbassadeurs }: Alerte, maintenant: Date) {
   const comptes = await baseDeDonnees.compte.findMany({
-    where: { derniereConnexion: { lt: new Date(maintenant.getTime() - EFFACEMENT + PREVENIR_AVANT), gte: new Date(maintenant.getTime() - EFFACEMENT) } },
+    where: {
+      derniereConnexion: { lt: new Date(maintenant.getTime() - delai + PREVENIR_AVANT), gte: new Date(maintenant.getTime() - delai) },
+      ...(seulementAmbassadeurs ? { ambassadeur: { isNot: null } } : {}),
+    },
     select: { prenom: true, email: true, derniereConnexion: true },
     take: 500,
   });
-  if (comptes.length === 0) return 0;
+  if (comptes.length === 0) return [];
   const dejaPrevenus = new Set(
     (await baseDeDonnees.envoiCourriel.findMany({
-      where: { type: "alerte-effacement", destinataire: { in: comptes.map((c) => c.email) }, creeLe: { gte: new Date(maintenant.getTime() - 60 * UN_JOUR) } },
+      where: { type, destinataire: { in: comptes.map((c) => c.email) }, creeLe: { gte: new Date(maintenant.getTime() - 60 * UN_JOUR) } },
       select: { destinataire: true },
     })).map((envoi) => envoi.destinataire),
   );
-  let prevenus = 0;
-  for (const compte of comptes.filter((c) => !dejaPrevenus.has(c.email))) {
-    const date = jourEnLettres.format(new Date(compte.derniereConnexion.getTime() + EFFACEMENT));
-    await mettreEnFile("alerte-effacement", compte.email, {
-      objet: `Ton compte SOS Miam sera effacé le ${date}`,
+  return comptes.filter((c) => !dejaPrevenus.has(c.email)).map((c) => ({ ...c, date: jourEnLettres.format(new Date(c.derniereConnexion.getTime() + delai)) }));
+}
+
+/**
+ * Tâche de nuit : prévient par mail, une seule fois, les ambassadeurs qui perdront leur rôle dans 30 jours (11 mois sans
+ * visite) et les comptes qui seront effacés dans 30 jours (23 mois sans visite). Rend le nombre de mails mis en file.
+ */
+export async function prevenirAvantEcheances(maintenant = new Date()) {
+  if (!(await envoiPret())) return { retraits: 0, effacements: 0 };
+  const retraits = await trouverAPrevenir({ type: "alerte-retrait", delai: RETRAIT, seulementAmbassadeurs: true }, maintenant);
+  for (const compte of retraits) {
+    await mettreEnFile("alerte-retrait", compte.email, {
+      objet: `Ton rôle d'ambassadeur SOS Miam s'arrête le ${compte.date}`,
       ...habillerCourriel({
-        titre: `On ne t'a pas vu depuis un moment, ${compte.prenom}`,
+        titre: `Tu nous manques, ${compte.prenom} !`,
         paragraphes: [
-          `Ton compte SOS Miam n'a pas servi depuis presque un an. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon le ${date}, avec tout ce qui va avec.`,
+          `Ton espace ambassadeur n'a pas servi depuis presque un an. Comme prévu dans nos règles, ton rôle d'ambassadeur s'arrêtera le ${compte.date} : tes missions et tes messages partiront avec lui. Ton compte SOS Miam, tes points et tes badges, eux, restent.`,
+          "Tu veux continuer l'aventure ? Il suffit de te connecter d'ici là. Sinon, tu n'as rien à faire.",
+        ],
+        bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
+        pied: "Tu reçois ce mail parce que tu es ambassadeur SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
+      }),
+    });
+  }
+  const effacements = await trouverAPrevenir({ type: "alerte-effacement", delai: EFFACEMENT, seulementAmbassadeurs: false }, maintenant);
+  for (const compte of effacements) {
+    await mettreEnFile("alerte-effacement", compte.email, {
+      objet: `Ton compte SOS Miam sera effacé le ${compte.date}`,
+      ...habillerCourriel({
+        titre: `On ne t'a pas vu depuis longtemps, ${compte.prenom}`,
+        paragraphes: [
+          `Ton compte SOS Miam n'a pas servi depuis presque deux ans. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon le ${compte.date}, avec tout ce qui va avec.`,
           "Tu veux le garder ? Il suffit de te connecter d'ici là. Sinon, tu n'as rien à faire : on efface tout, sans relance.",
         ],
         bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
         pied: "Tu reçois ce mail parce que tu as un compte SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
       }),
     });
-    prevenus++;
   }
-  return prevenus;
+  return { retraits: retraits.length, effacements: effacements.length };
 }
 
 /** Envoie le lien pour choisir un nouveau mot de passe, tout de suite et sans passer par la file (rien n'en est gardé). */

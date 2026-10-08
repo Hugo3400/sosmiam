@@ -54,6 +54,74 @@
 - Un compte par personne ; suppression possible **depuis l'app** (exigé par Apple, à coder) ou par e-mail.
 - Âge : page publique https://sosmiam.fr/age (« URL d'adéquation à l'âge » de l'App Store, classification 16+). À mettre à jour avec les CGU **avant** l'arrivée de la messagerie et de la pub.
 
+## Fil « Pour toi » de l'app (décidé le 8 octobre 2026)
+- Un mélange de Reels, Shorts et TikTok :
+  - son coupé par défaut, avec un bouton (seulement si la vidéo a du son) ;
+  - barre d'avancée qu'on peut glisser ;
+  - appui long = vitesse x2 ;
+  - photos qui défilent seules (4 s) avec des barres façon stories ;
+  - double appui = J'aime, avec une petite vibration ;
+  - légende coupée avec « … plus » ;
+  - quand on réduit la fiche, le @ de l'auteur reste visible.
+- Les publications des lieux et créateurs suivis passent en tête, sans jamais deux fois le même lieu de suite.
+
+## Suivre et abonnements (décidé le 8 octobre 2026)
+- **Lieux pros et créateurs** :
+  - « Suivre » sur leur fiche ou leur page, et dans le fil ;
+  - toucher « Suivi » ouvre une confirmation « Ne plus suivre ? » : on ne désabonne jamais d'un seul toucher ;
+  - liste « Tu suis » depuis l'onglet Profil.
+- **Entre personnes** (en construction) :
+  - suivre est à sens unique et **coexiste avec « Ma bande »** (les vrais potes, pour les sorties et le chat) ;
+  - comptes **publics par défaut, privé possible** : en privé, chaque abonnement est une demande à accepter ;
+  - **15-17 ans : profil privé d'office**, et un adulte ne peut ni les suivre ni leur envoyer de demande. Ils peuvent suivre les pros, les créateurs et les ados de leur âge ;
+  - prévu : abonnés / abonnements (retirer un abonné), onglet « Abonnements » dans le fil, notifications (« … te suit », demandes, nouvelle vidéo), suggestions « Tu pourrais suivre ».
+
+## Potes (décidé le 8 octobre 2026)
+- **Ma bande** :
+  - on ajoute un pote par lien, QR code ou pseudo ; le pseudo est choisi à l'inscription ;
+  - sorties avec vote (plusieurs votes par personne) et discussion réservée aux participants ;
+  - listes partagées, envoyer un lieu à un pote ;
+  - activité de la bande et classement du mois ;
+  - profil communautaire partageable.
+- **Protection des 15-17 ans** :
+  - pas de bar dans une sortie où il y a un mineur ;
+  - un adulte ne voit pas les mineurs dans la recherche par pseudo et ne peut pas les ajouter par pseudo ;
+  - tant que les comptes n'existent pas, un adulte ne peut ajouter aucun mineur.
+- **Liens et QR codes d'invitation** :
+  - ils portent un code secret personnel ;
+  - tant que l'API ne vérifie pas ce code, un ajout par lien ou QR ne compte pas comme « ajouté en vrai ».
+- Bloquer et signaler partout (messages, commentaires, profils, lieux envoyés, listes). Réglages > Personnes bloquées pour débloquer.
+- Démo avec des potes d'exemple, gardée sur le téléphone, en attendant les comptes.
+
+## Commentaires (décidé le 8 octobre 2026)
+- Dans une feuille qui monte du bas :
+  - réponses, J'aime, mentions @ ;
+  - la réponse du lieu est mise en avant ;
+  - modifier ou supprimer ses commentaires ;
+  - le lieu peut masquer un commentaire ;
+  - signaler ou bloquer.
+- **Filtre de mots** (`packages/commun/src/regles/mots-interdits.ts`) :
+  - il refuse insultes, haine et contournements (chiffres collés, lettres espacées, répétées ou en leet) ;
+  - il laisse passer les phrases normales (« pain bâtard », « je suis retardé », « Negroni ») ;
+  - « fdp » et « ta gueule » restent permis (à revoir si besoin).
+
+## Messagerie entre potes de l'app (décidé le 8 octobre 2026)
+- Messages privés et groupes. On y envoie :
+  - du texte, avec des réactions en emoji ;
+  - un lieu, avec « On y va ? » qui ouvre une sortie déjà remplie ;
+  - des photos ;
+  - des notes vocales (1 minute au plus ; micro demandé seulement au moment d'enregistrer).
+- **15-17 ans** :
+  - ils ne discutent qu'avec des potes ajoutés en vrai (lien ou QR code vérifié, donc pas avant l'API) ;
+  - pas de photo ni de note vocale dans une conversation qui mélange mineurs et adultes ;
+  - pas de bar proposé.
+- Pour l'instant, démo locale : rien ne part du téléphone, les interlocuteurs sont des potes d'exemple.
+
+## Visite sans compte (décidé le 8 octobre 2026, à construire)
+- **Sans compte, on regarde seulement** : fil, Explorer, fiches des lieux et leur carte, pages des créateurs, lecture des commentaires, « Y aller ».
+- **Tout le reste demande un compte** : rescousse, J'aime, commenter, suivre, garder, partager, envoyer à un pote, Pas intéressé, Signaler, Potes, chat, profil, défis, Scan. Une feuille « Crée ton compte » s'ouvre à la place.
+- **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou des moins de 15 ans reste actif sur le téléphone.
+
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
 - **Deux badges distincts (décidé le 8 octobre 2026)** : « 🚀 Premier sauveteur » = donner la toute première rescousse à un lieu qui vient d'arriver (+20 points) ; « 🔎 Déniché par toi » = proposer un lieu qui rejoint SOS Miam, sa fiche affiche « Déniché par <prénom> » (+30 points, « proposer un lieu validé »).
@@ -86,7 +154,7 @@
 - **Sauvegardes** : copie chiffrée de la base chaque nuit sur le serveur, 30 gardées ; clé de restauration notée par Hugo dans son gestionnaire de mots de passe.
 - **Demandes de lieux** : les lieux s'inscrivent sur le site (/inscrire-mon-lieu), la communauté propose sur Discord (/proposer-lieu) ; tout arrive dans le logiciel, où Hugo accepte (fiche créée en brouillon) ou refuse. Contacts effacés automatiquement 3 ans après.
 - **Annonces Discord** écrites dans le logiciel, publiées par le bot (salon choisi avec `/config annonces`).
-- Newsletter : le logiciel gère les inscrits et la rédaction ; **l'envoi arrivera avec Brevo** (pas d'envoi en masse par la boîte de l'hébergeur).
+- Newsletter : le logiciel gère les inscrits, la rédaction et l'envoi. **Les mails partent de la boîte bonjour@sosmiam.fr chez l'hébergement mail (SMTP), sans prestataire d'envoi** (décidé le 8 octobre 2026) : file d'attente avec une limite d'envois par heure (`ENVOI_PAR_HEURE`, 100 par défaut), désinscriptions retirées juste avant chaque envoi, journal des envois effacé après 90 jours. Mêmes règles pour les mails des comptes (bienvenue, alertes avant retrait ou effacement, nouveau mot de passe).
 - Les fiches des lieux et les publications du fil sont désormais dans la base, saisies dans le logiciel ; l'app les lira quand elle sera branchée à l'API.
 
 ## Statistiques de visite (décidé le 8 octobre 2026)
