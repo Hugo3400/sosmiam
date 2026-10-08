@@ -59,16 +59,14 @@ export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "p
   return (
     <View accessible accessibilityLabel={libelle} className="flex-row flex-wrap justify-center" style={{ gap: dim.ecart }}>
       {Array.from({ length: total }, (_, i) => {
-        const pose = i < poses;
         const cadeau = i === total - 1;
         const rond = { width: dim.rond, height: dim.rond, borderRadius: dim.rond / 2 };
-        if (!pose) {
-          return (
-            <View key={i} style={rond} className="items-center justify-center border-2 border-dashed border-gris/40 bg-white">
-              {cadeau ? <Text className={`${dim.cadeau} opacity-60`}>🎁</Text> : null}
-            </View>
-          );
-        }
+        const vide = (
+          <View style={rond} className="items-center justify-center border-2 border-dashed border-gris/40 bg-white">
+            {cadeau ? <Text className={`${dim.cadeau} opacity-60`}>🎁</Text> : null}
+          </View>
+        );
+        if (i >= poses) return <View key={i}>{vide}</View>;
         const marque = (
           <View
             style={[rond, { transform: [{ rotate: `${INCLINAISONS[i % INCLINAISONS.length]}deg` }] }]}
@@ -77,12 +75,13 @@ export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "p
             <Text className={`font-titre ${dim.marque} ${cadeau ? "text-white" : "text-encre"}`}>{cadeau ? "★" : "✓"}</Text>
           </View>
         );
-        return animer && i === poses - 1 ? (
-          <Animated.View key={i} style={styleCoup}>
-            {marque}
-          </Animated.View>
-        ) : (
-          <View key={i}>{marque}</View>
+        if (!animer || i !== poses - 1) return <View key={i}>{marque}</View>;
+        // Le rond vide reste visible dessous jusqu'à ce que le tampon s'y écrase
+        return (
+          <View key={i}>
+            {vide}
+            <Animated.View style={[{ position: "absolute", top: 0, left: 0 }, styleCoup]}>{marque}</Animated.View>
+          </View>
         );
       })}
     </View>

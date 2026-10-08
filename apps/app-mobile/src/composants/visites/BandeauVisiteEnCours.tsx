@@ -28,24 +28,24 @@ const estStatutIssue = (statut: StatutVisite): statut is StatutIssue => STATUTS_
 // Une issue pas vue au bout d'un quart d'heure n'est plus une nouvelle : le bandeau s'en va tout seul
 const DUREE_ISSUE_MS = 15 * 60_000;
 
-const ISSUES: Record<StatutIssue, { emoji: string; etiquette: string; fond: string; texte: (v: Visite) => string; annonce: (v: Visite) => string }> = {
+const ISSUES: Record<StatutIssue, { emoji: string; etiquette: (v: Visite) => string; fond: string; texte: (v: Visite) => string; annonce: (v: Visite) => string }> = {
   validee: {
     emoji: "🎉",
-    etiquette: "C'est validé !",
+    etiquette: (v) => `C'est validé ! +${v.points} points`,
     fond: "bg-jaune",
-    texte: (v) => `${v.lieu.nom} · +${v.points} points${v.tampon ? " et un tampon" : ""}`,
+    texte: (v) => `${v.lieu.nom}${v.tampon ? " · +1 tampon" : ""}`,
     annonce: (v) => `${v.lieu.nom} a validé ta visite : plus ${v.points} points${v.tampon ? " et un tampon" : ""} !`,
   },
   refusee: {
     emoji: "🧾",
-    etiquette: "Pas validée cette fois",
+    etiquette: () => "Pas validée cette fois",
     fond: "bg-white",
     texte: (v) => `${v.lieu.nom} · voir pourquoi`,
     annonce: (v) => `${v.lieu.nom} n'a pas validé ta visite cette fois.`,
   },
   expiree: {
     emoji: "😴",
-    etiquette: "Ta demande s'est endormie",
+    etiquette: () => "Demande endormie",
     fond: "bg-white",
     texte: (v) => `${v.lieu.nom} · 30 min sans réponse`,
     annonce: (v) => `Ta demande d'addition à ${v.lieu.nom} s'est endormie : 30 minutes sans réponse.`,
@@ -190,7 +190,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
       <View className={`min-h-14 flex-row items-center rounded-2xl border-2 border-encre ${forme.fond}`}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${forme.etiquette} ${forme.texte(visite)}`}
+          accessibilityLabel={forme.annonce(visite)}
           accessibilityHint={statut === "validee" ? "Ouvre ta visite pour fêter ça" : "Ouvre ta demande"}
           onPress={() => {
             vibrerLegerement();
@@ -205,7 +205,9 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
             {forme.emoji}
           </Text>
           <View className="flex-1">
-            <Text className="font-texte-gras text-[11px] uppercase tracking-wide text-encre">{forme.etiquette}</Text>
+            <Text numberOfLines={1} className="font-texte-gras text-[11px] uppercase tracking-wide text-encre">
+              {forme.etiquette(visite)}
+            </Text>
             <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
               {forme.texte(visite)}
             </Text>

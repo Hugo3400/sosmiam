@@ -38,7 +38,7 @@ function decrireJour(iso: string | null): string | null {
 }
 
 /** En-tête commun à tous les états : emoji, titre (où se pose VoiceOver), lieu, phrase */
-function dessinerEnTete({ emoji, titre, visite, texte, refTitre }: { emoji: string; titre: string; visite: Visite; texte?: string; refTitre?: Ref<Text> }) {
+function dessinerEnTete(emoji: string, titre: string, visite: Visite, texte: string, refTitre?: Ref<Text>) {
   return (
     <View className="items-center gap-2">
       <View
@@ -57,7 +57,7 @@ function dessinerEnTete({ emoji, titre, visite, texte, refTitre }: { emoji: stri
         </Text>
         <Text className="shrink text-center font-texte-semi text-base text-gris">{visite.lieu.nom}</Text>
       </View>
-      {texte ? <Text className="mt-1 text-center font-texte text-base leading-6 text-encre">{lierPonctuation(texte)}</Text> : null}
+      <Text className="mt-1 text-center font-texte text-base leading-6 text-encre">{lierPonctuation(texte)}</Text>
     </View>
   );
 }
@@ -77,7 +77,9 @@ function dessinerEncadre(emoji: string, texte: string) {
 /** « C'est une erreur » tant que la visite n'est pas contestée, puis « On regarde ça de près » */
 function dessinerContestation(visite: Visite, onContester: () => void) {
   if (visite.contestee) return dessinerEncadre("🔎", "On regarde ça de près. Un humain répondra.");
-  return <Bouton libelle="C'est une erreur" variante="blanc" indice="Raconte-nous ce qui s'est passé, l'équipe SOS Miam relira" onPress={onContester} />;
+  return (
+    <Bouton libelle="C'est une erreur" variante="blanc" indice="Raconte-nous ce qui s'est passé, l'équipe SOS Miam relira" onPress={onContester} />
+  );
 }
 
 /**
@@ -98,13 +100,21 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
     const etatAvis = decrireEtatAvis(visite.avis, Date.now());
     return (
       <View className="gap-5">
-        {dessinerEnTete({ emoji: "🎉", titre: "Visite validée !", visite, texte: jour ? `${LIBELLES_MODE_VALIDATION[visite.mode]} · ${jour}` : LIBELLES_MODE_VALIDATION[visite.mode], refTitre })}
+        {dessinerEnTete(
+          "🎉",
+          "Visite validée !",
+          visite,
+          jour ? `${LIBELLES_MODE_VALIDATION[visite.mode]} · ${jour}` : LIBELLES_MODE_VALIDATION[visite.mode],
+          refTitre,
+        )}
         {visite.points > 0 || tampon ? (
           <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
             {visite.points > 0 ? (
               <View accessible className="items-center gap-1">
                 <Text className="font-titre text-4xl text-encre">+{visite.points} points</Text>
-                {visite.pendantSos ? <Text className="text-center font-texte-semi text-sm text-gris">Ta visite est tombée pendant leur SOS.</Text> : null}
+                {visite.pendantSos ? (
+                  <Text className="text-center font-texte-semi text-sm text-gris">Ta visite est tombée pendant leur SOS.</Text>
+                ) : null}
               </View>
             ) : null}
             {tampon ? (
@@ -132,7 +142,13 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
   if (visite.statut === "refusee") {
     return (
       <View className="gap-5">
-        {dessinerEnTete({ emoji: "🤷", titre: `${visite.lieu.nom} n'a pas validé cette fois`, visite, texte: "Ça arrive : un code mal lu, des tables qui se mélangent…", refTitre })}
+        {dessinerEnTete(
+          "🤷",
+          `${visite.lieu.nom} n'a pas validé cette fois`,
+          visite,
+          "Ça arrive : un code mal lu, des tables qui se mélangent…",
+          refTitre,
+        )}
         {visite.motifRefus ? dessinerEncadre("🧾", LIBELLES_MOTIF_REFUS_CLIENT[visite.motifRefus]) : null}
         {redemander}
         {dessinerContestation(visite, onContester)}
@@ -143,7 +159,13 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
   if (visite.statut === "retiree") {
     return (
       <View className="gap-5">
-        {dessinerEnTete({ emoji: "↩️", titre: `${visite.lieu.nom} a annulé cette validation`, visite, texte: "Les points et le tampon repartent. Une erreur ? Dis-le-nous.", refTitre })}
+        {dessinerEnTete(
+          "↩️",
+          `${visite.lieu.nom} a annulé cette validation`,
+          visite,
+          "Les points et le tampon repartent. Une erreur ? Dis-le-nous.",
+          refTitre,
+        )}
         {dessinerContestation(visite, onContester)}
       </View>
     );
@@ -152,7 +174,13 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
   if (visite.statut === "expiree") {
     return (
       <View className="gap-5">
-        {dessinerEnTete({ emoji: "😴", titre: "Ta demande s'est endormie", visite, texte: "30 minutes sans réponse : le service devait être en plein rush. Redemande quand tu passes à la caisse.", refTitre })}
+        {dessinerEnTete(
+          "😴",
+          "Ta demande s'est endormie",
+          visite,
+          "30 minutes sans réponse : le service devait être en plein rush. Redemande quand tu passes à la caisse.",
+          refTitre,
+        )}
         {redemander}
       </View>
     );
@@ -161,7 +189,13 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
   // Annulée (par toi)
   return (
     <View className="gap-5">
-      {dessinerEnTete({ emoji: "👋", titre: "Demande annulée", visite, texte: "Pas de souci. Si tu changes d'avis, redemande l'addition au moment de payer.", refTitre })}
+      {dessinerEnTete(
+        "👋",
+        "Demande annulée",
+        visite,
+        "Pas de souci. Si tu changes d'avis, redemande l'addition au moment de payer.",
+        refTitre,
+      )}
       {redemander}
     </View>
   );

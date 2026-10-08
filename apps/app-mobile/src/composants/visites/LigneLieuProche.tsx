@@ -42,7 +42,11 @@ export function LigneLieuProche({ lieu, distanceM = null }: Props) {
         ) : null}
       </View>
       {sos ? (
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row items-center gap-2 self-start rounded-full bg-rose-alerte px-3 py-1">
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          className="flex-row items-center gap-2 self-start rounded-full bg-rose-alerte px-3 py-1"
+        >
           <View className="h-2 w-2 rounded-full bg-rouge-sos" />
           <Text className="font-texte-semi text-xs text-rouge-texte">SOS en cours · ta visite vaut +{calculerPointsVisite(true)}</Text>
         </View>

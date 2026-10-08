@@ -3,25 +3,29 @@ import type { Visite } from "@sos-miam/commun/types/visite";
 
 const NOMS_DES_MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
+// Espace insécable : « 21 h 47 » ou « 1 heure » ne se coupent jamais en fin de ligne
+const INSECABLE = "\u00A0";
+
 /** « 21 h 47 », « 22 h » (heure du téléphone, c'est-à-dire celle du lieu où l'on vient de manger) */
 function formaterHeureAvis(date: Date): string {
   const minutes = date.getMinutes();
-  return minutes === 0 ? `${date.getHours()} h` : `${date.getHours()} h ${String(minutes).padStart(2, "0")}`;
+  const heure = `${date.getHours()}${INSECABLE}h`;
+  return minutes === 0 ? heure : `${heure}${INSECABLE}${String(minutes).padStart(2, "0")}`;
 }
 
 /** « 1 minute », « 45 minutes », « 1 heure » : arrondi à la minute du dessus, pour ne jamais annoncer trop tôt */
 function formaterAttente(ms: number): string {
   const minutes = Math.max(1, Math.ceil(ms / 60_000));
-  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  if (minutes < 60) return `${minutes}${INSECABLE}minute${minutes > 1 ? "s" : ""}`;
   const heures = Math.floor(minutes / 60);
   const reste = minutes % 60;
-  return reste === 0 ? `${heures} heure${heures > 1 ? "s" : ""}` : `${heures} h ${String(reste).padStart(2, "0")}`;
+  return reste === 0 ? `${heures}${INSECABLE}heure${heures > 1 ? "s" : ""}` : `${heures}${INSECABLE}h${INSECABLE}${String(reste).padStart(2, "0")}`;
 }
 
 /** « 23 octobre », « 1er novembre » */
 function formaterJour(date: Date): string {
   const jour = date.getDate();
-  return `${jour === 1 ? "1er" : jour} ${NOMS_DES_MOIS[date.getMonth()]}`;
+  return `${jour === 1 ? "1er" : jour}${INSECABLE}${NOMS_DES_MOIS[date.getMonth()]}`;
 }
 
 /**

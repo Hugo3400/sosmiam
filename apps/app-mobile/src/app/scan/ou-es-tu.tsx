@@ -150,7 +150,9 @@ export default function TuEsChezQui() {
                   🧪
                 </Text>
                 <Text className="flex-1 font-texte text-sm leading-5 text-encre">
-                  {lierPonctuation("Démo : on fait comme si tu étais à 30 m du lieu choisi. Pour tester ta vraie position, passe par les Coulisses de la démo.")}
+                  {lierPonctuation(
+                    "Démo : on fait comme si tu étais à 30 m du lieu choisi. Pour tester ta vraie position, passe par les Coulisses de la démo.",
+                  )}
                 </Text>
               </View>
             ) : null}

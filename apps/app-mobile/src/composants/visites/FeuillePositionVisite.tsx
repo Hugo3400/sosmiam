@@ -34,12 +34,13 @@ export function FeuillePositionVisite({ visible, lieuNom, onAccepter, onRefuser 
   }, [visible]);
 
   const ou = lieuNom ? direChezLieu(lieuNom) : "sur place";
+  const detail = `Pour que ta visite compte, on vérifie que tu es bien ${ou} (à ${RAYON_VALIDATION_M} m près). Ta position sert à ça, une seule fois, et on ne la garde pas.`;
   return (
     <FeuilleConfirmation
       visible={visible && !acceptee}
       emoji="📍"
       titre="Petite vérif' de position"
-      detail={`Pour que ta visite compte, on vérifie que tu es bien ${ou} (à ${RAYON_VALIDATION_M} m près). Ta position sert à ça, une seule fois, et on ne la garde pas.`}
+      detail={detail}
       libelleConfirmer="OK, vérifie"
       libelleRester="Pas maintenant"
       indiceRester="Ta position n'est pas lue, et ta visite n'est pas demandée"

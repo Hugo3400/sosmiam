@@ -1,3 +1,5 @@
+/** Accents et autres signes posés sur une lettre, une fois le texte décomposé (NFD) */
+const ACCENTS = /[̀-ͯ]/g;
 /** Numéro suivi de « e », « er », « re », « eme » ou « ieme » (après retrait des accents) : « 11e », « 1er », « 3ème » */
 const ORDINAL = /^(\d+)(?:er|re|e|eme|ieme)$/;
 
@@ -8,15 +10,13 @@ const ORDINAL = /^(\d+)(?:er|re|e|eme|ieme)$/;
  * « l hay les roses », « Paris 11e Arrondissement » → « paris 11 arrondissement ».
  */
 export function normaliserNomCommune(texte: string): string {
-  return texte
+  const forme = texte
     .normalize("NFD")
-    .replace(/\p{M}/gu, "")
+    .replace(ACCENTS, "")
     .toLowerCase()
     .replace(/œ/g, "oe")
     .replace(/æ/g, "ae")
     .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .split(" ")
-    .map((mot) => mot.replace(ORDINAL, "$1"))
-    .join(" ");
+    .trim();
+  return /\d/.test(forme) ? forme.split(" ").map((mot) => mot.replace(ORDINAL, "$1")).join(" ") : forme;
 }

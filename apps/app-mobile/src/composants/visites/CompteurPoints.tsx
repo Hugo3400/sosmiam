@@ -52,14 +52,14 @@ export function CompteurPoints({ points, sos = false }: Props) {
 
   return (
     <View accessible accessibilityLabel={`+${total} points${sos ? ", pendant un SOS" : ""}`} className="items-center">
-      <Animated.View
-        style={styleRebond}
-        className={`flex-row items-baseline gap-1.5 rounded-full border-2 border-encre px-6 py-2 ${sos ? "bg-tomate" : "bg-jaune"}`}
-      >
-        <Text className="font-titre text-5xl text-encre" style={{ fontVariant: ["tabular-nums"] }}>
-          +{affiche}
-        </Text>
-        <Text className="font-texte-gras text-lg text-encre">{sos ? "points SOS" : "points"}</Text>
+      {/* Le rebond sur une vue animée, le style sur la vue dedans (className ne passe pas sur les vues de Reanimated) */}
+      <Animated.View style={styleRebond}>
+        <View className={`flex-row items-baseline gap-1.5 rounded-full border-2 border-encre px-6 py-2 ${sos ? "bg-tomate" : "bg-jaune"}`}>
+          <Text className="font-titre text-5xl text-encre" style={{ fontVariant: ["tabular-nums"] }}>
+            +{affiche}
+          </Text>
+          <Text className="font-texte-gras text-lg text-encre">{sos ? "points SOS" : "points"}</Text>
+        </View>
       </Animated.View>
     </View>
   );
