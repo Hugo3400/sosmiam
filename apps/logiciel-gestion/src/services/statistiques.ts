@@ -42,3 +42,11 @@ export const lireEnDirect = (source: SourceStatistiques = "site") => appeler<EnD
 export const lireObjectif = () => appeler<ObjectifMois | null>("GET", "/objectif");
 export const fixerObjectif = (objectif: ObjectifMois | null) =>
   appeler<{ ok: true }>("PUT", "/objectif", { corps: objectif ?? { valeur: null } });
+
+/** La communauté, semaine par semaine (12 semaines) */
+export type MesureCommunaute = "comptes" | "ambassadeurs" | "lieuxProposes" | "missions" | "bigSos" | "mails" | "notifications";
+export type StatistiquesCommunaute = {
+  totaux: { comptes: number; ambassadeursActifs: number; missionsFaites: number; bigSos: number; telephones: number };
+  semaines: ({ cle: string } & Record<MesureCommunaute, number>)[];
+};
+export const lireStatistiquesCommunaute = () => appeler<StatistiquesCommunaute>("GET", "/statistiques/communaute");

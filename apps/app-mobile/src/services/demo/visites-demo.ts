@@ -104,6 +104,8 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
       if (!client) return { ok: false, erreur: "connexion-requise" };
       const lieu = trouverLieu(lieuId);
       if (!lieu) return { ok: false, erreur: "introuvable" };
+      // Avant le pépin : un bar n'existe pas pour un 15-17 ans (le pépin « hors zone » donnerait son nom)
+      if (estCache(lieu, client.majeur)) return { ok: false, erreur: "mineur-bar" };
       const pepin = consommerPepin(["hors-zone", "position-imprecise", "hors-ligne", "refus-lieu"]);
       const echecPepin = traduirePepinDemo(pepin, lieu.nom);
       if (echecPepin) return echecPepin;

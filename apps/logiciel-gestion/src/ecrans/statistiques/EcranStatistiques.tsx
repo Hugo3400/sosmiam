@@ -21,6 +21,7 @@ import { enregistrerFichier } from "~/services/systeme.ts";
 import { CarteEnDirect } from "./CarteEnDirect.tsx";
 import { CarteJoursHeures } from "./CarteJoursHeures.tsx";
 import { GrilleClassements, GROUPES_CLASSEMENTS } from "./GrilleClassements.tsx";
+import { StatistiquesCommunaute } from "./StatistiquesCommunaute.tsx";
 import { TuilesStatistiques } from "./TuilesStatistiques.tsx";
 
 type Mesure = "visiteurs" | "visites" | "vues" | "inscriptions";
@@ -45,7 +46,8 @@ const NOMS_DIMENSIONS = Object.fromEntries(GROUPES_CLASSEMENTS.flatMap((g) => g.
 
 /** Statistiques de visite du site (et, plus tard, de l'app) : par jour, semaine, mois ou année. */
 export function EcranStatistiques() {
-  const [source, setSource] = useState<SourceStatistiques>("site");
+  const [vue, setVue] = useState<SourceStatistiques | "communaute">("site");
+  const source: SourceStatistiques = vue === "app" ? "app" : "site";
   const [choix, setChoix] = useState<Choix>("30j");
   const [semaine, setSemaine] = useState(() => dateVersSemaine(new Date()));
   const [mesure, setMesure] = useState<Mesure>("visiteurs");
@@ -93,8 +95,8 @@ export function EcranStatistiques() {
         }
       />
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <Onglets libelle="Source" valeur={source} onChange={setSource} options={[{ valeur: "site", libelle: "Site web" }, { valeur: "app", libelle: "App" }]} />
-        <Onglets libelle="Période" valeur={choix} onChange={setChoix} options={CHOIX.map(({ valeur, libelle }) => ({ valeur, libelle }))} />
+        <Onglets libelle="Source" valeur={vue} onChange={setVue} options={[{ valeur: "site", libelle: "Site web" }, { valeur: "app", libelle: "App" }, { valeur: "communaute", libelle: "Communauté" }]} />
+        {vue !== "communaute" && <Onglets libelle="Période" valeur={choix} onChange={setChoix} options={CHOIX.map(({ valeur, libelle }) => ({ valeur, libelle }))} />}
         {uneSemaine && (
           <div className="flex items-center gap-1">
             <Bouton petit variante="discret" icone={ChevronLeft} titre="Semaine précédente" onClick={() => decalerSemaine(-1)} />
@@ -110,9 +112,13 @@ export function EcranStatistiques() {
             <Bouton petit variante="discret" icone={ChevronRight} titre="Semaine suivante" desactive={semaine >= dateVersSemaine(new Date())} onClick={() => decalerSemaine(1)} />
           </div>
         )}
-        <CaseACocher libelle="Comparer à la période d'avant" coche={comparer} onChange={setComparer} />
+        {vue !== "communaute" && <CaseACocher libelle="Comparer à la période d'avant" coche={comparer} onChange={setComparer} />}
       </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
+      {vue === "communaute" ? (
+        <StatistiquesCommunaute />
+      ) : (
+      <>
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {source === "app" && periodes.every((p) => p.vues === 0) && !chargement ? (
         <Carte>
@@ -161,6 +167,8 @@ export function EcranStatistiques() {
           <GrilleClassements details={donnees.details} />
         </div>
       ) : null}
+      </>
+      )}
     </>
   );
 }

@@ -19,6 +19,9 @@ export function verifierDroitsDemo(lieu: Lieu, client: ClientDemo, maintenantMs:
     maintenantMs,
   });
   if (droit.ok) return null;
-  // Le nom d'un bar n'est jamais renvoyé à un 15-17 ans
-  return droit.erreur === "lieu-sans-validation" ? { ok: false, erreur: droit.erreur, details: { lieu: lieu.nom } } : { ok: false, erreur: droit.erreur };
+  // Le nom d'un bar n'est jamais renvoyé à un 15-17 ans (ni à quelqu'un dont on ignore l'âge), même si le bar ne valide pas
+  const nomVisible = !(lieu.type === "bar" && !client.majeur);
+  return droit.erreur === "lieu-sans-validation" && nomVisible
+    ? { ok: false, erreur: droit.erreur, details: { lieu: lieu.nom } }
+    : { ok: false, erreur: droit.erreur };
 }
