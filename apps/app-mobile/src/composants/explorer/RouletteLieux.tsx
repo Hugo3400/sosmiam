@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, Keyboard, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -142,6 +142,8 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
   // La roulette se lance à l'ouverture et s'arrête net à la fermeture
   useEffect(() => {
     if (!visible) return;
+    // Le clavier de la recherche cacherait le bas de la roulette (Relancer, Fermer)
+    Keyboard.dismiss();
     lancer();
     return arreterMinuteries;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- seulement à l'ouverture, avec les lieux de ce moment-là
@@ -189,7 +191,8 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
                 <View
                   accessible
                   accessibilityLabel={tourne || !affiche ? "La roulette tourne…" : decrire(affiche)}
-                  accessibilityState={{ busy: tourne }}
+                  // Sur iPhone, l'état « busy » est lu en anglais : le libellé « La roulette tourne… » suffit
+                  accessibilityState={Platform.OS === "ios" ? undefined : { busy: tourne }}
                   className="overflow-hidden rounded-carte border-2 border-encre bg-white"
                 >
                   <Animated.View style={styleRouleau}>

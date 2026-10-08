@@ -19,7 +19,7 @@ import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
 import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
 const NOUVEAU: SaisieLieu = {
-  nom: "", type: "resto", emoji: "🍝", info: "", texte: "", adresse: null, quartier: "", ville: "Montpellier",
+  nom: "", type: "resto", emoji: "🍝", info: "", texte: "", adresse: null, quartier: "", ville: "",
   latitude: null, longitude: null, prix: "€€", prixMoyen: null, couleurs: ["#FFD60A", "#FF4D3D"], horaires: "",
   ouverture: [], plat: "", tags: [], envies: [], reservable: false, telephone: null, siteWeb: null, instagram: null,
   decouvertPar: null, statut: "brouillon", note: null,

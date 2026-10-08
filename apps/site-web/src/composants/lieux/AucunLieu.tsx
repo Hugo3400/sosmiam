@@ -21,7 +21,7 @@ export function AucunLieu({ indisponible }: { indisponible: boolean }) {
       <p className="mx-auto mt-3 max-w-xl text-gris">
         {indisponible
           ? "Impossible d'afficher les lieux pour le moment. Reviens dans un instant !"
-          : "Aucun lieu n'est encore publié : les premiers restos, pâtisseries, bars et sorties de Montpellier et de l'Hérault arrivent avec le lancement. Ici, que du vrai : pas de faux lieux pour faire joli."}
+          : "Aucun lieu n'est encore publié : les premiers restos, pâtisseries, bars et sorties arrivent avec le lancement, partout en France. Ici, que du vrai : pas de faux lieux pour faire joli."}
       </p>
       <div className="mt-7 flex flex-wrap justify-center gap-3">
         <Bouton href="/#inscription">Préviens-moi au lancement</Bouton>

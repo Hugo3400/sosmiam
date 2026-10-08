@@ -1,9 +1,10 @@
 import { useBottomTabBarHeight } from "expo-router/tabs";
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Linking, Platform, Pressable, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, Alert, AppState, Keyboard, Linking, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BarreRechercheExplorer } from "~/composants/explorer/BarreRechercheExplorer";
 import { BoutonAutourDeMoi } from "~/composants/explorer/BoutonAutourDeMoi";
@@ -14,14 +15,17 @@ import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { centreHerault, centresVilles } from "~/contenus/centres-villes";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
+import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle, type ErreurPosition } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
@@ -32,19 +36,37 @@ const avecCarte = Platform.OS !== "web";
 const messagesPosition: Record<ErreurPosition, string> = {
   refus: "Pas de souci : la liste suit tes envies 💛",
   "refus-definitif": "SOS Miam n'a pas accès à ta position : tu peux l'autoriser dans les réglages du téléphone.",
-  coupee: "Ta localisation est éteinte : allume-la dans les réglages du téléphone.",
+  // Aucun lien ne mène à cet interrupteur-là : on donne le chemin
+  coupee:
+    Platform.OS === "ios"
+      ? "Ta localisation est éteinte : allume-la dans Réglages > Confidentialité et sécurité > Service de localisation."
+      : "Ta localisation est éteinte : allume-la dans les réglages du téléphone (Localisation).",
   introuvable: "On ne te trouve pas pour l'instant : réessaie dans un instant.",
 };
+
+/** Après un filtre ou une recherche, le lecteur d'écran dit combien de lieux restent, une fois la frappe calmée (ms) */
+const DELAI_ANNONCE_NOMBRE = 700;
+const MINUTE = 60_000;
+
+/**
+ * Les lieux tels qu'ils sont à cet instant : un SOS dont l'heure de fin est passée disparaît partout (liste, carte, roulette, tri).
+ * Toujours de nouveaux objets : les lignes et marqueurs mémorisés se redessinent, et recalculent « Ouvert » / « Fermé ».
+ */
+function lieuxDuMoment(lieux: Lieu[], maintenant: Date): Lieu[] {
+  return lieux.map((lieu) => ({ ...lieu, sos: estSosEnCours(lieu, maintenant) ? lieu.sos : undefined }));
+}
 
 /**
  * Onglet « Explorer » : la carte des lieux et une liste qu'on remonte du bas, avec recherche, filtres,
  * les SOS du soir en tête, la roulette et « Autour de moi » (position demandée seulement au toucher).
+ * Partout en France : la carte s'ouvre sur ta ville et les distances partent d'elle (ou de ta position avec « Autour de moi »).
  */
 export default function Explorer() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { profil } = utiliserProfil();
+  const pointDeDepart = utiliserPointDeDepart();
   const { position, recherche, chercher, oublier } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [selection, setSelection] = useState<number | null>(null);
@@ -53,21 +75,88 @@ export default function Explorer() {
   const [hauteurEcran, setHauteurEcran] = useState(0);
   const [hauteurEnTete, setHauteurEnTete] = useState(0);
   const [hauteurFeuille, setHauteurFeuille] = useState(0);
+  const [hauteurClavier, setHauteurClavier] = useState(0);
+  const [maintenant, setMaintenant] = useState(() => new Date());
+  const refCompteur = useRef<Text>(null);
+
+  // L'heure avance : « Ouvert maintenant », Ouvert / Fermé et les SOS du soir se recalculent à chaque minute
+  // tant que l'onglet est affiché, et dès qu'on revient dans l'app
+  useFocusEffect(
+    useCallback(() => {
+      let minuterie: ReturnType<typeof setTimeout> | undefined;
+      const avancer = () => {
+        setMaintenant(new Date());
+        minuterie = setTimeout(avancer, MINUTE - (Date.now() % MINUTE) + 50);
+      };
+      avancer();
+      const abonnement = AppState.addEventListener("change", (etat) => {
+        if (etat === "active") setMaintenant(new Date());
+      });
+      return () => {
+        clearTimeout(minuterie);
+        abonnement.remove();
+      };
+    }, []),
+  );
+
+  // Sur iPhone, le clavier ne pousse rien tout seul : la feuille et le cadrage de la carte se posent au-dessus de lui
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    const ouvert = Keyboard.addListener("keyboardWillShow", (e) => setHauteurClavier(e.endCoordinates.height));
+    const ferme = Keyboard.addListener("keyboardWillHide", () => setHauteurClavier(0));
+    return () => {
+      ouvert.remove();
+      ferme.remove();
+    };
+  }, []);
 
   // Les bars disparaissent sous 18 ans (ou âge inconnu), comme partout dans l'app
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age), [age]);
   const barsPermis = lieuxPermis.length === lieuxExemples.length;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
-  const lieux = useMemo(() => trierLieuxExplorer(filtrerLieuxExplorer(lieuxPermis, filtres), profil, position), [lieuxPermis, filtres, profil, position]);
+  const lieuxActuels = useMemo(() => lieuxDuMoment(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
+  const lieux = useMemo(
+    () => trierLieuxExplorer(filtrerLieuxExplorer(lieuxActuels, filtres, maintenant), profil, position, pointDeDepart),
+    [lieuxActuels, filtres, maintenant, profil, position, pointDeDepart],
+  );
   // SOS d'abord, puis les alertes du soir
   const sos = useMemo(() => lieux.filter(({ lieu }) => lieu.sos || lieu.alerte).sort((a, b) => Number(!!b.lieu.sos) - Number(!!a.lieu.sos)), [lieux]);
-  const centre = (filtres.ville && centresVilles[filtres.ville]) || (profil && centresVilles[profil.ville]) || centreHerault;
+  // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux
+  const centre = useMemo((): PositionLieu | null => {
+    if (!filtres.ville) return pointDeDepart;
+    const ville = trouverVilleFrance(filtres.ville);
+    if (ville) return { latitude: ville.latitude, longitude: ville.longitude };
+    return lieuxPermis.find((l) => l.ville === filtres.ville && l.position)?.position ?? null;
+  }, [filtres.ville, lieuxPermis, pointDeDepart]);
 
   // Un lieu sélectionné que les filtres ont retiré n'est plus sélectionné
   useEffect(() => {
     if (selection !== null && !lieux.some(({ lieu }) => lieu.id === selection)) setSelection(null);
   }, [lieux, selection]);
+
+  // Ce que dira l'annonce du nombre de lieux (lu quand elle part, après l'attente)
+  const nombre = useRef({ lieux: lieux.length, recherche: false, sauter: false });
+  useEffect(() => {
+    nombre.current.lieux = lieux.length;
+    nombre.current.recherche = filtres.texte.trim() !== "";
+  });
+  // Les filtres ou la recherche ont changé : le lecteur d'écran dit combien de lieux restent (rien au premier affichage)
+  const filtresAnnonces = useRef(filtres);
+  useEffect(() => {
+    if (filtresAnnonces.current === filtres) return;
+    filtresAnnonces.current = filtres;
+    const minuterie = setTimeout(() => {
+      const { lieux: n, recherche: avecRecherche, sauter } = nombre.current;
+      nombre.current.sauter = false;
+      // Le focus vient d'être posé sur le compteur, qui le dit déjà
+      if (sauter) return;
+      const texte = n === 0 ? (avecRecherche ? "Aucun lieu pour cette recherche" : "Aucun lieu avec ces filtres") : `${n} lieu${n > 1 ? "x" : ""}`;
+      if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
+      else AccessibilityInfo.announceForAccessibility(texte);
+    }, DELAI_ANNONCE_NOMBRE);
+    return () => clearTimeout(minuterie);
+  }, [filtres]);
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -78,22 +167,35 @@ export default function Explorer() {
     const resultat = await chercher();
     if (!("erreur" in resultat)) return;
     const message = messagesPosition[resultat.erreur];
-    // Sur le téléphone, un accès refusé pour de bon ou une localisation éteinte se règlent dans les réglages : on y emmène
-    if (Platform.OS !== "web" && (resultat.erreur === "refus-definitif" || resultat.erreur === "coupee")) {
+    if (Platform.OS === "web") return annoncer(message);
+    // Un accès refusé pour de bon se règle dans les réglages de l'app : on y emmène
+    if (resultat.erreur === "refus-definitif") {
       Alert.alert("Autour de moi", message, [
         { text: "Plus tard", style: "cancel" },
         { text: "Ouvrir les réglages", onPress: () => Linking.openSettings().catch(() => {}) },
       ]);
+    } else if (resultat.erreur === "coupee") {
+      // La localisation se rallume ailleurs que dans les réglages de l'app : on donne seulement le chemin
+      Alert.alert("Autour de moi", message, [{ text: "Compris" }]);
     } else annoncer(message);
   }
 
-  const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - hauteurBarreOnglets - 8);
+  /** Remet les filtres à zéro depuis la liste vide (la recherche aussi si demandé) ; le lecteur d'écran passe sur le compteur */
+  function effacer(aussiLaRecherche: boolean) {
+    nombre.current.sauter = true;
+    setFiltres((f) => ({ ...FILTRES_EXPLORER_PAR_DEFAUT, texte: aussiLaRecherche ? "" : f.texte }));
+    setTimeout(() => deplacerFocusLecteurEcran(refCompteur.current), 150);
+  }
+
+  // Ce qui est sous la feuille : la barre d'onglets, ou le clavier quand il est ouvert (il la recouvre)
+  const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
+  const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
   const resume = position ? "les plus proches d'abord" : profil ? "selon tes envies" : "";
 
   const outils = (
     <View className="flex-row items-center gap-2 px-4 pb-2">
       <View className="flex-1">
-        <Text accessibilityRole="header" className="font-titre text-xl text-encre">
+        <Text ref={refCompteur} accessibilityRole="header" className="font-titre text-xl text-encre">
           {lieux.length} lieu{lieux.length > 1 ? "x" : ""}
         </Text>
         {resume ? <Text className="font-texte text-xs text-gris">{resume}</Text> : null}
@@ -114,14 +216,29 @@ export default function Explorer() {
     </View>
   );
 
+  // Liste vide : on dit si c'est la recherche ou les filtres qui bloquent. « Effacer les filtres » garde toujours la recherche (comme la pastille).
+  const motRecherche = filtres.texte.trim();
+  const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant;
   const vide = (
     <View className="items-center gap-3 px-6 py-6">
       <Mascotte expression="surprise" taille={96} />
       <Text className="text-center font-titre text-xl text-encre">Rien par ici…</Text>
       <Text className="text-center font-texte text-base leading-6 text-gris">
-        {lierPonctuation("Aucun lieu avec ces filtres : élargis un peu, la bonne table n'est sûrement pas loin !")}
+        {lierPonctuation(
+          !motRecherche
+            ? "Aucun lieu avec ces filtres : élargis un peu, la bonne table n'est sûrement pas loin !"
+            : avecFiltres
+              ? `Rien pour « ${motRecherche} » avec ces filtres : essaie un autre mot ou élargis un peu !`
+              : `Rien pour « ${motRecherche} » : essaie un autre mot, la bonne table n'est sûrement pas loin !`,
+        )}
       </Text>
-      <Bouton libelle="Effacer les filtres" variante="blanc" petit onPress={() => setFiltres(FILTRES_EXPLORER_PAR_DEFAUT)} />
+      {!motRecherche ? (
+        <Bouton libelle="Effacer les filtres" variante="blanc" petit onPress={() => effacer(false)} />
+      ) : avecFiltres ? (
+        <Bouton libelle="Tout effacer" indice="Efface la recherche et les filtres" variante="blanc" petit onPress={() => effacer(true)} />
+      ) : (
+        <Bouton libelle="Effacer la recherche" variante="blanc" petit onPress={() => effacer(true)} />
+      )}
     </View>
   );
 
@@ -135,7 +252,7 @@ export default function Explorer() {
           selection={selection}
           onSelection={setSelection}
           margeHaut={hauteurEnTete}
-          margeBas={hauteurFeuille}
+          margeBas={hauteurFeuille + bas}
         />
       ) : null}
 
@@ -153,7 +270,7 @@ export default function Explorer() {
       </View>
 
       {hauteurDisponible > 0 ? (
-        <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, bottom: hauteurBarreOnglets }}>
+        <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, bottom: bas }}>
           <FeuilleLieux
             lieux={lieux}
             sos={sos}

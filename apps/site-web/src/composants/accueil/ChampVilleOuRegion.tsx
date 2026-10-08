@@ -209,9 +209,6 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
               <div role="presentation" id={`${idListe}-groupe-${position}`}
                 className="flex items-center gap-2 px-4 pt-2.5 pb-1 text-xs font-bold tracking-wide text-gris uppercase">
                 {groupe.region}
-                {groupe.lancement && (
-                  <span className="rounded-full bg-jaune px-2 py-0.5 text-[.7rem] tracking-normal text-encre normal-case">On commence ici</span>
-                )}
               </div>
               {groupe.lieux.map((lieu) => {
                 const estActif = actif === lieu.id;
@@ -234,10 +231,8 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
                       : "text-encre"}`}
                   >
                     <span className="block font-semibold">{lieu.nom}</span>
-                    {lieu.type !== "ville" && (
-                      <span className={`block text-sm ${estActif ? "text-jaune-clair" : "text-gris"}`}>
-                        {lieu.type === "region" ? "toute la région" : "tout le département"}
-                      </span>
+                    {lieu.type === "region" && (
+                      <span className={`block text-sm ${estActif ? "text-jaune-clair" : "text-gris"}`}>toute la région</span>
                     )}
                   </div>
                 );

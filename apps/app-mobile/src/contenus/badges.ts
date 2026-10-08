@@ -35,6 +35,6 @@ export const badges: Badge[] = [
   { id: "serie-4", emoji: "🔥", nom: "4 semaines d'affilée", texte: "Une visite validée par semaine pendant 4 semaines" },
   { id: "iode", emoji: "🦪", nom: "Iodé", texte: "Des huîtres de Bouzigues dégustées sur place" },
   { id: "noctambule", emoji: "🌙", nom: "Noctambule", texte: "3 bars validés après 22 h" },
-  { id: "explorateur", emoji: "🧭", nom: "Explorateur de l'Hérault", texte: "Des visites dans 5 communes différentes" },
+  { id: "explorateur", emoji: "🧭", nom: "Explorateur", texte: "Des visites dans 5 villes différentes" },
   { id: "bande", emoji: "👯", nom: "Toute la bande", texte: "Une sortie entre potes validée à 4 ou plus" },
 ];

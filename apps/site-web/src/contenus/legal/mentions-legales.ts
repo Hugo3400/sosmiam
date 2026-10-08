@@ -71,7 +71,7 @@ export const documentMentionsLegales: DocumentLegal = {
       id: "objet",
       titre: "À quoi sert le site",
       blocs: [
-        `${site.nom} veut te faire découvrir les lieux indépendants (restos, pâtisseries, bars, bowlings, salles d'événements, sorties) qui ont besoin de monde, y compris ceux qui traversent une vraie période difficile. Le lancement est prévu à Montpellier et dans l'Hérault, puis ville par ville.`,
+        `${site.nom} veut te faire découvrir les lieux indépendants (restos, pâtisseries, bars, bowlings, salles d'événements, sorties) qui ont besoin de monde, y compris ceux qui traversent une vraie période difficile. Le lancement est prévu partout en France.`,
         "Le projet est en cours de développement : pour l'instant, le site présente SOS Miam et te permet de demander à être prévenu du lancement, de demander l'inscription de ton lieu ou de proposer ta candidature comme ambassadeur fondateur.",
         "**Tout est gratuit**, pour toi comme pour les lieux : pas d'abonnement, pas d'offre payante, aucune commission. Rien n'est vendu sur le site, c'est pourquoi il n'y a pas de conditions générales de vente. Les règles d'utilisation du site se trouvent dans les [conditions d'utilisation](/cgu).",
         "À terme, SOS Miam prévoit de se financer grâce à de la publicité, toujours signalée comme telle et sans aucun effet sur le classement des lieux. Il n'y a aucune publicité aujourd'hui.",
@@ -84,7 +84,7 @@ export const documentMentionsLegales: DocumentLegal = {
         "Les textes, le logo, la mascotte (la bouée qui sourit), les illustrations et les éléments graphiques du site sont la propriété de l'éditeur et sont protégés par le Code de la propriété intellectuelle. Les polices de caractères restent la propriété de leurs auteurs (voir « Crédits » ci-dessous).",
         "Sauf accord écrit de l'éditeur, il est interdit de reproduire, de modifier ou de réutiliser ces éléments, en tout ou en partie, en dehors des cas prévus par la loi, comme une courte citation qui mentionne sa source.",
         `Tu peux bien sûr partager un lien vers le site sans rien demander. Pour toute autre utilisation (article, présentation, partenariat…), écris-nous à ${lienEmail}.`,
-        "Les lieux présentés en exemple sur le site (noms, descriptions, chiffres et alertes) sont **fictifs** : ils servent seulement à montrer le principe avant le lancement. Toute ressemblance avec un établissement existant serait une pure coïncidence. Les villes et les quartiers cités, eux, existent bien.",
+        "Le site ne montre aucun lieu inventé : les lieux qui y apparaissent sont de vrais lieux.",
       ],
     },
     {

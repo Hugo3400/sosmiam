@@ -22,7 +22,6 @@ export function PourLesPros() {
             <ListeCoches elements={avantagesPro} />
           </div>
           <Bouton vers="/inscrire-mon-lieu">Inscrire mon lieu</Bouton>
-          <p className="mt-4 text-sm text-gris">À Montpellier et dans l'Hérault, on peut même passer créer ta fiche avec toi.</p>
         </div>
 
         <CarteToutGratuit />

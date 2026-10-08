@@ -13,7 +13,7 @@ export const questionsAmbassadeurs: QuestionFaq[] = [
     id: "faq-fondateurs",
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse: [
-      "L'un des 10 premiers ambassadeurs de Montpellier. Ils lancent SOS Miam avec nous, aident à choisir les premiers lieux et gardent un badge de fondateur. Pour candidater, [laisse ton e-mail](/#inscription) et coche « ambassadeur fondateur ».",
+      "L'un des 10 premiers ambassadeurs de SOS Miam. Ils lancent SOS Miam avec nous, aident à choisir les premiers lieux et gardent un badge de fondateur. Pour candidater, [laisse ton e-mail](/#inscription) et coche « ambassadeur fondateur ».",
     ],
   },
   {

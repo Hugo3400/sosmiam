@@ -1,9 +1,11 @@
 import * as Location from "expo-location";
 import { useCallback, useState } from "react";
 
-import { villesLancement } from "~/contenus/inscription/villes";
+import { villesFrance } from "@sos-miam/commun/contenus/villes-france";
+import { calculerDistance } from "~/fonctions/geo/calculer-distance";
 import { extraireNomVille } from "~/fonctions/geo/extraire-nom-ville";
 import { nettoyerNomVille } from "~/fonctions/texte/nettoyer-nom-ville";
+import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { verifierNomVille } from "~/fonctions/texte/verifier-nom-ville";
 
 /**
@@ -15,6 +17,8 @@ export type ResultatVilleParPosition = { ville: string } | { erreur: "refus" | "
 // Une position récente suffit pour trouver une ville ; sinon on en demande une, sans attendre plus de 12 secondes
 const AGE_MAX_POSITION = 10 * 60 * 1000;
 const DELAI_MAX = 12_000;
+// Quand deux villes de notre liste portent le même nom, la bonne est celle dont le centre est à moins de 30 km
+const RAYON_HOMONYME_KM = 30;
 
 /**
  * Trouve la ville où l'on se trouve, à partir de la position du téléphone lue une seule fois.
@@ -42,7 +46,12 @@ export function utiliserVilleParPosition() {
       if (!position) return { erreur: "introuvable" };
       const [adresse] = await Location.reverseGeocodeAsync({ latitude: position.coords.latitude, longitude: position.coords.longitude });
       const nom = adresse ? extraireNomVille(adresse) : null;
-      const ville = nom ? nettoyerNomVille(nom, villesLancement) : null;
+      const propre = nom ? nettoyerNomVille(nom) : null;
+      // Un nom que portent deux villes de notre liste : on garde celle où l'on est, précisée de sa région (« Saint-Denis (La Réunion) »)
+      const homonyme = villesFrance.find(
+        (v) => v.valeur !== v.nom && normaliserRecherche(v.nom) === normaliserRecherche(propre ?? "") && calculerDistance(v, position.coords) < RAYON_HOMONYME_KM,
+      );
+      const ville = homonyme?.valeur ?? propre;
       // Même règle que pour une ville tapée à la main (un nom avec des chiffres ne passerait pas le champ)
       return ville && verifierNomVille(ville) === "valable" ? { ville } : { erreur: "introuvable" };
     } catch {

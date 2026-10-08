@@ -133,6 +133,7 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 |---|---|
 | `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…) |
 | `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS |
+| `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`) |
 | `src/theme/` | couleurs, polices, arrondis (utilisés par le site et l'app) |
 | `src/validation/` | règles des formulaires (inscription, demande de BIG SOS…) |
 | `src/client-api/` | fonctions pour appeler l'API, utilisées par le site et l'app |

@@ -15,7 +15,7 @@ export function RechercheFaq({ valeur, onChange }: Props) {
         type="search"
         value={valeur}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Cherche : prix, avis, Sète…"
+        placeholder="Cherche : prix, avis, BIG SOS…"
         autoComplete="off"
         className="min-w-0 flex-1 bg-transparent font-medium outline-none"
       />

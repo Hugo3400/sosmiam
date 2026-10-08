@@ -17,12 +17,14 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
+import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
+import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
@@ -36,6 +38,8 @@ export default function PourToi() {
   const focus = useIsFocused();
   const marges = useSafeAreaInsets();
   const { profil } = utiliserProfil();
+  // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
+  const depart = utiliserPointDeDepart();
   const activite = utiliserActivite();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
   const [taille, setTaille] = useState({ largeur: 0, hauteur: 0 });
@@ -184,13 +188,15 @@ export default function PourToi() {
             renderItem={({ item }) => {
               const lieu = lieuParId.get(item.lieuId);
               if (!lieu) return null;
+              const km = calculerKmLieu(lieu, depart);
               return (
                 <PostPublication
                   publication={item}
                   lieu={lieu}
+                  km={km}
                   largeur={taille.largeur}
                   hauteur={taille.hauteur}
-                  raison={profil ? trouverRaisonLieu(lieu, profil) : null}
+                  raison={profil ? trouverRaisonLieu({ ...lieu, km }, profil) : null}
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
                   actif={focus && visible === item.id}

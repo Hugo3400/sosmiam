@@ -30,11 +30,14 @@ export function BoutonAutourDeMoi({ actif, recherche, onPress }: Props) {
       <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Autour de moi"
+        // Le libellé dit la recherche en cours : l'état « busy » serait lu en anglais sur iPhone, on le garde pour Android
+        accessibilityLabel={libelle}
         accessibilityHint={
-          actif ? "Les lieux sont triés du plus proche au plus loin" : "Trie les lieux du plus proche au plus loin, avec ta position lue une seule fois"
+          actif
+            ? "Les lieux sont triés du plus proche au plus loin. Touche encore pour oublier ta position"
+            : "Trie les lieux du plus proche au plus loin. Ta position n'est lue que quand tu touches, gardée le temps de l'écran et jamais enregistrée"
         }
-        accessibilityState={{ selected: actif, busy: recherche, disabled: recherche }}
+        accessibilityState={{ selected: actif, disabled: recherche, ...(Platform.OS === "ios" ? {} : { busy: recherche }) }}
         disabled={recherche}
         onPress={() => {
           vibrerLegerement();

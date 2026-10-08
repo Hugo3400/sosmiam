@@ -16,7 +16,7 @@ const tousLesChamps = [...champsLieu, ...champsContact];
 export function meta(_: Route.MetaArgs) {
   return creerMeta({
     titre: "Inscrire mon lieu",
-    description: "Resto, pâtisserie, bar ou sortie indépendant à Montpellier ou dans l'Hérault : inscris ton lieu sur SOS Miam. C'est gratuit, sans abonnement ni commission.",
+    description: "Resto, pâtisserie, bar ou sortie indépendant, partout en France : inscris ton lieu sur SOS Miam. C'est gratuit, sans abonnement ni commission.",
   });
 }
 
@@ -55,7 +55,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseDema
   if (resultat.ok) {
     return {
       ok: true,
-      message: lierPonctuation("On lit chaque demande. Si tout est bon, on crée la fiche de ton lieu et on t'écrit à l'adresse indiquée. À Montpellier et dans l'Hérault, on peut même passer la créer avec toi."),
+      message: lierPonctuation("On lit chaque demande. Si tout est bon, on crée la fiche de ton lieu et on t'écrit à l'adresse indiquée."),
     };
   }
   if (resultat.erreur === "champ-invalide") {

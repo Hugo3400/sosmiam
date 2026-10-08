@@ -45,7 +45,10 @@ export function creerControleursGestion(s: ServicesGestion) {
       const source = lireChoix({ source: requete.query.source ?? "site" }, "source", ["site", "app"] as const);
       const demande = Number(requete.query.nombre);
       const nombre = Number.isInteger(demande) && demande > 0 ? Math.min(demande, ECHELLES[echelle].max) : ECHELLES[echelle].defaut;
-      reponse.json(await s.lireStatistiques(source, echelle, nombre));
+      // « jusqua=AAAA-MM-JJ » : les périodes qui finissent à cette date (une semaine passée…), jamais dans le futur
+      const jusqua = lireParametre(requete.query.jusqua, 10);
+      const fin = /^\d{4}-\d{2}-\d{2}$/.test(jusqua) ? new Date(`${jusqua}T12:00:00Z`) : new Date();
+      reponse.json(await s.lireStatistiques(source, echelle, nombre, Number.isNaN(fin.getTime()) || fin > new Date() ? new Date() : fin));
     }),
 
     objectif: verifier(async (_requete, reponse) => reponse.json(await s.lireObjectifMois())),

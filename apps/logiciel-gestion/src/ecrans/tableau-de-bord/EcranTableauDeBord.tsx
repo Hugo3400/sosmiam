@@ -1,10 +1,12 @@
 import { ArrowRight, RotateCw, Server, Siren } from "lucide-react";
+import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { GraphiqueColonnes } from "~/composants/interface/GraphiqueColonnes.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
+import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { TuileChiffre } from "~/composants/interface/TuileChiffre.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
@@ -12,6 +14,7 @@ import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.t
 import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { nommerPeriode } from "~/fonctions/texte/nommer-periode.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
+import { lireStatistiques } from "~/services/statistiques.ts";
 import { lireTableauDeBord } from "~/services/tableau-de-bord.ts";
 import { CarteEnDirect } from "~/ecrans/statistiques/CarteEnDirect.tsx";
 import { CarteObjectif } from "./CarteObjectif.tsx";
@@ -24,6 +27,8 @@ type Props = { allerA: (ecran: Ecran) => void; problemesServeur: string[]; rever
 
 export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur }: Props) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireTableauDeBord, []);
+  const [vue, setVue] = useState<"jours" | "semaines">("jours");
+  const semaines = utiliserChargement(() => (vue === "semaines" ? lireStatistiques("site", "semaine", 12) : Promise.resolve(null)), [vue]);
   const jours = donnees?.visites.jours ?? [];
   const aujourdhui = jours[jours.length - 1] ?? { vues: 0, visites: 0, visiteurs: 0 };
   const hier = jours[jours.length - 2] ?? { vues: 0, visites: 0, visiteurs: 0 };
@@ -73,16 +78,24 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
             <CarteEnDirect />
           </div>
 
-          <Carte titre="Visiteurs, 14 derniers jours" actions={<Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("statistiques")}>Toutes les statistiques</Bouton>}>
+          <Carte
+            titre={vue === "jours" ? "Visiteurs, 14 derniers jours" : "Visiteurs, 12 dernières semaines"}
+            actions={
+              <>
+                <Onglets libelle="Graphique" valeur={vue} onChange={setVue} options={[{ valeur: "jours", libelle: "14 jours" }, { valeur: "semaines", libelle: "12 semaines" }]} />
+                <Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("statistiques")}>Toutes les statistiques</Bouton>
+              </>
+            }
+          >
             <GraphiqueColonnes
               mesure="Visiteurs"
-              points={jours.map((jour, i) => ({
+              points={(vue === "semaines" ? (semaines.donnees?.periodes ?? []) : jours).map((jour, i, liste) => ({
                 cle: jour.cle,
                 libelle: nommerPeriode(jour.cle),
                 libelleLong: nommerPeriode(jour.cle, true),
                 valeur: jour.visiteurs,
                 details: [`${formaterNombre(jour.visites)} visites`, `${formaterNombre(jour.vues)} pages vues`],
-                enCours: i === jours.length - 1,
+                enCours: i === liste.length - 1,
               }))}
             />
           </Carte>

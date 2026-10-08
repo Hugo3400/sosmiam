@@ -19,6 +19,8 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   publication: Publication;
   lieu: Lieu;
+  /** Distance du lieu depuis ta ville, en km (un nombre : la publication est mémorisée) */
+  km: number;
   largeur: number;
   hauteur: number;
   /** « Parce que tu aimes les restos »… */
@@ -58,7 +60,7 @@ const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -107,10 +109,10 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     `${typeMedia} de ${nomAuteur}`,
     media && publication.illustration ? etiquetteIllustration : null,
     auteur.type === "createur" && auteur.partenariat ? `Collaboration commerciale : ${auteur.partenariat}` : null,
-    lieu.sos ? `SOS : ${lieu.sos.places} places jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null,
+    lieu.sos ? `SOS : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null,
     lieu.alerte,
     raison,
-    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(lieu.km)}, ${lieu.prix}`,
+    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
     publication.legende,
   ].filter(Boolean).join(". ");
 
@@ -178,7 +180,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             <View className="flex-row flex-wrap gap-2">
               {lieu.sos ? (
                 <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-                  🛟 SOS · {lieu.sos.places} places jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                  🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
                 </Text>
               ) : null}
               {lieu.alerte ? (
@@ -188,7 +190,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
             <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
             <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
-              📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(lieu.km)} · {lieu.prix}
+              📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
             </Text>
             <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-white" style={ombreTexte}>
               {lierPonctuation(publication.legende)}

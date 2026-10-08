@@ -5,7 +5,7 @@ import { AccessibilityInfo, ActivityIndicator, Linking, Platform, Pressable, Tex
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
-import { LONGUEUR_MAX_VILLE, villesLancement } from "~/contenus/inscription/villes";
+import { LONGUEUR_MAX_VILLE, villesConnues, villesLancement } from "~/contenus/inscription/villes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { nettoyerNomVille } from "~/fonctions/texte/nettoyer-nom-ville";
@@ -41,11 +41,23 @@ const NOTE_POSITION = lierPonctuation("Ta position sert juste à trouver le nom 
 // Retrouver une ville à partir d'une position n'existe pas dans le navigateur (aperçu web) : on y tape sa ville
 const positionPossible = Platform.OS !== "web";
 
-/** Les villes de lancement qui contiennent ce qui est tapé (sauf celle déjà écrite en entier) */
+const MAX_SUGGESTIONS = 6;
+// Préparées une fois : comparées sans accents ni majuscules, villes de lancement d'abord (ordre de villesConnues)
+const villesComparees = villesConnues.map((ville, ordre) => ({ ville, ordre, cle: normaliserRecherche(ville), lancement: villesLancement.includes(ville) }));
+
+/**
+ * Les villes de France qui contiennent ce qui est tapé (sauf celle déjà écrite en entier), 6 au plus : villes de lancement
+ * d'abord, puis les autres, et dans chaque groupe celles qui commencent par ce qui est tapé.
+ */
 function proposerVilles(texte: string): string[] {
   const cherche = normaliserRecherche(texte);
   if (cherche === "") return [];
-  return villesLancement.filter((ville) => normaliserRecherche(ville).includes(cherche) && normaliserRecherche(ville) !== cherche);
+  const rang = (v: (typeof villesComparees)[number]) => (v.lancement ? 0 : 2) + (v.cle.startsWith(cherche) ? 0 : 1);
+  return villesComparees
+    .filter((v) => v.cle.includes(cherche) && v.cle !== cherche)
+    .sort((a, b) => rang(a) - rang(b) || a.ordre - b.ordre)
+    .slice(0, MAX_SUGGESTIONS)
+    .map((v) => v.ville);
 }
 
 /** Choix de la ville : avec la position du téléphone (lue une fois, jamais gardée), ou tapée à la main avec des suggestions. */
@@ -71,7 +83,7 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
   const suggestions = proposerVilles(texte);
 
   // Ce qui est tapé et refusé (pas de ville retenue) : chiffres et symboles signalés tout de suite, un nom incomplet seulement en quittant le champ
-  const verdict = valeur === null && texte.trim() !== "" ? verifierNomVille(nettoyerNomVille(texte, villesLancement)) : "valable";
+  const verdict = valeur === null && texte.trim() !== "" ? verifierNomVille(nettoyerNomVille(texte)) : "valable";
   const erreurSaisie = verdict === "caracteres-refuses" ? MESSAGE_CARACTERES : verdict === "incomplet" && quitte ? MESSAGE_INCOMPLET : null;
 
   function ecrire(saisie: string) {
@@ -79,7 +91,7 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
     setTexte(saisie);
     setQuitte(false);
     setErreurPosition(null);
-    const propre = nettoyerNomVille(saisie, villesLancement);
+    const propre = nettoyerNomVille(saisie);
     onChangeVille(verifierNomVille(propre) === "valable" ? propre : null);
 
     // Les suggestions s'affichent au-dessus du champ : on prévient le lecteur d'écran quand elles apparaissent
@@ -187,7 +199,7 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
         onChangeTexte={ecrire}
         onBlur={() => setQuitte(true)}
         erreur={erreurSaisie}
-        placeholder="Montpellier, Sète, Lyon…"
+        placeholder="Lyon, Lille, Sète…"
         textContentType="addressCity"
         autoComplete="postal-address-locality"
         autoCapitalize="words"

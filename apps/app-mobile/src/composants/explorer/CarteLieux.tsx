@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Platform, StyleSheet } from "react-native";
+import { AccessibilityInfo, Keyboard, Platform, StyleSheet, View } from "react-native";
 import MapView, { type LatLng, type MapPressEvent } from "react-native-maps";
 import { useReducedMotion } from "react-native-reanimated";
 
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import { MarqueurLieu } from "~/composants/explorer/MarqueurLieu";
-import { centreHerault } from "~/contenus/centres-villes";
+import { MarqueurPosition } from "~/composants/explorer/MarqueurPosition";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 
 type Props = {
   /** Lieux filtrés et triés (seuls ceux qui ont une position s'affichent) */
   lieux: LieuExplorer[];
-  /** Ville de la personne, ou centre de l'Hérault */
-  centre: PositionLieu;
+  /** Ville à montrer : celle choisie dans les filtres, sinon la tienne (partout en France) ; null si on ne la connaît pas (on montre alors nos lieux) */
+  centre: PositionLieu | null;
   /** « Autour de moi » (sinon null) */
   position: PositionLieu | null;
   /** Id du lieu sélectionné */
@@ -21,15 +21,13 @@ type Props = {
   onSelection: (id: number | null) => void;
   /** Place prise en haut par la recherche et les filtres (pour cadrer) */
   margeHaut: number;
-  /** Place prise en bas par la feuille de liste (pour cadrer) */
+  /** Place prise en bas par la feuille de liste, la barre d'onglets (ou le clavier) sous elle (pour cadrer) */
   margeBas: number;
 };
 
 // Demi-côtés des zones à montrer, en degrés de latitude (0,01° ≈ 1,1 km)
-/** Une ville entière */
+/** Une ville entière (au moins, autour de nos lieux quand on ne connaît pas ta ville) */
 const DEMI_VILLE = 0.03;
-/** Tout l'Hérault de nos lieux, quand ta ville n'est pas une ville de lancement */
-const DEMI_HERAULT = 0.4;
 /** « Autour de moi » : ton quartier et ceux d'à côté */
 const DEMI_AUTOUR = 0.012;
 /** Jamais plus serré que ça autour des lieux (un seul lieu ne fait pas zoomer jusqu'au trottoir) */
@@ -39,13 +37,15 @@ const ECART_MAX_SELECTION = 0.25;
 const DEMI_SELECTION = 0.01;
 /** Avec « Autour de moi », un changement de filtres cadre ta position et les lieux les plus proches */
 const PLUS_PROCHES = 5;
-/** Espace laissé autour des marqueurs en cadrant (ils font ~60 points de large) */
+/** Espace laissé autour des marqueurs en cadrant (ils font ~74 points de large) */
 const MARGE_CADRE = 40;
 /** Les marges ne prennent jamais plus que cette part de la hauteur de la carte */
 const PART_MAX_MARGES = 0.7;
 /** Sur iPhone, toucher un marqueur touche aussi la carte un peu après : ce toucher-là ne désélectionne pas */
 const DELAI_APPUI_MARQUEUR = 700;
 const DUREE_CENTRAGE = 450;
+/** Toute la France, si on n'a ni ta ville ni aucun lieu à montrer */
+const REGION_FRANCE = { latitude: 46.6, longitude: 2.4, latitudeDelta: 10, longitudeDelta: 12 };
 
 /** Deux coins opposés d'une zone qui contient tous les points, jamais plus petite qu'un carré de demi-côté « demiMin » */
 function coinsAutour(points: LatLng[], demiMin: number): LatLng[] {
@@ -64,14 +64,16 @@ function coinsAutour(points: LatLng[], demiMin: number): LatLng[] {
   ];
 }
 
-function estHerault(point: PositionLieu): boolean {
-  return point.latitude === centreHerault.latitude && point.longitude === centreHerault.longitude;
+/** Ce qu'on montre sans « Autour de moi » ni filtre qui vient de changer : la ville, sinon tous nos lieux (null s'il n'y a rien à montrer) */
+function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu }[]): LatLng[] | null {
+  if (ville) return coinsAutour([ville], DEMI_VILLE);
+  return places.length > 0 ? coinsAutour(places.map((p) => p.position), DEMI_VILLE) : null;
 }
 
 /**
  * La carte d'Explorer (iPhone et Android) : Apple Plans sur iPhone, Google Maps sur Android, sans clé à fournir dans Expo Go.
  * Elle remplit son parent ; l'écran pose par-dessus la recherche, les filtres (margeHaut) et la feuille de liste (margeBas).
- * Elle part de ta ville, cadre les lieux quand les filtres changent, ta position quand elle arrive, et va doucement vers le lieu sélectionné.
+ * Elle part de ta ville (ou de nos lieux), cadre les lieux quand les filtres changent, ta position quand elle arrive, et va doucement vers le lieu sélectionné.
  */
 export function CarteLieux({ lieux, centre, position, selection, onSelection, margeHaut, margeBas }: Props) {
   const carte = useRef<MapView>(null);
@@ -79,11 +81,6 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
   const [chargee, setChargee] = useState(false);
   const [hauteur, setHauteur] = useState(0);
   const [lecteurEcran, setLecteurEcran] = useState(false);
-  // Région de départ (avant le premier cadrage) : ta ville, ou tout l'Hérault
-  const [regionDepart] = useState(() => {
-    const demi = estHerault(centre) ? DEMI_HERAULT : DEMI_VILLE;
-    return { ...centre, latitudeDelta: demi * 2, longitudeDelta: (demi * 2) / Math.cos((centre.latitude * Math.PI) / 180) };
-  });
   // Les gestes natifs ne sont pas prêts tant que la carte n'est ni chargée ni mesurée (Android plante en cadrant une carte de taille 0)
   const prete = chargee && hauteur > 0;
   const dernierAppuiMarqueur = useRef(0);
@@ -101,7 +98,20 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     .sort((a, b) => a - b)
     .join(",");
   const clePosition = position ? `${position.latitude.toFixed(5)},${position.longitude.toFixed(5)}` : null;
-  const cleCentre = `${centre.latitude},${centre.longitude}`;
+  const cleCentre = centre ? `${centre.latitude},${centre.longitude}` : null;
+
+  // Région de départ (avant le premier cadrage) : ta ville, sinon nos lieux
+  const [regionDepart] = useState(() => {
+    const coins = zoneVille(centre, places);
+    if (!coins) return REGION_FRANCE;
+    const [nordOuest, sudEst] = coins;
+    return {
+      latitude: (nordOuest.latitude + sudEst.latitude) / 2,
+      longitude: (nordOuest.longitude + sudEst.longitude) / 2,
+      latitudeDelta: nordOuest.latitude - sudEst.latitude,
+      longitudeDelta: sudEst.longitude - nordOuest.longitude,
+    };
+  });
 
   // Ce que lisent les cadrages (lancés par les effets, parfois après une attente) : toujours les dernières valeurs.
   // Déclaré avant les autres effets, pour être à jour quand ils passent.
@@ -110,7 +120,7 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     etat.current = { places, centre, position, haut, bas, hauteur, animationsReduites };
   });
 
-  // VoiceOver ou TalkBack : les marqueurs reçoivent alors un titre natif, que ces lecteurs savent lire
+  // VoiceOver ou TalkBack : la carte leur est cachée (voir plus bas)
   useEffect(() => {
     let active = true;
     AccessibilityInfo.isScreenReaderEnabled()
@@ -136,7 +146,7 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     carte.current?.fitToCoordinates(coins, { edgePadding: bords, animated: anime && !reduites });
   }
 
-  /** Amène un lieu au milieu de la partie visible, sans changer le zoom (sauf si on voit tout le département) */
+  /** Amène un lieu au milieu de la partie visible, sans changer le zoom (sauf si on voit toute une région) */
   async function centrerSur(point: LatLng) {
     const numero = ++numeroCentrage.current;
     let ecart: number | null = null;
@@ -160,45 +170,34 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     else carte.current.animateCamera(camera, { duration: DUREE_CENTRAGE });
   }
 
-  // Ce qu'on a déjà cadré : on ne recadre que quand ça change vraiment
-  const vus = useRef({ lieux: cleLieux, position: clePosition, centre: cleCentre });
-  const dejaCadree = useRef(false);
+  // Ce qu'on a déjà cadré (null avant le premier cadrage) : on ne recadre que quand ça change vraiment
+  const vus = useRef<{ lieux: string; position: string | null; centre: string | null } | null>(null);
 
-  // Premier cadrage, sans animation : ta position si on l'a déjà, sinon ta ville (ou tout l'Hérault)
+  // Un seul cadrage par changement, le plus utile : ta position quand elle arrive ; sinon les lieux trouvés quand les filtres changent
+  // (même quand la ville choisie change avec eux : on montre les résultats, jamais une autre ville par-dessus) ;
+  // sinon la ville, quand elle change toute seule (ville du profil modifiée).
   useEffect(() => {
-    if (!prete || dejaCadree.current) return;
-    dejaCadree.current = true;
-    const { position: ici, centre: ville } = etat.current;
-    cadrer(ici ? coinsAutour([ici], DEMI_AUTOUR) : coinsAutour([ville], estHerault(ville) ? DEMI_HERAULT : DEMI_VILLE), false);
-  }, [prete]);
-
-  // Les filtres ont changé : on montre les lieux trouvés (avec « Autour de moi » : toi et les plus proches)
-  useEffect(() => {
-    const avant = vus.current.lieux;
-    vus.current.lieux = cleLieux;
-    const { places: trouves, position: ici } = etat.current;
-    if (!prete || avant === cleLieux || trouves.length === 0) return;
-    const points = ici ? [ici, ...trouves.slice(0, PLUS_PROCHES).map((p) => p.position)] : trouves.map((p) => p.position);
-    cadrer(coinsAutour(points, DEMI_MIN_LIEUX));
-  }, [prete, cleLieux]);
-
-  // Ta position vient d'arriver (« Autour de moi ») : on la centre, avec ton quartier autour
-  useEffect(() => {
-    const avant = vus.current.position;
-    vus.current.position = clePosition;
-    const ici = etat.current.position;
-    if (!prete || !ici || avant === clePosition) return;
-    cadrer(coinsAutour([ici], DEMI_AUTOUR));
-  }, [prete, clePosition]);
-
-  // Ta ville a changé (profil chargé, ville modifiée) : on y retourne, sauf si on suit ta position
-  useEffect(() => {
-    const avant = vus.current.centre;
-    vus.current.centre = cleCentre;
-    const { centre: ville, position: ici } = etat.current;
-    if (!prete || ici || avant === cleCentre) return;
-    cadrer(coinsAutour([ville], estHerault(ville) ? DEMI_HERAULT : DEMI_VILLE));
-  }, [prete, cleCentre]);
+    if (!prete) return;
+    const avant = vus.current;
+    vus.current = { lieux: cleLieux, position: clePosition, centre: cleCentre };
+    const { places: trouves, position: ici, centre: ville } = etat.current;
+    // Premier cadrage, sans animation : ta position si on l'a déjà, sinon ta ville (ou nos lieux)
+    if (!avant) {
+      const coins = ici ? coinsAutour([ici], DEMI_AUTOUR) : zoneVille(ville, trouves);
+      if (coins) cadrer(coins, false);
+      return;
+    }
+    if (ici && avant.position !== clePosition) {
+      cadrer(coinsAutour([ici], DEMI_AUTOUR));
+    } else if (avant.lieux !== cleLieux && trouves.length > 0) {
+      const points = ici ? [ici, ...trouves.slice(0, PLUS_PROCHES).map((p) => p.position)] : trouves.map((p) => p.position);
+      cadrer(coinsAutour(points, DEMI_MIN_LIEUX));
+    } else if (avant.centre !== cleCentre && !ici) {
+      // Sauf si on suit ta position (« Autour de moi »)
+      const coins = zoneVille(ville, trouves);
+      if (coins) cadrer(coins);
+    }
+  }, [prete, cleLieux, clePosition, cleCentre]);
 
   // Un lieu sélectionné (sur la carte ou dans la liste) : la carte va doucement vers lui
   useEffect(() => {
@@ -210,12 +209,15 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
   // Les mêmes fonctions d'un rendu à l'autre : les marqueurs mémorisés ne se redessinent pas pour rien
   const gestes = utiliserGestesStables({
     choisir: (id: number) => {
+      Keyboard.dismiss();
       dernierAppuiMarqueur.current = Date.now();
       onSelection(id);
     },
   });
 
   function toucherCarte(evenement: MapPressEvent) {
+    // Toucher la carte referme le clavier de la recherche
+    Keyboard.dismiss();
     // Le toucher d'un marqueur remonte parfois jusqu'à la carte (tout de suite, ou un peu après sur iPhone)
     if (evenement.nativeEvent.action === "marker-press") return;
     if (Date.now() - dernierAppuiMarqueur.current < DELAI_APPUI_MARQUEUR) return;
@@ -223,35 +225,37 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
   }
 
   return (
-    <MapView
-      ref={carte}
+    // Avec VoiceOver ou TalkBack, la carte est cachée : ses marqueurs restaient lus sous la feuille et la barre d'onglets,
+    // et la liste donne déjà chaque lieu (le toucher ouvre sa fiche)
+    <View
       style={StyleSheet.absoluteFill}
-      initialRegion={regionDepart}
-      mapPadding={{ top: haut, right: 0, bottom: bas, left: 0 }}
-      userInterfaceStyle="light"
-      showsUserLocation={position !== null}
-      userLocationAnnotationTitle="Ta position"
-      showsMyLocationButton={false}
-      // Les autres restos du fond de carte embrouilleraient les nôtres
-      showsPointsOfInterests={false}
-      pitchEnabled={false}
-      toolbarEnabled={false}
-      // Android centrerait la carte à chaque toucher : on le fait déjà, plus doucement
-      moveOnMarkerPress={false}
-      onMapReady={() => setChargee(true)}
-      onLayout={(evenement) => setHauteur(evenement.nativeEvent.layout.height)}
-      onPress={toucherCarte}
+      accessibilityElementsHidden={lecteurEcran}
+      importantForAccessibility={lecteurEcran ? "no-hide-descendants" : "auto"}
     >
-      {places.map(({ lieu, position: positionLieu }) => (
-        <MarqueurLieu
-          key={lieu.id}
-          lieu={lieu}
-          position={positionLieu}
-          selectionne={lieu.id === selection}
-          lecteurEcran={lecteurEcran}
-          onPress={gestes.choisir}
-        />
-      ))}
-    </MapView>
+      <MapView
+        ref={carte}
+        style={StyleSheet.absoluteFill}
+        initialRegion={regionDepart}
+        mapPadding={{ top: haut, right: 0, bottom: bas, left: 0 }}
+        userInterfaceStyle="light"
+        // Pas de point bleu natif : il suivrait ta position en continu ; on pose la position lue une fois (MarqueurPosition)
+        showsUserLocation={false}
+        showsMyLocationButton={false}
+        // Les autres restos du fond de carte embrouilleraient les nôtres
+        showsPointsOfInterests={false}
+        pitchEnabled={false}
+        toolbarEnabled={false}
+        // Android centrerait la carte à chaque toucher : on le fait déjà, plus doucement
+        moveOnMarkerPress={false}
+        onMapReady={() => setChargee(true)}
+        onLayout={(evenement) => setHauteur(evenement.nativeEvent.layout.height)}
+        onPress={toucherCarte}
+      >
+        {position ? <MarqueurPosition position={position} /> : null}
+        {places.map(({ lieu, position: positionLieu }) => (
+          <MarqueurLieu key={lieu.id} lieu={lieu} position={positionLieu} selectionne={lieu.id === selection} onPress={gestes.choisir} />
+        ))}
+      </MapView>
+    </View>
   );
 }

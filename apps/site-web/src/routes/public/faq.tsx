@@ -11,7 +11,7 @@ export function meta(_: Route.MetaArgs) {
   return [
     ...creerMeta({
       titre: "Questions fréquentes",
-      description: "Rescousses, BIG SOS, prix pour les pros, ambassadeurs : toutes les réponses sur SOS Miam, l'app qui fait découvrir les lieux indépendants de Montpellier et de l'Hérault.",
+      description: "Rescousses, BIG SOS, inscription des lieux, ambassadeurs : toutes les réponses sur SOS Miam, l'app des lieux indépendants qui ont besoin de monde, partout en France.",
     }),
     { "script:ld+json": creerDonneesFaq(ongletsFaq) },
   ];

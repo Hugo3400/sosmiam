@@ -35,12 +35,14 @@ export default function MiseEnPageOnglets() {
         tabBarStyle: { position: "absolute", backgroundColor: couleurs.creme, borderTopColor: couleurs.ligne },
       }}
     >
-      {onglets.map((onglet) => (
+      {onglets.map((onglet, index) => (
         <Tabs.Screen
           key={onglet.nom}
           name={onglet.nom}
           options={{
             title: onglet.titre,
+            // Sinon VoiceOver dit la position en anglais (« tab, 2 of 5 »)
+            tabBarAccessibilityLabel: `${onglet.titre}, onglet ${index + 1} sur ${onglets.length}`,
             tabBarIcon: ({ color, size }) => <Ionicons name={onglet.icone} color={color} size={size} />,
             // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
             ...(onglet.nom === "index" ? ongletTransparent : {}),

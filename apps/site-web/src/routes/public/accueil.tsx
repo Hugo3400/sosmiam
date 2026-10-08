@@ -26,7 +26,7 @@ export function meta(_: Route.MetaArgs) {
   return creerMeta({
     titre: "SOS Miam",
     description:
-      "Découvre les restos, pâtisseries, bars et sorties indépendants de Montpellier et de l'Hérault qui ont besoin de monde, et viens à leur rescousse.",
+      "Découvre les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France, et viens à leur rescousse.",
   });
 }
 
@@ -67,7 +67,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     return { ok: false, message: "Pour la bêta, dis-nous si tu as un iPhone ou un Android.", champ: "telephone", valeurs };
   }
 
-  // Un lieu proposé reconnu (« sete ») est enregistré sous son vrai nom (« Sète »), le reste tel que tapé
+  // Un lieu proposé reconnu (« beziers ») est enregistré sous son vrai nom (« Béziers »), le reste tel que tapé
   const lieu = trouverLieuPropose(ville);
   // nginx transmet l'adresse IP du visiteur : l'API s'en sert pour limiter les essais, sans la garder
   const resultat = await inscrireNewsletter(

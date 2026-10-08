@@ -15,7 +15,7 @@ export function Hero() {
     <section className="overflow-hidden bg-creme pt-10 pb-16 md:pt-16 md:pb-24">
       <div className="mx-auto grid w-[min(1120px,100%-32px)] items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
         <div>
-          <Badge className="mb-5">🛠️ App en développement · bientôt à Montpellier et dans l'Hérault</Badge>
+          <Badge className="mb-5">🛠️ App en développement · bientôt partout en France</Badge>
           <h1 className="text-[clamp(2.6rem,6vw,4.6rem)] font-extrabold tracking-tight">
             Sauve une table,
             <br />

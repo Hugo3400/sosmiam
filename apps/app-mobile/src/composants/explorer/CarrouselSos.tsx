@@ -31,7 +31,9 @@ export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
         {sos.map(({ lieu, km }) => {
           const distance = formaterDistance(km);
-          const ligne = lieu.sos ? `${lieu.sos.places} places jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : (lieu.alerte ?? "");
+          const ligne = lieu.sos
+            ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}`
+            : (lieu.alerte ?? "");
           const lu = [lieu.nom, lieu.info, lieu.sos ? `SOS : ${ligne}` : ligne, lieu.sos?.offre, `À ${distance}`].filter(Boolean).join(". ");
           return (
             <Pressable

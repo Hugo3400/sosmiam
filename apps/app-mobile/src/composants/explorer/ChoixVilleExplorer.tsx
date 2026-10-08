@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -20,6 +21,7 @@ type Props = {
 export function ChoixVilleExplorer({ visible, villes, ville, onChoisir, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
+  const animationsReduites = useReducedMotion();
   // Une ville choisie qui n'est plus dans la liste reste proposée : on peut toujours la voir cochée
   const proposees = ville && !villes.includes(ville) ? [ville, ...villes] : villes;
   const choix: { cle: string; valeur: string | null; libelle: string }[] = [
@@ -27,8 +29,9 @@ export function ChoixVilleExplorer({ visible, villes, ville, onChoisir, onFermer
     ...proposees.map((v) => ({ cle: v, valeur: v, libelle: v })),
   ];
 
+  // Animations réduites dans les réglages : la feuille apparaît en fondu au lieu de monter du bas
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onFermer}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer le choix de ville" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <View
         accessibilityViewIsModal
@@ -39,15 +42,16 @@ export function ChoixVilleExplorer({ visible, villes, ville, onChoisir, onFermer
         <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
         <Text accessibilityRole="header" className="mb-1 px-5 font-titre text-2xl text-encre">{lierPonctuation("On explore où ?")}</Text>
         <ScrollView contentContainerClassName="px-5" accessibilityRole="radiogroup">
-          {choix.map((c) => {
+          {choix.map((c, i) => {
             const choisi = c.valeur === ville;
             return (
               <Pressable
                 key={c.cle}
-                accessibilityRole="radio"
-                // Comme Pastille : « selected » sur iPhone (l'état « checked » d'une radio y est lu en anglais), « checked » ailleurs
+                // Sur iPhone, une radio est lue en anglais (« radio button ») et sans « bouton » : bouton « sélectionné »,
+                // avec sa place dans la liste ; radio cochée ou non ailleurs
+                accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
                 accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-                accessibilityLabel={c.libelle}
+                accessibilityLabel={Platform.OS === "ios" ? `${c.libelle}, ${i + 1} sur ${choix.length}` : c.libelle}
                 onPress={() => {
                   vibrerLegerement();
                   onChoisir(c.valeur);

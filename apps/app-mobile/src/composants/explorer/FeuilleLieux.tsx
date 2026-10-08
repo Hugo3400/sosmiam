@@ -69,6 +69,7 @@ export function FeuilleLieux(props: Props) {
   const [lecteurEcran, setLecteurEcran] = useState(false);
   const refListe = useRef<FlatList<LieuExplorer>>(null);
   const refCarteSelection = useRef<View>(null);
+  const refPoignee = useRef<View>(null);
 
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans le profil)
   const vignettes = useMemo(() => {
@@ -78,9 +79,13 @@ export function FeuilleLieux(props: Props) {
 
   const lieuSelectionne = selection === null ? null : (lieux.find((l) => l.lieu.id === selection) ?? null);
 
-  // Les trois hauteurs : repliée = poignée + en-tête + une ligne (ou la carte « Sélection »), dépliée = toute la place
+  // Les trois hauteurs : repliée = poignée + en-tête + une ligne (ou la carte « Sélection »), dépliée = toute la place.
+  // Avec un lecteur d'écran, la ligne reste visible même sous la carte « Sélection » : il ne parcourt jamais une liste cachée
   const depliee = Math.max(0, hauteurDisponible);
-  const repliee = Math.min(depliee, HAUTEUR_POIGNEE + hauteurEnTete + (lieuSelectionne ? hauteurSelection : HAUTEUR_APERCU));
+  const repliee = Math.min(
+    depliee,
+    HAUTEUR_POIGNEE + hauteurEnTete + (lieuSelectionne ? hauteurSelection : 0) + (lecteurEcran || !lieuSelectionne ? HAUTEUR_APERCU : 0),
+  );
   const moitie = Math.min(depliee, Math.max(repliee + 80, Math.round(depliee * 0.5)));
   const hauteurs: Record<Cran, number> = { repliee, moitie, depliee };
   const cible = pleinEcran ? depliee : hauteurs[cran];
@@ -194,7 +199,7 @@ export function FeuilleLieux(props: Props) {
     ? [
         `Sélectionné sur la carte : ${lieuSelectionne.lieu.nom}, ${lieuSelectionne.lieu.info}`,
         `À ${formaterDistance(lieuSelectionne.km)}, ${ouvertSelection ? "ouvert en ce moment" : "fermé en ce moment"}`,
-        lieuSelectionne.lieu.sos ? `SOS : ${lieuSelectionne.lieu.sos.places} places ce soir` : null,
+        lieuSelectionne.lieu.sos ? `SOS : ${lieuSelectionne.lieu.sos.places} place${lieuSelectionne.lieu.sos.places > 1 ? "s" : ""} ce soir` : null,
         "Voir la fiche",
       ]
         .filter(Boolean)
@@ -209,6 +214,7 @@ export function FeuilleLieux(props: Props) {
             <View className="h-2" />
           ) : (
             <Pressable
+              ref={refPoignee}
               accessibilityRole="button"
               accessibilityLabel={deplie ? "Réduire la liste" : "Afficher plus de lieux"}
               accessibilityHint={cran === "repliee" ? "Déplie la liste à moitié" : deplie ? "Replie la liste en bas de l'écran" : "Déplie la liste sur tout l'écran"}
@@ -246,7 +252,11 @@ export function FeuilleLieux(props: Props) {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Retirer la sélection"
-                  onPress={() => onSelection(null)}
+                  onPress={() => {
+                    onSelection(null);
+                    // Le bouton part avec la carte « Sélection » : le lecteur d'écran reprend sur la poignée, juste au-dessus
+                    setTimeout(() => deplacerFocusLecteurEcran(refPoignee.current), 150);
+                  }}
                   className="h-11 w-11 items-center justify-center active:opacity-60"
                 >
                   <Ionicons name="close" size={20} color={couleurs.encre} />
@@ -264,6 +274,8 @@ export function FeuilleLieux(props: Props) {
             extraData={selection}
             scrollEnabled={pleinEcran || lecteurEcran || cran !== "repliee"}
             keyboardShouldPersistTaps="handled"
+            // Faire défiler la liste range le clavier de la recherche (sinon il la cache presque entière)
+            keyboardDismissMode="on-drag"
             contentContainerStyle={{ paddingBottom: 24, flexGrow: 1 }}
             ListHeaderComponent={
               sos.length > 0 ? (

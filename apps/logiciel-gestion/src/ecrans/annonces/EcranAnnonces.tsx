@@ -53,7 +53,7 @@ export function EcranAnnonces() {
       <div className="grid items-start gap-5 xl:grid-cols-2">
         <Carte titre="Nouvelle annonce">
           <div className="grid gap-4">
-            <Champ libelle="Titre" valeur={titre} maxLength={100} onChange={setTitre} placeholder="Montpellier, on arrive 🛟" />
+            <Champ libelle="Titre" valeur={titre} maxLength={100} onChange={setTitre} placeholder="Grosse nouvelle 🛟" />
             <ZoneTexte
               libelle="Texte"
               valeur={texte}

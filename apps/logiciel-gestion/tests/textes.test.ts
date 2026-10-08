@@ -84,3 +84,14 @@ test("l'export CSV des statistiques a une ligne par période puis les classement
   assert.equal(lignes[3], "Pages les plus vues;nombre");
   assert.equal(lignes[4], `"'=/piege";3`);
 });
+
+import { dateVersSemaine } from "../src/fonctions/dates/date-vers-semaine.ts";
+import { semaineVersDimanche } from "../src/fonctions/dates/semaine-vers-dimanche.ts";
+
+test("semaines ISO : d'une date à sa semaine, et d'une semaine à son dimanche", () => {
+  assert.equal(dateVersSemaine(new Date(2026, 9, 8)), "2026-W41");
+  assert.equal(dateVersSemaine(new Date(2027, 0, 1)), "2026-W53");
+  assert.equal(semaineVersDimanche("2026-W41"), "2026-10-11");
+  assert.equal(semaineVersDimanche("2026-W01"), "2027-01-04".replace("2027-01-04", "2026-01-04"));
+  assert.equal(semaineVersDimanche("pas une semaine"), null);
+});

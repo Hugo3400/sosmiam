@@ -34,28 +34,28 @@ export const questionsEssentiel: QuestionFaq[] = [
     id: "faq-villes",
     question: "Dans quelles villes ?",
     reponse: [
-      "On commence à Montpellier et dans l'Hérault : Sète, Pézenas, Béziers, Agde, Lunel, Lodève, Palavas-les-Flots… D'autres villes suivront, une par une. [Laisse ton e-mail](/#inscription) pour savoir quand SOS Miam arrive chez toi.",
+      "Partout en France ! Les lieux arrivent au fur et à mesure qu'ils s'inscrivent ou que la communauté nous les fait découvrir, des grandes villes aux petits villages. [Laisse ton e-mail](/#inscription) pour savoir quand SOS Miam arrive près de chez toi.",
     ],
   },
   {
     id: "faq-sortie-app",
     question: "Quand sort l'app, et sur quels téléphones ?",
     reponse: [
-      "Elle est encore en développement. Elle arrivera d'abord à Montpellier et dans l'Hérault, sur iPhone et Android. [Laisse ton e-mail](/#inscription) pour être prévenu dès le lancement.",
+      "Elle est encore en développement. Elle arrivera partout en France, sur iPhone et Android. [Laisse ton e-mail](/#inscription) pour être prévenu dès le lancement.",
     ],
   },
   {
     id: "faq-pas-que-manger",
     question: "SOS Miam, c'est seulement pour manger ?",
     reponse: [
-      "Non ! Le nom vient de la bouffe, mais tu trouves aussi des bars, des bowlings, des salles d'événements et plein de sorties : escape games, ateliers, kayak sur le Lez, paddle à Palavas… Tant que c'est indépendant et que ça mérite du monde, ça a sa place.",
+      "Non ! Le nom vient de la bouffe, mais tu trouves aussi des bars, des bowlings, des salles d'événements et plein de sorties : escape games, ateliers, kayak, paddle… Tant que c'est indépendant et que ça mérite du monde, ça a sa place.",
     ],
   },
   {
     id: "faq-independants",
     question: "Pourquoi seulement des lieux indépendants ?",
     reponse: [
-      "Les grandes chaînes ont déjà de la pub et de la visibilité. SOS Miam met en lumière les autres : la pâtisserie du coin, le petit resto de l'Écusson, le bar qui vient d'ouvrir à Sète, l'atelier de poterie caché dans une ruelle de Pézenas.",
+      "Les grandes chaînes ont déjà de la pub et de la visibilité. SOS Miam met en lumière les autres : la pâtisserie du coin, le petit resto de ton quartier, le bar qui vient d'ouvrir, l'atelier de poterie caché au fond d'une ruelle.",
     ],
   },
 ];

@@ -11,14 +11,14 @@ type Props = {
   /** Où le poser (la position du lieu, déjà vérifiée par la carte) */
   position: PositionLieu;
   selectionne: boolean;
-  /** VoiceOver ou TalkBack allumé : le nom passe aussi en titre natif du marqueur, seul texte que ces lecteurs y lisent */
-  lecteurEcran: boolean;
   /** La même fonction pour tous les marqueurs (stable), pour ne redessiner que ceux qui changent */
   onPress: (id: number) => void;
 };
 
 /** Place transparente autour du rond : le halo, l'ombre et la pastille SOS y tiennent (sur Android, le marqueur est une image coupée à ses bords) */
 const BORD = 10;
+/** Côté du marqueur, le même sélectionné ou non : sur iPhone, Apple Plans garde la plus grande taille vue et décalerait un marqueur qui rétrécit */
+const COTE = 54 + BORD * 2;
 /** Après un changement d'apparence, temps laissé à Android pour redessiner l'image du marqueur avant de la figer */
 const DUREE_SUIVI = 500;
 
@@ -35,7 +35,7 @@ function decrireLieu(lieu: Lieu): string[] {
  * Jaune quand le lieu lance un SOS, tomate clair quand il a une alerte ; plus grand, avec un halo, quand il est sélectionné.
  * Mémorisé : seuls les marqueurs qui changent se redessinent.
  */
-export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selectionne, lecteurEcran, onPress }: Props) {
+export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selectionne, onPress }: Props) {
   // Android dessine le marqueur en image : on suit ses changements le temps de le redessiner, puis on le fige (bien plus fluide)
   const apparence = `${selectionne ? 1 : 0}|${lieu.sos ? 1 : 0}|${lieu.alerte ? 1 : 0}|${lieu.emoji}`;
   const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
@@ -45,6 +45,8 @@ export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selecti
   }, [apparence]);
 
   const diametre = selectionne ? 54 : 40;
+  // Le rond est centré dans le marqueur : l'ombre et la pastille se placent depuis son bord
+  const autour = (COTE - diametre) / 2;
   const decalageOmbre = selectionne ? 4 : 3;
   const fond = lieu.sos ? "bg-jaune" : lieu.alerte ? "bg-rose-alerte" : "bg-white";
   const details = decrireLieu(lieu);
@@ -67,19 +69,16 @@ export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selecti
       accessibilityLabel={[lieu.nom, ...details].join(". ")}
       accessibilityHint="Sélectionne ce lieu"
       accessibilityState={{ selected: selectionne }}
-      // Titre natif seulement avec un lecteur d'écran : sinon, une bulle Apple Plans ou Google s'ouvrirait à chaque toucher
-      title={lecteurEcran ? lieu.nom : undefined}
-      description={lecteurEcran ? details.join(". ") : undefined}
     >
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
-        style={{ width: diametre + BORD * 2, height: diametre + BORD * 2 }}
+        style={{ width: COTE, height: COTE }}
         className="items-center justify-center"
       >
         {selectionne ? <View style={{ position: "absolute", inset: 1, borderRadius: 999 }} className="bg-jaune/50" /> : null}
         <View
-          style={{ position: "absolute", left: BORD + decalageOmbre, top: BORD + decalageOmbre, width: diametre, height: diametre, borderRadius: diametre / 2 }}
+          style={{ position: "absolute", left: autour + decalageOmbre, top: autour + decalageOmbre, width: diametre, height: diametre, borderRadius: diametre / 2 }}
           className="bg-encre"
         />
         <View
@@ -93,13 +92,14 @@ export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selecti
         </View>
         {/* Pastille : le SOS ou l'alerte se voient aussi sans les couleurs */}
         {lieu.sos ? (
-          <View style={{ position: "absolute", top: 2, right: 0 }} className="rounded-full border-[1.5px] border-encre bg-tomate px-1.5">
-            <Text allowFontScaling={false} className="font-texte-gras text-[10px] leading-[14px] text-white">
+          <View style={{ position: "absolute", top: autour - 8, right: autour - 10 }} className="rounded-full border-[1.5px] border-encre bg-tomate px-1.5">
+            {/* Encre sur tomate : assez de contraste pour un texte aussi petit */}
+            <Text allowFontScaling={false} className="font-texte-gras text-[10px] leading-[14px] text-encre">
               SOS
             </Text>
           </View>
         ) : lieu.alerte ? (
-          <View style={{ position: "absolute", top: 2, right: 2 }} className="h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-encre bg-white">
+          <View style={{ position: "absolute", top: autour - 8, right: autour - 8 }} className="h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-encre bg-white">
             <Text allowFontScaling={false} className="text-[10px]">
               🔥
             </Text>

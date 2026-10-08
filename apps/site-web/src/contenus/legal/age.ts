@@ -55,7 +55,7 @@ export const documentAge: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "Des **lieux indépendants** près de chez toi, en commençant par Montpellier et l'Hérault, dont certains en vraie difficulté (les BIG SOS).",
+            "Des **lieux indépendants** près de chez toi, partout en France, dont certains en vraie difficulté (les BIG SOS).",
             "Des **vidéos et des photos** publiées par les lieux et par des créateurs, et des **avis** de personnes qui y sont vraiment allées.",
             "Des **points, des paliers et des badges** (le programme Ambassadeurs) : ils récompensent tes visites, sans hasard ni argent en jeu.",
           ],

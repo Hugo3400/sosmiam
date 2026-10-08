@@ -71,7 +71,7 @@ export const questionsPros: QuestionFaq[] = [
     id: "faq-technique",
     question: "Je n'y connais rien en technique : c'est compliqué ?",
     reponse: [
-      "Pas du tout. Tu crées ta fiche en 5 minutes depuis ton téléphone : photos, horaires, ton plat signature. À Montpellier et dans l'Hérault, on peut même passer la faire avec toi.",
+      "Pas du tout. Tu crées ta fiche en 5 minutes depuis ton téléphone : photos, horaires, ton plat signature.",
     ],
   },
   {

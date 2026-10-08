@@ -35,8 +35,9 @@ export type Statistiques = {
 export type EnDirect = { visites: number; pages: Classement };
 export type ObjectifMois = { mesure: "visiteurs" | "vues" | "inscriptions"; valeur: number };
 
-export const lireStatistiques = (source: SourceStatistiques, echelle: Echelle, nombre: number) =>
-  appeler<Statistiques>("GET", `/statistiques${parametres({ source, echelle, nombre })}`);
+/** Les « nombre » dernières périodes (jusqu'à aujourd'hui, ou jusqu'à la date « jusqua », AAAA-MM-JJ) */
+export const lireStatistiques = (source: SourceStatistiques, echelle: Echelle, nombre: number, jusqua?: string) =>
+  appeler<Statistiques>("GET", `/statistiques${parametres({ source, echelle, nombre, jusqua })}`);
 export const lireEnDirect = (source: SourceStatistiques = "site") => appeler<EnDirect>("GET", `/statistiques/direct${parametres({ source })}`);
 export const lireObjectif = () => appeler<ObjectifMois | null>("GET", "/objectif");
 export const fixerObjectif = (objectif: ObjectifMois | null) =>

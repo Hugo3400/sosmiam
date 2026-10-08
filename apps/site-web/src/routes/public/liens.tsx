@@ -29,8 +29,8 @@ export default function PageLiens() {
           <h1 className="mt-4"><Logo className="h-12 w-auto" /></h1>
           <p className="mt-4 font-titre text-2xl font-extrabold">Sauve une table, régale-toi.</p>
           <p className="mt-2 text-gris">
-            Les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, à Montpellier et dans
-            l'Hérault pour commencer. Choisis ta porte d'entrée : on te garde une place.
+            Les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France.
+            Choisis ta porte d'entrée : on te garde une place.
           </p>
         </header>
         <ul aria-label="Où nous retrouver" className="mt-8 grid gap-4">

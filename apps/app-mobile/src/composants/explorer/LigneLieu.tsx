@@ -21,14 +21,14 @@ type Props = {
   onOuvrir: (id: number) => void;
 };
 
-// « €€ » lu tel quel donnerait « euro euro » : on le dit en mots
+// « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
 const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
 export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir }: Props) {
   const ouvert = estOuvertMaintenant(lieu);
   const distance = formaterDistance(km);
-  const sos = lieu.sos ? `${lieu.sos.places} places jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
+  const sos = lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
 
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [

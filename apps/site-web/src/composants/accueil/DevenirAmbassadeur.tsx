@@ -45,7 +45,7 @@ export function DevenirAmbassadeur() {
 
       <div className="mt-10 flex flex-wrap items-center justify-center gap-5 text-center">
         <Ecusson ruban="FONDATEUR" className="h-24 w-24 -rotate-6" />
-        <p className="text-lg"><strong>On lance avec 10 ambassadeurs fondateurs</strong> à Montpellier.</p>
+        <p className="text-lg"><strong>On lance avec 10 ambassadeurs fondateurs</strong>.</p>
         <Bouton href="#inscription" variante="encre">Je veux en être</Bouton>
       </div>
     </Section>

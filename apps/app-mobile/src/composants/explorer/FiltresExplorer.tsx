@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Keyboard, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import type { Lieu, TypeLieu } from "@sos-miam/commun/types/lieu";
 import { ChoixVilleExplorer } from "~/composants/explorer/ChoixVilleExplorer";
@@ -27,11 +27,11 @@ const tousLesTypes: { cle: TypeLieu | "tous"; libelle: string; emoji?: string }[
   { cle: "sortie", libelle: "Sorties", emoji: "🎳" },
 ];
 
-// « lu » : ce que dit le lecteur d'écran (« euro euro » n'aiderait personne)
+// « lu » : ce que dit le lecteur d'écran (« euro euro » n'aiderait personne), avec les mêmes noms que les lignes de la liste (LigneLieu)
 const tousLesBudgets: { cle: Lieu["prix"]; lu: string }[] = [
   { cle: "€", lu: "Petit budget" },
   { cle: "€€", lu: "Budget moyen" },
-  { cle: "€€€", lu: "Gros budget" },
+  { cle: "€€€", lu: "Budget plaisir" },
 ];
 
 const classePastille = (choisi: boolean) =>
@@ -137,14 +137,15 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis }: Props
 
         <View className="h-6 w-0.5 rounded-full bg-encre/20" />
 
+        {/* Plusieurs budgets possibles. Sur iPhone, une case à cocher est lue en anglais (« checkbox, checked ») : bouton « sélectionné » */}
         {tousLesBudgets.map((b) => {
           const choisi = filtres.budgets.includes(b.cle);
           return (
             <Pressable
               key={b.cle}
-              accessibilityRole="checkbox"
+              accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
               accessibilityLabel={b.lu}
-              accessibilityState={{ checked: choisi }}
+              accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
               onPress={() => basculerBudget(b.cle)}
               className={`${classePastille(choisi)} min-w-11 justify-center`}
             >
@@ -163,6 +164,8 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis }: Props
               accessibilityHint="Ouvre le choix de la ville"
               onPress={() => {
                 vibrerLegerement();
+                // Le clavier de la recherche passerait par-dessus le choix de la ville
+                Keyboard.dismiss();
                 setChoixVilleOuvert(true);
               }}
               className={classePastille(filtres.ville !== null)}

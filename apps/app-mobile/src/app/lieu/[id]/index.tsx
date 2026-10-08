@@ -14,10 +14,12 @@ import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -28,6 +30,8 @@ export default function FicheLieu() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
+  // Distance depuis le centre de ta ville (partout en France), pas depuis Montpellier
+  const depart = utiliserPointDeDepart();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const age = profil ? calculerAge(profil.dateNaissance) : null;
@@ -79,7 +83,7 @@ export default function FicheLieu() {
           <View className="flex-row flex-wrap gap-2">
             {lieu.sos ? (
               <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-                🛟 SOS · {lieu.sos.places} places jusqu'à {formaterHeure(lieu.sos.jusqua)}{lieu.sos.offre ? ` · ${lieu.sos.offre}` : ""}
+                🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}{lieu.sos.offre ? ` · ${lieu.sos.offre}` : ""}
               </Text>
             ) : null}
             {lieu.alerte ? (
@@ -88,7 +92,7 @@ export default function FicheLieu() {
           </View>
           <Text accessibilityRole="header" className="font-titre text-[34px] leading-[38px] text-encre">{lieu.nom}</Text>
           <Text className="font-texte-moyen text-base text-gris">
-            {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(lieu.km)} · {lieu.prix}
+            {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(calculerKmLieu(lieu, depart))} · {lieu.prix}
           </Text>
           <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
 

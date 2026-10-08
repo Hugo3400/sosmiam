@@ -5,8 +5,8 @@ import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 type Props = {
   /** Lieux filtrés et triés (seuls ceux qui ont une position s'affichent) */
   lieux: LieuExplorer[];
-  /** Ville de la personne, ou centre de l'Hérault */
-  centre: PositionLieu;
+  /** Ville à montrer : celle choisie dans les filtres, sinon la tienne (partout en France) ; null si on ne la connaît pas (on montre alors nos lieux) */
+  centre: PositionLieu | null;
   /** « Autour de moi » (sinon null) */
   position: PositionLieu | null;
   /** Id du lieu sélectionné */
@@ -14,7 +14,7 @@ type Props = {
   onSelection: (id: number | null) => void;
   /** Place prise en haut par la recherche et les filtres (pour cadrer) */
   margeHaut: number;
-  /** Place prise en bas par la feuille de liste (pour cadrer) */
+  /** Place prise en bas par la feuille de liste, la barre d'onglets (ou le clavier) sous elle (pour cadrer) */
   margeBas: number;
 };
 

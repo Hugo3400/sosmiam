@@ -3,7 +3,7 @@ import { simplifierRecherche } from "~/fonctions/texte/simplifier-recherche";
 
 /**
  * Retrouve un lieu proposé d'après ce qui a été tapé, sans tenir compte des accents, des majuscules, des tirets
- * ni des apostrophes : « sete » → Sète, « ile de france » → Île-de-France, « PACA » → Provence-Alpes-Côte d'Azur.
+ * ni des apostrophes : « beziers » → Béziers, « ile de france » → Île-de-France, « PACA » → Provence-Alpes-Côte d'Azur.
  * Une ancienne région ou un coin connu garde sa précision : « alsace » → Grand Est (Alsace), avec la préposition de la région.
  * Un nom porté par deux villes (Saint-Denis) n'est pas rattaché à une région s'il n'est pas précisé : on garde alors
  * le nom seul, et sa préposition si elle est la même partout (« à Saint-Denis »).
