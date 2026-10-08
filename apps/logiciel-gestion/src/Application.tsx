@@ -21,7 +21,7 @@ import { EcranPublications } from "~/ecrans/publications/EcranPublications.tsx";
 import { EcranReglages } from "~/ecrans/reglages/EcranReglages.tsx";
 import { EcranStatistiques } from "~/ecrans/statistiques/EcranStatistiques.tsx";
 import { EcranTableauDeBord } from "~/ecrans/tableau-de-bord/EcranTableauDeBord.tsx";
-import { utiliserAlertesModeration } from "~/hooks/utiliser-alertes-moderation.ts";
+import { utiliserAlertes } from "~/hooks/utiliser-alertes.ts";
 import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
 import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
 import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
@@ -44,7 +44,7 @@ export function Application() {
   // Sans souris ni clavier pendant ce temps (réglable), la clé est oubliée : il faut retaper le mot de passe
   const [minutesVerrou, setMinutesVerrou] = useState(lireMinutesVerrou);
   const connecte = phase === "connecte";
-  const moderation = utiliserAlertesModeration(connecte);
+  const { alertes, actualiser: actualiserAlertes } = utiliserAlertes(connecte);
   const alertesServeur = utiliserAlertesServeur(connecte);
   const miseAJour = utiliserMiseAJour(connecte);
   utiliserResumeSemaine(connecte);
@@ -107,7 +107,26 @@ export function Application() {
 
   return (
     <div className="flex h-full">
-      <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} problemesServeur={alertesServeur.problemes.length} onVerrouiller={() => verrouiller(true)} />
+      <BarreLaterale
+        ecran={ecran}
+        onChoisir={setEcran}
+        poste={poste}
+        pastilles={{
+          moderation: alertes && {
+            nombre: alertes.moderation.aTraiter + alertes.moderation.contestes,
+            libelle: `${alertes.moderation.aTraiter} à traiter, ${alertes.moderation.contestes} contestée(s)${alertes.moderation.urgents ? `, dont ${alertes.moderation.urgents} urgente(s)` : ""}`,
+            urgent: alertes.moderation.urgents > 0,
+          },
+          demandes: alertes && { nombre: alertes.demandes.aTraiter, libelle: `${alertes.demandes.aTraiter} demande(s) à traiter` },
+          ambassadeurs: alertes && {
+            nombre: alertes.ambassadeurs.enAttente + alertes.ambassadeurs.candidatures,
+            libelle: `${alertes.ambassadeurs.enAttente} inscription(s) et ${alertes.ambassadeurs.candidatures} candidature(s) à décider`,
+          },
+          "big-sos": alertes && { nombre: alertes.bigSos.aTraiter + alertes.bigSos.aCloturer, libelle: `${alertes.bigSos.aTraiter} à étudier, ${alertes.bigSos.aCloturer} bilan(s) à écrire` },
+          maintenance: { nombre: alertesServeur.problemes.length, libelle: `${alertesServeur.problemes.length} problème(s) sur le serveur`, urgent: true },
+        }}
+        onVerrouiller={() => verrouiller(true)}
+      />
       <main className="min-w-0 flex-1 overflow-y-auto">
         <BandeauNouveautes />
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
@@ -118,7 +137,7 @@ export function Application() {
           {ecran === "lieux" && <EcranLieux />}
           {ecran === "demandes" && <EcranDemandes />}
           {ecran === "annonces" && <EcranAnnonces />}
-          {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={moderation.actualiser} />}
+          {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} />}
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {ecran === "utilisateurs" && <EcranComptes />}
