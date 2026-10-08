@@ -34,7 +34,7 @@ export function Inscription() {
       <div className="rounded-carte border-2 border-encre bg-jaune px-5 py-12 text-center shadow-brut-grand md:px-12 md:py-16">
         <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24 md:h-28 md:w-28" />
         <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">Prêt à sauver ta première table ?</h2>
-        <p className="mt-3 mb-8 text-lg">Laisse ton e-mail, on te prévient au lancement dans ta ville.</p>
+        <p className="mt-3 mb-8 text-lg">L'app est encore en cuisine : laisse ton e-mail, on te prévient dès qu'elle sort dans ta ville.</p>
 
         <fetcher.Form ref={formulaire} method="post" action="/?index#inscription" noValidate className="mx-auto flex max-w-2xl flex-wrap justify-center gap-3">
           <label htmlFor="inscription-email" className="sr-only">Adresse e-mail</label>

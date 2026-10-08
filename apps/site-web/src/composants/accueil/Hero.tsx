@@ -15,14 +15,14 @@ export function Hero() {
     <section className="overflow-hidden bg-creme pt-10 pb-16 md:pt-16 md:pb-24">
       <div className="mx-auto grid w-[min(1120px,100%-32px)] items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
         <div>
-          <Badge className="mb-5">🛟 Bientôt à Montpellier et dans l'Hérault</Badge>
+          <Badge className="mb-5">🛠️ App en développement · bientôt à Montpellier et dans l'Hérault</Badge>
           <h1 className="text-[clamp(2.6rem,6vw,4.6rem)] font-extrabold tracking-tight">
             Sauve une table,
             <br />
             <mark className="bg-transparent bg-[linear-gradient(transparent_55%,var(--color-jaune)_55%)] px-1 text-encre">régale-toi.</mark>
           </h1>
           <p className="mt-6 mb-8 max-w-[520px] text-lg text-gris">
-            SOS Miam te fait découvrir les restos, pâtisseries, bars et sorties de ton coin qui ont besoin de monde :
+            SOS Miam va te faire découvrir les restos, pâtisseries, bars et sorties de ton coin qui ont besoin de monde :
             la pépite qui vient d'ouvrir, la salle calme un mardi soir, ou le lieu qui traverse un coup dur.
           </p>
           <div className="flex flex-wrap gap-3.5">

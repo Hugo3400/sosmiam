@@ -1,11 +1,12 @@
 import { Outlet } from "react-router";
 
+import { BandeauDeveloppement } from "~/composants/mise-en-page/BandeauDeveloppement";
 import { EnTete } from "~/composants/mise-en-page/EnTete";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
 import { PiedDePage } from "~/composants/mise-en-page/PiedDePage";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
 
-/** Cadre de toutes les pages publiques : en-tête, contenu de la page, pied de page. */
+/** Cadre de toutes les pages publiques : bandeau « app en développement », en-tête, contenu, pied de page. */
 export default function MiseEnPagePublique() {
   // Liens vers les sections sans « # » dans l'adresse
   utiliserAncresSansDiese();
@@ -13,6 +14,7 @@ export default function MiseEnPagePublique() {
   return (
     <>
       <LienEvitement />
+      <BandeauDeveloppement />
       <EnTete />
       <main id="contenu" tabIndex={-1}>
         <Outlet />

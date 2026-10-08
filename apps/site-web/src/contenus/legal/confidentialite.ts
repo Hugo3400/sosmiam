@@ -19,7 +19,7 @@ export const documentConfidentialite: DocumentLegal = {
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
-    "SOS Miam est encore en préparation : pas d'app, pas de compte, pas de pub pour l'instant. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
+    "SOS Miam est encore en préparation : l'app est en développement, et il n'y a ni compte ni pub pour l'instant. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
   sections: [
     {
@@ -28,12 +28,12 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "**Aucun cookie de notre part, aucun pistage, aucune pub, aucune mesure d'audience.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare et, sur le site en préparation, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+            "**Aucun cookie de notre part, aucun pistage, aucune pub, aucune mesure d'audience.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
             "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
-            "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit).",
+            "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Si tu nous écris** (lieu à inscrire, candidature d'ambassadeur, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
-            "**Le formulaire « Préviens-moi »** du site en préparation n'enregistre encore rien ; quand il le fera, ce sera pour te prévenir du lancement puis t'envoyer la newsletter (et te parler du programme des ambassadeurs fondateurs si tu coches la case), avec ton accord.",
+            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville et, si tu la coches, la case ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
             "**On ne vend jamais tes données**, et on ne les loue pas.",
             `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation.`,
           ],
@@ -91,17 +91,17 @@ export const documentConfidentialite: DocumentLegal = {
       id: "newsletter",
       titre: "La newsletter",
       blocs: [
-        `Sur la page d'attente de ${site.adresse}, le bouton « Je m'inscris à la newsletter » ouvre ta propre messagerie avec un mail tout prêt pour ${site.emailContact}. La page elle-même ne collecte rien : c'est toi qui envoies le mail, si tu le veux, depuis ta messagerie (qui applique sa propre politique de confidentialité).`,
+        `Tu peux t'inscrire de deux façons : avec le formulaire « Préviens-moi » du site (détails dans la section suivante), ou en nous écrivant à ${lienEmail}, par exemple avec l'objet « Inscription à la newsletter SOS Miam ». Ce qui suit vaut pour les deux.`,
         {
           liste: [
-            "**Ce qu'on reçoit** : ton adresse e-mail, le nom affiché par ta messagerie, la ville que tu indiques, et ce que tu choisis d'ajouter au message.",
+            "**Ce qu'on reçoit** : par le formulaire, ce qui est décrit dans la section suivante ; par mail, ton adresse e-mail, le nom affiché par ta messagerie, la ville que tu indiques et ce que tu choisis d'ajouter au message.",
             "**Pourquoi** : te prévenir quand SOS Miam se lance près de chez toi, puis te donner des nouvelles (nouveaux lieux, nouvelles villes, BIG SOS…) par la newsletter.",
-            "**Base légale** : ton consentement (article 6.1.a du RGPD), que tu donnes en envoyant le mail et que tu peux retirer à tout moment.",
-            `**Où et qui** : ton mail arrive dans la boîte ${site.emailContact}, fournie par ${prestataires.messagerie.nom} ; il est reçu par un serveur de messagerie situé en Suisse (voir « Qui voit tes données, et où elles sont »). Seul l'éditeur consulte cette boîte.`,
-            `**La liste des inscrits** : pour t'envoyer la newsletter, ton adresse e-mail, ta ville, la date de ton inscription et celle de ton dernier message sont recopiées dans une liste gardée sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès, et elle suit les mêmes règles de durée : si tu te désinscris, ta ligne est retirée avant tout nouvel envoi, et ta ville est oubliée.`,
+            "**Base légale** : ton consentement (article 6.1.a du RGPD), que tu donnes en envoyant le formulaire ou le mail, et que tu peux retirer à tout moment.",
+            `**Où et qui** : si tu t'inscris par mail, ton mail arrive dans la boîte ${site.emailContact}, fournie par ${prestataires.messagerie.nom} ; il est reçu par un serveur de messagerie situé en Suisse (voir « Qui voit tes données, et où elles sont »). Seul l'éditeur consulte cette boîte.`,
+            `**La liste des inscrits** : pour t'envoyer la newsletter, les inscriptions du formulaire et celles reçues par mail sont réunies dans une liste (ton adresse e-mail, ta ville, la date de ton inscription et celle de ton dernier message), gardée sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès, et elle suit les mêmes règles de durée : si tu te désinscris, ta ligne est retirée de la liste et effacée de notre base avant tout nouvel envoi, ville comprise.`,
             "**Combien de temps** : tant que tu restes inscrit, tu continues de recevoir la newsletter, même après le lancement. Si on n'a plus aucun message de ta part pendant 3 ans, on te demande si tu veux continuer ; sans réponse, on efface ton adresse. Ton mail d'inscription ou de désinscription reste dans notre boîte comme preuve de ton choix, 3 ans au plus.",
             "**Obligatoire ?** Non, rien ne l'est. Sans adresse e-mail, on ne peut simplement pas te prévenir ; la ville nous aide à le faire au bon moment.",
-            `**Te désinscrire** : un simple mail à ${lienEmail} suffit, sans avoir à te justifier.`,
+            `**Te désinscrire** : un simple mail à ${lienEmail} suffit, sans avoir à te justifier ; tu peux aussi répondre « STOP » à une newsletter.`,
           ],
         },
       ],
@@ -110,14 +110,15 @@ export const documentConfidentialite: DocumentLegal = {
       id: "formulaire",
       titre: "Le formulaire « Préviens-moi »",
       blocs: [
-        "La version complète du site, encore en préparation, propose un formulaire « Préviens-moi » : ton adresse e-mail, ta ville (choisie dans une liste) et une case facultative « Je veux devenir ambassadeur fondateur ».",
-        "**Pour l'instant, ce formulaire n'enregistre rien** : il n'est pas encore relié au serveur qui gardera les inscriptions, donc ce que tu y saisis n'est conservé nulle part. Quand il le sera, voici comment ça marchera :",
+        "En bas de l'accueil du site, le formulaire « Préviens-moi » te demande ton adresse e-mail et ta ville (choisie dans une liste), et propose une case facultative « Je veux devenir ambassadeur fondateur ».",
         {
           liste: [
+            "**Ce qu'on enregistre** : ton adresse e-mail, ta ville, ton choix pour la case ambassadeur, la date de ta première et de ta dernière inscription, et le fait que l'inscription vient du site. Si tu remplis le formulaire plusieurs fois, on garde une seule ligne, mise à jour.",
             "**Pourquoi** : te prévenir du lancement dans ta ville, puis t'envoyer la newsletter, et, si tu as coché la case, te recontacter au sujet du programme des ambassadeurs fondateurs.",
             "**Base légale** : ton consentement (article 6.1.a du RGPD), que tu peux retirer à tout moment.",
-            `**Où et qui** : sur notre serveur, hébergé par ${hebergeur.nom} en France. Seul l'éditeur consultera ces inscriptions.`,
-            "**Combien de temps** : comme pour la newsletter, tant que tu restes inscrit ; après 3 ans sans aucun message de ta part, on te demande si tu veux continuer, sinon on efface.",
+            `**Où et qui** : dans une base de données sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès.`,
+            "**Combien de temps** : comme pour la newsletter, tant que tu restes inscrit ; si tu te désinscris, ta ligne est effacée avant tout nouvel envoi ; après 3 ans sans aucun message de ta part, on te demande si tu veux continuer, sinon on efface.",
+            "**Ton adresse IP** : le site la transmet à notre serveur pour limiter le nombre d'envois (5 toutes les 10 minutes), contre les robots. Elle reste seulement en mémoire, une dizaine de minutes, et n'est jamais enregistrée avec ton inscription.",
             "**Obligatoire ?** L'e-mail est indispensable pour te prévenir et la ville nous dit où ; la case ambassadeur est facultative.",
           ],
         },
@@ -150,7 +151,7 @@ export const documentConfidentialite: DocumentLegal = {
           liste: [
             "**On ne vend jamais tes données**, on ne les loue pas, et on ne les confie qu'aux prestataires techniques présentés plus bas, pour notre compte (sauf obligation légale).",
             "**Aucun cookie de notre part** : à ce jour, nos pages n'en déposent aucun (seule exception possible : le cookie de sécurité de Cloudflare présenté plus haut). Détails sur la page [Cookies](/cookies).",
-            "**Presque rien dans ton navigateur** : la page d'attente n'y enregistre rien. Le site en préparation et les pages légales gardent seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
+            "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
             "**Aucune mesure d'audience**, aucune statistique de visite et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
             `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante. Si tu es bloqué à tort, écris-nous à ${lienEmail}.`,

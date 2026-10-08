@@ -1,9 +1,8 @@
-// Conditions d'utilisation du site (sosmiam.fr, page d'attente comme site complet en aperçu).
+// Conditions d'utilisation du site sosmiam.fr.
 // Site vitrine gratuit : pas de compte, rien à vendre, donc pas de CGV. À mettre à jour AVANT l'app, les comptes ou la pub.
 // Pas de clause abusive (Code de la consommation, L212-1 et R212-1 ; Code civil, 1171) : pas d'exclusion totale de
 // responsabilité, pas de modification sans information, pas de démarche amiable obligatoire, pas de tribunal imposé.
 // Propriété intellectuelle : le nom « SOS Miam » n'est pas revendiqué tant qu'aucune marque n'est déposée à l'INPI.
-// À publier sur sosmiam.fr seulement quand la page d'attente renvoie vers les 4 pages légales (pied de page).
 import { editeur, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -101,8 +100,7 @@ export const documentCgu: DocumentLegal = {
       id: "contributions",
       titre: "Ce que tu nous envoies",
       blocs: [
-        `Pour t'inscrire à la newsletter, inscrire ton lieu, proposer ta candidature comme ambassadeur fondateur ou simplement nous poser une question, écris-nous à ${lienContact}.`,
-        "Le formulaire « Préviens-moi » de la version du site en préparation n'enregistre encore rien : ce que tu y saisis n'est conservé nulle part. Tant qu'il n'est pas branché, pour être prévenu du lancement, passe par l'e-mail.",
+        `Pour t'inscrire à la newsletter, utilise le formulaire « Préviens-moi » en bas de l'accueil, ou écris-nous à ${lienContact}. Pour inscrire ton lieu, proposer ta candidature comme ambassadeur fondateur ou simplement nous poser une question, écris-nous aussi à cette adresse.`,
         "Quand tu nous envoies des informations, tu garantis :",
         {
           liste: [

@@ -1,10 +1,11 @@
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 
-/** Téléphone décoratif du haut de l'accueil, qui montre l'app avec deux lieux d'exemple. */
+/** Téléphone du haut de l'accueil, qui montre l'app (encore en développement) avec deux lieux d'exemple. */
 export function MaquetteTelephone() {
   const lieux = lieuxExemples.slice(0, 2);
   return (
-    <div aria-hidden="true" className="w-[290px] justify-self-center rotate-0 rounded-[44px] bg-encre p-3 shadow-telephone lg:rotate-[4deg] lg:animate-flotte">
+    <figure className="justify-self-center">
+    <div aria-hidden="true" className="w-[290px] rotate-0 rounded-[44px] bg-encre p-3 shadow-telephone lg:rotate-[4deg] lg:animate-flotte">
       <div className="flex min-h-[520px] flex-col gap-3.5 rounded-[34px] bg-creme px-4 py-5">
         <div className="flex items-center justify-between text-sm font-semibold">
           <span>📍 Montpellier</span>
@@ -28,5 +29,7 @@ export function MaquetteTelephone() {
         <span className="mt-auto rounded-full border-2 border-encre bg-jaune py-3 text-center text-[.95rem] font-bold">À la rescousse !</span>
       </div>
     </div>
+    <figcaption className="mt-6 text-center text-sm font-semibold text-gris">📱 Aperçu de l'app, encore en développement</figcaption>
+    </figure>
   );
 }

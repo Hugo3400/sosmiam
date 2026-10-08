@@ -41,7 +41,7 @@ export const questionsEssentiel: QuestionFaq[] = [
     id: "faq-sortie-app",
     question: "Quand sort l'app, et sur quels téléphones ?",
     reponse: [
-      "Elle arrive d'abord à Montpellier et dans l'Hérault, sur iPhone et Android. [Laisse ton e-mail](/#inscription) pour être prévenu dès le lancement.",
+      "Elle est encore en développement. Elle arrivera d'abord à Montpellier et dans l'Hérault, sur iPhone et Android. [Laisse ton e-mail](/#inscription) pour être prévenu dès le lancement.",
     ],
   },
   {
