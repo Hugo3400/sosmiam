@@ -87,7 +87,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   const suites = [
     beta ? "On t'invite à tester la bêta dès qu'elle est prête.\u00a0🧪" : "",
     // Pas de promesse « fondateur » : on invite à créer un compte (dès 18 ans), la candidature se fait depuis l'espace
-    ambassadeur ? "On t'écrira aussi pour t'inviter dans l'espace ambassadeur (dès 18 ans).\u00a0🎖️" : "",
+    ambassadeur ? "On t'écrira aussi pour t'inviter dans l'espace ambassadeur (dès 18\u00a0ans).\u00a0🎖️" : "",
   ].filter(Boolean);
   return { ok: true, message: lierPonctuation([`C'est noté ! On te prévient dès que SOS Miam arrive ${ou}.\u00a0🛟`, ...suites].join(" ")) };
 }
