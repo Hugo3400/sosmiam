@@ -11,6 +11,7 @@ import { EnTeteFil, HAUTEUR_ENTETE_FIL, type OngletFil } from "~/composants/fil/
 import { FilVide } from "~/composants/fil/FilVide";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
+import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
 import { Annonce } from "~/composants/interface/Annonce";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
@@ -21,6 +22,7 @@ import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
 // Une publication compte comme « à l'écran » quand on en voit plus de la moitié
@@ -92,10 +94,13 @@ export default function PourToi() {
       activite.masquer(p.id);
       annoncer("Compris, on t'en montrera moins comme ça 🙈");
     }
-    if (choix === "signaler") {
-      activite.masquer(p.id);
-      annoncer("Merci ! On regarde ça de près 🚩");
-    }
+  }
+
+  // Signalement envoyé : gardé sur le téléphone en attendant l'API, et la publication disparaît du fil (la feuille reste ouverte pour dire merci)
+  function signaler(choix: ChoixSignalement) {
+    if (!menu) return;
+    ajouterSignalementLocal({ publicationId: menu.id, lieuId: menu.lieuId, ...choix, date: new Date().toISOString() }).catch(() => {});
+    activite.masquer(menu.id);
   }
 
   function partager(p: Publication) {
@@ -193,6 +198,7 @@ export default function PourToi() {
         sauve={lieuDuMenu ? activite.aSauve(lieuDuMenu.id) : false}
         restantes={activite.restantes}
         onChoisir={choixMenu}
+        onSignaler={signaler}
         onFermer={() => setMenu(null)}
       />
     </View>
