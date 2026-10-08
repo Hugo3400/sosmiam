@@ -14,4 +14,6 @@ export default [
     route("cookies", "routes/public/cookies.tsx"),
     route("cgu", "routes/public/cgu.tsx"),
   ]),
+  // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »
+  route("liens", "routes/public/liens.tsx"),
 ] satisfies RouteConfig;

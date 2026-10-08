@@ -4,7 +4,7 @@
 sos-miam/
 ├── CLAUDE.md                  règles du projet
 ├── docs/                      arborescence (ce fichier) et décisions produit
-├── scripts/                   outils du dépôt (verifier-lignes.sh…)
+├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, recuperer-inscrits.py…)
 ├── apps/
 │   ├── site-web/              LE SITE (React Router 8)
 │   ├── app-mobile/            L'APP iOS + Android (Expo)
@@ -20,7 +20,7 @@ sos-miam/
 |---|---|
 | `public/images`, `public/icones` | fichiers servis tels quels (image de partage, favicon, icônes) ; `public/favicon.ico` reste à la racine, où les navigateurs le cherchent |
 | `src/root.tsx`, `src/routes.ts` | squelette HTML de toutes les pages, et la liste des adresses du site |
-| `src/routes/public/` | pages visibles par tous : accueil, FAQ, villes, fiches lieux, BIG SOS, pros, ambassadeurs, pages légales |
+| `src/routes/public/` | pages visibles par tous : accueil, FAQ, villes, fiches lieux, BIG SOS, pros, ambassadeurs, pages légales, et `/liens` (le mini-site à mettre en bio TikTok et Instagram) |
 | `src/routes/compte/` | connexion, inscription, mot de passe oublié |
 | `src/routes/pro/` | espace restaurateur : fiche, SOS du soir, statistiques, abonnement, BIG SOS |
 | `src/routes/ambassadeur/` | espace ambassadeur : propositions, vérifications sur place |
@@ -33,11 +33,12 @@ sos-miam/
 | `src/composants/faq/` | onglets, recherche et questions de la FAQ |
 | `src/composants/cookies/` | bandeau et réglages des cookies |
 | `src/composants/legal/` | affichage des pages légales (mentions, confidentialité, cookies, CGU) |
+| `src/composants/liens/` | cartes et icônes de la page `/liens` (site, Discord, TikTok, Instagram) |
 | `src/composants/pro/`, `ambassadeur/` | composants propres à chaque espace |
 | `src/fonctions/texte/`, `dates/`, `prix/`, `seo/`, `navigation/` | fonctions pures, une par fichier (ex. `formater-prix.ts`) |
 | `src/services/` | appels à l'API (un fichier par domaine : `lieux.ts`, `comptes.ts`…) |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/contenus/` | textes éditoriaux : étapes, ambassadeurs, ce qu'on offre aux lieux, villes, lieux d'exemple |
+| `src/contenus/` | textes éditoriaux : étapes, ambassadeurs, ce qu'on offre aux lieux, villes, lieux d'exemple, liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram) |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
 | `src/contenus/legal/` | pages légales (un fichier par page) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |

@@ -1,0 +1,29 @@
+// Schéma de la base de SOS Miam (PostgreSQL). Après chaque changement : npm run base:nouvelle-migration
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/base-de-donnees/client-genere"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Une adresse inscrite pour être prévenue du lancement puis recevoir la newsletter.
+/// Aucune adresse IP n'est gardée. Les désinscriptions par mail sont traitées par scripts/recuperer-inscrits.py.
+model InscriptionNewsletter {
+  id                   Int      @id @default(autoincrement())
+  email                String   @unique @db.VarChar(254)
+  ville                String?  @db.VarChar(80)
+  /// La personne a coché « Je veux devenir ambassadeur fondateur » (au moins une fois)
+  ambassadeur          Boolean  @default(false)
+  /// D'où vient l'inscription : « site » pour le formulaire de l'accueil
+  source               String   @db.VarChar(40)
+  premiereInscription  DateTime @default(now()) @map("premiere_inscription") @db.Timestamptz(0)
+  derniereInscription  DateTime @default(now()) @map("derniere_inscription") @db.Timestamptz(0)
+
+  @@map("inscriptions_newsletter")
+}

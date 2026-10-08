@@ -2,8 +2,7 @@ import { Outlet } from "react-router";
 
 import { Logo } from "~/composants/interface/Logo";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
-import { liensLegaux } from "~/contenus/legal/liens-legaux";
-import { site } from "~/contenus/legal/informations-legales";
+import { PiedDePageLegal } from "~/composants/mise-en-page/PiedDePageLegal";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
 
 /**
@@ -28,12 +27,7 @@ export default function MiseEnPageLegale() {
       <main id="contenu" tabIndex={-1} className="flex-1">
         <Outlet />
       </main>
-      <footer className="bg-encre py-8 text-creme">
-        <nav aria-label="Pages légales" className="mx-auto flex w-[min(1120px,100%-32px)] flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-          {liensLegaux.map((lien) => <a key={lien.href} href={lien.href} className="opacity-80 hover:opacity-100">{lien.texte}</a>)}
-          <a href={`mailto:${site.emailContact}`} className="opacity-80 hover:opacity-100">Contact</a>
-        </nav>
-      </footer>
+      <PiedDePageLegal />
     </div>
   );
 }

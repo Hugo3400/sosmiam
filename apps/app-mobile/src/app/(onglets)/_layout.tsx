@@ -14,7 +14,13 @@ const onglets: { nom: string; titre: string; icone: NomIcone }[] = [
   { nom: "profil", titre: "Profil", icone: "person-circle" },
 ];
 
-/** Barre d'onglets du bas : Pour toi, Explorer, Scan, Potes, Profil. */
+const ongletTransparent = {
+  tabBarStyle: { position: "absolute" as const, backgroundColor: "transparent", borderTopWidth: 0, elevation: 0 },
+  tabBarActiveTintColor: "#FFFFFF",
+  tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
+};
+
+/** Barre d'onglets du bas : Pour toi, Explorer, Scan, Potes, Profil. Transparente sur « Pour toi ». */
 export default function MiseEnPageOnglets() {
   return (
     <Tabs
@@ -32,6 +38,8 @@ export default function MiseEnPageOnglets() {
           options={{
             title: onglet.titre,
             tabBarIcon: ({ color, size }) => <Ionicons name={onglet.icone} color={color} size={size} />,
+            // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
+            ...(onglet.nom === "index" ? ongletTransparent : {}),
           }}
         />
       ))}

@@ -21,7 +21,10 @@ export type Publication = {
   lieuId: number;
   auteur: AuteurPublication;
   legende: string;
-  media: MediaPublication;
+  /** Absent tant que le média n'est pas prêt : le fil affiche alors le dégradé et l'emoji du lieu */
+  media?: MediaPublication;
   jaimes: number;
   commentaires: number;
+  /** Média libre qui illustre le lieu sans y avoir été filmé : étiquette « Vidéo / Photos d'illustration » */
+  illustration?: boolean;
 };

@@ -1,6 +1,7 @@
 // Publications d'EXEMPLE du fil « Pour toi » : une par lieu d'exemple, plus 3 de créateurs.
 // Médias : vidéos et photos libres de Mixkit (licence gratuite, usage commercial permis, sans crédit obligatoire),
 // recadrées et compressées dans assets/medias-demo (sources : assets/medias-demo/SOURCES.md). J'aime et commentaires inventés.
+// Toutes marquées « illustration » : l'app affiche « Vidéo / Photos d'illustration » pour ne pas faire croire qu'elles viennent du lieu.
 // « partenariat » : le lieu a offert ou payé → mention « Collaboration commerciale » (obligatoire, voir la FAQ).
 import type { Publication } from "~/contenus/type-publication";
 
@@ -12,6 +13,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Les pâtes du jour sortent tout juste de la machine 🍝 Ce soir, la salle a de la place : viens goûter la cacio e pepe de Lia !",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-0.mp4"), affiche: require("../../assets/medias-demo/lieu-0-affiche.jpg") },
     jaimes: 1240,
+    illustration: true,
     commentaires: 86,
   },
   {
@@ -21,6 +23,7 @@ export const publicationsExemples: Publication[] = [
     legende: "La fournée de grisettes du jour : miel de garrigue et réglisse, cuites dans le chaudron de mamie. -30 % sur la fournée du soir !",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-1-1.jpg"), require("../../assets/medias-demo/lieu-1-2.jpg"), require("../../assets/medias-demo/lieu-1-3.jpg")] },
     jaimes: 612,
+    illustration: true,
     commentaires: 34,
   },
   {
@@ -30,6 +33,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Ce soir, le spritz au Picpoul est à 8 € et le quiz commence à 21h. Ramène tes potes 🍹",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-2.mp4"), affiche: require("../../assets/medias-demo/lieu-2-affiche.jpg") },
     jaimes: 980,
+    illustration: true,
     commentaires: 57,
   },
   {
@@ -39,6 +43,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Nos baos sortent du panier vapeur toutes les dix minutes 🥟 Et le thé au lait est fait maison.",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-3.mp4"), affiche: require("../../assets/medias-demo/lieu-3-affiche.jpg") },
     jaimes: 1530,
+    illustration: true,
     commentaires: 112,
   },
   {
@@ -48,6 +53,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Des choux garnis à la minute : croustillants dehors, fondants dedans. Version sans gluten disponible !",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-4-1.jpg"), require("../../assets/medias-demo/lieu-4-2.jpg"), require("../../assets/medias-demo/lieu-4-3.jpg")] },
     jaimes: 870,
+    illustration: true,
     commentaires: 41,
   },
   {
@@ -57,6 +63,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Vins nature, planches du marché, et des tables libres ce soir 🍷",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-5.mp4"), affiche: require("../../assets/medias-demo/lieu-5-affiche.jpg") },
     jaimes: 455,
+    illustration: true,
     commentaires: 22,
   },
   {
@@ -66,6 +73,7 @@ export const publicationsExemples: Publication[] = [
     legende: "La balade au coucher du soleil sur le Lez, c'est ce soir. Débutants bienvenus, gilets fournis 🛶",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-6.mp4"), affiche: require("../../assets/medias-demo/lieu-6-affiche.jpg") },
     jaimes: 2100,
+    illustration: true,
     commentaires: 143,
   },
   {
@@ -75,6 +83,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Il vous reste 60 minutes pour sortir des ruelles… Un créneau vient de se libérer à 20h 🗝️",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-7.mp4"), affiche: require("../../assets/medias-demo/lieu-7-affiche.jpg") },
     jaimes: 760,
+    illustration: true,
     commentaires: 48,
   },
   {
@@ -84,6 +93,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Tes mains, un peu de terre et un tour : ton premier bol t'attend 🏺",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-8.mp4"), affiche: require("../../assets/medias-demo/lieu-8-affiche.jpg") },
     jaimes: 1340,
+    illustration: true,
     commentaires: 77,
   },
   {
@@ -93,6 +103,7 @@ export const publicationsExemples: Publication[] = [
     legende: "La tielle de Pépita, recette sétoise au poulpe, à emporter ou à déguster face au port 🐙",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-9.mp4"), affiche: require("../../assets/medias-demo/lieu-9-affiche.jpg") },
     jaimes: 690,
+    illustration: true,
     commentaires: 39,
   },
   {
@@ -102,6 +113,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Les zézettes de Ginette, croquantes comme il faut. Recette sétoise, fournée du matin.",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-10-1.jpg"), require("../../assets/medias-demo/lieu-10-2.jpg"), require("../../assets/medias-demo/lieu-10-3.jpg")] },
     jaimes: 520,
+    illustration: true,
     commentaires: 25,
   },
   {
@@ -111,6 +123,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Les petits pâtés de Pézenas, sucrés-salés, d'après une recette historique de la ville 🥧",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-11-1.jpg"), require("../../assets/medias-demo/lieu-11-2.jpg"), require("../../assets/medias-demo/lieu-11-3.jpg")] },
     jaimes: 380,
+    illustration: true,
     commentaires: 19,
   },
   {
@@ -120,6 +133,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Du paddle au milieu des flamants roses, à vingt minutes de Montpellier 🦩",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-12.mp4"), affiche: require("../../assets/medias-demo/lieu-12-affiche.jpg") },
     jaimes: 1610,
+    illustration: true,
     commentaires: 95,
   },
   {
@@ -129,6 +143,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Huîtres de Bouzigues ouvertes devant toi, avec vue sur l'étang de Thau 🦪",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-13-1.jpg"), require("../../assets/medias-demo/lieu-13-2.jpg"), require("../../assets/medias-demo/lieu-13-3.jpg")] },
     jaimes: 1120,
+    illustration: true,
     commentaires: 64,
   },
   {
@@ -138,6 +153,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Concert flamenco ce soir et tapas jusqu'à minuit 💃",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-14.mp4"), affiche: require("../../assets/medias-demo/lieu-14-affiche.jpg") },
     jaimes: 840,
+    illustration: true,
     commentaires: 51,
   },
   {
@@ -147,6 +163,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Les oreillettes de Bernadette, fines et sucrées, dans une ruelle au calme de Saint-Guilhem.",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-15-1.jpg"), require("../../assets/medias-demo/lieu-15-2.jpg"), require("../../assets/medias-demo/lieu-15-3.jpg")] },
     jaimes: 310,
+    illustration: true,
     commentaires: 12,
   },
   {
@@ -156,6 +173,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Le menu du jour suit le marché de Lodève : ce qui pousse ici finit dans ton assiette 🥕",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-16.mp4"), affiche: require("../../assets/medias-demo/lieu-16-affiche.jpg") },
     jaimes: 260,
+    illustration: true,
     commentaires: 9,
   },
   {
@@ -165,6 +183,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Un muscat bien frais en terrasse, entre copains : c'est ça, la belle vie 🥂",
     media: { type: "video", video: require("../../assets/medias-demo/lieu-17.mp4"), affiche: require("../../assets/medias-demo/lieu-17-affiche.jpg") },
     jaimes: 405,
+    illustration: true,
     commentaires: 18,
   },
   {
@@ -174,6 +193,7 @@ export const publicationsExemples: Publication[] = [
     legende: "J'ai testé la trattoria de Lia : pâtes fraîches du matin et tiramisu maison. Franchement ? J'y retourne la semaine prochaine 😍",
     media: { type: "video", video: require("../../assets/medias-demo/createur-1.mp4"), affiche: require("../../assets/medias-demo/createur-1-affiche.jpg") },
     jaimes: 3400,
+    illustration: true,
     commentaires: 210,
   },
   {
@@ -183,6 +203,7 @@ export const publicationsExemples: Publication[] = [
     legende: "Les huîtres de l'étang, ouvertes sous mes yeux. Une pépite absolue 🦪",
     media: { type: "video", video: require("../../assets/medias-demo/createur-2.mp4"), affiche: require("../../assets/medias-demo/createur-2-affiche.jpg") },
     jaimes: 2780,
+    illustration: true,
     commentaires: 154,
   },
   {
@@ -192,6 +213,7 @@ export const publicationsExemples: Publication[] = [
     legende: "On s'en est sortis avec 4 minutes d'avance 😅 Le meilleur escape game de l'Écusson !",
     media: { type: "video", video: require("../../assets/medias-demo/createur-3.mp4"), affiche: require("../../assets/medias-demo/createur-3-affiche.jpg") },
     jaimes: 1900,
+    illustration: true,
     commentaires: 98,
   },
 ];
