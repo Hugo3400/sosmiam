@@ -15,10 +15,10 @@ Ces règles valent pour tout le monde (Hugo et les sessions Claude). Les respect
 - **Interdits** : les noms fourre-tout (`utils`, `helpers`, `divers`, `misc`, `common2`, `temp`, `nouveau`…).
 
 ## 3. Le site web et l'app sont séparés
-- `apps/site-web` (le site), `apps/app-mobile` (l'app iOS/Android), `apps/logiciel-gestion` (le logiciel ordinateur d'administration) et `apps/api` (le serveur) **ne s'importent jamais entre eux**.
+- `apps/site-web` (le site), `apps/app-mobile` (l'app iOS/Android), `apps/logiciel-gestion` (le logiciel ordinateur d'administration), `apps/api` (le serveur) et `apps/bot-discord` (le bot du serveur Discord) **ne s'importent jamais entre eux**.
 - L'administration (modération, notifications, validation des BIG SOS, maintenance) se fait dans le logiciel de gestion, pas sur le site.
 - Ce qui sert à plusieurs (types, règles métier, couleurs, validation, client de l'API) va dans `packages/commun`.
-- Le site et l'app ne parlent aux données qu'à travers l'API.
+- Le site, l'app et le bot ne parlent aux données qu'à travers l'API.
 
 ## 4. Où ranger quoi
 Voir `docs/arborescence.md` : chaque dossier y est décrit. Un nouveau dossier = une ligne de plus dans ce fichier.
@@ -33,4 +33,5 @@ Voir `docs/arborescence.md` : chaque dossier y est décrit. Un nouveau dossier =
 - App : Expo (React Native) + Expo Router + NativeWind.
 - Logiciel de gestion (plus tard) : Tauri 2 + React + Vite.
 - API : Express 5, Prisma 7, PostgreSQL.
+- Bot Discord : discord.js 14, Node 22 (TypeScript lancé tel quel, sans compilation).
 - Hébergement : VPS (nginx + pm2), domaine sosmiam.fr.

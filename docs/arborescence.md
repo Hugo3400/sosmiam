@@ -9,7 +9,8 @@ sos-miam/
 │   ├── site-web/              LE SITE (React Router 8)
 │   ├── app-mobile/            L'APP iOS + Android (Expo)
 │   ├── logiciel-gestion/      LE LOGICIEL ORDINATEUR de gestion (Tauri) — plus tard
-│   └── api/                   LE SERVEUR (Express + Prisma + PostgreSQL)
+│   ├── api/                   LE SERVEUR (Express + Prisma + PostgreSQL)
+│   └── bot-discord/           LE BOT du serveur Discord (discord.js)
 └── packages/
     └── commun/                code partagé par le site, l'app et l'API
 ```
@@ -87,6 +88,20 @@ L'administration de SOS Miam se fait ici, pas sur le site. Stack prévue : Tauri
 | `src/emails/` | modèles et envoi des e-mails |
 | `src/taches/` | tâches planifiées : recharge des rescousses le lundi, fin des BIG SOS… |
 | `tests/` | tests de l'API |
+
+## apps/bot-discord — le bot du serveur Discord
+Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels quels : pas de compilation, `tsc` ne fait que vérifier les types. Mode d'emploi : `apps/bot-discord/README.md`.
+| Dossier | Contenu |
+|---|---|
+| `src/demarrer.ts` | point d'entrée : connexion, enregistrement des commandes sur chaque serveur, événements |
+| `src/commandes/` | une commande slash par fichier (`faq.ts`, `proposer-lieu.ts`…), et leur liste (`liste-commandes.ts`) |
+| `src/evenements/` | réponses aux événements Discord : interactions, arrivée d'un membre |
+| `src/messages/` | messages et formulaire du bot (texte et mise en forme), un par fichier : `creer-message-…` |
+| `src/contenus/` | questions de la FAQ (reprises du site, à garder en phase), types de lieux, liens publics |
+| `src/stockage/` | réglages de chaque serveur (salons choisis avec `/config`), gardés dans `donnees/` (non commité) |
+| `src/interface/` | couleurs de la marque au format Discord |
+| `src/fonctions/texte/`, `discord/` | fonctions, une par fichier (recherche dans la FAQ, bloc de message, erreurs) |
+| `tests/` | tests du bot (`npm test`) |
 
 ## packages/commun — partagé
 | Dossier | Contenu |
