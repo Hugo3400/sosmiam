@@ -54,7 +54,7 @@ export function creerControleursCourriels(s: ServicesGestion) {
       if (!verifierEmail(adresse)) throw new ChampInvalide("adresse");
       const resultat = await s.envoyerEssaiNewsletter(adresse, lireContenu(corps));
       if (!resultat.ok) return reponse.status(502).json({ ok: false, erreur: resultat.erreur, message: "message" in resultat ? resultat.message : undefined });
-      await noter(reponse, "Newsletter : essai envoyé", adresse);
+      await noter(reponse, "Mail d'essai envoyé");
       reponse.json({ ok: true });
     }),
     destinataires: verifier(async (requete, reponse) => {

@@ -29,6 +29,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
   {
     groupe: "Communauté",
     entrees: [
+      { ecran: "utilisateurs", libelle: "Comptes", icone: Users },
       { ecran: "ambassadeurs", libelle: "Ambassadeurs", icone: HeartHandshake },
       { ecran: "newsletter", libelle: "Newsletter", icone: Mail },
       { ecran: "annonces", libelle: "Annonces Discord", icone: Megaphone },
@@ -39,7 +40,6 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
     entrees: [
       { ecran: "big-sos", libelle: "BIG SOS", icone: LifeBuoy, bientot: true },
       { ecran: "notifications", libelle: "Notifications", icone: Bell, bientot: true },
-      { ecran: "utilisateurs", libelle: "Comptes", icone: Users, bientot: true },
     ],
   },
   {

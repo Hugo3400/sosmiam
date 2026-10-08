@@ -1,3 +1,4 @@
+import type { JSONContent } from "@tiptap/react";
 import { ExternalLink, Send, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -6,8 +7,9 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
-import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
+import { EditeurTexteRiche } from "~/composants/editeur/EditeurTexteRiche.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
+import { rendreMarkdownDiscord } from "~/fonctions/editeur/rendre-markdown-discord.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
@@ -19,7 +21,10 @@ import { ouvrirLien } from "~/services/systeme.ts";
 export function EcranAnnonces() {
   const { donnees, erreur, recharger } = utiliserChargement(listerAnnonces, []);
   const [titre, setTitre] = useState("");
-  const [texte, setTexte] = useState("");
+  // L'éditeur visuel donne un document ; le bot reçoit sa mise en forme Discord (3 500 caractères au plus)
+  const [document, setDocument] = useState<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const [cleEditeur, setCleEditeur] = useState(0);
+  const texte = rendreMarkdownDiscord(document);
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const enAttente = donnees?.some((a) => a.statut === "en-attente");
 
@@ -36,7 +41,8 @@ export function EcranAnnonces() {
     try {
       await envoyerAnnonce(titre, texte);
       setTitre("");
-      setTexte("");
+      setDocument({ type: "doc", content: [{ type: "paragraph" }] });
+      setCleEditeur((cle) => cle + 1);
       setEtat({ enCours: false, erreur: null });
       recharger();
     } catch (probleme) {
@@ -54,16 +60,23 @@ export function EcranAnnonces() {
         <Carte titre="Nouvelle annonce">
           <div className="grid gap-4">
             <Champ libelle="Titre" valeur={titre} maxLength={100} onChange={setTitre} placeholder="Grosse nouvelle 🛟" />
-            <ZoneTexte
-              libelle="Texte"
-              valeur={texte}
-              onChange={setTexte}
-              maximum={3500}
-              lignes={10}
-              aide="Mise en forme Discord : **gras**, *italique*, « - » pour une liste, et les liens tels quels."
-            />
+            <div className="grid gap-1.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-sm font-semibold">Texte</p>
+                <span className={`chiffres text-xs ${texte.length > 3500 ? "font-bold text-rouge-texte" : "text-gris"}`}>{texte.length} / 3500</span>
+              </div>
+              <EditeurTexteRiche
+                key={cleEditeur}
+                libelle="Texte de l'annonce"
+                contenuInitial={document}
+                onChange={setDocument}
+                hauteur="min-h-[260px]"
+                placeholder="Ce qui se passe chez SOS Miam…"
+              />
+              <p className="text-[13px] text-gris">Discord affiche titres, gras, italique, souligné, barré, listes, citations et liens ; le bouton devient un lien bien visible.</p>
+            </div>
             {etat.erreur && <p role="alert" className="text-sm font-semibold text-rouge-texte">{etat.erreur}</p>}
-            <Bouton variante="principal" icone={Send} chargement={etat.enCours} desactive={!titre.trim() || !texte.trim()} onClick={envoyer} className="justify-self-start">
+            <Bouton variante="principal" icone={Send} chargement={etat.enCours} desactive={!titre.trim() || !texte.trim() || texte.length > 3500} onClick={envoyer} className="justify-self-start">
               Publier sur Discord
             </Bouton>
           </div>

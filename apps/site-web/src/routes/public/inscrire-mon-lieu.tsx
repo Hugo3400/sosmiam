@@ -24,7 +24,7 @@ export function meta(_: Route.MetaArgs) {
 export async function action({ request }: Route.ActionArgs): Promise<ReponseDemandeLieu> {
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
-  const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/[ \t]+/g, " ").trim();
+  const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").trim();
 
   const valeurs: Record<string, string> = {};
   for (const c of tousLesChamps) valeurs[c.nom] = lire(c.nom);

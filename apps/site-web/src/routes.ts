@@ -49,4 +49,8 @@ export default [
   // Pour les moteurs de recherche (texte et XML générés à chaque demande)
   route("robots.txt", "routes/ressources/robots.ts"),
   route("sitemap.xml", "routes/ressources/plan-du-site.ts"),
+  // Toute autre adresse : « Page introuvable » (404). Sans cette route, une adresse inconnue ne passe par aucun
+  // middleware de root.tsx (ni le partage des hôtes, ni les statistiques) : React Router répond 404 avant eux.
+  // Elle reste la DERNIÈRE de la liste (tests/route-introuvable.test.ts).
+  route("*", "routes/public/introuvable.tsx"),
 ] satisfies RouteConfig;

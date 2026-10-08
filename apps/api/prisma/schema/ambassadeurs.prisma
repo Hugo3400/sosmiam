@@ -19,6 +19,8 @@ model MissionAmbassadeur {
   compteRendu String?   @map("compte_rendu") @db.VarChar(2000)
   creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   faiteLe     DateTime? @map("faite_le") @db.Timestamptz(0)
+  /// Le BIG SOS que cette mission vérifie sur place, s'il y en a un
+  bigSos      BigSos?
 
   @@index([compteId, statut])
   @@index([statut, echeance])

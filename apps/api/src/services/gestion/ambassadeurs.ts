@@ -14,7 +14,7 @@ const echeances = (derniereConnexion: Date) => ({
   effaceLe: new Date(derniereConnexion.getTime() + EFFACEMENT).toISOString(),
 });
 /** Nombre de fondateurs (numéros 1 à 10) */
-const FONDATEURS_MAX = 10;
+export const FONDATEURS_MAX = 10;
 
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
 export type FiltresAmbassadeurs = { statut: string; palier: string; recherche: string; ville: string };
@@ -103,7 +103,7 @@ export async function modifierAmbassadeur(id: number, modification: Modification
   return baseDeDonnees.ambassadeur.update({ where: { compteId: id }, data: modification }).catch(() => null);
 }
 
-/** Prénom d'un compte d'ambassadeur (null s'il n'existe pas) : pour vérifier avant d'agir, et pour le journal. */
+/** Prénom d'un compte d'ambassadeur (null s'il n'existe pas) : pour vérifier avant d'agir (jamais pour le journal). */
 export async function lirePrenom(id: number): Promise<string | null> {
   const compte = await baseDeDonnees.compte.findFirst({ where: { id, ambassadeur: { isNot: null } }, select: { prenom: true } });
   return compte?.prenom ?? null;

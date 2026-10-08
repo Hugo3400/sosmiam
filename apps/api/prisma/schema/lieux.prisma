@@ -41,6 +41,7 @@ model Lieu {
   modifieLe    DateTime             @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
   publications Publication[]
   missions     MissionAmbassadeur[]
+  bigSos       BigSos[]
 
   @@index([statut, ville])
   @@map("lieux")

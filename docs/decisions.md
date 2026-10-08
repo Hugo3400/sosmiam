@@ -136,6 +136,17 @@
   - un avis vérifié, avec une invitation une heure après ;
   - un tampon sur la carte de fidélité du lieu (récompense choisie par le lieu) ;
   - une ligne dans l'historique « Mes visites ».
+- **Précisions (8 octobre 2026, soir)** :
+  - **le QR du comptoir s'affiche à la demande** : après le paiement, l'équipe touche « Montrer le QR » pour 1 à 12 personnes ; il change toutes les 30 s et s'éteint après 2 minutes ou quand tout le monde a scanné. Pas de QR affiché en permanence (il prouverait une présence, pas un paiement) ;
+  - **pendant un SOS, +25 à la place de +15**, si le SOS était lancé avant la demande ;
+  - **chaque membre de l'équipe d'un lieu a son compte** (rôle « équipe », invité par le gérant) : on sait qui a validé quoi ;
+  - **délais** : 30 minutes pour valider une addition demandée, 15 minutes pour qu'un lieu annule une validation faite par erreur, 14 jours pour donner son avis ;
+  - une addition de table : chaque personne fait sa propre demande (une visite chacun) ;
+  - « Venu » (réservation) ne compte que si le client a aussi fait « Je suis là » sur place ;
+  - les avis sont signés « Léa M. » (« Léa » seulement pour un 15-17 ans), datés au mois, jamais à l'heure ; un ambassadeur donne un avis consultatif sur un avis louche, l'équipe tranche dans le logiciel ;
+  - aucun texte libre d'un lieu vers un client en v1 (motifs de refus fermés) ;
+  - la démo du mode pro et du mode ambassadeur n'existe qu'en développement (jamais dans une version publiée).
+- **Points ouverts, à trancher avant de brancher l'API** : rattacher un pro à son lieu (SIREN + vérification), e-mail vérifié obligatoire pour valider, seuils anti-triche, durées de conservation des visites, adresse de l'espace pro (pro.sosmiam.fr ?).
 
 ## Visite sans compte (décidé le 8 octobre 2026, à construire)
 - **Sans compte, on regarde seulement** : fil, Explorer, fiches des lieux et leur carte, pages des créateurs, lecture des commentaires, « Y aller ».

@@ -1,0 +1,39 @@
+// BIG SOS : un lieu en vraie difficulté passe à la une 7 jours (docs/decisions.md). Parcours : demande (espace pro,
+// ambassadeur ou équipe) → vérification sur place par un ambassadeur (une mission) → vote de la communauté (avec l'app)
+// → validation dans le logiciel (dates, objectif) → à la une → bilan. Gratuit, mais limité : limites pas encore décidées.
+
+/// Un BIG SOS, de la demande au bilan. La phase « programmé / à la une / à clôturer » se déduit des dates une fois validé.
+model BigSos {
+  id              Int                 @id @default(autoincrement())
+  lieuId          Int                 @map("lieu_id")
+  lieu            Lieu                @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// « lieu » (espace pro), « ambassadeur » (proposé par un ambassadeur) ou « equipe » (créé dans le logiciel)
+  origine         String              @db.VarChar(12)
+  /// Compte qui l'a demandé (pro ou ambassadeur), s'il y en a un
+  compteId        Int?                @map("compte_id")
+  compte          Compte?             @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  /// L'histoire racontée par le lieu, affichée sur la page du BIG SOS
+  histoire        String              @db.VarChar(3000)
+  /// « demande », « verification », « vote », « valide », « termine » ou « refuse »
+  statut          String              @default("demande") @db.VarChar(12)
+  /// Mission de vérification sur place confiée à un ambassadeur
+  missionId       Int?                @unique @map("mission_id")
+  mission         MissionAmbassadeur? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  /// Objectif de mobilisation, libre pour l'instant (ce qu'on compte, le but, où on en est), mis à jour à la main
+  objectifTitre   String?             @map("objectif_titre") @db.VarChar(100)
+  objectifCible   Int?                @map("objectif_cible")
+  objectifAtteint Int                 @default(0) @map("objectif_atteint")
+  /// Vidéos des créateurs et liens utiles : [{ "titre": "…", "adresse": "https://…" }]
+  liens           Json                @default("[]")
+  debutLe         DateTime?           @map("debut_le") @db.Timestamptz(0)
+  finLe           DateTime?           @map("fin_le") @db.Timestamptz(0)
+  bilan           String?             @db.VarChar(3000)
+  /// Note privée de l'équipe (jamais montrée)
+  note            String?             @db.VarChar(2000)
+  creeLe          DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe       DateTime            @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@index([statut, debutLe])
+  @@index([lieuId])
+  @@map("big_sos")
+}

@@ -22,8 +22,8 @@ const messages = {
   actuel: "Indique ton mot de passe actuel.",
   actuelIncorrect: "Ce n'est pas ton mot de passe actuel.",
   nouveau: "Ton nouveau mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  // Refusé par l'API : trop courant, égal à l'e-mail, ou fait seulement de chiffres
-  nouveauRefuse: "Ce mot de passe est trop courant, c'est ton e-mail, ou il n'a que des chiffres : choisis-en un autre. Une petite phrase marche très bien.",
+  // Refusé par l'API : trop facile à deviner (courant, suite, répétition, e-mail), ou que des chiffres et moins de 16
+  nouveauRefuse: "Ce mot de passe est trop facile à deviner (trop courant, une suite, une répétition, ton e-mail…), ou il n'a que des chiffres (il en faut alors 16) : choisis-en un autre. Une petite phrase marche très bien.",
   motDePasse: "Indique ton mot de passe pour confirmer.",
   motDePasseIncorrect: "Ce n'est pas ton mot de passe.",
 };

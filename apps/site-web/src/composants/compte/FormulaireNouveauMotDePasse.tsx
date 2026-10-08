@@ -54,7 +54,7 @@ export function FormulaireNouveauMotDePasse() {
           libelle="Ton nouveau mot de passe"
           type="password"
           autoComplete="new-password"
-          aide={lierPonctuation("12 caractères au moins, et pas seulement des chiffres. Astuce : une petite phrase marche très bien.")}
+          aide={lierPonctuation("12 caractères au moins (16 si ce ne sont que des chiffres). Astuce : une petite phrase marche très bien.")}
         />
       </div>
     </FormulaireCompte>

@@ -22,7 +22,7 @@ export function ChampCommentaireInvite({ onCreerCompte, margeBas }: Props) {
       />
       {/* Lu sans l'emoji (VoiceOver dirait « yeux ») */}
       <Text accessibilityLabel="Pour lire, pas besoin de compte : régale-toi" className="text-center font-texte text-xs text-gris">
-        Pour lire, pas besoin de compte : régale-toi 👀
+        {"Pour lire, pas besoin de compte\u00a0: régale-toi 👀"}
       </Text>
     </View>
   );

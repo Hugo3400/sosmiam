@@ -19,8 +19,8 @@ const messages = {
   prenom: "Donne ton prénom ou un surnom (40 caractères au plus).",
   email: "Cette adresse e-mail ne semble pas valide.",
   motDePasse: "Ton mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  // Refusé par l'API : trop courant, égal à l'e-mail, ou fait seulement de chiffres
-  motDePasseRefuse: "Ce mot de passe est trop courant, c'est ton e-mail, ou il n'a que des chiffres : choisis-en un autre. Une petite phrase marche très bien.",
+  // Refusé par l'API : trop facile à deviner (courant, suite, répétition, e-mail), ou que des chiffres et moins de 16
+  motDePasseRefuse: "Ce mot de passe est trop facile à deviner (trop courant, une suite, une répétition, ton e-mail…), ou il n'a que des chiffres (il en faut alors 16) : choisis-en un autre. Une petite phrase marche très bien.",
   dateNaissance: "Indique ta date de naissance (jour, mois et année).",
   ville: "Indique ta ville (2 à 80 caractères).",
   quartier: "Le quartier fait 80 caractères au plus.",

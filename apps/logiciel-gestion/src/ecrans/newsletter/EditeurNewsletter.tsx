@@ -7,7 +7,12 @@ import { Carte } from "~/composants/interface/Carte.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
-import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
+import type { JSONContent } from "@tiptap/react";
+
+import { EditeurTexteRiche } from "~/composants/editeur/EditeurTexteRiche.tsx";
+import { STYLES_COURRIEL } from "~/contenus/styles-courriel.ts";
+import { rendreTexteBrut } from "~/fonctions/editeur/rendre-texte-brut.ts";
+import { convertirMarkdown } from "~/fonctions/newsletter/convertir-markdown.ts";
 import { creerHtmlNewsletter } from "~/fonctions/newsletter/creer-html-newsletter.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
@@ -17,6 +22,7 @@ import { ModaleEnvoi } from "./ModaleEnvoi.tsx";
 import { enregistrerBrouillon, lireBrouillon, listerBrouillons, supprimerBrouillon } from "~/services/newsletter.ts";
 import { copier } from "~/services/systeme.ts";
 
+/** Modèle d'une nouvelle newsletter (écrit en Markdown simple, converti pour l'éditeur) */
 const MODELE = `# Des nouvelles de SOS Miam 🛟
 
 Salut !
@@ -33,12 +39,18 @@ Tu as une pépite à nous faire découvrir ? Réponds à ce mail, on lit tout.
 À très vite,
 Hugo`;
 
-/** Rédaction des newsletters : brouillons gardés sur le serveur, aperçu fidèle de l'e-mail, puis l'envoi (à qui on veut). */
+const DOCUMENT_VIDE: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
+/** Un ancien brouillon (Markdown) ou le modèle, en HTML que l'éditeur sait lire */
+const versHtml = (markdown: string) => convertirMarkdown(markdown, STYLES_COURRIEL);
+
+/** Rédaction des newsletters : éditeur visuel, brouillons gardés sur le serveur, aperçu fidèle de l'e-mail, puis l'envoi. */
 export function EditeurNewsletter() {
   const liste = utiliserChargement(listerBrouillons, []);
   const [choisi, setChoisi] = useState<number | null>(null);
   const [objet, setObjet] = useState("");
-  const [texte, setTexte] = useState("");
+  // Ce que l'éditeur reçoit au départ (et sa clé : la changer recrée l'éditeur), puis le document tel qu'il évolue
+  const [depart, setDepart] = useState<{ cle: number; contenu: JSONContent | string }>({ cle: 0, contenu: DOCUMENT_VIDE });
+  const [document, setDocument] = useState<JSONContent>(DOCUMENT_VIDE);
   const [modifie, setModifie] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [etat, setEtat] = useState<{ enCours: boolean; message: string | null; erreur: string | null }>({ enCours: false, message: null, erreur: null });
@@ -55,7 +67,7 @@ export function EditeurNewsletter() {
       const brouillon = await lireBrouillon(id);
       setChoisi(brouillon.id);
       setObjet(brouillon.objet);
-      setTexte(brouillon.texte);
+      setDepart({ cle: Date.now(), contenu: brouillon.contenu ?? versHtml(brouillon.texte) });
       setModifie(false);
       setEtat({ enCours: false, message: null, erreur: null });
     } catch (probleme) {
@@ -65,13 +77,13 @@ export function EditeurNewsletter() {
   function nouvelle() {
     setChoisi(0);
     setObjet("Des nouvelles de SOS Miam 🛟");
-    setTexte(MODELE);
+    setDepart({ cle: Date.now(), contenu: versHtml(MODELE) });
     setModifie(true);
   }
   async function enregistrer() {
     setEtat({ enCours: true, message: null, erreur: null });
     try {
-      const brouillon = await enregistrerBrouillon(choisi || null, { objet, texte });
+      const brouillon = await enregistrerBrouillon(choisi || null, { objet, texte: rendreTexteBrut(document), contenu: document });
       setChoisi(brouillon.id);
       setModifie(false);
       setEtat({ enCours: false, message: "Enregistré ✅", erreur: null });
@@ -88,7 +100,8 @@ export function EditeurNewsletter() {
     liste.recharger();
   }
 
-  const html = creerHtmlNewsletter(objet, texte);
+  const html = creerHtmlNewsletter(objet, document);
+  const vide = !rendreTexteBrut(document).trim();
   return (
     <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
       <Carte titre="Newsletters" actions={<Bouton petit icone={FilePlus2} titre="Nouvelle newsletter" onClick={nouvelle} />} sansMarge>
@@ -124,15 +137,18 @@ export function EditeurNewsletter() {
           >
             <div className="grid gap-4">
               <Champ libelle="Objet du mail" valeur={objet} maxLength={150} onChange={(v) => { setObjet(v); setModifie(true); }} />
-              <ZoneTexte
-                libelle="Texte"
-                police="code"
-                lignes={18}
-                maximum={20000}
-                valeur={texte}
-                onChange={(v) => { setTexte(v); setModifie(true); }}
-                aide="« # Titre », « ## Sous-titre », « - » pour une liste, **gras**, _italique_, [un lien](https://sosmiam.fr). Une ligne vide sépare les paragraphes."
-              />
+              <div className="grid gap-1.5">
+                <p className="text-sm font-semibold">Texte</p>
+                <EditeurTexteRiche
+                  key={depart.cle}
+                  libelle="Texte de la newsletter"
+                  contenuInitial={depart.contenu}
+                  onPret={setDocument}
+                  onChange={(nouveau) => { setDocument(nouveau); setModifie(true); }}
+                  placeholder="Salut ! Raconte ce qui se passe chez SOS Miam…"
+                />
+                <p className="text-[13px] text-gris">Sélectionne du texte pour le mettre en forme. Ctrl+K ajoute un lien ; le bouton jaune sert d'appel à l'action.</p>
+              </div>
               {(etat.message || etat.erreur) && <p role="status" className={`text-sm font-semibold ${etat.erreur ? "text-rouge-texte" : "text-vert"}`}>{etat.erreur ?? etat.message}</p>}
             </div>
           </Carte>
@@ -141,7 +157,7 @@ export function EditeurNewsletter() {
             actions={
               <>
                 <Bouton petit icone={Copy} onClick={() => copier(html).then(() => setEtat({ enCours: false, message: "HTML copié dans le presse-papiers.", erreur: null }))}>Copier le HTML</Bouton>
-                <Bouton petit variante="principal" icone={Send} desactive={!objet.trim() || !texte.trim()} onClick={() => setEnvoi(true)}>Envoyer…</Bouton>
+                <Bouton petit variante="principal" icone={Send} desactive={!objet.trim() || vide} onClick={() => setEnvoi(true)}>Envoyer…</Bouton>
               </>
             }
             sansMarge
@@ -153,7 +169,7 @@ export function EditeurNewsletter() {
       {envoi && (
         <ModaleEnvoi
           objet={objet}
-          texte={texte}
+          document={document}
           brouillonId={choisi && !modifie ? choisi : null}
           onFermer={() => setEnvoi(false)}
           onLance={(bilan) => { setEnvoi(false); setEtat({ enCours: false, message: bilan, erreur: null }); }}

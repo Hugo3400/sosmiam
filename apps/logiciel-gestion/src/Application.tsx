@@ -7,6 +7,7 @@ import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBientot } from "~/ecrans/bientot/EcranBientot.tsx";
+import { EcranComptes } from "~/ecrans/comptes/EcranComptes.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
 import { EcranDeverrouillage } from "~/ecrans/connexion/EcranDeverrouillage.tsx";
 import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.tsx";
@@ -119,7 +120,8 @@ export function Application() {
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={moderation.actualiser} />}
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
-          {(ecran === "big-sos" || ecran === "notifications" || ecran === "utilisateurs") && <EcranBientot ecran={ecran} />}
+          {ecran === "utilisateurs" && <EcranComptes />}
+          {(ecran === "big-sos" || ecran === "notifications") && <EcranBientot ecran={ecran} />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "reglages" && (
             <EcranReglages

@@ -72,12 +72,12 @@ export async function prevenirAvantEcheances(maintenant = new Date()) {
   const retraits = await trouverAPrevenir({ type: "alerte-retrait", delai: RETRAIT, seulementAmbassadeurs: true }, maintenant);
   for (const compte of retraits) {
     await mettreEnFile("alerte-retrait", compte.email, {
-      objet: `Ton rôle d'ambassadeur SOS Miam s'arrête le ${compte.date}`,
+      objet: `Ton rôle d'ambassadeur SOS Miam s'arrête dès le ${compte.date}`,
       ...habillerCourriel({
         titre: `Tu nous manques, ${compte.prenom} !`,
         paragraphes: [
-          `Ton espace ambassadeur n'a pas servi depuis presque un an. Comme prévu dans nos règles, ton rôle d'ambassadeur s'arrêtera le ${compte.date} : tes missions et tes messages partiront avec lui. Ton compte SOS Miam, tes points et tes badges, eux, restent.`,
-          "Tu veux continuer l'aventure ? Il suffit de te connecter d'ici là. Sinon, tu n'as rien à faire.",
+          `Ton espace ambassadeur n'a pas servi depuis presque un an. Comme prévu dans nos règles, ton rôle d'ambassadeur s'arrêtera dès le ${compte.date} : tes missions et tes messages partiront avec lui. Ton compte SOS Miam, tes points et tes badges, eux, restent.`,
+          `Tu veux continuer l'aventure ? Il suffit de te connecter avant le ${compte.date}. Sinon, tu n'as rien à faire.`,
         ],
         bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
         pied: "Tu reçois ce mail parce que tu es ambassadeur SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
@@ -87,12 +87,12 @@ export async function prevenirAvantEcheances(maintenant = new Date()) {
   const effacements = await trouverAPrevenir({ type: "alerte-effacement", delai: EFFACEMENT, seulementAmbassadeurs: false }, maintenant);
   for (const compte of effacements) {
     await mettreEnFile("alerte-effacement", compte.email, {
-      objet: `Ton compte SOS Miam sera effacé le ${compte.date}`,
+      objet: `Ton compte SOS Miam sera effacé dès le ${compte.date}`,
       ...habillerCourriel({
         titre: `On ne t'a pas vu depuis longtemps, ${compte.prenom}`,
         paragraphes: [
-          `Ton compte SOS Miam n'a pas servi depuis presque deux ans. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon le ${compte.date}, avec tout ce qui va avec.`,
-          "Tu veux le garder ? Il suffit de te connecter d'ici là. Sinon, tu n'as rien à faire : on efface tout, sans relance.",
+          `Ton compte SOS Miam n'a pas servi depuis presque deux ans. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon dès le ${compte.date}, avec tout ce qui va avec.`,
+          `Tu veux le garder ? Il suffit de te connecter avant le ${compte.date}. Sinon, tu n'as rien à faire : on efface tout, sans relance.`,
         ],
         bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
         pied: "Tu reçois ce mail parce que tu as un compte SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",

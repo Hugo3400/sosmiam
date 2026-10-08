@@ -26,7 +26,7 @@ test("le HTML et les liens dangereux sont neutralisés", () => {
 });
 
 test("l'e-mail complet rappelle comment se désinscrire", () => {
-  const html = creerHtmlNewsletter("Objet <test>", "Salut");
+  const html = creerHtmlNewsletter("Objet <test>", { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Salut" }] }] });
   assert.ok(html.includes("STOP"));
   assert.ok(html.includes("<title>Objet &lt;test></title>"));
 });

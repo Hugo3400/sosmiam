@@ -33,6 +33,7 @@ model Compte {
   missions      MissionAmbassadeur[]
   messages      MessageAmbassadeur[]
   lectures      LectureMessage[]
+  bigSos        BigSos[]
 
   @@index([derniereConnexion])
   @@map("comptes")

@@ -1,5 +1,5 @@
 // Questions de /faq, reprises de la FAQ du site (apps/site-web/src/contenus/faq/) et adaptées à Discord :
-// réponses plus courtes, et l'e-mail à la place des liens du site, qui n'est pas encore ouvert.
+// réponses plus courtes, avec l'e-mail ou un lien direct à la place des pages du site.
 // Une réponse change sur le site ? Mettre ce fichier à jour aussi. Décisions et prix : docs/decisions.md.
 
 export const THEMES_FAQ = {
@@ -57,7 +57,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "essentiel",
     question: "Dans quelles villes ?",
     reponse:
-      "On commence à Montpellier et dans l'Hérault : Sète, Pézenas, Béziers, Agde, Lunel, Lodève, Palavas-les-Flots… D'autres villes suivront, une par une. Écris à **bonjour@sosmiam.fr** pour savoir quand SOS Miam arrive chez toi.",
+      "Partout en France ! Les lieux arrivent au fur et à mesure qu'ils s'inscrivent ou que la communauté nous les fait découvrir, des grandes villes aux petits villages. Écris à **bonjour@sosmiam.fr** pour savoir quand SOS Miam arrive près de chez toi.",
     motsCles: ["ville", "montpellier", "herault", "ou"],
   },
   {
@@ -65,7 +65,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "essentiel",
     question: "Quand sort l'app, et sur quels téléphones ?",
     reponse:
-      "Elle arrive d'abord à Montpellier et dans l'Hérault, sur iPhone et Android. Pour être prévenu dès le lancement, écris à **bonjour@sosmiam.fr** (objet : « Inscription à la newsletter »), et garde un œil sur ce serveur.",
+      "Elle est encore en développement. Elle arrivera partout en France, sur iPhone et Android. Pour être prévenu dès le lancement, écris à **bonjour@sosmiam.fr** (objet : « Inscription à la newsletter »), et garde un œil sur ce serveur.",
     motsCles: ["lancement", "date", "iphone", "android", "telecharger", "newsletter"],
   },
   {
@@ -73,7 +73,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "essentiel",
     question: "SOS Miam, c'est seulement pour manger ?",
     reponse:
-      "Non ! Le nom vient de la bouffe, mais tu trouves aussi des bars, des bowlings, des salles d'événements et plein de sorties : escape games, ateliers, kayak sur le Lez, paddle à Palavas… Tant que c'est indépendant et que ça mérite du monde, ça a sa place.",
+      "Non ! Le nom vient de la bouffe, mais tu trouves aussi des bars, des bowlings, des salles d'événements et plein de sorties : escape games, ateliers, kayak, paddle… Tant que c'est indépendant et que ça mérite du monde, ça a sa place.",
     motsCles: ["sortie", "activite", "bar", "bowling"],
   },
   {
@@ -81,7 +81,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "essentiel",
     question: "Pourquoi seulement des lieux indépendants ?",
     reponse:
-      "Les grandes chaînes ont déjà de la pub et de la visibilité. SOS Miam met en lumière les autres : la pâtisserie du coin, le petit resto de l'Écusson, le bar qui vient d'ouvrir à Sète, l'atelier de poterie caché dans une ruelle de Pézenas.",
+      "Les grandes chaînes ont déjà de la pub et de la visibilité. SOS Miam met en lumière les autres : la pâtisserie du coin, le petit resto de ton quartier, le bar qui vient d'ouvrir, l'atelier de poterie caché au fond d'une ruelle.",
     motsCles: ["chaine", "franchise"],
   },
   {
@@ -185,7 +185,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "pros",
     question: "Comment inscrire mon lieu ?",
     reponse:
-      "Écris à **bonjour@sosmiam.fr** avec le nom du lieu, la ville et son type (resto, pâtisserie, bar, sortie…). À Montpellier et dans l'Hérault, on peut même passer faire la fiche avec toi. Restos, cafés, bars, caves, bowlings, salles d'événements, ateliers : tant que tu n'es ni une chaîne ni une franchise, tu as ta place.",
+      "Écris à **bonjour@sosmiam.fr** avec le nom du lieu, la ville et son type (resto, pâtisserie, bar, sortie…). Restos, cafés, bars, caves, bowlings, salles d'événements, ateliers : tant que tu n'es ni une chaîne ni une franchise, tu as ta place.",
     motsCles: ["inscription", "fiche", "restaurant", "pro"],
   },
   {
@@ -201,15 +201,23 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "ambassadeurs",
     question: "Comment devenir ambassadeur ?",
     reponse:
-      "En utilisant l'app : chaque lieu proposé, avis ou mise à jour te fait gagner des points et monter de palier (Curieux, Dénicheur, Ambassadeur de quartier…). Le titre d'Ambassadeur de ville se fait sur candidature ou invitation. Un ambassadeur n'est jamais payé par un lieu qu'il met en avant.",
-    motsCles: ["palier", "points"],
+      "Crée ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr), dès 18 ans. L'équipe regarde chaque inscription à la main ; une fois la tienne validée, ton espace s'ouvre : kit média, lieux à proposer, missions. C'est gratuit, sans horaires ni objectifs, et tout est expliqué sur [la page du programme](https://ambassadeur.sosmiam.fr/programme).",
+    motsCles: ["inscription", "compte", "espace", "18 ans", "palier", "points"],
+  },
+  {
+    id: "ambassadeur-paye",
+    theme: "ambassadeurs",
+    question: "Les ambassadeurs sont-ils payés ?",
+    reponse:
+      "Non : c'est une aventure de passionnés, pas un emploi. Et un ambassadeur n'est jamais payé par un lieu qu'il met en avant. Si un lieu lui offre quelque chose, il l'écrit clairement, avec la mention « Collaboration commerciale ».",
+    motsCles: ["argent", "salaire", "remuneration", "cadeau"],
   },
   {
     id: "fondateurs",
     theme: "ambassadeurs",
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse:
-      "L'un des 10 premiers ambassadeurs de Montpellier. Ils lancent SOS Miam avec nous, aident à choisir les premiers lieux et gardent un badge de fondateur. Pour candidater, écris à **bonjour@sosmiam.fr** avec ton quartier et tes pépites du coin.",
+      "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.\nPour candidater, crée d'abord ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr) : une fois ton compte validé, la candidature se fait depuis ton espace.",
     motsCles: ["candidature", "fondateur"],
   },
   {

@@ -1,9 +1,11 @@
+import type { JSONContent } from "@tiptap/react";
 import { FlaskConical, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
+import { rendreTexteBrut } from "~/fonctions/editeur/rendre-texte-brut.ts";
 import { creerHtmlNewsletter, PIED_AMBASSADEURS } from "~/fonctions/newsletter/creer-html-newsletter.ts";
 import { creerTexteNewsletter } from "~/fonctions/newsletter/creer-texte-newsletter.ts";
 import { decrirePublic } from "~/fonctions/newsletter/decrire-public.ts";
@@ -14,10 +16,10 @@ import { envoyerEssai, lancerEnvoi, lireEtatEnvois, listerDestinataires, type Pu
 import { listerInscrits } from "~/services/newsletter.ts";
 import { ChoixDestinataires } from "./ChoixDestinataires.tsx";
 
-type Props = { objet: string; texte: string; brouillonId: number | null; onFermer: () => void; onLance: (bilan: string) => void };
+type Props = { objet: string; document: JSONContent; brouillonId: number | null; onFermer: () => void; onLance: (bilan: string) => void };
 
 /** Envoyer une newsletter (ou un mail aux ambassadeurs) : à qui, un essai à soi-même, puis l'envoi pour de vrai. */
-export function ModaleEnvoi({ objet, texte, brouillonId, onFermer, onLance }: Props) {
+export function ModaleEnvoi({ objet, document, brouillonId, onFermer, onLance }: Props) {
   const [cible, setCible] = useState<PublicEnvoi>({ public: "newsletter", ville: "", candidats: false, beta: false, telephone: "" });
   // La ville se tape : on attend que la frappe s'arrête avant de recharger la liste
   const [cibleStable, setCibleStable] = useState(cible);
@@ -36,8 +38,8 @@ export function ModaleEnvoi({ objet, texte, brouillonId, onFermer, onLance }: Pr
   const pourAmbassadeurs = cible.public === "ambassadeurs";
   const contenu = {
     objet,
-    html: creerHtmlNewsletter(objet, texte, pourAmbassadeurs ? PIED_AMBASSADEURS : undefined),
-    texte: creerTexteNewsletter(objet, texte, pourAmbassadeurs),
+    html: creerHtmlNewsletter(objet, document, pourAmbassadeurs ? PIED_AMBASSADEURS : undefined),
+    texte: creerTexteNewsletter(objet, rendreTexteBrut(document), pourAmbassadeurs),
   };
   const destinataires = liste.donnees?.destinataires ?? [];
   const choisis = destinataires.filter((d) => !decoches.has(d.adresse)).map((d) => d.adresse);

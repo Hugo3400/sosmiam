@@ -1,4 +1,4 @@
-// Comment joindre l'équipe (/contact). Tant que le site n'est pas ouvert, tout passe par l'e-mail, comme sur la page « Bientôt ».
+// Comment joindre l'équipe (/contact). Presque tout passe par l'e-mail ; pour devenir ambassadeur, c'est sur ambassadeur.sosmiam.fr.
 import type { ContainerBuilder } from "discord.js";
 import { LIENS } from "../contenus/liens.ts";
 import { creerBloc } from "../fonctions/discord/creer-bloc.ts";
@@ -14,7 +14,7 @@ export function creerMessageContact(): ContainerBuilder {
         "### Selon ce que tu veux",
         "📬 **Être prévenu du lancement** · objet « Inscription à la newsletter », avec ta ville",
         "🍽️ **Inscrire ton lieu** · son nom, sa ville et son type (resto, pâtisserie, bar, sortie…)",
-        "🎖️ **Devenir ambassadeur fondateur** · ton quartier et tes pépites du coin",
+        "🎖️ **Devenir ambassadeur** · pas besoin d'e-mail : crée ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr), dès 18 ans",
         "💡 **Proposer un lieu que tu adores** · pas besoin d'e-mail, tape `/proposer-lieu`",
       ].join("\n"),
     ],

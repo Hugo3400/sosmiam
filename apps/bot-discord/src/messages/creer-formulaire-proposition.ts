@@ -21,7 +21,7 @@ export function creerFormulaireProposition(nomCommande: string): ModalBuilder {
         label
           .setLabel("Ville ou quartier")
           .setTextInputComponent((champ) =>
-            champ.setCustomId(CHAMPS.ville).setStyle(TextInputStyle.Short).setMaxLength(100).setPlaceholder("Ex. : Montpellier, Beaux-Arts"),
+            champ.setCustomId(CHAMPS.ville).setStyle(TextInputStyle.Short).setMaxLength(100).setPlaceholder("Ex. : Lyon, Croix-Rousse"),
           ),
       (label) =>
         label

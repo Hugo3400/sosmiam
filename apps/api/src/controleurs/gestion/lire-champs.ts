@@ -56,3 +56,10 @@ export function lireId(valeur: unknown): number | null {
 export function lireParametre(valeur: unknown, maximum = 100): string {
   return typeof valeur === "string" ? valeur.trim().slice(0, maximum) : "";
 }
+
+/** Document de l'éditeur visuel du logiciel (TipTap) : un objet « doc », 300 ko au plus une fois en JSON. */
+export function lireDocumentEditeur(valeur: unknown): object {
+  if (typeof valeur !== "object" || valeur === null || Array.isArray(valeur) || (valeur as { type?: unknown }).type !== "doc") throw new ChampInvalide("contenu");
+  if (JSON.stringify(valeur).length > 300_000) throw new ChampInvalide("contenu");
+  return valeur;
+}

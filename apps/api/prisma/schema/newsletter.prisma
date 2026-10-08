@@ -24,8 +24,10 @@ model InscriptionNewsletter {
 model BrouillonNewsletter {
   id        Int      @id @default(autoincrement())
   objet     String   @db.VarChar(150)
-  /// Texte en Markdown simple : titres (#), gras (**), liens [texte](adresse), listes (-)
+  /// Version texte (sert au mail en texte brut) ; avant l'éditeur visuel, c'était du Markdown simple
   texte     String   @db.VarChar(20000)
+  /// Document de l'éditeur visuel du logiciel (format TipTap/ProseMirror) ; null pour un ancien brouillon en Markdown
+  contenu   Json?
   creeLe    DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
 

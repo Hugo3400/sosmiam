@@ -1,3 +1,5 @@
+import type { JSONContent } from "@tiptap/react";
+
 import { appeler, parametres } from "./client-gestion.ts";
 
 export type Inscrit = {
@@ -45,7 +47,8 @@ export const lireBoite = () => appeler<EtatBoite>("GET", "/newsletter/boite");
 export const synchroniserBoite = () => appeler<{ ok: boolean; message: string }>("POST", "/newsletter/boite/synchroniser");
 
 export type ResumeBrouillon = { id: number; objet: string; creeLe: string; modifieLe: string };
-export type Brouillon = ResumeBrouillon & { texte: string };
+/** contenu : document de l'éditeur visuel ; null pour un ancien brouillon écrit en Markdown (dans texte) */
+export type Brouillon = ResumeBrouillon & { texte: string; contenu: JSONContent | null };
 
 export const listerInscrits = (filtres: FiltresInscrits) => appeler<ListeInscrits>("GET", `/newsletter/inscrits${parametres(filtres)}`);
 export const desinscrire = (id: number) => appeler<{ ok: true }>("DELETE", `/newsletter/inscrits/${id}`);
@@ -53,6 +56,6 @@ export const exporterInscrits = () => appeler<string>("GET", "/newsletter/export
 
 export const listerBrouillons = () => appeler<ResumeBrouillon[]>("GET", "/newsletter/brouillons");
 export const lireBrouillon = (id: number) => appeler<Brouillon>("GET", `/newsletter/brouillons/${id}`);
-export const enregistrerBrouillon = (id: number | null, saisie: { objet: string; texte: string }) =>
+export const enregistrerBrouillon = (id: number | null, saisie: { objet: string; texte: string; contenu: JSONContent }) =>
   id ? appeler<Brouillon>("PUT", `/newsletter/brouillons/${id}`, { corps: saisie }) : appeler<Brouillon>("POST", "/newsletter/brouillons", { corps: saisie });
 export const supprimerBrouillon = (id: number) => appeler<{ ok: true }>("DELETE", `/newsletter/brouillons/${id}`);

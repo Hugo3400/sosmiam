@@ -8,6 +8,7 @@ import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/c
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
+import { deconnecterPartout, exporterDonneesCompte, lireCompteGestion, listerComptes } from "./comptes-gestion.ts";
 import { accepterDemande, effacerContactDemande, listerDemandes, refuserDemande } from "./demandes.ts";
 import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
@@ -50,6 +51,7 @@ export const servicesGestion = {
   listerAnnonces, creerAnnonce, retirerAnnonce,
   lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, listerDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
   prevenirAmbassadeurValide, envoyerLienMotDePasse,
+  listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
 };
 
 export type ServicesGestion = typeof servicesGestion;

@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 
 import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs/gestion/controleurs-ambassadeurs.ts";
+import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
@@ -29,6 +30,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
   const m = creerControleursCourriels(services);
+  const k = creerControleursComptesGestion(services, comptes);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
   // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
@@ -83,6 +85,12 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/newsletter/envois", m.lancer);
   routes.post("/newsletter/envois/:id/annuler", m.annuler);
   routes.get("/courriels/etat", m.etat);
+  routes.get("/comptes", k.liste);
+  routes.get("/comptes/:id", k.fiche);
+  routes.get("/comptes/:id/donnees", k.exporter);
+  routes.post("/comptes/:id/deconnecter", k.deconnecter);
+  routes.post("/comptes/:id/reinitialiser", k.reinitialiser);
+  routes.delete("/comptes/:id", k.supprimer);
   routes.get("/courriels/derniers", m.derniers);
   routes.post("/courriels/essai", m.essai);
   routes.get("/newsletter/brouillons", c.brouillons);

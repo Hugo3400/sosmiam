@@ -16,7 +16,7 @@ export function creerMessagePresentation(): ContainerBuilder {
         "**3. Viens à la rescousse** · Tu as 3 rescousses par semaine, rechargées le lundi. Donne-les aux lieux qui le méritent : ils montent dans le fil.",
       ].join("\n"),
       "### 🆘 Et quand ça va vraiment mal ?\nUn lieu qui traverse une vraie galère peut passer en **BIG SOS** : 7 jours à la une, et toute la communauté se mobilise pour remplir la salle. Tout savoir : `/big-sos`",
-      "### 📍 Où et quand ?\nOn démarre à **Montpellier et dans l'Hérault**, sur iPhone et Android. L'app est en préparation : pour être prévenu du lancement, écris à **bonjour@sosmiam.fr**.",
+      "### 📍 Où et quand ?\nOn arrive **partout en France**, sur iPhone et Android. L'app est en préparation : pour être prévenu du lancement, écris à **bonjour@sosmiam.fr**.",
       "### 🤖 Ce que je sais faire\n`/faq` · tes questions, nos réponses\n`/proposer-lieu` · fais découvrir ta pépite\n`/big-sos` · l'alerte rouge, expliquée\n`/contact` · pour nous écrire",
     ],
     image: LIENS.imagePartage,

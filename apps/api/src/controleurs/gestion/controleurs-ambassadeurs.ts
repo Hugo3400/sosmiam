@@ -1,5 +1,6 @@
 // Contrôleurs du logiciel de gestion pour les ambassadeurs : comptes, décisions, points, candidatures fondateur,
 // missions et messages. Les règles des points et des badges restent dans services/comptes.ts (passées en `comptes`).
+// Journal : seulement des numéros (« compte n° X »), jamais un prénom ni une adresse (il n'est jamais effacé).
 import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
@@ -17,6 +18,8 @@ export type OutilsComptes = {
 
 /** Adresse écrite en dur (jamais tirée d'un en-tête de la demande) */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
+/** Lien pour choisir un nouveau mot de passe : le jeton après « # » reste dans le navigateur, jamais dans les journaux */
+export const creerLienReinitialisation = (jeton: string) => `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`;
 const corpsDe = (requete: Request): Record<string, unknown> =>
   typeof requete.body === "object" && requete.body !== null && !Buffer.isBuffer(requete.body) ? requete.body : {};
 const introuvable = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "introuvable" });
@@ -55,7 +58,7 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       const resultat = await s.deciderAmbassadeur(id(requete), statut);
       if (!resultat) return introuvable(reponse);
       const actions = { actif: resultat.avant === "en-attente" ? "Ambassadeur validé" : "Ambassadeur réactivé", refuse: "Ambassadeur refusé", suspendu: "Ambassadeur suspendu" };
-      await noter(reponse, actions[statut], `${resultat.prenom} (compte n° ${id(requete)})`);
+      await noter(reponse, actions[statut], `compte n° ${id(requete)}`);
       // Inscription validée : le mail de bienvenue part tout seul (file d'attente ; la décision ne dépend pas de lui)
       const bienvenue = statut === "actif" && resultat.avant === "en-attente"
         ? await s.prevenirAmbassadeurValide(id(requete)).catch(() => false)
@@ -91,15 +94,14 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       let palier = "ambassadeur-ville";
       if (ville) await comptes.nommerAmbassadeurVille(id(requete));
       else palier = await comptes.retirerAmbassadeurVille(id(requete));
-      await noter(reponse, ville ? "Nommé ambassadeur de ville" : "Rôle d'ambassadeur de ville retiré", prenom);
+      await noter(reponse, ville ? "Nommé ambassadeur de ville" : "Rôle d'ambassadeur de ville retiré", `compte n° ${id(requete)}`);
       reponse.json({ ok: true, palier });
     }),
     reinitialiser: verifier(async (requete, reponse) => {
       if (!comptes) return indisponible(reponse);
       if (!(await s.lirePrenom(id(requete)))) return introuvable(reponse);
       const { jeton, expireLe } = await comptes.preparerReinitialisation(id(requete));
-      // Jeton après « # » : il reste dans le navigateur, et ne finit jamais dans les journaux du serveur
-      const lien = `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`;
+      const lien = creerLienReinitialisation(jeton);
       if (corpsDe(requete).envoyer === true) {
         // Envoyé directement à son adresse : le lien ne passe même pas par le logiciel
         const envoi = await s.envoyerLienMotDePasse(id(requete), lien, expireLe);
@@ -114,13 +116,13 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
     retirer: verifier(async (requete, reponse) => {
       const retire = await s.retirerDuProgramme(id(requete));
       if (!retire) return introuvable(reponse);
-      await noter(reponse, "Retiré du programme ambassadeur", `${retire.prenom} (compte n° ${id(requete)} gardé)`);
+      await noter(reponse, "Retiré du programme ambassadeur", `compte n° ${id(requete)} gardé`);
       reponse.json({ ok: true });
     }),
     supprimer: verifier(async (requete, reponse) => {
       const supprime = await s.supprimerCompte(id(requete));
       if (!supprime) return introuvable(reponse);
-      await noter(reponse, "Compte SOS Miam supprimé (app comprise)", supprime.prenom);
+      await noter(reponse, "Compte SOS Miam supprimé (app comprise)", `compte n° ${id(requete)}`);
       reponse.json({ ok: true });
     }),
     exporter: verifier(async (_requete, reponse) => {
@@ -164,7 +166,7 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
         echeance,
       });
       if (!mission) return reponse.status(400).json({ ok: false, erreur: "ambassadeur-non-actif" });
-      await noter(reponse, "Mission confiée", `${mission.titre} → ${mission.compte.prenom}`);
+      await noter(reponse, "Mission confiée", `${mission.titre} → compte n° ${compteId}`);
       reponse.status(201).json(mission);
     }),
     statutMission: verifier(async (requete, reponse) => {

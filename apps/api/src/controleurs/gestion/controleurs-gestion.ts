@@ -6,7 +6,7 @@ import type { Echelle } from "../../fonctions/dates/lister-periodes.ts";
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { TypeMedia } from "../../services/gestion/medias.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
-import { ChampInvalide, lireChoix, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
+import { ChampInvalide, lireChoix, lireDocumentEditeur, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
 import { lireIds, lireLieuSaisi, lireModificationLot } from "./lire-lieu.ts";
 import { lirePublicationSaisie } from "./lire-publication.ts";
 import type { OutilsComptes } from "./controleurs-ambassadeurs.ts";
@@ -107,7 +107,11 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
     }),
     enregistrerBrouillon: verifier(async (requete, reponse) => {
       const corps = corpsDe(requete);
-      const saisie = { objet: lireTexte(corps, "objet", 150, true), texte: typeof corps.texte === "string" ? corps.texte.slice(0, 20000) : "" };
+      const saisie = {
+        objet: lireTexte(corps, "objet", 150, true),
+        texte: typeof corps.texte === "string" ? corps.texte.slice(0, 20000) : "",
+        ...(corps.contenu !== undefined ? { contenu: lireDocumentEditeur(corps.contenu) } : {}),
+      };
       const id = requete.params.id === undefined ? null : lireId(requete.params.id);
       if (requete.params.id !== undefined && !id) return introuvable(reponse);
       const brouillon = id ? await s.modifierBrouillon(id, saisie) : await s.creerBrouillon(saisie);

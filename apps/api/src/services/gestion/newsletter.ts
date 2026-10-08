@@ -100,7 +100,7 @@ export async function exporterInscrits(maintenant = new Date()): Promise<string>
   return ["email;ville;ambassadeur;beta;telephone;source;premiere_inscription;derniere_inscription;a_relancer", ...lignes].join("\r\n") + "\r\n";
 }
 
-export type BrouillonSaisi = { objet: string; texte: string };
+export type BrouillonSaisi = { objet: string; texte: string; contenu?: object };
 
 export const listerBrouillons = () =>
   baseDeDonnees.brouillonNewsletter.findMany({ orderBy: { modifieLe: "desc" }, select: { id: true, objet: true, creeLe: true, modifieLe: true } });

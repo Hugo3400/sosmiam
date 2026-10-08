@@ -1,12 +1,7 @@
 // Ce qu'un ambassadeur validé (« actif ») fait depuis son espace : candidater pour être l'un des 10 fondateurs, et
 // proposer des lieux (ils arrivent dans la file des demandes du logiciel de gestion, liés à son compte).
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
-
-/**
- * Nombre de fondateurs (numéros 1 à 10). À remplacer par l'import de services/gestion/ambassadeurs.ts (FONDATEURS_MAX),
- * dès que la session « Logiciel » l'exporte.
- */
-const FONDATEURS_MAX = 10;
+import { FONDATEURS_MAX } from "./gestion/ambassadeurs.ts";
 
 export type StatutCandidature = "en-attente" | "acceptee" | "refusee";
 

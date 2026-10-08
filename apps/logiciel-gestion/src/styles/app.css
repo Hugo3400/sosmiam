@@ -42,3 +42,24 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Éditeur visuel (TipTap) : le texte ressemble au mail qui part (mêmes tailles, mêmes couleurs) */
+.contenu-editeur { outline: none; font-size: 16px; line-height: 1.6; }
+.contenu-editeur > * + * { margin-top: 0.8em; }
+.contenu-editeur h1 { font-family: var(--font-titre); font-size: 28px; font-weight: 800; }
+.contenu-editeur h2 { font-family: var(--font-titre); font-size: 20px; font-weight: 800; margin-top: 1.4em; }
+.contenu-editeur h3 { font-family: var(--font-titre); font-size: 17px; font-weight: 800; }
+.contenu-editeur ul { list-style: disc; padding-left: 1.4em; }
+.contenu-editeur ol { list-style: decimal; padding-left: 1.4em; }
+.contenu-editeur li > p { margin: 0; }
+.contenu-editeur blockquote { border-left: 4px solid var(--color-jaune); padding-left: 1em; color: var(--color-gris); }
+.contenu-editeur a { text-decoration: underline; text-decoration-color: var(--color-jaune); text-decoration-thickness: 3px; }
+.contenu-editeur hr { border: none; border-top: 2px solid var(--color-ligne); margin: 1.5em 0; }
+.contenu-editeur .bouton-editeur a {
+  display: inline-block; background: var(--color-jaune); color: var(--color-encre); font-weight: 800; text-decoration: none;
+  padding: 10px 20px; border: 2px solid var(--color-encre); border-radius: 999px; cursor: pointer;
+}
+.contenu-editeur .ProseMirror-selectednode { outline: 3px solid var(--color-encre); outline-offset: 4px; border-radius: 12px; }
+.contenu-editeur p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); color: var(--color-gris); float: left; height: 0; pointer-events: none;
+}

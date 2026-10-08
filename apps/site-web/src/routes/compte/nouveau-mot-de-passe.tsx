@@ -16,8 +16,8 @@ import { effacerCookieSession, lireIpVisiteur } from "~/services/session-compte.
 const messages = {
   jeton: "Colle le code reçu par mail : la suite de lettres et de chiffres après « jeton= ».",
   motDePasse: "Ton mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  // Refusé par l'API : trop courant, égal à l'e-mail, ou fait seulement de chiffres
-  motDePasseRefuse: "Ce mot de passe est trop courant, c'est ton e-mail, ou il n'a que des chiffres : choisis-en un autre. Une petite phrase marche très bien.",
+  // Refusé par l'API : trop facile à deviner (courant, suite, répétition, e-mail), ou que des chiffres et moins de 16
+  motDePasseRefuse: "Ce mot de passe est trop facile à deviner (trop courant, une suite, une répétition, ton e-mail…), ou il n'a que des chiffres (il en faut alors 16) : choisis-en un autre. Une petite phrase marche très bien.",
   jetonInvalide: "Ce lien ne marche plus : il a déjà servi, ou il a plus de 24 heures. Écris-nous à bonjour@sosmiam.fr pour en recevoir un nouveau.",
 };
 

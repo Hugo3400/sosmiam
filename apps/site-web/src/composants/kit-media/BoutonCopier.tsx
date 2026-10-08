@@ -16,6 +16,8 @@ type Props = {
 export function BoutonCopier({ texte, libelle }: Props) {
   const [disponible, setDisponible] = useState(false);
   const [message, setMessage] = useState("");
+  // Numéro de copie : le message est recréé à chaque copie, donc relu même s'il est identique au précédent (« Copié ! »)
+  const [numero, setNumero] = useState(0);
   const minuteur = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export function BoutonCopier({ texte, libelle }: Props) {
     } catch {
       setMessage("La copie n'a pas marché : sélectionne le texte à la main.");
     }
+    setNumero((n) => n + 1);
     window.clearTimeout(minuteur.current);
     minuteur.current = window.setTimeout(() => setMessage(""), 4000);
   }
@@ -41,7 +44,7 @@ export function BoutonCopier({ texte, libelle }: Props) {
           Copier<span className="sr-only"> {libelle}</span>
         </Bouton>
       )}
-      <p role="status" className="text-sm font-semibold">{lierPonctuation(message)}</p>
+      <p role="status" className="text-sm font-semibold"><span key={numero}>{lierPonctuation(message)}</span></p>
     </div>
   );
 }
