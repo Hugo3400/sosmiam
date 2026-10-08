@@ -112,7 +112,7 @@ export default function Messages() {
           }
           ListFooterComponent={
             <Text
-              accessibilityLabel="Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message pour le signaler."
+              accessibilityLabel="Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message, ou ses options, pour le signaler."
               className="mt-6 text-center font-texte text-[13px] leading-[18px] text-gris"
             >
               {lierPonctuation("🔒 Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message pour le signaler.")}

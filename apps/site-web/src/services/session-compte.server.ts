@@ -58,6 +58,7 @@ function lireEtatSession(requete: Request): Promise<EtatSession> {
   if (dejaLue) return dejaLue;
   const lecture = (async (): Promise<EtatSession> => {
     const jeton = await lireJetonSession(requete);
+    console.log("[essai-temporaire] lecture de la session", new URL(requete.url).pathname);
     if (!jeton) return { etat: "anonyme" };
     const reponse = await lireSession(jeton, lireIpVisiteur(requete));
     if (reponse.ok) return { etat: "connecte", jeton, compte: reponse.compte };
