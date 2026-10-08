@@ -3,6 +3,7 @@ import type { Route } from "./+types/liens";
 import { Logo } from "~/composants/interface/Logo";
 import { CarteLien } from "~/composants/liens/CarteLien";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
 import { PiedDePageLegal } from "~/composants/mise-en-page/PiedDePageLegal";
 import { liensPublics } from "~/contenus/liens-publics";
@@ -22,6 +23,7 @@ export function meta(_: Route.MetaArgs) {
 export default function PageLiens() {
   return (
     <div className="flex min-h-screen flex-col bg-creme">
+      <LienCanonique />
       <LienEvitement />
       <main id="contenu" tabIndex={-1} className="mx-auto w-[min(520px,100%-32px)] flex-1 py-10">
         <header className="flex flex-col items-center text-center">

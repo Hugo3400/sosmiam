@@ -95,3 +95,15 @@ test("semaines ISO : d'une date à sa semaine, et d'une semaine à son dimanche"
   assert.equal(semaineVersDimanche("2026-W01"), "2027-01-04".replace("2027-01-04", "2026-01-04"));
   assert.equal(semaineVersDimanche("pas une semaine"), null);
 });
+
+import { creerLienInvitationAmbassadeur } from "../src/fonctions/texte/creer-lien-invitation-ambassadeur.ts";
+
+test("l'invitation ambassadeur : une adresse en destinataire, plusieurs en copie cachée", () => {
+  const seule = creerLienInvitationAmbassadeur(["lea@exemple.fr"], "Sète");
+  assert.ok(seule.startsWith("mailto:lea%40exemple.fr?subject="));
+  assert.ok(decodeURIComponent(seule).includes("(Sète)"));
+  assert.ok(decodeURIComponent(seule).includes("https://ambassadeur.sosmiam.fr"));
+  const plusieurs = creerLienInvitationAmbassadeur(["a@exemple.fr", "b@exemple.fr"]);
+  assert.ok(plusieurs.startsWith("mailto:?subject="));
+  assert.ok(plusieurs.endsWith(`&bcc=${encodeURIComponent("a@exemple.fr,b@exemple.fr")}`));
+});

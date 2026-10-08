@@ -2,6 +2,7 @@ import { Outlet } from "react-router";
 
 import { BandeauDeveloppement } from "~/composants/mise-en-page/BandeauDeveloppement";
 import { EnTete } from "~/composants/mise-en-page/EnTete";
+import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
 import { PiedDePage } from "~/composants/mise-en-page/PiedDePage";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
@@ -13,6 +14,7 @@ export default function MiseEnPagePublique() {
 
   return (
     <>
+      <LienCanonique />
       <LienEvitement />
       <BandeauDeveloppement />
       <EnTete />

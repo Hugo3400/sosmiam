@@ -32,7 +32,7 @@ export const MarqueurPosition = memo(function MarqueurPosition({ position }: Pro
       identifier="ta-position"
       coordinate={position}
       anchor={{ x: 0.5, y: 0.5 }}
-      // Sous les lieux : un lieu tout proche de toi reste facile à toucher
+      // Dessiné sous les lieux : un lieu tout proche de toi reste bien visible
       zIndex={-1}
       tracksViewChanges={!fige}
       accessibilityLabel="Ta position"

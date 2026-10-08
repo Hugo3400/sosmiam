@@ -4,6 +4,7 @@ import { BandeauMiseAJour } from "~/composants/mise-en-page/BandeauMiseAJour.tsx
 import { BandeauNouveautes } from "~/composants/mise-en-page/BandeauNouveautes.tsx";
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
+import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBientot } from "~/ecrans/bientot/EcranBientot.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
@@ -115,6 +116,7 @@ export function Application() {
           {ecran === "lieux" && <EcranLieux />}
           {ecran === "demandes" && <EcranDemandes />}
           {ecran === "annonces" && <EcranAnnonces />}
+          {ecran === "ambassadeurs" && <EcranAmbassadeurs />}
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {(ecran === "big-sos" || ecran === "notifications" || ecran === "utilisateurs") && <EcranBientot ecran={ecran} />}

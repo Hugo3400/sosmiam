@@ -24,4 +24,7 @@ export default [
   route("liens/aller/:reseau", "routes/ressources/aller-lien.ts"),
   // Adresses sans page, appelées par le navigateur (réponses JSON)
   route("localiser", "routes/ressources/localiser.ts"),
+  // Pour les moteurs de recherche (texte et XML générés à chaque demande)
+  route("robots.txt", "routes/ressources/robots.ts"),
+  route("sitemap.xml", "routes/ressources/plan-du-site.ts"),
 ] satisfies RouteConfig;

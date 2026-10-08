@@ -9,6 +9,7 @@ import { IlsOntBesoinDeToi } from "~/composants/accueil/IlsOntBesoinDeToi";
 import { Inscription, type ReponseInscription } from "~/composants/accueil/Inscription";
 import { PourLesPros } from "~/composants/accueil/PourLesPros";
 import { BigSosEnBref } from "~/composants/big-sos/BigSosEnBref";
+import { creerDonneesSite } from "~/fonctions/seo/creer-donnees-site";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
@@ -23,11 +24,14 @@ const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
 };
 
 export function meta(_: Route.MetaArgs) {
-  return creerMeta({
-    titre: "SOS Miam",
-    description:
-      "Découvre les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France, et viens à leur rescousse.",
-  });
+  return [
+    ...creerMeta({
+      titre: "SOS Miam",
+      description:
+        "Découvre les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France, et viens à leur rescousse.",
+    }),
+    { "script:ld+json": creerDonneesSite() },
+  ];
 }
 
 /** Les vrais lieux publiés, lus à chaque affichage de l'accueil : aucun lieu inventé sur le site. */

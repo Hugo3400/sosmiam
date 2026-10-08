@@ -1,6 +1,7 @@
 import { Outlet } from "react-router";
 
 import { Logo } from "~/composants/interface/Logo";
+import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
 import { PiedDePageLegal } from "~/composants/mise-en-page/PiedDePageLegal";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
@@ -16,6 +17,7 @@ export default function MiseEnPageLegale() {
 
   return (
     <div className="flex min-h-screen flex-col bg-creme">
+      <LienCanonique />
       <LienEvitement />
       <header className="border-b border-encre/5">
         <div className="mx-auto flex h-[72px] w-[min(1120px,100%-32px)] items-center justify-between gap-4">
