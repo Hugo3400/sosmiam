@@ -44,7 +44,7 @@ export function listerCreneauxReservation(ouverture: readonly CreneauOuverture[]
     const fin = lireMinutes(creneau.a);
     if (debut === null || fin === null || debut >= MINUIT) continue;
     // Une fin avant (ou égale à) l'ouverture passe minuit : ce jour-là, on s'arrête à minuit
-    const finCeJour = fin > debut ? fin : MINUIT;
+    const finCeJour = fin > debut ? Math.min(fin, MINUIT) : MINUIT;
     for (let t = Math.ceil(debut / PAS_CRENEAUX_MIN) * PAS_CRENEAUX_MIN; t < finCeJour; t += PAS_CRENEAUX_MIN) minutes.add(t);
   }
 
