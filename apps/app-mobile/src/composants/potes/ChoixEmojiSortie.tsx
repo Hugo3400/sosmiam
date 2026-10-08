@@ -5,6 +5,8 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 type Props = {
   choisi: string;
   onChoisir: (emoji: string) => void;
+  /** Nom du groupe de choix lu par VoiceOver (« Emoji de la sortie » par défaut) */
+  libelle?: string;
 };
 
 /** Les emoji proposés pour une sortie, avec un nom lu par le lecteur d'écran (le premier est celui par défaut) */
@@ -20,9 +22,9 @@ const EMOJIS = [
 ];
 
 /** Choisir l'emoji d'une sortie parmi quelques-uns : un seul choix, dit par son nom. */
-export function ChoixEmojiSortie({ choisi, onChoisir }: Props) {
+export function ChoixEmojiSortie({ choisi, onChoisir, libelle = "Emoji de la sortie" }: Props) {
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel="Emoji de la sortie" className="flex-row flex-wrap gap-x-1 gap-y-2">
+    <View accessibilityRole="radiogroup" accessibilityLabel={libelle} className="flex-row flex-wrap gap-x-1 gap-y-2">
       {EMOJIS.map((e, i) => {
         const actif = e.emoji === choisi;
         return (

@@ -7,8 +7,11 @@
 // Espace ambassadeur (8 octobre 2026) : comptes dès 18 ans, section « Ton compte ambassadeur » dans
 // confidentialite-compte-ambassadeur.ts (apps/api/src/services/comptes.ts ; durées et sécurité : docs/decisions.md).
 // App mobile (8 octobre 2026) : tout reste sur le téléphone ; comptes de l'app annoncés au futur ; voir confidentialite-app.ts.
-// À CONFIRMER AVEC FEELB AVANT MISE EN LIGNE : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189, Exoscale / Akenes SA,
-// Genève, Suisse). Qui exploite ce serveur, et où la boîte bonjour@ est-elle stockée ? Adapter « messagerie » ci-dessous.
+// Messagerie (vérifié le 8 octobre 2026) : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189), chez Exoscale à Genève
+// (RIPE « Exoscale Open Cloud GV2 », CH) ; hostmyservers.fr/mail-box : « hébergé en Suisse ». « En Suisse » est donc juste.
+// À TRANCHER AVEC LA FACTURE (Hugo) : la boîte est vendue par hostmyservers.fr, dont les CGV nomment HOSTMYSERVERS SARL
+// (SIREN 842 789 000, Villeurbanne), société distincte de FEELB (SIREN 817 701 311, Lyon), même gérant (recherche-entreprises
+// .api.gouv.fr). Si la facture de la boîte est au nom de HostMyServers, changer prestataires.messagerie (informations-legales.ts).
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.
@@ -37,7 +40,7 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur, celui qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
             "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
             "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
@@ -144,11 +147,11 @@ export const documentConfidentialite: DocumentLegal = {
       id: "formulaire",
       titre: "Le formulaire « Préviens-moi »",
       blocs: [
-        "En bas de l'accueil du site, le formulaire « Préviens-moi » te demande ton adresse e-mail et ta ville ou ta région (que tu écris toi-même, avec des suggestions). Il te propose aussi, sans obligation, de dire si tu as un iPhone ou un Android, de tester l'app avant sa sortie (bêta) et de devenir ambassadeur fondateur.",
+        "En bas de l'accueil du site, le formulaire « Préviens-moi » te demande ton adresse e-mail et ta ville ou ta région (que tu écris toi-même, avec des suggestions). Il te propose aussi, sans obligation, de dire si tu as un iPhone ou un Android, de tester l'app avant sa sortie (bêta) et de devenir ambassadeur (dès 18 ans).",
         {
           liste: [
             "**Ce qu'on enregistre** : ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu l'indiques, tes choix pour les cases bêta et ambassadeur, la date de ta première et de ta dernière inscription, et le fait que l'inscription vient du site. Si tu remplis le formulaire plusieurs fois, on garde une seule ligne, mise à jour.",
-            "**Pourquoi** : te prévenir du lancement dans ta ville, puis t'envoyer la newsletter ; savoir sur quel store (App Store d'Apple ou Play Store de Google) publier l'app en premier ; si tu as coché les cases, t'inviter à tester la bêta et te recontacter au sujet du programme des ambassadeurs fondateurs.",
+            "**Pourquoi** : te prévenir du lancement dans ta ville, puis t'envoyer la newsletter ; savoir sur quel store (App Store d'Apple ou Play Store de Google) publier l'app en premier ; si tu as coché les cases, t'inviter à tester la bêta et à créer ton compte dans l'espace ambassadeur.",
             "**Base légale** : ton consentement (article 6.1.a du RGPD), que tu peux retirer à tout moment.",
             `**Où et qui** : dans une base de données sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès.`,
             "**Combien de temps** : comme pour la newsletter, tant que tu restes inscrit ; si tu te désinscris, ta ligne est effacée avant tout nouvel envoi ; après 3 ans sans aucun message de ta part, on te demande si tu veux continuer, sinon on efface.",
@@ -212,7 +215,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
             "**Aucun outil de mesure d'audience extérieur** (ni Google Analytics, ni pixel de réseau social) : nos statistiques de visite sont comptées par notre serveur, sans cookie (voir « Les statistiques de visite »). Et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
-            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante ; et après plusieurs mots de passe faux, notre serveur te fait patienter un peu avant un nouvel essai. Si tu es bloqué à tort, écris-nous à ${lienEmail}. Chaque inscription d'ambassadeur, elle, est regardée par une personne.`,
+            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante ; après plusieurs mots de passe faux, notre serveur te fait patienter un peu avant un nouvel essai ; et il refuse tout seul une inscription d'ambassadeur avant 18 ans, d'après la date de naissance que tu indiques (sans rien garder). Si tu es bloqué à tort, écris-nous à ${lienEmail}. Toutes les autres inscriptions d'ambassadeur, elles, sont regardées par une personne.`,
           ],
         },
       ],

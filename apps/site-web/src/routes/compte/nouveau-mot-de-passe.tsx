@@ -10,13 +10,14 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { reinitialiserMotDePasse } from "~/services/comptes.server";
+import { MESSAGE_OCCUPE, reinitialiserMotDePasse } from "~/services/comptes.server";
 import { effacerCookieSession, lireIpVisiteur } from "~/services/session-compte.server";
 
 const messages = {
   jeton: "Colle le code reçu par mail : la suite de lettres et de chiffres après « jeton= ».",
   motDePasse: "Ton mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  motDePasseRefuse: "Ce mot de passe est trop courant, ou c'est ton e-mail : choisis-en un autre. Une petite phrase marche très bien.",
+  // Refusé par l'API : trop courant, égal à l'e-mail, ou fait seulement de chiffres
+  motDePasseRefuse: "Ce mot de passe est trop courant, c'est ton e-mail, ou il n'a que des chiffres : choisis-en un autre. Une petite phrase marche très bien.",
   jetonInvalide: "Ce lien ne marche plus : il a déjà servi, ou il a plus de 24 heures. Écris-nous à bonjour@sosmiam.fr pour en recevoir un nouveau.",
 };
 
@@ -51,10 +52,15 @@ export async function action({ request }: Route.ActionArgs) {
     const message = reponse.champ === "jeton" ? messages.jeton : messages.motDePasseRefuse;
     return { ok: false, formulaire: nom, erreurs: { [reponse.champ === "jeton" ? "jeton" : "motDePasse"]: lierPonctuation(message) } } satisfies ReponseFormulaire;
   }
-  const message = reponse.erreur === "jeton-invalide"
-    ? messages.jetonInvalide
-    : reponse.erreur === "trop-de-demandes"
-      ? "Trop d'essais : réessaie dans 10 minutes."
+  // Lien déjà servi ou trop vieux : l'erreur va sous le champ « Code reçu par mail », qui remplace le bandeau « Ton lien
+  // est bien reconnu » (on peut y coller le nouveau lien envoyé par l'équipe)
+  if (reponse.erreur === "jeton-invalide") {
+    return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(messages.jetonInvalide) } } satisfies ReponseFormulaire;
+  }
+  const message = reponse.erreur === "trop-de-demandes"
+    ? "Trop d'essais : réessaie dans 10 minutes."
+    : reponse.erreur === "occupe"
+      ? MESSAGE_OCCUPE
       : "Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
   return { ok: false, formulaire: nom, message: lierPonctuation(message) } satisfies ReponseFormulaire;
 }

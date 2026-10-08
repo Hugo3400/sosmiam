@@ -10,7 +10,8 @@ const classeLienMenu = `${classeLien} aria-[current=page]:underline`;
 
 /**
  * En-tête de l'espace ambassadeur : le logo mène au programme ; connecté, « Mon espace » et « Se déconnecter » ; sinon
- * « Se connecter » et « Devenir ambassadeur ». Sur téléphone, les liens passent sur une deuxième ligne.
+ * « Se connecter » et « Devenir ambassadeur ». Sur téléphone, les liens passent sur une deuxième ligne (le bouton sur
+ * une troisième sur les tout petits écrans, ou avec le texte agrandi : jamais de défilement de côté).
  */
 export function EnTeteAmbassadeur({ connecte }: { connecte: boolean }) {
   return (
@@ -24,7 +25,7 @@ export function EnTeteAmbassadeur({ connecte }: { connecte: boolean }) {
           <span aria-hidden="true">←</span> sosmiam.fr
         </a>
         <nav aria-label="Espace ambassadeur" className="w-full sm:w-auto">
-          <ul className="flex items-center justify-between gap-5 sm:justify-end">
+          <ul className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 sm:justify-end">
             {connecte ? (
               <>
                 <li><NavLink to="/espace" end className={classeLienMenu}>Mon espace</NavLink></li>

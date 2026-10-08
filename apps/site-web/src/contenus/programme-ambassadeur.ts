@@ -28,7 +28,7 @@ export const gestesAmbassadeur = [
   {
     emoji: "📣",
     titre: "En parler autour de toi",
-    texte: "À tes potes, à ta famille, sur tes réseaux : le kit média t'aide à bien le faire.",
+    texte: "À tes potes, à ta famille, sur tes réseaux : le kit média (des images et des textes prêts à poster) t'aide à bien le faire.",
   },
 ];
 
@@ -70,7 +70,7 @@ export const noteAppProgramme =
 export const etapesProgramme = [
   { titre: "Tu crées ton compte", texte: "Avec ton e-mail et un mot de passe. Il faut avoir 18 ans ou plus." },
   { titre: "L'équipe valide", texte: "On lit chaque inscription nous-mêmes, sans robot. Ça peut prendre un peu de temps : ton espace te dit où ça en est." },
-  { titre: "Ton espace s'ouvre", texte: "Kit média, lieux à proposer, missions et messages de l'équipe, et ta candidature pour devenir fondateur." },
+  { titre: "Ton espace s'ouvre", texte: "Des images et des textes à poster, des lieux à proposer, les missions et les messages de l'équipe, et ta candidature pour devenir fondateur." },
 ];
 
 /** Ce que reçoivent les 10 ambassadeurs fondateurs. */
@@ -87,7 +87,7 @@ export const questionsProgramme: QuestionFaq[] = [
     id: "question-paye",
     question: "C'est payé ?",
     reponse: [
-      "Non. C'est une aventure de passionnés : un ambassadeur n'est payé ni par SOS Miam, ni par les lieux qu'il met en avant. Et si un lieu t'offre quelque chose, tu l'écris clairement : « Collaboration commerciale ».",
+      "Non. C'est une aventure de passionnés : un ambassadeur n'est payé ni par SOS Miam, ni par les lieux qu'il met en avant. Et si un lieu t'offre quelque chose, tu l'écris clairement dans ton post : « Collaboration commerciale ».",
     ],
   },
   {

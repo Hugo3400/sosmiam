@@ -1,13 +1,16 @@
-// Tests des comptes de l'espace ambassadeur : inscription, connexion, sessions, attente après des échecs, nouveau mot de
-// passe, limites par visiteur. Services en mémoire (services/comptes-en-memoire.ts) : aucune base de données n'est touchée.
+// Tests des comptes de l'espace ambassadeur : inscription, connexion, sessions, attente après des échecs (même avec des
+// essais lancés tous en même temps), file des calculs pleine, nouveau mot de passe, limites par visiteur (IPv6 par bloc).
+// Services en mémoire (services/comptes-en-memoire.ts) : aucune base de données n'est touchée.
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 import type { AddressInfo } from "node:net";
 import { after, before, test } from "node:test";
 
 import { creerApplication } from "../src/application.ts";
 import { calculerEmpreinteJeton } from "../src/fonctions/securite/calculer-empreinte-jeton.ts";
+import { calculerScrypt } from "../src/fonctions/securite/calculer-scrypt.ts";
 import { creerJeton } from "../src/fonctions/securite/creer-jeton.ts";
-import { hacherMotDePasse } from "../src/fonctions/securite/hacher-mot-de-passe.ts";
+import { hacherMotDePasse, REGLAGES_SCRYPT } from "../src/fonctions/securite/hacher-mot-de-passe.ts";
 import type { StockageSessionsComptes } from "../src/middlewares/proteger-comptes.ts";
 import { creerComptesEnMemoire } from "../src/services/comptes-en-memoire.ts";
 import type { CompteConnecte, StatutAmbassadeur } from "../src/services/comptes.ts";
@@ -103,6 +106,7 @@ test("un champ invalide est signalé, dans l'ordre du formulaire, et rien n'est 
     ["prenom", { prenom: " \n " }], ["prenom", { prenom: "x".repeat(41) }],
     ["email", { email: "pas-une-adresse" }], ["email", { email: 42 }],
     ["motDePasse", { motDePasse: "trop court" }], ["motDePasse", { motDePasse: "Motdepasse1234" }], ["motDePasse", { motDePasse: "x".repeat(129) }],
+    ["motDePasse", { motDePasse: "482910374652" }],
     ["motDePasse", { email: "lea.durand@exemple.fr", motDePasse: "Lea.Durand@exemple.fr" }],
     ["dateNaissance", { dateNaissance: "31/01/2000" }], ["dateNaissance", { dateNaissance: "2001-02-29" }], ["dateNaissance", { dateNaissance: undefined }],
     ["ville", { ville: "X" }], ["ville", { ville: "x".repeat(81) }],
@@ -169,20 +173,52 @@ test("connexion : une nouvelle session ; e-mail inconnu ou mauvais mot de passe,
   assert.ok(plusRapide(inconnus) > 0.3 * plusRapide(faux), `${plusRapide(inconnus)} ms contre ${plusRapide(faux)} ms`);
 });
 
-test("après 5 mots de passe faux de suite, il faut attendre (1 s, puis 2 s…), même avec le bon ; un succès remet à zéro", async () => {
+test("après 5 mots de passe faux de suite, il faut attendre (2 min, puis 4 min…), même avec le bon ; un succès remet à zéro", async () => {
   const { email } = await creerCompteEtSession();
   const essayer = (motDePasse: string) => demander("POST", "/comptes/session", { corps: { email, motDePasse } });
   for (let i = 0; i < 5; i++) assert.equal((await essayer("pas le bon mot de passe")).statut, 401);
   const bloque = await essayer(MOT_DE_PASSE);
   assert.equal(bloque.statut, 429);
-  assert.deepEqual(bloque.corps, { ok: false, erreur: "trop-de-demandes", attente: 1 });
-  assert.equal(bloque.entetes.get("retry-after"), "1");
-  horloge += 1000;
+  assert.deepEqual(bloque.corps, { ok: false, erreur: "trop-de-demandes", attente: 120 });
+  assert.equal(bloque.entetes.get("retry-after"), "120");
+  horloge += 120_000;
   assert.equal((await essayer("pas le bon mot de passe")).statut, 401);
-  assert.equal((await essayer(MOT_DE_PASSE)).corps.attente, 2);
-  horloge += 2000;
+  assert.equal((await essayer(MOT_DE_PASSE)).corps.attente, 240);
+  horloge += 240_000;
   assert.equal((await essayer(MOT_DE_PASSE)).statut, 201);
   for (let i = 0; i < 2; i++) assert.equal((await essayer("pas le bon mot de passe")).statut, 401, "remis à zéro");
+});
+
+test("20 connexions lancées en même temps : 5 mots de passe vérifiés au plus, les 15 autres doivent attendre", async () => {
+  const { email } = await creerCompteEtSession();
+  const reponses = await Promise.all(Array.from({ length: 20 }, (_, i) =>
+    demander("POST", "/comptes/session", { corps: { email, motDePasse: `pas le bon mot de passe n° ${i}` } })));
+  const parStatut: Record<number, number> = {};
+  for (const { statut } of reponses) parStatut[statut] = (parStatut[statut] ?? 0) + 1;
+  assert.deepEqual(parStatut, { 401: 5, 429: 15 });
+});
+
+test("trop de calculs en attente : 503 « occupe » tout de suite, rien n'est créé, et l'essai ne compte pas", async () => {
+  const { email } = await creerCompteEtSession();
+  const avant = memoire.comptes.size;
+  const sel = randomBytes(16);
+  // Deux calculs lents (p = 16 : bien plus d'un quart de seconde) prennent les deux places ; vingt petits remplissent la file
+  const occupants = [
+    ...[1, 2].map(() => calculerScrypt("x", sel, 32, { ...REGLAGES_SCRYPT, p: 16 })),
+    ...Array.from({ length: 20 }, () => calculerScrypt("x", sel, 16, { N: 1024, r: 1, p: 1 })),
+  ];
+  const reponses = await Promise.all([
+    demander("POST", "/comptes/session", { corps: { email, motDePasse: "pas le bon mot de passe" } }),
+    demander("POST", "/comptes", { corps: { ...INSCRIPTION, email: "pressee@exemple.fr" } }),
+  ]);
+  await Promise.all(occupants);
+  for (const { statut, corps, entetes } of reponses) {
+    assert.deepEqual([statut, corps, entetes.get("retry-after")], [503, { ok: false, erreur: "occupe" }, "5"]);
+  }
+  assert.equal(memoire.comptes.size, avant, "aucun compte créé");
+  const essayer = () => demander("POST", "/comptes/session", { corps: { email, motDePasse: "pas le bon mot de passe" } });
+  for (let i = 0; i < 5; i++) assert.equal((await essayer()).statut, 401, "l'essai refusé « occupe » n'a pas compté");
+  assert.equal((await essayer()).statut, 429);
 });
 
 test("sans jeton, avec un faux jeton ou après déconnexion : 401 « session-expiree » ; déconnecter est toujours « ok »", async () => {
@@ -249,7 +285,7 @@ test("nouveau mot de passe avec le lien de l'équipe : usage unique, 24 h, et to
   }
 });
 
-test("limites par visiteur : 10 inscriptions par heure, 20 connexions et 10 nouveaux mots de passe par 10 minutes, 120 pour le reste", async () => {
+test("limites par visiteur : 10 inscriptions par heure, 20 connexions et 10 nouveaux mots de passe par 10 minutes, 600 pour le reste", async () => {
   const statuts = async (nombre: number, envoyer: () => Promise<{ statut: number }>) => {
     const liste: number[] = [];
     for (let i = 0; i < nombre; i++) liste.push((await envoyer()).statut);
@@ -259,8 +295,26 @@ test("limites par visiteur : 10 inscriptions par heure, 20 connexions et 10 nouv
   assert.deepEqual(await statuts(11, () => demander("POST", "/comptes", { corps: { piege: "robot" }, ip: "198.51.100.1" })), [...repeter(201, 10), 429]);
   assert.deepEqual(await statuts(21, () => demander("POST", "/comptes/session", { corps: { email: "x" }, ip: "198.51.100.2" })), [...repeter(400, 20), 429]);
   assert.deepEqual(await statuts(11, () => demander("POST", "/comptes/nouveau-mot-de-passe", { corps: {}, ip: "198.51.100.3" })), [...repeter(410, 10), 429]);
-  assert.deepEqual(await statuts(121, () => demander("GET", "/comptes/session", { ip: "198.51.100.4" })), [...repeter(401, 120), 429]);
+  assert.deepEqual(await statuts(601, () => demander("GET", "/comptes/session", { ip: "198.51.100.4" })), [...repeter(401, 600), 429]);
+  // La déconnexion passe toujours, même limite atteinte : sinon le site efface son cookie, mais la session reste ouverte
+  const { jeton } = await creerCompteEtSession();
+  assert.deepEqual((await demander("DELETE", "/comptes/session", { jeton, ip: "198.51.100.4" })).corps, { ok: true });
+  assert.equal((await demander("GET", "/comptes/session", { jeton })).statut, 401, "la session est bien fermée");
   assert.equal((await demander("GET", "/comptes/session")).statut, 401, "un autre visiteur n'est pas gêné");
+});
+
+test("en IPv6, un visiteur compte par son bloc /56 : changer d'adresse dans son bloc ne donne pas d'essais en plus", async () => {
+  const connecter = (ip: string) => demander("POST", "/comptes/session", { corps: { email: "x" }, ip });
+  const vingtEtUn = [...Array<number>(20).fill(400), 429];
+  const memeBloc: number[] = [];
+  // 21 adresses différentes, dans 21 /64 différents du même /56
+  for (let i = 1; i <= 21; i++) memeBloc.push((await connecter(`2001:db8:aa:${i.toString(16)}::${i.toString(16)}`)).statut);
+  assert.deepEqual(memeBloc, vingtEtUn);
+  assert.equal((await connecter("2001:db8:aa:100::1")).statut, 400, "le bloc voisin n'est pas gêné");
+  // « ::ffff:203.0.113.9 », c'est l'IPv4 203.0.113.9
+  const memeIpv4: number[] = [];
+  for (let i = 0; i < 21; i++) memeIpv4.push((await connecter(i % 2 ? "203.0.113.9" : "::ffff:203.0.113.9")).statut);
+  assert.deepEqual(memeIpv4, vingtEtUn);
 });
 
 test("une panne : 500 sobre, et le journal ne garde ni e-mail ni mot de passe", async () => {

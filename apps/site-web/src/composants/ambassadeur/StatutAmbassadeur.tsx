@@ -31,6 +31,8 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
 
   // Effacé 30 jours après le refus : juste tant que les comptes ne viennent que du site. Quand l'app aura ses comptes
   // (un seul compte par personne, décision du 8 octobre 2026), seul le rôle d'ambassadeur partira : ce texte changera.
+  // Le ménage passe chaque nuit à 3 h 30, heure de Paris (apps/api/src/taches/taches-de-nuit.ts) : une échéance tombée
+  // après 3 h 30 est effacée la nuit suivante, d'où le jour de plus et « au plus tard ».
   if (ambassadeur?.statut === "refuse") {
     return (
       <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 shadow-brut md:px-12">
@@ -40,8 +42,9 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
         </p>
         {ambassadeur.decideLe && (
           <p className="mt-3 max-w-xl text-lg">
-            Ton compte sera effacé le <strong><DateEnLettres iso={ambassadeur.decideLe} plusJours={30} /></strong>, avec tout ce qui va avec.
-            {" "}{lierPonctuation("Tu peux aussi l'effacer tout de suite depuis « Mon compte ».")}
+            Ton compte sera effacé au plus tard le <strong><DateEnLettres iso={ambassadeur.decideLe} plusJours={31} /></strong>, avec tout ce qui va avec.
+            {/* L'espace au début de la phrase suivante, dans la même chaîne : seule, Chrome la perdrait pour les lecteurs d'écran */}
+            {lierPonctuation(" Tu peux aussi l'effacer tout de suite depuis « Mon compte ».")}
           </p>
         )}
         <p className="mt-3 max-w-xl text-gris">{lierPonctuation("Tu peux toujours suivre l'aventure sur sosmiam.fr.")}</p>

@@ -8,13 +8,16 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
-export type ChoixMenu = "rescousse" | "adresse" | "envoyer" | "pas-interesse";
+/** « signaler » n'arrive au fil qu'en visite sans compte (avec un compte, le signalement se fait dans le menu) */
+export type ChoixMenu = "rescousse" | "adresse" | "envoyer" | "pas-interesse" | "signaler";
 
 type Props = {
   visible: boolean;
   nomLieu: string;
   sauve: boolean;
   restantes: number;
+  /** Faux en visite sans compte : seule « Voir l'adresse » est libre, le reste mène à « Crée ton compte » (le fil s'en charge) */
+  avecCompte: boolean;
   onChoisir: (choix: ChoixMenu) => void;
   /** Signalement envoyé : la feuille reste ouverte pour dire merci */
   onSignaler: (choix: ChoixSignalement) => void;
@@ -23,8 +26,11 @@ type Props = {
 
 type Vue = "options" | "signalement";
 
-/** Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours. */
-export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir, onSignaler, onFermer }: Props) {
+/**
+ * Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours.
+ * En visite sans compte, un cadenas sur tout sauf l'adresse : le fil referme le menu et propose de créer un compte.
+ */
+export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, avecCompte, onChoisir, onSignaler, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const defilement = useRef<ScrollView>(null);
@@ -64,13 +70,16 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
     else onFermer();
   }
 
-  const epuisees = !sauve && restantes <= 0;
-  const options: { choix: ChoixMenu | "signaler"; emoji: string; titre: string; detail: string; desactive?: boolean }[] = [
+  // En visite, pas encore de rescousses à compter : on dit seulement ce qui t'attend
+  const epuisees = avecCompte && !sauve && restantes <= 0;
+  const options: { choix: ChoixMenu; emoji: string; titre: string; detail: string; desactive?: boolean }[] = [
     {
       choix: "rescousse",
       emoji: "🛟",
-      titre: sauve ? "Reprendre ma rescousse" : "Donner une rescousse",
-      detail: sauve ? "Elle te sera rendue pour un autre lieu" : epuisees ? "Plus de rescousse cette semaine, reviens lundi !" : `Il t'en reste ${restantes} cette semaine`,
+      titre: avecCompte && sauve ? "Reprendre ma rescousse" : "Donner une rescousse",
+      detail: !avecCompte
+        ? "Avec ton compte, tu en as à offrir chaque semaine"
+        : sauve ? "Elle te sera rendue pour un autre lieu" : epuisees ? "Plus de rescousse cette semaine, reviens lundi !" : `Il t'en reste ${restantes} cette semaine`,
       desactive: epuisees,
     },
     { choix: "adresse", emoji: "📍", titre: "Voir l'adresse", detail: "Horaires, plat signature, itinéraire" },
@@ -106,29 +115,37 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
             ) : (
               <>
                 <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">{nomLieu}</Text>
-                {options.map((o) => (
-                  <Pressable
-                    key={o.choix}
-                    accessibilityRole="button"
-                    accessibilityLabel={o.titre}
-                    accessibilityState={{ disabled: o.desactive }}
-                    accessibilityHint={o.detail}
-                    disabled={o.desactive}
-                    onPress={() => {
-                      vibrerLegerement();
-                      if (o.choix === "signaler") ouvrirSignalement();
-                      else onChoisir(o.choix);
-                    }}
-                    className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${o.desactive ? "opacity-40" : ""}`}
-                  >
-                    <Text className="text-2xl">{o.emoji}</Text>
-                    <View className="flex-1">
-                      <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                      <Text className="font-texte text-sm text-gris">{o.detail}</Text>
-                    </View>
-                    {o.choix === "signaler" ? <Ionicons name="chevron-forward" size={20} color={couleurs.gris} /> : null}
-                  </Pressable>
-                ))}
+                {options.map((o) => {
+                  // En visite, un petit cadenas sur ce qui demande un compte (tout sauf l'adresse)
+                  const verrouille = !avecCompte && o.choix !== "adresse";
+                  return (
+                    <Pressable
+                      key={o.choix}
+                      accessibilityRole="button"
+                      accessibilityLabel={o.titre}
+                      accessibilityState={{ disabled: o.desactive }}
+                      accessibilityHint={verrouille ? `${o.detail}. Il te faut un compte, une minute suffit` : o.detail}
+                      disabled={o.desactive}
+                      onPress={() => {
+                        vibrerLegerement();
+                        if (o.choix === "signaler" && avecCompte) ouvrirSignalement();
+                        else onChoisir(o.choix);
+                      }}
+                      className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${o.desactive ? "opacity-40" : ""}`}
+                    >
+                      <Text className="text-2xl">{o.emoji}</Text>
+                      <View className="flex-1">
+                        <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                        <Text className="font-texte text-sm text-gris">{o.detail}</Text>
+                      </View>
+                      {verrouille ? (
+                        <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
+                      ) : o.choix === "signaler" ? (
+                        <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
                 <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
                   <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                 </Pressable>

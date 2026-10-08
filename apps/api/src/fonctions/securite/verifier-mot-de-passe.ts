@@ -15,7 +15,8 @@ function lireReglage(texte: string | undefined, minimum: number, maximum: number
 /**
  * Vérifie un mot de passe contre son empreinte « scrypt$N$r$p$<sel>$<empreinte> » (voir hacherMotDePasse), avec une
  * comparaison en temps constant. Une empreinte mal formée, ou aux réglages hors des bornes raisonnables, donne simplement
- * false : jamais d'erreur, jamais de calcul démesuré.
+ * false : jamais de calcul démesuré. Seule erreur possible : la file des calculs pleine (`status: 503`), qui n'est pas un
+ * mauvais mot de passe (ni un échec à compter) ; elle remonte telle quelle.
  */
 export async function verifierMotDePasse(motDePasse: string, empreinte: string): Promise<boolean> {
   const [algorithme, n, r, p, selTexte, cleTexte, ...reste] = empreinte.split("$");
@@ -32,7 +33,8 @@ export async function verifierMotDePasse(motDePasse: string, empreinte: string):
   try {
     const calculee = await calculerScrypt(motDePasse.normalize("NFC"), sel, attendue.length, { N, r: blocs, p: passes });
     return timingSafeEqual(calculee, attendue);
-  } catch {
+  } catch (erreur) {
+    if (erreur instanceof Error && "status" in erreur && erreur.status === 503) throw erreur;
     return false;
   }
 }

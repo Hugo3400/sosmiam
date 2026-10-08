@@ -12,7 +12,7 @@ import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.
 import { FORME_JETON, lireJetonSession, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import type { CompteConnecte, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
 import type { CandidatureVue, NouvelleCandidature, NouvelleProposition, PropositionVue } from "../services/comptes-espace.ts";
-import { faireAttendre, type AttenteParCompte } from "./comptes-attente.ts";
+import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -41,18 +41,33 @@ export type ServicesComptes = {
   lireCandidature: (compteId: number) => Promise<CandidatureVue | null>;
   /** Faux s'il a déjà une candidature en attente ou acceptée */
   creerCandidature: (compteId: number, candidature: NouvelleCandidature) => Promise<boolean>;
+  /** Places de fondateur encore libres : 10 moins les numéros donnés (jamais moins de 0), recomptées à chaque demande */
+  compterPlacesFondateur: () => Promise<number>;
   listerPropositions: (compteId: number) => Promise<PropositionVue[]>;
   creerProposition: (compteId: number, proposition: NouvelleProposition) => Promise<void>;
 };
 
-/** Ce que partagent les contrôleurs des comptes */
-export type ContexteComptes = { services: ServicesComptes; protection: ProtectionComptes; attente: AttenteParCompte; horloge: () => number };
+/**
+ * Ce que partagent les contrôleurs des comptes. Deux attentes après des mots de passe faux : `attente` pour la connexion
+ * (clé : l'e-mail), `attenteConnectee` pour « Mon compte » (clé : l'id du compte, que seul le titulaire d'une session peut
+ * faire monter : quelqu'un qui connaît seulement l'e-mail ne bloque pas le changement de mot de passe).
+ */
+export type ContexteComptes = {
+  services: ServicesComptes; protection: ProtectionComptes; attente: AttenteParCompte; attenteConnectee: AttenteParCompte; horloge: () => number;
+};
 
-export function creerControleursComptes({ services, protection, attente, horloge }: ContexteComptes) {
+export function creerControleursComptes({ services, protection, attente, attenteConnectee, horloge }: ContexteComptes) {
   // Empreinte d'un mot de passe que personne n'a : vérifier un e-mail inconnu prend autant de temps qu'un vrai compte.
   // Calculée dès le démarrage (le .catch évite un arrêt du serveur pour une promesse rejetée que personne n'attend encore)
   const empreinteFactice = hacherMotDePasse(creerJeton());
   empreinteFactice.catch(() => {});
+
+  /** Le compte si le mot de passe est le bon, sinon null (e-mail inconnu : le même calcul, avec l'empreinte factice). */
+  async function verifierIdentifiants(email: string, motDePasse: string) {
+    const compte = await services.trouverCompteParEmail(email);
+    const bon = await verifierMotDePasse(motDePasse, compte?.motDePasse ?? (await empreinteFactice));
+    return compte && bon ? compte : null;
+  }
 
   /** 201 avec une nouvelle session : le jeton n'est rendu qu'une fois, le site le garde dans son cookie. */
   async function ouvrirSessionEtRepondre(reponse: Response, compteId: number) {
@@ -90,14 +105,10 @@ export function creerControleursComptes({ services, protection, attente, horloge
       const email = lireEmail(corps);
       const motDePasse = lireMotDePasse(corps, "motDePasse");
       if (!motDePasse) throw new ChampInvalide("motDePasse");
+      // L'essai est compté avant de vérifier (des essais lancés tous en même temps ne passent pas tous) ; un succès l'efface
       if (faireAttendre(attente, reponse, email)) return;
-      const compte = await services.trouverCompteParEmail(email);
-      const bon = await verifierMotDePasse(motDePasse, compte?.motDePasse ?? (await empreinteFactice));
-      if (!compte || !bon) {
-        attente.noterEchec(email);
-        return reponse.status(401).json({ ok: false, erreur: "identifiants" });
-      }
-      attente.oublier(email);
+      const compte = await verifierEnComptant(attente, email, () => verifierIdentifiants(email, motDePasse));
+      if (!compte) return reponse.status(401).json({ ok: false, erreur: "identifiants" });
       await ouvrirSessionEtRepondre(reponse, compte.id);
     },
 
@@ -132,6 +143,7 @@ export function creerControleursComptes({ services, protection, attente, horloge
       if (!(await services.reinitialiserMotDePasse(compte.id, empreinteJeton, empreinte, new Date(horloge())))) return jetonInvalide(reponse);
       await protection.fermerSessionsDuCompte(compte.id);
       attente.oublier(compte.email);
+      attenteConnectee.oublier(String(compte.id));
       reponse.json({ ok: true });
     },
   };

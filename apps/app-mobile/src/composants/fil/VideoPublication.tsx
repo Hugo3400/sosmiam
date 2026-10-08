@@ -8,6 +8,7 @@ import { Text, View } from "react-native";
 import { BarreProgressionVideo } from "~/composants/fil/BarreProgressionVideo";
 import { BoutonSon } from "~/composants/fil/BoutonSon";
 import type { MediaPublication } from "~/contenus/type-publication";
+import { utiliserRetoursPremierPlan } from "~/hooks/utiliser-retours-premier-plan";
 import { utiliserSonFil } from "~/hooks/utiliser-son-fil";
 
 type Props = {
@@ -23,6 +24,8 @@ type Props = {
   margeHaut: number;
   /** Hauteur de la barre d'onglets (barre d'avancée posée juste au-dessus) */
   margeBas: number;
+  /** Réglage de la barre d'avancée commencé (true) ou fini (false) : le fil ne défile pas pendant ce temps */
+  onGlisserBarre: (enCours: boolean) => void;
 };
 
 // Les commandes passent au-dessus de la zone d'appui de la publication (posée après le média) : sinon on ne pourrait pas les toucher
@@ -33,8 +36,10 @@ const styleCommandes = { position: "absolute", top: 0, right: 0, bottom: 0, left
  * réglage commun du fil (coupé par défaut, bouton seulement si la vidéo a du son), une barre d'avancée permet d'avancer ou
  * de reculer, et l'appui long la passe en x2.
  */
-export function VideoPublication({ media, actif, enPause, acceleree, largeur, margeHaut, margeBas }: Props) {
+export function VideoPublication({ media, actif, enPause, acceleree, largeur, margeHaut, margeBas, onGlisserBarre }: Props) {
   const { sonCoupe, basculerSon } = utiliserSonFil();
+  // En arrière-plan (verrouillage, autre app, appel), le téléphone met la vidéo en pause sans la relancer au retour : on s'en charge
+  const retoursPremierPlan = utiliserRetoursPremierPlan();
   const lecteur = useVideoPlayer(media.video, (l) => {
     l.loop = true;
     l.muted = true;
@@ -57,7 +62,7 @@ export function VideoPublication({ media, actif, enPause, acceleree, largeur, ma
   useEffect(() => {
     if (actif && !enPause) lecteur.play();
     else lecteur.pause();
-  }, [actif, enPause, lecteur]);
+  }, [actif, enPause, lecteur, retoursPremierPlan]);
 
   // Une vidéo sans son reste muette même son activé : elle ne coupe pas la musique qui joue à côté sur le téléphone
   const muette = sonCoupe || !infos.aDuSon;
@@ -93,7 +98,9 @@ export function VideoPublication({ media, actif, enPause, acceleree, largeur, ma
             </View>
           </View>
         ) : null}
-        {infos.duree > 0 ? <BarreProgressionVideo lecteur={lecteur} actif={actif} duree={infos.duree} largeur={largeur} bas={margeBas} /> : null}
+        {infos.duree > 0 ? (
+          <BarreProgressionVideo lecteur={lecteur} actif={actif} enPause={enPause} duree={infos.duree} largeur={largeur} bas={margeBas} onGlisser={onGlisserBarre} />
+        ) : null}
       </View>
     </>
   );

@@ -27,7 +27,7 @@ export const questionsApp: QuestionFaq[] = [
     id: "faq-recompenses",
     question: "Qu'est-ce que j'y gagne ?",
     reponse: [
-      "Chaque visite validée et chaque rescousse te rapportent des points : tu passes les paliers (Curieux, Dénicheur, Ambassadeur…) et tu débloques des badges. Ta carte de fidélité te fait gagner un café ou un dessert offert dans tes lieux préférés, et il y a des défis chaque mois et un classement de ton quartier.",
+      "Chaque visite validée et chaque rescousse te rapportent des points : tu passes les paliers (Curieux, Dénicheur, Ambassadeur…) et tu débloques des badges. Dans tes lieux préférés, ta carte de fidélité te fait gagner la récompense choisie par le lieu (un café, un dessert…). Et il y a des défis à relever et un classement du mois avec ta bande.",
     ],
   },
   {

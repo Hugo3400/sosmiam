@@ -123,7 +123,7 @@ export default function NouveauGroupe() {
                 aide={`${titre.length}/${LONGUEUR_MAX_TITRE_GROUPE} caractères`}
                 erreur={erreurs.titre}
               />
-              <ChoixEmojiSortie choisi={emoji} onChoisir={setEmoji} />
+              <ChoixEmojiSortie choisi={emoji} onChoisir={setEmoji} libelle="Emoji du groupe" />
             </View>
           </SectionReglages>
 
@@ -133,7 +133,7 @@ export default function NouveauGroupe() {
             </Text>
             {/* Toute la bande hors d'atteinte : pas de « bande vide », la note juste dessous explique pourquoi */}
             {permis.length > 0 || exclus.length === 0 ? (
-              <ChoixParticipants potes={permis} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} indisponibles={raisons} />
+              <ChoixParticipants potes={permis} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} indisponibles={raisons} indiceMax={`${MAX_PARTICIPANTS_GROUPE - 1} potes au plus dans un groupe, toi en plus`} />
             ) : null}
             {exclus.length > 0 ? (
               <View className="mt-3 gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">

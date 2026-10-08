@@ -119,8 +119,8 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/fonctions/comptes/` | règles des comptes de l'espace ambassadeur : âge à la date de Paris, mot de passe acceptable, attente après des échecs, nettoyage des champs, erreur résumée sans donnée personnelle |
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |
 | `src/paiements/` | Stripe : abonnement Pro, bons solidaires |
-| `src/emails/` | modèles et envoi des e-mails |
-| `src/taches/` | tâches planifiées : la nuit, ménage (contacts de demandes de plus de 3 ans ; comptes : sessions expirées, comptes refusés depuis 30 jours ou sans visite depuis 1 an, candidatures refusées depuis 3 mois, liens expirés) et sauvegarde chiffrée de la base ; plus tard, recharge des rescousses le lundi, fin des BIG SOS… |
+| `src/emails/` | vide : les mails sont dans `src/services/courriels/` (file d'attente, envoi, mails des comptes) et `src/fonctions/courriels/` (gabarit) |
+| `src/taches/` | tâches planifiées : la nuit, ménage (contacts de demandes de plus de 3 ans ; journal des mails de plus de 90 jours ; comptes : sessions expirées, comptes refusés depuis 30 jours, rôle d'ambassadeur retiré après 1 an sans visite, compte effacé après 2 ans sans connexion, candidatures refusées depuis 3 mois, liens expirés), alertes par mail 30 jours avant le retrait du rôle et avant l'effacement, puis sauvegarde chiffrée de la base ; plus tard, recharge des rescousses le lundi, fin des BIG SOS… |
 | `tests/` | tests de l'API (`outils/` : banc d'essai des routes signées du logiciel de gestion) |
 
 ## apps/bot-discord — le bot du serveur Discord

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { memo, useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { AccessibilityInfo, Pressable, Text, View, type AccessibilityActionEvent } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming, type SharedValue } from "react-native-reanimated";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -16,6 +16,7 @@ import { MediaPublication } from "~/composants/fil/MediaPublication";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -66,13 +67,18 @@ export type GestesPublication = {
   suivre: (publication: Publication) => void;
   /** Fiche du lieu, ou page du créateur */
   ouvrirAuteur: (publication: Publication) => void;
+  /** Réglage de la barre d'avancée d'une vidéo commencé (true) ou fini (false) : le fil ne défile pas pendant ce temps */
+  glisserBarre: (enCours: boolean) => void;
 };
 
 const DELAI_DOUBLE_APPUI = 280;
 const DELAI_APPUI_LONG = 400;
-// Fiche, pastille et colonne d'actions restent au-dessus de la barre d'avancée des vidéos (posée juste sur la barre d'onglets)
-const ECART_BAS = HAUTEUR_ZONE_PROGRESSION + 6;
+// Fiche, pastille et colonne d'actions restent au-dessus de la zone de la barre d'avancée des vidéos (posée juste sur la barre
+// d'onglets) ; son rail visible est en bas de la zone, elles n'ont pas besoin d'écart en plus
+const ECART_BAS = HAUTEUR_ZONE_PROGRESSION;
 const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
+// Le lecteur d'écran passe à la pastille (ou revient à la fiche) une fois la réduction finie
+const DELAI_FOCUS_REDUCTION = 300;
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
@@ -84,13 +90,35 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   const [acceleree, setAcceleree] = useState(false);
   const dernierAppui = useRef(0);
   const appuiSimple = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refPastille = useRef<View>(null);
+  const refReduire = useRef<View>(null);
+  const reduitAvant = useRef(reduit);
 
-  // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré
+  // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré (un appui simple en attente est oublié)
   useEffect(() => {
     if (actif) return;
+    if (appuiSimple.current) clearTimeout(appuiSimple.current);
+    appuiSimple.current = null;
+    dernierAppui.current = 0;
     setEnPause(false);
     setAcceleree(false);
   }, [actif]);
+
+  useEffect(
+    () => () => {
+      if (appuiSimple.current) clearTimeout(appuiSimple.current);
+    },
+    [],
+  );
+
+  // Réduire cache la fiche (et la pastille se cache quand on la touche) : le lecteur d'écran suit, au lieu de perdre sa place
+  useEffect(() => {
+    if (reduitAvant.current === reduit) return;
+    reduitAvant.current = reduit;
+    if (!actif) return;
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(reduit ? refPastille.current : refReduire.current), DELAI_FOCUS_REDUCTION);
+    return () => clearTimeout(minuterie);
+  }, [reduit, actif]);
 
   useEffect(() => {
     if (!actif || !lieu.sos || animationsReduites) {
@@ -129,6 +157,26 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     setAcceleree(true);
   }
 
+  // VoiceOver ne touche pas la vidéo et ne garde pas le doigt dessus : pause et accéléré passent par des actions
+  // (et par le toucher à deux doigts pour la pause, comme dans toutes les apps iOS), chacune confirmée à voix haute
+  function basculerPauseLecteurEcran() {
+    const pause = !enPause;
+    setEnPause(pause);
+    AccessibilityInfo.announceForAccessibility(pause ? "Pause ! La vidéo t'attend" : "C'est reparti");
+  }
+
+  function basculerAccelerationLecteurEcran() {
+    const accelere = !acceleree;
+    setAcceleree(accelere);
+    if (accelere) setEnPause(false);
+    AccessibilityInfo.announceForAccessibility(accelere ? "Accéléré : deux fois plus vite" : "Retour à la vitesse normale");
+  }
+
+  function actionLecteurEcran(e: AccessibilityActionEvent) {
+    if (e.nativeEvent.actionName === "pause") basculerPauseLecteurEcran();
+    if (e.nativeEvent.actionName === "accelerer") basculerAccelerationLecteurEcran();
+  }
+
   const auteur = publication.auteur;
   const nomAuteur = auteur.type === "lieu" ? lieu.nom : `@${auteur.pseudo}`;
   const emojiAuteur = auteur.type === "lieu" ? lieu.emoji : "🎬";
@@ -144,9 +192,16 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     raison,
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
+  const video = media?.type === "video";
+  const actionsVideo = video
+    ? [
+        { name: "pause", label: enPause ? "Reprendre la vidéo" : "Mettre la vidéo en pause" },
+        { name: "accelerer", label: acceleree ? "Revenir à la vitesse normale" : "Lire en accéléré, deux fois plus vite" },
+      ]
+    : undefined;
 
   return (
-    <View style={{ height: hauteur, width: largeur }} className="overflow-hidden bg-encre">
+    <View style={{ height: hauteur, width: largeur }} onMagicTap={video && actif ? basculerPauseLecteurEcran : undefined} className="overflow-hidden bg-encre">
       <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
       {media ? (
         <MediaPublication
@@ -159,6 +214,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           margeHaut={margeHaut}
           margeBas={margeBas}
           onAppuiPhoto={appuiSurLeMedia}
+          onGlisserBarre={gestes.glisserBarre}
         />
       ) : (
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: hauteur * 0.24, alignSelf: "center", fontSize: Math.min(140, hauteur * 0.17) }}>
@@ -200,6 +256,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
         <Animated.View style={stylePastille}>
           {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
           <Pressable
+            ref={refPastille}
             accessibilityRole="button"
             accessibilityLabel={auteur.type === "lieu" ? `Afficher la fiche de ${lieu.nom}` : `Afficher la fiche : publication de ${nomAuteur} sur ${lieu.nom}`}
             onPress={gestes.reduire}
@@ -234,7 +291,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               </Pressable>
               <BoutonSuivre suivi={suivi} nom={nomAuteur} onPress={() => gestes.suivre(publication)} />
             </View>
-            <View accessible accessibilityLabel={description} className="gap-1.5">
+            <View accessible accessibilityLabel={description} accessibilityActions={actionsVideo} onAccessibilityAction={video ? actionLecteurEcran : undefined} className="gap-1.5">
               {auteur.type === "createur" && auteur.partenariat ? (
                 <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
                   Collaboration commerciale · {auteur.partenariat}
@@ -268,6 +325,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               <Text className="font-texte-semi text-[15px] text-white">Voir l'adresse →</Text>
             </Pressable>
             <Pressable
+              ref={refReduire}
               accessibilityRole="button"
               accessibilityLabel="Réduire la fiche pour voir la vidéo en plein écran"
               onPress={gestes.reduire}

@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -27,7 +28,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
     return (
       <View accessible accessibilityLabel={`Toi, ${heure} : ${texte}`} className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
         <View className="rounded-2xl rounded-br-md border-2 border-encre bg-jaune px-3.5 py-2.5">
-          <Text className="font-texte text-base leading-[22px] text-encre">{texte}</Text>
+          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
         </View>
         <Text className="mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
       </View>
@@ -60,7 +61,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
           </Text>
         ) : null}
         <View className="rounded-2xl rounded-tl-md border-2 border-encre bg-white px-3.5 py-2.5">
-          <Text className="font-texte text-base leading-[22px] text-encre">{texte}</Text>
+          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
         </View>
         <Text className="ml-1 mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
       </Pressable>

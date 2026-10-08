@@ -6,6 +6,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
+import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
 import { FournisseurCommunaute } from "~/composants/potes/FournisseurCommunaute";
 import { FournisseurConversations } from "~/composants/potes/FournisseurConversations";
 import { PileRacine } from "~/composants/navigation/PileRacine";
@@ -14,7 +15,7 @@ import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
 // L'écran de démarrage reste visible jusqu'à ce que tout soit prêt (voir PileRacine)
 SplashScreen.preventAutoHideAsync();
 
-/** Racine de l'app : polices de la marque, profil et activité (rescousses, lieux gardés), puis la pile d'écrans. */
+/** Racine de l'app : polices de la marque, profil (ou visite sans compte) et activité (rescousses, lieux gardés), puis la pile d'écrans. */
 export default function RacineApp() {
   const [policesChargees, erreurPolices] = useFonts({
     BricolageGrotesque_700Bold,
@@ -27,14 +28,17 @@ export default function RacineApp() {
 
   return (
     <FournisseurProfil>
-      {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
-      <FournisseurActivite>
-        <FournisseurCommunaute>
-          <FournisseurConversations>
-            <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
-          </FournisseurConversations>
-        </FournisseurCommunaute>
-      </FournisseurActivite>
+      {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
+      <FournisseurInvite>
+        {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
+        <FournisseurActivite>
+          <FournisseurCommunaute>
+            <FournisseurConversations>
+              <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+            </FournisseurConversations>
+          </FournisseurCommunaute>
+        </FournisseurActivite>
+      </FournisseurInvite>
     </FournisseurProfil>
   );
 }

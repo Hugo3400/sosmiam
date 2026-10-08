@@ -16,10 +16,23 @@ type Props = {
   margeBas: number;
   /** Appui sur une photo (double appui : « J'aime ») */
   onAppuiPhoto: () => void;
+  /** Réglage de la barre d'avancée d'une vidéo commencé ou fini : le fil arrête puis reprend son défilement */
+  onGlisserBarre: (enCours: boolean) => void;
 };
 
 /** Le média d'une publication en plein écran : vidéo (avec son, avancée et x2) ou photos (qui défilent seules). */
-export function MediaPublication({ media, largeur, hauteur, actif, enPause, acceleree, margeHaut, margeBas, onAppuiPhoto }: Props) {
+export function MediaPublication({ media, largeur, hauteur, actif, enPause, acceleree, margeHaut, margeBas, onAppuiPhoto, onGlisserBarre }: Props) {
   if (media.type === "photos") return <PhotosPublication photos={media.photos} largeur={largeur} hauteur={hauteur} actif={actif} haut={margeHaut} onAppui={onAppuiPhoto} />;
-  return <VideoPublication media={media} actif={actif} enPause={enPause} acceleree={acceleree} largeur={largeur} margeHaut={margeHaut} margeBas={margeBas} />;
+  return (
+    <VideoPublication
+      media={media}
+      actif={actif}
+      enPause={enPause}
+      acceleree={acceleree}
+      largeur={largeur}
+      margeHaut={margeHaut}
+      margeBas={margeBas}
+      onGlisserBarre={onGlisserBarre}
+    />
+  );
 }

@@ -9,6 +9,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ElementCarte } from "~/composants/lieux/ElementCarte";
+import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { PastillesSectionsCarte } from "~/composants/lieux/PastillesSectionsCarte";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -29,8 +30,8 @@ const DUREE_DEFILEMENT_GUIDE = 700;
 
 /**
  * La carte complète d'un lieu (« Les formules » pour une sortie) : pastilles pour sauter d'une section à l'autre,
- * sections et leurs éléments, filtre « Seulement ce qui me va » selon les régimes du profil. Sous 18 ans, pas d'alcool
- * (et pas de bar du tout, comme sur la fiche).
+ * sections et leurs éléments, filtre « Seulement ce qui me va » selon les régimes du profil. Sous 18 ans ou âge inconnu
+ * (visite sans compte), pas d'alcool (et pas de bar du tout, comme sur la fiche).
  */
 export default function CarteDuLieu() {
   const router = useRouter();
@@ -53,6 +54,8 @@ export default function CarteDuLieu() {
   const carteAutorisee = carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null;
 
   if (!lieu) {
+    // Le lieu existe, mais c'est un bar : même mot gentil que sur la fiche
+    if (lieuxExemples.some((l) => String(l.id) === id)) return <LieuReserveAdultes />;
     return (
       <EcranReglage titre="Ce lieu n'est pas disponible" sousTitre="Il s'est peut-être éclipsé. Plein d'autres adresses t'attendent dans Explorer !">
         <Bouton libelle="Retour" variante="blanc" onPress={() => router.back()} />

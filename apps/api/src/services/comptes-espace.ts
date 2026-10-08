@@ -2,6 +2,12 @@
 // proposer des lieux (ils arrivent dans la file des demandes du logiciel de gestion, liés à son compte).
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 
+/**
+ * Nombre de fondateurs (numéros 1 à 10). À remplacer par l'import de services/gestion/ambassadeurs.ts (FONDATEURS_MAX),
+ * dès que la session « Logiciel » l'exporte.
+ */
+const FONDATEURS_MAX = 10;
+
 export type StatutCandidature = "en-attente" | "acceptee" | "refusee";
 
 /** La candidature « fondateur » telle que l'ambassadeur la voit (dates en ISO 8601) */
@@ -47,6 +53,20 @@ export async function lireCandidature(compteId: number): Promise<CandidatureVue 
     creeLe: candidature.creeLe.toISOString(),
     reponduLe: candidature.reponduLe?.toISOString() ?? null,
   };
+}
+
+/**
+ * Places de fondateur encore libres : 10 moins les numéros donnés (même règle que accepterCandidature, dans
+ * services/gestion/ambassadeurs.ts), jamais moins de 0. Recomptées à chaque demande : une place se libère si un fondateur
+ * quitte le programme ou efface son compte.
+ */
+export async function compterPlacesFondateur(): Promise<number> {
+  const donnes = await baseDeDonnees.candidatureFondateur.findMany({
+    where: { numero: { gte: 1, lte: FONDATEURS_MAX } },
+    distinct: ["numero"],
+    select: { numero: true },
+  });
+  return Math.max(0, FONDATEURS_MAX - donnes.length);
 }
 
 /** Enregistre la candidature ; faux s'il en a déjà une en attente ou acceptée (après un refus, il peut recandidater). */

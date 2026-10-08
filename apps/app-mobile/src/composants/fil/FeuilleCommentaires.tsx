@@ -9,6 +9,7 @@ import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { BlocCommentaire } from "~/composants/fil/BlocCommentaire";
 import { ChampCommentaire } from "~/composants/fil/ChampCommentaire";
+import { ChampCommentaireInvite } from "~/composants/fil/ChampCommentaireInvite";
 import { MenuCommentaire } from "~/composants/fil/MenuCommentaire";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -17,6 +18,8 @@ import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -39,10 +42,13 @@ const RAFRAICHISSEMENT = 30_000;
 const DELAI_FOCUS = 150;
 // Après une suppression ou un blocage, le message part juste après le replacement : sinon, le titre relu le couperait
 const DELAI_ANNONCE_APRES_FOCUS = 400;
+// Sans compte, la feuille se referme avant « Crée ton compte » : iOS n'ouvre pas une fenêtre pendant qu'une autre se referme
+const DELAI_APRES_FERMETURE = Platform.OS === "ios" ? 400 : 0;
 
 /**
  * Les commentaires d'une publication, dans une feuille qui monte du bas comme sur TikTok (la vidéo reste visible au-dessus) :
  * la réponse du lieu en tête, puis les plus aimés ; réponses repliables ; champ en bas avec mentions ; options de chaque commentaire.
+ * En visite sans compte, on lit tout ; écrire, répondre, aimer et les options referment la feuille et proposent de créer un compte.
  */
 export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: Props) {
   const marges = useSafeAreaInsets();
@@ -50,6 +56,10 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const animationsReduites = useReducedMotion();
   const communaute = utiliserCommunaute();
   const { trouverPote } = communaute;
+  const { profil } = utiliserProfil();
+  const avecCompte = profil !== null;
+  const exiger = utiliserCompteRequis();
+  const minuterieCompte = useRef<ReturnType<typeof setTimeout> | null>(null);
   const champ = useRef<TextInput>(null);
   const liste = useRef<FlatList<FilCommentaire>>(null);
   const titreFeuille = useRef<Text>(null);
@@ -100,6 +110,23 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     };
   }, []);
 
+  useEffect(
+    () => () => {
+      if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
+    },
+    [],
+  );
+
+  /** Vrai avec un compte ; sinon la feuille se referme, puis « Crée ton compte » s'ouvre pour cette raison */
+  function exigerCompte(raison: RaisonCompte): boolean {
+    if (avecCompte) return true;
+    Keyboard.dismiss();
+    onFermer();
+    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
+    minuterieCompte.current = setTimeout(() => exiger(raison), DELAI_APRES_FERMETURE);
+    return false;
+  }
+
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
   /** Replace le lecteur d'écran sur le titre de la feuille (ce qu'on vient de toucher a disparu), puis dit ce qui s'est passé */
   const revenirAuTitre = (message?: string) => {
@@ -120,6 +147,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const ordonnes = [...connus.filter((f) => f.commentaire.auteur === "lieu"), ...nouveaux, ...connus.filter((f) => f.commentaire.auteur !== "lieu")];
 
   function repondre(commentaire: Commentaire, fil: Commentaire) {
+    if (!exigerCompte("commenter")) return;
     let brouillon = edition ? "" : texte;
     setEdition(null);
     setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire.auteur) });
@@ -159,7 +187,19 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     return verdict;
   }
 
+  // Sans compte : « rejoindre la discussion » (aimer un commentaire en fait partie, la raison « jaime » parle de la publication)
+  function aimer(commentaire: Commentaire) {
+    if (exigerCompte("commenter")) communaute.basculerJaimeCommentaire(commentaire.id);
+  }
+
+  // Le « Sois le premier » de la liste vide : le champ, ou (sans compte) la feuille « Crée ton compte »
+  function ecrire() {
+    if (exigerCompte("commenter")) champ.current?.focus();
+  }
+
   function ouvrirOptions(commentaire: Commentaire, declencheur: View | null) {
+    // Sans compte : signaler ou bloquer (un ancien commentaire à toi : le modifier) demande un compte
+    if (!exigerCompte(commentaire.auteur === ID_MOI ? "commenter" : "signaler")) return;
     Keyboard.dismiss();
     declencheurOptions.current = declencheur;
     setOptions(commentaire);
@@ -279,7 +319,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     <Text className="text-center font-texte text-sm leading-5 text-gris">
                       Un mot gentil, une question sur le plat, une envie d'y filer ce soir : lance la conversation !
                     </Text>
-                    <Bouton libelle="Écrire un commentaire" variante="blanc" petit onPress={() => champ.current?.focus()} className="mt-2" />
+                    <Bouton libelle="Écrire un commentaire" variante="blanc" petit onPress={ecrire} className="mt-2" />
                   </View>
                 }
                 renderItem={({ item }) => (
@@ -291,25 +331,30 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     deplie={deplies[item.commentaire.id] ?? item.reponses.some((r) => r.auteur === "lieu")}
                     onBasculer={(id) => setDeplies((d) => ({ ...d, [id]: !(d[id] ?? item.reponses.some((r) => r.auteur === "lieu")) }))}
                     onRepondre={repondre}
+                    onAimer={aimer}
                     onOptions={ouvrirOptions}
                   />
                 )}
               />
 
-              <ChampCommentaire
-                ref={champ}
-                valeur={texte}
-                onChanger={setTexte}
-                reponseA={reponse?.nom ?? null}
-                onAnnulerReponse={() => setReponse(null)}
-                edition={edition !== null}
-                onAnnulerEdition={() => {
-                  setEdition(null);
-                  setTexte("");
-                }}
-                onEnvoyer={envoyer}
-                margeBas={clavierOuvert ? 8 : marges.bottom + 8}
-              />
+              {avecCompte ? (
+                <ChampCommentaire
+                  ref={champ}
+                  valeur={texte}
+                  onChanger={setTexte}
+                  reponseA={reponse?.nom ?? null}
+                  onAnnulerReponse={() => setReponse(null)}
+                  edition={edition !== null}
+                  onAnnulerEdition={() => {
+                    setEdition(null);
+                    setTexte("");
+                  }}
+                  onEnvoyer={envoyer}
+                  margeBas={clavierOuvert ? 8 : marges.bottom + 8}
+                />
+              ) : (
+                <ChampCommentaireInvite onCreerCompte={() => exigerCompte("commenter")} margeBas={marges.bottom + 8} />
+              )}
             </>
           )}
         </View>

@@ -27,7 +27,7 @@ export const questionsAmbassadeurs: QuestionFaq[] = [
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse: [
       "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.",
-      `Pour candidater, crée d'abord ton compte sur ${lienEspace} : une fois ton compte validé, la candidature se fait depuis ton espace.`,
+      `Pour candidater, crée d'abord ton compte sur ${lienEspace} : une fois ton compte validé, la candidature se fait depuis ton espace, tant qu'il reste des places.`,
     ],
     motsCles: ["fondateur", "candidature", "10"],
   },
@@ -35,7 +35,7 @@ export const questionsAmbassadeurs: QuestionFaq[] = [
     id: "faq-createurs",
     question: "Je suis créateur de contenu : comment ça marche ?",
     reponse: [
-      "Crée ton profil créateur. Les lieux publient des missions (« Viens filmer mon resto ») avec leurs conditions affichées à l'avance : repas offert ou rémunération. Tu choisis celles qui te plaisent, et ta vidéo est publiée sur SOS Miam et sur tes réseaux.",
+      "Plus tard, les lieux pourront demander une vidéo à des créateurs (« Viens filmer mon resto »), avec leurs conditions affichées à l'avance : repas offert ou rémunération, et toujours la mention « Collaboration commerciale ». Ce n'est pas encore ouvert : [laisse ton e-mail](/#inscription) pour avoir des nouvelles.",
     ],
   },
   {

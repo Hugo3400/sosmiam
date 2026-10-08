@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/mon-compte";
@@ -11,8 +12,8 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { changerMotDePasse, modifierCompte, supprimerCompte } from "~/services/comptes.server";
-import { effacerCookieSession, exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
+import { changerMotDePasse, decrireAttente, MESSAGE_OCCUPE, modifierCompte, supprimerCompte } from "~/services/comptes.server";
+import { effacerCookieSession, exigerCompte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee } from "~/services/session-compte.server";
 
 const messages = {
   prenom: "Donne ton prénom ou un surnom (40 caractères au plus).",
@@ -21,30 +22,35 @@ const messages = {
   actuel: "Indique ton mot de passe actuel.",
   actuelIncorrect: "Ce n'est pas ton mot de passe actuel.",
   nouveau: "Ton nouveau mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  nouveauRefuse: "Ce mot de passe est trop courant, ou c'est ton e-mail : choisis-en un autre. Une petite phrase marche très bien.",
+  // Refusé par l'API : trop courant, égal à l'e-mail, ou fait seulement de chiffres
+  nouveauRefuse: "Ce mot de passe est trop courant, c'est ton e-mail, ou il n'a que des chiffres : choisis-en un autre. Une petite phrase marche très bien.",
   motDePasse: "Indique ton mot de passe pour confirmer.",
   motDePasseIncorrect: "Ce n'est pas ton mot de passe.",
 };
+
+/** Après un changement de mot de passe : « ?mot-de-passe-change=<marque> », une marque nouvelle à chaque changement. */
+const PARAMETRE_CHANGE = "mot-de-passe-change";
 
 export function meta(_: Route.MetaArgs) {
   return [...creerMeta({ titre: "Mon compte", description: "Ton compte ambassadeur SOS Miam." }), { name: "robots", content: "noindex" }];
 }
 
-/** Ce que la page montre du compte : prénom, e-mail, ville et quartier. */
+/** Ce que la page montre du compte : prénom, e-mail, ville et quartier ; et si le mot de passe vient d'être changé. */
 export async function loader({ request }: Route.LoaderArgs) {
   const { compte } = await exigerCompte(request);
   return {
     prenom: compte.prenom,
     email: compte.email,
     lieu: compte.ambassadeur ? { ville: compte.ambassadeur.ville, quartier: compte.ambassadeur.quartier } : null,
+    motDePasseChange: new URL(request.url).searchParams.get(PARAMETRE_CHANGE),
   };
 }
 
 /** Message général d'une erreur de l'API qui ne vise pas un champ (« attente » : secondes avant le prochain essai). */
 function expliquer({ erreur, attente }: { erreur: string; attente?: number }): string {
+  if (erreur === "occupe") return lierPonctuation(MESSAGE_OCCUPE);
   if (erreur !== "trop-de-demandes") return lierPonctuation("Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.");
-  const minutes = attente ? Math.max(1, Math.ceil(attente / 60)) : null;
-  return lierPonctuation(minutes ? `Trop d'essais : réessaie dans ${minutes} minute${minutes > 1 ? "s" : ""}.` : "Trop d'essais : réessaie dans quelques minutes.");
+  return lierPonctuation(`Trop d'essais : réessaie dans ${decrireAttente(attente)}.`);
 }
 
 /** Trois formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte. */
@@ -84,7 +90,13 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (longueur < 12 || longueur > 128) erreurs.nouveau = messages.nouveau;
     if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: nom, erreurs };
     const reponse = await changerMotDePasse(jeton, ip, actuel, nouveau);
-    if (reponse.ok) return { ok: true, formulaire: nom, message: lierPonctuation("C'est fait ! Ton nouveau mot de passe est enregistré, et tes autres connexions sont fermées.") };
+    if (reponse.ok) {
+      // Toutes les sessions du compte sont fermées, celle-ci comprise (un cookie volé ne sert plus à rien) : le nouveau
+      // jeton part dans le cookie par une REDIRECTION. Avec data(), une page envoyée sans JavaScript relirait ses loaders
+      // avec l'ancien jeton, déjà fermé, et renverrait à la connexion. L'ancre ramène à cette partie de la page.
+      const cookie = reponse.session ? { "Set-Cookie": await poserCookieSession(reponse.session) } : undefined;
+      throw redirect(`/espace/mon-compte?${PARAMETRE_CHANGE}=${Date.now().toString(36)}#mon-mot-de-passe`, { headers: cookie });
+    }
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { actuel: messages.actuelIncorrect } };
     if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { nouveau: lierPonctuation(messages.nouveauRefuse) } };
@@ -106,7 +118,15 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 
 /** Page /espace/mon-compte : infos, mot de passe, déconnexion et suppression du compte. */
 export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
-  const { prenom, email, lieu } = loaderData;
+  const { prenom, email, lieu, motDePasseChange } = loaderData;
+  // Mot de passe changé (on revient ici par une redirection, sans réponse d'action) : le formulaire l'annonce comme une
+  // réussite et se vide. Un nouvel objet seulement quand la marque change : chaque changement est annoncé une fois.
+  const confirmation = useMemo<ReponseFormulaire | undefined>(
+    () => motDePasseChange
+      ? { ok: true, formulaire: "mot-de-passe", message: lierPonctuation("C'est fait ! Ton nouveau mot de passe est enregistré, et tes autres connexions sont fermées.") }
+      : undefined,
+    [motDePasseChange],
+  );
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation("Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
@@ -117,7 +137,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>
         <PartieCompte id="mon-mot-de-passe" titre="Mon mot de passe">
-          <FormulaireChangerMotDePasse email={email} />
+          <FormulaireChangerMotDePasse email={email} confirmation={confirmation} />
         </PartieCompte>
         <PartieCompte id="me-deconnecter" titre="Me déconnecter">
           <p className="mb-5 text-gris">Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.</p>

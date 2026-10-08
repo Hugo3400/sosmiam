@@ -32,8 +32,8 @@ export const ContexteFormulaire = createContext<EtatFormulaire>({ prefixe: "cham
 type Props = {
   /** Nom du formulaire (champ caché « formulaire ») : il trie les réponses et commence les id des champs */
   nom: string;
-  /** Texte du bouton d'envoi */
-  bouton: string;
+  /** Texte du bouton d'envoi (une partie peut être réservée aux lecteurs d'écran : « C'est fait ! : <mission> ») */
+  bouton: ReactNode;
   /** Texte du bouton pendant l'envoi */
   boutonEnvoi?: string;
   /** Bouton rouge, pour une action définitive (supprimer le compte) */
@@ -42,6 +42,11 @@ type Props = {
   piege?: boolean;
   /** Une réponse « ok » vide les champs (mot de passe changé…) */
   viderApresReussite?: boolean;
+  /**
+   * Réponse à montrer quand l'action n'a rien répondu pour ce formulaire : une réussite annoncée après une redirection
+   * (mot de passe changé, voir routes/compte/mon-compte.tsx). Même objet d'un affichage à l'autre (useMemo).
+   */
+  reponseParDefaut?: ReponseFormulaire;
   children: ReactNode;
   /** À côté du bouton : liens utiles (« Mot de passe oublié ? »…) */
   apres?: ReactNode;
@@ -56,9 +61,9 @@ const classeDanger = `inline-flex items-center justify-center rounded-full borde
  * Formulaire de l'espace ambassadeur, accessible et utilisable sans JavaScript (même modèle que FormulaireDemandeLieu) :
  * résumé lu par les lecteurs d'écran (role="status"), focus sur le premier champ en faute, bouton « Envoi… ».
  */
-export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger, piege, viderApresReussite, children, apres, className = "" }: Props) {
+export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger, piege, viderApresReussite, reponseParDefaut, children, apres, className = "" }: Props) {
   const donnees = useActionData<ReponseFormulaire>();
-  const reponse = donnees?.formulaire === nom ? donnees : undefined;
+  const reponse = donnees?.formulaire === nom ? donnees : reponseParDefaut;
   // Réponse déjà là au premier affichage : envoi sans JavaScript (la page a été rechargée). Le message passe en haut du
   // formulaire et le premier champ en faute prend le focus au chargement (autofocus), sans attendre notre code.
   const [reponseInitiale] = useState(reponse);

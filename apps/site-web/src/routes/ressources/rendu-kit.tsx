@@ -4,7 +4,7 @@ import type { Route } from "./+types/rendu-kit";
 import { dessinsKit } from "~/composants/kit-media/dessins-kit";
 import { PageRenduKit } from "~/composants/kit-media/PageRenduKit";
 import {
-  couleursKitMedia, etapesKitMedia, fichiersKitMedia, policesKitMedia, reglesKitMedia, visuelsKitMedia, type VisuelKit,
+  couleursKitMedia, etapesKitMedia, fichiersKitMedia, policesKitMedia, reglesKitMedia, textesKitMedia, visuelsKitMedia, type VisuelKit,
 } from "~/contenus/kit-media";
 
 /**
@@ -13,7 +13,7 @@ import {
  * - /rendu-kit/liste : les fichiers à produire, un par ligne : « png <id> <chemin> <largeur> <hauteur> » ou « svg <id> <chemin> » ;
  * - /rendu-kit/<id> : la page du visuel à sa taille exacte, à capturer (fond transparent pour les logos, la mascotte et les badges) ;
  * - /rendu-kit/<id>.svg : le dessin en fichier SVG autonome ;
- * - /rendu-kit/a-lire.txt : les règles du kit, glissées dans le zip.
+ * - /rendu-kit/a-lire.txt : les règles et les textes prêts à poster du kit, glissés dans le zip.
  */
 export async function loader({ params }: Route.LoaderArgs) {
   if (import.meta.env.DEV) return rendreKit(params.visuel);
@@ -70,15 +70,18 @@ function creerSvgAutonome(visuel: VisuelKit): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${largeur}" height="${hauteur}" role="img" aria-label="${nom}">${interieur}\n`;
 }
 
-/** a-lire.txt : les règles du kit, les couleurs et les polices, pour qui reçoit le zip. */
+/** a-lire.txt : les règles du kit, les textes prêts à poster, les couleurs et les polices, pour qui reçoit le zip. */
 function ecrireALire(): string {
   const puces = (lignes: string[]) => lignes.map((ligne) => `- ${ligne}`).join("\n");
+  // Les mêmes textes que la page du kit : le zip se suffit à lui-même (étape « 2. Copie un texte. »)
+  const textes = textesKitMedia.map(({ titre, texte }) => `« ${titre} »\n${texte}`).join("\n\n");
   return `${[
     "Kit média SOS Miam : à lire avant de poster",
-    "Ce kit est réservé aux ambassadeurs SOS Miam, pour parler de SOS Miam : un usage personnel et non commercial, qui prend fin si ton compte est supprimé, suspendu ou refusé (conditions d'utilisation : https://sosmiam.fr/cgu#ambassadeurs).",
+    "Ce kit est réservé aux ambassadeurs SOS Miam validés, pour parler de SOS Miam : un usage personnel et non commercial, qui prend fin dès que tu n'es plus ambassadeur validé (compte supprimé, suspendu ou refusé, ou rôle d'ambassadeur retiré). Conditions d'utilisation : https://sosmiam.fr/cgu#ambassadeurs",
     `Comment ça marche ?\n${etapesKitMedia.map((etape, i) => `${i + 1}. ${etape}`).join("\n")}`,
     `Tu peux :\n${puces(reglesKitMedia.peux)}`,
     `Tu ne peux pas :\n${puces(reglesKitMedia.peuxPas)}`,
+    `Les textes prêts à poster :\nCopie, colle, poste : le lien et #SOSMiam sont déjà dedans. Tu peux aussi les changer à ta sauce.\n\n${textes}`,
     `Les couleurs :\n${puces(couleursKitMedia.map((couleur) => `${couleur.nom} : ${couleur.hex}`))}`,
     `Les polices (gratuites) :\n${puces(policesKitMedia.map((police) => `${police.nom} : ${police.usage.toLowerCase()} ${police.lien}`))}`,
     "Une question ? Écris-nous : bonjour@sosmiam.fr",

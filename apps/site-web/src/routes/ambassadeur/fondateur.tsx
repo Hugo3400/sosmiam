@@ -2,6 +2,7 @@ import { data } from "react-router";
 
 import type { Route } from "./+types/fondateur";
 import { EtatCandidature } from "~/composants/ambassadeur/EtatCandidature";
+import { FondateursAuComplet } from "~/composants/ambassadeur/FondateursAuComplet";
 import { FormulaireCandidature } from "~/composants/ambassadeur/FormulaireCandidature";
 import { PresentationFondateurs } from "~/composants/ambassadeur/PresentationFondateurs";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
@@ -25,11 +26,19 @@ const messages: Record<string, string> = {
   connuPar: "Cette réponse fait 120 caractères au plus.",
 };
 
+/** Refus de l'API qui ne visent pas un champ. */
+const messagesRefus: Partial<Record<string, string>> = {
+  "candidature-existante": "Tu as déjà une candidature : pas besoin d'en envoyer une autre.",
+  // Les 10 numéros viennent d'être donnés : la page revient sans le formulaire (FondateursAuComplet)
+  "plus-de-place": "Les 10 places de fondateur viennent d'être prises. Merci d'avoir tenté ta chance !",
+  "trop-de-demandes": "Doucement ! Trop d'envois d'affilée : réessaie dans quelques minutes.",
+};
+
 export function meta(_: Route.MetaArgs) {
   return [...creerMeta({ titre: "Devenir fondateur", description: "Candidate pour être l'un des 10 ambassadeurs fondateurs de SOS Miam." }), { name: "robots", content: "noindex" }];
 }
 
-/** La candidature « fondateur » du compte, s'il y en a une. */
+/** La candidature « fondateur » du compte, s'il y en a une, et les places encore libres (null : l'API ne l'a pas dit). */
 export async function loader({ request }: Route.LoaderArgs) {
   const { jeton } = await exigerAmbassadeurActif(request);
   const reponse = await lireCandidature(jeton, lireIpVisiteur(request));
@@ -37,7 +46,14 @@ export async function loader({ request }: Route.LoaderArgs) {
     await redirigerSiSessionFermee(request, reponse.erreur);
     throw data("Candidature illisible", { status: 503 });
   }
-  return { candidature: reponse.candidature };
+  return { candidature: reponse.candidature, placesRestantes: typeof reponse.placesRestantes === "number" ? reponse.placesRestantes : null };
+}
+
+/** La fin du chapô, selon les places encore libres. */
+function annoncerPlaces(places: number | null): string {
+  if (places === null) return " Et si tu en faisais partie ?";
+  if (places === 1) return " Il reste 1 place : et si elle était pour toi ?";
+  return ` Il reste ${places} places : et si l'une d'elles était pour toi ?`;
 }
 
 /** Vérifie la candidature (mêmes règles que l'API) et l'envoie. */
@@ -45,8 +61,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   const { jeton } = await exigerAmbassadeurActif(request);
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
-  // Les retours à la ligne sont gardés dans les textes longs
-  const lire = (champ: string) => String(formulaire.get(champ) ?? "").replace(/[ \t]+/g, " ").trim();
+  // Les retours à la ligne sont gardés dans les textes longs, en « \n » : envoyé sans JavaScript, le formulaire les écrit
+  // « \r\n », qui compteraient double face au maximum
+  const lire = (champ: string) => String(formulaire.get(champ) ?? "").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").trim();
   const envies = formulaire.getAll("envies").map(String).filter((envie): envie is EnvieFondateur => ENVIES.includes(envie as EnvieFondateur));
   const valeurs = {
     pepites: lire("pepites"),
@@ -80,27 +97,27 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (reponse.erreur === "champ-invalide" && reponse.champ && messages[reponse.champ]) {
     return { ok: false, formulaire: nom, erreurs: { [reponse.champ]: messages[reponse.champ] }, valeurs };
   }
-  const message = reponse.erreur === "candidature-existante"
-    ? "Tu as déjà une candidature : pas besoin d'en envoyer une autre."
-    : reponse.erreur === "trop-de-demandes"
-      ? "Doucement ! Trop d'envois d'affilée : réessaie dans quelques minutes."
-      : "Oups, ta candidature n'est pas passée. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
+  const message = messagesRefus[reponse.erreur] ?? "Oups, ta candidature n'est pas passée. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
   return { ok: false, formulaire: nom, message: lierPonctuation(message), valeurs };
 }
 
-/** Page /espace/fondateur : les 10 fondateurs et le formulaire, ou bien l'état de la candidature. */
+/**
+ * Page /espace/fondateur : les 10 fondateurs, les places encore libres et le formulaire ; ou l'état de la candidature ;
+ * ou, quand les 10 places sont prises, un mot pour le dire (sans formulaire).
+ */
 export default function PageFondateur({ loaderData, actionData }: Route.ComponentProps) {
-  const { candidature } = loaderData;
+  const { candidature, placesRestantes } = loaderData;
+  const complet = !candidature && placesRestantes === 0;
+  const finChapo = candidature || complet ? "" : annoncerPlaces(placesRestantes);
   return (
     <Section fond="creme" etroit>
-      <TitreSection
-        principal
-        chapo={lierPonctuation(`On lance SOS Miam avec 10 ambassadeurs fondateurs.${candidature ? "" : " Et si tu en faisais partie ?"}`)}
-      >
+      <TitreSection principal chapo={lierPonctuation(`On lance SOS Miam avec 10 ambassadeurs fondateurs.${finChapo}`)}>
         Ambassadeurs fondateurs
       </TitreSection>
       {candidature ? (
         <EtatCandidature candidature={candidature} vientDArriver={actionData?.ok === true} />
+      ) : complet ? (
+        <FondateursAuComplet apresEnvoi={actionData?.ok === false} />
       ) : (
         <div className="grid gap-8">
           <PresentationFondateurs />

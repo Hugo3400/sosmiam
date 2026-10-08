@@ -23,7 +23,8 @@ export function FormulaireCandidature() {
           maximum={1500}
           lignes={6}
         />
-        <ChoixMultiples nom="envies" legende="Ce que tu aimerais faire" aide="Coche tout ce qui te tente." type="checkbox" options={envies} />
+        {/* Au moins une case (comme l'API) : un groupe de cases ne peut pas être marqué « requis », l'aide le dit donc */}
+        <ChoixMultiples nom="envies" legende="Ce que tu aimerais faire" aide="Coche tout ce qui te tente (une case au moins)." type="checkbox" options={envies} />
         <ChampTexte
           nom="reseaux"
           libelle="Tes réseaux"

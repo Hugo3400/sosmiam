@@ -26,8 +26,12 @@ export function FormulaireNouveauMotDePasse() {
     window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
   }, []);
 
-  // Code refusé pour sa forme : on montre le champ pour le corriger
+  // Code refusé (mal formé, déjà servi ou trop vieux) : on montre le champ, l'erreur dessous, et on oublie le code du
+  // lien, pour qu'il ne remplace pas un nouveau lien collé dans le champ si le mot de passe est refusé ensuite
   const champCode = !jetonDuLien || Boolean(reponse?.erreurs?.jeton);
+  useEffect(() => {
+    if (reponse?.erreurs?.jeton) setJetonDuLien(null);
+  }, [reponse]);
 
   return (
     <FormulaireCompte nom="nouveau-mot-de-passe" bouton="Enregistrer mon mot de passe" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
@@ -50,7 +54,7 @@ export function FormulaireNouveauMotDePasse() {
           libelle="Ton nouveau mot de passe"
           type="password"
           autoComplete="new-password"
-          aide={lierPonctuation("12 caractères au moins. Astuce : une petite phrase marche très bien.")}
+          aide={lierPonctuation("12 caractères au moins, et pas seulement des chiffres. Astuce : une petite phrase marche très bien.")}
         />
       </div>
     </FormulaireCompte>

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { data } from "react-router";
 
 import type { Route } from "./+types/messages";
@@ -35,7 +36,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (!Number.isInteger(id) || id <= 0) throw data("Message inconnu", { status: 400 });
   const nom = `message-${id}`;
   const reponse = await marquerMessageLu(jeton, lireIpVisiteur(request), id);
-  if (reponse.ok) return { ok: true, formulaire: nom };
+  if (reponse.ok) return { ok: true, formulaire: nom, message: lierPonctuation("C'est noté : message marqué comme lu.") };
   await redirigerSiSessionFermee(request, reponse.erreur);
   const message = reponse.erreur === "introuvable" ? "Ce message n'existe plus." : "Oups, ça n'a pas marché. Réessaie dans un instant.";
   return { ok: false, formulaire: nom, message };
@@ -46,6 +47,14 @@ export default function PageMessages({ loaderData, actionData }: Route.Component
   const { messages } = loaderData;
   const nonLus = messages.filter((message) => !message.luLe).length;
   const erreur = actionData && !actionData.ok ? actionData.message : undefined;
+  // Message marqué comme lu : son bouton disparaît, le focus passe à la confirmation, lue une fois (comme sur « Mes
+  // missions » : pas de role="status" sur elle, sinon elle serait annoncée deux fois). [actionData] et pas [reussite] :
+  // le texte est le même d'un message à l'autre, le focus doit pourtant y revenir à chaque fois.
+  const confirmation = useRef<HTMLParagraphElement>(null);
+  const reussite = actionData?.ok ? actionData.message : undefined;
+  useEffect(() => {
+    if (reussite) confirmation.current?.focus();
+  }, [actionData]);
   return (
     <Section fond="creme" etroit>
       <TitreSection
@@ -57,6 +66,9 @@ export default function PageMessages({ loaderData, actionData }: Route.Component
       <p role="status" className={erreur ? "mb-8 rounded-2xl border-2 border-rouge-texte bg-rose-alerte px-5 py-4 font-semibold text-rouge-texte" : ""}>
         {erreur}
       </p>
+      <p ref={confirmation} tabIndex={-1} className={reussite ? "mb-8 rounded-2xl border-2 border-encre bg-jaune px-5 py-4 text-center font-semibold" : ""}>
+        {reussite && <><span aria-hidden="true">✓ </span>{reussite}</>}
+      </p>
       {messages.length === 0 ? (
         <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 text-center shadow-brut">
           <Mascotte expression="clin" className="mx-auto mb-5 h-20 w-20" />
@@ -65,7 +77,7 @@ export default function PageMessages({ loaderData, actionData }: Route.Component
       ) : (
         <div className="grid gap-5">
           {messages.map((message) => (
-            <CarteMessage key={message.id} message={message} vientDEtreLu={actionData?.ok === true && actionData.formulaire === `message-${message.id}`} />
+            <CarteMessage key={message.id} message={message} />
           ))}
         </div>
       )}

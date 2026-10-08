@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { EnTeteFil, HAUTEUR_ENTETE_FIL, type OngletFil } from "~/composants/fil/EnTeteFil";
+import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
@@ -28,6 +28,7 @@ import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -38,6 +39,14 @@ import couleurs from "~/theme/couleurs";
 const VISIBILITE = { itemVisiblePercentThreshold: 60 };
 // iOS n'ouvre pas une fenêtre pendant que la précédente se referme : « Envoyer à un pote » attend la fin de la glissade du menu
 const DELAI_APRES_MENU = Platform.OS === "ios" ? 400 : 0;
+// Ce que demande chaque choix du menu « ⋯ » (rien pour l'adresse : elle se regarde sans compte)
+const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
+  rescousse: "rescousse",
+  adresse: null,
+  envoyer: "envoyer",
+  "pas-interesse": "masquer",
+  signaler: "signaler",
+};
 // La fiche d'un lieu se prépare en coulisses quand tu t'arrêtes un moment sur une publication (pas pendant que tu fais défiler)
 const DELAI_PRECHARGEMENT = 1500;
 const AUCUN_SUIVI: readonly string[] = [];
@@ -45,14 +54,20 @@ const AUCUN_SUIVI: readonly string[] = [];
 /** Auteur que tu pourrais ne plus suivre : ce que la feuille de confirmation affiche, et la clé de ton suivi */
 type AuteurSuivi = { nom: string; emoji: string; cle: string };
 
-/** Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime. */
+/**
+ * Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime.
+ * En visite sans compte, on regarde tout (son, accéléré, fiche, commentaires…) ; J'aime, rescousse, garder, partager, suivre
+ * et le reste du menu ouvrent la feuille « Crée ton compte ».
+ */
 export default function PourToi() {
   const router = useRouter();
   const focus = useIsFocused();
   // Quitter le fil met la vidéo en pause un instant après : la fiche ouverte se dessine d'abord, sans attendre le fil
   const focusDiffere = useDeferredValue(focus);
   const marges = useSafeAreaInsets();
-  const { profil } = utiliserProfil();
+  const { profil, invite } = utiliserProfil();
+  // Stable : les gestes mémorisés l'appellent sans redessiner le fil
+  const exiger = utiliserCompteRequis();
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
   const depart = utiliserPointDeDepart();
   const activite = utiliserActivite();
@@ -72,10 +87,14 @@ export default function PourToi() {
   const [envoiVisible, setEnvoiVisible] = useState(false);
   const [lieuEnvoye, setLieuEnvoye] = useState<number | null>(null);
   const minuterieEnvoi = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // « Crée ton compte » demandé depuis le menu : la feuille attend que le menu ait fini de se refermer (comme « Envoyer à un pote »)
+  const minuterieCompte = useRef<ReturnType<typeof setTimeout> | null>(null);
   // « Ne plus suivre ? » : l'auteur reste affiché pendant que la feuille se referme (comme menuAffiche)
   const [nePlusSuivreVisible, setNePlusSuivreVisible] = useState(false);
   const [auteurSuivi, setAuteurSuivi] = useState<AuteurSuivi | null>(null);
   const refListe = useRef<FlatList<Publication>>(null);
+  // Doigt qui règle la barre d'avancée d'une vidéo : le fil ne défile pas sous lui
+  const [barreEnCours, setBarreEnCours] = useState(false);
   // Fiche réduite pour voir les vidéos en plein écran : le choix reste d'une publication à l'autre
   const [infosReduites, setInfosReduites] = useState(false);
   const reduction = useSharedValue(0);
@@ -107,6 +126,7 @@ export default function PourToi() {
 
   useEffect(() => () => {
     if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
+    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
   }, []);
 
   // La fiche du lieu de la publication à l'écran est préparée en coulisses (une seule fois) : la première « Voir l'adresse » s'ouvre sans ramer.
@@ -123,8 +143,12 @@ export default function PourToi() {
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
+  // Pastille « 👀 Visite » de l'en-tête : la rescousse, cœur de SOS Miam, donne le ton de la feuille
+  const creerCompte = useCallback(() => void exiger("rescousse"), [exiger]);
 
+  // Sans compte : la feuille « Crée ton compte » à la place du J'aime (et pas de cœur qui s'envole)
   function aimerParDoubleAppui(p: Publication) {
+    if (!exiger("jaime")) return;
     activite.aimer(p.id);
     setCoeurs((c) => ({ ...c, [p.id]: Date.now() }));
   }
@@ -144,10 +168,21 @@ export default function PourToi() {
     } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
   }
 
+  /** Vrai avec un compte ; sinon, une fois le menu refermé (iOS n'ouvre pas une fenêtre pendant qu'une autre se referme), la feuille « Crée ton compte » */
+  function exigerApresMenu(raison: RaisonCompte): boolean {
+    if (profil) return true;
+    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
+    minuterieCompte.current = setTimeout(() => exiger(raison), DELAI_APRES_MENU);
+    return false;
+  }
+
   function choixMenu(choix: ChoixMenu) {
     const p = menu;
     setMenu(null);
     if (!p) return;
+    // Seule l'adresse se regarde sans compte ; « signaler » n'arrive ici qu'en visite
+    const raison = raisonsMenu[choix];
+    if (raison && !exigerApresMenu(raison)) return;
     if (choix === "rescousse") rescousse(p);
     if (choix === "adresse") router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
     if (choix === "envoyer") ouvrirEnvoi(p.lieuId);
@@ -191,17 +226,22 @@ export default function PourToi() {
   }
 
   const gestes = utiliserGestesStables<GestesPublication>({
-    jaime: (p) => void activite.basculerJaime(p.id),
+    jaime: (p) => {
+      if (exiger("jaime")) activite.basculerJaime(p.id);
+    },
     doubleAppui: aimerParDoubleAppui,
     commentaires: (p) => {
       setCommentaires(p);
       setCommentairesAffiches(p);
     },
     garder: (p) => {
+      if (!exiger("garder")) return;
       const nom = lieuParId.get(p.lieuId)?.nom ?? "Ce lieu";
       annoncer(activite.basculerGarde(p.lieuId) ? `🔖 ${nom} est gardé pour plus tard` : "Retiré de tes lieux gardés");
     },
-    partager,
+    partager: (p) => {
+      if (exiger("partager")) partager(p);
+    },
     menu: (p) => {
       setMenu(p);
       setMenuAffiche(p);
@@ -210,6 +250,7 @@ export default function PourToi() {
     reduire: basculerReduction,
     // Comme sur Instagram : « Suivre » suit tout de suite, mais on ne désabonne jamais sans confirmation (un toucher de travers sur la vidéo)
     suivre: (p) => {
+      if (!exiger("suivre")) return;
       const lieu = lieuParId.get(p.lieuId);
       const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieu?.nom ?? "ce lieu");
       const cle = calculerCleSuivi(p.auteur, p.lieuId);
@@ -225,6 +266,7 @@ export default function PourToi() {
       if (p.auteur.type === "createur") router.push({ pathname: "/createur/[pseudo]", params: { pseudo: p.auteur.pseudo } });
       else router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
     },
+    glisserBarre: setBarreEnCours,
   });
 
   // Le menu (mémorisé) ne se redessine pas à chaque changement du fil
@@ -234,9 +276,11 @@ export default function PourToi() {
     confirmer: () => {
       setNePlusSuivreVisible(false);
       // Deux appuis avant que la feuille se referme : un seul désabonnement (et pas de réabonnement)
-      if (!auteurSuivi || !activite.estSuivi(auteurSuivi.cle)) return;
-      activite.basculerSuivi(auteurSuivi.cle);
-      annoncer(`Tu ne suis plus ${auteurSuivi.nom}, sans rancune 👋`);
+      if (auteurSuivi && activite.estSuivi(auteurSuivi.cle)) activite.basculerSuivi(auteurSuivi.cle);
+    },
+    // Une fois la feuille refermée : VoiceOver, revenu sur « Suivre », ne coupe plus l'annonce
+    refermee: () => {
+      if (auteurSuivi) annoncer(`Tu ne suis plus ${auteurSuivi.nom}, sans rancune 👋`);
     },
     fermer: () => setNePlusSuivreVisible(false),
   });
@@ -250,7 +294,9 @@ export default function PourToi() {
   // La barre d'onglets est posée, transparente, sur le fil (voir src/app/(onglets)/_layout.tsx)
   const hauteurBarreOnglets = useBottomTabBarHeight();
   // Étiquette d'illustration et compteur de photos : juste sous l'en-tête, quelle que soit l'encoche du téléphone
-  const hautIndications = marges.top + HAUTEUR_ENTETE_FIL + 8;
+  // En visite, la pastille « Crée ton compte » s'ajoute sous les onglets
+  const hauteurEnTete = HAUTEUR_ENTETE_FIL + (invite ? HAUTEUR_PASTILLE_VISITE : 0);
+  const hautIndications = marges.top + hauteurEnTete + 8;
 
   return (
     <View
@@ -266,6 +312,7 @@ export default function PourToi() {
             data={liste}
             keyExtractor={(p) => p.id}
             pagingEnabled
+            scrollEnabled={!barreEnCours}
             decelerationRate="fast"
             showsVerticalScrollIndicator={false}
             getItemLayout={(_, index) => ({ length: taille.hauteur, offset: taille.hauteur * index, index })}
@@ -307,13 +354,14 @@ export default function PourToi() {
           <FilVide hauteur={taille.hauteur} onVoirTout={() => setOnglet("tous")} />
         )
       ) : null}
-      <EnTeteFil onglet={onglet} onChoisir={setOnglet} restantes={activite.restantes} haut={marges.top} />
-      <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
+      <EnTeteFil onglet={onglet} onChoisir={setOnglet} restantes={activite.restantes} haut={marges.top} invite={invite} onCreerCompte={creerCompte} />
+      <Annonce annonce={annonce} haut={marges.top + hauteurEnTete + 2} onFin={finAnnonce} />
       <MenuPublication
         visible={menu !== null}
         nomLieu={lieuDuMenu?.nom ?? ""}
         sauve={lieuDuMenu ? activite.aSauve(lieuDuMenu.id) : false}
         restantes={activite.restantes}
+        avecCompte={profil !== null}
         onChoisir={actionsMenu.choisir}
         onSignaler={actionsMenu.signaler}
         onFermer={actionsMenu.fermer}
@@ -336,6 +384,7 @@ export default function PourToi() {
           nom={auteurSuivi.nom}
           emoji={auteurSuivi.emoji}
           onConfirmer={actionsNePlusSuivre.confirmer}
+          onRefermee={actionsNePlusSuivre.refermee}
           onFermer={actionsNePlusSuivre.fermer}
         />
       ) : null}

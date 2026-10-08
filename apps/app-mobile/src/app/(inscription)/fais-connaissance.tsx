@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 import { AGE_MINIMUM_INSCRIPTION } from "@sos-miam/commun/regles/ages";
@@ -17,6 +17,7 @@ import { calculerDateAnniversaire } from "~/fonctions/dates/calculer-date-annive
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
+import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
@@ -35,16 +36,23 @@ const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible
  * d'exemple : elle se vérifiera pour de vrai avec les comptes (API).
  * Âge minimum : rien ne l'annonce avant de continuer (on ne souffle pas la « bonne » année). Continuer avec une date trop
  * récente bloque l'inscription sur ce téléphone jusqu'à l'anniversaire (verrou d'âge), même si on revient changer la date.
+ * Le verrou arrête aussi la visite sans compte : on reste sur cet écran, sans retour possible vers le fil.
  */
 export default function FaisConnaissance() {
   const router = useRouter();
   const { brouillon, modifier, verrouAge, verrouEnLecture, bloquer, debloquer } = utiliserBrouillonInscription();
+  const { invite, quitterInvite } = utiliserProfil();
   const champPseudo = useRef<TextInput>(null);
   const champNom = useRef<TextInput>(null);
   const [prenomQuitte, setPrenomQuitte] = useState(false);
   const [pseudoQuitte, setPseudoQuitte] = useState(false);
   // Dernier pseudo proposé, et le prénom dont il vient : tant que la personne ne l'a pas retouché, il suit le prénom
   const [proposition, setProposition] = useState<{ prenom: string; pseudo: string } | null>(null);
+
+  // Verrou d'âge posé (ou déjà là) pendant une visite sans compte : la visite s'arrête
+  useEffect(() => {
+    if (verrouAge && invite) quitterInvite().catch(() => {});
+  }, [verrouAge, invite, quitterInvite]);
 
   const prenom = brouillon.prenom.trim();
   const erreurPrenom =

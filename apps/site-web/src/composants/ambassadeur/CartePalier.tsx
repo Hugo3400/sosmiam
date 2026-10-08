@@ -1,5 +1,6 @@
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
 import { paliersAmbassadeurs } from "~/contenus/ambassadeurs";
+import { site } from "~/contenus/legal/informations-legales";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { PalierCompte } from "~/types/compte";
 
@@ -30,7 +31,10 @@ export function CartePalier({ palier, points, badges }: Props) {
   let progression = "";
   if (points === 0) progression = "Les points arrivent avec l'app : pour l'instant, tout le monde démarre Curieux.";
   else if (reste !== null && reste > 0) progression = `Encore ${reste} point${reste > 1 ? "s" : ""} pour passer ${nomSuivant}.`;
-  else if (suivant && suivant.seuil === null) progression = `Le palier suivant, ${nomSuivant}, se fait sur candidature ou invitation.`;
+  // Candidater « ambassadeur de ville » : par mail, le seul moyen qui existe (l'espace n'a que la candidature fondateur)
+  else if (suivant && suivant.seuil === null) {
+    progression = `Le palier suivant, ${nomSuivant}, se fait sur candidature ou invitation. Pour candidater, écris-nous à ${site.emailContact}.`;
+  }
 
   return (
     <section aria-labelledby="titre-palier" className="self-start rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-8">

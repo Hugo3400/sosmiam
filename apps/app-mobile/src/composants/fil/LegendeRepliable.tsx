@@ -67,7 +67,8 @@ export function LegendeRepliable({ texte }: Props) {
       {mesure}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={texte}
+        // Finit par le mot affiché (« plus » ou « moins ») : Commande vocale trouve le bouton
+        accessibilityLabel={`${texte}, ${deplie ? "moins" : "plus"}`}
         accessibilityHint={deplie ? "Replie la légende" : "Affiche toute la légende"}
         hitSlop={{ top: 4, bottom: 4 }}
         onPress={() => setDeplie((d) => !d)}

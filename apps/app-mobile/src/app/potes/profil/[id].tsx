@@ -48,7 +48,7 @@ export default function ProfilPote() {
   const estMoi = id === ID_MOI;
   const bloque = communaute.bloques.some((p) => p.id === id);
   const dansBande = communaute.potes.some((p) => p.id === id);
-  // Un mineur hors de ta bande, vu par un adulte : seulement son avatar, son prénom et son pseudo (il s'ajoute par lien ou QR code)
+  // Un mineur hors de ta bande, vu par un adulte : le même écran qu'un profil introuvable, pour que rien ne révèle son âge
   const reserve = !estMoi && !dansBande && !!pote?.mineur && !communaute.moiMineur;
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
@@ -57,7 +57,7 @@ export default function ProfilPote() {
     AccessibilityInfo.announceForAccessibility(texte);
   };
 
-  if (!pote) {
+  if (!pote || (reserve && !bloque)) {
     return (
       <EcranReglage titre="Personne à l'horizon" sousTitre="On ne trouve pas ce profil : la personne a peut-être quitté SOS Miam, ou le lien s'est emmêlé.">
         <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
@@ -73,9 +73,9 @@ export default function ProfilPote() {
           <Bouton
             libelle="Débloquer"
             variante="blanc"
-            indice={`Tu reverras ses messages et ses commentaires ; ${pote.prenom} ne revient pas dans ta bande pour autant`}
+            indice="Tu reverras ses messages et ses commentaires. Débloquer ne remet personne dans ta bande."
             onPress={() =>
-              confirmer(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Pour l'avoir dans ta bande, il faudra l'ajouter à nouveau.", "Débloquer", () => {
+              confirmer(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Débloquer ne remet personne dans ta bande.", "Débloquer", () => {
                 communaute.debloquer(pote.id);
                 AccessibilityInfo.announceForAccessibility(`Tu as débloqué ${pote.prenom}.`);
               })
@@ -87,8 +87,8 @@ export default function ProfilPote() {
   }
 
   const prenom = pote.prenom;
-  // Un adulte ne peut pas ajouter un mineur depuis un profil : seulement par son lien ou son QR code
-  const ajoutable = !estMoi && !dansBande && !reserve;
+  // Un adulte n'ajoute jamais un mineur depuis un profil (et, tant que les comptes n'existent pas, d'aucune autre façon)
+  const ajoutable = !estMoi && !dansBande;
 
   const ajouter = () => {
     const resultat = communaute.ajouterPote(pote.id, "pseudo");
@@ -96,7 +96,7 @@ export default function ProfilPote() {
       resultat === "ajoute" || resultat === "deja"
         ? `${prenom} fait partie de ta bande !`
         : resultat === "mineur"
-          ? "Pour ajouter cette personne, demande-lui son lien ou son QR code."
+          ? "Cette personne ne s'ajoute pas par son pseudo."
           : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
   };
@@ -105,7 +105,9 @@ export default function ProfilPote() {
   const ecrire = () => {
     const conversation = ouvrirPrive(pote.id);
     if (!conversation) {
-      annoncer(`Pour discuter avec ${prenom}, ajoutez-vous en vrai, par lien ou QR code : c'est la règle des 15-17 ans, et elle protège tout le monde.`);
+      annoncer(
+        `Pour discuter avec ${prenom}, il faudra vous ajouter en vrai, avec un lien ou un QR code vérifié : ça arrive avec les comptes. C'est la règle des 15-17 ans, et elle protège tout le monde.`,
+      );
       return;
     }
     const cible = { pathname: "/potes/discussion/[id]", params: { id: conversation } } as const;
@@ -120,7 +122,7 @@ export default function ProfilPote() {
   const retirer = () =>
     confirmer(
       `Retirer ${prenom} de ta bande ?`,
-      pote.mineur && !communaute.moiMineur ? "Pour l'y remettre, il te faudra son lien ou son QR code." : "Pas de drame : tu pourras l'y remettre quand tu veux.",
+      pote.mineur && !communaute.moiMineur ? "Tu ne pourras pas l'y remettre avant l'arrivée des comptes." : "Pas de drame : tu pourras l'y remettre quand tu veux.",
       "Retirer",
       () => {
         communaute.retirerPote(pote.id);
@@ -129,10 +131,15 @@ export default function ProfilPote() {
     );
 
   const bloquer = () =>
-    confirmer(`Bloquer ${prenom} ?`, `${prenom} sortira de ta bande, et tu ne verras plus ses messages ni ses commentaires.`, "Bloquer", () => {
-      communaute.bloquer(pote.id);
-      AccessibilityInfo.announceForAccessibility(`Tu as bloqué ${prenom}.`);
-    });
+    confirmer(
+      `Bloquer ${prenom} ?`,
+      dansBande ? `${prenom} sortira de ta bande, et tu ne verras plus ses messages ni ses commentaires.` : "Tu ne verras plus ses messages ni ses commentaires.",
+      "Bloquer",
+      () => {
+        communaute.bloquer(pote.id);
+        AccessibilityInfo.announceForAccessibility(`Tu as bloqué ${prenom}.`);
+      },
+    );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -161,21 +168,12 @@ export default function ProfilPote() {
           </View>
         )}
 
-        <ProfilCommunautaire pote={pote} estMoi={estMoi} reserve={reserve} />
-
-        {reserve ? (
-          <View className="gap-1 rounded-2xl border-2 border-ligne bg-white px-4 py-4">
-            <Text accessibilityLabel="Profil réservé à sa bande" className="font-texte-gras text-base text-encre">
-              🔐 Profil réservé à sa bande
-            </Text>
-            <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Pour ajouter cette personne, demande-lui son lien ou son QR code.")}</Text>
-          </View>
-        ) : null}
+        <ProfilCommunautaire pote={pote} estMoi={estMoi} />
 
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">
             <View className="gap-3 pt-1">
-              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : tes potes t'ajoutent avec, sans chercher ton pseudo.")}</Text>
+              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : quand les comptes arriveront, tes potes t'ajouteront avec, sans chercher ton pseudo.")}</Text>
               <CodeQrInvitation pseudo={pote.pseudo} libellePartage="Partager mon profil" />
             </View>
           </SectionReglages>

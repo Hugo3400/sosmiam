@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -29,11 +31,14 @@ type EtatFeuille = "jamais" | "ouverte" | "fermee";
 /**
  * « Suivre » (jaune) suit tout de suite ; « Suivi ✓ » ouvre une feuille « Ne plus suivre … ? » : on ne désabonne jamais
  * sur un seul toucher. Lit lui-même l'état du suivi : il se met à jour même dans un en-tête mémorisé.
+ * Sans compte (visite), il ouvre la feuille « Crée ton compte ».
  */
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
   const { estSuivi, basculerSuivi } = utiliserActivite();
+  const exiger = utiliserCompteRequis();
   const [feuille, setFeuille] = useState<EtatFeuille>("jamais");
   const dernierAppui = useRef(0);
+  const bouton = useRef<View>(null);
   const suivi = estSuivi(cle);
   const compact = taille === "compact";
 
@@ -42,33 +47,48 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     if (maintenant - dernierAppui.current < DELAI_ANTI_DOUBLE_APPUI) return;
     dernierAppui.current = maintenant;
     vibrerLegerement();
+    if (!exiger("suivre")) return;
     if (suivi) setFeuille("ouverte");
     else if (basculerSuivi(cle)) onAnnoncer(`🔔 Tu suis maintenant ${nom} !`);
   }
 
   function arreterDeSuivre() {
     // Déjà arrêté ailleurs pendant que la feuille était ouverte : surtout ne pas se réabonner
-    if (!estSuivi(cle)) return;
-    if (!basculerSuivi(cle)) onAnnoncer(`Tu ne suis plus ${nom}, sans rancune 👋`);
+    if (estSuivi(cle)) basculerSuivi(cle);
+  }
+
+  // Annoncé une fois la feuille refermée : VoiceOver est revenu de lui-même sur le bouton (TalkBack, lui, a besoin qu'on l'y ramène)
+  function annoncerArret() {
+    if (Platform.OS === "android") deplacerFocusLecteurEcran(bouton.current);
+    onAnnoncer(`Tu ne suis plus ${nom}, sans rancune 👋`);
   }
 
   const libelle = suivi ? "Suivi" : "Suivre";
   const accessibilite = {
     accessibilityRole: "button" as const,
-    accessibilityLabel: suivi ? `Tu suis ${nom}` : `Suivre ${nom}`,
+    // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Suivi »)
+    accessibilityLabel: suivi ? `Suivi, tu suis ${nom}` : `Suivre ${nom}`,
     accessibilityHint: suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil",
   };
 
   // Préparée seulement au premier « Suivi » touché : rien de plus à dessiner à l'arrivée sur la fiche ou la liste
   const confirmation =
     feuille === "jamais" ? null : (
-      <FeuilleNePlusSuivre visible={feuille === "ouverte"} nom={nom} emoji={emoji} onConfirmer={arreterDeSuivre} onFermer={() => setFeuille("fermee")} />
+      <FeuilleNePlusSuivre
+        visible={feuille === "ouverte"}
+        nom={nom}
+        emoji={emoji}
+        onConfirmer={arreterDeSuivre}
+        onRefermee={annoncerArret}
+        onFermer={() => setFeuille("fermee")}
+      />
     );
 
   if (compact) {
     return (
       <>
         <Pressable
+          ref={bouton}
           {...accessibilite}
           // 36 pt de haut à l'écran, 48 pt sous le doigt
           hitSlop={6}
@@ -89,6 +109,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     <View className="relative">
       <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
       <Pressable
+        ref={bouton}
         {...accessibilite}
         onPress={toucher}
         className={`min-h-14 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre px-6 py-3.5 active:translate-x-0.5 active:translate-y-0.5 ${suivi ? "bg-white" : "bg-jaune"}`}

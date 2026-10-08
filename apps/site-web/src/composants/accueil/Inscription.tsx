@@ -158,7 +158,9 @@ export function Inscription() {
             </div>
             <label className="flex cursor-pointer items-center gap-2.5 font-medium">
               <input type="checkbox" name="ambassadeur" value="oui" defaultChecked={valeurs?.ambassadeur ?? false} className="h-5 w-5 shrink-0 accent-encre" />
-              <span>Je veux devenir ambassadeur fondateur <span aria-hidden="true">🎖️</span></span>
+              {/* Pas une candidature « fondateur » : on invite ces inscrits à créer leur compte (dès 18 ans), puis la
+                  candidature fondateur se fait depuis l'espace (le logiciel de gestion se sert de ce champ « ambassadeur ») */}
+              <span>Je veux devenir ambassadeur (dès 18 ans) <span aria-hidden="true">🎖️</span></span>
             </label>
           </div>
 
@@ -174,8 +176,8 @@ export function Inscription() {
         {!messageEnHaut && zoneMessage}
         <p className="mt-2 text-sm">
           On te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta,
-          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app{" "}; si tu coches ambassadeur, on te parle aussi
-          des ambassadeurs fondateurs. On ne vend jamais tes données
+          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app{" "}; si tu coches ambassadeur, on t'invite par mail
+          à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données
           {" "}(<Link to="/confidentialite" target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">confidentialité<span className="sr-only">, s'ouvre dans un nouvel onglet</span></Link>).
         </p>
       </div>

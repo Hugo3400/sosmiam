@@ -99,7 +99,10 @@ export function creerProtectionComptes(stockage: StockageSessionsComptes, horlog
     });
   }
 
-  /** Nouvelle session (inscription, connexion) : le jeton est rendu une seule fois, la base n'en garde que l'empreinte. */
+  /**
+   * Nouvelle session (inscription, connexion, changement de mot de passe) : le jeton est rendu une seule fois, la base
+   * n'en garde que l'empreinte.
+   */
   async function ouvrirSession(compteId: number): Promise<string> {
     const jeton = creerJeton();
     const maintenant = horloge();
@@ -112,7 +115,10 @@ export function creerProtectionComptes(stockage: StockageSessionsComptes, horlog
     await stockage.supprimer(calculerEmpreinteJeton(jeton));
   }
 
-  /** Ferme les sessions du compte : toutes (réinitialisation), ou toutes sauf celle en cours (changement de mot de passe). */
+  /**
+   * Ferme les sessions du compte : toutes (réinitialisation ; changement de mot de passe, où un nouveau jeton remplace
+   * ensuite celui en cours), ou toutes sauf une.
+   */
   async function fermerSessionsDuCompte(compteId: number, saufJeton?: string): Promise<void> {
     await stockage.supprimerDuCompte(compteId, saufJeton ? calculerEmpreinteJeton(saufJeton) : undefined);
   }
@@ -123,14 +129,16 @@ export function creerProtectionComptes(stockage: StockageSessionsComptes, horlog
 export type ProtectionComptes = ReturnType<typeof creerProtectionComptes>;
 
 /**
- * Dernier filet des routes des comptes et de l'espace ambassadeur : un champ invalide reçoit 400 ; une erreur inattendue,
- * 500 avec un message sobre. Le journal n'en garde que le nom, le code et l'endroit : jamais d'e-mail, de mot de passe,
- * de jeton ni de date de naissance.
+ * Dernier filet des routes des comptes et de l'espace ambassadeur : un champ invalide reçoit 400 ; la file des calculs
+ * de mots de passe pleine (fonctions/securite/calculer-scrypt.ts), 503 « occupe » avec Retry-After ; une erreur
+ * inattendue, 500 avec un message sobre. Le journal n'en garde que le nom, le code et l'endroit : jamais d'e-mail, de mot
+ * de passe, de jeton ni de date de naissance.
  */
 export function gererErreursComptes(erreur: unknown, requete: Request, reponse: Response, _suite: NextFunction) {
   if (erreur instanceof ChampInvalide) return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: erreur.champ });
   const statut = typeof erreur === "object" && erreur !== null && "status" in erreur ? Number(erreur.status) : 500;
   if (statut >= 400 && statut < 500) return reponse.status(statut).json({ ok: false, erreur: "requete-invalide" });
+  if (statut === 503) return reponse.set("Retry-After", "5").status(503).json({ ok: false, erreur: "occupe" });
   console.error(`Comptes : erreur inattendue (${requete.method} ${requete.originalUrl.split("?")[0]}) :`, resumerErreur(erreur));
   reponse.status(500).json({ ok: false, erreur: "erreur-serveur" });
 }

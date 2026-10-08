@@ -1,5 +1,5 @@
-// Tests des mots de passe et des petites fonctions des comptes : empreintes scrypt, règles du mot de passe, âge à Paris,
-// attente après des échecs. Aucune base de données n'est touchée.
+// Tests des mots de passe et des petites fonctions des comptes : empreintes scrypt (et leur file d'attente), règles du
+// mot de passe, âge à Paris, attente après des échecs, clé d'un visiteur pour les limites. Aucune base de données n'est touchée.
 import assert from "node:assert/strict";
 import { randomBytes, scryptSync } from "node:crypto";
 import { test } from "node:test";
@@ -10,6 +10,7 @@ import { calculerAttenteConnexion } from "../src/fonctions/comptes/calculer-atte
 import { nettoyerLigne } from "../src/fonctions/comptes/nettoyer-ligne.ts";
 import { resumerErreur } from "../src/fonctions/comptes/resumer-erreur.ts";
 import { validerMotDePasse } from "../src/fonctions/comptes/valider-mot-de-passe.ts";
+import { calculerCleVisiteur } from "../src/fonctions/securite/calculer-cle-visiteur.ts";
 import { calculerScrypt } from "../src/fonctions/securite/calculer-scrypt.ts";
 import { hacherMotDePasse, REGLAGES_SCRYPT } from "../src/fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../src/fonctions/securite/verifier-mot-de-passe.ts";
@@ -60,22 +61,56 @@ test("au plus 2 calculs scrypt en même temps : le 3e attend son tour", async ()
   assert.equal(ordre.length, 3);
 });
 
+test("file des calculs pleine (2 en cours, 20 en attente) : refus immédiat 503, que verifierMotDePasse laisse remonter", async () => {
+  const sel = randomBytes(16);
+  const occupe = (erreur: Error & { status?: number }) => erreur.status === 503;
+  // Deux calculs lents (p = 16 : bien plus d'un quart de seconde) prennent les deux places ; vingt petits attendent leur tour
+  const enCours = [1, 2].map(() => calculerScrypt("x", sel, 32, { ...REGLAGES_SCRYPT, p: 16 }));
+  const enAttente = Array.from({ length: 20 }, () => calculerScrypt("x", sel, 16, { N: 1024, r: 1, p: 1 }));
+  await assert.rejects(calculerScrypt("x", sel, 16, { N: 1024, r: 1, p: 1 }), occupe);
+  const empreinte = `scrypt$1024$1$1$${sel.toString("base64url")}$${randomBytes(16).toString("base64url")}`;
+  await assert.rejects(verifierMotDePasse("une petite phrase de passe", empreinte), occupe, "pas « false » : ce n'est pas un mauvais mot de passe");
+  await assert.rejects(hacherMotDePasse("une petite phrase de passe"), occupe);
+  await Promise.all([...enCours, ...enAttente]);
+  // La file s'est vidée : tout repart
+  assert.equal(await verifierMotDePasse("une petite phrase de passe", empreinte), false);
+});
+
 test("mot de passe : 12 à 128 caractères, pas parmi les plus courants, pas l'e-mail", () => {
   const email = "camille@exemple.fr";
   assert.equal(validerMotDePasse("une petite phrase", email), true);
   assert.equal(validerMotDePasse("douze carac.", email), true);
   assert.equal(validerMotDePasse("onze carac.", email), false);
-  assert.equal(validerMotDePasse("x".repeat(128), email), true);
-  assert.equal(validerMotDePasse("x".repeat(129), email), false);
-  // Un emoji compte pour un caractère, et « é » décomposé aussi (normalisation NFC)
-  assert.equal(validerMotDePasse("🍰".repeat(12), email), true);
-  assert.equal(validerMotDePasse("🍰".repeat(11), email), false);
-  assert.equal(validerMotDePasse("é".repeat(12), email), true);
+  assert.equal(validerMotDePasse("une petite phrase ".repeat(8).slice(0, 128), email), true);
+  assert.equal(validerMotDePasse("une petite phrase ".repeat(8).slice(0, 129), email), false);
+  // Un emoji compte pour un caractère, et « é » décomposé aussi (normalisation NFC : 129 points de code avant, 128 après)
+  assert.equal(validerMotDePasse("🍰🍕🍜🥐🧀🍩🍓🥗🍔🌮🍣🍦", email), true);
+  assert.equal(validerMotDePasse("🍰🍕🍜🥐🧀🍩🍓🥗🍔🌮🍣", email), false);
+  assert.equal(validerMotDePasse("e\u0301te\u0301 a\u0300 la mer", email), true);
+  assert.equal(validerMotDePasse("e\u0301" + "une petite phrase ".repeat(8).slice(0, 127), email), true);
   for (const courant of ["motdepasse123", "MotDePasse123", "Azerty 123456", "PASSWORD1234", "1q2w3e4r5t6y", "sosmiam12345"]) {
     assert.equal(validerMotDePasse(courant, email), false, courant);
   }
   assert.equal(validerMotDePasse("Camille@Exemple.fr", email), false);
   assert.equal(validerMotDePasse(" ".repeat(14), email), false);
+});
+
+test("mot de passe : rien d'évident, même entouré de chiffres ou de signes ; 16 chiffres au moins s'il n'y a que des chiffres", () => {
+  const email = "camille@exemple.fr";
+  for (const evident of [
+    "aaaaaaaaaaaaa", "1111111111111", "123456789012345", "000000000000000", "121212121212", "abcdefghijklm", "zyxwvutsrqpon",
+    "Motdepasse2026!", "motdepasse12345", "password12345678", "azertyuiop1234", "qwertyuiop1234", "jetaime123456", "1q2w3e4r5t6y7u",
+    "camille2026!!", "🍰".repeat(12), "x".repeat(128),
+  ]) {
+    assert.equal(validerMotDePasse(evident, email), false, evident);
+  }
+  assert.equal(validerMotDePasse("camille.dupont", "camille.dupont@exemple.fr"), false, "ce qui précède le « @ »");
+  // Que des chiffres (CNIL 2022-100, cas 2, exemple 3) : 16 au moins, espaces et signes n'y changent rien
+  for (const chiffres of ["482910374652", "4829 1037 4652 918", "06 12 34 56 78 90", "08/10/2026-1234"]) {
+    assert.equal(validerMotDePasse(chiffres, email), false, chiffres);
+  }
+  assert.equal(validerMotDePasse("4829 1037 4652 9183", email), true);
+  assert.equal(validerMotDePasse("Crème brûlée du dimanche", email), true);
 });
 
 test("l'âge se calcule avec la date du jour à Paris", () => {
@@ -94,8 +129,23 @@ test("l'âge se calcule avec la date du jour à Paris", () => {
   }
 });
 
-test("attente après des échecs : rien avant le 5e, puis 1 s, 2 s, 4 s… jamais plus de 15 minutes", () => {
-  assert.deepEqual([0, 1, 4, 5, 6, 7, 14, 15, 40].map(calculerAttenteConnexion), [0, 0, 0, 1, 2, 4, 512, 900, 900]);
+test("attente après des échecs : rien avant le 5e, puis 2 min, 4 min, 8 min… jamais plus de 2 heures", () => {
+  assert.deepEqual([0, 1, 4, 5, 6, 7, 10, 11, 40].map(calculerAttenteConnexion), [0, 0, 0, 120, 240, 480, 3840, 7200, 7200]);
+});
+
+test("en respectant chaque attente, 21 essais au plus sur 24 heures (CNIL : 25 au plus), puis 12 par jour", () => {
+  let horloge = 0;
+  const attente = creerAttenteParCompte(() => horloge);
+  const UN_JOUR = 86_400_000;
+  const essais: number[] = [];
+  while (horloge < 3 * UN_JOUR) {
+    horloge += attente.lireAttente("lea@exemple.fr") * 1000;
+    essais.push(horloge);
+    attente.noterEchec("lea@exemple.fr");
+  }
+  const surUnJour = (debut: number) => essais.filter((moment) => moment >= debut && moment < debut + UN_JOUR).length;
+  assert.equal(Math.max(...essais.map(surUnJour)), 21);
+  assert.equal(surUnJour(2 * UN_JOUR), 12);
 });
 
 test("l'attente par compte : comptée par e-mail, effacée par un succès ou après un jour sans échec", () => {
@@ -104,19 +154,60 @@ test("l'attente par compte : comptée par e-mail, effacée par un succès ou apr
   for (let i = 0; i < 4; i++) attente.noterEchec("lea@exemple.fr");
   assert.equal(attente.lireAttente("lea@exemple.fr"), 0);
   attente.noterEchec("lea@exemple.fr");
-  assert.equal(attente.lireAttente("lea@exemple.fr"), 1);
+  assert.equal(attente.lireAttente("lea@exemple.fr"), 120);
   assert.equal(attente.lireAttente("tom@exemple.fr"), 0);
-  horloge += 1000;
+  horloge += 120_000;
   assert.equal(attente.lireAttente("lea@exemple.fr"), 0);
   attente.noterEchec("lea@exemple.fr");
-  assert.equal(attente.lireAttente("lea@exemple.fr"), 2);
+  assert.equal(attente.lireAttente("lea@exemple.fr"), 240);
   attente.oublier("lea@exemple.fr");
   assert.equal(attente.lireAttente("lea@exemple.fr"), 0);
   for (let i = 0; i < 20; i++) attente.noterEchec("tom@exemple.fr");
-  assert.equal(attente.lireAttente("tom@exemple.fr"), 900);
+  assert.equal(attente.lireAttente("tom@exemple.fr"), 7200);
   horloge += 25 * 3600_000;
   attente.noterEchec("tom@exemple.fr");
   assert.equal(attente.lireAttente("tom@exemple.fr"), 0, "après un jour sans échec, on repart de zéro");
+});
+
+test("un essai qui n'a pas pu avoir lieu (file des calculs pleine, panne) est retiré, sans raccourcir l'attente", () => {
+  let horloge = 1_000_000;
+  const attente = creerAttenteParCompte(() => horloge);
+  attente.noterEchec("noa@exemple.fr");
+  attente.annulerEchec("noa@exemple.fr");
+  assert.equal(attente.compterSuivis(), 0, "un seul essai, retiré : l'adresse n'est plus gardée");
+  for (let i = 0; i < 5; i++) attente.noterEchec("lea@exemple.fr");
+  horloge += 120_000;
+  attente.noterEchec("lea@exemple.fr");
+  attente.annulerEchec("lea@exemple.fr");
+  assert.equal(attente.lireAttente("lea@exemple.fr"), 120, "5 échecs comptés, l'attente part du dernier essai");
+  attente.annulerEchec("tom@exemple.fr");
+  assert.equal(attente.lireAttente("tom@exemple.fr"), 0);
+});
+
+test("le ménage passe chaque minute : sans nouvel échec, une adresse est oubliée au bout d'un jour", (t) => {
+  t.mock.timers.enable({ apis: ["setInterval"] });
+  let horloge = 1_000_000;
+  const attente = creerAttenteParCompte(() => horloge);
+  for (let i = 0; i < 5; i++) attente.noterEchec("lea@exemple.fr");
+  horloge += 12 * 3600_000;
+  attente.noterEchec("tom@exemple.fr");
+  horloge += 12 * 3600_000 - 60_000;
+  t.mock.timers.tick(60_000);
+  assert.equal(attente.compterSuivis(), 2, "pas encore un jour");
+  horloge += 60_000;
+  t.mock.timers.tick(60_000);
+  assert.equal(attente.compterSuivis(), 1, "un jour après son dernier échec, lea est oubliée ; tom, plus récent, reste");
+});
+
+test("clé d'un visiteur : une IPv4 telle quelle, une IPv6 par son bloc /56", () => {
+  for (const [ip, cle] of [
+    ["203.0.113.7", "203.0.113.7"], [" 203.0.113.7 ", "203.0.113.7"], ["visiteur-12", "visiteur-12"], ["inconnu", "inconnu"],
+    ["2a01:cb00:1234:5678:9abc:def0:1234:5678", "2a01:cb00:1234:5600::/56"], ["2A01:CB00:1234:56ff::2", "2a01:cb00:1234:5600::/56"],
+    ["2a01:cb00:1234:5700::1", "2a01:cb00:1234:5700::/56"], ["2606:4700:3036::6815:5f64", "2606:4700:3036:0::/56"], ["::1", "0:0:0:0::/56"],
+    ["::ffff:192.0.2.60", "192.0.2.60"], ["0:0:0:0:0:ffff:c000:23c", "192.0.2.60"], ["2a01:e0a:1:2:3:4:1.2.3.4", "2a01:e0a:1:0::/56"],
+  ]) {
+    assert.equal(calculerCleVisiteur(ip), cle, ip);
+  }
 });
 
 test("une ligne de texte est nettoyée (espaces, sauts de ligne, caractères invisibles)", () => {

@@ -21,10 +21,12 @@ type Props = {
   erreur?: string | null;
   /** Potes qu'on ne peut pas cocher pour l'instant (identifiant → pourquoi, lu par le lecteur d'écran) ; ceux déjà cochés restent décochables */
   indisponibles?: Record<string, string>;
+  /** Indice lu quand la limite est atteinte (« N invités au plus par sortie » par défaut) */
+  indiceMax?: string;
 };
 
 /** Choisir les potes à inviter dans ta bande : une ligne par pote, cochée ou non. */
-export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, indisponibles }: Props) {
+export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, indisponibles, indiceMax }: Props) {
   const router = useRouter();
   const complet = choisis.length >= max;
 
@@ -52,7 +54,7 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
             accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
             accessibilityState={Platform.OS === "ios" ? { selected: choisi, disabled: bloque } : { checked: choisi, disabled: bloque }}
             accessibilityLabel={`${pote.prenom}, ${pote.ville}`}
-            accessibilityHint={raison ?? (bloque ? `${max} invités au plus par sortie` : undefined)}
+            accessibilityHint={raison ?? (bloque ? (indiceMax ?? `${max} invités au plus par sortie`) : undefined)}
             disabled={bloque}
             onPress={() => {
               vibrerLegerement();

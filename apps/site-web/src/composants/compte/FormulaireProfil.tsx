@@ -15,8 +15,9 @@ export function FormulaireProfil({ prenom, email, lieu }: Props) {
   return (
     <FormulaireCompte nom="infos" bouton="Enregistrer">
       <p className="mb-5 text-gris">
-        {lierPonctuation("Ton e-mail : ")}<strong className="break-all text-encre">{email}</strong>.{" "}
-        {lierPonctuation("Il ne se change pas en ligne : pour le changer, écris-nous à ")}
+        {/* Un seul morceau de texte après l'e-mail : une espace seule serait perdue par Chrome pour les lecteurs d'écran */}
+        {lierPonctuation("Ton e-mail : ")}<strong className="break-all text-encre">{email}</strong>
+        {lierPonctuation(". Il ne se change pas en ligne : pour le changer, écris-nous à ")}
         <a href={`mailto:${site.emailContact}`} className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
           {site.emailContact}
         </a>.
@@ -29,7 +30,7 @@ export function FormulaireProfil({ prenom, email, lieu }: Props) {
           maximum={40}
           valeur={prenom}
           className="sm:col-span-2"
-          aide={lierPonctuation("Il peut s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé.")}
+          aide={lierPonctuation("Il peut s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé. Une fiche déjà en ligne garde le prénom d'alors : écris-nous pour le changer.")}
         />
         {lieu && (
           <>

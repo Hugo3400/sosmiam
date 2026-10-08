@@ -7,12 +7,15 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { connecterCompte } from "~/services/comptes.server";
+import { connecterCompte, decrireAttente, MESSAGE_OCCUPE } from "~/services/comptes.server";
 import { lireCompteConnecte, lireIpVisiteur, lireRetourSur, poserCookieSession } from "~/services/session-compte.server";
 
-/** Petits mots affichés en arrivant (?au-revoir après une suppression de compte, ?deconnecte après une déconnexion). */
+/**
+ * Petits mots affichés en arrivant (?au-revoir après une suppression de compte, ?deconnecte après une déconnexion).
+ * Pas de « avec tout ce qui allait avec » : un prénom « Déniché par » reste sur la fiche d'un lieu accepté.
+ */
 const accueils = {
-  "au-revoir": "Ton compte est effacé, avec tout ce qui allait avec. Merci d'avoir fait un bout de chemin avec SOS Miam !",
+  "au-revoir": "Ton compte est effacé. Merci d'avoir fait un bout de chemin avec SOS Miam !",
   deconnecte: "Tu es déconnecté. À bientôt !",
 };
 
@@ -52,10 +55,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   // Même message pour un e-mail inconnu et un mauvais mot de passe : rien n'est révélé sur les comptes existants
   let message = "Oups, la connexion n'a pas marché. Réessaie dans un instant.";
   if (reponse.erreur === "identifiants" || reponse.erreur === "champ-invalide") message = "E-mail ou mot de passe incorrect.";
-  if (reponse.erreur === "trop-de-demandes") {
-    const minutes = reponse.attente ? Math.max(1, Math.ceil(reponse.attente / 60)) : null;
-    message = minutes ? `Trop d'essais : réessaie dans ${minutes} minute${minutes > 1 ? "s" : ""}.` : "Trop d'essais : réessaie dans quelques minutes.";
-  }
+  if (reponse.erreur === "occupe") message = MESSAGE_OCCUPE;
+  // Après 5 mots de passe faux : 2 minutes d'attente, puis le double à chaque fois, 2 heures au plus
+  if (reponse.erreur === "trop-de-demandes") message = `Trop d'essais : réessaie dans ${decrireAttente(reponse.attente)}.`;
   return { ok: false, formulaire: "connexion", message: lierPonctuation(message), valeurs };
 }
 

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AccessibilityInfo, Text } from "react-native";
+import { AccessibilityInfo, Platform, Text } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
 
 type Props = {
@@ -19,7 +19,10 @@ const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
 export function Annonce({ annonce, haut, onFin }: Props) {
   useEffect(() => {
     if (!annonce) return;
-    AccessibilityInfo.announceForAccessibility(annonce.texte.replace(EMOJI, "").replace(/\s+/g, " ").trim());
+    const texte = annonce.texte.replace(EMOJI, "").replace(/\s+/g, " ").trim();
+    // iOS : l'annonce attend que VoiceOver ait fini sa phrase (le bouton qu'il vient de lire, l'écran où il revient) au lieu de la couper
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
+    else AccessibilityInfo.announceForAccessibility(texte);
     const minuterie = setTimeout(onFin, DUREE);
     return () => clearTimeout(minuterie);
   }, [annonce, onFin]);

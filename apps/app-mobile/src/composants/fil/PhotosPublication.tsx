@@ -1,13 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Pressable, Text, View, type ImageSourcePropType, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  Text,
+  View,
+  type AccessibilityActionEvent,
+  type ImageSourcePropType,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { cancelAnimation, Easing, ReduceMotion, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 import { BarresPhotos } from "~/composants/fil/BarresPhotos";
 import type { MediaPublication } from "~/contenus/type-publication";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
+import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
 
 type Props = {
   photos: Extract<MediaPublication, { type: "photos" }>["photos"];
@@ -25,6 +35,10 @@ type Props = {
 const APERCU_GLISSEMENT = { delai: 700, distance: 56, retour: 380 };
 // Temps passé sur chaque photo avant la suivante (défilement façon stories)
 const DUREE_PHOTO = 4000;
+const ACTIONS_PHOTOS = [
+  { name: "increment", label: "Photo suivante" },
+  { name: "decrement", label: "Photo précédente" },
+];
 
 type GestesPhotos = {
   lancer: (depuis: number) => void;
@@ -36,10 +50,14 @@ type GestesPhotos = {
 /**
  * Photos d'une publication, en plein écran : elles défilent seules (barres façon stories en haut), en boucle, tant que la
  * publication est à l'écran ; on peut aussi les faire glisser de côté (le décompte repart de la photo choisie), et un doigt
- * posé met le défilement en pause. Rien ne défile seul quand les animations sont réduites : les barres restent comme repère.
+ * posé met le défilement en pause. Rien ne défile seul quand les animations sont réduites ou qu'un lecteur d'écran tourne
+ * (on ne peut pas y poser le doigt pour arrêter) : les barres restent comme repère, et VoiceOver change de photo en
+ * balayant le compteur vers le haut ou le bas.
  */
 export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onAppui }: Props) {
   const animationsReduites = useReducedMotion();
+  const lecteurEcran = utiliserLecteurEcran();
+  const defilementAuto = !animationsReduites && !lecteurEcran;
   const liste = useRef<FlatList<ImageSourcePropType>>(null);
   const [actuelle, setActuelle] = useState(0);
   // Doigt en train de faire glisser les photos : le défilement attend qu'on lâche
@@ -81,10 +99,10 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
     },
   });
 
-  // Défilement automatique : seulement à l'écran, avec plusieurs photos, sans animations réduites et sans doigt qui glisse.
-  // Chaque nouvelle photo (ou la fin d'un glissement à la main) relance le décompte depuis le début.
+  // Défilement automatique : seulement à l'écran, avec plusieurs photos, sans animations réduites ni lecteur d'écran, et sans
+  // doigt qui glisse. Chaque nouvelle photo (ou la fin d'un glissement à la main) relance le décompte depuis le début.
   useEffect(() => {
-    defilementPossible.current = actif && plusieurs && !animationsReduites && !glisse;
+    defilementPossible.current = actif && plusieurs && defilementAuto && !glisse;
     if (!plusieurs) return;
     if (!actif) {
       cancelAnimation(avancee);
@@ -92,14 +110,15 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
       cible.current = null;
       return;
     }
-    if (animationsReduites) {
+    if (!defilementAuto) {
+      cancelAnimation(avancee);
       avancee.value = 1;
       return;
     }
     if (glisse || doigtPose.current) return;
     gestes.lancer(0);
     return () => cancelAnimation(avancee);
-  }, [actif, plusieurs, animationsReduites, glisse, actuelle, avancee, gestes]);
+  }, [actif, plusieurs, defilementAuto, glisse, actuelle, avancee, gestes]);
 
   useEffect(() => {
     if (!actif || !plusieurs || animationsReduites || apercuMontre.current) return;
@@ -123,9 +142,20 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
     }
     // Barre vidée avant le nouveau rendu : la barre de la photo suivante ne s'affiche jamais pleine, même une image
     cancelAnimation(avancee);
-    avancee.value = animationsReduites ? 1 : 0;
+    avancee.value = defilementAuto ? 0 : 1;
     indexActuel.current = index;
     setActuelle(index);
+  }
+
+  // VoiceOver : balayer le compteur vers le haut ou le bas passe à la photo suivante ou précédente
+  function changerDePhoto(e: AccessibilityActionEvent) {
+    const sens = e.nativeEvent.actionName === "increment" ? 1 : e.nativeEvent.actionName === "decrement" ? -1 : 0;
+    const index = indexActuel.current + sens;
+    if (!sens || index < 0 || index >= photos.length) return;
+    cible.current = null;
+    indexActuel.current = index;
+    setActuelle(index);
+    liste.current?.scrollToOffset({ offset: index * largeur, animated: false });
   }
 
   const afficherPhoto = useCallback(
@@ -168,7 +198,11 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
       <View
         pointerEvents="none"
         accessible
-        accessibilityLabel={plusieurs ? `Photo ${actuelle + 1} sur ${photos.length}` : "Photo"}
+        accessibilityLabel="Photo"
+        accessibilityRole={plusieurs ? "adjustable" : undefined}
+        accessibilityValue={plusieurs ? { text: `${actuelle + 1} sur ${photos.length}` } : undefined}
+        accessibilityActions={plusieurs ? ACTIONS_PHOTOS : undefined}
+        onAccessibilityAction={plusieurs ? changerDePhoto : undefined}
         style={{ top: haut }}
         className="absolute right-4 flex-row items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5"
       >

@@ -48,15 +48,21 @@ function lireChampsProposition(corps: Record<string, unknown>): NouvelleProposit
 
 export function creerControleursEspaceComptes(services: ServicesComptes) {
   return {
-    /** GET /comptes/moi/candidature : sa dernière candidature fondateur, ou null. */
+    /** GET /comptes/moi/candidature : sa dernière candidature fondateur (ou null), et les places de fondateur encore libres. */
     async lireCandidature(_requete: Request, reponse: Response) {
-      reponse.json({ ok: true, candidature: await services.lireCandidature(lireCompteId(reponse)) });
+      const [candidature, placesRestantes] = await Promise.all([services.lireCandidature(lireCompteId(reponse)), services.compterPlacesFondateur()]);
+      reponse.json({ ok: true, candidature, placesRestantes });
     },
 
-    /** POST /comptes/moi/candidature : une seule à la fois (409 s'il en a une en attente ou acceptée). */
+    /**
+     * POST /comptes/moi/candidature : une seule à la fois (409 « candidature-existante » s'il en a une en attente ou
+     * acceptée), et seulement s'il reste une place de fondateur (409 « plus-de-place » sinon : inutile de remplir le
+     * formulaire pour rien ; une page restée ouverte ou un envoi sans JavaScript arrivent aussi ici).
+     */
     async candidater(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (estRobot(corps)) return reponse.status(201).json({ ok: true });
+      if ((await services.compterPlacesFondateur()) === 0) return reponse.status(409).json({ ok: false, erreur: "plus-de-place" });
       if (!(await services.creerCandidature(lireCompteId(reponse), lireChampsCandidature(corps)))) {
         return reponse.status(409).json({ ok: false, erreur: "candidature-existante" });
       }

@@ -96,7 +96,7 @@ export const documentCgu: DocumentLegal = {
       titre: "Rescousses, visites et badges",
       blocs: [
         "Chaque semaine, tu as **3 rescousses**, qui se rechargent le lundi. Tu valides tes visites dans l'app, par exemple en scannant un **QR code**.",
-        "Tes visites te rapportent des points, des paliers et des badges (le programme Ambassadeurs). Ils n'ont **aucune valeur en argent** : ils ne s'achètent pas, ne se vendent pas et ne s'échangent pas.",
+        "Tes visites te rapportent des points, des paliers (Curieux, Dénicheur…) et des badges. Ils n'ont **aucune valeur en argent** : ils ne s'achètent pas, ne se vendent pas et ne s'échangent pas. À ne pas confondre avec le programme Ambassadeurs du site, réservé aux 18 ans et plus (voir « Le programme Ambassadeurs », juste en dessous).",
         "Tricher fausse le jeu pour tout le monde, et surtout pour les lieux : les points gagnés en trichant (faux scans, comptes multiples…) peuvent être retirés.",
       ],
     },

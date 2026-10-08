@@ -36,7 +36,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   const { jeton } = await exigerAmbassadeurActif(request);
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
-  const lire = (champ: string) => String(formulaire.get(champ) ?? "").replace(/[ \t]+/g, " ").trim();
+  // Retours à la ligne gardés, en « \n » : envoyé sans JavaScript, le formulaire les écrit « \r\n », qui compteraient
+  // double face au maximum du champ
+  const lire = (champ: string) => String(formulaire.get(champ) ?? "").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").trim();
 
   const valeurs: Record<string, string> = {};
   for (const c of champsLieu) valeurs[c.nom] = lire(c.nom);
@@ -73,9 +75,18 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 /** Page /espace/proposer-un-lieu : une pépite à faire connaître ; la proposition arrive dans le logiciel de gestion. */
 export default function PageProposerUnLieu({ loaderData, actionData }: Route.ComponentProps) {
   const titreMerci = useRef<HTMLHeadingElement>(null);
+  const etaitEnvoye = useRef(false);
   const envoye = actionData?.ok === true;
   useEffect(() => {
     if (envoye) titreMerci.current?.focus();
+    // « Proposer un autre lieu » : même adresse, donc utiliserFocusApresNavigation ne réagit pas, et le lien qui avait
+    // le focus vient de disparaître. Le focus revient au titre de la page, comme après un changement de page.
+    else if (etaitEnvoye.current) {
+      const titre = document.querySelector<HTMLElement>("main h1");
+      titre?.setAttribute("tabindex", "-1");
+      titre?.focus();
+    }
+    etaitEnvoye.current = envoye;
   }, [envoye]);
 
   return (

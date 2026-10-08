@@ -71,7 +71,7 @@ export default function PageKitMedia({ loaderData }: Route.ComponentProps) {
       <SectionKit id="comment-ca-marche" titre="Comment ça marche ?">
         <EtapesKit />
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-carte border-2 border-encre bg-jaune p-5 shadow-brut">
-          <p className="flex-1 font-semibold">{lierPonctuation("Tout le kit d'un coup : images, logos, mascotte, badges et les règles, dans un seul fichier.")}</p>
+          <p className="flex-1 font-semibold">{lierPonctuation("Tout le kit d'un coup : images, logos, mascotte, badges, textes et règles, dans un seul fichier.")}</p>
           <Bouton href={`/kit-media/${NOM_ZIP_KIT_MEDIA}`} variante="blanc">
             Tout télécharger{poidsZip ? ` (ZIP, ${poidsZip})` : " (ZIP)"}
           </Bouton>

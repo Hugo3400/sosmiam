@@ -5,6 +5,7 @@ import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixPseudoManquant } from "~/composants/potes/ChoixPseudoManquant";
 import { EnTetePotes } from "~/composants/potes/EnTetePotes";
@@ -22,9 +23,9 @@ const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
 const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) => o === valeur) ?? null;
 
-/** Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées. Démo pour l'instant. */
+/** Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées. Démo pour l'instant. Sans compte, on montre ce qui t'attend. */
 export default function Potes() {
-  const { profil } = utiliserProfil();
+  const { profil, invite } = utiliserProfil();
   const { pret, moi, recommandationsRecues, trouverPote } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
@@ -40,9 +41,27 @@ export default function Potes() {
   }, [ongletDemande]);
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  // Les lieux que tu peux voir : pas de bar sous 18 ans
-  const lieux = useMemo(() => new Map(filtrerLieuxSelonAge(lieuxExemples, age).map((l) => [l.id, l] as const)), [age]);
+  // Les lieux que tu peux voir : pas de bar sous 18 ans (en visite sans compte, l'onglet n'est pas montré : rien à calculer)
+  const lieux = useMemo(() => new Map(filtrerLieuxSelonAge(invite ? [] : lieuxExemples, age).map((l) => [l.id, l] as const)), [age, invite]);
   const recues = useMemo(() => recommandationsRecues.filter((r) => lieux.has(r.lieuId) && trouverPote(r.de) !== null), [recommandationsRecues, lieux, trouverPote]);
+
+  // Visite sans compte : ni bande ni sorties, juste un aperçu de ce qui t'attend
+  if (invite) {
+    return (
+      <EcranInvite
+        raison="potes"
+        emoji="👯"
+        titre="Ta bande t'attend"
+        texte="Ici, on s'organise entre potes : où on mange, qui vient, et qui n'a toujours pas répondu au groupe."
+        avantages={[
+          "Ta bande, et qui a sauvé le plus de lieux ce mois-ci",
+          "Des sorties où tout le monde vote pour le lieu (fini les débats sans fin)",
+          "Un chat entre potes pour caler l'heure du rendez-vous",
+          "Des listes partagées de bonnes adresses",
+        ]}
+      />
+    );
+  }
 
   // Le temps de lire la communauté sur le téléphone (sinon la démo de départ clignoterait)
   if (!profil || !pret) return <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]} />;

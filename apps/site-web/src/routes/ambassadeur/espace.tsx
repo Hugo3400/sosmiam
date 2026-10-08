@@ -41,16 +41,22 @@ export async function loader({ request }: Route.LoaderArgs) {
       propositions: propositions.ok ? propositions.propositions : null,
       /** undefined : pas pu être lue */
       candidature: candidature.ok ? candidature.candidature : undefined,
+      /** Places de fondateur encore libres ; null : inconnues */
+      placesRestantes: candidature.ok && typeof candidature.placesRestantes === "number" ? candidature.placesRestantes : null,
       missionsAFaire: missions.ok ? missions.missions.filter((mission) => mission.statut === "a-faire").length : null,
       messagesNonLus: messages.ok ? messages.messages.filter((message) => message.luLe === null).length : null,
     },
   };
 }
 
-/** Ce que dit la tuile « fondateur », selon la candidature. */
-function decrireCandidature(candidature: CandidatureFondateur | null | undefined) {
+/** Ce que dit la tuile « fondateur », selon la candidature et les places encore libres (null : inconnues). */
+function decrireCandidature(candidature: CandidatureFondateur | null | undefined, placesRestantes: number | null) {
   if (!candidature) {
-    return { titre: "Devenir fondateur", texte: "On lance SOS Miam avec 10 ambassadeurs fondateurs. Tente ta chance !", pastille: null };
+    if (placesRestantes === 0) {
+      return { titre: "Fondateurs", texte: "Les 10 places de fondateur sont prises. Tu restes ambassadeur et tu grimpes les niveaux !", pastille: "Complet" };
+    }
+    const places = placesRestantes === null ? "" : ` Encore ${placesRestantes} place${placesRestantes > 1 ? "s" : ""}.`;
+    return { titre: "Devenir fondateur", texte: `On lance SOS Miam avec 10 ambassadeurs fondateurs.${places} Tente ta chance !`, pastille: null };
   }
   if (candidature.statut === "acceptee") {
     return { titre: "Fondateur", texte: "Tu fais partie des 10 ambassadeurs fondateurs !", pastille: candidature.numero ? `N° ${candidature.numero}` : null };
@@ -77,7 +83,7 @@ export default function PageEspace({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  const fondateur = decrireCandidature(actif.candidature);
+  const fondateur = decrireCandidature(actif.candidature, actif.placesRestantes);
   const pluriel = (nombre: number) => (nombre > 1 ? "s" : "");
   return (
     <Section fond="creme">

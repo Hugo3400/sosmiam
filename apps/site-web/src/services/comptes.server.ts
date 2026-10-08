@@ -8,15 +8,33 @@ const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 /** Codes d'erreur de l'API des comptes ; tout le reste (panne, délai dépassé) devient « erreur ». */
 export type ErreurCompte =
   | "champ-invalide" | "email-deja-utilise" | "age-minimum" | "identifiants" | "session-expiree" | "ambassadeur-non-actif"
-  | "candidature-existante" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes"
+  | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
   | "compte-rendu-trop-court" | "introuvable" | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
   "candidature-existante", "jeton-invalide", "mot-de-passe-incorrect", "trop-de-demandes",
+  // Les 10 places de fondateur sont prises (409) ; trop de mots de passe à vérifier en même temps (503, Retry-After)
+  "plus-de-place", "occupe",
   // Missions de l'espace (services/espace-ambassadeur.server.ts)
   "compte-rendu-trop-court", "introuvable",
 ]);
+
+/** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
+export const MESSAGE_OCCUPE = "Il y a beaucoup de monde en ce moment : réessaie dans un instant.";
+
+/**
+ * L'attente imposée après des mots de passe faux (« trop-de-demandes », en secondes) dite en mots : « 2 minutes »,
+ * « 1 heure et 4 minutes », « 2 heures » (2 heures au plus) ; « quelques minutes » si l'API ne l'a pas donnée.
+ */
+export function decrireAttente(secondes?: number): string {
+  if (!secondes || secondes <= 0) return "quelques minutes";
+  const minutes = Math.ceil(secondes / 60);
+  const ecrire = (nombre: number, unite: string) => `${nombre} ${unite}${nombre > 1 ? "s" : ""}`;
+  if (minutes < 60) return ecrire(minutes, "minute");
+  const reste = minutes % 60;
+  return reste ? `${ecrire(Math.floor(minutes / 60), "heure")} et ${ecrire(reste, "minute")}` : ecrire(minutes / 60, "heure");
+}
 
 /** Réponse de l'API : les données demandées, ou un code d'erreur (avec le champ en faute, ou l'attente en secondes). */
 export type ReponseComptes<T extends object> = ({ ok: true } & T) | { ok: false; erreur: ErreurCompte; champ?: string; attente?: number };
@@ -104,9 +122,12 @@ export function modifierCompte(jeton: string, ip: string | null, changements: { 
   return appelerApiComptes<{ compte: CompteConnecte }>("/comptes/moi", { methode: "PATCH", jeton, ip, corps: changements });
 }
 
-/** Change le mot de passe (l'actuel est demandé) ; les autres sessions du compte sont fermées. */
+/**
+ * Change le mot de passe (l'actuel est demandé). Toutes les sessions du compte sont fermées, celle-ci comprise : l'API
+ * rend un nouveau jeton, à poser dans le cookie (par une redirection, voir routes/compte/mon-compte.tsx).
+ */
 export function changerMotDePasse(jeton: string, ip: string | null, actuel: string, nouveau: string) {
-  return appelerApiComptes<object>("/comptes/moi/mot-de-passe", { methode: "POST", jeton, ip, corps: { actuel, nouveau } });
+  return appelerApiComptes<{ session: string }>("/comptes/moi/mot-de-passe", { methode: "POST", jeton, ip, corps: { actuel, nouveau } });
 }
 
 /** Supprime le compte et tout ce qui va avec (mot de passe demandé). */
@@ -114,12 +135,15 @@ export function supprimerCompte(jeton: string, ip: string | null, motDePasse: st
   return appelerApiComptes<object>("/comptes/moi", { methode: "DELETE", jeton, ip, corps: { motDePasse } });
 }
 
-/** La candidature « fondateur » du compte, ou null (ambassadeurs validés seulement). */
+/**
+ * La candidature « fondateur » du compte (ou null) et les places de fondateur encore libres : 10 moins les numéros déjà
+ * donnés, recomptées à chaque demande (ambassadeurs validés seulement).
+ */
 export function lireCandidature(jeton: string, ip: string | null) {
-  return appelerApiComptes<{ candidature: CandidatureFondateur | null }>("/comptes/moi/candidature", { jeton, ip });
+  return appelerApiComptes<{ candidature: CandidatureFondateur | null; placesRestantes: number }>("/comptes/moi/candidature", { jeton, ip });
 }
 
-/** Envoie la candidature « fondateur » (refusée s'il y en a déjà une en attente ou acceptée). */
+/** Envoie la candidature « fondateur » (refusée s'il y en a déjà une en attente ou acceptée, ou s'il ne reste plus de place). */
 export function envoyerCandidature(jeton: string, ip: string | null, candidature: NouvelleCandidature) {
   return appelerApiComptes<object>("/comptes/moi/candidature", { methode: "POST", jeton, ip, corps: candidature });
 }

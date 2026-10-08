@@ -59,7 +59,7 @@ export const documentAge: DocumentLegal = {
           liste: [
             "Des **lieux indépendants** près de chez toi, partout en France, dont certains en vraie difficulté (les BIG SOS).",
             "Des **vidéos et des photos** publiées par les lieux et par des créateurs, et des **avis** de personnes qui y sont vraiment allées.",
-            "Des **points, des paliers et des badges** (le programme Ambassadeurs) : ils récompensent tes visites, sans hasard ni argent en jeu.",
+            "Des **points, des paliers et des badges** (Curieux, Dénicheur…) : ils récompensent tes visites, sans hasard ni argent en jeu. Le programme Ambassadeurs du site, lui, est réservé aux 18 ans et plus (voir plus haut).",
           ],
         },
         "**Tout est gratuit** : il n'y a rien à acheter dans l'app, ni abonnement, ni achat intégré, ni coffre à surprises.",

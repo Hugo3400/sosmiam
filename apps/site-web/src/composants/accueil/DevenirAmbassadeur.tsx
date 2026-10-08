@@ -23,7 +23,8 @@ export function DevenirAmbassadeur() {
       <div className="text-center">
         <Badge variante="blanc" className="mb-5">🎖️ Programme Ambassadeurs</Badge>
       </div>
-      <TitreSection chapo={lierPonctuation("Tu connais les pépites du coin avant tout le monde ? Fais-les découvrir, et monte en grade à chaque lieu déniché.")}>
+      {/* Pas « un grade à chaque lieu » : un lieu accepté rapporte 30 points, et les paliers sont à 100 et 300 points */}
+      <TitreSection chapo={lierPonctuation("Tu connais les pépites du coin avant tout le monde ? Fais-les découvrir : chaque lieu déniché te rapporte des points pour monter en grade.")}>
         Deviens la voix de ton quartier
       </TitreSection>
 

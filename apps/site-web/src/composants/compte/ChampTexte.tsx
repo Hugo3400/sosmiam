@@ -70,8 +70,10 @@ export function ChampTexte({ nom, libelle, type = "text", autoComplete, aide, fa
 
   return (
     <div className={className}>
+      {/* L'espace va DANS le span : une espace seule entre deux morceaux de texte serait perdue par Chrome pour les
+          lecteurs d'écran (« Ton quartier(facultatif) »), à cause du commentaire que glisse le rendu serveur de React */}
       <label htmlFor={id} className="mb-1.5 block text-sm font-semibold">
-        {libelle} {facultatif && <span className="font-normal text-gris">(facultatif)</span>}
+        {libelle}{facultatif && <span className="font-normal text-gris">{" (facultatif)"}</span>}
       </label>
       {aide && <p id={`${id}-aide`} className="mb-2 text-sm text-gris">{aide}</p>}
       {lignes ? (

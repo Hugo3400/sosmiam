@@ -40,9 +40,10 @@ export function EtatCandidature({ candidature, vientDArriver = false }: Props) {
         <p className="mt-3 max-w-xl text-lg">
           {lierPonctuation("Merci d'avoir tenté ta chance ! Les places de fondateur sont très peu nombreuses. Tu restes ambassadeur et tu grimpes les niveaux, comme tout le monde.")}
         </p>
+        {/* Le ménage de nuit (3 h 30, heure de Paris) efface après l'échéance : « au plus tard », avec un jour de marge */}
         {candidature.reponduLe && (
           <p className="mt-3 max-w-xl text-gris">
-            Ta candidature sera effacée le <DateEnLettres iso={candidature.reponduLe} plusMois={3} />, trois mois après la réponse.
+            Ta candidature sera effacée trois mois après la réponse, au plus tard le <DateEnLettres iso={candidature.reponduLe} plusMois={3} plusJours={1} />.
           </p>
         )}
       </div>

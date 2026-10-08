@@ -21,3 +21,6 @@ apps/api/uploads/
 # Journaux et système
 *.log
 .DS_Store
+# Fichiers de travail : numéros de processus, cache de Python
+*.pid
+__pycache__/

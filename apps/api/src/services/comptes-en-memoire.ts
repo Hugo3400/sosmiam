@@ -35,6 +35,8 @@ export type PropositionEnMemoire = NouvelleProposition & { id: number; compteId:
 
 const iso = (moment: number) => new Date(moment).toISOString();
 const DUREE_REINITIALISATION = 24 * 3600_000;
+/** Nombre de fondateurs (numéros 1 à 10), comme services/gestion/ambassadeurs.ts (ce double n'importe rien qui touche à la base) */
+const FONDATEURS_MAX = 10;
 
 export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const comptes = new Map<number, CompteEnMemoire>();
@@ -115,6 +117,10 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       });
       return true;
     },
+    async compterPlacesFondateur() {
+      const donnes = new Set(candidatures.map(({ numero }) => numero).filter((numero) => numero !== null && numero >= 1 && numero <= FONDATEURS_MAX));
+      return Math.max(0, FONDATEURS_MAX - donnes.size);
+    },
     async listerPropositions(compteId) {
       return propositions
         .filter((proposition) => proposition.compteId === compteId)
@@ -133,12 +139,14 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     comptes,
     candidatures,
     propositions,
-    /** Décision de l'équipe, comme dans le logiciel de gestion : un refus ou une suspension ferme toutes ses sessions. */
+    /**
+     * Décision de l'équipe, comme deciderAmbassadeur (logiciel de gestion) : les sessions restent ouvertes, le statut est
+     * relu à chaque demande (§9 : un refus ou une suspension compte tout de suite, sans déconnecter).
+     */
     async decider(compteId: number, statut: StatutAmbassadeur) {
       const compte = comptes.get(compteId);
       if (!compte) return;
       Object.assign(compte, { statutAmbassadeur: statut, decideLe: horloge() });
-      if (statut === "refuse" || statut === "suspendu") await sessions.supprimerDuCompte(compteId);
     },
     /** Lien de réinitialisation, comme le prépare le logiciel de gestion (24 h, usage unique) : renvoie le jeton. */
     preparerReinitialisation(compteId: number): string {

@@ -16,12 +16,14 @@ type Props = {
   onBasculer: (commentaireId: string) => void;
   /** « Répondre » sur le commentaire ou sur une de ses réponses (un seul niveau : tout se range sous le commentaire) */
   onRepondre: (commentaire: Commentaire, reponseA: Commentaire) => void;
+  /** J'aime sur le commentaire ou une de ses réponses */
+  onAimer: (commentaire: Commentaire) => void;
   /** Ouvre les options ; « declencheur » est ce qui les a ouvertes, où le lecteur d'écran revient ensuite */
   onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
 };
 
 /** Un commentaire et ses réponses, repliables. */
-export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onOptions }: Props) {
+export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions }: Props) {
   const { commentaire, reponses } = fil;
   const nombre = reponses.length;
   const dontLeLieu = reponses.some((r) => r.auteur === "lieu");
@@ -34,11 +36,21 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
         reponse={false}
         maintenant={maintenant}
         onRepondre={(c) => onRepondre(c, c)}
+        onAimer={onAimer}
         onOptions={onOptions}
       />
       {deplie
         ? reponses.map((r) => (
-            <LigneCommentaire key={r.id} commentaire={r} lieu={lieu} reponse maintenant={maintenant} onRepondre={(c) => onRepondre(c, commentaire)} onOptions={onOptions} />
+            <LigneCommentaire
+              key={r.id}
+              commentaire={r}
+              lieu={lieu}
+              reponse
+              maintenant={maintenant}
+              onRepondre={(c) => onRepondre(c, commentaire)}
+              onAimer={onAimer}
+              onOptions={onOptions}
+            />
           ))
         : null}
       {nombre > 0 ? (

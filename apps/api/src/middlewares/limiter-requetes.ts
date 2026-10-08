@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { calculerCleVisiteur } from "../fonctions/securite/calculer-cle-visiteur.ts";
+
 type Reglages = {
   /** Durée de la fenêtre de comptage, en millisecondes */
   fenetre: number;
@@ -9,7 +11,8 @@ type Reglages = {
 
 /**
  * Limite le nombre de requêtes par visiteur, en mémoire (rien n'est écrit sur disque).
- * L'API n'écoute qu'en local : le site lui transmet l'adresse IP du visiteur dans l'en-tête « X-IP-Visiteur ».
+ * L'API n'écoute qu'en local : le site lui transmet l'adresse IP du visiteur dans l'en-tête « X-IP-Visiteur ». Une IPv6
+ * compte par son préfixe /56 (calculerCleVisiteur) : sinon, changer d'adresse dans son propre bloc suffirait à passer.
  */
 export function limiterRequetes({ fenetre, maximum }: Reglages) {
   const compteurs = new Map<string, { nombre: number; finFenetre: number }>();
@@ -22,7 +25,7 @@ export function limiterRequetes({ fenetre, maximum }: Reglages) {
 
   return (requete: Request, reponse: Response, suite: NextFunction) => {
     const maintenant = Date.now();
-    const cle = requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu";
+    const cle = calculerCleVisiteur(requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu");
     const compteur = compteurs.get(cle);
     if (!compteur || compteur.finFenetre <= maintenant) {
       compteurs.set(cle, { nombre: 1, finFenetre: maintenant + fenetre });

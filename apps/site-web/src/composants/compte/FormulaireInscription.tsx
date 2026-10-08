@@ -32,7 +32,7 @@ export function FormulaireInscription() {
           libelle="Ton mot de passe"
           type="password"
           autoComplete="new-password"
-          aide={lierPonctuation("12 caractères au moins. Astuce : une petite phrase marche très bien.")}
+          aide={lierPonctuation("12 caractères au moins, et pas seulement des chiffres. Astuce : une petite phrase marche très bien.")}
           className="sm:col-span-2"
         />
         <ChampTexte
@@ -48,7 +48,8 @@ export function FormulaireInscription() {
       </div>
       <div className="mt-7">
         <CaseACocher nom="cgu">
-          J'accepte les{" "}
+          {/* L'espace reste dans la chaîne : seule, Chrome la perdrait pour les lecteurs d'écran (« lesconditions ») */}
+          {"J'accepte les "}
           <a href="https://sosmiam.fr/cgu#ambassadeurs" target="_blank" rel="noopener" className={classeLien}>
             conditions d'utilisation<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
           </a>

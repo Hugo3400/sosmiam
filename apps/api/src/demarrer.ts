@@ -8,7 +8,7 @@ import {
   ajouterPoints, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte, nommerAmbassadeurVille,
   preparerReinitialisation, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
 } from "./services/comptes.ts";
-import { creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
+import { compterPlacesFondateur, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
@@ -53,7 +53,7 @@ const serveur = creerApplication({
   comptes: {
     services: {
       creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
-      reinitialiserMotDePasse, lireCandidature, creerCandidature, listerPropositions, creerProposition,
+      reinitialiserMotDePasse, lireCandidature, creerCandidature, compterPlacesFondateur, listerPropositions, creerProposition,
     },
     sessions: stockageSessionsComptes,
   },

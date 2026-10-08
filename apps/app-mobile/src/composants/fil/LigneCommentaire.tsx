@@ -21,6 +21,8 @@ type Props = {
   /** Heure de référence pour « il y a 5 min » (rafraîchie par la feuille) */
   maintenant: number;
   onRepondre: (commentaire: Commentaire) => void;
+  /** J'aime (ou le retirer) ; sans compte, la feuille propose d'en créer un */
+  onAimer: (commentaire: Commentaire) => void;
   /** Modifier, supprimer, signaler, bloquer ; « declencheur » est ce qui a ouvert le menu, où le lecteur d'écran revient ensuite */
   onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
 };
@@ -43,8 +45,8 @@ function formaterIlYa(dateIso: string, maintenant: number, long: boolean): strin
 }
 
 /** Un commentaire sous une publication : avatar, prénom et @pseudo (ou le lieu, avec son badge), texte, date, « Répondre » et J'aime. */
-export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onOptions }: Props) {
-  const { trouverPote, basculerJaimeCommentaire } = utiliserCommunaute();
+export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions }: Props) {
+  const { trouverPote } = utiliserCommunaute();
   const estLieu = commentaire.auteur === "lieu";
   const pote = estLieu ? null : trouverPote(commentaire.auteur);
   const estMoi = commentaire.auteur === ID_MOI;
@@ -147,7 +149,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
         accessibilityState={{ selected: aime }}
         onPress={() => {
           vibrerLegerement();
-          basculerJaimeCommentaire(commentaire.id);
+          onAimer(commentaire);
         }}
         className="min-h-11 min-w-11 items-center pt-1 active:scale-90"
       >
