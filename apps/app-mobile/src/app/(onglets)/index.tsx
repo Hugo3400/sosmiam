@@ -1,7 +1,7 @@
 import { useIsFocused, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
-import { startTransition, useCallback, useMemo, useState } from "react";
+import { startTransition, useCallback, useMemo, useRef, useState } from "react";
 import { FlatList, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -41,6 +41,9 @@ export default function PourToi() {
   const [coeurs, setCoeurs] = useState<Record<string, number>>({});
   const [bouees, setBouees] = useState<Record<string, number>>({});
   const [menu, setMenu] = useState<Publication | null>(null);
+  // Dernière publication du menu, gardée pendant que la feuille se referme (sinon son titre se vide en glissant)
+  const [menuAffiche, setMenuAffiche] = useState<Publication | null>(null);
+  const refListe = useRef<FlatList<Publication>>(null);
   // Fiche réduite pour voir les vidéos en plein écran : le choix reste d'une publication à l'autre
   const [infosReduites, setInfosReduites] = useState(false);
   const reduction = useSharedValue(0);
@@ -91,16 +94,23 @@ export default function PourToi() {
     if (choix === "rescousse") rescousse(p);
     if (choix === "adresse") router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
     if (choix === "pas-interesse") {
-      activite.masquer(p.id);
+      masquerPublication(p.id);
       annoncer("Compris, on t'en montrera moins comme ça 🙈");
     }
   }
 
   // Signalement envoyé : gardé sur le téléphone en attendant l'API, et la publication disparaît du fil (la feuille reste ouverte pour dire merci)
+  // Masquer la dernière publication laisserait iOS sur une page vide : on recule d'abord d'une publication
+  function masquerPublication(id: string) {
+    const index = liste.findIndex((p) => p.id === id);
+    if (index > 0 && index === liste.length - 1) refListe.current?.scrollToIndex({ index: index - 1, animated: false });
+    activite.masquer(id);
+  }
+
   function signaler(choix: ChoixSignalement) {
     if (!menu) return;
     ajouterSignalementLocal({ publicationId: menu.id, lieuId: menu.lieuId, ...choix, date: new Date().toISOString() }).catch(() => {});
-    activite.masquer(menu.id);
+    masquerPublication(menu.id);
   }
 
   function partager(p: Publication) {
@@ -125,7 +135,10 @@ export default function PourToi() {
       annoncer(activite.basculerGarde(p.lieuId) ? `🔖 ${nom} est gardé pour plus tard` : "Retiré de tes lieux gardés");
     },
     partager,
-    menu: setMenu,
+    menu: (p) => {
+      setMenu(p);
+      setMenuAffiche(p);
+    },
     voir: (p) => router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } }),
     reduire: basculerReduction,
   });
@@ -134,7 +147,7 @@ export default function PourToi() {
     setVisible(viewableItems[0]?.item.id ?? null);
   }, []);
 
-  const lieuDuMenu = menu ? lieuParId.get(menu.lieuId) : undefined;
+  const lieuDuMenu = menuAffiche ? lieuParId.get(menuAffiche.lieuId) : undefined;
   // La barre d'onglets est posée, transparente, sur le fil (voir src/app/(onglets)/_layout.tsx)
   const hauteurBarreOnglets = useBottomTabBarHeight();
   // Étiquette d'illustration et compteur de photos : juste sous l'en-tête, quelle que soit l'encoche du téléphone
@@ -149,6 +162,7 @@ export default function PourToi() {
       {taille.hauteur > 0 ? (
         liste.length > 0 ? (
           <FlatList
+            ref={refListe}
             key={onglet}
             data={liste}
             keyExtractor={(p) => p.id}

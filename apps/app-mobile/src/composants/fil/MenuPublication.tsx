@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
@@ -53,7 +54,7 @@ export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir,
   function revenirAuxOptions() {
     setVue("options");
     // Le lecteur d'écran reprend sur le titre du menu, l'élément qu'il lisait vient de disparaître
-    setTimeout(() => titreOptions.current && AccessibilityInfo.sendAccessibilityEvent(titreOptions.current, "focus"), 150);
+    setTimeout(() => deplacerFocusLecteurEcran(titreOptions.current), 150);
   }
 
   // Retour Android et geste d'échappement de VoiceOver : une étape en arrière, sans perdre ce qui est écrit

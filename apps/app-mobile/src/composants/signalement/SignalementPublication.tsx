@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "@sos-miam/commun/regles/signalement";
@@ -9,6 +9,7 @@ import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement"
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import { MerciSignalement } from "~/composants/signalement/MerciSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import couleurs from "~/theme/couleurs";
 
 /** Ce que la personne a choisi et écrit ; le fil y ajoute la publication et la date. */
@@ -41,7 +42,7 @@ export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoy
   // Le contenu change sous le doigt : le lecteur d'écran repart du titre de la nouvelle étape
   useEffect(() => {
     if (etape === "merci") return;
-    const minuterie = setTimeout(() => enTete.current && AccessibilityInfo.sendAccessibilityEvent(enTete.current, "focus"), 150);
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(enTete.current), 150);
     return () => clearTimeout(minuterie);
   }, [etape]);
 

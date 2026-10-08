@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
-import { AccessibilityInfo, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { AideUrgence } from "~/composants/signalement/AideUrgence";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 
 type Props = {
   /** Raison grave : on rappelle encore les numéros d'urgence et Pharos */
@@ -19,7 +20,7 @@ export function MerciSignalement({ grave, masqueePourTous, onFermer }: Props) {
 
   // Ce qu'on vient de toucher a disparu : le lecteur d'écran repart du « Merci » (après le fondu d'entrée)
   useEffect(() => {
-    const minuterie = setTimeout(() => enTete.current && AccessibilityInfo.sendAccessibilityEvent(enTete.current, "focus"), 250);
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(enTete.current), 250);
     return () => clearTimeout(minuterie);
   }, []);
 

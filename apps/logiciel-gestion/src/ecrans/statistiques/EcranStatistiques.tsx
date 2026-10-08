@@ -105,7 +105,7 @@ export function EcranStatistiques() {
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {CLASSEMENTS.map(({ dimension, titre, unite, nommer }) => (
               <Carte key={dimension} titre={titre}>
-                <p className="-mt-1 mb-3 text-[13px] text-gris">En {unite}, sur les {reglage.libelle.toLowerCase()} affichés</p>
+                <p className="-mt-1 mb-3 text-[13px] text-gris">En {unite}, sur toute la période affichée</p>
                 <ListeClassement elements={donnees.details[dimension] ?? []} nommer={nommer} vide="Pas encore de visite sur cette période." />
               </Carte>
             ))}
