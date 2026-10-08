@@ -6,7 +6,8 @@ export type CommunePourZone = { code: string; codeDepartement: string; populatio
 /**
  * Code de la zone de fondateurs d'une commune (celui de ZoneFondateur) : son propre code INSEE si elle a 50 000 habitants
  * ou plus (zone « ville » : « 69123 » pour Lyon), sinon « D » suivi du code de son département ou de sa collectivité
- * d'outre-mer (« D69 », « D2A », « D987 »). Pour un arrondissement de Paris, Lyon ou Marseille, donne sa commune.
+ * d'outre-mer (« D69 », « D2A », « D987 »). Pour un arrondissement de Paris, Lyon ou Marseille, passe sa commune
+ * (trouverCommuneParCode, dans fonctions/geo, la donne).
  */
 export function calculerCodeZone(commune: CommunePourZone): string {
   return calculerPlacesVille(commune.population) > 0 ? commune.code : `D${commune.codeDepartement}`;

@@ -97,7 +97,7 @@ export function EcranStatistiques() {
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <Onglets libelle="Source" valeur={vue} onChange={setVue} options={[{ valeur: "site", libelle: "Site web" }, { valeur: "app", libelle: "App" }, { valeur: "communaute", libelle: "Communauté" }]} />
         {vue !== "communaute" && <Onglets libelle="Période" valeur={choix} onChange={setChoix} options={CHOIX.map(({ valeur, libelle }) => ({ valeur, libelle }))} />}
-        {uneSemaine && (
+        {vue !== "communaute" && uneSemaine && (
           <div className="flex items-center gap-1">
             <Bouton petit variante="discret" icone={ChevronLeft} titre="Semaine précédente" onClick={() => decalerSemaine(-1)} />
             <label className="sr-only" htmlFor="semaine-choisie">Semaine</label>
@@ -118,56 +118,56 @@ export function EcranStatistiques() {
       {vue === "communaute" ? (
         <StatistiquesCommunaute />
       ) : (
-      <>
-      <MessageErreur erreur={erreur} reessayer={recharger} />
-      {source === "app" && periodes.every((p) => p.vues === 0) && !chargement ? (
-        <Carte>
-          <EtatVide emoji="📱" titre="L'app n'envoie pas encore de statistiques">
-            Elles arriveront ici avec la sortie de l'app : ouvertures, écrans vus, rescousses, scans… comptés de la même façon, sans pistage.
-          </EtatVide>
-        </Carte>
-      ) : !donnees && chargement ? (
-        <Chargement />
-      ) : donnees && actuelle ? (
-        <div className="grid gap-6">
-          <TuilesStatistiques
-            actuelle={actuelle}
-            precedente={precedente}
-            conversions={donnees.conversions[donnees.conversions.length - 1]}
-            enCours={reglage.enCours}
-            reference={reglage.precedente}
-          />
-          <Carte titre={libelleMesure} actions={<Onglets libelle="Mesure du graphique" valeur={mesure} onChange={setMesure} options={MESURES} />}>
-            <GraphiqueColonnes
-              mesure={libelleMesure}
-              comparer={comparer && mesure !== "inscriptions"}
-              points={periodesGraphe.map((periode, i) => ({
-                cle: periode.cle,
-                libelle: nommerPeriode(periode.cle),
-                libelleLong: nommerPeriode(periode.cle, true),
-                valeur: valeur(i),
-                avant: valeur(i, true),
-                libelleAvant: graphe?.precedentes[i] ? nommerPeriode(graphe.precedentes[i]!.cle, true) : undefined,
-                details: MESURES.filter((m) => m.valeur !== mesure && m.valeur !== "inscriptions")
-                  .map((m) => `${formaterNombre(periode[m.valeur as "visiteurs" | "visites" | "vues"])} ${m.libelle.toLowerCase()}`),
-                enCours: i === periodesGraphe.length - 1 && !uneSemaine,
-              }))}
-            />
-            <p className="mt-3 text-[13px] text-gris">
-              Un visiteur est compté une fois par période : la même personne revenue deux jours de suite compte pour 2 dans les jours,
-              pour 1 dans la semaine. Au-delà de quelques centaines, les visiteurs sont estimés (à 2 % près).
-            </p>
+        <>
+        <MessageErreur erreur={erreur} reessayer={recharger} />
+        {source === "app" && periodes.every((p) => p.vues === 0) && !chargement ? (
+          <Carte>
+            <EtatVide emoji="📱" titre="L'app n'envoie pas encore de statistiques">
+              Elles arriveront ici avec la sortie de l'app : ouvertures, écrans vus, rescousses, scans… comptés de la même façon, sans pistage.
+            </EtatVide>
           </Carte>
-          {source === "site" && (
-            <div className={`grid gap-5 ${uneSemaine ? "" : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"}`}>
-              {!uneSemaine && <CarteEnDirect />}
-              <CarteJoursHeures creneaux={donnees.details.creneau ?? []} />
-            </div>
-          )}
-          <GrilleClassements details={donnees.details} />
-        </div>
-      ) : null}
-      </>
+        ) : !donnees && chargement ? (
+          <Chargement />
+        ) : donnees && actuelle ? (
+          <div className="grid gap-6">
+            <TuilesStatistiques
+              actuelle={actuelle}
+              precedente={precedente}
+              conversions={donnees.conversions[donnees.conversions.length - 1]}
+              enCours={reglage.enCours}
+              reference={reglage.precedente}
+            />
+            <Carte titre={libelleMesure} actions={<Onglets libelle="Mesure du graphique" valeur={mesure} onChange={setMesure} options={MESURES} />}>
+              <GraphiqueColonnes
+                mesure={libelleMesure}
+                comparer={comparer && mesure !== "inscriptions"}
+                points={periodesGraphe.map((periode, i) => ({
+                  cle: periode.cle,
+                  libelle: nommerPeriode(periode.cle),
+                  libelleLong: nommerPeriode(periode.cle, true),
+                  valeur: valeur(i),
+                  avant: valeur(i, true),
+                  libelleAvant: graphe?.precedentes[i] ? nommerPeriode(graphe.precedentes[i]!.cle, true) : undefined,
+                  details: MESURES.filter((m) => m.valeur !== mesure && m.valeur !== "inscriptions")
+                    .map((m) => `${formaterNombre(periode[m.valeur as "visiteurs" | "visites" | "vues"])} ${m.libelle.toLowerCase()}`),
+                  enCours: i === periodesGraphe.length - 1 && !uneSemaine,
+                }))}
+              />
+              <p className="mt-3 text-[13px] text-gris">
+                Un visiteur est compté une fois par période : la même personne revenue deux jours de suite compte pour 2 dans les jours,
+                pour 1 dans la semaine. Au-delà de quelques centaines, les visiteurs sont estimés (à 2 % près).
+              </p>
+            </Carte>
+            {source === "site" && (
+              <div className={`grid gap-5 ${uneSemaine ? "" : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"}`}>
+                {!uneSemaine && <CarteEnDirect />}
+                <CarteJoursHeures creneaux={donnees.details.creneau ?? []} />
+              </div>
+            )}
+            <GrilleClassements details={donnees.details} />
+          </div>
+        ) : null}
+        </>
       )}
     </>
   );
