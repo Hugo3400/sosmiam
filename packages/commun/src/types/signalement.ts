@@ -34,10 +34,10 @@ export type Signalement = {
   date: string;
 };
 
-/** Un signalement de commentaire, de message de sortie ou de profil (mêmes raisons que pour une publication). */
+/** Un signalement de commentaire, de message, de lieu envoyé entre potes (et son petit mot), de liste partagée ou de profil (mêmes raisons que pour une publication). */
 export type SignalementContenu = {
-  cible: "commentaire" | "message" | "profil";
-  /** Identifiant du commentaire, du message ou du pote */
+  cible: "commentaire" | "message" | "recommandation" | "liste" | "profil";
+  /** Identifiant du commentaire, du message, du lieu envoyé, de la liste ou du pote */
   cibleId: string;
   raison: RaisonSignalement;
   precision: string | null;

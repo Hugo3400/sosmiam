@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
-import { useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { AccessibilityInfo, Linking, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
@@ -24,7 +25,8 @@ const MESSAGES: Record<Souci, string> = {
 
 /**
  * Scanner le QR code d'un pote : l'autorisation de l'appareil photo est demandée seulement quand on touche « Scanner »,
- * un refus est accueilli gentiment (avec le chemin des réglages s'il faut), et la caméra s'éteint dès qu'un code est lu.
+ * un refus est accueilli gentiment (avec le chemin des réglages s'il faut), et la caméra s'éteint dès qu'un code est lu
+ * ou qu'un autre écran passe devant (profil d'un pote, tes infos…).
  */
 export function ScannerQrCode({ onLu, onOuvrir }: Props) {
   const [permission, demanderPermission] = useCameraPermissions();
@@ -32,6 +34,9 @@ export function ScannerQrCode({ onLu, onOuvrir }: Props) {
   const [souci, setSouci] = useState<Souci | null>(null);
   // Un QR code passe plusieurs fois devant l'objectif : seule la première lecture compte
   const dejaLu = useRef(false);
+
+  // Un écran poussé par-dessus laisse celui-ci monté : sans ça, l'appareil photo resterait allumé (et le scan branché) derrière
+  useFocusEffect(useCallback(() => () => setOuvert(false), []));
 
   function signaler(nouveau: Souci) {
     setSouci(nouveau);

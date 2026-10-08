@@ -132,11 +132,13 @@ export default function ReglagesNotifications() {
               <View className="gap-2">
                 <Text className="font-texte-semi text-base text-encre">À partir de</Text>
                 <View accessibilityRole="radiogroup" accessibilityLabel="Début du mode nuit" className="flex-row flex-wrap gap-2">
-                  {HEURES_DEBUT.map((heure) => (
+                  {HEURES_DEBUT.map((heure, i) => (
                     <Pastille
                       key={heure}
                       role="radio"
                       libelle={afficherHeure(heure)}
+                      position={i + 1}
+                      total={HEURES_DEBUT.length}
                       choisi={reglages.silence.de === heure}
                       onPress={() => changerSilence({ de: heure })}
                     />
@@ -146,11 +148,13 @@ export default function ReglagesNotifications() {
               <View className="gap-2">
                 <Text className="font-texte-semi text-base text-encre">Jusqu'à</Text>
                 <View accessibilityRole="radiogroup" accessibilityLabel="Fin du mode nuit" className="flex-row flex-wrap gap-2">
-                  {HEURES_FIN.map((heure) => (
+                  {HEURES_FIN.map((heure, i) => (
                     <Pastille
                       key={heure}
                       role="radio"
                       libelle={afficherHeure(heure)}
+                      position={i + 1}
+                      total={HEURES_FIN.length}
                       choisi={reglages.silence.a === heure}
                       onPress={() => changerSilence({ a: heure })}
                     />

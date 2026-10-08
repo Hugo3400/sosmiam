@@ -24,6 +24,7 @@ import { chercherParPseudo } from "~/fonctions/communaute/chercher-par-pseudo";
 import { choisirLieuGagnant } from "~/fonctions/communaute/choisir-lieu-gagnant";
 import { construireMoi } from "~/fonctions/communaute/construire-moi";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
+import { estVoteTermine } from "~/fonctions/communaute/est-vote-termine";
 import { extraireMentions } from "~/fonctions/communaute/extraire-mentions";
 import { trierCommentaires } from "~/fonctions/communaute/trier-commentaires";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -138,14 +139,14 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, sorties: e.sorties.map((s) => (s.id === id ? changer(s) : s)) }));
   }, []);
 
-  // Démo : des potes d'exemple de la sortie votent pour un ou deux lieux, un peu plus tard
+  // Démo : des potes d'exemple de la sortie votent pour un ou deux lieux, un peu plus tard (jamais une fois le vote fini)
   const fairerVoterLesPotes = useCallback(
     (sortieId: string, participants: string[], lieux: number[]) => {
       participants.filter((id) => id !== ID_MOI).forEach((id) => {
         plusTard(entre(3000, 9000), (e) => ({
           ...e,
           sorties: e.sorties.map((s) => {
-            if (s.id !== sortieId || e.bloques.includes(id)) return s;
+            if (s.id !== sortieId || e.bloques.includes(id) || estVoteTermine(s)) return s;
             const choix = [...lieux].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.5 ? 1 : 2);
             return choix.reduce((sortie, lieuId) => (sortie.propositions.find((p) => p.lieuId === lieuId)?.votes.includes(id) ? sortie : basculerVote(sortie, lieuId, id)), s);
           }),
@@ -170,7 +171,9 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         if (!pote || id === ID_MOI) return "introuvable";
         if (etat.bloques.includes(id)) return "bloque";
         if (etat.bande.includes(id)) return "deja";
-        if (moyen === "pseudo" && !moiMineur && pote.mineur) return "mineur";
+        // Démo : rien ne vérifie encore qu'un lien ou un QR code a été donné en main propre (le pseudo, public, suffit à les fabriquer).
+        // Tant que l'API ne vérifie pas les invitations, un adulte n'ajoute donc aucun mineur, quel que soit le moyen.
+        if (!moiMineur && pote.mineur) return "mineur";
         setEtat((e) => ({ ...e, bande: [...e.bande, id], moyens: { ...e.moyens, [id]: moyen } }));
         return "ajoute";
       },
@@ -200,10 +203,10 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         fairerVoterLesPotes(id, participants, permis);
         return { id };
       },
-      voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => basculerVote(s, lieuId, ID_MOI)),
+      voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => (estVoteTermine(s) ? s : basculerVote(s, lieuId, ID_MOI))),
       proposerLieu: (sortieId, lieuId) => {
         const sortie = etat.sorties.find((s) => s.id === sortieId);
-        if (!sortie || !lieuPermisDansSortie(lieuId, sortie.participants)) return "interdit";
+        if (!sortie || estVoteTermine(sortie) || !lieuPermisDansSortie(lieuId, sortie.participants)) return "interdit";
         if (sortie.propositions.some((p) => p.lieuId === lieuId)) return "deja";
         if (sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE) return "max";
         changerSortie(sortieId, (s) => ({ ...s, propositions: [...s.propositions, { lieuId, proposePar: ID_MOI, votes: [ID_MOI] }] }));
@@ -227,10 +230,11 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return "ok";
       },
       terminerVote: (sortieId) =>
-        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants))) })),
+        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
 
-      listes: etat.listes,
+      // Une liste signalée disparaît pour toi
+      listes: etat.listes.filter((l) => !signales.has(l.id)),
       creerListe: (titre, emoji, description) => {
         const id = creerIdentifiant("liste");
         setEtat((e) => ({ ...e, listes: [...e.listes, { id, titre: titre.trim(), emoji, description: description.trim(), auteur: ID_MOI, lieux: [], abonnes: [] }] }));
@@ -247,7 +251,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       activites: etat.activites.filter((a) => !etat.bloques.includes(a.pote)).sort((a, b) => b.date.localeCompare(a.date)),
       classement: calculerClassement(potes, moi),
 
-      recommandationsRecues: etat.recommandations.filter((r) => r.a === ID_MOI && !etat.bloques.includes(r.de)).sort((a, b) => b.date.localeCompare(a.date)),
+      recommandationsRecues: etat.recommandations.filter((r) => r.a === ID_MOI && !etat.bloques.includes(r.de) && !signales.has(r.id)).sort((a, b) => b.date.localeCompare(a.date)),
       recommandationsEnvoyees: etat.recommandations.filter((r) => r.de === ID_MOI).sort((a, b) => b.date.localeCompare(a.date)),
       envoyerLieu: (lieuId, destinataires, mot) => {
         const verdict = mot && mot.trim() !== "" ? verifierTexte(mot, LONGUEUR_MAX_MOT_RECOMMANDATION) : "ok";

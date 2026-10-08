@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 import { lireCodeInvitation } from "~/stockage/code-invitation";
 
-// Lu une fois par ouverture de l'app, puis gardé ici : tous les écrans montrent le même lien
+// Lu une seule fois par ouverture de l'app (une seule lecture même si deux écrans le demandent en même temps) : partout le même lien
+let lecture: Promise<string> | null = null;
 let enMemoire: string | null = null;
 
 /** Ton code secret d'invitation (stockage/code-invitation.ts) ; null le temps de le lire sur le téléphone. */
@@ -12,8 +13,8 @@ export function utiliserCodeInvitation(): string | null {
   useEffect(() => {
     if (enMemoire) return;
     let actif = true;
-    lireCodeInvitation().then((lu) => {
-      enMemoire = lu;
+    lecture ??= lireCodeInvitation().then((lu) => (enMemoire = lu));
+    lecture.then((lu) => {
       if (actif) setCode(lu);
     });
     return () => {

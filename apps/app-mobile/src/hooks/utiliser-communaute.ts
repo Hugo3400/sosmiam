@@ -30,14 +30,18 @@ export type EtatCommunaute = {
   demo: true;
   /** Ton profil communautaire (identifiant « moi ») */
   moi: Pote;
-  /** 15 à 17 ans (ou âge inconnu) : pas d'alcool, et pas d'ajout de mineur par pseudo pour les adultes */
+  /** 15 à 17 ans (ou âge inconnu) : pas d'alcool. Un adulte, lui, ne trouve pas les mineurs par pseudo et ne peut pas les ajouter (démo). */
   moiMineur: boolean;
   /** Ta bande (sans les personnes bloquées) */
   potes: Pote[];
   /** N'importe qui par son identifiant (toi, ta bande, les autres personnes connues), ou null */
   trouverPote: (id: string) => Pote | null;
+  /** Recherche par pseudo ; un adulte n'y voit pas les mineurs, sauf ceux déjà dans sa bande */
   chercherParPseudo: (texte: string) => ResultatRecherchePote[];
-  /** Ajoute à ta bande ; un adulte ne peut ajouter un mineur que par lien ou QR code */
+  /**
+   * Ajoute à ta bande. Démo : le lien et le QR code se déduisent encore du pseudo, public, et leur code secret n'est pas vérifié ;
+   * tant que l'API ne vérifie pas les invitations, un adulte n'ajoute donc aucun mineur, quel que soit le moyen (« mineur »).
+   */
   ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "mineur" | "bloque" | "introuvable";
   retirerPote: (id: string) => void;
   /** Comment ce pote a été ajouté : « lien », « qr », « pseudo », « exemple » (bande de la démo), ou undefined */
@@ -47,19 +51,22 @@ export type EtatCommunaute = {
   bloquer: (id: string) => void;
   debloquer: (id: string) => void;
 
-  /** Tes sorties, à venir d'abord ; le lieu retenu est calculé à la fin du vote. Pour un mineur, sans les bars. */
+  /** Tes sorties, à venir d'abord ; le lieu retenu est calculé à la fin du vote, et plus personne ne vote ensuite. Pour un mineur, sans les bars. */
   sorties: Sortie[];
   trouverSortie: (id: string) => Sortie | null;
   /** Vrai si ce lieu peut être proposé dans cette sortie (pas de bar avec un mineur) */
   lieuPermisDansSortie: (lieuId: number, participants: string[]) => boolean;
   creerSortie: (sortie: NouvelleSortie) => { id: string } | { erreur: "titre" | "participants" | "lieux" };
+  /** Vote (ou retire ton vote) pour un lieu ; sans effet une fois le vote fini */
   voter: (sortieId: string, lieuId: number) => void;
+  /** « interdit » : lieu pas permis dans cette sortie (bar avec un mineur), ou vote déjà fini */
   proposerLieu: (sortieId: string, lieuId: number) => "ok" | "deja" | "max" | "interdit";
   envoyerMessage: (sortieId: string, texte: string) => ResultatTexte;
   /** Termine le vote tout de suite (seulement l'organisateur) */
   terminerVote: (sortieId: string) => void;
   quitterSortie: (sortieId: string) => void;
 
+  /** Toutes les listes connues, sans celles que tu as signalées */
   listes: ListePartagee[];
   creerListe: (titre: string, emoji: string, description: string) => string;
   basculerSuiviListe: (listeId: string) => void;
@@ -70,6 +77,7 @@ export type EtatCommunaute = {
   activites: ActivitePote[];
   classement: PlaceClassement[];
 
+  /** Lieux reçus de tes potes (sans ceux des personnes bloquées ni ceux que tu as signalés) */
   recommandationsRecues: Recommandation[];
   recommandationsEnvoyees: Recommandation[];
   envoyerLieu: (lieuId: number, potes: string[], mot?: string) => ResultatTexte;
@@ -83,9 +91,9 @@ export type EtatCommunaute = {
   supprimerCommentaire: (id: string) => void;
   basculerJaimeCommentaire: (id: string) => void;
 
-  /** Signale un commentaire, un message ou un profil : gardé sur le téléphone en attendant l'API, et le contenu disparaît pour toi */
+  /** Signale un commentaire, un message, un lieu envoyé, une liste ou un profil : gardé sur le téléphone en attendant l'API, et le contenu disparaît pour toi (un profil reste visible) */
   signaler: (signalement: Omit<SignalementContenu, "date">) => void;
-  /** Vrai si tu as déjà signalé ce commentaire, ce message ou ce profil (il est alors caché pour toi) */
+  /** Vrai si tu as déjà signalé ce commentaire, ce message, ce lieu envoyé, cette liste ou ce profil */
   estSignale: (cibleId: string) => boolean;
   /** Efface toute la communauté du téléphone (la démo repartira de zéro) */
   effacer: () => Promise<void>;

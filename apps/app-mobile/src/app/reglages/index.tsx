@@ -32,7 +32,7 @@ function ouvrirLien(adresse: string) {
   });
 }
 
-/** Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, les pages légales et de quoi tout effacer. */
+/** Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, les personnes bloquées, les pages légales et de quoi tout effacer. */
 export default function Reglages() {
   const router = useRouter();
   const { profil, avatar, effacer } = utiliserProfil();
@@ -55,6 +55,13 @@ export default function Reglages() {
     avatar.type === "photo"
       ? "Ta photo pour l'instant, ou un emoji"
       : `En ${avatarsEmoji.find((a) => a.emoji === avatar.emoji)?.nom ?? avatar.emoji} pour l'instant, ou en photo`;
+
+  const nombreBloques = communaute.bloques.length;
+  const detailBloques = !communaute.pret
+    ? "Les gens dont tu ne veux plus rien voir"
+    : nombreBloques === 0
+      ? "Personne pour l'instant, que des bonnes ondes"
+      : `${nombreBloques} personne${nombreBloques > 1 ? "s" : ""} bloquée${nombreBloques > 1 ? "s" : ""} · tu peux changer d'avis`;
 
   const version = Constants.expoConfig?.version;
 
@@ -121,6 +128,10 @@ export default function Reglages() {
           detail="Les alertes qui t'intéressent, et du calme la nuit"
           onPress={() => router.push("/reglages/notifications")}
         />
+      </SectionReglages>
+
+      <SectionReglages titre="Ta tranquillité">
+        <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
       </SectionReglages>
 
       <SectionReglages titre="Confidentialité et aide">

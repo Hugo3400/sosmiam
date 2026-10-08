@@ -117,7 +117,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>
         <PartieCompte id="mon-mot-de-passe" titre="Mon mot de passe">
-          <FormulaireChangerMotDePasse />
+          <FormulaireChangerMotDePasse email={email} />
         </PartieCompte>
         <PartieCompte id="me-deconnecter" titre="Me déconnecter">
           <p className="mb-5 text-gris">Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.</p>

@@ -12,6 +12,10 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { AideUrgence } from "~/composants/signalement/AideUrgence";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
 
+// Affiché avec un singe qui se cache les yeux (🙈), lu sans
+const MASQUAGE_IMMEDIAT =
+  "Ce type de contenu sera masqué pour tout le monde dès son premier signalement, le temps qu'un modérateur le vérifie (dès que l'app sera reliée à notre serveur).";
+
 type Props = {
   raison: ChoixRaisonSignalement;
   precision: string | null;
@@ -35,8 +39,18 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
             C'est plutôt… <Text className="font-texte text-gris">(facultatif)</Text>
           </Text>
           <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
-            {raison.precisions.map((p) => (
-              <Pastille key={p} libelle={p} role="radio" choisi={precision === p} onPress={() => onChoisirPrecision(precision === p ? null : p)} />
+            {raison.precisions.map((p, i) => (
+              <Pastille
+                key={p}
+                libelle={p}
+                role="radio"
+                choisi={precision === p}
+                position={i + 1}
+                total={raison.precisions.length}
+                // Facultatif : une précision choisie s'enlève en la touchant encore
+                indice={precision === p ? "Touche encore pour l'enlever" : undefined}
+                onPress={() => onChoisirPrecision(precision === p ? null : p)}
+              />
             ))}
           </View>
         </View>
@@ -56,9 +70,8 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
       />
 
       {masqueePourTous ? (
-        <Text className="font-texte text-sm leading-5 text-encre">
-          🙈 Ce type de contenu sera masqué pour tout le monde dès son premier signalement, le temps qu'un modérateur le vérifie (dès que l'app sera
-          reliée à notre serveur).
+        <Text accessibilityLabel={MASQUAGE_IMMEDIAT} className="font-texte text-sm leading-5 text-encre">
+          🙈 {MASQUAGE_IMMEDIAT}
         </Text>
       ) : null}
 
