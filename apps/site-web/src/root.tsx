@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { signalerVue } from "~/services/mesure.server";
 // Polices hébergées par le site lui-même (pas d'appel à Google Fonts)
 import "@fontsource-variable/inter";
 import "@fontsource-variable/bricolage-grotesque";
@@ -14,6 +15,15 @@ export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
   { rel: "icon", href: "/icones/favicon.svg", type: "image/svg+xml" },
   { rel: "apple-touch-icon", href: "/icones/apple-touch-icon.png" },
+];
+
+// Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
+export const middleware: Route.MiddlewareFunction[] = [
+  async ({ request }, suite) => {
+    const reponse = await suite();
+    if (reponse instanceof Response) signalerVue(request, reponse);
+    return reponse;
+  },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

@@ -57,6 +57,8 @@ export function creerControleursGestion(s: ServicesGestion) {
           recherche: lireParametre(requete.query.recherche),
           ville: lireParametre(requete.query.ville, 80),
           ambassadeur: requete.query.ambassadeur === "1",
+          beta: requete.query.beta === "1",
+          telephone: ["iphone", "android"].includes(String(requete.query.telephone)) ? String(requete.query.telephone) : "",
           aRelancer: requete.query.relance === "1",
           page: Math.max(1, lireId(requete.query.page) ?? 1),
         }),

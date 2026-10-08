@@ -40,21 +40,34 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   const email = String(formulaire.get("email") ?? "");
   const ville = String(formulaire.get("ville") ?? "");
   const ambassadeur = formulaire.get("ambassadeur") === "oui";
+  const beta = formulaire.get("beta") === "oui";
+  const telephoneSaisi = formulaire.get("telephone");
+  const telephone = telephoneSaisi === "iphone" || telephoneSaisi === "android" ? telephoneSaisi : null;
   const piege = String(formulaire.get("piege") ?? "");
 
   if (!verifierEmail(email)) {
-    return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide." };
+    return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide.", champ: "email" };
+  }
+  // Pour inviter quelqu'un à la bêta, il faut savoir sur quel store : App Store (iPhone) ou Play Store (Android)
+  if (beta && !telephone) {
+    return { ok: false, message: "Pour la bêta, dis-nous si tu as un iPhone ou un Android. 📱", champ: "telephone" };
   }
 
   // Un lieu proposé reconnu (« sete ») est enregistré sous son vrai nom (« Sète »), le reste tel que tapé
   const lieu = trouverLieuPropose(ville);
   // nginx transmet l'adresse IP du visiteur : l'API s'en sert pour limiter les essais, sans la garder
-  const resultat = await inscrireNewsletter({ email, ville: lieu?.valeur ?? ville, ambassadeur, piege }, request.headers.get("x-real-ip"));
-  if (resultat !== "ok") return { ok: false, message: messagesErreur[resultat] };
+  const resultat = await inscrireNewsletter(
+    { email, ville: lieu?.valeur ?? ville, ambassadeur, telephone, beta, piege },
+    request.headers.get("x-real-ip"),
+  );
+  if (resultat !== "ok") return { ok: false, message: messagesErreur[resultat], champ: resultat === "email-invalide" ? "email" : undefined };
 
   const ou = lieu?.ou ?? "près de chez toi";
-  const suite = ambassadeur ? " Et on revient vers toi pour les ambassadeurs fondateurs. 🎖️" : "";
-  return { ok: true, message: `C'est noté ! On te prévient dès que SOS Miam arrive ${ou}. 🛟${suite}` };
+  const suites = [
+    beta ? "On t'invite à tester la bêta dès qu'elle est prête. 🧪" : "",
+    ambassadeur ? "On revient aussi vers toi pour les ambassadeurs fondateurs. 🎖️" : "",
+  ].filter(Boolean);
+  return { ok: true, message: [`C'est noté ! On te prévient dès que SOS Miam arrive ${ou}. 🛟`, ...suites].join(" ") };
 }
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */

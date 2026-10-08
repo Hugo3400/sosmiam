@@ -5,6 +5,10 @@ export type DemandeInscription = {
   email: string;
   ville: string;
   ambassadeur: boolean;
+  /** iPhone ou Android, pour savoir sur quel store publier l'app en premier */
+  telephone: "iphone" | "android" | null;
+  /** Veut tester l'app avant sa sortie */
+  beta: boolean;
   /** Champ piège du formulaire : rempli seulement par les robots */
   piege: string;
 };

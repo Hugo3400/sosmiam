@@ -6,7 +6,8 @@ Deux sources d'inscriptions :
   connexion lue dans apps/api/.env) ;
 - les mails tout prêts de l'ancienne page Bientôt (objet « Inscription à la newsletter SOS Miam »,
   ligne « Ma ville : »), lus en IMAP sans rien marquer comme lu ni déplacer.
-Le script écrit la liste dans un CSV : une ligne par adresse encore inscrite, sans doublons.
+Le script écrit la liste dans un CSV : une ligne par adresse encore inscrite, sans doublons, avec la ville, le téléphone
+(iphone ou android) et l'envie de tester la bêta : de quoi inviter les bêta-testeurs sur le bon store.
 Une personne désinscrite est aussi effacée de la base (ville comprise).
 
 Désinscriptions, reconnues toutes seules : un mail dont l'objet contient « désinscri… » ou
@@ -171,23 +172,26 @@ def lire_desinscrits(chemin=FICHIER_DESINSCRITS):
 
 
 def fusionner_evenements(evenements, bloques, maintenant):
-    """Rejoue les événements dans l'ordre : la dernière action de chaque adresse l'emporte."""
-    lignes, ville = {}, {}
+    """Rejoue les événements dans l'ordre : la dernière action de chaque adresse l'emporte.
+    Ville et téléphone : la dernière réponse non vide. Bêta : reste « oui » une fois demandée. Tout s'oublie à la désinscription."""
+    lignes = {}
     for ev in sorted(evenements, key=lambda e: e["moment"]):
         adresse, jour = ev["adresse"], ev["moment"].date().isoformat()
-        if ev["type"] == "desinscription":  # on oublie tout, ville comprise
+        if ev["type"] == "desinscription":  # on oublie tout, ville et téléphone compris
             lignes.pop(adresse, None)
-            ville.pop(adresse, None)
             continue
-        ville[adresse] = ev["ville"] or ville.get(adresse, "")
-        ligne = lignes.setdefault(adresse, {"adresse": adresse, "inscrit_le": jour})
+        ligne = lignes.setdefault(adresse, {"adresse": adresse, "inscrit_le": jour, "ville": "", "telephone": "", "beta": False})
+        ligne["ville"] = ev.get("ville") or ligne["ville"]
+        ligne["telephone"] = ev.get("telephone") or ligne["telephone"]
+        ligne["beta"] = ligne["beta"] or ev.get("beta", False)
         ligne["dernier_moment"] = ev["moment"]
     resultat = []
     for adresse, ligne in lignes.items():
         if adresse in bloques:
             continue
         a_relancer = maintenant - ligne["dernier_moment"] > DELAI_RELANCE
-        resultat.append({"adresse": adresse, "ville": ville[adresse], "inscrit_le": ligne["inscrit_le"],
+        resultat.append({"adresse": adresse, "ville": ligne["ville"], "telephone": ligne["telephone"],
+                         "beta": "oui" if ligne["beta"] else "non", "inscrit_le": ligne["inscrit_le"],
                          "dernier_message": ligne["dernier_moment"].date().isoformat(), "a_relancer": "oui" if a_relancer else "non"})
     return sorted(resultat, key=lambda l: (l["inscrit_le"], l["adresse"]))
 
@@ -199,7 +203,7 @@ def proteger_cellule(valeur):
 
 def ecrire_csv(lignes, chemin=FICHIER_INSCRITS):
     """Écrit le CSV d'un coup (fichier temporaire puis renommage), lisible par root seulement."""
-    colonnes = ("adresse", "ville", "inscrit_le", "dernier_message", "a_relancer")
+    colonnes = ("adresse", "ville", "telephone", "beta", "inscrit_le", "dernier_message", "a_relancer")
     os.makedirs(os.path.dirname(chemin), mode=0o700, exist_ok=True)
     descripteur, temporaire = tempfile.mkstemp(dir=os.path.dirname(chemin), suffix=".tmp")
     with os.fdopen(descripteur, "w", encoding="utf-8-sig", newline="") as fichier:
@@ -239,16 +243,16 @@ def executer_sql(connexion, sql, variables=None):
 def lire_base(connexion):
     """Inscriptions du formulaire du site, en événements datés (première et dernière inscription)."""
     format_date = "'YYYY-MM-DD\"T\"HH24:MI:SS'"
-    sortie = executer_sql(connexion, f"SELECT email, coalesce(ville, ''), "
+    sortie = executer_sql(connexion, f"SELECT email, coalesce(ville, ''), coalesce(telephone, ''), beta, "
                                      f"to_char(premiere_inscription AT TIME ZONE 'UTC', {format_date}), "
                                      f"to_char(derniere_inscription AT TIME ZONE 'UTC', {format_date}) "
                                      "FROM inscriptions_newsletter;")
     evenements = []
     for ligne in sortie.splitlines():
-        adresse, ville, premiere, derniere = ligne.split("\t")
+        adresse, ville, telephone, beta, premiere, derniere = ligne.split("\t")
         for moment in dict.fromkeys((premiere, derniere)):
-            evenements.append({"type": "inscription", "adresse": adresse.lower(), "ville": ville,
-                               "moment": datetime.fromisoformat(moment).replace(tzinfo=timezone.utc)})
+            evenements.append({"type": "inscription", "adresse": adresse.lower(), "ville": ville, "telephone": telephone,
+                               "beta": beta == "t", "moment": datetime.fromisoformat(moment).replace(tzinfo=timezone.utc)})
     return evenements
 
 

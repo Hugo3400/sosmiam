@@ -1,6 +1,6 @@
 // Suggestions du champ « Ta ville ou ta région » du formulaire d'inscription : on peut aussi taper autre chose.
-// Pour chaque région : son nom officiel, puis ses grandes villes, de la plus peuplée à la moins peuplée (population municipale
-// de l'INSEE), chef-lieu de région toujours compris. L'Occitanie, où l'on se lance, commence par nos villes de l'Hérault.
+// Pour chaque région : son nom officiel, puis ses 6 plus grandes villes, de la plus peuplée à la moins peuplée (populations
+// municipales INSEE en vigueur au 1er janvier 2026, via geo.api.gouv.fr), chef-lieu de région toujours compris. L'Occitanie, où l'on se lance, commence par nos villes de l'Hérault.
 // « ou » complète « On te prévient dès que SOS Miam arrive … ».
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 
@@ -44,25 +44,25 @@ const regions: Region[] = [
     nom: "Occitanie", ou: "en Occitanie", lancement: true,
     villesLancement: ["Montpellier", "Sète", "Béziers", "Pézenas", "Agde", "Lunel", "Lodève", "Palavas-les-Flots"],
     departement: ["Hérault", "dans l'Hérault"],
-    villes: ["Toulouse", "Nîmes", "Perpignan", "Montauban", "Narbonne", "Albi"],
+    villes: ["Toulouse", "Nîmes", "Perpignan", "Montauban"],
   },
-  { nom: "Auvergne-Rhône-Alpes", ou: "en Auvergne-Rhône-Alpes", villes: ["Lyon", "Saint-Étienne", "Grenoble", "Villeurbanne", "Clermont-Ferrand", "Annecy"] },
-  { nom: "Bourgogne-Franche-Comté", ou: "en Bourgogne-Franche-Comté", villes: ["Dijon", "Besançon", "Belfort", "Chalon-sur-Saône", "Auxerre", "Mâcon"] },
+  { nom: "Auvergne-Rhône-Alpes", ou: "en Auvergne-Rhône-Alpes", villes: ["Lyon", "Saint-Étienne", "Villeurbanne", "Grenoble", "Clermont-Ferrand", "Annecy"] },
+  { nom: "Bourgogne-Franche-Comté", ou: "en Bourgogne-Franche-Comté", villes: ["Dijon", "Besançon", "Belfort", "Chalon-sur-Saône", "Mâcon", "Auxerre"] },
   { nom: "Bretagne", ou: "en Bretagne", villes: ["Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo"] },
-  { nom: "Centre-Val de Loire", ou: "en Centre-Val de Loire", villes: ["Tours", "Orléans", "Bourges", "Blois", "Châteauroux", "Chartres"] },
-  { nom: "Corse", ou: "en Corse", villes: ["Ajaccio", "Bastia", "Porto-Vecchio"] },
+  { nom: "Centre-Val de Loire", ou: "en Centre-Val de Loire", villes: ["Tours", "Orléans", "Bourges", "Blois", "Châteauroux", "Joué-lès-Tours"] },
+  { nom: "Corse", ou: "en Corse", villes: ["Ajaccio", "Bastia", "Porto-Vecchio", "Borgo"] },
   { nom: "Grand Est", ou: "dans le Grand Est", villes: ["Strasbourg", "Reims", "Metz", "Mulhouse", "Nancy", "Colmar"] },
-  { nom: "Hauts-de-France", ou: "dans les Hauts-de-France", villes: ["Lille", "Amiens", "Roubaix", "Tourcoing", "Dunkerque", "Calais"] },
-  { nom: "Île-de-France", ou: "en Île-de-France", villes: ["Paris", "Boulogne-Billancourt", "Saint-Denis", "Argenteuil", "Montreuil", "Versailles"] },
-  { nom: "Normandie", ou: "en Normandie", villes: [["Le Havre", "au Havre"], "Rouen", "Caen", "Cherbourg-en-Cotentin", "Évreux", "Dieppe"] },
+  { nom: "Hauts-de-France", ou: "dans les Hauts-de-France", villes: ["Lille", "Amiens", "Tourcoing", "Roubaix", "Dunkerque", "Calais"] },
+  { nom: "Île-de-France", ou: "en Île-de-France", villes: ["Paris", "Saint-Denis", "Boulogne-Billancourt", "Montreuil", "Argenteuil", "Nanterre"] },
+  { nom: "Normandie", ou: "en Normandie", villes: [["Le Havre", "au Havre"], "Rouen", "Caen", "Cherbourg-en-Cotentin", "Évreux", "Saint-Étienne-du-Rouvray"] },
   { nom: "Nouvelle-Aquitaine", ou: "en Nouvelle-Aquitaine", villes: ["Bordeaux", "Limoges", "Poitiers", "Pau", "La Rochelle", "Mérignac"] },
   { nom: "Pays de la Loire", ou: "dans les Pays de la Loire", villes: ["Nantes", "Angers", ["Le Mans", "au Mans"], "Saint-Nazaire", "La Roche-sur-Yon", "Cholet"] },
   { nom: "Provence-Alpes-Côte d'Azur", ou: "en Provence-Alpes-Côte d'Azur", villes: ["Marseille", "Nice", "Toulon", "Aix-en-Provence", "Avignon", "Antibes"] },
-  { nom: "Guadeloupe", ou: "en Guadeloupe", villes: [["Les Abymes", "aux Abymes"], "Baie-Mahault", ["Le Gosier", "au Gosier"], "Petit-Bourg", "Pointe-à-Pitre", "Basse-Terre"] },
-  { nom: "Guyane", ou: "en Guyane", villes: ["Cayenne", "Saint-Laurent-du-Maroni", "Matoury", "Kourou"] },
+  { nom: "Guadeloupe", ou: "en Guadeloupe", villes: [["Les Abymes", "aux Abymes"], "Baie-Mahault", ["Le Gosier", "au Gosier"], "Petit-Bourg", "Sainte-Anne", ["Le Moule", "au Moule"], "Basse-Terre"] },
+  { nom: "Guyane", ou: "en Guyane", villes: ["Cayenne", "Saint-Laurent-du-Maroni", "Matoury", "Remire-Montjoly", "Kourou"] },
   { nom: "La Réunion", ou: "à La Réunion", villes: ["Saint-Denis", "Saint-Paul", "Saint-Pierre", ["Le Tampon", "au Tampon"], "Saint-André", "Saint-Louis"] },
-  { nom: "Martinique", ou: "en Martinique", villes: ["Fort-de-France", ["Le Lamentin", "au Lamentin"], ["Le Robert", "au Robert"], "Schœlcher"] },
-  { nom: "Mayotte", ou: "à Mayotte", villes: ["Mamoudzou", "Koungou", "Dzaoudzi"] },
+  { nom: "Martinique", ou: "en Martinique", villes: ["Fort-de-France", ["Le Lamentin", "au Lamentin"], ["Le Robert", "au Robert"], "Schœlcher", "Ducos"] },
+  { nom: "Mayotte", ou: "à Mayotte", villes: ["Mamoudzou", "Koungou", "Dzaoudzi", "Dembeni"] },
 ];
 
 const nomDe = (ville: Ville) => (typeof ville === "string" ? ville : ville[0]);

@@ -28,10 +28,10 @@
 
 ## Signalements et modération (décidé le 8 octobre 2026)
 - Dans l'app, le menu « ⋯ » d'une publication → **Signaler** : une raison (faux lieu, pub cachée, arnaque, haine, violence ou contenu sexuel, danger, vie privée, contenu volé, autre chose), une précision facultative, puis le pourquoi avec ses mots (obligatoire pour « Autre chose »). Liste dans `apps/app-mobile/src/contenus/raisons-signalement.ts`, règles dans `packages/commun/src/regles/signalement.ts`.
-- **Violence ou contenu sexuel : la publication est masquée pour tout le monde dès le premier signalement**, et une alerte part à la modération. Un modérateur décide **à la main**, dans le logiciel de gestion : signalement retenu → la publication est retirée pour de bon ; rejeté → elle est remise en ligne.
+- **Violence ou contenu sexuel : la publication est masquée pour tout le monde dès le premier signalement**, et une **alerte de modération arrive dans le logiciel de gestion**. Un modérateur décide **à la main**, dans le logiciel de gestion : signalement retenu → la publication est retirée pour de bon ; rejeté → elle est remise en ligne.
 - Les autres raisons ne masquent la publication que pour la personne qui signale, en attendant la modération.
 - Pour les contenus graves (haine, violence, danger), l'app rappelle le 17, le 112 et Pharos.
-- Points ouverts : par où arrive l'alerte (logiciel de gestion, salon Discord privé, e-mail) ; garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement ; prévenir l'auteur et lui permettre de contester quand sa publication est masquée ou retirée (attendu par le règlement européen sur les services numériques).
+- Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement ; prévenir l'auteur et lui permettre de contester quand sa publication est masquée ou retirée (attendu par le règlement européen sur les services numériques).
 
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).

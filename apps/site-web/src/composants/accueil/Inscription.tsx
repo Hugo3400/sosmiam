@@ -6,12 +6,18 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
 
-/** Réponse de l'action de la page d'accueil (src/routes/public/accueil.tsx). */
-export type ReponseInscription = { ok: boolean; message: string };
+/** Réponse de l'action de la page d'accueil (src/routes/public/accueil.tsx). « champ » : où remettre le focus en cas d'erreur. */
+export type ReponseInscription = { ok: boolean; message: string; champ?: "email" | "telephone" };
 
 const champ = "rounded-full border-2 border-encre bg-white px-5 py-3.5 font-medium focus:outline-3 focus:outline-offset-2 focus:outline-encre";
 
-/** Dernier bloc de l'accueil : e-mail + ville ou région pour être prévenu du lancement. Marche aussi sans JavaScript. */
+// Pour savoir sur quel store publier l'app en premier, et sur lequel inviter les bêta-testeurs
+const telephones = [
+  { valeur: "iphone", libelle: "🍏 iPhone (Apple)" },
+  { valeur: "android", libelle: "🤖 Android (Samsung, Google Pixel ou autre)" },
+];
+
+/** Dernier bloc de l'accueil : être prévenu du lancement, dire son téléphone, tester la bêta. Marche aussi sans JavaScript. */
 export function Inscription() {
   const fetcher = useFetcher<ReponseInscription>();
   // Sans JavaScript (ou envoi avant la fin du chargement), la réponse arrive par l'action de la page.
@@ -20,12 +26,14 @@ export function Inscription() {
   const [reponseSansJs] = useState(donneesAction);
   const formulaire = useRef<HTMLFormElement>(null);
   const champEmail = useRef<HTMLInputElement>(null);
+  const premierTelephone = useRef<HTMLInputElement>(null);
   const reponse = fetcher.data ?? reponseSansJs;
   const envoi = fetcher.state !== "idle";
 
   useEffect(() => {
     if (!reponse) return;
     if (reponse.ok) formulaire.current?.reset();
+    else if (reponse.champ === "telephone") premierTelephone.current?.focus();
     else champEmail.current?.focus();
   }, [reponse]);
 
@@ -46,27 +54,63 @@ export function Inscription() {
             autoComplete="email"
             placeholder="ton@email.fr"
             required
-            aria-invalid={reponse?.ok === false}
+            aria-invalid={reponse?.ok === false && reponse.champ !== "telephone"}
             aria-describedby="inscription-message"
             className={`min-w-0 flex-[1_1_240px] ${champ}`}
           />
           <label htmlFor="inscription-ville" className="sr-only">Ta ville ou ta région</label>
-          <ChampVilleOuRegion id="inscription-ville" name="ville" className="min-w-0 flex-[1_1_180px] sm:w-60 sm:flex-none" classeChamp={champ} />
-          <Bouton type="submit" variante="encre" className="flex-[1_1_100%] sm:flex-none">
-            {envoi ? "Envoi…" : "Préviens-moi"}
-          </Bouton>
-          <label className="flex w-full cursor-pointer items-center justify-center gap-2.5 pt-1 font-medium">
-            <input type="checkbox" name="ambassadeur" value="oui" className="h-5 w-5 shrink-0 accent-encre" />
-            <span className="text-left">Je veux devenir ambassadeur fondateur 🎖️</span>
-          </label>
+          <ChampVilleOuRegion id="inscription-ville" name="ville" className="min-w-0 flex-[1_1_220px]" classeChamp={champ} />
+
+          <div role="radiogroup" aria-labelledby="inscription-telephone-titre" className="w-full pt-3">
+            <p id="inscription-telephone-titre" className="mb-2.5 font-medium">Ton téléphone (pour savoir sur quel store sortir l'app) :</p>
+            <div className="flex flex-wrap justify-center gap-2.5">
+              {telephones.map((telephone, position) => (
+                <label key={telephone.valeur} className="cursor-pointer">
+                  <input
+                    ref={position === 0 ? premierTelephone : undefined}
+                    type="radio"
+                    name="telephone"
+                    value={telephone.valeur}
+                    aria-describedby="inscription-message"
+                    className="peer sr-only"
+                  />
+                  <span className="inline-block rounded-full border-2 border-encre bg-white px-4 py-2 font-semibold transition-colors hover:bg-jaune-clair
+                    peer-checked:bg-encre peer-checked:text-jaune peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre">
+                    {telephone.libelle}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col items-center gap-2.5 pt-2">
+            <label className="flex cursor-pointer items-center gap-2.5 font-medium">
+              <input type="checkbox" name="beta" value="oui" aria-describedby="inscription-beta-aide" className="h-5 w-5 shrink-0 accent-encre" />
+              <span className="text-left">Je veux tester l'app avant sa sortie (bêta) 🧪</span>
+            </label>
+            <p id="inscription-beta-aide" className="max-w-md text-sm">
+              Sur Android, la bêta passe par le Play Store : mets l'adresse de ton compte Google (souvent ton Gmail).
+            </p>
+            <label className="flex cursor-pointer items-center gap-2.5 font-medium">
+              <input type="checkbox" name="ambassadeur" value="oui" className="h-5 w-5 shrink-0 accent-encre" />
+              <span className="text-left">Je veux devenir ambassadeur fondateur 🎖️</span>
+            </label>
+          </div>
+
+          <div className="flex w-full justify-center pt-2">
+            <Bouton type="submit" variante="encre" className="w-full sm:w-auto">
+              {envoi ? "Envoi…" : "Préviens-moi"}
+            </Bouton>
+          </div>
           {/* Champ piège : invisible pour les humains et les lecteurs d'écran, les robots le remplissent */}
           <input type="text" name="piege" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
         </fetcher.Form>
 
         <p id="inscription-message" role="status" aria-live="polite" className="mt-5 min-h-7 font-semibold">{reponse?.message}</p>
         <p className="mt-2 text-sm">
-          On te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu as coché la case,
-          on te parle aussi des ambassadeurs fondateurs. On ne vend jamais tes données
+          On te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta,
+          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app ; si tu coches ambassadeur, on te parle aussi
+          des ambassadeurs fondateurs. On ne vend jamais tes données
           {" "}(<Link to="/confidentialite" className="font-semibold underline underline-offset-2">confidentialité</Link>).
         </p>
       </div>

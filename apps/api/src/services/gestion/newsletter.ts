@@ -11,20 +11,32 @@ const PAR_PAGE = 50;
 /** Lu par scripts/recuperer-inscrits.py : une désinscription faite ici vaut aussi pour les inscriptions reçues par mail */
 const FICHIER_DESINSCRITS = process.env.FICHIER_DESINSCRITS || "/root/sos-miam-donnees/desinscrits.txt";
 
-export type FiltresInscrits = { recherche: string; ville: string; ambassadeur: boolean; aRelancer: boolean; page: number };
+export type FiltresInscrits = {
+  recherche: string;
+  ville: string;
+  ambassadeur: boolean;
+  /** Veut tester l'app avant sa sortie */
+  beta: boolean;
+  /** « iphone », « android », ou vide pour tous */
+  telephone: string;
+  aRelancer: boolean;
+  page: number;
+};
 
-function construireFiltre({ recherche, ville, ambassadeur, aRelancer }: FiltresInscrits, maintenant: Date): Prisma.InscriptionNewsletterWhereInput {
+function construireFiltre({ recherche, ville, ambassadeur, beta, telephone, aRelancer }: FiltresInscrits, maintenant: Date): Prisma.InscriptionNewsletterWhereInput {
   return {
     ...(recherche ? { OR: [{ email: { contains: recherche, mode: "insensitive" } }, { ville: { contains: recherche, mode: "insensitive" } }] } : {}),
     ...(ville ? { ville: { equals: ville, mode: "insensitive" } } : {}),
     ...(ambassadeur ? { ambassadeur: true } : {}),
+    ...(beta ? { beta: true } : {}),
+    ...(telephone ? { telephone } : {}),
     ...(aRelancer ? { derniereInscription: { lt: new Date(maintenant.getTime() - DELAI_RELANCE) } } : {}),
   };
 }
 
 export async function listerInscrits(filtres: FiltresInscrits, maintenant = new Date()) {
   const ou = construireFiltre(filtres, maintenant);
-  const [total, trouves, inscrits, villes, ambassadeurs, aRelancer, recents] = await Promise.all([
+  const [total, trouves, inscrits, villes, ambassadeurs, aRelancer, recents, beta, telephones] = await Promise.all([
     baseDeDonnees.inscriptionNewsletter.count(),
     baseDeDonnees.inscriptionNewsletter.count({ where: ou }),
     baseDeDonnees.inscriptionNewsletter.findMany({ where: ou, orderBy: { premiereInscription: "desc" }, skip: (filtres.page - 1) * PAR_PAGE, take: PAR_PAGE }),
@@ -32,12 +44,21 @@ export async function listerInscrits(filtres: FiltresInscrits, maintenant = new 
     baseDeDonnees.inscriptionNewsletter.count({ where: { ambassadeur: true } }),
     baseDeDonnees.inscriptionNewsletter.count({ where: { derniereInscription: { lt: new Date(maintenant.getTime() - DELAI_RELANCE) } } }),
     baseDeDonnees.inscriptionNewsletter.count({ where: { premiereInscription: { gte: new Date(maintenant.getTime() - 7 * 86_400_000) } } }),
+    baseDeDonnees.inscriptionNewsletter.count({ where: { beta: true } }),
+    baseDeDonnees.inscriptionNewsletter.groupBy({ by: ["telephone"], _count: { _all: true } }),
   ]);
   return {
     total,
     trouves,
     parPage: PAR_PAGE,
-    compteurs: { ambassadeurs, aRelancer, recents },
+    compteurs: {
+      ambassadeurs,
+      aRelancer,
+      recents,
+      beta,
+      iphone: telephones.find((groupe) => groupe.telephone === "iphone")?._count._all ?? 0,
+      android: telephones.find((groupe) => groupe.telephone === "android")?._count._all ?? 0,
+    },
     villes: villes.map((groupe) => ({ ville: groupe.ville ?? "Sans ville", nombre: groupe._count._all })),
     inscrits: inscrits.map((inscrit) => ({
       ...inscrit,
@@ -68,13 +89,15 @@ export async function exporterInscrits(maintenant = new Date()): Promise<string>
       inscrit.email,
       inscrit.ville ?? "",
       inscrit.ambassadeur ? "oui" : "non",
+      inscrit.beta ? "oui" : "non",
+      inscrit.telephone ?? "",
       inscrit.source,
       inscrit.premiereInscription.toISOString().slice(0, 10),
       inscrit.derniereInscription.toISOString().slice(0, 10),
       maintenant.getTime() - inscrit.derniereInscription.getTime() > DELAI_RELANCE ? "oui" : "non",
     ].map(proteger).join(";"),
   );
-  return ["email;ville;ambassadeur;source;premiere_inscription;derniere_inscription;a_relancer", ...lignes].join("\r\n") + "\r\n";
+  return ["email;ville;ambassadeur;beta;telephone;source;premiere_inscription;derniere_inscription;a_relancer", ...lignes].join("\r\n") + "\r\n";
 }
 
 export type BrouillonSaisi = { objet: string; texte: string };
