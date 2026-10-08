@@ -59,9 +59,11 @@ export function VideoPublication({ media, actif, enPause, acceleree, largeur, ma
     else lecteur.pause();
   }, [actif, enPause, lecteur]);
 
+  // Une vidéo sans son reste muette même son activé : elle ne coupe pas la musique qui joue à côté sur le téléphone
+  const muette = sonCoupe || !infos.aDuSon;
   useEffect(() => {
-    lecteur.muted = sonCoupe;
-  }, [sonCoupe, lecteur]);
+    lecteur.muted = muette;
+  }, [muette, lecteur]);
 
   const x2 = actif && acceleree;
   useEffect(() => {

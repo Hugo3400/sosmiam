@@ -7,6 +7,7 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepea
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ActionPost } from "~/composants/fil/ActionPost";
 import { AvatarSuivre } from "~/composants/fil/AvatarSuivre";
+import { HAUTEUR_ZONE_PROGRESSION } from "~/composants/fil/BarreProgressionVideo";
 import { BoueeEnvol } from "~/composants/fil/BoueeEnvol";
 import { BoutonSuivre } from "~/composants/fil/BoutonSuivre";
 import { CoeurEnvol } from "~/composants/fil/CoeurEnvol";
@@ -69,6 +70,8 @@ export type GestesPublication = {
 
 const DELAI_DOUBLE_APPUI = 280;
 const DELAI_APPUI_LONG = 400;
+// Fiche, pastille et colonne d'actions restent au-dessus de la barre d'avancée des vidéos (posée juste sur la barre d'onglets)
+const ECART_BAS = HAUTEUR_ZONE_PROGRESSION + 6;
 const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
@@ -193,7 +196,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
       </Animated.View>
 
       {/* Le placement reste sur une View : NativeWind n'applique pas ses classes à une Animated.View qui porte un style animé */}
-      <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + 14 }} className="absolute left-4 right-4 flex-row">
+      <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + ECART_BAS }} className="absolute left-4 right-4 flex-row">
         <Animated.View style={stylePastille}>
           {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
           <Pressable
@@ -211,7 +214,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
         </Animated.View>
       </View>
 
-      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ paddingBottom: margeBas + 14 }} className="absolute inset-x-0 bottom-0 pl-5 pr-[88px]">
+      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ paddingBottom: margeBas + ECART_BAS }} className="absolute inset-x-0 bottom-0 pl-5 pr-[88px]">
         <Animated.View style={styleFiche}>
           {/* L'auteur et « Suivre » restent hors du bloc lu d'une traite par VoiceOver, pour que le bouton soit atteignable ;
               toucher l'avatar ou le nom ouvre sa fiche ou sa page (VoiceOver passe par l'avatar de la colonne d'actions) */}
@@ -277,8 +280,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
         </Animated.View>
       </View>
 
-      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ bottom: margeBas + 14 }} className="absolute right-3">
-        <Animated.View style={[{ alignItems: "center", gap: 16 }, styleActions]}>
+      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ bottom: margeBas + ECART_BAS }} className="absolute right-3">
+        <Animated.View style={[{ alignItems: "center", gap: 14 }, styleActions]}>
           <AvatarSuivre
             emoji={emojiAuteur}
             nom={nomAuteur}
