@@ -1,7 +1,7 @@
 // Contrôleurs des réponses types (modèles de mails du logiciel de gestion).
 import type { Request, Response } from "express";
 
-import { CATEGORIES_REPONSES } from "../../services/gestion/reponses-types.ts";
+import { CATEGORIES_REPONSES } from "../../services/gestion/categories-reponses.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 import { ChampInvalide, lireChoix, lireId, lireTexte } from "./lire-champs.ts";
 

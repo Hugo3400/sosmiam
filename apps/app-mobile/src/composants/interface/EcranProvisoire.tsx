@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,17 +15,24 @@ type Props = {
   action?: { libelle: string; onPress: () => void };
 };
 
-/** Retour à l'écran d'avant ; ouvert directement (lien, rechargement de la page web), retour aux onglets. */
-function revenir() {
-  if (router.canGoBack()) router.back();
-  else router.replace("/");
-}
-
 /**
  * Écran provisoire d'une page pas encore développée, hors des onglets perso (EcranBientot, lui, laisse la place
  * à leur barre). Remplacé page par page par les lots suivants.
  */
 export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
+  const router = useRouter();
+  const navigation = useNavigation();
+
+  // Retour à l'écran d'avant. Premier écran d'une pile ouverte en plein écran (Scan, mode pro…) : on referme la pile
+  // entière par son parent (sur iPhone, le retour global ne referme pas toujours ce genre de pile). Ouvert directement
+  // (lien, rechargement de la page web) : retour aux onglets.
+  function revenir() {
+    const parent = navigation.getParent();
+    if (navigation.getState()?.index === 0 && parent?.canGoBack()) parent.goBack();
+    else if (navigation.canGoBack()) navigation.goBack();
+    else router.replace("/");
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       {action ? null : (

@@ -18,8 +18,12 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
+import { effacerModeApp } from "~/stockage/mode-app";
 import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
+import { effacerRolesDemo } from "~/stockage/roles-demo";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
@@ -34,7 +38,10 @@ function ouvrirLien(adresse: string) {
   });
 }
 
-/** Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ton compte privé, les personnes bloquées, les pages légales et de quoi tout effacer. */
+/**
+ * Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ton compte privé, les personnes bloquées, les pages
+ * légales, les Coulisses de la démo (en développement seulement) et de quoi tout effacer.
+ */
 export default function Reglages() {
   const router = useRouter();
   const { profil, avatar, effacer } = utiliserProfil();
@@ -43,6 +50,8 @@ export default function Reglages() {
   const conversations = utiliserConversations();
   const suivisPersonnes = utiliserSuivisPersonnes();
   const notifications = utiliserNotifications();
+  // Les outils de la démo des visites (en développement seulement) ; null dans une version publiée
+  const outilsDemo = utiliserOutilsDemo();
   const [effacementEnCours, setEffacementEnCours] = useState(false);
   if (!profil) return null;
 
@@ -89,6 +98,13 @@ export default function Reglages() {
       await notifications.effacer();
       await effacerSignalementsLocaux();
       await effacerReglagesNotifications();
+      // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses, et le mode
+      if (outilsDemo) {
+        await outilsDemo.remettreAZero();
+        await oublierReglagesDemo();
+        await effacerRolesDemo();
+      }
+      await effacerModeApp();
       // En dernier : sans profil, l'app repart toute seule à la bienvenue
       await effacer();
     } catch {
@@ -104,7 +120,7 @@ export default function Reglages() {
     if (Platform.OS === "web") return void toutEffacer();
     Alert.alert(
       "Tout effacer et recommencer ?",
-      "Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.",
+      `Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements${outilsDemo ? ", tes réglages de notifications et tes visites de démo" : " et tes réglages de notifications"} vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.`,
       [
         { text: "Annuler", style: "cancel" },
         { text: "Tout effacer", style: "destructive", onPress: () => void toutEffacer() },
@@ -180,6 +196,17 @@ export default function Reglages() {
           onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
         />
       </SectionReglages>
+
+      {outilsDemo ? (
+        <SectionReglages titre="Démo">
+          <LigneReglage
+            emoji="🎬"
+            titre="Coulisses de la démo"
+            detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
+            onPress={() => router.push("/reglages/demo")}
+          />
+        </SectionReglages>
+      ) : null}
 
       <SectionReglages titre="Tes données">
         <View className="flex-row gap-3 py-3">

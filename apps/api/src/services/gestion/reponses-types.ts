@@ -1,8 +1,8 @@
 // Réponses types du logiciel de gestion : des modèles de mails réutilisables, insérés en un clic.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import type { CategorieReponse } from "./categories-reponses.ts";
 
-export const CATEGORIES_REPONSES = ["demande", "ambassadeur", "moderation", "lieu", "createur", "autre"] as const;
-export type SaisieReponseType = { titre: string; categorie: (typeof CATEGORIES_REPONSES)[number]; objet: string; texte: string };
+export type SaisieReponseType = { titre: string; categorie: CategorieReponse; objet: string; texte: string };
 
 export const listerReponsesTypes = () => baseDeDonnees.reponseType.findMany({ orderBy: [{ categorie: "asc" }, { titre: "asc" }] });
 export const creerReponseType = (saisie: SaisieReponseType) => baseDeDonnees.reponseType.create({ data: saisie });

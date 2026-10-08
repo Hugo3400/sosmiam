@@ -27,7 +27,7 @@ test("bilan du mois : chiffres, évolution, et texte saisi échappé", () => {
     precedent: { ...vide, mois: "2026-09", visiteurs: 1000 },
     totaux: { lieuxEnLigne: 12, inscrits: 340, ambassadeursActifs: 8, comptes: 40 },
   });
-  assert.ok(html.includes("octobre 2026") && html.includes("1 200") && html.includes("+20 %"));
+  assert.ok(html.includes("octobre 2026") && html.includes(new Intl.NumberFormat("fr-FR").format(1200)) && html.includes("+20 %"));
   assert.ok(html.includes("Chez &lt;Lia&gt;") && html.includes("&lt;b&gt;Merci") && !html.includes("<b>Merci"));
 });
 

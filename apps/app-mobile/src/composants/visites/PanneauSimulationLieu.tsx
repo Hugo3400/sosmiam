@@ -9,6 +9,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
+import type { OutilsDemo } from "~/services/demo/types-demo";
 
 type Props = {
   /** L'addition en attente (rien ne s'affiche pour une autre étape) */
@@ -33,7 +34,7 @@ export function PanneauSimulationLieu({ visite }: Props) {
   const lieu = visite.lieu;
   const joueParMoi = outils.lieuJoueParMoi(lieu.id);
 
-  async function repondre(reponse: Parameters<typeof outils.repondreCommeLeLieu>[1]) {
+  async function repondre(reponse: Parameters<OutilsDemo["repondreCommeLeLieu"]>[1]) {
     if (!outils || occupe) return;
     setOccupe(true);
     try {
