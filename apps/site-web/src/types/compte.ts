@@ -44,6 +44,8 @@ export type NouvelleCandidature = {
   motivation: string;
   partantRencontre: boolean;
   connuPar?: string;
+  /** Champ piège du formulaire : rempli seulement par les robots */
+  piege?: string;
 };
 
 /** Un lieu proposé depuis l'espace : il arrive dans le logiciel de gestion, où l'équipe l'accepte ou le refuse. */

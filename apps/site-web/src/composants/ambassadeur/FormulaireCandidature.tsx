@@ -14,7 +14,7 @@ const envies = [
 /** Candidature « fondateur » (action de routes/ambassadeur/fondateur.tsx). */
 export function FormulaireCandidature() {
   return (
-    <FormulaireCompte nom="candidature" bouton="Envoyer ma candidature" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
+    <FormulaireCompte nom="candidature" bouton="Envoyer ma candidature" piege className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
       <div className="grid gap-6">
         <ChampTexte
           nom="pepites"

@@ -9,6 +9,7 @@
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.
+import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -173,18 +174,19 @@ export const documentConfidentialite: DocumentLegal = {
         },
       ],
     },
+    sectionCompteAmbassadeur,
     {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
       blocs: [
-        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) est le plus simple), pour devenir ambassadeur fondateur ou simplement pour poser une question.`,
+        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) est le plus simple), pour un souci avec ton compte ambassadeur (un mot de passe oublié, par exemple) ou simplement pour poser une question.`,
         {
           liste: [
-            "**Ce qu'on reçoit** : ton adresse e-mail, le nom affiché par ta messagerie et le contenu de ton message. Pour un lieu : son nom, sa ville et son type (resto, pâtisserie, bar, sortie…). Pour une candidature d'ambassadeur : ton quartier et tes pépites du coin.",
-            "**Pourquoi** : te répondre, examiner la demande d'inscription de ton lieu ou ta candidature, et en reparler avec toi.",
-            "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : donner suite aux messages qu'on reçoit, faire connaître des lieux indépendants et réunir les premiers ambassadeurs.",
+            "**Ce qu'on reçoit** : ton adresse e-mail, le nom affiché par ta messagerie et le contenu de ton message. Pour un lieu : son nom, sa ville et son type (resto, pâtisserie, bar, sortie…).",
+            "**Pourquoi** : te répondre, examiner la demande d'inscription de ton lieu, t'aider avec ton compte (par exemple, t'envoyer un lien pour choisir un nouveau mot de passe), et en reparler avec toi.",
+            "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : donner suite aux messages qu'on reçoit et faire connaître des lieux indépendants. Pour un souci avec ton compte ambassadeur, c'est l'exécution des conditions d'utilisation (article 6.1.b du RGPD).",
             `**Où et qui** : dans la boîte ${site.emailContact}, fournie par ${prestataires.messagerie.nom} ; les mails sont reçus par un serveur de messagerie situé en Suisse (voir « Qui voit tes données, et où elles sont »). Seul l'éditeur consulte cette boîte.`,
-            "**Combien de temps** : pour une demande de lieu ou une candidature, au plus 3 ans après ton dernier contact. Pour une simple question, le temps de te répondre, puis au plus 3 ans.",
+            "**Combien de temps** : pour une demande de lieu ou une candidature, au plus 3 ans après ton dernier contact. Pour une question ou un souci avec ton compte, le temps de te répondre, puis au plus 3 ans.",
             "**Obligatoire ?** Non. Sans adresse e-mail, on ne peut simplement pas te répondre.",
           ],
         },
@@ -198,11 +200,11 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**On ne vend jamais tes données**, on ne les loue pas, et on ne les confie qu'aux prestataires techniques présentés plus bas, pour notre compte (sauf obligation légale).",
-            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, et le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes. Détails sur la page [Cookies](/cookies).",
+            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et celui qui te garde connecté à ton espace ambassadeur. Détails sur la page [Cookies](/cookies).",
             "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
             "**Aucun outil de mesure d'audience extérieur** (ni Google Analytics, ni pixel de réseau social) : nos statistiques de visite sont comptées par notre serveur, sans cookie (voir « Les statistiques de visite »). Et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
-            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante. Si tu es bloqué à tort, écris-nous à ${lienEmail}.`,
+            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante ; et après plusieurs mots de passe faux, notre serveur te fait patienter un peu avant un nouvel essai. Si tu es bloqué à tort, écris-nous à ${lienEmail}. Chaque inscription d'ambassadeur, elle, est regardée par une personne.`,
           ],
         },
       ],
@@ -220,7 +222,7 @@ export const documentConfidentialite: DocumentLegal = {
           ],
         },
         "Ces prestataires peuvent eux-mêmes faire appel à d'autres prestataires techniques (des « sous-traitants ultérieurs »), qui doivent respecter les mêmes obligations de protection de tes données.",
-        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien.",
+        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien. Enfin, si un lieu que tu as proposé depuis ton espace ambassadeur rejoint SOS Miam, ton prénom peut s'afficher sur sa fiche, visible par tous (« Déniché par »).",
         "Si la loi l'impose, certaines données peuvent être communiquées à une autorité qui les demande dans un cadre légal, par exemple sur décision d'un juge. Personne d'autre ne les reçoit.",
         `**Transferts hors de l'Union européenne** : le serveur du site est en France. Les e-mails envoyés à ${site.emailContact} sont reçus par un serveur situé en Suisse : la Suisse bénéficie d'une décision d'adéquation de la Commission européenne (décision 2000/518/CE du 26 juillet 2000), qui reconnaît que tes données y sont aussi bien protégées que dans l'Union européenne. Cloudflare peut traiter des données hors de l'Union européenne, notamment aux États-Unis, avec les garanties décrites dans la partie « Cloudflare, qui protège le site ». Enfin, si tu demandes la bêta, Google ou Apple peuvent traiter ton adresse aux États-Unis : pour Google, le transfert est encadré par le **Data Privacy Framework UE–États-Unis**, auquel Google LLC a adhéré (certification vérifiable sur [dataprivacyframework.gov](https://www.dataprivacyframework.gov/)) ; pour Apple, par les **clauses contractuelles types** de la Commission européenne, comme l'indique sa [politique de confidentialité](https://www.apple.com/fr/legal/privacy/fr-ww/).`,
       ],
@@ -232,7 +234,8 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**Connexion chiffrée** : tout le site passe en HTTPS. La connexion est chiffrée de ton navigateur jusqu'à Cloudflare, puis de Cloudflare jusqu'à notre serveur ; Cloudflare déchiffre le trafic au passage pour le protéger.",
-            "**Un seul administrateur** : l'éditeur est le seul à administrer le serveur et à consulter les journaux et la boîte mail.",
+            "**Un seul administrateur** : l'éditeur est le seul à administrer le serveur et à consulter les journaux, la boîte mail et les comptes ambassadeurs (depuis un logiciel protégé par un mot de passe et un code à 6 chiffres).",
+            "**Mots de passe protégés** : on ne garde jamais ton mot de passe, seulement une empreinte calculée avec scrypt, un procédé fait exprès pour être long à attaquer ; tes clés de connexion sont, elles aussi, gardées en empreinte. Et celui qui essaie de deviner un mot de passe est vite freiné (voir « Ton compte ambassadeur »).",
             "**Protection contre les attaques** : Cloudflare filtre le trafic malveillant avant qu'il n'atteigne le serveur.",
             "**Le moins possible, le moins longtemps possible** : on collecte le strict nécessaire, et les journaux s'effacent d'eux-mêmes au bout de 15 jours au plus. Ce qu'on n'a pas ne peut pas fuiter.",
             "**Des sauvegardes chiffrées** : pour ne rien perdre en cas de panne, une copie chiffrée de notre base de données est faite chaque nuit sur notre serveur, en France, et on garde les 30 dernières. Une copie chiffrée peut aussi être gardée sur l'ordinateur de l'éditeur, avec la même règle. Quand une donnée est effacée de la base, elle disparaît des sauvegardes au plus tard 30 jours après.",
@@ -249,16 +252,16 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**Accès** : savoir si on a des données sur toi, et en recevoir une copie.",
-            "**Rectification** : faire corriger ce qui est faux ou incomplet.",
-            "**Effacement** : faire effacer tes données, par exemple quand tu retires ton consentement ou qu'elles ne sont plus nécessaires.",
+            "**Rectification** : faire corriger ce qui est faux ou incomplet (pour ton compte ambassadeur, tu peux aussi le faire toi-même dans « Mon compte »).",
+            "**Effacement** : faire effacer tes données, par exemple quand tu retires ton consentement ou qu'elles ne sont plus nécessaires (ton compte ambassadeur se supprime aussi en ligne, dans « Mon compte »).",
             "**Limitation** : faire geler l'utilisation de tes données pendant un temps, par exemple le temps de vérifier une contestation.",
             "**Opposition** : t'opposer à un traitement fondé sur notre intérêt légitime (voir juste en dessous).",
-            "**Portabilité** : recevoir les données que tu nous as fournies avec ton consentement (newsletter, formulaire) dans un format lisible par une machine, ou les faire transmettre à un autre service quand c'est techniquement possible.",
+            "**Portabilité** : recevoir les données que tu nous as fournies avec ton consentement ou pour ton compte (newsletter, formulaire, compte ambassadeur) dans un format lisible par une machine, ou les faire transmettre à un autre service quand c'est techniquement possible.",
             "**Retrait du consentement** : à tout moment, aussi simplement que tu l'as donné. Ce qui a été fait avant reste valable.",
             "**Directives après ton décès** : nous dire ce que doivent devenir tes données après ta mort (conservation, effacement, communication) et désigner une personne chargée de les faire appliquer, comme le prévoit la loi Informatique et Libertés.",
           ],
         },
-        `**Ton droit d'opposition** : pour les journaux du serveur, les statistiques de visite, Cloudflare et tes messages, fondés sur notre intérêt légitime, tu peux t'opposer à tout moment au traitement de tes données pour des raisons tenant à ta situation particulière (article 21 du RGPD). On arrête alors, sauf motif légitime et impérieux qui l'emporte, comme la sécurité du site, ou si ces données sont nécessaires pour faire valoir ou défendre des droits en justice. Écris à ${lienEmail}. Pour les statistiques de visite, c'est encore plus simple : un clic sur la page [Tes visites et nos statistiques](/statistiques).`,
+        `**Ton droit d'opposition** : pour les journaux du serveur, les statistiques de visite, Cloudflare, tes messages, la note de l'équipe et les limites d'essais de ton compte ambassadeur, fondés sur notre intérêt légitime, tu peux t'opposer à tout moment au traitement de tes données pour des raisons tenant à ta situation particulière (article 21 du RGPD). On arrête alors, sauf motif légitime et impérieux qui l'emporte, comme la sécurité du site, ou si ces données sont nécessaires pour faire valoir ou défendre des droits en justice. Écris à ${lienEmail}. Pour les statistiques de visite, c'est encore plus simple : un clic sur la page [Tes visites et nos statistiques](/statistiques).`,
       ],
     },
     {
@@ -291,6 +294,7 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam s'adresse à tout le monde, ados compris. En France, la loi Informatique et Libertés permet de consentir seul au traitement de ses données à partir de **15 ans**.",
         "Si tu as moins de 15 ans, il faut l'accord de tes parents (ou de la personne qui a l'autorité parentale), en plus du tien, avant de t'inscrire à la newsletter ou via le formulaire « Préviens-moi ».",
         `Si on apprend qu'un enfant de moins de 15 ans s'est inscrit sans cet accord, on efface ses données. Un parent peut nous le signaler à ${lienEmail}.`,
+        "L'espace ambassadeur, lui, est réservé aux **18 ans et plus** : ta date de naissance sert seulement à le vérifier à l'inscription, et n'est pas gardée. Si on apprend qu'un compte ambassadeur appartient à quelqu'un de moins de 18 ans, on l'efface.",
       ],
     },
     {
@@ -302,7 +306,7 @@ export const documentConfidentialite: DocumentLegal = {
           liste: [
             "**L'app mobile**, avec un compte et, seulement si tu l'autorises, ta position pour te montrer les lieux autour de toi.",
             "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
-            "**L'envoi des e-mails** (comme la newsletter) par un prestataire spécialisé.",
+            "**L'envoi des e-mails** (la newsletter, et les mails de ton compte ambassadeur, comme le lien pour choisir un nouveau mot de passe) par un prestataire spécialisé.",
             "**Les bons solidaires**, pour payer à l'avance dans un lieu pendant son BIG SOS. La façon de payer n'est pas encore décidée.",
           ],
         },

@@ -40,11 +40,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-/** Message général d'une erreur de l'API qui ne vise pas un champ. */
-function expliquer(erreur: string): string {
-  return lierPonctuation(erreur === "trop-de-demandes"
-    ? "Doucement ! Trop de demandes d'affilée : réessaie dans quelques minutes."
-    : "Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.");
+/** Message général d'une erreur de l'API qui ne vise pas un champ (« attente » : secondes avant le prochain essai). */
+function expliquer({ erreur, attente }: { erreur: string; attente?: number }): string {
+  if (erreur !== "trop-de-demandes") return lierPonctuation("Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.");
+  const minutes = attente ? Math.max(1, Math.ceil(attente / 60)) : null;
+  return lierPonctuation(minutes ? `Trop d'essais : réessaie dans ${minutes} minute${minutes > 1 ? "s" : ""}.` : "Trop d'essais : réessaie dans quelques minutes.");
 }
 
 /** Trois formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte. */
@@ -71,7 +71,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (reponse.erreur === "champ-invalide" && champ && (champ === "prenom" || champ === "ville" || champ === "quartier")) {
       return { ok: false, formulaire: nom, erreurs: { [champ]: messages[champ] }, valeurs };
     }
-    return { ok: false, formulaire: nom, message: expliquer(reponse.erreur), valeurs };
+    return { ok: false, formulaire: nom, message: expliquer(reponse), valeurs };
   }
 
   if (nom === "mot-de-passe") {
@@ -88,7 +88,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { actuel: messages.actuelIncorrect } };
     if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { nouveau: lierPonctuation(messages.nouveauRefuse) } };
-    return { ok: false, formulaire: nom, message: expliquer(reponse.erreur) };
+    return { ok: false, formulaire: nom, message: expliquer(reponse) };
   }
 
   if (nom === "suppression") {
@@ -98,7 +98,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (reponse.ok) throw redirect("/connexion?au-revoir", { headers: { "Set-Cookie": await effacerCookieSession() } });
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { motDePasse: messages.motDePasseIncorrect } };
-    return { ok: false, formulaire: nom, message: expliquer(reponse.erreur) };
+    return { ok: false, formulaire: nom, message: expliquer(reponse) };
   }
 
   throw data("Formulaire inconnu", { status: 400 });

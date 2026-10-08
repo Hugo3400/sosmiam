@@ -54,7 +54,7 @@ export function FormulaireInscription() {
         </CaseACocher>
       </div>
       <p className="mt-5 text-sm text-gris">
-        {lierPonctuation("L'équipe lit chaque inscription avant d'ouvrir ton espace. Ce qu'on fait de tes données : ")}
+        {lierPonctuation("L'équipe lit chaque inscription avant d'ouvrir ton espace. Ce compte sera aussi celui de l'app SOS Miam quand elle sortira. Ce qu'on fait de tes données : ")}
         <a href="https://sosmiam.fr/confidentialite" target="_blank" rel="noopener" className={classeLien}>
           confidentialité<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
         </a>.

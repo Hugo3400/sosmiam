@@ -56,7 +56,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   }
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: nom, erreurs, valeurs };
 
-  const reponse = await proposerLieu(jeton, lireIpVisiteur(request), Object.fromEntries(Object.entries(valeurs).filter(([, valeur]) => valeur !== "")));
+  const lieu = Object.fromEntries(Object.entries(valeurs).filter(([, valeur]) => valeur !== ""));
+  const reponse = await proposerLieu(jeton, lireIpVisiteur(request), { ...lieu, piege: lire("piege") });
   if (reponse.ok) return { ok: true, formulaire: nom };
   await redirigerSiSessionFermee(request, reponse.erreur);
   const champ = champsLieu.find((c) => c.nom === reponse.champ);

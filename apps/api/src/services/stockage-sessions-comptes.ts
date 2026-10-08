@@ -24,15 +24,12 @@ export const stockageSessionsComptes: StockageSessionsComptes = {
     };
   },
   async creer(empreinte, { compteId, creeLe, activite }) {
-    // Une connexion est aussi une visite : elle repousse l'effacement du compte (1 an sans visite)
-    await baseDeDonnees.$transaction([
-      baseDeDonnees.sessionCompte.create({ data: { empreinte, compteId, creeLe: new Date(creeLe), activite: new Date(activite) } }),
-      baseDeDonnees.compte.update({ where: { id: compteId }, data: { derniereConnexion: new Date(creeLe) } }),
-    ]);
+    await baseDeDonnees.sessionCompte.create({ data: { empreinte, compteId, creeLe: new Date(creeLe), activite: new Date(activite) } });
   },
   async toucher(empreinte, activite) {
     await baseDeDonnees.sessionCompte.updateMany({ where: { empreinte }, data: { activite: new Date(activite) } });
   },
+  /** Dernière visite connectée : elle repousse l'effacement du compte (1 an sans visite) */
   async noterVisite(compteId, moment) {
     await baseDeDonnees.compte.updateMany({ where: { id: compteId }, data: { derniereConnexion: new Date(moment) } });
   },

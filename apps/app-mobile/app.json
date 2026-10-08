@@ -59,7 +59,8 @@
           "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR code d'un pote, et pour ta photo de profil si tu la prends.",
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

@@ -15,7 +15,7 @@ const libelles: Record<string, { libelle: string; aide?: string }> = {
  */
 export function FormulairePropositionLieu() {
   return (
-    <FormulaireCompte nom="proposition" bouton="Envoyer ma proposition" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
+    <FormulaireCompte nom="proposition" bouton="Envoyer ma proposition" piege className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
       <ChoixTypeLieu />
       <div className="grid gap-5 sm:grid-cols-2">
         {champsLieu.map((champ) => (

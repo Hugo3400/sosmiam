@@ -49,8 +49,10 @@ export type ServicesComptes = {
 export type ContexteComptes = { services: ServicesComptes; protection: ProtectionComptes; attente: AttenteParCompte; horloge: () => number };
 
 export function creerControleursComptes({ services, protection, attente, horloge }: ContexteComptes) {
-  // Empreinte d'un mot de passe que personne n'a : vérifier un e-mail inconnu prend autant de temps qu'un vrai compte
+  // Empreinte d'un mot de passe que personne n'a : vérifier un e-mail inconnu prend autant de temps qu'un vrai compte.
+  // Calculée dès le démarrage (le .catch évite un arrêt du serveur pour une promesse rejetée que personne n'attend encore)
   const empreinteFactice = hacherMotDePasse(creerJeton());
+  empreinteFactice.catch(() => {});
 
   /** 201 avec une nouvelle session : le jeton n'est rendu qu'une fois, le site le garde dans son cookie. */
   async function ouvrirSessionEtRepondre(reponse: Response, compteId: number) {

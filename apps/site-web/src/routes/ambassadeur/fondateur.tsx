@@ -73,6 +73,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     motivation: valeurs.motivation,
     partantRencontre: valeurs.partantRencontre === "oui",
     ...(valeurs.connuPar ? { connuPar: valeurs.connuPar } : {}),
+    piege: lire("piege"),
   });
   if (reponse.ok) return { ok: true, formulaire: nom };
   await redirigerSiSessionFermee(request, reponse.erreur);

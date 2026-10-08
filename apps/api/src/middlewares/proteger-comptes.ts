@@ -31,10 +31,9 @@ export type TitulaireSession = { prenom: string; statutAmbassadeur: StatutAmbass
 export type StockageSessionsComptes = {
   /** La session et son titulaire, ou null (session inconnue, ou compte effacé) */
   lire: (empreinte: string) => Promise<(SessionOuverte & TitulaireSession) | null>;
-  /** Ouvre une session ; c'est aussi une visite : la dernière visite du compte devient `creeLe` */
   creer: (empreinte: string, session: SessionOuverte) => Promise<void>;
   toucher: (empreinte: string, activite: number) => Promise<void>;
-  /** Note la dernière visite connectée du compte */
+  /** Note la dernière visite connectée du compte (exigerCompte l'appelle au plus une fois par jour) */
   noterVisite: (compteId: number, moment: number) => Promise<void>;
   supprimer: (empreinte: string) => Promise<void>;
   /** Ferme toutes les sessions du compte, sauf peut-être une */
@@ -51,11 +50,7 @@ export function creerStockageSessionsComptesEnMemoire(titulaires: Map<number, Ti
       if (!session || !titulaire) return null;
       return { ...session, prenom: titulaire.prenom, statutAmbassadeur: titulaire.statutAmbassadeur, derniereConnexion: titulaire.derniereConnexion };
     },
-    creer: async (empreinte, session) => {
-      sessions.set(empreinte, { ...session });
-      const titulaire = titulaires.get(session.compteId);
-      if (titulaire) titulaire.derniereConnexion = session.creeLe;
-    },
+    creer: async (empreinte, session) => void sessions.set(empreinte, { ...session }),
     toucher: async (empreinte, activite) => {
       const session = sessions.get(empreinte);
       if (session) session.activite = activite;
