@@ -6,6 +6,7 @@ import { creerControleursComptesGestion } from "../controleurs/gestion/controleu
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
+import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -37,6 +38,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
+  const r = creerControleursReponsesTypes(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
   // Rien de la gestion ne doit rester dans un cache (Cloudflare garde sinon les .jpg et .mp4 par défaut)
@@ -75,6 +77,10 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/alertes", c.alertes);
   routes.get("/recherche", c.recherche);
   routes.get("/calendrier", c.calendrier);
+  routes.get("/reponses-types", r.liste);
+  routes.post("/reponses-types", r.creer);
+  routes.put("/reponses-types/:id", r.modifier);
+  routes.delete("/reponses-types/:id", r.supprimer);
   routes.get("/maj/jeton", (_requete, reponse) => void reponse.json(creerJetonMaj()));
   routes.get("/statistiques", c.statistiques);
   routes.get("/statistiques/direct", (requete, reponse) => {

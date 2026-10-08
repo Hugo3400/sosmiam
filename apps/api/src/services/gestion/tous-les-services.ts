@@ -7,6 +7,7 @@ import { lireAlertes } from "./alertes.ts";
 import { rechercherPartout } from "./recherche.ts";
 import { lireHistoriqueLieu } from "./historique-lieu.ts";
 import { lireCalendrier } from "./calendrier.ts";
+import { creerReponseType, listerReponsesTypes, modifierReponseType, supprimerReponseType } from "./reponses-types.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
@@ -61,6 +62,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
+  listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,
 };
 
 export type ServicesGestion = typeof servicesGestion;
