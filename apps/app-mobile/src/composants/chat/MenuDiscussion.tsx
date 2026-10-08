@@ -171,7 +171,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                         <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                       </Pressable>
                     ))}
-                    <View accessible accessibilityLabel="Et toi, évidemment" className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5">
+                    <View accessible accessibilityLabel="Toi, évidemment" className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5">
                       <RondPote pote={moi} taille={TAILLE_MEMBRE} />
                       <Text className="flex-1 font-texte-gras text-base text-encre">Toi, évidemment 😎</Text>
                     </View>

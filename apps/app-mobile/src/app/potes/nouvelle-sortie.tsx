@@ -74,6 +74,12 @@ function calculerOptionsFinVote(quand: Date, maintenant: Date): (OptionFinVote &
   return options.map((o) => ({ ...o, detail: `${capitaliser(decrireJour(o.date, maintenant))} à ${decrireHeure(o.date)}` }));
 }
 
+/** « lea,karim » (paramètre `invites`) → ces potes, s'ils sont dans ta bande (donc pas bloqués), sans doublon et dans la limite d'une sortie */
+const lireInvites = (texte: string | undefined, potes: Pote[]) => {
+  const demandes = String(texte ?? "").split(",").map((id) => id.trim());
+  return potes.filter((p) => demandes.includes(p.id)).map((p) => p.id).slice(0, MAX_PARTICIPANTS_SORTIE - 1);
+};
+
 /** « Inès » ; « Inès et Jade » */
 const listerPrenoms = (potes: Pote[]) => (potes.length <= 1 ? (potes[0]?.prenom ?? "") : `${potes.slice(0, -1).map((p) => p.prenom).join(", ")} et ${potes[potes.length - 1].prenom}`);
 
@@ -81,16 +87,17 @@ const listerPrenoms = (potes: Pote[]) => (potes.length <= 1 ? (potes[0]?.prenom 
 export default function NouvelleSortie() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
-  const { lieu: lieuDemande } = useLocalSearchParams<{ lieu?: string }>();
+  const { lieu: lieuDemande, invites: invitesDemandes } = useLocalSearchParams<{ lieu?: string; invites?: string }>();
   const { potes, trouverPote, lieuPermisDansSortie, creerSortie } = utiliserCommunaute();
   const [titre, setTitre] = useState("");
   const [emoji, setEmoji] = useState("🍽️");
   const [quand, setQuand] = useState(demainSoir);
-  const [invites, setInvites] = useState<string[]>([]);
-  // Ouverte depuis un lieu (?lieu=3) : il est déjà proposé, s'il est permis
+  // Ouverte depuis une discussion (?invites=lea,karim) : ces potes de ta bande sont déjà invités
+  const [invites, setInvites] = useState<string[]>(() => lireInvites(invitesDemandes, potes));
+  // Ouverte depuis un lieu (?lieu=3) : il est déjà proposé, s'il est permis avec ces invités (pas de bar avec un mineur)
   const [lieux, setLieux] = useState<number[]>(() => {
     const id = Number(lieuDemande);
-    return lieuDemande && lieuxExemples.some((l) => l.id === id) && lieuPermisDansSortie(id, []) ? [id] : [];
+    return lieuDemande && lieuxExemples.some((l) => l.id === id) && lieuPermisDansSortie(id, invites) ? [id] : [];
   });
   const [cleFinVote, setCleFinVote] = useState("avant");
   const [choixLieuOuvert, setChoixLieuOuvert] = useState(false);

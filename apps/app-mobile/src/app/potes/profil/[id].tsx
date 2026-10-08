@@ -15,6 +15,7 @@ import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
 /** Demande confirmation avant une action qui compte ; sur le web (aperçu de développement), Alert n'existe pas : on agit directement */
@@ -28,7 +29,7 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
 
 /**
  * Le profil communautaire d'un pote, ou le tien (id « moi »). Pour toi : « Partager mon profil » (lien et QR code).
- * Pour quelqu'un d'autre : l'ajouter, le retirer de ta bande, le bloquer (avec confirmation) ou le signaler.
+ * Pour quelqu'un d'autre : l'ajouter, lui écrire (pote de ta bande), le retirer de ta bande, le bloquer (avec confirmation) ou le signaler.
  * Personne bloquée ou inconnue : un message et le retour.
  */
 export default function ProfilPote() {
@@ -38,6 +39,7 @@ export default function ProfilPote() {
   const animationsReduites = useReducedMotion();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
+  const { ouvrirPrive } = utiliserConversations();
   const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -96,6 +98,13 @@ export default function ProfilPote() {
           ? "Pour ajouter cette personne, demande-lui son lien ou son QR code."
           : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
+  };
+
+  // Protection des 15-17 ans : avec un mineur, on ne discute qu'après s'être ajoutés en vrai
+  const ecrire = () => {
+    const conversation = ouvrirPrive(pote.id);
+    if (conversation) router.push({ pathname: "/potes/discussion/[id]", params: { id: conversation } });
+    else annoncer(`Pour discuter avec ${prenom}, ajoutez-vous en vrai, par lien ou QR code : c'est la règle des 15-17 ans, et elle protège tout le monde.`);
   };
 
   const retirer = () =>
@@ -163,6 +172,7 @@ export default function ProfilPote() {
         ) : (
           <View>
             {ajoutable ? <Bouton libelle={`Ajouter ${prenom} à ma bande`} indice="Pour organiser des sorties et vous envoyer des lieux" onPress={ajouter} className="mb-4" /> : null}
+            {dansBande ? <Bouton libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={ecrire} className="mb-4" /> : null}
             {message ? (
               <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="mb-4 text-center font-texte-semi text-sm text-encre">
                 {lierPonctuation(message)}

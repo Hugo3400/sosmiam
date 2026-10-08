@@ -6,6 +6,7 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -13,9 +14,10 @@ type Props = {
   moi: Pote;
 };
 
-/** Le haut de Potes : le titre, le bouton « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
+/** Le haut de Potes : le titre, les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
 export function EnTetePotes({ moi }: Props) {
   const router = useRouter();
+  const { nonLus } = utiliserConversations();
 
   return (
     <View className="gap-3 pt-2">
@@ -23,6 +25,25 @@ export function EnTetePotes({ moi }: Props) {
         <Text accessibilityRole="header" className="flex-1 font-titre text-[32px] leading-[36px] text-encre">
           Tes potes
         </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={nonLus > 0 ? `Messages, ${nonLus} non lu${nonLus > 1 ? "s" : ""}` : "Messages"}
+          accessibilityHint="Tes discussions avec ta bande, en privé ou en groupe"
+          onPress={() => {
+            vibrerLegerement();
+            router.push("/potes/messages");
+          }}
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        >
+          <Ionicons name="chatbubbles" size={20} color={couleurs.encre} />
+          {nonLus > 0 ? (
+            <View className="absolute -right-2 -top-2 min-w-5 items-center rounded-full border-2 border-creme bg-rouge-texte px-1">
+              <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
+                {nonLus > 99 ? "99+" : nonLus}
+              </Text>
+            </View>
+          ) : null}
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Ajouter un pote"
