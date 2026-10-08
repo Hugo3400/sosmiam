@@ -20,7 +20,11 @@ const recollerLettres = (mots: string) => mots.replace(/\b[a-z0-9](?: [a-z0-9])+
 const lireChiffres = (mots: string, un: "i" | "l") =>
   mots
     .split(" ")
-    .map((mot) => (/[0-9]/.test(mot) && (mot.match(/[a-z]/g)?.length ?? 0) >= 2 ? mot.replace(/[0-9]/g, (c) => (c === "1" ? un : (LETTRES_DES_CHIFFRES[c] ?? c))) : mot))
+    .map((mot) =>
+      /[0-9]/.test(mot) && (mot.match(/[a-z]/g)?.length ?? 0) >= 2
+        ? mot.replace(/[0-9]/g, (chiffre) => (chiffre === "1" ? un : (LETTRES_DES_CHIFFRES[chiffre] ?? chiffre)))
+        : mot,
+    )
     .join(" ");
 
 /** Chiffres et lettres décollés : « pute69 » → « pute 69 », « 13ntm » → « 13 ntm » */

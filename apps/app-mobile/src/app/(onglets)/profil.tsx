@@ -8,6 +8,7 @@ import { CartePalier } from "~/composants/profil/CartePalier";
 import { ChiffresProfil } from "~/composants/profil/ChiffresProfil";
 import { CollectionsProfil } from "~/composants/profil/CollectionsProfil";
 import { EnTeteProfil } from "~/composants/profil/EnTeteProfil";
+import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
 import { GrilleBadges } from "~/composants/profil/GrilleBadges";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
 import { badges } from "~/contenus/badges";
@@ -18,7 +19,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
-/** Onglet « Profil » : toi, ton palier Ambassadeur, tes bouées de la semaine, tes défis, tes badges et tes adresses. Tout est compté sur ce téléphone. */
+/** Onglet « Profil » : toi, qui tu suis, ton palier Ambassadeur, tes bouées de la semaine, tes défis, tes badges et tes adresses. Tout est compté sur ce téléphone. */
 export default function Profil() {
   const { profil, avatar } = utiliserProfil();
   const activite = utiliserActivite();
@@ -34,6 +35,7 @@ export default function Profil() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pt-4" contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 24 }}>
         <EnTeteProfil profil={profil} avatar={avatar} age={age} />
+        <EntreeSuivis suivis={activite.suivis} age={age} />
         <CartePalier points={calculerPointsLocaux(mesures)} />
         <BoueesSemaine restantes={activite.restantes} />
         <ChiffresProfil

@@ -39,6 +39,8 @@ export default function FicheLieu() {
   const depart = utiliserPointDeDepart();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
+  // Stable : l'en-tête mémorisé la reçoit pour « Suivre », sans se redessiner à chaque rescousse
+  const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
   const [envoi, setEnvoi] = useState<EtatEnvoi>("jamais");
   const ouvrirEnvoi = useCallback(() => setEnvoi("ouvert"), []);
   const fermerEnvoi = useCallback(() => setEnvoi("ferme"), []);
@@ -59,7 +61,6 @@ export default function FicheLieu() {
   const sauve = activite.aSauve(lieu.id);
   // Plus de rescousse cette semaine : le bouton est désactivé (pas de vibration pour rien) et dit pourquoi
   const epuisee = !sauve && activite.restantes <= 0;
-  const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
 
   // Mêmes règles et mêmes messages que dans le fil (onglet « Pour toi »)
   const basculerRescousse = () => {
@@ -81,7 +82,7 @@ export default function FicheLieu() {
       {focus ? <StatusBar style="light" /> : null}
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
-        <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} />
+        <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} onAnnoncer={annoncer} />
         <SuiteFicheLieu lieu={lieu} age={age} />
       </ScrollView>
 

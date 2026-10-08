@@ -16,6 +16,7 @@ import { PostPublication, type GestesPublication } from "~/composants/fil/PostPu
 import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
+import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
@@ -40,6 +41,9 @@ const DELAI_APRES_MENU = Platform.OS === "ios" ? 400 : 0;
 // La fiche d'un lieu se prépare en coulisses quand tu t'arrêtes un moment sur une publication (pas pendant que tu fais défiler)
 const DELAI_PRECHARGEMENT = 1500;
 const AUCUN_SUIVI: readonly string[] = [];
+
+/** Auteur que tu pourrais ne plus suivre : ce que la feuille de confirmation affiche, et la clé de ton suivi */
+type AuteurSuivi = { nom: string; emoji: string; cle: string };
 
 /** Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime. */
 export default function PourToi() {
@@ -68,6 +72,9 @@ export default function PourToi() {
   const [envoiVisible, setEnvoiVisible] = useState(false);
   const [lieuEnvoye, setLieuEnvoye] = useState<number | null>(null);
   const minuterieEnvoi = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // « Ne plus suivre ? » : l'auteur reste affiché pendant que la feuille se referme (comme menuAffiche)
+  const [nePlusSuivreVisible, setNePlusSuivreVisible] = useState(false);
+  const [auteurSuivi, setAuteurSuivi] = useState<AuteurSuivi | null>(null);
   const refListe = useRef<FlatList<Publication>>(null);
   // Fiche réduite pour voir les vidéos en plein écran : le choix reste d'une publication à l'autre
   const [infosReduites, setInfosReduites] = useState(false);
@@ -201,9 +208,18 @@ export default function PourToi() {
     },
     voir: (p) => router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } }),
     reduire: basculerReduction,
+    // Comme sur Instagram : « Suivre » suit tout de suite, mais on ne désabonne jamais sans confirmation (un toucher de travers sur la vidéo)
     suivre: (p) => {
-      const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieuParId.get(p.lieuId)?.nom ?? "ce lieu");
-      annoncer(activite.basculerSuivi(calculerCleSuivi(p.auteur, p.lieuId)) ? `🔔 Tu suis maintenant ${nom} !` : `Tu ne suis plus ${nom}, sans rancune 👋`);
+      const lieu = lieuParId.get(p.lieuId);
+      const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieu?.nom ?? "ce lieu");
+      const cle = calculerCleSuivi(p.auteur, p.lieuId);
+      if (activite.estSuivi(cle)) {
+        setAuteurSuivi({ nom, emoji: p.auteur.type === "createur" ? "🎬" : (lieu?.emoji ?? "📍"), cle });
+        setNePlusSuivreVisible(true);
+        return;
+      }
+      activite.basculerSuivi(cle);
+      annoncer(`🔔 Tu suis maintenant ${nom} !`);
     },
     ouvrirAuteur: (p) => {
       if (p.auteur.type === "createur") router.push({ pathname: "/createur/[pseudo]", params: { pseudo: p.auteur.pseudo } });
@@ -213,6 +229,17 @@ export default function PourToi() {
 
   // Le menu (mémorisé) ne se redessine pas à chaque changement du fil
   const actionsMenu = utiliserGestesStables({ choisir: choixMenu, signaler, fermer: () => setMenu(null) });
+
+  const actionsNePlusSuivre = utiliserGestesStables({
+    confirmer: () => {
+      setNePlusSuivreVisible(false);
+      // Deux appuis avant que la feuille se referme : un seul désabonnement (et pas de réabonnement)
+      if (!auteurSuivi || !activite.estSuivi(auteurSuivi.cle)) return;
+      activite.basculerSuivi(auteurSuivi.cle);
+      annoncer(`Tu ne suis plus ${auteurSuivi.nom}, sans rancune 👋`);
+    },
+    fermer: () => setNePlusSuivreVisible(false),
+  });
 
   const auChangementDeVisible = useCallback(({ viewableItems }: { viewableItems: ViewToken<Publication>[] }) => {
     setVisible(viewableItems[0]?.item.id ?? null);
@@ -302,6 +329,16 @@ export default function PourToi() {
         />
       ) : null}
       {lieuEnvoye !== null ? <EnvoyerAPote visible={envoiVisible} lieuId={lieuEnvoye} onFermer={() => setEnvoiVisible(false)} /> : null}
+      {/* Préparée seulement au premier « Suivi » touché : rien de plus à dessiner à l'ouverture du fil */}
+      {auteurSuivi ? (
+        <FeuilleNePlusSuivre
+          visible={nePlusSuivreVisible}
+          nom={auteurSuivi.nom}
+          emoji={auteurSuivi.emoji}
+          onConfirmer={actionsNePlusSuivre.confirmer}
+          onFermer={actionsNePlusSuivre.fermer}
+        />
+      ) : null}
     </View>
   );
 }

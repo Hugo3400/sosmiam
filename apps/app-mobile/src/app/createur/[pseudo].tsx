@@ -10,6 +10,7 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
@@ -23,7 +24,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 /**
- * La page d'un créateur (ouverte depuis son avatar dans le fil) : avatar 🎬, @pseudo, « Suivre », ses partenariats déclarés
+ * La page d'un créateur (ouverte depuis son avatar dans le fil) : avatar 🎬, @pseudo, « Suivre » ou « Suivi », ses partenariats déclarés
  * (« Collaboration commerciale ») et ses publications, qui mènent à la fiche du lieu. Pseudo inconnu : un message et le retour.
  */
 export default function PageCreateur() {
@@ -34,6 +35,7 @@ export default function PageCreateur() {
   const activite = utiliserActivite();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
+  const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
   const siennes = publicationsExemples.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === pseudo);
@@ -62,10 +64,6 @@ export default function PageCreateur() {
   );
   const jaimes = publications.reduce((total, { publication }) => total + publication.jaimes, 0);
   const cle = calculerCleSuivi(siennes[0].auteur, siennes[0].lieuId);
-  const suivi = activite.estSuivi(cle);
-
-  const basculerSuivi = () =>
-    setAnnonce({ texte: activite.basculerSuivi(cle) ? `🔔 Tu suis maintenant ${nom} !` : `Tu ne suis plus ${nom}, sans rancune 👋`, numero: Date.now() });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -113,12 +111,8 @@ export default function PageCreateur() {
           </Text>
         </View>
 
-        <Bouton
-          libelle={suivi ? "Suivi" : "Suivre"}
-          variante={suivi ? "blanc" : "jaune"}
-          indice={suivi ? `Tu suis ${nom} : touche pour ne plus le suivre` : "Ses prochaines publications remonteront dans ton fil"}
-          onPress={basculerSuivi}
-        />
+        {/* « Suivre » suit tout de suite ; « Suivi » demande confirmation avant de ne plus suivre */}
+        <BoutonSuivreProfil cle={cle} nom={nom} emoji="🎬" onAnnoncer={annoncer} taille="grand" />
 
         <View className="gap-3">
           <Text accessibilityRole="header" accessibilityLabel={`Partenariats déclarés, ${partenariats.length}`} className="font-titre-gras text-xl text-encre">

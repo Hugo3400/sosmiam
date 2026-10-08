@@ -4,8 +4,10 @@ import { Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { Bouton } from "~/composants/interface/Bouton";
+import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -15,17 +17,21 @@ type Props = {
   /** Hauteur de la zone de l'heure et de l'encoche, en haut de l'écran */
   margeHaut: number;
   onEnvoyer: () => void;
+  /** Annonce « Tu suis maintenant… » / « Tu ne suis plus… » (une fonction stable : l'en-tête est mémorisé) */
+  onAnnoncer: (texte: string) => void;
 };
 
 // Mêmes objets à chaque rendu : rien à recalculer pour le dégradé
 const DEBUT_DEGRADE = { x: 0.1, y: 0 };
 const FIN_DEGRADE = { x: 0.9, y: 1 };
+const AUTEUR_LIEU = { type: "lieu" } as const;
 
 /**
- * Haut de la fiche d'un lieu, dessiné dès l'arrivée : dégradé et emoji, badges (SOS, alerte), nom, infos, texte et
- * « Envoyer à un pote ». Mémorisé : une rescousse ou une annonce ne le redessine pas.
+ * Haut de la fiche d'un lieu, dessiné dès l'arrivée : dégradé et emoji, badges (SOS, alerte), nom, infos, texte,
+ * « Suivre » et « Envoyer à un pote ». Mémorisé : une rescousse ou une annonce ne le redessine pas
+ * (« Suivre » lit lui-même tes suivis, il est le seul à se redessiner quand tu suis le lieu).
  */
-export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer }: Props) {
+export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
   return (
     <>
       <LinearGradient
@@ -57,6 +63,8 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
+        {/* L'un au-dessus de l'autre : côte à côte, « Envoyer à un pote » passerait sur deux lignes sur un iPhone SE */}
+        <BoutonSuivreProfil cle={calculerCleSuivi(AUTEUR_LIEU, lieu.id)} nom={lieu.nom} emoji={lieu.emoji} onAnnoncer={onAnnoncer} taille="grand" />
         <Bouton
           libelle="Envoyer à un pote"
           variante="blanc"

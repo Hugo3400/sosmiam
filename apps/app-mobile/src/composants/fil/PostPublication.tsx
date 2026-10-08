@@ -62,7 +62,7 @@ export type GestesPublication = {
   menu: (publication: Publication) => void;
   voir: (publication: Publication) => void;
   reduire: () => void;
-  /** Suit l'auteur, ou arrête de le suivre */
+  /** Suit l'auteur, ou (déjà suivi) demande confirmation avant de ne plus le suivre */
   suivre: (publication: Publication) => void;
   /** Fiche du lieu, ou page du créateur */
   ouvrirAuteur: (publication: Publication) => void;
