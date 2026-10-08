@@ -52,7 +52,7 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
     try {
       // Pas de lien d'invitation ici : il ne mène encore nulle part chez un pote qui n'a pas l'app
       await Share.share({
-        message: `SOS Miam arrive bientôt sur ton téléphone : l'app qui file un coup de main aux petits lieux du coin 🛟 J'y suis déjà, sous le pseudo @${pseudo}. Dès que les comptes ouvrent, ajoute-moi à ta bande et on sauve des lieux ensemble ! https://sosmiam.fr`,
+        message: `SOS Miam arrive bientôt sur ton téléphone : l'app qui file un coup de main aux petits lieux du coin 🛟 Je la teste déjà, sous le pseudo @${pseudo}. Dès que les comptes ouvrent, ajoute-moi à ta bande et on sauve des lieux ensemble ! https://sosmiam.fr`,
       });
       setPartageImpossible(false);
     } catch {

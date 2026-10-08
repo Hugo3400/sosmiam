@@ -3,11 +3,11 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, 
 import {
   AccessibilityInfo,
   FlatList,
-  Keyboard,
   Platform,
   Pressable,
   Text,
   View,
+  type LayoutChangeEvent,
   type ListRenderItemInfo,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -48,6 +48,8 @@ type Props = {
 
 // Distance au bas de la liste sous laquelle on suit les nouveaux messages
 const PRES_DU_BAS = 120;
+// Le temps d'un défilement automatique vers le bas : ses positions intermédiaires ne décollent pas la liste du bas
+const DUREE_SUIVI_AUTO = 800;
 
 const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
 const nomDuLieu = (lieuId: number | undefined) => (lieuId === undefined ? undefined : lieuxExemples.find((l) => l.id === lieuId)?.nom);
@@ -62,6 +64,9 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
   const premierDefilement = useRef(true);
+  // Hauteurs connues du contenu et de la partie visible, pour aller pile en bas
+  const hauteurs = useRef({ contenu: 0, visible: 0 });
+  const finSuiviAuto = useRef(0);
   const [aujourdhui, setAujourdhui] = useState(() => new Date());
   // Messages des potes arrivés pendant que tu relisais plus haut
   const [nouveaux, setNouveaux] = useState(0);
@@ -75,11 +80,22 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
   const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
 
+  /**
+   * Défile jusqu'au dernier message. Avec les vraies hauteurs quand on les a : scrollToEnd se fie aux mesures des bulles,
+   * pas encore à jour quand une bulle vient d'arriver (il s'arrêtait alors au-dessus d'elle).
+   */
+  const defilerEnBas = useCallback((anime: boolean) => {
+    finSuiviAuto.current = Date.now() + DUREE_SUIVI_AUTO;
+    const { contenu, visible } = hauteurs.current;
+    if (contenu > 0 && visible > 0) liste.current?.scrollToOffset({ offset: Math.max(0, contenu - visible), animated: anime });
+    else liste.current?.scrollToEnd({ animated: anime });
+  }, []);
+
   const allerEnBas = useCallback(() => {
     collerEnBas.current = true;
     setNouveaux(0);
-    liste.current?.scrollToEnd({ animated: !animationsReduites });
-  }, [animationsReduites]);
+    defilerEnBas(!animationsReduites);
+  }, [animationsReduites, defilerEnBas]);
   useImperativeHandle(ref, () => ({ allerEnBas }), [allerEnBas]);
 
   // Minuit passe : « Aujourd'hui » devient « Hier » sans quitter l'écran
@@ -87,14 +103,6 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
     const minuterie = setInterval(() => setAujourdhui((avant) => (new Date().toDateString() === avant.toDateString() ? avant : new Date())), 60_000);
     return () => clearInterval(minuterie);
   }, []);
-
-  // Clavier ouvert : les derniers messages restent visibles au-dessus du champ
-  useEffect(() => {
-    const ouverture = Keyboard.addListener("keyboardDidShow", () => {
-      if (collerEnBas.current) liste.current?.scrollToEnd({ animated: !animationsReduites });
-    });
-    return () => ouverture.remove();
-  }, [animationsReduites]);
 
   // Un nouveau message : le tien te ramène en bas ; celui d'un pote est lu par le lecteur d'écran, sans qu'il faille aller le chercher.
   // Avant l'affichage, pour que le défilement qui suit la nouvelle bulle sache déjà s'il doit coller en bas.
@@ -113,8 +121,21 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {
     const { contentOffset, contentSize, layoutMeasurement } = evenement.nativeEvent;
-    collerEnBas.current = contentSize.height - contentOffset.y - layoutMeasurement.height < PRES_DU_BAS;
-    if (collerEnBas.current) setNouveaux((n) => (n === 0 ? n : 0));
+    if (contentSize.height - contentOffset.y - layoutMeasurement.height < PRES_DU_BAS) {
+      collerEnBas.current = true;
+      setNouveaux((n) => (n === 0 ? n : 0));
+    } else if (Date.now() > finSuiviAuto.current) {
+      // Tu remontes relire : on ne te ramène plus en bas
+      collerEnBas.current = false;
+    }
+  }
+
+  // La liste rapetisse (clavier ouvert, enregistreur, message d'erreur sous le champ) : les derniers messages restent visibles
+  function suivreTaille(evenement: LayoutChangeEvent) {
+    const visible = evenement.nativeEvent.layout.height;
+    if (visible === hauteurs.current.visible) return;
+    hauteurs.current.visible = visible;
+    if (collerEnBas.current) defilerEnBas(false);
   }
 
   const ouvrirMenu = useCallback((ligne: LigneDiscussion) => {
@@ -209,9 +230,11 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
         contentContainerClassName="px-4 pb-3 pt-2"
         onScroll={suivreDefilement}
         scrollEventThrottle={100}
-        onContentSizeChange={() => {
+        onLayout={suivreTaille}
+        onContentSizeChange={(_largeur, hauteur) => {
+          hauteurs.current.contenu = hauteur;
           // À l'ouverture, on arrive directement sur les derniers messages ; ensuite, on suit les nouveaux en douceur
-          if (collerEnBas.current) liste.current?.scrollToEnd({ animated: !premierDefilement.current && !animationsReduites });
+          if (collerEnBas.current) defilerEnBas(!premierDefilement.current && !animationsReduites);
           premierDefilement.current = false;
         }}
         ListHeaderComponent={enTete}
