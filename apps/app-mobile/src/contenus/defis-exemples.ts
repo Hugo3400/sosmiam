@@ -8,16 +8,31 @@ export type Defi = {
   objectif: number;
   /** Points du programme Ambassadeurs gagnés une fois le défi réussi */
   points: number;
-  /** Date de fin, telle qu'affichée */
-  fin: string;
+  /** Dernier jour du défi, « AAAA-MM-JJ » (formaté à l'affichage) ; sans date, pas d'échéance */
+  fin?: string;
   /** Lieux concernés (identifiants de lieux-exemples.ts) */
   lieux: number[];
-  /** Mesure suivie sur le téléphone ; sans mesure, l'avancée attend les visites validées (API) */
+  /** Mesure suivie sur le téléphone ; sans mesure, le défi est « à venir » : il attend les visites validées (API) */
   mesure?: MesureActivite;
 };
 
-/** Défis du moment (exemples repris du prototype, en attendant qu'ils viennent de l'API). */
+/**
+ * Défis du moment (exemples repris du prototype, en attendant qu'ils viennent de l'API).
+ * Ceux qui attendent les visites validées n'ont pas d'échéance : elle passerait avant qu'on puisse les réussir.
+ */
 export const defisExemples: Defi[] = [
+  {
+    id: "premiers",
+    emoji: "🚀",
+    titre: "Toujours le premier",
+    // 2 et pas 3 : dans les exemples, 2 des 3 lieux tout juste arrivés sont ouverts à tous (le 3e est un bar, caché avant 18 ans)
+    texte: "Sois le premier sauveteur de 2 lieux",
+    objectif: 2,
+    points: 40,
+    fin: "2026-12-31",
+    lieux: [],
+    mesure: "premiers-sauvetages",
+  },
   {
     id: "specialites",
     emoji: "🥧",
@@ -25,7 +40,6 @@ export const defisExemples: Defi[] = [
     texte: "Tielle sétoise, petit pâté de Pézenas, huîtres de Bouzigues et zézettes : goûte les 4",
     objectif: 4,
     points: 50,
-    fin: "31 oct.",
     lieux: [9, 11, 13, 10],
   },
   {
@@ -35,19 +49,7 @@ export const defisExemples: Defi[] = [
     texte: "Teste 2 sorties : kayak, paddle, poterie ou escape game",
     objectif: 2,
     points: 30,
-    fin: "31 oct.",
     lieux: [6, 7, 8, 12],
-  },
-  {
-    id: "premiers",
-    emoji: "🚀",
-    titre: "Toujours le premier",
-    texte: "Sois le premier sauveteur de 3 lieux",
-    objectif: 3,
-    points: 40,
-    fin: "31 déc.",
-    lieux: [],
-    mesure: "premiers-sauvetages",
   },
   {
     id: "potes",
@@ -56,7 +58,6 @@ export const defisExemples: Defi[] = [
     texte: "Organise une sortie entre potes et validez-la ensemble",
     objectif: 1,
     points: 20,
-    fin: "31 oct.",
     lieux: [],
   },
 ];

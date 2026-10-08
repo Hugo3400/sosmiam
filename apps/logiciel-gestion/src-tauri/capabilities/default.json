@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Ce que la fenêtre du logiciel peut demander à Windows : le strict nécessaire.",
   "windows": ["main"],
-  "permissions": ["core:default", "notification:default"]
+  "permissions": ["core:default", "notification:default", "opener:default", "updater:default"]
 }

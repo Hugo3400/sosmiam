@@ -25,3 +25,5 @@ Fais découvrir les lieux indépendants qui ont besoin de monde. Sauve une table
 - `npm run gestion:installateur` : construit l'installateur Windows du logiciel de gestion (mode d'emploi : `apps/logiciel-gestion/README.md`)
 - `npm run gestion:autoriser -- <clé publique>` : autorise un PC à utiliser le logiciel de gestion (à lancer soi-même, un secret s'affiche)
 - `npm run gestion:verifier` : vérifie les types et les tests du logiciel de gestion, et la limite de 700 lignes
+- `npm run sauvegardes:cle` : affiche la clé de restauration des sauvegardes chiffrées de la base (à noter, soi-même)
+- `npm run sauvegardes:dechiffrer -- <fichier>` : déchiffre une sauvegarde de la base, à restaurer avec pg_restore

@@ -16,6 +16,7 @@ import { ErreurApi } from "~/services/client-gestion.ts";
 import { enregistrerLieu, lireLieu, supprimerLieu, type EnvieLieu, type SaisieLieu } from "~/services/lieux.ts";
 import { ApercuLieu } from "./ApercuLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
+import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
 const NOUVEAU: SaisieLieu = {
   nom: "", type: "resto", emoji: "🍝", info: "", texte: "", adresse: null, quartier: "", ville: "Montpellier",
@@ -141,7 +142,15 @@ export function FormulaireLieu({ id, onFermer }: { id: number | null; onFermer: 
             <Champ libelle="Adresse" valeur={lieu.adresse ?? ""} maxLength={160} onChange={(v) => changer({ adresse: texteOuNull(v) })} className="md:col-span-2" />
             <Champ libelle="Quartier" valeur={lieu.quartier} maxLength={60} onChange={(quartier) => changer({ quartier })} />
             <Champ libelle="Ville" valeur={lieu.ville} maxLength={80} onChange={(ville) => changer({ ville })} />
-            <Champ libelle="Latitude" inputMode="decimal" valeur={nombres.latitude} onChange={(latitude) => setNombres({ ...nombres, latitude })} aide="Clic droit sur le lieu dans une carte en ligne : les deux nombres." />
+            <RechercheAdresse
+              adresse={lieu.adresse ?? ""}
+              ville={lieu.ville}
+              onChoisir={(resultat) => {
+                changer({ adresse: resultat.nom, ville: resultat.ville || lieu.ville });
+                setNombres({ ...nombres, latitude: String(resultat.latitude), longitude: String(resultat.longitude) });
+              }}
+            />
+            <Champ libelle="Latitude" inputMode="decimal" valeur={nombres.latitude} onChange={(latitude) => setNombres({ ...nombres, latitude })} />
             <Champ libelle="Longitude" inputMode="decimal" valeur={nombres.longitude} onChange={(longitude) => setNombres({ ...nombres, longitude })} />
           </Groupe>
 

@@ -6,9 +6,6 @@ import { Section } from "~/composants/mise-en-page/Section";
 import { CarteToutGratuit } from "~/composants/pro/CarteToutGratuit";
 import { avantagesPro } from "~/contenus/pros";
 
-// Pas encore d'espace pro : on passe par l'e-mail en attendant
-const lienInscrireMonLieu = "mailto:bonjour@sosmiam.fr?subject=Inscrire%20mon%20lieu%20sur%20SOS%20Miam";
-
 /** Section pour les lieux : ce que SOS Miam leur apporte, gratuitement. */
 export function PourLesPros() {
   return (
@@ -24,7 +21,7 @@ export function PourLesPros() {
           <div className="mt-8 mb-9">
             <ListeCoches elements={avantagesPro} />
           </div>
-          <Bouton href={lienInscrireMonLieu}>Inscrire mon lieu</Bouton>
+          <Bouton vers="/inscrire-mon-lieu">Inscrire mon lieu</Bouton>
           <p className="mt-4 text-sm text-gris">À Montpellier et dans l'Hérault, on peut même passer créer ta fiche avec toi.</p>
         </div>
 

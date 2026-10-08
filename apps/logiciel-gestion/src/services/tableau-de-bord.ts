@@ -7,6 +7,7 @@ export type TableauDeBord = {
   visites: { jours: (TotauxPeriode & { cle: string })[]; semaine: TotauxPeriode };
   newsletter: { inscrits: number; recents: number; ambassadeurs: number; beta: number };
   moderation: { aTraiter: number; urgents: number };
+  demandes: { aTraiter: number };
   lieux: Record<string, number>;
   publications: Record<string, number> & { programmees: number };
   journal: EntreeJournal[];

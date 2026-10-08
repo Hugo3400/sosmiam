@@ -1,4 +1,4 @@
-import { Pressable, Text } from "react-native";
+import { Platform, Pressable, Text } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
@@ -16,7 +16,9 @@ export function Pastille({ libelle, emoji, choisi, onPress, role = "checkbox" }:
   return (
     <Pressable
       accessibilityRole={role}
-      accessibilityState={role === "radio" ? { selected: choisi } : { checked: choisi }}
+      // Radio : « checked » sur Android (TalkBack dit alors « non coché » aux autres) ; « selected » sur iPhone,
+      // où l'état « checked » d'une radio est lu en anglais
+      accessibilityState={role === "radio" && Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
       accessibilityLabel={libelle}
       onPress={() => {
         vibrerLegerement();

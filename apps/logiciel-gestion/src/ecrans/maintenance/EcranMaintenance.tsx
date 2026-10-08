@@ -14,6 +14,8 @@ import { formaterOctets } from "~/fonctions/texte/formater-octets.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { lireEtatServeur, relancerProcessus } from "~/services/maintenance.ts";
+import { trouverProblemes } from "~/fonctions/maintenance/trouver-problemes.ts";
+import { CarteSauvegardes } from "./CarteSauvegardes.tsx";
 import { JournalGestion } from "./JournalGestion.tsx";
 
 function Etat({ icone, titre, bon, children }: { icone: ReactNode; titre: string; bon: boolean; children: ReactNode }) {
@@ -58,6 +60,11 @@ export function EcranMaintenance() {
       {!donnees && chargement && <Chargement />}
       {donnees && (
         <div className="grid gap-5">
+          {trouverProblemes(donnees).length > 0 && (
+            <ul role="alert" className="grid gap-1 rounded-carte border-2 border-encre bg-jaune-clair px-5 py-3 text-sm font-semibold">
+              {trouverProblemes(donnees).map((probleme) => <li key={probleme}>⚠️ {probleme}</li>)}
+            </ul>
+          )}
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <Etat icone={<Activity className="size-4" aria-hidden />} titre="API" bon>
               Lancée {formaterDateRelative(donnees.api.depuis)} · {formaterOctets(donnees.api.memoire)} · Node {donnees.api.node}
@@ -68,7 +75,7 @@ export function EcranMaintenance() {
             <Etat icone={<Globe className="size-4" aria-hidden />} titre="Site" bon={donnees.site.enLigne}>
               {donnees.site.enLigne ? `Répond en ${donnees.site.delai} ms` : `Ne répond pas${donnees.site.statut ? ` (erreur ${donnees.site.statut})` : ""}`}
             </Etat>
-            <Etat icone={<HardDrive className="size-4" aria-hidden />} titre="Disque" bon={disquePlein < 0.95}>
+            <Etat icone={<HardDrive className="size-4" aria-hidden />} titre="Disque" bon={disquePlein < 0.9}>
               {donnees.disque ? `${formaterOctets(donnees.disque.libre)} libres sur ${formaterOctets(donnees.disque.total)} (${Math.round(disquePlein * 100)} % plein)` : "Illisible"}
             </Etat>
           </div>
@@ -102,6 +109,8 @@ export function EcranMaintenance() {
               </table>
             )}
           </Carte>
+
+          <CarteSauvegardes apresSauvegarde={recharger} />
 
           <Carte titre="Base de données">
             <ul className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm md:grid-cols-3">

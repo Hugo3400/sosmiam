@@ -2,15 +2,15 @@ import { Text, View } from "react-native";
 
 type Props = {
   lieuxSauves: number;
-  lieuxDeniches: number;
+  premiersSauvetages: number;
   badgesObtenus: number;
   badgesTotal: number;
 };
 
 type Chiffre = { valeur: string; libelle: string; lu: string };
 
-/** Trois chiffres honnêtes, comptés sur ce téléphone : lieux sauvés, lieux dénichés et badges obtenus. */
-export function ChiffresProfil({ lieuxSauves, lieuxDeniches, badgesObtenus, badgesTotal }: Props) {
+/** Trois chiffres honnêtes, comptés sur ce téléphone : lieux sauvés, lieux sauvés en premier (« Premier sauveteur ») et badges obtenus. */
+export function ChiffresProfil({ lieuxSauves, premiersSauvetages, badgesObtenus, badgesTotal }: Props) {
   const chiffres: Chiffre[] = [
     {
       valeur: String(lieuxSauves),
@@ -18,9 +18,9 @@ export function ChiffresProfil({ lieuxSauves, lieuxDeniches, badgesObtenus, badg
       lu: `${lieuxSauves} ${lieuxSauves > 1 ? "lieux sauvés" : "lieu sauvé"}`,
     },
     {
-      valeur: String(lieuxDeniches),
-      libelle: lieuxDeniches > 1 ? "lieux dénichés" : "lieu déniché",
-      lu: `${lieuxDeniches} ${lieuxDeniches > 1 ? "lieux dénichés" : "lieu déniché"} en premier`,
+      valeur: String(premiersSauvetages),
+      libelle: premiersSauvetages > 1 ? "sauvés en premier" : "sauvé en premier",
+      lu: `${premiersSauvetages} ${premiersSauvetages > 1 ? "lieux sauvés" : "lieu sauvé"} en premier`,
     },
     {
       valeur: `${badgesObtenus}/${badgesTotal}`,

@@ -21,6 +21,8 @@
     "gestion:dev": "npm run dev --prefix apps/logiciel-gestion",
     "gestion:verifier": "npm run typecheck --prefix apps/logiciel-gestion && npm test --prefix apps/logiciel-gestion && npm run verifier:lignes",
     "gestion:installateur": "bash apps/logiciel-gestion/scripts/construire-installateur.sh",
-    "gestion:autoriser": "node scripts/autoriser-poste-gestion.ts"
+    "gestion:autoriser": "node scripts/autoriser-poste-gestion.ts",
+    "sauvegardes:cle": "node scripts/afficher-cle-sauvegardes.ts",
+    "sauvegardes:dechiffrer": "node scripts/dechiffrer-sauvegarde.ts"
   }
 }

@@ -216,3 +216,58 @@ model JournalGestion {
   @@index([moment])
   @@map("journal_gestion")
 }
+
+// ─── Demandes de lieux et annonces Discord ────────────────────────────────────────────────────
+
+/// Un lieu qui demande à être sur SOS Miam (formulaire du site) ou une pépite proposée par la communauté (Discord).
+/// Hugo l'accepte (une fiche de lieu est créée) ou la refuse, dans le logiciel de gestion.
+model DemandeLieu {
+  id               Int       @id @default(autoincrement())
+  /// « lieu » (le lieu s'inscrit lui-même, depuis le site) ou « communaute » (proposition depuis Discord)
+  origine          String    @db.VarChar(12)
+  nom              String    @db.VarChar(80)
+  /// « resto », « patisserie », « bar », « sortie » ou « autre »
+  type             String?   @db.VarChar(20)
+  ville            String    @db.VarChar(80)
+  adresse          String?   @db.VarChar(160)
+  /// Présentation du lieu, ou pourquoi la communauté le propose
+  description      String    @db.VarChar(1000)
+  plat             String?   @db.VarChar(80)
+  horaires         String?   @db.VarChar(160)
+  siteWeb          String?   @map("site_web") @db.VarChar(200)
+  instagram        String?   @db.VarChar(60)
+  /// Contact du lieu (origine « lieu ») : pour lui répondre ; effaçable depuis le logiciel
+  contactNom       String?   @map("contact_nom") @db.VarChar(80)
+  contactEmail     String?   @map("contact_email") @db.VarChar(254)
+  contactTelephone String?   @map("contact_telephone") @db.VarChar(30)
+  /// Lien vers le message de la proposition sur Discord (origine « communaute »)
+  lienDiscord      String?   @map("lien_discord") @db.VarChar(200)
+  /// « a-traiter », « acceptee » ou « refusee »
+  statut           String    @default("a-traiter") @db.VarChar(10)
+  /// Note ou motif de la décision
+  reponse          String?   @db.VarChar(1000)
+  /// Fiche créée à partir de la demande
+  lieuId           Int?      @map("lieu_id")
+  creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  traiteLe         DateTime? @map("traite_le") @db.Timestamptz(0)
+
+  @@index([statut, creeLe])
+  @@map("demandes_lieux")
+}
+
+/// Annonce écrite dans le logiciel de gestion, publiée dans le salon d'annonces du serveur Discord par le bot.
+model AnnonceDiscord {
+  id          Int       @id @default(autoincrement())
+  titre       String    @db.VarChar(100)
+  /// Texte au format Discord (gras **…**, listes « - », liens)
+  texte       String    @db.VarChar(3500)
+  /// « en-attente » (le bot va la publier), « publiee » ou « echec »
+  statut      String    @default("en-attente") @db.VarChar(12)
+  lienMessage String?   @map("lien_message") @db.VarChar(200)
+  erreur      String?   @db.VarChar(300)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  publieeLe   DateTime? @map("publiee_le") @db.Timestamptz(0)
+
+  @@index([statut])
+  @@map("annonces_discord")
+}

@@ -20,6 +20,7 @@ import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { desinscrire, exporterInscrits, listerInscrits, type FiltresInscrits, type Inscrit } from "~/services/newsletter.ts";
 import { enregistrerFichier } from "~/services/systeme.ts";
+import { CarteBoiteMail } from "./CarteBoiteMail.tsx";
 
 const FILTRES_VIDES: FiltresInscrits = { recherche: "", ville: "", ambassadeur: false, beta: false, telephone: "", relance: false, page: 1 };
 
@@ -151,10 +152,7 @@ export function ListeInscrits() {
           </div>
         ) : null}
       </Carte>
-      <p className="text-[13px] text-gris">
-        Les inscriptions arrivées par mail sur l'ancienne page « Bientôt » ne sont pas dans cette liste : elles sont réunies avec celles-ci par
-        <code className="mx-1">npm run inscrits:recuperer</code> sur le serveur. Une désinscription faite ici vaut aussi pour elles.
-      </p>
+      <CarteBoiteMail apresSynchro={recharger} />
 
       <Modale
         titre="Désinscrire et effacer ?"

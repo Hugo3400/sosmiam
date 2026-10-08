@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 
+import { BandeauMiseAJour } from "~/composants/mise-en-page/BandeauMiseAJour.tsx";
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
+import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBientot } from "~/ecrans/bientot/EcranBientot.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
 import { EcranDeverrouillage } from "~/ecrans/connexion/EcranDeverrouillage.tsx";
 import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.tsx";
+import { EcranDemandes } from "~/ecrans/demandes/EcranDemandes.tsx";
 import { EcranLieux } from "~/ecrans/lieux/EcranLieux.tsx";
 import { EcranMaintenance } from "~/ecrans/maintenance/EcranMaintenance.tsx";
 import { EcranModeration } from "~/ecrans/moderation/EcranModeration.tsx";
@@ -15,7 +18,9 @@ import { EcranReglages } from "~/ecrans/reglages/EcranReglages.tsx";
 import { EcranStatistiques } from "~/ecrans/statistiques/EcranStatistiques.tsx";
 import { EcranTableauDeBord } from "~/ecrans/tableau-de-bord/EcranTableauDeBord.tsx";
 import { utiliserAlertesModeration } from "~/hooks/utiliser-alertes-moderation.ts";
+import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
 import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
+import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
 import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts";
 import { fermerSession } from "~/services/session.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
@@ -33,6 +38,8 @@ export function Application() {
   const [ecran, setEcran] = useState<Ecran>("tableau-de-bord");
   const connecte = phase === "connecte";
   const moderation = utiliserAlertesModeration(connecte);
+  const problemesServeur = utiliserAlertesServeur(connecte);
+  const miseAJour = utiliserMiseAJour(connecte);
 
   // Session fermée par le serveur (inactivité, redémarrage) : la clé reste ouverte, seul le code est redemandé
   useEffect(() => {
@@ -88,13 +95,16 @@ export function Application() {
 
   return (
     <div className="flex h-full">
-      <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} onVerrouiller={() => verrouiller(true)} />
+      <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} problemesServeur={problemesServeur.length} onVerrouiller={() => verrouiller(true)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
+        {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
         <div className="mx-auto max-w-[1280px] px-8 py-7">
-          {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={setEcran} />}
+          {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={setEcran} problemesServeur={problemesServeur} />}
           {ecran === "statistiques" && <EcranStatistiques />}
           {ecran === "newsletter" && <EcranNewsletter />}
           {ecran === "lieux" && <EcranLieux />}
+          {ecran === "demandes" && <EcranDemandes />}
+          {ecran === "annonces" && <EcranAnnonces />}
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {(ecran === "big-sos" || ecran === "notifications" || ecran === "utilisateurs") && <EcranBientot ecran={ecran} />}

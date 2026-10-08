@@ -4,6 +4,7 @@ import { LIENS } from "../contenus/liens.ts";
 import { TYPES_LIEUX } from "../contenus/types-lieux.ts";
 import { CHAMPS_PROPOSITION as CHAMPS, creerFormulaireProposition } from "../messages/creer-formulaire-proposition.ts";
 import { creerMessageProposition, type Proposition } from "../messages/creer-message-proposition.ts";
+import { apiConfiguree, appelerApi } from "../services/api.ts";
 import { lireReglages } from "../stockage/reglages-serveurs.ts";
 import type { Commande } from "./type-commande.ts";
 
@@ -55,6 +56,11 @@ export const proposerLieu: Commande = {
     });
     dernieresPropositions.set(interaction.user.id, Date.now());
     await message.react("😋").catch(() => {});
+    // Copie dans la file « Demandes de lieux » du logiciel de gestion : le contenu et le lien du message, pas son auteur
+    if (apiConfiguree()) {
+      appelerApi("POST", "/propositions", { ...proposition, type: proposition.type.valeur, lienDiscord: message.url })
+        .catch((erreur: unknown) => console.error("Proposition non transmise à l'API :", (erreur as Error).message));
+    }
     await interaction.editReply(`Merci ! Ta pépite est partie dans ${salon} 🛟 La communauté peut la soutenir avec 😋`);
   },
 };

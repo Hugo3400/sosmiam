@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { AppState } from "react-native";
 
 import { RESCOUSSES_PAR_SEMAINE } from "@sos-miam/commun/regles/rescousses";
 import { calculerCleSemaine } from "~/fonctions/dates/calculer-cle-semaine";
@@ -6,6 +7,12 @@ import { ContexteActivite, type ResultatRescousse } from "~/hooks/utiliser-activ
 import { effacerActiviteLocale, enregistrerActiviteLocale, lireActiviteLocale, type ActiviteLocale } from "~/stockage/activite-locale";
 
 const activiteVide = (): ActiviteLocale => ({ semaine: calculerCleSemaine(), rescousses: [], historique: [], premiersSauvetages: [], gardes: [], jaimes: [], masques: [] });
+
+/** Nouvelle semaine : les rescousses reviennent ; l'historique, les lieux gardés, J'aime et masques restent. Même semaine : la même activité (pas de nouveau rendu). */
+const mettreAJourSemaine = (a: ActiviteLocale): ActiviteLocale => {
+  const semaine = calculerCleSemaine();
+  return a.semaine === semaine ? a : { ...a, semaine, rescousses: [] };
+};
 
 /** Rescousses de la semaine (remises à 3 chaque lundi) et leur historique, lieux gardés, J'aime et masques, enregistrés sur le téléphone à chaque changement. */
 export function FournisseurActivite({ children }: { children: ReactNode }) {
@@ -15,11 +22,16 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
   useEffect(() => {
     lireActiviteLocale().then((lue) => {
       chargee.current = true;
-      if (!lue) return;
-      // Nouvelle semaine : les rescousses reviennent ; l'historique, les lieux gardés, J'aime et masques restent
-      const semaine = calculerCleSemaine();
-      setActivite(lue.semaine === semaine ? lue : { ...lue, semaine, rescousses: [] });
+      if (lue) setActivite(mettreAJourSemaine(lue));
     });
+  }, []);
+
+  // L'app peut dormir en arrière-plan d'une semaine à l'autre : on revérifie la semaine à chaque retour au premier plan
+  useEffect(() => {
+    const abonnement = AppState.addEventListener("change", (etat) => {
+      if (etat === "active") setActivite(mettreAJourSemaine);
+    });
+    return () => abonnement.remove();
   }, []);
 
   useEffect(() => {
@@ -30,8 +42,11 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
 
   const basculerRescousse = useCallback(
     (idLieu: number): ResultatRescousse => {
-      if (activite.rescousses.includes(idLieu)) {
-        setActivite((a) => {
+      // Semaine revérifiée au moment de donner (passage au lundi pendant que l'app est ouverte)
+      const courante = mettreAJourSemaine(activite);
+      if (courante.rescousses.includes(idLieu)) {
+        setActivite((precedente) => {
+          const a = mettreAJourSemaine(precedente);
           // La rescousse reprise sort aussi de l'historique ; sans autre rescousse, le lieu n'est plus « déniché » par la personne
           const historique = a.historique.filter((r) => !(r.lieu === idLieu && r.semaine === a.semaine));
           const encoreSauve = historique.some((r) => r.lieu === idLieu);
@@ -44,11 +59,14 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
         });
         return "annulee";
       }
-      if (restantes <= 0) return "epuisee";
-      setActivite((a) => ({ ...a, rescousses: [...a.rescousses, idLieu], historique: [...a.historique, { lieu: idLieu, semaine: a.semaine }] }));
+      if (RESCOUSSES_PAR_SEMAINE - courante.rescousses.length <= 0) return "epuisee";
+      setActivite((precedente) => {
+        const a = mettreAJourSemaine(precedente);
+        return { ...a, rescousses: [...a.rescousses, idLieu], historique: [...a.historique, { lieu: idLieu, semaine: a.semaine }] };
+      });
       return "donnee";
     },
-    [activite.rescousses, restantes],
+    [activite],
   );
 
   const basculerGarde = useCallback(

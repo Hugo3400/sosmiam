@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Alert, Linking, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
@@ -39,6 +39,15 @@ export default function ReglagesAvatar() {
   const [enCours, setEnCours] = useState<"camera" | "galerie" | null>(null);
   const [cameraRefusee, setCameraRefusee] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  // Après « Retirer la photo », sa ligne disparaît : le lecteur d'écran est ramené sur l'avatar actuel
+  const refAvatarActuel = useRef<View>(null);
+  const ramenerFocus = useRef(false);
+
+  useEffect(() => {
+    if (!ramenerFocus.current || avatar.type === "photo") return;
+    ramenerFocus.current = false;
+    if (refAvatarActuel.current) AccessibilityInfo.sendAccessibilityEvent(refAvatarActuel.current, "focus");
+  }, [avatar]);
 
   const largeurDispo = width - 40;
   const colonnes = Math.min(8, Math.max(4, Math.floor((largeurDispo + ECART) / (TAILLE_MIN + ECART))));
@@ -49,12 +58,12 @@ export default function ReglagesAvatar() {
     AccessibilityInfo.announceForAccessibility(message);
   }
 
-  /** Change d'avatar et l'annonce au lecteur d'écran ; renvoie faux si l'enregistrement a échoué (message affiché). */
-  async function appliquer(nouveau: Avatar, annonce: string): Promise<boolean> {
+  /** Change d'avatar et l'annonce au lecteur d'écran (sauf annonce null) ; renvoie faux si l'enregistrement a échoué (message affiché). */
+  async function appliquer(nouveau: Avatar, annonce: string | null): Promise<boolean> {
     setErreur(null);
     try {
       await changerAvatar(nouveau);
-      AccessibilityInfo.announceForAccessibility(annonce);
+      if (annonce) AccessibilityInfo.announceForAccessibility(annonce);
       return true;
     } catch {
       signalerErreur("Oups, ton avatar n'a pas pu être enregistré. Réessaie dans un instant.");
@@ -112,13 +121,23 @@ export default function ReglagesAvatar() {
   }
 
   function retirerPhoto() {
-    const retirer = () => void appliquer(AVATAR_PAR_DEFAUT, `Photo retirée : retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}.`);
-    // Sur le web (aperçu de développement), Alert n'existe pas : on retire directement
-    if (surLeWeb) return retirer();
-    Alert.alert("Retirer ta photo ?", "Elle sera effacée de SOS Miam et tu retrouveras ton emoji.", [
-      { text: "Garder ma photo", style: "cancel" },
-      { text: "Retirer", style: "destructive", onPress: retirer },
-    ]);
+    // Sur le web (aperçu de développement), Alert n'existe pas : on retire directement et on l'annonce
+    if (surLeWeb) return void appliquer(AVATAR_PAR_DEFAUT, `Photo retirée : retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}.`);
+    // Sur le téléphone, le lecteur d'écran se pose sur l'avatar actuel, qui dit déjà lequel c'est
+    const retirer = () => {
+      ramenerFocus.current = true;
+      void appliquer(AVATAR_PAR_DEFAUT, null).then((ok) => {
+        if (!ok) ramenerFocus.current = false;
+      });
+    };
+    Alert.alert(
+      "Retirer ta photo ?",
+      `Elle sera effacée de SOS Miam et tu repartiras avec l'${decrireAvatar(AVATAR_PAR_DEFAUT)}, à changer quand tu veux.`,
+      [
+        { text: "Garder ma photo", style: "cancel" },
+        { text: "Retirer", style: "destructive", onPress: retirer },
+      ],
+    );
   }
 
   function ouvrirReglagesTelephone() {
@@ -129,7 +148,7 @@ export default function ReglagesAvatar() {
 
   return (
     <EcranReglage titre="Ton avatar" sousTitre="Un emoji qui te ressemble, ou ta vraie bouille.">
-      <View accessible accessibilityLabel={`Ton avatar actuel : ${decrireAvatar(avatar)}`} className="items-center">
+      <View ref={refAvatarActuel} accessible accessibilityLabel={`Ton avatar actuel : ${decrireAvatar(avatar)}`} className="items-center">
         <ImageAvatar avatar={avatar} taille={140} />
       </View>
 
@@ -143,7 +162,8 @@ export default function ReglagesAvatar() {
             <Pressable
               key={emoji}
               accessibilityRole="radio"
-              accessibilityState={{ selected: choisi }}
+              // Même règle que Pastille : « checked » sur Android, « selected » sur iPhone (où « checked » est lu en anglais)
+              accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
               accessibilityLabel={`Avatar ${nom}`}
               onPress={() => {
                 vibrerLegerement();
@@ -182,7 +202,7 @@ export default function ReglagesAvatar() {
           droite={chargement("galerie")}
         />
         {avatar.type === "photo" ? (
-          <LigneReglage emoji="🗑️" titre="Retirer la photo" detail="Tu retrouves ton emoji" danger onPress={retirerPhoto} />
+          <LigneReglage emoji="🗑️" titre="Retirer la photo" detail={`Retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}`} danger onPress={retirerPhoto} />
         ) : null}
       </View>
 

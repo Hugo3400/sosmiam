@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Text, View } from "react-native";
 
@@ -11,10 +11,13 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 /** Étape 4 sur 4 : récapitulatif, puis enregistrement du profil (la racine bascule alors vers les onglets). */
 export default function CEstPret() {
   const router = useRouter();
-  const { brouillon } = utiliserBrouillonInscription();
+  const { brouillon, verrouAge } = utiliserBrouillonInscription();
   const { enregistrer } = utiliserProfil();
   const [envoi, setEnvoi] = useState(false);
   const profil = construireProfil(brouillon);
+
+  // Verrou d'âge actif sur ce téléphone : jamais de profil, retour à l'écran qui l'explique
+  if (verrouAge) return <Redirect href="/fais-connaissance" />;
 
   // Ne devrait pas arriver en suivant le parcours : il manque une info obligatoire
   if (!profil) {
@@ -33,7 +36,7 @@ export default function CEstPret() {
   const nombreEnvies = Object.values(profil.envies).reduce((total, liste) => total + (liste?.length ?? 0), 0);
 
   async function decouvrir() {
-    if (!profil || envoi) return;
+    if (!profil || envoi || verrouAge) return;
     setEnvoi(true);
     try {
       await enregistrer(profil);

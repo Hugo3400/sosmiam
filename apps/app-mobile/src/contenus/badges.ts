@@ -12,14 +12,17 @@ export type Badge = {
 
 /** Le catalogue des badges (repris du prototype). */
 export const badges: Badge[] = [
-  { id: "premiere-rescousse", emoji: "🛟", nom: "Première rescousse", texte: "Tu as sauvé ton premier lieu", mesure: { type: "rescousses", objectif: 1 } },
+  { id: "premiere-rescousse", emoji: "🛟", nom: "Première rescousse", texte: "Donne ta première rescousse à un lieu", mesure: { type: "rescousses", objectif: 1 } },
   {
     id: "premier-sauveteur",
     emoji: "🚀",
     nom: "Premier sauveteur",
-    texte: "Tu as été le premier à faire découvrir un lieu",
+    // Décidé le 8 octobre 2026 : la première rescousse donnée à un lieu tout juste arrivé (proposer un lieu, c'est « Déniché par toi »)
+    texte: "Donne la toute première rescousse à un lieu qui vient d'arriver",
     mesure: { type: "premiers-sauvetages", objectif: 1 },
   },
+  // Proposer un lieu arrivera avec l'API : badge encore verrouillé
+  { id: "deniche", emoji: "🔎", nom: "Déniché par toi", texte: "Propose un lieu qui rejoint SOS Miam : sa fiche affichera ton prénom" },
   { id: "bec-sucre", emoji: "🍬", nom: "Bec sucré", texte: "5 pâtisseries ou confiseries validées" },
   { id: "serie-4", emoji: "🔥", nom: "4 semaines d'affilée", texte: "Une visite validée par semaine pendant 4 semaines" },
   { id: "iode", emoji: "🦪", nom: "Iodé", texte: "Des huîtres de Bouzigues dégustées sur place" },

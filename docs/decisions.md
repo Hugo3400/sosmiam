@@ -20,8 +20,8 @@
 - Point ouvert : que devient un bon solidaire si le lieu ferme.
 
 ## Comptes et données de l'app (décidé le 8 octobre 2026)
-- **Inscription à partir de 15 ans** (sous 15 ans, le RGPD exigerait l'accord des parents). Entre 15 et 17 ans, tout ce qui touche à l'alcool (boissons alcoolisées, types de bar) est masqué. Règles dans `packages/commun/src/regles/ages.ts`.
-- Première ouverture : carrousel de bienvenue qui explique le concept avec la mascotte, puis création du compte, « Fais connaissance » (prénom obligatoire, nom facultatif, date de naissance, ville), puis les envies (lieux, cuisines, boissons, types de bar, ambiance musicale, jeux, moments, régime particulier), puis « C'est prêt ».
+- **Inscription à partir de 15 ans** (sous 15 ans, le RGPD exigerait l'accord des parents). **Anti-contournement (décidé le 8 octobre 2026)** : le choix de la date reste neutre (toutes les dates, pas d'annonce de l'âge minimum à côté du champ) ; continuer avec une date qui donne moins de 15 ans (écrite en toutes lettres dans le champ, donc on a pu corriger une faute de frappe) bloque l'inscription sur le téléphone jusqu'aux 15 ans (verrou dans le Trousseau ou le Keystore, qui ne garde que la date de fin, pas la date de naissance), même si on revient changer la date. Sur iPhone, le verrou survit à une désinstallation. Aucune vérification d'identité : c'est une barrière, pas une preuve. Un bouton « Débloquer » existe seulement en mode développement (Expo Go), jamais dans l'app publiée. Entre 15 et 17 ans, tout ce qui touche à l'alcool (boissons alcoolisées, types de bar) est masqué. Règles dans `packages/commun/src/regles/ages.ts`.
+- Première ouverture : carrousel de bienvenue qui explique le concept avec la mascotte, puis création du compte, « Fais connaissance » (prénom obligatoire, nom facultatif, date de naissance, ville : avec la position du téléphone, lue une seule fois et jamais gardée, ou tapée à la main avec nos villes de lancement en suggestion), puis les envies (lieux, cuisines, boissons, types de bar, ambiance musicale, jeux, moments, régime particulier), puis « C'est prêt ».
 - **Connexion : Apple, Google ou e-mail.** Il faudra un compte Apple Developer, qu'on prendra de toute façon pour l'App Store. Apple impose son bouton dès qu'on propose Google.
 - **Base de données ultra sécurisée** : PostgreSQL sur le VPS, jamais exposée à Internet, rôle limité au strict nécessaire, données sensibles (date de naissance, nom, régimes) chiffrées par l'API (AES-256-GCM, clé hors de la base), sauvegardes chiffrées, journaux sans données personnelles, suppression de compte réelle.
 - **Régime particulier** (végétarien, vegan, halal, casher, sans gluten, allergies…) : ces données peuvent révéler une religion ou un état de santé. Elles restent sur le téléphone tant qu'il n'y a pas d'accord explicite (RGPD, article 9) pour les envoyer au serveur.
@@ -41,9 +41,9 @@
 
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
-- Le premier à faire découvrir un lieu : « Déniché par … » + badge « Premier sauveteur ».
+- **Deux badges distincts (décidé le 8 octobre 2026)** : « 🚀 Premier sauveteur » = donner la toute première rescousse à un lieu qui vient d'arriver (+20 points) ; « 🔎 Déniché par toi » = proposer un lieu qui rejoint SOS Miam, sa fiche affiche « Déniché par <prénom> » (+30 points, « proposer un lieu validé »).
 - **Barème des points (décidé le 8 octobre 2026)** : visite validée +15, visite pendant un SOS +25, avis avec photo +10, proposer un lieu validé +30, corriger une fiche +5, premier sauveteur +20, **rescousse +2**. Les défis réussis rapportent leurs propres points. Règles dans `packages/commun/src/regles/ambassadeurs.ts`.
-- Écran Profil de l'app : avatar (emoji au choix, ou photo gardée sur le téléphone), palier et points, rescousses de la semaine, défis, badges, lieux gardés et publications aimées, réglages (infos, envies, notifications, confidentialité, tout effacer). La date de naissance ne se change pas depuis l'app (règle d'âge) : il faut nous écrire.
+- Écran Profil de l'app : avatar (emoji au choix, ou photo gardée sur le téléphone), palier et points, rescousses de la semaine, défis, badges, lieux gardés et publications aimées, réglages (infos, envies, notifications, confidentialité, tout effacer). La date de naissance ne se change pas depuis l'app (règle d'âge) : tant que tout est sur le téléphone, la seule façon de la corriger est « Effacer mes données et recommencer ».
 
 ## Engagements publics (FAQ)
 - On peut passer faire la fiche avec le lieu (Montpellier et Hérault).
@@ -55,7 +55,10 @@
 ## Outils internes
 - **Logiciel ordinateur de gestion** (Tauri, Windows), commencé le 8 octobre 2026 : statistiques, newsletter, lieux, publications du fil, modération, maintenance (BIG SOS, notifications et comptes à venir). L'administration n'est pas sur le site.
 - **Réservé à Hugo** (décidé le 8 octobre 2026) : clé secrète propre à chaque PC, chiffrée par un mot de passe, **et** code à 6 chiffres d'une application d'authentification. Le serveur ne connaît que les clés publiques des postes autorisés ; chaque demande est signée. Seul le chemin `/api-gestion` de l'API est joignable de l'extérieur.
-- L'installateur est construit sur le serveur (comme TabulaDB), sans passer par GitHub.
+- L'installateur est construit sur le serveur (comme TabulaDB), sans passer par GitHub ; depuis la 0.2.0, le logiciel **se met à jour tout seul** (installateurs signés, servis seulement à un poste connecté).
+- **Sauvegardes** : copie chiffrée de la base chaque nuit sur le serveur, 30 gardées ; clé de restauration notée par Hugo dans son gestionnaire de mots de passe.
+- **Demandes de lieux** : les lieux s'inscrivent sur le site (/inscrire-mon-lieu), la communauté propose sur Discord (/proposer-lieu) ; tout arrive dans le logiciel, où Hugo accepte (fiche créée en brouillon) ou refuse. Contacts effacés automatiquement 3 ans après.
+- **Annonces Discord** écrites dans le logiciel, publiées par le bot (salon choisi avec `/config annonces`).
 - Newsletter : le logiciel gère les inscrits et la rédaction ; **l'envoi arrivera avec Brevo** (pas d'envoi en masse par la boîte de l'hébergeur).
 - Les fiches des lieux et les publications du fil sont désormais dans la base, saisies dans le logiciel ; l'app les lira quand elle sera branchée à l'API.
 

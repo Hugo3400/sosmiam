@@ -75,6 +75,12 @@ export function creerControleursGestion(s: ServicesGestion) {
       await noter(reponse, "Export des inscrits (CSV)");
       reponse.type("text/csv; charset=utf-8").send(`﻿${csv}`);
     }),
+    boite: verifier(async (_requete, reponse) => reponse.json(await s.lireEtatBoite())),
+    synchroniserBoite: verifier(async (_requete, reponse) => {
+      const resultat = await s.synchroniserBoite();
+      await noter(reponse, resultat.ok ? "Boîte mail synchronisée" : "Synchronisation de la boîte mail ratée");
+      reponse.json(resultat);
+    }),
     brouillons: verifier(async (_requete, reponse) => reponse.json(await s.listerBrouillons())),
     brouillon: verifier(async (requete, reponse) => {
       const brouillon = await s.lireBrouillon(lireId(requete.params.id) ?? 0);
@@ -181,6 +187,63 @@ export function creerControleursGestion(s: ServicesGestion) {
         `${resultat.cible} n° ${resultat.cibleId}, ${resultat.regles} signalement(s) réglé(s)`,
       );
       reponse.json({ ok: true, ...resultat });
+    }),
+
+    // ─── Demandes de lieux ───
+    demandes: verifier(async (requete, reponse) => reponse.json(await s.listerDemandes(lireParametre(requete.query.statut, 10)))),
+    accepterDemande: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const lieu = lireLieuSaisi(typeof corps.lieu === "object" && corps.lieu !== null ? (corps.lieu as Record<string, unknown>) : {});
+      const cree = await s.accepterDemande(lireId(requete.params.id) ?? 0, lieu, lireTexte(corps, "reponse", 1000));
+      if (!cree) return introuvable(reponse);
+      await noter(reponse, "Demande de lieu acceptée", `${cree.nom} (fiche n° ${cree.id}, ${cree.statut})`);
+      reponse.status(201).json(cree);
+    }),
+    refuserDemande: verifier(async (requete, reponse) => {
+      const id = lireId(requete.params.id);
+      if (!id || !(await s.refuserDemande(id, lireTexte(corpsDe(requete), "reponse", 1000)))) return introuvable(reponse);
+      await noter(reponse, "Demande de lieu refusée", `demande n° ${id}`);
+      reponse.json({ ok: true });
+    }),
+    effacerContactDemande: verifier(async (requete, reponse) => {
+      const id = lireId(requete.params.id);
+      if (!id || !(await s.effacerContactDemande(id))) return introuvable(reponse);
+      await noter(reponse, "Contact d'une demande effacé", `demande n° ${id}`);
+      reponse.json({ ok: true });
+    }),
+
+    // ─── Annonces Discord ───
+    annonces: verifier(async (_requete, reponse) => reponse.json(await s.listerAnnonces())),
+    creerAnnonce: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const annonce = await s.creerAnnonce(lireTexte(corps, "titre", 100, true), lireTexte(corps, "texte", 3500, true));
+      await noter(reponse, "Annonce Discord envoyée au bot", annonce.titre);
+      reponse.status(201).json(annonce);
+    }),
+    retirerAnnonce: verifier(async (requete, reponse) => {
+      const id = lireId(requete.params.id);
+      if (!id || !(await s.retirerAnnonce(id))) return introuvable(reponse);
+      await noter(reponse, "Annonce Discord retirée", `annonce n° ${id}`);
+      reponse.json({ ok: true });
+    }),
+
+    // ─── Sauvegardes et coordonnées ───
+    sauvegardes: verifier(async (_requete, reponse) => reponse.json(await s.lireEtatSauvegardes())),
+    sauvegarder: verifier(async (_requete, reponse) => {
+      const sauvegarde = await s.sauvegarderBase();
+      await noter(reponse, "Sauvegarde à la demande", sauvegarde.nom);
+      reponse.status(201).json(sauvegarde);
+    }),
+    telechargerSauvegarde: verifier(async (requete, reponse) => {
+      const chemin = await s.trouverSauvegarde(String(requete.params.nom));
+      if (!chemin) return introuvable(reponse);
+      await noter(reponse, "Sauvegarde téléchargée", String(requete.params.nom));
+      reponse.sendFile(chemin, { headers: { "Content-Type": "application/octet-stream" } });
+    }),
+    geocodage: verifier(async (requete, reponse) => {
+      const adresse = lireParametre(requete.query.adresse, 200);
+      if (adresse.length < 3) return reponse.json([]);
+      reponse.json(await s.chercherAdresse(adresse).catch(() => null) ?? []);
     }),
 
     // ─── Maintenance ───

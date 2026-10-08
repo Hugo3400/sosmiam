@@ -9,8 +9,10 @@ import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { avatarsEmoji } from "~/contenus/avatars-emoji";
 import { etapesEnvies } from "~/contenus/inscription/envies";
 import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envies";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
@@ -44,6 +46,11 @@ export default function Reglages() {
   }, 0);
   const detailEnvies =
     nombreEnvies === 0 ? "Rien de coché pour l'instant" : `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} cochée${nombreEnvies > 1 ? "s" : ""}`;
+  // L'avatar actuel est dit en toutes lettres (l'image à droite n'est pas lue par le lecteur d'écran)
+  const detailAvatar =
+    avatar.type === "photo"
+      ? "Ta photo pour l'instant, ou un emoji"
+      : `En ${avatarsEmoji.find((a) => a.emoji === avatar.emoji)?.nom ?? avatar.emoji} pour l'instant, ou en photo`;
 
   const version = Constants.expoConfig?.version;
 
@@ -83,7 +90,7 @@ export default function Reglages() {
         <LigneReglage
           emoji="🎭"
           titre="Avatar"
-          detail="Un emoji ou une photo de toi"
+          detail={detailAvatar}
           onPress={() => router.push("/reglages/avatar")}
           droite={
             <View className="flex-row items-center gap-2">
@@ -114,7 +121,7 @@ export default function Reglages() {
         <LigneReglage
           emoji="🔐"
           titre="Politique de confidentialité"
-          detail="Ce qu'on fait de tes données"
+          detail="Celle du site ; la partie de l'app arrive avant sa sortie"
           role="lien"
           onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite")}
         />
@@ -147,7 +154,9 @@ export default function Reglages() {
             🔒
           </Text>
           <Text className="flex-1 font-texte text-sm leading-5 text-gris">
-            Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Ça rejoindra ton compte quand notre serveur sera prêt.
+            {lierPonctuation(
+              "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
+            )}
           </Text>
         </View>
         <LigneReglage

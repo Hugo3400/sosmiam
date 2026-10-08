@@ -43,9 +43,10 @@ export function GrilleBadges({ obtenus }: Props) {
               className="p-1 active:opacity-70"
             >
               <View className={`min-h-24 items-center justify-center gap-1 rounded-2xl border-2 p-1.5 ${selectionne ? "border-tomate" : "border-encre"} ${obtenu ? "bg-jaune-clair" : "bg-white"}`}>
-                <View className={`items-center gap-1 ${obtenu ? "" : "opacity-40"}`}>
-                  <Text className="text-3xl">{badge.emoji}</Text>
-                  <Text numberOfLines={2} className="text-center font-texte-semi text-xs leading-4 text-encre">{badge.nom}</Text>
+                {/* Seul l'emoji est estompé : le nom reste bien lisible (gris sur blanc) */}
+                <View className="items-center gap-1">
+                  <Text className={`text-3xl ${obtenu ? "" : "opacity-40"}`}>{badge.emoji}</Text>
+                  <Text numberOfLines={2} className={`text-center font-texte-semi text-xs leading-4 ${obtenu ? "text-encre" : "text-gris"}`}>{badge.nom}</Text>
                 </View>
                 {obtenu ? null : <Text className="absolute right-1 top-1 text-xs">🔒</Text>}
               </View>

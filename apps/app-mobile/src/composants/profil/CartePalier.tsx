@@ -20,6 +20,8 @@ export function CartePalier({ points }: Props) {
     : reste !== null
       ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.emoji} ${suivant.nom}`
       : `Prochaine étape : ${suivant.nom}, sur candidature`;
+  // Même phrase sans l'emoji, que le lecteur d'écran prononcerait
+  const prochaineEtapeLue = suivant && reste !== null ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.nom}` : prochaineEtape;
   const valeurJauge = reste !== null && suivant?.seuil != null
     ? `${points - (actuel.seuil ?? 0)} points sur ${suivant.seuil - (actuel.seuil ?? 0)}`
     : "Palier rempli";
@@ -42,7 +44,7 @@ export function CartePalier({ points }: Props) {
       </View>
 
       <Jauge avancee={pourcentage / 100} libelle={suivant ? `Vers ${suivant.nom}` : "Palier"} texteValeur={valeurJauge} />
-      <Text className="font-texte-semi text-base text-encre">{lierPonctuation(prochaineEtape)}</Text>
+      <Text accessibilityLabel={prochaineEtapeLue} className="font-texte-semi text-base text-encre">{lierPonctuation(prochaineEtape)}</Text>
 
       <Text className="font-texte text-sm leading-5 text-gris">
         {lierPonctuation(

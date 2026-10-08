@@ -8,7 +8,7 @@ import { lireTableauDeBord } from "~/services/tableau-de-bord.ts";
  * Un nouveau signalement grave (publication masquée pour tous) déclenche une notification Windows.
  */
 export function utiliserAlertesModeration(actif: boolean) {
-  const [compteurs, setCompteurs] = useState({ aTraiter: 0, urgents: 0 });
+  const [compteurs, setCompteurs] = useState({ aTraiter: 0, urgents: 0, demandes: 0 });
   const urgentsConnus = useRef<number | null>(null);
 
   useEffect(() => {
@@ -16,9 +16,9 @@ export function utiliserAlertesModeration(actif: boolean) {
     let annule = false;
     const verifier = async () => {
       try {
-        const { moderation } = await lireTableauDeBord();
+        const { moderation, demandes } = await lireTableauDeBord();
         if (annule) return;
-        setCompteurs(moderation);
+        setCompteurs({ ...moderation, demandes: demandes.aTraiter });
         if (urgentsConnus.current !== null && moderation.urgents > urgentsConnus.current) {
           void notifier("🚨 Publication masquée pour tous", "Un signalement grave attend ta décision dans la modération.");
         }

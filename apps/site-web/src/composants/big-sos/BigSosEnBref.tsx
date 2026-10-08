@@ -1,4 +1,3 @@
-import { JaugeMobilisation } from "~/composants/big-sos/JaugeMobilisation";
 import { Badge } from "~/composants/interface/Badge";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
@@ -46,8 +45,6 @@ export function BigSosEnBref() {
               </li>
             ))}
           </ul>
-          <JaugeMobilisation className="mt-7" actuel={204} objectif={300} unite="visites" duree="7 jours" />
-          <p className="mt-1 text-xs text-gris">Exemple d'objectif, pour te montrer la jauge.</p>
         </div>
       </div>
 

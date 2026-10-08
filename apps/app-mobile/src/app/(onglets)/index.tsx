@@ -6,6 +6,7 @@ import { FlatList, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FilVide } from "~/composants/fil/FilVide";
@@ -18,6 +19,7 @@ import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
+import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
@@ -83,9 +85,10 @@ export default function PourToi() {
     if (resultat === "annulee") return annoncer("Rescousse reprise");
     setBouees((b) => ({ ...b, [p.id]: Date.now() }));
     const reste = activite.restantes - 1;
-    if (lieu.nouveau && !lieu.decouvertPar) {
+    // activite est l'état d'avant l'appui : un lieu déjà compté ne refait pas « Premier sauveteur » les semaines suivantes
+    if (estPremierSauvetagePossible(lieu, activite.premiersSauvetages)) {
       activite.noterPremierSauvetage(lieu.id);
-      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} est « Déniché par ${profil?.prenom ?? "toi"} »`);
+      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} vient d'arriver et tu es déjà là : +${POINTS_AMBASSADEUR.premierSauveteur} points`);
     } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
   }
 

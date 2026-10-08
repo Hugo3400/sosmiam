@@ -43,6 +43,12 @@
           "cameraPermission": "SOS Miam a besoin de l'appareil photo pour que tu prennes ta photo de profil.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SOS Miam utilise ta position une seule fois, pour trouver le nom de ta ville. On ne la garde pas."
+        }
       ]
     ],
     "experiments": {

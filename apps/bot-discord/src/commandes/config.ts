@@ -26,6 +26,11 @@ const SALONS = {
     libelle: "Propositions de lieux",
     droits: ["ViewChannel", "SendMessages", "AddReactions", "ReadMessageHistory"],
   },
+  annonces: {
+    cle: "salonAnnonces",
+    libelle: "Annonces du logiciel de gestion",
+    droits: ["ViewChannel", "SendMessages"],
+  },
 } as const satisfies Record<string, { cle: keyof ReglagesServeur; libelle: string; droits: PermissionsString[] }>;
 
 const NOMS_DROITS: Partial<Record<PermissionsString, string>> = {
@@ -41,7 +46,7 @@ const AVERTISSEMENT_INTENT =
 export const config: Commande = {
   definition: new SlashCommandBuilder()
     .setName("config")
-    .setDescription("Régler le bot : salons d'accueil et de propositions")
+    .setDescription("Régler le bot : salons d'accueil, de propositions et d'annonces")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addSubcommand((sous) => sous.setName("voir").setDescription("Affiche les réglages actuels"))
     .addSubcommand((sous) =>
@@ -55,15 +60,21 @@ export const config: Commande = {
         .setName("propositions")
         .setDescription("Salon où arrivent les /proposer-lieu (laisse vide pour désactiver)")
         .addChannelOption((o) => o.setName("salon").setDescription("Salon textuel").addChannelTypes(ChannelType.GuildText)),
+    )
+    .addSubcommand((sous) =>
+      sous
+        .setName("annonces")
+        .setDescription("Salon où je publie les annonces du logiciel de gestion (laisse vide pour désactiver)")
+        .addChannelOption((o) => o.setName("salon").setDescription("Salon textuel ou d'annonces").addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)),
     ),
 
   async executer(interaction) {
     const sous = interaction.options.getSubcommand();
     if (sous === "voir") return afficherReglages(interaction);
-    if (sous !== "bienvenue" && sous !== "propositions") return;
+    if (sous !== "bienvenue" && sous !== "propositions" && sous !== "annonces") return;
 
     const { cle, libelle, droits } = SALONS[sous];
-    const salon = interaction.options.getChannel("salon", false, [ChannelType.GuildText]);
+    const salon = interaction.options.getChannel("salon", false, [ChannelType.GuildText, ChannelType.GuildAnnouncement]);
     if (!salon) {
       modifierReglages(interaction.guildId, { [cle]: undefined });
       await interaction.reply({ content: `${libelle} : désactivé.`, flags: MessageFlags.Ephemeral });

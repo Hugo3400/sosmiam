@@ -2,15 +2,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useCallback, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -23,6 +27,8 @@ export default function FicheLieu() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
+  const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const finAnnonce = useCallback(() => setAnnonce(null), []);
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieu = filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id);
 
@@ -36,6 +42,24 @@ export default function FicheLieu() {
   }
 
   const sauve = activite.aSauve(lieu.id);
+  // Plus de rescousse cette semaine : le bouton est désactivé (pas de vibration pour rien) et dit pourquoi
+  const epuisee = !sauve && activite.restantes <= 0;
+  const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
+
+  // Mêmes règles et mêmes messages que dans le fil (onglet « Pour toi »)
+  const basculerRescousse = () => {
+    // activite est l'état d'avant l'appui : un lieu déjà compté ne refait pas « Premier sauveteur »
+    const premierSauveteur = estPremierSauvetagePossible(lieu, activite.premiersSauvetages);
+    const resultat = activite.basculerRescousse(lieu.id);
+    if (resultat === "epuisee") return annoncer("Plus de rescousse cette semaine, reviens lundi ! 🛟");
+    if (resultat === "annulee") return annoncer("Rescousse reprise");
+    const reste = activite.restantes - 1;
+    if (premierSauveteur) {
+      activite.noterPremierSauvetage(lieu.id);
+      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} vient d'arriver et tu es déjà là : +${POINTS_AMBASSADEUR.premierSauveteur} points`);
+    } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
+  };
+
   const sections = [
     { emoji: "🕐", titre: "Horaires", texte: lieu.horaires },
     { emoji: "😋", titre: "Le plat signature", texte: lieu.plat },
@@ -98,24 +122,32 @@ export default function FicheLieu() {
         <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
       </Pressable>
 
+      {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}
       <View style={{ paddingBottom: marges.bottom + 12 }} className="absolute inset-x-0 bottom-0 flex-row gap-3 border-t border-ligne bg-creme px-5 pt-3">
         <Bouton
           className="flex-1"
-          libelle={sauve ? "🛟 Sauvé !" : "🛟 À la rescousse"}
+          libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}
           variante={sauve ? "encre" : "jaune"}
-          onPress={() => {
-            // Premier à sauver un lieu tout juste arrivé : badge et points « Premier sauveteur »
-            if (activite.basculerRescousse(lieu.id) === "donnee" && lieu.nouveau && !lieu.decouvertPar) activite.noterPremierSauvetage(lieu.id);
-          }}
+          desactive={epuisee}
+          indice={
+            sauve
+              ? "Reprend ta rescousse, elle te sera rendue pour un autre lieu"
+              : epuisee
+                ? "Plus de rescousse cette semaine, elles reviennent lundi"
+                : `Donne une de tes rescousses à ce lieu, il t'en reste ${activite.restantes} cette semaine`
+          }
+          onPress={basculerRescousse}
         />
         <Bouton
           className="flex-1"
-          libelle="🗺️ Y aller"
+          libelle="Y aller"
           variante="blanc"
           indice="Ouvre l'itinéraire dans Plans"
           onPress={() => Linking.openURL(`https://maps.apple.com/?q=${encodeURIComponent(`${lieu.nom}, ${lieu.ville}`)}`)}
         />
       </View>
+
+      <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
     </View>
   );
 }

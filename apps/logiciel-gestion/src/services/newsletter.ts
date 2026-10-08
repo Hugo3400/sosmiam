@@ -32,6 +32,18 @@ export type FiltresInscrits = {
   page: number;
 };
 
+export type EtatBoite = {
+  /** Le fichier de connexion à la boîte bonjour@ existe sur le serveur */
+  boiteConfiguree: boolean;
+  derniereSynchro: string | null;
+  /** Inscrits de la liste complète (formulaire + mails), après la dernière synchronisation */
+  total: number;
+  /** Arrivés seulement par mail (pas dans la base) */
+  parMailSeulement: { adresse: string; ville: string; inscritLe: string }[];
+};
+export const lireBoite = () => appeler<EtatBoite>("GET", "/newsletter/boite");
+export const synchroniserBoite = () => appeler<{ ok: boolean; message: string }>("POST", "/newsletter/boite/synchroniser");
+
 export type ResumeBrouillon = { id: number; objet: string; creeLe: string; modifieLe: string };
 export type Brouillon = ResumeBrouillon & { texte: string };
 

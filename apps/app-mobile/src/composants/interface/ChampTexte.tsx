@@ -1,5 +1,5 @@
-import { useState, type Ref } from "react";
-import { Text, TextInput, View, type TextInputProps } from "react-native";
+import { useEffect, useState, type Ref } from "react";
+import { AccessibilityInfo, Platform, Text, TextInput, View, type TextInputProps } from "react-native";
 
 import couleurs from "~/theme/couleurs";
 
@@ -23,6 +23,12 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
   const message = erreur ?? aide;
   const libelleComplet = mention ? `${libelle}, ${mention}` : libelle;
 
+  // Sur iPhone, VoiceOver ignore les « live regions » d'Android : l'erreur est annoncée quand elle apparaît,
+  // après ce qu'il est en train de lire (souvent le champ suivant, quand l'erreur arrive en quittant celui-ci)
+  useEffect(() => {
+    if (erreur && Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(erreur, { queue: true });
+  }, [erreur]);
+
   return (
     <View className="gap-2">
       {/* Le libellé visible n'est pas relu : le champ porte déjà le même texte pour VoiceOver */}
@@ -36,7 +42,8 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
         {actif ? <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-2xl bg-encre" /> : null}
         <TextInput
           ref={ref}
-          accessibilityLabel={libelleComplet}
+          // L'erreur est relue en revenant sur le champ
+          accessibilityLabel={erreur ? `${libelleComplet}. ${erreur}` : libelleComplet}
           value={valeur}
           onChangeText={onChangeTexte}
           onFocus={(evenement) => {

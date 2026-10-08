@@ -14,6 +14,6 @@ export const typesNotifications: ChoixTypeNotification[] = [
   { type: "sos", emoji: "🛟", titre: "SOS près de toi", detail: "Un lieu a besoin de monde ce soir" },
   { type: "calme", emoji: "😌", titre: "Salle calme, tables libres", detail: "Un lieu tranquille a de la place pour toi" },
   { type: "offre", emoji: "🎁", titre: "Offres et happy hours", detail: "Une bonne affaire pas loin de toi" },
-  { type: "evenement", emoji: "🎉", titre: "Événements", detail: "Concert, quiz, soirée à thème : de quoi bouger" },
+  { type: "evenement", emoji: "🎉", titre: "Événements", detail: "Concert, quiz, soirée à thème\u00a0: de quoi bouger" },
   { type: "nouveau", emoji: "✨", titre: "Nouveaux lieux", detail: "Un lieu vient d'arriver sur SOS Miam" },
 ];

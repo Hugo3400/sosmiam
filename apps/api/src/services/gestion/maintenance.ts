@@ -4,6 +4,7 @@ import { statfs } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { lireEtatSauvegardes } from "./sauvegardes.ts";
 
 const executer = promisify(execFile);
 /** Processus que le logiciel peut relancer. Pas l'API elle-même : elle couperait la demande en cours. */
@@ -64,13 +65,16 @@ async function lireSite() {
 }
 
 export async function lireEtatServeur() {
-  const [processus, base, site, disque] = await Promise.all([lireProcessus(), lireBase(), lireSite(), statfs("/").catch(() => null)]);
+  const [processus, base, site, disque, sauvegardes] = await Promise.all([
+    lireProcessus(), lireBase(), lireSite(), statfs("/").catch(() => null), lireEtatSauvegardes(),
+  ]);
   return {
     api: { depuis: new Date(Date.now() - process.uptime() * 1000).toISOString(), memoire: process.memoryUsage().rss, node: process.version },
     base,
     site,
     disque: disque ? { total: disque.blocks * disque.bsize, libre: disque.bavail * disque.bsize } : null,
     processus,
+    sauvegardes: { cleExiste: sauvegardes.cleExiste, derniere: sauvegardes.sauvegardes[0] ?? null, nombre: sauvegardes.sauvegardes.length },
   };
 }
 

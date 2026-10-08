@@ -5,6 +5,7 @@ import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { Pastille } from "~/composants/interface/Pastille";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { typesNotifications } from "~/contenus/types-notifications";
+import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import {
   enregistrerReglagesNotifications,
@@ -17,6 +18,9 @@ import couleurs from "~/theme/couleurs";
 /** Heures proposées pour le mode nuit (au format HH:MM du stockage) */
 const HEURES_DEBUT = ["21:00", "22:00", "23:00", "00:00"];
 const HEURES_FIN = ["07:00", "08:00", "09:00", "10:00"];
+
+/** Heure affichée comme ailleurs dans l'app : « 23h », « 9h », et « minuit » plutôt que « 0h ». */
+const afficherHeure = (heure: string) => (heure === "00:00" ? "minuit" : formaterHeure(heure));
 
 const MESSAGE_ECHEC = "Oups, ce choix n'a pas pu être gardé sur ton téléphone. Réessaie un peu plus tard.";
 
@@ -129,7 +133,13 @@ export default function ReglagesNotifications() {
                 <Text className="font-texte-semi text-base text-encre">À partir de</Text>
                 <View accessibilityRole="radiogroup" accessibilityLabel="Début du mode nuit" className="flex-row flex-wrap gap-2">
                   {HEURES_DEBUT.map((heure) => (
-                    <Pastille key={heure} role="radio" libelle={heure} choisi={reglages.silence.de === heure} onPress={() => changerSilence({ de: heure })} />
+                    <Pastille
+                      key={heure}
+                      role="radio"
+                      libelle={afficherHeure(heure)}
+                      choisi={reglages.silence.de === heure}
+                      onPress={() => changerSilence({ de: heure })}
+                    />
                   ))}
                 </View>
               </View>
@@ -137,13 +147,19 @@ export default function ReglagesNotifications() {
                 <Text className="font-texte-semi text-base text-encre">Jusqu'à</Text>
                 <View accessibilityRole="radiogroup" accessibilityLabel="Fin du mode nuit" className="flex-row flex-wrap gap-2">
                   {HEURES_FIN.map((heure) => (
-                    <Pastille key={heure} role="radio" libelle={heure} choisi={reglages.silence.a === heure} onPress={() => changerSilence({ a: heure })} />
+                    <Pastille
+                      key={heure}
+                      role="radio"
+                      libelle={afficherHeure(heure)}
+                      choisi={reglages.silence.a === heure}
+                      onPress={() => changerSilence({ a: heure })}
+                    />
                   ))}
                 </View>
               </View>
               <View className="rounded-carte bg-white px-4 py-3">
                 <Text accessibilityLiveRegion="polite" className="font-texte-semi text-base leading-6 text-encre">
-                  De {reglages.silence.de} à {reglages.silence.a}, ton téléphone reste tranquille.
+                  De {afficherHeure(reglages.silence.de)} à {afficherHeure(reglages.silence.a)}, ton téléphone reste tranquille.
                 </Text>
               </View>
             </View>

@@ -5,6 +5,7 @@ import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gest
 import { creerProtectionGestion } from "../middlewares/proteger-gestion.ts";
 import type { AccesGestion } from "../services/gestion/acces.ts";
 import { TAILLE_MAX_VIDEO } from "../services/gestion/formats-medias.ts";
+import { creerJetonMaj, lireManifesteMaj, trouverInstallateur, verifierJetonMaj } from "../services/gestion/mises-a-jour.ts";
 import type { ServicesGestion } from "../services/gestion/tous-les-services.ts";
 
 export type DependancesGestion = {
@@ -25,6 +26,21 @@ export function creerRoutesGestion({ lireAcces, services, horloge }: Dependances
     reponse.set("Cache-Control", "private, no-store");
     suite();
   });
+  // Mises à jour du logiciel : demandées par le module de mise à jour de Tauri, avec le jeton obtenu par /maj/jeton
+  const jetonValable: express.RequestHandler = (requete, reponse, suite) =>
+    verifierJetonMaj(requete.get("x-jeton-maj") ?? "") ? suite() : void reponse.status(401).json({ ok: false, erreur: "non-autorise" });
+  routes.get("/maj/latest.json", jetonValable, async (_requete, reponse) => {
+    const manifeste = await lireManifesteMaj();
+    // 204 : pas de mise à jour disponible (le module de Tauri le comprend ainsi)
+    if (!manifeste) return void reponse.status(204).end();
+    reponse.type("application/json").send(manifeste);
+  });
+  routes.get("/maj/fichiers/:nom", jetonValable, async (requete, reponse) => {
+    const chemin = await trouverInstallateur(String(requete.params.nom));
+    if (!chemin) return void reponse.status(404).json({ ok: false, erreur: "introuvable" });
+    reponse.sendFile(chemin, { headers: { "Content-Type": "application/octet-stream" } });
+  });
+
   routes.use(protection.controlerEnTetes);
   // Corps lu tel quel (la signature porte sur ses octets exacts), seulement une fois les en-têtes contrôlés
   routes.use(express.raw({ type: () => true, limit: TAILLE_MAX_VIDEO + 1024 }));
@@ -34,12 +50,15 @@ export function creerRoutesGestion({ lireAcces, services, horloge }: Dependances
   routes.delete("/session", protection.fermerSession);
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
+  routes.get("/maj/jeton", (_requete, reponse) => void reponse.json(creerJetonMaj()));
   routes.get("/statistiques", c.statistiques);
   routes.get("/journal", c.journal);
 
   routes.get("/newsletter/inscrits", c.inscrits);
   routes.delete("/newsletter/inscrits/:id", c.desinscrire);
   routes.get("/newsletter/export", c.exporter);
+  routes.get("/newsletter/boite", c.boite);
+  routes.post("/newsletter/boite/synchroniser", c.synchroniserBoite);
   routes.get("/newsletter/brouillons", c.brouillons);
   routes.post("/newsletter/brouillons", c.enregistrerBrouillon);
   routes.get("/newsletter/brouillons/:id", c.brouillon);
@@ -63,6 +82,20 @@ export function creerRoutesGestion({ lireAcces, services, horloge }: Dependances
 
   routes.get("/moderation", c.signalements);
   routes.post("/moderation/:id/decision", c.deciderSignalement);
+
+  routes.get("/demandes", c.demandes);
+  routes.post("/demandes/:id/accepter", c.accepterDemande);
+  routes.post("/demandes/:id/refuser", c.refuserDemande);
+  routes.delete("/demandes/:id/contact", c.effacerContactDemande);
+
+  routes.get("/annonces", c.annonces);
+  routes.post("/annonces", c.creerAnnonce);
+  routes.delete("/annonces/:id", c.retirerAnnonce);
+
+  routes.get("/sauvegardes", c.sauvegardes);
+  routes.post("/sauvegardes", c.sauvegarder);
+  routes.get("/sauvegardes/:nom", c.telechargerSauvegarde);
+  routes.get("/geocodage", c.geocodage);
 
   routes.get("/maintenance", c.maintenance);
   routes.post("/maintenance/relancer", c.relancer);

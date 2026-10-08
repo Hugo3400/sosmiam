@@ -5,6 +5,7 @@ import { commandes } from "./commandes/liste-commandes.ts";
 import { intentMembres, lireJeton } from "./configuration.ts";
 import { accueillirMembre } from "./evenements/accueillir-membre.ts";
 import { repondreInteraction } from "./evenements/repondre-interaction.ts";
+import { demarrerPublicationAnnonces } from "./taches/publier-annonces.ts";
 
 /** Droits demandés par le lien d'invitation : lire et écrire, réagir aux propositions. */
 const DROITS_BOT = [
@@ -37,6 +38,7 @@ client.once(Events.ClientReady, async (pret) => {
   if (pret.guilds.cache.size === 0) console.log("Je ne suis sur aucun serveur : invite-moi avec le lien ci-dessus.");
   for (const serveur of pret.guilds.cache.values()) await enregistrerCommandes(serveur).catch(console.error);
   if (!intentMembres) console.log("Accueil des nouveaux membres désactivé (INTENT_MEMBRES=0).");
+  demarrerPublicationAnnonces(pret);
 });
 
 client.on(Events.GuildCreate, (serveur) => void enregistrerCommandes(serveur).catch(console.error));

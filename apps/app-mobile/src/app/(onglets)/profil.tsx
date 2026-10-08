@@ -38,7 +38,7 @@ export default function Profil() {
         <BoueesSemaine restantes={activite.restantes} />
         <ChiffresProfil
           lieuxSauves={activite.lieuxSauves.length}
-          lieuxDeniches={activite.premiersSauvetages.length}
+          premiersSauvetages={activite.premiersSauvetages.length}
           badgesObtenus={obtenus.length}
           badgesTotal={badges.length}
         />

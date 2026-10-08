@@ -10,7 +10,7 @@ Présente SOS Miam, répond à la FAQ, explique le BIG SOS, recueille les propos
 | `/big-sos` | tout le monde | l'alerte rouge expliquée |
 | `/proposer-lieu` | tout le monde | formulaire, puis la pépite est postée dans le salon des propositions (avec 😋 pour voter) |
 | `/contact` | tout le monde | comment écrire à l'équipe |
-| `/config` | gestion du serveur | salons d'accueil et de propositions |
+| `/config` | gestion du serveur | salons d'accueil, de propositions et d'annonces (celles du logiciel de gestion) |
 | `/publier` | gestion du serveur | publie le règlement ou la présentation dans le salon courant |
 
 Les commandes sont enregistrées sur chaque serveur au démarrage du bot : elles apparaissent tout de suite.
@@ -25,7 +25,8 @@ Les commandes sont enregistrées sur chaque serveur au démarrage du bot : elles
    pm2 logs sos-miam-bot-discord   # affiche le lien d'invitation
    ```
 4. **Invitation** : ouvre le lien d'invitation affiché dans les journaux et choisis le serveur.
-5. **Sur Discord** : `/config propositions #salon`, `/config bienvenue #salon`, puis `/publier reglement` dans le salon du règlement.
+5. **Sur Discord** : `/config propositions #salon`, `/config bienvenue #salon`, `/config annonces #salon`, puis `/publier reglement` dans le salon du règlement.
+6. **Lien avec l'API** (facultatif) : `SECRET_BOT` dans `.env`, le même que dans `apps/api/.env`. Les propositions de lieux arrivent alors aussi dans le logiciel de gestion (contenu et lien du message, pas l'auteur), et le bot publie les annonces qui y sont écrites.
 
 Après une modification : `pm2 restart sos-miam-bot-discord`.
 

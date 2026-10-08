@@ -17,6 +17,14 @@ export type EtatBrouillon = {
   modifier: (changements: Partial<BrouillonInscription>) => void;
   /** Coche ou décoche un choix dans une catégorie d'envies */
   basculerEnvie: (categorie: CategorieEnvie, id: string) => void;
+  /** Fin du verrou d'âge (« AAAA-MM-JJ ») si l'inscription est bloquée sur ce téléphone, sinon null */
+  verrouAge: string | null;
+  /** Vrai tant que le verrou n'a pas été lu (au début du parcours) */
+  verrouEnLecture: boolean;
+  /** Bloque l'inscription sur ce téléphone jusqu'à cette date (moins que l'âge minimum) */
+  bloquer: (jusqua: string) => void;
+  /** Lève le verrou : mode développement seulement (tests), jamais proposé dans l'app publiée */
+  debloquer: () => void;
 };
 
 export const ContexteBrouillon = createContext<EtatBrouillon | null>(null);

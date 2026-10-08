@@ -2,6 +2,11 @@ import type { Route } from "./+types/localiser";
 
 import { localiserCommune } from "~/services/localisation.server";
 
+/** GET /localiser : rien à lire ici (l'adresse n'accepte que POST), sans écrire d'erreur dans le journal. */
+export function loader() {
+  return Response.json({ ok: false, erreur: "methode" }, { status: 405, headers: { Allow: "POST" } });
+}
+
 /**
  * POST /localiser { latitude, longitude } : la commune qui contient cette position, pour le bouton « Me localiser »
  * du formulaire d'inscription. En POST pour que la position n'apparaisse pas dans les journaux du serveur (qui notent

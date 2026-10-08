@@ -34,7 +34,7 @@ export const questionsApp: QuestionFaq[] = [
     id: "faq-proposer",
     question: "Je connais une pépite : je peux la proposer ?",
     reponse: [
-      "Bien sûr ! Propose-la depuis l'app. Si elle rejoint SOS Miam, tu gagnes le badge « Premier sauveteur » et sa fiche affiche « Déniché par » avec ton prénom.",
+      "Bien sûr ! Propose-la depuis l'app. Si elle rejoint SOS Miam, sa fiche affiche « Déniché par » avec ton prénom et tu gagnes le badge « Déniché par toi ». Et si tu es le tout premier à donner une rescousse à un lieu qui vient d'arriver, tu deviens son « Premier sauveteur ».",
     ],
   },
   {

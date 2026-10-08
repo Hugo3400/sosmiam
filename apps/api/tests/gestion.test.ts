@@ -157,3 +157,13 @@ test("rien de la gestion ne reste en cache", async () => {
   const reponse = await demander("GET", "/tableau-de-bord", { session });
   assert.equal(reponse.headers.get("cache-control"), "private, no-store");
 });
+
+test("mises à jour : le jeton s'obtient connecté, et ouvre le manifeste ; sans jeton, rien", async () => {
+  const session = await ouvrirSession();
+  const { jeton } = (await (await demander("GET", "/maj/jeton", { session })).json()) as { jeton: string };
+  assert.equal((await fetch(`${adresse}/api-gestion/maj/latest.json`)).status, 401);
+  assert.equal((await fetch(`${adresse}/api-gestion/maj/latest.json`, { headers: { "X-Jeton-Maj": "123.faux" } })).status, 401);
+  const avecJeton = await fetch(`${adresse}/api-gestion/maj/latest.json`, { headers: { "X-Jeton-Maj": jeton } });
+  assert.ok([200, 204].includes(avecJeton.status));
+  assert.equal((await fetch(`${adresse}/api-gestion/maj/fichiers/..%2F..%2Fetc%2Fpasswd`, { headers: { "X-Jeton-Maj": jeton } })).status, 404);
+});

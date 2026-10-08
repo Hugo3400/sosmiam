@@ -39,9 +39,10 @@ sos-miam/
 | `src/fonctions/texte/`, `dates/`, `prix/`, `seo/`, `navigation/` | fonctions pures, une par fichier (ex. `formater-prix.ts`) |
 | `src/services/` | appels à l'API (un fichier par domaine : `lieux.ts`, `comptes.ts`…) ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/contenus/` | textes éditoriaux : étapes, ambassadeurs, ce qu'on offre aux lieux, villes, lieux d'exemple, liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram) |
+| `src/contenus/` | textes éditoriaux : étapes, ambassadeurs, ce qu'on offre aux lieux, villes et régions du formulaire d'inscription, catégories de lieux, champs du formulaire « J'inscris mon lieu » (`demande-lieu.ts`), liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram). Aucun lieu inventé : l'accueil lit les vrais lieux publiés par l'API |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
 | `src/contenus/legal/` | pages légales (un fichier par page) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
+| `src/contenus/legal/brouillons/` | textes légaux en attente de relecture par Hugo : jamais importés par le site, donc jamais publiés |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |
 | `tests/` | tests du site |
 
@@ -79,10 +80,12 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/ecrans/publications/` | fil « Pour toi » : publications, vidéos et photos, programmation, aperçu façon téléphone |
 | `src/ecrans/moderation/` | signalements de l'app, les graves (publication masquée pour tous) en tête, décisions |
 | `src/ecrans/maintenance/` | état du serveur (API, base, site, disque, pm2), relance du site ou du bot, journal de gestion |
-| `src/ecrans/reglages/` | ce poste : identifiant, changement de mot de passe, retrait |
+| `src/ecrans/demandes/` | demandes de lieux (formulaire du site) et propositions Discord : accepter (fiche créée) ou refuser |
+| `src/ecrans/annonces/` | annonces écrites ici, publiées par le bot dans le salon d'annonces Discord |
+| `src/ecrans/reglages/` | ce poste : identifiant, mot de passe, version et mises à jour, retrait |
 | `src/ecrans/bientot/` | écran commun des parties à venir |
 | `src/ecrans/big-sos/`, `notifications/`, `utilisateurs/` | à venir : validation des BIG SOS, envoi des notifications, comptes |
-| `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…) et menu |
+| `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…), menu, bandeau de mise à jour |
 | `src/contenus/` | menu du logiciel, libellés des raisons de signalement |
 | `src/fonctions/securite/` | clé Ed25519 du poste, coffre chiffré par le mot de passe, message signé (même format que l'API) |
 | `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `publications/` | fonctions pures, une par fichier (formats, graduations, Markdown → e-mail…) |
@@ -105,7 +108,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |
 | `src/paiements/` | Stripe : abonnement Pro, bons solidaires |
 | `src/emails/` | modèles et envoi des e-mails |
-| `src/taches/` | tâches planifiées : recharge des rescousses le lundi, fin des BIG SOS… |
+| `src/taches/` | tâches planifiées : la nuit, ménage (contacts de demandes de plus de 3 ans) et sauvegarde chiffrée de la base ; plus tard, recharge des rescousses le lundi, fin des BIG SOS… |
 | `tests/` | tests de l'API |
 
 ## apps/bot-discord — le bot du serveur Discord
@@ -118,6 +121,8 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 | `src/messages/` | messages et formulaire du bot (texte et mise en forme), un par fichier : `creer-message-…` |
 | `src/contenus/` | questions de la FAQ (reprises du site, à garder en phase), types de lieux, liens publics |
 | `src/stockage/` | réglages de chaque serveur (salons choisis avec `/config`), gardés dans `donnees/` (non commité) |
+| `src/services/` | appels à l'API (routes `/bot`, secret partagé `SECRET_BOT`) : propositions de lieux envoyées au logiciel de gestion |
+| `src/taches/` | tâches de fond : publication des annonces écrites dans le logiciel de gestion |
 | `src/interface/` | couleurs de la marque au format Discord |
 | `src/fonctions/texte/`, `discord/` | fonctions, une par fichier (recherche dans la FAQ, bloc de message, erreurs) |
 | `tests/` | tests du bot (`npm test`) |

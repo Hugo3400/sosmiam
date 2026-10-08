@@ -1,4 +1,4 @@
-import { data } from "react-router";
+import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
 import type { Route } from "./+types/accueil";
 
@@ -14,6 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { inscrireNewsletter, type ResultatInscription } from "~/services/inscriptions.server";
+import { listerLieuxPublics } from "~/services/lieux.server";
 
 const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
   "email-invalide": "Oups, cette adresse e-mail ne semble pas valide.",
@@ -27,6 +28,16 @@ export function meta(_: Route.MetaArgs) {
     description:
       "Découvre les restos, pâtisseries, bars et sorties indépendants de Montpellier et de l'Hérault qui ont besoin de monde, et viens à leur rescousse.",
   });
+}
+
+/** Les vrais lieux publiés, lus à chaque affichage de l'accueil : aucun lieu inventé sur le site. */
+export async function loader() {
+  return { lieux: await listerLieuxPublics() };
+}
+
+/** Après l'envoi du formulaire d'inscription, inutile de relire les lieux. */
+export function shouldRevalidate({ formMethod, defaultShouldRevalidate }: ShouldRevalidateFunctionArgs) {
+  return formMethod === "POST" ? false : defaultShouldRevalidate;
 }
 
 /** Reçoit le formulaire « Préviens-moi » (avec ou sans JavaScript dans le navigateur). */
@@ -77,12 +88,12 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
 }
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */
-export default function Accueil() {
+export default function Accueil({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <Hero />
       <CommentCaMarche />
-      <IlsOntBesoinDeToi />
+      <IlsOntBesoinDeToi lieux={loaderData.lieux} />
       <BigSosEnBref />
       <PourLesPros />
       <DevenirAmbassadeur />

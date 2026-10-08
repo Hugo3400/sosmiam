@@ -35,8 +35,9 @@ export const documentConfidentialite: DocumentLegal = {
             "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
+            "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
             "**Si tu nous écris** (lieu à inscrire, candidature d'ambassadeur, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
-            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
+            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
             "**On ne vend jamais tes données**, et on ne les loue pas.",
             `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation.`,
           ],
@@ -142,8 +143,8 @@ export const documentConfidentialite: DocumentLegal = {
             `**Où et qui** : dans une base de données sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès.`,
             "**Combien de temps** : comme pour la newsletter, tant que tu restes inscrit ; si tu te désinscris, ta ligne est effacée avant tout nouvel envoi ; après 3 ans sans aucun message de ta part, on te demande si tu veux continuer, sinon on efface.",
             "**Ton adresse IP** : le site la transmet à notre serveur pour limiter le nombre d'envois (5 toutes les 10 minutes), contre les robots. Elle reste seulement en mémoire, une dizaine de minutes, et n'est jamais enregistrée avec ton inscription.",
-            "**Ta position, si tu touches le bouton 📍** : ton navigateur te demande d'abord ton accord. Ta position, arrondie à environ 100 mètres, est envoyée à notre serveur, qui demande seulement le nom de ta commune au service public de l'État geo.api.gouv.fr (géré par la direction interministérielle du numérique), sans ton adresse IP. Ni ta position ni la réponse ne sont gardées : la commune trouvée remplit juste le champ, et tu peux la changer avant d'envoyer. Base légale : ton consentement, que tu donnes en touchant le bouton.",
-            "**Pour la bêta** : au moment de t'inviter, et seulement si tu as coché la case, on transmet ton adresse e-mail à Google (liste de testeurs de la Play Console, si tu es sur Android) ou à Apple (TestFlight, si tu es sur iPhone). C'est eux qui t'envoient l'invitation et gèrent l'accès à la version de test, selon leurs propres règles de confidentialité. Sur Android, Google a besoin de l'adresse de ton compte Google. Tu ne veux plus tester ? Un mail suffit : on te retire de la liste des testeurs.",
+            "**Ta position, si tu touches le bouton 📍** : ton navigateur te demande d'abord ton accord. Ta position, arrondie à environ 100 mètres, est envoyée à notre serveur, qui demande au service public de l'État geo.api.gouv.fr (géré par la direction interministérielle du numérique) la commune qui s'y trouve, avec son département et sa région ; ta propre adresse IP ne lui est pas transmise. Notre serveur ne garde ni ta position ni la réponse : la commune trouvée remplit juste le champ, et tu peux la changer avant d'envoyer. geo.api.gouv.fr peut, de son côté, garder une trace technique de la demande (la position arrondie, venue de notre serveur), selon ses propres conditions. Pour freiner les abus, ton adresse IP sert aussi à limiter le nombre de recherches (20 toutes les 10 minutes), comme pour le formulaire, sans être enregistrée. Base légale : ton consentement, que tu donnes en touchant le bouton.",
+            "**Pour la bêta** : au moment de t'inviter, et seulement si tu as coché la case, on transmet ton adresse e-mail à Apple (TestFlight, si tu es sur iPhone), qui t'envoie l'invitation, ou à Google (liste des testeurs de la Play Console, si tu es sur Android), et on t'envoie alors nous-mêmes le lien pour rejoindre le test. Google et Apple gèrent ensuite l'accès à la version de test, selon leurs propres règles de confidentialité. Sur Android, Google a besoin de l'adresse de ton compte Google. Les cases bêta et ambassadeur, une fois cochées, le restent même si tu renvoies le formulaire sans elles : tu ne veux plus tester, ou plus être ambassadeur ? Un mail suffit, on te retire de la liste.",
             "**Obligatoire ?** Seul l'e-mail est indispensable pour te prévenir. Ta ville ou ta région (qui nous dit quand te prévenir), ton téléphone et les cases bêta et ambassadeur sont facultatifs. Pour la bêta, on a juste besoin de savoir si tu as un iPhone ou un Android.",
           ],
         },
@@ -151,10 +152,29 @@ export const documentConfidentialite: DocumentLegal = {
       ],
     },
     {
+      id: "demande-lieu",
+      titre: "Le formulaire « J'inscris mon lieu »",
+      blocs: [
+        "Sur la page [J'inscris mon lieu](/inscrire-mon-lieu), un lieu peut demander à être sur SOS Miam. La demande arrive dans notre logiciel de gestion, où l'éditeur l'accepte ou la refuse.",
+        {
+          liste: [
+            "**Ce qu'on reçoit sur le lieu** : son nom et sa ville, sa description, et si tu les donnes son type, son adresse, son plat phare, ses horaires, son site web et son compte Instagram. Si la demande est acceptée, ces informations servent à créer la fiche du lieu, qui sera publique.",
+            "**Ce qu'on reçoit sur toi** : ton nom, ton e-mail et, si tu le donnes, ton téléphone. Ils ne sont jamais publiés.",
+            "**Pourquoi** : étudier la demande, créer la fiche du lieu et te répondre.",
+            "**Base légale** : les mesures précontractuelles prises à ta demande (article 6.1.b du RGPD) : tu nous demandes d'inscrire ton lieu, et ces informations sont nécessaires pour le faire.",
+            `**Où et qui** : dans une base de données sur notre serveur, loué à ${hebergeur.nom} et situé en France. Seul l'éditeur y a accès.`,
+            "**Combien de temps** : tes coordonnées sont effacées quand on n'en a plus besoin pour ta demande, et au plus 3 ans après notre dernier échange ; la demande elle-même suit la même règle. Si elle est acceptée, les informations du lieu deviennent sa fiche, que tu peux faire modifier ou retirer à tout moment par un simple mail.",
+            "**Ton adresse IP** : comme pour le formulaire « Préviens-moi », elle sert seulement à limiter le nombre d'envois (3 toutes les 30 minutes) et n'est jamais enregistrée avec ta demande.",
+            "**Obligatoire ?** Le nom du lieu, sa ville, sa description, ton nom et ton e-mail : sans eux, on ne peut ni étudier la demande ni te répondre. Le reste est facultatif.",
+          ],
+        },
+      ],
+    },
+    {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
       blocs: [
-        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (bouton « J'inscris mon lieu »), pour devenir ambassadeur fondateur (bouton « Je deviens ambassadeur ») ou simplement pour poser une question.`,
+        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) est le plus simple), pour devenir ambassadeur fondateur ou simplement pour poser une question.`,
         {
           liste: [
             "**Ce qu'on reçoit** : ton adresse e-mail, le nom affiché par ta messagerie et le contenu de ton message. Pour un lieu : son nom, sa ville et son type (resto, pâtisserie, bar, sortie…). Pour une candidature d'ambassadeur : ton quartier et tes pépites du coin.",
@@ -197,9 +217,9 @@ export const documentConfidentialite: DocumentLegal = {
           ],
         },
         "Ces prestataires peuvent eux-mêmes faire appel à d'autres prestataires techniques (des « sous-traitants ultérieurs »), qui doivent respecter les mêmes obligations de protection de tes données.",
-        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune (rien n'est gardé).",
+        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien.",
         "Si la loi l'impose, certaines données peuvent être communiquées à une autorité qui les demande dans un cadre légal, par exemple sur décision d'un juge. Personne d'autre ne les reçoit.",
-        `**Transferts hors de l'Union européenne** : le serveur du site est en France. Les e-mails envoyés à ${site.emailContact} sont reçus par un serveur situé en Suisse : la Suisse bénéficie d'une décision d'adéquation de la Commission européenne (décision 2000/518/CE du 26 juillet 2000), qui reconnaît que tes données y sont aussi bien protégées que dans l'Union européenne. Cloudflare peut traiter des données hors de l'Union européenne, notamment aux États-Unis, avec les garanties décrites dans la partie « Cloudflare, qui protège le site ». Enfin, si tu demandes la bêta, Google ou Apple peuvent traiter ton adresse aux États-Unis : le transfert est alors encadré par le **Data Privacy Framework UE–États-Unis**, auquel les deux entreprises ont adhéré.`,
+        `**Transferts hors de l'Union européenne** : le serveur du site est en France. Les e-mails envoyés à ${site.emailContact} sont reçus par un serveur situé en Suisse : la Suisse bénéficie d'une décision d'adéquation de la Commission européenne (décision 2000/518/CE du 26 juillet 2000), qui reconnaît que tes données y sont aussi bien protégées que dans l'Union européenne. Cloudflare peut traiter des données hors de l'Union européenne, notamment aux États-Unis, avec les garanties décrites dans la partie « Cloudflare, qui protège le site ». Enfin, si tu demandes la bêta, Google ou Apple peuvent traiter ton adresse aux États-Unis : pour Google, le transfert est encadré par le **Data Privacy Framework UE–États-Unis**, auquel Google LLC a adhéré (certification vérifiable sur [dataprivacyframework.gov](https://www.dataprivacyframework.gov/)) ; pour Apple, par les **clauses contractuelles types** de la Commission européenne, comme l'indique sa [politique de confidentialité](https://www.apple.com/fr/legal/privacy/fr-ww/).`,
       ],
     },
     {
@@ -212,6 +232,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Un seul administrateur** : l'éditeur est le seul à administrer le serveur et à consulter les journaux et la boîte mail.",
             "**Protection contre les attaques** : Cloudflare filtre le trafic malveillant avant qu'il n'atteigne le serveur.",
             "**Le moins possible, le moins longtemps possible** : on collecte le strict nécessaire, et les journaux s'effacent d'eux-mêmes au bout de 15 jours au plus. Ce qu'on n'a pas ne peut pas fuiter.",
+            "**Des sauvegardes chiffrées** : pour ne rien perdre en cas de panne, une copie chiffrée de notre base de données est faite chaque nuit sur notre serveur, en France, et on garde les 30 dernières. Une copie chiffrée peut aussi être gardée sur l'ordinateur de l'éditeur, avec la même règle. Quand une donnée est effacée de la base, elle disparaît des sauvegardes au plus tard 30 jours après.",
           ],
         },
         "Si un incident de sécurité touchait tes données, on le signalerait à la CNIL dans les 72 heures quand la loi l'exige, et on te préviendrait directement si le risque pour toi était élevé.",

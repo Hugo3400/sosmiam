@@ -26,6 +26,14 @@ et chaque demande est signée.
    6 chiffres : ajoute-la dans ton application d'authentification.
 5. « C'est fait, je me connecte », puis le code.
 
+## Sauvegardes de la base
+- Chaque nuit vers 3 h 30, l'API sauvegarde la base, chiffrée (AES-256-GCM), dans `/var/backups/sos-miam/` ; les 30
+  dernières sont gardées. Écran Maintenance : état, « Sauvegarder maintenant », copie chiffrée sur le PC.
+- **Clé de restauration** : `npm run sauvegardes:cle` (toi-même, dans un terminal du serveur), à noter dans ton
+  gestionnaire de mots de passe. Sans elle, aucune sauvegarde ne se relit.
+- Relire une sauvegarde : `npm run sauvegardes:dechiffrer -- <fichier.sauvegarde>`, puis `pg_restore` dans une base vide.
+  Sur une autre machine, donner la clé par la variable `CLE_SAUVEGARDES`.
+
 ## Gérer les accès (sur le serveur)
 - `npm run gestion:autoriser -- --liste` : postes autorisés.
 - `npm run gestion:autoriser -- --retirer <identifiant>` : coupe un poste aussitôt (PC perdu, volé ou remplacé).
@@ -38,6 +46,9 @@ et chaque demande est signée.
 - Essai dans un navigateur : `VITE_ADRESSE_API=http://127.0.0.1:5192/api-gestion npm run dev` (port 5193), avec une API
   lancée avec `ORIGINES_GESTION=http://127.0.0.1:5193` (et, pour ne pas toucher aux vraies données, `SCHEMA_BASE=<schéma
   d'essai>` et `FICHIER_GESTION=<fichier d'accès d'essai>`).
-- Nouvelle version : augmenter `version` dans `src-tauri/tauri.conf.json`, `npm run gestion:installateur`, relancer
-  l'installateur sur le PC (la clé du poste est gardée). Pas de mise à jour automatique pour l'instant.
+- Nouvelle version : augmenter `version` dans `src-tauri/tauri.conf.json`, `package.json` et `src-tauri/Cargo.toml`, puis
+  `NOTES="ce qui change" npm run gestion:installateur`. L'installateur est signé avec la clé de mise à jour
+  (`/root/sos-miam-secrets/cle-maj-logiciel.key`, jamais dans l'environnement de la compilation) et publié dans
+  `/var/lib/sos-miam/mises-a-jour/` : les logiciels installés (depuis la 0.2.0) le proposent à la connexion suivante.
+  Le manifeste et l'installateur ne sont servis qu'avec un jeton de 15 minutes, obtenu par une demande signée.
 - Le CLI Tauri reste en 2.11.5 : les versions suivantes demandent un NSIS plus récent que celui de Debian 12.

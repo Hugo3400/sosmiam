@@ -12,11 +12,14 @@ type Props = {
 
 const DUREE = 2400;
 
-/** Petit message qui apparaît en haut puis s'efface tout seul ; aussi lu par VoiceOver. */
+// Les emoji restent à l'écran mais ne sont pas lus : VoiceOver et TalkBack en diraient le nom (« fusée », « bouée de sauvetage »…)
+const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
+
+/** Petit message qui apparaît en haut puis s'efface tout seul ; aussi lu par VoiceOver et TalkBack, sans ses emoji. */
 export function Annonce({ annonce, haut, onFin }: Props) {
   useEffect(() => {
     if (!annonce) return;
-    AccessibilityInfo.announceForAccessibility(annonce.texte);
+    AccessibilityInfo.announceForAccessibility(annonce.texte.replace(EMOJI, "").replace(/\s+/g, " ").trim());
     const minuterie = setTimeout(onFin, DUREE);
     return () => clearTimeout(minuterie);
   }, [annonce, onFin]);

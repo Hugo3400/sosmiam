@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 
 import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
-import type { TypeLieu } from "~/contenus/lieux-exemples";
+import type { CategorieLieu } from "~/types/lieux";
 
 const ETOILE_TICKET = "-4.5,-5 -3.21,-1.78 0.26,-1.55 -2.41,0.68 -1.56,4.05 -4.5,2.2 -7.44,4.05 -6.59,0.68 -9.26,-1.55 -5.79,-1.78";
 
 // Pictos du kit de marque, dessinés autour de (0, 0) dans un carré d'environ 32 de côté
-const dessins: Record<TypeLieu, ReactNode> = {
+const dessins: Record<CategorieLieu, ReactNode> = {
   resto: (
     <g fill={c.encre}>
       <rect x="-12" y="-16" width="2.5" height="12" rx="1.2" />
@@ -41,7 +41,7 @@ const dessins: Record<TypeLieu, ReactNode> = {
 };
 
 /** Picto d'une catégorie de lieu (resto, pâtisserie, bar, sortie) sur sa pastille jaune. Décoratif. */
-export function PictoCategorie({ type, className = "" }: { type: TypeLieu; className?: string }) {
+export function PictoCategorie({ type, className = "" }: { type: CategorieLieu; className?: string }) {
   return (
     <svg viewBox="-36 -36 72 72" className={className} aria-hidden="true">
       <circle r="34" fill={c.jaune} stroke={c.encre} strokeWidth="3" />

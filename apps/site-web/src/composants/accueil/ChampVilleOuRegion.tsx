@@ -29,6 +29,8 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
   const [actif, setActif] = useState<string | null>(null);
   const champ = useRef<HTMLInputElement>(null);
   const liste = useRef<HTMLDivElement>(null);
+  // L'option active vient-elle du clavier ? (seul le clavier fait défiler la page, pas le survol à la souris)
+  const auClavier = useRef(false);
   const idListe = `${id}-suggestions`;
   const idLocalisation = `${id}-localisation`;
   const creerIdOption = (lieu: string) => `${id}-${lieu}`;
@@ -37,8 +39,9 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
   const options = useMemo(() => groupes.flatMap((groupe) => groupe.lieux), [groupes]);
   const visible = ouvert && options.length > 0;
 
-  const { possible, localisation, localiser, oublier } = utiliserLocalisation(({ commune, region }) => {
-    remplir(trouverVilleProposee(commune, region)?.valeur ?? commune);
+  const { possible, localisation, localiser, oublier } = utiliserLocalisation(({ commune, departement, region }) => {
+    const precise = departement && departement !== commune ? `${commune} (${departement})` : commune;
+    remplir(trouverVilleProposee(commune, region)?.valeur ?? precise);
   });
 
   useEffect(() => {
@@ -56,15 +59,23 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
     return () => formulaire.removeEventListener("reset", vider);
   }, []);
 
-  // L'option surlignée au clavier reste visible : on fait défiler la liste seule, jamais la page
+  // L'option surlignée au clavier reste visible : la liste défile d'abord (en montrant le titre du groupe pour
+  // la première option d'un groupe), puis la page, seulement si l'option sort de l'écran (sous l'en-tête collant)
   useEffect(() => {
     const option = actif ? document.getElementById(creerIdOption(actif)) : null;
     const boite = liste.current;
     if (!option || !boite) return;
-    if (option.offsetTop < boite.scrollTop) boite.scrollTop = option.offsetTop;
+    const titre = option.previousElementSibling?.getAttribute("role") === "presentation" ? (option.previousElementSibling as HTMLElement) : null;
+    const haut = titre ? titre.offsetTop : option.offsetTop;
+    if (haut < boite.scrollTop) boite.scrollTop = haut;
     else if (option.offsetTop + option.offsetHeight > boite.scrollTop + boite.clientHeight) {
       boite.scrollTop = option.offsetTop + option.offsetHeight - boite.clientHeight;
     }
+    if (!auClavier.current) return;
+    const cadre = option.getBoundingClientRect();
+    const HAUTEUR_EN_TETE = 88;
+    if (cadre.bottom > window.innerHeight) window.scrollBy({ top: cadre.bottom - window.innerHeight + 16 });
+    else if (cadre.top < HAUTEUR_EN_TETE) window.scrollBy({ top: cadre.top - HAUTEUR_EN_TETE });
   }, [actif]);
 
   // Chaque nouvelle recherche, ou réouverture, repart du haut de la liste (sauf si une option est surlignée au clavier)
@@ -80,12 +91,20 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
   /** Après un choix à la souris ou au doigt, le clic qui suit de près (double-clic, double appui) est ignoré :
    *  sinon il traverserait la liste refermée et cocherait ou enverrait ce qui est dessous. */
   function avalerClicSuivant() {
+    const zone = liste.current?.getBoundingClientRect();
+    if (!zone) return;
     const avaler = (evenement: MouseEvent) => {
+      const dansLaListe = evenement.clientX >= zone.left && evenement.clientX <= zone.right
+        && evenement.clientY >= zone.top && evenement.clientY <= zone.bottom;
+      if (!dansLaListe) return;
       evenement.preventDefault();
       evenement.stopPropagation();
     };
-    document.addEventListener("click", avaler, { capture: true, once: true });
-    window.setTimeout(() => document.removeEventListener("click", avaler, { capture: true }), 400);
+    // mousedown aussi : pas de texte sélectionné dessous, et le champ garde le focus
+    for (const type of ["mousedown", "click"] as const) document.addEventListener(type, avaler, { capture: true });
+    window.setTimeout(() => {
+      for (const type of ["mousedown", "click"] as const) document.removeEventListener(type, avaler, { capture: true });
+    }, 400);
   }
 
   function remplir(valeur: string) {
@@ -96,6 +115,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
 
   function deplacer(sens: 1 | -1) {
     if (options.length === 0) return;
+    auClavier.current = true;
     const position = options.findIndex((option) => option.id === actif);
     const suivante = position === -1 ? (sens === 1 ? 0 : options.length - 1) : Math.min(options.length - 1, Math.max(0, position + sens));
     setActif(options[suivante].id);
@@ -151,7 +171,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
             setSaisie(evenement.currentTarget.value);
             setOuvert(true);
             setActif(null);
-            if (localisation.etat !== "recherche") oublier();
+            if (localisation.etat !== "attente") oublier();
           }}
           onFocus={() => setOuvert(true)}
           onClick={() => setOuvert(true)}
@@ -164,11 +184,10 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
           <button
             type="button"
             onClick={localiser}
-            disabled={localisation.etat === "recherche"}
+            aria-disabled={localisation.etat === "recherche"}
             aria-label="Me localiser pour remplir ce champ"
-            title="Me localiser"
             className="absolute top-1/2 right-2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-lg transition-colors
-              hover:bg-jaune-clair focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre disabled:cursor-wait disabled:opacity-60"
+              hover:bg-jaune-clair focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre aria-disabled:cursor-wait aria-disabled:opacity-60"
           >
             <span aria-hidden="true">{localisation.etat === "recherche" ? "⏳" : "📍"}</span>
           </button>
@@ -203,10 +222,13 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
                     role="option"
                     aria-selected={estActif}
                     onClick={() => {
-                      choisir(lieu);
                       avalerClicSuivant();
+                      choisir(lieu);
                     }}
-                    onMouseMove={() => !estActif && setActif(lieu.id)}
+                    onMouseMove={() => {
+                      auClavier.current = false;
+                      if (!estActif) setActif(lieu.id);
+                    }}
                     className={`cursor-pointer px-4 py-2 ${estActif
                       ? "bg-encre text-jaune forced-colors:outline-3 forced-colors:-outline-offset-3 forced-colors:outline-[Highlight]"
                       : "text-encre"}`}

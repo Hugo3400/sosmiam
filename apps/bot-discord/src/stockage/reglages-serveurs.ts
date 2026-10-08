@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 export type ReglagesServeur = {
   salonBienvenue?: string;
   salonPropositions?: string;
+  /** Salon où le bot publie les annonces écrites dans le logiciel de gestion */
+  salonAnnonces?: string;
 };
 
 const fichier = join(import.meta.dirname, "..", "..", "donnees", "reglages.json");

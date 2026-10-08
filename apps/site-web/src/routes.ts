@@ -6,6 +6,7 @@ export default [
   layout("routes/public/mise-en-page-publique.tsx", [
     index("routes/public/accueil.tsx"),
     route("faq", "routes/public/faq.tsx"),
+    route("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [

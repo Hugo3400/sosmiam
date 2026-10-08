@@ -196,7 +196,7 @@ export const documentCgu: DocumentLegal = {
       id: "contributions",
       titre: "Ce que tu nous envoies par e-mail ou par le site",
       blocs: [
-        `Pour t'inscrire à la newsletter, utilise le formulaire « Préviens-moi » en bas de l'accueil, ou écris-nous à ${lienContact}. Pour inscrire ton lieu, proposer ta candidature comme ambassadeur fondateur ou simplement nous poser une question, écris-nous aussi à cette adresse.`,
+        `Pour t'inscrire à la newsletter, utilise le formulaire « Préviens-moi » en bas de l'accueil, ou écris-nous à ${lienContact}. Pour inscrire ton lieu, utilise le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) (ou écris-nous). Pour proposer ta candidature comme ambassadeur fondateur ou simplement nous poser une question, écris-nous aussi à cette adresse.`,
         "Quand tu nous envoies des informations, tu garantis :",
         {
           liste: [

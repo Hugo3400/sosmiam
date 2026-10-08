@@ -1,38 +1,27 @@
-import type { LieuExemple } from "~/contenus/lieux-exemples";
+import { PictoCategorie } from "~/composants/marque/PictoCategorie";
+import type { LieuPublic } from "~/types/lieux";
 
-type Props = {
-  lieu: LieuExemple;
-  sauve: boolean;
-  onRescousse: () => void;
-};
+// Couleurs du dégradé saisies dans le logiciel de gestion : on n'accepte que des codes « #RRGGBB » (ou courts)
+const COULEUR = /^#[0-9a-f]{3,8}$/i;
 
-/** Carte d'un lieu : visuel, nom, quartier, compteur et bouton « À la rescousse ! ». */
-export function CarteLieu({ lieu, sauve, onRescousse }: Props) {
-  const total = lieu.rescousses + (sauve ? 1 : 0);
+/** Carte d'un vrai lieu publié : visuel, nom, ce que c'est, quartier et ville, prix, et qui l'a fait découvrir. */
+export function CarteLieu({ lieu }: { lieu: LieuPublic }) {
+  const [debut, fin] = lieu.couleurs.length >= 2 && lieu.couleurs.every((couleur) => COULEUR.test(couleur))
+    ? lieu.couleurs
+    : ["#FFD60A", "#FF4D3D"];
   return (
-    <article className="flex flex-col overflow-hidden rounded-carte bg-white shadow-douce transition-transform duration-200 hover:-translate-y-1.5">
-      <div className="relative grid h-40 place-items-center text-6xl"
-        style={{ background: `linear-gradient(135deg, ${lieu.couleurs[0]}, ${lieu.couleurs[1]})` }}>
-        {lieu.alerte && (
-          <span className="absolute top-3 left-3 rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-rouge-texte">{lieu.alerte}</span>
-        )}
+    <article className="flex h-full flex-col overflow-hidden rounded-carte bg-white shadow-douce">
+      <div className="relative grid h-40 place-items-center text-6xl" style={{ background: `linear-gradient(135deg, ${debut}, ${fin})` }}>
         <span aria-hidden="true">{lieu.emoji}</span>
+        <PictoCategorie type={lieu.type} className="absolute top-3 right-3 h-9 w-9" />
       </div>
       <div className="flex flex-1 flex-col gap-1 px-5 pt-4 pb-5">
         <h3 className="text-xl font-extrabold">{lieu.nom}</h3>
-        <p className="text-sm text-gris">📍 {lieu.quartier}, {lieu.ville} · {lieu.info}</p>
-        <div className="mt-auto flex items-center justify-between pt-3.5">
-          <span className="text-sm font-semibold">🛟 {total}</span>
-          <button
-            type="button"
-            onClick={onRescousse}
-            aria-pressed={sauve}
-            className={`rounded-full border-2 border-encre px-3.5 py-2 text-sm font-semibold transition-transform hover:scale-105
-              ${sauve ? "bg-encre text-jaune" : "bg-jaune text-encre"}`}
-          >
-            {sauve ? "Sauvé ✓" : "À la rescousse !"}
-          </button>
-        </div>
+        <p className="text-sm text-gris">{lieu.prix ? `${lieu.info} · ${lieu.prix}` : lieu.info}</p>
+        <p className="text-sm text-gris"><span aria-hidden="true">📍 </span>{lieu.quartier}, {lieu.ville}</p>
+        {lieu.decouvertPar && (
+          <p className="mt-auto pt-3 text-sm font-semibold"><span aria-hidden="true">🛟 </span>Déniché par {lieu.decouvertPar}</p>
+        )}
       </div>
     </article>
   );

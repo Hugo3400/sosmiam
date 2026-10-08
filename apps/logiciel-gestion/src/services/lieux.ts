@@ -44,4 +44,7 @@ export const listerLieux = (recherche = "", statut = "") => appeler<ResumeLieu[]
 export const lireLieu = (id: number) => appeler<Lieu>("GET", `/lieux/${id}`);
 export const enregistrerLieu = (id: number | null, saisie: SaisieLieu) =>
   id ? appeler<Lieu>("PUT", `/lieux/${id}`, { corps: saisie }) : appeler<Lieu>("POST", "/lieux", { corps: saisie });
+export type ResultatAdresse = { libelle: string; nom: string; ville: string; codePostal: string; latitude: number; longitude: number; score: number };
+/** Adresses trouvées par le service public de géocodage (IGN), pour remplir les coordonnées d'un lieu */
+export const chercherAdresse = (adresse: string) => appeler<ResultatAdresse[]>("GET", `/geocodage${parametres({ adresse })}`);
 export const supprimerLieu = (id: number) => appeler<{ ok: true }>("DELETE", `/lieux/${id}`);

@@ -1,4 +1,4 @@
-import { ArrowRight, RotateCw, Siren } from "lucide-react";
+import { ArrowRight, RotateCw, Server, Siren } from "lucide-react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
@@ -18,7 +18,7 @@ const ecart = (aujourdhui: number, hier: number) => (hier === 0 ? null : ((aujou
 const jourDuJour = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
 /** Vue d'ensemble : visites, newsletter, modération, contenus et dernières actions. */
-export function EcranTableauDeBord({ allerA }: { allerA: (ecran: Ecran) => void }) {
+export function EcranTableauDeBord({ allerA, problemesServeur }: { allerA: (ecran: Ecran) => void; problemesServeur: string[] }) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireTableauDeBord, []);
   const jours = donnees?.visites.jours ?? [];
   const aujourdhui = jours[jours.length - 1] ?? { vues: 0, visites: 0, visiteurs: 0 };
@@ -47,6 +47,16 @@ export function EcranTableauDeBord({ allerA }: { allerA: (ecran: Ecran) => void 
             </div>
           )}
 
+          {problemesServeur.length > 0 && (
+            <div role="alert" className="flex flex-wrap items-center gap-3 rounded-carte border-2 border-encre bg-jaune-clair px-5 py-4 shadow-brut">
+              <Server className="size-6 shrink-0" aria-hidden />
+              <ul className="flex-1 text-sm font-semibold">
+                {problemesServeur.map((probleme) => <li key={probleme}>{probleme}</li>)}
+              </ul>
+              <Bouton icone={ArrowRight} onClick={() => allerA("maintenance")}>Maintenance</Bouton>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <TuileChiffre libelle="Visiteurs aujourd'hui" valeur={aujourdhui.visiteurs} ecart={{ pourcentage: ecart(aujourdhui.visiteurs, hier.visiteurs), reference: "par rapport à hier" }} accent />
             <TuileChiffre libelle="Pages vues aujourd'hui" valeur={aujourdhui.vues} ecart={{ pourcentage: ecart(aujourdhui.vues, hier.vues), reference: "par rapport à hier" }} />
@@ -68,10 +78,14 @@ export function EcranTableauDeBord({ allerA }: { allerA: (ecran: Ecran) => void 
             />
           </Carte>
 
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-4">
             <Carte titre="Modération" actions={<Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("moderation")}>Ouvrir</Bouton>}>
               <p className="chiffres font-titre text-3xl font-extrabold">{formaterNombre(donnees.moderation.aTraiter)}</p>
               <p className="text-sm text-gris">{donnees.moderation.aTraiter === 0 ? "Rien à traiter, tout est calme 😌" : "signalement(s) à traiter"}</p>
+            </Carte>
+            <Carte titre="Demandes de lieux" actions={<Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("demandes")}>Ouvrir</Bouton>}>
+              <p className="chiffres font-titre text-3xl font-extrabold">{formaterNombre(donnees.demandes.aTraiter)}</p>
+              <p className="text-sm text-gris">{donnees.demandes.aTraiter === 0 ? "Aucune nouvelle demande" : "demande(s) de lieux ou pépite(s) Discord à étudier"}</p>
             </Carte>
             <Carte titre="Contenus" actions={<Bouton petit variante="discret" icone={ArrowRight} onClick={() => allerA("publications")}>Publications</Bouton>}>
               <dl className="grid grid-cols-2 gap-y-2 text-sm">

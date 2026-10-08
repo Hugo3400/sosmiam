@@ -1,20 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Alert, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Platform, Text, TextInput, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 // Mêmes limites qu'à l'inscription (et que estProfilValide pour le prénom)
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
-const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
+// Tant que le profil n'existe que sur le téléphone, personne ne peut corriger la date à ta place
+const EXPLICATION_DATE = lierPonctuation(
+  "Elle ne se change pas d'ici : c'est elle qui décide de ce que l'app peut te montrer. Une erreur ? Pour l'instant, tout est rangé sur ton téléphone et on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des réglages (le reste repart aussi à zéro).",
+);
 
 /** Mes infos : prénom, nom (facultatif) et ville. La date de naissance s'affiche sans se changer d'ici (elle décide de ce que l'app montre). */
 export default function ReglagesInfos() {
@@ -23,7 +27,8 @@ export default function ReglagesInfos() {
   const champNom = useRef<TextInput>(null);
   const [prenom, setPrenom] = useState(profil?.prenom ?? "");
   const [nom, setNom] = useState(profil?.nom ?? "");
-  const [ville, setVille] = useState(profil?.ville ?? "");
+  // null tant que ce qui est tapé n'est pas une ville
+  const [ville, setVille] = useState<string | null>(profil?.ville ?? null);
   const [prenomQuitte, setPrenomQuitte] = useState(false);
   const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
   if (!profil) return null;
@@ -36,7 +41,7 @@ export default function ReglagesInfos() {
   const age = calculerAge(profil.dateNaissance);
 
   async function sauver() {
-    if (!profil || !prenomValable || !change || enregistrementEnCours) return;
+    if (!profil || !prenomValable || !ville || !change || enregistrementEnCours) return;
     setEnregistrementEnCours(true);
     try {
       await enregistrer({ ...profil, prenom: prenomNettoye, nom: nomNettoye || undefined, ville });
@@ -54,7 +59,7 @@ export default function ReglagesInfos() {
       boutonPrincipal={{
         libelle: "Enregistrer",
         onPress: () => void sauver(),
-        desactive: !prenomValable || !change || enregistrementEnCours,
+        desactive: !prenomValable || !change || !ville || enregistrementEnCours,
         indice: "Enregistre tes infos et revient aux réglages",
       }}
     >
@@ -92,33 +97,13 @@ export default function ReglagesInfos() {
           returnKeyType="done"
         />
 
-        <View className="gap-2">
-          <View
-            accessible
-            accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. Elle ne se change pas depuis l'app.`}
-            className="gap-2"
-          >
-            <Text className="font-texte-semi text-base text-encre">Ta date de naissance</Text>
-            <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
-              <Text className="flex-1 font-texte text-[17px] text-encre">{`${dateNaissance} · ${age} ans`}</Text>
-              <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
-            </View>
-            <Text className="font-texte text-sm leading-5 text-gris">
-              {"Elle ne se change pas d'ici : c'est elle qui décide de ce que l'app peut te montrer. Une erreur ? Pour la corriger, écris-nous."}
-            </Text>
+        <View accessible accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. ${EXPLICATION_DATE}`} className="gap-2">
+          <Text className="font-texte-semi text-base text-encre">Ta date de naissance</Text>
+          <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
+            <Text className="flex-1 font-texte text-[17px] text-encre">{`${dateNaissance} · ${age} ans`}</Text>
+            <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
           </View>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel={`Écrire à ${ADRESSE_CONTACT} pour corriger ta date de naissance`}
-            hitSlop={8}
-            onPress={() => Linking.openURL(`mailto:${ADRESSE_CONTACT}`).catch(() => {})}
-            className="min-h-11 flex-row items-center gap-2 self-start active:opacity-70"
-          >
-            <Text accessibilityElementsHidden importantForAccessibility="no" className="text-base">
-              💌
-            </Text>
-            <Text className="font-texte-semi text-base text-encre underline">{ADRESSE_CONTACT}</Text>
-          </Pressable>
+          <Text className="font-texte text-sm leading-5 text-gris">{EXPLICATION_DATE}</Text>
         </View>
 
         <ChoixVille valeur={ville} onChangeVille={setVille} />

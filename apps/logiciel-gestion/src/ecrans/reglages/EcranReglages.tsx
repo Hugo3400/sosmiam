@@ -10,6 +10,7 @@ import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ADRESSE_API } from "~/services/client-gestion.ts";
 import { copier } from "~/services/systeme.ts";
 import { ecrireCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
+import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
 
 type Props = { coffre: CoffreCle; onCoffreChange: (coffre: CoffreCle) => void; onOublierPoste: () => void };
 
@@ -56,7 +57,8 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste }: Props)
             <Bouton type="submit" variante="principal" chargement={etat.enCours} className="justify-self-start">Changer</Bouton>
           </form>
         </Carte>
-        <Carte titre="PC perdu, volé ou remplacé ?" className="xl:col-span-2">
+        <CarteMiseAJour />
+        <Carte titre="PC perdu, volé ou remplacé ?">
           <p className="text-sm">
             Sur le serveur, lance <code className="rounded bg-creme px-1.5 py-0.5 text-[13px]">npm run gestion:autoriser -- --retirer {coffre.idPoste}</code> :
             ce poste est coupé dans la seconde. Pour changer aussi le code à 6 chiffres : <code className="rounded bg-creme px-1.5 py-0.5 text-[13px]">npm run gestion:autoriser -- --nouveau-code</code>.
