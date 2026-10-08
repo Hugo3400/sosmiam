@@ -46,39 +46,42 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
   const defilementPossible = useRef(false);
   const plusieurs = photos.length > 1;
 
-  // La barre de la photo en cours se remplit en DUREE_PHOTO ; pleine, on passe à la suivante (depuis le fil d'animation)
-  function lancer(depuis: number) {
-    avancee.value = depuis;
-    avancee.value = withTiming(1, { duration: DUREE_PHOTO * (1 - depuis), easing: Easing.linear, reduceMotion: ReduceMotion.Never }, (fini) => {
-      if (fini) scheduleOnRN(gestes.passerALaSuivante);
-    });
-  }
-
   // Fonctions stables (photos mémorisées), qui lisent toujours l'état le plus récent
   const gestes = utiliserGestesStables({
+    // La barre de la photo en cours se remplit en DUREE_PHOTO ; pleine, on passe à la suivante (rappel depuis le fil d'animation)
+    lancer: (depuis: number) => {
+      const passerALaSuivante = gestes.passerALaSuivante;
+      avancee.value = depuis;
+      avancee.value = withTiming(1, { duration: DUREE_PHOTO * (1 - depuis), easing: Easing.linear, reduceMotion: ReduceMotion.Never }, (fini) => {
+        if (fini) scheduleOnRN(passerALaSuivante);
+      });
+    },
     passerALaSuivante: () => {
       if (!defilementPossible.current || doigtPose.current) return;
       const suivante = (indexActuel.current + 1) % photos.length;
       cible.current = suivante;
       liste.current?.scrollToOffset({ offset: suivante * largeur, animated: true });
     },
+    // Un doigt posé sur la photo met le défilement en pause ; il reprend où il en était quand on le lève
     poserDoigt: () => {
       doigtPose.current = true;
       cancelAnimation(avancee);
     },
     leverDoigt: () => {
       doigtPose.current = false;
-      if (defilementPossible.current) lancer(Math.min(avancee.value, 1));
+      if (defilementPossible.current) gestes.lancer(Math.min(Math.max(avancee.value, 0), 1));
     },
   });
 
-  // Défilement automatique : seulement à l'écran, avec plusieurs photos, sans animations réduites et sans doigt qui glisse
+  // Défilement automatique : seulement à l'écran, avec plusieurs photos, sans animations réduites et sans doigt qui glisse.
+  // Chaque nouvelle photo (ou la fin d'un glissement à la main) relance le décompte depuis le début.
   useEffect(() => {
     defilementPossible.current = actif && plusieurs && !animationsReduites && !glisse;
     if (!plusieurs) return;
     if (!actif) {
       cancelAnimation(avancee);
       avancee.value = 0;
+      cible.current = null;
       return;
     }
     if (animationsReduites) {
@@ -86,11 +89,9 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
       return;
     }
     if (glisse || doigtPose.current) return;
-    lancer(Math.min(avancee.value, 1));
+    gestes.lancer(0);
     return () => cancelAnimation(avancee);
-    // lancer ne lit que des valeurs stables (avancee, gestes)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actif, plusieurs, animationsReduites, glisse, actuelle, avancee]);
+  }, [actif, plusieurs, animationsReduites, glisse, actuelle, avancee, gestes]);
 
   useEffect(() => {
     if (!actif || !plusieurs || animationsReduites || apercuMontre.current) return;
