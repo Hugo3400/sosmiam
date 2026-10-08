@@ -31,7 +31,7 @@ export function TuileScan({ titre, texte, icone, variante, indice, onPress }: Pr
           vibrerLegerement();
           onPress();
         }}
-        className={`flex-row items-center gap-4 rounded-carte border-2 border-encre active:translate-x-0.5 active:translate-y-0.5 ${
+        className={`flex-row items-center gap-4 rounded-carte border-2 border-encre active:opacity-90 ${
           principale ? "bg-encre px-5 py-6" : "bg-white px-5 py-4"
         }`}
       >

@@ -7,6 +7,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { ModeApp, RolesCompte } from "@sos-miam/commun/types/roles";
 import { ContexteModes, type EtatModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { DEMO_VISITES_ACTIVE as DEMO } from "~/services/demo/demo-visites-active";
 import { effacerModeApp, enregistrerModeApp, lireModeApp, MODE_APP_PAR_DEFAUT, type ModeAppGarde } from "~/stockage/mode-app";
 import { effacerRolesDemo, enregistrerRolesDemo, lireRolesDemo, ROLES_VIDES } from "~/stockage/roles-demo";
 

@@ -21,7 +21,9 @@ type Props = {
 
 /** Ce qu'une demande devient quand le lieu a répondu (ou pas) : le bandeau le dit une fois, puis s'efface */
 type StatutIssue = Extract<StatutVisite, "validee" | "refusee" | "expiree">;
+type Issue = { visite: Visite; statut: StatutIssue };
 const STATUTS_ISSUE: readonly StatutVisite[] = ["validee", "refusee", "expiree"];
+const estStatutIssue = (statut: StatutVisite): statut is StatutIssue => STATUTS_ISSUE.includes(statut);
 
 // Une issue pas vue au bout d'un quart d'heure n'est plus une nouvelle : le bandeau s'en va tout seul
 const DUREE_ISSUE_MS = 15 * 60_000;
@@ -60,17 +62,25 @@ function annoncer(texte: string) {
  * Repère le moment où ta demande en cours se termine (réglée, refusée ou endormie) pendant que tu es ailleurs que sur
  * son écran : c'est l'issue à montrer. Rien si tu regardais la demande à ce moment-là, ou si c'est toi qui l'as annulée.
  */
-function utiliserIssueDemande(): { issue: Visite | null; oublier: () => void } {
+function utiliserIssueDemande(): { issue: Issue | null; oublier: () => void } {
   const services = utiliserServices();
   const inscrit = utiliserProfil().profil !== null;
   const { enCours, visites } = utiliserVisites();
   const chemin = usePathname();
-  const [issue, setIssue] = useState<Visite | null>(null);
+  const [issue, setIssue] = useState<Issue | null>(null);
+  // La dernière demande en cours vue, et l'écran affiché : lus au moment où la demande se termine
   const suivie = useRef<Visite | null>(null);
   const cheminActuel = useRef(chemin);
   useLayoutEffect(() => {
     cheminActuel.current = chemin;
   }, [chemin]);
+  const monte = useRef(true);
+  useEffect(
+    () => () => {
+      monte.current = false;
+    },
+    [],
+  );
 
   useEffect(() => {
     const avant = suivie.current;
@@ -80,11 +90,11 @@ function utiliserIssueDemande(): { issue: Visite | null; oublier: () => void } {
     if (!avant || avant.id === enCours?.id || !inscrit) return;
     // Tu étais sur l'écran de la demande : tu as tout vu là-bas
     if (cheminActuel.current === `/visite/${avant.id}`) return;
-    let actuel = true;
     const retenir = (visite: Visite) => {
-      if (!actuel || !STATUTS_ISSUE.includes(visite.statut)) return;
-      setIssue(visite);
-      annoncer(ISSUES[visite.statut as StatutIssue].annonce(visite));
+      // Ignorée si une autre demande est partie entre-temps
+      if (!monte.current || suivie.current !== null || !estStatutIssue(visite.statut)) return;
+      setIssue({ visite, statut: visite.statut });
+      annoncer(ISSUES[visite.statut].annonce(visite));
     };
     const trouvee = visites.find((v) => v.id === avant.id);
     if (trouvee) retenir(trouvee);
@@ -95,14 +105,11 @@ function utiliserIssueDemande(): { issue: Visite | null; oublier: () => void } {
         },
         () => {},
       );
-    return () => {
-      actuel = false;
-    };
   }, [enCours, visites, inscrit, services]);
 
   // Ouverte autrement (onglet Scan, Mes visites) : c'est vu
   useEffect(() => {
-    if (issue && chemin === `/visite/${issue.id}`) setIssue(null);
+    if (issue && chemin === `/visite/${issue.visite.id}`) setIssue(null);
   }, [chemin, issue]);
 
   useEffect(() => {
@@ -176,21 +183,21 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
   }
 
   if (!issue) return null;
-  const forme = ISSUES[issue.statut as StatutIssue];
+  const { visite, statut } = issue;
+  const forme = ISSUES[statut];
   return (
-    <Animated.View key={`issue-${issue.id}`} entering={entree} exiting={sortie} style={{ width: "100%" }}>
+    <Animated.View key={`issue-${visite.id}`} entering={entree} exiting={sortie} style={{ width: "100%" }}>
       <View className={`min-h-14 flex-row items-center rounded-2xl border-2 border-encre ${forme.fond}`}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${forme.etiquette} ${forme.texte(issue)}`}
-          accessibilityHint={issue.statut === "validee" ? "Ouvre ta visite pour fêter ça" : "Ouvre ta demande"}
+          accessibilityLabel={`${forme.etiquette} ${forme.texte(visite)}`}
+          accessibilityHint={statut === "validee" ? "Ouvre ta visite pour fêter ça" : "Ouvre ta demande"}
           onPress={() => {
             vibrerLegerement();
             oublier();
-            router.push({
-              pathname: "/visite/[id]",
-              params: issue.statut === "validee" ? { id: String(issue.id), celebrer: "1" } : { id: String(issue.id) },
-            });
+            // Réglée pendant que tu étais ailleurs : la célébration t'attend à l'ouverture
+            const params = statut === "validee" ? { id: String(visite.id), celebrer: "1" } : { id: String(visite.id) };
+            router.push({ pathname: "/visite/[id]", params });
           }}
           className="flex-1 flex-row items-center gap-3 py-2 pl-4 active:opacity-80"
         >
@@ -200,7 +207,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
           <View className="flex-1">
             <Text className="font-texte-gras text-[11px] uppercase tracking-wide text-encre">{forme.etiquette}</Text>
             <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
-              {forme.texte(issue)}
+              {forme.texte(visite)}
             </Text>
           </View>
         </Pressable>

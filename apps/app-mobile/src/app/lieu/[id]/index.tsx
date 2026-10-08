@@ -2,13 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { BlocVisiteLieu } from "~/composants/lieux/BlocVisiteLieu";
 import { EnTeteFicheLieu } from "~/composants/lieux/EnTeteFicheLieu";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
@@ -17,6 +18,7 @@ import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
+import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
@@ -27,7 +29,8 @@ import couleurs from "~/theme/couleurs";
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
 
 /**
- * Fiche d'un lieu (première version) : ses infos, ses horaires, son plat signature, et de quoi y aller ou l'aider.
+ * Fiche d'un lieu (première version) : ses infos, ses horaires, son plat signature, de quoi y faire compter sa visite
+ * (addition, QR du comptoir, fidélité, réserver), et de quoi y aller ou l'aider.
  * Pour une arrivée fluide, seul le haut est dessiné tout de suite ; la suite (horaires, carte, tags) vient juste après l'animation.
  * Sans compte, on regarde tout et « Y aller » marche ; rescousse, suivre et « Envoyer à un pote » proposent de créer un compte.
  * Un bar ouvert par un lien, sous 18 ans ou âge inconnu : un mot gentil à la place de la fiche.
@@ -96,6 +99,8 @@ export default function FicheLieu() {
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
         <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} onAnnoncer={annoncer} />
+        {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
+        <BlocVisiteLieu lieu={lieu} />
         <SuiteFicheLieu lieu={lieu} age={age} />
       </ScrollView>
 
@@ -133,8 +138,8 @@ export default function FicheLieu() {
           className="flex-[2]"
           libelle="Y aller"
           variante="blanc"
-          indice="Ouvre l'itinéraire dans Plans"
-          onPress={() => Linking.openURL(`https://maps.apple.com/?q=${encodeURIComponent(`${lieu.nom}, ${lieu.ville}`)}`)}
+          indice={Platform.OS === "ios" ? "Ouvre l'itinéraire dans Plans" : "Ouvre l'itinéraire dans ton app de cartes"}
+          onPress={() => ouvrirItineraire(lieu)}
         />
       </View>
 
