@@ -48,7 +48,7 @@ export function CarteCouverture({ tour }: { tour: number }) {
                       <td className="chiffres px-3 py-2.5 text-right">{formaterNombre(ville.ambassadeurs)}</td>
                       <td className="chiffres px-3 py-2.5 text-right">{formaterNombre(ville.lieux)}</td>
                       <td className="px-5 py-2.5 text-gris">
-                        {ville.quartiers.length === 0 ? "—" : ville.quartiers.sort((a, b) => b.ambassadeurs - a.ambassadeurs).map((q) => `${q.quartier} (${q.ambassadeurs})`).join(" · ")}
+                        {ville.quartiers.length === 0 ? "—" : [...ville.quartiers].sort((a, b) => b.ambassadeurs - a.ambassadeurs).map((q) => `${q.quartier} (${q.ambassadeurs})`).join(" · ")}
                       </td>
                     </tr>
                   ))}

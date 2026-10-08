@@ -5,6 +5,8 @@ import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 /** Ce que la personne a rempli pendant l'inscription, avant l'enregistrement final (écran « C'est prêt »). */
 export type BrouillonInscription = {
   prenom: string;
+  /** Pseudo pour que les potes te trouvent (sans « @ ») ; vide tant que rien n'est proposé ni tapé */
+  pseudo: string;
   nom: string;
   /** AAAA-MM-JJ, null tant que rien n'est choisi */
   dateNaissance: string | null;
