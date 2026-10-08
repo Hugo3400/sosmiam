@@ -1,6 +1,6 @@
 [package]
 name = "sos-miam-gestion"
-version = "0.3.4"
+version = "0.4.0"
 description = "Logiciel de gestion de SOS Miam"
 authors = ["Hugo3400"]
 edition = "2021"

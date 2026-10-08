@@ -27,6 +27,8 @@ type Props = {
   raison: string | null;
   aime: boolean;
   garde: boolean;
+  /** Vrai nombre de commentaires (réponses comprises), sans ceux des personnes bloquées */
+  nombreCommentaires: number;
   /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et anime son cadre */
   actif: boolean;
   /** Place à laisser en haut (en-tête du fil posé sur la publication) */
@@ -60,7 +62,7 @@ const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -230,8 +232,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           />
           <ActionPost
             icone={<Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />}
-            libelle={formaterNombreCourt(publication.commentaires)}
-            description={`Commentaires, ${publication.commentaires}`}
+            libelle={formaterNombreCourt(nombreCommentaires)}
+            description={nombreCommentaires === 0 ? "Commentaires : aucun pour l'instant, écris le premier" : `${nombreCommentaires} commentaire${nombreCommentaires > 1 ? "s" : ""}, les lire ou commenter`}
             onPress={() => gestes.commentaires(publication)}
             style="transparent"
           />
@@ -253,7 +255,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <ActionPost
             icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
             libelle=""
-            description="Plus d'options : rescousse, adresse, pas intéressé, signaler"
+            description="Plus d'options : rescousse, adresse, envoyer à un pote, pas intéressé, signaler"
             onPress={() => gestes.menu(publication)}
             style="transparent"
           />

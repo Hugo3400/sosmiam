@@ -74,7 +74,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `scripts/` | `construire-installateur.sh` (compilation croisée vers Windows) ; l'installateur arrive dans `installateur/` (non commité) |
 | `src/Application.tsx`, `src/main.tsx` | connexion (premier lancement, autorisation, déverrouillage), menu et écran choisi |
 | `src/ecrans/connexion/` | premier lancement (mot de passe), autorisation du poste sur le serveur, déverrouillage (mot de passe + code à 6 chiffres) |
-| `src/ecrans/tableau-de-bord/` | vue d'ensemble : visites, newsletter, modération, contenus, dernières actions |
+| `src/ecrans/tableau-de-bord/` | vue d'ensemble : visites, newsletter, modération, ambassadeurs à valider, contenus, dernières actions |
 | `src/ecrans/statistiques/` | visites du site (et plus tard de l'app) par jour, semaine, mois, année : en direct, jours × heures, parcours (arrivée, sortie, rebond, durée), provenances et campagnes, clics de /liens, appareils, langues, pays, régions, villes, conversions, vitesse, 404, robots ; comparaison et export CSV |
 | `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription) et rédaction des newsletters avec aperçu de l'e-mail |
 | `src/ecrans/lieux/` | fiches des lieux : liste, formulaire complet, créneaux d'ouverture, aperçu |
@@ -83,15 +83,16 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/ecrans/maintenance/` | état du serveur (API, base, site, disque, pm2), relance du site ou du bot, journal de gestion |
 | `src/ecrans/demandes/` | demandes de lieux (formulaire du site) et propositions Discord : accepter (fiche créée) ou refuser |
 | `src/ecrans/annonces/` | annonces écrites ici, publiées par le bot dans le salon d'annonces Discord |
+| `src/ecrans/ambassadeurs/` | comptes de l'espace ambassadeur : inscriptions à valider, fiche (points, ambassadeur de ville, note de l'équipe, activité, mot de passe oublié, suppression), candidatures fondateur, missions, messages vers leur espace, classement, villes couvertes, candidats de la newsletter à inviter |
 | `src/ecrans/reglages/` | ce poste : identifiant, mot de passe, version et mises à jour, retrait |
 | `src/ecrans/bientot/` | écran commun des parties à venir |
 | `src/ecrans/big-sos/`, `notifications/`, `utilisateurs/` | à venir : validation des BIG SOS, envoi des notifications, comptes |
 | `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…), menu, bandeau de mise à jour |
-| `src/contenus/` | menu du logiciel, libellés des raisons de signalement |
+| `src/contenus/` | menu du logiciel, libellés des raisons de signalement et du programme ambassadeurs (paliers, badges, points, missions) |
 | `src/fonctions/securite/` | clé Ed25519 du poste, coffre chiffré par le mot de passe, message signé (même format que l'API) |
 | `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `publications/`, `statistiques/`, `maintenance/` | fonctions pures, une par fichier (formats, graduations, Markdown → e-mail, grille jours × heures, export CSV, problèmes du serveur…) |
 | `src/services/` | client signé de l'API (`client-gestion.ts`) et un fichier par partie ; `systeme.ts` pour Windows (fichiers, notifications) |
-| `src/hooks/` | chargement des données, médias signés, verrouillage après inactivité, alertes de modération |
+| `src/hooks/` | chargement des données, médias signés, verrouillage après inactivité, alertes (modération, demandes, ambassadeurs à valider) |
 | `src/stockage/` | le coffre (clé du poste chiffrée), gardé dans le profil Windows |
 | `tests/` | tests du logiciel (`npm test`) |
 
@@ -101,9 +102,9 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `prisma/`, `prisma.config.ts` | schéma de la base, migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
 | `src/demarrer.ts`, `src/application.ts` | lancement du serveur (127.0.0.1:5192, pm2 « sos-miam-api ») et assemblage d'Express |
 | `src/base-de-donnees/` | connexion Prisma ; `client-genere/` est recréé par `prisma generate` (jamais commité) |
-| `src/routes/` | adresses de l'API, un fichier par domaine : inscriptions, mesure (pages vues du site), signalements, gestion (`/api-gestion`, le logiciel de gestion)… |
+| `src/routes/` | adresses de l'API, un fichier par domaine : inscriptions, mesure (pages vues du site), signalements, gestion (`/api-gestion`, le logiciel de gestion), espace ambassadeur (`espace-ambassadeur.ts` : missions et messages du compte connecté)… |
 | `src/controleurs/` | lecture de la requête et envoi de la réponse ; `gestion/` pour le logiciel de gestion (et la vérification de ses champs) |
-| `src/services/` | logique métier ; `mesure.ts` (compteur de visites sans cookie) et `stockage-stats.ts` ; `gestion/` pour le logiciel de gestion (accès autorisés, statistiques, newsletter, lieux, publications, médias, modération, maintenance, journal) |
+| `src/services/` | logique métier ; `mesure.ts` (compteur de visites sans cookie) et `stockage-stats.ts` ; `gestion/` pour le logiciel de gestion (accès autorisés, statistiques, newsletter, lieux, publications, médias, modération, ambassadeurs, missions et messages, maintenance, journal) |
 | `src/middlewares/` | erreurs, limite de requêtes, protection du logiciel de gestion (signature, code à 6 chiffres, session) et ses origines autorisées |
 | `src/fonctions/geo/`, `securite/`, `dates/`, `mesure/`, `texte/` | fonctions pures, une par fichier (signature Ed25519, code à 6 chiffres, périodes, esquisse HyperLogLog…) |
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |

@@ -8,7 +8,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
-export type ChoixMenu = "rescousse" | "adresse" | "pas-interesse";
+export type ChoixMenu = "rescousse" | "adresse" | "envoyer" | "pas-interesse";
 
 type Props = {
   visible: boolean;
@@ -23,7 +23,7 @@ type Props = {
 
 type Vue = "options" | "signalement";
 
-/** Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, pas intéressé, et « Signaler » qui ouvre son propre parcours. */
+/** Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours. */
 export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir, onSignaler, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -74,6 +74,7 @@ export function MenuPublication({ visible, nomLieu, sauve, restantes, onChoisir,
       desactive: epuisees,
     },
     { choix: "adresse", emoji: "📍", titre: "Voir l'adresse", detail: "Horaires, plat signature, itinéraire" },
+    { choix: "envoyer", emoji: "💌", titre: "Envoyer à un pote", detail: "Fais-le découvrir à ta bande" },
     { choix: "pas-interesse", emoji: "🙈", titre: "Pas intéressé", detail: "On t'en montrera moins comme ça" },
     { choix: "signaler", emoji: "🚩", titre: "Signaler", detail: "Faux lieu, pub cachée, contenu choquant…" },
   ];

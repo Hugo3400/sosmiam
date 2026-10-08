@@ -1,19 +1,21 @@
 import { useIsFocused, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
-import { startTransition, useCallback, useMemo, useRef, useState } from "react";
-import { FlatList, Share, View, type ViewToken } from "react-native";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FlatList, Platform, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, type OngletFil } from "~/composants/fil/EnTeteFil";
+import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
 import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
 import { Annonce } from "~/composants/interface/Annonce";
+import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
@@ -23,6 +25,7 @@ import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -31,6 +34,8 @@ import couleurs from "~/theme/couleurs";
 
 // Une publication compte comme « à l'écran » quand on en voit plus de la moitié
 const VISIBILITE = { itemVisiblePercentThreshold: 60 };
+// iOS n'ouvre pas une fenêtre pendant que la précédente se referme : « Envoyer à un pote » attend la fin de la glissade du menu
+const DELAI_APRES_MENU = Platform.OS === "ios" ? 400 : 0;
 
 /** Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime. */
 export default function PourToi() {
@@ -41,6 +46,7 @@ export default function PourToi() {
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
   const depart = utiliserPointDeDepart();
   const activite = utiliserActivite();
+  const communaute = utiliserCommunaute();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
   const [taille, setTaille] = useState({ largeur: 0, hauteur: 0 });
   const [visible, setVisible] = useState<string | null>(null);
@@ -49,6 +55,13 @@ export default function PourToi() {
   const [menu, setMenu] = useState<Publication | null>(null);
   // Dernière publication du menu, gardée pendant que la feuille se referme (sinon son titre se vide en glissant)
   const [menuAffiche, setMenuAffiche] = useState<Publication | null>(null);
+  // Commentaires ouverts, et dernière publication commentée, gardée pendant que la feuille se referme
+  const [commentaires, setCommentaires] = useState<Publication | null>(null);
+  const [commentairesAffiches, setCommentairesAffiches] = useState<Publication | null>(null);
+  // « Envoyer à un pote » : le lieu reste choisi pendant que la feuille se referme
+  const [envoiVisible, setEnvoiVisible] = useState(false);
+  const [lieuEnvoye, setLieuEnvoye] = useState<number | null>(null);
+  const minuterieEnvoi = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refListe = useRef<FlatList<Publication>>(null);
   // Fiche réduite pour voir les vidéos en plein écran : le choix reste d'une publication à l'autre
   const [infosReduites, setInfosReduites] = useState(false);
@@ -72,6 +85,10 @@ export default function PourToi() {
     if (onglet === "sos") gardees.sort((a, b) => Number(!!lieuParId.get(b.lieuId)?.sos) - Number(!!lieuParId.get(a.lieuId)?.sos));
     return gardees;
   }, [publications, onglet, lieuParId, estMasquee]);
+
+  useEffect(() => () => {
+    if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
+  }, []);
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -102,10 +119,17 @@ export default function PourToi() {
     if (!p) return;
     if (choix === "rescousse") rescousse(p);
     if (choix === "adresse") router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
+    if (choix === "envoyer") ouvrirEnvoi(p.lieuId);
     if (choix === "pas-interesse") {
       masquerPublication(p.id);
       annoncer("Compris, on t'en montrera moins comme ça 🙈");
     }
+  }
+
+  function ouvrirEnvoi(lieuId: number) {
+    setLieuEnvoye(lieuId);
+    if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
+    minuterieEnvoi.current = setTimeout(() => setEnvoiVisible(true), DELAI_APRES_MENU);
   }
 
   // Signalement envoyé : gardé sur le téléphone en attendant l'API, et la publication disparaît du fil (la feuille reste ouverte pour dire merci)
@@ -138,7 +162,10 @@ export default function PourToi() {
   const gestes = utiliserGestesStables<GestesPublication>({
     jaime: (p) => void activite.basculerJaime(p.id),
     doubleAppui: aimerParDoubleAppui,
-    commentaires: () => annoncer("Les commentaires arrivent très bientôt 💬"),
+    commentaires: (p) => {
+      setCommentaires(p);
+      setCommentairesAffiches(p);
+    },
     garder: (p) => {
       const nom = lieuParId.get(p.lieuId)?.nom ?? "Ce lieu";
       annoncer(activite.basculerGarde(p.lieuId) ? `🔖 ${nom} est gardé pour plus tard` : "Retiré de tes lieux gardés");
@@ -157,6 +184,7 @@ export default function PourToi() {
   }, []);
 
   const lieuDuMenu = menuAffiche ? lieuParId.get(menuAffiche.lieuId) : undefined;
+  const lieuCommente = commentairesAffiches ? lieuParId.get(commentairesAffiches.lieuId) : undefined;
   // La barre d'onglets est posée, transparente, sur le fil (voir src/app/(onglets)/_layout.tsx)
   const hauteurBarreOnglets = useBottomTabBarHeight();
   // Étiquette d'illustration et compteur de photos : juste sous l'en-tête, quelle que soit l'encoche du téléphone
@@ -199,6 +227,7 @@ export default function PourToi() {
                   raison={profil ? trouverRaisonLieu({ ...lieu, km }, profil) : null}
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
+                  nombreCommentaires={communaute.nombreCommentaires(item.id)}
                   actif={focus && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}
                   envolBouee={bouees[item.id] ?? 0}
@@ -226,6 +255,17 @@ export default function PourToi() {
         onSignaler={signaler}
         onFermer={() => setMenu(null)}
       />
+      {commentairesAffiches && lieuCommente ? (
+        <FeuilleCommentaires
+          // Une autre publication : une feuille neuve (le brouillon d'une publication ne passe pas à la suivante)
+          key={commentairesAffiches.id}
+          visible={commentaires !== null}
+          publicationId={commentairesAffiches.id}
+          lieu={lieuCommente}
+          onFermer={() => setCommentaires(null)}
+        />
+      ) : null}
+      {lieuEnvoye !== null ? <EnvoyerAPote visible={envoiVisible} lieuId={lieuEnvoye} onFermer={() => setEnvoiVisible(false)} /> : null}
     </View>
   );
 }

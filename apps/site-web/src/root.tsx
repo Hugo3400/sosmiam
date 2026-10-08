@@ -1,9 +1,10 @@
-import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { isRouteErrorResponse, Links, Meta, Outlet, redirect, Scripts, ScrollRestoration } from "react-router";
 import type { ReactNode } from "react";
 
 import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
 import { signalerVue } from "~/services/mesure.server";
 // Polices hébergées par le site lui-même (pas d'appel à Google Fonts)
 import "@fontsource-variable/inter";
@@ -17,8 +18,15 @@ export const links: Route.LinksFunction = () => [
   { rel: "apple-touch-icon", href: "/icones/apple-touch-icon.png" },
 ];
 
-// Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
 export const middleware: Route.MiddlewareFunction[] = [
+  // sosmiam.fr et ambassadeur.sosmiam.fr se partagent les adresses (voir fonctions/hotes/choisir-redirection-hote.ts).
+  // « url » est l'adresse demandée sans les détails de React Router (« .data », « _routes ») : une navigation dans le
+  // site est renvoyée vers la page elle-même.
+  ({ url }) => {
+    const redirection = choisirRedirectionHote(url.hostname, `${url.pathname}${url.search}`);
+    if (redirection) throw redirect(redirection.adresse, redirection.statut);
+  },
+  // Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
   async ({ request }, suite) => {
     const debut = performance.now();
     const reponse = await suite();

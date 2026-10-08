@@ -69,3 +69,136 @@ export async function preparerReinitialisation(compteId: number): Promise<{ jeto
   });
   return { jeton, expireLe };
 }
+
+// ─── Le compte vu par son titulaire : espace ambassadeur du site (routes /comptes) ───
+
+/** Statut dans l'espace ambassadeur : « en-attente » à l'inscription, puis l'équipe décide dans le logiciel de gestion. */
+export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
+
+/**
+ * Le compte tel que la personne connectée le voit (exactement apps/site-web/src/types/compte.ts) : jamais le mot de
+ * passe, ni la note de l'équipe. Dates en ISO 8601.
+ */
+export type CompteConnecte = {
+  prenom: string;
+  email: string;
+  points: number;
+  palier: PalierCompte;
+  badges: string[];
+  creeLe: string;
+  ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null } | null;
+};
+
+export type NouveauCompte = {
+  email: string;
+  /** L'empreinte (hacherMotDePasse), jamais le mot de passe lui-même */
+  motDePasse: string;
+  prenom: string;
+  ville: string;
+  quartier: string | null;
+  /** Date de mise à jour des conditions d'utilisation acceptées (AAAA-MM-JJ) */
+  cguVersion: string;
+};
+
+/** Ce que la personne change elle-même dans « Mon compte » (quartier null : effacé). L'e-mail ne se change pas en ligne. */
+export type ModificationCompte = { prenom?: string; ville?: string; quartier?: string | null };
+
+const estDoublon = (erreur: unknown) => typeof erreur === "object" && erreur !== null && "code" in erreur && erreur.code === "P2002";
+
+/** Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite) ; null si l'e-mail est déjà pris. */
+export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion }: NouveauCompte): Promise<number | null> {
+  try {
+    const compte = await baseDeDonnees.compte.create({
+      data: { email, motDePasse, prenom, cguVersion, ambassadeur: { create: { ville, quartier } } },
+      select: { id: true },
+    });
+    return compte.id;
+  } catch (erreur) {
+    // La base refuse un second compte avec le même e-mail (contrainte unique : erreur P2002 de Prisma)
+    if (estDoublon(erreur)) return null;
+    throw erreur;
+  }
+}
+
+/** Pour la connexion : l'identifiant et l'empreinte du mot de passe, ou null si l'e-mail est inconnu. */
+export async function trouverCompteParEmail(email: string): Promise<{ id: number; motDePasse: string } | null> {
+  return baseDeDonnees.compte.findUnique({ where: { email }, select: { id: true, motDePasse: true } });
+}
+
+/** Le compte tel que son titulaire le voit, ou null s'il n'existe plus. */
+export async function lireCompte(id: number): Promise<CompteConnecte | null> {
+  const compte = await baseDeDonnees.compte.findUnique({
+    where: { id },
+    select: {
+      prenom: true, email: true, points: true, palier: true, creeLe: true,
+      badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
+      ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
+    },
+  });
+  if (!compte) return null;
+  const { ambassadeur } = compte;
+  return {
+    prenom: compte.prenom,
+    email: compte.email,
+    points: compte.points,
+    palier: compte.palier as PalierCompte,
+    badges: compte.badges.map(({ badge }) => badge),
+    creeLe: compte.creeLe.toISOString(),
+    ambassadeur: ambassadeur
+      ? {
+          statut: ambassadeur.statut as StatutAmbassadeur,
+          ville: ambassadeur.ville,
+          quartier: ambassadeur.quartier,
+          decideLe: ambassadeur.decideLe?.toISOString() ?? null,
+        }
+      : null,
+  };
+}
+
+/** E-mail et empreinte du mot de passe : pour vérifier le mot de passe actuel avant un changement ou une suppression. */
+export async function lireIdentifiants(id: number): Promise<{ email: string; motDePasse: string } | null> {
+  return baseDeDonnees.compte.findUnique({ where: { id }, select: { email: true, motDePasse: true } });
+}
+
+/** Prénom, ville et quartier changés par la personne dans « Mon compte ». */
+export async function modifierCompte(id: number, { prenom, ville, quartier }: ModificationCompte): Promise<void> {
+  await baseDeDonnees.$transaction([
+    ...(prenom !== undefined ? [baseDeDonnees.compte.update({ where: { id }, data: { prenom } })] : []),
+    ...(ville !== undefined || quartier !== undefined
+      ? [baseDeDonnees.ambassadeur.updateMany({ where: { compteId: id }, data: { ville, quartier } })]
+      : []),
+  ]);
+}
+
+/** Nouveau mot de passe (son empreinte). Un lien de réinitialisation encore en attente ne sert plus à rien : il est effacé. */
+export async function changerMotDePasse(id: number, empreinte: string): Promise<void> {
+  await baseDeDonnees.compte.update({ where: { id }, data: { motDePasse: empreinte, jetonReinitialisation: null, jetonExpireLe: null } });
+}
+
+/**
+ * La personne efface son compte : tout ce qui lui est lié part avec lui (ambassadeur, sessions, badges, points,
+ * candidatures, missions, messages), sauf ses propositions de lieux, qui restent sans lien vers lui.
+ */
+export async function effacerCompte(id: number): Promise<void> {
+  await baseDeDonnees.compte.deleteMany({ where: { id } });
+}
+
+/** Le compte qui détient ce jeton de réinitialisation (par son empreinte), s'il n'a pas expiré. */
+export async function trouverCompteParJeton(empreinteJeton: string, maintenant: Date): Promise<{ id: number; email: string } | null> {
+  return baseDeDonnees.compte.findFirst({
+    where: { jetonReinitialisation: empreinteJeton, jetonExpireLe: { gt: maintenant } },
+    select: { id: true, email: true },
+  });
+}
+
+/**
+ * Nouveau mot de passe choisi avec le lien préparé par l'équipe. Le jeton est effacé dans la même écriture, et seulement
+ * s'il est encore celui du compte et valable : il ne sert qu'une fois, même avec deux envois en même temps.
+ */
+export async function reinitialiserMotDePasse(id: number, empreinteJeton: string, empreinte: string, maintenant: Date): Promise<boolean> {
+  const { count } = await baseDeDonnees.compte.updateMany({
+    where: { id, jetonReinitialisation: empreinteJeton, jetonExpireLe: { gt: maintenant } },
+    data: { motDePasse: empreinte, jetonReinitialisation: null, jetonExpireLe: null },
+  });
+  return count === 1;
+}
