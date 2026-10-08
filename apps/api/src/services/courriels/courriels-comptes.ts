@@ -3,6 +3,7 @@
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { habillerCourriel } from "../../fonctions/courriels/habiller-courriel.ts";
 import { envoyerToutDeSuite, mettreEnFile } from "./file-courriels.ts";
+import { lireReglagesEnvoi } from "./reglages-envoi.ts";
 
 /** Adresse écrite en dur (jamais tirée d'une requête) */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
@@ -12,8 +13,12 @@ const EFFACEMENT = 365 * UN_JOUR;
 const PREVENIR_AVANT = 30 * UN_JOUR;
 const jourEnLettres = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
 
-/** Inscription d'ambassadeur validée par l'équipe : un mot de bienvenue part tout seul. */
+/** L'envoi est-il réglé ? Sinon on ne met rien en file : un mail parti des semaines plus tard n'aurait plus de sens. */
+const envoiPret = async () => (await lireReglagesEnvoi()).etat === "pret";
+
+/** Inscription d'ambassadeur validée par l'équipe : un mot de bienvenue part tout seul (faux si l'envoi n'est pas réglé). */
 export async function prevenirAmbassadeurValide(compteId: number) {
+  if (!(await envoiPret())) return false;
   const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
   if (!compte) return false;
   const objet = `C'est validé, ${compte.prenom} : bienvenue chez les ambassadeurs 🛟`;
@@ -38,6 +43,7 @@ export async function prevenirAmbassadeurValide(compteId: number) {
  * pas de nouveau mail s'il y en a déjà eu un dans les 60 derniers jours). Rend le nombre de mails mis en file.
  */
 export async function prevenirAvantEffacement(maintenant = new Date()) {
+  if (!(await envoiPret())) return 0;
   const comptes = await baseDeDonnees.compte.findMany({
     where: { derniereConnexion: { lt: new Date(maintenant.getTime() - EFFACEMENT + PREVENIR_AVANT), gte: new Date(maintenant.getTime() - EFFACEMENT) } },
     select: { prenom: true, email: true, derniereConnexion: true },
