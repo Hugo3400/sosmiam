@@ -1,11 +1,11 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  Bell, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, Megaphone, Server, Settings, ShieldAlert, Store, Users, type LucideIcon,
+  Bell, CalendarDays, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, Megaphone, Server, Settings, ShieldAlert, Store, Users, type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -15,6 +15,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
     entrees: [
       { ecran: "tableau-de-bord", libelle: "Tableau de bord", icone: LayoutDashboard },
       { ecran: "statistiques", libelle: "Statistiques", icone: ChartColumn },
+      { ecran: "calendrier", libelle: "Calendrier", icone: CalendarDays },
     ],
   },
   {

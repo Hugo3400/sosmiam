@@ -7,6 +7,7 @@ import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
+import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
 import { EcranComptes } from "~/ecrans/comptes/EcranComptes.tsx";
 import { EcranNotifications } from "~/ecrans/notifications/EcranNotifications.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
@@ -145,6 +146,7 @@ export function Application() {
         <div className="mx-auto max-w-[1280px] px-8 py-7">
           {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={(vers) => allerA(vers)} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}
           {ecran === "statistiques" && <EcranStatistiques />}
+          {ecran === "calendrier" && <EcranCalendrier allerA={allerA} />}
           {ecran === "newsletter" && <EcranNewsletter />}
           {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
           {ecran === "demandes" && <EcranDemandes />}

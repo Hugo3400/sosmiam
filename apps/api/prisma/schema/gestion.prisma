@@ -92,3 +92,19 @@ model ReglageGestion {
 
   @@map("reglages_gestion")
 }
+
+/// Une réponse type du logiciel de gestion (refus de demande avec bienvenue, relance d'un ambassadeur, merci à un
+/// créateur…) : insérée en un clic dans un mail qui part de la messagerie de Hugo.
+model ReponseType {
+  id        Int      @id @default(autoincrement())
+  titre     String   @db.VarChar(80)
+  /// « demande », « ambassadeur », « moderation », « lieu », « createur » ou « autre » : pour la trouver vite
+  categorie String   @default("autre") @db.VarChar(20)
+  objet     String   @default("") @db.VarChar(150)
+  /// Le texte ; « {prenom} » et « {lieu} » sont remplacés quand on l'utilise
+  texte     String   @db.VarChar(5000)
+  creeLe    DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("reponses_types")
+}
