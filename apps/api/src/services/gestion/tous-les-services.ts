@@ -6,6 +6,7 @@ import {
 import { lireAlertes } from "./alertes.ts";
 import { rechercherPartout } from "./recherche.ts";
 import { lireHistoriqueLieu } from "./historique-lieu.ts";
+import { lireCalendrier } from "./calendrier.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
@@ -38,7 +39,7 @@ import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
 export const servicesGestion = {
   noterAction, listerJournal,
-  lireTableauDeBord, lireAlertes, rechercherPartout, lireStatistiques,
+  lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques,
   listerInscrits, desinscrire, exporterInscrits,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
   listerLieux, lireLieu, lireHistoriqueLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,

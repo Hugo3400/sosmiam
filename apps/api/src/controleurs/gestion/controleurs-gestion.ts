@@ -42,6 +42,18 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
     tableauDeBord: verifier(async (_requete, reponse) => reponse.json(await s.lireTableauDeBord())),
     alertes: verifier(async (_requete, reponse) => reponse.json(await s.lireAlertes())),
     recherche: verifier(async (requete, reponse) => reponse.json(await s.rechercherPartout(lireParametre(requete.query.q, 100)))),
+    calendrier: verifier(async (requete, reponse) => {
+      // Du jour « debut » inclus au jour « fin » exclu (AAAA-MM-JJ), 62 jours au plus
+      const lire = (cle: string) => {
+        const date = new Date(`${lireParametre(requete.query[cle], 10)}T00:00:00`);
+        if (Number.isNaN(date.getTime())) throw new ChampInvalide(cle);
+        return date;
+      };
+      const debut = lire("debut");
+      const fin = lire("fin");
+      if (fin <= debut || fin.getTime() - debut.getTime() > 62 * 86_400_000) throw new ChampInvalide("fin");
+      reponse.json(await s.lireCalendrier(debut, fin));
+    }),
 
     statistiques: verifier(async (requete, reponse) => {
       const echelle = lireChoix({ echelle: requete.query.echelle ?? "jour" }, "echelle", ["jour", "semaine", "mois", "annee"] as const);
