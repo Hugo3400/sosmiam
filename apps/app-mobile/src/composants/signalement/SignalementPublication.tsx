@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
+import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "@sos-miam/commun/regles/signalement";
 import type { Signalement } from "@sos-miam/commun/types/signalement";
 import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement";
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
@@ -32,7 +33,7 @@ export function SignalementPublication({ nomLieu, onEnvoyer, onRetourMenu, onFer
   const [explication, setExplication] = useState("");
 
   const titre = etape === "details" && raison ? `${raison.emoji} ${raison.titre}` : "Pourquoi tu signales ?";
-  const sousTitre = etape === "details" ? "Dis-nous en plus : ça aide l'équipe à trancher vite." : `Publication sur ${nomLieu}`;
+  const sousTitre = etape === "details" ? "Dis-nous en plus, ça aide l'équipe." : `Publication sur ${nomLieu}`;
 
   // Le contenu change sous le doigt : VoiceOver annonce la nouvelle étape
   useEffect(() => {
@@ -55,7 +56,7 @@ export function SignalementPublication({ nomLieu, onEnvoyer, onRetourMenu, onFer
   if (etape === "merci") {
     return (
       <Animated.View entering={FadeIn.duration(200)}>
-        <MerciSignalement grave={!!raison?.grave} onFermer={onFermer} />
+        <MerciSignalement grave={!!raison?.grave} masqueePourTous={!!raison && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison.cle)} onFermer={onFermer} />
       </Animated.View>
     );
   }

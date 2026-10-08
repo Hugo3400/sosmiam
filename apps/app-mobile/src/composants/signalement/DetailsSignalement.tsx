@@ -4,6 +4,7 @@ import {
   LONGUEUR_MAX_EXPLICATION_SIGNALEMENT,
   LONGUEUR_MIN_EXPLICATION_SIGNALEMENT,
   RAISONS_AVEC_EXPLICATION_OBLIGATOIRE,
+  RAISONS_AVEC_MASQUAGE_IMMEDIAT,
 } from "@sos-miam/commun/regles/signalement";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -24,6 +25,7 @@ type Props = {
 export function DetailsSignalement({ raison, precision, onChoisirPrecision, explication, onChangerExplication, onEnvoyer }: Props) {
   const obligatoire = RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(raison.cle);
   const manque = obligatoire && explication.trim().length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT;
+  const masqueePourTous = RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison.cle);
 
   return (
     <View className="gap-5 pb-2">
@@ -52,6 +54,12 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
         maxLength={LONGUEUR_MAX_EXPLICATION_SIGNALEMENT}
         autoCapitalize="sentences"
       />
+
+      {masqueePourTous ? (
+        <Text className="font-texte text-sm leading-5 text-encre">
+          🙈 Ce type de contenu est masqué pour tout le monde dès qu'il est signalé, le temps qu'un modérateur le vérifie.
+        </Text>
+      ) : null}
 
       {raison.grave ? (
         <>

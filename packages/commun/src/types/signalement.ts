@@ -13,6 +13,14 @@ export const RAISONS_SIGNALEMENT = [
 
 export type RaisonSignalement = (typeof RAISONS_SIGNALEMENT)[number];
 
+/**
+ * Où en est un signalement côté modération (logiciel de gestion), décidé à la main :
+ * « a-traiter » en attente, « retenu » le contenu est retiré pour de bon, « rejete » rien à redire, le contenu reste ou revient en ligne.
+ */
+export const STATUTS_SIGNALEMENT = ["a-traiter", "retenu", "rejete"] as const;
+
+export type StatutSignalement = (typeof STATUTS_SIGNALEMENT)[number];
+
 /** Un signalement de publication, tel que l'app l'enverra à l'API. */
 export type Signalement = {
   publicationId: string;

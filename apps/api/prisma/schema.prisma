@@ -131,6 +131,8 @@ model Publication {
   illustration Boolean            @default(false)
   /// « brouillon », « publiee » ou « masquee » (publiée avec une date future = programmée)
   statut       String             @default("brouillon") @db.VarChar(12)
+  /// Masquée pour tout le monde par un signalement grave (« choquant »), en attendant la décision de la modération
+  suspendue    Boolean            @default(false)
   publieeLe    DateTime?          @map("publiee_le") @db.Timestamptz(0)
   creeLe       DateTime           @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe    DateTime           @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
@@ -157,21 +159,28 @@ model MediaPublication {
 
 // ─── Modération ───────────────────────────────────────────────────────────────────────────────
 
-/// Un contenu signalé par quelqu'un (depuis l'app, le site ou Discord). Le signalement ne garde pas qui l'a fait.
+/// Un contenu signalé depuis l'app (forme : packages/commun/src/types/signalement.ts). Le signalement ne garde pas qui l'a fait.
 model Signalement {
-  id       Int       @id @default(autoincrement())
-  /// « publication », « lieu », « commentaire », « avis » ou « profil »
-  cible    String    @db.VarChar(12)
-  cibleId  String    @map("cible_id") @db.VarChar(40)
-  /// « choquant », « faux-lieu », « pub-cachee », « harcelement », « spam » ou « autre »
-  motif    String    @db.VarChar(12)
-  detail   String?   @db.VarChar(500)
-  source   String    @db.VarChar(10)
+  id          Int       @id @default(autoincrement())
+  /// « publication » pour l'instant (plus tard : commentaire, avis, profil)
+  cible       String    @db.VarChar(12)
+  cibleId     String    @map("cible_id") @db.VarChar(40)
+  /// Lieu concerné, pour regrouper les signalements
+  lieuId      Int?      @map("lieu_id")
+  /// Une des RAISONS_SIGNALEMENT de packages/commun : « faux-lieu », « pub-cachee », « arnaque », « haine »…
+  raison      String    @db.VarChar(12)
+  /// Précision choisie parmi celles proposées pour la raison
+  precision   String?   @db.VarChar(80)
+  /// Ce que la personne a expliqué avec ses mots
+  explication String    @default("") @db.VarChar(500)
+  /// « app », « site » ou « discord »
+  source      String    @db.VarChar(10)
   /// « a-traiter », « retenu » (contenu masqué) ou « rejete » (rien à redire)
-  statut   String    @default("a-traiter") @db.VarChar(10)
-  decision String?   @db.VarChar(500)
-  creeLe   DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
-  traiteLe DateTime? @map("traite_le") @db.Timestamptz(0)
+  statut      String    @default("a-traiter") @db.VarChar(10)
+  /// Note de la modération
+  decision    String?   @db.VarChar(500)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  traiteLe    DateTime? @map("traite_le") @db.Timestamptz(0)
 
   @@index([statut, creeLe])
   @@map("signalements")

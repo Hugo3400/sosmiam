@@ -26,6 +26,13 @@
 - **Base de données ultra sécurisée** : PostgreSQL sur le VPS, jamais exposée à Internet, rôle limité au strict nécessaire, données sensibles (date de naissance, nom, régimes) chiffrées par l'API (AES-256-GCM, clé hors de la base), sauvegardes chiffrées, journaux sans données personnelles, suppression de compte réelle.
 - **Régime particulier** (végétarien, vegan, halal, casher, sans gluten, allergies…) : ces données peuvent révéler une religion ou un état de santé. Elles restent sur le téléphone tant qu'il n'y a pas d'accord explicite (RGPD, article 9) pour les envoyer au serveur.
 
+## Signalements et modération (décidé le 8 octobre 2026)
+- Dans l'app, le menu « ⋯ » d'une publication → **Signaler** : une raison (faux lieu, pub cachée, arnaque, haine, violence ou contenu sexuel, danger, vie privée, contenu volé, autre chose), une précision facultative, puis le pourquoi avec ses mots (obligatoire pour « Autre chose »). Liste dans `apps/app-mobile/src/contenus/raisons-signalement.ts`, règles dans `packages/commun/src/regles/signalement.ts`.
+- **Violence ou contenu sexuel : la publication est masquée pour tout le monde dès le premier signalement**, et une alerte part à la modération. Un modérateur décide **à la main**, dans le logiciel de gestion : signalement retenu → la publication est retirée pour de bon ; rejeté → elle est remise en ligne.
+- Les autres raisons ne masquent la publication que pour la personne qui signale, en attendant la modération.
+- Pour les contenus graves (haine, violence, danger), l'app rappelle le 17, le 112 et Pharos.
+- Points ouverts : par où arrive l'alerte (logiciel de gestion, salon Discord privé, e-mail) ; garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement ; prévenir l'auteur et lui permettre de contester quand sa publication est masquée ou retirée (attendu par le règlement européen sur les services numériques).
+
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
 - Le premier à faire découvrir un lieu : « Déniché par … » + badge « Premier sauveteur ».
