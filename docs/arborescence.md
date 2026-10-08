@@ -59,6 +59,7 @@ sos-miam/
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/stockage/` | données gardées sur le téléphone (profil, activité, signalements en attente de l'API) |
+| `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
 ## apps/logiciel-gestion — le logiciel ordinateur de gestion (plus tard)

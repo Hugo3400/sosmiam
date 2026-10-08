@@ -40,7 +40,8 @@ async function lireBase() {
   try {
     const [taille] = await baseDeDonnees.$queryRaw<{ octets: bigint }[]>`SELECT pg_database_size(current_database()) AS octets`;
     const tables = await baseDeDonnees.$queryRaw<{ table: string; lignes: bigint }[]>`
-      SELECT relname AS "table", n_live_tup AS lignes FROM pg_stat_user_tables WHERE relname <> '_prisma_migrations' ORDER BY relname`;
+      SELECT relname AS "table", n_live_tup AS lignes FROM pg_stat_user_tables
+      WHERE schemaname = ${process.env.SCHEMA_BASE || "public"} AND relname <> '_prisma_migrations' ORDER BY relname`;
     return {
       enLigne: true,
       delai: Math.round(performance.now() - debut),

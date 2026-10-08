@@ -31,7 +31,13 @@
 - **Violence ou contenu sexuel : la publication est masquée pour tout le monde dès le premier signalement**, et une **alerte de modération arrive dans le logiciel de gestion**. Un modérateur décide **à la main**, dans le logiciel de gestion : signalement retenu → la publication est retirée pour de bon ; rejeté → elle est remise en ligne.
 - Les autres raisons ne masquent la publication que pour la personne qui signale, en attendant la modération.
 - Pour les contenus graves (haine, violence, danger), l'app rappelle le 17, le 112 et Pharos.
-- Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement ; prévenir l'auteur et lui permettre de contester quand sa publication est masquée ou retirée (attendu par le règlement européen sur les services numériques).
+- **Promis dans les CGU (8 octobre 2026), à coder avant la sortie de l'app** : quand une publication est masquée ou retirée, ou un compte limité, on prévient l'auteur et on lui dit pourquoi ; s'il conteste, on réexamine la décision ; la personne qui a signalé apprend ce qu'on a décidé (règlement européen sur les services numériques).
+- Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement.
+
+## Publications et compte (CGU du 8 octobre 2026)
+- Les publications restent à leur auteur : SOS Miam peut seulement les héberger, les adapter au format et les montrer dans l'app et sur le site. **Pour les reprendre ailleurs (nos réseaux TikTok, Instagram…), on demande d'abord l'accord de l'auteur.**
+- Un compte par personne ; suppression possible **depuis l'app** (exigé par Apple, à coder) ou par e-mail.
+- Âge : page publique https://sosmiam.fr/age (« URL d'adéquation à l'âge » de l'App Store, classification 16+). À mettre à jour avec les CGU **avant** l'arrivée de la messagerie et de la pub.
 
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).

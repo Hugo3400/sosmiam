@@ -25,3 +25,8 @@ export async function ajouterSignalementLocal(signalement: Signalement): Promise
   const signalements = await lireSignalementsLocaux();
   await AsyncStorage.setItem(CLE, JSON.stringify([...signalements, signalement].slice(-MAXIMUM)));
 }
+
+/** Efface les signalements gardés sur le téléphone. */
+export async function effacerSignalementsLocaux(): Promise<void> {
+  await AsyncStorage.removeItem(CLE);
+}
