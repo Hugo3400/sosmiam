@@ -27,13 +27,17 @@ const PARTIES: { valeur: Partie; libelle: string }[] = [
 ];
 
 /** Les ambassadeurs : leurs comptes (espace ambassadeur.sosmiam.fr), fondateurs, missions, messages, classement et villes. */
-export function EcranAmbassadeurs() {
+export function EcranAmbassadeurs({ onDecision }: { onDecision: () => void }) {
   const [partie, setPartie] = useState<Partie>("comptes");
   const [fiche, setFiche] = useState<number | null>(null);
   // Change à chaque modification depuis une fiche : la partie affichée se recharge
   const [tour, setTour] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const ouvrir = (compteId: number) => setFiche(compteId);
+  const signalerChangement = () => {
+    setTour((t) => t + 1);
+    onDecision();
+  };
 
   async function exporter() {
     const csv = await exporterAmbassadeurs();
@@ -49,14 +53,14 @@ export function EcranAmbassadeurs() {
       />
       <div className="mb-5"><Onglets libelle="Partie" valeur={partie} onChange={setPartie} options={PARTIES} /></div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
-      {partie === "comptes" && <ListeComptes onOuvrirCompte={ouvrir} tour={tour} />}
-      {partie === "fondateurs" && <ListeCandidatures onOuvrirCompte={ouvrir} tour={tour} />}
+      {partie === "comptes" && <ListeComptes onOuvrirCompte={ouvrir} tour={tour} onDecision={onDecision} />}
+      {partie === "fondateurs" && <ListeCandidatures onOuvrirCompte={ouvrir} tour={tour} onDecision={onDecision} />}
       {partie === "missions" && <ListeMissions onOuvrirCompte={ouvrir} tour={tour} />}
       {partie === "messages" && <ListeMessages onOuvrirCompte={ouvrir} tour={tour} />}
       {partie === "classement" && <CarteClassement onOuvrirCompte={ouvrir} tour={tour} />}
       {partie === "villes" && <CarteCouverture tour={tour} />}
       {partie === "candidats" && <ListeCandidats />}
-      {fiche !== null && <FicheAmbassadeur id={fiche} onFermer={() => setFiche(null)} onChange={() => setTour((t) => t + 1)} />}
+      {fiche !== null && <FicheAmbassadeur id={fiche} onFermer={() => setFiche(null)} onChange={signalerChangement} />}
     </>
   );
 }

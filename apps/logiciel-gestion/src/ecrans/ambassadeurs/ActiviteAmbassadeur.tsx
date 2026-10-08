@@ -28,6 +28,7 @@ export function ActiviteAmbassadeur({ fiche, onConfierMission, onEcrire }: Props
               {fiche.missions.map((mission) => (
                 <li key={mission.id}>
                   <span className="font-semibold">{mission.titre}</span> <Badge ton={ETATS_MISSION[mission.statut].ton}>{ETATS_MISSION[mission.statut].libelle}</Badge>
+                  {mission.statut === "a-faire" && mission.echeance && new Date(mission.echeance).getTime() < Date.now() && <> <Badge ton="rouge">En retard</Badge></>}
                   {mission.echeance && mission.statut === "a-faire" && <span className="block text-gris">Pour le {formaterDate(mission.echeance)}</span>}
                   {mission.compteRendu && <span className="block whitespace-pre-line text-gris">« {mission.compteRendu} »</span>}
                 </li>

@@ -10,7 +10,8 @@ import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { accepterCandidature, refuserCandidature, type Candidature } from "~/services/ambassadeurs.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 
-type Props = { candidature: Candidature; onChange: () => void; onOuvrirCompte?: (compteId: number) => void };
+/** onChange reçoit le bilan de la décision (« Malik devient fondateur n° 2 ») */
+type Props = { candidature: Candidature; onChange: (bilan: string) => void; onOuvrirCompte?: (compteId: number) => void };
 
 /** Une candidature au titre d'ambassadeur fondateur (10 places, numérotées) : ce que la personne a écrit, et la décision. */
 export function CarteCandidature({ candidature, onChange, onOuvrirCompte }: Props) {
@@ -23,8 +24,9 @@ export function CarteCandidature({ candidature, onChange, onOuvrirCompte }: Prop
     setEtat({ enCours: true, texte: null });
     try {
       const resultat = accepter ? await accepterCandidature(candidature.id) : await refuserCandidature(candidature.id);
-      setEtat({ enCours: false, texte: "numero" in resultat ? `Fondateur n° ${resultat.numero} 🏅` : null });
-      onChange();
+      const qui = compte?.prenom ?? "La personne";
+      setEtat({ enCours: false, texte: null });
+      onChange("numero" in resultat ? `${qui} devient fondateur n° ${resultat.numero} 🏅 Pense à lui annoncer la nouvelle !` : `Candidature de ${qui} refusée.`);
     } catch (probleme) {
       setEtat({ enCours: false, texte: expliquerErreur(probleme instanceof ErreurApi ? probleme : null) });
     }

@@ -116,7 +116,7 @@ export function Application() {
           {ecran === "lieux" && <EcranLieux />}
           {ecran === "demandes" && <EcranDemandes />}
           {ecran === "annonces" && <EcranAnnonces />}
-          {ecran === "ambassadeurs" && <EcranAmbassadeurs />}
+          {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={moderation.actualiser} />}
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {(ecran === "big-sos" || ecran === "notifications" || ecran === "utilisateurs") && <EcranBientot ecran={ecran} />}

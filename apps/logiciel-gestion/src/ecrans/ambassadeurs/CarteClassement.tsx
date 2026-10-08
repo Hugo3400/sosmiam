@@ -32,7 +32,7 @@ export function CarteClassement({ onOuvrirCompte, tour }: { onOuvrirCompte: (id:
                 prenom: a.prenom,
                 ville: a.ambassadeur?.ville ?? "",
                 points: a.points,
-                extra: [PALIERS[a.palier]?.emoji, ...a.badges.map((b) => (BADGES[b.badge] ?? "").split(" ")[0])].filter(Boolean).join(" "),
+                extra: [PALIERS[a.palier]?.nom, a.badges.map((b) => (BADGES[b.badge] ?? "").split(" ")[0]).join(" ")].filter(Boolean).join(" · "),
               }))}
               onOuvrirCompte={onOuvrirCompte}
               vide="Pas encore d'ambassadeur actif."

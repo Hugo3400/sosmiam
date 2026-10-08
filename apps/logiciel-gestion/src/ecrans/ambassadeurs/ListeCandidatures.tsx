@@ -10,8 +10,11 @@ import { listerCandidatures, type Candidature } from "~/services/ambassadeurs.ts
 import { CarteCandidature } from "./CarteCandidature.tsx";
 
 /** Les candidatures au titre d'ambassadeur fondateur : 10 places, numérotées dans l'ordre des acceptations. */
-export function ListeCandidatures({ onOuvrirCompte, tour }: { onOuvrirCompte: (compteId: number) => void; tour: number }) {
+type Props = { onOuvrirCompte: (compteId: number) => void; tour: number; onDecision: () => void };
+
+export function ListeCandidatures({ onOuvrirCompte, tour, onDecision }: Props) {
   const [statut, setStatut] = useState<Candidature["statut"]>("en-attente");
+  const [bilan, setBilan] = useState<string | null>(null);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerCandidatures(statut), [statut, tour]);
   return (
     <div className="grid gap-4">
@@ -20,10 +23,11 @@ export function ListeCandidatures({ onOuvrirCompte, tour }: { onOuvrirCompte: (c
           libelle="Candidatures"
           valeur={statut}
           onChange={setStatut}
-          options={[{ valeur: "en-attente", libelle: "À décider" }, { valeur: "acceptee", libelle: "Fondateurs" }, { valeur: "refusee", libelle: "Refusées" }]}
+          options={[{ valeur: "en-attente", libelle: "À décider" }, { valeur: "acceptee", libelle: "Acceptées" }, { valeur: "refusee", libelle: "Refusées" }]}
         />
         <p className="text-sm text-gris">10 places de fondateur : chaque acceptation donne le numéro libre suivant et le badge 🏅 Fondateur.</p>
       </div>
+      {bilan && <p role="status" className="rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{bilan}</p>}
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}
       {donnees && donnees.length === 0 && (
@@ -34,7 +38,7 @@ export function ListeCandidatures({ onOuvrirCompte, tour }: { onOuvrirCompte: (c
         </Carte>
       )}
       <div className="grid gap-4 xl:grid-cols-2">
-        {donnees?.map((candidature) => <CarteCandidature key={candidature.id} candidature={candidature} onChange={recharger} onOuvrirCompte={onOuvrirCompte} />)}
+        {donnees?.map((candidature) => <CarteCandidature key={candidature.id} candidature={candidature} onChange={(texte) => { setBilan(texte); recharger(); onDecision(); }} onOuvrirCompte={onOuvrirCompte} />)}
       </div>
     </div>
   );

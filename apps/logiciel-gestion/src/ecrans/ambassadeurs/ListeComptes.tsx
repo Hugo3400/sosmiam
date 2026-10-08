@@ -25,7 +25,9 @@ import { copier, ouvrirLien } from "~/services/systeme.ts";
 type FiltreStatut = StatutAmbassadeur | "tous";
 
 /** Les comptes de l'espace ambassadeur : inscriptions à valider, actifs, suspendus, refusés. */
-export function ListeComptes({ onOuvrirCompte, tour }: { onOuvrirCompte: (compteId: number) => void; tour: number }) {
+type Props = { onOuvrirCompte: (compteId: number) => void; tour: number; onDecision: () => void };
+
+export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
   const [statut, setStatut] = useState<FiltreStatut>("en-attente");
   const [palier, setPalier] = useState<Palier | "">("");
   const [saisie, setSaisie] = useState("");
@@ -51,6 +53,7 @@ export function ListeComptes({ onOuvrirCompte, tour }: { onOuvrirCompte: (compte
       await deciderAmbassadeur(ambassadeur.id, decision);
       setMessage({ texte: decision === "actif" ? `C'est validé pour ${ambassadeur.prenom} ✅ Un petit mot de bienvenue lui fera plaisir.` : `Inscription de ${ambassadeur.prenom} refusée.`, ton: "vert" });
       recharger();
+      onDecision();
     } catch (probleme) {
       setMessage({ texte: expliquerErreur(probleme instanceof ErreurApi ? probleme : null), ton: "rouge" });
     }
@@ -130,11 +133,11 @@ export function ListeComptes({ onOuvrirCompte, tour }: { onOuvrirCompte: (compte
                 <span className="w-44 truncate text-gris">{[ambassadeur.ambassadeur?.quartier, ambassadeur.ambassadeur?.ville].filter(Boolean).join(", ") || "—"}</span>
                 <span className="w-48 truncate" title={p?.nom}>{p ? `${p.emoji} ${p.nom}` : ambassadeur.palier}</span>
                 <span className="chiffres w-20 text-right font-semibold">{formaterNombre(ambassadeur.points)} pts</span>
-                <span className="w-32 text-gris" title={`Inscrit le ${formaterDate(ambassadeur.creeLe)}`}>
+                <span className="w-44 whitespace-nowrap text-gris" title={`Inscrit le ${formaterDate(ambassadeur.creeLe)}`}>
                   {ambassadeur.bientotEfface ? <Badge ton="rouge">Effacé le {formaterDate(ambassadeur.effaceLe)}</Badge> : formaterDateRelative(ambassadeur.derniereConnexion)}
                 </span>
                 {etat && <span className="w-24"><Badge ton={etat.ton}>{etat.libelle}</Badge></span>}
-                <span className="flex gap-1">
+                <span className="flex w-36 justify-end gap-1">
                   {ambassadeur.ambassadeur?.statut === "en-attente" && (
                     <>
                       <Bouton petit variante="principal" icone={Check} onClick={() => decider(ambassadeur, "actif")}>Valider</Bouton>
