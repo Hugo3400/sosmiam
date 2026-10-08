@@ -117,6 +117,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/ambassadeurs/:id/points", a.points);
   routes.post("/ambassadeurs/:id/palier-ville", a.palierVille);
   routes.post("/ambassadeurs/:id/reinitialiser", a.reinitialiser);
+  routes.post("/ambassadeurs/:id/retirer", a.retirer);
   routes.get("/candidatures", a.candidatures);
   routes.post("/candidatures/:id/accepter", a.accepterCandidature);
   routes.post("/candidatures/:id/refuser", a.refuserCandidature);

@@ -27,6 +27,7 @@ const services = {
   noterAction: async (_poste: string, action: string) => void actions.push(action),
   lirePrenom: async (id: number) => (id === 7 ? "Léa" : null),
   deciderAmbassadeur: async (id: number, statut: string) => (id === 7 ? (appels.push({ decider: statut }), { prenom: "Léa", avant: "en-attente" }) : null),
+  retirerDuProgramme: async (id: number) => (id === 7 ? (appels.push("retire"), { prenom: "Léa" }) : null),
   accepterCandidature: async (id: number) => (id === 1 ? { complet: false, numero: 3, compteId: 7 } : id === 2 ? { complet: true } : null),
   creerMission: async (saisie: { compteId: number; titre: string }) => (saisie.compteId === 7 ? { id: 1, ...saisie, compte: { prenom: "Léa" } } : null),
   accepterDemande: async () => ({ id: 5, nom: "Le Petit Four", statut: "brouillon", compteIdAuteur: 7 }),
@@ -94,6 +95,14 @@ test("décisions : seuls actif, refuse et suspendu ; un compte inconnu est intro
   assert.ok(actions.includes("Ambassadeur validé"));
   assert.equal((await demander("POST", "/ambassadeurs/7/decision", { session, corps: json({ statut: "roi" }) })).status, 400);
   assert.equal((await demander("POST", "/ambassadeurs/9/decision", { session, corps: json({ statut: "actif" }) })).status, 404);
+});
+
+test("retirer du programme : le rôle part, le compte (et l'app) reste ; un compte inconnu est introuvable", async () => {
+  const session = await ouvrirSession();
+  assert.equal((await demander("POST", "/ambassadeurs/7/retirer", { session, corps: json({}) })).status, 200);
+  assert.ok(appels.includes("retire"));
+  assert.ok(actions.includes("Retiré du programme ambassadeur"));
+  assert.equal((await demander("POST", "/ambassadeurs/9/retirer", { session, corps: json({}) })).status, 404);
 });
 
 test("points : un motif est obligatoire, et la règle passe par ajouterPoints (raison « equipe »)", async () => {

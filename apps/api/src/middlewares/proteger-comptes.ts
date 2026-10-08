@@ -17,8 +17,8 @@ const DUREE_MAX = 90 * UN_JOUR;
 const ECRITURE_ACTIVITE = 5 * 60_000;
 /** La dernière visite du compte (effacé après 1 an sans visite) n'est réécrite qu'au plus une fois par jour */
 const ECRITURE_VISITE = UN_JOUR;
-/** Un jeton de creerJeton() : 43 caractères base64url (on accepte un peu de marge) */
-const FORME_JETON = /^[A-Za-z0-9_-]{32,128}$/;
+/** Forme d'un jeton de creerJeton() (session, réinitialisation) : 43 caractères base64url, avec un peu de marge */
+export const FORME_JETON = /^[A-Za-z0-9_-]{32,128}$/;
 
 /** Ce que la protection met dans reponse.locals.compte pour les routes protégées */
 export type CompteSession = { id: number; prenom: string; statutAmbassadeur: StatutAmbassadeur | null };

@@ -11,6 +11,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
+import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
@@ -34,6 +35,7 @@ export default function FicheLieu() {
   const depart = utiliserPointDeDepart();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
+  const [envoiOuvert, setEnvoiOuvert] = useState(false);
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieu = filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id);
 
@@ -95,6 +97,14 @@ export default function FicheLieu() {
             {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(calculerKmLieu(lieu, depart))} · {lieu.prix}
           </Text>
           <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
+          <Bouton
+            libelle="Envoyer à un pote"
+            variante="blanc"
+            petit
+            indice="Choisis des potes de ta bande à qui envoyer ce lieu"
+            onPress={() => setEnvoiOuvert(true)}
+            className="self-start"
+          />
 
           <View className="gap-3 rounded-carte border-2 border-encre bg-white p-5">
             {sections.map((s) => (
@@ -154,6 +164,7 @@ export default function FicheLieu() {
         />
       </View>
 
+      <EnvoyerAPote visible={envoiOuvert} lieuId={lieu.id} onFermer={() => setEnvoiOuvert(false)} />
       <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
     </View>
   );

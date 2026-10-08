@@ -98,10 +98,16 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       // Jeton après « # » : il reste dans le navigateur, et ne finit jamais dans les journaux du serveur
       reponse.json({ ok: true, lien: `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`, expireLe });
     }),
+    retirer: verifier(async (requete, reponse) => {
+      const retire = await s.retirerDuProgramme(id(requete));
+      if (!retire) return introuvable(reponse);
+      await noter(reponse, "Retiré du programme ambassadeur", `${retire.prenom} (compte n° ${id(requete)} gardé)`);
+      reponse.json({ ok: true });
+    }),
     supprimer: verifier(async (requete, reponse) => {
       const supprime = await s.supprimerCompte(id(requete));
       if (!supprime) return introuvable(reponse);
-      await noter(reponse, "Compte d'ambassadeur supprimé", supprime.prenom);
+      await noter(reponse, "Compte SOS Miam supprimé (app comprise)", supprime.prenom);
       reponse.json({ ok: true });
     }),
     exporter: verifier(async (_requete, reponse) => {

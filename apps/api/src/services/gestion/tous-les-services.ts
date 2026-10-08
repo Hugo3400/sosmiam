@@ -1,7 +1,7 @@
 // Tous les services du logiciel de gestion, passés d'un bloc à creerApplication (des faux les remplacent dans les tests).
 import {
   accepterCandidature, deciderAmbassadeur, exporterAmbassadeurs, lireAmbassadeur, lireClassement, lireCouverture,
-  listerAmbassadeurs, listerCandidatures, lirePrenom, modifierAmbassadeur, refuserCandidature, supprimerCompte,
+  listerAmbassadeurs, listerCandidatures, lirePrenom, modifierAmbassadeur, refuserCandidature, retirerDuProgramme, supprimerCompte,
 } from "./ambassadeurs.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
@@ -40,7 +40,7 @@ export const servicesGestion = {
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,
   lireObjectifMois, ecrireObjectifMois,
-  listerAmbassadeurs, lireAmbassadeur, deciderAmbassadeur, modifierAmbassadeur, lirePrenom, supprimerCompte, exporterAmbassadeurs,
+  listerAmbassadeurs, lireAmbassadeur, deciderAmbassadeur, modifierAmbassadeur, lirePrenom, retirerDuProgramme, supprimerCompte, exporterAmbassadeurs,
   lireClassement, lireCouverture, listerCandidatures, accepterCandidature, refuserCandidature,
   listerMissions, creerMission, changerStatutMission, supprimerMission, listerMessages, envoyerMessage, supprimerMessage,
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
@@ -25,8 +26,8 @@ type Props = {
   onFermer: () => void;
 };
 
-/** Le commentaire auquel tu réponds (toujours un commentaire du premier niveau) et le nom de la personne à qui tu réponds */
-type Reponse = { id: string; auteurFil: string; nom: string };
+/** Le commentaire sous lequel ta réponse se range (toujours du premier niveau), la personne à qui tu réponds et son nom */
+type Reponse = { id: string; auteurs: string[]; nom: string };
 
 // « il y a 5 min » se met à jour tant que la feuille est ouverte
 const RAFRAICHISSEMENT = 30_000;
@@ -38,6 +39,7 @@ const RAFRAICHISSEMENT = 30_000;
 export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
+  const animationsReduites = useReducedMotion();
   const communaute = utiliserCommunaute();
   const { trouverPote } = communaute;
   const champ = useRef<TextInput>(null);
@@ -51,8 +53,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [maintenant, setMaintenant] = useState(() => Date.now());
-  // Tes commentaires envoyés depuis l'ouverture restent en haut, pour que tu les voies tout de suite
-  const [ouverture, setOuverture] = useState(() => new Date().toISOString());
+  // Ordre des commentaires à l'ouverture : un J'aime ne fait pas sauter un commentaire sous ton doigt
+  const [rangs, setRangs] = useState<Map<string, number> | null>(null);
 
   // À chaque ouverture, on repart de la liste (le brouillon reste, sauf une modification en cours)
   const [ouvert, setOuvert] = useState(visible);
@@ -64,13 +66,13 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       setReponse(null);
       if (edition) setTexte("");
       setEdition(null);
+      setRangs(null);
     }
   }
 
   useEffect(() => {
     if (!visible) return;
     setMaintenant(Date.now());
-    setOuverture(new Date().toISOString());
     const minuterie = setInterval(() => setMaintenant(Date.now()), RAFRAICHISSEMENT);
     return () => clearInterval(minuterie);
   }, [visible]);
@@ -91,16 +93,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   const nombre = communaute.nombreCommentaires(publicationId);
   const fils = communaute.commentairesDe(publicationId);
-  // Le lieu reste en tête, puis tes commentaires tout frais, puis les autres dans l'ordre (plus aimés, plus récents)
-  const duLieu = fils.filter((f) => f.commentaire.auteur === "lieu");
-  const tiensRecents = fils.filter((f) => f.commentaire.auteur === ID_MOI && f.commentaire.date >= ouverture)
-    .sort((a, b) => b.commentaire.date.localeCompare(a.commentaire.date));
-  const ordonnes = [...duLieu, ...tiensRecents, ...fils.filter((f) => !duLieu.includes(f) && !tiensRecents.includes(f))];
+  if (rangs === null && communaute.pret) setRangs(new Map(fils.map((f, index) => [f.commentaire.id, index])));
+  // Le lieu reste en tête, puis ce qui est arrivé depuis l'ouverture (tes commentaires tout frais, en haut pour que tu les voies),
+  // puis les autres dans l'ordre de l'ouverture (plus aimés, plus récents)
+  const rang = (f: FilCommentaire) => rangs?.get(f.commentaire.id) ?? -1;
+  const connus = rangs ? fils.filter((f) => rang(f) >= 0).sort((a, b) => rang(a) - rang(b)) : fils;
+  const nouveaux = rangs ? fils.filter((f) => rang(f) < 0).sort((a, b) => b.commentaire.date.localeCompare(a.commentaire.date)) : [];
+  const ordonnes = [...connus.filter((f) => f.commentaire.auteur === "lieu"), ...nouveaux, ...connus.filter((f) => f.commentaire.auteur !== "lieu")];
 
   function repondre(commentaire: Commentaire, fil: Commentaire) {
     let brouillon = edition ? "" : texte;
     setEdition(null);
-    setReponse({ id: fil.id, auteurFil: fil.auteur, nom: nomDe(commentaire.auteur) });
+    setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire.auteur) });
     // Réponse à une réponse : tout se range sous le même commentaire, alors on mentionne la personne
     const pote = commentaire.id !== fil.id && commentaire.auteur !== ID_MOI ? trouverPote(commentaire.auteur) : null;
     if (pote?.pseudo && !brouillon.includes(`@${pote.pseudo}`)) brouillon = `@${pote.pseudo} ${brouillon}`;
@@ -152,7 +156,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     const nom = nomDe(commentaire.auteur);
     setOptions(null);
     communaute.bloquer(commentaire.auteur);
-    if (reponse?.auteurFil === commentaire.auteur) setReponse(null);
+    if (reponse?.auteurs.includes(commentaire.auteur)) setReponse(null);
     annoncer(`C'est fait, tu ne verras plus ${nom} ici 🚫`);
   }
 
@@ -177,7 +181,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const titre = nombre === 0 ? "Commentaires" : `${formaterNombreCourt(nombre)} commentaire${nombre > 1 ? "s" : ""}`;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={reculer}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       {/* « padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre pour le clavier */}
       <KeyboardAvoidingView
         behavior="padding"

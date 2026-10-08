@@ -20,12 +20,14 @@ const MOTS_DE_PASSE_COURANTS = new Set([
 
 /**
  * Vrai si le mot de passe peut être choisi : 12 à 128 caractères une fois normalisé (NFC, un emoji compte pour un),
- * absent de la liste des plus courants (sans tenir compte des majuscules ni des espaces) et différent de l'e-mail.
+ * pas fait que d'espaces, absent de la liste des plus courants (sans tenir compte des majuscules ni des espaces) et
+ * différent de l'e-mail.
  */
 export function validerMotDePasse(motDePasse: string, email: string): boolean {
   const normalise = motDePasse.normalize("NFC");
   const longueur = [...normalise].length;
   if (longueur < 12 || longueur > 128) return false;
   const minuscules = normalise.toLowerCase();
-  return !MOTS_DE_PASSE_COURANTS.has(minuscules.replace(/\s+/g, "")) && minuscules.trim() !== email.trim().toLowerCase();
+  const sansEspaces = minuscules.replace(/\s+/g, "");
+  return sansEspaces !== "" && !MOTS_DE_PASSE_COURANTS.has(sansEspaces) && minuscules.trim() !== email.trim().toLowerCase();
 }

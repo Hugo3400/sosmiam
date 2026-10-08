@@ -72,9 +72,10 @@ export default function ProfilPote() {
             variante="blanc"
             indice={`Tu reverras ses messages et ses commentaires ; ${pote.prenom} ne revient pas dans ta bande pour autant`}
             onPress={() =>
-              confirmer(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Pour l'avoir dans ta bande, il faudra l'ajouter à nouveau.", "Débloquer", () =>
-                communaute.debloquer(pote.id),
-              )
+              confirmer(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Pour l'avoir dans ta bande, il faudra l'ajouter à nouveau.", "Débloquer", () => {
+                communaute.debloquer(pote.id);
+                AccessibilityInfo.announceForAccessibility(`Tu as débloqué ${pote.prenom}.`);
+              })
             }
           />
         </View>
@@ -109,9 +110,10 @@ export default function ProfilPote() {
     );
 
   const bloquer = () =>
-    confirmer(`Bloquer ${prenom} ?`, `${prenom} sortira de ta bande, et tu ne verras plus ses messages ni ses commentaires.`, "Bloquer", () =>
-      communaute.bloquer(pote.id),
-    );
+    confirmer(`Bloquer ${prenom} ?`, `${prenom} sortira de ta bande, et tu ne verras plus ses messages ni ses commentaires.`, "Bloquer", () => {
+      communaute.bloquer(pote.id);
+      AccessibilityInfo.announceForAccessibility(`Tu as bloqué ${prenom}.`);
+    });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>

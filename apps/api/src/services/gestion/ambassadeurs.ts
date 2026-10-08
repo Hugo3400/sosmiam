@@ -68,17 +68,31 @@ export async function lireAmbassadeur(id: number) {
 }
 
 /**
- * Décision de l'équipe : valider (« actif »), refuser, suspendre ou réactiver. Un refus ou une suspension ferme aussi
- * toutes ses sessions (il est déconnecté partout). Null si ce n'est pas un ambassadeur.
+ * Décision de l'équipe : valider (« actif »), refuser, suspendre ou réactiver. Seul l'espace ambassadeur est concerné :
+ * le compte sert aussi à l'app (décision du 8 octobre 2026), ses sessions restent ouvertes et l'espace lui est fermé
+ * parce que le statut est relu à chaque demande (exigerAmbassadeurActif). Null si ce n'est pas un ambassadeur.
  */
 export async function deciderAmbassadeur(id: number, statut: StatutAmbassadeur, maintenant = new Date()) {
   const ambassadeur = await baseDeDonnees.ambassadeur.findUnique({ where: { compteId: id }, select: { statut: true, compte: { select: { prenom: true } } } });
   if (!ambassadeur) return null;
-  await baseDeDonnees.$transaction([
-    baseDeDonnees.ambassadeur.update({ where: { compteId: id }, data: { statut, decideLe: maintenant } }),
-    ...(statut === "refuse" || statut === "suspendu" ? [baseDeDonnees.sessionCompte.deleteMany({ where: { compteId: id } })] : []),
-  ]);
+  await baseDeDonnees.ambassadeur.update({ where: { compteId: id }, data: { statut, decideLe: maintenant } });
   return { prenom: ambassadeur.compte.prenom, avant: ambassadeur.statut };
+}
+
+/**
+ * Retire le rôle d'ambassadeur (la personne arrête, ou l'équipe le décide) : sa fiche d'ambassadeur, ses missions,
+ * ses messages personnels et ses candidatures fondateur partent ; le compte, l'app, ses points et ses badges restent.
+ */
+export async function retirerDuProgramme(id: number) {
+  const ambassadeur = await baseDeDonnees.ambassadeur.findUnique({ where: { compteId: id }, select: { compte: { select: { prenom: true } } } });
+  if (!ambassadeur) return null;
+  await baseDeDonnees.$transaction([
+    baseDeDonnees.missionAmbassadeur.deleteMany({ where: { compteId: id } }),
+    baseDeDonnees.messageAmbassadeur.deleteMany({ where: { compteId: id } }),
+    baseDeDonnees.candidatureFondateur.deleteMany({ where: { compteId: id } }),
+    baseDeDonnees.ambassadeur.delete({ where: { compteId: id } }),
+  ]);
+  return { prenom: ambassadeur.compte.prenom };
 }
 
 export type ModificationAmbassadeur = { ville?: string; quartier?: string | null; noteEquipe?: string | null };
@@ -93,7 +107,7 @@ export async function lirePrenom(id: number): Promise<string | null> {
   return compte?.prenom ?? null;
 }
 
-/** Supprime un compte pour de vrai (demande de la personne, RGPD) : tout ce qui lui est lié part avec lui. */
+/** Supprime tout le compte pour de vrai (demande de la personne, RGPD), app comprise : tout ce qui lui est lié part avec lui. */
 export async function supprimerCompte(id: number) {
   const compte = await baseDeDonnees.compte.findUnique({ where: { id }, select: { prenom: true } });
   if (!compte) return null;
