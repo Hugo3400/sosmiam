@@ -5,6 +5,7 @@ import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
+import { FONDATEURS_EN_PREPARATION } from "~/contenus/ambassadeurs.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerCandidatures, type Candidature } from "~/services/ambassadeurs.ts";
 import { CarteCandidature } from "./CarteCandidature.tsx";
@@ -25,8 +26,14 @@ export function ListeCandidatures({ onOuvrirCompte, tour, onDecision }: Props) {
           onChange={setStatut}
           options={[{ valeur: "en-attente", libelle: "À décider" }, { valeur: "acceptee", libelle: "Acceptées" }, { valeur: "refusee", libelle: "Refusées" }]}
         />
-        <p className="text-sm text-gris">10 places de fondateur : chaque acceptation donne le numéro libre suivant et le badge 🏅 Fondateur.</p>
+        {!FONDATEURS_EN_PREPARATION && <p className="text-sm text-gris">10 places de fondateur : chaque acceptation donne le numéro libre suivant et le badge 🏅 Fondateur.</p>}
       </div>
+      {FONDATEURS_EN_PREPARATION && (
+        <p role="note" className="rounded-xl border-2 border-encre bg-jaune-clair px-4 py-3 text-sm font-semibold">
+          🏗️ Nouvelle version par ville en préparation : n'accepte personne pour l'instant. Les candidatures restent ouvertes et
+          seront reprises dans la ville (ou le département) de chaque personne : 361 places, selon la taille des villes.
+        </p>
+      )}
       {bilan && <p role="status" className="rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{bilan}</p>}
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}

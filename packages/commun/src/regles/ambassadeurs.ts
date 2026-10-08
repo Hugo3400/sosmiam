@@ -2,7 +2,7 @@ import type { PalierAmbassadeur } from "../types/ambassadeur";
 
 // Programme Ambassadeurs (voir docs/decisions.md) : une seule progression, une seule monnaie, les points.
 
-/** Les paliers, dans l'ordre. Le dernier se fait sur candidature ou invitation. */
+/** Les paliers, dans l'ordre. Le dernier n'est pas aux points : l'équipe le nomme parmi les fondateurs de la ville (voir docs/decisions.md, « Fondateurs par ville »). */
 export const PALIERS_AMBASSADEUR: readonly PalierAmbassadeur[] = [
   { cle: "curieux", nom: "Curieux", emoji: "👀", seuil: 0 },
   { cle: "denicheur", nom: "Dénicheur", emoji: "🔎", seuil: 100 },

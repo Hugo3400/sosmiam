@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
-import { ENVIES_FONDATEUR, PALIERS } from "~/contenus/ambassadeurs.ts";
+import { ENVIES_FONDATEUR, FONDATEURS_EN_PREPARATION, PALIERS } from "~/contenus/ambassadeurs.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
@@ -61,8 +61,12 @@ export function CarteCandidature({ candidature, onChange, onOuvrirCompte }: Prop
       </dl>
       {candidature.statut === "en-attente" && (
         <div className="flex flex-wrap gap-2">
-          <Bouton variante="principal" icone={Check} chargement={etat.enCours} onClick={() => decider(true)}>Accepter (badge Fondateur)</Bouton>
-          <Bouton variante="danger" icone={X} desactive={etat.enCours} onClick={() => decider(false)}>Refuser</Bouton>
+          <Bouton variante="principal" icone={Check} chargement={etat.enCours} desactive={FONDATEURS_EN_PREPARATION} onClick={() => decider(true)}
+            titre={FONDATEURS_EN_PREPARATION ? "En pause : nouvelle version par ville en préparation" : undefined}>
+            Accepter (badge Fondateur)
+          </Bouton>
+          <Bouton variante="danger" icone={X} desactive={etat.enCours || FONDATEURS_EN_PREPARATION} onClick={() => decider(false)}>Refuser</Bouton>
+          {FONDATEURS_EN_PREPARATION && <p className="self-center text-[13px] text-gris">En pause : fondateurs par ville en préparation.</p>}
         </div>
       )}
       {etat.texte && <p role="status" className="text-sm font-semibold">{etat.texte}</p>}

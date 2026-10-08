@@ -3,7 +3,7 @@ export type PalierAmbassadeur = {
   cle: "curieux" | "denicheur" | "ambassadeur-quartier" | "ambassadeur-ville";
   nom: string;
   emoji: string;
-  /** Points à partir desquels on y arrive ; null : sur candidature ou invitation, pas aux points */
+  /** Points à partir desquels on y arrive ; null : nommé par l'équipe parmi les fondateurs de la ville, pas aux points */
   seuil: number | null;
 };
 

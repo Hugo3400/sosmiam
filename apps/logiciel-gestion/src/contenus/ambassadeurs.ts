@@ -45,3 +45,9 @@ export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "j
   faite: { libelle: "Faite", ton: "vert" },
   annulee: { libelle: "Annulée", ton: "neutre" },
 };
+
+/**
+ * Fondateurs par ville (décidé le 9 octobre 2026, docs/decisions.md) : en attendant la nouvelle version, aucune
+ * candidature n'est acceptée ni refusée ; chacune sera reprise dans la ville (ou le département) de la personne.
+ */
+export const FONDATEURS_EN_PREPARATION = true;

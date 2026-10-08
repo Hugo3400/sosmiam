@@ -19,7 +19,7 @@ export function CartePalier({ points }: Props) {
     ? "Tu es tout en haut. Chapeau bas, la ville te doit une fière chandelle !"
     : reste !== null
       ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.emoji} ${suivant.nom}`
-      : `Prochaine étape : ${suivant.nom}, sur candidature`;
+      : `Prochaine étape : ${suivant.nom}, nommé par l'équipe parmi les fondateurs de ta ville`;
   // Même phrase sans l'emoji, que le lecteur d'écran prononcerait
   const prochaineEtapeLue = suivant && reste !== null ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.nom}` : prochaineEtape;
   const valeurJauge = reste !== null && suivant?.seuil != null
