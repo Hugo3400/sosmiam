@@ -13,10 +13,10 @@ const classeLien = "font-medium whitespace-nowrap decoration-jaune decoration-[3
 export function EnTeteAmbassadeur({ connecte }: { connecte: boolean }) {
   return (
     <header className="border-b border-encre/5 bg-creme">
-      <div className="mx-auto flex w-[min(1120px,100%-32px)] flex-wrap items-center gap-x-6 gap-y-3 py-3.5 sm:min-h-[72px]">
-        <Link to="/programme" aria-label="SOS Miam Ambassadeurs, le programme" className="flex items-center gap-2.5">
-          <Logo className="h-9 w-auto sm:h-10" />
-          <span aria-hidden="true" className="rounded-full bg-encre px-2.5 py-1 text-xs font-bold tracking-wide text-jaune">Ambassadeurs</span>
+      <div className="mx-auto flex w-[min(1120px,100%-32px)] flex-wrap items-center gap-x-4 gap-y-3 py-3.5 sm:min-h-[72px] sm:gap-x-6">
+        <Link to="/programme" aria-label="SOS Miam Ambassadeurs, le programme" className="flex items-center gap-2 sm:gap-2.5">
+          <Logo className="h-8 w-auto sm:h-10" />
+          <span aria-hidden="true" className="rounded-full bg-encre px-2 py-0.5 text-[11px] font-bold tracking-wide text-jaune sm:px-2.5 sm:py-1 sm:text-xs">Ambassadeurs</span>
         </Link>
         <a href="https://sosmiam.fr" className={`ml-auto text-sm ${classeLien}`}>
           <span aria-hidden="true">←</span> sosmiam.fr

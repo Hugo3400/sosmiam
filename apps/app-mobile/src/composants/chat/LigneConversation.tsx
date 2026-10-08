@@ -48,8 +48,9 @@ export function LigneConversation({ conversation, maintenant }: Props) {
   const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
   const moment = dernier ? formaterMomentRelatif(dernier.date, maintenant) : null;
 
+  const membres = autres.length + 1;
   const lu = [
-    groupe ? `${nom}, groupe de ${autres.length + 1} personnes` : nom,
+    groupe ? `${nom}, groupe de ${membres} personne${membres > 1 ? "s" : ""}` : nom,
     nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} non lu${nonLus > 1 ? "s" : ""}` : null,
     dernier ? resumerDernierMessage(dernier, prefixe, lieuNom, true) : vide,
     moment?.lu,
