@@ -4,9 +4,8 @@ import { AccessibilityInfo, Platform, Pressable, Text, TextInput, View } from "r
 
 import { AGE_MINIMUM_INSCRIPTION } from "@sos-miam/commun/regles/ages";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
-import { pseudoContientMotInterdit } from "@sos-miam/commun/validation/pseudo-contient-mot-interdit";
+import { nomPublicContientMotInterdit } from "@sos-miam/commun/validation/nom-public-contient-mot-interdit";
 import { ChoixDateNaissance } from "~/composants/inscription/ChoixDateNaissance";
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
@@ -22,7 +21,7 @@ import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscrip
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
-// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que les messages
+// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo
 const PRENOM_INTERDIT = "Ce prénom-là ne passera pas chez nous\u00a0! Mets ton vrai prénom, ou un petit surnom sympa.";
 // Mêmes règles que estPseudoValide (packages/commun), dites simplement
 const REGLES_PSEUDO =
@@ -49,7 +48,7 @@ export default function FaisConnaissance() {
 
   const prenom = brouillon.prenom.trim();
   const erreurPrenom =
-    prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : contientMotInterdit(prenom) ? PRENOM_INTERDIT : null;
+    prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : nomPublicContientMotInterdit(prenom) ? PRENOM_INTERDIT : null;
   const prenomValable = erreurPrenom === null && prenom.length <= LONGUEUR_MAX_PRENOM;
   const pseudo = brouillon.pseudo.trim();
   // Pour l'instant, « déjà pris » veut dire : le pseudo d'un pote d'exemple (les vrais se vérifieront avec les comptes)
@@ -60,7 +59,7 @@ export default function FaisConnaissance() {
         ? REGLES_PSEUDO
         : potesExemples.some((p) => p.pseudo === pseudo)
           ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : pseudoContientMotInterdit(pseudo)
+          : nomPublicContientMotInterdit(pseudo)
             ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
             : null;
   const pseudoValable = erreurPseudo === null;

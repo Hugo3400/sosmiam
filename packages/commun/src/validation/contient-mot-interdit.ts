@@ -8,8 +8,8 @@ const MOTIF_INTERDIT = construireMotifExpressions(EXPRESSIONS_INTERDITES);
 /**
  * Vrai si le texte contient une insulte ou un propos haineux courant (listes de regles/mots-interdits.ts), sans tenir
  * compte des accents, des majuscules ni de la ponctuation, et malgré les ruses habituelles (« connard69 », « c o n n a r d »,
- * « c0nn4rd », « connnnard », « filsdepute »). Pour les commentaires, messages, titres et prénoms ; les pseudos passent
- * par pseudoContientMotInterdit, plus strict. Première barrière, pas une modération.
+ * « c0nn4rd », « connnnard », « filsdepute »). Pour les commentaires, messages et titres ; les pseudos et prénoms passent
+ * par nomPublicContientMotInterdit, plus strict. Première barrière, pas une modération.
  */
 export function contientMotInterdit(texte: string): boolean {
   const formes = preparerFormesFiltre(texte);

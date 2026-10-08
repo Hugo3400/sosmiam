@@ -4,9 +4,8 @@ import { useRef, useState } from "react";
 import { AccessibilityInfo, Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
-import { pseudoContientMotInterdit } from "@sos-miam/commun/validation/pseudo-contient-mot-interdit";
+import { nomPublicContientMotInterdit } from "@sos-miam/commun/validation/nom-public-contient-mot-interdit";
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -22,7 +21,7 @@ import couleurs from "~/theme/couleurs";
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
-// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que les messages, comme à l'inscription
+// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo, comme à l'inscription
 const PRENOM_INTERDIT = "Ce prénom-là ne passera pas chez nous\u00a0! Mets ton vrai prénom, ou un petit surnom sympa.";
 // Mêmes règles que estPseudoValide (packages/commun), dites simplement, comme à l'inscription
 const REGLES_PSEUDO =
@@ -60,7 +59,7 @@ export default function ReglagesInfos() {
   const erreurPrenom =
     prenomNettoye.length === 0
       ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!"
-      : prenomNettoye !== profil.prenom && contientMotInterdit(prenomNettoye)
+      : prenomNettoye !== profil.prenom && nomPublicContientMotInterdit(prenomNettoye)
         ? PRENOM_INTERDIT
         : null;
   const prenomValable = erreurPrenom === null && prenomNettoye.length <= LONGUEUR_MAX_PRENOM;
@@ -77,7 +76,7 @@ export default function ReglagesInfos() {
         ? REGLES_PSEUDO
         : pseudoChange && potesExemples.some((p) => p.pseudo === pseudoNettoye)
           ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : pseudoChange && pseudoContientMotInterdit(pseudoNettoye)
+          : pseudoChange && nomPublicContientMotInterdit(pseudoNettoye)
             ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
             : null;
   const pseudoValable = erreurPseudo === null;

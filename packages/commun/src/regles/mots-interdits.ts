@@ -4,7 +4,7 @@
 // (« connard69 »), lettres espacées ou pointées (« c o n n a r d », « c.o.n.n.a.r.d »), lettres répétées (« connnnard »),
 // chiffres à la place des lettres (« c0nn4rd »). Volontairement courte : elle bloque l'évident sans gêner les
 // conversations normales (« je crève de faim », « pain bâtard », « bœuf mongol », « je suis retardé » passent).
-// Les fonctions sont dans validation/ : contientMotInterdit (textes, prénoms) et pseudoContientMotInterdit (pseudos).
+// Les fonctions sont dans validation/ : contientMotInterdit (textes) et nomPublicContientMotInterdit (pseudos, prénoms).
 
 export const LONGUEUR_MAX_COMMENTAIRE = 500;
 
@@ -33,10 +33,10 @@ export const EXPRESSIONS_INTERDITES: readonly string[] = [
 ];
 
 /**
- * En plus, pour les pseudos seulement (un identifiant public, montré partout) : des mots trop courants dans une
- * conversation pour être refusés dans un message (« c'est pas con », « oh merde, j'ai oublié »), mais pas comme nom.
+ * En plus, pour les noms montrés à tout le monde (pseudo, prénom) : des mots trop courants dans une conversation pour
+ * être refusés dans un message (« c'est pas con », « oh merde, j'ai oublié »), mais pas comme nom.
  */
-export const EXPRESSIONS_INTERDITES_PSEUDO: readonly string[] = [
+export const EXPRESSIONS_INTERDITES_NOM_PUBLIC: readonly string[] = [
   "con", "cons", "conne", "connes", "merde*", "bite", "bites", "couille*", "nazi", "nazis", "hitler*", "pedophile*", "pedo", "pedos",
 ];
 
