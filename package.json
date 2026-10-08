@@ -25,6 +25,7 @@
     "gestion:installateur": "bash apps/logiciel-gestion/scripts/construire-installateur.sh",
     "gestion:autoriser": "node scripts/autoriser-poste-gestion.ts",
     "sauvegardes:cle": "node scripts/afficher-cle-sauvegardes.ts",
+    "boite:regler": "node --env-file=apps/api/.env scripts/regler-boite-mail.ts",
     "sauvegardes:dechiffrer": "node scripts/dechiffrer-sauvegarde.ts"
   }
 }
