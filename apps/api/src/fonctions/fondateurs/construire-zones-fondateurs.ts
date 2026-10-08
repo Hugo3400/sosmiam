@@ -67,10 +67,10 @@ export function construireZonesFondateurs({ communes, departements, nomsInsee }:
   }
   villes.sort((a, b) => b.population - a.population || (a.code < b.code ? -1 : 1));
 
-  const zonesDepartements: ZonePreparee[] = departements
+  const zonesDepartements = departements
     .filter((departement) => petitesCommunes.has(departement.code))
     .sort((a, b) => (a.code < b.code ? -1 : 1))
-    .map((departement) => ({
+    .map((departement): ZonePreparee => ({
       code: `D${departement.code}`,
       type: "departement",
       nom: departement.nom,

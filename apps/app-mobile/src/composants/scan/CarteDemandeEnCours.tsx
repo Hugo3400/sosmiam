@@ -5,8 +5,6 @@ import { Pressable, Text, View } from "react-native";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { decrireAttenteAddition } from "~/fonctions/visites/decrire-attente-addition";
-import { formaterCodeLu } from "~/fonctions/visites/formater-code-lu";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -17,6 +15,13 @@ type Props = {
 
 const UNE_MINUTE = 60_000;
 
+/** « Expire dans 27 min », ou « Expire dans moins d'une minute » ; null si c'est déjà passé */
+function decrireExpiration(expireLe: string, maintenant: Date): string | null {
+  const minutes = Math.ceil((Date.parse(expireLe) - maintenant.getTime()) / UNE_MINUTE);
+  if (!Number.isFinite(minutes) || minutes <= 0) return null;
+  return minutes <= 1 ? "Expire dans moins d'une minute" : `Expire dans ${minutes} min`;
+}
+
 /** Ta demande d'addition en attente, en haut de l'onglet Scan : le lieu, le code à montrer et le temps qu'il reste. */
 export function CarteDemandeEnCours({ visite, onPress }: Props) {
   // « Expire dans 27 min » se met à jour toute seule, une fois par minute
@@ -26,11 +31,12 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
     return () => clearInterval(minuterie);
   }, []);
 
-  const attente = visite.expireLe ? decrireAttenteAddition(visite.expireLe, maintenant) : null;
+  const attente = visite.expireLe ? decrireExpiration(visite.expireLe, maintenant) : null;
   const code = visite.code ?? "";
   const libelle = [
     `Addition demandée chez ${visite.lieu.nom}`,
-    code ? `ton code : ${formaterCodeLu(code)}` : null,
+    // Le code est lu chiffre par chiffre : « 4, 8, 2, 1 »
+    code ? `ton code : ${code.split("").join(", ")}` : null,
     attente,
   ]
     .filter(Boolean)

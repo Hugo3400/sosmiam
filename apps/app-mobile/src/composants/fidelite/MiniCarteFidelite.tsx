@@ -1,7 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
-import { RangeeTampons } from "~/composants/visites/RangeeTampons";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
 type Props = {
@@ -34,7 +33,12 @@ export function MiniCarteFidelite({ carte, onPress }: Props) {
           {carte.lieu.nom}
         </Text>
       </View>
-      <RangeeTampons tampons={carte.tampons} sur={carte.sur} taille="petite" />
+      {/* Les tampons en petit : pleins pour ceux gagnés, en pointillé pour ceux qui restent */}
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row flex-wrap gap-1.5">
+        {Array.from({ length: carte.sur }, (_, i) => (
+          <View key={i} className={`h-4 w-4 rounded-full border-2 ${i < carte.tampons ? "border-encre bg-encre" : "border-dashed border-encre/40 bg-white"}`} />
+        ))}
+      </View>
       <Text numberOfLines={2} className="font-texte-semi text-[13px] leading-[18px] text-encre">
         {prete ? `🎁 ${carte.recompense} t'attend !` : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
       </Text>
