@@ -29,7 +29,7 @@ const nombres = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 /** « 160 Ko », « 1,8 Mo » : le poids d'un fichier, pour savoir ce qu'on télécharge (sur mobile surtout). */
 function lirePoids(octets: number): string {
-  return octets < 1_000_000 ? `${Math.max(1, Math.round(octets / 1000))} Ko` : `${nombres.format(octets / 1_000_000)} Mo`;
+  return octets < 1_000_000 ? `${Math.max(1, Math.round(octets / 1000))}\u00a0Ko` : `${nombres.format(octets / 1_000_000)}\u00a0Mo`;
 }
 
 /** Réservée aux ambassadeurs validés. Le poids de chaque fichier est lu sur le disque (null s'il manque). */

@@ -35,19 +35,20 @@ export type VisuelKit = {
   /** Taille du PNG, en pixels */
   largeur: number;
   hauteur: number;
-  /** Fond transparent (logos, mascotte, badges) ; les visuels à poster ont leur propre fond */
-  transparent: boolean;
   /** Aussi en SVG : les dessins sans texte, nets à toutes les tailles */
   svg: boolean;
   /** Aperçu sur fond sombre (le logo crème) */
   fondSombre?: boolean;
 };
 
-const STORY = { largeur: 1080, hauteur: 1920, transparent: false, svg: false };
-const POST = { largeur: 1080, hauteur: 1350, transparent: false, svg: false };
-const DESSIN = { largeur: 1024, hauteur: 1024, transparent: true };
+const STORY = { largeur: 1080, hauteur: 1920, svg: false };
+const POST = { largeur: 1080, hauteur: 1350, svg: false };
+const DESSIN = { largeur: 1024, hauteur: 1024 };
 
-/** Les visuels du kit, dans l'ordre de la page. Chacun donne un PNG, et un SVG si `svg`. */
+/**
+ * Les visuels du kit, dans l'ordre de la page. Chacun donne un PNG, et un SVG si `svg`. Les logos, la mascotte et les
+ * badges ont un fond transparent ; les visuels à poster ont leur propre fond.
+ */
 export const visuelsKitMedia: VisuelKit[] = [
   {
     id: "story-je-suis-ambassadeur", dossier: "visuels", titre: "Story « Je suis ambassadeur »", ...STORY,
@@ -74,11 +75,11 @@ export const visuelsKitMedia: VisuelKit[] = [
     description: "Post noir : les pictos resto, pâtisserie, bar et sortie, et le titre « Tu as un lieu ? C'est gratuit. »",
   },
   {
-    id: "logo-fond-clair", dossier: "logos", titre: "Logo pour fond clair", largeur: 2000, hauteur: 520, transparent: true, svg: true,
+    id: "logo-fond-clair", dossier: "logos", titre: "Logo pour fond clair", largeur: 2000, hauteur: 520, svg: true,
     description: "Le logo SOS Miam : « SOS » en noir avec la bouée à la place du O, « Miam » en rouge tomate.",
   },
   {
-    id: "logo-fond-sombre", dossier: "logos", titre: "Logo pour fond sombre", largeur: 2000, hauteur: 520, transparent: true, svg: true,
+    id: "logo-fond-sombre", dossier: "logos", titre: "Logo pour fond sombre", largeur: 2000, hauteur: 520, svg: true,
     fondSombre: true,
     description: "Le logo SOS Miam avec « SOS » en crème, pour un fond sombre.",
   },
@@ -198,7 +199,7 @@ ${LIEN_KIT_MEDIA}
   },
   {
     titre: "Ta pépite",
-    texte: `Ton resto, ton bar ou ta pâtisserie préférés, ceux que trop peu de gens connaissent : c'est lequel ? Dis-le-moi en commentaire ! 👀
+    texte: `Ta pépite à toi, le resto, le bar ou la pâtisserie que trop peu de gens connaissent : c'est laquelle ? Dis-le-moi en commentaire ! 👀
 Je suis ambassadeur SOS Miam : on fait découvrir les lieux indépendants, bientôt partout en France.
 ${LIEN_KIT_MEDIA}
 #SOSMiam`,

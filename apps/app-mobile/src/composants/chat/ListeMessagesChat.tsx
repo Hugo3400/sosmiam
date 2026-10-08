@@ -158,7 +158,7 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
       <View className="gap-2 pb-2">
         <BandeauDemoPotes />
         <Text
-          accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Ouvre ses options, par appui long ou avec le bouton à côté, pour le signaler.`}
+          accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler.`}
           className="text-center font-texte text-[13px] leading-[18px] text-gris"
         >
           {lierPonctuation(`${confidentialite} Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.`)}
