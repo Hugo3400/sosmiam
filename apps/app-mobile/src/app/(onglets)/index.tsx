@@ -1,4 +1,4 @@
-import { useIsFocused, useRouter } from "expo-router";
+import { useIsFocused, usePathname, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,6 +24,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
+import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
@@ -36,11 +37,15 @@ import couleurs from "~/theme/couleurs";
 const VISIBILITE = { itemVisiblePercentThreshold: 60 };
 // iOS n'ouvre pas une fenêtre pendant que la précédente se referme : « Envoyer à un pote » attend la fin de la glissade du menu
 const DELAI_APRES_MENU = Platform.OS === "ios" ? 400 : 0;
+// La fiche d'un lieu se prépare en coulisses quand tu t'arrêtes un moment sur une publication (pas pendant que tu fais défiler)
+const DELAI_PRECHARGEMENT = 1500;
+const AUCUN_SUIVI: readonly string[] = [];
 
 /** Onglet « Pour toi » : les vidéos et photos des lieux en plein écran, triées selon tes envies. Double appui = J'aime. */
 export default function PourToi() {
   const router = useRouter();
   const focus = useIsFocused();
+  const chemin = usePathname();
   const marges = useSafeAreaInsets();
   const { profil } = utiliserProfil();
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
@@ -67,11 +72,17 @@ export default function PourToi() {
   const [infosReduites, setInfosReduites] = useState(false);
   const reduction = useSharedValue(0);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  // Ce que tu suis remonte en tête du fil, mais l'ordre ne bouge pas sous ton doigt quand tu suis quelqu'un :
+  // tes suivis sont repris une fois l'activité relue, puis à chaque changement d'onglet (la liste repart du début)
+  const [tri, setTri] = useState<{ onglet: OngletFil; suivis: readonly string[] } | null>(null);
+  if (activite.chargee && tri?.onglet !== onglet) setTri({ onglet, suivis: activite.suivis });
+  const suivisDuTri = tri?.suivis ?? AUCUN_SUIVI;
+  const fichePrechargee = useRef(false);
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieux = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age), [age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
-  const publications = useMemo(() => ordonnerPublications(publicationsExemples, lieux, profil), [lieux, profil]);
+  const publications = useMemo(() => ordonnerPublications(publicationsExemples, lieux, profil, suivisDuTri), [lieux, profil, suivisDuTri]);
 
   const { estMasquee } = activite;
   const liste = useMemo(() => {
@@ -89,6 +100,22 @@ export default function PourToi() {
   useEffect(() => () => {
     if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
   }, []);
+
+  // La fiche du lieu de la publication à l'écran est préparée en coulisses (une seule fois) : la première « Voir l'adresse » s'ouvre sans ramer.
+  // Une autre fiche réutilise le même écran déjà monté, avec le bon lieu.
+  const lieuAPrecharger = (liste.find((p) => p.id === visible) ?? liste[0])?.lieuId;
+  useEffect(() => {
+    if (fichePrechargee.current || !focus || lieuAPrecharger === undefined) return;
+    const minuterie = setTimeout(() => {
+      fichePrechargee.current = true;
+      router.prefetch({ pathname: "/lieu/[id]", params: { id: String(lieuAPrecharger) } });
+    }, DELAI_PRECHARGEMENT);
+    return () => clearTimeout(minuterie);
+  }, [focus, lieuAPrecharger, router]);
+
+  // Barre d'état claire sur le fil. La fiche préchargée reste montée en coulisses avec sa barre claire : partout ailleurs, le fil repose
+  // une barre sombre (une nouvelle, pour passer devant), sauf sur la fiche d'un lieu, qui garde la sienne
+  const barreEtat = chemin === "/" ? "light" : chemin.startsWith("/lieu/") ? null : "dark";
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -177,6 +204,14 @@ export default function PourToi() {
     },
     voir: (p) => router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } }),
     reduire: basculerReduction,
+    suivre: (p) => {
+      const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieuParId.get(p.lieuId)?.nom ?? "ce lieu");
+      annoncer(activite.basculerSuivi(calculerCleSuivi(p.auteur, p.lieuId)) ? `🔔 Tu suis maintenant ${nom} !` : `Tu ne suis plus ${nom}, sans rancune 👋`);
+    },
+    ouvrirAuteur: (p) => {
+      if (p.auteur.type === "createur") router.push({ pathname: "/createur/[pseudo]", params: { pseudo: p.auteur.pseudo } });
+      else router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
+    },
   });
 
   const auChangementDeVisible = useCallback(({ viewableItems }: { viewableItems: ViewToken<Publication>[] }) => {
@@ -195,7 +230,7 @@ export default function PourToi() {
       style={{ flex: 1, backgroundColor: couleurs.encre }}
       onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
     >
-      {focus ? <StatusBar style="light" /> : null}
+      {barreEtat ? <StatusBar key={barreEtat} style={barreEtat} /> : null}
       {taille.hauteur > 0 ? (
         liste.length > 0 ? (
           <FlatList
@@ -227,6 +262,7 @@ export default function PourToi() {
                   raison={profil ? trouverRaisonLieu({ ...lieu, km }, profil) : null}
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
+                  suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}
                   nombreCommentaires={communaute.nombreCommentaires(item.id)}
                   actif={focus && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}

@@ -33,7 +33,7 @@ export function CartePalier({ palier, points, badges }: Props) {
   else if (suivant && suivant.seuil === null) progression = `Le palier suivant, ${nomSuivant}, se fait sur candidature ou invitation.`;
 
   return (
-    <section aria-labelledby="titre-palier" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-8">
+    <section aria-labelledby="titre-palier" className="self-start rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-8">
       <div className="flex flex-wrap items-center gap-5">
         <BadgePalier niveau={(index + 1) as NiveauPalier} className="h-24 w-24 shrink-0" />
         <div>

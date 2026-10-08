@@ -26,6 +26,13 @@ const APERCU_GLISSEMENT = { delai: 700, distance: 56, retour: 380 };
 // Temps passé sur chaque photo avant la suivante (défilement façon stories)
 const DUREE_PHOTO = 4000;
 
+type GestesPhotos = {
+  lancer: (depuis: number) => void;
+  passerALaSuivante: () => void;
+  poserDoigt: () => void;
+  leverDoigt: () => void;
+};
+
 /**
  * Photos d'une publication, en plein écran : elles défilent seules (barres façon stories en haut), en boucle, tant que la
  * publication est à l'écran ; on peut aussi les faire glisser de côté (le décompte repart de la photo choisie), et un doigt
@@ -47,12 +54,13 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
   const plusieurs = photos.length > 1;
 
   // Fonctions stables (photos mémorisées), qui lisent toujours l'état le plus récent
-  const gestes = utiliserGestesStables({
+  const gestes: GestesPhotos = utiliserGestesStables<GestesPhotos>({
     // La barre de la photo en cours se remplit en DUREE_PHOTO ; pleine, on passe à la suivante (rappel depuis le fil d'animation)
     lancer: (depuis: number) => {
       const passerALaSuivante = gestes.passerALaSuivante;
       avancee.value = depuis;
       avancee.value = withTiming(1, { duration: DUREE_PHOTO * (1 - depuis), easing: Easing.linear, reduceMotion: ReduceMotion.Never }, (fini) => {
+        "worklet";
         if (fini) scheduleOnRN(passerALaSuivante);
       });
     },

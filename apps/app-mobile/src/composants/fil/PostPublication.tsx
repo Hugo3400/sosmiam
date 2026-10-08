@@ -6,12 +6,16 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepea
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ActionPost } from "~/composants/fil/ActionPost";
+import { AvatarSuivre } from "~/composants/fil/AvatarSuivre";
 import { BoueeEnvol } from "~/composants/fil/BoueeEnvol";
+import { BoutonSuivre } from "~/composants/fil/BoutonSuivre";
 import { CoeurEnvol } from "~/composants/fil/CoeurEnvol";
+import { LegendeRepliable } from "~/composants/fil/LegendeRepliable";
 import { MediaPublication } from "~/composants/fil/MediaPublication";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
@@ -27,6 +31,8 @@ type Props = {
   raison: string | null;
   aime: boolean;
   garde: boolean;
+  /** Tu suis l'auteur (le lieu, ou le créateur) */
+  suivi: boolean;
   /** Vrai nombre de commentaires (réponses comprises), sans ceux des personnes bloquées */
   nombreCommentaires: number;
   /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et anime son cadre */
@@ -55,23 +61,32 @@ export type GestesPublication = {
   menu: (publication: Publication) => void;
   voir: (publication: Publication) => void;
   reduire: () => void;
+  /** Suit l'auteur, ou arrête de le suivre */
+  suivre: (publication: Publication) => void;
+  /** Fiche du lieu, ou page du créateur */
+  ouvrirAuteur: (publication: Publication) => void;
 };
 
 const DELAI_DOUBLE_APPUI = 280;
+const DELAI_APPUI_LONG = 400;
 const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, suivi, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const cadre = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
+  // Appui long sur la vidéo : elle file en accéléré jusqu'à ce qu'on lâche
+  const [acceleree, setAcceleree] = useState(false);
   const dernierAppui = useRef(0);
   const appuiSimple = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause
+  // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré
   useEffect(() => {
-    if (!actif) setEnPause(false);
+    if (actif) return;
+    setEnPause(false);
+    setAcceleree(false);
   }, [actif]);
 
   useEffect(() => {
@@ -102,8 +117,18 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     if (publication.media?.type === "video") appuiSimple.current = setTimeout(() => setEnPause((p) => !p), DELAI_DOUBLE_APPUI);
   }
 
+  // Appui long (vidéo seulement) : l'appui simple en attente est oublié, et une vidéo en pause repart, en accéléré
+  function debutAcceleration() {
+    if (appuiSimple.current) clearTimeout(appuiSimple.current);
+    dernierAppui.current = 0;
+    vibrerLegerement();
+    setEnPause(false);
+    setAcceleree(true);
+  }
+
   const auteur = publication.auteur;
   const nomAuteur = auteur.type === "lieu" ? lieu.nom : `@${auteur.pseudo}`;
+  const emojiAuteur = auteur.type === "lieu" ? lieu.emoji : "🎬";
   const media = publication.media;
   const typeMedia = !media ? "Publication" : media.type === "video" ? "Vidéo" : `${media.photos.length} photos`;
   const etiquetteIllustration = media?.type === "photos" ? "Photos d'illustration" : "Vidéo d'illustration";
@@ -115,23 +140,41 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     lieu.alerte,
     raison,
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
-    publication.legende,
   ].filter(Boolean).join(". ");
 
   return (
     <View style={{ height: hauteur, width: largeur }} className="overflow-hidden bg-encre">
       <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
       {media ? (
-        <MediaPublication media={media} largeur={largeur} hauteur={hauteur} actif={actif} enPause={enPause} margeHaut={margeHaut} onAppuiPhoto={appuiSurLeMedia} />
+        <MediaPublication
+          media={media}
+          largeur={largeur}
+          hauteur={hauteur}
+          actif={actif}
+          enPause={enPause}
+          acceleree={acceleree}
+          margeHaut={margeHaut}
+          margeBas={margeBas}
+          onAppuiPhoto={appuiSurLeMedia}
+        />
       ) : (
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: hauteur * 0.24, alignSelf: "center", fontSize: Math.min(140, hauteur * 0.17) }}>
           {lieu.emoji}
         </Text>
       )}
 
-      {/* Zone d'appui sur le média (VoiceOver passe par les boutons ❤️ et ⋯) ; les photos gèrent leurs appuis elles-mêmes, pour garder le glissement de côté */}
+      {/* Zone d'appui sur le média (VoiceOver passe par les boutons ❤️ et ⋯) ; les photos gèrent leurs appuis elles-mêmes, pour garder le glissement de côté.
+          Appui long sur une vidéo : accéléré tant qu'on garde le doigt (le relâcher ne compte pas comme un appui simple) */}
       {media?.type !== "photos" ? (
-        <Pressable onPress={appuiSurLeMedia} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", inset: 0 }} />
+        <Pressable
+          onPress={appuiSurLeMedia}
+          onLongPress={media?.type === "video" ? debutAcceleration : undefined}
+          onPressOut={() => setAcceleree(false)}
+          delayLongPress={DELAI_APPUI_LONG}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{ position: "absolute", inset: 0 }}
+        />
       ) : null}
 
       <LinearGradient colors={["rgba(0,0,0,0.35)", "transparent"]} pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: 0, height: 140 }} />
@@ -152,14 +195,17 @@ export const PostPublication = memo(function PostPublication(props: Props) {
       {/* Le placement reste sur une View : NativeWind n'applique pas ses classes à une Animated.View qui porte un style animé */}
       <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + 14 }} className="absolute left-4 right-4 flex-row">
         <Animated.View style={stylePastille}>
+          {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Afficher la fiche de ${lieu.nom}`}
+            accessibilityLabel={auteur.type === "lieu" ? `Afficher la fiche de ${lieu.nom}` : `Afficher la fiche : publication de ${nomAuteur} sur ${lieu.nom}`}
             onPress={gestes.reduire}
-            className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 px-4 active:opacity-70"
+            className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 pl-1.5 pr-4 active:opacity-70"
           >
-            <Text className="text-base">{lieu.emoji}</Text>
-            <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{lieu.nom}</Text>
+            <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
+              <Text className="text-sm">{emojiAuteur}</Text>
+            </View>
+            <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{nomAuteur}</Text>
             <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
           </Pressable>
         </Animated.View>
@@ -167,36 +213,47 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
       <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ paddingBottom: margeBas + 14 }} className="absolute inset-x-0 bottom-0 pl-5 pr-[88px]">
         <Animated.View style={styleFiche}>
-          <View accessible accessibilityLabel={description} className="gap-1.5">
-            <View className="flex-row items-center gap-2">
-              <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
-                <Text className="text-sm">{auteur.type === "lieu" ? lieu.emoji : "🎬"}</Text>
-              </View>
-              <Text className="font-texte-gras text-[15px] text-white" style={ombreTexte}>{nomAuteur}</Text>
+          {/* L'auteur et « Suivre » restent hors du bloc lu d'une traite par VoiceOver, pour que le bouton soit atteignable ;
+              toucher l'avatar ou le nom ouvre sa fiche ou sa page (VoiceOver passe par l'avatar de la colonne d'actions) */}
+          <View className="gap-1.5">
+            <View className="flex-row items-center gap-2.5">
+              <Pressable
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                hitSlop={6}
+                onPress={() => gestes.ouvrirAuteur(publication)}
+                className="shrink flex-row items-center gap-2 active:opacity-70"
+              >
+                <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
+                  <Text className="text-sm">{emojiAuteur}</Text>
+                </View>
+                <Text numberOfLines={1} className="shrink font-texte-gras text-[15px] text-white" style={ombreTexte}>{nomAuteur}</Text>
+              </Pressable>
+              <BoutonSuivre suivi={suivi} nom={nomAuteur} onPress={() => gestes.suivre(publication)} />
             </View>
-            {auteur.type === "createur" && auteur.partenariat ? (
-              <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
-                Collaboration commerciale · {auteur.partenariat}
-              </Text>
-            ) : null}
-            <View className="flex-row flex-wrap gap-2">
-              {lieu.sos ? (
-                <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-                  🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
+            <View accessible accessibilityLabel={description} className="gap-1.5">
+              {auteur.type === "createur" && auteur.partenariat ? (
+                <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
+                  Collaboration commerciale · {auteur.partenariat}
                 </Text>
               ) : null}
-              {lieu.alerte ? (
-                <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
-              ) : null}
+              <View className="flex-row flex-wrap gap-2">
+                {lieu.sos ? (
+                  <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
+                    🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                  </Text>
+                ) : null}
+                {lieu.alerte ? (
+                  <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
+                ) : null}
+              </View>
+              {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
+              <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
+              <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
+                📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
+              </Text>
             </View>
-            {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
-            <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
-            <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
-              📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
-            </Text>
-            <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-white" style={ombreTexte}>
-              {lierPonctuation(publication.legende)}
-            </Text>
+            <LegendeRepliable texte={lierPonctuation(publication.legende)} />
           </View>
           <View className="mt-3 flex-row gap-2">
             <Pressable
@@ -222,6 +279,14 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
       <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ bottom: margeBas + 14 }} className="absolute right-3">
         <Animated.View style={[{ alignItems: "center", gap: 16 }, styleActions]}>
+          <AvatarSuivre
+            emoji={emojiAuteur}
+            nom={nomAuteur}
+            createur={auteur.type === "createur"}
+            suivi={suivi}
+            onOuvrir={() => gestes.ouvrirAuteur(publication)}
+            onSuivre={() => gestes.suivre(publication)}
+          />
           <ActionPost
             actif={aime}
             icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
