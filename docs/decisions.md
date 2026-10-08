@@ -75,6 +75,8 @@
   - comptes **publics par défaut, privé possible** : en privé, chaque abonnement est une demande à accepter ;
   - **15-17 ans : profil privé d'office**, et un adulte ne peut ni les suivre ni leur envoyer de demande. Ils peuvent suivre les pros, les créateurs et les ados de leur âge ;
   - prévu : abonnés / abonnements (retirer un abonné), onglet « Abonnements » dans le fil, notifications (« … te suit », demandes, nouvelle vidéo), suggestions « Tu pourrais suivre ».
+  - **à 18 ans, les abonnements déjà acceptés avec des 15-17 ans restent** : seuls les nouveaux liens adulte → mineur sont interdits ;
+  - **un 15-17 ans pourra être créateur** (publier dans le fil public) **avec des abonnés adultes, sous surveillance accrue** : son compte reste privé (chaque abonnement est une demande qu'il accepte ou refuse), et ces liens remontent au logiciel de gestion. La surveillance sera détaillée avec la publication de vidéos (pistes : modération renforcée des commentaires d'adultes, signalements traités en priorité, pas de message privé d'un adulte, position jamais affichée).
 
 ## Potes (décidé le 8 octobre 2026)
 - **Ma bande** :

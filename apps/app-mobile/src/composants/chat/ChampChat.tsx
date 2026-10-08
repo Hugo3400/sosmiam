@@ -31,6 +31,9 @@ const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
   interdit: "Ce message ne peut pas partir : cette conversation n'est plus ouverte pour toi. Retourne à tes messages pour en lancer une autre.",
 };
 
+// Juste après un envoi, le micro prend la place d'« Envoyer » : un double appui réflexe ne lance pas un enregistrement
+const DELAI_MICRO_APRES_ENVOI = 700;
+
 const MICRO_INDISPONIBLE =
   "Ce navigateur ne sait pas tendre l'oreille 👂 Les notes vocales s'enregistrent depuis l'app SOS Miam sur ton téléphone.";
 
@@ -50,6 +53,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
   const [enregistrementPossible] = useState(verifierEnregistrementPossible);
   // Après une note vocale, le lecteur d'écran revient sur le champ (le bouton qu'il lisait a disparu)
   const revenirAuChamp = useRef(false);
+  const dernierEnvoi = useRef(0);
 
   // Clavier ouvert : la barre du bas du téléphone est sous le clavier, le champ n'a plus besoin de s'en écarter
   useEffect(() => {
@@ -89,14 +93,18 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
   function envoyer() {
     const resultat = envoyerTexte(conversationId, texte);
     if (resultat === "ok") {
+      dernierEnvoi.current = Date.now();
       setTexte("");
       apresEnvoi();
+      // « Envoyer » laisse place au micro : le lecteur d'écran revient sur le champ plutôt que de rester sur une autre action
+      setTimeout(() => deplacerFocusLecteurEcran(champ.current), 150);
       return;
     }
     montrerErreur({ texte: REFUS[resultat] });
   }
 
   function lancerEnregistrement() {
+    if (Date.now() - dernierEnvoi.current < DELAI_MICRO_APRES_ENVOI) return;
     if (!enregistrementPossible) return montrerErreur({ texte: MICRO_INDISPONIBLE });
     Keyboard.dismiss();
     setErreur(null);
@@ -145,6 +153,8 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             accessibilityLabel={medias ? "Partager un lieu ou une photo" : "Partager un lieu"}
             onPress={() => {
               vibrerLegerement();
+              // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes
+              Keyboard.dismiss();
               setFeuilleOuverte(true);
             }}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
@@ -166,8 +176,10 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             multiline
             className={`max-h-32 min-h-11 flex-1 rounded-3xl border-2 bg-white px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
           />
+          {/* Deux boutons distincts (key) : le lecteur d'écran ne reste pas sur un bouton dont l'action vient de changer */}
           {micro ? (
             <Pressable
+              key="micro"
               accessibilityRole="button"
               accessibilityLabel={enregistrementPossible ? "Enregistrer une note vocale" : "Note vocale indisponible ici"}
               accessibilityHint={enregistrementPossible ? "Jusqu'à une minute. L'enregistrement démarre tout de suite." : retirerEmojiAnnonce(MICRO_INDISPONIBLE)}
@@ -178,6 +190,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             </Pressable>
           ) : (
             <Pressable
+              key="envoyer"
               accessibilityRole="button"
               accessibilityLabel="Envoyer"
               onPress={envoyer}

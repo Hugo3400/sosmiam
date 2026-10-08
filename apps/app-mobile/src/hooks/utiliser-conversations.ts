@@ -14,13 +14,17 @@ export type EtatConversations = {
   /** Nombre de messages non lus, toutes conversations confondues (pastille sur Potes) */
   nonLus: number;
   nonLusDe: (id: string) => number;
-  /** Vrai si tu peux discuter avec ce pote (protection des 15-17 ans : seulement des potes ajoutés en vrai) */
+  /** Vrai si tu peux discuter avec ce pote : il est dans ta bande, et ajouté en vrai si l'un de vous a 15-17 ans */
   peutDiscuterAvec: (poteId: string) => boolean;
   /** Vrai si cette conversation accepte photos et notes vocales (pas de mélange mineurs / adultes) */
   peutEnvoyerMedias: (conversationId: string) => boolean;
   /** Ouvre (ou crée) la conversation privée avec ce pote ; null si c'est interdit */
   ouvrirPrive: (poteId: string) => string | null;
-  creerGroupe: (titre: string, emoji: string, potes: string[]) => { id: string } | { erreur: "titre" | "participants" };
+  /**
+   * Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés). « en-vrai » : un mineur serait du groupe
+   * (toi compris) avec quelqu'un ajouté seulement par son pseudo ; voir listerMembresRefusesGroupe.
+   */
+  creerGroupe: (titre: string, emoji: string, potes: string[]) => { id: string } | { erreur: "titre" | "participants" | "en-vrai" };
   envoyerTexte: (conversationId: string, texte: string) => ResultatEnvoiChat;
   envoyerLieu: (conversationId: string, lieuId: number) => ResultatEnvoiChat;
   /** Photo choisie ou prise (fichier temporaire du sélecteur) */
@@ -29,7 +33,7 @@ export type EtatConversations = {
   envoyerVocal: (conversationId: string, uriTemporaire: string, dureeSecondes: number) => Promise<ResultatEnvoiChat>;
   basculerReaction: (conversationId: string, messageId: string, reaction: ReactionChat) => void;
   marquerLu: (conversationId: string) => void;
-  /** Quitte un groupe (il disparaît de tes conversations) */
+  /** Quitte un groupe : il disparaît de tes conversations et du téléphone, avec ses photos et notes vocales */
   quitterGroupe: (conversationId: string) => void;
   /** Efface tout le chat du téléphone (la démo repartira de zéro) */
   effacer: () => Promise<void>;

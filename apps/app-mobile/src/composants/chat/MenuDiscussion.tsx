@@ -41,12 +41,14 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
-  const { moi, bloquer } = utiliserCommunaute();
+  const { moi, potes, bloquer, estSignale } = utiliserCommunaute();
   const { quitterGroupe } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreConfirmation = useRef<Text>(null);
   const [vue, setVue] = useState<Vue>("options");
+  // Profil déjà signalé en ouvrant le signalement ? Sert à distinguer « Retour » (rien d'envoyé) de « Fermer » (après le merci)
+  const [dejaSignale, setDejaSignale] = useState(false);
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -60,6 +62,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   }, [vue]);
 
   function aller(vers: Vue) {
+    if (vers === "signaler" && pote) setDejaSignale(estSignale(pote.id));
     setVue(vers);
     // Le lecteur d'écran reprend sur le titre de la nouvelle vue (l'élément qu'il lisait vient de disparaître)
     if (vers === "options") setTimeout(() => deplacerFocusLecteurEcran(titreOptions.current), 150);
@@ -74,7 +77,12 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
 
   const groupe = conversation?.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
+
+  // Fin du signalement : « Fermer » après le merci ferme le menu ; « Retour » sans rien envoyer ramène aux options
+  const terminerSignalement = () => (pote && !dejaSignale && estSignale(pote.id) ? onFermer() : aller("options"));
   const prenom = pote?.prenom ?? "cette personne";
+  // Retiré de ta bande plus tôt : on ne lui annonce pas qu'il en sort
+  const dansBande = !!pote && potes.some((p) => p.id === pote.id);
   const titreGroupe = conversation?.titre ?? "ce groupe";
   const options = groupe
     ? [{ cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
@@ -115,11 +123,11 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
           <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
             {vue === "signaler" && pote ? (
-              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${prenom}`} onTermine={onFermer} />
+              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${prenom}`} onTermine={terminerSignalement} />
             ) : vue === "bloquer" && pote ? (
               confirmation(
                 `Bloquer ${prenom} ?`,
-                `${prenom} sortira de ta bande, et cette discussion disparaîtra avec ses messages et ses commentaires. Tu restes tranquille, c'est tout ce qui compte.`,
+                `${dansBande ? `${prenom} sortira de ta bande, et cette` : "Cette"} discussion disparaîtra avec ses messages et ses commentaires. Tu restes tranquille, c'est tout ce qui compte.`,
                 `Bloquer ${prenom}`,
                 "Non, je reviens",
                 () => {

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useState } from "react";
 import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
@@ -34,6 +34,7 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
  */
 export default function ProfilPote() {
   const router = useRouter();
+  const navigation = useNavigation();
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -103,8 +104,17 @@ export default function ProfilPote() {
   // Protection des 15-17 ans : avec un mineur, on ne discute qu'après s'être ajoutés en vrai
   const ecrire = () => {
     const conversation = ouvrirPrive(pote.id);
-    if (conversation) router.push({ pathname: "/potes/discussion/[id]", params: { id: conversation } });
-    else annoncer(`Pour discuter avec ${prenom}, ajoutez-vous en vrai, par lien ou QR code : c'est la règle des 15-17 ans, et elle protège tout le monde.`);
+    if (!conversation) {
+      annoncer(`Pour discuter avec ${prenom}, ajoutez-vous en vrai, par lien ou QR code : c'est la règle des 15-17 ans, et elle protège tout le monde.`);
+      return;
+    }
+    const cible = { pathname: "/potes/discussion/[id]", params: { id: conversation } } as const;
+    // Profil ouvert depuis cette discussion : on y revient, plutôt que d'en empiler une deuxième (deux retours, messages lus deux fois).
+    // Seulement si c'est la dernière discussion de la pile : c'est celle que retrouve dismissTo
+    const discussions = (navigation.getState()?.routes ?? []).filter((r) => r.name === "discussion/[id]");
+    const derniere = discussions[discussions.length - 1]?.params as { id?: string } | undefined;
+    if (derniere?.id === conversation) router.dismissTo(cible);
+    else router.push(cible);
   };
 
   const retirer = () =>

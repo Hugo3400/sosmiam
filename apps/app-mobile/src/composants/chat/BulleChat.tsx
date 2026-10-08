@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
@@ -16,6 +16,7 @@ import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { retrouverFichierChat } from "~/stockage/conversations-locales";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -56,6 +57,8 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   );
 
   const coeurMis = (message.reactions["❤️"] ?? []).includes(ID_MOI);
+  // Le message garde « chat/<nom> » : l'adresse complète se refait ici (le dossier de l'app change avec les mises à jour sur iPhone)
+  const fichier = useMemo(() => (message.fichier ? retrouverFichierChat(message.fichier) : undefined), [message.fichier]);
 
   /** Met ou retire ton cœur ; vrai s'il vient d'être mis */
   function basculerCoeur(): boolean {
@@ -114,7 +117,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   } else if (message.type === "photo") {
     contenu = (
       <PhotoChat
-        fichier={message.fichier}
+        fichier={fichier}
         libelle={deMoi ? `Ta photo, ${heure}` : `Photo de ${prenom}, ${heure}`}
         deMoi={deMoi}
         onAppuiLong={onOptions}
@@ -127,7 +130,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     contenu = (
       <Pressable accessible={false} onPress={appuiSurLaBulle} onLongPress={ouvrirOptions} delayLongPress={DELAI_APPUI_LONG} className={`border-2 border-encre px-3 py-2 ${coins} ${fond}`}>
         <NoteVocale
-          fichier={message.fichier}
+          fichier={fichier}
           dureeSecondes={message.dureeSecondes}
           libelle={deMoi ? `Ta note vocale, ${heure}` : `Note vocale de ${prenom}, ${heure}`}
           deMoi={deMoi}

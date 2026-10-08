@@ -8,12 +8,19 @@ import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-in
 import { creerConversationsExemples } from "~/contenus/conversations-exemples";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { reponsesExemples } from "~/contenus/potes-exemples";
+import { listerMembresRefusesGroupe } from "~/fonctions/chat/lister-membres-refuses-groupe";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { peutDiscuter } from "~/fonctions/communaute/peut-discuter";
 import { peutEnvoyerMedias } from "~/fonctions/communaute/peut-envoyer-medias";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { ContexteConversations, type EtatConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
-import { effacerConversationsLocales, enregistrerConversationsLocales, garderFichierChat, lireConversationsLocales } from "~/stockage/conversations-locales";
+import {
+  effacerConversationsLocales,
+  enregistrerConversationsLocales,
+  garderFichierChat,
+  lireConversationsLocales,
+  supprimerFichiersChat,
+} from "~/stockage/conversations-locales";
 
 const dernierMessage = (c: Conversation) => c.messages[c.messages.length - 1]?.date ?? "";
 const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() * liste.length)];
@@ -21,7 +28,8 @@ const lieuxBars = new Set(lieuxExemples.filter((l) => l.type === "bar").map((l) 
 
 /**
  * Chat entre potes (démo) : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales.
- * Protection des 15-17 ans : seulement avec des potes ajoutés en vrai, et ni photo ni vocal entre mineurs et adultes.
+ * Protection des 15-17 ans : seulement avec des potes ajoutés en vrai (dans un groupe avec un mineur, tous les membres),
+ * et ni photo ni vocal entre mineurs et adultes. En privé, on n'écrit qu'aux potes de sa bande.
  */
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
@@ -46,13 +54,16 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
 
   const { moi, trouverPote, moyenAjout, estSignale } = communaute;
   const bloques = useMemo(() => new Set(communaute.bloques.map((p) => p.id)), [communaute.bloques]);
-  const participantsDe = useCallback((c: Conversation) => c.participants.map((id) => trouverPote(id)).filter((p): p is Pote => !!p), [trouverPote]);
+  // Ta bande, sans les personnes bloquées : retirer quelqu'un de sa bande met aussi votre discussion en pause
+  const bande = useMemo(() => new Set(communaute.potes.map((p) => p.id)), [communaute.potes]);
+  const trouverTous = useCallback((ids: string[]) => ids.map((id) => trouverPote(id)).filter((p): p is Pote => !!p), [trouverPote]);
+  const participantsDe = useCallback((c: Conversation) => trouverTous(c.participants), [trouverTous]);
   const peutDiscuterAvec = useCallback(
     (poteId: string) => {
       const pote = trouverPote(poteId);
-      return !!pote && !bloques.has(poteId) && peutDiscuter(moi, pote, moyenAjout(poteId));
+      return !!pote && bande.has(poteId) && !bloques.has(poteId) && peutDiscuter(moi, pote, moyenAjout(poteId));
     },
-    [trouverPote, bloques, moi, moyenAjout],
+    [trouverPote, bande, bloques, moi, moyenAjout],
   );
 
   const ajouterMessage = useCallback((id: string, message: MessageChat) => {
@@ -98,16 +109,18 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       const c = visibles.find((x) => x.id === id);
       return !!c && peutEnvoyerMedias(participantsDe(c));
     };
+    // En privé, seulement si vous pouvez encore discuter (dans ta bande, ajoutés en vrai avec un mineur) ; sinon, la discussion est en pause
+    const ouverte = (c: Conversation | undefined): c is Conversation => !!c && (c.type === "groupe" || c.participants.every((p) => p === ID_MOI || peutDiscuterAvec(p)));
     const envoyer = (id: string, message: Omit<MessageChat, "id" | "auteur" | "date" | "reactions">): ResultatEnvoiChat => {
       const c = visibles.find((x) => x.id === id);
-      if (!c) return "interdit";
+      if (!ouverte(c)) return "interdit";
       const complet: MessageChat = { id: creerIdentifiant("chat"), auteur: ID_MOI, date: new Date().toISOString(), reactions: {}, ...message };
       ajouterMessage(id, complet);
       faireReagir(c, complet.id);
       return "ok";
     };
     const envoyerFichier = async (id: string, uri: string, extension: string, autre: Partial<MessageChat> & { type: "photo" | "vocal" }) => {
-      if (!mediasPermis(id)) return "interdit" as const;
+      if (!ouverte(visibles.find((x) => x.id === id)) || !mediasPermis(id)) return "interdit" as const;
       try {
         const fichier = await garderFichierChat(uri, extension);
         return envoyer(id, { ...autre, fichier });
@@ -136,6 +149,8 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         if (propre === "" || propre.length > LONGUEUR_MAX_TITRE_GROUPE || contientMotInterdit(propre)) return { erreur: "titre" };
         const membres = [...new Set(potes)].filter(peutDiscuterAvec);
         if (membres.length < 1 || membres.length + 1 > MAX_PARTICIPANTS_GROUPE) return { erreur: "participants" };
+        // Un mineur dans le groupe (toi compris) : seulement des potes ajoutés en vrai, pas par leur seul pseudo
+        if (listerMembresRefusesGroupe(moi, trouverTous(membres), moyenAjout).length > 0) return { erreur: "en-vrai" };
         const id = creerIdentifiant("groupe");
         setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [ID_MOI, ...membres], creePar: ID_MOI, messages: [] }]);
         return { id };
@@ -171,7 +186,13 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
           ),
         ),
       marquerLu: (id) => setConversations((cs) => cs.map((c) => (c.id === id ? { ...c, luJusqua: new Date().toISOString() } : c))),
-      quitterGroupe: (id) => setConversations((cs) => cs.map((c) => (c.id === id && c.type === "groupe" ? { ...c, participants: c.participants.filter((p) => p !== ID_MOI) } : c))),
+      quitterGroupe: (id) => {
+        const groupe = conversations.find((c) => c.id === id && c.type === "groupe");
+        if (!groupe) return;
+        // Le groupe disparaît du téléphone avec ses photos et notes vocales (une réponse déjà en route ne le retrouvera plus)
+        setConversations((cs) => cs.filter((c) => c.id !== id));
+        supprimerFichiersChat(groupe.messages.flatMap((m) => (m.fichier ? [m.fichier] : [])));
+      },
       effacer: async () => {
         minuteries.current.forEach(clearTimeout);
         minuteries.current = [];
@@ -179,7 +200,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsExemples(new Date()));
       },
     };
-  }, [conversations, bloques, estSignale, moi.mineur, pret, peutDiscuterAvec, participantsDe, ajouterMessage, faireReagir]);
+  }, [conversations, bloques, estSignale, moi, moyenAjout, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }

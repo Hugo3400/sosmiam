@@ -24,6 +24,7 @@ import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import couleurs from "~/theme/couleurs";
 
@@ -79,9 +80,6 @@ const lireInvites = (texte: string | undefined, potes: Pote[]) => {
   const demandes = String(texte ?? "").split(",").map((id) => id.trim());
   return potes.filter((p) => demandes.includes(p.id)).map((p) => p.id).slice(0, MAX_PARTICIPANTS_SORTIE - 1);
 };
-
-/** « Inès » ; « Inès et Jade » */
-const listerPrenoms = (potes: Pote[]) => (potes.length <= 1 ? (potes[0]?.prenom ?? "") : `${potes.slice(0, -1).map((p) => p.prenom).join(", ")} et ${potes[potes.length - 1].prenom}`);
 
 /** Organiser une sortie : un nom et un emoji, le jour et l'heure, les potes invités, les lieux proposés et la fin du vote. */
 export default function NouvelleSortie() {
@@ -236,7 +234,7 @@ export default function NouvelleSortie() {
                 onRetirer={(id) => setLieux((l) => l.filter((x) => x !== id))}
                 note={
                   invitesMineurs.length > 0
-                    ? `🧃 ${listerPrenoms(invitesMineurs)} ${invitesMineurs.length > 1 ? "n'ont" : "n'a"} pas encore 18 ans : pas de bar pour cette sortie, on trinque au sirop.`
+                    ? `🧃 ${listerPrenoms(invitesMineurs.map((p) => p.prenom))} ${invitesMineurs.length > 1 ? "n'ont" : "n'a"} pas encore 18 ans : pas de bar pour cette sortie, on trinque au sirop.`
                     : null
                 }
                 erreur={erreurs.lieux}

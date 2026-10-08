@@ -4,7 +4,7 @@
 sos-miam/
 ├── CLAUDE.md                  règles du projet
 ├── docs/                      arborescence (ce fichier) et décisions produit
-├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, recuperer-inscrits.py, autoriser-poste-gestion.ts…)
+├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, recuperer-inscrits.py, autoriser-poste-gestion.ts, regler-boite-mail.ts…)
 ├── apps/
 │   ├── site-web/              LE SITE (React Router 8)
 │   ├── app-mobile/            L'APP iOS + Android (Expo)

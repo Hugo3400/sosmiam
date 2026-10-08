@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
+import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 
 type Props = {
   /** Participants à montrer (toi compris), l'organisateur en premier de préférence */
@@ -15,19 +16,13 @@ type Props = {
 
 const TAILLE = 30;
 
-/** « Léa, Karim et toi » : les prénoms d'une liste, avec « toi » pour soi et « et » avant le dernier. */
-function listerPrenoms(potes: Pote[]): string {
-  const prenoms = potes.map((p) => (p.id === ID_MOI ? "toi" : p.prenom));
-  return prenoms.length <= 1 ? (prenoms[0] ?? "") : `${prenoms.slice(0, -1).join(", ")} et ${prenoms[prenoms.length - 1]}`;
-}
-
 /** Les têtes de la sortie, en rangée qui se chevauche, avec qui organise et combien vous êtes. Lu en une phrase. */
 export function ParticipantsSortie({ participants, organisateur, max = 6 }: Props) {
   const montres = participants.slice(0, max);
   const reste = participants.length - montres.length;
   const qui = organisateur ? (organisateur.id === ID_MOI ? "toi" : organisateur.prenom) : null;
   const nombre = `${participants.length} participant${participants.length > 1 ? "s" : ""}`;
-  const lu = `${nombre} : ${listerPrenoms(participants)}.${qui ? ` Organisée par ${qui}.` : ""}`;
+  const lu = `${nombre} : ${listerPrenoms(participants.map((p) => (p.id === ID_MOI ? "toi" : p.prenom)))}.${qui ? ` Organisée par ${qui}.` : ""}`;
 
   return (
     <View accessible accessibilityLabel={lu} className="flex-row items-center gap-3">

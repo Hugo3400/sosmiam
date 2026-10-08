@@ -181,6 +181,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       // Un ajout par lien ou QR code ne compte donc pas encore « en vrai » (peutDiscuter) : un mineur ne discute pas avec un adulte
       // grâce à un lien fabriqué avec son pseudo public. Ça couvre aussi un ajout enregistré avant ce garde-fou.
       moyenAjout: (id) => {
+        // Retiré de ta bande (ou bloqué) : plus aucun lien entre vous, il faudra vous ajouter de nouveau
+        if (!etat.bande.includes(id)) return undefined;
         const moyen = etat.moyens[id];
         if (moyen === "lien" || moyen === "qr") return `${moyen}-non-verifie`;
         return moyen ?? (bandeExemple.includes(id) ? "exemple" : undefined);

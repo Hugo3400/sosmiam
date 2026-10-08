@@ -5,7 +5,6 @@ import { AccessibilityInfo, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "@sos-miam/commun/regles/chat";
-import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -13,21 +12,20 @@ import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { listerMembresRefusesGroupe } from "~/fonctions/chat/lister-membres-refuses-groupe";
 import { peutEnvoyerMedias } from "~/fonctions/communaute/peut-envoyer-medias";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
 type Erreurs = { titre?: string; membres?: string };
 
-/** « Inès » ; « Inès et Jade » ; « Inès, Jade et Tom » */
-const listerPrenoms = (potes: Pote[]) => (potes.length <= 1 ? (potes[0]?.prenom ?? "") : `${potes.slice(0, -1).map((p) => p.prenom).join(", ")} et ${potes[potes.length - 1].prenom}`);
-
 /** Créer un groupe : un nom et un emoji, puis les potes de ta bande avec qui tu peux discuter (protection des 15-17 ans). */
 export default function NouveauGroupe() {
   const router = useRouter();
-  const { moi, potes } = utiliserCommunaute();
+  const { moi, potes, moyenAjout } = utiliserCommunaute();
   const { peutDiscuterAvec, creerGroupe } = utiliserConversations();
   const [titre, setTitre] = useState("");
   const [emoji, setEmoji] = useState("🍽️");
@@ -38,6 +36,17 @@ export default function NouveauGroupe() {
   const permis = potes.filter((p) => peutDiscuterAvec(p.id));
   const exclus = potes.filter((p) => !peutDiscuterAvec(p.id));
   const choisis = permis.filter((p) => membres.includes(p.id));
+  // Avec un ou une 15-17 ans dans le groupe, tout le monde doit s'être ajouté en vrai : on ne coche pas quelqu'un ajouté par son seul
+  // pseudo quand un mineur est déjà coché, ni un mineur quand quelqu'un ajouté par son pseudo l'est
+  const incompatibles = permis.filter((p) => !membres.includes(p.id) && listerMembresRefusesGroupe(moi, [...choisis, p], moyenAjout).length > 0);
+  const raisons = Object.fromEntries(
+    incompatibles.map((p) => [
+      p.id,
+      p.mineur
+        ? `${p.prenom} a moins de 18 ans : il faudrait que tout le groupe se soit ajouté en vrai, par lien ou QR code`
+        : `${p.prenom} est dans ta bande par son pseudo : avec des 15-17 ans dans le groupe, seulement des potes ajoutés en vrai`,
+    ]),
+  );
   // Moins et plus de 18 ans ensemble : ni photo ni note vocale (et pas de bar), mieux vaut le savoir avant
   const melange = choisis.length > 0 && !peutEnvoyerMedias([moi, ...choisis]);
 
@@ -61,6 +70,7 @@ export default function NouveauGroupe() {
         return;
       }
       if (resultat.erreur === "titre") trouvees.titre = `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_GROUPE} caractères au plus, et des mots gentils.`;
+      else if (resultat.erreur === "en-vrai") trouvees.membres = "Avec des 15-17 ans dans le groupe, tout le monde doit s'être ajouté en vrai, par lien ou QR code. Retire les potes ajoutés par leur pseudo, et c'est parti !";
       else trouvees.membres = `Choisis entre 1 et ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande avec qui tu peux discuter.`;
     }
 
@@ -123,17 +133,24 @@ export default function NouveauGroupe() {
             </Text>
             {/* Toute la bande hors d'atteinte : pas de « bande vide », la note juste dessous explique pourquoi */}
             {permis.length > 0 || exclus.length === 0 ? (
-              <ChoixParticipants potes={permis} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} />
+              <ChoixParticipants potes={permis} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} indisponibles={raisons} />
             ) : null}
             {exclus.length > 0 ? (
               <View className="mt-3 gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
                 <Text className="font-texte text-sm leading-5 text-encre">
                   {lierPonctuation(
-                    `🔐 Pas encore possible avec ${listerPrenoms(exclus)} : pour discuter, ajoutez-vous en vrai, par lien ou QR code. C'est la règle des 15-17 ans, et elle protège tout le monde.`,
+                    `🔐 Pas encore possible avec ${listerPrenoms(exclus.map((p) => p.prenom))} : pour discuter, ajoutez-vous en vrai, par lien ou QR code. C'est la règle des 15-17 ans, et elle protège tout le monde.`,
                   )}
                 </Text>
                 {permis.length === 0 ? <Bouton libelle="Mon lien et mon QR code" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} /> : null}
               </View>
+            ) : null}
+            {incompatibles.length > 0 ? (
+              <Text className="mt-3 overflow-hidden rounded-2xl border-2 border-ligne bg-white px-4 py-3 font-texte text-sm leading-5 text-encre">
+                {lierPonctuation(
+                  `🔐 ${listerPrenoms(incompatibles.map((p) => p.prenom))} ${incompatibles.length > 1 ? "attendront" : "attendra"} un autre groupe : avec des 15-17 ans, tout le monde doit s'être ajouté en vrai, par lien ou QR code. C'est la règle qui protège les plus jeunes.`,
+                )}
+              </Text>
             ) : null}
             {melange ? (
               <Text className="mt-3 overflow-hidden rounded-2xl bg-jaune-clair px-4 py-3 font-texte text-sm leading-5 text-encre">

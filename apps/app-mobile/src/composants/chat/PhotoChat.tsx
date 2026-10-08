@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { File } from "expo-file-system";
 import { Image } from "expo-image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Modal, Platform, Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
+import { Keyboard, Modal, Platform, Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -29,6 +29,9 @@ const DELAI_DOUBLE_APPUI = 300;
 // Ni trop haute, ni trop plate (largeur / hauteur)
 const RATIO_MIN = 0.7;
 const RATIO_MAX = 1.4;
+const RATIO_INCONNU = 0.8;
+// La forme de chaque photo déjà chargée : une bulle qui revient à l'écran (en remontant relire) a tout de suite sa bonne hauteur
+const ratiosConnus = new Map<string, number>();
 
 /** Vrai si le fichier est encore là (sur le web, on ne peut pas vérifier : la photo dira elle-même si elle se charge). */
 function existeEncore(fichier: string): boolean {
@@ -50,7 +53,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
   const animationsReduites = useReducedMotion();
   const present = useMemo(() => !!fichier && existeEncore(fichier), [fichier]);
   const [illisible, setIllisible] = useState(false);
-  const [ratio, setRatio] = useState(0.8);
+  const [ratio, setRatio] = useState(() => (fichier ? ratiosConnus.get(fichier) : undefined) ?? RATIO_INCONNU);
   const [grande, setGrande] = useState(false);
   // Le cœur qui éclot au double appui (son numéro relance l'animation), puis s'efface
   const [coeur, setCoeur] = useState<number | null>(null);
@@ -109,6 +112,8 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
         accessibilityHint="Ouvre la photo en grand"
         onPress={() => {
           vibrerLegerement();
+          // Le clavier resterait par-dessus la photo en grand
+          Keyboard.dismiss();
           setGrande(true);
         }}
         onLongPress={() => {
@@ -125,7 +130,10 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
           contentFit="cover"
           transition={animationsReduites ? 0 : 150}
           onLoad={({ source }) => {
-            if (source.width > 0 && source.height > 0) setRatio(Math.min(RATIO_MAX, Math.max(RATIO_MIN, source.width / source.height)));
+            if (source.width <= 0 || source.height <= 0) return;
+            const forme = Math.min(RATIO_MAX, Math.max(RATIO_MIN, source.width / source.height));
+            ratiosConnus.set(fichier, forme);
+            setRatio(forme);
           }}
           onError={() => setIllisible(true)}
           style={{ flex: 1 }}

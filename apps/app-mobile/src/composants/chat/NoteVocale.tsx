@@ -7,6 +7,7 @@ import { ActivityIndicator, Platform, Pressable, Text, View, type PressableProps
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { estEnregistrementEnCours, jouerNoteVocale, oublierNoteVocale, utiliserAudioChat } from "~/hooks/utiliser-audio-chat";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -26,8 +27,6 @@ type Props = {
 
 type Etat = "arret" | "chargement" | "lecture" | "pause" | "introuvable";
 
-// Une seule note joue à la fois dans toute l'app : lancer une note met l'autre en pause
-let lecteurQuiJoue: AudioPlayer | null = null;
 // Sans nouvelles du fichier au bout de ce délai, on le considère parti (une adresse du navigateur oubliée après rechargement)
 const ATTENTE_MAX = 8000;
 
@@ -55,9 +54,10 @@ async function existeEncore(fichier: string): Promise<boolean> {
 /**
  * Une note vocale du chat : lecture ou pause, barre d'avancée et durée « 0:12 ». Le lecteur n'est créé qu'au premier
  * « lire » (pas un lecteur par message affiché), le son sort du haut-parleur même en mode silencieux, et tout s'arrête
- * quand la bulle quitte l'écran.
+ * quand la bulle quitte l'écran. Une seule note joue à la fois, et aucune pendant que tu enregistres (utiliserAudioChat).
  */
 export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong, actionsLecteur }: Props) {
+  const { enregistrementEnCours } = utiliserAudioChat();
   const lecteur = useRef<AudioPlayer | null>(null);
   const abonnement = useRef<{ remove: () => void } | null>(null);
   const attente = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,7 +75,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
       abonnement.current?.remove();
       const l = lecteur.current;
       if (!l) return;
-      if (lecteurQuiJoue === l) lecteurQuiJoue = null;
+      oublierNoteVocale(l);
       try {
         l.pause();
         l.remove();
@@ -115,13 +115,16 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
 
   async function lire() {
     if (!fichier || !(await existeEncore(fichier))) return setEtat("introuvable");
+    // Pendant un enregistrement, régler le son pour lire couperait le micro (le bouton est d'ailleurs désactivé) ;
+    // vérifié à l'instant, car l'enregistreur a pu s'ouvrir pendant l'attente
+    if (estEnregistrementEnCours()) return;
     try {
       // Le son sort du haut-parleur, même quand le téléphone est en silencieux
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false });
     } catch {
       // Le web n'a pas de mode audio : rien à régler
     }
-    if (demontee.current) return;
+    if (demontee.current || estEnregistrementEnCours()) return;
     let l = lecteur.current;
     if (!l) {
       try {
@@ -137,8 +140,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
         if (!lecteur.current?.isLoaded) setEtat("introuvable");
       }, ATTENTE_MAX);
     }
-    if (lecteurQuiJoue && lecteurQuiJoue !== l) lecteurQuiJoue.pause();
-    lecteurQuiJoue = l;
+    jouerNoteVocale(l);
     l.play();
   }
 
@@ -166,13 +168,16 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
 
   const enCours = etat === "lecture" || etat === "pause";
   const avancee = enCours && duree > 0 ? Math.min(1, position / duree) : 0;
-  const action = etat === "lecture" ? "mettre en pause" : etat === "pause" ? "reprendre" : "lire";
+  // Pendant que tu enregistres une note, les autres attendent leur tour
+  const action = enregistrementEnCours ? "à écouter après ton enregistrement" : etat === "lecture" ? "mettre en pause" : etat === "pause" ? "reprendre" : "lire";
 
   return (
     <View className="w-52 flex-row items-center gap-3">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${libelle}, ${formaterDureeVocalLue(duree)}, ${action}`}
+        accessibilityState={{ disabled: enregistrementEnCours }}
+        disabled={enregistrementEnCours}
         onPress={basculer}
         onLongPress={() => {
           vibrerLegerement();
@@ -180,7 +185,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
         }}
         delayLongPress={350}
         {...actionsLecteur}
-        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre active:opacity-70 ${deMoi ? "bg-white" : "bg-jaune"}`}
+        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre active:opacity-70 ${deMoi ? "bg-white" : "bg-jaune"} ${enregistrementEnCours ? "opacity-40" : ""}`}
       >
         {etat === "chargement" ? (
           <ActivityIndicator size="small" color={couleurs.encre} />

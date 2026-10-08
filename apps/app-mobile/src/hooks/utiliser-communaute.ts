@@ -45,8 +45,9 @@ export type EtatCommunaute = {
   ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "mineur" | "bloque" | "introuvable";
   retirerPote: (id: string) => void;
   /**
-   * Comment ce pote a été ajouté : « pseudo », « exemple » (bande de la démo), ou undefined. Démo : un lien ou un QR code rend
-   * « lien-non-verifie » ou « qr-non-verifie », qui ne comptent pas « en vrai » tant que l'API ne vérifie pas leur code secret.
+   * Comment ce pote de ta bande a été ajouté : « pseudo », « exemple » (bande de la démo), ou undefined (pas ou plus dans ta bande).
+   * Démo : un lien ou un QR code rend « lien-non-verifie » ou « qr-non-verifie », qui ne comptent pas « en vrai » tant que l'API
+   * ne vérifie pas leur code secret.
    */
   moyenAjout: (id: string) => string | undefined;
   bloques: Pote[];

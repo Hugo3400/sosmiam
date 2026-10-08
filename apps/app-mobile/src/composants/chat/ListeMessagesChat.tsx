@@ -3,7 +3,7 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, 
 import {
   AccessibilityInfo,
   FlatList,
-  Platform,
+  Keyboard,
   Pressable,
   Text,
   View,
@@ -41,6 +41,8 @@ type Props = {
   mediasPermis: boolean;
   /** Un ou une 15-17 ans dans la conversation : pas de bar proposé */
   mineurPresent: boolean;
+  /** L'écran est visible (ni quitté, ni recouvert par un profil ou une autre discussion) : seulement alors, les messages reçus sont lus */
+  aLEcran: boolean;
   /** Quelqu'un bloqué depuis le menu d'un message (la feuille est déjà fermée) */
   onBloque: (prenom: string) => void;
   ref?: Ref<PoigneeListeMessages>;
@@ -50,6 +52,9 @@ type Props = {
 const PRES_DU_BAS = 120;
 // Le temps d'un défilement automatique vers le bas : ses positions intermédiaires ne décollent pas la liste du bas
 const DUREE_SUIVI_AUTO = 800;
+// À l'ouverture, toute la conversation est dessinée d'un coup (jusqu'à cette limite) : la liste arrive en bas sans sauts
+const LIGNES_AU_DEPART_MIN = 20;
+const LIGNES_AU_DEPART_MAX = 150;
 
 const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
 const nomDuLieu = (lieuId: number | undefined) => (lieuId === undefined ? undefined : lieuxExemples.find((l) => l.id === lieuId)?.nom);
@@ -58,12 +63,14 @@ const nomDuLieu = (lieuId: number | undefined) => (lieuId === undefined ? undefi
  * Les messages d'une conversation : jour au-dessus de chaque nouvelle journée, séries par auteur, bulles BulleChat.
  * Reste collée en bas tant qu'on y est ; les messages des potes sont lus par le lecteur d'écran dès qu'ils arrivent.
  */
-export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurPresent, onBloque, ref }: Props) {
+export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurPresent, aLEcran, onBloque, ref }: Props) {
   const { trouverPote } = utiliserCommunaute();
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
-  const premierDefilement = useRef(true);
+  // Tant que la liste se remplit à l'ouverture (bulles dessinées par lots, photos qui prennent leur taille), elle descend sans animation :
+  // jusqu'à ton premier geste, ton premier envoi ou le premier message qui arrive
+  const ouverture = useRef(true);
   // Hauteurs connues du contenu et de la partie visible, pour aller pile en bas
   const hauteurs = useRef({ contenu: 0, visible: 0 });
   const finSuiviAuto = useRef(0);
@@ -80,6 +87,9 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   const lignes = useMemo(() => construireLignesDiscussion(conversation.messages, trouverPote, aujourdhui), [conversation.messages, trouverPote, aujourdhui]);
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
   const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
+  const [lignesAuDepart] = useState(() => Math.min(LIGNES_AU_DEPART_MAX, Math.max(LIGNES_AU_DEPART_MIN, lignes.length)));
+  const ecranVisible = useRef(aLEcran);
+  ecranVisible.current = aLEcran;
 
   /**
    * Défile jusqu'au dernier message. Avec les vraies hauteurs quand on les a : scrollToEnd se fie aux mesures des bulles,
@@ -93,6 +103,7 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   }, []);
 
   const allerEnBas = useCallback(() => {
+    ouverture.current = false;
     collerEnBas.current = true;
     setNouveaux(0);
     defilerEnBas(!animationsReduites);
@@ -105,19 +116,21 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
     return () => clearInterval(minuterie);
   }, []);
 
-  // Un nouveau message : le tien te ramène en bas ; celui d'un pote est lu par le lecteur d'écran, sans qu'il faille aller le chercher.
+  // Un nouveau message : le tien te ramène en bas ; celui d'un pote est lu par le lecteur d'écran, sans qu'il faille aller le chercher
+  // (seulement si la discussion est à l'écran : pas pendant que tu écris à quelqu'un d'autre).
   // Avant l'affichage, pour que le défilement qui suit la nouvelle bulle sache déjà s'il doit coller en bas.
   const derniere = lignes[lignes.length - 1];
   useLayoutEffect(() => {
     if (!derniere || derniere.message.date <= dernierVu.current) return;
     dernierVu.current = derniere.message.date;
+    ouverture.current = false;
     if (derniere.deMoi) {
       collerEnBas.current = true;
       setNouveaux(0);
       return;
     }
     if (!collerEnBas.current) setNouveaux((n) => n + 1);
-    AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", nomDuLieu(derniere.message.lieuId)));
+    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", nomDuLieu(derniere.message.lieuId)));
   }, [derniere]);
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -144,6 +157,8 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   }
 
   const ouvrirMenu = useCallback((ligne: LigneDiscussion) => {
+    // Le clavier cacherait le bas de la feuille
+    Keyboard.dismiss();
     setMenu({ message: ligne.message, auteur: ligne.auteur, deMoi: ligne.deMoi });
     setMenuOuvert(true);
   }, []);
@@ -227,20 +242,25 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
         data={lignes}
         keyExtractor={cleLigne}
         renderItem={afficherLigne}
-        initialNumToRender={20}
+        initialNumToRender={lignesAuDepart}
         maxToRenderPerBatch={12}
         windowSize={11}
+        // Une photo plus haut qui prend sa taille ne fait pas sauter ce que tu relis
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        // « interactive » laisserait le champ en l'air pendant le geste (l'écran ne suit le clavier qu'au lâcher)
+        keyboardDismissMode="on-drag"
         contentContainerClassName="px-4 pb-3 pt-2"
         onScroll={suivreDefilement}
+        onScrollBeginDrag={() => {
+          ouverture.current = false;
+        }}
         scrollEventThrottle={100}
         onLayout={suivreTaille}
         onContentSizeChange={(_largeur, hauteur) => {
           hauteurs.current.contenu = hauteur;
           // À l'ouverture, on arrive directement sur les derniers messages ; ensuite, on suit les nouveaux en douceur
-          if (collerEnBas.current) defilerEnBas(!premierDefilement.current && !animationsReduites);
-          premierDefilement.current = false;
+          if (collerEnBas.current) defilerEnBas(!ouverture.current && !animationsReduites);
         }}
         ListHeaderComponent={enTete}
         ListEmptyComponent={vide}

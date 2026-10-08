@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
-import { REACTIONS_CHAT, type MessageChat } from "@sos-miam/commun/types/conversations";
+import { REACTIONS_CHAT, type MessageChat, type ReactionChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
@@ -37,6 +37,8 @@ type Props = {
 type Vue = "options" | "signaler" | "bloquer";
 
 const TAILLE_REACTION = 52;
+// Le temps que la feuille se referme : la confirmation n'est pas coupée par le lecteur d'écran qui revient sur la conversation
+const DELAI_ANNONCE_REACTION = 400;
 
 /** Ce qu'on signale : « ce message », « cette photo », « cette note vocale », « ce lieu partagé » */
 const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale" };
@@ -63,12 +65,14 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
-  const { bloquer } = utiliserCommunaute();
+  const { bloquer, potes, estSignale } = utiliserCommunaute();
   const { basculerReaction, trouverConversation } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreBlocage = useRef<Text>(null);
   const [vue, setVue] = useState<Vue>("options");
+  // Déjà signalé en ouvrant le signalement ? Sert à distinguer « Retour » (rien d'envoyé) de « Fermer » (après le merci)
+  const [dejaSignale, setDejaSignale] = useState(false);
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -82,6 +86,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   }, [vue]);
 
   function aller(vers: Vue) {
+    if (vers === "signaler" && message) setDejaSignale(estSignale(message.id));
     setVue(vers);
     // Le lecteur d'écran reprend sur le titre de la nouvelle vue (l'élément qu'il lisait vient de disparaître)
     if (vers === "options") setTimeout(() => deplacerFocusLecteurEcran(titreOptions.current), 150);
@@ -94,7 +99,25 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
     else aller("options");
   }
 
+  // Fin du signalement : « Fermer » après le merci ferme le menu ; « Retour » sans rien envoyer ramène aux options
+  const terminerSignalement = () => (message && !dejaSignale && estSignale(message.id) ? onFermer() : aller("options"));
+
+  /** Met ou retire ta réaction, referme la feuille, et le lecteur d'écran confirme (comme le cœur de la bulle) */
+  function reagir(reaction: ReactionChat, dejaChoisie: boolean) {
+    if (!message) return;
+    vibrerLegerement();
+    basculerReaction(conversationId, message.id, reaction);
+    onFermer();
+    const annonce = `Réaction ${nommerReactionChat(reaction)} ${dejaChoisie ? "retirée" : "mise"}`;
+    setTimeout(() => {
+      if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(annonce, { queue: true });
+      else AccessibilityInfo.announceForAccessibility(annonce);
+    }, DELAI_ANNONCE_REACTION);
+  }
+
   const prenom = auteur?.prenom ?? "cette personne";
+  // Quelqu'un d'un groupe n'est pas forcément dans ta bande : on ne lui annonce pas qu'il en sort
+  const dansBande = !!auteur && potes.some((p) => p.id === auteur.id);
   const sujet = message ? SUJETS[message.type] : "ce message";
   // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
   const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
@@ -120,7 +143,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
           <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
             {vue === "signaler" && message && !deMoi ? (
-              <SignalerContenu cible="message" cibleId={message.id} sujet={`${sujet} de ${prenom}`} onTermine={onFermer} />
+              <SignalerContenu cible="message" cibleId={message.id} sujet={`${sujet} de ${prenom}`} onTermine={terminerSignalement} />
             ) : vue === "bloquer" && auteur && !deMoi ? (
               <View className="gap-4">
                 <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
@@ -128,7 +151,9 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                 </Text>
                 <Text className="font-texte text-base leading-6 text-encre">
                   {lierPonctuation(
-                    `${prenom} sortira de ta bande, ses messages disparaîtront pour toi et vous ne pourrez plus vous écrire en privé. Tu restes tranquille, c'est tout ce qui compte.`,
+                    dansBande
+                      ? `${prenom} sortira de ta bande, ses messages disparaîtront pour toi et vous ne pourrez plus vous écrire en privé. Tu restes tranquille, c'est tout ce qui compte.`
+                      : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
                   )}
                 </Text>
                 <Bouton
@@ -169,11 +194,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                             accessibilityState={{ selected: choisie }}
                             accessibilityLabel={`${nommerReactionChat(reaction)}, réaction ${i + 1} sur ${REACTIONS_CHAT.length}`}
                             accessibilityHint={choisie ? "Retire ta réaction" : "Réagis à ce message"}
-                            onPress={() => {
-                              vibrerLegerement();
-                              basculerReaction(conversationId, message.id, reaction);
-                              onFermer();
-                            }}
+                            onPress={() => reagir(reaction, choisie)}
                             style={{ width: TAILLE_REACTION, height: TAILLE_REACTION, borderRadius: TAILLE_REACTION / 2 }}
                             className={`items-center justify-center border-2 active:opacity-70 ${choisie ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
                           >

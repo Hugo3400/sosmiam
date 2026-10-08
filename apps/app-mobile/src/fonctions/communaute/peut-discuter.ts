@@ -1,5 +1,5 @@
-import { MOYENS_AJOUT_EN_VRAI } from "@sos-miam/commun/regles/chat";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { estAjouteEnVrai } from "~/fonctions/communaute/est-ajoute-en-vrai";
 
 /**
  * Vrai si tu peux discuter avec ce pote : entre adultes, toujours (dans ta bande) ; dès qu'un des deux est mineur,
@@ -7,5 +7,5 @@ import type { Pote } from "@sos-miam/commun/types/potes";
  */
 export function peutDiscuter(moi: Pote, pote: Pote, moyenAjout: string | undefined): boolean {
   if (!moi.mineur && !pote.mineur) return true;
-  return moyenAjout !== undefined && MOYENS_AJOUT_EN_VRAI.includes(moyenAjout);
+  return estAjouteEnVrai(moyenAjout);
 }

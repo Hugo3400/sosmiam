@@ -10,6 +10,7 @@ import { formaterChronoEnregistrement } from "~/fonctions/chat/formater-chrono-e
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { signalerEnregistrement } from "~/hooks/utiliser-audio-chat";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
@@ -65,6 +66,7 @@ function jeterFichierTemporaire(uri: string | null) {
 /**
  * Une note vocale qui s'enregistre dès l'ouverture (après l'autorisation du micro) : point rouge, chrono jusqu'à une minute,
  * « Annuler » ou « Envoyer ». À la minute, elle part toute seule ; si l'écran se ferme en route, rien n'est envoyé.
+ * Tant qu'il est ouvert, aucune note du chat ne joue (celle qui jouait se met en pause) : voir utiliserAudioChat.
  */
 export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props) {
   const conversations = utiliserConversations();
@@ -79,6 +81,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   const lance = useRef(false);
   const termine = useRef(false);
   const monte = useRef(true);
+  // Le fichier que remplit l'enregistreur, à jeter si l'écran se ferme en plein enregistrement
+  const fichierEnCours = useRef<string | null>(null);
   const alerteFaite = useRef(false);
   // Les derniers rappels, pour les appels qui arrivent après une attente (autorisation, arrêt, copie du fichier)
   const rappels = useRef({ conversations, onEnvoye, onAbandon });
@@ -89,6 +93,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     lance.current = false;
     termine.current = false;
     monte.current = true;
+    // Avant tout réglage du son : la note qui jouait se tait (le micro l'entendrait), et plus aucune ne se lance
+    signalerEnregistrement(true);
     (async () => {
       try {
         const permission = await requestRecordingPermissionsAsync();
@@ -106,6 +112,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         if (quitte || termine.current) return void remettreModeAudio();
         enregistreur.record();
         lance.current = true;
+        fichierEnCours.current = enregistreur.uri;
         setPhase("enregistrement");
         AccessibilityInfo.announceForAccessibility("Enregistrement en cours");
         setTimeout(() => deplacerFocusLecteurEcran(chrono.current), 150);
@@ -119,15 +126,19 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     return () => {
       quitte = true;
       monte.current = false;
-      // Démontage en plein enregistrement : on coupe sans rien envoyer (l'enregistreur libéré s'arrête aussi de lui-même)
+      // Démontage en plein enregistrement : on coupe sans rien envoyer et on jette le fichier (l'enregistreur libéré s'arrête aussi de lui-même)
       if (lance.current && !termine.current) {
         termine.current = true;
+        const fichier = fichierEnCours.current;
+        const jeter = () => jeterFichierTemporaire(fichier);
         try {
-          enregistreur.stop().catch(() => {});
+          enregistreur.stop().then(jeter, jeter);
         } catch {
-          // Déjà libéré
+          // Déjà libéré, donc déjà arrêté
+          jeter();
         }
       }
+      signalerEnregistrement(false);
       void remettreModeAudio();
     };
   }, [enregistreur]);

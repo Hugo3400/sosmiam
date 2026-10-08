@@ -1,6 +1,6 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import { AccessibilityInfo, AppState, Keyboard, KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
@@ -12,6 +12,7 @@ import { MenuDiscussion } from "~/composants/chat/MenuDiscussion";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { mettreEnPauseNoteQuiJoue } from "~/hooks/utiliser-audio-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 
@@ -27,7 +28,7 @@ export default function EcranDiscussion() {
   const marges = useSafeAreaInsets();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const conversations = utiliserConversations();
-  const { pret: communautePrete, trouverPote, bloques } = utiliserCommunaute();
+  const { pret: communautePrete, trouverPote, bloques, potes, moiMineur } = utiliserCommunaute();
   const liste = useRef<PoigneeListeMessages>(null);
   // Juste après avoir bloqué ou quitté : rien à montrer le temps de revenir à la liste
   const [partie, setPartie] = useState(false);
@@ -48,11 +49,15 @@ export default function EcranDiscussion() {
       .filter((p): p is Pote => p !== null);
   }, [conversation?.participants, bloques, trouverPote]);
 
-  // Messages lus : à l'ouverture, au retour dans l'app, et à chaque message qui arrive pendant que tu es là
+  // Messages lus : à l'ouverture, au retour dans l'app, et à chaque message qui arrive pendant que tu es là.
+  // Écran quitté ou recouvert (profil, autre discussion) : la note vocale qui jouait se tait
   useFocusEffect(
     useCallback(() => {
       setALEcran(true);
-      return () => setALEcran(false);
+      return () => {
+        setALEcran(false);
+        mettreEnPauseNoteQuiJoue();
+      };
     }, []),
   );
   useEffect(() => {
@@ -99,6 +104,9 @@ export default function EcranDiscussion() {
   const groupe = conversation.type === "groupe";
   const poteId = groupe ? null : (conversation.participants.find((p) => p !== ID_MOI) ?? null);
   const pote = poteId ? trouverPote(poteId) : null;
+  const dansBande = pote !== null && potes.some((p) => p.id === pote.id);
+  // Avec un ou une 15-17 ans (toi compris), on se rajoute seulement en vrai, par lien ou QR code
+  const parLienSeulement = !!pote && (pote.mineur || moiMineur);
   const ecriturePermise = groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId));
   const mediasPermis = conversations.peutEnvoyerMedias(conversation.id);
   const mineurPresent = conversation.participants.some((p) => trouverPote(p)?.mineur);
@@ -117,9 +125,27 @@ export default function EcranDiscussion() {
       {/* « padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre pour le clavier */}
       <KeyboardAvoidingView behavior={Platform.OS === "web" ? undefined : "padding"} style={{ flex: 1 }}>
         <View style={{ flex: 1, paddingTop: marges.top }}>
-          <EnTeteDiscussion conversation={conversation} membres={membres} onRetour={retour} onOptions={() => setMenuOuvert(true)} onVoirProfil={voirProfil} />
+          <EnTeteDiscussion
+            conversation={conversation}
+            membres={membres}
+            onRetour={retour}
+            onOptions={() => {
+              // Le clavier cacherait le bas de la feuille
+              Keyboard.dismiss();
+              setMenuOuvert(true);
+            }}
+            onVoirProfil={voirProfil}
+          />
 
-          <ListeMessagesChat ref={liste} conversation={conversation} membres={membres} mediasPermis={mediasPermis} mineurPresent={mineurPresent} onBloque={apresBlocage} />
+          <ListeMessagesChat
+            ref={liste}
+            conversation={conversation}
+            membres={membres}
+            mediasPermis={mediasPermis}
+            mineurPresent={mineurPresent}
+            aLEcran={aLEcran}
+            onBloque={apresBlocage}
+          />
 
           {ecriturePermise ? (
             <ChampChat conversationId={conversation.id} margeBas={marges.bottom} onEnvoye={() => liste.current?.allerEnBas()} onAnnoncer={annoncer} />
@@ -130,12 +156,18 @@ export default function EcranDiscussion() {
               </Text>
               <Text className="font-texte text-sm leading-5 text-gris">
                 {lierPonctuation(
-                  pote
-                    ? `Avec les 15-17 ans, on ne discute qu'entre potes ajoutés en vrai, par lien ou QR code. Ajoutez-vous comme ça, ${pote.prenom} et toi, et c'est reparti !`
-                    : "Cette personne n'est plus sur SOS Miam : tu peux relire vos messages, mais plus lui en envoyer.",
+                  !pote
+                    ? "Cette personne n'est plus sur SOS Miam : tu peux relire vos messages, mais plus lui en envoyer."
+                    : !dansBande
+                      ? `${pote.prenom} n'est plus dans ta bande : vos messages restent là, mais pour vous réécrire, il faut d'abord vous rajouter${parLienSeulement ? ", en vrai, par lien ou QR code (la règle des 15-17 ans)" : ""}.`
+                      : `Avec les 15-17 ans, on ne discute qu'entre potes ajoutés en vrai, par lien ou QR code. Ajoutez-vous comme ça, ${pote.prenom} et toi, et c'est reparti !`,
                 )}
               </Text>
-              {pote ? <Bouton libelle="Ajouter par lien ou QR code" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} className="mt-1 self-start" /> : null}
+              {!pote ? null : parLienSeulement ? (
+                <Bouton libelle="Ajouter par lien ou QR code" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} className="mt-1 self-start" />
+              ) : (
+                <Bouton libelle={`Voir le profil de ${pote.prenom}`} variante="blanc" petit onPress={() => voirProfil(pote.id)} className="mt-1 self-start" />
+              )}
             </View>
           )}
         </View>

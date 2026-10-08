@@ -19,10 +19,12 @@ type Props = {
   onBasculer: (id: string) => void;
   /** Message sous la liste (ex. personne d'invité) */
   erreur?: string | null;
+  /** Potes qu'on ne peut pas cocher pour l'instant (identifiant → pourquoi, lu par le lecteur d'écran) ; ceux déjà cochés restent décochables */
+  indisponibles?: Record<string, string>;
 };
 
 /** Choisir les potes à inviter dans ta bande : une ligne par pote, cochée ou non. */
-export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur }: Props) {
+export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, indisponibles }: Props) {
   const router = useRouter();
   const complet = choisis.length >= max;
 
@@ -41,7 +43,8 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur }: P
     <View className="gap-1">
       {potes.map((pote) => {
         const choisi = choisis.includes(pote.id);
-        const bloque = complet && !choisi;
+        const raison = choisi ? undefined : indisponibles?.[pote.id];
+        const bloque = (complet && !choisi) || raison !== undefined;
         return (
           <Pressable
             key={pote.id}
@@ -49,7 +52,7 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur }: P
             accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
             accessibilityState={Platform.OS === "ios" ? { selected: choisi, disabled: bloque } : { checked: choisi, disabled: bloque }}
             accessibilityLabel={`${pote.prenom}, ${pote.ville}`}
-            accessibilityHint={bloque ? `${max} invités au plus par sortie` : undefined}
+            accessibilityHint={raison ?? (bloque ? `${max} invités au plus par sortie` : undefined)}
             disabled={bloque}
             onPress={() => {
               vibrerLegerement();
