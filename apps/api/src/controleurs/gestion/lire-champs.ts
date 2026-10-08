@@ -1,8 +1,10 @@
 // Petits lecteurs des champs envoyés par le logiciel de gestion : ils nettoient, ou disent quel champ ne va pas.
 
 export class ChampInvalide extends Error {
-  constructor(readonly champ: string) {
+  readonly champ: string;
+  constructor(champ: string) {
     super(`champ invalide : ${champ}`);
+    this.champ = champ;
   }
 }
 

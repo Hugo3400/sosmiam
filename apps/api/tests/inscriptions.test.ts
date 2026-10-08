@@ -37,15 +37,22 @@ function inscrire(corps: unknown, ip = `203.0.113.${++visiteur}`) {
 }
 
 test("une inscription valable est enregistrée, nettoyée", async () => {
-  const reponse = await inscrire({ email: "  Lea.Martin@Exemple.FR ", ville: "  Montpellier  ", ambassadeur: true });
+  const reponse = await inscrire({ email: "  Lea.Martin@Exemple.FR ", ville: "  Montpellier  ", ambassadeur: true, telephone: "android", beta: true });
   assert.equal(reponse.status, 201);
   assert.deepEqual(await reponse.json(), { ok: true });
-  assert.deepEqual(enregistrees, [{ email: "lea.martin@exemple.fr", ville: "Montpellier", ambassadeur: true, source: "site" }]);
+  assert.deepEqual(enregistrees, [
+    { email: "lea.martin@exemple.fr", ville: "Montpellier", ambassadeur: true, telephone: "android", beta: true, source: "site" },
+  ]);
 });
 
-test("sans ville ni case cochée, la ville est vide et ambassadeur faux", async () => {
-  await inscrire({ email: "tom@exemple.fr", ambassadeur: "oui" });
-  assert.deepEqual(enregistrees, [{ email: "tom@exemple.fr", ville: null, ambassadeur: false, source: "site" }]);
+test("sans ville, sans téléphone ni case cochée : tout reste vide ou faux", async () => {
+  await inscrire({ email: "tom@exemple.fr", ambassadeur: "oui", beta: "oui" });
+  assert.deepEqual(enregistrees, [{ email: "tom@exemple.fr", ville: null, ambassadeur: false, telephone: null, beta: false, source: "site" }]);
+});
+
+test("seuls « iphone » et « android » sont acceptés comme téléphone", async () => {
+  for (const telephone of ["iphone", "android", "nokia", "IPHONE", 3, ""]) await inscrire({ email: "ana@exemple.fr", telephone });
+  assert.deepEqual(enregistrees.map((inscription) => inscription.telephone), ["iphone", "android", null, null, null, null]);
 });
 
 test("une ville trop longue est coupée à 80 caractères", async () => {

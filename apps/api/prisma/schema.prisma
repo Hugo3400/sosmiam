@@ -20,6 +20,10 @@ model InscriptionNewsletter {
   ville               String?  @db.VarChar(80)
   /// La personne a coché « Je veux devenir ambassadeur fondateur » (au moins une fois)
   ambassadeur         Boolean  @default(false)
+  /// Son téléphone, pour savoir sur quel store publier l'app : « iphone », « android », ou rien si non précisé
+  telephone           String?  @db.VarChar(10)
+  /// La personne veut tester l'app avant sa sortie (bêta), au moins une fois
+  beta                Boolean  @default(false)
   /// D'où vient l'inscription : « site » pour le formulaire de l'accueil
   source              String   @db.VarChar(40)
   premiereInscription DateTime @default(now()) @map("premiere_inscription") @db.Timestamptz(0)

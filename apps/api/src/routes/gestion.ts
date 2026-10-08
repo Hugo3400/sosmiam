@@ -4,7 +4,7 @@ import { creerControleursGestion } from "../controleurs/gestion/controleurs-gest
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion } from "../middlewares/proteger-gestion.ts";
 import type { AccesGestion } from "../services/gestion/acces.ts";
-import { TAILLE_MAX_VIDEO } from "../services/gestion/medias.ts";
+import { TAILLE_MAX_VIDEO } from "../services/gestion/formats-medias.ts";
 import type { ServicesGestion } from "../services/gestion/tous-les-services.ts";
 
 export type DependancesGestion = {
