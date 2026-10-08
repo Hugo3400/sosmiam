@@ -52,8 +52,6 @@ export default function ReseauPersonne() {
   useEffect(() => {
     if (mesAbonnes === null && suivis.pret) setMesAbonnes(suivis.abonnes);
   }, [mesAbonnes, suivis.pret, suivis.abonnes]);
-  // Ceux dont « Retirer » est allé au bout (feuille refermée) : leur ligne n'a plus de bouton
-  const [retires, setRetires] = useState<ReadonlySet<string>>(() => new Set());
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
 
@@ -146,9 +144,8 @@ export default function ReseauPersonne() {
                 p,
                 i === lignes.length - 1,
                 `@${p.pseudo}${meSuitEncore ? "" : " · Ne te suit plus"}`,
-                retires.has(p.id) ? null : (
-                  <BoutonRetirerAbonne id={p.id} prenom={p.prenom} onRetire={() => setRetires((r) => new Set(r).add(p.id))} onAnnoncer={annoncer} />
-                ),
+                // Le bouton reste en place et devient « Retiré » (VoiceOver s'y pose : il ne perd pas sa place dans la liste)
+                <BoutonRetirerAbonne id={p.id} prenom={p.prenom} onAnnoncer={annoncer} />,
               );
             })}
           </View>

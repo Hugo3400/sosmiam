@@ -1,13 +1,14 @@
 import { Lock } from "lucide-react";
 
 import { MENU, type Ecran } from "~/contenus/menu.ts";
+import type { Pastille } from "~/fonctions/alertes/calculer-pastilles.ts";
 
 type Props = {
   ecran: Ecran;
   onChoisir: (ecran: Ecran) => void;
   poste: string;
   /** Pastille de chaque écran : combien attendent, ce que ça veut dire, et en rouge si c'est urgent */
-  pastilles: Partial<Record<Ecran, { nombre: number; libelle: string; urgent?: boolean }>>;
+  pastilles: Partial<Record<Ecran, Pastille>>;
   onVerrouiller: () => void;
 };
 

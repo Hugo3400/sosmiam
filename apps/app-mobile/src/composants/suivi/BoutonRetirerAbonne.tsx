@@ -85,18 +85,18 @@ export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props)
           <Text className="font-texte-semi text-[13px] text-gris">Retiré</Text>
         </View>
       ) : (
-      <Pressable
-        accessibilityRole="button"
-        // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Retirer »)
-        accessibilityLabel={`Retirer ${prenom} de tes abonnés`}
-        accessibilityHint="Ouvre une confirmation. On ne prévient personne."
-        // 36 pt de haut à l'écran, 48 pt sous le doigt
-        hitSlop={6}
-        onPress={toucher}
-        className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
-      >
-        <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Retirer »)
+          accessibilityLabel={`Retirer ${prenom} de tes abonnés`}
+          accessibilityHint="Ouvre une confirmation. On ne prévient personne."
+          // 36 pt de haut à l'écran, 48 pt sous le doigt
+          hitSlop={6}
+          onPress={toucher}
+          className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+        >
+          <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
+        </Pressable>
       )}
       {/* Préparée seulement au premier toucher : rien de plus à dessiner pour chaque ligne de la liste */}
       {feuille === "jamais" ? null : (
