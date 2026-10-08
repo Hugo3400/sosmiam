@@ -2,6 +2,8 @@
 // Toute nouveauté (app, pub, cookies de mesure, prestataire d'e-mails, bons solidaires) doit être ajoutée ici AVANT de démarrer.
 // Statistiques de visite (8 octobre 2026) : comptage côté serveur, sans cookie, dans les conditions d'exemption de la CNIL
 // (apps/api/src/services/mesure.ts, apps/site-web/src/services/mesure.server.ts, page /statistiques pour s'y opposer).
+// Espace ambassadeur (8 octobre 2026) : comptes dès 18 ans, section « Ton compte ambassadeur » dans
+// confidentialite-compte-ambassadeur.ts (apps/api/src/services/comptes.ts ; durées et sécurité : docs/decisions.md).
 // À CONFIRMER AVEC FEELB AVANT MISE EN LIGNE : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189, Exoscale / Akenes SA,
 // Genève, Suisse). Qui exploite ce serveur, et où la boîte bonjour@ est-elle stockée ? Adapter « messagerie » ci-dessous.
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
@@ -16,12 +18,12 @@ const lienPolitiqueCloudflare = "[politique de confidentialité](https://www.clo
 export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
-    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails et newsletter. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
+    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter et compte ambassadeur. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
   miseAJour: "8 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
-    "SOS Miam est encore en préparation : l'app est en développement, et il n'y a ni compte ni pub pour l'instant. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
+    "SOS Miam est encore en préparation : l'app est en développement, et il n'y a pas de pub pour l'instant. Le seul compte qui existe aujourd'hui est celui de l'espace ambassadeur, dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
   sections: [
     {
@@ -30,16 +32,17 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
             "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
             "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
-            "**Si tu nous écris** (lieu à inscrire, candidature d'ambassadeur, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
+            "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Sans aucune visite pendant 1 an, ton compte est effacé, et tu peux le supprimer toi-même à tout moment.",
+            "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
             "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
             "**On ne vend jamais tes données**, et on ne les loue pas.",
-            `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation.`,
+            `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation. Ton compte ambassadeur, lui, se corrige et se supprime aussi directement dans ton espace.`,
           ],
         },
       ],

@@ -39,7 +39,7 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
         {ambassadeur.decideLe && (
           <p className="mt-3 max-w-xl text-lg">
             Ton compte sera effacé le <strong><DateEnLettres iso={ambassadeur.decideLe} plusJours={30} /></strong>, avec tout ce qui va avec.
-            {" "}Tu peux aussi l'effacer tout de suite depuis « Mon compte ».
+            {" "}{lierPonctuation("Tu peux aussi l'effacer tout de suite depuis « Mon compte ».")}
           </p>
         )}
         <p className="mt-3 max-w-xl text-gris">{lierPonctuation("Tu peux toujours suivre l'aventure sur sosmiam.fr.")}</p>
