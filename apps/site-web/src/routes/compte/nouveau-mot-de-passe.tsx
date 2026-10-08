@@ -69,7 +69,7 @@ export default function PageNouveauMotDePasse({ actionData }: Route.ComponentPro
 
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo="Choisis-en un nouveau : il remplace l'ancien tout de suite.">Nouveau mot de passe</TitreSection>
+      <TitreSection principal chapo={lierPonctuation("Choisis-en un nouveau : il remplace l'ancien tout de suite.")}>Nouveau mot de passe</TitreSection>
       {reussi ? (
         <div className="rounded-carte border-2 border-encre bg-jaune px-6 py-10 text-center shadow-brut-grand md:px-12">
           <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24" />
