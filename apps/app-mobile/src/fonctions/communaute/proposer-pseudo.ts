@@ -1,5 +1,5 @@
-import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
+import { nomPublicContientMotInterdit } from "@sos-miam/commun/validation/nom-public-contient-mot-interdit";
 
 import { potesExemples } from "~/contenus/potes-exemples";
 
@@ -27,7 +27,8 @@ export function proposerPseudo(prenom: string, hasard: () => number = Math.rando
       .replace(/[^a-z0-9]+/g, ".")
       .slice(0, LONGUEUR_MAX_RACINE)
       .replace(/^\.+|\.+$/g, "") || RACINE_DE_SECOURS;
-  const base = contientMotInterdit(racine) ? RACINE_DE_SECOURS : racine;
+  // Même filtre que l'écran qui valide le pseudo : le prénom « Con » ne doit pas faire proposer « con42 », refusé ensuite
+  const base = nomPublicContientMotInterdit(racine) ? RACINE_DE_SECOURS : racine;
   const pris = new Set(potesExemples.map((pote) => pote.pseudo));
 
   for (let essai = 0; essai < ESSAIS; essai++) {

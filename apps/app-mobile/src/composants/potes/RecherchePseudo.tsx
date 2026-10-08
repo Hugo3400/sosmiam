@@ -93,7 +93,9 @@ export function RecherchePseudo() {
                 </Text>
               </View>
               {dejaDansLaBande ? (
-                <Text className="font-texte-semi text-[13px] text-gris">✓ Déjà dans ta bande</Text>
+                <Text accessibilityLabel="Déjà dans ta bande" className="font-texte-semi text-[13px] text-gris">
+                  ✓ Déjà dans ta bande
+                </Text>
               ) : (
                 <Pressable
                   accessibilityRole="button"

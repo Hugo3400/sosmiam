@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -20,6 +21,7 @@ export function ClassementPotes() {
   // « d'octobre », « de mars »
   const titre = `Classement ${/^[aeiouyéè]/.test(mois) ? "d'" : "de "}${mois}`;
   const seul = classement.length <= 1;
+  const sousTitre = seul ? "Ajoute des potes : c'est plus drôle avec quelqu'un à dépasser 😏" : "Les points gagnés ce mois-ci, entre toi et ta bande.";
 
   return (
     <View className="gap-3">
@@ -27,8 +29,8 @@ export function ClassementPotes() {
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
           {titre}
         </Text>
-        <Text className="font-texte text-sm text-gris">
-          {lierPonctuation(seul ? "Ajoute des potes : c'est plus drôle avec quelqu'un à dépasser 😏" : "Les points gagnés ce mois-ci, entre toi et ta bande.")}
+        <Text accessibilityLabel={retirerEmoji(sousTitre)} className="font-texte text-sm text-gris">
+          {lierPonctuation(sousTitre)}
         </Text>
       </View>
 

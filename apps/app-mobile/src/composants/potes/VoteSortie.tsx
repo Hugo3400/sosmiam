@@ -143,7 +143,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
       {voteFini ? null : (
         <View className="gap-3">
           {avecMineur ? (
-            <Text className="font-texte text-sm leading-5 text-gris">
+            <Text accessibilityLabel="Pas de bar pour cette sortie : tout le monde n'a pas encore 18 ans." className="font-texte text-sm leading-5 text-gris">
               {lierPonctuation("🧃 Pas de bar pour cette sortie : tout le monde n'a pas encore 18 ans.")}
             </Text>
           ) : null}

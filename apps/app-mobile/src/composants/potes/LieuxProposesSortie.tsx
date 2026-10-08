@@ -10,6 +10,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import couleurs from "~/theme/couleurs";
@@ -75,9 +76,13 @@ export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, note, er
         </View>
       )}
 
-      {note ? <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(note)}</Text> : null}
+      {note ? (
+        <Text accessibilityLabel={retirerEmoji(note)} className="font-texte text-sm leading-5 text-gris">
+          {lierPonctuation(note)}
+        </Text>
+      ) : null}
       {erreur ? (
-        <Text className="font-texte text-sm leading-5 text-rouge-texte">
+        <Text accessibilityLabel={retirerEmoji(erreur)} className="font-texte text-sm leading-5 text-rouge-texte">
           {lierPonctuation(erreur)}
         </Text>
       ) : null}

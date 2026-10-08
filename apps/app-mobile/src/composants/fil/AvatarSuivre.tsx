@@ -45,7 +45,7 @@ export function AvatarSuivre({ emoji, nom, createur, suivi, onOuvrir, onSuivre }
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Suivre ${nom}`}
-            accessibilityHint="Ses prochaines publications remonteront dans ton fil"
+            accessibilityHint="Ses prochaines publications passeront en tête de ton fil"
             // 40 × 32 pt posés sur le bas de l'avatar, 44 × 44 pt sous le doigt
             hitSlop={{ top: 4, bottom: 8, left: 2, right: 2 }}
             onPress={() => {

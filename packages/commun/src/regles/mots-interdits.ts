@@ -50,7 +50,7 @@ export const MORCEAUX_INTERDITS: readonly string[] = [
   "connard", "connasse", "conasse", "salope", "salopard", "salaud", "encule", "enfoire", "batard", "tarlouze", "tafiole",
   "bougnoul", "youpin", "gouine", "mongolien", "retarde mental", "espece de mongol", "espece de retarde",
   "fils de pute", "nique ta mere", "nique ta race", "nique ta soeur", "ferme ta gueule",
-  "sale arabe", "sale noir", "sale juif", "sale juive", "sale blanc",
+  "sale arabe", "sale noir", "sale juif", "sale juive", "sale blanc", "sale pute",
   "suicide toi", "va te suicider", "va crever", "je vais te tuer", "je vais te buter",
 ];
 

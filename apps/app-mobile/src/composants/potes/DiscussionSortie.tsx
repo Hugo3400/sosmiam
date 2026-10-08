@@ -10,6 +10,7 @@ import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import couleurs from "~/theme/couleurs";
 
@@ -97,7 +98,7 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
       return;
     }
     setErreur(REFUS[resultat]);
-    AccessibilityInfo.announceForAccessibility(REFUS[resultat].replace(/ 😉/, ""));
+    AccessibilityInfo.announceForAccessibility(retirerEmoji(REFUS[resultat]));
   }
 
   const longueur = texte.trim().length;
@@ -172,10 +173,14 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
       />
 
       <View style={{ paddingBottom: clavierOuvert ? 8 : margeBas + 8 }} className="gap-1.5 border-t border-ligne bg-creme px-4 pt-2">
-        {erreur ? <Text className="font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreur)}</Text> : null}
+        {erreur ? (
+          <Text accessibilityLabel={retirerEmoji(erreur)} className="font-texte-semi text-sm leading-5 text-rouge-texte">
+            {lierPonctuation(erreur)}
+          </Text>
+        ) : null}
         <View className="flex-row items-end gap-2">
           <TextInput
-            accessibilityLabel={erreur ? `Ton message. ${erreur}` : "Ton message"}
+            accessibilityLabel={erreur ? `Ton message. ${retirerEmoji(erreur)}` : "Ton message"}
             value={texte}
             onChangeText={(nouveau) => {
               setTexte(nouveau);

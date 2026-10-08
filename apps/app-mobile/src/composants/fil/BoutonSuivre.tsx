@@ -23,7 +23,7 @@ export function BoutonSuivre({ suivi, nom, onPress }: Props) {
       accessibilityRole="button"
       // L'état est dans le libellé, en français (pas d'état « sélectionné » en plus, il ferait doublon)
       accessibilityLabel={suivi ? `Tu suis ${nom}` : `Suivre ${nom}`}
-      accessibilityHint={suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications remonteront dans ton fil"}
+      accessibilityHint={suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil"}
       // 32 pt de haut à l'écran, 48 pt sous le doigt
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
       onPress={() => {

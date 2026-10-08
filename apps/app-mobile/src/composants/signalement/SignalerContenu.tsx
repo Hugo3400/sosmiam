@@ -21,7 +21,7 @@ type Props = {
 };
 
 /**
- * Signaler un commentaire, un message de sortie ou un profil, à placer dans une feuille : la raison, les précisions et
+ * Signaler un commentaire, un message de sortie, un lieu envoyé par un pote, une liste ou un profil, à placer dans une feuille : la raison, les précisions et
  * le pourquoi (mêmes étapes que pour une publication), puis merci. Le contenu signalé disparaît pour toi.
  * À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
  */
@@ -35,7 +35,7 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   const titreMerci = useRef<Text>(null);
 
   // Ce qu'on vient de toucher a disparu (le menu, une raison, « Envoyer ») : le lecteur d'écran repart du titre de la nouvelle étape.
-  // Aussi à l'ouverture, que l'on vienne d'un message, d'un commentaire ou d'une recommandation
+  // Aussi à l'ouverture, que l'on vienne d'un message, d'un commentaire, d'un lieu envoyé ou d'une liste
   useEffect(() => {
     const minuterie = setTimeout(() => deplacerFocusLecteurEcran((envoye ? titreMerci : titreEtape).current), 250);
     return () => clearTimeout(minuterie);

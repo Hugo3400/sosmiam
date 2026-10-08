@@ -23,13 +23,16 @@ type Props = {
 // Deux appuis plus rapprochés que ça comptent pour un seul : un double toucher sur « Suivre » n'ouvre pas aussitôt « Ne plus suivre ? »
 const DELAI_ANTI_DOUBLE_APPUI = 700;
 
+/** La feuille « Ne plus suivre ? » : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
+type EtatFeuille = "jamais" | "ouverte" | "fermee";
+
 /**
  * « Suivre » (jaune) suit tout de suite ; « Suivi ✓ » ouvre une feuille « Ne plus suivre … ? » : on ne désabonne jamais
  * sur un seul toucher. Lit lui-même l'état du suivi : il se met à jour même dans un en-tête mémorisé.
  */
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
   const { estSuivi, basculerSuivi } = utiliserActivite();
-  const [feuilleOuverte, setFeuilleOuverte] = useState(false);
+  const [feuille, setFeuille] = useState<EtatFeuille>("jamais");
   const dernierAppui = useRef(0);
   const suivi = estSuivi(cle);
   const compact = taille === "compact";
@@ -39,7 +42,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     if (maintenant - dernierAppui.current < DELAI_ANTI_DOUBLE_APPUI) return;
     dernierAppui.current = maintenant;
     vibrerLegerement();
-    if (suivi) setFeuilleOuverte(true);
+    if (suivi) setFeuille("ouverte");
     else if (basculerSuivi(cle)) onAnnoncer(`🔔 Tu suis maintenant ${nom} !`);
   }
 
@@ -56,9 +59,11 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     accessibilityHint: suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil",
   };
 
-  const feuille = (
-    <FeuilleNePlusSuivre visible={feuilleOuverte} nom={nom} emoji={emoji} onConfirmer={arreterDeSuivre} onFermer={() => setFeuilleOuverte(false)} />
-  );
+  // Préparée seulement au premier « Suivi » touché : rien de plus à dessiner à l'arrivée sur la fiche ou la liste
+  const confirmation =
+    feuille === "jamais" ? null : (
+      <FeuilleNePlusSuivre visible={feuille === "ouverte"} nom={nom} emoji={emoji} onConfirmer={arreterDeSuivre} onFermer={() => setFeuille("fermee")} />
+    );
 
   if (compact) {
     return (
@@ -74,7 +79,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
           <Text className="font-texte-gras text-[13px] text-encre">{libelle}</Text>
           {suivi ? <Ionicons name="chevron-down" size={12} color={couleurs.encre} /> : null}
         </Pressable>
-        {feuille}
+        {confirmation}
       </>
     );
   }
@@ -92,7 +97,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         <Text className="font-texte-gras text-base text-encre">{libelle}</Text>
         {suivi ? <Ionicons name="chevron-down" size={16} color={couleurs.encre} /> : null}
       </Pressable>
-      {feuille}
+      {confirmation}
     </View>
   );
 }

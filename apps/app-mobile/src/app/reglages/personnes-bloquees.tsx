@@ -26,14 +26,16 @@ export default function PersonnesBloquees() {
 
   function debloquer(pote: Pote) {
     communaute.debloquer(pote.id);
-    setMessage(`C'est fait, tu as débloqué ${pote.prenom}. Tu reverras ses messages et ses commentaires ; pour l'avoir dans ta bande, il faudra l'ajouter à nouveau.`);
+    // Même texte pour tout le monde : ne pas promettre un nouvel ajout (impossible pour un adulte face à un mineur dans la démo),
+    // sans pour autant dire qui est mineur
+    setMessage(`C'est fait, tu as débloqué ${pote.prenom}. Tu reverras ses messages et ses commentaires, mais pas dans ta bande pour autant.`);
     setTimeout(() => deplacerFocusLecteurEcran(zoneMessage.current), DELAI_FOCUS);
   }
 
   function demanderDeblocage(pote: Pote) {
     // Sur le web (aperçu de développement), Alert n'existe pas : on débloque directement
     if (Platform.OS === "web") return debloquer(pote);
-    Alert.alert(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Pour l'avoir dans ta bande, il faudra l'ajouter à nouveau.", [
+    Alert.alert(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Débloquer ne remet personne dans ta bande.", [
       { text: "Annuler", style: "cancel" },
       { text: "Débloquer", onPress: () => debloquer(pote) },
     ]);

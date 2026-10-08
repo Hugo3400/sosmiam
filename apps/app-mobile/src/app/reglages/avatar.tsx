@@ -156,15 +156,16 @@ export default function ReglagesAvatar() {
         Un emoji
       </Text>
       <View accessibilityRole="radiogroup" accessibilityLabel="Choisis un emoji" className="mt-3 flex-row flex-wrap" style={{ gap: ECART }}>
-        {avatarsEmoji.map(({ emoji, nom }) => {
+        {avatarsEmoji.map(({ emoji, nom }, i) => {
           const choisi = avatar.type === "emoji" && avatar.emoji === emoji;
           return (
             <Pressable
               key={emoji}
-              accessibilityRole="radio"
-              // Même règle que Pastille : « checked » sur Android, « selected » sur iPhone (où « checked » est lu en anglais)
+              // Même règle que Pastille et ChoixVilleExplorer : sur iPhone, la radio et « checked » sont lus en anglais
+              // (« radio button ») : bouton « sélectionné », avec sa place dans la grille ; radio cochée ou non ailleurs
+              accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
               accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-              accessibilityLabel={`Avatar ${nom}`}
+              accessibilityLabel={Platform.OS === "ios" ? `Avatar ${nom}, ${i + 1} sur ${avatarsEmoji.length}` : `Avatar ${nom}`}
               onPress={() => {
                 vibrerLegerement();
                 choisirEmoji(emoji);
