@@ -19,6 +19,13 @@
 - **BIG SOS gratuit, mais limité** (décidé le 8 octobre 2026). Les limites restent à définir (nombre, fréquence…) : n'en annoncer aucune tant qu'elles ne sont pas décidées.
 - Point ouvert : que devient un bon solidaire si le lieu ferme.
 
+## Comptes et données de l'app (décidé le 8 octobre 2026)
+- **Inscription à partir de 15 ans** (sous 15 ans, le RGPD exigerait l'accord des parents). Entre 15 et 17 ans, tout ce qui touche à l'alcool (boissons alcoolisées, types de bar) est masqué. Règles dans `packages/commun/src/regles/ages.ts`.
+- Première ouverture : carrousel de bienvenue qui explique le concept avec la mascotte, puis création du compte, « Fais connaissance » (prénom obligatoire, nom facultatif, date de naissance, ville), puis les envies (lieux, cuisines, boissons, types de bar, ambiance musicale, jeux, moments, régime particulier), puis « C'est prêt ».
+- **Connexion : Apple, Google ou e-mail.** Il faudra un compte Apple Developer, qu'on prendra de toute façon pour l'App Store. Apple impose son bouton dès qu'on propose Google.
+- **Base de données ultra sécurisée** : PostgreSQL sur le VPS, jamais exposée à Internet, rôle limité au strict nécessaire, données sensibles (date de naissance, nom, régimes) chiffrées par l'API (AES-256-GCM, clé hors de la base), sauvegardes chiffrées, journaux sans données personnelles, suppression de compte réelle.
+- **Régime particulier** (végétarien, vegan, halal, casher, sans gluten, allergies…) : ces données peuvent révéler une religion ou un état de santé. Elles restent sur le téléphone tant qu'il n'y a pas d'accord explicite (RGPD, article 9) pour les envoyer au serveur.
+
 ## Programme Ambassadeurs
 - Paliers : Curieux (0 pt) → Dénicheur (100) → Ambassadeur de quartier (300) → Ambassadeur de ville (sur candidature ou invitation).
 - Le premier à faire découvrir un lieu : « Déniché par … » + badge « Premier sauveteur ».

@@ -47,9 +47,12 @@ sos-miam/
 |---|---|
 | `assets/images`, `icones`, `polices` | images, icône de l'app, polices |
 | `src/app/(onglets)/` | écrans des onglets : Pour toi, Explorer, Scan, Potes, Profil (Expo Router) |
+| `src/app/(inscription)/` | première ouverture : bienvenue (carrousel), compte, fais connaissance, envies, c'est prêt |
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, lieux, carte, scan, big-sos, potes, profil |
-| `src/fonctions/geo/`, `dates/`, `notifications/` | fonctions pures, une par fichier |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, lieux, carte, scan, big-sos, potes, profil, inscription, marque (mascotte), navigation |
+| `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
+| `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
+| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/` | fonctions pures, une par fichier |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/stockage/` | données gardées sur le téléphone (session, préférences) |

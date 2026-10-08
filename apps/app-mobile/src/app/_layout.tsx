@@ -1,14 +1,30 @@
 import "../global.css";
 
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque";
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 
-/** Racine de l'app : la pile d'écrans (les onglets, puis plus tard la fiche d'un lieu, le BIG SOS, le compte). */
+import { PileRacine } from "~/composants/navigation/PileRacine";
+import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
+
+// L'écran de démarrage reste visible jusqu'à ce que tout soit prêt (voir PileRacine)
+SplashScreen.preventAutoHideAsync();
+
+/** Racine de l'app : polices de la marque, profil de la personne, puis la pile d'écrans. */
 export default function RacineApp() {
+  const [policesChargees] = useFonts({
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }} />
-    </>
+    <FournisseurProfil>
+      <PileRacine policesChargees={policesChargees} />
+    </FournisseurProfil>
   );
 }
