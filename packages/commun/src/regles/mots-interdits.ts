@@ -25,9 +25,9 @@ export const EXPRESSIONS_INTERDITES: readonly string[] = [
   "sale blanc*", "sales blanc*",
   // Validisme : seulement en insulte (« on retarde d'une heure », « le train est retardé », « bœuf mongol » passent)
   "mongolien*", "mongolo", "mongolos", "espece de mongol*", "bande de mongol*", "sale mongol*", "sales mongol*",
-  "gros mongol*", "grosse mongol*", "t es un* mongol*", "tes un* mongol*", "t es mongol*",
+  "gros mongol*", "grosse mongol*", "t es un mongol*", "t es une mongol*", "tes un mongol*", "tes une mongol*", "t es mongol*",
   "retarde* mental*", "espece de retarde*", "bande de retarde*", "sale retarde*", "sales retarde*", "gros retarde*",
-  "grosse retarde*", "t es un* retarde*", "tes un* retarde*",
+  "grosse retarde*", "t es un retarde*", "t es une retarde*", "tes un retarde*", "tes une retarde*",
   // Menaces
   "suicide toi", "va te suicider", "va crever", "je vais te tuer", "je vais te buter",
 ];

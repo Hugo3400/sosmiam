@@ -6,7 +6,8 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "start": "PORT=5191 react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "test": "node --test tests/*.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

@@ -51,7 +51,7 @@ sos-miam/
 | `src/contenus/legal/` | pages légales (un fichier par page ; les sections sur l'espace ambassadeur à part : `confidentialite-compte-ambassadeur.ts`, `cgu-ambassadeurs.ts`) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
 | `src/contenus/legal/brouillons/` | textes légaux en attente de relecture par Hugo : jamais importés par le site, donc jamais publiés |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |
-| `tests/` | tests du site (`node --test tests/*.test.ts` dans apps/site-web) : partage des adresses entre les deux domaines |
+| `tests/` | tests du site (`npm run site:tester`, aussi lancés par `site:verifier`) : partage des adresses entre les deux domaines |
 
 ## apps/app-mobile — l'app iOS + Android
 | Dossier | Contenu |

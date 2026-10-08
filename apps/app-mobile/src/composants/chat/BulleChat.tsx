@@ -14,6 +14,7 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { estMessageToutEmoji } from "~/fonctions/chat/est-message-tout-emoji";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
@@ -153,7 +154,8 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
             {texte.trim()}
           </Text>
         ) : (
-          <Text className="font-texte text-base leading-[22px] text-encre">{texte}</Text>
+          // Espace insécable avant « ? ! : ; » : le signe ne part jamais seul à la ligne
+          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
         )}
       </Pressable>
     );

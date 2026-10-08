@@ -6,6 +6,7 @@ import { AGE_MINIMUM_INSCRIPTION } from "@sos-miam/commun/regles/ages";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
+import { pseudoContientMotInterdit } from "@sos-miam/commun/validation/pseudo-contient-mot-interdit";
 import { ChoixDateNaissance } from "~/composants/inscription/ChoixDateNaissance";
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
@@ -21,6 +22,8 @@ import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscrip
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
+// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que les messages
+const PRENOM_INTERDIT = "Ce prénom-là ne passera pas chez nous\u00a0! Mets ton vrai prénom, ou un petit surnom sympa.";
 // Mêmes règles que estPseudoValide (packages/commun), dites simplement
 const REGLES_PSEUDO =
   "De 3 à 20 caractères\u00a0: lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).";
@@ -45,7 +48,9 @@ export default function FaisConnaissance() {
   const [proposition, setProposition] = useState<{ prenom: string; pseudo: string } | null>(null);
 
   const prenom = brouillon.prenom.trim();
-  const prenomValable = prenom.length >= 1 && prenom.length <= LONGUEUR_MAX_PRENOM;
+  const erreurPrenom =
+    prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : contientMotInterdit(prenom) ? PRENOM_INTERDIT : null;
+  const prenomValable = erreurPrenom === null && prenom.length <= LONGUEUR_MAX_PRENOM;
   const pseudo = brouillon.pseudo.trim();
   // Pour l'instant, « déjà pris » veut dire : le pseudo d'un pote d'exemple (les vrais se vérifieront avec les comptes)
   const erreurPseudo =
@@ -55,7 +60,7 @@ export default function FaisConnaissance() {
         ? REGLES_PSEUDO
         : potesExemples.some((p) => p.pseudo === pseudo)
           ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : contientMotInterdit(pseudo)
+          : pseudoContientMotInterdit(pseudo)
             ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
             : null;
   const pseudoValable = erreurPseudo === null;
@@ -66,7 +71,7 @@ export default function FaisConnaissance() {
 
   // Ce qui manque encore, affiché tant que « Continuer » est grisé
   const manquants = [
-    prenomValable ? null : "ton prénom",
+    prenomValable ? null : prenom === "" ? "ton prénom" : "un prénom plus sympa",
     pseudoValable ? null : pseudo === "" ? "ton pseudo" : "un pseudo valable",
     brouillon.dateNaissance === null ? "ta date de naissance" : null,
     brouillon.ville === null ? "ta ville" : null,
@@ -146,7 +151,7 @@ export default function FaisConnaissance() {
             setPrenomQuitte(true);
             proposerDepuisPrenom();
           }}
-          erreur={prenomQuitte && prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : null}
+          erreur={prenomQuitte ? erreurPrenom : null}
           placeholder="Camille"
           textContentType="givenName"
           autoComplete="given-name"

@@ -6,6 +6,7 @@ import { AccessibilityInfo, Alert, Platform, Pressable, Text, TextInput, View } 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
+import { pseudoContientMotInterdit } from "@sos-miam/commun/validation/pseudo-contient-mot-interdit";
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -21,6 +22,8 @@ import couleurs from "~/theme/couleurs";
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
+// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que les messages, comme à l'inscription
+const PRENOM_INTERDIT = "Ce prénom-là ne passera pas chez nous\u00a0! Mets ton vrai prénom, ou un petit surnom sympa.";
 // Mêmes règles que estPseudoValide (packages/commun), dites simplement, comme à l'inscription
 const REGLES_PSEUDO =
   "De 3 à 20 caractères\u00a0: lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).";
@@ -53,7 +56,14 @@ export default function ReglagesInfos() {
 
   const prenomNettoye = prenom.trim();
   const nomNettoye = nom.trim();
-  const prenomValable = prenomNettoye.length >= 1 && prenomNettoye.length <= LONGUEUR_MAX_PRENOM;
+  // Vérifié seulement s'il change : un prénom déjà enregistré ne bloque jamais l'enregistrement du reste
+  const erreurPrenom =
+    prenomNettoye.length === 0
+      ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!"
+      : prenomNettoye !== profil.prenom && contientMotInterdit(prenomNettoye)
+        ? PRENOM_INTERDIT
+        : null;
+  const prenomValable = erreurPrenom === null && prenomNettoye.length <= LONGUEUR_MAX_PRENOM;
   const pseudoNettoye = pseudo.trim();
   const pseudoActuel = profil.pseudo ?? "";
   const pseudoChange = pseudoNettoye !== pseudoActuel;
@@ -67,7 +77,7 @@ export default function ReglagesInfos() {
         ? REGLES_PSEUDO
         : pseudoChange && potesExemples.some((p) => p.pseudo === pseudoNettoye)
           ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : pseudoChange && contientMotInterdit(pseudoNettoye)
+          : pseudoChange && pseudoContientMotInterdit(pseudoNettoye)
             ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
             : null;
   const pseudoValable = erreurPseudo === null;
@@ -115,7 +125,7 @@ export default function ReglagesInfos() {
           valeur={prenom}
           onChangeTexte={setPrenom}
           onBlur={() => setPrenomQuitte(true)}
-          erreur={prenomQuitte && prenomNettoye.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour !" : null}
+          erreur={prenomQuitte ? erreurPrenom : null}
           placeholder="Camille"
           textContentType="givenName"
           autoComplete="given-name"
