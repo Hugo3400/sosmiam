@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
-import { EcranBientot } from "~/ecrans/big-sos/EcranBientot.tsx";
+import { EcranBientot } from "~/ecrans/bientot/EcranBientot.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
 import { EcranDeverrouillage } from "~/ecrans/connexion/EcranDeverrouillage.tsx";
 import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.tsx";

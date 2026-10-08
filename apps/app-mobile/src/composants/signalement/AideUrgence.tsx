@@ -6,7 +6,7 @@ const PHAROS = "https://www.internet-signalement.gouv.fr";
 export function AideUrgence() {
   return (
     <View className="gap-2 rounded-2xl border-2 border-encre bg-white p-4">
-      <Text className="font-texte-gras text-base text-encre">🚨 Quelqu'un est en danger ?</Text>
+      <Text accessibilityLabel="Quelqu'un est en danger ?" className="font-texte-gras text-base text-encre">🚨 Quelqu'un est en danger ?</Text>
       <Text className="font-texte text-sm leading-5 text-encre">
         Appelle tout de suite le 17 (police) ou le 112. Pour les contenus illégaux les plus graves, tu peux aussi alerter Pharos, la plateforme
         officielle de signalement.

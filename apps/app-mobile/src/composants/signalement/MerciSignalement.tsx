@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { AccessibilityInfo, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
@@ -14,19 +15,29 @@ type Props = {
 
 /** Dernière étape du signalement : merci, ce qui se passe maintenant, et retour au fil. */
 export function MerciSignalement({ grave, masqueePourTous, onFermer }: Props) {
+  const enTete = useRef<Text>(null);
+
+  // Ce qu'on vient de toucher a disparu : le lecteur d'écran repart du « Merci » (après le fondu d'entrée)
+  useEffect(() => {
+    const minuterie = setTimeout(() => enTete.current && AccessibilityInfo.sendAccessibilityEvent(enTete.current, "focus"), 250);
+    return () => clearTimeout(minuterie);
+  }, []);
+
   return (
     <View className="items-center gap-3 pb-2 pt-1">
       <Mascotte expression="clin" taille={96} />
-      <Text accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
+      <Text ref={enTete} accessibilityRole="header" accessibilityLabel="Merci, c'est noté" className="text-center font-titre text-2xl text-encre">
         Merci, c'est noté 🚩
       </Text>
       <Text className="text-center font-texte text-base leading-6 text-encre">
         {masqueePourTous
-          ? "Ce type de contenu est masqué pour tout le monde dès qu'il est signalé. Un modérateur le vérifie à la main : retiré pour de bon s'il pose problème, remis en ligne sinon."
+          ? "Cette publication n'apparaîtra plus dans ton fil. Ce type de contenu sera masqué pour tout le monde dès son premier signalement, puis vérifié à la main par un modérateur : retiré pour de bon s'il pose problème, remis en ligne sinon."
           : "Cette publication n'apparaîtra plus dans ton fil. On va regarder ça de près."}
       </Text>
       <Text className="text-center font-texte text-sm leading-5 text-gris">
-        Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur.
+        {masqueePourTous
+          ? "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam, et le masquage pour tout le monde s'appliquera, dès que l'app sera reliée à notre serveur."
+          : "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur."}
       </Text>
       {grave ? (
         <View className="self-stretch">

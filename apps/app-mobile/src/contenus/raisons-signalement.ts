@@ -20,7 +20,7 @@ export const raisonsSignalement: ChoixRaisonSignalement[] = [
     emoji: "🏚️",
     titre: "Faux lieu ou fausses infos",
     detail: "Lieu fermé ou inventé, faux SOS, prix ou horaires trompeurs",
-    precisions: ["Le lieu n'existe pas ou a fermé", "Le SOS ou la promo n'est pas vrai", "Prix, horaires ou adresse faux", "Les images ne montrent pas ce lieu"],
+    precisions: ["Le lieu n'existe pas ou a fermé", "Faux SOS ou fausse promo", "Prix, horaires ou adresse faux", "Les images ne montrent pas ce lieu"],
   },
   {
     cle: "pub-cachee",

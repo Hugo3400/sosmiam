@@ -44,7 +44,7 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
 
       <ChampTexte
         libelle="Pourquoi ?"
-        mention={obligatoire ? undefined : "facultatif"}
+        mention={obligatoire ? `obligatoire, au moins ${LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères` : "facultatif"}
         valeur={explication}
         onChangeTexte={onChangerExplication}
         placeholder="En quelques mots : ce qui ne va pas, à quel moment…"
@@ -57,25 +57,29 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
 
       {masqueePourTous ? (
         <Text className="font-texte text-sm leading-5 text-encre">
-          🙈 Ce type de contenu est masqué pour tout le monde dès qu'il est signalé, le temps qu'un modérateur le vérifie.
+          🙈 Ce type de contenu sera masqué pour tout le monde dès son premier signalement, le temps qu'un modérateur le vérifie (dès que l'app sera
+          reliée à notre serveur).
         </Text>
       ) : null}
 
-      {raison.grave ? (
-        <>
-          <AideUrgence />
-          <Text className="font-texte text-xs leading-5 text-gris">
-            Signaler un contenu comme illicite en sachant que c'est faux, pour le faire retirer, peut être sanctionné par la loi.
-          </Text>
-        </>
-      ) : null}
+      {raison.grave ? <AideUrgence /> : null}
+
+      <Text className="font-texte text-xs leading-5 text-gris">
+        En envoyant, tu confirmes que ton signalement est sincère et, à ta connaissance, exact. Signaler un contenu comme illicite en sachant que
+        c'est faux, pour le faire retirer, peut être sanctionné par la loi.
+      </Text>
 
       {manque ? (
         <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm text-gris">
           Écris au moins {LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères pour qu'on sache quoi regarder.
         </Text>
       ) : null}
-      <Bouton libelle="Envoyer le signalement" onPress={onEnvoyer} desactive={manque} indice="Envoie ton signalement à l'équipe SOS Miam" />
+      <Bouton
+        libelle="Envoyer le signalement"
+        onPress={onEnvoyer}
+        desactive={manque}
+        indice={manque ? `Écris d'abord au moins ${LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères dans « Pourquoi ? »` : "Envoie ton signalement à l'équipe SOS Miam"}
+      />
     </View>
   );
 }
