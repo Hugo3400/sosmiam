@@ -11,6 +11,9 @@ export type CreneauOuverture = { jours: number[]; de: string; a: string };
 /** SOS lancé par le lieu pour ce soir (depuis l'espace pro) */
 export type SosLieu = { places: number; jusqua: string; offre?: string };
 
+/** Coordonnées GPS d'un lieu (degrés décimaux) */
+export type PositionLieu = { latitude: number; longitude: number };
+
 export type Lieu = {
   id: number;
   nom: string;
@@ -18,6 +21,8 @@ export type Lieu = {
   emoji: string;
   quartier: string;
   ville: string;
+  /** Où il se trouve (pour la carte et les distances) ; absent tant qu'il n'est pas placé */
+  position?: PositionLieu;
   /** Distance depuis la personne, en kilomètres (calculée par l'app plus tard) */
   km: number;
   prix: "€" | "€€" | "€€€";

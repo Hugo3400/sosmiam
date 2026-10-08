@@ -38,20 +38,28 @@ model InscriptionNewsletter {
 /// Totaux d'une période. Les visiteurs uniques sont estimés par une « esquisse » HyperLogLog :
 /// elle ne contient aucune empreinte de visiteur, et elle est effacée avec son secret à la fin de la période.
 model StatPeriode {
-  id        Int    @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   /// « site » ou « app »
-  source    String @db.VarChar(10)
+  source        String @db.VarChar(10)
   /// « jour », « semaine », « mois » ou « annee »
-  type      String @db.VarChar(10)
+  type          String @db.VarChar(10)
   /// Repère de la période, à l'heure de Paris : « 2026-10-08 », « 2026-S41 », « 2026-10 », « 2026 »
-  cle       String @db.VarChar(10)
-  vues      Int    @default(0)
-  visites   Int    @default(0)
-  visiteurs Int    @default(0)
+  cle           String @db.VarChar(10)
+  vues          Int    @default(0)
+  visites       Int    @default(0)
+  visiteurs     Int    @default(0)
+  /// Visites terminées (30 minutes sans page vue), et parmi elles celles d'une seule page (rebonds)
+  visitesFinies Int    @default(0) @map("visites_finies")
+  rebonds       Int    @default(0)
+  /// Durée totale des visites terminées, en secondes (de la première à la dernière page)
+  dureeVisites  Int    @default(0) @map("duree_visites")
+  /// Temps de réponse du serveur : somme en millisecondes et nombre de pages mesurées
+  tempsTotal    BigInt @default(0) @map("temps_total")
+  pagesMesurees Int    @default(0) @map("pages_mesurees")
   /// Registres HyperLogLog, tant que la période est en cours
-  esquisse  Bytes?
+  esquisse      Bytes?
   /// Secret qui brouille les visiteurs de cette période, effacé à sa fin
-  secret    Bytes?
+  secret        Bytes?
 
   @@unique([source, type, cle])
   @@map("stats_periodes")
@@ -283,4 +291,13 @@ model SessionGestion {
   activite  DateTime @default(now()) @db.Timestamptz(3)
 
   @@map("sessions_gestion")
+}
+
+/// Réglage du logiciel de gestion gardé sur le serveur (ex. « objectif-mois »).
+model ReglageGestion {
+  cle       String   @id @db.VarChar(40)
+  valeur    Json
+  modifieLe DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("reglages_gestion")
 }

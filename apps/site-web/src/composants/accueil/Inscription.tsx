@@ -36,6 +36,9 @@ export function Inscription() {
   const [cleFormulaire, setCleFormulaire] = useState(0);
   // Numéro de réponse : le message est recréé à chaque réponse, donc relu même s'il est identique au précédent
   const [numeroReponse, setNumeroReponse] = useState(0);
+  // Vrai de l'envoi jusqu'à la réponse : messages et erreurs sont retirés puis remis, donc relus. Posé dans onSubmit, dont le
+  // rendu s'affiche tout de suite : fetcher.state passe par une transition, que React saute si la réponse arrive très vite.
+  const [enAttente, setEnAttente] = useState(false);
   const formulaire = useRef<HTMLFormElement>(null);
   const champEmail = useRef<HTMLInputElement>(null);
   const premierTelephone = useRef<HTMLInputElement>(null);
@@ -46,12 +49,11 @@ export function Inscription() {
 
   useEffect(() => {
     if (!reponse) return;
+    setEnAttente(false);
     setNumeroReponse((numero) => numero + 1);
     if (reponse.ok) {
       setValeurs(undefined);
       setCleFormulaire((cle) => cle + 1);
-      // Sur téléphone, la confirmation est sous le bouton : on la fait venir dans l'écran
-      requestAnimationFrame(() => document.getElementById("inscription-message")?.scrollIntoView({ block: "nearest" }));
     }
     else if (reponse.champ === "telephone") premierTelephone.current?.focus();
     else if (reponse.champ === "email") champEmail.current?.focus();
@@ -61,7 +63,15 @@ export function Inscription() {
   const messageEnHaut = !fetcher.data && Boolean(reponseSansJs);
   // Message général (réussite, trop d'essais, panne) ; les erreurs d'un champ s'affichent sous ce champ,
   // et aussi en haut sans JavaScript (sur téléphone, le champ peut être hors de l'écran). Vidé pendant l'envoi.
-  const messageGeneral = !envoi && reponse && (!erreurSur || messageEnHaut) ? reponse.message : "";
+  const messageGeneral = !enAttente && reponse && (!erreurSur || messageEnHaut) ? reponse.message : "";
+
+  // Sur téléphone, la confirmation est sous le bouton : on la fait venir dans l'écran une fois affichée
+  // (pas dans l'effet [reponse] : l'envoi n'y est pas encore fini, la zone est encore vide)
+  useEffect(() => {
+    if (messageGeneral && reponse?.ok && !messageEnHaut) {
+      document.getElementById("inscription-message")?.scrollIntoView({ block: "nearest" });
+    }
+  }, [messageGeneral, messageEnHaut, reponse]);
 
   const zoneMessage = (
     <p id="inscription-message" role="status" aria-live="polite" className={`font-semibold ${messageEnHaut ? "mb-6" : "mt-5 min-h-7"}`}>
@@ -73,11 +83,11 @@ export function Inscription() {
     <Section id="inscription" fond="creme">
       <div className="rounded-carte border-2 border-encre bg-jaune px-5 py-12 text-center shadow-brut-grand md:px-12 md:py-16">
         <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24 md:h-28 md:w-28" />
-        <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">Prêt à sauver ta première table ?</h2>
+        <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">{lierPonctuation("Prêt à sauver ta première table ?")}</h2>
         <p className="mt-3 mb-8 text-lg">{lierPonctuation("L'app est encore en cuisine : laisse ton e-mail, on te prévient dès qu'elle arrive près de chez toi.")}</p>
         {messageEnHaut && zoneMessage}
 
-        <fetcher.Form key={cleFormulaire} ref={formulaire} method="post" action="/?index#inscription" noValidate className="mx-auto flex max-w-2xl flex-wrap items-start justify-center gap-3">
+        <fetcher.Form key={cleFormulaire} ref={formulaire} method="post" action="/?index#inscription" noValidate onSubmit={() => setEnAttente(true)} className="mx-auto flex max-w-2xl flex-wrap items-start justify-center gap-3">
           <div className="min-w-0 flex-[1_1_240px]">
             <label htmlFor="inscription-email" className={libelle}>Ton e-mail</label>
             <input
@@ -94,7 +104,7 @@ export function Inscription() {
               className={`w-full ${champ}`}
             />
             {/* role="alert" et absent pendant l'envoi : l'erreur est lue à chaque réponse, même quand le focus ne bouge pas */}
-            {erreurSur === "email" && !envoi && <p id="inscription-email-erreur" role="alert" className={erreur}>{reponse?.message}</p>}
+            {erreurSur === "email" && !enAttente && <p id="inscription-email-erreur" role="alert" className={erreur}>{reponse?.message}</p>}
           </div>
           <div className="min-w-0 flex-[1_1_220px]">
             <label htmlFor="inscription-ville" className={libelle}>Ta ville ou ta région <span className="font-normal">(facultatif)</span></label>
@@ -131,7 +141,7 @@ export function Inscription() {
                 </label>
               ))}
             </div>
-            {erreurSur === "telephone" && !envoi && (
+            {erreurSur === "telephone" && !enAttente && (
               <p id="inscription-telephone-erreur" role="alert" className="mt-2 px-2 text-sm font-semibold text-rouge-texte">{reponse?.message}</p>
             )}
           </div>
@@ -164,7 +174,7 @@ export function Inscription() {
         {!messageEnHaut && zoneMessage}
         <p className="mt-2 text-sm">
           On te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta,
-          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app ; si tu coches ambassadeur, on te parle aussi
+          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app{" "}; si tu coches ambassadeur, on te parle aussi
           des ambassadeurs fondateurs. On ne vend jamais tes données
           {" "}(<Link to="/confidentialite" target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">confidentialité<span className="sr-only">, s'ouvre dans un nouvel onglet</span></Link>).
         </p>

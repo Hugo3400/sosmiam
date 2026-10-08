@@ -26,6 +26,13 @@
 - **Base de données ultra sécurisée** : PostgreSQL sur le VPS, jamais exposée à Internet, rôle limité au strict nécessaire, données sensibles (date de naissance, nom, régimes) chiffrées par l'API (AES-256-GCM, clé hors de la base), sauvegardes chiffrées, journaux sans données personnelles, suppression de compte réelle.
 - **Régime particulier** (végétarien, vegan, halal, casher, sans gluten, allergies…) : ces données peuvent révéler une religion ou un état de santé. Elles restent sur le téléphone tant qu'il n'y a pas d'accord explicite (RGPD, article 9) pour les envoyer au serveur.
 
+## Onglet Explorer de l'app (décidé le 8 octobre 2026)
+- **Carte + liste glissante** (comme Google Maps) : la carte des lieux en haut, une liste qu'on remonte du bas. Sur l'aperçu web, pas de carte : la liste seule.
+- **Recherche et filtres** : par nom, plat ou quartier ; type de lieu, ville, budget (€ à €€€), « ouvert maintenant ».
+- **SOS ce soir en tête** : les lieux en SOS ou en alerte, en carrousel au-dessus de la liste.
+- **La roulette** : « Tu sais pas où aller ? » tire un lieu au hasard parmi ceux qui correspondent aux filtres.
+- **Autour de moi** : tri par distance avec la position du téléphone, demandée seulement quand on touche le bouton, gardée le temps de l'écran, jamais enregistrée ni envoyée. Sans elle, la liste suit les envies (même score que le fil « Pour toi »).
+
 ## Signalements et modération (décidé le 8 octobre 2026)
 - Dans l'app, le menu « ⋯ » d'une publication → **Signaler** : une raison (faux lieu, pub cachée, arnaque, haine, violence ou contenu sexuel, danger, vie privée, contenu volé, autre chose), une précision facultative, puis le pourquoi avec ses mots (obligatoire pour « Autre chose »). Liste dans `apps/app-mobile/src/contenus/raisons-signalement.ts`, règles dans `packages/commun/src/regles/signalement.ts`.
 - **Violence ou contenu sexuel : la publication est masquée pour tout le monde dès le premier signalement**, et une **alerte de modération arrive dans le logiciel de gestion**. Un modérateur décide **à la main**, dans le logiciel de gestion : signalement retenu → la publication est retirée pour de bon ; rejeté → elle est remise en ligne.

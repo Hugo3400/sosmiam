@@ -18,7 +18,9 @@ const ecart = (aujourdhui: number, hier: number) => (hier === 0 ? null : ((aujou
 const jourDuJour = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
 /** Vue d'ensemble : visites, newsletter, modération, contenus et dernières actions. */
-export function EcranTableauDeBord({ allerA, problemesServeur }: { allerA: (ecran: Ecran) => void; problemesServeur: string[] }) {
+type Props = { allerA: (ecran: Ecran) => void; problemesServeur: string[]; reverifierServeur: () => void };
+
+export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur }: Props) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireTableauDeBord, []);
   const jours = donnees?.visites.jours ?? [];
   const aujourdhui = jours[jours.length - 1] ?? { vues: 0, visites: 0, visiteurs: 0 };
@@ -29,7 +31,7 @@ export function EcranTableauDeBord({ allerA, problemesServeur }: { allerA: (ecra
       <EnTeteEcran
         titre="Salut Hugo 👋"
         sousTitre={`On est ${jourDuJour.format(new Date())}. Voici comment se porte SOS Miam.`}
-        actions={<Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={recharger}>Actualiser</Bouton>}
+        actions={<Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={() => { recharger(); reverifierServeur(); }}>Actualiser</Bouton>}
       />
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}

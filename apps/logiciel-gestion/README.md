@@ -12,8 +12,10 @@ et chaque demande est signée.
 - **Chaque demande est signée** : méthode, chemin, heure, nonce unique, session et empreinte du corps. Une demande
   interceptée ne peut être ni rejouée, ni modifiée. Format : `src/fonctions/securite/construire-message-gestion.ts`,
   le même que `apps/api/src/fonctions/securite/construire-message-gestion.ts`.
-- **Code à 6 chiffres** (application d'authentification) pour ouvrir une session, qui se ferme après 2 h sans
-  activité (12 h au plus). Le logiciel se verrouille tout seul après 20 minutes sans souris ni clavier.
+- **Code à 6 chiffres** (application d'authentification) pour ouvrir une session, qui se ferme après 24 h sans
+  activité (7 jours au plus). Les sessions sont gardées dans la base (empreinte seulement) : un redémarrage de l'API ne
+  redemande pas le code. Le logiciel se verrouille tout seul (mot de passe redemandé) après un temps sans souris ni
+  clavier réglable dans Réglages : 20 min, 1 h (par défaut), 4 h ou jamais.
 - Sans fichier d'accès sur le serveur, la gestion est fermée (réponse 503).
 
 ## Installer sur un PC

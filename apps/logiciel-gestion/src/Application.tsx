@@ -24,10 +24,9 @@ import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
 import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts";
 import { fermerSession } from "~/services/session.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
+import { ecrireMinutesVerrou, lireMinutesVerrou } from "~/stockage/reglages-poste.ts";
 
 type Phase = "premier-lancement" | "autorisation" | "deverrouillage" | "connecte";
-/** Sans souris ni clavier pendant ce temps, la clé est oubliée : il faut retaper le mot de passe. */
-const MINUTES_AVANT_VERROU = 20;
 
 /** Le logiciel : connexion d'abord (clé du PC + code à 6 chiffres), puis le menu et l'écran choisi. */
 export function Application() {
@@ -36,9 +35,11 @@ export function Application() {
   const [cleEnMemoire, setCleEnMemoire] = useState(false);
   const [poste, setPoste] = useState("Ce PC");
   const [ecran, setEcran] = useState<Ecran>("tableau-de-bord");
+  // Sans souris ni clavier pendant ce temps (réglable), la clé est oubliée : il faut retaper le mot de passe
+  const [minutesVerrou, setMinutesVerrou] = useState(lireMinutesVerrou);
   const connecte = phase === "connecte";
   const moderation = utiliserAlertesModeration(connecte);
-  const problemesServeur = utiliserAlertesServeur(connecte);
+  const alertesServeur = utiliserAlertesServeur(connecte);
   const miseAJour = utiliserMiseAJour(connecte);
 
   // Session fermée par le serveur (inactivité, redémarrage) : la clé reste ouverte, seul le code est redemandé
@@ -56,7 +57,7 @@ export function Application() {
     setCleEnMemoire(false);
     setPhase("deverrouillage");
   }
-  utiliserInactivite(MINUTES_AVANT_VERROU, () => verrouiller(false), connecte);
+  utiliserInactivite(minutesVerrou ?? 0, () => verrouiller(false), connecte && minutesVerrou !== null);
 
   if (phase === "premier-lancement" || !coffre) {
     return (
@@ -95,11 +96,11 @@ export function Application() {
 
   return (
     <div className="flex h-full">
-      <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} problemesServeur={problemesServeur.length} onVerrouiller={() => verrouiller(true)} />
+      <BarreLaterale ecran={ecran} onChoisir={setEcran} poste={poste} moderation={moderation} problemesServeur={alertesServeur.problemes.length} onVerrouiller={() => verrouiller(true)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
         <div className="mx-auto max-w-[1280px] px-8 py-7">
-          {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={setEcran} problemesServeur={problemesServeur} />}
+          {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={setEcran} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}
           {ecran === "statistiques" && <EcranStatistiques />}
           {ecran === "newsletter" && <EcranNewsletter />}
           {ecran === "lieux" && <EcranLieux />}
@@ -108,11 +109,16 @@ export function Application() {
           {ecran === "publications" && <EcranPublications />}
           {ecran === "moderation" && <EcranModeration />}
           {(ecran === "big-sos" || ecran === "notifications" || ecran === "utilisateurs") && <EcranBientot ecran={ecran} />}
-          {ecran === "maintenance" && <EcranMaintenance />}
+          {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "reglages" && (
             <EcranReglages
               coffre={coffre}
               onCoffreChange={setCoffre}
+              minutesVerrou={minutesVerrou}
+              onMinutesVerrou={(minutes) => {
+                ecrireMinutesVerrou(minutes);
+                setMinutesVerrou(minutes);
+              }}
               onOublierPoste={() => {
                 verrouiller(true);
                 oublierCoffre();

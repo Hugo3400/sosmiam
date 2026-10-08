@@ -4,9 +4,13 @@ import { useCallback, useState } from "react";
 import { villesLancement } from "~/contenus/inscription/villes";
 import { extraireNomVille } from "~/fonctions/geo/extraire-nom-ville";
 import { nettoyerNomVille } from "~/fonctions/texte/nettoyer-nom-ville";
+import { verifierNomVille } from "~/fonctions/texte/verifier-nom-ville";
 
-/** « refus » : la personne a dit non ; « coupee » : localisation éteinte ; « introuvable » : pas de position ou pas de ville */
-export type ResultatVilleParPosition = { ville: string } | { erreur: "refus" | "coupee" | "introuvable" };
+/**
+ * « refus » : la personne vient de dire non ; « refus-definitif » : elle avait déjà dit non et le téléphone ne redemande plus
+ * (seuls ses réglages peuvent changer ça) ; « coupee » : localisation éteinte ; « introuvable » : pas de position ou pas de ville
+ */
+export type ResultatVilleParPosition = { ville: string } | { erreur: "refus" | "refus-definitif" | "coupee" | "introuvable" };
 
 // Une position récente suffit pour trouver une ville ; sinon on en demande une, sans attendre plus de 12 secondes
 const AGE_MAX_POSITION = 10 * 60 * 1000;
@@ -22,9 +26,13 @@ export function utiliserVilleParPosition() {
   const chercherVille = useCallback(async (): Promise<ResultatVilleParPosition> => {
     setRecherche(true);
     try {
+      // D'abord la localisation du téléphone : sur iPhone, quand elle est coupée, la demande répond « refusé » sans rien afficher
+      if (!(await Location.hasServicesEnabledAsync())) return { erreur: "coupee" };
+      // Lu avant de demander : sur iPhone, après un premier « Ne pas autoriser », la fenêtre ne s'affiche plus jamais
+      const avant = await Location.getForegroundPermissionsAsync();
+      if (!avant.granted && !avant.canAskAgain) return { erreur: "refus-definitif" };
       const { granted } = await Location.requestForegroundPermissionsAsync();
       if (!granted) return { erreur: "refus" };
-      if (!(await Location.hasServicesEnabledAsync())) return { erreur: "coupee" };
       const position =
         (await Location.getLastKnownPositionAsync({ maxAge: AGE_MAX_POSITION })) ??
         (await Promise.race([
@@ -34,7 +42,9 @@ export function utiliserVilleParPosition() {
       if (!position) return { erreur: "introuvable" };
       const [adresse] = await Location.reverseGeocodeAsync({ latitude: position.coords.latitude, longitude: position.coords.longitude });
       const nom = adresse ? extraireNomVille(adresse) : null;
-      return nom ? { ville: nettoyerNomVille(nom, villesLancement) } : { erreur: "introuvable" };
+      const ville = nom ? nettoyerNomVille(nom, villesLancement) : null;
+      // Même règle que pour une ville tapée à la main (un nom avec des chiffres ne passerait pas le champ)
+      return ville && verifierNomVille(ville) === "valable" ? { ville } : { erreur: "introuvable" };
     } catch {
       return { erreur: "introuvable" };
     } finally {

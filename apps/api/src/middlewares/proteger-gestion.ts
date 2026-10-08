@@ -1,7 +1,8 @@
 // Protection des routes du logiciel de gestion : elles ne servent qu'aux postes autorisés de Hugo.
 // Chaque demande est signée par la clé Ed25519 du poste (gardée chiffrée par son mot de passe sur l'ordinateur) :
 // sans elle, rien ne passe, même en connaissant l'adresse. Une session s'ouvre en plus avec le code à 6 chiffres
-// de l'application d'authentification, et se ferme après 2 heures sans activité (12 heures au plus).
+// de l'application d'authentification, et se ferme après 24 heures sans activité (7 jours au plus). Les sessions sont
+// gardées dans la base (leur empreinte seulement) : un redémarrage de l'API ne redemande pas le code.
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import type { NextFunction, Request, Response } from "express";
 
@@ -12,19 +13,54 @@ import type { AccesGestion, PosteAutorise } from "../services/gestion/acces.ts";
 
 export const PREFIXE_GESTION = "/api-gestion";
 const ECART_HORLOGE = 60_000;
-const INACTIVITE_MAX = 2 * 3600_000;
-const DUREE_MAX = 12 * 3600_000;
+const INACTIVITE_MAX = 24 * 3600_000;
+const DUREE_MAX = 7 * 24 * 3600_000;
+/** L'heure de dernière activité n'est réécrite dans la base qu'au plus toutes les 5 minutes */
+const ECRITURE_ACTIVITE = 5 * 60_000;
 const FENETRE_ECHECS = 10 * 60_000;
 const ECHECS_MAX = 30;
 const ECHECS_CODE_MAX = 5;
 
-type Session = { posteId: string; creeLe: number; activite: number };
+export type Session = { posteId: string; creeLe: number; activite: number };
+
+/** Où sont gardées les sessions, par l'empreinte SHA-256 de leur identifiant (la base en vrai, la mémoire dans les tests). */
+export type StockageSessions = {
+  lire: (empreinte: string) => Promise<Session | null>;
+  creer: (empreinte: string, session: Session) => Promise<void>;
+  toucher: (empreinte: string, activite: number) => Promise<void>;
+  supprimer: (empreinte: string) => Promise<void>;
+  /** Supprime les sessions d'un poste (une seule session par poste) et celles qui ont expiré */
+  faireLeMenage: (posteId: string, expireAvant: { creeLe: number; activite: number }) => Promise<void>;
+};
+
+export function creerStockageSessionsEnMemoire(): StockageSessions {
+  const sessions = new Map<string, Session>();
+  return {
+    lire: async (empreinte) => sessions.get(empreinte) ?? null,
+    creer: async (empreinte, session) => void sessions.set(empreinte, { ...session }),
+    toucher: async (empreinte, activite) => {
+      const session = sessions.get(empreinte);
+      if (session) session.activite = activite;
+    },
+    supprimer: async (empreinte) => void sessions.delete(empreinte),
+    faireLeMenage: async (posteId, { creeLe, activite }) => {
+      for (const [cle, s] of sessions) if (s.posteId === posteId || s.creeLe < creeLe || s.activite < activite) sessions.delete(cle);
+    },
+  };
+}
+
+const empreinteDe = (session: string) => createHash("sha256").update(session).digest("hex");
 /** Ce que la protection a établi pour la demande en cours (dans reponse.locals.gestion) */
 export type ContexteGestion = { poste: PosteAutorise; session: string | null };
 
-export function creerProtectionGestion(lireAcces: () => AccesGestion | null, horloge: () => number = Date.now) {
+export function creerProtectionGestion(
+  lireAcces: () => AccesGestion | null,
+  horloge: () => number = Date.now,
+  stockage: StockageSessions = creerStockageSessionsEnMemoire(),
+) {
   const nonces = new Map<string, number>();
-  const sessions = new Map<string, Session>();
+  /** Sessions déjà lues, et le moment où leur activité a été écrite dans le stockage */
+  const enMemoire = new Map<string, Session & { ecrite: number }>();
   let echecs: number[] = [];
   let echecsCode: number[] = [];
   let dernierPasUtilise = 0;
@@ -87,22 +123,34 @@ export function creerProtectionGestion(lireAcces: () => AccesGestion | null, hor
   }
 
   /** 3e étape, pour toutes les routes sauf l'ouverture de session : une session valable, ouverte par ce même poste. */
-  function verifierSession(requete: Request, reponse: Response, suite: NextFunction) {
+  async function verifierSession(requete: Request, reponse: Response, suite: NextFunction) {
     const contexte = reponse.locals.gestion as ContexteGestion;
     const id = requete.get("x-gestion-session") ?? "";
-    const session = sessions.get(id);
+    const empreinte = empreinteDe(id);
+    let session = enMemoire.get(empreinte);
+    if (!session && id.length >= 32) {
+      const lue = await stockage.lire(empreinte);
+      if (lue) enMemoire.set(empreinte, (session = { ...lue, ecrite: lue.activite }));
+    }
     const maintenant = horloge();
     if (!session || session.posteId !== contexte.poste.id || maintenant - session.activite > INACTIVITE_MAX || maintenant - session.creeLe > DUREE_MAX) {
-      if (session) sessions.delete(id);
+      if (session) {
+        enMemoire.delete(empreinte);
+        await stockage.supprimer(empreinte);
+      }
       return refuser(reponse, "session-expiree");
     }
     session.activite = maintenant;
+    if (maintenant - session.ecrite > ECRITURE_ACTIVITE) {
+      session.ecrite = maintenant;
+      await stockage.toucher(empreinte, maintenant);
+    }
     contexte.session = id;
     suite();
   }
 
   /** POST /session : ouvre une session avec le code à 6 chiffres (accepté 30 secondes avant ou après, une seule fois). */
-  function ouvrirSession(requete: Request, reponse: Response) {
+  async function ouvrirSession(requete: Request, reponse: Response) {
     echecsCode = recents(echecsCode, 15 * 60_000);
     if (echecsCode.length >= ECHECS_CODE_MAX) return refuser(reponse, "trop-d-essais", 429);
     const acces = lireAcces();
@@ -119,16 +167,22 @@ export function creerProtectionGestion(lireAcces: () => AccesGestion | null, hor
     }
     dernierPasUtilise = pasValide;
     const { poste } = reponse.locals.gestion as ContexteGestion;
-    for (const [id, session] of sessions) if (session.posteId === poste.id) sessions.delete(id);
+    for (const [empreinte, session] of enMemoire) if (session.posteId === poste.id) enMemoire.delete(empreinte);
+    await stockage.faireLeMenage(poste.id, { creeLe: horloge() - DUREE_MAX, activite: horloge() - INACTIVITE_MAX });
     const id = randomBytes(32).toString("base64url");
-    sessions.set(id, { posteId: poste.id, creeLe: horloge(), activite: horloge() });
+    const session = { posteId: poste.id, creeLe: horloge(), activite: horloge() };
+    await stockage.creer(empreinteDe(id), session);
+    enMemoire.set(empreinteDe(id), { ...session, ecrite: session.activite });
     reponse.status(201).json({ ok: true, session: id, poste: poste.nom, inactiviteMax: INACTIVITE_MAX });
   }
 
   /** DELETE /session : ferme la session en cours. */
-  function fermerSession(_requete: Request, reponse: Response) {
+  async function fermerSession(_requete: Request, reponse: Response) {
     const { session } = reponse.locals.gestion as ContexteGestion;
-    if (session) sessions.delete(session);
+    if (session) {
+      enMemoire.delete(empreinteDe(session));
+      await stockage.supprimer(empreinteDe(session));
+    }
     reponse.json({ ok: true });
   }
 

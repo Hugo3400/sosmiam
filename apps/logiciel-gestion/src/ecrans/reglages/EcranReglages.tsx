@@ -11,11 +11,18 @@ import { ADRESSE_API } from "~/services/client-gestion.ts";
 import { copier } from "~/services/systeme.ts";
 import { ecrireCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
+import { CarteVerrouillage } from "./CarteVerrouillage.tsx";
 
-type Props = { coffre: CoffreCle; onCoffreChange: (coffre: CoffreCle) => void; onOublierPoste: () => void };
+type Props = {
+  coffre: CoffreCle;
+  onCoffreChange: (coffre: CoffreCle) => void;
+  onOublierPoste: () => void;
+  minutesVerrou: number | null;
+  onMinutesVerrou: (minutes: number | null) => void;
+};
 
 /** Réglages de ce poste : son identité, son mot de passe, et comment le retirer. */
-export function EcranReglages({ coffre, onCoffreChange, onOublierPoste }: Props) {
+export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesVerrou, onMinutesVerrou }: Props) {
   const [ancien, setAncien] = useState("");
   const [nouveau, setNouveau] = useState("");
   const [etat, setEtat] = useState<{ enCours: boolean; message: string | null; erreur: string | null }>({ enCours: false, message: null, erreur: null });
@@ -45,7 +52,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste }: Props)
             <dt className="text-gris">Identifiant</dt><dd className="font-mono font-semibold">{coffre.idPoste}</dd>
             <dt className="text-gris">Clé créée le</dt><dd>{formaterDate(coffre.creeLe, true)}</dd>
             <dt className="text-gris">Serveur</dt><dd className="font-mono text-[13px] break-all">{ADRESSE_API}</dd>
-            <dt className="text-gris">Protection</dt><dd>Clé Ed25519 chiffrée (AES-256-GCM, {coffre.iterations.toLocaleString("fr-FR")} tours PBKDF2), code à 6 chiffres, verrouillage après 20 min sans activité</dd>
+            <dt className="text-gris">Protection</dt><dd>Clé Ed25519 chiffrée (AES-256-GCM, {coffre.iterations.toLocaleString("fr-FR")} tours PBKDF2), code à 6 chiffres (session de 7 jours au plus, 24 h sans activité)</dd>
           </dl>
           <Bouton petit icone={Copy} className="mt-4" onClick={() => copier(coffre.clePublique)}>Copier la clé publique</Bouton>
         </Carte>
@@ -57,6 +64,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste }: Props)
             <Bouton type="submit" variante="principal" chargement={etat.enCours} className="justify-self-start">Changer</Bouton>
           </form>
         </Carte>
+        <CarteVerrouillage minutes={minutesVerrou} onChange={onMinutesVerrou} />
         <CarteMiseAJour />
         <Carte titre="PC perdu, volé ou remplacé ?">
           <p className="text-sm">

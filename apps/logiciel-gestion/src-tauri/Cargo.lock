@@ -3530,7 +3530,7 @@ dependencies = [
 
 [[package]]
 name = "sos-miam-gestion"
-version = "0.2.1"
+version = "0.2.3"
 dependencies = [
  "base64 0.22.1",
  "serde",

@@ -26,9 +26,16 @@ export function FormulaireDemandeLieu() {
   const titreMerci = useRef<HTMLHeadingElement>(null);
   const valeurs = reponse && !reponse.ok ? reponse.valeurs : undefined;
   const [longueurDescription, setLongueurDescription] = useState(valeurs?.description?.length ?? 0);
+  // Vrai de l'envoi jusqu'à la réponse : le résumé est retiré puis remis, donc relu. Posé dans onSubmit, dont le rendu
+  // s'affiche tout de suite : l'état de navigation passe par une transition, que React saute si la réponse arrive très vite.
+  const [enAttente, setEnAttente] = useState(false);
+  // Numéro de réponse : le résumé est recréé à chaque réponse, donc relu même s'il est identique au précédent
+  const [numeroReponse, setNumeroReponse] = useState(0);
 
   useEffect(() => {
     if (!reponse) return;
+    setEnAttente(false);
+    setNumeroReponse((numero) => numero + 1);
     if (reponse.ok) {
       titreMerci.current?.focus();
       return;
@@ -85,10 +92,10 @@ export function FormulaireDemandeLieu() {
   }
 
   // Résumé (« 2 champs sont à corriger. ») ou erreur générale (trop d'envois, panne)
-  const messageGeneral = reponse && !reponse.ok && !envoi ? reponse.message : "";
+  const messageGeneral = reponse && !reponse.ok && !enAttente ? reponse.message : "";
 
   return (
-    <Form ref={formulaire} method="post" noValidate className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
+    <Form ref={formulaire} method="post" noValidate onSubmit={() => setEnAttente(true)} className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
       <fieldset>
         <legend className="mb-5 font-titre text-2xl font-extrabold">Ton lieu</legend>
         <div className="mb-6">
@@ -123,7 +130,7 @@ export function FormulaireDemandeLieu() {
       {/* Champ piège : invisible pour les humains et les lecteurs d'écran, les robots le remplissent */}
       <input type="text" name="piege" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
 
-      <p id="lieu-message" role="status" aria-live="polite" className="mt-6 min-h-6 font-semibold text-rouge-texte">{messageGeneral}</p>
+      <p id="lieu-message" role="status" aria-live="polite" className="mt-6 min-h-6 font-semibold text-rouge-texte"><span key={numeroReponse}>{messageGeneral}</span></p>
       <div className="mt-2 flex flex-wrap items-center gap-4">
         <Bouton type="submit" className="w-full sm:w-auto sm:min-w-56">{envoi ? "Envoi…" : "Envoyer ma demande"}</Bouton>
         <p className="text-sm text-gris">

@@ -54,7 +54,7 @@ sos-miam/
 | `src/app/(inscription)/` | première ouverture : bienvenue (carrousel), compte, fais connaissance, envies, c'est prêt |
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |
 | `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, lieux, carte, scan, big-sos, potes, profil, reglages, inscription, marque (mascotte), navigation |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
 | `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |

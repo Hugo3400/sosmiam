@@ -7,6 +7,7 @@ import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
+import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
 import { enregistrerInscription } from "./services/inscriptions.ts";
 import { listerLieuxPublics } from "./services/lieux-publics.ts";
@@ -33,7 +34,7 @@ const serveur = creerApplication({
   listerLieuxPublics,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
-  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion },
+  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

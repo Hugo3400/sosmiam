@@ -1,5 +1,5 @@
 import { Activity, Database, Globe, HardDrive, RotateCw } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -13,7 +13,7 @@ import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { formaterOctets } from "~/fonctions/texte/formater-octets.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
-import { lireEtatServeur, relancerProcessus } from "~/services/maintenance.ts";
+import { lireEtatServeur, relancerProcessus, type EtatServeur } from "~/services/maintenance.ts";
 import { trouverProblemes } from "~/fonctions/maintenance/trouver-problemes.ts";
 import { CarteSauvegardes } from "./CarteSauvegardes.tsx";
 import { JournalGestion } from "./JournalGestion.tsx";
@@ -32,8 +32,12 @@ function Etat({ icone, titre, bon, children }: { icone: ReactNode; titre: string
 }
 
 /** État du serveur (API, base, site, disque, programmes pm2), relance du site ou du bot, et journal de gestion. */
-export function EcranMaintenance() {
+export function EcranMaintenance({ surEtat }: { surEtat: (etat: EtatServeur) => void }) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireEtatServeur, []);
+  // Les alertes du menu et du tableau de bord suivent ce que l'écran vient de lire
+  useEffect(() => {
+    if (donnees) surEtat(donnees);
+  }, [donnees, surEtat]);
   const [relance, setRelance] = useState<{ nom: string | null; message: string | null }>({ nom: null, message: null });
 
   async function relancer(nom: string) {

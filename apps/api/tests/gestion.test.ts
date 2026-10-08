@@ -8,6 +8,7 @@ import { creerApplication } from "../src/application.ts";
 import { calculerCodeTotp } from "../src/fonctions/securite/calculer-code-totp.ts";
 import { calculerIdPoste } from "../src/fonctions/securite/calculer-id-poste.ts";
 import { construireMessageGestion } from "../src/fonctions/securite/construire-message-gestion.ts";
+import { creerStockageSessionsEnMemoire } from "../src/middlewares/proteger-gestion.ts";
 import type { AccesGestion } from "../src/services/gestion/acces.ts";
 import type { ServicesGestion } from "../src/services/gestion/tous-les-services.ts";
 
@@ -28,9 +29,10 @@ const services = {
 } as unknown as ServicesGestion;
 
 let adresse = "";
+const sessionsGardees = creerStockageSessionsEnMemoire();
 const serveur = creerApplication({
   enregistrerInscription: async () => {},
-  gestion: { lireAcces: () => acces, services, horloge: () => horloge },
+  gestion: { lireAcces: () => acces, services, horloge: () => horloge, sessions: sessionsGardees },
 }).listen(0, "127.0.0.1");
 before(() => new Promise<void>((pret) => serveur.once("listening", () => {
   adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
@@ -119,9 +121,11 @@ test("une demande rejouée, falsifiée ou trop vieille est refusée", async () =
   assert.equal((await demander("GET", "/tableau-de-bord", { session, horodatage: horloge - 5 * 60_000 })).status, 401);
 });
 
-test("une session s'éteint après 2 heures sans activité", async () => {
+test("une session s'éteint après 24 heures sans activité", async () => {
   const session = await ouvrirSession();
-  horloge += 2 * 3600_000 + 1000;
+  horloge += 23 * 3600_000;
+  assert.equal((await demander("GET", "/tableau-de-bord", { session })).status, 200);
+  horloge += 24 * 3600_000 + 1000;
   const reponse = await demander("GET", "/tableau-de-bord", { session });
   assert.equal(reponse.status, 401);
 });
@@ -183,4 +187,21 @@ test("actions groupées sur les lieux : la sélection et la modification sont v�
   assert.equal((await lot({ ids: [1], action: "modifier", modification: { statut: "publie-partout" } })).status, 400);
   assert.equal((await lot({ ids: [5], action: "supprimer" })).status, 200);
   assert.deepEqual(appels[1], { supprimer: [5] });
+});
+
+test("une session survit à un redémarrage de l'API (le code n'est pas redemandé)", async () => {
+  const session = await ouvrirSession();
+  const relancee = creerApplication({
+    enregistrerInscription: async () => {},
+    gestion: { lireAcces: () => acces, services, horloge: () => horloge, sessions: sessionsGardees },
+  }).listen(0, "127.0.0.1");
+  await new Promise<void>((pret) => relancee.once("listening", () => pret()));
+  const ancienne = adresse;
+  adresse = `http://127.0.0.1:${(relancee.address() as AddressInfo).port}`;
+  try {
+    assert.equal((await demander("GET", "/tableau-de-bord", { session })).status, 200);
+  } finally {
+    adresse = ancienne;
+    await new Promise<void>((fini) => relancee.close(() => fini()));
+  }
 });

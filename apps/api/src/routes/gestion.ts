@@ -2,7 +2,7 @@ import express, { Router } from "express";
 
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
-import { creerProtectionGestion } from "../middlewares/proteger-gestion.ts";
+import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
 import type { AccesGestion } from "../services/gestion/acces.ts";
 import { TAILLE_MAX_VIDEO } from "../services/gestion/formats-medias.ts";
 import { creerJetonMaj, lireManifesteMaj, trouverInstallateur, verifierJetonMaj } from "../services/gestion/mises-a-jour.ts";
@@ -13,11 +13,13 @@ export type DependancesGestion = {
   services: ServicesGestion;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
+  /** Où garder les sessions (la base en vrai ; en mémoire si absent) */
+  sessions?: StockageSessions;
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge }: DependancesGestion) {
-  const protection = creerProtectionGestion(lireAcces, horloge);
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions }: DependancesGestion) {
+  const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());

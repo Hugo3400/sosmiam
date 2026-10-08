@@ -4,4 +4,5 @@ export const liensLegaux = [
   { href: "/confidentialite", texte: "Confidentialité" },
   { href: "/cookies", texte: "Cookies" },
   { href: "/cgu", texte: "Conditions d'utilisation" },
+  { href: "/accessibilite", texte: "Accessibilité" },
 ];

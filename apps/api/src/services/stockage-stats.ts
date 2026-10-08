@@ -4,14 +4,26 @@ import type { StockageStats } from "./mesure.ts";
 
 export const stockageStats: StockageStats = {
   async lirePeriode(source, type, cle) {
-    return baseDeDonnees.statPeriode.findUnique({
+    const periode = await baseDeDonnees.statPeriode.findUnique({
       where: { source_type_cle: { source, type, cle } },
-      select: { vues: true, visites: true, visiteurs: true, esquisse: true, secret: true },
-    }) as Promise<Awaited<ReturnType<StockageStats["lirePeriode"]>>>;
+      select: { vues: true, visites: true, visiteurs: true, tempsTotal: true, pagesMesurees: true, esquisse: true, secret: true },
+    });
+    if (!periode) return null;
+    return {
+      ...periode,
+      tempsTotal: Number(periode.tempsTotal),
+      esquisse: periode.esquisse ?? new Uint8Array(),
+      secret: periode.secret ?? new Uint8Array(),
+    };
   },
 
-  async ecrirePeriode(source, type, cle, { vues, visites, visiteurs, esquisse, secret }) {
-    const donnees = { vues, visites, visiteurs, esquisse: new Uint8Array(esquisse), secret: new Uint8Array(secret) };
+  async ecrirePeriode(source, type, cle, { vues, visites, visiteurs, tempsTotal, pagesMesurees, esquisse, secret }) {
+    const donnees = {
+      vues, visites, visiteurs, pagesMesurees,
+      tempsTotal: BigInt(Math.round(tempsTotal)),
+      esquisse: new Uint8Array(esquisse),
+      secret: new Uint8Array(secret),
+    };
     await baseDeDonnees.statPeriode.upsert({
       where: { source_type_cle: { source, type, cle } },
       create: { source, type, cle, ...donnees },
@@ -26,6 +38,18 @@ export const stockageStats: StockageStats = {
           where: { source_jour_dimension_valeur: { source, jour, dimension, valeur } },
           create: { source, jour, dimension, valeur, nombre },
           update: { nombre: { increment: nombre } },
+        }),
+      ),
+    );
+  },
+
+  async ajouterFinsDeVisites(lignes) {
+    await baseDeDonnees.$transaction(
+      lignes.map(({ source, type, cle, visitesFinies, rebonds, dureeVisites }) =>
+        baseDeDonnees.statPeriode.upsert({
+          where: { source_type_cle: { source, type, cle } },
+          create: { source, type, cle, visitesFinies, rebonds, dureeVisites },
+          update: { visitesFinies: { increment: visitesFinies }, rebonds: { increment: rebonds }, dureeVisites: { increment: dureeVisites } },
         }),
       ),
     );
