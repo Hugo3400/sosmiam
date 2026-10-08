@@ -103,7 +103,10 @@ export default function FicheLieu() {
           className="flex-1"
           libelle={sauve ? "🛟 Sauvé !" : "🛟 À la rescousse"}
           variante={sauve ? "encre" : "jaune"}
-          onPress={() => activite.basculerRescousse(lieu.id)}
+          onPress={() => {
+            // Premier à sauver un lieu tout juste arrivé : badge et points « Premier sauveteur »
+            if (activite.basculerRescousse(lieu.id) === "donnee" && lieu.nouveau && !lieu.decouvertPar) activite.noterPremierSauvetage(lieu.id);
+          }}
         />
         <Bouton
           className="flex-1"
