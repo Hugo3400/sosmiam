@@ -15,6 +15,9 @@ const MESSAGES: Record<string, string> = {
   "melange-video-photos": "Une publication, c'est soit une vidéo (et son affiche), soit des photos : pas les deux.",
   "trop-de-photos": "10 photos au plus par publication.",
   "processus-refuse": "Ce programme ne peut pas être relancé d'ici.",
+  "fondateurs-complets": "Les 10 places de fondateur sont déjà prises.",
+  "ambassadeur-non-actif": "On ne confie une mission qu'à un ambassadeur actif (validé et pas suspendu).",
+  "bientot-disponible": "Pas encore possible : cette partie des comptes n'est pas encore branchée sur le serveur.",
 };
 
 /** Texte lisible pour une erreur de l'API. */

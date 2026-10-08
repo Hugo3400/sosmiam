@@ -1,4 +1,4 @@
-import { ArrowRight, RotateCw, Server, Siren } from "lucide-react";
+import { ArrowRight, HeartHandshake, RotateCw, Server, Siren } from "lucide-react";
 import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -32,6 +32,12 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
   const jours = donnees?.visites.jours ?? [];
   const aujourdhui = jours[jours.length - 1] ?? { vues: 0, visites: 0, visiteurs: 0 };
   const hier = jours[jours.length - 2] ?? { vues: 0, visites: 0, visiteurs: 0 };
+  const ambassadeurs = donnees?.ambassadeurs ?? { enAttente: 0, candidatures: 0, missionsEnRetard: 0 };
+  const aDecider = [
+    ambassadeurs.enAttente > 0 && `${ambassadeurs.enAttente} inscription${ambassadeurs.enAttente > 1 ? "s" : ""} d'ambassadeur à valider`,
+    ambassadeurs.candidatures > 0 && `${ambassadeurs.candidatures} candidature${ambassadeurs.candidatures > 1 ? "s" : ""} fondateur`,
+    ambassadeurs.missionsEnRetard > 0 && `${ambassadeurs.missionsEnRetard} mission${ambassadeurs.missionsEnRetard > 1 ? "s" : ""} en retard`,
+  ].filter((texte): texte is string => !!texte);
 
   return (
     <>
@@ -63,6 +69,14 @@ export function EcranTableauDeBord({ allerA, problemesServeur, reverifierServeur
                 {problemesServeur.map((probleme) => <li key={probleme}>{probleme}</li>)}
               </ul>
               <Bouton icone={ArrowRight} onClick={() => allerA("maintenance")}>Maintenance</Bouton>
+            </div>
+          )}
+
+          {aDecider.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 rounded-carte border-2 border-encre bg-jaune-clair px-5 py-4 shadow-brut">
+              <HeartHandshake className="size-6 shrink-0" aria-hidden />
+              <p className="flex-1 font-semibold">{aDecider.join(" · ")}</p>
+              <Bouton icone={ArrowRight} onClick={() => allerA("ambassadeurs")}>Ambassadeurs</Bouton>
             </div>
           )}
 

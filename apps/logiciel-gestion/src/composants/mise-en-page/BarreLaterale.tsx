@@ -6,8 +6,8 @@ type Props = {
   ecran: Ecran;
   onChoisir: (ecran: Ecran) => void;
   poste: string;
-  /** Signalements à traiter, dont graves (publication masquée pour tous) */
-  moderation: { aTraiter: number; urgents: number; demandes: number };
+  /** Signalements à traiter, dont graves (publication masquée pour tous), demandes de lieux, ambassadeurs à valider */
+  moderation: { aTraiter: number; urgents: number; demandes: number; ambassadeurs: number };
   /** Problèmes trouvés sur le serveur (programme arrêté, disque plein, sauvegarde manquante…) */
   problemesServeur: number;
   onVerrouiller: () => void;
@@ -47,6 +47,11 @@ export function BarreLaterale({ ecran, onChoisir, poste, moderation, problemesSe
                       {cible === "demandes" && moderation.demandes > 0 && (
                         <span className={`chiffres rounded-full px-1.5 text-xs font-bold ${choisi ? "bg-encre text-jaune" : "bg-white/15"}`} aria-label={`${moderation.demandes} demande(s) à traiter`}>
                           {moderation.demandes}
+                        </span>
+                      )}
+                      {cible === "ambassadeurs" && moderation.ambassadeurs > 0 && (
+                        <span className={`chiffres rounded-full px-1.5 text-xs font-bold ${choisi ? "bg-encre text-jaune" : "bg-white/15"}`} aria-label={`${moderation.ambassadeurs} inscription(s) ou candidature(s) à décider`}>
+                          {moderation.ambassadeurs}
                         </span>
                       )}
                       {cible === "maintenance" && problemesServeur > 0 && (

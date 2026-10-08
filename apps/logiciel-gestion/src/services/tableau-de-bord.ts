@@ -9,6 +9,8 @@ export type TableauDeBord = {
   newsletter: { inscrits: number; recents: number; ambassadeurs: number; beta: number };
   moderation: { aTraiter: number; urgents: number };
   demandes: { aTraiter: number };
+  /** Inscriptions d'ambassadeurs et candidatures fondateur à décider, missions dont l'échéance est passée */
+  ambassadeurs: { enAttente: number; candidatures: number; missionsEnRetard: number };
   /** Objectif du mois, s'il y en a un, et où on en est */
   objectif: (ObjectifMois & { atteint: number; mois: { cle: string; debut: string; fin: string } | null }) | null;
   lieux: Record<string, number>;

@@ -1,5 +1,5 @@
 // Libellés du programme Ambassadeurs (règles : packages/commun/src/regles/ambassadeurs.ts, docs/decisions.md).
-import type { Palier, StatutAmbassadeur } from "~/services/ambassadeurs.ts";
+import type { Mission, Palier, StatutAmbassadeur } from "~/services/ambassadeurs.ts";
 
 export const PALIERS: Record<Palier, { nom: string; emoji: string }> = {
   curieux: { nom: "Curieux", emoji: "👀" },
@@ -38,4 +38,10 @@ export const ENVIES_FONDATEUR: Record<string, string> = {
   fiches: "Faire les fiches avec les lieux",
   selections: "Préparer des sélections",
   "faire-savoir": "Faire connaître SOS Miam",
+};
+
+export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "jaune" | "vert" | "neutre" }> = {
+  "a-faire": { libelle: "À faire", ton: "jaune" },
+  faite: { libelle: "Faite", ton: "vert" },
+  annulee: { libelle: "Annulée", ton: "neutre" },
 };
