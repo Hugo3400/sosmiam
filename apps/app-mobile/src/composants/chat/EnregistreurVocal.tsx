@@ -33,7 +33,10 @@ const ALERTE_SECONDES = 10;
 const MAX = formaterChronoEnregistrement(DUREE_MAX_VOCAL_SECONDES);
 
 const MICRO_REFUSE: ProblemeEnregistrement = {
-  texte: "Le micro est fermé pour SOS Miam. Pour envoyer des notes vocales, ouvre-le dans les réglages de ton téléphone 🎙️",
+  texte:
+    Platform.OS === "web"
+      ? "Le micro est fermé pour SOS Miam dans ce navigateur. Pour envoyer des notes vocales, autorise-le dans ses réglages (le petit cadenas près de l'adresse) 🎙️"
+      : "Le micro est fermé pour SOS Miam. Pour envoyer des notes vocales, ouvre-le dans les réglages de ton téléphone 🎙️",
   reglages: true,
 };
 const SOUCI_MICRO: ProblemeEnregistrement = { texte: "Le micro fait sa timide et n'a pas démarré. Réessaie dans un instant !" };

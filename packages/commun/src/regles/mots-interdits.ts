@@ -17,10 +17,13 @@ export const EXPRESSIONS_INTERDITES: readonly string[] = [
   // Insultes
   "connard*", "conard*", "connasse*", "conasse*", "salope", "salopes", "salopard*", "salaud*", "encule*", "enfoire*",
   "batard*", "fils de pute", "pute", "putes", "nique ta*", "ntm", "tg", "ferme ta gueule",
+  // « petasse » ; « tapette » seulement en insulte (la tapette à mouches passe)
+  "petasse*", "sale tapette*", "sales tapette*", "espece de tapette*", "grosse tapette*", "t es une tapette*", "tes une tapette*",
   // Homophobie
   "pd", "pds", "pede", "pedes", "tarlouze*", "gouine*", "tafiole*",
   // Racisme et antisémitisme
-  "negre*", "bougnoul*", "youpin*", "bicot*",
+  // « negro » en mot entier seulement : le negroni (cocktail) passe
+  "negre*", "negro", "negros", "bougnoul*", "youpin*", "bicot*",
   "sale arabe*", "sales arabe*", "sale noir*", "sales noir*", "sale juif*", "sales juif*", "sale juive*", "sales juive*",
   "sale blanc*", "sales blanc*",
   // Validisme : seulement en insulte (« on retarde d'une heure », « le train est retardé », « bœuf mongol » passent)

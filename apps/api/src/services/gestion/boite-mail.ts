@@ -15,23 +15,33 @@ const SCRIPT = join(RACINE_DEPOT, "scripts", "recuperer-inscrits.py");
 const FICHIER_CONNEXION = process.env.FICHIER_BOITE_MAIL || "/root/sos-miam-secrets/boite-bonjour.env";
 const FICHIER_CSV = process.env.FICHIER_INSCRITS_CSV || "/root/sos-miam-donnees/inscrits.csv";
 
-export async function lireEtatBoite() {
-  const boiteConfiguree = await stat(FICHIER_CONNEXION).then(() => true, () => false);
+/**
+ * La liste complète des inscrits (formulaire et mails, désinscriptions retirées), telle que l'a écrite la dernière
+ * synchronisation : c'est elle qui sert à l'envoi de la newsletter. Null si elle n'a jamais été écrite.
+ */
+export async function lireListeInscrits(): Promise<{ adresse: string; ville: string; inscritLe: string }[] | null> {
   let texte: string;
-  let derniereSynchro: string | null = null;
   try {
-    texte = (await readFile(FICHIER_CSV, "utf8")).replace(/^﻿/, "");
-    derniereSynchro = (await stat(FICHIER_CSV)).mtime.toISOString();
+    texte = (await readFile(FICHIER_CSV, "utf8")).replace(/^\uFEFF/, "");
   } catch {
-    return { boiteConfiguree, derniereSynchro, total: 0, parMailSeulement: [] };
+    return null;
   }
   const [entete, ...lignes] = texte.split(/\r?\n/).filter(Boolean).map((ligne) => lireLigneCsv(ligne));
   const colonne = (nom: string) => entete?.indexOf(nom) ?? -1;
-  const inscrits = lignes.map((champs) => ({
-    adresse: (champs[colonne("adresse")] ?? "").replace(/^'/, "").toLowerCase(),
-    ville: (champs[colonne("ville")] ?? "").replace(/^'/, ""),
-    inscritLe: champs[colonne("inscrit_le")] ?? "",
-  }));
+  return lignes
+    .map((champs) => ({
+      adresse: (champs[colonne("adresse")] ?? "").replace(/^'/, "").trim().toLowerCase(),
+      ville: (champs[colonne("ville")] ?? "").replace(/^'/, ""),
+      inscritLe: champs[colonne("inscrit_le")] ?? "",
+    }))
+    .filter((inscrit) => inscrit.adresse.includes("@"));
+}
+
+export async function lireEtatBoite() {
+  const boiteConfiguree = await stat(FICHIER_CONNEXION).then(() => true, () => false);
+  const inscrits = await lireListeInscrits();
+  if (!inscrits) return { boiteConfiguree, derniereSynchro: null, total: 0, parMailSeulement: [] };
+  const derniereSynchro = (await stat(FICHIER_CSV)).mtime.toISOString();
   const dansLaBase = new Set(
     (await baseDeDonnees.inscriptionNewsletter.findMany({ where: { email: { in: inscrits.map((i) => i.adresse) } }, select: { email: true } })).map((i) => i.email),
   );
