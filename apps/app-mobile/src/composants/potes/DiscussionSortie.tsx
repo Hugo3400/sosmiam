@@ -5,7 +5,7 @@ import { useReducedMotion } from "react-native-reanimated";
 
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
-import { BandeauDemoSortie } from "~/composants/potes/BandeauDemoSortie";
+import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -114,7 +114,7 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
         }}
         ListHeaderComponent={
           <View className="gap-2 pb-2">
-            <BandeauDemoSortie />
+            <BandeauDemoPotes />
             <Text className="text-center font-texte text-[13px] leading-[18px] text-gris">
               {lierPonctuation("🔒 Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.")}
             </Text>

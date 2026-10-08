@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
@@ -24,6 +25,8 @@ type Vue = "options" | "signaler" | "bloquer";
 export function MenuPoteRecommandation({ pote, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
+  const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
   const { bloquer } = utiliserCommunaute();
   const [vue, setVue] = useState<Vue>("options");
@@ -43,13 +46,13 @@ export function MenuPoteRecommandation({ pote, onFermer }: Props) {
   const options = affiche
     ? [
         { cle: "profil" as const, emoji: "👀", titre: `Voir le profil de ${affiche.prenom}`, detail: `@${affiche.pseudo}` },
-        { cle: "signaler" as const, emoji: "🚩", titre: `Signaler ${affiche.prenom}`, detail: "Message déplacé, arnaque, harcèlement…" },
-        { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${affiche.prenom}`, detail: "Tu ne verras plus rien de sa part" },
+        { cle: "signaler" as const, emoji: "🚩", titre: `Signaler ${affiche.prenom}`, detail: "Arnaque, propos haineux, contenu choquant…" },
+        { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${affiche.prenom}`, detail: "Ses messages et ses lieux envoyés disparaissent pour toi" },
       ]
     : [];
 
   return (
-    <Modal visible={pote !== null} transparent animationType="slide" onRequestClose={reculer}>
+    <Modal visible={pote !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <View

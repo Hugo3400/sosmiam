@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
@@ -37,6 +38,8 @@ const EMOJIS = [
 /** Feuille « Nouvelle liste » : un emoji, un nom et, si tu veux, une petite description ; la liste est créée puis ouverte. */
 export function FeuilleNouvelleListe({ visible, onFermer, onCreee }: Props) {
   const marges = useSafeAreaInsets();
+  // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
+  const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
   const { creerListe } = utiliserCommunaute();
   const [emoji, setEmoji] = useState(EMOJIS[0].emoji);
@@ -67,7 +70,7 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee }: Props) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onFermer}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <View

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { useState } from "react";
-import { Keyboard, Modal, Platform, Pressable, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { AccessibilityInfo, Keyboard, Modal, Platform, Pressable, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -58,6 +58,11 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
   const [enCours, setEnCours] = useState(quand);
   const [saisieJour, setSaisieJour] = useState(`${deux(quand.getDate())}/${deux(quand.getMonth() + 1)}/${quand.getFullYear()}`);
   const [saisieHeure, setSaisieHeure] = useState(`${deux(quand.getHours())}:${deux(quand.getMinutes())}`);
+
+  // Sur iPhone, VoiceOver ignore les « live regions » d'Android : l'erreur est annoncée quand elle apparaît
+  useEffect(() => {
+    if (erreur && Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(erreur, { queue: true });
+  }, [erreur]);
 
   if (Platform.OS === "web") {
     const dateLue = lireDateSaisie(saisieJour);

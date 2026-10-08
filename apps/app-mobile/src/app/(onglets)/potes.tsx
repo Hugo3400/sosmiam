@@ -63,14 +63,14 @@ export default function Potes() {
           position.current = e.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={64}
-        contentContainerClassName="px-5 pt-4"
+        contentContainerClassName="pt-4"
         contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 32 }}
       >
         <View
           onLayout={(e) => {
             hautOnglets.current = e.nativeEvent.layout.y + e.nativeEvent.layout.height;
           }}
-          className="gap-5 pb-5"
+          className="gap-5 px-5 pb-5"
         >
           <EnTetePotes moi={moi} />
           {/* Profils créés avant Potes : pas encore de pseudo */}
@@ -78,7 +78,7 @@ export default function Potes() {
           <BandeauDemoPotes />
         </View>
         <OngletsPotes onglet={onglet} onChoisir={choisir} nouveautes={recues.filter((r) => !r.vue).length} />
-        <View className="pt-5">
+        <View className="px-5 pt-5">
           {onglet === "sorties" ? (
             <SectionSorties recommandations={recues} lieux={lieux} />
           ) : onglet === "bande" ? (

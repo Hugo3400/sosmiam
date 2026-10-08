@@ -20,8 +20,8 @@ const onglets: { cle: OngletPotes; nom: string }[] = [
 /** Les trois onglets de Potes (Sorties, Ma bande, Listes), sur fond crème pour rester lisibles quand ils restent collés en haut. */
 export function OngletsPotes({ onglet, onChoisir, nouveautes }: Props) {
   return (
-    // -mx-5 px-5 : le fond crème couvre toute la largeur quand les onglets restent collés en haut de l'écran
-    <View className="-mx-5 bg-creme px-5 pt-1">
+    // Fond crème sur toute la largeur : les onglets restent lisibles quand ils restent collés en haut de l'écran
+    <View className="bg-creme px-5 pt-1">
       <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne">
         {onglets.map((o, i) => {
           const actif = o.cle === onglet;
