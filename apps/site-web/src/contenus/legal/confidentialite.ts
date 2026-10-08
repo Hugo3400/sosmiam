@@ -9,9 +9,9 @@
 // App mobile (8 octobre 2026) : tout reste sur le téléphone ; comptes de l'app annoncés au futur ; voir confidentialite-app.ts.
 // Messagerie (vérifié le 8 octobre 2026) : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189), chez Exoscale à Genève
 // (RIPE « Exoscale Open Cloud GV2 », CH) ; hostmyservers.fr/mail-box : « hébergé en Suisse ». « En Suisse » est donc juste.
-// À TRANCHER AVEC LA FACTURE (Hugo) : la boîte est vendue par hostmyservers.fr, dont les CGV nomment HOSTMYSERVERS SARL
-// (SIREN 842 789 000, Villeurbanne), société distincte de FEELB (SIREN 817 701 311, Lyon), même gérant (recherche-entreprises
-// .api.gouv.fr). Si la facture de la boîte est au nom de HostMyServers, changer prestataires.messagerie (informations-legales.ts).
+// Fournisseur (Hugo, 9 octobre 2026, d'après ses factures) : HOSTMYSERVERS SARL facture la boîte mail et le serveur
+// (SIREN 842 789 000, 71 rue Francis de Pressensé, 69100 Villeurbanne ; hostmyservers.fr/mentions) ; à ne pas confondre avec
+// FEELB (SIREN 817 701 311, Lyon), même gérant. Les noms affichés viennent de informations-legales.ts.
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.

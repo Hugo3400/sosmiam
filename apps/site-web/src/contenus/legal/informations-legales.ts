@@ -3,7 +3,8 @@
 // LCEN : un éditeur non professionnel peut ne pas publier son adresse ni son téléphone ; l'hébergeur détient son identité.
 // Tout est gratuit (financement par la pub, voir docs/decisions.md) : dès que de la pub rémunérée est mise en place, il faudra une structure
 // (micro-entreprise ou société) et des mentions complètes (adresse, SIRET…).
-// Sources de l'hébergeur : registre RIPE (AS207992), à confirmer avec une facture FEELB.
+// Hébergeur du serveur et de la boîte mail : HOSTMYSERVERS SARL (RCS Lyon 842 789 000), vérifié d'après les factures de Hugo
+// (9 octobre 2026) ; nom, adresse et téléphone repris de https://www.hostmyservers.fr/mentions (mise à jour du 3 août 2026).
 
 export const site = {
   nom: "SOS Miam",
@@ -18,9 +19,9 @@ export const editeur = {
 };
 
 export const hebergeur = {
-  nom: "FEELB SARL",
-  adresse: "4 quai Jean Moulin, 69001 Lyon, France",
-  telephone: "+33 6 67 81 16 81",
+  nom: "HOSTMYSERVERS SARL",
+  adresse: "71 rue Francis de Pressensé, 69100 Villeurbanne, France",
+  telephone: "+33 9 77 26 00 69",
 };
 
 /** Prestataires qui voient passer des données (à citer dans la politique de confidentialité). */
@@ -31,7 +32,7 @@ export const prestataires = {
     role: "réseau de diffusion et protection du site (le trafic passe par ses serveurs)",
   },
   messagerie: {
-    nom: "FEELB SARL",
+    nom: "HOSTMYSERVERS SARL",
     role: "hébergement de la boîte mail bonjour@sosmiam.fr",
   },
 };
