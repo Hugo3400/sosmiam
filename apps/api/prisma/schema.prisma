@@ -326,7 +326,7 @@ model Compte {
   palier                String    @default("curieux") @db.VarChar(20)
   /// Version des conditions d'utilisation acceptées à l'inscription (leur date de mise à jour, AAAA-MM-JJ)
   cguVersion            String    @map("cgu_version") @db.VarChar(10)
-  /// Réinitialisation du mot de passe préparée par l'équipe : empreinte SHA-256 du jeton (valable 48 h)
+  /// Réinitialisation du mot de passe préparée par l'équipe : empreinte SHA-256 du jeton (valable 24 h, une seule fois)
   jetonReinitialisation String?   @unique @map("jeton_reinitialisation") @db.VarChar(64)
   jetonExpireLe         DateTime? @map("jeton_expire_le") @db.Timestamptz(0)
   creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
