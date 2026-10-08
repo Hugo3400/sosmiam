@@ -1,0 +1,50 @@
+// L'écran du comptoir, côté équipe du lieu : additions et récompenses à valider, QR montré, arrivées, validations récentes.
+
+import type { LieuResume } from "./lieu-resume.ts";
+import type { ReservationPro } from "./reservation.ts";
+import type { ModeValidation } from "./visite.ts";
+
+/** Ce que voit l'équipe : jamais l'âge, le nom complet ni l'historique ailleurs */
+export type DemandeComptoir = {
+  id: number;
+  type: "addition" | "recompense";
+  code: string;
+  prenom: string;
+  initialeNom: string | null;
+  avatar: string;
+  depuis: string;
+  recompense: string | null;
+  tamponsIci: number;
+};
+
+export type QrAffiche = {
+  texte: string;
+  presentationId: number;
+  fenetre: number;
+  changeDansMs: number;
+  personnes: number;
+  restantes: number;
+  finitLe: string;
+};
+
+export type ValidationRecente = {
+  visiteId: number;
+  mode: ModeValidation;
+  prenom: string;
+  initialeNom: string | null;
+  avatar: string;
+  valideLe: string;
+  annulableJusqua: string;
+};
+
+export type EtatComptoir = {
+  lieu: LieuResume;
+  validationActive: boolean;
+  qr: QrAffiche | null;
+  demandes: DemandeComptoir[];
+  /** Réservations acceptées du jour (arrivées) */
+  arrivees: ReservationPro[];
+  reservationsARepondre: number;
+  validees: ValidationRecente[];
+  genereLe: string;
+};
