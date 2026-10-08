@@ -41,6 +41,7 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
   return {
     tableauDeBord: verifier(async (_requete, reponse) => reponse.json(await s.lireTableauDeBord())),
     alertes: verifier(async (_requete, reponse) => reponse.json(await s.lireAlertes())),
+    communaute: verifier(async (_requete, reponse) => reponse.json(await s.lireStatistiquesCommunaute())),
     recherche: verifier(async (requete, reponse) => reponse.json(await s.rechercherPartout(lireParametre(requete.query.q, 100)))),
     calendrier: verifier(async (requete, reponse) => {
       // Du jour « debut » inclus au jour « fin » exclu (AAAA-MM-JJ), 62 jours au plus

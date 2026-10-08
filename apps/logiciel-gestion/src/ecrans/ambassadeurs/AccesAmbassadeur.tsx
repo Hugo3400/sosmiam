@@ -2,6 +2,7 @@ import { Copy, KeyRound, Mail, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
+import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { creerLienCourrielGroupe } from "~/fonctions/texte/creer-lien-courriel-groupe.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
@@ -68,6 +69,7 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
       <h3 className="font-extrabold">Compte</h3>
       <div className="flex flex-wrap gap-2">
         <Bouton petit icone={Mail} onClick={() => ouvrirLien(creerLienCourrielGroupe([fiche.email], "SOS Miam 🛟"))}>Écrire par mail</Bouton>
+        <BoutonReponseType categorie="ambassadeur" adresse={fiche.email} prenom={fiche.prenom} />
         <Bouton petit icone={KeyRound} chargement={etat.enCours && !lien} onClick={() => preparerLien(true)}>Envoyer un lien « mot de passe oublié »</Bouton>
         <Bouton petit variante="discret" desactive={etat.enCours} onClick={() => preparerLien(false)}>Préparer le lien sans l'envoyer</Bouton>
         <Bouton petit icone={UserMinus} desactive={etat.enCours} onClick={retirer}>Retirer du programme</Bouton>

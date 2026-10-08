@@ -75,6 +75,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/alertes", c.alertes);
+  routes.get("/statistiques/communaute", c.communaute);
   routes.get("/recherche", c.recherche);
   routes.get("/calendrier", c.calendrier);
   routes.get("/reponses-types", r.liste);

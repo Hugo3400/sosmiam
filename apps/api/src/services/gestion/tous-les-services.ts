@@ -36,11 +36,12 @@ import {
 import { lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde } from "./sauvegardes.ts";
 import { ecrireObjectifMois, lireObjectifMois } from "./reglages.ts";
 import { lireStatistiques } from "./statistiques.ts";
+import { lireStatistiquesCommunaute } from "./statistiques-communaute.ts";
 import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
 export const servicesGestion = {
   noterAction, listerJournal,
-  lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques,
+  lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques, lireStatistiquesCommunaute,
   listerInscrits, desinscrire, exporterInscrits,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
   listerLieux, lireLieu, lireHistoriqueLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,

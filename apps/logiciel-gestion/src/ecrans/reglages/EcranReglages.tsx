@@ -12,6 +12,7 @@ import { definirCleCoffre } from "~/services/session.ts";
 import { copier } from "~/services/systeme.ts";
 import { ecrireCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
+import { CarteReponsesTypes } from "./CarteReponsesTypes.tsx";
 import { CarteVerrouillage } from "./CarteVerrouillage.tsx";
 
 type Props = {
@@ -47,7 +48,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesV
 
   return (
     <>
-      <EnTeteEcran titre="Réglages" sousTitre="Ce poste, sa clé et sa sécurité." />
+      <EnTeteEcran titre="Réglages" sousTitre="Ce poste, sa clé et sa sécurité, et tes réponses types." />
       <div className="grid gap-5 xl:grid-cols-2">
         <Carte titre={<span className="flex items-center gap-2"><ShieldCheck className="size-4" aria-hidden /> Ce poste</span>}>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 text-sm">
@@ -68,6 +69,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesV
         </Carte>
         <CarteVerrouillage minutes={minutesVerrou} onChange={onMinutesVerrou} />
         <CarteMiseAJour />
+        <CarteReponsesTypes />
         <Carte titre="PC perdu, volé ou remplacé ?">
           <p className="text-sm">
             Sur le serveur, lance <code className="rounded bg-creme px-1.5 py-0.5 text-[13px]">npm run gestion:autoriser -- --retirer {coffre.idPoste}</code> :

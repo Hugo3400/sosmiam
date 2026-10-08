@@ -8,6 +8,7 @@ import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { effacerContactDemande, refuserDemande, type DemandeLieu } from "~/services/demandes.ts";
 import { ouvrirLien } from "~/services/systeme.ts";
+import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { ModaleAccepterDemande } from "./ModaleAccepterDemande.tsx";
 
 const TYPES: Record<string, string> = { resto: "Resto", patisserie: "Pâtisserie", bar: "Bar", sortie: "Sortie", autre: "Autre" };
@@ -53,6 +54,7 @@ export function CarteDemande({ demande, onChange }: { demande: DemandeLieu; onCh
           </>
         )}
         {demande.contactEmail && <Bouton icone={Mail} onClick={() => ouvrirLien(`mailto:${demande.contactEmail}?subject=${objetMail}`)}>Répondre par mail</Bouton>}
+        {demande.contactEmail && <BoutonReponseType categorie="demande" adresse={demande.contactEmail} prenom={demande.contactNom} lieu={demande.nom} />}
         {demande.lienDiscord && <Bouton icone={ExternalLink} onClick={() => ouvrirLien(demande.lienDiscord!)}>Voir sur Discord</Bouton>}
         {aContact && demande.statut !== "a-traiter" && (
           <Bouton variante="discret" icone={UserX} onClick={() => window.confirm("Effacer le nom, l'e-mail et le téléphone de ce contact ?") && effacerContactDemande(demande.id).then(onChange)}>
