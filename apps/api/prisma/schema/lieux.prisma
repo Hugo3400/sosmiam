@@ -106,8 +106,16 @@ model Signalement {
   source      String    @db.VarChar(10)
   /// « a-traiter », « retenu » (contenu masqué) ou « rejete » (rien à redire)
   statut      String    @default("a-traiter") @db.VarChar(10)
-  /// Note de la modération
+  /// Note de la modération (privée)
   decision    String?   @db.VarChar(500)
+  /// Règle enfreinte quand le signalement est retenu (« haine », « arnaque »… : les règles de la communauté des CGU)
+  motif       String?   @db.VarChar(20)
+  /// Pourquoi, en clair, pour l'auteur (exposé des motifs du règlement européen sur les services numériques, art. 17)
+  motivation  String?   @db.VarChar(1000)
+  /// Contestation reçue (de l'auteur, ou de la personne qui a signalé) : son texte et sa date ; réexamen fait le…
+  contestation String?  @db.VarChar(1000)
+  contesteLe  DateTime? @map("conteste_le") @db.Timestamptz(0)
+  reexamineLe DateTime? @map("reexamine_le") @db.Timestamptz(0)
   creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   traiteLe    DateTime? @map("traite_le") @db.Timestamptz(0)
 
