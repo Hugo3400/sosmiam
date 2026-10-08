@@ -53,10 +53,9 @@ export async function reprendreSessionGardee(): Promise<string | null> {
 
 /** Ferme la session pour de bon (cadenas du menu) : le code à 6 chiffres sera redemandé. */
 export async function fermerSession(): Promise<void> {
+  // Oubliée tout de suite (l'écran de connexion qui suit doit redemander le code), puis fermée sur le serveur
+  const session = lireSession();
+  definirSession(null);
   oublierSessionLocale();
-  try {
-    await appeler("DELETE", "/session");
-  } finally {
-    definirSession(null);
-  }
+  if (session) await appeler("DELETE", "/session", { session });
 }

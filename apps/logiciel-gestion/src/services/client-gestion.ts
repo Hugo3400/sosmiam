@@ -45,25 +45,30 @@ type Options = {
   /** Fichier envoyé tel quel (médias) */
   fichier?: Blob;
   reponse?: "json" | "texte" | "blob";
+  /** Session à utiliser à la place de la session en cours (fermeture d'une session déjà oubliée) */
+  session?: string | null;
 };
 
 export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", chemin: string, options: Options = {}): Promise<T> {
-  if (!etat.cleSecrete || !etat.idPoste) throw new ErreurApi("verrouille", 0);
+  // Clé, poste et session pris maintenant : un verrouillage pendant la demande ne la casse pas
+  const { cleSecrete, idPoste } = etat;
+  const session = options.session === undefined ? etat.session : options.session;
+  if (!cleSecrete || !idPoste) throw new ErreurApi("verrouille", 0);
   const octets = options.fichier
     ? new Uint8Array(await options.fichier.arrayBuffer())
     : options.corps === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(options.corps));
   const horodatage = String(Date.now());
   const nonce = encoderBase64Url(crypto.getRandomValues(new Uint8Array(18)));
   const message = construireMessageGestion({
-    methode, chemin, horodatage, nonce, session: etat.session, empreinteCorps: await calculerEmpreinteSha256(octets),
+    methode, chemin, horodatage, nonce, session, empreinteCorps: await calculerEmpreinteSha256(octets),
   });
   const entetes: Record<string, string> = {
-    "X-Gestion-Poste": etat.idPoste,
+    "X-Gestion-Poste": idPoste,
     "X-Gestion-Horodatage": horodatage,
     "X-Gestion-Nonce": nonce,
-    "X-Gestion-Signature": await signerMessage(etat.cleSecrete, message),
+    "X-Gestion-Signature": await signerMessage(cleSecrete, message),
   };
-  if (etat.session) entetes["X-Gestion-Session"] = etat.session;
+  if (session) entetes["X-Gestion-Session"] = session;
   if (options.fichier) entetes["Content-Type"] = options.fichier.type || "application/octet-stream";
   else if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
 
@@ -76,7 +81,7 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
   if (!reponse.ok) {
     const corps = (await reponse.json().catch(() => null)) as { erreur?: string; champ?: string } | null;
     const erreur = new ErreurApi(corps?.erreur ?? "erreur-serveur", reponse.status, corps?.champ ?? null);
-    if (erreur.code === "session-expiree" && etat.session) {
+    if (erreur.code === "session-expiree" && etat.session && etat.session === session) {
       etat.session = null;
       oublierSessionLocale();
       quandSessionPerdue?.();
