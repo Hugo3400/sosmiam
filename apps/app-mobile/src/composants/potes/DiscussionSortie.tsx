@@ -143,7 +143,7 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
           return (
             <View>
               {item.jour ? (
-                <Text accessibilityRole="header" className="mb-1 mt-4 text-center font-texte-semi text-xs uppercase tracking-wider text-gris">
+                <Text accessibilityRole="header" className="mb-1 mt-4 text-center font-texte-semi text-xs uppercase text-gris">
                   {item.jour}
                 </Text>
               ) : null}

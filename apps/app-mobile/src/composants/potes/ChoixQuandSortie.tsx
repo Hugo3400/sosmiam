@@ -130,8 +130,8 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
   };
 
   const cases = [
-    { mode: "date" as const, libelle: "Jour de la sortie", valeur: jour, icone: "calendar-outline" as const, largeur: "flex-[1.6]" },
-    { mode: "time" as const, libelle: "Heure de la sortie", valeur: heure, icone: "time-outline" as const, largeur: "flex-1" },
+    { mode: "date" as const, libelle: "Jour de la sortie", valeur: jour, icone: "calendar-outline" as const, largeur: 1.6 },
+    { mode: "time" as const, libelle: "Heure de la sortie", valeur: heure, icone: "time-outline" as const, largeur: 1 },
   ];
 
   return (
@@ -145,7 +145,8 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
             accessibilityValue={{ text: c.valeur }}
             accessibilityHint={c.mode === "date" ? "Ouvre le choix du jour" : "Ouvre le choix de l'heure"}
             onPress={() => ouvrir(c.mode)}
-            className={`min-h-[52px] flex-row items-center justify-between gap-2 rounded-2xl border-2 bg-white px-4 py-3 active:opacity-80 ${c.largeur} ${erreur ? "border-rouge-texte" : "border-encre"}`}
+            style={{ flex: c.largeur }}
+            className={`min-h-[52px] flex-row items-center justify-between gap-2 rounded-2xl border-2 bg-white px-4 py-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
           >
             <Text numberOfLines={1} className="shrink font-texte text-[17px] text-encre">
               {c.valeur}
