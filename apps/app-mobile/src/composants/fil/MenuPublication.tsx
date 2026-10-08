@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo, useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
@@ -22,15 +22,25 @@ type Props = {
   /** Signalement envoyé : la feuille reste ouverte pour dire merci */
   onSignaler: (choix: ChoixSignalement) => void;
   onFermer: () => void;
+  /**
+   * Le menu a fini de se refermer (une fois par fermeture) : c'est le moment d'ouvrir une autre fenêtre (« Crée ton compte »,
+   * « Envoyer à un pote »). Plus tôt, iOS refuserait de l'ouvrir pendant que le menu glisse encore.
+   */
+  onRefermee: () => void;
 };
 
 type Vue = "options" | "signalement";
+
+// Seul iOS dit quand le menu a fini de se refermer : ailleurs, on attend la fin de sa glissade
+const DUREE_FERMETURE = 450;
+// Sur iOS, au cas où la fin de fermeture ne viendrait pas
+const SECOURS_IOS = 1000;
 
 /**
  * Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours.
  * En visite sans compte, un cadenas sur tout sauf l'adresse : le fil referme le menu et propose de créer un compte.
  */
-export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, avecCompte, onChoisir, onSignaler, onFermer }: Props) {
+export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, avecCompte, onChoisir, onSignaler, onFermer, onRefermee }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const defilement = useRef<ScrollView>(null);
@@ -45,6 +55,25 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
       setVue("options");
       setEtape("raison");
     }
+  }
+
+  // Ouvert puis refermé : onRefermee à la fin de la glissade (dite par iOS, sinon attendue), une seule fois
+  const aRefermer = useRef(false);
+  useEffect(() => {
+    if (visible) {
+      aRefermer.current = true;
+      return;
+    }
+    if (!aRefermer.current) return;
+    const minuterie = setTimeout(finirFermeture, Platform.OS === "ios" ? SECOURS_IOS : DUREE_FERMETURE);
+    return () => clearTimeout(minuterie);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- finirFermeture ne lit que aRefermer et onRefermee (stable)
+  }, [visible]);
+
+  function finirFermeture() {
+    if (!aRefermer.current) return;
+    aRefermer.current = false;
+    onRefermee();
   }
 
   // Chaque vue ou étape commence en haut de la feuille
@@ -89,7 +118,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
   ];
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={reculer}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={reculer} onDismiss={finirFermeture}>
       {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement (« padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre) */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}

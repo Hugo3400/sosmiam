@@ -72,12 +72,14 @@
   - « Suivre » sur leur fiche ou leur page, et dans le fil ;
   - toucher « Suivi » ouvre une confirmation « Ne plus suivre ? » : on ne désabonne jamais d'un seul toucher ;
   - liste « Tu suis » depuis l'onglet Profil.
-- **Entre personnes** (en construction) :
-  - suivre est à sens unique et **coexiste avec « Ma bande »** (les vrais potes, pour les sorties et le chat) ;
-  - comptes **publics par défaut, privé possible** : en privé, chaque abonnement est une demande à accepter ;
-  - **15-17 ans : profil privé d'office**, et un adulte ne peut ni les suivre ni leur envoyer de demande. Ils peuvent suivre les pros, les créateurs et les ados de leur âge ;
-  - prévu : abonnés / abonnements (retirer un abonné), onglet « Abonnements » dans le fil, notifications (« … te suit », demandes, nouvelle vidéo), suggestions « Tu pourrais suivre ».
-  - **à 18 ans, les abonnements déjà acceptés avec des 15-17 ans restent** : seuls les nouveaux liens adulte → mineur sont interdits ;
+- **Entre personnes** (démo sur le téléphone depuis le 8 octobre 2026 ; l'API viendra ensuite) :
+  - suivre est à sens unique et **coexiste avec « Ma bande »** : suivre, c'est voir passer ses listes et ses lieux (ses vidéos et avis arriveront avec les comptes) ; Ma bande, ce sont les vrais potes, pour les sorties et le chat. Suivre n'ouvre jamais le chat ;
+  - comptes **publics par défaut, privé possible** (Réglages > Compte privé) : en privé, chaque abonnement est une demande à accepter ;
+  - **15-17 ans : compte privé d'office**. Un adulte ne peut ni les suivre, ni leur envoyer de demande, ni voir leurs compteurs et leurs abonnés (sauf un créateur de 15-17 ans, voir plus bas). Eux suivent les lieux, les créateurs et les ados de leur âge (sur demande) ;
+  - abonnés / abonnements sur les profils (retirer un abonné), onglet « Abonnements » dans le fil (seulement ce que publient les lieux et créateurs suivis), notifications dans l'app derrière une cloche (« … te suit », demandes, nouvelle vidéo), suggestions « Tu pourrais suivre » (potes de potes, créateurs de ta ville, lieux proches). Pas de notification sur le téléphone avant l'API ;
+  - tous les gestes de suivi demandent un compte (pendant la visite sans compte, ils ouvrent « Crée ton compte »), et suivre une personne demande d'avoir choisi son pseudo ;
+  - choix par défaut, à confirmer par Hugo : passer en privé garde les abonnés, repasser en public accepte les demandes en attente (après confirmation) ; un compte privé montre à un non-abonné son avatar, son prénom, son @pseudo et ses compteurs, rien d'autre ; la bande voit tout si vous vous êtes ajoutés en vrai (lien ou QR code vérifié) ; refuser, retirer un abonné ou ne plus suivre ne prévient jamais l'autre ; bloquer coupe tout dans les deux sens et débloquer ne rétablit rien ;
+  - **à 18 ans, les abonnements déjà acceptés avec des 15-17 ans restent** : seuls les nouveaux liens adulte → mineur sont interdits, et les demandes encore en attente qui le deviennent sont retirées sans bruit. Le compte reste privé tant que la personne ne choisit pas « public », et sa bande ne bouge pas ;
   - **un 15-17 ans pourra être créateur** (publier dans le fil public) **avec des abonnés adultes, sous surveillance accrue** : son compte reste privé (chaque abonnement est une demande qu'il accepte ou refuse), et ces liens remontent au logiciel de gestion. La surveillance sera détaillée avec la publication de vidéos (pistes : modération renforcée des commentaires d'adultes, signalements traités en priorité, pas de message privé d'un adulte, position jamais affichée).
 
 ## Potes (décidé le 8 octobre 2026)

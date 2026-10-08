@@ -20,11 +20,14 @@ type Props = {
   reponse: boolean;
   /** Heure de référence pour « il y a 5 min » (rafraîchie par la feuille) */
   maintenant: number;
-  onRepondre: (commentaire: Commentaire) => void;
+  /** « declencheur » : le bouton touché, où le lecteur d'écran revient si « Crée ton compte » s'ouvre par-dessus (visite sans compte) */
+  onRepondre: (commentaire: Commentaire, declencheur: View | null) => void;
   /** J'aime (ou le retirer) ; sans compte, la feuille propose d'en créer un */
-  onAimer: (commentaire: Commentaire) => void;
+  onAimer: (commentaire: Commentaire, declencheur: View | null) => void;
   /** Modifier, supprimer, signaler, bloquer ; « declencheur » est ce qui a ouvert le menu, où le lecteur d'écran revient ensuite */
   onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
+  /** Faux en visite sans compte : un doigt qui s'attarde en lisant n'ouvre rien (le bouton « ⋯ » reste là) */
+  appuiLong: boolean;
 };
 
 const MOIS_COURTS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -45,7 +48,7 @@ function formaterIlYa(dateIso: string, maintenant: number, long: boolean): strin
 }
 
 /** Un commentaire sous une publication : avatar, prénom et @pseudo (ou le lieu, avec son badge), texte, date, « Répondre » et J'aime. */
-export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions }: Props) {
+export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions, appuiLong }: Props) {
   const { trouverPote } = utiliserCommunaute();
   const estLieu = commentaire.auteur === "lieu";
   const pote = estLieu ? null : trouverPote(commentaire.auteur);
@@ -59,6 +62,8 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
   const taille = reponse ? 30 : 40;
   const zoneTexte = useRef<View>(null);
   const boutonOptions = useRef<View>(null);
+  const boutonRepondre = useRef<View>(null);
+  const boutonJaime = useRef<View>(null);
 
   const description = [
     estLieu ? `${nom}, le lieu` : `${nom}${estMoi ? ", toi" : ""}${pseudo ? `, ${pseudo}` : ""}`,
@@ -88,15 +93,19 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
       )}
 
       <View className="flex-1">
-        {/* Appui long : les options, comme le bouton « ⋯ » plus bas (VoiceOver passe par ce bouton) */}
+        {/* Appui long (avec un compte) : les options, comme le bouton « ⋯ » plus bas (VoiceOver passe par ce bouton) */}
         <Pressable
           ref={zoneTexte}
           accessible
           accessibilityLabel={description}
-          onLongPress={() => {
-            vibrerLegerement();
-            onOptions(commentaire, zoneTexte.current);
-          }}
+          onLongPress={
+            appuiLong
+              ? () => {
+                  vibrerLegerement();
+                  onOptions(commentaire, zoneTexte.current);
+                }
+              : undefined
+          }
           delayLongPress={350}
           // Masqué par le lieu : un cadre en pointillés plutôt qu'un texte pâli (il doit rester lisible)
           className={masque ? "rounded-xl border-2 border-dashed border-gris/60 px-2 py-1.5" : ""}
@@ -124,9 +133,10 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
             {modifie ? " · (modifié)" : ""}
           </Text>
           <Pressable
+            ref={boutonRepondre}
             accessibilityRole="button"
             accessibilityLabel={`Répondre à ${nom}`}
-            onPress={() => onRepondre(commentaire)}
+            onPress={() => onRepondre(commentaire, boutonRepondre.current)}
             className="ml-2 min-h-11 justify-center px-2 active:opacity-60"
           >
             <Text className="font-texte-semi text-[13px] text-gris">Répondre</Text>
@@ -144,12 +154,13 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
       </View>
 
       <Pressable
+        ref={boutonJaime}
         accessibilityRole="button"
         accessibilityLabel={aime ? `Retirer ton J'aime, ${nombreJaimes} J'aime` : `J'aime ce commentaire${nombreJaimes > 0 ? `, ${nombreJaimes} J'aime` : ""}`}
         accessibilityState={{ selected: aime }}
         onPress={() => {
           vibrerLegerement();
-          onAimer(commentaire);
+          onAimer(commentaire, boutonJaime.current);
         }}
         className="min-h-11 min-w-11 items-center pt-1 active:scale-90"
       >

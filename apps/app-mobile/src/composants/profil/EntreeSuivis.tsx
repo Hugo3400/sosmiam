@@ -7,6 +7,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -15,25 +16,35 @@ type Props = {
   age: number;
 };
 
-/** La rangée « 🔔 Tu suis » du profil, avec le compte des lieux et créateurs suivis ; elle ouvre la liste pour les retrouver ou ne plus les suivre. */
+/**
+ * La rangée « 🔔 Tu suis » du profil, avec le compte des personnes, lieux et créateurs suivis (« 2 personnes, 3 lieux et 1 créateur ») ;
+ * elle ouvre la liste pour les retrouver ou ne plus les suivre.
+ */
 export function EntreeSuivis({ suivis, age }: Props) {
   const router = useRouter();
+  // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
+  const nombrePersonnes = utiliserSuivisPersonnes().abonnements.length;
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore et que ton âge autorise
   const affichables = listerSuivisAffichables(suivis, filtrerLieuxSelonAge(lieuxExemples, age));
   const nombreLieux = affichables.filter((s) => s.type === "lieu").length;
   const nombreCreateurs = affichables.length - nombreLieux;
 
   const parties = [
+    nombrePersonnes > 0 ? `${nombrePersonnes} personne${nombrePersonnes > 1 ? "s" : ""}` : null,
     nombreLieux > 0 ? `${nombreLieux} lieu${nombreLieux > 1 ? "x" : ""}` : null,
     nombreCreateurs > 0 ? `${nombreCreateurs} créateur${nombreCreateurs > 1 ? "s" : ""}` : null,
   ].filter((p) => p !== null);
-  const detail = parties.length > 0 ? parties.join(" et ") : "Personne pour l'instant : touche « Suivre » sur une fiche ou une vidéo";
+  // « 2 personnes, 3 lieux et 1 créateur »
+  const detail =
+    parties.length > 1
+      ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
+      : (parties[0] ?? "Personne pour l'instant : touche « Suivre » sur une fiche, une vidéo ou un profil");
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={parties.length > 0 ? `Tu suis ${detail}` : `Tu suis, personne pour l'instant`}
-      accessibilityHint="Ouvre la liste des lieux et créateurs que tu suis"
+      accessibilityHint="Ouvre la liste des personnes, lieux et créateurs que tu suis"
       onPress={() => {
         vibrerLegerement();
         router.push("/suivis");

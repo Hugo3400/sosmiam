@@ -40,7 +40,7 @@ type Props = {
   avecCompte: boolean;
   /** Vrai nombre de commentaires (réponses comprises), sans ceux des personnes bloquées */
   nombreCommentaires: number;
-  /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et anime son cadre */
+  /** Publication affichée à l'écran : seule celle-ci joue sa vidéo et fait battre son point SOS */
   actif: boolean;
   /** Place à laisser en haut (en-tête du fil posé sur la publication) */
   margeHaut: number;
@@ -87,7 +87,7 @@ const DELAI_FOCUS_REDUCTION = 300;
 export const PostPublication = memo(function PostPublication(props: Props) {
   const { publication, lieu, km, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
-  const cadre = useSharedValue(1);
+  const pointSos = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
   // Appui long sur la vidéo : elle file en accéléré jusqu'à ce qu'on lâche
   const [acceleree, setAcceleree] = useState(false);
@@ -123,14 +123,15 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     return () => clearTimeout(minuterie);
   }, [reduit, actif]);
 
+  // Lieu en SOS : un petit point qui bat doucement dans sa pastille, comme un « en direct » (plus de cadre clignotant autour de la vidéo)
   useEffect(() => {
     if (!actif || !lieu.sos || animationsReduites) {
-      cadre.value = 1;
+      pointSos.value = 1;
       return;
     }
-    cadre.value = withRepeat(withTiming(0.35, { duration: 800 }), -1, true);
-  }, [actif, lieu.sos, animationsReduites, cadre]);
-  const styleCadre = useAnimatedStyle(() => ({ opacity: cadre.value }));
+    pointSos.value = withRepeat(withTiming(0.25, { duration: 700 }), -1, true);
+  }, [actif, lieu.sos, animationsReduites, pointSos]);
+  const stylePointSos = useAnimatedStyle(() => ({ opacity: pointSos.value }));
 
   // Fiche et pastille restent montées : seules leur opacité et leur position bougent, sur le fil d'affichage
   const styleFiche = useAnimatedStyle(() => ({ opacity: 1 - reduction.value, transform: [{ translateY: reduction.value * 48 }] }));
@@ -303,9 +304,15 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               ) : null}
               <View className="flex-row flex-wrap gap-2">
                 {lieu.sos ? (
-                  <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-                    🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
-                  </Text>
+                  <View className="flex-row items-center gap-1.5 rounded-full bg-jaune px-3 py-1">
+                    {/* Une View autour : NativeWind ignore className sur un Animated.View qui a un style animé */}
+                    <View className="h-2 w-2">
+                      <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurs.tomate }, stylePointSos]} />
+                    </View>
+                    <Text className="font-texte-gras text-[13px] text-encre">
+                      SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                    </Text>
+                  </View>
                 ) : null}
                 {lieu.alerte ? (
                   <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
@@ -395,9 +402,6 @@ export const PostPublication = memo(function PostPublication(props: Props) {
         </Animated.View>
       </View>
 
-      {lieu.sos ? (
-        <Animated.View pointerEvents="none" style={[{ position: "absolute", inset: 0, borderWidth: 5, borderColor: couleurs.jaune }, styleCadre]} />
-      ) : null}
       <CoeurEnvol numero={envolCoeur} />
       <BoueeEnvol numero={envolBouee} />
     </View>

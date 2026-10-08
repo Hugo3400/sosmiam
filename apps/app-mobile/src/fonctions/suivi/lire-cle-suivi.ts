@@ -1,9 +1,9 @@
-/** Ce qu'une clé de suivi désigne : un lieu (par son numéro) ou un créateur (par son pseudo, sans « @ »). */
-export type CibleSuivi = { type: "lieu"; id: number } | { type: "createur"; pseudo: string };
+/** Ce qu'une clé de suivi désigne : un lieu (par son numéro), un créateur (par son pseudo, sans « @ ») ou une personne (par son identifiant). */
+export type CibleSuivi = { type: "lieu"; id: number } | { type: "createur"; pseudo: string } | { type: "personne"; id: string };
 
 /**
- * L'inverse de calculerCleSuivi : « lieu:12 » → { type: "lieu", id: 12 }, « createur:lea.mange » → { type: "createur", pseudo: "lea.mange" }.
- * Rend null pour une clé abîmée ou inconnue (type inconnu, numéro qui n'en est pas un, pseudo vide) : on l'ignore plutôt que de planter.
+ * L'inverse de calculerCleSuivi et d'ecrireCleSuivi : « lieu:12 » → { type: "lieu", id: 12 }, « createur:lea.mange » → { type: "createur", pseudo: "lea.mange" },
+ * « personne:sofia » → { type: "personne", id: "sofia" }. Rend null pour une clé abîmée ou inconnue (type inconnu, numéro qui n'en est pas un, pseudo ou identifiant vide) : on l'ignore plutôt que de planter.
  */
 export function lireCleSuivi(cle: string): CibleSuivi | null {
   const separateur = cle.indexOf(":");
@@ -16,5 +16,6 @@ export function lireCleSuivi(cle: string): CibleSuivi | null {
     return Number.isSafeInteger(id) ? { type: "lieu", id } : null;
   }
   if (type === "createur") return valeur ? { type: "createur", pseudo: valeur } : null;
+  if (type === "personne") return valeur ? { type: "personne", id: valeur } : null;
   return null;
 }

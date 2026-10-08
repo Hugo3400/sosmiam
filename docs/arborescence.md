@@ -59,18 +59,18 @@ sos-miam/
 | `src/app/(onglets)/` | écrans des onglets : Pour toi, Explorer, Scan, Potes, Profil (Expo Router) |
 | `src/app/(inscription)/` | première ouverture : bienvenue (carrousel), compte, fais connaissance, envies, c'est prêt |
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |
-| `src/app/createur/` | page d'un créateur : ses publications, ses partenariats déclarés, Suivre ; la liste « Tu suis » est dans `src/app/suivis.tsx` |
-| `src/app/potes/` | écrans ouverts depuis l'onglet Potes : sortie, nouvelle sortie, ajouter un pote, profil d'un pote, liste partagée, messages, discussion, nouveau groupe |
-| `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications, personnes bloquées |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre), invite (visite sans compte : feuille « Crée ton compte », écrans d'invitation), profil, reglages, inscription, marque (mascotte), navigation |
+| `src/app/createur/` | page d'un créateur : ses publications, ses partenariats déclarés, Suivre ; la liste « Tu suis » est dans `src/app/suivis.tsx`, les notifications dans `src/app/notifications.tsx` |
+| `src/app/potes/` | écrans ouverts depuis l'onglet Potes : sortie, nouvelle sortie, ajouter un pote, profil d'un pote, liste partagée, messages, discussion, nouveau groupe, réseau d'une personne (abonnés, abonnements) |
+| `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications, compte privé, personnes bloquées |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre, abonnés, suggestions, fournisseur des suivis entre personnes), notifications (cloche, lignes, fournisseur), invite (visite sans compte : feuille « Crée ton compte », écrans d'invitation), profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
-| `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar, potes, commentaires et conversations d'exemple (`potes-exemples.ts`, `commentaires-exemples.ts`, `conversations-exemples.ts`) |
+| `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar, potes, commentaires et conversations d'exemple (`potes-exemples.ts`, `commentaires-exemples.ts`, `conversations-exemples.ts`), qui suit qui et comptes privés de la démo (`suivis-exemples.ts`), notifications d'exemple (`notifications-exemples.ts`), forme d'une suggestion (`type-suggestion.ts`) |
 | `src/contenus/cartes/` | cartes (menus, formules) des lieux d'exemple, par zone, réunies dans `cartes-exemples.ts` |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
 | `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/`, `communaute/`, `chat/`, `suivi/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix, potes et sorties, messagerie, suivis…) |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, mode visite, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil) |
+| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, mode visite, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil, suivis entre personnes et notifications de la démo) |
 | `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone 6,9 et 6,3 pouces, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
@@ -144,8 +144,8 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 ## packages/commun — partagé
 | Dossier | Contenu |
 |---|---|
-| `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…) |
-| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS |
+| `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…), suivis (abonnés, demandes, notifications) |
+| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS, qui peut suivre qui, compte privé, visibilité d'un profil |
 | `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`) |
 | `src/theme/` | couleurs, polices, arrondis (utilisés par le site et l'app) |
 | `src/validation/` | règles des formulaires (inscription, demande de BIG SOS…) |

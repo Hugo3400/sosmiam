@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
@@ -13,12 +14,13 @@ import { ChampCommentaireInvite } from "~/composants/fil/ChampCommentaireInvite"
 import { MenuCommentaire } from "~/composants/fil/MenuCommentaire";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { FeuilleCreerComptePosee } from "~/composants/invite/FeuilleCreerComptePosee";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
-import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -42,13 +44,16 @@ const RAFRAICHISSEMENT = 30_000;
 const DELAI_FOCUS = 150;
 // Après une suppression ou un blocage, le message part juste après le replacement : sinon, le titre relu le couperait
 const DELAI_ANNONCE_APRES_FOCUS = 400;
-// Sans compte, la feuille se referme avant « Crée ton compte » : iOS n'ouvre pas une fenêtre pendant qu'une autre se referme
-const DELAI_APRES_FERMETURE = Platform.OS === "ios" ? 400 : 0;
+// « Je m'inscris » : l'inscription s'ouvre une fois la feuille refermée. Seul iOS le dit ; ailleurs, on attend la fin de sa glissade
+const DUREE_FERMETURE = 450;
+// Sur iOS, au cas où la fin de fermeture ne viendrait pas : on ouvre l'inscription quand même
+const SECOURS_IOS = 1000;
 
 /**
  * Les commentaires d'une publication, dans une feuille qui monte du bas comme sur TikTok (la vidéo reste visible au-dessus) :
  * la réponse du lieu en tête, puis les plus aimés ; réponses repliables ; champ en bas avec mentions ; options de chaque commentaire.
- * En visite sans compte, on lit tout ; écrire, répondre, aimer et les options referment la feuille et proposent de créer un compte.
+ * En visite sans compte, on lit tout ; écrire, répondre, aimer et les options posent « Crée ton compte » par-dessus la liste
+ * (sans la refermer : après « Plus tard », on reprend la lecture là où on en était). Pas d'appui long sur un commentaire.
  */
 export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: Props) {
   const marges = useSafeAreaInsets();
@@ -58,19 +63,24 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const { trouverPote } = communaute;
   const { profil } = utiliserProfil();
   const avecCompte = profil !== null;
-  const exiger = utiliserCompteRequis();
-  const minuterieCompte = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // « Je m'inscris » touché, feuille pas encore refermée
+  const inscription = useRef(false);
+  const minuterieInscription = useRef<ReturnType<typeof setTimeout> | null>(null);
   const champ = useRef<TextInput>(null);
   const liste = useRef<FlatList<FilCommentaire>>(null);
   const titreFeuille = useRef<Text>(null);
+  const boutonEcrire = useRef<View>(null);
   // Ce qui a ouvert les options (le bouton « ⋯ » ou le commentaire, par appui long) : le lecteur d'écran y revient à la fermeture
   const declencheurOptions = useRef<View | null>(null);
+  // Pareil pour « Crée ton compte » posé sur la feuille (visite sans compte)
+  const declencheurInvitation = useRef<View | null>(null);
   const [texte, setTexte] = useState("");
   const [reponse, setReponse] = useState<Reponse | null>(null);
   const [edition, setEdition] = useState<string | null>(null);
   const [deplies, setDeplies] = useState<Record<string, boolean>>({});
   const [options, setOptions] = useState<Commentaire | null>(null);
   const [signale, setSignale] = useState<Commentaire | null>(null);
+  const [invitation, setInvitation] = useState<RaisonCompte | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [maintenant, setMaintenant] = useState(() => Date.now());
@@ -84,6 +94,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     if (visible) {
       setOptions(null);
       setSignale(null);
+      setInvitation(null);
       // Un message pas encore effacé à la fermeture ne revient pas à la réouverture
       setAnnonce(null);
       setReponse(null);
@@ -112,19 +123,41 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   useEffect(
     () => () => {
-      if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
+      if (minuterieInscription.current) clearTimeout(minuterieInscription.current);
     },
     [],
   );
 
-  /** Vrai avec un compte ; sinon la feuille se referme, puis « Crée ton compte » s'ouvre pour cette raison */
-  function exigerCompte(raison: RaisonCompte): boolean {
+  /** Vrai avec un compte ; sinon « Crée ton compte » se pose sur la feuille (la liste reste où elle était) */
+  function exigerCompte(raison: RaisonCompte, declencheur: View | null = null): boolean {
     if (avecCompte) return true;
     Keyboard.dismiss();
-    onFermer();
-    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
-    minuterieCompte.current = setTimeout(() => exiger(raison), DELAI_APRES_FERMETURE);
+    declencheurInvitation.current = declencheur;
+    setInvitation(raison);
     return false;
+  }
+
+  /** « Plus tard » : retour à la lecture, et le lecteur d'écran revient sur le geste touché */
+  function fermerInvitation() {
+    setInvitation(null);
+    setTimeout(() => deplacerFocusLecteurEcran(declencheurInvitation.current ?? titreFeuille.current), DELAI_FOCUS);
+  }
+
+  // « Je m'inscris » : la feuille se referme, puis l'inscription s'ouvre (plus tôt, VoiceOver, qui revient sur 💬 à la fermeture, la quitterait)
+  function inscrire() {
+    if (inscription.current) return;
+    inscription.current = true;
+    setInvitation(null);
+    onFermer();
+    minuterieInscription.current = setTimeout(finirFermeture, Platform.OS === "ios" ? SECOURS_IOS : DUREE_FERMETURE);
+  }
+
+  function finirFermeture() {
+    if (minuterieInscription.current) clearTimeout(minuterieInscription.current);
+    minuterieInscription.current = null;
+    if (!inscription.current) return;
+    inscription.current = false;
+    router.push("/compte");
   }
 
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
@@ -146,8 +179,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const nouveaux = rangs ? fils.filter((f) => rang(f) < 0).sort((a, b) => b.commentaire.date.localeCompare(a.commentaire.date)) : [];
   const ordonnes = [...connus.filter((f) => f.commentaire.auteur === "lieu"), ...nouveaux, ...connus.filter((f) => f.commentaire.auteur !== "lieu")];
 
-  function repondre(commentaire: Commentaire, fil: Commentaire) {
-    if (!exigerCompte("commenter")) return;
+  function repondre(commentaire: Commentaire, fil: Commentaire, declencheur: View | null) {
+    if (!exigerCompte("commenter", declencheur)) return;
     let brouillon = edition ? "" : texte;
     setEdition(null);
     setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire.auteur) });
@@ -188,18 +221,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   }
 
   // Sans compte : « rejoindre la discussion » (aimer un commentaire en fait partie, la raison « jaime » parle de la publication)
-  function aimer(commentaire: Commentaire) {
-    if (exigerCompte("commenter")) communaute.basculerJaimeCommentaire(commentaire.id);
+  function aimer(commentaire: Commentaire, declencheur: View | null) {
+    if (exigerCompte("commenter", declencheur)) communaute.basculerJaimeCommentaire(commentaire.id);
   }
 
   // Le « Sois le premier » de la liste vide : le champ, ou (sans compte) la feuille « Crée ton compte »
   function ecrire() {
-    if (exigerCompte("commenter")) champ.current?.focus();
+    if (exigerCompte("commenter", boutonEcrire.current)) champ.current?.focus();
   }
 
   function ouvrirOptions(commentaire: Commentaire, declencheur: View | null) {
     // Sans compte : signaler ou bloquer (un ancien commentaire à toi : le modifier) demande un compte
-    if (!exigerCompte(commentaire.auteur === ID_MOI ? "commenter" : "signaler")) return;
+    if (!exigerCompte(commentaire.auteur === ID_MOI ? "commenter" : "signaler", declencheur)) return;
     Keyboard.dismiss();
     declencheurOptions.current = declencheur;
     setOptions(commentaire);
@@ -246,7 +279,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   // Retour Android et geste d'échappement de VoiceOver : on ferme d'abord ce qui est par-dessus
   function reculer() {
-    if (options) fermerOptions();
+    if (invitation) fermerInvitation();
+    else if (options) fermerOptions();
     else if (signale) finSignalement();
     else onFermer();
   }
@@ -254,13 +288,13 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const titre = nombre === 0 ? "Commentaires" : `${formaterNombreCourt(nombre)} commentaire${nombre > 1 ? "s" : ""}`;
 
   return (
-    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer} onDismiss={finirFermeture}>
       {/* « padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre pour le clavier */}
       <KeyboardAvoidingView
         behavior="padding"
         style={{ flex: 1 }}
-        accessibilityElementsHidden={!!options}
-        importantForAccessibility={options ? "no-hide-descendants" : "auto"}
+        accessibilityElementsHidden={!!options || !!invitation}
+        importantForAccessibility={options || invitation ? "no-hide-descendants" : "auto"}
       >
         {/* Le haut reste transparent : la vidéo continue au-dessus, comme sur TikTok */}
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer les commentaires" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/20" />
@@ -319,7 +353,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     <Text className="text-center font-texte text-sm leading-5 text-gris">
                       Un mot gentil, une question sur le plat, une envie d'y filer ce soir : lance la conversation !
                     </Text>
-                    <Bouton libelle="Écrire un commentaire" variante="blanc" petit onPress={ecrire} className="mt-2" />
+                    <Bouton ref={boutonEcrire} libelle="Écrire un commentaire" variante="blanc" petit onPress={ecrire} className="mt-2" />
                   </View>
                 }
                 renderItem={({ item }) => (
@@ -333,6 +367,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     onRepondre={repondre}
                     onAimer={aimer}
                     onOptions={ouvrirOptions}
+                    appuiLong={avecCompte}
                   />
                 )}
               />
@@ -353,7 +388,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                   margeBas={clavierOuvert ? 8 : marges.bottom + 8}
                 />
               ) : (
-                <ChampCommentaireInvite onCreerCompte={() => exigerCompte("commenter")} margeBas={marges.bottom + 8} />
+                <ChampCommentaireInvite onCreerCompte={(bouton) => exigerCompte("commenter", bouton)} margeBas={marges.bottom + 8} />
               )}
             </>
           )}
@@ -369,6 +404,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
         onBloquer={bloquer}
         onFermer={fermerOptions}
       />
+      <FeuilleCreerComptePosee raison={invitation} onInscrire={inscrire} onFermer={fermerInvitation} />
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={finAnnonce} />
     </Modal>
   );

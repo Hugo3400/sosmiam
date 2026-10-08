@@ -16,7 +16,9 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
@@ -32,13 +34,15 @@ function ouvrirLien(adresse: string) {
   });
 }
 
-/** Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, les personnes bloquées, les pages légales et de quoi tout effacer. */
+/** Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ton compte privé, les personnes bloquées, les pages légales et de quoi tout effacer. */
 export default function Reglages() {
   const router = useRouter();
   const { profil, avatar, effacer } = utiliserProfil();
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
   const conversations = utiliserConversations();
+  const suivisPersonnes = utiliserSuivisPersonnes();
+  const notifications = utiliserNotifications();
   const [effacementEnCours, setEffacementEnCours] = useState(false);
   if (!profil) return null;
 
@@ -63,6 +67,14 @@ export default function Reglages() {
       ? "Personne pour l'instant, que des bonnes ondes"
       : `${nombreBloques} personne${nombreBloques > 1 ? "s" : ""} bloquée${nombreBloques > 1 ? "s" : ""} · tu peux changer d'avis`;
 
+  const detailConfidentialite = !suivisPersonnes.pret
+    ? "Qui peut te suivre sans demander"
+    : suivisPersonnes.confidentialiteVerrouillee
+      ? "Privé d'office entre 15 et 17 ans"
+      : suivisPersonnes.comptePrive
+        ? "Activé : chaque abonné te demande d'abord"
+        : "Désactivé : tout le monde peut te suivre";
+
   const version = Constants.expoConfig?.version;
 
   async function toutEffacer() {
@@ -72,6 +84,9 @@ export default function Reglages() {
       await activite.effacer();
       await communaute.effacer();
       await conversations.effacer();
+      // Avant le profil : sans lui, la démo des abonnés et des notifications ne se recrée pas
+      await suivisPersonnes.effacer();
+      await notifications.effacer();
       await effacerSignalementsLocaux();
       await effacerReglagesNotifications();
       // En dernier : sans profil, l'app repart toute seule à la bienvenue
@@ -89,7 +104,7 @@ export default function Reglages() {
     if (Platform.OS === "web") return void toutEffacer();
     Alert.alert(
       "Tout effacer et recommencer ?",
-      "Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.",
+      "Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.",
       [
         { text: "Annuler", style: "cancel" },
         { text: "Tout effacer", style: "destructive", onPress: () => void toutEffacer() },
@@ -131,6 +146,7 @@ export default function Reglages() {
       </SectionReglages>
 
       <SectionReglages titre="Ta tranquillité">
+        <LigneReglage emoji="🔒" titre="Compte privé" detail={detailConfidentialite} onPress={() => router.push("/reglages/confidentialite")} />
         <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
       </SectionReglages>
 

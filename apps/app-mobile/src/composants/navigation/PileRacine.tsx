@@ -37,6 +37,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
         {/* Réservé aux inscrits */}
         <Stack.Protected guard={inscrit}>
           <Stack.Screen name="suivis" />
+          <Stack.Screen name="notifications" />
           <Stack.Screen name="reglages" />
           <Stack.Screen name="potes" />
         </Stack.Protected>

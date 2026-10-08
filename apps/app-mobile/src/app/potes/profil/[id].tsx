@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,14 +8,20 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { CodeQrInvitation } from "~/composants/potes/CodeQrInvitation";
+import { ListesDuProfil } from "~/composants/potes/ListesDuProfil";
 import { ProfilCommunautaire } from "~/composants/potes/ProfilCommunautaire";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
+import { EncadreComptePrive } from "~/composants/suivi/EncadreComptePrive";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
 /** Demande confirmation avant une action qui compte ; sur le web (aperçu de développement), Alert n'existe pas : on agit directement */
@@ -28,8 +34,10 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
 };
 
 /**
- * Le profil communautaire d'un pote, ou le tien (id « moi »). Pour toi : « Partager mon profil » (lien et QR code).
- * Pour quelqu'un d'autre : l'ajouter, lui écrire (pote de ta bande), le retirer de ta bande, le bloquer (avec confirmation) ou le signaler.
+ * Le profil communautaire d'un pote, ou le tien (id « moi »), avec ses abonnés et abonnements. Pour toi : ses listes et
+ * « Partager mon profil » (lien et QR code). Pour quelqu'un d'autre : le suivre (ou lui demander, compte privé), l'ajouter à ta bande,
+ * lui écrire (pote de ta bande), le retirer de ta bande, le bloquer (avec confirmation) ou le signaler.
+ * Compte privé (ou mineur vu par un adulte hors de sa bande « en vrai ») : l'en-tête et un encadré, rien d'autre.
  * Personne bloquée ou inconnue : un message et le retour.
  */
 export default function ProfilPote() {
@@ -40,6 +48,7 @@ export default function ProfilPote() {
   const animationsReduites = useReducedMotion();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
+  const suivis = utiliserSuivisPersonnes();
   const { ouvrirPrive } = utiliserConversations();
   const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -48,16 +57,31 @@ export default function ProfilPote() {
   const estMoi = id === ID_MOI;
   const bloque = communaute.bloques.some((p) => p.id === id);
   const dansBande = communaute.potes.some((p) => p.id === id);
-  // Un mineur hors de ta bande, vu par un adulte : le même écran qu'un profil introuvable, pour que rien ne révèle son âge
-  const reserve = !estMoi && !dansBande && !!pote?.mineur && !communaute.moiMineur;
+  // Ce que tu vois de cette personne et ce que la règle permet (null : pas encore prêt, ou personne inconnue)
+  const relation = suivis.pret && !estMoi ? suivis.relationAvec(id) : null;
+  const jeSuis = relation?.jeSuis;
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
   const annoncer = (texte: string) => {
     setMessage(texte);
-    AccessibilityInfo.announceForAccessibility(texte);
+    // Sans les emoji (VoiceOver en dirait le nom) ; sur iPhone, après la phrase en cours (le bouton qu'il vient de lire)
+    const lu = retirerEmoji(texte);
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(lu, { queue: true });
+    else AccessibilityInfo.announceForAccessibility(lu);
   };
 
-  if (!pote || (reserve && !bloque)) {
+  // Compte privé : la demande est acceptée pendant que tu regardes son profil, qui s'ouvre en direct
+  const jeSuisAvant = useRef(jeSuis);
+  useEffect(() => {
+    if (jeSuisAvant.current === "demande" && jeSuis === "suivi" && pote) annoncer(`${pote.prenom} a accepté ta demande : bienvenue dans ses bons plans !`);
+    jeSuisAvant.current = jeSuis;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seulement quand ton lien avec cette personne change
+  }, [jeSuis]);
+
+  // Tant que les suivis (et la communauté) ne sont pas relus : un écran crème, comme l'onglet Potes, plutôt qu'un faux « introuvable »
+  if (!suivis.pret) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
+
+  if (!pote || (!estMoi && !bloque && !relation)) {
     return (
       <EcranReglage titre="Personne à l'horizon" sousTitre="On ne trouve pas ce profil : la personne a peut-être quitté SOS Miam, ou le lien s'est emmêlé.">
         <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
@@ -87,8 +111,13 @@ export default function ProfilPote() {
   }
 
   const prenom = pote.prenom;
+  const visibilite = relation?.visibilite ?? "complet";
+  const complet = estMoi || visibilite === "complet";
   // Un adulte n'ajoute jamais un mineur depuis un profil (et, tant que les comptes n'existent pas, d'aucune autre façon)
-  const ajoutable = !estMoi && !dansBande;
+  const ajoutable = !estMoi && !dansBande && !(pote.mineur && !communaute.moiMineur);
+  // Le bouton Suivre s'affiche si la règle le permet, ou pour défaire un lien qui existe déjà (gardé au passage à 18 ans)
+  const suivreVisible = !!relation && (relation.verdict.permis || (relation.verdict.raison === "age" && relation.jeSuis !== "aucun"));
+  const refusAgeAdo = communaute.moiMineur && !!relation && !relation.verdict.permis && relation.verdict.raison === "age" && relation.jeSuis === "aucun";
 
   const ajouter = () => {
     const resultat = communaute.ajouterPote(pote.id, "pseudo");
@@ -133,13 +162,42 @@ export default function ProfilPote() {
   const bloquer = () =>
     confirmer(
       `Bloquer ${prenom} ?`,
-      dansBande ? `${prenom} sortira de ta bande, et tu ne verras plus ses messages ni ses commentaires.` : "Tu ne verras plus ses messages ni ses commentaires.",
+      dansBande
+        ? `${prenom} sortira de ta bande, vous ne vous suivrez plus, et tu ne verras plus ses messages ni ses commentaires.`
+        : "Vous ne vous suivrez plus, et tu ne verras plus ses messages ni ses commentaires.",
       "Bloquer",
       () => {
         communaute.bloquer(pote.id);
         AccessibilityInfo.announceForAccessibility(`Tu as bloqué ${prenom}.`);
       },
     );
+
+  // Sous l'en-tête, dans cet ordre : Suivre, pourquoi pas de Suivre (ado), Suivre ou Ma bande, Ajouter, Écrire, et le dernier message
+  const lignesActions = estMoi
+    ? []
+    : [
+        suivreVisible ? <BoutonSuivreProfil key="suivre" cle={`personne:${pote.id}`} nom={prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" /> : null,
+        refusAgeAdo ? (
+          <Text key="age" className="text-center font-texte text-sm leading-5 text-gris">
+            {lierPonctuation("Entre 15 et 17 ans, tu suis les lieux, les créateurs et les gens de ton âge.")}
+          </Text>
+        ) : null,
+        suivreVisible && ajoutable ? (
+          <Text key="difference" className="text-center font-texte text-sm leading-5 text-gris">
+            {lierPonctuation("Suivre, c'est voir passer ses listes et ses lieux. Ma bande, c'est pour sortir ensemble et discuter.")}
+          </Text>
+        ) : null,
+        ajoutable ? (
+          <Bouton key="ajouter" libelle={`Ajouter ${prenom} à ma bande`} variante="blanc" indice="Pour organiser des sorties et vous envoyer des lieux" onPress={ajouter} />
+        ) : null,
+        dansBande ? <Bouton key="ecrire" libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={ecrire} /> : null,
+        message ? (
+          <Text key="message" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-center font-texte-semi text-sm text-encre">
+            {lierPonctuation(message)}
+          </Text>
+        ) : null,
+      ].filter((ligne) => ligne !== null);
+  const actions = lignesActions.length > 0 ? <View className="gap-4">{lignesActions}</View> : null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -168,7 +226,16 @@ export default function ProfilPote() {
           </View>
         )}
 
-        <ProfilCommunautaire pote={pote} estMoi={estMoi} />
+        <ProfilCommunautaire
+          pote={pote}
+          estMoi={estMoi}
+          visibilite={visibilite}
+          compteurs={<CompteursSuivi id={id} />}
+          teSuit={relation?.meSuit ?? false}
+          actions={actions}
+        />
+
+        {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} peutDemander={!!relation?.verdict.permis} />}
 
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">
@@ -179,13 +246,6 @@ export default function ProfilPote() {
           </SectionReglages>
         ) : (
           <View>
-            {ajoutable ? <Bouton libelle={`Ajouter ${prenom} à ma bande`} indice="Pour organiser des sorties et vous envoyer des lieux" onPress={ajouter} className="mb-4" /> : null}
-            {dansBande ? <Bouton libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={ecrire} className="mb-4" /> : null}
-            {message ? (
-              <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="mb-4 text-center font-texte-semi text-sm text-encre">
-                {lierPonctuation(message)}
-              </Text>
-            ) : null}
             {dansBande ? <LigneReglage emoji="👋" titre="Retirer de ma bande" detail="Vous restez potes dans la vraie vie, hein" onPress={retirer} /> : null}
             <LigneReglage emoji="🚫" titre="Bloquer" detail="Plus de messages ni de commentaires de sa part" danger onPress={bloquer} />
             <LigneReglage emoji="🚩" titre="Signaler" detail="Faux profil, harcèlement, contenu gênant…" onPress={() => setSignalementOuvert(true)} />

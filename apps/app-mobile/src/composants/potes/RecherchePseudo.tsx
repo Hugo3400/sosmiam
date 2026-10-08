@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native";
 
@@ -14,10 +15,11 @@ const LONGUEUR_MAX_SAISIE = 21;
 const DELAI_ANNONCE = 700;
 
 /**
- * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom, puis « Ajouter » ou « Déjà dans ta bande ».
+ * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom (à toucher pour ouvrir son profil), puis « Ajouter » ou « Déjà dans ta bande ».
  * Un adulte ne trouve pas les mineurs (sauf ceux déjà dans sa bande) : chercherParPseudo ne les lui montre pas.
  */
 export function RecherchePseudo() {
+  const router = useRouter();
   const { chercherParPseudo, ajouterPote, moiMineur } = utiliserCommunaute();
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -83,15 +85,26 @@ export function RecherchePseudo() {
         <View>
           {resultats.map(({ pote, dejaDansLaBande }) => (
             <View key={pote.id} className="min-h-16 flex-row items-center gap-3 border-b border-ligne py-2.5">
-              <RondPote pote={pote} taille={48} />
-              <View className="flex-1">
-                <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
-                  @{pote.pseudo}
-                </Text>
-                <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                  {pote.prenom}
-                </Text>
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
+                accessibilityHint="Ouvre son profil"
+                onPress={() => {
+                  vibrerLegerement();
+                  router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
+                }}
+                className="min-h-12 flex-1 flex-row items-center gap-3 active:opacity-70"
+              >
+                <RondPote pote={pote} taille={48} />
+                <View className="flex-1">
+                  <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
+                    @{pote.pseudo}
+                  </Text>
+                  <Text numberOfLines={1} className="font-texte text-sm text-gris">
+                    {pote.prenom}
+                  </Text>
+                </View>
+              </Pressable>
               {dejaDansLaBande ? (
                 <Text accessibilityLabel="Déjà dans ta bande" className="font-texte-semi text-[13px] text-gris">
                   ✓ Déjà dans ta bande

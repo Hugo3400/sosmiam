@@ -1,9 +1,11 @@
 import { useRouter } from "expo-router";
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { badges } from "~/contenus/badges";
@@ -19,42 +21,73 @@ type Props = {
   pote: Pote;
   /** Ton propre profil (« moi ») : les textes te parlent directement */
   estMoi: boolean;
-  /** Profil réservé à sa bande (un mineur vu par un adulte qui n'en fait pas partie) : seulement l'avatar, le prénom et le pseudo */
-  reserve?: boolean;
+  /**
+   * Ce qu'on voit de lui (calculerVisibiliteProfil) : « complet » (par défaut) ; « prive » ou « reserve » : l'en-tête seul
+   * (avatar, prénom, @pseudo et compteurs), sans la ville
+   */
+  visibilite?: VisibiliteProfil;
+  /** Les compteurs d'abonnés et d'abonnements (CompteursSuivi), posés sous la ville ou le @pseudo */
+  compteurs?: ReactNode;
+  /** Il te suit : pastille « Te suit » à côté du @pseudo */
+  teSuit?: boolean;
+  /** Les boutons principaux (Suivre, Ajouter à ma bande, Écrire…), posés juste sous l'en-tête, avant le reste du profil */
+  actions?: ReactNode;
 };
 
 /**
- * Le profil d'une personne tel que ses potes le voient : avatar, prénom, @pseudo et ville, palier Ambassadeur et points,
- * badges obtenus, lieux sauvés et gardés (vignettes vers les fiches). Les lieux que ton âge ne permet pas (bars) ne s'affichent pas.
+ * Le profil d'une personne tel que ses potes le voient : avatar, prénom, @pseudo et ville, compteurs d'abonnés, palier Ambassadeur
+ * et points, badges obtenus, lieux sauvés et gardés (vignettes vers les fiches). Les lieux que ton âge ne permet pas (bars) ne
+ * s'affichent pas. Compte privé (ou réservé à sa bande) : l'en-tête seul.
  */
-export function ProfilCommunautaire({ pote, estMoi, reserve = false }: Props) {
+export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", compteurs, teSuit = false, actions }: Props) {
   const router = useRouter();
   const { profil } = utiliserProfil();
   const { estMasquee } = utiliserActivite();
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { actuel } = calculerPalier(pote.points);
+  const complet = estMoi || visibilite === "complet";
 
   const enTete = (
     <View className="items-center gap-1 pt-2">
       <View className="mb-2">
         <RondPote pote={pote} taille={96} />
       </View>
-      <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
+      <Text
+        accessibilityRole="header"
+        // La pastille « Te suit » n'est pas lue à part : VoiceOver l'entend avec le prénom (« Sofia, te suit »)
+        accessibilityLabel={teSuit && !estMoi ? `${pote.prenom}, te suit` : undefined}
+        className="text-center font-titre text-3xl text-encre"
+      >
         {estMoi ? `${pote.prenom} (toi)` : pote.prenom}
       </Text>
       {pote.pseudo ? (
-        <Text className="text-center font-texte-semi text-base text-encre">@{pote.pseudo}</Text>
+        <View className="flex-row flex-wrap items-center justify-center gap-2">
+          <Text className="text-center font-texte-semi text-base text-encre">@{pote.pseudo}</Text>
+          {teSuit && !estMoi ? (
+            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="rounded-full border-2 border-encre bg-jaune-clair px-2.5 py-0.5">
+              <Text className="font-texte-gras text-xs text-encre">Te suit</Text>
+            </View>
+          ) : null}
+        </View>
       ) : estMoi ? (
         <Text className="text-center font-texte text-base text-gris">Pas encore de pseudo</Text>
       ) : null}
-      {pote.ville && !reserve ? (
+      {pote.ville && complet ? (
         <Text accessibilityLabel={pote.ville} className="text-center font-texte text-base text-gris">
           📍 {pote.ville}
         </Text>
       ) : null}
+      {compteurs}
     </View>
   );
-  if (reserve) return enTete;
+  if (!complet) {
+    return (
+      <View className="gap-6">
+        {enTete}
+        {actions}
+      </View>
+    );
+  }
 
   const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans ta collection)
@@ -83,6 +116,7 @@ export function ProfilCommunautaire({ pote, estMoi, reserve = false }: Props) {
   return (
     <View className="gap-6">
       {enTete}
+      {actions}
 
       <View
         accessible

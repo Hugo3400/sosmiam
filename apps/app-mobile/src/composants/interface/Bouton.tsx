@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type Ref } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -14,6 +14,8 @@ type Props = {
   /** Ce qui se passe quand on touche le bouton, lu par VoiceOver */
   indice?: string;
   className?: string;
+  /** Le bouton lui-même (pour y remettre le lecteur d'écran après une feuille) */
+  ref?: Ref<View>;
 };
 
 const fonds: Record<Variante, string> = { jaune: "bg-jaune", blanc: "bg-white", encre: "bg-encre" };
@@ -24,12 +26,13 @@ const ombres: Record<Variante, string> = { jaune: "bg-encre", blanc: "bg-encre",
 const DELAI_ANTI_DOUBLE_APPUI = 700;
 
 /** Le bouton SOS Miam, comme sur le site : bord noir et ombre décalée. Petite vibration au toucher, un seul appui pris en compte à la fois. */
-export function Bouton({ libelle, onPress, variante = "jaune", desactive = false, petit = false, indice, className = "" }: Props) {
+export function Bouton({ libelle, onPress, variante = "jaune", desactive = false, petit = false, indice, className = "", ref }: Props) {
   const dernierAppui = useRef(0);
   return (
     <View className={`relative ${desactive ? "opacity-40" : ""} ${className}`}>
       <View className={`absolute inset-0 translate-x-1 translate-y-1 rounded-full ${ombres[variante]}`} />
       <Pressable
+        ref={ref}
         accessibilityRole="button"
         accessibilityState={{ disabled: desactive }}
         accessibilityHint={indice}

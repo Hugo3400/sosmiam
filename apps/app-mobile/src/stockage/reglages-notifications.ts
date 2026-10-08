@@ -2,8 +2,11 @@
 // ces choix seront alors appliqués.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-/** Sortes d'alertes qu'on peut recevoir sur les lieux (comme dans le prototype) */
-export type TypeNotification = "sos" | "calme" | "offre" | "evenement" | "nouveau";
+/**
+ * Sortes d'alertes qu'on peut recevoir : sur les lieux (comme dans le prototype), puis sur tes abonnements (nouvel abonné,
+ * demande d'abonnement, nouveauté d'un lieu ou d'un créateur suivi). Une sorte ajoutée prend sa valeur par défaut à la relecture.
+ */
+export type TypeNotification = "sos" | "calme" | "offre" | "evenement" | "nouveau" | "abonne" | "demande" | "publication-suivie";
 
 export type ReglagesNotifications = {
   /** Interrupteur général */
@@ -15,7 +18,7 @@ export type ReglagesNotifications = {
 
 export const REGLAGES_NOTIFICATIONS_PAR_DEFAUT: ReglagesNotifications = {
   actives: true,
-  types: { sos: true, calme: true, offre: true, evenement: true, nouveau: true },
+  types: { sos: true, calme: true, offre: true, evenement: true, nouveau: true, abonne: true, demande: true, "publication-suivie": true },
   silence: { actif: true, de: "23:00", a: "09:00" },
 };
 

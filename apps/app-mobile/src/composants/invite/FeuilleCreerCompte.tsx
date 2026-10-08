@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react";
-import { Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Bouton } from "~/composants/interface/Bouton";
-import { raisonsCompte } from "~/contenus/raisons-compte";
+import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 
 type Props = {
@@ -20,14 +18,9 @@ type Props = {
    * VoiceOver, qui revient sur le bouton d'origine à la fermeture, quitterait l'écran d'inscription.
    */
   onInscrire: () => void;
+  /** La feuille est vraiment à l'écran (iOS peut refuser de l'ouvrir pendant qu'une autre fenêtre se referme) */
+  onMontree?: () => void;
 };
-
-/** Ce qu'un compte apporte, en trois mots (les mêmes pour tous les gestes) */
-const AVANTAGES = [
-  { emoji: "🛟", texte: "Sauve des lieux et gagne des points" },
-  { emoji: "👯", texte: "Retrouve tes potes et organisez vos sorties" },
-  { emoji: "📌", texte: "Garde tes lieux préférés et donne ton avis" },
-] as const;
 
 // Seul iOS dit quand la feuille a fini de se refermer : ailleurs, on attend la fin de sa glissade
 const DUREE_FERMETURE = 450;
@@ -36,10 +29,9 @@ const SECOURS_IOS = 1000;
 
 /**
  * Petite feuille qui monte du bas quand on touche un geste réservé aux inscrits pendant la visite sans compte :
- * « Crée ton compte pour … », trois avantages, « Je m'inscris (1 min) » ou « Plus tard ». Avec un très grand texte,
- * le haut de la feuille défile et les deux boutons restent toujours à l'écran.
+ * « Crée ton compte pour … », trois avantages, « Je m'inscris (1 min) » ou « Plus tard » (voir ContenuCreerCompte).
  */
-export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire }: Props) {
+export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMontree }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -47,7 +39,6 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire }: Pr
   // « Je m'inscris » touché, feuille pas encore refermée
   const inscription = useRef(false);
   const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { emoji, titre: texteTitre, phrase } = raisonsCompte[raison];
 
   // VoiceOver commence par le titre (sinon il tombe sur le fond « Fermer »), une fois la feuille arrivée
   useEffect(() => {
@@ -81,7 +72,7 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire }: Pr
 
   // Animations réduites dans les réglages : la feuille apparaît en fondu au lieu de monter du bas
   return (
-    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
+    <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onShow={onMontree} onDismiss={finirFermeture}>
       {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
       <Pressable
         accessibilityRole="button"
@@ -97,38 +88,7 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire }: Pr
         className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
       >
         <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
-          >
-            <Text className="text-3xl">{emoji}</Text>
-          </View>
-          <Text ref={titre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-            {lierPonctuation(texteTitre)}
-          </Text>
-          <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(phrase)}</Text>
-          <View className="mt-5 gap-2 rounded-carte border-2 border-encre bg-white p-4">
-            {AVANTAGES.map((avantage) => (
-              <View key={avantage.texte} accessible accessibilityLabel={avantage.texte} className="flex-row items-center gap-3">
-                <Text className="text-xl">{avantage.emoji}</Text>
-                <Text className="flex-1 font-texte-semi text-[15px] leading-[22px] text-encre">{avantage.texte}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-        <View className="mt-5 gap-3 px-5">
-          <Bouton libelle="Je m'inscris (1 min)" variante="encre" indice="Ouvre l'inscription : Apple, Google ou ton e-mail" onPress={inscrire} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint="Tu continues ta visite sans compte"
-            onPress={onFermer}
-            className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
-          >
-            <Text className="font-texte-gras text-base text-encre">Plus tard</Text>
-          </Pressable>
-        </View>
+        <ContenuCreerCompte raison={raison} refTitre={titre} onInscrire={inscrire} onPlusTard={onFermer} />
       </View>
     </Modal>
   );

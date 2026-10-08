@@ -14,17 +14,23 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
 };
 
-/** Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande à découvrir (avec leur « ⋯ » : profil, signaler, bloquer), et « Nouvelle liste ». */
+/**
+ * Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
+ * profil, signaler, bloquer), et « Nouvelle liste ».
+ */
 export function SectionListes({ lieux }: Props) {
   const router = useRouter();
   const { listes, potes, bloques, trouverPote } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  // Abonnements acceptés seulement (déjà sans les personnes bloquées) : leurs listes passent dans « À découvrir »
+  const { abonnements } = utiliserSuivisPersonnes();
   const [creation, setCreation] = useState(false);
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
@@ -33,7 +39,9 @@ export function SectionListes({ lieux }: Props) {
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));
   const miennes = visibles.filter((l) => l.auteur === ID_MOI);
   const suivies = visibles.filter((l) => l.auteur !== ID_MOI && l.abonnes.includes(ID_MOI));
-  const aDecouvrir = visibles.filter((l) => l.auteur !== ID_MOI && !l.abonnes.includes(ID_MOI) && potes.some((p) => p.id === l.auteur));
+  const aDecouvrir = visibles.filter(
+    (l) => l.auteur !== ID_MOI && !l.abonnes.includes(ID_MOI) && (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
+  );
 
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
   const carte = (liste: ListePartagee) => {
@@ -94,9 +102,9 @@ export function SectionListes({ lieux }: Props) {
         <View className="gap-3">
           <View>
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-              Chez tes potes
+              À découvrir
             </Text>
-            <Text className="font-texte text-sm text-gris">Leurs bonnes adresses, à piocher sans complexe.</Text>
+            <Text className="font-texte text-sm text-gris">Les bonnes adresses de ta bande et des gens que tu suis, à piocher sans complexe.</Text>
           </View>
           {aDecouvrir.map(carte)}
         </View>

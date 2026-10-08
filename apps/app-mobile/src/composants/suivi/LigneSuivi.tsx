@@ -1,15 +1,16 @@
 import { LinearGradient } from "expo-linear-gradient";
+import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
 type Props = {
-  /** Clé de suivi (calculerCleSuivi) : « lieu:<id> » ou « createur:<pseudo> » */
+  /** Clé de suivi (calculerCleSuivi, ecrireCleSuivi) : « lieu:<id> », « createur:<pseudo> » ou « personne:<id> » */
   cle: string;
   /** Emoji du lieu, ou 🎬 pour un créateur */
   emoji: string;
-  /** Nom du lieu, ou « @pseudo » */
+  /** Nom du lieu, « @pseudo » ou prénom d'une personne */
   nom: string;
   /** « Trattoria · Écusson, Montpellier » ou « Créateur · 3 publications » */
   sousTitre: string;
@@ -21,6 +22,10 @@ type Props = {
   derniere: boolean;
   onOuvrir: () => void;
   onAnnoncer: (texte: string) => void;
+  /** Remplace le rond emoji (ou dégradé), par exemple <RondPote taille={48} /> pour une personne */
+  rond?: ReactNode;
+  /** Remplace le bouton Suivi / Suivre de droite, par exemple <BoutonRetirerAbonne /> ; null : rien à droite */
+  action?: ReactNode;
 };
 
 const TAILLE_ROND = 48;
@@ -28,10 +33,10 @@ const DEBUT_DEGRADE = { x: 0.1, y: 0 };
 const FIN_DEGRADE = { x: 0.9, y: 1 };
 
 /**
- * Une ligne de « Tu suis » : rond (emoji du lieu ou 🎬), nom et sous-titre, à toucher pour ouvrir la fiche ; à droite,
+ * Une ligne de « Tu suis » : rond (emoji du lieu, 🎬 ou avatar d'une personne), nom et sous-titre, à toucher pour ouvrir la fiche ; à droite,
  * le bouton Suivi / Suivre (ne plus suivre passe toujours par la petite feuille de confirmation).
  */
-export function LigneSuivi({ cle, emoji, nom, sousTitre, degrade, indice, derniere, onOuvrir, onAnnoncer }: Props) {
+export function LigneSuivi({ cle, emoji, nom, sousTitre, degrade, indice, derniere, onOuvrir, onAnnoncer, rond, action }: Props) {
   return (
     <View className={`flex-row items-center gap-2 pr-3 ${derniere ? "" : "border-b border-ligne"}`}>
       <Pressable
@@ -45,13 +50,15 @@ export function LigneSuivi({ cle, emoji, nom, sousTitre, degrade, indice, dernie
         }}
         className="min-h-16 flex-1 flex-row items-center gap-3 py-2.5 pl-3 pr-1 active:opacity-70"
       >
-        <View
-          style={{ width: TAILLE_ROND, height: TAILLE_ROND, borderRadius: TAILLE_ROND / 2 }}
-          className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune"
-        >
-          {degrade ? <LinearGradient colors={degrade} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={{ position: "absolute", inset: 0 }} /> : null}
-          <Text className="text-2xl">{emoji}</Text>
-        </View>
+        {rond ?? (
+          <View
+            style={{ width: TAILLE_ROND, height: TAILLE_ROND, borderRadius: TAILLE_ROND / 2 }}
+            className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune"
+          >
+            {degrade ? <LinearGradient colors={degrade} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={{ position: "absolute", inset: 0 }} /> : null}
+            <Text className="text-2xl">{emoji}</Text>
+          </View>
+        )}
         <View className="flex-1 gap-0.5">
           <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
             {nom}
@@ -62,7 +69,7 @@ export function LigneSuivi({ cle, emoji, nom, sousTitre, degrade, indice, dernie
         </View>
       </Pressable>
 
-      <BoutonSuivreProfil cle={cle} nom={nom} emoji={emoji} onAnnoncer={onAnnoncer} taille="compact" />
+      {action !== undefined ? action : <BoutonSuivreProfil cle={cle} nom={nom} emoji={emoji} onAnnoncer={onAnnoncer} taille="compact" />}
     </View>
   );
 }

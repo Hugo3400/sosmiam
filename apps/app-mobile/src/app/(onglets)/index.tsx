@@ -2,7 +2,7 @@ import { useIsFocused, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { StatusBar } from "expo-status-bar";
 import { startTransition, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { FlatList, Platform, Share, View, type ViewToken } from "react-native";
+import { FlatList, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -37,8 +37,6 @@ import couleurs from "~/theme/couleurs";
 
 // Une publication compte comme « à l'écran » quand on en voit plus de la moitié
 const VISIBILITE = { itemVisiblePercentThreshold: 60 };
-// iOS n'ouvre pas une fenêtre pendant que la précédente se referme : « Envoyer à un pote » attend la fin de la glissade du menu
-const DELAI_APRES_MENU = Platform.OS === "ios" ? 400 : 0;
 // Ce que demande chaque choix du menu « ⋯ » (rien pour l'adresse : elle se regarde sans compte)
 const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
   rescousse: "rescousse",
@@ -90,9 +88,9 @@ export default function PourToi() {
   // « Envoyer à un pote » : le lieu reste choisi pendant que la feuille se referme
   const [envoiVisible, setEnvoiVisible] = useState(false);
   const [lieuEnvoye, setLieuEnvoye] = useState<number | null>(null);
-  const minuterieEnvoi = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // « Crée ton compte » demandé depuis le menu : la feuille attend que le menu ait fini de se refermer (comme « Envoyer à un pote »)
-  const minuterieCompte = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // « Envoyer à un pote » ou « Crée ton compte » choisi dans le menu : s'ouvre quand le menu a fini de se refermer
+  // (iOS n'ouvre pas une fenêtre pendant que la précédente glisse encore)
+  const apresMenu = useRef<(() => void) | null>(null);
   const minuterieAccueil = useRef<ReturnType<typeof setTimeout> | null>(null);
   // « Ne plus suivre ? » : l'auteur reste affiché pendant que la feuille se referme (comme menuAffiche)
   const [nePlusSuivreVisible, setNePlusSuivreVisible] = useState(false);
@@ -141,8 +139,6 @@ export default function PourToi() {
   }, [publications, onglet, lieuParId, estMasquee]);
 
   useEffect(() => () => {
-    if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
-    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
     if (minuterieAccueil.current) clearTimeout(minuterieAccueil.current);
   }, []);
 
@@ -209,11 +205,10 @@ export default function PourToi() {
     } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
   }
 
-  /** Vrai avec un compte ; sinon, une fois le menu refermé (iOS n'ouvre pas une fenêtre pendant qu'une autre se referme), la feuille « Crée ton compte » */
+  /** Vrai avec un compte ; sinon, une fois le menu refermé, la feuille « Crée ton compte » */
   function exigerApresMenu(raison: RaisonCompte): boolean {
     if (profil) return true;
-    if (minuterieCompte.current) clearTimeout(minuterieCompte.current);
-    minuterieCompte.current = setTimeout(() => exiger(raison), DELAI_APRES_MENU);
+    apresMenu.current = () => exiger(raison);
     return false;
   }
 
@@ -235,8 +230,7 @@ export default function PourToi() {
 
   function ouvrirEnvoi(lieuId: number) {
     setLieuEnvoye(lieuId);
-    if (minuterieEnvoi.current) clearTimeout(minuterieEnvoi.current);
-    minuterieEnvoi.current = setTimeout(() => setEnvoiVisible(true), DELAI_APRES_MENU);
+    apresMenu.current = () => setEnvoiVisible(true);
   }
 
   // Signalement envoyé : gardé sur le téléphone en attendant l'API, et la publication disparaît du fil (la feuille reste ouverte pour dire merci)
@@ -284,6 +278,7 @@ export default function PourToi() {
       if (exiger("partager")) partager(p);
     },
     menu: (p) => {
+      apresMenu.current = null;
       setMenu(p);
       setMenuAffiche(p);
     },
@@ -311,7 +306,16 @@ export default function PourToi() {
   });
 
   // Le menu (mémorisé) ne se redessine pas à chaque changement du fil
-  const actionsMenu = utiliserGestesStables({ choisir: choixMenu, signaler, fermer: () => setMenu(null) });
+  const actionsMenu = utiliserGestesStables({
+    choisir: choixMenu,
+    signaler,
+    fermer: () => setMenu(null),
+    refermee: () => {
+      const suite = apresMenu.current;
+      apresMenu.current = null;
+      suite?.();
+    },
+  });
 
   const actionsNePlusSuivre = utiliserGestesStables({
     confirmer: () => {
@@ -407,6 +411,7 @@ export default function PourToi() {
         onChoisir={actionsMenu.choisir}
         onSignaler={actionsMenu.signaler}
         onFermer={actionsMenu.fermer}
+        onRefermee={actionsMenu.refermee}
       />
       {commentairesAffiches && lieuCommente ? (
         <FeuilleCommentaires

@@ -15,15 +15,17 @@ type Props = {
   deplie: boolean;
   onBasculer: (commentaireId: string) => void;
   /** « Répondre » sur le commentaire ou sur une de ses réponses (un seul niveau : tout se range sous le commentaire) */
-  onRepondre: (commentaire: Commentaire, reponseA: Commentaire) => void;
-  /** J'aime sur le commentaire ou une de ses réponses */
-  onAimer: (commentaire: Commentaire) => void;
+  onRepondre: (commentaire: Commentaire, reponseA: Commentaire, declencheur: View | null) => void;
+  /** J'aime sur le commentaire ou une de ses réponses ; « declencheur » : le bouton touché */
+  onAimer: (commentaire: Commentaire, declencheur: View | null) => void;
   /** Ouvre les options ; « declencheur » est ce qui les a ouvertes, où le lecteur d'écran revient ensuite */
   onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
+  /** Appui long sur un commentaire pour ses options (pas en visite sans compte) */
+  appuiLong: boolean;
 };
 
 /** Un commentaire et ses réponses, repliables. */
-export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions }: Props) {
+export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions, appuiLong }: Props) {
   const { commentaire, reponses } = fil;
   const nombre = reponses.length;
   const dontLeLieu = reponses.some((r) => r.auteur === "lieu");
@@ -35,9 +37,10 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
         lieu={lieu}
         reponse={false}
         maintenant={maintenant}
-        onRepondre={(c) => onRepondre(c, c)}
+        onRepondre={(c, d) => onRepondre(c, c, d)}
         onAimer={onAimer}
         onOptions={onOptions}
+        appuiLong={appuiLong}
       />
       {deplie
         ? reponses.map((r) => (
@@ -47,9 +50,10 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
               lieu={lieu}
               reponse
               maintenant={maintenant}
-              onRepondre={(c) => onRepondre(c, commentaire)}
+              onRepondre={(c, d) => onRepondre(c, commentaire, d)}
               onAimer={onAimer}
               onOptions={onOptions}
+              appuiLong={appuiLong}
             />
           ))
         : null}
