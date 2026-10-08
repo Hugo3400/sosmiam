@@ -17,6 +17,7 @@ import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
@@ -96,6 +97,9 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   const refPastille = useRef<View>(null);
   const refReduire = useRef<View>(null);
   const reduitAvant = useRef(reduit);
+  // Un SOS dont l'heure de fin est passée ne s'affiche plus (ni pastille, ni point qui bat, ni mention pour VoiceOver)
+  const sos = estSosEnCours(lieu) ? lieu.sos : undefined;
+  const enSos = sos !== undefined;
 
   // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré (un appui simple en attente est oublié)
   useEffect(() => {
@@ -125,12 +129,12 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
   // Lieu en SOS : un petit point qui bat doucement dans sa pastille, comme un « en direct » (plus de cadre clignotant autour de la vidéo)
   useEffect(() => {
-    if (!actif || !lieu.sos || animationsReduites) {
+    if (!actif || !enSos || animationsReduites) {
       pointSos.value = 1;
       return;
     }
     pointSos.value = withRepeat(withTiming(0.25, { duration: 700 }), -1, true);
-  }, [actif, lieu.sos, animationsReduites, pointSos]);
+  }, [actif, enSos, animationsReduites, pointSos]);
   const stylePointSos = useAnimatedStyle(() => ({ opacity: pointSos.value }));
 
   // Fiche et pastille restent montées : seules leur opacité et leur position bougent, sur le fil d'affichage
@@ -191,7 +195,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     `${typeMedia} de ${nomAuteur}`,
     media && publication.illustration ? etiquetteIllustration : null,
     auteur.type === "createur" && auteur.partenariat ? `Collaboration commerciale : ${auteur.partenariat}` : null,
-    lieu.sos ? `SOS : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null,
+    sos ? `SOS : ${sos.places} place${sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(sos.jusqua)}` : null,
     lieu.alerte,
     raison,
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
@@ -303,14 +307,14 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                 </Text>
               ) : null}
               <View className="flex-row flex-wrap gap-2">
-                {lieu.sos ? (
+                {sos ? (
                   <View className="flex-row items-center gap-1.5 rounded-full bg-jaune px-3 py-1">
                     {/* Une View autour : NativeWind ignore className sur un Animated.View qui a un style animé */}
                     <View className="h-2 w-2">
                       <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurs.tomate }, stylePointSos]} />
                     </View>
                     <Text className="font-texte-gras text-[13px] text-encre">
-                      SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                      SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}
                     </Text>
                   </View>
                 ) : null}

@@ -8,6 +8,7 @@ import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -29,13 +30,15 @@ const FIN_DEGRADE = { x: 0.9, y: 1 };
 const AUTEUR_LIEU = { type: "lieu" } as const;
 
 /**
- * Haut de la fiche d'un lieu, dessiné dès l'arrivée : dégradé et emoji, badges (SOS, alerte), nom, infos, texte,
+ * Haut de la fiche d'un lieu, dessiné dès l'arrivée : dégradé et emoji, badges (SOS en cours, alerte), nom, infos, texte,
  * « Suivre » et « Envoyer à un pote ». Mémorisé : une rescousse ou une annonce ne le redessine pas
  * (« Suivre » lit lui-même tes suivis, il est le seul à se redessiner quand tu suis le lieu).
  */
 export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
   // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
   const avecCompte = utiliserProfil().profil !== null;
+  // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
+  const sos = estSosEnCours(lieu) ? lieu.sos : undefined;
   return (
     <>
       <LinearGradient
@@ -51,9 +54,9 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
 
       <View className="gap-4 px-5 pt-5">
         <View className="flex-row flex-wrap gap-2">
-          {lieu.sos ? (
+          {sos ? (
             <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-              🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}{lieu.sos.offre ? ` · ${lieu.sos.offre}` : ""}
+              🛟 SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}{sos.offre ? ` · ${sos.offre}` : ""}
             </Text>
           ) : null}
           {lieu.alerte ? (

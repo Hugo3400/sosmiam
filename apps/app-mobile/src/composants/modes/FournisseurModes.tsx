@@ -11,9 +11,6 @@ import { DEMO_VISITES_ACTIVE as DEMO } from "~/services/demo/demo-visites-active
 import { effacerModeApp, enregistrerModeApp, lireModeApp, MODE_APP_PAR_DEFAUT, type ModeAppGarde } from "~/stockage/mode-app";
 import { effacerRolesDemo, enregistrerRolesDemo, lireRolesDemo, ROLES_VIDES } from "~/stockage/roles-demo";
 
-// Même condition que choisirServices (src/services/choisir-services.ts) : figée à la compilation, jamais un réglage caché
-const DEMO = __DEV__ || process.env.EXPO_PUBLIC_DEMO_VISITES === "1";
-
 const SEUL_MODE_PERSO: ModeApp[] = ["perso"];
 
 // Au démarrage, on attend que la pile d'écrans soit montée pour rouvrir le dernier mode ; au-delà, on reste en mode perso
