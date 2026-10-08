@@ -21,22 +21,20 @@ import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { deciderAmbassadeur, listerAmbassadeurs, type Palier, type ResumeAmbassadeur, type StatutAmbassadeur } from "~/services/ambassadeurs.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { copier, ouvrirLien } from "~/services/systeme.ts";
-import { FicheAmbassadeur } from "./FicheAmbassadeur.tsx";
 
 type FiltreStatut = StatutAmbassadeur | "tous";
 
 /** Les comptes de l'espace ambassadeur : inscriptions à valider, actifs, suspendus, refusés. */
-export function ListeComptes() {
+export function ListeComptes({ onOuvrirCompte, tour }: { onOuvrirCompte: (compteId: number) => void; tour: number }) {
   const [statut, setStatut] = useState<FiltreStatut>("en-attente");
   const [palier, setPalier] = useState<Palier | "">("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
   const [bientotEffaces, setBientotEffaces] = useState(false);
-  const [ouvert, setOuvert] = useState<number | null>(null);
   const [message, setMessage] = useState<{ texte: string; ton: "vert" | "rouge" } | null>(null);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(
     () => listerAmbassadeurs({ statut: statut === "tous" ? "" : statut, palier, recherche }),
-    [statut, palier, recherche],
+    [statut, palier, recherche, tour],
   );
   useEffect(() => {
     const minuteur = setTimeout(() => setRecherche(saisie.trim()), 300);
@@ -125,7 +123,7 @@ export function ListeComptes() {
             const p = PALIERS[ambassadeur.palier];
             return (
               <li key={ambassadeur.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ligne/70 px-5 py-3 text-sm last:border-0">
-                <button type="button" onClick={() => setOuvert(ambassadeur.id)} className="min-w-0 flex-1 text-left">
+                <button type="button" onClick={() => onOuvrirCompte(ambassadeur.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate font-semibold hover:underline">{ambassadeur.prenom}</span>
                   <span className="block truncate text-gris">{ambassadeur.email}</span>
                 </button>
@@ -143,14 +141,13 @@ export function ListeComptes() {
                       <Bouton petit variante="danger" icone={X} titre={`Refuser ${ambassadeur.prenom}`} onClick={() => decider(ambassadeur, "refuse")} />
                     </>
                   )}
-                  <Bouton petit variante="discret" icone={ChevronRight} titre={`Ouvrir la fiche de ${ambassadeur.prenom}`} onClick={() => setOuvert(ambassadeur.id)} />
+                  <Bouton petit variante="discret" icone={ChevronRight} titre={`Ouvrir la fiche de ${ambassadeur.prenom}`} onClick={() => onOuvrirCompte(ambassadeur.id)} />
                 </span>
               </li>
             );
           })}
         </ul>
       )}
-      {ouvert !== null && <FicheAmbassadeur id={ouvert} onFermer={() => setOuvert(null)} onChange={recharger} />}
     </Carte>
   );
 }

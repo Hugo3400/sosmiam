@@ -59,7 +59,7 @@ export function ModaleMission({ compteId: compteImpose, prenom, onFermer, onCree
           <Champ libelle="Pour le (facultatif)" type="date" valeur={echeance} onChange={setEcheance} className="w-full min-w-0" />
           <Champ libelle="N° de fiche du lieu (facultatif)" type="number" min={1} valeur={lieuId} onChange={setLieuId} aide="Visible dans « Lieux »" className="w-full min-w-0" />
         </div>
-        <p className="text-sm text-gris">Elle apparaît dans son espace ambassadeur. Quand c'est fait, il raconte comment ça s'est passé, et tu le lis ici.</p>
+        <p className="text-sm text-gris">Elle apparaît dans son espace ambassadeur. Une fois la mission faite, son compte rendu s'affiche ici.</p>
         {etat.erreur && <p role="alert" className="text-sm font-semibold text-rouge-texte">{etat.erreur}</p>}
       </div>
     </Modale>

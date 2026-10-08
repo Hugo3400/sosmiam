@@ -38,7 +38,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
     if (!fiche) return;
     const questions = {
       refuse: `Refuser ${fiche.prenom} ? L'espace ambassadeur lui est fermé et ses connexions en cours sont coupées.`,
-      suspendu: `Suspendre ${fiche.prenom} ? Il est déconnecté partout et ne peut plus entrer dans l'espace jusqu'à ce que tu le réactives.`,
+      suspendu: `Suspendre ${fiche.prenom} ? Ses connexions sont coupées et l'espace lui reste fermé jusqu'à ce que tu réactives son compte.`,
       actif: null,
     };
     if (questions[statut] && !window.confirm(questions[statut])) return;
@@ -58,7 +58,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
 
   return (
     <>
-      <Modale large titre={fiche ? `${fiche.prenom}, ambassadeur` : "Fiche ambassadeur"} ouverte onFermer={onFermer}>
+      <Modale large titre={fiche ? fiche.prenom : "Fiche ambassadeur"} ouverte onFermer={onFermer}>
         <MessageErreur erreur={erreur} reessayer={recharger} />
         {!fiche && chargement && <Chargement />}
         {fiche && (
