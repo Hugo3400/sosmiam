@@ -87,7 +87,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription), rédaction avec aperçu de l'e-mail, envoi à un public choisi (inscrits filtrés ou ambassadeurs, cases à cocher, essai) et suivi des envois |
 | `src/ecrans/lieux/` | fiches des lieux : liste, formulaire complet, créneaux d'ouverture, aperçu |
 | `src/ecrans/publications/` | fil « Pour toi » : publications, vidéos et photos, programmation, aperçu façon téléphone |
-| `src/ecrans/moderation/` | signalements de l'app, les graves (publication masquée pour tous) en tête, décisions |
+| `src/ecrans/moderation/` | signalements de l'app, les graves (publication masquée pour tous) en tête, décisions motivées (règle enfreinte, explication pour l'auteur), messages à l'auteur et à la personne qui a signalé, contestations et réexamen |
 | `src/ecrans/maintenance/` | état du serveur (API, base, site, disque, pm2), relance du site ou du bot, journal de gestion |
 | `src/ecrans/demandes/` | demandes de lieux (formulaire du site) et propositions Discord : accepter (fiche créée) ou refuser |
 | `src/ecrans/annonces/` | annonces écrites ici, publiées par le bot dans le salon d'annonces Discord |
@@ -100,7 +100,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/composants/interface/`, `mise-en-page/` | briques visuelles (bouton, carte, champ, graphique en colonnes, classement…), menu, bandeau de mise à jour |
 | `src/contenus/` | menu du logiciel, libellés des raisons de signalement et du programme ambassadeurs (paliers, badges, points, missions) |
 | `src/fonctions/securite/` | clé Ed25519 du poste, coffre chiffré par le mot de passe, message signé (même format que l'API) |
-| `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `editeur/`, `publications/`, `statistiques/`, `maintenance/` | fonctions pures, une par fichier (formats, graduations, document de l'éditeur → e-mail, texte ou Discord, grille jours × heures, export CSV, problèmes du serveur…) |
+| `src/fonctions/texte/`, `dates/`, `graphiques/`, `newsletter/`, `editeur/`, `moderation/`, `publications/`, `statistiques/`, `maintenance/` | fonctions pures, une par fichier (formats, graduations, document de l'éditeur → e-mail, texte ou Discord, grille jours × heures, export CSV, problèmes du serveur…) |
 | `src/services/` | client signé de l'API (`client-gestion.ts`) et un fichier par partie ; `systeme.ts` pour Windows (fichiers, notifications) |
 | `src/hooks/` | chargement des données, médias signés, verrouillage après inactivité, alertes (modération, demandes, ambassadeurs à valider) |
 | `src/stockage/` | le coffre (clé du poste chiffrée), gardé dans le profil Windows |

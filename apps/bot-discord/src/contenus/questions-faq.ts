@@ -217,7 +217,7 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "ambassadeurs",
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse:
-      "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.\nPour candidater, crée d'abord ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr) : une fois ton compte validé, la candidature se fait depuis ton espace.",
+      "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.\nPour candidater, crée d'abord ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr) : une fois ton compte validé, la candidature se fait depuis ton espace, tant qu'il reste des places.",
     motsCles: ["candidature", "fondateur"],
   },
   {

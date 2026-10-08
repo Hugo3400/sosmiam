@@ -1,8 +1,8 @@
 /**
- * L'espace ambassadeur et ses textes légaux sont-ils en ligne ? Tant que non, les invitations restent désactivées
- * (le texte annonce que l'espace est ouvert : ce serait une fausse promesse). À passer à true au lancement.
+ * L'espace ambassadeur et ses textes légaux sont-ils en ligne ? Oui depuis le 9 octobre 2026 (00 h 29) : les
+ * invitations sont actives. Repasser à false si l'espace devait fermer (le texte annonce qu'il est ouvert).
  */
-export const ESPACE_AMBASSADEUR_OUVERT = false;
+export const ESPACE_AMBASSADEUR_OUVERT = true;
 
 /** Adresse de l'espace ambassadeur, où l'on s'inscrit */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
@@ -21,7 +21,7 @@ export function creerLienInvitationAmbassadeur(adresses: string[], ville: string
     "L'espace ambassadeur est ouvert. Crée ton compte (dès 18 ans) pour faire découvrir tes pépites, gagner des points et des badges, et donner un coup de main aux lieux qui ont besoin de monde :",
     ESPACE_AMBASSADEUR,
     "",
-    "On valide chaque inscription à la main : on te répond vite. Une fois ton compte validé, tu pourras aussi candidater, depuis ton espace, pour être l'un des 10 ambassadeurs fondateurs.",
+    "On valide chaque inscription à la main : on te répond vite. Une fois ton compte validé, tu pourras aussi candidater, depuis ton espace, pour être l'un des 10 ambassadeurs fondateurs, tant qu'il reste des places.",
     "",
     "À très vite,",
     "Hugo, pour SOS Miam",
