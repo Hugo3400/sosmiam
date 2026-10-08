@@ -22,9 +22,12 @@ import { EcranPublications } from "~/ecrans/publications/EcranPublications.tsx";
 import { EcranReglages } from "~/ecrans/reglages/EcranReglages.tsx";
 import { EcranStatistiques } from "~/ecrans/statistiques/EcranStatistiques.tsx";
 import { EcranTableauDeBord } from "~/ecrans/tableau-de-bord/EcranTableauDeBord.tsx";
+import { ModaleRaccourcis } from "~/composants/mise-en-page/ModaleRaccourcis.tsx";
 import { RechercheGlobale } from "~/composants/mise-en-page/RechercheGlobale.tsx";
 import { calculerPastilles } from "~/fonctions/alertes/calculer-pastilles.ts";
 import { utiliserAlertes } from "~/hooks/utiliser-alertes.ts";
+import { utiliserRaccourcis } from "~/hooks/utiliser-raccourcis.ts";
+import { utiliserTheme } from "~/hooks/utiliser-theme.ts";
 import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
 import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
 import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
@@ -46,6 +49,8 @@ export function Application() {
   const [ecran, setEcran] = useState<Ecran>("tableau-de-bord");
   // Recherche partout (Ctrl+K), et l'élément à ouvrir dans l'écran choisi (un objet neuf à chaque fois)
   const [recherche, setRecherche] = useState(false);
+  const [aideClavier, setAideClavier] = useState(false);
+  const { theme, changerTheme } = utiliserTheme();
   const [cible, setCible] = useState<{ ecran: Ecran; id: number } | null>(null);
   const allerA = (vers: Ecran, id: number | null = null) => {
     setEcran(vers);
@@ -60,18 +65,13 @@ export function Application() {
   const miseAJour = utiliserMiseAJour(connecte);
   utiliserResumeSemaine(connecte);
 
-  // Ctrl+K partout : la recherche (sauf dans l'éditeur visuel, où Ctrl+K ajoute un lien)
-  useEffect(() => {
-    if (!connecte) return;
-    const touche = (evenement: KeyboardEvent) => {
-      if ((evenement.ctrlKey || evenement.metaKey) && evenement.key.toLowerCase() === "k" && !evenement.defaultPrevented) {
-        evenement.preventDefault();
-        setRecherche(true);
-      }
-    };
-    window.addEventListener("keydown", touche);
-    return () => window.removeEventListener("keydown", touche);
-  }, [connecte]);
+  // Raccourcis clavier (F1 pour la liste) ; Ctrl+K reste aux liens dans l'éditeur visuel
+  utiliserRaccourcis(connecte, {
+    rechercher: () => setRecherche(true),
+    aller: (vers) => allerA(vers),
+    verrouiller: () => verrouiller(true),
+    aide: () => setAideClavier(true),
+  });
 
   // Session fermée par le serveur (inactivité, redémarrage) : la clé reste ouverte, seul le code est redemandé
   useEffect(() => {
@@ -140,6 +140,7 @@ export function Application() {
         onVerrouiller={() => verrouiller(true)}
       />
       <RechercheGlobale ouverte={recherche} onFermer={() => setRecherche(false)} onAller={allerA} />
+      <ModaleRaccourcis ouverte={aideClavier} onFermer={() => setAideClavier(false)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
         <BandeauNouveautes />
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
@@ -160,6 +161,9 @@ export function Application() {
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "reglages" && (
             <EcranReglages
+              theme={theme}
+              onTheme={changerTheme}
+              onRaccourcis={() => setAideClavier(true)}
               coffre={coffre}
               onCoffreChange={setCoffre}
               minutesVerrou={minutesVerrou}

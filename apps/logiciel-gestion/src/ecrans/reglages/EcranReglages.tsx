@@ -12,7 +12,9 @@ import { definirCleCoffre } from "~/services/session.ts";
 import { copier } from "~/services/systeme.ts";
 import { ecrireCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
+import { CarteApparence } from "./CarteApparence.tsx";
 import { CarteReponsesTypes } from "./CarteReponsesTypes.tsx";
+import type { ChoixTheme } from "~/stockage/reglages-poste.ts";
 import { CarteVerrouillage } from "./CarteVerrouillage.tsx";
 
 type Props = {
@@ -21,10 +23,13 @@ type Props = {
   onOublierPoste: () => void;
   minutesVerrou: number | null;
   onMinutesVerrou: (minutes: number | null) => void;
+  theme: ChoixTheme;
+  onTheme: (theme: ChoixTheme) => void;
+  onRaccourcis: () => void;
 };
 
-/** Réglages de ce poste : son identité, son mot de passe, et comment le retirer. */
-export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesVerrou, onMinutesVerrou }: Props) {
+/** Réglages de ce poste : son identité, son mot de passe, l'apparence, les réponses types, et comment le retirer. */
+export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesVerrou, onMinutesVerrou, theme, onTheme, onRaccourcis }: Props) {
   const [ancien, setAncien] = useState("");
   const [nouveau, setNouveau] = useState("");
   const [etat, setEtat] = useState<{ enCours: boolean; message: string | null; erreur: string | null }>({ enCours: false, message: null, erreur: null });
@@ -68,6 +73,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesV
           </form>
         </Carte>
         <CarteVerrouillage minutes={minutesVerrou} onChange={onMinutesVerrou} />
+        <CarteApparence theme={theme} onTheme={onTheme} onRaccourcis={onRaccourcis} />
         <CarteMiseAJour />
         <CarteReponsesTypes />
         <Carte titre="PC perdu, volé ou remplacé ?">

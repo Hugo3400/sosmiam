@@ -8,7 +8,7 @@ try {
 }
 
 export default defineConfig({
-  // Un fichier par domaine (base, newsletter, courriels, notifications, statistiques, lieux, big-sos, gestion, comptes, ambassadeurs)
+  // Un fichier par domaine (base, newsletter, courriels, notifications, statistiques, lieux, big-sos, gestion, comptes, ambassadeurs, fondateurs)
   schema: "prisma/schema",
   migrations: { path: "prisma/migrations" },
   datasource: { url: process.env.DATABASE_URL },
