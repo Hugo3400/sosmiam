@@ -5,15 +5,18 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 import type { Profil } from "@sos-miam/commun/types/profil";
+import { estProfilValide } from "@sos-miam/commun/validation/est-profil-valide";
 
 const CLE = "sosmiam.profil";
 const surLeWeb = Platform.OS === "web";
 
-/** Lit le profil gardé sur le téléphone ; null si la personne n'est pas encore inscrite (ou si la donnée est illisible). */
+/** Lit le profil gardé sur le téléphone ; null si la personne n'est pas encore inscrite, ou si la donnée est illisible ou incomplète. */
 export async function lireProfilLocal(): Promise<Profil | null> {
   try {
     const brut = surLeWeb ? await AsyncStorage.getItem(CLE) : await SecureStore.getItemAsync(CLE);
-    return brut ? (JSON.parse(brut) as Profil) : null;
+    if (!brut) return null;
+    const lu: unknown = JSON.parse(brut);
+    return estProfilValide(lu) ? lu : null;
   } catch {
     return null;
   }

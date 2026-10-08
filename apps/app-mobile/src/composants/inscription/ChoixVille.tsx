@@ -22,14 +22,14 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
 
       <View className="flex-row flex-wrap gap-2">
         {villesLancement.map((ville) => (
-          <Pastille key={ville} libelle={ville} choisi={valeur === ville} onPress={() => onChangeVille(ville)} />
+          <Pastille key={ville} role="radio" libelle={ville} choisi={valeur === ville} onPress={() => onChangeVille(ville)} />
         ))}
       </View>
 
       <Text className="mt-1 font-texte text-sm text-gris">{"Pas dans la liste\u00a0? Pas de panique\u00a0:"}</Text>
       <View className="flex-row flex-wrap gap-2">
         {autresZones.map((zone) => (
-          <Pastille key={zone} libelle={zone} choisi={valeur === zone} onPress={() => onChangeVille(zone)} />
+          <Pastille key={zone} role="radio" libelle={zone} choisi={valeur === zone} onPress={() => onChangeVille(zone)} />
         ))}
       </View>
     </View>

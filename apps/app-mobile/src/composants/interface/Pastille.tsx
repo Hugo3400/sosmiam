@@ -7,20 +7,22 @@ type Props = {
   emoji?: string;
   choisi: boolean;
   onPress: () => void;
+  /** « radio » quand un seul choix est possible (ex. la ville) */
+  role?: "checkbox" | "radio";
 };
 
-/** Un choix à toucher, plusieurs possibles : blanc, ou encre et jaune une fois coché. */
-export function Pastille({ libelle, emoji, choisi, onPress }: Props) {
+/** Un choix à toucher : blanc, ou encre et jaune une fois coché. Au moins 44 points de haut. */
+export function Pastille({ libelle, emoji, choisi, onPress, role = "checkbox" }: Props) {
   return (
     <Pressable
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: choisi }}
+      accessibilityRole={role}
+      accessibilityState={role === "radio" ? { selected: choisi } : { checked: choisi }}
       accessibilityLabel={libelle}
       onPress={() => {
         vibrerLegerement();
         onPress();
       }}
-      className={`flex-row items-center gap-1.5 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${choisi ? "bg-encre" : "bg-white"}`}
+      className={`min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${choisi ? "bg-encre" : "bg-white"}`}
     >
       {emoji ? <Text className="text-base">{emoji}</Text> : null}
       <Text className={`font-texte-semi text-[15px] ${choisi ? "text-jaune" : "text-encre"}`}>{libelle}</Text>

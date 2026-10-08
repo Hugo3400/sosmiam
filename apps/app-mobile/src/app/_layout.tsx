@@ -13,7 +13,7 @@ SplashScreen.preventAutoHideAsync();
 
 /** Racine de l'app : polices de la marque, profil de la personne, puis la pile d'écrans. */
 export default function RacineApp() {
-  const [policesChargees] = useFonts({
+  const [policesChargees, erreurPolices] = useFonts({
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
     Inter_400Regular,
@@ -24,7 +24,8 @@ export default function RacineApp() {
 
   return (
     <FournisseurProfil>
-      <PileRacine policesChargees={policesChargees} />
+      {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
+      <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
     </FournisseurProfil>
   );
 }

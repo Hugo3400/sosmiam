@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BarreProgression } from "~/composants/interface/BarreProgression";
 import { Bouton } from "~/composants/interface/Bouton";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
 type Action = { libelle: string; onPress: () => void; desactive?: boolean };
@@ -19,7 +20,8 @@ type Props = {
   retour?: boolean;
   /** Action du bouton retour (par défaut : l'écran précédent) */
   onRetour?: () => void;
-  boutonPrincipal: Action;
+  /** Bouton en bas de l'écran ; absent quand les actions sont dans le contenu (ex. « Crée ton compte ») */
+  boutonPrincipal?: Action;
   /** Lien discret sous le bouton (ex. « Passer ») */
   boutonSecondaire?: Action;
   children: ReactNode;
@@ -47,19 +49,23 @@ export function EcranEtape({ titre, sousTitre, etape, retour = true, onRetour, b
         </View>
 
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8" keyboardShouldPersistTaps="handled">
-          <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">{titre}</Text>
-          {sousTitre ? <Text className="mt-2 font-texte text-base leading-6 text-gris">{sousTitre}</Text> : null}
+          <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">{lierPonctuation(titre)}</Text>
+          {sousTitre ? <Text className="mt-2 font-texte text-base leading-6 text-gris">{lierPonctuation(sousTitre)}</Text> : null}
           <View className="mt-6">{children}</View>
         </ScrollView>
 
-        <View className="gap-3 border-t border-ligne bg-creme px-5 pt-4 pb-2">
-          <Bouton libelle={boutonPrincipal.libelle} onPress={boutonPrincipal.onPress} desactive={boutonPrincipal.desactive} />
+        {boutonPrincipal || boutonSecondaire ? (
+        <View className="gap-3 border-t border-ligne bg-creme px-5 pt-4 pb-4">
+          {boutonPrincipal ? (
+            <Bouton libelle={boutonPrincipal.libelle} onPress={boutonPrincipal.onPress} desactive={boutonPrincipal.desactive} />
+          ) : null}
           {boutonSecondaire ? (
             <Pressable accessibilityRole="button" onPress={boutonSecondaire.onPress} hitSlop={8} className="py-1 active:opacity-70">
               <Text className="text-center font-texte-semi text-base text-gris underline">{boutonSecondaire.libelle}</Text>
             </Pressable>
           ) : null}
         </View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

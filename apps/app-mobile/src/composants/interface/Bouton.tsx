@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -17,18 +18,26 @@ type Props = {
 
 const fonds: Record<Variante, string> = { jaune: "bg-jaune", blanc: "bg-white", encre: "bg-encre" };
 const textes: Record<Variante, string> = { jaune: "text-encre", blanc: "text-encre", encre: "text-jaune" };
+const ombres: Record<Variante, string> = { jaune: "bg-encre", blanc: "bg-encre", encre: "bg-white" };
 
-/** Le bouton SOS Miam, comme sur le site : bord noir et ombre décalée. Petite vibration au toucher. */
+// Deux appuis plus rapprochés que ça comptent pour un seul (évite d'ouvrir deux fois l'écran suivant)
+const DELAI_ANTI_DOUBLE_APPUI = 700;
+
+/** Le bouton SOS Miam, comme sur le site : bord noir et ombre décalée. Petite vibration au toucher, un seul appui pris en compte à la fois. */
 export function Bouton({ libelle, onPress, variante = "jaune", desactive = false, petit = false, indice, className = "" }: Props) {
+  const dernierAppui = useRef(0);
   return (
     <View className={`relative ${desactive ? "opacity-40" : ""} ${className}`}>
-      <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
+      <View className={`absolute inset-0 translate-x-1 translate-y-1 rounded-full ${ombres[variante]}`} />
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ disabled: desactive }}
         accessibilityHint={indice}
         disabled={desactive}
         onPress={() => {
+          const maintenant = Date.now();
+          if (maintenant - dernierAppui.current < DELAI_ANTI_DOUBLE_APPUI) return;
+          dernierAppui.current = maintenant;
           vibrerLegerement();
           onPress();
         }}
