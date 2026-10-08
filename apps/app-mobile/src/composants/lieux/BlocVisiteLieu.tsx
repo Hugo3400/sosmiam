@@ -153,15 +153,17 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
               vibrerLegerement();
               router.push({ pathname: "/visite/[id]", params: { id: String(enCoursIci.id) } });
             }}
-            className="flex-row items-center gap-3 rounded-2xl border-2 border-encre bg-jaune-clair px-4 py-3 active:opacity-80"
+            className="gap-1 rounded-2xl border-2 border-encre bg-jaune-clair px-4 py-3 active:opacity-80"
           >
-            <View className="h-2.5 w-2.5 rounded-full bg-tomate" />
-            <View className="flex-1">
-              <Text className="font-texte-gras text-[15px] text-encre">Ta demande est en cours</Text>
-              <Text className="font-texte text-sm text-gris">{lierPonctuation("Montre ton code au moment de payer.")}</Text>
+            <View className="flex-row items-center gap-2">
+              <View className="h-2.5 w-2.5 rounded-full bg-tomate" />
+              <Text className="flex-1 font-texte-gras text-[15px] text-encre">Ta demande est en cours</Text>
+              <Ionicons name="chevron-forward" size={18} color={couleurs.encre} />
             </View>
-            <Text className="font-texte-gras text-[15px] text-encre">Voir le code</Text>
-            <Ionicons name="chevron-forward" size={18} color={couleurs.encre} />
+            <Text className="pl-[18px] font-texte text-sm leading-5 text-gris">
+              {lierPonctuation("Montre ton code au moment de payer · ")}
+              <Text className="font-texte-gras text-encre underline">Voir le code</Text>
+            </Text>
           </Pressable>
         ) : infos.validationActive ? (
           <View className="gap-3">
@@ -174,10 +176,9 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
                 vibrerLegerement();
                 scanner();
               }}
-              className="min-h-11 flex-row items-center justify-center gap-2 active:opacity-60"
+              className="min-h-11 justify-center px-2 active:opacity-60"
             >
-              <Ionicons accessibilityElementsHidden importantForAccessibility="no-hide-descendants" name="qr-code-outline" size={18} color={couleurs.encre} />
-              <Text className="font-texte-semi text-[15px] text-encre underline">Ou scanne le QR que te montre l'équipe</Text>
+              <Text className="text-center font-texte-semi text-[15px] leading-[22px] text-encre underline">Ou scanne le QR que te montre l'équipe</Text>
             </Pressable>
           </View>
         ) : (
