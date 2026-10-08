@@ -28,6 +28,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="lieu/[id]/index" />
           <Stack.Screen name="lieu/[id]/carte" />
           <Stack.Screen name="reglages" />
+          <Stack.Screen name="potes" />
         </Stack.Protected>
         <Stack.Protected guard={profil === null}>
           <Stack.Screen name="(inscription)" />

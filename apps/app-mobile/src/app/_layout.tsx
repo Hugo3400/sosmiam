@@ -6,6 +6,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
+import { FournisseurCommunaute } from "~/composants/potes/FournisseurCommunaute";
 import { PileRacine } from "~/composants/navigation/PileRacine";
 import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
 
@@ -27,7 +28,9 @@ export default function RacineApp() {
     <FournisseurProfil>
       {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
       <FournisseurActivite>
-        <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+        <FournisseurCommunaute>
+          <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+        </FournisseurCommunaute>
       </FournisseurActivite>
     </FournisseurProfil>
   );
