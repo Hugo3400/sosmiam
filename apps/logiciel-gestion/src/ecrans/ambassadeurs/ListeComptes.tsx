@@ -48,7 +48,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
   const compteurs = donnees?.compteurs ?? {};
 
   async function decider(ambassadeur: ResumeAmbassadeur, decision: "actif" | "refuse") {
-    if (decision === "refuse" && !window.confirm(`Refuser l'inscription de ${ambassadeur.prenom} ? Son compte reste, mais l'espace lui est fermé.`)) return;
+    if (decision === "refuse" && !window.confirm(`Refuser l'inscription de ${ambassadeur.prenom} ? L'espace lui reste fermé, et son compte (créé pour cette inscription) est effacé 30 jours après.`)) return;
     try {
       await deciderAmbassadeur(ambassadeur.id, decision);
       setMessage({ texte: decision === "actif" ? `C'est validé pour ${ambassadeur.prenom} ✅ Un petit mot de bienvenue lui fera plaisir.` : `Inscription de ${ambassadeur.prenom} refusée.`, ton: "vert" });
