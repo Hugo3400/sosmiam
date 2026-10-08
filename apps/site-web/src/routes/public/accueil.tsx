@@ -12,6 +12,13 @@ import { BigSosEnBref } from "~/composants/big-sos/BigSosEnBref";
 import { villesLancement } from "~/contenus/villes";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
+import { inscrireNewsletter, type ResultatInscription } from "~/services/inscriptions.server";
+
+const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
+  "email-invalide": "Oups, cette adresse e-mail ne semble pas valide.",
+  "trop-de-demandes": "Doucement ! Trop d'essais d'affilée : réessaie dans quelques minutes.",
+  erreur: "Oups, ton inscription n'est pas passée. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.",
+};
 
 export function meta(_: Route.MetaArgs) {
   return creerMeta({
@@ -33,12 +40,16 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   const email = String(formulaire.get("email") ?? "");
   const ville = String(formulaire.get("ville") ?? "");
   const ambassadeur = formulaire.get("ambassadeur") === "oui";
+  const piege = String(formulaire.get("piege") ?? "");
 
   if (!verifierEmail(email)) {
     return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide." };
   }
 
-  // À FAIRE avec l'API : enregistrer l'inscription (services/inscriptions.ts). Pour l'instant, rien n'est gardé.
+  // nginx transmet l'adresse IP du visiteur : l'API s'en sert pour limiter les essais, sans la garder
+  const resultat = await inscrireNewsletter({ email, ville, ambassadeur, piege }, request.headers.get("x-real-ip"));
+  if (resultat !== "ok") return { ok: false, message: messagesErreur[resultat] };
+
   const ou = villesLancement.includes(ville) ? `à ${ville}` : "près de chez toi";
   const suite = ambassadeur ? " Et on revient vers toi pour les ambassadeurs fondateurs. 🎖️" : "";
   return { ok: true, message: `C'est noté ! On te prévient dès que SOS Miam arrive ${ou}. 🛟${suite}` };

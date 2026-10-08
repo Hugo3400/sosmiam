@@ -13,6 +13,9 @@
     "site:deployer": "bash scripts/deployer-site.sh",
     "inscrits:recuperer": "python3 scripts/recuperer-inscrits.py",
     "bot:dev": "npm run dev --prefix apps/bot-discord",
-    "bot:verifier": "npm run typecheck --prefix apps/bot-discord && npm test --prefix apps/bot-discord && npm run verifier:lignes"
+    "bot:verifier": "npm run typecheck --prefix apps/bot-discord && npm test --prefix apps/bot-discord && npm run verifier:lignes",
+    "api:dev": "npm run dev --prefix apps/api",
+    "api:verifier": "npm run typecheck --prefix apps/api && npm test --prefix apps/api && npm run verifier:lignes",
+    "api:migrer": "npm run base:migrer --prefix apps/api"
   }
 }

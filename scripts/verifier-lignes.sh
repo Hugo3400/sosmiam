@@ -22,7 +22,7 @@ done < <(find "$racine/apps" "$racine/packages" "$racine/scripts" -type f \
   \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.mjs" -o -name "*.cjs" \
      -o -name "*.css" -o -name "*.prisma" -o -name "*.sh" -o -name "*.py" \) \
   -not -path "*/node_modules/*" -not -path "*/build/*" -not -path "*/versions/*" -not -path "*/dist/*" \
-  -not -path "*/.react-router/*" -not -path "*/.expo/*" -not -path "*/prisma/migrations/*" \
+  -not -path "*/.react-router/*" -not -path "*/client-genere/*" -not -path "*/.expo/*" -not -path "*/prisma/migrations/*" \
   -print0)
 
 if (( trop_long )); then

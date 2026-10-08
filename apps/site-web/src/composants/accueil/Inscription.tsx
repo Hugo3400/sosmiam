@@ -61,6 +61,8 @@ export function Inscription() {
             <input type="checkbox" name="ambassadeur" value="oui" className="h-5 w-5 shrink-0 accent-encre" />
             <span className="text-left">Je veux devenir ambassadeur fondateur 🎖️</span>
           </label>
+          {/* Champ piège : invisible pour les humains et les lecteurs d'écran, les robots le remplissent */}
+          <input type="text" name="piege" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
         </fetcher.Form>
 
         <p id="inscription-message" role="status" aria-live="polite" className="mt-5 min-h-7 font-semibold">{reponse?.message}</p>

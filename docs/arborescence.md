@@ -79,7 +79,9 @@ L'administration de SOS Miam se fait ici, pas sur le site. Stack prévue : Tauri
 ## apps/api — le serveur
 | Dossier | Contenu |
 |---|---|
-| `prisma/` | schéma de la base, migrations, données de départ |
+| `prisma/`, `prisma.config.ts` | schéma de la base, migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
+| `src/demarrer.ts`, `src/application.ts` | lancement du serveur (127.0.0.1:5192, pm2 « sos-miam-api ») et assemblage d'Express |
+| `src/base-de-donnees/` | connexion Prisma ; `client-genere/` est recréé par `prisma generate` (jamais commité) |
 | `src/routes/` | adresses de l'API, un fichier par domaine : lieux, comptes, sos, big-sos, rescousses, visites… |
 | `src/controleurs/` | lecture de la requête et envoi de la réponse |
 | `src/services/` | logique métier (lancer un SOS, valider une visite…) |

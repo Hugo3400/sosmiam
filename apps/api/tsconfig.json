@@ -1,0 +1,16 @@
+{
+  // Node lance les fichiers .ts tels quels (types effacés à la volée) : tsc ne sert qu'à vérifier les types.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "tests", "prisma.config.ts"]
+}

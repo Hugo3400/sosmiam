@@ -138,126 +138,118 @@ export function PostPublication(props: Props) {
         <LinearGradient colors={["transparent", "rgba(0,0,0,0.7)"]} style={{ flex: 1 }} />
       </Animated.View>
 
-      <Animated.View
-        pointerEvents={reduit ? "box-none" : "none"}
-        aria-hidden={!reduit}
-        style={[{ bottom: margeBas + 14 }, stylePastille]}
-        className="absolute left-4 right-4 flex-row"
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Afficher la fiche de ${lieu.nom}`}
-          onPress={props.onReduire}
-          className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 px-4 active:opacity-70"
-        >
-          <Text className="text-base">{lieu.emoji}</Text>
-          <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{lieu.nom}</Text>
-          <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
-        </Pressable>
-      </Animated.View>
+      {/* Le placement reste sur une View : NativeWind n'applique pas ses classes à une Animated.View qui porte un style animé */}
+      <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + 14 }} className="absolute left-4 right-4 flex-row">
+        <Animated.View style={stylePastille}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Afficher la fiche de ${lieu.nom}`}
+            onPress={props.onReduire}
+            className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 px-4 active:opacity-70"
+          >
+            <Text className="text-base">{lieu.emoji}</Text>
+            <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{lieu.nom}</Text>
+            <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
+      </View>
 
-      <Animated.View
-        pointerEvents={reduit ? "none" : "box-none"}
-        aria-hidden={reduit}
-        style={[{ paddingBottom: margeBas + 14 }, styleFiche]}
-        className="absolute inset-x-0 bottom-0 pl-5 pr-[88px]"
-      >
-        <View accessible accessibilityLabel={description} className="gap-1.5">
-          <View className="flex-row items-center gap-2">
-            <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
-              <Text className="text-sm">{auteur.type === "lieu" ? lieu.emoji : "🎬"}</Text>
+      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ paddingBottom: margeBas + 14 }} className="absolute inset-x-0 bottom-0 pl-5 pr-[88px]">
+        <Animated.View style={styleFiche}>
+          <View accessible accessibilityLabel={description} className="gap-1.5">
+            <View className="flex-row items-center gap-2">
+              <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
+                <Text className="text-sm">{auteur.type === "lieu" ? lieu.emoji : "🎬"}</Text>
+              </View>
+              <Text className="font-texte-gras text-[15px] text-white" style={ombreTexte}>{nomAuteur}</Text>
             </View>
-            <Text className="font-texte-gras text-[15px] text-white" style={ombreTexte}>{nomAuteur}</Text>
-          </View>
-          {auteur.type === "createur" && auteur.partenariat ? (
-            <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
-              Collaboration commerciale · {auteur.partenariat}
-            </Text>
-          ) : null}
-          <View className="flex-row flex-wrap gap-2">
-            {lieu.sos ? (
-              <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
-                🛟 SOS · {lieu.sos.places} places jusqu'à {formaterHeure(lieu.sos.jusqua)}
+            {auteur.type === "createur" && auteur.partenariat ? (
+              <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
+                Collaboration commerciale · {auteur.partenariat}
               </Text>
             ) : null}
-            {lieu.alerte ? (
-              <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
-            ) : null}
+            <View className="flex-row flex-wrap gap-2">
+              {lieu.sos ? (
+                <Text className="overflow-hidden rounded-full bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
+                  🛟 SOS · {lieu.sos.places} places jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                </Text>
+              ) : null}
+              {lieu.alerte ? (
+                <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
+              ) : null}
+            </View>
+            {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
+            <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
+            <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
+              📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(lieu.km)} · {lieu.prix}
+            </Text>
+            <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-white" style={ombreTexte}>
+              {lierPonctuation(publication.legende)}
+            </Text>
           </View>
-          {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
-          <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
-          <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
-            📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(lieu.km)} · {lieu.prix}
-          </Text>
-          <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-white" style={ombreTexte}>
-            {lierPonctuation(publication.legende)}
-          </Text>
-        </View>
-        <View className="mt-3 flex-row gap-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Voir l'adresse de ${lieu.nom}`}
-            onPress={props.onVoir}
-            className="min-h-11 justify-center rounded-full bg-white/25 px-4 active:opacity-70"
-          >
-            <Text className="font-texte-semi text-[15px] text-white">Voir l'adresse →</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Réduire la fiche pour voir la vidéo en plein écran"
-            onPress={props.onReduire}
-            className="min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full bg-white/25 px-3 active:opacity-70"
-          >
-            <Ionicons name="chevron-down" size={18} color="#FFFFFF" />
-            <Text className="font-texte-semi text-[15px] text-white">Réduire</Text>
-          </Pressable>
-        </View>
-      </Animated.View>
+          <View className="mt-3 flex-row gap-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Voir l'adresse de ${lieu.nom}`}
+              onPress={props.onVoir}
+              className="min-h-11 justify-center rounded-full bg-white/25 px-4 active:opacity-70"
+            >
+              <Text className="font-texte-semi text-[15px] text-white">Voir l'adresse →</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Réduire la fiche pour voir la vidéo en plein écran"
+              onPress={props.onReduire}
+              className="min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full bg-white/25 px-3 active:opacity-70"
+            >
+              <Ionicons name="chevron-down" size={18} color="#FFFFFF" />
+              <Text className="font-texte-semi text-[15px] text-white">Réduire</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </View>
 
-      <Animated.View
-        pointerEvents={reduit ? "none" : "box-none"}
-        aria-hidden={reduit}
-        style={[{ bottom: margeBas + 14 }, styleActions]}
-        className="absolute right-3 items-center gap-4"
-      >
-        <ActionPost
-          actif={aime}
-          icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
-          libelle={formaterNombreCourt(publication.jaimes + (aime ? 1 : 0))}
-          description={aime ? "Retirer ton J'aime" : `J'aime, ${publication.jaimes} personnes aiment`}
-          onPress={props.onJaime}
-          style="transparent"
-        />
-        <ActionPost
-          icone={<Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />}
-          libelle={formaterNombreCourt(publication.commentaires)}
-          description={`Commentaires, ${publication.commentaires}`}
-          onPress={props.onCommentaires}
-          style="transparent"
-        />
-        <ActionPost
-          actif={garde}
-          icone={<Ionicons name={garde ? "bookmark" : "bookmark-outline"} size={26} color={garde ? couleurs.jaune : "#FFFFFF"} />}
-          libelle={garde ? "Gardé" : "Garder"}
-          description={garde ? `Ne plus garder ${lieu.nom}` : `Garder ${lieu.nom} pour plus tard`}
-          onPress={props.onGarder}
-          style="transparent"
-        />
-        <ActionPost
-          icone={<Ionicons name="arrow-redo" size={26} color="#FFFFFF" />}
-          libelle="Partager"
-          description={`Partager ${lieu.nom}`}
-          onPress={props.onPartager}
-          style="transparent"
-        />
-        <ActionPost
-          icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
-          libelle=""
-          description="Plus d'options : rescousse, adresse, pas intéressé, signaler"
-          onPress={props.onMenu}
-          style="transparent"
-        />
-      </Animated.View>
+      <View pointerEvents={reduit ? "none" : "box-none"} aria-hidden={reduit} style={{ bottom: margeBas + 14 }} className="absolute right-3">
+        <Animated.View style={[{ alignItems: "center", gap: 16 }, styleActions]}>
+          <ActionPost
+            actif={aime}
+            icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
+            libelle={formaterNombreCourt(publication.jaimes + (aime ? 1 : 0))}
+            description={aime ? "Retirer ton J'aime" : `J'aime, ${publication.jaimes} personnes aiment`}
+            onPress={props.onJaime}
+            style="transparent"
+          />
+          <ActionPost
+            icone={<Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />}
+            libelle={formaterNombreCourt(publication.commentaires)}
+            description={`Commentaires, ${publication.commentaires}`}
+            onPress={props.onCommentaires}
+            style="transparent"
+          />
+          <ActionPost
+            actif={garde}
+            icone={<Ionicons name={garde ? "bookmark" : "bookmark-outline"} size={26} color={garde ? couleurs.jaune : "#FFFFFF"} />}
+            libelle={garde ? "Gardé" : "Garder"}
+            description={garde ? `Ne plus garder ${lieu.nom}` : `Garder ${lieu.nom} pour plus tard`}
+            onPress={props.onGarder}
+            style="transparent"
+          />
+          <ActionPost
+            icone={<Ionicons name="arrow-redo" size={26} color="#FFFFFF" />}
+            libelle="Partager"
+            description={`Partager ${lieu.nom}`}
+            onPress={props.onPartager}
+            style="transparent"
+          />
+          <ActionPost
+            icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
+            libelle=""
+            description="Plus d'options : rescousse, adresse, pas intéressé, signaler"
+            onPress={props.onMenu}
+            style="transparent"
+          />
+        </Animated.View>
+      </View>
 
       {lieu.sos ? (
         <Animated.View pointerEvents="none" style={[{ position: "absolute", inset: 0, borderWidth: 5, borderColor: couleurs.jaune }, styleCadre]} />
