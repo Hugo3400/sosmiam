@@ -67,6 +67,7 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
   // Hauteurs connues du contenu et de la partie visible, pour aller pile en bas
   const hauteurs = useRef({ contenu: 0, visible: 0 });
   const finSuiviAuto = useRef(0);
+  const dernierePosition = useRef(0);
   const [aujourdhui, setAujourdhui] = useState(() => new Date());
   // Messages des potes arrivés pendant que tu relisais plus haut
   const [nouveaux, setNouveaux] = useState(0);
@@ -121,10 +122,12 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {
     const { contentOffset, contentSize, layoutMeasurement } = evenement.nativeEvent;
+    const remonte = contentOffset.y < dernierePosition.current - 1;
+    dernierePosition.current = contentOffset.y;
     if (contentSize.height - contentOffset.y - layoutMeasurement.height < PRES_DU_BAS) {
       collerEnBas.current = true;
       setNouveaux((n) => (n === 0 ? n : 0));
-    } else if (Date.now() > finSuiviAuto.current) {
+    } else if (remonte || Date.now() > finSuiviAuto.current) {
       // Tu remontes relire : on ne te ramène plus en bas
       collerEnBas.current = false;
     }
