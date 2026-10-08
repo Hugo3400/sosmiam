@@ -31,7 +31,7 @@ export function ListeCandidatures({ onOuvrirCompte, tour, onDecision }: Props) {
       {FONDATEURS_EN_PREPARATION && (
         <p role="note" className="rounded-xl border-2 border-encre bg-jaune-clair px-4 py-3 text-sm font-semibold">
           🏗️ Nouvelle version par ville en préparation : n'accepte personne pour l'instant. Les candidatures restent ouvertes et
-          seront reprises dans la ville (ou le département) de chaque personne : 361 places, selon la taille des villes.
+          seront reprises dans la ville (ou le département) de chaque personne, avec des places selon la taille des villes.
         </p>
       )}
       {bilan && <p role="status" className="rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{bilan}</p>}
