@@ -84,7 +84,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/ecrans/connexion/` | premier lancement (mot de passe), autorisation du poste sur le serveur, déverrouillage (mot de passe + code à 6 chiffres) |
 | `src/ecrans/tableau-de-bord/` | vue d'ensemble : visites, newsletter, modération, ambassadeurs à valider, contenus, dernières actions |
 | `src/ecrans/statistiques/` | visites du site (et plus tard de l'app) par jour, semaine, mois, année : en direct, jours × heures, parcours (arrivée, sortie, rebond, durée), provenances et campagnes, clics de /liens, appareils, langues, pays, régions, villes, conversions, vitesse, 404, robots ; comparaison et export CSV |
-| `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription) et rédaction des newsletters avec aperçu de l'e-mail |
+| `src/ecrans/newsletter/` | inscrits (filtres, export CSV, désinscription), rédaction avec aperçu de l'e-mail, envoi à un public choisi (inscrits filtrés ou ambassadeurs, cases à cocher, essai) et suivi des envois |
 | `src/ecrans/lieux/` | fiches des lieux : liste, formulaire complet, créneaux d'ouverture, aperçu |
 | `src/ecrans/publications/` | fil « Pour toi » : publications, vidéos et photos, programmation, aperçu façon téléphone |
 | `src/ecrans/moderation/` | signalements de l'app, les graves (publication masquée pour tous) en tête, décisions |
@@ -107,21 +107,21 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 ## apps/api — le serveur
 | Dossier | Contenu |
 |---|---|
-| `prisma/`, `prisma.config.ts` | schéma de la base, un fichier par domaine dans `prisma/schema/` (base, newsletter, statistiques, lieux, gestion, comptes, ambassadeurs), migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
+| `prisma/`, `prisma.config.ts` | schéma de la base, un fichier par domaine dans `prisma/schema/` (base, newsletter, courriels, statistiques, lieux, gestion, comptes, ambassadeurs), migrations (`npm run base:nouvelle-migration -- <nom>` puis `npm run api:migrer`), données de départ |
 | `src/demarrer.ts`, `src/application.ts` | lancement du serveur (127.0.0.1:5192, pm2 « sos-miam-api ») et assemblage d'Express |
 | `src/base-de-donnees/` | connexion Prisma ; `client-genere/` est recréé par `prisma generate` (jamais commité) |
 | `src/routes/` | adresses de l'API, un fichier par domaine : inscriptions, mesure (pages vues du site), signalements, gestion (`/api-gestion`, le logiciel de gestion), comptes de l'espace ambassadeur (`comptes.ts` : inscription, connexion, Mon compte, candidature fondateur, propositions de lieux), espace ambassadeur (`espace-ambassadeur.ts` : missions et messages du compte connecté)… |
 | `src/controleurs/` | lecture de la requête et envoi de la réponse ; `gestion/` pour le logiciel de gestion (et la vérification de ses champs) |
-| `src/services/` | logique métier ; `mesure.ts` (compteur de visites sans cookie) et `stockage-stats.ts` ; comptes de l'espace ambassadeur (`comptes.ts`, `comptes-espace.ts`, sessions dans `stockage-sessions-comptes.ts`, ménage de nuit dans `menage-comptes.ts`, et `comptes-en-memoire.ts` pour les tests) ; `gestion/` pour le logiciel de gestion (accès autorisés, statistiques, newsletter, lieux, publications, médias, modération, ambassadeurs, missions et messages, maintenance, journal) |
+| `src/services/` | logique métier ; `mesure.ts` (compteur de visites sans cookie) et `stockage-stats.ts` ; comptes de l'espace ambassadeur (`comptes.ts`, `comptes-espace.ts`, sessions dans `stockage-sessions-comptes.ts`, ménage de nuit dans `menage-comptes.ts`, et `comptes-en-memoire.ts` pour les tests) ; `gestion/` pour le logiciel de gestion (accès autorisés, statistiques, newsletter et ses envois, lieux, publications, médias, modération, ambassadeurs, missions et messages, maintenance, journal) ; `courriels/` pour l'envoi des mails par la boîte bonjour@ (SMTP de l'hébergement mail, file d'attente, mails des comptes) |
 | `src/middlewares/` | erreurs, limite de requêtes, protection du logiciel de gestion (signature, code à 6 chiffres, session) et ses origines autorisées, protection des comptes de l'espace ambassadeur (`proteger-comptes.ts` : session, ambassadeur validé) |
-| `src/fonctions/geo/`, `securite/`, `dates/`, `mesure/`, `texte/` | fonctions pures, une par fichier (signature Ed25519, code à 6 chiffres, empreinte scrypt des mots de passe, jetons de session, périodes, esquisse HyperLogLog…) |
+| `src/fonctions/geo/`, `securite/`, `dates/`, `mesure/`, `texte/`, `courriels/` | fonctions pures, une par fichier (signature Ed25519, code à 6 chiffres, empreinte scrypt des mots de passe, jetons de session, périodes, esquisse HyperLogLog, gabarit et nouveaux essais des mails…) |
 | `src/fonctions/ambassadeurs/` | palier atteint selon les points (`calculer-palier-aux-points.ts`, mêmes seuils que `packages/commun`) |
 | `src/fonctions/comptes/` | règles des comptes de l'espace ambassadeur : âge à la date de Paris, mot de passe acceptable, attente après des échecs, nettoyage des champs, erreur résumée sans donnée personnelle |
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |
 | `src/paiements/` | Stripe : abonnement Pro, bons solidaires |
 | `src/emails/` | modèles et envoi des e-mails |
 | `src/taches/` | tâches planifiées : la nuit, ménage (contacts de demandes de plus de 3 ans ; comptes : sessions expirées, comptes refusés depuis 30 jours ou sans visite depuis 1 an, candidatures refusées depuis 3 mois, liens expirés) et sauvegarde chiffrée de la base ; plus tard, recharge des rescousses le lundi, fin des BIG SOS… |
-| `tests/` | tests de l'API |
+| `tests/` | tests de l'API (`outils/` : banc d'essai des routes signées du logiciel de gestion) |
 
 ## apps/bot-discord — le bot du serveur Discord
 Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels quels : pas de compilation, `tsc` ne fait que vérifier les types. Mode d'emploi : `apps/bot-discord/README.md`.

@@ -38,6 +38,11 @@ function lireTransport(reglages: ReglagesEnvoi): Transporter {
   return envoyeur;
 }
 
+/** Vérifie la connexion au serveur d'envoi (identifiants compris), sans rien envoyer ; lève l'erreur sinon. */
+export async function verifierConnexionEnvoi(reglages: ReglagesEnvoi): Promise<void> {
+  await lireTransport(reglages).verify();
+}
+
 /** Envoie un mail tout de suite ; lève l'erreur de nodemailer s'il est refusé (voir classerErreurEnvoi). */
 export const expedierCourriel: ExpedierCourriel = async (reglages, message) => {
   const adresse = reglages.utilisateur;
