@@ -11,6 +11,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
+import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { nommerReactionChat } from "~/fonctions/chat/nommer-reaction-chat";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -40,12 +41,18 @@ const TAILLE_REACTION = 52;
 /** « ce message », « cette photo », « cette note vocale », « ce lieu » : ce qu'on signale */
 const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale" };
 
-/** Le message en petit, en haut de la feuille, pour savoir de quoi on parle */
-function resumer(message: MessageChat): string {
-  if (message.type === "lieu") return `📍 ${lieuxExemples.find((l) => l.id === message.lieuId)?.nom ?? "Un lieu"}`;
-  if (message.type === "photo") return "📷 Une photo";
-  if (message.type === "vocal") return `🎙️ Une note vocale${message.dureeSecondes ? ` · ${formaterDureeVocal(message.dureeSecondes)}` : ""}`;
-  return message.texte ?? "";
+/** Le message en petit, en haut de la feuille, pour savoir de quoi on parle : ce qu'on voit, et ce que lit le lecteur d'écran (sans emoji) */
+function resumer(message: MessageChat): { vu: string; lu: string } {
+  if (message.type === "lieu") {
+    const nom = lieuxExemples.find((l) => l.id === message.lieuId)?.nom ?? "un lieu";
+    return { vu: `📍 ${nom}`, lu: `Un lieu partagé : ${nom}` };
+  }
+  if (message.type === "photo") return { vu: "📷 Une photo", lu: "Une photo" };
+  if (message.type === "vocal") {
+    const duree = message.dureeSecondes ? formaterDureeVocalLue(message.dureeSecondes) : null;
+    return { vu: `🎙️ Une note vocale${message.dureeSecondes ? ` · ${formaterDureeVocal(message.dureeSecondes)}` : ""}`, lu: `Une note vocale${duree ? ` de ${duree}` : ""}` };
+  }
+  return { vu: message.texte ?? "", lu: message.texte ?? "" };
 }
 
 /**
@@ -57,7 +64,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { bloquer } = utiliserCommunaute();
-  const { basculerReaction } = utiliserConversations();
+  const { basculerReaction, trouverConversation } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreBlocage = useRef<Text>(null);
@@ -89,6 +96,9 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
 
   const prenom = auteur?.prenom ?? "cette personne";
   const sujet = message ? SUJETS[message.type] : "ce message";
+  // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
+  const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
+  const resume = message ? resumer(message) : null;
   const options = deMoi
     ? []
     : [
@@ -138,10 +148,10 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                 <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
                   {deMoi ? "Ton message" : `Message de ${prenom}`}
                 </Text>
-                {message ? (
-                  <View className="mb-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
+                {resume ? (
+                  <View accessible accessibilityLabel={resume.lu} className="mb-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
                     <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-gris">
-                      {resumer(message)}
+                      {resume.vu}
                     </Text>
                   </View>
                 ) : null}
@@ -151,7 +161,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                     <Text className="font-texte-semi text-sm text-gris">Ta réaction</Text>
                     <View className="flex-row flex-wrap justify-between gap-2">
                       {REACTIONS_CHAT.map((reaction, i) => {
-                        const choisie = (message.reactions[reaction] ?? []).includes(ID_MOI);
+                        const choisie = (reactions[reaction] ?? []).includes(ID_MOI);
                         return (
                           <Pressable
                             key={reaction}

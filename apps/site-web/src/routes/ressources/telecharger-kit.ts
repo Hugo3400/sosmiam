@@ -18,7 +18,14 @@ const typesFichiers: Record<FichierKit["format"], string> = {
  * page (aperçus des cartes) au lieu d'être téléchargé.
  */
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await exigerAmbassadeurActif(request);
+  try {
+    await exigerAmbassadeurActif(request);
+  } catch (redirection) {
+    // Jamais gardée en cache : ces adresses finissent par .png ou .zip, qu'un relais comme Cloudflare garde sinon un moment,
+    // et la redirection d'une personne pas encore validée resterait alors servie aux ambassadeurs validés
+    if (redirection instanceof Response) redirection.headers.set("Cache-Control", "private, no-store");
+    throw redirection;
+  }
   const fichier = fichiersKitMedia.find((f) => f.nom === params.fichier);
   // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté
   const contenu = fichier ? await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA, fichier.chemin)).catch(() => null) : null;

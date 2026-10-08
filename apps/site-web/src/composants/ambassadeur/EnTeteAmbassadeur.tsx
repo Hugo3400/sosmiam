@@ -1,10 +1,12 @@
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 
 import { BoutonDeconnexion } from "~/composants/compte/BoutonDeconnexion";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Logo } from "~/composants/interface/Logo";
 
 const classeLien = "font-medium whitespace-nowrap decoration-jaune decoration-[3px] underline-offset-4 hover:underline";
+// La page où l'on est (aria-current="page", posé par NavLink) reste soulignée
+const classeLienMenu = `${classeLien} aria-[current=page]:underline`;
 
 /**
  * En-tête de l'espace ambassadeur : le logo mène au programme ; connecté, « Mon espace » et « Se déconnecter » ; sinon
@@ -25,12 +27,12 @@ export function EnTeteAmbassadeur({ connecte }: { connecte: boolean }) {
           <ul className="flex items-center justify-between gap-5 sm:justify-end">
             {connecte ? (
               <>
-                <li><Link to="/espace" className={classeLien}>Mon espace</Link></li>
+                <li><NavLink to="/espace" end className={classeLienMenu}>Mon espace</NavLink></li>
                 <li><BoutonDeconnexion discret /></li>
               </>
             ) : (
               <>
-                <li><Link to="/connexion" className={classeLien}>Se connecter</Link></li>
+                <li><NavLink to="/connexion" className={classeLienMenu}>Se connecter</NavLink></li>
                 <li><Bouton vers="/inscription" petit className="whitespace-nowrap">Devenir ambassadeur</Bouton></li>
               </>
             )}

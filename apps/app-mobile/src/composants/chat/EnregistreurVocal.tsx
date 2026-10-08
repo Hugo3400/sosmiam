@@ -69,8 +69,11 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   const enregistreur = useAudioRecorder(OPTIONS_VOCAL);
   const etat = useAudioRecorderState(enregistreur, 200);
   const [phase, setPhase] = useState<Phase>("preparation");
+  // Durée gardée à l'écran pendant l'envoi (l'arrêt remet le compteur de l'enregistreur à zéro)
+  const [dureeFigee, setDureeFigee] = useState<number | null>(null);
   const chrono = useRef<View>(null);
-  // Arrêt déjà demandé (envoi, annulation, démontage) : un seul compte
+  // Le micro tourne (record() appelé) ; arrêt déjà demandé (envoi, annulation, démontage) : un seul compte
+  const lance = useRef(false);
   const termine = useRef(false);
   const monte = useRef(true);
   const alerteFaite = useRef(false);
@@ -80,6 +83,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
 
   useEffect(() => {
     let quitte = false;
+    lance.current = false;
     termine.current = false;
     monte.current = true;
     (async () => {
@@ -93,16 +97,18 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         }
         await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
         await enregistreur.prepareToRecordAsync();
-        if (quitte) return void remettreModeAudio();
+        // Écran quitté ou « Annuler » touché pendant la préparation : le micro ne s'allume pas
+        if (quitte || termine.current) return void remettreModeAudio();
         enregistreur.record();
+        lance.current = true;
         setPhase("enregistrement");
         vibrerLegerement();
         AccessibilityInfo.announceForAccessibility("Enregistrement en cours");
         setTimeout(() => deplacerFocusLecteurEcran(chrono.current), 150);
       } catch {
-        if (quitte) return;
-        termine.current = true;
         await remettreModeAudio();
+        if (quitte || termine.current) return;
+        termine.current = true;
         rappels.current.onAbandon(SOUCI_MICRO);
       }
     })();
@@ -110,7 +116,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
       quitte = true;
       monte.current = false;
       // Démontage en plein enregistrement : on coupe sans rien envoyer (l'enregistreur libéré s'arrête aussi de lui-même)
-      if (!termine.current) {
+      if (lance.current && !termine.current) {
         termine.current = true;
         try {
           enregistreur.stop().catch(() => {});
@@ -122,21 +128,25 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     };
   }, [enregistreur]);
 
-  const millisecondes = Math.min(etat.durationMillis, DUREE_MAX_VOCAL_SECONDES * 1000);
+  const millisecondes = dureeFigee ?? Math.min(etat.durationMillis, DUREE_MAX_VOCAL_SECONDES * 1000);
   const secondes = Math.floor(millisecondes / 1000);
   const restantes = DUREE_MAX_VOCAL_SECONDES - secondes;
 
   /** Arrête l'enregistrement et renvoie le fichier et sa durée (lue avant l'arrêt, qui remet le compteur à zéro). */
   async function arreter(): Promise<{ uri: string | null; duree: number }> {
     termine.current = true;
-    const duree = Math.min(enregistreur.getStatus().durationMillis, DUREE_MAX_VOCAL_SECONDES * 1000);
+    let duree = 0;
     try {
-      await enregistreur.stop();
+      if (lance.current) {
+        duree = Math.min(enregistreur.getStatus().durationMillis, DUREE_MAX_VOCAL_SECONDES * 1000);
+        setDureeFigee(duree);
+        await enregistreur.stop();
+      }
     } catch {
       // Déjà arrêté
     }
     await remettreModeAudio();
-    return { uri: enregistreur.uri, duree };
+    return { uri: lance.current ? enregistreur.uri : null, duree };
   }
 
   async function envoyer() {
