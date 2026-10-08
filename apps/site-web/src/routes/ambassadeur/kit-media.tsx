@@ -61,7 +61,11 @@ export default function PageKitMedia({ loaderData }: Route.ComponentProps) {
       </Link>
       <h1 className="mt-6 text-[clamp(2.2rem,5vw,3.4rem)] font-extrabold tracking-tight">Ton kit média</h1>
       <p className="mt-3 max-w-2xl text-lg text-gris">
-        {lierPonctuation("Des visuels prêts à poster, des textes à copier, nos logos et notre mascotte : tout ce qu'il faut pour parler de SOS Miam autour de toi. Un œil sur les règles avant de poster, en bas de la page, et c'est parti !")}
+        {lierPonctuation("Des visuels prêts à poster, des textes à copier, nos logos et notre mascotte : tout ce qu'il faut pour parler de SOS Miam autour de toi. Un œil sur ")}
+        <a href="#regles" className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
+          les règles
+        </a>
+        {lierPonctuation(" avant de poster, et c'est parti !")}
       </p>
 
       <SectionKit id="comment-ca-marche" titre="Comment ça marche ?">

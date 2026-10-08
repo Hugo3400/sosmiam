@@ -31,12 +31,14 @@ export function CarteFichierKit({ visuel, poids }: Props) {
         <h3 className="text-lg leading-tight font-extrabold">{lierPonctuation(visuel.titre)}</h3>
         <ul className="mt-auto grid gap-2.5">
           {fichiers.map((fichier) => (
-            <li key={fichier.nom} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <li key={fichier.nom} className="flex flex-col items-start gap-1.5">
               <Bouton href={`/kit-media/${fichier.nom}`} petit>
                 Télécharger le {fichier.format}
                 <span className="sr-only">&nbsp;: {lierPonctuation(visuel.titre)}</span>
               </Bouton>
-              <span className="text-sm text-gris">{[fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}</span>
+              <span className="text-sm text-gris">
+                {[fichier.format === "SVG" ? "net à toutes les tailles" : fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}
+              </span>
             </li>
           ))}
         </ul>

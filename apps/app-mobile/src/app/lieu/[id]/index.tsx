@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useIsFocused, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
@@ -30,6 +30,7 @@ type EtatEnvoi = "jamais" | "ouvert" | "ferme";
  */
 export default function FicheLieu() {
   const router = useRouter();
+  const focus = useIsFocused();
   const marges = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
@@ -76,7 +77,8 @@ export default function FicheLieu() {
 
   return (
     <View className="flex-1 bg-creme">
-      <StatusBar style="light" />
+      {/* Fiche préparée en coulisses depuis le fil : sa barre claire ne s'applique que quand elle est vraiment affichée */}
+      {focus ? <StatusBar style="light" /> : null}
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
         <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} />
