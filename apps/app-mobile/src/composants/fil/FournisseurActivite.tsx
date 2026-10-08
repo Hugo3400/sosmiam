@@ -3,6 +3,7 @@ import { AppState } from "react-native";
 
 import { RESCOUSSES_PAR_SEMAINE } from "@sos-miam/commun/regles/rescousses";
 import { calculerCleSemaine } from "~/fonctions/dates/calculer-cle-semaine";
+import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { ContexteActivite, type ResultatRescousse } from "~/hooks/utiliser-activite";
 import { effacerActiviteLocale, enregistrerActiviteLocale, lireActiviteLocale, type ActiviteLocale } from "~/stockage/activite-locale";
 
@@ -107,9 +108,12 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
   const valeur = useMemo(() => {
     // Listes du plus récent au plus ancien, pour le profil
     const lieuxSauves = [...new Set([...activite.historique].reverse().map((r) => r.lieu))];
+    // Semaine rangée par la date de son lundi (AAAA-MM-JJ) : on compte celles commencées ce mois-ci
+    const moisEnCours = formaterDateIso(new Date()).slice(0, 7);
     return {
       restantes,
       rescoussesDonnees: activite.historique.length,
+      rescoussesDuMois: activite.historique.filter((r) => r.semaine.slice(0, 7) === moisEnCours).length,
       lieuxSauves,
       premiersSauvetages: activite.premiersSauvetages,
       gardes: [...activite.gardes].reverse(),

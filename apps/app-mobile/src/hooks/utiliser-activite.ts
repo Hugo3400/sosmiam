@@ -8,6 +8,8 @@ export type EtatActivite = {
   restantes: number;
   /** Rescousses données depuis l'inscription (et pas reprises) */
   rescoussesDonnees: number;
+  /** Rescousses données ce mois-ci (semaines commencées ce mois-ci), pour le classement entre potes */
+  rescoussesDuMois: number;
   /** Lieux sauvés au moins une fois, du plus récent au plus ancien */
   lieuxSauves: number[];
   /** Lieux dont la personne a été le premier sauveteur */
