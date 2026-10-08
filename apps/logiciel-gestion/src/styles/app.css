@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Thème SOS Miam : mêmes couleurs que le site (apps/site-web/src/styles/app.css) */
+@theme {
+  --color-jaune: #FFD60A;
+  --color-jaune-clair: #FFF1A8;
+  --color-creme: #FFF8E7;
+  --color-encre: #1A1A1A;
+  --color-gris: #5C5A55;
+  --color-ligne: #EDE6D3;
+  --color-tomate: #FF4D3D;
+  --color-rouge-texte: #B3261E;
+  --color-rose-alerte: #FFE1DD;
+  --color-vert: #1F7A4D;
+  --color-vert-clair: #DDF3E6;
+  /* Barres des graphiques (validée sur fond blanc : contraste ≥ 3:1) */
+  --color-graphique: #E0432F;
+
+  --font-titre: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-texte: "Inter Variable", system-ui, sans-serif;
+  --font-sans: var(--font-texte);
+
+  --shadow-brut-petit: 3px 3px 0 var(--color-encre);
+  --shadow-brut: 4px 4px 0 var(--color-encre);
+  --radius-carte: 16px;
+}
+
+@layer base {
+  html, body, #racine { height: 100%; }
+  body {
+    @apply bg-creme font-texte text-encre antialiased;
+    color-scheme: light;
+    font-size: 15px;
+  }
+  h1, h2, h3 { @apply font-titre; line-height: 1.15; }
+  ::placeholder { color: var(--color-gris); }
+  :focus-visible { outline: 3px solid var(--color-encre); outline-offset: 2px; }
+  /* Chiffres alignés dans les tableaux et les tuiles */
+  .chiffres { font-variant-numeric: tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

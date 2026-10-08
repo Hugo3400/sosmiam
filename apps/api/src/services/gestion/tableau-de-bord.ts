@@ -1,6 +1,7 @@
 // Vue d'ensemble du logiciel de gestion : quelques chiffres de chaque partie, en une seule demande.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { listerPeriodes } from "../../fonctions/dates/lister-periodes.ts";
+import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
 
 const UN_JOUR = 86_400_000;
 
@@ -14,6 +15,8 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     inscritsRecents,
     ambassadeurs,
     aModerer,
+    urgents,
+    beta,
     lieux,
     publications,
     programmees,
@@ -31,6 +34,8 @@ export async function lireTableauDeBord(maintenant = new Date()) {
     baseDeDonnees.inscriptionNewsletter.count({ where: { premiereInscription: { gte: ilYa7Jours } } }),
     baseDeDonnees.inscriptionNewsletter.count({ where: { ambassadeur: true } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
+    baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
+    baseDeDonnees.inscriptionNewsletter.count({ where: { beta: true } }),
     baseDeDonnees.lieu.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.groupBy({ by: ["statut"], _count: { _all: true } }),
     baseDeDonnees.publication.count({ where: { statut: "publiee", publieeLe: { gt: maintenant } } }),
@@ -44,8 +49,8 @@ export async function lireTableauDeBord(maintenant = new Date()) {
       jours: jours.map((jour) => ({ cle: jour.cle, vues: parJour.get(jour.cle)?.vues ?? 0, visites: parJour.get(jour.cle)?.visites ?? 0, visiteurs: parJour.get(jour.cle)?.visiteurs ?? 0 })),
       semaine: semaine[0] ?? { vues: 0, visites: 0, visiteurs: 0 },
     },
-    newsletter: { inscrits, recents: inscritsRecents, ambassadeurs },
-    moderation: { aTraiter: aModerer },
+    newsletter: { inscrits, recents: inscritsRecents, ambassadeurs, beta },
+    moderation: { aTraiter: aModerer, urgents },
     lieux: compter(lieux),
     publications: { ...compter(publications), programmees },
     journal,
