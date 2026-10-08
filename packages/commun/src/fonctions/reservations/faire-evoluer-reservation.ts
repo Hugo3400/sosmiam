@@ -38,13 +38,11 @@ export function faireEvoluerReservation(
   const creneauMs = Date.parse(r.creneau);
   if (Number.isNaN(creneauMs)) return INTERDITE;
   const maintenant = new Date(maintenantMs).toISOString();
-  const passer = (statut: StatutReservation, effets: EffetReservation[] = [], tardive = false): TransitionReservation => ({
-    ok: true,
-    statut,
-    presenceLe: r.presenceLe,
-    tardive,
-    effets,
-  });
+  const passer = (
+    statut: StatutReservation,
+    effets: EffetReservation[] = [],
+    o: { tardive?: boolean; presenceLe?: string } = {},
+  ): TransitionReservation => ({ ok: true, statut, presenceLe: o.presenceLe ?? r.presenceLe, tardive: o.tardive ?? false, effets });
   const dansFenetrePresence =
     maintenantMs >= creneauMs - PRESENCE_AVANT_CRENEAU_MS && maintenantMs <= creneauMs + PRESENCE_APRES_CRENEAU_MS;
 
@@ -76,20 +74,20 @@ export function faireEvoluerReservation(
       case "annuler-client": {
         if (maintenantMs >= creneauMs) return DELAI_DEPASSE;
         const tardive = creneauMs - maintenantMs < ANNULATION_TARDIVE_MS;
-        return passer("annulee", tardive ? [{ type: "controle", motif: "annulation-tardive" }] : [], tardive);
+        return passer("annulee", tardive ? [{ type: "controle", motif: "annulation-tardive" }] : [], { tardive });
       }
       case "annuler-lieu":
         return passer("annulee");
       case "presence":
         if (r.presenceLe !== null) return INTERDITE;
-        return dansFenetrePresence ? { ...passer("acceptee"), presenceLe: maintenant } : HORS_FENETRE;
+        return dansFenetrePresence ? passer("acceptee", [], { presenceLe: maintenant }) : HORS_FENETRE;
       default:
         return INTERDITE;
     }
   }
 
   if (r.statut === "honoree" && e.type === "presence" && r.presenceLe === null) {
-    return dansFenetrePresence ? { ...passer("honoree", [{ type: "creer-visite" }]), presenceLe: maintenant } : HORS_FENETRE;
+    return dansFenetrePresence ? passer("honoree", [{ type: "creer-visite" }], { presenceLe: maintenant }) : HORS_FENETRE;
   }
 
   return INTERDITE;
