@@ -54,3 +54,13 @@ export const modifierLieuxEnLot = (ids: number[], modification: ModificationLot)
 export const supprimerLieuxEnLot = (ids: number[]) =>
   appeler<{ ok: true; nombre: number }>("POST", "/lieux/lot", { corps: { ids, action: "supprimer" } });
 export const supprimerLieu = (id: number) => appeler<{ ok: true }>("DELETE", `/lieux/${id}`);
+
+/** Tout ce qui concerne un lieu : publications, signalements reçus, BIG SOS, missions d'ambassadeurs, demande d'origine */
+export type HistoriqueLieu = {
+  publications: { id: number; legende: string; statut: string; suspendue: boolean; publieeLe: string | null; auteurType: string; auteurPseudo: string | null }[];
+  signalements: { id: number; cibleId: string; raison: string; statut: string; creeLe: string }[];
+  bigSos: { id: number; statut: string; phase: string; debutLe: string | null; finLe: string | null; creeLe: string; objectifTitre: string | null; objectifCible: number | null; objectifAtteint: number }[];
+  missions: { id: number; titre: string; statut: string; faiteLe: string | null; compteRendu: string | null; creeLe: string; compte: { id: number; prenom: string } }[];
+  demandes: { id: number; origine: string; creeLe: string; statut: string }[];
+};
+export const lireHistoriqueLieu = (id: number) => appeler<HistoriqueLieu>("GET", `/lieux/${id}/historique`);

@@ -14,7 +14,9 @@ import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { enregistrerLieu, lireLieu, supprimerLieu, type EnvieLieu, type SaisieLieu } from "~/services/lieux.ts";
+import type { Ecran } from "~/contenus/menu.ts";
 import { ApercuLieu } from "./ApercuLieu.tsx";
+import { HistoriqueLieu } from "./HistoriqueLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
 import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
@@ -45,7 +47,9 @@ function Groupe({ titre, children }: { titre: string; children: ReactNode }) {
 }
 
 /** Fiche d'un lieu à créer (id null) ou à modifier, avec l'aperçu de sa carte dans l'app. */
-export function FormulaireLieu({ id, onFermer }: { id: number | null; onFermer: () => void }) {
+type Props = { id: number | null; onFermer: () => void; allerA?: (ecran: Ecran, id: number | null) => void };
+
+export function FormulaireLieu({ id, onFermer, allerA }: Props) {
   const [lieu, setLieu] = useState<SaisieLieu | null>(id ? null : NOUVEAU);
   const [tags, setTags] = useState("");
   // Nombres gardés en texte pendant la saisie (sinon « 43. » perdrait son point), convertis à l'enregistrement
@@ -196,6 +200,7 @@ export function FormulaireLieu({ id, onFermer }: { id: number | null; onFermer: 
         <div className="sticky top-4 grid gap-2">
           <p className="text-sm font-semibold text-gris">Aperçu dans l'app</p>
           <ApercuLieu lieu={{ ...lieu, tags: tags.split(",").map((t) => t.trim()).filter(Boolean) }} />
+          {id && <HistoriqueLieu id={id} allerA={allerA} />}
         </div>
       </div>
 

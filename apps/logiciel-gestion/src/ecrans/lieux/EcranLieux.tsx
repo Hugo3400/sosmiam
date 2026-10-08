@@ -1,6 +1,7 @@
 import { Plus, Search } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 
+import type { Ecran } from "~/contenus/menu.ts";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
 import { CaseACocher } from "~/composants/interface/CaseACocher.tsx";
@@ -18,7 +19,7 @@ import { CarteLieu } from "./CarteLieu.tsx";
 import { FormulaireLieu } from "./FormulaireLieu.tsx";
 
 /** Les fiches des lieux : liste, recherche, sélection de plusieurs fiches, et la fiche complète à créer ou modifier. */
-export function EcranLieux({ ouvrir }: { ouvrir?: { id: number } | null }) {
+export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null; allerA?: (ecran: Ecran, id: number | null) => void }) {
   const [statut, setStatut] = useState<StatutLieu | "">("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
@@ -64,7 +65,7 @@ export function EcranLieux({ ouvrir }: { ouvrir?: { id: number } | null }) {
   }
 
   if (ouvert !== null) {
-    return <FormulaireLieu id={ouvert === "nouveau" ? null : ouvert} onFermer={() => { setOuvert(null); recharger(); }} />;
+    return <FormulaireLieu id={ouvert === "nouveau" ? null : ouvert} allerA={allerA} onFermer={() => { setOuvert(null); recharger(); }} />;
   }
   const tousChoisis = lieux.length > 0 && lieux.every((lieu) => choisis.has(lieu.id));
   return (

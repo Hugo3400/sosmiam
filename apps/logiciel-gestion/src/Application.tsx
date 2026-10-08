@@ -146,7 +146,7 @@ export function Application() {
           {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={(vers) => allerA(vers)} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}
           {ecran === "statistiques" && <EcranStatistiques />}
           {ecran === "newsletter" && <EcranNewsletter />}
-          {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} />}
+          {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
           {ecran === "demandes" && <EcranDemandes />}
           {ecran === "annonces" && <EcranAnnonces />}
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
