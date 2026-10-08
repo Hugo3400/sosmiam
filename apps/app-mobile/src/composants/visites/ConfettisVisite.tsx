@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { View } from "react-native";
-import Animated, { useReducedMotion } from "react-native-reanimated";
+import Animated, { css, useReducedMotion } from "react-native-reanimated";
 
 import couleurs from "~/theme/couleurs";
 
@@ -35,6 +36,19 @@ const CONFETTIS = Array.from({ length: NOMBRE }, (_, i) => ({
  */
 export function ConfettisVisite({ hauteur = 420 }: Props) {
   const animationsReduites = useReducedMotion();
+  // Animation CSS de Reanimated 4 : chaque confetti tombe en tournant et en dérivant, puis s'efface. Les règles restent
+  // les mêmes d'un rendu à l'autre, pour que la pluie ne reparte pas quand l'écran se met à jour
+  const chutes = useMemo(
+    () =>
+      CONFETTIS.map((c) =>
+        css.keyframes({
+          from: { opacity: 1, transform: [{ translateY: 0 }, { translateX: 0 }, { rotate: "0deg" }] },
+          "75%": { opacity: 1 },
+          to: { opacity: 0, transform: [{ translateY: hauteur }, { translateX: c.derive }, { rotate: `${c.rotation}deg` }] },
+        }),
+      ),
+    [hauteur],
+  );
 
   return (
     <View
@@ -64,12 +78,7 @@ export function ConfettisVisite({ hauteur = 420 }: Props) {
               {
                 top: -16,
                 opacity: 0,
-                // Animation CSS de Reanimated 4 : chaque confetti tombe en tournant et en dérivant, puis s'efface
-                animationName: {
-                  from: { opacity: 1, transform: [{ translateY: 0 }, { translateX: 0 }, { rotate: "0deg" }] },
-                  "75%": { opacity: 1 },
-                  to: { opacity: 0, transform: [{ translateY: hauteur }, { translateX: c.derive }, { rotate: `${c.rotation}deg` }] },
-                },
+                animationName: chutes[i],
                 animationDuration: c.dureeMs,
                 animationDelay: c.retardMs,
                 animationTimingFunction: "ease-in",
