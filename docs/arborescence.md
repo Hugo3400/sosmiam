@@ -49,7 +49,6 @@ sos-miam/
 | `src/contenus/` | textes éditoriaux : étapes, programme Ambassadeurs (`ambassadeurs.ts`, et `programme-ambassadeur.ts` pour `/programme`), kit média (`kit-media.ts`), ce qu'on offre aux lieux, villes et régions du formulaire d'inscription, catégories de lieux, champs du formulaire « J'inscris mon lieu » (`demande-lieu.ts`), liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram). Aucun lieu inventé : l'accueil lit les vrais lieux publiés par l'API |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
 | `src/contenus/legal/` | pages légales (un fichier par page ; les sections sur l'espace ambassadeur à part : `confidentialite-compte-ambassadeur.ts`, `cgu-ambassadeurs.ts`) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
-| `src/contenus/legal/brouillons/` | textes légaux en attente de relecture par Hugo : jamais importés par le site, donc jamais publiés |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |
 | `tests/` | tests du site (`npm run site:tester`, aussi lancés par `site:verifier`) : partage des adresses entre les deux domaines |
 

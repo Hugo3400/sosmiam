@@ -1,11 +1,12 @@
 // Contrôleurs du logiciel de gestion pour les mails : état de l'envoi (boîte bonjour@ chez l'hébergement mail),
-// essai, newsletter (lancer, suivre, arrêter) et derniers mails partis.
+// essai, envois groupés à un public choisi (destinataires, lancer, suivre, arrêter) et derniers mails partis.
 import type { Request, Response } from "express";
 
 import { verifierEmail } from "../../fonctions/texte/verifier-email.ts";
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
+import type { PublicEnvoi } from "../../services/gestion/envois-newsletter.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
-import { ChampInvalide, lireId, lireNombre, lireParametre, lireTexte } from "./lire-champs.ts";
+import { ChampInvalide, lireId, lireNombre, lireTexte } from "./lire-champs.ts";
 
 const corpsDe = (requete: Request): Record<string, unknown> =>
   typeof requete.body === "object" && requete.body !== null && !Buffer.isBuffer(requete.body) ? requete.body : {};
@@ -17,6 +18,17 @@ function lireContenu(corps: Record<string, unknown>) {
   if (!html.trim() || html.length > 300_000) throw new ChampInvalide("html");
   if (!texte.trim() || texte.length > 60_000) throw new ChampInvalide("texte");
   return { objet: lireTexte(corps, "objet", 150, true), html, texte };
+}
+
+/** Le public choisi (paramètres de l'adresse, ou corps de la demande) : « newsletter » et ses filtres, ou « ambassadeurs ». */
+function lirePublic(source: Record<string, unknown>): PublicEnvoi {
+  const texte = (cle: string, max: number) => (typeof source[cle] === "string" ? (source[cle] as string).trim().slice(0, max) : "");
+  const oui = (cle: string) => source[cle] === true || source[cle] === "1" || source[cle] === "true";
+  const ville = texte("ville", 80) || null;
+  if (source.public === "ambassadeurs") return { public: "ambassadeurs", statut: source.statut === "tous" ? "tous" : "actif", ville };
+  if (source.public !== undefined && source.public !== "newsletter") throw new ChampInvalide("public");
+  const telephone = texte("telephone", 10);
+  return { public: "newsletter", ville, candidats: oui("candidats"), beta: oui("beta"), telephone: telephone === "iphone" || telephone === "android" ? telephone : "" };
 }
 
 function verifier(controleur: (requete: Request, reponse: Response) => Promise<unknown>) {
@@ -46,18 +58,24 @@ export function creerControleursCourriels(s: ServicesGestion) {
       reponse.json({ ok: true });
     }),
     destinataires: verifier(async (requete, reponse) => {
-      const ville = lireParametre(requete.query.ville, 80) || null;
-      reponse.json({ total: await s.compterDestinataires(ville) });
+      const destinataires = await s.listerDestinataires(lirePublic(requete.query as Record<string, unknown>));
+      reponse.json({ synchronisee: destinataires !== null, destinataires: destinataires ?? [] });
     }),
     lancer: verifier(async (requete, reponse) => {
       const corps = corpsDe(requete);
-      const ville = typeof corps.ville === "string" && corps.ville.trim() ? lireTexte(corps, "ville", 80, true).trim() : null;
-      const resultat = await s.lancerCampagne({ brouillonId: lireNombre(corps, "brouillonId", 1, 1e9), ville, ...lireContenu(corps) });
+      const cible = lirePublic(corps);
+      let adresses: string[] | null = null;
+      if (corps.adresses !== undefined && corps.adresses !== null) {
+        if (!Array.isArray(corps.adresses) || corps.adresses.length > 20_000 || corps.adresses.some((a) => typeof a !== "string")) throw new ChampInvalide("adresses");
+        adresses = corps.adresses as string[];
+      }
+      const description = typeof corps.description === "string" ? corps.description.trim().slice(0, 300) : "";
+      const resultat = await s.lancerCampagne({ cible, adresses, description, brouillonId: lireNombre(corps, "brouillonId", 1, 1e9), ...lireContenu(corps) });
       if ("erreur" in resultat) {
         const statut = resultat.erreur === "envoi-en-cours" ? 409 : resultat.erreur === "aucun-destinataire" ? 400 : 503;
         return reponse.status(statut).json({ ok: false, erreur: resultat.erreur, message: "message" in resultat ? resultat.message : undefined });
       }
-      await noter(reponse, "Newsletter lancée", `${resultat.campagne.total} destinataire(s)${ville ? ` à ${ville}` : ""}`);
+      await noter(reponse, cible.public === "newsletter" ? "Newsletter lancée" : "Mail aux ambassadeurs lancé", `${resultat.campagne.total} destinataire(s)${description ? ` : ${description}` : ""}`);
       reponse.status(201).json({ ok: true, ...resultat.campagne });
     }),
     campagnes: verifier(async (_requete, reponse) => reponse.json(await s.listerCampagnes())),

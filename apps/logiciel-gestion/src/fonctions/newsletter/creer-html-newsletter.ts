@@ -9,11 +9,13 @@ const STYLES = {
   lien: "color:#1A1A1A;text-decoration:underline;text-decoration-color:#FFD60A;text-decoration-thickness:3px",
 };
 
-/**
- * E-mail complet d'une newsletter, aux couleurs de SOS Miam : bandeau jaune, texte, pied de page avec la désinscription
- * (obligatoire, et promise dans la politique de confidentialité : un simple « STOP » suffit).
- */
-export function creerHtmlNewsletter(objet: string, texte: string): string {
+/** Pied de page d'une newsletter : la désinscription (obligatoire, et promise dans la politique de confidentialité : un
+ * simple « STOP » suffit). Pour un mail aux ambassadeurs, voir PIED_AMBASSADEURS. */
+export const PIED_NEWSLETTER = `Tu reçois ce mail parce que tu t'es inscrit à la newsletter de SOS Miam. Plus envie ? Réponds simplement « STOP » à ce mail, ou écris à <a href="mailto:bonjour@sosmiam.fr" style="color:#5C5A55">bonjour@sosmiam.fr</a> : on te retire de la liste, sans question.`;
+export const PIED_AMBASSADEURS = `Tu reçois ce mail parce que tu es ambassadeur SOS Miam. Une question ? Réponds simplement à ce mail, on lit tout.`;
+
+/** E-mail complet aux couleurs de SOS Miam : bandeau jaune, texte, pied de page (HTML écrit ici, jamais saisi). */
+export function creerHtmlNewsletter(objet: string, texte: string, pied = PIED_NEWSLETTER): string {
   const titre = objet.replace(/&/g, "&amp;").replace(/</g, "&lt;");
   return `<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${titre}</title></head>
@@ -25,7 +27,7 @@ export function creerHtmlNewsletter(objet: string, texte: string): string {
 ${convertirMarkdown(texte, STYLES)}
 </td></tr>
 <tr><td style="padding:20px 28px;border-top:1px solid #EDE6D3;${POLICE};font-size:13px;line-height:1.5;color:#5C5A55">
-Tu reçois ce mail parce que tu t'es inscrit à la newsletter de SOS Miam. Plus envie ? Réponds simplement « STOP » à ce mail, ou écris à <a href="mailto:bonjour@sosmiam.fr" style="color:#5C5A55">bonjour@sosmiam.fr</a> : on te retire de la liste, sans question.
+${pied}
 </td></tr>
 </table></td></tr></table>
 </body></html>`;

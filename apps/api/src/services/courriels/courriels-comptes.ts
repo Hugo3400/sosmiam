@@ -112,7 +112,7 @@ export async function envoyerLienMotDePasse(compteId: number, lien: string, expi
     ...habillerCourriel({
       titre: `Un nouveau mot de passe, ${compte.prenom} ?`,
       paragraphes: [
-        `Voici ton lien pour choisir un nouveau mot de passe. Il marche jusqu'au ${echeance}.`,
+        `Voici ton lien pour choisir un nouveau mot de passe. Il marche jusqu'au ${echeance}, une seule fois.`,
         "Tu n'as rien demandé ? Ignore ce mail : ton mot de passe actuel ne change pas.",
       ],
       bouton: { texte: "Choisir mon mot de passe", adresse: lien },

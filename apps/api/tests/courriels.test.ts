@@ -4,6 +4,7 @@ import { after, before, test } from "node:test";
 
 import { calculerProchainEssai } from "../src/fonctions/courriels/calculer-prochain-essai.ts";
 import { classerErreurEnvoi } from "../src/fonctions/courriels/classer-erreur-envoi.ts";
+import { filtrerInscrits, type FiltresInscrits } from "../src/fonctions/courriels/filtrer-inscrits.ts";
 import { habillerCourriel } from "../src/fonctions/courriels/habiller-courriel.ts";
 import { lireFichierReglages } from "../src/fonctions/texte/lire-fichier-reglages.ts";
 import { creerBancGestion } from "./outils/creer-banc-gestion.ts";
@@ -36,6 +37,23 @@ test("gabarit : le texte est échappé, le bouton et la version texte sont là",
   assert.ok(texte.includes("Y aller : https://sosmiam.fr/?a=1&b=2") && texte.endsWith("Pied"));
 });
 
+test("destinataires : ville (sans accent ni casse), candidats, bêta, téléphone, sans doublon", () => {
+  const liste = [
+    { adresse: "lea@exemple.fr", ville: "Sète", telephone: "iphone", beta: "oui" },
+    { adresse: "tom@exemple.fr", ville: "sete", telephone: "android", beta: "non" },
+    { adresse: "lea@exemple.fr", ville: "Sète", telephone: "iphone", beta: "oui" },
+    { adresse: "ines@exemple.fr", ville: "Lunel", telephone: "", beta: "oui" },
+  ];
+  const tous: FiltresInscrits = { ville: null, candidats: false, beta: false, telephone: "" };
+  const adresses = (filtres: Partial<FiltresInscrits>, candidats: string[] = []) =>
+    filtrerInscrits(liste, { ...tous, ...filtres }, new Set(candidats)).map((i) => i.adresse);
+  assert.deepEqual(adresses({}), ["lea@exemple.fr", "tom@exemple.fr", "ines@exemple.fr"]);
+  assert.deepEqual(adresses({ ville: "SÈTE" }), ["lea@exemple.fr", "tom@exemple.fr"]);
+  assert.deepEqual(adresses({ beta: true }), ["lea@exemple.fr", "ines@exemple.fr"]);
+  assert.deepEqual(adresses({ telephone: "android" }), ["tom@exemple.fr"]);
+  assert.deepEqual(adresses({ candidats: true }, ["ines@exemple.fr"]), ["ines@exemple.fr"]);
+});
+
 const appels: unknown[] = [];
 let resultatEssai: { ok: true } | { ok: false; erreur: string; message?: string } = { ok: true };
 let resultatLancement: unknown = { campagne: { id: 4, total: 12 } };
@@ -44,7 +62,8 @@ const banc = await creerBancGestion({
   lancerCampagne: async (saisie: unknown) => (appels.push({ lancer: saisie }), resultatLancement),
   listerCampagnes: async () => [{ id: 4, objet: "Octobre", statuts: { envoye: 10, "en-attente": 2 } }],
   annulerCampagne: async (id: number) => (appels.push({ annuler: id }), 2),
-  compterDestinataires: async (ville: string | null) => (ville ? 3 : 12),
+  listerDestinataires: async (cible: { public: string; ville: string | null }) =>
+    (appels.push({ destinataires: cible }), [{ adresse: "lea@exemple.fr", ville: cible.ville ?? "Sète", detail: "" }]),
 } as never);
 let session = "";
 before(async () => void (session = await banc.ouvrirSession()));
@@ -62,20 +81,34 @@ test("essai : une adresse valable, et l'erreur du serveur mail est rendue", asyn
   assert.deepEqual(await refuse.json(), { ok: false, erreur: "envoi-refuse", message: "535 identifiants refusés" });
 });
 
-test("newsletter : contenu obligatoire, une seule à la fois, ville facultative", async () => {
+test("envoi groupé : contenu obligatoire, public lu, adresses cochées transmises, un seul à la fois", async () => {
   assert.equal((await banc.demander("POST", "/newsletter/envois", { session, corps: { objet: "Sans contenu" } })).status, 400);
-  const lancee = await banc.demander("POST", "/newsletter/envois", { session, corps: { ...contenu, brouillonId: 3, ville: " Sète " } });
+  assert.equal((await banc.demander("POST", "/newsletter/envois", { session, corps: { ...contenu, public: "tout-le-monde" } })).status, 400);
+  assert.equal((await banc.demander("POST", "/newsletter/envois", { session, corps: { ...contenu, adresses: "lea@exemple.fr" } })).status, 400);
+  const lancee = await banc.demander("POST", "/newsletter/envois", {
+    session,
+    corps: { ...contenu, brouillonId: 3, public: "newsletter", ville: " Sète ", beta: true, telephone: "fax", adresses: ["lea@exemple.fr"], description: "Inscrits · Sète" },
+  });
   assert.equal(lancee.status, 201);
   assert.deepEqual(await lancee.json(), { ok: true, id: 4, total: 12 });
-  assert.deepEqual(appels.at(-1), { lancer: { brouillonId: 3, ville: "Sète", ...contenu } });
+  assert.deepEqual(appels.at(-1), {
+    lancer: {
+      cible: { public: "newsletter", ville: "Sète", candidats: false, beta: true, telephone: "" },
+      adresses: ["lea@exemple.fr"], description: "Inscrits · Sète", brouillonId: 3, ...contenu,
+    },
+  });
+  await banc.demander("POST", "/newsletter/envois", { session, corps: { ...contenu, public: "ambassadeurs", statut: "tous" } });
+  assert.deepEqual((appels.at(-1) as { lancer: { cible: unknown } }).lancer.cible, { public: "ambassadeurs", statut: "tous", ville: null });
   resultatLancement = { erreur: "envoi-en-cours" };
   assert.equal((await banc.demander("POST", "/newsletter/envois", { session, corps: contenu })).status, 409);
   resultatLancement = { erreur: "envoi-absent" };
   assert.equal((await banc.demander("POST", "/newsletter/envois", { session, corps: contenu })).status, 503);
 });
 
-test("newsletter : destinataires, suivi et arrêt", async () => {
-  assert.deepEqual(await (await banc.demander("GET", "/newsletter/destinataires?ville=S%C3%A8te", { session })).json(), { total: 3 });
+test("envoi groupé : destinataires, suivi et arrêt", async () => {
+  const liste = await (await banc.demander("GET", "/newsletter/destinataires?public=newsletter&ville=S%C3%A8te&candidats=1", { session })).json();
+  assert.deepEqual(liste, { synchronisee: true, destinataires: [{ adresse: "lea@exemple.fr", ville: "Sète", detail: "" }] });
+  assert.deepEqual(appels.at(-1), { destinataires: { public: "newsletter", ville: "Sète", candidats: true, beta: false, telephone: "" } });
   assert.equal(((await (await banc.demander("GET", "/newsletter/envois", { session })).json()) as unknown[]).length, 1);
   assert.deepEqual(await (await banc.demander("POST", "/newsletter/envois/4/annuler", { session, corps: {} })).json(), { ok: true, annules: 2 });
   assert.deepEqual(appels.at(-1), { annuler: 4 });

@@ -30,10 +30,17 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
     }
   }
 
-  const preparerLien = () =>
+  /** envoyer : le serveur l'envoie à son adresse (le lien ne passe pas par toi) ; sinon, ou si l'envoi rate, il s'affiche */
+  const preparerLien = (envoyer: boolean) =>
     agir(async () => {
-      const { lien: adresse, expireLe } = await reinitialiserMotDePasse(fiche.id);
-      setLien({ adresse, expireLe });
+      const reponse = await reinitialiserMotDePasse(fiche.id, envoyer);
+      if (reponse.envoye) {
+        setLien(null);
+        setEtat({ enCours: false, texte: `Lien envoyé à ${fiche.email} ✅ Il marche jusqu'au ${formaterDate(reponse.expireLe, true)}, une seule fois.` });
+        return;
+      }
+      setLien({ adresse: reponse.lien, expireLe: reponse.expireLe });
+      if (envoyer) setEtat({ enCours: false, texte: "L'envoi par mail n'a pas marché (réglages de la boîte ?) : voici le lien à lui transmettre toi-même." });
     });
 
   const retirer = () =>
@@ -53,7 +60,7 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
     });
 
   const corpsMail = lien
-    ? [`Salut ${fiche.prenom} !`, "", `Voici ton lien pour choisir un nouveau mot de passe (valable jusqu'au ${formaterDate(lien.expireLe, true)}) :`, lien.adresse, "", "À très vite,", "Hugo, pour SOS Miam"].join("\n")
+    ? [`Salut ${fiche.prenom} !`, "", `Voici ton lien pour choisir un nouveau mot de passe (valable jusqu'au ${formaterDate(lien.expireLe, true)}, une seule fois) :`, lien.adresse, "", "À très vite,", "Hugo, pour SOS Miam"].join("\n")
     : "";
 
   return (
@@ -61,14 +68,15 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
       <h3 className="font-extrabold">Compte</h3>
       <div className="flex flex-wrap gap-2">
         <Bouton petit icone={Mail} onClick={() => ouvrirLien(creerLienCourrielGroupe([fiche.email], "SOS Miam 🛟"))}>Écrire par mail</Bouton>
-        <Bouton petit icone={KeyRound} chargement={etat.enCours && !lien} onClick={preparerLien}>Mot de passe oublié</Bouton>
+        <Bouton petit icone={KeyRound} chargement={etat.enCours && !lien} onClick={() => preparerLien(true)}>Envoyer un lien « mot de passe oublié »</Bouton>
+        <Bouton petit variante="discret" desactive={etat.enCours} onClick={() => preparerLien(false)}>Préparer le lien sans l'envoyer</Bouton>
         <Bouton petit icone={UserMinus} desactive={etat.enCours} onClick={retirer}>Retirer du programme</Bouton>
         <Bouton petit variante="danger" icone={Trash2} desactive={etat.enCours} onClick={supprimer}>Supprimer tout le compte</Bouton>
       </div>
       {lien && (
         <div className="grid gap-2 rounded-xl bg-creme p-3 text-sm">
           <p>
-            Lien à lui transmettre toi-même, valable jusqu'au <strong>{formaterDate(lien.expireLe, true)}</strong>.
+            Lien à lui transmettre toi-même, valable jusqu'au <strong>{formaterDate(lien.expireLe, true)}</strong>, une seule fois.
             Envoie-le seulement à son adresse ({fiche.email}) : qui l'a peut changer son mot de passe.
           </p>
           <code className="block overflow-x-auto rounded-lg bg-white px-2 py-1 text-xs whitespace-nowrap">{lien.adresse}</code>

@@ -6,7 +6,7 @@ import {
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
-import { annulerCampagne, compterDestinataires, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes } from "./envois-newsletter.ts";
+import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
 import { accepterDemande, effacerContactDemande, listerDemandes, refuserDemande } from "./demandes.ts";
 import { chercherAdresse } from "./geocodage.ts";
@@ -48,7 +48,7 @@ export const servicesGestion = {
   listerMissions, creerMission, changerStatutMission, supprimerMission, listerMessages, envoyerMessage, supprimerMessage,
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
-  lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, compterDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
+  lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, listerDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
   prevenirAmbassadeurValide, envoyerLienMotDePasse,
 };
 

@@ -75,7 +75,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
                 <dt className="text-gris">Adresse</dt><dd className="truncate">{fiche.email}</dd>
                 <dt className="text-gris">Inscrit</dt><dd>{formaterDate(fiche.creeLe)}{fiche.ambassadeur?.decideLe && ` · décidé le ${formaterDate(fiche.ambassadeur.decideLe)}`}</dd>
                 <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(fiche.derniereConnexion)} · {fiche._count.sessions} connexion(s) ouverte(s), app comprise</dd>
-                <dt className="text-gris">Effacé le</dt><dd>{formaterDate(fiche.effaceLe)} s'il ne revient pas d'ici là</dd>
+                <dt className="text-gris">Sans visite</dt><dd>rôle retiré le {formaterDate(fiche.retireLe)}, compte effacé le {formaterDate(fiche.effaceLe)}</dd>
                 <dt className="text-gris">Conditions</dt><dd>acceptées (version du {fiche.cguVersion})</dd>
               </dl>
               <div className="flex flex-wrap gap-2">

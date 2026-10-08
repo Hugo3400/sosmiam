@@ -32,7 +32,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
   const [palier, setPalier] = useState<Palier | "">("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
-  const [bientotEffaces, setBientotEffaces] = useState(false);
+  const [bientotRetires, setBientotRetires] = useState(false);
   const [message, setMessage] = useState<{ texte: string; ton: "vert" | "rouge" } | null>(null);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(
     () => listerAmbassadeurs({ statut: statut === "tous" ? "" : statut, palier, recherche }),
@@ -43,15 +43,20 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
     return () => clearTimeout(minuteur);
   }, [saisie]);
 
-  const liste = (donnees?.ambassadeurs ?? []).filter((a) => !bientotEffaces || a.bientotEfface);
+  const liste = (donnees?.ambassadeurs ?? []).filter((a) => !bientotRetires || a.bientotRetire);
   const adresses = liste.map((a) => a.email);
   const compteurs = donnees?.compteurs ?? {};
 
   async function decider(ambassadeur: ResumeAmbassadeur, decision: "actif" | "refuse") {
     if (decision === "refuse" && !window.confirm(`Refuser l'inscription de ${ambassadeur.prenom} ? L'espace lui reste fermé, et son compte (créé pour cette inscription) est effacé 30 jours après.`)) return;
     try {
-      await deciderAmbassadeur(ambassadeur.id, decision);
-      setMessage({ texte: decision === "actif" ? `C'est validé pour ${ambassadeur.prenom} ✅ Un petit mot de bienvenue lui fera plaisir.` : `Inscription de ${ambassadeur.prenom} refusée.`, ton: "vert" });
+      const { bienvenue } = await deciderAmbassadeur(ambassadeur.id, decision);
+      const texte = decision === "refuse"
+        ? `Inscription de ${ambassadeur.prenom} refusée.`
+        : bienvenue
+          ? `C'est validé pour ${ambassadeur.prenom} ✅ Son mail de bienvenue part tout seul.`
+          : `C'est validé pour ${ambassadeur.prenom} ✅ (l'envoi des mails n'est pas réglé : pas de mail de bienvenue).`;
+      setMessage({ texte, ton: "vert" });
       recharger();
       onDecision();
     } catch (probleme) {
@@ -102,12 +107,12 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
             options={[{ valeur: "", libelle: "Tous les paliers" }, ...Object.entries(PALIERS).map(([cle, p]) => ({ valeur: cle as Palier, libelle: `${p.emoji} ${p.nom}` }))]}
             className="w-60"
           />
-          <div className="pb-1.5"><CaseACocher libelle="Seulement ceux effacés bientôt" coche={bientotEffaces} onChange={setBientotEffaces} /></div>
+          <div className="pb-1.5"><CaseACocher libelle="Seulement ceux retirés bientôt" coche={bientotRetires} onChange={setBientotRetires} /></div>
         </div>
-        {!!donnees?.bientotEffaces && !bientotEffaces && (
+        {!!donnees?.bientotRetires && !bientotRetires && (
           <p className="rounded-xl bg-jaune-clair px-3 py-2 text-sm font-semibold">
-            ⏳ {donnees.bientotEffaces} compte{donnees.bientotEffaces > 1 ? "s seront effacés" : " sera effacé"} dans moins de 30 jours faute de visite (règle : 1 an sans connexion).
-            Un petit message pour {donnees.bientotEffaces > 1 ? "les" : "le"} prévenir ?
+            ⏳ {donnees.bientotRetires} ambassadeur{donnees.bientotRetires > 1 ? "s perdront" : " perdra"} {donnees.bientotRetires > 1 ? "leur" : "son"} rôle dans moins de 30 jours faute de visite
+            (règle : 1 an sans connexion ; le compte, lui, n'est effacé qu'après 2 ans). Un mail les prévient tout seul, une fois.
           </p>
         )}
       </div>
@@ -134,7 +139,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
                 <span className="w-48 truncate" title={p?.nom}>{p ? `${p.emoji} ${p.nom}` : ambassadeur.palier}</span>
                 <span className="chiffres w-20 text-right font-semibold">{formaterNombre(ambassadeur.points)} pts</span>
                 <span className="w-44 whitespace-nowrap text-gris" title={`Inscrit le ${formaterDate(ambassadeur.creeLe)}`}>
-                  {ambassadeur.bientotEfface ? <Badge ton="rouge">Effacé le {formaterDate(ambassadeur.effaceLe)}</Badge> : formaterDateRelative(ambassadeur.derniereConnexion)}
+                  {ambassadeur.bientotRetire ? <Badge ton="rouge">Retiré le {formaterDate(ambassadeur.retireLe)}</Badge> : formaterDateRelative(ambassadeur.derniereConnexion)}
                 </span>
                 {etat && <span className="w-24"><Badge ton={etat.ton}>{etat.libelle}</Badge></span>}
                 <span className="flex w-36 justify-end gap-1">

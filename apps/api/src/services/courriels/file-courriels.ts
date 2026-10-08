@@ -47,21 +47,30 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
       where: { statut: "en-attente", prochainEssai: { lte: maintenant } },
       orderBy: [{ prochainEssai: "asc" }, { id: "asc" }],
       take: budget,
-      include: { campagne: { select: { objet: true, html: true, texte: true } } },
+      include: { campagne: { select: { objet: true, html: true, texte: true, public: true } } },
     });
     if (dus.length === 0) return 0;
-    // Newsletter : on revérifie la liste juste avant l'envoi (une désinscription arrivée entre-temps est respectée)
-    const liste = dus.some((envoi) => envoi.campagne) ? new Set((await lireListeInscrits())?.map((inscrit) => inscrit.adresse) ?? []) : null;
+    // Envoi groupé : on revérifie le public juste avant l'envoi (une désinscription ou un départ entre-temps est respecté)
+    const liste = dus.some((envoi) => envoi.campagne?.public === "newsletter")
+      ? new Set((await lireListeInscrits())?.map((inscrit) => inscrit.adresse) ?? [])
+      : null;
+    const ambassadeurs = dus.some((envoi) => envoi.campagne?.public === "ambassadeurs")
+      ? new Set((await baseDeDonnees.compte.findMany({ where: { ambassadeur: { is: { statut: { not: "refuse" } } } }, select: { email: true } })).map((c) => c.email))
+      : null;
 
     let partis = 0;
     for (const envoi of dus) {
-      if (envoi.campagne && !liste?.has(envoi.destinataire)) {
-        await baseDeDonnees.envoiCourriel.update({ where: { id: envoi.id }, data: { statut: "annule", erreur: "Plus dans la liste (désinscription)" } });
+      const toujoursLa = envoi.campagne?.public === "ambassadeurs" ? ambassadeurs?.has(envoi.destinataire) : liste?.has(envoi.destinataire);
+      if (envoi.campagne && !toujoursLa) {
+        const raison = envoi.campagne.public === "ambassadeurs" ? "N'est plus ambassadeur" : "Plus dans la liste (désinscription)";
+        await baseDeDonnees.envoiCourriel.update({ where: { id: envoi.id }, data: { statut: "annule", erreur: raison } });
         continue;
       }
-      const contenu = envoi.campagne ?? { objet: envoi.objet ?? "", html: envoi.html ?? "", texte: envoi.texte ?? "" };
+      const contenu = envoi.campagne
+        ? { objet: envoi.campagne.objet, html: envoi.campagne.html, texte: envoi.campagne.texte }
+        : { objet: envoi.objet ?? "", html: envoi.html ?? "", texte: envoi.texte ?? "" };
       try {
-        await expedier(reglages, { a: envoi.destinataire, ...contenu, newsletter: !!envoi.campagne });
+        await expedier(reglages, { a: envoi.destinataire, ...contenu, newsletter: envoi.campagne?.public === "newsletter" });
         // Parti : le contenu n'a plus à être gardé (l'objet reste, pour le journal)
         await baseDeDonnees.envoiCourriel.update({
           where: { id: envoi.id },
