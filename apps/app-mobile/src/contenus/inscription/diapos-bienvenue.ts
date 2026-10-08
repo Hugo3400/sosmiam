@@ -14,7 +14,7 @@ export const diaposBienvenue: DiapoBienvenue[] = [
   {
     id: "salut",
     expression: "miam",
-    titre: "Salut, moi c'est la bouée de SOS Miam !",
+    titre: "Salut, moi c'est la bouée de SOS\u00a0Miam !",
     texte: "Je te fais découvrir les restos, pâtisseries, bars et sorties de ton coin qui ont besoin de monde.",
     fond: "jaune",
   },

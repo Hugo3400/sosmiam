@@ -1,0 +1,41 @@
+import { useEffect } from "react";
+import { AccessibilityInfo, Text } from "react-native";
+import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
+
+type Props = {
+  /** Message à afficher ; un nouveau numéro relance l'annonce même si le texte est identique */
+  annonce: { texte: string; numero: number } | null;
+  /** Distance depuis le haut de l'écran */
+  haut: number;
+  onFin: () => void;
+};
+
+const DUREE = 2400;
+
+/** Petit message qui apparaît en haut puis s'efface tout seul ; aussi lu par VoiceOver. */
+export function Annonce({ annonce, haut, onFin }: Props) {
+  useEffect(() => {
+    if (!annonce) return;
+    AccessibilityInfo.announceForAccessibility(annonce.texte);
+    const minuterie = setTimeout(onFin, DUREE);
+    return () => clearTimeout(minuterie);
+  }, [annonce, onFin]);
+
+  if (!annonce) return null;
+  return (
+    <Animated.View
+      key={annonce.numero}
+      entering={FadeInUp.duration(220)}
+      exiting={FadeOutUp.duration(220)}
+      pointerEvents="none"
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+      style={{ top: haut }}
+      className="absolute inset-x-5 items-center"
+    >
+      <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-4 py-2.5 text-center font-texte-gras text-[15px] text-encre">
+        {annonce.texte}
+      </Text>
+    </Animated.View>
+  );
+}

@@ -12,6 +12,8 @@ export type ChoixEnvie = {
 
 export type EtapeEnvies = {
   categorie: CategorieEnvie;
+  /** Nom court de la catégorie (écran Profil) */
+  nom: string;
   emoji: string;
   titre: string;
   sousTitre: string;
@@ -25,6 +27,7 @@ export type EtapeEnvies = {
 export const etapesEnvies: EtapeEnvies[] = [
   {
     categorie: "lieux",
+    nom: "Lieux",
     emoji: "🍽️",
     titre: "Tu sors où ?",
     sousTitre: "Choisis tout ce qui te tente, on s'occupe du reste.",
@@ -43,6 +46,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "cuisines",
+    nom: "Cuisines",
     emoji: "🍝",
     titre: "Qu'est-ce qui te fait saliver ?",
     sousTitre: "Tes cuisines préférées, sans te limiter.",
@@ -61,6 +65,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "boissons",
+    nom: "Boissons",
     emoji: "🍹",
     titre: "Et pour boire ?",
     sousTitre: "Avec ou sans alcool, tout se défend.",
@@ -77,6 +82,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "bars",
+    nom: "Bars",
     emoji: "🍻",
     titre: "Ton bar idéal ?",
     sousTitre: "Pour l'apéro, la soirée ou le dernier verre.",
@@ -94,6 +100,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "musique",
+    nom: "Musique",
     emoji: "🎶",
     titre: "Côté musique ?",
     sousTitre: "L'ambiance qui te fait rester.",
@@ -112,6 +119,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "jeux",
+    nom: "Jeux et activités",
     emoji: "🎲",
     titre: "On joue ?",
     sousTitre: "Les activités qui te font sortir de chez toi.",
@@ -130,6 +138,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "moments",
+    nom: "Moments",
     emoji: "💛",
     titre: "Tu sors plutôt…",
     sousTitre: "Pour te proposer le bon lieu au bon moment.",
@@ -145,6 +154,7 @@ export const etapesEnvies: EtapeEnvies[] = [
   },
   {
     categorie: "regimes",
+    nom: "Régime particulier",
     emoji: "🥗",
     titre: "Un régime particulier ?",
     sousTitre: "Facultatif : pour te montrer les lieux qui te conviennent.",

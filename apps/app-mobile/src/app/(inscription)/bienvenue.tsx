@@ -14,7 +14,7 @@ const HAUTEUR_COMMANDES = 132;
 /** Premier écran de l'app : le concept de SOS Miam en 5 diapos, racontées par la mascotte. */
 export default function Bienvenue() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const marges = useSafeAreaInsets();
   const liste = useRef<FlatList<Diapo>>(null);
   const [actif, setActif] = useState(0);
@@ -45,7 +45,7 @@ export default function Bienvenue() {
         onMomentumScrollEnd={auDefilement}
         getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
         renderItem={({ item, index }) => (
-          <DiapoBienvenue diapo={item} largeur={width} active={index === actif} margeBas={HAUTEUR_COMMANDES + marges.bottom} />
+          <DiapoBienvenue diapo={item} largeur={width} hauteur={height} active={index === actif} margeBas={HAUTEUR_COMMANDES + marges.bottom} />
         )}
       />
 

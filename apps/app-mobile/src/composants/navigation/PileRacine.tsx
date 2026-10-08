@@ -25,6 +25,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={profil !== null}>
           <Stack.Screen name="(onglets)" />
+          <Stack.Screen name="lieu/[id]" />
         </Stack.Protected>
         <Stack.Protected guard={profil === null}>
           <Stack.Screen name="(inscription)" />

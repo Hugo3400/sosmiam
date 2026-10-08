@@ -52,8 +52,9 @@ sos-miam/
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |
 | `src/composants/…` | un dossier par partie de l'app : interface, fil, lieux, carte, scan, big-sos, potes, profil, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
+| `src/contenus/` | lieux d'exemple (`lieux-exemples.ts`, avant l'API) et correspondances entre envies et lieux |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
-| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/` | fonctions pures, une par fichier |
+| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances…) |
 | `src/services/` | appels à l'API |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/stockage/` | données gardées sur le téléphone (session, préférences) |
