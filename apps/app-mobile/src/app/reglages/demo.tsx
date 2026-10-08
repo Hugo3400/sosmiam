@@ -26,8 +26,8 @@ export default function CoulissesDemo() {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
-  // Le message à dire une fois la feuille refermée (plus tôt, VoiceOver le couperait en revenant sur la ligne)
-  const annonceEnAttente = useRef<string | null>(null);
+  // La remise à zéro lancée, et le message à dire une fois la feuille refermée (plus tôt, VoiceOver le couperait)
+  const remiseEnCours = useRef<Promise<string> | null>(null);
 
   if (!outilsDemo) {
     return (
@@ -37,12 +37,12 @@ export default function CoulissesDemo() {
     );
   }
 
-  async function remettreAZero() {
+  async function remettreAZero(): Promise<string> {
     try {
       await outilsDemo?.remettreAZero();
-      annonceEnAttente.current = "🧽 Démo remise à zéro : Chez Nonna Lia t'attend avec ta carte à 4 tampons.";
+      return "🧽 Démo remise à zéro : Chez Nonna Lia t'attend avec ta carte à 4 tampons.";
     } catch {
-      annonceEnAttente.current = "Oups, la démo n'a pas pu repartir à zéro. Réessaie dans un instant.";
+      return "Oups, la démo n'a pas pu repartir à zéro. Réessaie dans un instant.";
     }
   }
 
@@ -76,13 +76,12 @@ export default function CoulissesDemo() {
         libelleRester="Finalement non"
         indiceRester="La démo reste comme elle est"
         onConfirmer={() => {
-          annonceEnAttente.current = null;
-          void remettreAZero();
+          remiseEnCours.current = remettreAZero();
         }}
         onRefermee={() => {
-          // La remise à zéro est très courte ; si elle n'a pas encore répondu, on annonce le résultat attendu
-          annoncer(annonceEnAttente.current ?? "🧽 Démo remise à zéro.");
-          annonceEnAttente.current = null;
+          const remise = remiseEnCours.current;
+          remiseEnCours.current = null;
+          if (remise) void remise.then(annoncer);
         }}
         onFermer={() => setFeuilleZero(false)}
       />
