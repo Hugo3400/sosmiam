@@ -136,6 +136,7 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
       const lieu = await s.lireLieu(lireId(requete.params.id) ?? 0);
       return lieu ? reponse.json(lieu) : introuvable(reponse);
     }),
+    historiqueLieu: verifier(async (requete, reponse) => reponse.json(await s.lireHistoriqueLieu(lireId(requete.params.id) ?? 0))),
     enregistrerLieu: verifier(async (requete, reponse) => {
       const saisie = lireLieuSaisi(corpsDe(requete));
       const id = requete.params.id === undefined ? null : lireId(requete.params.id);

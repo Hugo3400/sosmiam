@@ -122,6 +122,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/lieux", c.enregistrerLieu);
   routes.post("/lieux/lot", c.lotLieux);
   routes.get("/lieux/:id", c.lieu);
+  routes.get("/lieux/:id/historique", c.historiqueLieu);
   routes.put("/lieux/:id", c.enregistrerLieu);
   routes.delete("/lieux/:id", c.supprimerLieu);
 

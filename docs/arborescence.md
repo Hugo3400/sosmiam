@@ -62,15 +62,20 @@ sos-miam/
 | `src/app/createur/` | page d'un créateur : ses publications, ses partenariats déclarés, Suivre ; la liste « Tu suis » est dans `src/app/suivis.tsx`, les notifications dans `src/app/notifications.tsx` |
 | `src/app/potes/` | écrans ouverts depuis l'onglet Potes : sortie, nouvelle sortie, ajouter un pote, profil d'un pote, liste partagée, messages, discussion, nouveau groupe, réseau d'une personne (abonnés, abonnements) |
 | `src/app/reglages/` | réglages ouverts depuis le profil : avatar, infos, envies, notifications, compte privé, personnes bloquées |
-| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre, abonnés, suggestions, fournisseur des suivis entre personnes), notifications (cloche, lignes, fournisseur), invite (visite sans compte : feuille « Crée ton compte », écrans d'invitation), profil, reglages, inscription, marque (mascotte), navigation |
+| `src/app/scan/` | écrans du Scan ouverts par-dessus les onglets : scanner du comptoir, « Tu es où ? » |
+| `src/app/visite/`, `visites.tsx` | une visite (code, célébration, refus) et « Mes visites » |
+| `src/app/fidelite/`, `reservations/`, `avis/` | cartes de fidélité, réservations (réserver : `src/app/lieu/[id]/reserver.tsx`), avis vérifiés |
+| `src/app/pro/` | mode pro (comptoir, QR, résas, avis, mon lieu, fidélité, kit), posé par-dessus les onglets perso |
+| `src/app/ambassadeur/` | mode ambassadeur (espace, missions, relectures, messages), posé par-dessus les onglets perso |
+| `src/composants/…` | un dossier par partie de l'app : interface, fil, signalement, explorer (carte, liste, filtres, roulette), lieux, carte, scan, big-sos, potes, chat (messagerie entre potes), suivi (Suivre / Ne plus suivre, abonnés, suggestions, fournisseur des suivis entre personnes), notifications (cloche, lignes, fournisseur), invite (visite sans compte : feuille « Crée ton compte », écrans d'invitation), visites, fidelite, reservations, avis, pro, ambassadeur (composants de ces parties), modes (bascule entre les modes perso, pro et ambassadeur, et leur fournisseur), services (fournisseur des services des visites), profil, reglages, inscription, marque (mascotte), navigation |
 | `src/contenus/inscription/` | textes de l'inscription : diapos de bienvenue, catégories d'envies, villes |
 | `src/contenus/` | lieux et publications d'exemple (`lieux-exemples.ts`, `publications-exemples.ts`, avant l'API), correspondances entre envies et lieux, raisons de signalement, badges, défis d'exemple, emoji d'avatar, potes, commentaires et conversations d'exemple (`potes-exemples.ts`, `commentaires-exemples.ts`, `conversations-exemples.ts`), qui suit qui et comptes privés de la démo (`suivis-exemples.ts`), notifications d'exemple (`notifications-exemples.ts`), forme d'une suggestion (`type-suggestion.ts`) |
 | `src/contenus/cartes/` | cartes (menus, formules) des lieux d'exemple, par zone, réunies dans `cartes-exemples.ts` |
 | `src/theme/` | couleurs de la marque (lues aussi par tailwind.config.js) |
-| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/`, `communaute/`, `chat/`, `suivi/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix, potes et sorties, messagerie, suivis…) |
-| `src/services/` | appels à l'API |
+| `src/fonctions/geo/`, `dates/`, `notifications/`, `interaction/`, `lieux/`, `inscription/`, `texte/`, `ambassadeur/`, `publications/`, `prix/`, `communaute/`, `chat/`, `suivi/`, `scan/`, `visites/`, `pro/`, `demo/`, `reservations/` | fonctions pures, une par fichier (tri et filtres des lieux, profil d'inscription, distances, points et badges, vignettes, prix, potes et sorties, messagerie, suivis, visites et démo des visites…) |
+| `src/services/` | services de l'app (`choisir-services.ts`) ; `demo/` : faux serveur local de la démo des visites, en développement seulement |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, mode visite, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil, suivis entre personnes et notifications de la démo) |
+| `src/stockage/` | données gardées sur le téléphone (profil, avatar, verrou d'âge, mode visite, activité et suivis, communauté de la démo, conversations avec leurs photos et notes vocales, code secret d'invitation, signalements en attente de l'API, préférences de notifications et du son du fil, suivis entre personnes et notifications de la démo, dernier mode de l'app, et magasin, réglages et rôles de la démo des visites) |
 | `visuels-stores/` | visuels des fiches App Store et Google Play : captures (iPhone 6,9 et 6,3 pouces, iPad, Android téléphone et tablette), bannière Google Play, en-têtes App Store, icônes |
 | `tests/` | tests de l'app |
 
@@ -120,7 +125,7 @@ L'administration de SOS Miam se fait ici, pas sur le site : Tauri 2 + React + Vi
 | `src/fonctions/ambassadeurs/` | palier atteint selon les points (`calculer-palier-aux-points.ts`, mêmes seuils que `packages/commun`) |
 | `src/fonctions/comptes/` | règles des comptes de l'espace ambassadeur : âge à la date de Paris, mot de passe acceptable, attente après des échecs, nettoyage des champs, erreur résumée sans donnée personnelle |
 | `src/temps-reel/` | mises à jour en direct (SSE) et notifications push |
-| `src/paiements/` | Stripe : abonnement Pro, bons solidaires |
+| `src/paiements/` | Stripe : bons solidaires |
 | `src/emails/` | vide : les mails sont dans `src/services/courriels/` (file d'attente, envoi, mails des comptes) et `src/fonctions/courriels/` (gabarit) |
 | `src/taches/` | tâches planifiées : la nuit, ménage (contacts de demandes de plus de 3 ans ; journal des mails de plus de 90 jours ; comptes : sessions expirées, comptes refusés depuis 30 jours, rôle d'ambassadeur retiré après 1 an sans visite, compte effacé après 2 ans sans connexion, candidatures refusées depuis 3 mois, liens expirés), alertes par mail 30 jours avant le retrait du rôle et avant l'effacement, puis sauvegarde chiffrée de la base ; plus tard, recharge des rescousses le lundi, fin des BIG SOS… |
 | `tests/` | tests de l'API (`outils/` : banc d'essai des routes signées du logiciel de gestion) |
@@ -144,9 +149,11 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 ## packages/commun — partagé
 | Dossier | Contenu |
 |---|---|
-| `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…), suivis (abonnés, demandes, notifications) |
-| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS, qui peut suivre qui, compte privé, visibilité d'un profil |
-| `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`) |
+| `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…), suivis (abonnés, demandes, notifications), visites, rôles, comptoir, fidélité, réservations, avis, espace ambassadeur |
+| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS, qui peut suivre qui, compte privé, visibilité d'un profil, visites (rayon, QR, délais), fidélité, réservations, avis |
+| `src/fonctions/` | fonctions pures partagées, une par fichier (géo, visites, QR, fidélité, réservations, avis, rôles, texte ; contrôle plus tard) |
+| `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`), messages d'erreur des services, motifs de refus, statuts d'ambassadeur |
 | `src/theme/` | couleurs, polices, arrondis (utilisés par le site et l'app) |
 | `src/validation/` | règles des formulaires (inscription, demande de BIG SOS…) |
-| `src/client-api/` | fonctions pour appeler l'API, utilisées par le site et l'app |
+| `src/client-api/` | contrats des services (visites, fidélité, réservations, avis, comptoir, espace ambassadeur) et forme des réponses de l'API |
+| `tests/` | tests des règles (`npm run commun:tester`) |
