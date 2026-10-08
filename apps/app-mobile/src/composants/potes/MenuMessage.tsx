@@ -31,11 +31,13 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
-  const { bloquer } = utiliserCommunaute();
+  const { bloquer, potes, estSignale } = utiliserCommunaute();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreBlocage = useRef<Text>(null);
   const [vue, setVue] = useState<Vue>("options");
+  // Déjà signalé en ouvrant le signalement ? Sert à distinguer « retour » (rien d'envoyé) de « Fermer » (après le merci)
+  const [dejaSignale, setDejaSignale] = useState(false);
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -49,6 +51,7 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
   }, [vue]);
 
   function aller(vers: Vue) {
+    if (vers === "signaler" && message) setDejaSignale(estSignale(message.id));
     setVue(vers);
     // Le lecteur d'écran reprend sur le titre de la nouvelle vue (l'élément qu'il lisait vient de disparaître)
     if (vers === "options") setTimeout(() => deplacerFocusLecteurEcran(titreOptions.current), 150);
@@ -61,7 +64,12 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
     else aller("options");
   }
 
+  // Fin du signalement : « Fermer » après le merci ferme le menu ; le retour sans rien envoyer ramène aux options
+  const terminerSignalement = () => (message && !dejaSignale && estSignale(message.id) ? onFermer() : aller("options"));
+
   const prenom = auteur?.prenom ?? "cette personne";
+  // Quelqu'un d'une sortie n'est pas forcément dans ta bande : on ne lui annonce pas qu'il en sort
+  const dansBande = !!auteur && potes.some((p) => p.id === auteur.id);
   const options = [
     { cle: "signaler" as const, emoji: "🚩", titre: "Signaler ce message", detail: "Insulte, harcèlement, arnaque… dis-nous ce qui cloche" },
     ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Tu ne verras plus ses messages ni ses commentaires" }] : []),
@@ -81,14 +89,18 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
           <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
             {vue === "signaler" && message ? (
-              <SignalerContenu cible="message" cibleId={message.id} sujet={`ce message de ${prenom}`} onTermine={onFermer} />
+              <SignalerContenu cible="message" cibleId={message.id} sujet={`ce message de ${prenom}`} onTermine={terminerSignalement} />
             ) : vue === "bloquer" && auteur ? (
               <View className="gap-4">
                 <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
                   {lierPonctuation(`Bloquer ${prenom} ?`)}
                 </Text>
                 <Text className="font-texte text-base leading-6 text-encre">
-                  {lierPonctuation(`${prenom} sortira de ta bande, et ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.`)}
+                  {lierPonctuation(
+                    dansBande
+                      ? `${prenom} sortira de ta bande, et ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.`
+                      : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
+                  )}
                 </Text>
                 <Bouton
                   libelle={`Bloquer ${prenom}`}

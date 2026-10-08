@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
-import type { Pote, Recommandation } from "@sos-miam/commun/types/potes";
+import type { Recommandation } from "@sos-miam/commun/types/potes";
 import { CarteRecommandation } from "~/composants/potes/CarteRecommandation";
-import { MenuPoteRecommandation } from "~/composants/potes/MenuPoteRecommandation";
+import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -13,7 +13,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 
 type Props = {
-  /** Lieux reçus, du plus récent au plus ancien, déjà limités à ceux que tu peux voir */
+  /** Lieux reçus, du plus récent au plus ancien, déjà limités à ceux que tu peux voir (sans ceux que tu as signalés) */
   recommandations: Recommandation[];
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
@@ -28,7 +28,7 @@ export function RecommandationsRecues({ recommandations, lieux }: Props) {
   const { trouverPote, marquerRecommandationVue } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   const [tout, setTout] = useState(false);
-  const [menuPour, setMenuPour] = useState<Pote | null>(null);
+  const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 
@@ -62,7 +62,7 @@ export function RecommandationsRecues({ recommandations, lieux }: Props) {
               if (!r.vue) marquerRecommandationVue(r.id);
               router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
             }}
-            onMenu={() => setMenuPour(de)}
+            onMenu={() => setMenuPour({ cible: "recommandation", id: r.id, pote: de })}
           />
         );
       })}
@@ -82,7 +82,7 @@ export function RecommandationsRecues({ recommandations, lieux }: Props) {
         </Pressable>
       ) : null}
 
-      <MenuPoteRecommandation pote={menuPour} onFermer={() => setMenuPour(null)} />
+      <MenuContenuPote contenu={menuPour} onFermer={() => setMenuPour(null)} />
     </View>
   );
 }

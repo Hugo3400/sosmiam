@@ -14,20 +14,22 @@ type Props = {
   /** Les lieux de la liste que tu peux voir (sans les bars sous 18 ans), avec leur image */
   lieux: { lieu: Lieu; image: ImageSourcePropType | null }[];
   onOuvrir: (id: string) => void;
+  /** Le menu « ⋯ » (liste d'un pote : son profil, signaler la liste, bloquer) ; sans lui, une simple flèche */
+  onMenu?: () => void;
 };
 
 const TAILLE_VIGNETTE = 36;
 const MAX_VIGNETTES = 3;
 
-/** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc. */
-export function CarteListe({ liste, auteur, lieux, onOuvrir }: Props) {
+/** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
+export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu }: Props) {
   const nombre = lieux.length;
   const abonnes = liste.abonnes.length;
   const lieuxTexte = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
   const abonnesTexte = abonnes > 0 ? `${abonnes} abonné${abonnes > 1 ? "s" : ""}` : null;
   const lu = [liste.titre, lieuxTexte, auteur === "toi" ? "Créée par toi" : `Par ${auteur}`, abonnesTexte].filter(Boolean).join(", ");
 
-  return (
+  const carte = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={lu}
@@ -36,7 +38,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir }: Props) {
         vibrerLegerement();
         onOuvrir(liste.id);
       }}
-      className="min-h-20 flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-3.5 active:opacity-80"
+      className={`min-h-20 flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-3.5 active:opacity-80 ${onMenu ? "pr-14" : ""}`}
     >
       <View style={{ width: 52, height: 52 }} className="items-center justify-center rounded-2xl border-2 border-encre bg-jaune-clair">
         <Text allowFontScaling={false} className="text-[26px]">
@@ -63,7 +65,27 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir }: Props) {
           ))}
         </View>
       ) : null}
-      <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
+      {onMenu ? null : <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />}
     </Pressable>
+  );
+  if (!onMenu) return carte;
+
+  return (
+    // Le « ⋯ » est posé à côté de la carte (pas dedans) : le lecteur d'écran les lit l'un après l'autre
+    <View className="relative">
+      {carte}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Plus d'options sur la liste ${liste.titre}`}
+        accessibilityHint={`Voir le profil de ${auteur}, signaler la liste, ou bloquer cette personne`}
+        onPress={() => {
+          vibrerLegerement();
+          onMenu();
+        }}
+        className="absolute bottom-0 right-1 top-0 w-12 items-center justify-center active:opacity-60"
+      >
+        <Ionicons name="ellipsis-horizontal" size={20} color={couleurs.gris} />
+      </Pressable>
+    </View>
   );
 }

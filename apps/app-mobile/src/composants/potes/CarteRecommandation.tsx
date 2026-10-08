@@ -16,7 +16,7 @@ type Props = {
   /** Image du lieu (trouverVignetteLieu) ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   onOuvrir: () => void;
-  /** Le menu « ⋯ » : profil du pote, signaler, bloquer */
+  /** Le menu « ⋯ » : profil du pote, signaler ce lieu envoyé ou le profil, bloquer */
   onMenu: () => void;
 };
 
@@ -78,8 +78,8 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Plus d'options pour ${de.prenom}`}
-        accessibilityHint="Voir son profil, le signaler ou le bloquer"
+        accessibilityLabel={`Plus d'options sur ce lieu envoyé par ${de.prenom}`}
+        accessibilityHint="Voir son profil, signaler ce lieu envoyé, ou bloquer cette personne"
         hitSlop={4}
         onPress={() => {
           vibrerLegerement();

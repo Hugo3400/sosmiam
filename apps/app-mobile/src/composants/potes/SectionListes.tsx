@@ -8,6 +8,7 @@ import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { CarteListe } from "~/composants/potes/CarteListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
+import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -19,33 +20,38 @@ type Props = {
   lieux: ReadonlyMap<number, Lieu>;
 };
 
-/** Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande à découvrir, et « Nouvelle liste ». */
+/** Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande à découvrir (avec leur « ⋯ » : profil, signaler, bloquer), et « Nouvelle liste ». */
 export function SectionListes({ lieux }: Props) {
   const router = useRouter();
   const { listes, potes, bloques, trouverPote } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   const [creation, setCreation] = useState(false);
+  const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 
-  // Rien de la part des personnes bloquées
+  // Rien de la part des personnes bloquées (les listes signalées, elles, sont déjà retirées par la communauté)
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));
   const miennes = visibles.filter((l) => l.auteur === ID_MOI);
   const suivies = visibles.filter((l) => l.auteur !== ID_MOI && l.abonnes.includes(ID_MOI));
   const aDecouvrir = visibles.filter((l) => l.auteur !== ID_MOI && !l.abonnes.includes(ID_MOI) && potes.some((p) => p.id === l.auteur));
 
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
-  const carte = (liste: ListePartagee) => (
-    <CarteListe
-      key={liste.id}
-      liste={liste}
-      auteur={liste.auteur === ID_MOI ? "toi" : (trouverPote(liste.auteur)?.prenom ?? "un pote")}
-      lieux={liste.lieux.flatMap((id) => {
-        const lieu = lieux.get(id);
-        return lieu ? [{ lieu, image: trouverVignetteLieu(id, publications) }] : [];
-      })}
-      onOuvrir={ouvrir}
-    />
-  );
+  const carte = (liste: ListePartagee) => {
+    const auteur = liste.auteur === ID_MOI ? null : trouverPote(liste.auteur);
+    return (
+      <CarteListe
+        key={liste.id}
+        liste={liste}
+        auteur={liste.auteur === ID_MOI ? "toi" : (auteur?.prenom ?? "un pote")}
+        lieux={liste.lieux.flatMap((id) => {
+          const lieu = lieux.get(id);
+          return lieu ? [{ lieu, image: trouverVignetteLieu(id, publications) }] : [];
+        })}
+        onOuvrir={ouvrir}
+        onMenu={auteur ? () => setMenuPour({ cible: "liste", id: liste.id, pote: auteur }) : undefined}
+      />
+    );
+  };
 
   return (
     <View className="gap-8">
@@ -95,6 +101,8 @@ export function SectionListes({ lieux }: Props) {
           {aDecouvrir.map(carte)}
         </View>
       ) : null}
+
+      <MenuContenuPote contenu={menuPour} onFermer={() => setMenuPour(null)} />
 
       <FeuilleNouvelleListe
         visible={creation}

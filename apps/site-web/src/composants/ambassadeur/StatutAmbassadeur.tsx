@@ -29,6 +29,8 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
     );
   }
 
+  // Effacé 30 jours après le refus : juste tant que les comptes ne viennent que du site. Quand l'app aura ses comptes
+  // (un seul compte par personne, décision du 8 octobre 2026), seul le rôle d'ambassadeur partira : ce texte changera.
   if (ambassadeur?.statut === "refuse") {
     return (
       <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 shadow-brut md:px-12">
