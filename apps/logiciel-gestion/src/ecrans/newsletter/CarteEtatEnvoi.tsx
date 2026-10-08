@@ -37,7 +37,7 @@ export function CarteEtatEnvoi({ etat }: { etat: EtatEnvois }) {
         )}
         <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
           <dt className="text-gris">Expéditeur</dt><dd className="truncate">{etat.expediteur}</dd>
-          <dt className="text-gris">Serveur</dt><dd>{etat.serveur} (chiffré)</dd>
+          <dt className="text-gris">Serveur</dt><dd>{etat.serveur} {etat.serveur?.startsWith("127.0.0.1") ? "(local, pour un essai)" : "(chiffré)"}</dd>
           <dt className="text-gris">Dernière heure</dt><dd className="chiffres">{etat.derniereHeure} / {etat.parHeure} mails au plus</dd>
           <dt className="text-gris">En attente</dt><dd className="chiffres">{etat.enAttente}</dd>
           <dt className="text-gris">Échecs (7 jours)</dt><dd className="chiffres">{etat.echecs7Jours}</dd>
