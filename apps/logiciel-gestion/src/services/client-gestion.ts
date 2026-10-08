@@ -14,11 +14,14 @@ export class ErreurApi extends Error {
   readonly code: string;
   readonly statut: number;
   readonly champ: string | null;
-  constructor(code: string, statut: number, champ: string | null = null) {
+  /** Précision donnée par le serveur (réponse du serveur mail, compte rendu d'une synchronisation…) */
+  readonly detail: string | null;
+  constructor(code: string, statut: number, champ: string | null = null, detail: string | null = null) {
     super(code);
     this.code = code;
     this.statut = statut;
     this.champ = champ;
+    this.detail = detail;
   }
 }
 
@@ -79,8 +82,8 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
     throw new ErreurApi("reseau", 0);
   }
   if (!reponse.ok) {
-    const corps = (await reponse.json().catch(() => null)) as { erreur?: string; champ?: string } | null;
-    const erreur = new ErreurApi(corps?.erreur ?? "erreur-serveur", reponse.status, corps?.champ ?? null);
+    const corps = (await reponse.json().catch(() => null)) as { erreur?: string; champ?: string; message?: string } | null;
+    const erreur = new ErreurApi(corps?.erreur ?? "erreur-serveur", reponse.status, corps?.champ ?? null, corps?.message ?? null);
     if (erreur.code === "session-expiree" && etat.session && etat.session === session) {
       etat.session = null;
       oublierSessionLocale();

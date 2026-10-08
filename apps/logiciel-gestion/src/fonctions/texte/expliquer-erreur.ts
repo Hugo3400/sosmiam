@@ -18,10 +18,18 @@ const MESSAGES: Record<string, string> = {
   "fondateurs-complets": "Les 10 places de fondateur sont déjà prises.",
   "ambassadeur-non-actif": "On ne confie une mission qu'à un ambassadeur actif (validé et pas suspendu).",
   "bientot-disponible": "Pas encore possible : cette partie des comptes n'est pas encore branchée sur le serveur.",
+  "envoi-absent": "L'envoi des mails n'est pas encore réglé sur le serveur : regarde l'onglet « Envois » de la newsletter.",
+  "envoi-mal-protege": "Le fichier de la boîte mail est lisible par d'autres comptes du serveur : lance « chmod 600 » dessus (onglet « Envois »).",
+  "envoi-incomplet": "Le fichier de la boîte mail est incomplet (serveur, adresse ou mot de passe) : regarde l'onglet « Envois ».",
+  "envoi-refuse": "Le serveur mail a refusé l'envoi.",
+  "envoi-en-cours": "Un envoi groupé est déjà en train de partir : attends qu'il soit fini, ou arrête-le dans « Envois ».",
+  "synchro-impossible": "Impossible de synchroniser la boîte mail avant l'envoi (les désinscriptions doivent partir d'abord) : rien n'est parti.",
+  "aucun-destinataire": "Personne à qui envoyer : aucun destinataire coché ne fait partie de ce public.",
 };
 
 /** Texte lisible pour une erreur de l'API. */
 export function expliquerErreur(erreur: ErreurApi | null): string {
   if (!erreur) return "";
-  return MESSAGES[erreur.code] ?? `Oups, le serveur a répondu « ${erreur.code} » (${erreur.statut || "pas de réponse"}).`;
+  const message = MESSAGES[erreur.code] ?? `Oups, le serveur a répondu « ${erreur.code} » (${erreur.statut || "pas de réponse"}).`;
+  return erreur.detail ? `${message} Détail : ${erreur.detail}` : message;
 }

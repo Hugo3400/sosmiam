@@ -40,7 +40,8 @@ export function CarteBoiteMail({ apresSynchro }: { apresSynchro: () => void }) {
             <p className="rounded-xl bg-jaune-clair px-3 py-2">
               La boîte n'est pas encore branchée. Sur le serveur, crée toi-même <code className="text-[12px]">/root/sos-miam-secrets/boite-bonjour.env</code>{" "}
               (chmod 600) avec trois lignes : <code className="text-[12px]">IMAP_SERVEUR=mail.yubox.io</code>, <code className="text-[12px]">IMAP_UTILISATEUR=bonjour@sosmiam.fr</code>{" "}
-              et <code className="text-[12px]">IMAP_MOT_DE_PASSE=…</code>. Le mot de passe ne passe jamais par le logiciel.
+              et <code className="text-[12px]">IMAP_MOT_DE_PASSE=…</code> (un mot de passe d'application de ta boîte). Le même fichier sert à l'envoi des mails :
+              détails dans l'onglet « Envois ». Le mot de passe ne passe jamais par le logiciel.
             </p>
           ) : (
             <p>

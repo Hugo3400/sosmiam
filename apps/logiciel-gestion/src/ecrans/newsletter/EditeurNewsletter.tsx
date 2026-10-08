@@ -13,6 +13,7 @@ import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
+import { ModaleEnvoi } from "./ModaleEnvoi.tsx";
 import { enregistrerBrouillon, lireBrouillon, listerBrouillons, supprimerBrouillon } from "~/services/newsletter.ts";
 import { copier } from "~/services/systeme.ts";
 
@@ -32,13 +33,14 @@ Tu as une pépite à nous faire découvrir ? Réponds à ce mail, on lit tout.
 À très vite,
 Hugo`;
 
-/** Rédaction des newsletters : brouillons gardés sur le serveur, aperçu fidèle de l'e-mail, HTML à copier. */
+/** Rédaction des newsletters : brouillons gardés sur le serveur, aperçu fidèle de l'e-mail, puis l'envoi (à qui on veut). */
 export function EditeurNewsletter() {
   const liste = utiliserChargement(listerBrouillons, []);
   const [choisi, setChoisi] = useState<number | null>(null);
   const [objet, setObjet] = useState("");
   const [texte, setTexte] = useState("");
   const [modifie, setModifie] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
   const [etat, setEtat] = useState<{ enCours: boolean; message: string | null; erreur: string | null }>({ enCours: false, message: null, erreur: null });
 
   // Ouvre le premier brouillon de la liste, ou une page blanche s'il n'y en a pas
@@ -139,7 +141,7 @@ export function EditeurNewsletter() {
             actions={
               <>
                 <Bouton petit icone={Copy} onClick={() => copier(html).then(() => setEtat({ enCours: false, message: "HTML copié dans le presse-papiers.", erreur: null }))}>Copier le HTML</Bouton>
-                <Bouton petit icone={Send} desactive titre="L'envoi arrivera avec le prestataire d'e-mails (Brevo)">Envoyer</Bouton>
+                <Bouton petit variante="principal" icone={Send} desactive={!objet.trim() || !texte.trim()} onClick={() => setEnvoi(true)}>Envoyer…</Bouton>
               </>
             }
             sansMarge
@@ -147,6 +149,15 @@ export function EditeurNewsletter() {
             <iframe title="Aperçu de la newsletter" srcDoc={html} sandbox="" className="h-[640px] w-full rounded-b-carte bg-creme" />
           </Carte>
         </div>
+      )}
+      {envoi && (
+        <ModaleEnvoi
+          objet={objet}
+          texte={texte}
+          brouillonId={choisi && !modifie ? choisi : null}
+          onFermer={() => setEnvoi(false)}
+          onLance={(bilan) => { setEnvoi(false); setEtat({ enCours: false, message: bilan, erreur: null }); }}
+        />
       )}
     </div>
   );
