@@ -146,11 +146,12 @@ export default function Explorer() {
   useEffect(() => {
     if (filtresAnnonces.current === filtres) return;
     filtresAnnonces.current = filtres;
+    // Effacés depuis la liste vide : le focus passe sur le compteur, qui le dit déjà
+    const sauter = nombre.current.sauter;
+    nombre.current.sauter = false;
+    if (sauter) return;
     const minuterie = setTimeout(() => {
-      const { lieux: n, recherche: avecRecherche, sauter } = nombre.current;
-      nombre.current.sauter = false;
-      // Le focus vient d'être posé sur le compteur, qui le dit déjà
-      if (sauter) return;
+      const { lieux: n, recherche: avecRecherche } = nombre.current;
       const texte = n === 0 ? (avecRecherche ? "Aucun lieu pour cette recherche" : "Aucun lieu avec ces filtres") : `${n} lieu${n > 1 ? "x" : ""}`;
       if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
       else AccessibilityInfo.announceForAccessibility(texte);
