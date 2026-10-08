@@ -6,6 +6,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
+import { SANS_RETOUR_AGE } from "~/contenus/sans-retour-age";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
@@ -29,8 +30,14 @@ type Props = {
 // Deux appuis plus rapprochés que ça comptent pour un seul : un double toucher sur « Suivre » n'ouvre pas aussitôt « Ne plus suivre ? »
 const DELAI_ANTI_DOUBLE_APPUI = 700;
 
-/** La feuille de confirmation ouverte (ou en train de se refermer) ; null : jamais ouverte, donc pas encore préparée */
-type Feuille = { type: "ne-plus-suivre" | "annuler-demande"; visible: boolean } | null;
+// « Choisir mon pseudo » : la feuille se referme d'abord, puis on part (allerChoisirPseudo)
+const rienAFaire = () => {};
+
+/**
+ * La feuille ouverte (ou en train de se refermer) ; null : jamais ouverte, donc pas encore préparée. « pseudo » : pas encore de
+ * pseudo pour suivre une personne, la feuille propose d'aller le choisir (et ne t'y emmène qu'une fois refermée)
+ */
+type Feuille = { type: "ne-plus-suivre" | "annuler-demande" | "pseudo"; visible: boolean } | null;
 
 /**
  * « Suivre » (jaune) suit tout de suite, ou envoie une demande si le compte est privé (« Demandé ⏱ ») ; « Suivi ✓ » ouvre
@@ -49,7 +56,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
   const bouton = useRef<View>(null);
   // « Annuler la demande » touché alors qu'elle venait d'être acceptée : on le dit, plutôt que d'annoncer une annulation qui n'a pas eu lieu
   const tropTard = useRef(false);
-  const { etat, surDemande, meSuit } = etatSuivi;
+  const { etat, surDemande, meSuit, sansRetour } = etatSuivi;
   const personne = etatSuivi.type === "personne";
   const suivi = etat === "suivi";
   const demande = etat === "demande";
@@ -67,10 +74,13 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     if (resultat === "suivi") onAnnoncer(`🔔 Tu suis maintenant ${nom} !`);
     else if (resultat === "demande") onAnnoncer(`📨 Demande envoyée à ${nom}. Croisons les doigts (et les fourchettes) !`);
     else if (resultat === "interdit") onAnnoncer(`Impossible de suivre ${nom} pour l'instant.`);
-    else if (resultat === "pseudo-manquant") {
-      onAnnoncer("Choisis d'abord ton pseudo : c'est lui que verront les gens que tu suis.");
-      router.push("/reglages/infos");
-    }
+    // Une feuille plutôt qu'un changement d'écran aussitôt : on sait pourquoi on part (et VoiceOver n'est pas coupé en route)
+    else if (resultat === "pseudo-manquant") setFeuille({ type: "pseudo", visible: true });
+  }
+
+  // « Choisir mon pseudo » touché, feuille refermée : direction Mes infos
+  function allerChoisirPseudo() {
+    router.push("/reglages/infos");
   }
 
   // Déjà arrêté ailleurs pendant que la feuille était ouverte : nePlusSuivre ne fait rien (surtout pas se réabonner)
@@ -127,12 +137,27 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         detail={
           !personne
             ? undefined
-            : surDemande
-              ? "Son compte est privé : pour revoir ses listes et ses lieux, il faudra refaire une demande."
-              : "Ses listes ne remonteront plus chez toi. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux."
+            : sansRetour
+              ? `Ses listes ne remonteront plus chez toi. ${SANS_RETOUR_AGE}`
+              : surDemande
+                ? "Son compte est privé : pour revoir ses listes et ses lieux, il faudra refaire une demande."
+                : "Ses listes ne remonteront plus chez toi. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux."
         }
         onConfirmer={arreterDeSuivre}
         onRefermee={annoncerArret}
+        onFermer={fermer}
+      />
+    ) : feuille.type === "pseudo" ? (
+      <FeuilleConfirmation
+        visible={feuille.visible && etat !== "interdit"}
+        emoji="🏷️"
+        titre="Choisis d'abord ton pseudo"
+        detail={`C'est lui que verront les gens que tu suis. Dix secondes dans Mes infos, et tu reviens suivre ${nom} !`}
+        libelleConfirmer="Choisir mon pseudo"
+        libelleRester="Plus tard"
+        indiceRester={`Tu restes ici, sans suivre ${nom} pour l'instant`}
+        onConfirmer={rienAFaire}
+        onRefermee={allerChoisirPseudo}
         onFermer={fermer}
       />
     ) : (

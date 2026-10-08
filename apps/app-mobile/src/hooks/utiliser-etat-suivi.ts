@@ -10,6 +10,8 @@ export type EtatBoutonSuivi = {
   surDemande: boolean;
   /** Elle te suit : « Suivre en retour » */
   meSuit: boolean;
+  /** Le lien existe, mais la règle d'âge ne permettrait plus de le refaire (gardé au passage à 18 ans) : « Ne plus suivre » est sans retour */
+  sansRetour: boolean;
   /** Pour un lieu ou un créateur : basculerSuivi, puis « suivi » (ou « deja »). Ne demande pas de compte : le bouton appelle utiliserCompteRequis avant */
   suivre: () => ResultatSuivre;
   /** Sans effet si tu ne suis pas */
@@ -25,6 +27,7 @@ const interdit: EtatBoutonSuivi = {
   etat: "interdit",
   surDemande: false,
   meSuit: false,
+  sansRetour: false,
   suivre: () => "interdit",
   nePlusSuivre: rienAFaire,
   annulerDemande: rienAFaire,
@@ -56,6 +59,7 @@ export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
       // Refusé pour l'âge : c'est un compte de 15-17 ans, donc privé
       surDemande: verdict.permis ? verdict.surDemande : true,
       meSuit: relation.meSuit,
+      sansRetour: !verdict.permis && verdict.raison === "age",
       suivre: () => suivis.suivre(id),
       nePlusSuivre: () => suivis.nePlusSuivre(id),
       annulerDemande: () => suivis.annulerDemande(id),
@@ -68,6 +72,7 @@ export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
     etat: suivi ? "suivi" : "aucun",
     surDemande: false,
     meSuit: false,
+    sansRetour: false,
     suivre: () => (activite.estSuivi(cle) ? "deja" : activite.basculerSuivi(cle) ? "suivi" : "deja"),
     nePlusSuivre: () => {
       if (activite.estSuivi(cle)) activite.basculerSuivi(cle);

@@ -73,6 +73,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/alertes", c.alertes);
+  routes.get("/recherche", c.recherche);
   routes.get("/maj/jeton", (_requete, reponse) => void reponse.json(creerJetonMaj()));
   routes.get("/statistiques", c.statistiques);
   routes.get("/statistiques/direct", (requete, reponse) => {

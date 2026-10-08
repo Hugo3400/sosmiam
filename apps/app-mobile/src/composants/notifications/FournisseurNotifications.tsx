@@ -38,7 +38,7 @@ const estClePage = (cle: string) => {
  * Les notifications de l'app (démo gardée sur le téléphone en attendant l'API) : « … te suit », demande acceptée (ajoutées par
  * les suivis entre personnes), et « a posté » quand tu viens de suivre un lieu ou un créateur. Rien ne part sur le téléphone :
  * tout s'affiche derrière la cloche. Filtrées à la lecture : personne inconnue ou bloquée, publication masquée ou dont le lieu
- * n'est pas pour ton âge. Pas de démo sans profil (âge inconnu), ni après « Tout effacer » tant que le profil reste le même.
+ * n'est pas pour ton âge. Bloquer quelqu'un efface aussi ses notifications du stockage (débloquer ne les rend pas). Pas de démo sans profil (âge inconnu), ni après « Tout effacer » tant que le profil reste le même.
  */
 export function FournisseurNotifications({ children }: { children: ReactNode }) {
   const { profil } = utiliserProfil();
@@ -149,6 +149,20 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
 
   const { bloques, trouverPote, moiMineur } = communaute;
   const { estMasquee } = activite;
+
+  // Bloquer efface pour de bon ses notifications (« … te suit en retour », demande acceptée) : débloquer ne les fait pas revenir,
+  // pas plus que les liens (le filtre à la lecture, plus bas, reste en filet de sécurité)
+  useEffect(() => {
+    if (!pret || !etat || bloques.length === 0) return;
+    const idsBloques = new Set(bloques.map((p) => p.id));
+    const deBloque = (n: NotificationSuivi) => {
+      const cible = n.type === "majorite" ? null : lireCleSuivi(n.cle);
+      return cible?.type === "personne" && idsBloques.has(cible.id);
+    };
+    if (!etat.notifications.some(deBloque)) return;
+    setEtat((e) => (e ? { ...e, notifications: e.notifications.filter((n) => !deBloque(n)) } : e));
+  }, [pret, etat, bloques]);
+
   const notifications = useMemo(() => {
     if (!pret || !etat) return [];
     const idsBloques = new Set(bloques.map((p) => p.id));
