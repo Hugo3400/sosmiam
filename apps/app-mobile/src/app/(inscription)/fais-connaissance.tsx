@@ -27,6 +27,14 @@ export default function FaisConnaissance() {
   const tropJeune = brouillon.dateNaissance !== null && calculerAge(brouillon.dateNaissance) < AGE_MINIMUM_INSCRIPTION;
   const valable = prenomValable && brouillon.dateNaissance !== null && !tropJeune && brouillon.ville !== null;
 
+  // Ce qui manque encore, affiché tant que « Continuer » est grisé
+  const manquants = [
+    prenomValable ? null : "ton prénom",
+    brouillon.dateNaissance === null ? "ta date de naissance" : null,
+    brouillon.ville === null ? "ta ville" : null,
+  ].filter((m): m is string => m !== null);
+  const texteManquants = manquants.length > 1 ? `${manquants.slice(0, -1).join(", ")} et ${manquants.at(-1)}` : manquants[0];
+
   // Le message d'âge apparaît plus bas que le doigt : VoiceOver le lit tout de suite
   useEffect(() => {
     if (tropJeune) AccessibilityInfo.announceForAccessibility(messageTropJeune);
@@ -97,6 +105,12 @@ export default function FaisConnaissance() {
         </View>
 
         <ChoixVille valeur={brouillon.ville} onChangeVille={(ville) => modifier({ ville })} />
+
+        {!tropJeune && manquants.length > 0 ? (
+          <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm text-gris">
+            Il manque encore {texteManquants}.
+          </Text>
+        ) : null}
       </View>
     </EcranEtape>
   );
