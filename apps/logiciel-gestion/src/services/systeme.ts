@@ -1,7 +1,6 @@
 // Ce qui passe par Windows (Tauri) : enregistrer un fichier, notifications. Dans un navigateur (essais en
 // développement), on retombe sur un téléchargement classique et sur les notifications du navigateur.
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { save } from "@tauri-apps/plugin-dialog";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 
 /** Propose où enregistrer un fichier, puis l'écrit. Faux si Hugo a annulé. */
@@ -14,11 +13,8 @@ export async function enregistrerFichier(nomPropose: string, contenu: string, ty
     setTimeout(() => URL.revokeObjectURL(lien.href), 10_000);
     return true;
   }
-  const extension = nomPropose.split(".").pop() ?? "txt";
-  const chemin = await save({ defaultPath: nomPropose, filters: [{ name: extension.toUpperCase(), extensions: [extension] }] });
-  if (!chemin) return false;
-  await invoke("enregistrer_fichier", { chemin, contenu });
-  return true;
+  // La partie native ouvre elle-même « Enregistrer sous » : l'interface ne choisit jamais où écrire
+  return invoke<boolean>("enregistrer_fichier", { nom: nomPropose, contenu });
 }
 
 /** Notification Windows (centre de notifications), demandée une fois à la première alerte. */

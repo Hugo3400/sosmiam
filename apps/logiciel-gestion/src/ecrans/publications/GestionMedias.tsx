@@ -73,7 +73,7 @@ export function GestionMedias({ idPublication, medias, onChange }: { idPublicati
             <li key={media.id} className="grid w-24 gap-1">
               <VignetteMedia fichier={media.fichier} video={media.type === "video"} className="aspect-[9/16] w-24 rounded-xl border border-ligne" />
               <div className="flex items-center justify-between text-[11px] text-gris">
-                <span>{media.type === "video" ? "Vidéo" : media.type === "affiche" ? "Affiche" : `Photo ${media.ordre + 1}`}</span>
+                <span>{media.type === "video" ? "Vidéo" : media.type === "affiche" ? "Affiche" : `Photo ${medias.filter((m) => m.type === "photo").indexOf(media) + 1}`}</span>
                 <button type="button" onClick={() => retirer(media)} aria-label="Retirer ce fichier" className="rounded p-1 hover:bg-rose-alerte hover:text-rouge-texte">
                   <Trash2 className="size-3.5" aria-hidden />
                 </button>

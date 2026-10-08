@@ -29,6 +29,7 @@ export type Publication = Omit<SaisiePublication, "publieeLe"> & {
 
 export const listerPublications = (statut = "", lieu: number | null = null) =>
   appeler<Publication[]>("GET", `/publications${parametres({ statut, lieu })}`);
+export const lirePublication = (id: number) => appeler<Publication>("GET", `/publications/${id}`);
 export const enregistrerPublication = (id: number | null, saisie: SaisiePublication) =>
   id ? appeler<Publication>("PUT", `/publications/${id}`, { corps: saisie }) : appeler<Publication>("POST", "/publications", { corps: saisie });
 export const supprimerPublication = (id: number) => appeler<{ ok: true }>("DELETE", `/publications/${id}`);

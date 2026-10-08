@@ -1,0 +1,32 @@
+[package]
+name = "sos-miam-gestion"
+version = "0.1.0"
+description = "Logiciel de gestion de SOS Miam"
+authors = ["Hugo3400"]
+edition = "2021"
+
+[lib]
+# Le suffixe « _lib » évite un conflit de nom avec l'exécutable sous Windows (voir rust-lang/cargo#8519)
+name = "sos_miam_gestion_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+# Une seule fenêtre : une deuxième ouverture remet la première au premier plan
+tauri-plugin-single-instance = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
