@@ -32,7 +32,15 @@
       "expo-splash-screen",
       "expo-secure-store",
       "expo-video",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "SOS Miam a besoin de tes photos pour que tu choisisses ta photo de profil.",
+          "cameraPermission": "SOS Miam a besoin de l'appareil photo pour que tu prennes ta photo de profil.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
