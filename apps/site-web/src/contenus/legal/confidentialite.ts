@@ -1,4 +1,4 @@
-// Politique de confidentialité : uniquement ce qui est réellement traité au 8 octobre 2026.
+// Politique de confidentialité : uniquement ce qui est réellement traité au 9 octobre 2026.
 // Toute nouveauté (comptes de l'app, pub, cookies de mesure, bons solidaires) doit être ajoutée ici AVANT de démarrer.
 // Envoi des mails (8 octobre 2026) : par la boîte bonjour@ (SMTP de l'hébergement mail), sans autre prestataire ;
 // journal des envois effacé après 90 jours (apps/api/src/services/courriels/file-courriels.ts).
@@ -27,7 +27,7 @@ export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
     "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, compte ambassadeur et app mobile. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
-  miseAJour: "8 octobre 2026",
+  miseAJour: "9 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
@@ -190,11 +190,11 @@ export const documentConfidentialite: DocumentLegal = {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
       blocs: [
-        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) est le plus simple), pour un souci avec ton compte ambassadeur (un mot de passe oublié, par exemple) ou simplement pour poser une question.`,
+        `Tu peux aussi nous écrire à ${lienEmail} pour inscrire ton lieu (le formulaire [J'inscris mon lieu](/inscrire-mon-lieu) est le plus simple), pour un souci avec ton compte ambassadeur (si « Mot de passe oublié » ne marche pas, par exemple) ou simplement pour poser une question.`,
         {
           liste: [
             "**Ce qu'on reçoit** : ton adresse e-mail, le nom affiché par ta messagerie et le contenu de ton message. Pour un lieu : son nom, sa ville et son type (resto, pâtisserie, bar, sortie…).",
-            "**Pourquoi** : te répondre, examiner la demande d'inscription de ton lieu, t'aider avec ton compte (par exemple, t'envoyer un lien pour choisir un nouveau mot de passe), et en reparler avec toi.",
+            "**Pourquoi** : te répondre, examiner la demande d'inscription de ton lieu, t'aider avec ton compte, et en reparler avec toi.",
             "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : donner suite aux messages qu'on reçoit et faire connaître des lieux indépendants. Pour un souci avec ton compte ambassadeur, c'est l'exécution des conditions d'utilisation (article 6.1.b du RGPD).",
             `**Où et qui** : dans la boîte ${site.emailContact}, fournie par ${prestataires.messagerie.nom} ; les mails sont reçus par un serveur de messagerie situé en Suisse (voir « Qui voit tes données, et où elles sont »). Seul l'éditeur consulte cette boîte.`,
             "**Combien de temps** : pour une demande de lieu ou une candidature, au plus 3 ans après ton dernier contact. Pour une question ou un souci avec ton compte, le temps de te répondre, puis au plus 3 ans.",
@@ -228,7 +228,7 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             `**${hebergeur.nom}** (${hebergeur.adresse}) : hébergement du serveur du site, en France.`,
-            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse, et c'est aussi par cette boîte que partent nos mails (la newsletter, et les mails de ton compte ambassadeur : bienvenue, nouvelles du programme, alertes avant le retrait du rôle ou l'effacement, lien pour choisir un nouveau mot de passe). Notre serveur garde un journal de ces envois (adresse, type et objet du mail, date, résultat) pendant 90 jours, même si le compte est supprimé entre-temps ; le texte d'un mail est effacé dès qu'il est parti.`,
+            `**${prestataires.messagerie.nom}** : ${prestataires.messagerie.role} ; les mails sont reçus par un serveur de messagerie situé en Suisse, et c'est aussi par cette boîte que partent nos mails (la newsletter, et les mails de ton compte ambassadeur : confirmation de ton adresse e-mail, bienvenue, nouvelles du programme, alertes avant le retrait du rôle ou l'effacement, lien pour un nouveau mot de passe que tu as demandé). Notre serveur garde un journal de ces envois (adresse, type et objet du mail, date, résultat) pendant 90 jours, même si le compte est supprimé entre-temps ; le texte d'un mail est effacé dès qu'il est parti.`,
             `**${prestataires.reseau.nom}** (${prestataires.reseau.adresse}) : ${prestataires.reseau.role}. Pour la sécurité de son propre réseau, il utilise aussi certaines données pour son propre compte (voir « Cloudflare, qui protège le site »).`,
           ],
         },

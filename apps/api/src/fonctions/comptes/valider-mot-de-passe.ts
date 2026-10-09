@@ -2,27 +2,9 @@
 // de composition (une petite phrase marche très bien), mais 16 chiffres au moins s'il n'y a que des chiffres ; pas un mot
 // de passe courant (même entouré de chiffres ou de signes), ni une suite, ni un petit motif répété, ni l'e-mail ou ce qui
 // précède son « @ ». Ça suffit (cas 2 de la délibération CNIL 2022-100) parce que l'API impose en plus une attente par
-// compte après plusieurs échecs (controleurs/comptes-attente.ts).
-
-/**
- * Mots de passe courants de 12 caractères ou plus (les plus courts sont déjà refusés), en français et en anglais :
- * suites du clavier, « motdepasse123 »… Écrits en minuscules et sans espaces, comme le mot de passe comparé.
- */
-const MOTS_DE_PASSE_COURANTS = new Set([
-  "123456789012", "1234567890123", "12345678901234", "1234567890123456", "123456789123", "123412341234", "123123123123",
-  "121212121212", "111111111111", "000000000000", "1q2w3e4r5t6y", "1qaz2wsx3edc", "q1w2e3r4t5y6", "a1z2e3r4t5y6",
-  "qwertyuiop12", "qwertyuiop123", "qwerty123456", "123456qwerty", "qwertyqwerty", "azertyuiop12", "azertyuiop123",
-  "azerty123456", "123456azerty", "azertyazerty", "azertyuiopqsdfghjklm", "aaaaaaaaaaaa", "abcdefghijkl", "abcdefgh1234",
-  "abc123abc123", "password1234", "password12345", "password123456", "passwordpassword", "passw0rd1234", "motdepasse12",
-  "motdepasse123", "motdepasse1234", "monmotdepasse", "motdepassemotdepasse", "jetaimejetaime", "iloveyou1234",
-  "iloveyouiloveyou", "bonjour12345", "bonjourbonjour", "soleil123456", "doudou123456", "chocolat1234", "loulou123456",
-  "football1234", "princess1234", "sunshine1234", "superman1234", "welcome12345", "letmein12345", "starwars1234",
-  "pokemon12345", "trustno1trustno1", "sosmiam12345", "sosmiam123456", "sosmiamsosmiam", "ambassadeur1", "ambassadeur123",
-  // Refusés aussi entourés de chiffres ou de signes (« Motdepasse2026! », « azertyuiop1234 »)
-  "motdepasse", "password", "azerty", "azertyuiop", "qwerty", "qwertyuiop", "jetaime", "iloveyou", "bonjour", "soleil",
-  "doudou", "chocolat", "loulou", "football", "princess", "sunshine", "superman", "welcome", "letmein", "starwars",
-  "pokemon", "sosmiam", "ambassadeur",
-]);
+// compte après plusieurs échecs (controleurs/comptes-attente.ts). La liste des mots de passe courants (plus de 10 000,
+// en français et en anglais, décidée le 9 octobre 2026) est dans src/donnees/mots-de-passe-courants.txt.
+import { chargerMotsDePasseCourants } from "./charger-mots-de-passe-courants.ts";
 
 /** Suites des chiffres, de l'alphabet et des claviers, dans les deux sens, assez longues pour 128 caractères */
 const SUITES = [
@@ -33,7 +15,7 @@ const SUITES = [
 /** Mot de passe courant, ce qui précède le « @ » de l'e-mail, petit motif répété (« aaaa… », « 1212… ») ou suite */
 function estEvident(texte: string, avantArobase: string): boolean {
   if (texte.length < 6) return false;
-  return MOTS_DE_PASSE_COURANTS.has(texte) || texte === avantArobase
+  return chargerMotsDePasseCourants().has(texte) || texte === avantArobase
     || [1, 2, 3, 4].some((n) => texte.length >= 3 * n && texte.slice(n) === texte.slice(0, -n))
     || SUITES.some((suite) => suite.includes(texte));
 }
