@@ -141,6 +141,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/lieux/lot", c.lotLieux);
   routes.get("/lieux/controle", outilsLieux.controle);
   routes.get("/lieux/semblables", outilsLieux.semblables);
+  routes.post("/lieux/import/verifier", outilsLieux.verifierImport);
+  routes.post("/lieux/import", outilsLieux.importer);
   routes.get("/lieux/:id", c.lieu);
   routes.get("/lieux/:id/historique", c.historiqueLieu);
   routes.get("/suggestions", sug.liste);

@@ -2,8 +2,23 @@
 // fiche pas encore créée, et import en lot (CSV lu par le logiciel).
 import type { Request, Response } from "express";
 
+import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
+import type { LieuSaisi } from "../../services/gestion/lieux.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
-import { lireParametre } from "./lire-champs.ts";
+import { ChampInvalide, lireParametre } from "./lire-champs.ts";
+import { lireLieuImporte } from "./lire-lieu.ts";
+
+/** Lignes vérifiées d'un coup (aperçu) ; lignes créées par demande (le logiciel envoie par paquets) */
+const LIGNES_VERIFIEES = 500;
+const LIGNES_IMPORTEES = 50;
+
+const lignesDe = (requete: Request, maximum: number): Record<string, unknown>[] => {
+  const lieux = (requete.body as { lieux?: unknown } | null)?.lieux;
+  if (!Array.isArray(lieux) || lieux.length === 0 || lieux.length > maximum || lieux.some((ligne) => typeof ligne !== "object" || ligne === null)) {
+    throw new ChampInvalide("lieux");
+  }
+  return lieux as Record<string, unknown>[];
+};
 
 const nombreOuNull = (valeur: unknown) => {
   const nombre = typeof valeur === "string" && valeur.trim() !== "" ? Number(valeur) : NaN;
@@ -11,6 +26,8 @@ const nombreOuNull = (valeur: unknown) => {
 };
 
 export function creerControleursOutilsLieux(s: ServicesGestion) {
+  const noter = (reponse: Response, action: string, detail?: string) => s.noterAction((reponse.locals.gestion as ContexteGestion).poste.nom, action, detail);
+
   return {
     controle: async (_requete: Request, reponse: Response) => reponse.json(await s.lireControleLieux()),
     /** ?nom=&ville=&adresse=&latitude=&longitude= : lieux déjà en base qui ressemblent à cette fiche */
@@ -24,6 +41,46 @@ export function creerControleursOutilsLieux(s: ServicesGestion) {
         latitude: nombreOuNull(requete.query.latitude),
         longitude: nombreOuNull(requete.query.longitude),
       }));
+    },
+    /** Aperçu d'un import : chaque ligne valable ou non (champ en cause), et ses doublons possibles */
+    verifierImport: async (requete: Request, reponse: Response) => {
+      let lignes: Record<string, unknown>[];
+      try {
+        lignes = lignesDe(requete, LIGNES_VERIFIEES);
+      } catch {
+        return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: "lieux" });
+      }
+      const lues = lignes.map((ligne, index) => {
+        try {
+          return { index, fiche: lireLieuImporte(ligne) };
+        } catch (erreur) {
+          if (erreur instanceof ChampInvalide) return { index, champ: erreur.champ };
+          throw erreur;
+        }
+      });
+      const valables = lues.filter((l): l is { index: number; fiche: LieuSaisi } => "fiche" in l);
+      const doublons = await s.verifierDoublonsImport(valables);
+      reponse.json(lues.map((l) => ("fiche" in l ? { ok: true, ...doublons.get(l.index) } : { ok: false, champ: l.champ, semblables: [], dansLeFichier: [] })));
+    },
+    /** Crée un paquet de fiches (toutes valables, sinon rien : 400 avec la ligne et le champ) */
+    importer: async (requete: Request, reponse: Response) => {
+      let fiches: LieuSaisi[];
+      try {
+        fiches = lignesDe(requete, LIGNES_IMPORTEES).map((ligne, index) => {
+          try {
+            return lireLieuImporte(ligne);
+          } catch (erreur) {
+            if (erreur instanceof ChampInvalide) throw new ChampInvalide(`${index}.${erreur.champ}`);
+            throw erreur;
+          }
+        });
+      } catch (erreur) {
+        if (erreur instanceof ChampInvalide) return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: erreur.champ });
+        throw erreur;
+      }
+      const resultat = await s.importerLieux(fiches);
+      await noter(reponse, "Lieux importés (fichier CSV)", `${resultat.crees} fiche(s) en brouillon, ${resultat.placees} placée(s) par l'adresse`);
+      reponse.status(201).json({ ok: true, ...resultat });
     },
   };
 }
