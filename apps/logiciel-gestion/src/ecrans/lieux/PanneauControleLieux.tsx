@@ -55,49 +55,56 @@ export function PanneauControleLieux({ tous, onOuvrir }: Props) {
   // Un nouveau filtre repart de la première page (pas un simple rafraîchissement de l'écran, qui recrée la même liste)
   const empreinte = `${tous.length}-${tous[0]?.id ?? 0}-${tous.at(-1)?.id ?? 0}`;
   useEffect(() => setPages({ positions: 1, doublons: 1, sansPosition: 1 }), [empreinte]);
+  // Deux colonnes indépendantes : la longue liste des doublons ne repousse pas « Sans position » tout en bas
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-2">
+    <div className="grid gap-5">
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}
-      {donnees && (
-        <>
-          <Carte titre={`📍 Positions à vérifier (${positions.length})`} actions={<Pagination page={pages.positions} parPage={PAR_PAGE.positions} total={positions.length} onChange={changerPage("positions")} />}>
-            {positions.length === 0 ? (
-              <p className="text-sm text-gris">Aucune : chaque lieu est près des autres lieux de sa ville.</p>
+      <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid content-start gap-5">
+          {donnees && (
+            <Carte titre={`📍 Positions à vérifier (${positions.length})`} actions={<Pagination page={pages.positions} parPage={PAR_PAGE.positions} total={positions.length} onChange={changerPage("positions")} />}>
+              {positions.length === 0 ? (
+                <p className="text-sm text-gris">Aucune : chaque lieu est près des autres lieux de sa ville.</p>
+              ) : (
+                <ul className="grid gap-0.5">
+                  {tranche(positions, "positions", pages.positions).map(({ lieu, distanceKm }) => (
+                    <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={distanceKm === null ? "posé en (0, 0)" : `à ${distanceKm} km des autres lieux de la ville`} />
+                  ))}
+                </ul>
+              )}
+            </Carte>
+          )}
+          <Carte titre={`🧭 Sans position (${sansPosition.length})`} actions={<Pagination page={pages.sansPosition} parPage={PAR_PAGE.sansPosition} total={sansPosition.length} onChange={changerPage("sansPosition")} />}>
+            {sansPosition.length === 0 ? (
+              <p className="text-sm text-gris">Toutes les fiches de cette liste sont placées sur la carte.</p>
             ) : (
               <ul className="grid gap-0.5">
-                {tranche(positions, "positions", pages.positions).map(({ lieu, distanceKm }) => (
-                  <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={distanceKm === null ? "posé en (0, 0)" : `à ${distanceKm} km des autres lieux de la ville`} />
-                ))}
+                {tranche(sansPosition, "sansPosition", pages.sansPosition).map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? "pas d'adresse"} />)}
               </ul>
             )}
           </Carte>
-          <Carte titre={`👯 Doublons possibles (${doublons.length})`} actions={<Pagination page={pages.doublons} parPage={PAR_PAGE.doublons} total={doublons.length} onChange={changerPage("doublons")} />}>
-            {doublons.length === 0 ? (
-              <p className="text-sm text-gris">Aucun : pas deux fiches au même nom ou à la même adresse.</p>
-            ) : (
-              <div className="grid gap-3">
-                {tranche(doublons, "doublons", pages.doublons).map((groupe) => (
-                  <div key={groupe.lieux.map((lieu) => lieu.id).join("-")} className="rounded-xl border border-ligne p-2">
-                    <p className="px-2 pb-1 text-[13px] font-semibold text-gris">{RAISONS[groupe.raison]}</p>
-                    <ul className="grid gap-0.5">{groupe.lieux.map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? undefined} />)}</ul>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="mt-3"><Pagination page={pages.doublons} parPage={PAR_PAGE.doublons} total={doublons.length} onChange={changerPage("doublons")} /></div>
-          </Carte>
-        </>
-      )}
-      <Carte titre={`🧭 Sans position (${sansPosition.length})`} actions={<Pagination page={pages.sansPosition} parPage={PAR_PAGE.sansPosition} total={sansPosition.length} onChange={changerPage("sansPosition")} />}>
-        {sansPosition.length === 0 ? (
-          <p className="text-sm text-gris">Toutes les fiches de cette liste sont placées sur la carte.</p>
-        ) : (
-          <ul className="grid gap-0.5">
-            {tranche(sansPosition, "sansPosition", pages.sansPosition).map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? "pas d'adresse"} />)}
-          </ul>
-        )}
-      </Carte>
+        </div>
+        <div className="grid content-start gap-5">
+          {donnees && (
+            <Carte titre={`👯 Doublons possibles (${doublons.length})`} actions={<Pagination page={pages.doublons} parPage={PAR_PAGE.doublons} total={doublons.length} onChange={changerPage("doublons")} />}>
+              {doublons.length === 0 ? (
+                <p className="text-sm text-gris">Aucun : pas deux fiches au même nom ou à la même adresse.</p>
+              ) : (
+                <div className="grid gap-3">
+                  {tranche(doublons, "doublons", pages.doublons).map((groupe) => (
+                    <div key={groupe.lieux.map((lieu) => lieu.id).join("-")} className="rounded-xl border border-ligne p-2">
+                      <p className="px-2 pb-1 text-[13px] font-semibold text-gris">{RAISONS[groupe.raison]}</p>
+                      <ul className="grid gap-0.5">{groupe.lieux.map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? undefined} />)}</ul>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3"><Pagination page={pages.doublons} parPage={PAR_PAGE.doublons} total={doublons.length} onChange={changerPage("doublons")} /></div>
+            </Carte>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

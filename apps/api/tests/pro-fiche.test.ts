@@ -130,7 +130,7 @@ test("fiche publique : un lieu publié, avec estVerifie ; 404 sinon", async () =
   assert.equal(avant.statut, 200);
   assert.equal(avant.entetes.get("cache-control"), "public, max-age=60");
   const { statut: _statut, ...fiche } = FICHE_TEST;
-  assert.deepEqual(avant.corps, { ok: true, lieu: { id: lieuId, ...fiche, estVerifie: false } });
+  assert.deepEqual(avant.corps, { ok: true, lieu: { id: lieuId, ...fiche, estVerifie: false, carte: null, carteMajLe: null } });
   await creerGerant(lieuId);
   assert.equal((await demander("GET", `/lieux/publics/${lieuId}`)).corps.lieu.estVerifie, true);
   for (const id of [ajouterLieu({ statut: "brouillon" }), ajouterLieu({ statut: "masque" }), 99_999, "abc", "0"]) {

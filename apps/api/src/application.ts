@@ -70,6 +70,8 @@ export function creerApplication({
   if (gestion) application.use(PREFIXE_GESTION, creerRoutesGestion(gestion));
   // Les textes de l'espace ambassadeur sont plus longs (candidature, compte rendu de mission : jusqu'à 2 000 caractères,
   // accents et emojis compris) : leur propre lecteur JSON, un peu plus large ; le lecteur suivant voit le corps déjà lu
+  // La carte d'un lieu (PUT /pro/lieux/:id/carte) : jusqu'à 250 plats avec leur description, donc son propre lecteur
+  if (comptes?.pro) application.put("/pro/lieux/:id/carte", interdireCache, express.json({ limit: "300kb" }));
   if (comptes) application.use(PREFIXES_COMPTES, interdireCache, express.json({ limit: "16kb" }));
   application.use(express.json({ limit: "4kb" }));
 

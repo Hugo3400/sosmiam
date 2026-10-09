@@ -1,5 +1,7 @@
 import { Router, type RequestHandler } from "express";
 
+import { lireCompteId } from "../controleurs/comptes-champs.ts";
+import { creerControleursCartePro } from "../controleurs/pro-carte.ts";
 import { creerControleursEquipe } from "../controleurs/pro-equipe.ts";
 import { creerControleursFichePro } from "../controleurs/pro-fiche.ts";
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
@@ -12,6 +14,8 @@ import type { ServicesPro } from "../services/pro-regles.ts";
 export const LIMITE_RECHERCHE_LIEUX = { fenetre: 10 * 60_000, maximum: 60 };
 /** Modifier sa fiche : 60 envois par visiteur et par heure */
 export const LIMITE_MODIFIER_FICHE = { fenetre: 60 * 60_000, maximum: 60 };
+/** Enregistrer sa carte : 60 enregistrements par COMPTE et par heure (en plus de la limite par visiteur de l'espace) */
+export const LIMITE_ENREGISTRER_CARTE = { fenetre: 60 * 60_000, maximum: 60 };
 /** Inviter dans son équipe : 20 envois par visiteur et par heure (en plus : 30 essais par gérant et par 24 h, 10
  * invitations par lieu et par 24 h, 30 membres au plus) */
 export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
@@ -51,6 +55,23 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  *                                        proposition, message, statut ("en-attente", "acceptee", "partielle", "refusee"),
  *                                        champsAcceptes[], reponse (réponse de l'équipe, seulement pour source "pro" ;
  *                                        sinon null), creeLe, decideLe }] } : les 100 plus récentes d'abord, JAMAIS l'auteur
+ * GET    /pro/lieux/:id/carte           → 200 { ok, carte: CarteLieu | null, majLe: string | null } : la carte du lieu
+ *                                        (gérant et équipe). CarteLieu (packages/commun, types/carte.ts) : { sections:
+ *                                        [{ titre, elements: [{ nom, description?, prix (en euros, 12 ou 4.5), unite?,
+ *                                        signature?: true, alcool?: true, etiquettes?: ("vege"|"vegan"|"sans-gluten"|"epice"|
+ *                                        "fait-maison"|"local")[] }] }], majLe: "AAAA-MM-JJ" (jour de Paris) } ; majLe à part :
+ *                                        le moment exact (ISO 8601) ; carte null (et majLe null) : pas de carte
+ * PUT    /pro/lieux/:id/carte (gérant)  { carte: CarteLieu | null } → 200 { ok, carte, majLe } (comme le GET, à jour)
+ *                                        · la carte REMPLACE la précédente ; vérifiée par validerCarteDuLieu (packages/commun) :
+ *                                          20 sections, 60 éléments par section, 250 en tout, LIMITES_CARTE pour les textes
+ *                                          et le prix ; une section vide est permise ; le majLe envoyé est ignoré : la date
+ *                                          est posée par le serveur (maintenant)
+ *                                        · { carte: null }, ou une carte sans aucune section : la carte est EFFACÉE (majLe null)
+ *                                        · 400 carte-invalide { champ, section, element } : le PREMIER endroit à corriger,
+ *                                          section et element comptés à partir de 0 (null : toute la carte) ; champ : "titre",
+ *                                          "nom", "description", "prix", "unite", "etiquettes", "trop-de-sections",
+ *                                          "trop-d-elements" ou "autre" (forme inattendue, ou { carte } absent)
+ *                                        · 429 trop-de-demandes : 60 enregistrements par compte et par heure ; corps jusqu'à 300 Ko
  * GET    /pro/lieux/:id/equipe  (gérant) → 200 { ok, equipe: [{ compteId, prenom, email (null pour un gérant), role,
  *                                        statut: "en-attente"|"valide", creeLe, decideLe }] } (gérants validés d'abord)
  * POST   /pro/lieux/:id/equipe  (gérant) { email } → 201 { ok } : invitation « equipe » « en-attente », que l'employé
@@ -68,6 +89,8 @@ export function creerRoutesPro(services: ServicesPro, protection: ProtectionComp
   const rattachements = creerControleursRattachements(services, horloge);
   const fiche = creerControleursFichePro(services, horloge);
   const equipe = creerControleursEquipe(services, horloge);
+  const carte = creerControleursCartePro(services, horloge);
+  const limiteCarte = limiterRequetes({ ...LIMITE_ENREGISTRER_CARTE, cle: (_requete, reponse) => `compte:${lireCompteId(reponse)}` });
   const routes = Router();
 
   routes.use(limiteConnectee, protection.exigerCompte);
@@ -75,6 +98,8 @@ export function creerRoutesPro(services: ServicesPro, protection: ProtectionComp
   routes.get("/lieux/:id", exigerRattachement(), fiche.lire);
   routes.patch("/lieux/:id", limiterRequetes(LIMITE_MODIFIER_FICHE), exigerRattachement(true), fiche.modifier);
   routes.get("/lieux/:id/suggestions", exigerRattachement(), fiche.suggestions);
+  routes.get("/lieux/:id/carte", exigerRattachement(), carte.lire);
+  routes.put("/lieux/:id/carte", limiteCarte, exigerRattachement(true), carte.enregistrer);
   routes.get("/lieux/:id/equipe", exigerRattachement(true), equipe.lister);
   routes.post("/lieux/:id/equipe", limiterRequetes(LIMITE_INVITATIONS), exigerRattachement(true), equipe.inviter);
   routes.delete("/lieux/:id/equipe/:compteId", exigerRattachement(true), equipe.retirer);
