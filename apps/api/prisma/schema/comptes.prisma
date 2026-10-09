@@ -43,6 +43,10 @@ model Compte {
   avatar                String?   @db.VarChar(16)
   /// Compte privé : les abonnements passent par une demande
   prive                 Boolean   @default(false)
+  /// Connexion avec Apple ou Google (décidé le 9 octobre 2026) : l'identifiant stable (« sub ») du compte chez eux, vérifié
+  /// par l'API dans le jeton signé ; null si la personne ne s'est jamais connectée ainsi. Un compte peut avoir les deux.
+  appleSub              String?   @unique @map("apple_sub") @db.VarChar(255)
+  googleSub             String?   @unique @map("google_sub") @db.VarChar(255)
   /// Dernière visite connectée (au plus une écriture par jour)
   derniereConnexion     DateTime  @default(now()) @map("derniere_connexion") @db.Timestamptz(0)
 
