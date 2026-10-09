@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
-import { STATUTS_LIEU, TYPES_LIEU } from "~/contenus/statuts-lieu.ts";
+import { EMOJIS_TYPE_LIEU, STATUTS_LIEU, TYPES_LIEU } from "~/contenus/statuts-lieu.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
 import type { ResumeLieu } from "~/services/lieux.ts";
 
@@ -15,7 +15,10 @@ type Props = {
   onOuvrir: () => void;
 };
 
-/** Un lieu dans la liste : sa case à cocher, son dégradé, son nom, son statut et quelques infos. */
+/**
+ * Un lieu dans la liste : sa case à cocher, son dégradé, son nom et son statut, puis ses étiquettes (type, ville,
+ * catégorie « Ce que c'est ») et son activité. Version A de la maquette validée par Hugo le 9 octobre 2026.
+ */
 export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Props) {
   return (
     <div className={`group relative rounded-carte border bg-white transition-colors ${choisi ? "border-encre ring-2 ring-jaune" : "border-ligne hover:border-encre"}`}>
@@ -31,15 +34,19 @@ export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Pro
         >
           {lieu.emoji}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-2">
+        <span className="grid min-w-0 flex-1 gap-1.5">
+          <span className="flex min-w-0 items-center gap-2">
             <span className="truncate font-titre text-lg font-extrabold">{lieu.nom}</span>
-            <Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge>
+            <span className="ml-auto shrink-0"><Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge></span>
           </span>
-          <span className="block truncate text-sm text-gris">
-            {[TYPES_LIEU[lieu.type], lieu.info.trim(), [lieu.quartier.trim(), lieu.ville.trim()].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}
+          <span className="flex flex-wrap gap-1.5">
+            <Badge ton="jaune">{EMOJIS_TYPE_LIEU[lieu.type] ?? ""} {TYPES_LIEU[lieu.type] ?? lieu.type}</Badge>
+            {lieu.ville.trim() && <span title={[lieu.quartier.trim(), lieu.ville.trim()].filter(Boolean).join(", ")}><Badge ton="contour">📍 {lieu.ville.trim()}</Badge></span>}
+            {lieu.info.trim() && <Badge>{lieu.info.trim()}</Badge>}
           </span>
-          <span className="block text-xs text-gris">{lieu._count.publications} publication(s) · modifié {formaterDateRelative(lieu.modifieLe)}</span>
+          <span className="block text-xs text-gris">
+            {lieu._count.publications} publication{lieu._count.publications > 1 ? "s" : ""} · modifié {formaterDateRelative(lieu.modifieLe)}
+          </span>
         </span>
       </button>
       <button

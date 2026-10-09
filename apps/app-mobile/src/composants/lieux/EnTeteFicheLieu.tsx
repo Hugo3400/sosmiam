@@ -3,6 +3,9 @@ import { memo } from "react";
 import { Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
+import { CarteLieuNonVerifie } from "~/composants/lieux/CarteLieuNonVerifie";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
@@ -37,8 +40,10 @@ const AUTEUR_LIEU = { type: "lieu" } as const;
 export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
   // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
   const avecCompte = utiliserProfil().profil !== null;
+  // Sans compte SOS Miam, un lieu ne lance pas de SOS : rien à afficher
+  const verifie = estLieuVerifie(lieu);
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
-  const sos = estSosEnCours(lieu) ? lieu.sos : undefined;
+  const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
   return (
     <>
       <LinearGradient
@@ -54,6 +59,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
 
       <View className="gap-4 px-5 pt-5">
         <View className="flex-row flex-wrap gap-2">
+          <BadgeVerification verifie={verifie} />
           {sos ? (
             <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
               🛟 SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}{sos.offre ? ` · ${sos.offre}` : ""}
@@ -70,6 +76,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
+        {verifie ? null : <CarteLieuNonVerifie lieu={lieu} />}
         {/* L'un au-dessus de l'autre : côte à côte, « Envoyer à un pote » passerait sur deux lignes sur un iPhone SE */}
         <BoutonSuivreProfil cle={calculerCleSuivi(AUTEUR_LIEU, lieu.id)} nom={lieu.nom} emoji={lieu.emoji} onAnnoncer={onAnnoncer} taille="grand" />
         <Bouton

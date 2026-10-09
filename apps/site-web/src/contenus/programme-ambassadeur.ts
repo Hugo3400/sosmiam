@@ -108,6 +108,24 @@ export const placesFondateurs = [
 /** Nombre total de places de fondateur en France (docs/decisions.md, « Fondateurs par ville »). */
 export const totalPlacesFondateurs = 367;
 
+/**
+ * Ambassadeur certifié (docs/decisions.md, « Ambassadeur certifié ») : un titre à part, qui s'ajoute au palier. Section
+ * de /programme, reprise en haut de /espace/certification. Le contact par la messagerie arrive avec l'espace pro : « bientôt ».
+ */
+export const certifieProgramme = {
+  titre: "Ambassadeur certifié",
+  chapo: "Tu aides déjà les lieux de ton coin ? Un titre à part, en plus de ton niveau, pour aller plus loin avec eux.",
+  qui: "Un ambassadeur qui aime aider les lieux, un pro (resto, commerce…) ou une structure (asso, mairie, office de tourisme, école…). Une structure est représentée par une personne, avec son compte, dès 18 ans : « Marie, pour l'asso Les Gourmands du 11e ».",
+  devenir: "Sur candidature depuis ton espace, une fois ton compte validé, ou sur invitation de l'équipe. C'est l'équipe qui choisit.",
+  avantages: [
+    { emoji: "✅", texte: "Le badge « Ambassadeur certifié ✓ » sur ton profil et sur les fiches des lieux que tu as aidés, avec ton prénom (et ta structure si tu en as une)." },
+    { emoji: "📋", texte: "Des missions chez les lieux partenaires, confiées par l'équipe." },
+    { emoji: "🧰", texte: "Un kit média pro pour présenter SOS Miam aux lieux : une affiche, un flyer, un mot de 30 secondes et un mail type." },
+    { emoji: "💬", texte: "Bientôt, avec l'espace pro : le contact avec les lieux par la messagerie SOS Miam, sans adresse ni numéro montrés." },
+  ],
+  regle: "Jamais payé par un lieu, comme tous les ambassadeurs : si un lieu t'offre quelque chose, tu l'écris « Collaboration commerciale ».",
+};
+
 /** Questions de la page : réponses courtes, sans rien promettre de plus. */
 export const questionsProgramme: QuestionFaq[] = [
   {
@@ -156,7 +174,7 @@ export const questionsProgramme: QuestionFaq[] = [
   {
     id: "question-pas-fondateur",
     question: "Et si je ne suis pas retenu comme fondateur ?",
-    reponse: ["Aucun souci : tu restes ambassadeur, et tu grimpes les niveaux comme tout le monde."],
+    reponse: ["Aucun souci : tu restes ambassadeur, et tu grimpes les niveaux comme tout le monde. Et tu peux recandidater quand tu veux."],
   },
   {
     id: "question-app",

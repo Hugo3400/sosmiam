@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BlocVisiteLieu } from "~/composants/lieux/BlocVisiteLieu";
@@ -21,6 +22,7 @@ import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauve
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
@@ -60,6 +62,7 @@ export default function FicheLieu() {
   const age = useMemo(() => (profil ? calculerAge(profil.dateNaissance) : null), [profil]);
   const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
   const contenuDefilant = useMemo(() => ({ paddingBottom: marges.bottom + 120 }), [marges.bottom]);
+  const inviter = utiliserInviterLieu();
 
   if (!lieu) {
     // Le lieu existe, mais c'est un bar : réservé aux 18 ans et plus (et tout public tant qu'on ne connaît pas ton âge)
@@ -72,6 +75,8 @@ export default function FicheLieu() {
     );
   }
 
+  // Sans compte SOS Miam : ni visite validée ni rescousse comptée (décidé le 9 octobre 2026)
+  const verifie = estLieuVerifie(lieu);
   // En visite, pas encore de rescousses : le bouton invite à en donner (et propose de créer un compte)
   const sauve = avecCompte && activite.aSauve(lieu.id);
   // Plus de rescousse cette semaine : le bouton est désactivé (pas de vibration pour rien) et dit pourquoi
@@ -100,7 +105,8 @@ export default function FicheLieu() {
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
         <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} onAnnoncer={annoncer} />
         {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
-        <BlocVisiteLieu lieu={lieu} />
+        {/* Sans compte SOS Miam, pas de visite validée : la fiche dit pourquoi (CarteLieuNonVerifie, dans le haut) */}
+        {verifie ? <BlocVisiteLieu lieu={lieu} /> : null}
         <SuiteFicheLieu lieu={lieu} age={age} />
       </ScrollView>
 
@@ -117,7 +123,9 @@ export default function FicheLieu() {
 
       {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}
       <View style={{ paddingBottom: marges.bottom + 12 }} className="absolute inset-x-0 bottom-0 flex-row gap-3 border-t border-ligne bg-creme px-5 pt-3">
-        {/* 3/5 pour « À la rescousse » : à moitié-moitié, le libellé passait sur deux lignes sous 440 pt de large */}
+        {/* 3/5 pour « À la rescousse » : à moitié-moitié, le libellé passait sur deux lignes sous 440 pt de large.
+            Lieu non vérifié : pas de rescousse comptée, on l'invite à nous rejoindre à la place */}
+        {verifie ? (
         <Bouton
           className="flex-[3]"
           libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}
@@ -134,6 +142,9 @@ export default function FicheLieu() {
           }
           onPress={basculerRescousse}
         />
+        ) : (
+          <Bouton className="flex-[3]" libelle="Inviter ce lieu" indice="Partage-lui le lien d'inscription, c'est gratuit" onPress={() => inviter(lieu)} />
+        )}
         <Bouton
           className="flex-[2]"
           libelle="Y aller"

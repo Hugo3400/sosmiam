@@ -17,6 +17,7 @@ import { enregistrerLieu, lireLieu, supprimerLieu, type EnvieLieu, type SaisieLi
 import type { Ecran } from "~/contenus/menu.ts";
 import { ApercuLieu } from "./ApercuLieu.tsx";
 import { HistoriqueLieu } from "./HistoriqueLieu.tsx";
+import { SuggestionsDuLieu } from "./SuggestionsDuLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
 import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
@@ -57,6 +58,8 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
   const [erreurChargement, setErreurChargement] = useState<ErreurApi | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const [suppression, setSuppression] = useState(false);
+  // Monte après une modification proposée appliquée : la fiche se relit depuis le serveur
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -68,7 +71,7 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
       },
       (erreur: unknown) => setErreurChargement(erreur instanceof ErreurApi ? erreur : null),
     );
-  }, [id]);
+  }, [id, version]);
 
   if (!lieu) return erreurChargement ? <MessageErreur erreur={erreurChargement} /> : <Chargement />;
   const changer = (modif: Partial<SaisieLieu>) => setLieu({ ...lieu, ...modif });
@@ -108,6 +111,7 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
           </>
         }
       />
+      {id && <SuggestionsDuLieu lieuId={id} maintenant={lieu} onDecision={() => setVersion((v) => v + 1)} />}
       {etat.erreur && <p role="alert" className="mb-4 rounded-xl bg-rose-alerte px-4 py-2 text-sm font-semibold text-rouge-texte">{etat.erreur}</p>}
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-5">

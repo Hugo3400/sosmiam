@@ -8,3 +8,6 @@ export const STATUTS_LIEU: Record<StatutLieu, { libelle: string; ton: "vert" | "
 };
 
 export const TYPES_LIEU: Record<string, string> = { resto: "Resto", patisserie: "Pâtisserie", bar: "Bar", sortie: "Sortie" };
+
+/** Le petit emoji de l'étiquette de type, sur les cartes des lieux */
+export const EMOJIS_TYPE_LIEU: Record<string, string> = { resto: "🍽️", patisserie: "🧁", bar: "🍹", sortie: "🎟️" };

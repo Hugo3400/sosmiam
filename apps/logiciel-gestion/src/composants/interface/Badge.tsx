@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type Ton = "neutre" | "jaune" | "vert" | "rouge" | "encre";
+type Ton = "neutre" | "jaune" | "vert" | "rouge" | "encre" | "contour";
 
 const TONS: Record<Ton, string> = {
   neutre: "bg-ligne/70 text-gris",
@@ -8,6 +8,7 @@ const TONS: Record<Ton, string> = {
   vert: "bg-vert-clair text-vert",
   rouge: "bg-rose-alerte text-rouge-texte",
   encre: "bg-nuit text-jaune",
+  contour: "text-encre ring-[1.5px] ring-ligne ring-inset",
 };
 
 /** Petite étiquette d'état : « Publié », « Brouillon », « Urgent »… */

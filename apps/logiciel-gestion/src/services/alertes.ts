@@ -4,7 +4,9 @@ import { appeler } from "./client-gestion.ts";
 export type Alertes = {
   moderation: { aTraiter: number; urgents: number; contestes: number };
   demandes: { aTraiter: number };
-  ambassadeurs: { enAttente: number; candidatures: number };
+  /** Modifications de fiches proposées par un client ou un lieu, à examiner */
+  lieux?: { suggestions: number };
+  ambassadeurs: { enAttente: number; candidatures: number; certifications?: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };
