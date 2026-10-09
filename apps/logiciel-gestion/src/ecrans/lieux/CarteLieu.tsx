@@ -36,7 +36,9 @@ export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Pro
             <span className="truncate font-titre text-lg font-extrabold">{lieu.nom}</span>
             <Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge>
           </span>
-          <span className="block truncate text-sm text-gris">{TYPES_LIEU[lieu.type]} · {lieu.info} · {lieu.quartier}, {lieu.ville}</span>
+          <span className="block truncate text-sm text-gris">
+            {[TYPES_LIEU[lieu.type], lieu.info.trim(), [lieu.quartier.trim(), lieu.ville.trim()].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}
+          </span>
           <span className="block text-xs text-gris">{lieu._count.publications} publication(s) · modifié {formaterDateRelative(lieu.modifieLe)}</span>
         </span>
       </button>

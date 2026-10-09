@@ -44,7 +44,7 @@ export function RechercheCommune({ id, page, ancre, libelle, nomChamp = "recherc
 
   return (
     <div>
-      <Form method="get" action={`${page}#${ancre}`} preventScrollReset role="search" aria-label={libelle}>
+      <Form method="get" action={`${page}#${ancre}`} preventScrollReset role="search" aria-label={`Chercher ${libelle.toLowerCase()}`}>
         {Object.entries(garder).map(([nom, valeur]) => <input key={nom} type="hidden" name={nom} value={valeur} />)}
         <label htmlFor={idChamp} className={`mb-1.5 block text-sm font-semibold ${clair ? "text-creme" : ""}`}>{libelle}</label>
         {aide && <p id={`${id}-aide`} className={`mb-2 text-sm ${clair ? "text-creme/80" : "text-gris"}`}>{lierPonctuation(aide)}</p>}

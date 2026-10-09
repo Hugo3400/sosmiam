@@ -10,19 +10,33 @@ import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
+import { Pagination } from "~/composants/interface/Pagination.tsx";
+import { Selecteur } from "~/composants/interface/Selecteur.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
-import { STATUTS_LIEU } from "~/contenus/statuts-lieu.ts";
+import { STATUTS_LIEU, TYPES_LIEU } from "~/contenus/statuts-lieu.ts";
+import { compterCategoriesLieux } from "~/fonctions/lieux/compter-categories-lieux.ts";
+import { filtrerLieux } from "~/fonctions/lieux/filtrer-lieux.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerLieux, type StatutLieu } from "~/services/lieux.ts";
 import { BarreSelectionLieux } from "./BarreSelectionLieux.tsx";
 import { CarteLieu } from "./CarteLieu.tsx";
 import { FormulaireLieu } from "./FormulaireLieu.tsx";
 
-/** Les fiches des lieux : liste, recherche, sélection de plusieurs fiches, et la fiche complète à créer ou modifier. */
+/** Fiches par page (2 ou 3 par ligne selon la largeur : 30 remplit les deux) */
+const PAR_PAGE = 30;
+
+/**
+ * Les fiches des lieux : liste par pages, recherche, filtres (statut, type, catégorie), sélection de plusieurs fiches (sur
+ * toutes les pages), et la fiche complète à créer ou modifier.
+ */
 export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null; allerA?: (ecran: Ecran, id: number | null) => void }) {
   const [statut, setStatut] = useState<StatutLieu | "">("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
+  const [type, setType] = useState("");
+  const [categorie, setCategorie] = useState("");
+  const [page, setPage] = useState(1);
+  const haut = useRef<HTMLDivElement>(null);
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
   // Ouvert depuis ailleurs (recherche Ctrl+K…) sur un élément précis
   useEffect(() => {
@@ -32,16 +46,28 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const [message, setMessage] = useState<string | null>(null);
   const dernierCoche = useRef<number | null>(null);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerLieux(recherche, statut), [recherche, statut]);
-  const lieux = donnees ?? [];
+  const tous = donnees ?? [];
+  const duType = filtrerLieux(tous, { type, categorie: "" });
+  const categories = compterCategoriesLieux(duType);
+  const lieux = filtrerLieux(duType, { type: "", categorie });
+  const pages = Math.max(1, Math.ceil(lieux.length / PAR_PAGE));
+  const pageLieux = lieux.slice((page - 1) * PAR_PAGE, page * PAR_PAGE);
+  const changerPage = (nouvelle: number) => {
+    setPage(nouvelle);
+    haut.current?.scrollIntoView({ block: "start" });
+  };
 
   useEffect(() => {
     const minuteur = setTimeout(() => setRecherche(saisie), 300);
     return () => clearTimeout(minuteur);
   }, [saisie]);
-  // La sélection ne garde que les lieux encore affichés (après un filtre ou une suppression)
+  // Un nouveau filtre repart de la première page ; après une suppression, la page reste dans les bornes
+  useEffect(() => setPage(1), [recherche, statut, type, categorie]);
+  useEffect(() => setPage((avant) => Math.min(avant, pages)), [pages]);
+  // La sélection ne garde que les lieux encore affichés (après un filtre ou une suppression), toutes pages comprises
   useEffect(() => {
     setChoisis((avant) => new Set([...avant].filter((id) => lieux.some((lieu) => lieu.id === id))));
-  }, [donnees]);
+  }, [donnees, type, categorie]);
   // Échap : tout désélectionner
   useEffect(() => {
     const touche = (evenement: KeyboardEvent) => evenement.key === "Escape" && !document.querySelector("dialog[open]") && setChoisis(new Set());
@@ -83,6 +109,29 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           onChange={setStatut}
           options={[{ valeur: "", libelle: "Tous" }, ...Object.entries(STATUTS_LIEU).map(([valeur, { libelle }]) => ({ valeur: valeur as StatutLieu, libelle }))]}
         />
+        <Selecteur
+          libelle="Type"
+          valeur={type}
+          onChange={(nouveau) => {
+            setType(nouveau);
+            setCategorie("");
+          }}
+          options={[
+            { valeur: "", libelle: `Tous les types (${tous.length})` },
+            ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${tous.filter((lieu) => lieu.type === valeur).length})` })),
+          ]}
+          className="w-48"
+        />
+        <Selecteur
+          libelle="Catégorie"
+          valeur={categorie}
+          onChange={setCategorie}
+          options={[
+            { valeur: "", libelle: `Toutes (${duType.length})` },
+            ...categories.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
+          ]}
+          className="w-60"
+        />
         {lieux.length > 0 && (
           <div className="ml-auto pb-2">
             <CaseACocher
@@ -93,19 +142,23 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           </div>
         )}
       </div>
+      <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-3">
+        {donnees && <p className="text-sm text-gris">{lieux.length} lieu{lieux.length > 1 ? "x" : ""}{lieux.length !== tous.length ? ` sur ${tous.length}` : ""}</p>}
+        <div className="ml-auto"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>
+      </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}
       {donnees && lieux.length === 0 && (
         <Carte>
-          <EtatVide emoji="🏪" titre={recherche || statut ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
+          <EtatVide emoji="🏪" titre={recherche || statut || type || categorie ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
             Chaque fiche décrit un lieu indépendant : son histoire, son plat signature, ses horaires. Les publications du fil s'y rattachent.
           </EtatVide>
         </Carte>
       )}
       {lieux.length > 0 && (
         <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-          {lieux.map((lieu) => (
+          {pageLieux.map((lieu) => (
             <li key={lieu.id}>
               <CarteLieu
                 lieu={lieu}
@@ -118,6 +171,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           ))}
         </ul>
       )}
+      {lieux.length > PAR_PAGE && <div className="mt-4"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>}
       {choisis.size > 0 && (
         <BarreSelectionLieux
           choisis={lieux.filter((lieu) => choisis.has(lieu.id))}
