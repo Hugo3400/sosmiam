@@ -5,8 +5,13 @@
 export const HOTE_AMBASSADEUR = "ambassadeur.sosmiam.fr";
 const HOTE_SITE = "sosmiam.fr";
 
-/** Pages de l'espace : servies sur ambassadeur.sosmiam.fr, renvoyées vers lui depuis sosmiam.fr */
-const PAGES_ESPACE = ["/programme", "/inscription", "/connexion", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/espace", "/deconnexion"];
+/**
+ * Pages de l'espace : servies sur ambassadeur.sosmiam.fr, renvoyées vers lui depuis sosmiam.fr (« /communes » : les
+ * suggestions de « Ta ville », appelées par le programme et la candidature de fondateur)
+ */
+const PAGES_ESPACE = [
+  "/programme", "/inscription", "/connexion", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email", "/espace", "/deconnexion", "/communes",
+];
 /** Débuts d'adresses de l'espace : les pages connectées et les fichiers du kit média */
 const DEBUTS_ESPACE = ["/espace/", "/kit-media/"];
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */

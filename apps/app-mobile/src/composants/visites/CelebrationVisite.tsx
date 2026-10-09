@@ -17,6 +17,7 @@ import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
 import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 
 type Props = {
   resultat: ResultatValidation;
@@ -67,6 +68,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
   }, [visite.id, fete]);
 
   const compteur = fete && visite.points > 0;
+  const offert = decrireReglement(visite.reglement, "client").offert;
 
   return (
     <View className="flex-1 bg-creme">
@@ -82,8 +84,20 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
             <Text className="text-center font-texte text-[15px] leading-6 text-gris">
               {lierPonctuation(fete ? LIBELLES_MODE_VALIDATION[visite.mode] : "Tu as tout bon ! Cette visite compte déjà : pas besoin de la scanner deux fois.")}
             </Text>
+            {fete ? (
+              <View className="mt-2">
+                <EtiquettesReglement reglement={visite.reglement} pour="client" centre />
+              </View>
+            ) : null}
             {visite.demo && !compteur && !tampon ? etiquetteDemo("mt-2") : null}
           </View>
+
+          {fete && offert ? (
+            <View className="w-full flex-row items-start gap-3 rounded-carte border-2 border-encre bg-rose-alerte p-4">
+              <Text className="text-2xl">🎁</Text>
+              <Text className="flex-1 font-texte text-[15px] leading-6 text-encre">{lierPonctuation(OFFERT_EXPLIQUE)}</Text>
+            </View>
+          ) : null}
 
           {compteur || tampon ? (
             <View className="w-full gap-4 rounded-carte border-2 border-encre bg-white p-5">

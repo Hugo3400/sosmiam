@@ -6,17 +6,13 @@ import { Ecusson } from "~/composants/marque/Ecusson";
 import { Section } from "~/composants/mise-en-page/Section";
 import { cadeauxFondateurs, rencontreFondateurs, totalPlacesFondateurs } from "~/contenus/programme-ambassadeur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import type { CommuneFondateurs, ZoneFondateurs } from "~/types/compte";
+import type { ResultatRecherche } from "~/types/compte";
 
 /** Ce que la recherche « Ta ville » a trouvé (routes/ambassadeur/programme.tsx, d'après l'adresse ?ville=… ou ?commune=…). */
 export type RechercheProgramme = {
   /** Ce qui est écrit dans le champ */
   saisie: string;
-  resultat:
-    | { etat: "zone"; commune: CommuneFondateurs; zone: ZoneFondateurs }
-    | { etat: "choix"; communes: CommuneFondateurs[] }
-    | { etat: "message"; message: string }
-    | { etat: "vide" };
+  resultat: ResultatRecherche;
 };
 
 /** Les fondateurs de chaque ville : les places selon sa taille, ce qu'ils reçoivent, et les places de ta ville. */

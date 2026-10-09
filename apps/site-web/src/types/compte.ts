@@ -55,6 +55,13 @@ export type CommuneFondateurs = {
   codePostal?: string | null;
 };
 
+/** Ce que montre une recherche de commune : sa zone, une liste où choisir, ou un message (rien trouvé, API muette). */
+export type ResultatRecherche =
+  | { etat: "zone"; commune: CommuneFondateurs; zone: ZoneFondateurs }
+  | { etat: "choix"; communes: CommuneFondateurs[] }
+  | { etat: "message"; message: string }
+  | { etat: "vide" };
+
 /**
  * La candidature « fondateur » du compte ; une candidature refusée est effacée 3 mois après la réponse. « souvenir » :
  * le fondateur a déménagé, sa place s'est libérée, il garde son titre (et peut candidater ailleurs).

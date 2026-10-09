@@ -3,7 +3,7 @@
 // (X-IP-Visiteur) ne sert qu'aux limites. Contrat : apps/api/src/routes/fondateurs.ts.
 import { appelerApiComptes } from "~/services/comptes.server";
 import { simplifierRecherche } from "~/fonctions/texte/simplifier-recherche";
-import type { CommuneFondateurs, ZoneFondateurs } from "~/types/compte";
+import type { CommuneFondateurs, ResultatRecherche, ZoneFondateurs } from "~/types/compte";
 
 /** Communes dont le nom ou le code postal correspond à la recherche (8 au plus par défaut ; vide : liste vide). */
 export function chercherCommunes(recherche: string, ip: string | null, limite = 8) {
@@ -31,13 +31,6 @@ export async function trouverZoneDeVille(ville: string, ip: string | null): Prom
   const zone = await lireZoneDeCommune(commune.code, ip);
   return zone.ok ? { commune: zone.commune, zone: zone.zone } : null;
 }
-
-/** Ce que montre une recherche de commune : sa zone, une liste où choisir, ou un message (rien trouvé, API muette). */
-export type ResultatRecherche =
-  | { etat: "zone"; commune: CommuneFondateurs; zone: ZoneFondateurs }
-  | { etat: "choix"; communes: CommuneFondateurs[] }
-  | { etat: "message"; message: string }
-  | { etat: "vide" };
 
 const MESSAGE_PANNE = "Le compteur des places fait une pause : réessaie dans un instant.";
 

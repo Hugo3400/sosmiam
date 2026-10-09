@@ -26,6 +26,7 @@ export default [
     route("connexion", "routes/compte/connexion.tsx"),
     route("mot-de-passe-oublie", "routes/compte/mot-de-passe-oublie.tsx"),
     route("nouveau-mot-de-passe", "routes/compte/nouveau-mot-de-passe.tsx"),
+    route("verifier-email", "routes/compte/verifier-email.tsx"),
     route("espace", "routes/ambassadeur/espace.tsx"),
     route("espace/mon-compte", "routes/compte/mon-compte.tsx"),
     route("espace/kit-media", "routes/ambassadeur/kit-media.tsx"),
@@ -38,6 +39,8 @@ export default [
   // et les fichiers du kit média, réservés aux ambassadeurs validés
   route("deconnexion", "routes/compte/deconnexion.tsx"),
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
+  // Carte de fondateur numérique (SVG), réservée à son fondateur
+  route("espace/fondateur/carte.svg", "routes/ressources/carte-fondateur.ts"),
   // Visuels du kit média à leur taille exacte, pour les capturer (serveur de développement seulement)
   route("rendu-kit/:visuel", "routes/ressources/rendu-kit.tsx"),
   // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »
@@ -46,6 +49,7 @@ export default [
   route("liens/aller/:reseau", "routes/ressources/aller-lien.ts"),
   // Adresses sans page, appelées par le navigateur (réponses JSON)
   route("localiser", "routes/ressources/localiser.ts"),
+  route("communes", "routes/ressources/communes.ts"),
   // Pour les moteurs de recherche (texte et XML générés à chaque demande)
   route("robots.txt", "routes/ressources/robots.ts"),
   route("sitemap.xml", "routes/ressources/plan-du-site.ts"),

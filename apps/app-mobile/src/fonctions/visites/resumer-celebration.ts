@@ -4,6 +4,10 @@ import type { ResultatValidation } from "@sos-miam/commun/types/visite";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { decrireOuvertureAvis } from "~/fonctions/visites/decrire-ouverture-avis";
 import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
+
+/** Une visite offerte : pourquoi ni points ni tampon, et ce qui reste (l'avis, marqué « Repas offert ») */
+export const OFFERT_EXPLIQUE = "Offerte par le lieu : pas de points ni de tampon cette fois, pour que les avis restent honnêtes. Ton avis compte quand même, marqué « Repas offert ».";
 
 /**
  * La célébration d'une visite validée en une seule phrase, lue une fois par VoiceOver ou TalkBack : le lieu, les points
@@ -17,7 +21,9 @@ export function resumerCelebration(r: ResultatValidation, palier: PalierAmbassad
   if (r.dejaValidee) {
     morceaux.push(`C'est déjà validé, tu as tout bon ! ${visite.lieu.nom} : cette visite compte déjà.`);
   } else {
-    morceaux.push(`Visite validée ! ${visite.lieu.nom}. ${LIBELLES_MODE_VALIDATION[visite.mode]}.`);
+    const reglement = decrireReglement(visite.reglement, "client");
+    morceaux.push(`Visite validée ! ${visite.lieu.nom}. ${LIBELLES_MODE_VALIDATION[visite.mode]}. ${[reglement.titre, ...reglement.etiquettes].join(", ")}.`);
+    if (reglement.offert) morceaux.push(OFFERT_EXPLIQUE);
     if (visite.points > 0) {
       morceaux.push(visite.pendantSos ? `+${visite.points} points : ta visite tombe pile pendant leur SOS.` : `+${visite.points} points.`);
     }
