@@ -14,9 +14,6 @@ const echeances = (derniereConnexion: Date) => ({
   retireLe: new Date(derniereConnexion.getTime() + RETRAIT).toISOString(),
   effaceLe: new Date(derniereConnexion.getTime() + EFFACEMENT).toISOString(),
 });
-/** Ancien nombre de fondateurs pour toute la France : encore lu par services/comptes-espace.ts (session Site) jusqu'à la
- * candidature par commune, puis à retirer. Les fondateurs par ville sont dans fondateurs.ts. */
-export const FONDATEURS_MAX = 10;
 
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
 export type FiltresAmbassadeurs = { statut: string; palier: string; recherche: string; ville: string };

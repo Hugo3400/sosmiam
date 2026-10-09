@@ -4,7 +4,7 @@
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { calculerCodeZone } from "../../fonctions/fondateurs/calculer-code-zone.ts";
 import { chercherCommunes } from "../../fonctions/geo/chercher-communes.ts";
-import { trouverCommuneParCode } from "../../fonctions/geo/trouver-commune-par-code.ts";
+import { trouverZoneDeCommune } from "../zones-fondateurs.ts";
 
 const ZONE = { code: true, type: true, nom: true, nomAvecDe: true, places: true } as const;
 type ZoneCourte = { code: string; type: string; nom: string; nomAvecDe: string; places: number };
@@ -95,12 +95,13 @@ export async function chercherCommunesAvecZone(texte: string) {
  * que la commune est inconnue.
  */
 export async function choisirCommuneCandidature(id: number, communeCode: string) {
-  const commune = trouverCommuneParCode(communeCode);
-  if (!commune) return null;
-  const zone = await baseDeDonnees.zoneFondateur.findUnique({ where: { code: calculerCodeZone(commune) }, select: ZONE });
-  if (!zone) return null;
-  const { count } = await baseDeDonnees.candidatureFondateur.updateMany({ where: { id, statut: "en-attente" }, data: { communeCode: commune.code, zoneCode: zone.code } });
-  return count > 0 ? { commune: commune.nom, zone } : null;
+  const trouvee = await trouverZoneDeCommune(communeCode);
+  if (!trouvee) return null;
+  const { count } = await baseDeDonnees.candidatureFondateur.updateMany({
+    where: { id, statut: "en-attente" },
+    data: { communeCode: trouvee.commune.code, zoneCode: trouvee.zone.code },
+  });
+  return count > 0 ? { commune: trouvee.commune.nom, zone: trouvee.zone } : null;
 }
 
 /**
