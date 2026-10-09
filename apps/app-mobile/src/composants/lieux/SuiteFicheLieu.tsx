@@ -8,6 +8,7 @@ import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evo
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
+import { LienProposerModification } from "~/composants/lieux/LienProposerModification";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
@@ -115,6 +116,9 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
           </Text>
         ))}
       </View>
+
+      {/* Une info a changé : le client la propose, l'équipe vérifie avant de toucher à la fiche */}
+      <LienProposerModification lieu={lieu} />
     </Animated.View>
   );
 });
