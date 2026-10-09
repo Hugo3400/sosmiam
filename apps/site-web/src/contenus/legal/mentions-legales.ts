@@ -11,7 +11,7 @@ export const documentMentionsLegales: DocumentLegal = {
   titre: "Mentions légales",
   description:
     "Qui édite SOS Miam, qui l'héberge, comment nous écrire ou signaler un contenu illicite : toutes les mentions légales du site sosmiam.fr.",
-  miseAJour: "8 octobre 2026",
+  miseAJour: "9 octobre 2026",
   introduction: [
     "Qui se cache derrière SOS Miam, qui héberge le site et comment nous joindre : c'est la page la plus sérieuse du site, mais on a fait en sorte qu'elle reste digeste.",
     `Ces mentions s'appliquent au site **${site.adresse}** et à ses sous-domaines.`,
@@ -73,7 +73,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "À quoi sert le site",
       blocs: [
         `${site.nom} veut te faire découvrir les lieux indépendants (restos, pâtisseries, bars, bowlings, salles d'événements, sorties) qui ont besoin de monde, y compris ceux qui traversent une vraie période difficile. Le lancement est prévu partout en France.`,
-        `Le projet est en cours de développement : pour l'instant, le site présente SOS Miam et te permet de demander à être prévenu du lancement, de demander l'inscription de ton lieu ou, dès 18 ans, de devenir ambassadeur avec un compte sur [${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur}).`,
+        `Le projet est en cours de développement : pour l'instant, le site présente SOS Miam et te permet de demander à être prévenu du lancement, de demander l'inscription de ton lieu, de gérer sa fiche dans l'[espace pro](https://pro.sosmiam.fr) ou, dès 18 ans, de devenir ambassadeur avec un compte sur [${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur}).`,
         "**Tout est gratuit**, pour toi comme pour les lieux : pas d'abonnement, pas d'offre payante, aucune commission. Rien n'est vendu sur le site, c'est pourquoi il n'y a pas de conditions générales de vente. Les règles d'utilisation du site se trouvent dans les [conditions d'utilisation](/cgu).",
         "À terme, SOS Miam prévoit de se financer grâce à de la publicité, toujours signalée comme telle et sans aucun effet sur le classement des lieux. Il n'y a aucune publicité aujourd'hui.",
       ],
@@ -126,7 +126,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "Données personnelles et cookies",
       blocs: [
         "SOS Miam ne vend ni ne loue jamais tes données. Ce qui est traité aujourd'hui, pourquoi, combien de temps et comment exercer tes droits : tout est expliqué dans la [politique de confidentialité](/confidentialite).",
-        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seules exceptions possibles : des cookies de sécurité que notre prestataire ${prestataires.reseau.nom} peut déposer pour protéger le site, le cookie qui retient ton refus des statistiques et celui qui te garde connecté à ton espace ambassadeur. Le détail est sur la page [cookies](/cookies).`,
+        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seules exceptions possibles : des cookies de sécurité que notre prestataire ${prestataires.reseau.nom} peut déposer pour protéger le site, le cookie qui retient ton refus des statistiques et celui qui te garde connecté à ton espace ambassadeur ou pro. Le détail est sur la page [cookies](/cookies).`,
       ],
     },
     {

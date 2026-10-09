@@ -8,6 +8,8 @@ import { lireReglagesEnvoi } from "./reglages-envoi.ts";
 
 /** Adresse écrite en dur (jamais tirée d'une requête) */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
+/** Un compte sans rôle d'ambassadeur (compte pro) se connecte sur l'espace pro */
+const ESPACE_PRO = "https://pro.sosmiam.fr";
 const UN_JOUR = 86_400_000;
 /** Sans visite pendant 1 an : le rôle d'ambassadeur est retiré ; 2 ans : le compte est effacé (décision du 8 octobre 2026).
  * On prévient 30 jours avant chacun, une seule fois. */
@@ -72,7 +74,7 @@ async function trouverAPrevenir({ type, delai, seulementAmbassadeurs }: Alerte, 
       derniereConnexion: { lt: new Date(maintenant.getTime() - delai + PREVENIR_AVANT), gte: new Date(maintenant.getTime() - delai) },
       ...(seulementAmbassadeurs ? { ambassadeur: { isNot: null } } : {}),
     },
-    select: { prenom: true, email: true, derniereConnexion: true },
+    select: { prenom: true, email: true, derniereConnexion: true, ambassadeur: { select: { compteId: true } } },
     take: 500,
   });
   if (comptes.length === 0) return [];
@@ -116,7 +118,7 @@ export async function prevenirAvantEcheances(maintenant = new Date()) {
           `Ton compte SOS Miam n'a pas servi depuis presque deux ans. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon dès le ${compte.date}, avec tout ce qui va avec.`,
           `Tu veux le garder ? Il suffit de te connecter avant le ${compte.date}. Sinon, tu n'as rien à faire : on efface tout, sans relance.`,
         ],
-        bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
+        bouton: { texte: "Me connecter", adresse: compte.ambassadeur ? ESPACE_AMBASSADEUR : ESPACE_PRO },
         pied: "Tu reçois ce mail parce que tu as un compte SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
       }),
     });
