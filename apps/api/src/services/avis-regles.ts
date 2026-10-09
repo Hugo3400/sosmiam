@@ -50,7 +50,7 @@ export type EchecAvis = { ok: false; erreur: ErreurAvis; details?: DetailsErreur
 /** Ce que partagent les services des avis : données, chiffrement (âge et initiale du nom), tirage au sort, horloge */
 export type ContexteAvis = {
   depot: DepotAvis;
-  /** null : clé absente (prudence : prénom seul, compté comme un 15-17 ans) */
+  /** null : clé absente (prudence : prénom seul ; un compte de l'app avec sa date compte comme un 15-17 ans) */
   chiffrement: ChiffrementDonnees | null;
   /** Un entier de 0 à max − 1 (crypto.randomInt) : les avis relus au hasard */
   tirer: (max: number) => number;

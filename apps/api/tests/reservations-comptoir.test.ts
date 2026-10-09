@@ -226,8 +226,8 @@ test("état du comptoir : arrivées du jour et demandes à traiter ; liste du jo
   const addition = await b.demander("POST", "/app/visites/addition", bob.jeton, { lieuId: 1, position: SUR_PLACE });
   assert.equal(addition.corps.visite.code, "1236");
 
-  // Le soir : Léa est là, Zoé n'a pas eu de réponse (expirée)
-  b.banc.horloge = VINGT_HEURES;
+  // 20 h 30 : Léa est là ; la demande de Zoé pour 21 h, restée sans réponse, expire
+  b.banc.horloge = VINGT_HEURES + 30 * MINUTE;
   await presence(a, lea.jeton);
   etat = (await b.demander("GET", "/pro/comptoir/lieux/1", gerant.jeton)).corps.etat;
   assert.deepEqual([etat.arrivees.map((r: { presence: boolean }) => r.presence), etat.reservationsARepondre], [[true], 0]);

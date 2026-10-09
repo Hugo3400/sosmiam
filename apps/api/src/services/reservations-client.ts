@@ -38,7 +38,7 @@ export function creerReservationsClient(c: ContexteVisites) {
 
   /** La réservation telle que le client la voit, avec son lieu et la visite qui en est née */
   async function presenter(t: TablesVisites, r: LigneReservation): Promise<Reservation> {
-    const [lieux, visites] = await Promise.all([t.resumerLieux([r.lieuId]), outils.lireVisitesNees(t, [r.id])]);
+    const [lieux, visites] = await Promise.all([t.resumerLieux([r.lieuId]), outils.lireVisitesNees(t, r.compteId, [r.id])]);
     return presenterReservation(r, lieux.get(r.lieuId) ?? o.lieuDisparu(r.lieuId), visites.get(r.id) ?? null);
   }
 
@@ -89,7 +89,7 @@ export function creerReservationsClient(c: ContexteVisites) {
         const lignes = await t.listerReservations({ compteId, ordre: "creneau-decroissant", limite: RESERVATIONS_RENDUES });
         const [lieux, visites] = await Promise.all([
           t.resumerLieux([...new Set(lignes.map((r) => r.lieuId))]),
-          outils.lireVisitesNees(t, lignes.map((r) => r.id)),
+          outils.lireVisitesNees(t, compteId, lignes.map((r) => r.id)),
         ]);
         return {
           ok: true,

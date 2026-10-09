@@ -39,7 +39,7 @@ export function creerOutilsReservations(c: ContexteVisites) {
       if (!lieu) return null;
       const visiteur = await o.lireVisiteur(t, r.compteId);
       if (o.verifierDroits(lieu, visiteur) ?? o.verifierEmail(visiteur)) return null;
-      const [deja] = await t.listerVisites({ reservationIds: [r.id], limite: 1 });
+      const [deja] = await t.listerVisites({ compteId: r.compteId, reservationIds: [r.id], limite: 1 });
       if (deja) return null;
       const sos = await t.lireSosA(r.lieuId, r.creeLe);
       const validee = await creerVisiteValidee(t, {
@@ -50,10 +50,13 @@ export function creerOutilsReservations(c: ContexteVisites) {
       return { ...validee, majeur: visiteur.majeur };
     },
 
-    /** Les visites nées de ces réservations : identifiant de la réservation → identifiant de la visite */
-    async lireVisitesNees(t: TablesVisites, reservationIds: number[]): Promise<Map<number, number>> {
+    /**
+     * Les visites nées des réservations de ce compte : identifiant de la réservation → identifiant de la visite (le compte
+     * sert d'index : la table des visites n'en a pas sur la réservation)
+     */
+    async lireVisitesNees(t: TablesVisites, compteId: number, reservationIds: number[]): Promise<Map<number, number>> {
       if (reservationIds.length === 0) return new Map();
-      const visites = await t.listerVisites({ reservationIds });
+      const visites = await t.listerVisites({ compteId, reservationIds });
       return new Map(visites.flatMap((v) => (v.reservationId === null ? [] : [[v.reservationId, v.id] as const])));
     },
   };
