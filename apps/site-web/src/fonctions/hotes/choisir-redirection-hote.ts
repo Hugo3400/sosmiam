@@ -12,8 +12,8 @@ const HOTE_SITE = "sosmiam.fr";
 const PAGES_ESPACE = [
   "/programme", "/inscription", "/connexion", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email", "/espace", "/deconnexion", "/communes",
 ];
-/** Débuts d'adresses de l'espace : les pages connectées et les fichiers du kit média */
-const DEBUTS_ESPACE = ["/espace/", "/kit-media/"];
+/** Débuts d'adresses de l'espace : les pages connectées et les fichiers du kit média (et du kit média pro) */
+const DEBUTS_ESPACE = ["/espace/", "/kit-media/", "/kit-media-pro/"];
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 

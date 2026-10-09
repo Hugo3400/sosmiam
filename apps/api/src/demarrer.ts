@@ -21,6 +21,7 @@ import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
 import { enregistrerInscription } from "./services/inscriptions.ts";
+import { creerSuggestionLieu, lireFichePourSuggestion } from "./services/suggestions-comptes.ts";
 import { listerLieuxPublics } from "./services/lieux-publics.ts";
 import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
@@ -64,6 +65,7 @@ const serveur = creerApplication({
       creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
       reinitialiserMotDePasse, preparerReinitialisation, preparerVerificationEmail, verifierEmail, lireCandidature, creerCandidature,
       changerCommuneCandidature, listerPropositions, creerProposition, lireCandidatureCertification, creerCandidatureCertification,
+      lireFichePourSuggestion, creerSuggestionLieu,
     },
     sessions: stockageSessionsComptes,
     zones,

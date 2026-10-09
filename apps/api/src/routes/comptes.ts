@@ -6,6 +6,7 @@ import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts"
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
 import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
+import { creerControleursSuggestions } from "../controleurs/comptes-suggestions.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
@@ -23,6 +24,9 @@ export const LIMITE_CONNECTEE = { fenetre: DIX_MINUTES, maximum: 600 };
 export const LIMITE_MOT_DE_PASSE_OUBLIE = { fenetre: 60 * 60_000, maximum: 5 };
 /** Confirmation de l'e-mail par le lien reçu : 20 essais par visiteur toutes les 10 minutes */
 export const LIMITE_VERIFIER_EMAIL = { fenetre: DIX_MINUTES, maximum: 20 };
+/** « Proposer une modification » d'une fiche : 20 envois par visiteur et par heure (en plus des limites par compte : 10
+ * par 24 heures, 3 en attente sur un même lieu) */
+export const LIMITE_SUGGESTIONS = { fenetre: 60 * 60_000, maximum: 20 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -64,6 +68,18 @@ export type DependancesComptes = {
  * POST   /comptes/verifier-email        { jeton } → 200 { ok } (e-mail confirmé, jeton effacé) · 400 jeton-invalide · 429
  * POST   /comptes/moi/renvoyer-verification → 200 { ok, dejaVerifie } · 401 · 429 trop-de-demandes {attente} (1 lien toutes
  *                                        les 15 min et 5 par 24 h, l'envoi de l'inscription compris)
+ * POST   /comptes/moi/suggestions       { lieuId, proposition, message? } (tout compte connecté) : proposer une modification
+ *                                        d'une fiche de lieu, décidée par l'équipe dans le logiciel de gestion.
+ *                                        proposition : PropositionLieu de packages/commun (nom, adresse, horaires, texte,
+ *                                        telephone, siteWeb, instagram, animaux, accessible, terrasse, wifi, enfants, parking,
+ *                                        paiements, reservation), vérifiée par validerPropositionLieu ; message : « Pourquoi ? »
+ *                                        (1 000 car.) → 201 { ok, id } (gardée avec seulement les champs qui changent, et
+ *                                        « avant » : ces champs tels qu'ils sont dans la fiche ; source « client »)
+ *                                        · 400 proposition-invalide {champ} (champ de validerPropositionLieu, ou « autre »
+ *                                        pour un champ qui n'est pas proposable) · 400 rien-a-changer (tout est déjà
+ *                                        comme ça) · 401 · 404 lieu-inconnu (absent ou pas publié) · 409 trop-de-suggestions
+ *                                        (10 par 24 h par compte, ou déjà 3 en attente sur ce lieu) · 429 (20 par visiteur
+ *                                        et par heure)
  * Ambassadeur « actif » seulement (sinon 403 ambassadeur-non-actif) :
  * GET    /comptes/moi/candidature       → 200 { ok, candidature: { statut, numero, numeroLocal, numeroNational, commune, zone,
  *                                        creeLe, reponduLe } | null, placesRestantes } (statut : en-attente, acceptee,
@@ -103,6 +119,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const liens = creerControleursLiens(contexte);
   const espace = creerControleursEspaceComptes(services, zones);
   const certification = creerControleursCertification(services);
+  const suggestions = creerControleursSuggestions(services, horloge);
   const routes = Router();
 
   // Sans session : une limite par visiteur pour chaque porte d'entrée, toujours AVANT de calculer une empreinte
@@ -121,6 +138,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/mot-de-passe", protection.exigerCompte, moi.changerMotDePasse);
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
+  routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
   routes.get("/moi/candidature", protection.exigerAmbassadeurActif, espace.lireCandidature);
   routes.post("/moi/candidature", protection.exigerAmbassadeurActif, espace.candidater);
   routes.post("/moi/candidature/commune", protection.exigerAmbassadeurActif, espace.changerCommune);

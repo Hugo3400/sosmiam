@@ -23,6 +23,7 @@ export function ModaleAccepterDemande({ demande, onFermer, onAcceptee }: { deman
     ouverture: [], plat: demande.plat ?? "", tags: [], envies: [], reservable: false, telephone: null,
     siteWeb: demande.siteWeb?.startsWith("https://") ? demande.siteWeb : null, instagram: demande.instagram, decouvertPar: null, statut: "brouillon",
     note: `Créée depuis la demande n° ${demande.id} (${demande.origine === "lieu" ? "inscription du lieu" : "proposition Discord"}).`,
+    animaux: null, accessible: null, terrasse: null, wifi: null, enfants: null, parking: null, paiements: [], reservation: null,
   });
   const [reponse, setReponse] = useState("");
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });

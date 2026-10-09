@@ -1,6 +1,6 @@
 // Comptes en mémoire, pour les tests et l'API de démonstration (essais du site sans toucher à la vraie base) : mêmes
-// règles que les services Prisma (comptes.ts, comptes-espace.ts, certification.ts, zones-fondateurs.ts) ; rien n'est écrit nulle part, tout
-// s'efface à l'arrêt. Les mails ne partent pas : ils sont notés dans `envois` (lien compris, pour les essais).
+// règles que les services Prisma (comptes.ts, comptes-espace.ts, certification.ts, suggestions-comptes.ts,
+// zones-fondateurs.ts) ; rien n'est écrit nulle part, tout s'efface à l'arrêt. Les mails ne partent pas : ils sont notés dans `envois` (lien compris, pour les essais).
 import type { CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import type { ServicesComptes } from "../controleurs/comptes.ts";
 import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
@@ -10,6 +10,7 @@ import { creerStockageSessionsComptesEnMemoire } from "../middlewares/proteger-c
 import type { NouvelleCandidatureCertification, ProfilCertifie, StatutCandidatureCertification } from "./certification.ts";
 import type { CompteConnecte, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
 import type { NouvelleCandidature, NouvelleProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
+import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
 
 export type CompteEnMemoire = {
@@ -68,6 +69,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const envois: EnvoiEnMemoire[] = [];
   const sessions = creerStockageSessionsComptesEnMemoire(comptes);
   const zones = creerZonesEnMemoire(() => candidatures);
+  const suggestions = creerSuggestionsEnMemoire(horloge);
   const compteurs = { comptes: 0, candidatures: 0, candidaturesCertification: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
   const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
@@ -142,6 +144,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       for (let i = candidatures.length - 1; i >= 0; i--) if (candidatures[i]?.compteId === id) candidatures.splice(i, 1);
       for (let i = candidaturesCertification.length - 1; i >= 0; i--) if (candidaturesCertification[i]?.compteId === id) candidaturesCertification.splice(i, 1);
       for (const proposition of propositions) if (proposition.compteId === id) proposition.compteId = null;
+      suggestions.oublierCompte(id);
     },
     async trouverCompteParJeton(empreinteJeton, maintenant) {
       const compte = [...comptes.values()].find(({ reinitialisation }) =>
@@ -218,6 +221,8 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       });
       return "ok";
     },
+    lireFichePourSuggestion: suggestions.lireFichePourSuggestion,
+    creerSuggestionLieu: suggestions.creerSuggestionLieu,
   };
 
   return {
@@ -234,6 +239,9 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     candidaturesCertification,
     propositions,
     envois,
+    /** Lieux de test (à remplir par les tests : champs proposables et statut) et suggestions reçues */
+    lieux: suggestions.lieux,
+    suggestions: suggestions.suggestions,
     /**
      * Décision de l'équipe, comme deciderAmbassadeur (logiciel de gestion) : les sessions restent ouvertes, le statut est
      * relu à chaque demande (§9 : un refus ou une suspension compte tout de suite, sans déconnecter).

@@ -17,6 +17,7 @@ import type { CompteConnecte, ModificationCompte, NouveauCompte } from "../servi
 import type {
   CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, PropositionVue, ResultatChangementCommune,
 } from "../services/comptes-espace.ts";
+import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompte } from "../services/suggestions-comptes-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
@@ -64,6 +65,10 @@ export type ServicesComptes = {
   lireCandidatureCertification: (compteId: number) => Promise<CandidatureCertificationBrute | null>;
   /** « deja-certifie » s'il a déjà le titre, « candidature-existante » s'il en a une en attente */
   creerCandidatureCertification: (compteId: number, candidature: NouvelleCandidatureCertification) => Promise<ResultatCandidatureCertification>;
+  /** Champs proposables d'un lieu publié (null : inconnu ou pas publié) : services/suggestions-comptes.ts */
+  lireFichePourSuggestion: (lieuId: number) => Promise<FicheSuggerable | null>;
+  /** Suggestion de modification gardée, ou « trop-de-suggestions » (10 par 24 h, 3 en attente par lieu) */
+  creerSuggestionLieu: (compteId: number, suggestion: NouvelleSuggestionCompte, maintenant: Date) => Promise<ResultatSuggestionCompte>;
 };
 
 /**

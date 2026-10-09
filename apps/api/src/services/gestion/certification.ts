@@ -2,20 +2,23 @@
 // pas un palier, pour qui aide les lieux partenaires (ambassadeur, pro ou structure). Candidatures envoyées depuis
 // l'espace (schéma : prisma/schema/certification.prisma), acceptées ou refusées ici ; le titre se retire ici aussi.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { decrireCommune } from "../../fonctions/geo/decrire-commune.ts";
 
 const COMPTE = {
   id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true,
   ambassadeur: { select: { ville: true, quartier: true, statut: true, certifieLe: true, profilCertifie: true, structure: true } },
 } as const;
 
-/** Les candidatures d'un statut (« en-attente », « acceptee », « refusee » ; vide : toutes), avec le compte. */
+/** Les candidatures d'un statut (« en-attente », « acceptee », « refusee » ; vide : toutes), avec le compte et le nom de
+ * la commune déclarée (la base ne garde que son code INSEE). */
 export async function listerCandidaturesCertification(statut: string) {
-  return baseDeDonnees.candidatureCertification.findMany({
+  const candidatures = await baseDeDonnees.candidatureCertification.findMany({
     where: statut ? { statut } : {},
     orderBy: { creeLe: statut === "en-attente" ? "asc" : "desc" },
     take: 300,
     include: { compte: { select: COMPTE } },
   });
+  return candidatures.map((candidature) => ({ ...candidature, commune: decrireCommune(candidature.communeCode) }));
 }
 
 /** Les ambassadeurs certifiés aujourd'hui, du plus récent au plus ancien. */

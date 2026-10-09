@@ -32,6 +32,8 @@ export default [
     route("espace/kit-media", "routes/ambassadeur/kit-media.tsx"),
     route("espace/proposer-un-lieu", "routes/ambassadeur/proposer-un-lieu.tsx"),
     route("espace/fondateur", "routes/ambassadeur/fondateur.tsx"),
+    route("espace/certification", "routes/ambassadeur/certification.tsx"),
+    route("espace/kit-media-pro", "routes/ambassadeur/kit-media-pro.tsx"),
     route("espace/missions", "routes/ambassadeur/missions.tsx"),
     route("espace/messages", "routes/ambassadeur/messages.tsx"),
   ]),
@@ -39,6 +41,8 @@ export default [
   // et les fichiers du kit média, réservés aux ambassadeurs validés
   route("deconnexion", "routes/compte/deconnexion.tsx"),
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
+  // Fichiers du kit média pro, réservés aux ambassadeurs certifiés
+  route("kit-media-pro/:fichier", "routes/ressources/telecharger-kit-pro.ts"),
   // Carte de fondateur numérique (SVG), réservée à son fondateur
   route("espace/fondateur/carte.svg", "routes/ressources/carte-fondateur.tsx"),
   // Visuels du kit média à leur taille exacte, pour les capturer (serveur de développement seulement)

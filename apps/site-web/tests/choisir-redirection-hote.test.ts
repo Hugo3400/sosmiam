@@ -27,6 +27,8 @@ test("ambassadeur.sosmiam.fr : les pages de l'espace, leurs données et les fich
     "/robots.txt", "/sitemap.xml",
     // Confirmation de l'e-mail, suggestions de « Ta ville » et carte de fondateur
     "/verifier-email", "/communes?recherche=lyon", "/programme?ville=Lyon", "/espace/fondateur/carte.svg?titre=fondatrice",
+    // Ambassadeur certifié et son kit média pro
+    "/espace/certification", "/espace/certification.data", "/espace/kit-media-pro", "/kit-media-pro/affiche-a4.pdf?apercu=1",
   ];
   for (const chemin of servis) assert.equal(choisirRedirectionHote(AMBASSADEUR, chemin), null, chemin);
 });
@@ -60,6 +62,8 @@ test("sosmiam.fr : les pages de l'espace partent sur ambassadeur.sosmiam.fr (301
     ["/nouveau-mot-de-passe", "https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe"],
     ["/verifier-email", "https://ambassadeur.sosmiam.fr/verifier-email"],
     ["/kit-media/logo-fond-clair.png", "https://ambassadeur.sosmiam.fr/kit-media/logo-fond-clair.png"],
+    ["/kit-media-pro/flyer-a6.pdf", "https://ambassadeur.sosmiam.fr/kit-media-pro/flyer-a6.pdf"],
+    ["/espace/certification", "https://ambassadeur.sosmiam.fr/espace/certification"],
     ["/deconnexion", "https://ambassadeur.sosmiam.fr/deconnexion"],
     ["/esp%61ce", "https://ambassadeur.sosmiam.fr/esp%61ce"],
   ];
