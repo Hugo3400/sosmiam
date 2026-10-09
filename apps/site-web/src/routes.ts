@@ -7,6 +7,8 @@ export default [
     index("routes/public/accueil.tsx"),
     route("faq", "routes/public/faq.tsx"),
     route("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
+    // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
+    route("lieux/:id", "routes/public/fiche-lieu.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [
@@ -18,15 +20,18 @@ export default [
     route("accessibilite", "routes/public/accessibilite.tsx"),
     route("statistiques", "routes/public/statistiques.tsx"),
   ]),
-  // Espace ambassadeur (https://ambassadeur.sosmiam.fr, dès 18 ans) : son propre cadre ; le partage des adresses entre
-  // sosmiam.fr et ambassadeur.sosmiam.fr est fait par fonctions/hotes/choisir-redirection-hote.ts
-  layout("routes/ambassadeur/mise-en-page-ambassadeur.tsx", [
-    route("programme", "routes/ambassadeur/programme.tsx"),
+  // Pages du compte, servies sur ambassadeur.sosmiam.fr ET sur pro.sosmiam.fr : leur cadre suit l'hôte. Le partage des
+  // adresses entre sosmiam.fr et les deux espaces est fait par fonctions/hotes/choisir-redirection-hote.ts
+  layout("routes/compte/mise-en-page-compte.tsx", [
     route("inscription", "routes/compte/inscription.tsx"),
     route("connexion", "routes/compte/connexion.tsx"),
     route("mot-de-passe-oublie", "routes/compte/mot-de-passe-oublie.tsx"),
     route("nouveau-mot-de-passe", "routes/compte/nouveau-mot-de-passe.tsx"),
     route("verifier-email", "routes/compte/verifier-email.tsx"),
+  ]),
+  // Espace ambassadeur (https://ambassadeur.sosmiam.fr, dès 18 ans) : son propre cadre
+  layout("routes/ambassadeur/mise-en-page-ambassadeur.tsx", [
+    route("programme", "routes/ambassadeur/programme.tsx"),
     route("espace", "routes/ambassadeur/espace.tsx"),
     route("espace/mon-compte", "routes/compte/mon-compte.tsx"),
     route("espace/kit-media", "routes/ambassadeur/kit-media.tsx"),
@@ -36,6 +41,16 @@ export default [
     route("espace/kit-media-pro", "routes/ambassadeur/kit-media-pro.tsx"),
     route("espace/missions", "routes/ambassadeur/missions.tsx"),
     route("espace/messages", "routes/ambassadeur/messages.tsx"),
+  ]),
+  // Espace pro (https://pro.sosmiam.fr) : les lieux gèrent leur fiche, leur équipe et leur affichette de table
+  layout("routes/pro/mise-en-page-pro.tsx", [
+    route("bienvenue", "routes/pro/bienvenue.tsx"),
+    route("tableau", "routes/pro/tableau.tsx"),
+    route("rattacher", "routes/pro/rattacher.tsx"),
+    route("lieu/:id", "routes/pro/ma-fiche.tsx"),
+    route("lieu/:id/suggestions", "routes/pro/suggestions.tsx"),
+    route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
+    route("lieu/:id/affichette", "routes/pro/affichette.tsx"),
   ]),
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
   // et les fichiers du kit média, réservés aux ambassadeurs validés
@@ -56,6 +71,7 @@ export default [
   // Adresses sans page, appelées par le navigateur (réponses JSON)
   route("localiser", "routes/ressources/localiser.ts"),
   route("communes", "routes/ressources/communes.ts"),
+  route("recherche-lieux", "routes/ressources/recherche-lieux.ts"),
   // Pour les moteurs de recherche (texte et XML générés à chaque demande)
   route("robots.txt", "routes/ressources/robots.ts"),
   route("sitemap.xml", "routes/ressources/plan-du-site.ts"),

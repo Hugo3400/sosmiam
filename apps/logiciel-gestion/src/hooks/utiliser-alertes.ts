@@ -28,6 +28,7 @@ const NOUVEAUTES: { lire: (a: Alertes) => number; titre: string; texte: string }
   { lire: (a) => a.ambassadeurs.enAttente, titre: "🙋 Nouvel ambassadeur", texte: "Une inscription à l'espace ambassadeur attend ta validation." },
   { lire: (a) => a.ambassadeurs.candidatures, titre: "🏅 Nouvelle candidature fondateur", texte: "Une candidature fondateur vient d'arriver." },
   { lire: (a) => a.ambassadeurs.certifications ?? 0, titre: "✅ Nouvelle candidature « certifié »", texte: "Quelqu'un veut devenir ambassadeur certifié : Ambassadeurs → Certifiés." },
+  { lire: (a) => a.boite?.nonLus ?? 0, titre: "📨 Nouveau mail", texte: "Un mail est arrivé sur bonjour@sosmiam.fr : ouvre la Boîte mail." },
   { lire: (a) => a.lieux?.suggestions ?? 0, titre: "✏️ Modification de fiche proposée", texte: "Un client ou un lieu propose de modifier une fiche : ouvre Lieux pour voir l'avant et l'après." },
   { lire: (a) => a.missionsFaites, titre: "🎯 Mission faite", texte: "Un ambassadeur a envoyé son compte rendu : va le lire dans Ambassadeurs → Missions." },
   { lire: (a) => a.bigSos.aTraiter, titre: "🛟 BIG SOS à étudier", texte: "Un BIG SOS attend ton attention." },

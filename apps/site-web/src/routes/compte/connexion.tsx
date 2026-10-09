@@ -5,6 +5,7 @@ import { FormulaireConnexion } from "~/composants/compte/FormulaireConnexion";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { connecterCompte, decrireAttente, MESSAGE_OCCUPE } from "~/services/comptes.server";
@@ -19,20 +20,37 @@ const accueils = {
   deconnecte: "Tu es déconnecté. À bientôt !",
 };
 
-export function meta(_: Route.MetaArgs) {
+/** Ce qui change d'un espace à l'autre : la page ouverte après la connexion, et les mots de la page. */
+const textes: Record<EspaceCompte, { accueil: string; description: string; chapo: string; inscription: string }> = {
+  ambassadeur: {
+    accueil: "/espace",
+    description: "Connecte-toi à ton espace ambassadeur SOS Miam.",
+    chapo: "Content de te revoir ! Connecte-toi pour retrouver ton espace ambassadeur.",
+    inscription: "Deviens ambassadeur",
+  },
+  pro: {
+    accueil: "/tableau",
+    description: "Connecte-toi à l'espace pro SOS Miam : ta fiche, ton équipe, ton affichette.",
+    chapo: "Content de te revoir ! Connecte-toi pour retrouver ton lieu.",
+    inscription: "Crée ton compte",
+  },
+};
+
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    ...creerMeta({ titre: "Connexion", description: "Connecte-toi à ton espace ambassadeur SOS Miam." }),
+    ...creerMeta({ titre: "Connexion", description: textes[loaderData?.espace ?? "ambassadeur"].description }),
     { name: "robots", content: "noindex" },
   ];
 }
 
 /** Déjà connecté : direction l'espace (ou la page demandée). */
 export async function loader({ request }: Route.LoaderArgs) {
-  const parametres = new URL(request.url).searchParams;
-  const retour = lireRetourSur(parametres.get("retour"));
-  if (await lireCompteConnecte(request)) throw redirect(retour ?? "/espace");
-  const accueil = parametres.has("au-revoir") ? accueils["au-revoir"] : parametres.has("deconnecte") ? accueils.deconnecte : null;
-  return { retour, accueil: accueil && lierPonctuation(accueil) };
+  const url = new URL(request.url);
+  const espace = lireEspaceHote(url.host);
+  const retour = lireRetourSur(url.searchParams.get("retour"));
+  if (await lireCompteConnecte(request)) throw redirect(retour ?? textes[espace].accueil);
+  const accueil = url.searchParams.has("au-revoir") ? accueils["au-revoir"] : url.searchParams.has("deconnecte") ? accueils.deconnecte : null;
+  return { espace, retour, accueil: accueil && lierPonctuation(accueil) };
 }
 
 /** Connexion (avec ou sans JavaScript) : un nouveau jeton, gardé dans le cookie de session. */
@@ -50,7 +68,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "connexion", erreurs, valeurs };
 
   const reponse = await connecterCompte(email, motDePasse, lireIpVisiteur(request));
-  if (reponse.ok) throw redirect(retour ?? "/espace", { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
+  const accueilEspace = textes[lireEspaceHote(new URL(request.url).host)].accueil;
+  if (reponse.ok) throw redirect(retour ?? accueilEspace, { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
 
   // Même message pour un e-mail inconnu et un mauvais mot de passe : rien n'est révélé sur les comptes existants
   let message = "Oups, la connexion n'a pas marché. Réessaie dans un instant.";
@@ -63,10 +82,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 
 /** Page /connexion : e-mail et mot de passe ; « ?retour= » rouvre ensuite la page demandée. */
 export default function PageConnexion({ loaderData }: Route.ComponentProps) {
-  const { retour, accueil } = loaderData;
+  const { espace, retour, accueil } = loaderData;
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation("Content de te revoir ! Connecte-toi pour retrouver ton espace ambassadeur.")}>
+      <TitreSection principal chapo={lierPonctuation(textes[espace].chapo)}>
         Connexion
       </TitreSection>
       {accueil && (
@@ -79,7 +98,7 @@ export default function PageConnexion({ loaderData }: Route.ComponentProps) {
         <p className="mt-6 text-center text-gris">
           {lierPonctuation("Pas encore de compte ? ")}
           <Link to="/inscription" className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-            Deviens ambassadeur
+            {textes[espace].inscription}
           </Link>
         </p>
       </div>

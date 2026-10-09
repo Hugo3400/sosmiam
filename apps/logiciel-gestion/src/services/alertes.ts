@@ -6,6 +6,8 @@ export type Alertes = {
   demandes: { aTraiter: number };
   /** Modifications de fiches proposées par un client ou un lieu, à examiner */
   lieux?: { suggestions: number };
+  /** Mails pas encore lus dans bonjour@ (null : boîte injoignable) */
+  boite?: { nonLus: number | null };
   ambassadeurs: { enAttente: number; candidatures: number; certifications?: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;

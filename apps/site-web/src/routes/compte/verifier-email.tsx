@@ -9,6 +9,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { extraireJeton } from "~/fonctions/texte/extraire-jeton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -32,7 +33,8 @@ export function meta(_: Route.MetaArgs) {
 /** Pour la page : la personne est-elle connectée (elle peut alors se faire renvoyer un lien), et déjà confirmée ? */
 export async function loader({ request }: Route.LoaderArgs) {
   const connecte = await lireCompteConnecte(request);
-  return { connecte: connecte !== null, dejaVerifie: connecte?.compte.emailVerifie === true };
+  const accueil = lireEspaceHote(new URL(request.url).host) === "pro" ? "/tableau" : "/espace";
+  return { connecte: connecte !== null, dejaVerifie: connecte?.compte.emailVerifie === true, accueil };
 }
 
 /** Confirme l'e-mail avec le jeton du lien (ou du champ « Code reçu par mail »), ou renvoie un lien (personne connectée). */
@@ -78,7 +80,7 @@ export default function PageVerifierEmail({ loaderData }: Route.ComponentProps) 
           <p className="mx-auto mt-3 max-w-lg text-lg">
             {lierPonctuation("Merci ! L'équipe voit maintenant que ton adresse est bien la tienne.")}
           </p>
-          <Bouton vers={loaderData.connecte ? "/espace" : "/connexion"} variante="encre" className="mt-7">
+          <Bouton vers={loaderData.connecte ? loaderData.accueil : "/connexion"} variante="encre" className="mt-7">
             {loaderData.connecte ? "Aller dans mon espace" : "Me connecter"}
           </Bouton>
         </div>

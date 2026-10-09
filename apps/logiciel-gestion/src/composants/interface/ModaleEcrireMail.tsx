@@ -27,13 +27,15 @@ type Props = {
   objet?: string;
   texte?: string;
   onEnvoye?: (bilan: string) => void;
+  /** Autre façon d'envoyer (réponse dans le fil d'un mail reçu) ; l'objet n'est alors pas modifiable */
+  envoyer?: (texte: string) => Promise<unknown>;
 };
 
 /**
  * Écrire un mail à une personne depuis le logiciel : il part tout de suite de bonjour@sosmiam.fr, aux couleurs de SOS
  * Miam, et la personne répond à cette adresse. Une réponse type peut servir de départ.
  */
-export function ModaleEcrireMail({ ouverte, onFermer, destinataire, categorie, lieu, objet: objetDepart, texte: texteDepart, onEnvoye }: Props) {
+export function ModaleEcrireMail({ ouverte, onFermer, destinataire, categorie, lieu, objet: objetDepart, texte: texteDepart, onEnvoye, envoyer: envoyerAutrement }: Props) {
   const { prenom, adresse, compteId } = destinataire;
   const [objet, setObjet] = useState("");
   const [texte, setTexte] = useState("");
@@ -61,7 +63,8 @@ export function ModaleEcrireMail({ ouverte, onFermer, destinataire, categorie, l
     if (/\[[^\]]*\]/.test(`${objet} ${texte}`) && !window.confirm("Il reste des [crochets] à compléter. Envoyer quand même ?")) return;
     setEtat({ enCours: true, erreur: null });
     try {
-      await ecrireCourriel(compteId ? { compteId } : { adresse }, objet.trim(), texte);
+      if (envoyerAutrement) await envoyerAutrement(texte);
+      else await ecrireCourriel(compteId ? { compteId } : { adresse }, objet.trim(), texte);
       setEtat({ enCours: false, erreur: null });
       onEnvoye?.(`Mail envoyé à ${adresse} ✅`);
       onFermer();
@@ -98,7 +101,9 @@ export function ModaleEcrireMail({ ouverte, onFermer, destinataire, categorie, l
             options={[{ valeur: "", libelle: "Choisir…" }, ...modeles.map((m) => ({ valeur: String(m.id), libelle: `${m.titre} (${CATEGORIES_REPONSES[m.categorie]})` }))]}
           />
         )}
-        <Champ libelle="Objet" valeur={objet} onChange={setObjet} maxLength={150} />
+        {envoyerAutrement
+          ? <p className="text-sm"><span className="text-gris">Objet :</span> <strong>{objet}</strong></p>
+          : <Champ libelle="Objet" valeur={objet} onChange={setObjet} maxLength={150} />}
         <ZoneTexte
           libelle="Message"
           valeur={texte}
