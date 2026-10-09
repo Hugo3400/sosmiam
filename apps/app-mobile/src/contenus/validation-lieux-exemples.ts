@@ -30,4 +30,5 @@ export const validationLieuxExemples: Readonly<Record<number, ValidationLieu>> =
   15: valide(15, "oreillet", false),
   16: valide(16, "toqueslg"),
   17: valide(17, "copainsm"),
+  18: valide(18, "bouiboui"),
 };

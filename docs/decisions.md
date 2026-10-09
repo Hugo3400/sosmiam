@@ -129,6 +129,7 @@
   - **lieu « non vérifié »** : ajouté par l'équipe ou proposé par un ambassadeur, sans compte. C'est à dire clairement partout (fiche, carte, FAQ, CGU), pour ne pas laisser croire qu'il est inscrit.
 - **Seul un lieu vérifié valide les visites** (addition, QR du comptoir, réservation honorée), lance des SOS et répond aux avis. Les **points de visite** (+15, +25 pendant un SOS), les **rescousses** et les **avis vérifiés** n'existent donc que dans un lieu vérifié. Sans compte, pas de scan : on ne compte rien.
 - **Dans un lieu non vérifié**, on peut voir la fiche et l'itinéraire, le garder en favori, donner un avis (marqué « non vérifié », sans visite validée) et **inviter le lieu à rejoindre SOS Miam**.
+- **Dans l'app (construit le 9 octobre 2026)** : badge « ✓ Vérifié » ou « Non vérifié » sur la fiche, dans la liste d'Explorer, sur la carte (rond crème en pointillé) et sur les publications du fil ; dans un lieu non vérifié, ni bloc « Tu passes chez eux ? », ni SOS, ni rescousse (une rescousse déjà donnée se reprend encore) : « Inviter ce lieu » à la place (fiche et menu « ⋯ » du fil), qui partage le lien d'inscription gratuite. Un lieu non vérifié ne publie pas lui-même : seuls des créateurs en parlent. Champ `verifie` du type Lieu, règle `estLieuVerifie`.
 
 ## Scan et validation des visites (décidé le 8 octobre 2026)
 - **On valide son passage en payant**, comme le promet la FAQ. Trois façons pour la première version :

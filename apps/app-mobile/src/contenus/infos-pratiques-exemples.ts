@@ -14,6 +14,7 @@ export const infosPratiquesExemples: Readonly<Record<number, InfosPratiques>> = 
   7: { telephone: "04 65 71 00 08", animaux: "non", accessible: true, paiements: ["cb", "sans-contact", "cheques-vacances"], reservation: "obligatoire" },
   8: { telephone: "04 65 71 00 09", animaux: "non", enfants: true, paiements: ["cb", "especes"], reservation: "obligatoire" },
   9: { telephone: "04 65 71 00 10", animaux: "terrasse", terrasse: true, paiements: ["cb", "especes", "tickets-resto"], reservation: "inutile" },
+  18: { telephone: "04 65 71 00 19", siteWeb: "https://example.com/capitaine-bouiboui", instagram: "official.sosmiam", animaux: "bienvenus", accessible: true, terrasse: true, wifi: true, enfants: true, paiements: ["cb", "sans-contact", "especes", "tickets-resto"], reservation: "conseillee" },
   10: { telephone: "04 65 71 00 11", animaux: "non", paiements: ["cb", "especes"], reservation: "inutile" },
   11: { telephone: "04 65 71 00 12", animaux: "non", accessible: true, paiements: ["cb", "sans-contact", "especes"], reservation: "inutile" },
   12: { telephone: "04 65 71 00 13", animaux: "non", parking: true, enfants: true, paiements: ["cb", "cheques-vacances"], reservation: "obligatoire" },

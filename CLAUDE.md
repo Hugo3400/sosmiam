@@ -26,7 +26,8 @@ Voir `docs/arborescence.md` : chaque dossier y est décrit. Un nouveau dossier =
 ## 5. Ton et contenus
 - Tous les textes sont en français, au tutoiement, drôles et bienveillants.
 - SOS Miam aide aussi des lieux réellement en difficulté (BIG SOS) : on en parle avec dignité, jamais avec misérabilisme.
-- Décisions produit et prix : voir `docs/decisions.md` (ne pas inventer de prix ou d'engagements).
+- Décisions produit et prix : voir `docs/decisions.md` (ne pas inventer de prix ou d'engagements). Idées validées pour plus tard : `docs/idees.md`.
+- **Kit de marque** : `kits/SOS_Miam_kit_de_marque/` (logos, mascotte Capitaine Bouiboui, pictos et épingles, bannières, couleurs et typos). Lire son `LISEZMOI.txt` (vocabulaire : les Miamis, la Brigade) avant tout visuel ou texte de marque, et le donner aux agents qui en ont besoin.
 
 ## 6. Stack
 - Site : React Router 8 (mode framework, rendu serveur), React 19, Vite, Tailwind 4, TypeScript.

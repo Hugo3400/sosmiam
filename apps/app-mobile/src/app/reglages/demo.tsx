@@ -15,7 +15,7 @@ import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
 
 /**
- * Réglages > Coulisses de la démo (en développement seulement) : les rôles joués (équipe de Chez Nonna Lia, ambassadeur),
+ * Réglages > Coulisses de la démo (en développement seulement) : les rôles joués (équipe du Restaurant du Capitaine Bouiboui, ambassadeur),
  * la simulation (vraie position, lieux qui répondent seuls, avis en accéléré, pépin) et la remise à zéro.
  * Dans une version publiée, il n'y a pas de démo : l'écran le dit, sans rien proposer.
  */
@@ -40,7 +40,7 @@ export default function CoulissesDemo() {
   async function remettreAZero(): Promise<string> {
     try {
       await outilsDemo?.remettreAZero();
-      return "🧽 Démo remise à zéro : Chez Nonna Lia t'attend avec ta carte à 4 tampons.";
+      return "🧽 Démo remise à zéro : le Capitaine Bouiboui t'attend avec ta carte à 4 tampons.";
     } catch {
       return "Oups, la démo n'a pas pu repartir à zéro. Réessaie dans un instant.";
     }

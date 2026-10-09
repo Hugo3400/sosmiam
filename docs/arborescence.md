@@ -3,7 +3,8 @@
 ```
 sos-miam/
 ├── CLAUDE.md                  règles du projet
-├── docs/                      arborescence (ce fichier) et décisions produit
+├── docs/                      arborescence (ce fichier), décisions produit et idées pour plus tard (idees.md)
+├── kits/                      kit de marque (logos, mascotte Capitaine Bouiboui, pictos, bannières, couleurs ; voir LISEZMOI.txt) et archives des vidéos
 ├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, generer-kit-media-pro.sh, recuperer-inscrits.py, autoriser-poste-gestion.ts, regler-boite-mail.ts, preparer-communes.ts…)
 ├── apps/
 │   ├── site-web/              LE SITE (React Router 8)

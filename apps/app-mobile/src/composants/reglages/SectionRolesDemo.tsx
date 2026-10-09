@@ -8,14 +8,16 @@ import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { LIEU_DEMO_PRO_ID } from "~/contenus/lieu-demo-pro";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 type Props = {
-  /** Message à afficher et à faire lire après un changement (« Tu joues l'équipe de Chez Nonna Lia… ») */
+  /** Message à afficher et à faire lire après un changement (« Tu joues l'équipe du Restaurant du Capitaine Bouiboui… ») */
   onAnnoncer: (texte: string) => void;
 };
 
-/** Le lieu joué par le mode pro de démo : Chez Nonna Lia (ses additions, son QR, ses réservations d'exemple) */
-const LIEU_JOUE_ID = 0;
+/** Le lieu joué par le mode pro de démo : le Restaurant du Capitaine Bouiboui, un nom inventé (ses additions, son QR, ses réservations d'exemple) */
+const LIEU_JOUE_ID = LIEU_DEMO_PRO_ID;
 
 const STATUTS: readonly { statut: StatutAmbassadeur; libelle: string; lu: string }[] = [
   { statut: "actif", libelle: "Actif", lu: "actif : missions, relectures et messages" },
@@ -26,14 +28,15 @@ const STATUTS: readonly { statut: StatutAmbassadeur; libelle: string; lu: string
 const TEXTE_MINEUR = "Les espaces pro et ambassadeur sont réservés aux 18 ans et plus.";
 
 /**
- * Coulisses de la démo > Tes rôles : « Je joue l'équipe de Chez Nonna Lia » (gérance, ou « en équipe seulement ») et
+ * Coulisses de la démo > Tes rôles : « Je joue l'équipe du Restaurant du Capitaine Bouiboui » (gérance, ou « en équipe seulement ») et
  * « Je suis ambassadeur » (actif, en attente ou suspendu), puis un raccourci vers le mode ouvert. Ces rôles sont joués :
  * ils n'existent que sur ce téléphone, et le faux serveur les revérifie à chaque geste. Grisé pour les 15-17 ans.
  */
 export function SectionRolesDemo({ onAnnoncer }: Props) {
   const { roles, majeur, modesOuverts, changerRolesDemo, entrerEnModePro, entrerEnModeAmbassadeur } = utiliserModes();
   const lieu = lieuxExemples.find((l) => l.id === LIEU_JOUE_ID);
-  const nomLieu = lieu?.nom ?? "Chez Nonna Lia";
+  const nomLieu = lieu?.nom ?? "Restaurant du Capitaine Bouiboui";
+  const deLieu = direDeLieu(nomLieu);
   const joue = roles.pro.find((l) => l.id === LIEU_JOUE_ID) ?? null;
   const desactive = !majeur || changerRolesDemo === null;
 
@@ -45,15 +48,15 @@ export function SectionRolesDemo({ onAnnoncer }: Props) {
 
   function jouerLeLieu(role: LieuGere["role"] | null) {
     const autres = roles.pro.filter((l) => l.id !== LIEU_JOUE_ID);
-    const pro = role ? [...autres, { id: LIEU_JOUE_ID, nom: nomLieu, emoji: lieu?.emoji ?? "🍝", role }] : autres;
+    const pro = role ? [...autres, { id: LIEU_JOUE_ID, nom: nomLieu, emoji: lieu?.emoji ?? "🛟", role }] : autres;
     const annonce =
       role === null
-        ? `Tu ne joues plus l'équipe de ${nomLieu}.`
+        ? `Tu ne joues plus l'équipe ${deLieu}.`
         : role === "equipe"
           ? "En équipe seulement : le comptoir et les résas, sans les réglages du lieu."
           : joue
-            ? `Tu reprends la gérance de ${nomLieu} : tout le mode pro est ouvert.`
-            : `🧑‍🍳 Tu joues l'équipe de ${nomLieu} : le mode pro de démo est ouvert.`;
+            ? `Tu reprends la gérance ${deLieu} : tout le mode pro est ouvert.`
+            : `🧑‍🍳 Tu joues l'équipe ${deLieu} : le mode pro de démo est ouvert.`;
     changer({ ...roles, pro }, annonce);
   }
 
@@ -69,7 +72,7 @@ export function SectionRolesDemo({ onAnnoncer }: Props) {
     <SectionReglages titre="Tes rôles">
       <Interrupteur
         emoji={lieu?.emoji ?? "🍝"}
-        titre={`Je joue l'équipe de ${nomLieu}`}
+        titre={`Je joue l'équipe ${deLieu}`}
         detail="Le mode pro : comptoir, QR, résas et réglages du lieu"
         valeur={joue !== null}
         desactive={desactive}

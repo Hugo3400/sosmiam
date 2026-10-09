@@ -6,6 +6,7 @@ import type { Visite } from "@sos-miam/commun/types/visite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 
 type Props = {
   /** La demande d'addition en attente (statut « demandee ») */
@@ -34,7 +35,7 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
   const attente = visite.expireLe ? decrireExpiration(visite.expireLe, maintenant) : null;
   const code = visite.code ?? "";
   const libelle = [
-    `Addition demandée chez ${visite.lieu.nom}`,
+    `Addition demandée ${direChezLieu(visite.lieu.nom)}`,
     // Le code est lu chiffre par chiffre : « 4, 8, 2, 1 »
     code ? `ton code : ${code.split("").join(", ")}` : null,
     attente,

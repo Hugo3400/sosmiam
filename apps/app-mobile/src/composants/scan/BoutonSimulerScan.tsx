@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 
 type Props = {
   /** Le texte du QR « scanné » : il suit le même chemin qu'un vrai scan */
@@ -40,7 +41,7 @@ export function BoutonSimulerScan({ onTexte, desactive = false }: Props) {
 
   if (!outils) return null;
   const nomLieu = lieuxExemples.find((l) => l.id === LIEU_DEMO)?.nom ?? "un lieu d'exemple";
-  const libelle = qrActif ? "Simuler un scan du comptoir" : `Montrer un QR chez ${nomLieu} et le scanner`;
+  const libelle = qrActif ? "Simuler un scan du comptoir" : `Montrer un QR ${direChezLieu(nomLieu)} et le scanner`;
 
   async function simuler() {
     if (!outils || occupe || desactive) return;

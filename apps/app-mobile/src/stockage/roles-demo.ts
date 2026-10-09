@@ -1,8 +1,10 @@
-// Rôles joués dans la démo des visites (« Je joue l'équipe de Chez Nonna Lia », « Je suis ambassadeur »), réglés dans les
-// Coulisses de la démo et gardés sur le téléphone. Utilisés seulement en démo : sans démo, les rôles viendront du compte.
+// Rôles joués dans la démo des visites (« Je joue l'équipe du Restaurant du Capitaine Bouiboui », « Je suis ambassadeur »),
+// réglés dans les Coulisses de la démo et gardés sur le téléphone. Utilisés seulement en démo : sans démo, les rôles viendront
+// du compte. Seul le lieu de démo se joue : un rôle gardé sur un autre lieu (Chez Nonna Lia, avant le 9 octobre 2026) est oublié.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { LieuGere, RolesCompte, StatutAmbassadeur } from "@sos-miam/commun/types/roles";
+import { LIEU_DEMO_PRO_ID } from "~/contenus/lieu-demo-pro";
 
 /** Aucun rôle : ni pro, ni ambassadeur */
 export const ROLES_VIDES: RolesCompte = { ambassadeur: null, pro: [] };
@@ -26,7 +28,7 @@ export async function lireRolesDemo(): Promise<RolesCompte> {
     const lu = brut ? (JSON.parse(brut) as Partial<RolesCompte> | null) : null;
     if (!lu || typeof lu !== "object") return ROLES_VIDES;
     const ambassadeur = STATUTS.includes(lu.ambassadeur as StatutAmbassadeur) ? (lu.ambassadeur as StatutAmbassadeur) : null;
-    const pro = Array.isArray(lu.pro) ? lu.pro.map(lireLieuGere).filter((l): l is LieuGere => l !== null) : [];
+    const pro = Array.isArray(lu.pro) ? lu.pro.map(lireLieuGere).filter((l): l is LieuGere => l !== null && l.id === LIEU_DEMO_PRO_ID) : [];
     return { ambassadeur, pro };
   } catch {
     return ROLES_VIDES;

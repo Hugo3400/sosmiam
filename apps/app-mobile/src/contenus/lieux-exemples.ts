@@ -1,8 +1,10 @@
 // Lieux INVENTÉS pour montrer le principe avant le lancement (repris du prototype : /var/www/app mobile/app/data.js).
 // Les noms sont fictifs ; quartiers, villes et spécialités sont réels. Remplacés par l'API au lancement.
-// Les SOS de ce soir (Chez Nonna Lia, La Clé des Ruelles) sont des exemples.
+// Les SOS de ce soir (Chez Nonna Lia, La Clé des Ruelles) sont des exemples. Le dernier, le Restaurant du Capitaine Bouiboui,
+// est le lieu joué par le mode pro de la démo (lieu-demo-pro.ts).
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { infosPratiquesExemples } from "~/contenus/infos-pratiques-exemples";
+import { lieuDemoPro } from "~/contenus/lieu-demo-pro";
 
 const lieuxSansInfosPratiques: Lieu[] = [
   {
@@ -435,7 +437,7 @@ const lieuxSansInfosPratiques: Lieu[] = [
 const LIEUX_NON_VERIFIES = new Set([10, 15]);
 
 /** Les lieux d'exemple, avec leurs infos pratiques (téléphone de fiction, animaux, accès, paiements…) et leur vérification */
-export const lieuxExemples: Lieu[] = lieuxSansInfosPratiques.map((lieu) => ({
+export const lieuxExemples: Lieu[] = [...lieuxSansInfosPratiques, lieuDemoPro].map((lieu) => ({
   ...lieu,
   verifie: !LIEUX_NON_VERIFIES.has(lieu.id),
   pratique: infosPratiquesExemples[lieu.id],

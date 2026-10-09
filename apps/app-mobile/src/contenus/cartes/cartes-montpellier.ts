@@ -1,7 +1,43 @@
 import type { CarteLieu } from "@sos-miam/commun/types/carte";
 
-/** Cartes des lieux d'exemple de Montpellier (identifiants 0 à 8). */
+/** Cartes des lieux d'exemple de Montpellier (identifiants 0 à 8, et 18 : le Restaurant du Capitaine Bouiboui, lieu de la démo pro). */
 export const cartesMontpellier: Partial<Record<number, CarteLieu>> = {
+  18: {
+    sections: [
+      {
+        titre: "Pour commencer",
+        elements: [
+          { nom: "Petite tielle du mousse", description: "Poulpe, tomate et pâte dorée, comme à Sète", prix: 6, etiquettes: ["fait-maison", "local"] },
+          { nom: "Accras de la Brigade", description: "Morue, piment doux et citron vert", prix: 7, etiquettes: ["epice", "fait-maison"] },
+        ],
+      },
+      {
+        titre: "Les plats du Capitaine",
+        elements: [
+          { nom: "Moules du Capitaine", description: "Moules de Bouzigues, crème à l'ail des ours, frites maison", prix: 14, signature: true, etiquettes: ["fait-maison", "local"] },
+          { nom: "Pêche du jour", description: "Selon l'arrivage du matin, avec les légumes du marché", prix: 18, etiquettes: ["local"] },
+          { nom: "Risotto de la vigie", description: "Champignons, parmesan et huile d'olive du coin", prix: 15, etiquettes: ["vege"] },
+        ],
+      },
+      {
+        titre: "Desserts",
+        elements: [
+          { nom: "Île flottante du Capitaine", description: "Crème anglaise à la vanille, caramel au beurre salé", prix: 6.5, signature: true, etiquettes: ["vege", "fait-maison"] },
+          { nom: "Mousse au chocolat", description: "À partager… ou pas", prix: 6, etiquettes: ["vege", "sans-gluten"] },
+        ],
+      },
+      {
+        titre: "À boire",
+        elements: [
+          { nom: "Limonade maison", description: "Citron, menthe et une pointe de gingembre", prix: 4, unite: "le verre", etiquettes: ["vegan", "fait-maison"] },
+          { nom: "Sirop à l'eau du mousse", description: "Fraise, menthe, grenadine ou citron", prix: 2.5, unite: "le verre", etiquettes: ["vegan"] },
+          { nom: "Picpoul de Pinet", prix: 5, unite: "le verre", alcool: true, etiquettes: ["local"] },
+          { nom: "Bière blonde du port", description: "Brassée à Montpellier", prix: 6, unite: "la pinte", alcool: true, etiquettes: ["local"] },
+        ],
+      },
+    ],
+    majLe: "2026-10-02",
+  },
   0: {
     sections: [
       {

@@ -29,7 +29,7 @@ export async function lireMagasinDemo(): Promise<MagasinDemo | null> {
     const brut = await AsyncStorage.getItem(CLE);
     if (!brut) return null;
     const lu = JSON.parse(brut) as Partial<MagasinDemo> | null;
-    if (!lu || lu.v !== 1 || typeof lu.creeLe !== "string" || typeof lu.prochainId !== "number") return null;
+    if (!lu || lu.v !== 2 || typeof lu.creeLe !== "string" || typeof lu.prochainId !== "number") return null;
     if (LISTES.some((cle) => !Array.isArray(lu[cle]))) return null;
     return lu as MagasinDemo;
   } catch {

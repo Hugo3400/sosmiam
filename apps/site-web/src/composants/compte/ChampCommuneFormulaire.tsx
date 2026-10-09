@@ -21,11 +21,12 @@ type Props = {
 export function ChampCommuneFormulaire({ libelle, aide, choix }: Props) {
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-ville`;
-  const erreur = erreurs.ville;
   const [code, setCode] = useState(valeurs.communeCode ?? "");
   const [texteDuCode, setTexteDuCode] = useState(valeurs.communeTexte ?? "");
   const [retenue, setRetenue] = useState(valeurs.communeDecrite ?? "");
   const [choixOuverts, setChoixOuverts] = useState(Boolean(choix?.length));
+  // Une commune choisie depuis la dernière réponse (suggestion) : l'erreur d'avant ne la concerne plus
+  const erreur = code && retenue && retenue !== (valeurs.communeDecrite ?? "") ? undefined : erreurs.ville;
   const listeChoix = choixOuverts && choix?.length ? choix : null;
   const decrit = [aide ? `${id}-aide` : "", erreur ? `${id}-erreur` : "", retenue && !erreur ? `${id}-retenue` : ""].filter(Boolean).join(" ") || undefined;
 

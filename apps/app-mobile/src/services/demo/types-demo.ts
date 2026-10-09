@@ -97,7 +97,7 @@ export type LigneJournalDemo = {
 };
 
 export type MagasinDemo = {
-  v: 1;
+  v: 2;
   creeLe: string;
   prochainId: number;
   figurants: ClientDemo[];

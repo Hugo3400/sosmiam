@@ -104,7 +104,7 @@ function ajouterEspaceAmbassadeur(m: MagasinDemo, maintenantMs: number) {
 /** Le magasin de démo tout neuf, daté par rapport à maintenant. */
 export function creerMagasinInitial(maintenantMs: number): MagasinDemo {
   const m: MagasinDemo = {
-    v: 1,
+    v: 2,
     creeLe: iso(maintenantMs),
     prochainId: 1,
     figurants: figurantsExemples.map((f) => ({ ...f })),
