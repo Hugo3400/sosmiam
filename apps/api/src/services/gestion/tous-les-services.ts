@@ -13,7 +13,11 @@ import { lireHistoriqueLieu } from "./historique-lieu.ts";
 import { lireCalendrier } from "./calendrier.ts";
 import { creerReponseType, listerReponsesTypes, modifierReponseType, supprimerReponseType } from "./reponses-types.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
-import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
+import { envoyerLienMotDePasse, prevenirAmbassadeurValide, prevenirCertifie } from "../courriels/courriels-comptes.ts";
+import {
+  accepterCertification, listerCandidaturesCertification, listerCertifies, refuserCertification, retirerCertification,
+} from "./certification.ts";
+import { deciderSuggestion, lireSuggestion, listerSuggestions } from "./suggestions-lieux.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
@@ -66,7 +70,9 @@ export const servicesGestion = {
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
   lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, listerDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
-  prevenirAmbassadeurValide, envoyerLienMotDePasse, envoyerCourrielEcrit,
+  prevenirAmbassadeurValide, envoyerLienMotDePasse, envoyerCourrielEcrit, prevenirCertifie,
+  listerCandidaturesCertification, listerCertifies, accepterCertification, refuserCertification, retirerCertification,
+  listerSuggestions, lireSuggestion, deciderSuggestion,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,

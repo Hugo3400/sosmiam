@@ -120,6 +120,7 @@ export const texteFlyerRecto = {
   titreFin: "plus de monde.",
   intro: "SOS Miam fait découvrir les restos, pâtisseries, bars et sorties indépendants.",
   atouts: atoutsLieu,
+  retourne: "Comment t'inscrire ? Retourne-moi !",
 };
 
 /** Le verso du flyer : comment s'inscrire */
@@ -131,6 +132,7 @@ export const texteFlyerVerso = {
     "Présente ton lieu en quelques mots : son nom, sa ville, ce qui le rend unique.",
     "On lit ta demande, on crée ta fiche et on t'écrit.",
   ],
+  appelQr: "Scanne pour inscrire ton lieu",
   gratuit: "Gratuit, sans abonnement, sans commission. Tu arrêtes quand tu veux.",
   deLaPartDe: "De la part de :",
   question: `Une question ? ${EMAIL_CONTACT_KIT_PRO}`,

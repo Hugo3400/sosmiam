@@ -2,12 +2,14 @@ import express, { Router } from "express";
 
 import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs/gestion/controleurs-ambassadeurs.ts";
 import { creerControleursBigSos } from "../controleurs/gestion/controleurs-big-sos.ts";
+import { creerControleursCertification } from "../controleurs/gestion/controleurs-certification.ts";
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-fondateurs.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
+import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -35,6 +37,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
   const f = creerControleursFondateurs(services, comptes);
+  const cert = creerControleursCertification(services);
+  const sug = creerControleursSuggestions(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
@@ -135,6 +139,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/lieux/lot", c.lotLieux);
   routes.get("/lieux/:id", c.lieu);
   routes.get("/lieux/:id/historique", c.historiqueLieu);
+  routes.get("/suggestions", sug.liste);
+  routes.get("/suggestions/:id", sug.fiche);
+  routes.post("/suggestions/:id/decision", sug.decider);
   routes.put("/lieux/:id", c.enregistrerLieu);
   routes.delete("/lieux/:id", c.supprimerLieu);
 
@@ -175,6 +182,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/candidatures/:id/liberer", f.liberer);
   routes.get("/fondateurs/zones", f.zones);
   routes.get("/fondateurs/communes", f.communes);
+  routes.get("/certifications", cert.candidatures);
+  routes.get("/certifies", cert.certifies);
+  routes.post("/certifications/:id/accepter", cert.accepter);
+  routes.post("/certifications/:id/refuser", cert.refuser);
+  routes.post("/ambassadeurs/:id/certification/retirer", cert.retirer);
   routes.get("/missions", a.missions);
   routes.post("/missions", a.creerMission);
   routes.post("/missions/:id/statut", a.statutMission);

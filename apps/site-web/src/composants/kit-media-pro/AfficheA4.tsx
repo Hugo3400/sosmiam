@@ -29,7 +29,7 @@ export function AfficheA4() {
 
       <p className="max-w-[1900px] text-[84px] leading-[1.25] font-medium text-balance">{lierPonctuation(texteAffiche.sousTitre)}</p>
 
-      <ul className="grid w-full grid-cols-2 gap-x-[80px] gap-y-[70px] rounded-[70px] border-[10px] border-encre bg-blanc px-[90px] py-[90px] text-left shadow-[24px_24px_0_var(--color-encre)]">
+      <ul className="grid w-full grid-cols-2 gap-x-[80px] gap-y-[70px] rounded-[70px] border-[10px] border-encre bg-white px-[90px] py-[90px] text-left shadow-[24px_24px_0_var(--color-encre)]">
         {texteAffiche.atouts.map((atout) => (
           <li key={atout.titre} className="flex items-start gap-[40px]">
             <PuceAtout className="mt-[6px] size-[96px]" />
@@ -47,7 +47,7 @@ export function AfficheA4() {
 
       <div className="flex w-full items-center justify-center gap-[90px]">
         <Mascotte expression="clin" className="size-[620px] shrink-0" />
-        <div className="flex items-center gap-[70px] rounded-[60px] border-[10px] border-encre bg-blanc py-[50px] pr-[80px] pl-[50px]">
+        <div className="flex items-center gap-[70px] rounded-[60px] border-[10px] border-encre bg-white py-[50px] pr-[80px] pl-[50px]">
           <QrCode lien={LIEN_INSCRIRE_LIEU} className="size-[640px] shrink-0" />
           <div className="max-w-[640px] text-left">
             <p className="font-titre text-[104px] leading-[1.05] font-extrabold">{texteAffiche.appelQr}</p>
