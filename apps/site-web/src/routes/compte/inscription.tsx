@@ -4,6 +4,7 @@ import type { Route } from "./+types/inscription";
 import { FormulaireInscription } from "~/composants/compte/FormulaireInscription";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { RefusAge } from "~/composants/compte/RefusAge";
+import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
@@ -121,7 +122,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   }
   if (reponse.erreur === "champ-invalide") {
     const champ = reponse.champ ?? "";
-    const message = champ === "motDePasse" ? messages.motDePasseRefuse : messages[champ as keyof typeof messages];
+    // Le prénom avait la bonne longueur (vérifiée ici) : l'API le refuse pour un gros mot
+    const message = champ === "motDePasse" ? messages.motDePasseRefuse
+      : champ === "prenom" ? MESSAGE_PRENOM_REFUSE
+      : messages[champ as keyof typeof messages];
     if (message) return { ok: false, formulaire: "inscription", erreurs: { [champ]: lierPonctuation(message) }, valeurs };
     return { ok: false, formulaire: "inscription", message: lierPonctuation("Un champ ne va pas : vérifie le formulaire."), valeurs };
   }

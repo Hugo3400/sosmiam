@@ -60,7 +60,8 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
         : rolesDemo,
     [compte, rolesDemo],
   );
-  const majeur = profil !== null && calculerAge(profil.dateNaissance) >= AGE_ALCOOL;
+  // L'âge du compte (null : compte du site, 18 ans demandés à l'inscription), sinon celui du profil du téléphone
+  const majeur = compte ? compte.age === null || compte.age >= AGE_ALCOOL : profil !== null && calculerAge(profil.dateNaissance) >= AGE_ALCOOL;
   const modesOuverts = useMemo(() => (profil ? listerModesOuverts(roles, majeur) : SEUL_MODE_PERSO), [profil, roles, majeur]);
   const proOuvert = modesOuverts.includes("pro");
   const lieuPro = useMemo(

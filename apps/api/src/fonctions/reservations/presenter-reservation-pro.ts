@@ -1,11 +1,12 @@
 import type { ReservationPro } from "../../../../../packages/commun/src/types/reservation.ts";
 import type { LigneReservation } from "../../services/reservations-regles.ts";
+import type { ClientComptoir } from "../visites/presenter-client-comptoir.ts";
 
-/** Ce que l'équipe voit du client : prénom, initiale du nom et emoji, jamais l'âge ni le nom complet */
-export type ClientVuParLeLieu = { prenom: string; initialeNom: string | null; avatar: string };
-
-/** Une réservation telle que l'équipe du lieu la voit (types/reservation.ts) : le code d'arrivée une fois acceptée. */
-export function presenterReservationPro(r: LigneReservation, client: ClientVuParLeLieu): ReservationPro {
+/**
+ * Une réservation telle que l'équipe du lieu la voit (types/reservation.ts) : prénom, initiale et emoji du client
+ * (presenterClientComptoir), jamais son âge ; le code d'arrivée une fois acceptée.
+ */
+export function presenterReservationPro(r: LigneReservation, client: ClientComptoir): ReservationPro {
   return {
     id: r.id,
     ...client,

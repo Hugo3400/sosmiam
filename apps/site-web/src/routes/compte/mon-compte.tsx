@@ -10,6 +10,7 @@ import { FormulaireSupprimerCompte } from "~/composants/compte/FormulaireSupprim
 import { PartieCompte } from "~/composants/compte/PartieCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { changerMotDePasse, decrireAttente, MESSAGE_OCCUPE, modifierCompte, supprimerCompte } from "~/services/comptes.server";
@@ -97,7 +98,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     await redirigerSiSessionFermee(request, reponse.erreur);
     const champ = reponse.champ as keyof typeof messages | undefined;
     if (reponse.erreur === "champ-invalide" && champ && (champ === "prenom" || champ === "ville" || champ === "quartier")) {
-      return { ok: false, formulaire: nom, erreurs: { [champ]: messages[champ] }, valeurs };
+      // Le prénom avait la bonne longueur (vérifiée ici) : l'API le refuse pour un gros mot
+      return { ok: false, formulaire: nom, erreurs: { [champ]: champ === "prenom" ? MESSAGE_PRENOM_REFUSE : messages[champ] }, valeurs };
     }
     return { ok: false, formulaire: nom, message: expliquer(reponse), valeurs };
   }
