@@ -1,5 +1,5 @@
-// Tests de « Mon compte » et de l'espace d'un ambassadeur validé : candidature fondateur, propositions de lieux, missions
-// et messages (routes /espace-ambassadeur), statuts. Services en mémoire : aucune base de données n'est touchée.
+// Tests de « Mon compte » et de l'espace d'un ambassadeur validé : propositions de lieux, missions et messages (routes
+// /espace-ambassadeur), statuts. La candidature fondateur : candidature-fondateur.test.ts. Services en mémoire : aucune base de données n'est touchée.
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { after, before, test } from "node:test";
@@ -10,7 +10,7 @@ import { creerJeton } from "../src/fonctions/securite/creer-jeton.ts";
 import { hacherMotDePasse } from "../src/fonctions/securite/hacher-mot-de-passe.ts";
 import type { DependancesEspaceAmbassadeur } from "../src/routes/espace-ambassadeur.ts";
 import { creerComptesEnMemoire } from "../src/services/comptes-en-memoire.ts";
-import type { CandidatureVue, PropositionVue } from "../src/services/comptes-espace.ts";
+import type { PropositionVue } from "../src/services/comptes-espace.ts";
 import type { CompteConnecte, StatutAmbassadeur } from "../src/services/comptes.ts";
 
 const MOT_DE_PASSE = "une petite phrase de passe";
@@ -26,7 +26,7 @@ const espaceAmbassadeur = {
 } as unknown as DependancesEspaceAmbassadeur;
 const serveur = creerApplication({
   enregistrerInscription: async () => {},
-  comptes: { services: memoire.services, sessions: memoire.sessions, horloge: () => horloge },
+  comptes: { services: memoire.services, sessions: memoire.sessions, zones: memoire.zones, courriels: memoire.courriels, horloge: () => horloge },
   espaceAmbassadeur,
 }).listen(0, "127.0.0.1");
 let adresse = "";
@@ -38,7 +38,7 @@ after(() => new Promise<void>((fini) => serveur.close(() => fini())));
 
 type Corps = {
   ok: boolean; erreur?: string; champ?: string; attente?: number; session?: string; compte?: CompteConnecte;
-  candidature?: CandidatureVue | null; placesRestantes?: number; propositions?: PropositionVue[];
+  propositions?: PropositionVue[];
 };
 type Options = { corps?: unknown; jeton?: string };
 let visiteur = 0;
@@ -115,7 +115,7 @@ test("changer de mot de passe : l'actuel et le nouveau sont vérifiés ; toutes 
 
 test("effacer son compte : mot de passe demandé, puis tout disparaît (ses propositions restent, sans lui)", async () => {
   const { id, email, jeton } = await creerCompteEtSession();
-  await memoire.services.creerCandidature(id, CANDIDATURE);
+  await memoire.services.creerCandidature(id, { ...CANDIDATURE, communeCode: "69123", zoneCode: "69123" });
   await memoire.services.creerProposition(id, { ...PROPOSITION, adresse: null, plat: null, horaires: null });
   const effacer = (motDePasse: string) => demander("DELETE", "/comptes/moi", { corps: { motDePasse }, jeton });
   assert.equal((await effacer("pas le bon mot de passe")).statut, 403);
@@ -153,63 +153,6 @@ test("20 changements de mot de passe lancés en même temps : 5 mots de passe v�
   const parStatut: Record<number, number> = {};
   for (const { statut } of reponses) parStatut[statut] = (parStatut[statut] ?? 0) + 1;
   assert.deepEqual(parStatut, { 403: 5, 429: 15 });
-});
-
-test("candidature fondateur : réservée aux actifs, une seule à la fois ; après un refus, on peut recandidater", async () => {
-  const enAttente = await creerCompteEtSession("en-attente");
-  for (const [methode, chemin] of [["GET", "candidature"], ["POST", "candidature"], ["GET", "propositions"], ["POST", "propositions"]] as const) {
-    const reponse = await demander(methode, `/comptes/moi/${chemin}`, { jeton: enAttente.jeton, corps: methode === "POST" ? CANDIDATURE : undefined });
-    assert.equal(reponse.statut, 403);
-    assert.deepEqual(reponse.corps, { ok: false, erreur: "ambassadeur-non-actif" });
-  }
-  const { id, jeton } = await creerCompteEtSession();
-  const candidater = (corps: unknown) => demander("POST", "/comptes/moi/candidature", { corps, jeton });
-  const lire = async () => (await demander("GET", "/comptes/moi/candidature", { jeton })).corps;
-  assert.deepEqual(await lire(), { ok: true, candidature: null, placesRestantes: 10 });
-  const cas: [string, Record<string, unknown>][] = [
-    ["pepites", { pepites: "trop court" }], ["envies", { envies: [] }], ["envies", { envies: ["voler"] }], ["envies", { envies: "denicher" }],
-    ["reseaux", { reseaux: "x".repeat(201) }], ["motivation", { motivation: "court" }], ["partantRencontre", { partantRencontre: "oui" }],
-    ["connuPar", { connuPar: "x".repeat(121) }],
-  ];
-  for (const [champ, modification] of cas) {
-    assert.deepEqual((await candidater({ ...CANDIDATURE, ...modification })).corps, { ok: false, erreur: "champ-invalide", champ }, champ);
-  }
-  assert.equal((await candidater({ ...CANDIDATURE, piege: "robot" })).statut, 201);
-  assert.equal(memoire.candidatures.filter((candidature) => candidature.compteId === id).length, 0, "un robot ne laisse rien");
-  assert.equal((await candidater(CANDIDATURE)).statut, 201);
-  assert.deepEqual(memoire.candidatures.at(-1)?.envies, ["denicher", "faire-savoir"]);
-  assert.deepEqual(await lire(), {
-    ok: true, candidature: { statut: "en-attente", numero: null, creeLe: new Date(horloge).toISOString(), reponduLe: null }, placesRestantes: 10,
-  });
-  assert.deepEqual((await candidater(CANDIDATURE)).corps, { ok: false, erreur: "candidature-existante" });
-  memoire.repondreCandidature(id, "refusee");
-  assert.equal((await candidater(CANDIDATURE)).statut, 201);
-  memoire.repondreCandidature(id, "acceptee", 4);
-  assert.deepEqual([(await lire()).candidature?.numero, (await lire()).placesRestantes], [4, 9]);
-  assert.equal((await candidater(CANDIDATURE)).statut, 409);
-});
-
-test("les 10 places de fondateur prises : placesRestantes 0 et 409 « plus-de-place » ; une place libérée rouvre la candidature", async () => {
-  const { id, jeton } = await creerCompteEtSession();
-  const lire = async () => (await demander("GET", "/comptes/moi/candidature", { jeton })).corps;
-  const candidater = () => demander("POST", "/comptes/moi/candidature", { corps: CANDIDATURE, jeton });
-  // Les numéros déjà donnés plus haut comptent aussi ; les autres vont à de nouveaux fondateurs
-  const fondateurs: number[] = [];
-  for (let numero = 1; numero <= 10; numero++) {
-    if (memoire.candidatures.some((candidature) => candidature.numero === numero)) continue;
-    const fondateur = await creerCompteEtSession();
-    await memoire.services.creerCandidature(fondateur.id, CANDIDATURE);
-    memoire.repondreCandidature(fondateur.id, "acceptee", numero);
-    fondateurs.push(fondateur.id);
-  }
-  assert.deepEqual(await lire(), { ok: true, candidature: null, placesRestantes: 0 });
-  const complet = await candidater();
-  assert.deepEqual([complet.statut, complet.corps], [409, { ok: false, erreur: "plus-de-place" }]);
-  assert.equal(memoire.candidatures.some((candidature) => candidature.compteId === id), false, "rien n'est gardé");
-  // Un fondateur efface son compte : sa place se libère, et la candidature rouvre
-  await memoire.services.effacerCompte(fondateurs[0] ?? 0);
-  assert.equal((await lire()).placesRestantes, 1);
-  assert.equal((await candidater()).statut, 201);
 });
 
 test("propositions de lieux : mêmes règles que « J'inscris mon lieu », sans contact ; la liste montre leur statut", async () => {

@@ -29,7 +29,7 @@ const sessions: StockageSessionsComptes = {
 };
 const serveur = creerApplication({
   enregistrerInscription: async () => {},
-  comptes: { services: memoire.services, sessions, horloge: () => horloge },
+  comptes: { services: memoire.services, sessions, zones: memoire.zones, courriels: memoire.courriels, horloge: () => horloge },
 }).listen(0, "127.0.0.1");
 let adresse = "";
 before(() => new Promise<void>((pret) => serveur.once("listening", () => {
@@ -83,7 +83,7 @@ test("une inscription valable crée le compte « en-attente », ouvre une sessio
   assert.match(corps.session ?? "", /^[A-Za-z0-9_-]{43}$/);
   assert.deepEqual(corps.compte, {
     prenom: "Zoé", email: "zoe.martin@exemple.fr", points: 0, palier: "curieux", badges: [], creeLe: new Date(horloge).toISOString(),
-    ambassadeur: { statut: "en-attente", ville: "Nantes", quartier: null, decideLe: null },
+    emailVerifie: false, ambassadeur: { statut: "en-attente", ville: "Nantes", quartier: null, decideLe: null },
   });
   const garde = [...memoire.comptes.values()].find((compte) => compte.email === "zoe.martin@exemple.fr");
   assert.ok(garde?.motDePasse.startsWith("scrypt$16384$8$5$"));

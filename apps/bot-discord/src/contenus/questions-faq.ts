@@ -217,8 +217,8 @@ export const QUESTIONS_FAQ: QuestionFaq[] = [
     theme: "ambassadeurs",
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse:
-      "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.\nPour candidater, crée d'abord ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr) : une fois ton compte validé, la candidature se fait depuis ton espace, tant qu'il reste des places.",
-    motsCles: ["candidature", "fondateur"],
+      "L'un des premiers ambassadeurs de sa ville, qui lancent SOS Miam avec nous près de chez eux. Chaque ville a ses places selon sa taille (10 à Paris, Marseille, Lyon et Toulouse, puis 5, 3 ou 1), et les communes de moins de 50 000 habitants partagent 1 place par département. Les fondateurs reçoivent une carte numérotée (« Fondateur n° 3 de Lyon · n° 147 en France »), leur prénom en vitrine sur un autocollant « Déniché par », des badges, l'app en avant-première en lien direct avec l'équipe, et une visio avec les autres fondateurs de leur coin.\nPour candidater, crée d'abord ton compte sur [ambassadeur.sosmiam.fr](https://ambassadeur.sosmiam.fr) : une fois ton compte validé, la candidature se fait depuis ton espace, pour ta ville (ou ton département), tant qu'il y reste des places.",
+    motsCles: ["candidature", "fondateur", "ville", "places", "departement"],
   },
   {
     id: "createurs",

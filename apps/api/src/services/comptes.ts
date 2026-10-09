@@ -18,7 +18,7 @@ export type RaisonPoints =
 /** Durée de validité d'un lien de réinitialisation, préparé par l'équipe ou demandé (24 h au plus : CNIL, OWASP) */
 const DUREE_REINITIALISATION = 24 * 3600_000;
 /** Durée de validité du lien qui confirme l'e-mail, envoyé à l'inscription */
-export const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
+const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
 
 /**
  * Ajoute (ou retire, si négatif) des points : journal, total et palier changent ensemble. Le total ne descend jamais

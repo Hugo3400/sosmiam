@@ -72,6 +72,10 @@ export function creerZonesEnMemoire(lireCandidatures: () => CandidaturePourZone[
 
   return {
     services,
+    /** Places de la zone (0 si elle n'existe pas) */
+    places(code: string): number {
+      return zones.get(code)?.places ?? 0;
+    },
     /** Le numéro local suivant de la zone (1, 2, 3… jamais redonné), et le note comme pris */
     prendreNumero(code: string): number {
       const numero = prochainNumero.get(code) ?? 1;

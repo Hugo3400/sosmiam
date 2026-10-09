@@ -1,11 +1,14 @@
 // Comptes en mémoire, pour les tests et l'API de démonstration (essais du site sans toucher à la vraie base) : mêmes
-// règles que les services Prisma (comptes.ts, comptes-espace.ts) ; rien n'est écrit nulle part, tout s'efface à l'arrêt.
+// règles que les services Prisma (comptes.ts, comptes-espace.ts, zones-fondateurs.ts) ; rien n'est écrit nulle part, tout
+// s'efface à l'arrêt. Les mails ne partent pas : ils sont notés dans `envois` (lien compris, pour les essais).
+import type { CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import type { ServicesComptes } from "../controleurs/comptes.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { creerStockageSessionsComptesEnMemoire } from "../middlewares/proteger-comptes.ts";
 import type { CompteConnecte, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
 import type { NouvelleCandidature, NouvelleProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
+import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
 
 export type CompteEnMemoire = {
   id: number;
@@ -24,27 +27,52 @@ export type CompteEnMemoire = {
   ville: string;
   quartier: string | null;
   decideLe: number | null;
-  /** Lien de réinitialisation préparé par l'équipe (empreinte du jeton) */
+  /** Lien de réinitialisation, préparé par l'équipe ou demandé (empreinte du jeton) */
   reinitialisation: { empreinte: string; expireLe: number } | null;
+  /** E-mail confirmé (moment), ou null */
+  emailVerifieLe: number | null;
+  /** Lien de confirmation de l'e-mail en attente (empreinte du jeton) */
+  verification: { empreinte: string; expireLe: number } | null;
 };
 
 export type CandidatureEnMemoire = NouvelleCandidature & {
-  id: number; compteId: number; statut: StatutCandidature; numero: number | null; creeLe: number; reponduLe: number | null;
+  id: number; compteId: number; statut: StatutCandidature; communeCode: string | null; zoneCode: string | null;
+  numeroLocal: number | null; numeroNational: number | null; creeLe: number; reponduLe: number | null;
 };
+/** Un mail qui serait parti : le type de lien, le compte, le lien lui-même (jeton compris) et son échéance */
+export type EnvoiEnMemoire = { type: "mot-de-passe" | "verification-email"; compteId: number; lien: string; expireLe: Date };
 export type PropositionEnMemoire = NouvelleProposition & { id: number; compteId: number | null; statut: PropositionVue["statut"]; creeLe: number };
 
 const iso = (moment: number) => new Date(moment).toISOString();
+/** Mêmes durées que services/comptes.ts (ce double n'importe rien qui touche à la base) : 24 heures et 7 jours */
 const DUREE_REINITIALISATION = 24 * 3600_000;
-/** Nombre de fondateurs (numéros 1 à 10), comme services/gestion/ambassadeurs.ts (ce double n'importe rien qui touche à la base) */
-const FONDATEURS_MAX = 10;
+const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
 
 export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const comptes = new Map<number, CompteEnMemoire>();
   const candidatures: CandidatureEnMemoire[] = [];
   const propositions: PropositionEnMemoire[] = [];
+  const envois: EnvoiEnMemoire[] = [];
   const sessions = creerStockageSessionsComptesEnMemoire(comptes);
-  const compteurs = { comptes: 0, candidatures: 0, propositions: 0 };
+  const zones = creerZonesEnMemoire(() => candidatures);
+  const compteurs = { comptes: 0, candidatures: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
+  const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
+  /** Un jeton rendu une fois ; le compte n'en garde que l'empreinte et l'échéance */
+  const preparerJeton = (duree: number) => {
+    const jeton = creerJeton();
+    const expireLe = horloge() + duree;
+    return { jeton, expireLe: new Date(expireLe), garde: { empreinte: calculerEmpreinteJeton(jeton), expireLe } };
+  };
+  /** Mails : notés, jamais envoyés ; `echecs` à vrai fait échouer les suivants (comme un envoi mal réglé) */
+  const reglagesEnvoi = { echecs: false };
+  const noterEnvoi = (type: EnvoiEnMemoire["type"]) => async (compteId: number, lien: string, expireLe: Date) => {
+    if (reglagesEnvoi.echecs) return { ok: false, erreur: "envoi-desactive" };
+    if (!comptes.has(compteId)) return { ok: false, erreur: "introuvable" };
+    envois.push({ type, compteId, lien, expireLe });
+    return { ok: true };
+  };
+  const courriels: CourrielsComptes = { envoyerLienMotDePasse: noterEnvoi("mot-de-passe"), envoyerLienVerificationEmail: noterEnvoi("verification-email") };
 
   const services: ServicesComptes = {
     async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion }) {
@@ -53,7 +81,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const maintenant = horloge();
       comptes.set(id, {
         id, email, motDePasse, prenom, points: 0, palier: "curieux", badges: [], cguVersion, creeLe: maintenant, derniereConnexion: maintenant,
-        statutAmbassadeur: "en-attente", ville, quartier, decideLe: null, reinitialisation: null,
+        statutAmbassadeur: "en-attente", ville, quartier, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
       });
       return id;
     },
@@ -66,6 +94,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       if (!compte) return null;
       const vu: CompteConnecte = {
         prenom: compte.prenom, email: compte.email, points: compte.points, palier: compte.palier, badges: [...compte.badges], creeLe: iso(compte.creeLe),
+        emailVerifie: compte.emailVerifieLe !== null,
         ambassadeur: compte.statutAmbassadeur
           ? { statut: compte.statutAmbassadeur, ville: compte.ville, quartier: compte.quartier, decideLe: compte.decideLe === null ? null : iso(compte.decideLe) }
           : null,
@@ -105,21 +134,45 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       Object.assign(compte, { motDePasse: empreinte, reinitialisation: null });
       return true;
     },
+    async preparerReinitialisation(id) {
+      const { jeton, expireLe, garde } = preparerJeton(DUREE_REINITIALISATION);
+      const compte = comptes.get(id);
+      if (compte) compte.reinitialisation = garde;
+      return { jeton, expireLe };
+    },
+    async preparerVerificationEmail(id) {
+      const { jeton, expireLe, garde } = preparerJeton(DUREE_VERIFICATION_EMAIL);
+      const compte = comptes.get(id);
+      if (compte) compte.verification = garde;
+      return { jeton, expireLe };
+    },
+    async verifierEmail(empreinteJeton, maintenant) {
+      const compte = [...comptes.values()].find(({ verification }) =>
+        verification?.empreinte === empreinteJeton && verification.expireLe > maintenant.getTime());
+      if (!compte) return false;
+      Object.assign(compte, { emailVerifieLe: maintenant.getTime(), verification: null });
+      return true;
+    },
     async lireCandidature(compteId) {
-      const derniere = candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
+      const derniere = derniereCandidature(compteId);
       if (!derniere) return null;
-      return { statut: derniere.statut, numero: derniere.numero, creeLe: iso(derniere.creeLe), reponduLe: derniere.reponduLe === null ? null : iso(derniere.reponduLe) };
+      const { statut, numeroLocal, numeroNational, communeCode, zoneCode } = derniere;
+      return { statut, numeroLocal, numeroNational, communeCode, zoneCode, creeLe: iso(derniere.creeLe), reponduLe: derniere.reponduLe === null ? null : iso(derniere.reponduLe) };
     },
     async creerCandidature(compteId, candidature) {
-      if (candidatures.some((c) => c.compteId === compteId && c.statut !== "refusee")) return false;
+      if (candidatures.some((c) => c.compteId === compteId && (c.statut === "en-attente" || c.statut === "acceptee"))) return false;
       candidatures.push({
-        ...candidature, envies: [...candidature.envies], id: ++compteurs.candidatures, compteId, statut: "en-attente", numero: null, creeLe: horloge(), reponduLe: null,
+        ...candidature, envies: [...candidature.envies], id: ++compteurs.candidatures, compteId, statut: "en-attente",
+        numeroLocal: null, numeroNational: null, creeLe: horloge(), reponduLe: null,
       });
       return true;
     },
-    async compterPlacesFondateur() {
-      const donnes = new Set(candidatures.map(({ numero }) => numero).filter((numero) => numero !== null && numero >= 1 && numero <= FONDATEURS_MAX));
-      return Math.max(0, FONDATEURS_MAX - donnes.size);
+    async changerCommuneCandidature(compteId, { communeCode, zoneCode }) {
+      const derniere = derniereCandidature(compteId);
+      if (!derniere) return "aucune";
+      if (derniere.statut !== "en-attente") return "deja-traitee";
+      Object.assign(derniere, { communeCode, zoneCode });
+      return "ok";
     },
     async listerPropositions(compteId) {
       return propositions
@@ -135,10 +188,16 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   return {
     services,
     sessions,
+    /** Zones des fondateurs (241 zones, 367 places), places prises d'après les candidatures ci-dessous */
+    zones: zones.services,
+    /** Les mails des liens : notés dans `envois` au lieu de partir */
+    courriels,
+    reglagesEnvoi,
     /** Les données elles-mêmes, que les tests et la démonstration peuvent lire ou retoucher */
     comptes,
     candidatures,
     propositions,
+    envois,
     /**
      * Décision de l'équipe, comme deciderAmbassadeur (logiciel de gestion) : les sessions restent ouvertes, le statut est
      * relu à chaque demande (§9 : un refus ou une suspension compte tout de suite, sans déconnecter).
@@ -150,15 +209,34 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     },
     /** Lien de réinitialisation, comme le prépare le logiciel de gestion (24 h, usage unique) : renvoie le jeton. */
     preparerReinitialisation(compteId: number): string {
-      const jeton = creerJeton();
+      const { jeton, garde } = preparerJeton(DUREE_REINITIALISATION);
       const compte = comptes.get(compteId);
-      if (compte) compte.reinitialisation = { empreinte: calculerEmpreinteJeton(jeton), expireLe: horloge() + DUREE_REINITIALISATION };
+      if (compte) compte.reinitialisation = garde;
       return jeton;
     },
-    /** Réponse de l'équipe à la dernière candidature fondateur du compte. */
-    repondreCandidature(compteId: number, statut: "acceptee" | "refusee", numero: number | null = null) {
-      const candidature = candidatures.filter((c) => c.compteId === compteId).at(-1);
-      if (candidature) Object.assign(candidature, { statut, numero: statut === "acceptee" ? numero : null, reponduLe: horloge() });
+    /**
+     * Réponse de l'équipe à la dernière candidature fondateur du compte, comme le logiciel de gestion : « acceptee »
+     * donne le numéro suivant de la zone et le numéro national suivant, s'il reste une place (faux sinon, ou sans zone) ;
+     * « souvenir » (déménagement) libère la place d'un fondateur en gardant ses numéros. Faux si rien n'a changé.
+     */
+    repondreCandidature(compteId: number, statut: "acceptee" | "refusee" | "souvenir"): boolean {
+      const candidature = derniereCandidature(compteId);
+      if (!candidature) return false;
+      if (statut === "souvenir") {
+        if (candidature.statut !== "acceptee") return false;
+        candidature.statut = "souvenir";
+        return true;
+      }
+      if (candidature.statut !== "en-attente") return false;
+      if (statut === "acceptee") {
+        const { zoneCode } = candidature;
+        const prises = candidatures.filter((c) => c.zoneCode === zoneCode && c.statut === "acceptee").length;
+        const places = zoneCode ? zones.places(zoneCode) : 0;
+        if (!zoneCode || prises >= places) return false;
+        Object.assign(candidature, { numeroLocal: zones.prendreNumero(zoneCode), numeroNational: ++compteurs.numeroNational });
+      }
+      Object.assign(candidature, { statut, reponduLe: horloge() });
+      return true;
     },
   };
 }
