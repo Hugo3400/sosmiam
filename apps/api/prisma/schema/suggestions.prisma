@@ -1,0 +1,30 @@
+// Suggestions de modification d'une fiche de lieu (décidé le 9 octobre 2026) : proposées par un client ou par le lieu,
+// décidées par l'équipe dans le logiciel de gestion (avant, maintenant, proposé), réponse envoyée par mail à l'auteur.
+
+model SuggestionLieu {
+  id             Int       @id @default(autoincrement())
+  lieuId         Int       @map("lieu_id")
+  lieu           Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// L'auteur ; null si son compte a été supprimé depuis
+  compteId       Int?      @map("compte_id")
+  compte         Compte?   @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  /// « client » ou « pro »
+  source         String    @db.VarChar(12)
+  /// Seulement les champs qui changent, avec les mêmes noms que Lieu ({ horaires, telephone, texte… })
+  proposition    Json
+  /// Ces mêmes champs tels qu'ils étaient au moment de la suggestion
+  avant          Json
+  /// « Pourquoi ? »
+  message        String?   @db.VarChar(1000)
+  /// « en-attente », « acceptee », « partielle » ou « refusee »
+  statut         String    @default("en-attente") @db.VarChar(12)
+  champsAcceptes String[]  @map("champs_acceptes")
+  /// Réponse de l'équipe, envoyée par mail à l'auteur
+  reponse        String?   @db.VarChar(1000)
+  creeLe         DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  decideLe       DateTime? @map("decide_le") @db.Timestamptz(0)
+
+  @@index([statut, creeLe])
+  @@index([lieuId])
+  @@map("suggestions_lieux")
+}

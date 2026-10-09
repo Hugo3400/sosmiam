@@ -9,6 +9,7 @@ import {
   preparerReinitialisation, preparerVerificationEmail, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
   verifierEmail,
 } from "./services/comptes.ts";
+import { creerCandidatureCertification, lireCandidatureCertification } from "./services/certification.ts";
 import { changerCommuneCandidature, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { envoyerLienMotDePasse, envoyerLienVerificationEmail } from "./services/courriels/courriels-comptes.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
@@ -62,7 +63,7 @@ const serveur = creerApplication({
     services: {
       creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
       reinitialiserMotDePasse, preparerReinitialisation, preparerVerificationEmail, verifierEmail, lireCandidature, creerCandidature,
-      changerCommuneCandidature, listerPropositions, creerProposition,
+      changerCommuneCandidature, listerPropositions, creerProposition, lireCandidatureCertification, creerCandidatureCertification,
     },
     sessions: stockageSessionsComptes,
     zones,

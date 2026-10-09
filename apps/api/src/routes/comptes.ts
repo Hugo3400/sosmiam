@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from "express";
 
 import { creerAttenteParCompte } from "../controleurs/comptes-attente.ts";
+import { creerControleursCertification } from "../controleurs/comptes-certification.ts";
 import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts";
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
 import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
@@ -77,6 +78,16 @@ export type DependancesComptes = {
  * GET    /comptes/moi/propositions      → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] }
  * POST   /comptes/moi/propositions      { nom, type?, ville, adresse?, description, plat?, horaires?, siteWeb?, instagram?, piege? }
  *                                        201 { ok } · 400
+ * GET    /comptes/moi/certification     → 200 { ok, certifie: { depuis, profil, structure } | null, candidature: { statut,
+ *                                        profil, structure, commune: { code, nom, nomDepartement } | null, envies[], creeLe,
+ *                                        reponduLe } | null } (statut : en-attente, acceptee, refusee ; la dernière envoyée)
+ * POST   /comptes/moi/certification     { profil, structure?, communeCode, aide, envies[], engagementGratuit: true, piege? }
+ *                                        → 201 { ok } · 400 champ-invalide {champ} (profil : ambassadeur, pro ou structure ;
+ *                                        structure : 100 car. ; communeCode connue ; aide : 1 à 600 car. ; envies : au moins
+ *                                        une parmi fiche, photos, presenter, big-sos ; engagementGratuit : true) · 409
+ *                                        deja-certifie · 409 candidature-existante (une en attente ; après un refus, on peut
+ *                                        recandidater tout de suite)
+ * `compte.ambassadeur.certifie` (dans toutes les réponses qui rendent `compte`) : { depuis, profil, structure } ou null.
  */
 export function creerRoutesComptes(dependances: DependancesComptes, protection: ProtectionComptes, limiteConnectee: RequestHandler) {
   const { services, zones, courriels, adresseEspace = ADRESSE_ESPACE, horloge = Date.now } = dependances;
@@ -91,6 +102,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const moi = creerControleursMonCompte(contexte);
   const liens = creerControleursLiens(contexte);
   const espace = creerControleursEspaceComptes(services, zones);
+  const certification = creerControleursCertification(services);
   const routes = Router();
 
   // Sans session : une limite par visiteur pour chaque porte d'entrée, toujours AVANT de calculer une empreinte
@@ -114,6 +126,8 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/candidature/commune", protection.exigerAmbassadeurActif, espace.changerCommune);
   routes.get("/moi/propositions", protection.exigerAmbassadeurActif, espace.listerPropositions);
   routes.post("/moi/propositions", protection.exigerAmbassadeurActif, espace.proposer);
+  routes.get("/moi/certification", protection.exigerAmbassadeurActif, certification.lire);
+  routes.post("/moi/certification", protection.exigerAmbassadeurActif, certification.candidater);
   routes.use(gererErreursComptes);
   return routes;
 }

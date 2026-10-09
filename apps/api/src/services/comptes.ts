@@ -2,6 +2,7 @@ import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-palier-aux-points.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
+import { decrireCertifie, type CertifieVue } from "./certification.ts";
 
 // Comptes SOS Miam (espace ambassadeur du site, puis l'app). Les fonctions ci-dessous servent aussi au logiciel de
 // gestion (services/gestion) : la logique des points, des badges et des réinitialisations reste à un seul endroit.
@@ -90,7 +91,11 @@ export type CompteConnecte = {
   creeLe: string;
   /** Adresse confirmée par le lien reçu à l'inscription */
   emailVerifie: boolean;
-  ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null } | null;
+  ambassadeur: {
+    statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null;
+    /** Titre d'« ambassadeur certifié » (à part du palier), ou null */
+    certifie: CertifieVue | null;
+  } | null;
 };
 
 export type NouveauCompte = {
@@ -136,7 +141,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
     select: {
       prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true,
       badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
-      ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
+      ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true, certifieLe: true, profilCertifie: true, structure: true } },
     },
   });
   if (!compte) return null;
@@ -155,6 +160,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
           ville: ambassadeur.ville,
           quartier: ambassadeur.quartier,
           decideLe: ambassadeur.decideLe?.toISOString() ?? null,
+          certifie: decrireCertifie(ambassadeur.certifieLe, ambassadeur.profilCertifie, ambassadeur.structure),
         }
       : null,
   };

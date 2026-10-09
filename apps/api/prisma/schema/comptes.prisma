@@ -42,6 +42,7 @@ model Compte {
   bigSos        BigSos[]
   appareils     AppareilPush[]
   candidaturesCertification CandidatureCertification[]
+  suggestionsLieux          SuggestionLieu[]
 
   @@index([derniereConnexion])
   @@map("comptes")

@@ -1,6 +1,7 @@
 // Ménage de nuit des comptes, d'après les durées décidées le 8 octobre 2026 (politique de confidentialité). Il passe
 // AVANT la sauvegarde chiffrée de la nuit : ce qui est effacé ici n'y part pas.
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
+import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
 import { retirerDuProgramme } from "./gestion/ambassadeurs.ts";
 
 const UN_JOUR = 86_400_000;
@@ -14,22 +15,25 @@ const GARDE_REFUS = 30 * UN_JOUR;
 const INACTIVITE_ROLE = 365 * UN_JOUR;
 /** 2 ans sans connexion : tout le compte est effacé, app comprise (un mail prévient 30 jours avant) */
 const INACTIVITE_COMPTE = 730 * UN_JOUR;
-/** Candidature fondateur refusée : effacée 3 mois après la réponse */
+/** Candidature fondateur ou « ambassadeur certifié » refusée : effacée 3 mois après la réponse */
 const MOIS_CANDIDATURE_REFUSEE = 3;
 
 /** Nombre de lignes effacées ou vidées par catégorie (rien de personnel : de quoi tenir le journal) */
 export type BilanMenageComptes = {
-  sessions: number; comptesRefuses: number; ambassadeursRetires: number; comptesInactifs: number; candidatures: number; liens: number;
+  sessions: number; comptesRefuses: number; ambassadeursRetires: number; comptesInactifs: number; candidatures: number;
+  /** Candidatures « ambassadeur certifié » refusées depuis plus de 3 mois */
+  candidaturesCertification: number;
+  liens: number;
 };
 
 /**
  * Efface ce qui a dépassé sa durée de conservation (décision de Hugo du 8 octobre 2026) : sessions, comptes refusés, rôle
- * ambassadeur après 1 an sans visite, compte après 2 ans sans connexion, candidatures refusées, liens de réinitialisation.
+ * ambassadeur après 1 an sans visite, compte après 2 ans sans connexion, candidatures refusées (fondateur et certifié),
+ * liens de réinitialisation.
  */
 export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<BilanMenageComptes> {
   const avant = (duree: number) => new Date(maintenant.getTime() - duree);
-  const limiteCandidatures = new Date(maintenant);
-  limiteCandidatures.setMonth(limiteCandidatures.getMonth() - MOIS_CANDIDATURE_REFUSEE);
+  const limiteCandidatures = reculerDeMois(maintenant, MOIS_CANDIDATURE_REFUSEE);
 
   const sessions = await baseDeDonnees.sessionCompte.deleteMany({
     where: { OR: [{ activite: { lt: avant(SESSION_INACTIVE) } }, { creeLe: { lt: avant(SESSION_MAX) } }] },
@@ -50,6 +54,9 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
   // 2 ans sans connexion : tout le compte est effacé
   const comptesInactifs = await baseDeDonnees.compte.deleteMany({ where: { derniereConnexion: { lt: avant(INACTIVITE_COMPTE) } } });
   const candidatures = await baseDeDonnees.candidatureFondateur.deleteMany({ where: { statut: "refusee", reponduLe: { lt: limiteCandidatures } } });
+  const candidaturesCertification = await baseDeDonnees.candidatureCertification.deleteMany({
+    where: { statut: "refusee", reponduLe: { lt: limiteCandidatures } },
+  });
   const liens = await baseDeDonnees.compte.updateMany({
     where: { jetonExpireLe: { lt: maintenant } },
     data: { jetonReinitialisation: null, jetonExpireLe: null },
@@ -60,6 +67,7 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
     ambassadeursRetires,
     comptesInactifs: comptesInactifs.count,
     candidatures: candidatures.count,
+    candidaturesCertification: candidaturesCertification.count,
     liens: liens.count,
   };
 }

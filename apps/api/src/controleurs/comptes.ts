@@ -1,6 +1,6 @@
 // Comptes de l'espace ambassadeur (puis de l'app) : inscription, connexion, session, nouveau mot de passe avec le lien
-// reçu par mail. « Mon compte » : comptes-moi.ts ; candidature et propositions : comptes-espace.ts ; « Mot de passe
-// oublié » et confirmation de l'e-mail : comptes-liens.ts.
+// reçu par mail. « Mon compte » : comptes-moi.ts ; candidature et propositions : comptes-espace.ts ; candidature
+// « ambassadeur certifié » : comptes-certification.ts ; « Mot de passe oublié » et confirmation de l'e-mail : comptes-liens.ts.
 // Contrat des adresses : routes/comptes.ts. Jamais d'e-mail, de mot de passe, de jeton ni de date de naissance dans un journal.
 import type { Request, Response } from "express";
 
@@ -12,6 +12,7 @@ import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
 import { FORME_JETON, lireJetonSession, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
+import type { CandidatureCertificationBrute, NouvelleCandidatureCertification, ResultatCandidatureCertification } from "../services/certification.ts";
 import type { CompteConnecte, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
 import type {
   CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, PropositionVue, ResultatChangementCommune,
@@ -59,6 +60,10 @@ export type ServicesComptes = {
   changerCommuneCandidature: (compteId: number, lieu: LieuCandidature) => Promise<ResultatChangementCommune>;
   listerPropositions: (compteId: number) => Promise<PropositionVue[]>;
   creerProposition: (compteId: number, proposition: NouvelleProposition) => Promise<void>;
+  /** Sa dernière candidature « ambassadeur certifié » (null s'il n'en a pas) : services/certification.ts */
+  lireCandidatureCertification: (compteId: number) => Promise<CandidatureCertificationBrute | null>;
+  /** « deja-certifie » s'il a déjà le titre, « candidature-existante » s'il en a une en attente */
+  creerCandidatureCertification: (compteId: number, candidature: NouvelleCandidatureCertification) => Promise<ResultatCandidatureCertification>;
 };
 
 /**

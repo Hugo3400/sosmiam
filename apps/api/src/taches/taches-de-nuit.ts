@@ -1,8 +1,8 @@
 // Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts
 // des demandes de lieux de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
-// comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées, liens de réinitialisation expirés),
-// les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et l'effacement d'un compte
-// (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la
+// comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées (fondateur et certifié), liens de
+// réinitialisation expirés), les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et
+// l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la
 // dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
@@ -60,7 +60,8 @@ async function nettoyerComptes() {
       [bilan.comptesRefuses, "compte(s) refusé(s) depuis plus de 30 jours"],
       [bilan.ambassadeursRetires, "ambassadeur(s) retiré(s) du programme : 1 an sans visite"],
       [bilan.comptesInactifs, "compte(s) effacé(s) : 2 ans sans connexion"],
-      [bilan.candidatures, "candidature(s) refusée(s) depuis plus de 3 mois"],
+      [bilan.candidatures, "candidature(s) fondateur refusée(s) depuis plus de 3 mois"],
+      [bilan.candidaturesCertification, "candidature(s) d'ambassadeur certifié refusée(s) depuis plus de 3 mois"],
       [bilan.liens, "lien(s) de réinitialisation expiré(s)"],
     ];
     const detail = lignes.filter(([nombre]) => nombre > 0).map(([nombre, quoi]) => `${nombre} ${quoi}`).join(", ");
