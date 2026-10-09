@@ -13,6 +13,9 @@ import { creerFideliteClient } from "../services/fidelite-client.ts";
 import { creerVisitesClient, type PointsAPoser } from "../services/visites-client.ts";
 import type { EchecVisite } from "../services/visites-outils.ts";
 import type { ServicesMomentLieu } from "../services/moment-lieu-regles.ts";
+import type { ServicesEvenements } from "../services/evenements-regles.ts";
+import type { ServicesStatistiquesLieu } from "../services/statistiques-lieu-regles.ts";
+import type { DependancesAvis } from "./avis.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 
 export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
@@ -20,6 +23,12 @@ export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
   ajouterPoints: (compteId: number, points: number, raison: "visite" | "visite-sos", detail?: string) => Promise<unknown>;
   /** SOS « place ce soir » et message du moment (routes /pro/comptoir/lieux/:id/moment, /sos, /message) */
   moment: ServicesMomentLieu;
+  /** Statistiques du lieu pour son équipe (GET /pro/comptoir/lieux/:id/statistiques ; absente si non fourni) */
+  statistiques?: ServicesStatistiquesLieu;
+  /** Événements des lieux (routes /pro/comptoir/lieux/:id/evenements ; absentes si non fourni) */
+  evenements?: ServicesEvenements;
+  /** Avis vus du comptoir (routes /pro/comptoir/lieux/:id/avis et /pro/comptoir/avis/:avisId/reponse ; absentes si non fourni) */
+  avis?: Pick<DependancesAvis, "depot">;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */

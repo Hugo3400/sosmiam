@@ -2,7 +2,11 @@ import { Router, type RequestHandler } from "express";
 
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleursComptoir } from "../controleurs/comptoir.ts";
+import { creerControleursAvisPro } from "../controleurs/avis-pro.ts";
+import { creerControleursEvenementsPro } from "../controleurs/evenements-pro.ts";
 import { creerControleursMomentLieu } from "../controleurs/moment-lieu.ts";
+import { creerControleursReservationsPro } from "../controleurs/reservations-pro.ts";
+import { creerControleursStatistiques } from "../controleurs/statistiques-lieu.ts";
 import { creerControleursVisites, type DependancesVisites } from "../controleurs/visites.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
@@ -74,7 +78,15 @@ export function creerRoutesVisites(d: DependancesVisites, protection: Protection
   fidelite.delete("/cartes/:lieuId/demande", gestes, c.annulerDemandeRecompense);
   fidelite.use(gererErreursComptes);
 
-  const moment = creerControleursMomentLieu(d.moment, (compteId, lieuId) => c.comptoir.roleDe(compteId, lieuId), horloge);
+  // Les autres gestes de l'équipe, au même comptoir : le rôle est toujours relu (rattachement validé et 18 ans)
+  const roleDe = (compteId: number, lieuId: number) => c.comptoir.roleDe(compteId, lieuId);
+  const enPlus = {
+    moment: creerControleursMomentLieu(d.moment, roleDe, horloge),
+    reservations: creerControleursReservationsPro(d, roleDe, horloge),
+    statistiques: d.statistiques ? creerControleursStatistiques(d.statistiques, roleDe, horloge) : null,
+    evenements: d.evenements ? creerControleursEvenementsPro(d.evenements, roleDe, horloge) : null,
+    avis: d.avis ? creerControleursAvisPro(d.avis, roleDe, horloge) : null,
+  };
   const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
-  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), moment, avantComptoir, parCompte) };
+  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), enPlus, avantComptoir, parCompte) };
 }

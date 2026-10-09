@@ -45,6 +45,10 @@ import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
 import { creerDepotVisites } from "./services/visites.ts";
 import { creerMomentLieu } from "./services/moment-lieu.ts";
+import { creerVuesLieux } from "./services/vues-lieux.ts";
+import { creerStatistiquesLieu } from "./services/statistiques-lieu.ts";
+import { creerEvenements } from "./services/evenements.ts";
+import { creerDepotAvis } from "./services/avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { prevenirCompte } from "./services/notifications/prevenir-compte.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
@@ -59,6 +63,9 @@ const port = Number(process.env.PORT) || 5192;
 const compteur = creerCompteurVisites(stockageStats);
 // Clé des données des comptes (nom, date de naissance) : lue une seule fois ici ; sans elle, l'API démarre quand même
 const chiffrement = chargerChiffrementDonnees();
+// Événements des lieux et avis : un seul service pour l'app et pour le comptoir de l'équipe
+const evenements = creerEvenements();
+const depotAvis = creerDepotAvis();
 // Version minimale de l'app (écran « mets à jour ») : « 0.0.0 » si rien n'est réglé
 const versionMinimale = {
   ios: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_IOS),
@@ -138,7 +145,15 @@ const serveur = creerApplication({
   visitesApp: {
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
     lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints, moment: creerMomentLieu(),
+    statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis },
   },
+  // Vues des fiches dans l'app : un compteur par lieu et par jour ; les visiteurs ne sont reconnus qu'en mémoire, jusqu'à minuit
+  vuesLieux: { services: creerVuesLieux() },
+  // Événements des lieux : dates visibles et « Ça m'intéresse » (l'âge, pour l'alcool, est lu avec la clé des données)
+  evenementsApp: { services: evenements, chiffrement },
+  // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs. Pas encore
+  // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
+  avisApp: { depot: depotAvis, chiffrement, ajouterPoints, tirer: (max) => randomInt(max) },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

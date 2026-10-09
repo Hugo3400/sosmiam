@@ -1,7 +1,11 @@
 import { Router, type RequestHandler } from "express";
 
 import type { creerControleursComptoir } from "../controleurs/comptoir.ts";
+import type { creerControleursAvisPro } from "../controleurs/avis-pro.ts";
+import type { creerControleursEvenementsPro } from "../controleurs/evenements-pro.ts";
 import type { creerControleursMomentLieu } from "../controleurs/moment-lieu.ts";
+import type { creerControleursReservationsPro } from "../controleurs/reservations-pro.ts";
+import type { creerControleursStatistiques } from "../controleurs/statistiques-lieu.ts";
 import { gererErreursComptes } from "../middlewares/proteger-comptes.ts";
 
 /** L'écran du comptoir se relit toutes les 5 s (et le programme, les lieux), par compte */
@@ -46,10 +50,76 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * PUT    /pro/comptoir/lieux/:id/message { texte (80 caractères, sans gros mot), jusqua? } → 200 : sans jusqua, jusqu'à la
  *          fermeture de ce soir, sinon 24 h ; 24 h au plus · 400 champ-invalide { champ: texte | jusqua }
  * DELETE /pro/comptoir/lieux/:id/message         → 200
+ *
+ * Statistiques du lieu (gérant ET équipe), par semaine de Paris, du lundi au dimanche (types/statistiques-lieu.ts) :
+ * GET    /pro/comptoir/lieux/:id/statistiques[?semaines=1..26 (8 par défaut)]
+ *          → 200 { ok, semaines: StatistiquesSemaine[] }, de la semaine en cours (la première) à la plus ancienne :
+ *          { semaine: "2026-S41", debut: "2026-10-05" (son lundi, jour de Paris), vues (fiche ouverte dans l'app : une par
+ *          visiteur et par jour, sans savoir qui), rescousses, visitesValidees (statut « validee », rangées par date de
+ *          validation, offertes comprises), nouveauxClients (comptes dont la toute première visite validée ici tombe cette
+ *          semaine) } · 400 champ-invalide { champ: id | semaines }
+ *
+ * Événements du lieu (gérant ET équipe ; docs/decisions.md « Événements des lieux » ; formes : types/evenement.ts, vérifiées
+ * par validerEvenement), réponses { ok, evenement: EvenementLieuPro } (prochaine date, statut a-venir | passe | annule,
+ * suspendu, nombre d'intéressés, prénom de qui l'a publié). L'événement de l'adresse est relu : s'il n'est pas de ce lieu, 404.
+ * GET    /pro/comptoir/lieux/:id/evenements      → 200 { ok, evenements: EvenementLieuPro[] } : à venir (le plus proche
+ *          d'abord), puis finis ou annulés depuis 30 jours au plus (le plus récent d'abord)
+ * POST   /pro/comptoir/lieux/:id/evenements { ReglageEvenement } → 201 : titre 3 à 60 caractères, type, description 500,
+ *          debut (à venir, 3 mois à l'avance au plus), fin? (24 h au plus), hebdoJusqua? (chaque semaine, même jour et même
+ *          heure de Paris, au moins une semaine après le début, 3 mois à l'avance au plus), tarif gratuit | prix (prixCentimes
+ *          1 à 50 000) | reservation, places? (1 à 500), alcool? (coché d'office si le texte parle d'alcool ; jamais d'open bar)
+ *          · 400 evenement-invalide { champ } · 409 trop-d-evenements (10 à venir par lieu, suspendus compris)
+ * PUT    /pro/comptoir/lieux/:id/evenements/:evenementId { ReglageEvenement, en entier } → 200 : le début déjà enregistré
+ *          reste permis même passé (série déjà commencée) · 400 evenement-invalide { champ } | champ-invalide { champ:
+ *          evenementId } · 404 evenement-inconnu · 409 evenement-passe | transition-interdite (annulé)
+ * DELETE /pro/comptoir/lieux/:id/evenements/:evenementId → 200 : annulé, toutes ses dates restantes (déjà annulé : rien ne
+ *          change) · 404 evenement-inconnu · 409 evenement-passe (un événement fini ne s'annule plus)
+ *
+ * Avis du lieu (packages/commun, types/avis.ts ; jamais l'auteur ni son âge) :
+ * GET    /pro/comptoir/lieux/:id/avis[?apres=<suite>] (gérant ET équipe) → 200 { ok, resume: ResumeAvis, avis: AvisPublic[]
+ *          (chacun avec reponseLieu), suite: string | null } : les avis visibles (publiés ou en relecture), 30 par page, les
+ *          plus récents d'abord · 400 champ-invalide { champ: id | apres }
+ * POST   /pro/comptoir/avis/:avisId/reponse { texte (600 caractères, sans gros mot) } (GÉRANT seulement) → 201 { ok, avis } :
+ *          réponse publique publiée tout de suite, relue après par l'équipe SOS Miam ; jamais de message privé au client
+ *          · 400 message-refuse { champ: texte } | champ-invalide { champ: avisId } · 403 role-requis (équipe, ou pas ce lieu)
+ *          · 404 introuvable (avis inconnu ou masqué) · 409 reponse-deja-donnee (une réponse par avis, même masquée)
+ *
+ * Réservations faites dans l'app (gérant ET équipe ; le lieu est relu sur la réservation, jamais pris dans la demande).
+ * Réponse des gestes : 200 { ok, reservation: ReservationPro } (types/reservation.ts : prénom, initiale, emoji, personnes,
+ * créneau, petit mot, statut, presence (« Je suis là » fait), code d'arrivée une fois acceptée ; jamais l'âge) ; 400
+ * champ-invalide { champ: id | reservationId } ; 403 role-requis ; 404 introuvable (réservation inconnue).
+ * GET    /pro/comptoir/lieux/:id/reservations    → 200 { ok, reservations: ReservationPro[] } : depuis minuit (heure de Paris),
+ *          ou depuis 4 h si c'est plus tôt (après minuit, la soirée reste visible), et à venir ; tous statuts, créneau
+ *          croissant, 300 au plus
+ * POST   /pro/comptoir/reservations/:reservationId/accepter → statut « acceptee », code d'arrivée à 4 chiffres (jamais celui
+ *          d'une addition, d'une récompense ou d'une autre table attendue chez le lieu) · 409 delai-depasse (sans réponse
+ *          jusqu'à 30 min du créneau : expirée) | transition-interdite
+ * POST   /pro/comptoir/reservations/:reservationId/refuser { motif: "complet"|"ferme"|"groupe-trop-grand"|"autre" }
+ *          · 400 champ-invalide { champ: motif } · 409 delai-depasse | transition-interdite
+ * POST   /pro/comptoir/reservations/:reservationId/annuler { motif } → une réservation acceptée que le lieu ne peut plus
+ *          honorer (le client voit le motif) · 400 champ-invalide { champ: motif } · 409 transition-interdite
+ * POST   /pro/comptoir/reservations/:reservationId/venu → de 30 min avant le créneau à 4 h après. Si le client a déjà fait
+ *          « Je suis là », la visite est validée tout de suite (mode « reservation », « payée » : +15, ou +25 si la demande a
+ *          été faite pendant un SOS du lieu pour un créneau avant sa fin ; tampon ; avis dans 1 h ; annulable 15 min comme
+ *          les autres validations) ; sinon elle le sera à « Je suis là » · 409 transition-interdite (trop tôt, pas acceptée)
+ *          | delai-depasse (plus de 4 h après)
+ * POST   /pro/comptoir/reservations/:reservationId/absent → « Pas venu », à partir de 30 min après le créneau (gardé sur la
+ *          réservation) · 409 transition-interdite
+ * L'écran du comptoir (etat) donne aussi arrivees (réservations acceptées du jour, la plus proche d'abord) et
+ * reservationsARepondre (demandes en attente).
  */
+/** Les autres gestes de l'équipe au comptoir ; null : routes absentes (non fournies) */
+export type ControleursComptoirEnPlus = {
+  moment: ReturnType<typeof creerControleursMomentLieu>;
+  reservations: ReturnType<typeof creerControleursReservationsPro>;
+  statistiques: ReturnType<typeof creerControleursStatistiques> | null;
+  evenements: ReturnType<typeof creerControleursEvenementsPro> | null;
+  avis: ReturnType<typeof creerControleursAvisPro> | null;
+};
+
 export function creerRoutesComptoir(
   c: ReturnType<typeof creerControleursComptoir>,
-  moment: ReturnType<typeof creerControleursMomentLieu>,
+  { moment, reservations, statistiques, evenements, avis }: ControleursComptoirEnPlus,
   avant: RequestHandler[],
   parCompte: (r: { fenetre: number; maximum: number }) => RequestHandler,
 ) {
@@ -72,6 +142,23 @@ export function creerRoutesComptoir(
   routes.delete("/lieux/:id/sos", gestes, moment.arreterSos);
   routes.put("/lieux/:id/message", gestes, moment.reglerMessage);
   routes.delete("/lieux/:id/message", gestes, moment.effacerMessage);
+  routes.get("/lieux/:id/reservations", lectures, reservations.lister);
+  routes.post("/reservations/:reservationId/accepter", gestes, reservations.accepter);
+  routes.post("/reservations/:reservationId/refuser", gestes, reservations.refuser);
+  routes.post("/reservations/:reservationId/annuler", gestes, reservations.annuler);
+  routes.post("/reservations/:reservationId/venu", gestes, reservations.marquerVenu);
+  routes.post("/reservations/:reservationId/absent", gestes, reservations.marquerAbsent);
+  if (statistiques) routes.get("/lieux/:id/statistiques", lectures, statistiques.lire);
+  if (evenements) {
+    routes.get("/lieux/:id/evenements", lectures, evenements.lister);
+    routes.post("/lieux/:id/evenements", gestes, evenements.creer);
+    routes.put("/lieux/:id/evenements/:evenementId", gestes, evenements.modifier);
+    routes.delete("/lieux/:id/evenements/:evenementId", gestes, evenements.annuler);
+  }
+  if (avis) {
+    routes.get("/lieux/:id/avis", lectures, avis.lister);
+    routes.post("/avis/:avisId/reponse", gestes, avis.repondre);
+  }
   routes.use(gererErreursComptes);
   return routes;
 }

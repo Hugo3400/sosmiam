@@ -12,6 +12,13 @@ import { creerRoutesContenuApp } from "./routes/contenu-app.ts";
 import { creerRoutesActivite } from "./routes/activite.ts";
 import type { DependancesActivite } from "./controleurs/activite.ts";
 import { creerRoutesVisites } from "./routes/visites.ts";
+import { creerRoutesReservationsApp } from "./routes/reservations.ts";
+import { creerRoutesVuesLieux } from "./routes/vues-lieux.ts";
+import type { DependancesVuesLieux } from "./controleurs/vues-lieux.ts";
+import { creerRoutesEvenementsApp } from "./routes/evenements.ts";
+import type { DependancesEvenementsApp } from "./controleurs/evenements-app.ts";
+import { creerRoutesAvisApp } from "./routes/avis.ts";
+import type { DependancesAvis } from "./controleurs/avis.ts";
 import type { DependancesVisites } from "./controleurs/visites.ts";
 import type { DependancesContenuApp } from "./controleurs/contenu-app.ts";
 import type { DependancesApp } from "./controleurs/app.ts";
@@ -75,9 +82,18 @@ type Dependances = {
   contenuApp?: DependancesContenuApp;
   /** L'app, avec session : rescousses, lieux gardés, J'aime, masques et suivis (routes /app/activite ; seulement avec `comptes`) */
   activiteApp?: DependancesActivite;
-  /** L'app, avec session : visites, fidélité (routes /app/visites, /app/fidelite) et comptoir de l'équipe (routes
-   * /pro/comptoir, montées avant /pro) ; seulement avec `comptes` */
+  /** L'app, avec session : visites, fidélité, réservations (routes /app/visites, /app/fidelite, /app/reservations) et
+   * comptoir de l'équipe (routes /pro/comptoir, montées avant /pro) ; seulement avec `comptes` */
   visitesApp?: DependancesVisites;
+  /** L'app, sans session : vues des fiches des lieux, comptées sans pister personne (POST /app/lieux/:id/vue). Monté avant
+   * `contenuApp` et `app` : il ne répond qu'à cette adresse et laisse passer tout le reste */
+  vuesLieux?: DependancesVuesLieux;
+  /** L'app : événements des lieux (routes /app/evenements : dates visibles sans session, « Ça m'intéresse » avec session ;
+   * seulement avec `comptes`) */
+  evenementsApp?: DependancesEvenementsApp;
+  /** L'app : avis des lieux (routes /app/avis : avis d'un lieu sans session, le reste avec session, relecture pour un
+   * ambassadeur actif) ; seulement avec `comptes`. Les avis du comptoir passent par `visitesApp.avis` */
+  avisApp?: DependancesAvis;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -92,7 +108,7 @@ export function creerApplication({
   enregistrerDemandeLieu, bot, gestion,
   listerLieuxDuPlan,
   comptes, espaceAmbassadeur, zones, miamSafe,
-  app, contenuApp, activiteApp, visitesApp,
+  app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -103,6 +119,8 @@ export function creerApplication({
   // La carte d'un lieu (PUT /pro/lieux/:id/carte) : jusqu'à 250 plats avec leur description, donc son propre lecteur
   if (comptes?.pro) application.put("/pro/lieux/:id/carte", interdireCache, express.json({ limit: "300kb" }));
   if (comptes) application.use(PREFIXES_COMPTES, interdireCache, express.json({ limit: "16kb" }));
+  // Un avis peut faire 1 000 caractères pleins d'accents ou d'emojis : un peu plus de marge
+  if (comptes && avisApp) application.use("/app/avis", express.json({ limit: "8kb" }));
   application.use(express.json({ limit: "4kb" }));
 
   application.get("/sante", (_requete, reponse) => {
@@ -130,6 +148,7 @@ export function creerApplication({
       const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, majorite.exigerMajeur);
       application.use("/app/visites", routesVisites.visites);
       application.use("/app/fidelite", routesVisites.fidelite);
+      application.use("/app/reservations", creerRoutesReservationsApp(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
       application.use("/pro/comptoir", routesVisites.comptoir);
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
@@ -138,6 +157,10 @@ export function creerApplication({
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));
     // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version
     if (activiteApp) application.use("/app/activite", creerRoutesActivite(activiteApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+    // Événements des lieux (dates publiques, « Ça m'intéresse » avec la même session) et avis (l'avis d'un lieu se lit sans
+    // session), avant le routeur /app de l'heure et de la version
+    if (evenementsApp) application.use("/app/evenements", creerRoutesEvenementsApp(evenementsApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+    if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",
@@ -149,6 +172,8 @@ export function creerApplication({
   // L'app, sans session : heure du serveur et version minimale
   // Lieux, fil et médias de l'app : avant le routeur suivant, qui limite toutes les adresses /app (ce que celui-ci ne
   // connaît pas lui passe)
+  // Vues des fiches (POST /app/lieux/:id/vue, sans session) : avant les autres routeurs /app, qui reçoivent tout le reste
+  if (vuesLieux) application.use("/app", creerRoutesVuesLieux(vuesLieux));
   if (contenuApp) application.use("/app", creerRoutesContenuApp(contenuApp));
   if (app) application.use("/app", creerRoutesApp(app));
 
