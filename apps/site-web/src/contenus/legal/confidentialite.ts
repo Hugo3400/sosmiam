@@ -17,6 +17,7 @@
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
+import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -26,12 +27,12 @@ const lienPolitiqueCloudflare = "[politique de confidentialité](https://www.clo
 export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
-    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, compte ambassadeur et app mobile. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
+    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, comptes ambassadeur et pro, et app mobile. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
   miseAJour: "9 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
-    "SOS Miam est encore en préparation : l'app n'est pas encore sur les stores, et tout ce que tu y fais reste sur ton téléphone ; il n'y a pas de pub pour l'instant. Le seul compte qui existe aujourd'hui est celui de l'espace ambassadeur, dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
+    "SOS Miam est encore en préparation : l'app n'est pas encore sur les stores, et tout ce que tu y fais reste sur ton téléphone ; il n'y a pas de pub pour l'instant. Les seuls comptes qui existent aujourd'hui sont ceux de l'espace ambassadeur et de l'espace pro (pour gérer la fiche d'un lieu), dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
   sections: [
     {
@@ -40,13 +41,14 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
-            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur, celui qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur ou pro, celui qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
             "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
             "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
             "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
             "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un simple mail suffit, même juste « STOP »).",
             "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
             "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Après 1 an sans visite dans ton espace, ton rôle d'ambassadeur est retiré ; après 2 ans sans connexion, ton compte est effacé (on te prévient par mail un mois avant) ; et tu peux le supprimer toi-même à tout moment.",
+            "**Ton espace pro** (dès 18 ans, pour gérer la fiche d'un lieu) : avec le même compte, ta demande pour gérer un lieu et ce qui prouve qu'il est à toi ne sont vus que par l'équipe de SOS Miam ; ce que tu changes sur la fiche est public, mais sans ton nom. Une demande refusée ou un rattachement retiré est effacé 1 an après.",
             "**L'app SOS Miam** (pas encore sur les stores) : tout ce que tu y fais reste sur ton téléphone, rien n'est envoyé à notre serveur. Ta position, seulement quand tu le demandes, sert à trouver ta ville (par le service d'Apple ou de Google) ou les lieux autour de toi, et n'est jamais gardée. Les comptes de l'app arriveront bientôt : on t'explique déjà ce qu'ils garderont.",
             "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
             "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
@@ -184,6 +186,7 @@ export const documentConfidentialite: DocumentLegal = {
       ],
     },
     sectionCompteAmbassadeur,
+    sectionComptePro,
     sectionApp,
     sectionAppComptes,
     {
@@ -211,11 +214,11 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**On ne vend jamais tes données**, on ne les loue pas, et on ne les confie qu'aux prestataires techniques présentés plus bas, pour notre compte (sauf obligation légale).",
-            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et celui qui te garde connecté à ton espace ambassadeur. Détails sur la page [Cookies](/cookies).",
+            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et celui qui te garde connecté à ton espace ambassadeur ou pro. Détails sur la page [Cookies](/cookies).",
             "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
             "**Aucun outil de mesure d'audience extérieur** (ni Google Analytics, ni pixel de réseau social) : nos statistiques de visite sont comptées par notre serveur, sans cookie (voir « Les statistiques de visite »). Et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
-            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante ; après plusieurs mots de passe faux, notre serveur te fait patienter un peu avant un nouvel essai ; et il refuse tout seul une inscription d'ambassadeur avant 18 ans, d'après la date de naissance que tu indiques (sans rien garder). Si tu es bloqué à tort, écris-nous à ${lienEmail}. Toutes les autres inscriptions d'ambassadeur, elles, sont regardées par une personne.`,
+            `**Aucune décision automatisée au sens de l'article 22 du RGPD** : aucune décision produisant des effets juridiques te concernant, ou t'affectant de manière significative, n'est prise sur le seul fondement d'un traitement automatisé. Seul le filtrage de sécurité de Cloudflare peut, automatiquement, te demander une vérification ou bloquer une requête jugée malveillante ; après plusieurs mots de passe faux, notre serveur te fait patienter un peu avant un nouvel essai ; et il refuse tout seul une inscription avant 18 ans (espace ambassadeur ou pro), d'après la date de naissance que tu indiques (sans rien garder). Si tu es bloqué à tort, écris-nous à ${lienEmail}. Toutes les autres inscriptions d'ambassadeur, et chaque demande pour gérer un lieu, sont regardées par une personne.`,
           ],
         },
       ],
@@ -307,7 +310,7 @@ export const documentConfidentialite: DocumentLegal = {
         "Si tu as moins de 15 ans, il faut l'accord de tes parents (ou de la personne qui a l'autorité parentale), en plus du tien, avant de t'inscrire à la newsletter ou via le formulaire « Préviens-moi ».",
         `Si on apprend qu'un enfant de moins de 15 ans s'est inscrit sans cet accord, on efface ses données. Un parent peut nous le signaler à ${lienEmail}.`,
         "L'app est ouverte à partir de **15 ans**, et de 15 à 17 ans, tout ce qui touche à l'alcool y est masqué (voir « L'app SOS Miam, aujourd'hui »).",
-        "L'espace ambassadeur, lui, est réservé aux **18 ans et plus** : ta date de naissance sert seulement à le vérifier à l'inscription, et n'est pas gardée. Si on apprend qu'un compte ambassadeur appartient à quelqu'un de moins de 18 ans, on l'efface.",
+        "L'espace ambassadeur et l'espace pro, eux, sont réservés aux **18 ans et plus** : ta date de naissance sert seulement à le vérifier à l'inscription, et n'est pas gardée. Si on apprend qu'un compte ambassadeur ou pro appartient à quelqu'un de moins de 18 ans, on l'efface.",
       ],
     },
     {

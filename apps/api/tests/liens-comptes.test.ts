@@ -158,6 +158,17 @@ test("mot de passe oublié : 5 demandes par visiteur et par heure, puis 429", as
   assert.ok(Number(trop.entetes.get("retry-after")) > 0);
 });
 
+test("inscription pro : le lien de confirmation mène à pro.sosmiam.fr", async () => {
+  const inscription = await demander("POST", "/comptes", {
+    corps: { email: "gerante@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Inès", dateNaissance: "1990-05-12", cgu: true, espace: "pro" },
+  });
+  assert.equal(inscription.statut, 201);
+  await laisserFinir();
+  const compte = [...memoire.comptes.values()].find((c) => c.email === "gerante@exemple.fr");
+  const [envoi] = envoisDe(compte?.id ?? 0, "verification-email");
+  assert.match(envoi?.lien ?? "", /^https:\/\/pro\.sosmiam\.fr\/verifier-email#jeton=/);
+});
+
 test("inscription : un lien de confirmation de 7 jours part ; il confirme l'e-mail une seule fois", async () => {
   const inscription = await demander("POST", "/comptes", {
     corps: { email: "nouveau@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Zoé", ville: "Nantes", dateNaissance: "2000-01-31", cgu: true },

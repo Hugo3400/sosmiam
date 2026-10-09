@@ -34,7 +34,10 @@ export function creerHtmlBilan({ actuel, precedent, totaux }: BilanMois, genereL
 <html lang="fr"><head><meta charset="utf-8"><title>${echapper(titre)}</title>
 <style>
   @page { size: A4; margin: 16mm; }
-  body { font-family: Inter, Arial, Helvetica, sans-serif; color: #1A1A1A; margin: 0; }
+  /* Toujours une feuille blanche, même quand le logiciel est en thème sombre (l'aperçu est un cadre transparent) */
+  html { background: #FFFFFF; color-scheme: light; }
+  body { font-family: Inter, Arial, Helvetica, sans-serif; color: #1A1A1A; background: #FFFFFF; margin: 0; }
+  @media screen { body { padding: 20px 24px; } }
   header { border-bottom: 4px solid #FFD60A; padding-bottom: 10px; margin-bottom: 18px; }
   h1 { font-size: 26px; margin: 0; } header p { margin: 4px 0 0; color: #5C5A55; font-size: 13px; }
   h2 { font-size: 16px; margin: 18px 0 8px; }
