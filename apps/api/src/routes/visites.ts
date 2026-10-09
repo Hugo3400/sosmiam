@@ -2,6 +2,7 @@ import { Router, type RequestHandler } from "express";
 
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleursComptoir } from "../controleurs/comptoir.ts";
+import { creerControleursMomentLieu } from "../controleurs/moment-lieu.ts";
 import { creerControleursVisites, type DependancesVisites } from "../controleurs/visites.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
@@ -72,5 +73,6 @@ export function creerRoutesVisites(d: DependancesVisites, protection: Protection
   fidelite.delete("/cartes/:lieuId/demande", gestes, c.annulerDemandeRecompense);
   fidelite.use(gererErreursComptes);
 
-  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), avant, parCompte) };
+  const moment = creerControleursMomentLieu(d.moment, (compteId, lieuId) => c.comptoir.roleDe(compteId, lieuId), horloge);
+  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), moment, avant, parCompte) };
 }

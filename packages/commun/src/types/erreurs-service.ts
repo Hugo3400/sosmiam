@@ -15,6 +15,7 @@ export type ErreurService =
   | "mineur-bar"
   | "membre-du-lieu"
   | "email-non-verifie"
+  | "sos-deja-lance"
   | "position-refusee"
   | "position-bloquee"
   | "position-coupee"

@@ -10,6 +10,7 @@ import { creerSignatureQr } from "../../src/fonctions/securite/creer-signature-q
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
 import type { RoleRattachement } from "../../src/services/pro-regles.ts";
+import { creerMomentLieuEnMemoire } from "../../src/services/moment-lieu-en-memoire.ts";
 import { creerVisitesEnMemoire, type LieuVisiteEnMemoire } from "../../src/services/visites-en-memoire.ts";
 
 export type Reponse = { statut: number; corps: Record<string, any>; entetes: Headers };
@@ -30,6 +31,7 @@ export async function creerBancVisites() {
   const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
   const signerQr = creerSignatureQr(new Uint8Array(32).fill(3));
   const roles = new Map<string, RoleRattachement>();
+  const moment = creerMomentLieuEnMemoire((compteId) => visites.comptes.get(compteId)?.prenom ?? null);
   const points: { compteId: number; valeur: number; raison: string }[] = [];
   let tirage = 0;
   const serveur = creerApplication({
@@ -41,6 +43,7 @@ export async function creerBancVisites() {
       tirer: () => 1234 + tirage++,
       lireRole: async (compteId, lieuId) => roles.get(`${compteId}:${lieuId}`) ?? null,
       ajouterPoints: async (compteId, valeur, raison) => void points.push({ compteId, valeur, raison }),
+      moment: moment.services,
     },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
@@ -86,8 +89,11 @@ export async function creerBancVisites() {
     visites.programmes.clear();
     points.length = 0;
     visites.lieux.set(1, { ...LIEU_TEST, position: { ...LIEU_TEST.position! } });
+    moment.lieux.clear();
+    moment.sos.length = 0;
+    moment.lieux.set(1, { ouverture: [{ jours: [0, 1, 2, 3, 4, 5, 6], de: "12:00", a: "14:30" }, { jours: [0, 1, 2, 3, 4, 5, 6], de: "19:00", a: "23:00" }], alerte: null, alerteJusqua: null });
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));
-  return { banc, visites, points, signerQr, creerCompte, rattacher, demander, vider, fermer };
+  return { banc, visites, moment, points, signerQr, creerCompte, rattacher, demander, vider, fermer };
 }

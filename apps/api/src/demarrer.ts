@@ -43,6 +43,7 @@ import { creerLieuxApp } from "./services/lieux-app.ts";
 import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
 import { creerDepotVisites } from "./services/visites.ts";
+import { creerMomentLieu } from "./services/moment-lieu.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { prevenirCompte } from "./services/notifications/prevenir-compte.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
@@ -134,7 +135,7 @@ const serveur = creerApplication({
   // La clé des QR du comptoir est tirée à chaque démarrage, jamais écrite (un QR vit 60 s au plus)
   visitesApp: {
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
-    lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints,
+    lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints, moment: creerMomentLieu(),
   },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);

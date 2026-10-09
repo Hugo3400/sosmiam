@@ -12,11 +12,14 @@ import { creerComptoir, type ContexteComptoir } from "../services/comptoir.ts";
 import { creerFideliteClient } from "../services/fidelite-client.ts";
 import { creerVisitesClient, type PointsAPoser } from "../services/visites-client.ts";
 import type { EchecVisite } from "../services/visites-outils.ts";
+import type { ServicesMomentLieu } from "../services/moment-lieu-regles.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 
 export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
   /** ajouterPoints de services/comptes.ts (négatif : retire) */
   ajouterPoints: (compteId: number, points: number, raison: "visite" | "visite-sos", detail?: string) => Promise<unknown>;
+  /** SOS « place ce soir » et message du moment (routes /pro/comptoir/lieux/:id/moment, /sos, /message) */
+  moment: ServicesMomentLieu;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */

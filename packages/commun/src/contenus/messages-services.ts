@@ -67,6 +67,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Tu fais partie de l'équipe ici",
     texte: "Tes passages chez toi ne comptent pas, sinon ce serait trop facile. Va goûter chez les voisins !",
   },
+  "sos-deja-lance": {
+    emoji: "🆘",
+    titre: "Un SOS par jour",
+    texte: "Ton SOS de ce soir a déjà été lancé (même s'il est arrêté). On remet ça demain, promis.",
+  },
   "email-non-verifie": {
     emoji: "📬",
     titre: "Confirme d'abord ton e-mail",
