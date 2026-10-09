@@ -16,6 +16,7 @@
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
+import { sectionMiamSafe } from "~/contenus/legal/confidentialite-miam-safe";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
@@ -189,6 +190,7 @@ export const documentConfidentialite: DocumentLegal = {
     sectionComptePro,
     sectionApp,
     sectionAppComptes,
+    sectionMiamSafe,
     {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",

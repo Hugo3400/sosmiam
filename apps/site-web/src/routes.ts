@@ -53,6 +53,7 @@ export default [
     route("lieu/:id/suggestions", "routes/pro/suggestions.tsx"),
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
     route("lieu/:id/affichette", "routes/pro/affichette.tsx"),
+    route("lieu/:id/miam-safe", "routes/pro/miam-safe.tsx"),
     // « Mon compte » de l'espace pro : la même page que /espace/mon-compte (son propre id, son cadre pro)
     route("mon-compte", "routes/compte/mon-compte.tsx", { id: "routes/pro/mon-compte" }),
   ]),

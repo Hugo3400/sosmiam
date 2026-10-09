@@ -207,6 +207,21 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Ta proposition ne passe pas",
     texte: "Change au moins une info, sans gros mot ni texte trop long, et vérifie le téléphone et le site.",
   },
+  "rien-a-changer": {
+    emoji: "🤔",
+    titre: "Rien n'a changé",
+    texte: "Tout ce que tu proposes est déjà sur la fiche. Merci quand même d'avoir vérifié !",
+  },
+  "lieu-inconnu": {
+    emoji: "🔍",
+    titre: "Lieu introuvable",
+    texte: "Ce lieu n'est plus sur SOS Miam, ou pas encore publié.",
+  },
+  "trop-de-suggestions": {
+    emoji: "✏️",
+    titre: "Beaucoup de propositions d'un coup",
+    texte: "Tu en as déjà envoyé beaucoup aujourd'hui, ou ce lieu en a déjà plusieurs en attente. L'équipe les relit : réessaie demain.",
+  },
   "infos-invalides": {
     emoji: "📋",
     titre: "Une info ne passe pas",

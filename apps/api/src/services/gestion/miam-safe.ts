@@ -3,6 +3,7 @@
 // sa charte, le masquer). Rien de tout ça n'apparaît sur la fiche publique d'un lieu.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { ActionMiamSafe } from "./actions-miam-safe.ts";
+import { DUREE_GARDE_ALERTES_MS } from "../miam-safe-regles.ts";
 import { DELAI_LECTURE_SIGNALEMENT_HEURES, DELAI_RELANCE_ALERTE_SECONDES } from "../../../../../packages/commun/src/regles/miam-safe.ts";
 
 
@@ -105,4 +106,18 @@ export async function marquerAlerteMiamSafeVue(id: number, maintenant = new Date
 export async function rendreCharteMiamSafe(lieuId: number): Promise<boolean> {
   const { count } = await baseDeDonnees.charteMiamSafe.updateMany({ where: { lieuId, motifRetrait: { not: null } }, data: { motifRetrait: null } });
   return count > 0;
+}
+
+/**
+ * Ménage de nuit (taches-de-nuit.ts), promis par la politique de confidentialité : les signalements Miam Safe traités depuis
+ * plus d'un an, et les alertes silencieuses de plus de 30 jours (aussi effacées à chaque nouvelle alerte).
+ */
+export async function effacerMiamSafeAncien(maintenant = new Date()) {
+  const unAn = new Date(maintenant);
+  unAn.setFullYear(unAn.getFullYear() - 1);
+  const [signalements, alertes] = await Promise.all([
+    baseDeDonnees.signalementMiamSafe.deleteMany({ where: { statut: "traite", traiteLe: { lt: unAn } } }),
+    baseDeDonnees.alerteMiamSafe.deleteMany({ where: { creeLe: { lt: new Date(maintenant.getTime() - DUREE_GARDE_ALERTES_MS) } } }),
+  ]);
+  return { signalements: signalements.count, alertes: alertes.count };
 }

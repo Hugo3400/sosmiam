@@ -1,5 +1,5 @@
 // Toutes les erreurs que peuvent rendre les services des visites, de la fidélité, des réservations, des avis,
-// du comptoir et de l'espace ambassadeur. Chaque code a son texte dans contenus/messages-services.ts.
+// du comptoir, de l'espace ambassadeur et des propositions de modification d'une fiche. Chaque code a son texte dans contenus/messages-services.ts.
 
 export type ErreurService =
   | "connexion-requise"
@@ -45,6 +45,9 @@ export type ErreurService =
   | "infos-invalides"
   | "carte-invalide"
   | "proposition-invalide"
+  | "rien-a-changer"
+  | "lieu-inconnu"
+  | "trop-de-suggestions"
   | "avis-pas-ouvert"
   | "avis-deja-donne"
   | "avis-invalide"

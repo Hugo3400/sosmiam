@@ -36,6 +36,7 @@ export function CarteLieuPro({ rattachement }: { rattachement: Rattachement }) {
             <li><Link to={`${adresse}/suggestions`} className={classeLien}>Suggestions</Link></li>
             {gerant && <li><Link to={`${adresse}/equipe`} className={classeLien}>Mon équipe</Link></li>}
             <li><Link to={`${adresse}/affichette`} className={classeLien}>Affichette</Link></li>
+            <li><Link to={`${adresse}/miam-safe`} className={classeLien}>Miam Safe</Link></li>
           </ul>
           {!gerant && (
             <div className="mt-auto pt-4">

@@ -63,6 +63,9 @@ export function creerServicesIndisponibles(): Services {
       repondreAvis: indisponible,
       ecouter: rienAEcouter,
     },
+    suggestions: {
+      proposer: indisponible,
+    },
     ambassadeur: {
       lireEspace: indisponible,
       listerMissions: async () => ({ ok: true, missions: [] }),

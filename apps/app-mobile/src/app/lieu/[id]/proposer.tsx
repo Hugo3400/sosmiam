@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { validerPropositionLieu, type ChampPropositionLieu } from "@sos-miam/commun/validation/valider-proposition-lieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -20,6 +22,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
 
 /** Ce qu'on dit sous le champ à corriger (mêmes règles que l'API : validerPropositionLieu) */
@@ -40,6 +43,7 @@ export default function ProposerModification() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
+  const { suggestions: service } = utiliserServices();
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
   // Celles remplies par le lieu s'il l'a fait, sinon celles de la fiche (comme ce que voient les gourmands). Lieu absent :
@@ -52,6 +56,9 @@ export default function ProposerModification() {
   const [message, setMessage] = useState("");
   const [erreur, setErreur] = useState<ChampPropositionLieu | null>(null);
   const [envoyee, setEnvoyee] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
+  // Ce que le service a répondu (trop de propositions, rien à changer, pas de connexion…)
+  const [refus, setRefus] = useState<ErreurService | null>(null);
 
   if (!lieu || !actuel) {
     return (
@@ -67,18 +74,25 @@ export default function ProposerModification() {
   const changer = (partiel: Partial<BrouillonProposition>) => {
     setBrouillon({ ...b, ...partiel });
     setErreur(null);
+    setRefus(null);
   };
   const basculerSujet = (s: SujetProposition) => {
     setSujets((avant) => (avant.includes(s) ? avant.filter((x) => x !== s) : [...avant, s]));
     setErreur(null);
+    setRefus(null);
   };
   const parties = sujetsProposition.filter((s) => sujets.includes(s.sujet) && s.partie).map((s) => s.partie!);
 
-  function envoyer() {
+  async function envoyer() {
+    if (envoi || !lieu) return;
+    // Vérifiée ici pour dire quel champ corriger ; le service revérifie et ne garde que ce qui change
     const proposition = calculerPropositionLieu(actuel!, b, sujets);
     const r = validerPropositionLieu({ proposition, message });
     if (!r.ok) return setErreur(r.champ);
-    // Affichage d'abord : l'envoi au service (et ses limites) arrive juste après
+    setEnvoi(true);
+    const reponse = await service.proposer(lieu.id, r.suggestion);
+    setEnvoi(false);
+    if (!reponse.ok) return setRefus(reponse.erreur);
     vibrerLegerement();
     setEnvoyee(true);
   }
@@ -164,6 +178,7 @@ export default function ProposerModification() {
                   onChangeTexte={(t) => {
                     setMessage(t);
                     setErreur(null);
+                    setRefus(null);
                   }}
                   placeholder="J'y étais hier : ils sont fermés le lundi maintenant"
                   multiline
@@ -173,10 +188,23 @@ export default function ProposerModification() {
               ) : null}
 
               {erreur === "vide" ? <Text className="font-texte-semi text-sm text-rouge-texte">{ERREURS.vide}</Text> : null}
+              {refus ? (
+                <View accessibilityLiveRegion="polite" className="gap-1 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
+                  <Text className="font-texte-gras text-[15px] text-encre">
+                    {MESSAGES_SERVICE[refus].emoji} {MESSAGES_SERVICE[refus].titre}
+                  </Text>
+                  <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(MESSAGES_SERVICE[refus].texte)}</Text>
+                </View>
+              ) : null}
             </ScrollView>
 
             <View className="border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
-              <Bouton libelle="Envoyer ma proposition" desactive={sujets.length === 0} indice={sujets.length === 0 ? "Coche d'abord ce qui a changé" : undefined} onPress={envoyer} />
+              <Bouton
+                libelle={envoi ? "Envoi…" : "Envoyer ma proposition"}
+                desactive={sujets.length === 0 || envoi}
+                indice={sujets.length === 0 ? "Coche d'abord ce qui a changé" : undefined}
+                onPress={envoyer}
+              />
             </View>
           </>
         )}

@@ -90,3 +90,22 @@ export function retirerMembre(jeton: string, ip: string | null, lieuId: number, 
 export function lireFichePublique(lieuId: number, ip: string | null) {
   return appelerApiComptes<{ lieu: FichePublique }>(`/lieux/publics/${lieuId}`, { ip });
 }
+
+// ─── Miam Safe (contrat : apps/api/src/routes/miam-safe.ts) ───
+
+/** La charte Miam Safe du lieu ; retireeParEquipe : l'équipe SOS Miam l'a retirée, seule elle peut la rendre. */
+export type CharteMiamSafe = { signee: boolean; signeeLe: string | null; retireeParEquipe: boolean };
+
+export function lireCharteMiamSafe(jeton: string, ip: string | null, lieuId: number) {
+  return appelerApiComptes<{ charte: CharteMiamSafe }>(`/miam-safe/pro/lieux/${lieuId}/charte`, { jeton, ip });
+}
+
+/** Le gérant signe (charte-retiree si l'équipe SOS Miam l'a retirée ; reserve-au-gerant sinon). */
+export function signerCharteMiamSafe(jeton: string, ip: string | null, lieuId: number) {
+  return appelerApiComptes<{ charte: CharteMiamSafe }>(`/miam-safe/pro/lieux/${lieuId}/charte`, { methode: "PUT", jeton, ip, corps: { accepte: true } });
+}
+
+/** Le gérant quitte la charte : le badge disparaît, les alertes silencieuses ne partent plus. */
+export function quitterCharteMiamSafe(jeton: string, ip: string | null, lieuId: number) {
+  return appelerApiComptes<{ charte: CharteMiamSafe }>(`/miam-safe/pro/lieux/${lieuId}/charte`, { methode: "DELETE", jeton, ip });
+}
