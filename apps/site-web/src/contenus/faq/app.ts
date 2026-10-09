@@ -14,13 +14,14 @@ export const questionsApp: QuestionFaq[] = [
     question: "Comment valider mon passage ?",
     reponse: [
       "En payant. Au moment de l'addition, demande-la dans l'app (« Demander l'addition SOS Miam ») : le serveur la marque réglée d'un geste. Si le lieu a une caisse connectée, scanne le QR imprimé sur ton ticket. Une réservation faite dans l'app et honorée compte aussi. C'est ce qui ouvre ton avis, te rapporte des points et remplit ta carte de fidélité.",
+      "Ça ne marche que dans un lieu vérifié ✓, qui a un compte SOS Miam. Un lieu non vérifié est dans l'app pour que tu le découvres, mais il ne peut pas valider ta visite : chez lui, pas de points ni d'avis vérifié. Tu peux quand même laisser un avis (marqué « non vérifié ») et l'inviter à nous rejoindre.",
     ],
   },
   {
     id: "faq-avis-fiables",
     question: "Les avis sont-ils fiables ?",
     reponse: [
-      "Oui : on ne peut noter qu'après un achat vérifié (addition réglée, ticket scanné ou réservation honorée), et l'invitation arrive une heure après, pas devant le patron. Un avis louche est relu par un ambassadeur, la moyenne est prudente, et on montre aussi la part de clients qui reviennent. Pas de faux avis achetés, pas de concurrents qui notent en douce.",
+      "Oui : on ne peut noter qu'après un achat vérifié (addition réglée, ticket scanné ou réservation honorée), et l'invitation arrive une heure après, pas devant le patron. Un avis louche est relu par un ambassadeur, la moyenne est prudente, et on montre aussi la part de clients qui reviennent. Pas de faux avis achetés, pas de concurrents qui notent en douce. Un avis laissé sur un lieu non vérifié, sans visite validée, est marqué « non vérifié ».",
     ],
   },
   {

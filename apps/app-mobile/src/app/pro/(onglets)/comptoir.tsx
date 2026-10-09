@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +32,7 @@ const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initiale
  * encore annulables. Suivi en direct (utiliserComptoir) ; chaque geste dit ce qui s'est passé, en une phrase.
  */
 export default function EcranComptoir() {
+  const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();
   const demo = utiliserOutilsDemo() !== null;
@@ -94,7 +96,7 @@ export default function EcranComptoir() {
                 qr={etat.qr}
                 reglement={etat.qr.reglement}
                 maintenant={maintenant}
-                onVoir={() => annoncer("Le QR en grand arrive juste après 🛠️")}
+                onVoir={() => router.push("/pro/qr")}
                 onCacher={async () => {
                   const r = await comptoir.cacherQr();
                   if (r.ok) annoncer("QR éteint");
@@ -156,7 +158,8 @@ export default function EcranComptoir() {
         onMontrer={async (personnes, reglement) => {
           setChoixQr(false);
           const r = await comptoir.montrerQr(personnes, reglement);
-          if (r.ok) annoncer(`QR allumé pour ${personnes} personne${personnes > 1 ? "s" : ""}`);
+          // Allumé : on le montre aussitôt en grand, prêt à tourner vers le client
+          if (r.ok) router.push("/pro/qr");
           else direEchec(r);
         }}
         onFermer={() => setChoixQr(false)}

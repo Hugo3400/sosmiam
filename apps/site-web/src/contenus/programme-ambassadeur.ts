@@ -55,13 +55,13 @@ export const gainsAmbassadeur = [
 
 /** Barème des points (décidé le 8 octobre 2026). */
 export const baremePoints = [
-  { action: "Une visite dans un lieu, validée dans l'app", points: 15 },
+  { action: "Une visite payée dans un lieu vérifié ✓ (qui a un compte SOS Miam), validée dans l'app", points: 15 },
   { action: "Une visite pendant un SOS, quand un lieu appelle à l'aide pour remplir sa salle", points: 25 },
   { action: "Un avis avec une photo", points: 10 },
   { action: "Un lieu que tu proposes et qui rejoint SOS Miam", points: 30 },
   { action: "Une fiche de lieu corrigée", points: 5 },
   { action: "La toute première rescousse d'un lieu qui vient d'arriver", points: 20 },
-  { action: "Une rescousse : ton coup de pouce à un lieu (tu en as 3 par semaine)", points: 2 },
+  { action: "Une rescousse : ton coup de pouce à un lieu vérifié (tu en as 3 par semaine)", points: 2 },
 ];
 
 /** Encadré sous le barème : l'app arrive plus tard (les +30 d'un lieu proposé depuis l'espace sont déjà comptés). */

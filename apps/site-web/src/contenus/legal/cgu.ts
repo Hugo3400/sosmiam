@@ -95,7 +95,7 @@ export const documentCgu: DocumentLegal = {
       id: "rescousses",
       titre: "Rescousses, visites et badges",
       blocs: [
-        "Chaque semaine, tu as **3 rescousses**, qui se rechargent le lundi. Tu valides tes visites dans l'app, par exemple en scannant un **QR code**.",
+        "Chaque semaine, tu as **3 rescousses**, qui se rechargent le lundi. Tu valides tes visites dans l'app, par exemple en scannant un **QR code**. Seuls les lieux **vérifiés ✓** (ceux qui ont un compte SOS Miam) peuvent valider une visite : dans un lieu non vérifié, aucune visite, aucun point ni aucune rescousse n'est compté. Une visite offerte par le lieu ne rapporte pas de points.",
         "Tes visites te rapportent des points, des paliers (Curieux, Dénicheur…) et des badges. Ils n'ont **aucune valeur en argent** : ils ne s'achètent pas, ne se vendent pas et ne s'échangent pas. À ne pas confondre avec le programme Ambassadeurs du site, réservé aux 18 ans et plus (voir « Le programme Ambassadeurs », juste en dessous).",
         "Tricher fausse le jeu pour tout le monde, et surtout pour les lieux : les points gagnés en trichant (faux scans, comptes multiples…) peuvent être retirés.",
       ],
