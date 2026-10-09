@@ -22,8 +22,8 @@ sos-miam/
 | `kit-media/` | kit média des ambassadeurs (logos, mascotte, badges, visuels pour les réseaux, `kit-media-sos-miam.zip`), refait par `scripts/generer-kit-media.sh` ; hors de `public/` : servi seulement aux ambassadeurs validés, par `/kit-media/<fichier>` |
 | `src/root.tsx`, `src/routes.ts` | squelette HTML de toutes les pages, et la liste des adresses du site |
 | `src/routes/public/` | pages visibles par tous : accueil, FAQ, villes, fiches lieux, BIG SOS, pros, pages légales, `/statistiques` (ne plus compter ses visites) et `/liens` (le mini-site à mettre en bio TikTok et Instagram) |
-| `src/routes/ressources/` | adresses sans page : `localiser` (bouton 📍 du formulaire d'inscription, réponse JSON), `liens/aller/…` (clics de `/liens`), `robots.txt` et `sitemap.xml` (selon le domaine), `kit-media/<fichier>` (fichiers du kit média, ambassadeurs validés seulement) et `rendu-kit/<visuel>` (visuels du kit dessinés à leur taille, serveur de développement seulement) |
-| `src/routes/compte/` | comptes de l'espace ambassadeur : inscription (dès 18 ans), connexion, mot de passe oublié, nouveau mot de passe, « Mon compte » (`/espace/mon-compte`) et déconnexion (`/deconnexion`, formulaire POST) |
+| `src/routes/ressources/` | adresses sans page : `localiser` (bouton 📍 du formulaire d'inscription, réponse JSON), `communes` (suggestions de « Ta ville » : le site appelle l'API pour le navigateur), `espace/fondateur/carte.svg` (carte de fondateur numérique, réservée à son fondateur), `liens/aller/…` (clics de `/liens`), `robots.txt` et `sitemap.xml` (selon le domaine), `kit-media/<fichier>` (fichiers du kit média, ambassadeurs validés seulement) et `rendu-kit/<visuel>` (visuels du kit dessinés à leur taille, serveur de développement seulement) |
+| `src/routes/compte/` | comptes de l'espace ambassadeur : inscription (dès 18 ans), connexion, mot de passe oublié (libre-service), nouveau mot de passe, confirmation de l'e-mail (`/verifier-email`), « Mon compte » (`/espace/mon-compte`) et déconnexion (`/deconnexion`, formulaire POST) |
 | `src/routes/pro/` | espace restaurateur : fiche, SOS du soir, statistiques, abonnement, BIG SOS |
 | `src/routes/ambassadeur/` | espace ambassadeur (https://ambassadeur.sosmiam.fr) : son cadre (`mise-en-page-ambassadeur.tsx`), `/programme` (page publique qui explique le programme), `/espace` (selon le statut) et ses pages réservées aux ambassadeurs validés : kit média, proposer un lieu, fondateur, missions, messages |
 | `src/composants/interface/` | briques de base réutilisables : Bouton, Badge, Onglets, Interrupteur… |
@@ -38,19 +38,21 @@ sos-miam/
 | `src/composants/liens/` | cartes et icônes de la page `/liens` (site, Discord, TikTok, Instagram) |
 | `src/composants/pro/` | composants de l'espace pro : formulaire « J'inscris mon lieu », carte « tout est gratuit » |
 | `src/composants/ambassadeur/` | espace ambassadeur : en-tête du cadre (le pied de page est `mise-en-page/PiedDePage`), carte du palier, tuiles et statut de `/espace`, candidature fondateur, propositions de lieux, missions, messages |
-| `src/composants/compte/` | formulaires du compte : inscription (et refus d'âge), connexion, nouveau mot de passe, profil, changement de mot de passe, suppression, déconnexion, et leurs champs |
+| `src/composants/compte/` | formulaires du compte : inscription (et refus d'âge), connexion, nouveau mot de passe, confirmation de l'e-mail (et son bandeau « Renvoyer le lien »), profil, changement de mot de passe, suppression, déconnexion, et leurs champs |
+| `src/composants/fondateurs/` | fondateurs par ville : recherche de commune (formulaire GET sans JavaScript, suggestions avec), places d'une zone, tableau des places, choix de la commune d'une candidature, carte de fondateur (SVG) et son téléchargement |
 | `src/composants/programme/` | blocs de la page `/programme` : le programme Ambassadeurs expliqué simplement |
 | `src/composants/kit-media/` | visuels du kit média dessinés à leur taille exacte (route `/rendu-kit`, capturés par `scripts/generer-kit-media.sh`, `npm run site:kit-media`) et blocs de la page /espace/kit-media (cartes de téléchargement, bouton Copier, couleurs, polices, règles) |
 | `src/fonctions/texte/`, `dates/`, `prix/`, `seo/`, `navigation/` | fonctions pures, une par fichier (ex. `formater-prix.ts`) |
+| `src/fonctions/fondateurs/` | textes des fondateurs par ville, une fonction par fichier : places d'une zone en une phrase, nom avec son article, titre de la carte, lecture d'un code de commune |
 | `src/fonctions/hotes/` | partage des adresses entre sosmiam.fr et ambassadeur.sosmiam.fr (`choisir-redirection-hote.ts`, middleware de `root.tsx`) |
-| `src/services/` | appels à l'API, côté serveur (un fichier par domaine : `lieux.server.ts`, `comptes.server.ts`, `espace-ambassadeur.server.ts`…) ; `session-compte.server.ts` : cookie de session de l'espace ambassadeur ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
+| `src/services/` | appels à l'API, côté serveur (un fichier par domaine : `lieux.server.ts`, `comptes.server.ts`, `espace-ambassadeur.server.ts`, `fondateurs.server.ts` (communes et places des zones), `verification-email.server.ts` (« Renvoyer le lien »)…) ; `session-compte.server.ts` : cookie de session de l'espace ambassadeur ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
 | `src/hooks/` | hooks React (`utiliser-…`) |
-| `src/types/` | formes des réponses de l'API : lieux publics, compte connecté, missions et messages |
+| `src/types/` | formes des réponses de l'API : lieux publics, compte connecté, candidature et zones de fondateurs, missions et messages |
 | `src/contenus/` | textes éditoriaux : étapes, programme Ambassadeurs (`ambassadeurs.ts`, et `programme-ambassadeur.ts` pour `/programme`), kit média (`kit-media.ts`), ce qu'on offre aux lieux, villes et régions du formulaire d'inscription, catégories de lieux, champs du formulaire « J'inscris mon lieu » (`demande-lieu.ts`), liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram), tous les liens du pied de page par groupe (`liens-pied-de-page.ts`). Aucun lieu inventé : l'accueil lit les vrais lieux publiés par l'API |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
 | `src/contenus/legal/` | pages légales (un fichier par page ; les sections sur l'espace ambassadeur à part : `confidentialite-compte-ambassadeur.ts`, `cgu-ambassadeurs.ts`) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |
-| `tests/` | tests du site (`npm run site:tester`, aussi lancés par `site:verifier`) : partage des adresses entre les deux domaines |
+| `tests/` | tests du site (`npm run site:tester`, aussi lancés par `site:verifier`) : partage des adresses entre les deux domaines, appels à l'API des comptes, textes des fondateurs par ville |
 
 ## apps/app-mobile — l'app iOS + Android
 | Dossier | Contenu |

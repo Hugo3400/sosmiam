@@ -19,7 +19,7 @@ export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
     "Les règles du site et de l'app SOS Miam : gratuits, l'app à partir de 15 ans, l'espace ambassadeur dès 18 ans, ce que tu peux publier, comment on modère, et comment nous joindre.",
-  miseAJour: "8 octobre 2026",
+  miseAJour: "9 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
     "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Pour visiter le site, **pas besoin de compte** : seul l'**espace ambassadeur** en demande un, **dès 18 ans**. L'app demande un **compte gratuit, à partir de 15 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
@@ -214,7 +214,7 @@ export const documentCgu: DocumentLegal = {
         {
           liste: [
             "une demande d'inscription de lieu, ou un lieu proposé par un ambassadeur, ne nous oblige pas à publier ce lieu, ni maintenant ni au lancement ;",
-            "une inscription d'ambassadeur peut ne pas être validée, et une candidature de fondateur ne pas être retenue (il n'y a que 10 places) ;",
+            "une inscription d'ambassadeur peut ne pas être validée, et une candidature de fondateur ne pas être retenue (il n'y a que quelques places par ville ou par département) ;",
             "une demande peut être refusée, notamment si elle ne correspond pas à l'esprit de SOS Miam (des lieux indépendants) ou si les informations sont inexactes.",
           ],
         },

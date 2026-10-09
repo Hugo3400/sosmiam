@@ -39,12 +39,20 @@ export function CarteFondateur({ prenom, titre, numero, annee, polices = [] }: P
             `@font-face{font-family:'Bricolage Grotesque Variable';font-style:normal;font-weight:200 800;src:url(${url}) format('woff2');unicode-range:${plage};}`).join("")}
         </style>
       )}
-      <rect x="6" y="6" width={LARGEUR - 12} height={HAUTEUR - 12} rx="48" fill={c.jaune} stroke={c.encre} strokeWidth="12" />
-      {/* Grande bouée qui dépasse en bas à droite, comme un tampon */}
-      <g opacity="0.18">
-        <Bouee x={820} y={380} taille={520} expression="clin" />
+      <defs>
+        <clipPath id="carte-bord">
+          <rect x="6" y="6" width={LARGEUR - 12} height={HAUTEUR - 12} rx="48" />
+        </clipPath>
+      </defs>
+      <rect x="6" y="6" width={LARGEUR - 12} height={HAUTEUR - 12} rx="48" fill={c.jaune} />
+      {/* Grande bouée coupée par le bord en bas à droite, comme un tampon, et la bande tomate */}
+      <g clipPath="url(#carte-bord)">
+        <g opacity="0.18">
+          <Bouee x={820} y={380} taille={520} expression="clin" />
+        </g>
+        <rect x="0" y={HAUTEUR - 150} width={LARGEUR} height="18" fill={c.tomate} />
       </g>
-      <rect x="6" y={HAUTEUR - 150} width={LARGEUR - 12} height="18" fill={c.tomate} />
+      <rect x="6" y="6" width={LARGEUR - 12} height={HAUTEUR - 12} rx="48" fill="none" stroke={c.encre} strokeWidth="12" />
       <Logo x={MARGE} y={MARGE} largeur={330} />
       <g transform={`rotate(-6 ${LARGEUR - MARGE - 125} ${MARGE + 125})`}>
         <Ecusson ruban={titre.toUpperCase()} x={LARGEUR - MARGE - 250} y={MARGE} taille={250} />
