@@ -48,3 +48,8 @@ test("recherche : les écrans d'abord (sans accents), puis les données", () => 
   assert.deepEqual([resultats.at(-1)?.ecran, resultats.at(-1)?.id], ["lieux", 3]);
   assert.ok(listerResultatsRecherche("reglages", null).some((r) => r.titre === "Réglages"));
 });
+
+test("pastilles du menu : 1 à 9 tels quels, « +9 » au-delà", async () => {
+  const { formaterNombrePastille } = await import("../src/fonctions/alertes/formater-nombre-pastille.ts");
+  assert.deepEqual([1, 9, 10, 250].map(formaterNombrePastille), ["1", "9", "+9", "+9"]);
+});

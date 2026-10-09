@@ -77,3 +77,18 @@ export type HistoriqueLieu = {
   demandes: { id: number; origine: string; creeLe: string; statut: string }[];
 };
 export const lireHistoriqueLieu = (id: number) => appeler<HistoriqueLieu>("GET", `/lieux/${id}/historique`);
+
+/** Un lieu tel que le contrôle le montre */
+export type LieuControle = Pick<Lieu, "id" | "nom" | "ville" | "adresse" | "latitude" | "longitude" | "statut" | "emoji">;
+export type ControleLieux = {
+  /** Loin des autres lieux de leur ville (plus de 10 km), ou posés en (0, 0) : distance null */
+  positionsDouteuses: { id: number; distanceKm: number | null; lieu: LieuControle }[];
+  doublons: { raison: "meme-nom" | "meme-adresse" | "meme-nom-proche"; lieux: LieuControle[] }[];
+};
+export const lireControleLieux = () => appeler<ControleLieux>("GET", "/lieux/controle");
+/** Lieux déjà en base qui ressemblent à une fiche pas encore créée (demande à accepter, import) */
+export const chercherLieuxSemblables = (fiche: { nom: string; ville: string; adresse?: string | null; latitude?: number | null; longitude?: number | null }) =>
+  appeler<LieuControle[]>("GET", `/lieux/semblables${parametres({
+    nom: fiche.nom, ville: fiche.ville, adresse: fiche.adresse ?? "",
+    latitude: fiche.latitude?.toString() ?? "", longitude: fiche.longitude?.toString() ?? "",
+  })}`);

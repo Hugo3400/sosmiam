@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { contientMotAlcool } from "@sos-miam/commun/fonctions/fidelite/contient-mot-alcool";
+import { ETIQUETTES_CARTE, LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
 import type { ElementCarte, EtiquetteCarte } from "@sos-miam/commun/types/carte";
+import { validerElementCarte, type ChampElementCarte } from "@sos-miam/commun/validation/valider-element-carte";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
@@ -12,7 +14,7 @@ import { etiquettesCarte } from "~/contenus/etiquettes-carte";
 import { lireSaisiePrix } from "~/fonctions/prix/lire-saisie-prix";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-const ETIQUETTES: readonly EtiquetteCarte[] = ["vege", "vegan", "sans-gluten", "epice", "fait-maison", "local"];
+const ETIQUETTES = ETIQUETTES_CARTE;
 const UNITES_CARTE = ["le verre", "la bouteille", "la part", "à partager"];
 const UNITES_FORMULES = ["par personne", "la partie", "l'heure", "le groupe"];
 
@@ -30,6 +32,16 @@ type Props = {
   /** Absent pour un nouvel élément */
   onRetirer?: () => void;
   onFermer: () => void;
+};
+
+/** Ce qu'on dit sous le champ à corriger (mêmes règles que le service : validerElementCarte) */
+const ERREURS: Record<ChampElementCarte, string> = {
+  nom: `Donne-lui un nom, sans gros mot (${LIMITES_CARTE.nom} caractères au plus).`,
+  description: `Sans gros mot, ${LIMITES_CARTE.description} caractères au plus.`,
+  prix: "Comme 12 ou 4,50 (0 si c'est offert), jusqu'à 9 999 €.",
+  unite: `Court et sans gros mot (${LIMITES_CARTE.unite} caractères au plus).`,
+  etiquettes: "Un repère ne passe pas : décoche-le.",
+  autre: "Quelque chose ne passe pas : vérifie tes choix.",
 };
 
 type Brouillon = { nom: string; description: string; prix: string; unite: string; signature: boolean; alcool: boolean; etiquettes: EtiquetteCarte[]; section: number };
@@ -55,7 +67,7 @@ const versBrouillon = (e: ElementCarte | null, section: number): Brouillon => ({
  */
 export function FeuilleElementCarte({ visible, element, sections, section, formules, onGarder, onRetirer, onFermer }: Props) {
   const [b, setB] = useState<Brouillon>(() => versBrouillon(element, section));
-  const [erreur, setErreur] = useState<"nom" | "prix" | null>(null);
+  const [erreur, setErreur] = useState<ChampElementCarte | null>(null);
   // À chaque ouverture, on repart de l'élément touché (sans montrer l'ancien le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -75,24 +87,12 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
   const unites = formules ? UNITES_FORMULES : UNITES_CARTE;
 
   function garder() {
-    const nom = b.nom.trim();
-    if (!nom) return setErreur("nom");
     const prix = lireSaisiePrix(b.prix);
-    if (prix === null) return setErreur("prix");
-    const description = b.description.trim();
-    const unite = b.unite.trim();
-    onGarder(
-      {
-        nom,
-        ...(description ? { description } : {}),
-        prix,
-        ...(unite ? { unite } : {}),
-        ...(b.signature ? { signature: true } : {}),
-        ...(b.alcool ? { alcool: true } : {}),
-        ...(b.etiquettes.length > 0 ? { etiquettes: ETIQUETTES.filter((e) => b.etiquettes.includes(e)) } : {}),
-      },
-      b.section,
-    );
+    if (prix === null) return setErreur(b.nom.trim() ? "prix" : "nom");
+    // Les mêmes règles que le service : l'élément gardé passera à l'enregistrement
+    const r = validerElementCarte({ nom: b.nom, description: b.description, prix, unite: b.unite, signature: b.signature, alcool: b.alcool, etiquettes: b.etiquettes });
+    if (!r.ok) return setErreur(r.champ);
+    onGarder(r.element, b.section);
   }
 
   return (
@@ -108,8 +108,8 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
         </>
       }
     >
-      <ChampTexte libelle="Nom" valeur={b.nom} onChangeTexte={(nom) => changer({ nom })} placeholder={formules ? "Partie de 1 h" : "Moules du Capitaine"} maxLength={80} erreur={erreur === "nom" ? "Donne-lui un nom, même court." : null} />
-      <ChampTexte libelle="Description" mention="facultatif" valeur={b.description} onChangeTexte={(description) => changer({ description })} placeholder={formules ? "Pour 2 à 6 joueurs, dès 12 ans" : "Ce qu'il y a dedans, en quelques mots"} multiline maxLength={200} />
+      <ChampTexte libelle="Nom" valeur={b.nom} onChangeTexte={(nom) => changer({ nom })} placeholder={formules ? "Partie de 1 h" : "Moules du Capitaine"} maxLength={LIMITES_CARTE.nom} erreur={erreur === "nom" ? ERREURS.nom : null} />
+      <ChampTexte libelle="Description" mention="facultatif" valeur={b.description} onChangeTexte={(description) => changer({ description })} placeholder={formules ? "Pour 2 à 6 joueurs, dès 12 ans" : "Ce qu'il y a dedans, en quelques mots"} multiline maxLength={LIMITES_CARTE.description} erreur={erreur === "description" ? ERREURS.description : null} />
       {/* Juste sous ce qu'on vient d'écrire, pour ne pas passer à côté (la case est plus bas) */}
       {sembleAlcool ? (
         <View accessibilityLiveRegion="polite" className="gap-3 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
@@ -120,10 +120,10 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
 
       <View className="flex-row gap-3">
         <View className="flex-1">
-          <ChampTexte libelle="Prix (€)" valeur={b.prix} onChangeTexte={(prix) => changer({ prix })} keyboardType="decimal-pad" placeholder="12,50" erreur={erreur === "prix" ? "Comme 12 ou 4,50 (0 si c'est offert)." : null} />
+          <ChampTexte libelle="Prix (€)" valeur={b.prix} onChangeTexte={(prix) => changer({ prix })} keyboardType="decimal-pad" placeholder="12,50" erreur={erreur === "prix" ? ERREURS.prix : null} />
         </View>
         <View className="flex-1">
-          <ChampTexte libelle="Pour" mention="facultatif" valeur={b.unite} onChangeTexte={(unite) => changer({ unite })} placeholder={formules ? "par personne" : "la part, le verre…"} maxLength={30} />
+          <ChampTexte libelle="Pour" mention="facultatif" valeur={b.unite} onChangeTexte={(unite) => changer({ unite })} placeholder={formules ? "par personne" : "la part, le verre…"} maxLength={LIMITES_CARTE.unite} erreur={erreur === "unite" ? ERREURS.unite : null} />
         </View>
       </View>
       <View className="flex-row flex-wrap gap-2">
@@ -156,6 +156,8 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
           </View>
         </View>
       ) : null}
+
+      {erreur === "etiquettes" || erreur === "autre" ? <Text className="font-texte-semi text-sm text-rouge-texte">{ERREURS[erreur]}</Text> : null}
 
       {onRetirer ? (
         <Pressable accessibilityRole="button" onPress={onRetirer} className="min-h-11 items-center justify-center active:opacity-70">

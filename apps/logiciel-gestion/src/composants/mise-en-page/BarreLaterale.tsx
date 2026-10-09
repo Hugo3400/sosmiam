@@ -2,6 +2,7 @@ import { Lock, Search } from "lucide-react";
 
 import { MENU, type Ecran } from "~/contenus/menu.ts";
 import type { Pastille } from "~/fonctions/alertes/calculer-pastilles.ts";
+import { formaterNombrePastille } from "~/fonctions/alertes/formater-nombre-pastille.ts";
 
 type Props = {
   ecran: Ecran;
@@ -57,10 +58,11 @@ export function BarreLaterale({ ecran, onChoisir, poste, pastilles, onVerrouille
                       <span className="flex-1">{libelle}</span>
                       {pastille && pastille.nombre > 0 && (
                         <span
-                          className={`chiffres rounded-full px-1.5 text-xs font-bold ${pastille.urgent ? "animate-pulse bg-tomate text-white" : choisi ? "bg-nuit text-jaune" : "bg-white/15"}`}
+                          className={`chiffres grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-xs font-extrabold ${pastille.urgent ? "animate-pulse bg-tomate text-white" : choisi ? "bg-nuit text-jaune" : "bg-jaune text-nuit"}`}
                           aria-label={pastille.libelle}
+                          title={pastille.libelle}
                         >
-                          {pastille.nombre}
+                          {formaterNombrePastille(pastille.nombre)}
                         </span>
                       )}
                     </button>

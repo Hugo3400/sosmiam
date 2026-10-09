@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { CarteLieu, ElementCarte } from "@sos-miam/commun/types/carte";
+import { validerCarteDuLieu } from "@sos-miam/commun/validation/valider-carte-du-lieu";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
@@ -13,7 +15,6 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { FeuilleElementCarte } from "~/composants/pro/FeuilleElementCarte";
 import { FeuilleSectionCarte } from "~/composants/pro/FeuilleSectionCarte";
 import { SectionCartePro } from "~/composants/pro/SectionCartePro";
-import { cartesExemples } from "~/contenus/cartes-exemples";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -21,17 +22,28 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonCarte } from "~/hooks/utiliser-brouillon-carte";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
 
 const CARTE_VIDE: CarteLieu = { sections: [] };
+
+/** Ce qui ne passe pas, dit à l'endroit où le corriger */
+const SOUCIS: Record<string, string> = {
+  nom: "le nom ne passe pas (vide, trop long ou avec un gros mot)",
+  description: "la description ne passe pas (trop longue ou avec un gros mot)",
+  prix: "le prix ne passe pas (comme 12 ou 4,50)",
+  unite: "le « pour » ne passe pas (trop long ou avec un gros mot)",
+  etiquettes: "un repère n'existe pas",
+  titre: "le titre ne passe pas (vide, trop long ou avec un gros mot)",
+};
 
 /** Quelle feuille est ouverte : un élément (nouveau si index null) ou une section (nouvelle si index null) */
 type FeuilleOuverte = { type: "element"; section: number; index: number | null } | { type: "section"; index: number | null } | null;
 
 /**
  * « Ta carte » (gérant) : les sections et leurs plats, boissons ou formules, à ajouter, modifier, retirer ou ranger.
- * Tout se prépare ici, puis part d'un coup avec « Enregistrer » ; partir avant redemande. L'alcool est caché aux moins de
- * 18 ans sur la fiche, et l'app prévient quand un nom y fait penser.
+ * Tout se prépare ici, puis part d'un coup avec « Enregistrer » (revérifié par le service, qui date la mise à jour) ;
+ * partir avant redemande. L'alcool est caché aux moins de 18 ans sur la fiche, et l'app prévient quand un nom y fait penser.
  */
 export default function EcranCartePro() {
   const router = useRouter();
@@ -39,8 +51,13 @@ export default function EcranCartePro() {
   const marges = useSafeAreaInsets();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
-  const depart = lieuPro ? (cartesExemples[lieuPro.id] ?? CARTE_VIDE) : CARTE_VIDE;
-  const brouillon = utiliserBrouillonCarte(depart);
+  const { comptoir } = utiliserServices();
+  // La carte enregistrée (null tant qu'elle n'est pas relue) : « Annuler » y revient
+  const [depart, setDepart] = useState<CarteLieu | null>(null);
+  const [erreurLecture, setErreurLecture] = useState(false);
+  const [enregistrement, setEnregistrement] = useState(false);
+  const brouillon = utiliserBrouillonCarte(CARTE_VIDE);
+  const { repartirDe } = brouillon;
   const { carte } = brouillon;
   const [rangement, setRangement] = useState(false);
   const [feuille, setFeuille] = useState<FeuilleOuverte>(null);
@@ -50,6 +67,21 @@ export default function EcranCartePro() {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [departDemande, setDepartDemande] = useState(false);
   const actionDepart = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!lieuPro) return;
+    let actif = true;
+    comptoir.lireCarteDuLieu(lieuPro.id).then((r) => {
+      if (!actif) return;
+      if (!r.ok) return setErreurLecture(true);
+      const lue = r.carte ?? CARTE_VIDE;
+      setDepart(lue);
+      repartirDe(lue);
+    });
+    return () => {
+      actif = false;
+    };
+  }, [comptoir, lieuPro, repartirDe]);
 
   // Des changements pas enregistrés : retour, geste ou bouton système demandent d'abord
   usePreventRemove(brouillon.modifiee, ({ data }) => {
@@ -95,12 +127,26 @@ export default function EcranCartePro() {
     setFeuille(null);
   }
 
-  function enregistrer() {
-    // Affichage d'abord : la carte part au service juste après
+  async function enregistrer() {
+    if (!lieuPro || enregistrement) return;
+    // Vérifiée ici d'abord pour dire où corriger ; le service revérifie de son côté
+    const valide = validerCarteDuLieu(carte);
+    if (!valide.ok) {
+      const section = valide.section !== null ? carte.sections[valide.section] : undefined;
+      const element = valide.element !== null ? section?.elements[valide.element] : undefined;
+      const ou = element ? `« ${element.nom} »` : section ? `La section « ${section.titre} »` : "Ta carte";
+      const souci = SOUCIS[valide.champ] ?? (valide.champ === "trop-de-sections" ? "a trop de sections (20 au plus)" : valide.champ === "trop-d-elements" ? "est trop longue (60 par section, 250 en tout)" : "ne passe pas");
+      return annoncer(`${ou} : ${souci}.`);
+    }
+    setEnregistrement(true);
+    const r = await comptoir.reglerCarteDuLieu(lieuPro.id, valide.carte);
+    setEnregistrement(false);
+    if (!r.ok) return annoncer(`${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
     vibrerLegerement();
-    brouillon.repartirDe(carte);
+    setDepart(r.carte);
+    repartirDe(r.carte);
     setRangement(false);
-    annoncer("✅ Carte enregistrée ! (Pour l'instant sur cet écran seulement : la suite arrive.)");
+    annoncer("✅ Carte enregistrée : elle est déjà sur ta fiche.");
   }
 
   return (
@@ -148,7 +194,14 @@ export default function EcranCartePro() {
           )}
         </Text>
 
-        {carte.sections.length === 0 ? (
+        {depart === null ? (
+          <View className="items-center gap-3 py-10">
+            <Text className="text-center font-texte text-base text-gris">
+              {erreurLecture ? "Ta carte n'a pas pu être lue. Reviens dans un instant ?" : "On sort ta carte…"}
+            </Text>
+            {erreurLecture ? <Bouton libelle="Retour" variante="blanc" petit onPress={fermer} /> : null}
+          </View>
+        ) : carte.sections.length === 0 ? (
           <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-white px-6 py-8">
             <Mascotte expression="surprise" taille={110} />
             <Text className="text-center font-titre-gras text-xl text-encre">{formules ? "Pas encore de formules" : "Ta carte est encore vide"}</Text>
@@ -174,7 +227,7 @@ export default function EcranCartePro() {
           ))
         )}
 
-        {rangement ? null : (
+        {rangement || depart === null ? null : (
           <Bouton libelle="Ajouter une section" variante="blanc" indice="Une section range ta carte : les plats, les desserts, à boire…" onPress={() => setFeuille({ type: "section", index: null })} />
         )}
 
@@ -188,8 +241,8 @@ export default function EcranCartePro() {
               Des changements pas encore enregistrés
             </Text>
             <View className="flex-row gap-3">
-              <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" onPress={() => brouillon.repartirDe(depart)} />
-              <Bouton className="flex-1" libelle="Enregistrer" onPress={enregistrer} />
+              <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" desactive={enregistrement} onPress={() => repartirDe(depart ?? CARTE_VIDE)} />
+              <Bouton className="flex-1" libelle={enregistrement ? "Envoi…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />
             </View>
           </>
         ) : (
@@ -230,7 +283,7 @@ export default function EcranCartePro() {
         libelleRester="Rester"
         indiceRester="Tu restes sur ta carte, rien n'est perdu"
         onConfirmer={() => {
-          brouillon.repartirDe(depart);
+          repartirDe(depart ?? CARTE_VIDE);
         }}
         onRefermee={() => {
           const action = actionDepart.current;

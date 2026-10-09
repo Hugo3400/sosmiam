@@ -8,7 +8,6 @@ import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
-import { cartesExemples } from "~/contenus/cartes-exemples";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -21,7 +20,7 @@ function decrireProgramme(programme: ProgrammeFidelite | null): string {
 }
 
 /** « 4 sections · 11 sur la carte », ou l'invitation à la remplir */
-function decrireCarte(carte: CarteLieu | undefined): string {
+function decrireCarte(carte: CarteLieu | null): string {
   const nombre = carte?.sections.reduce((somme, s) => somme + s.elements.length, 0) ?? 0;
   if (!carte || nombre === 0) return "Pas encore de carte : ajoute tes plats et tes boissons.";
   const sections = carte.sections.length;
@@ -38,13 +37,15 @@ export default function EcranMonLieu() {
   const { comptoir } = utiliserServices();
   const demo = utiliserOutilsDemo() !== null;
   const [programme, setProgramme] = useState<ProgrammeFidelite | null | undefined>(undefined);
+  const [carte, setCarte] = useState<CarteLieu | null | undefined>(undefined);
 
-  // Relu à chaque retour sur l'onglet (après avoir réglé la carte)
+  // Relu à chaque retour sur l'onglet (après avoir réglé la carte du lieu ou celle de fidélité)
   useFocusEffect(
     useCallback(() => {
       if (!lieuPro) return;
       let actif = true;
       comptoir.lireProgramme(lieuPro.id).then((r) => actif && setProgramme(r.ok ? r.programme : null));
+      comptoir.lireCarteDuLieu(lieuPro.id).then((r) => actif && setCarte(r.ok ? r.carte : null));
       return () => {
         actif = false;
       };
@@ -68,7 +69,7 @@ export default function EcranMonLieu() {
         </View>
 
         <View className="gap-3">
-          <LigneMonLieu emoji="🍽️" titre="La carte" detail={decrireCarte(cartesExemples[lieuPro.id])} onPress={() => router.push("/pro/carte")} />
+          <LigneMonLieu emoji="🍽️" titre="La carte" detail={carte === undefined ? "…" : decrireCarte(carte)} onPress={() => router.push("/pro/carte")} />
           <LigneMonLieu emoji="🎟️" titre="Carte de fidélité" detail={programme === undefined ? "…" : decrireProgramme(programme)} onPress={() => router.push("/pro/fidelite")} />
           <LigneMonLieu emoji="📋" titre="Infos pratiques" detail="Téléphone, animaux, accès, terrasse, paiements… ce qu'on voit sur ta fiche" onPress={() => router.push("/pro/infos")} />
           <LigneMonLieu emoji="🪧" titre="Mon kit" detail="Le QR de ta vitrine, qui ouvre ta fiche" onPress={() => router.push("/pro/kit")} />

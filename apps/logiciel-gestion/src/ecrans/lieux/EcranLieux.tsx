@@ -20,8 +20,10 @@ import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerLieux, type StatutLieu } from "~/services/lieux.ts";
 import { BandeauSuggestions } from "./BandeauSuggestions.tsx";
 import { BarreSelectionLieux } from "./BarreSelectionLieux.tsx";
+import { CarteGeographiqueLieux } from "./CarteGeographiqueLieux.tsx";
 import { CarteLieu } from "./CarteLieu.tsx";
 import { FormulaireLieu } from "./FormulaireLieu.tsx";
+import { PanneauControleLieux } from "./PanneauControleLieux.tsx";
 
 /** Fiches par page (2 ou 3 par ligne selon la largeur : 30 remplit les deux) */
 const PAR_PAGE = 30;
@@ -38,6 +40,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const [categorie, setCategorie] = useState("");
   const [ville, setVille] = useState("");
   const [qualite, setQualite] = useState<"" | "a-completer" | "complete">("");
+  const [vue, setVue] = useState<"liste" | "carte" | "controle">("liste");
   const [page, setPage] = useState(1);
   const haut = useRef<HTMLDivElement>(null);
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
@@ -176,27 +179,35 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
         </div>
       </div>
       <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-x-5 gap-y-2">
+        <Onglets
+          libelle="Vue"
+          valeur={vue}
+          onChange={setVue}
+          options={[{ valeur: "liste", libelle: "Liste" }, { valeur: "carte", libelle: "Carte" }, { valeur: "controle", libelle: "Contrôle" }]}
+        />
         {donnees && <p className="text-sm text-gris">{lieux.length} lieu{lieux.length > 1 ? "x" : ""}{lieux.length !== tous.length ? ` sur ${tous.length}` : ""}</p>}
-        {lieux.length > 0 && (
+        {vue === "liste" && lieux.length > 0 && (
           <CaseACocher
             libelle={tousChoisis ? "Tout désélectionner" : `Tout sélectionner (${lieux.length})`}
             coche={tousChoisis}
             onChange={(coche) => setChoisis(coche ? new Set(lieux.map((lieu) => lieu.id)) : new Set())}
           />
         )}
-        <div className="ml-auto"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>
+        {vue === "liste" && <div className="ml-auto"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>}
       </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
       <MessageErreur erreur={erreur} reessayer={recharger} />
       {!donnees && chargement && <Chargement />}
-      {donnees && lieux.length === 0 && (
+      {donnees && vue === "carte" && <CarteGeographiqueLieux lieux={lieux} onOuvrir={setOuvert} />}
+      {donnees && vue === "controle" && <PanneauControleLieux tous={lieux} onOuvrir={setOuvert} />}
+      {donnees && vue === "liste" && lieux.length === 0 && (
         <Carte>
           <EtatVide emoji="🏪" titre={recherche || statut || type || categorie || ville || qualite ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
             Chaque fiche décrit un lieu indépendant : son histoire, son plat signature, ses horaires. Les publications du fil s'y rattachent.
           </EtatVide>
         </Carte>
       )}
-      {lieux.length > 0 && (
+      {vue === "liste" && lieux.length > 0 && (
         <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {pageLieux.map((lieu) => (
             <li key={lieu.id}>
@@ -211,7 +222,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           ))}
         </ul>
       )}
-      {lieux.length > PAR_PAGE && <div className="mt-4"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>}
+      {vue === "liste" && lieux.length > PAR_PAGE && <div className="mt-4"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>}
       {choisis.size > 0 && (
         <BarreSelectionLieux
           choisis={lieux.filter((lieu) => choisis.has(lieu.id))}

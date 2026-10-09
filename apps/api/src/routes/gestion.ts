@@ -8,6 +8,7 @@ import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-f
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
+import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-outils-lieux.ts";
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
@@ -39,6 +40,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const f = creerControleursFondateurs(services, comptes);
   const cert = creerControleursCertification(services);
   const sug = creerControleursSuggestions(services);
+  const outilsLieux = creerControleursOutilsLieux(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
@@ -137,6 +139,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/lieux", c.lieux);
   routes.post("/lieux", c.enregistrerLieu);
   routes.post("/lieux/lot", c.lotLieux);
+  routes.get("/lieux/controle", outilsLieux.controle);
+  routes.get("/lieux/semblables", outilsLieux.semblables);
   routes.get("/lieux/:id", c.lieu);
   routes.get("/lieux/:id/historique", c.historiqueLieu);
   routes.get("/suggestions", sug.liste);

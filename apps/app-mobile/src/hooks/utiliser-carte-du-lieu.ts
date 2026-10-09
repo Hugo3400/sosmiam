@@ -11,7 +11,7 @@ import { utiliserServices } from "~/hooks/utiliser-services";
  */
 export function utiliserCarteDuLieu(lieuId: number | null): CarteLieu | undefined {
   const { visites } = utiliserServices();
-  // undefined : pas encore relue (ou rien d'enregistré) → celle de la fiche en attendant
+  // null : pas encore relue → celle de la fiche en attendant ; carte null : le lieu n'a rien enregistré
   const [enregistree, setEnregistree] = useState<{ lieuId: number; carte: CarteLieu | null } | null>(null);
 
   useEffect(() => {

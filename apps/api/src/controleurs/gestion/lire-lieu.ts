@@ -118,3 +118,44 @@ export function lireChampsSuggeres(proposition: Record<string, unknown>, champs:
   const verifiee = lireLieuSaisi({ ...FICHE_DE_DEPART, ...Object.fromEntries(champs.map((champ) => [champ, proposition[champ]])) });
   return Object.fromEntries(champs.map((champ) => [champ, verifiee[champ as keyof LieuSaisi]])) as Partial<LieuSaisi>;
 }
+
+const EMOJIS_TYPE: Record<(typeof TYPES)[number], string> = { resto: "🍽️", patisserie: "🥐", bar: "🍹", sortie: "🎳" };
+
+/**
+ * Une ligne d'import de lieux (fichier CSV lu par le logiciel) : seuls le nom et la ville sont obligatoires ; ce qui est
+ * donné est vérifié comme dans le formulaire, le reste est laissé vide. La fiche arrive en brouillon : le contrôle
+ * qualité dira ce qu'il faut compléter avant de la mettre en ligne.
+ */
+export function lireLieuImporte(corps: Record<string, unknown>): LieuSaisi {
+  const vide = (champ: string) => corps[champ] === undefined || corps[champ] === null || corps[champ] === "";
+  const type = vide("type") ? "resto" : lireChoix(corps, "type", TYPES);
+  const siteWeb = lireTexte(corps, "siteWeb", 200);
+  if (siteWeb && !/^https:\/\/[^\s]+$/.test(siteWeb)) throw new ChampInvalide("siteWeb");
+  return {
+    nom: lireTexte(corps, "nom", 80, true),
+    type,
+    emoji: EMOJIS_TYPE[type],
+    info: lireTexte(corps, "info", 60) ?? "",
+    texte: lireTexte(corps, "texte", 1000) ?? "",
+    adresse: lireTexte(corps, "adresse", 160),
+    quartier: lireTexte(corps, "quartier", 60) ?? "",
+    ville: lireTexte(corps, "ville", 80, true),
+    latitude: lireNombre(corps, "latitude", -90, 90, false),
+    longitude: lireNombre(corps, "longitude", -180, 180, false),
+    prix: vide("prix") ? "€€" : lireChoix(corps, "prix", PRIX),
+    prixMoyen: lireNombre(corps, "prixMoyen", 0, 1000),
+    couleurs: ["#FFD60A", "#FF4D3D"],
+    horaires: lireTexte(corps, "horaires", 160) ?? "",
+    ouverture: [],
+    plat: lireTexte(corps, "plat", 80) ?? "",
+    tags: [],
+    envies: [],
+    reservable: false,
+    telephone: lireTexte(corps, "telephone", 30),
+    siteWeb,
+    instagram: lireTexte(corps, "instagram", 60)?.replace(/^@/, "") ?? null,
+    decouvertPar: null,
+    statut: "brouillon",
+    note: null,
+  };
+}

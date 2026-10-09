@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
+import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
@@ -46,8 +48,9 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
   const idees = (formules ? IDEES_FORMULES : IDEES_CARTE).filter((idee) => !titresPris.includes(idee));
 
   function garder() {
+    // Les mêmes règles que le service (validerCarteDuLieu)
     const propre = texte.trim();
-    if (!propre) return setErreur(true);
+    if (!propre || propre.length > LIMITES_CARTE.titreSection || contientMotInterdit(propre)) return setErreur(true);
     onGarder(propre);
   }
 
@@ -77,8 +80,8 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
           setErreur(false);
         }}
         placeholder={formules ? "Formules" : "Desserts"}
-        maxLength={40}
-        erreur={erreur ? "Donne-lui un titre, même court." : null}
+        maxLength={LIMITES_CARTE.titreSection}
+        erreur={erreur ? `Donne-lui un titre court, sans gros mot (${LIMITES_CARTE.titreSection} caractères au plus).` : null}
       />
       {idees.length > 0 ? (
         <View className="gap-2">

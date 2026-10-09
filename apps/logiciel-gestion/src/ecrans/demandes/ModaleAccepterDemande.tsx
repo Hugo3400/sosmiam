@@ -1,15 +1,17 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
 
+import { AvertissementSemblables } from "~/composants/interface/AvertissementSemblables.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
 import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
+import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { accepterDemande, type DemandeLieu } from "~/services/demandes.ts";
-import type { SaisieLieu, TypeLieu } from "~/services/lieux.ts";
+import { chercherLieuxSemblables, type SaisieLieu, type TypeLieu } from "~/services/lieux.ts";
 
 const EMOJIS: Record<string, string> = { resto: "🍽️", patisserie: "🥐", bar: "🍹", sortie: "🎳" };
 const NOMS_CHAMPS: Record<string, string> = { nom: "le nom", info: "« ce que c'est »", texte: "la présentation", quartier: "le quartier", ville: "la ville", horaires: "les horaires", plat: "le plat signature", emoji: "l'emoji", siteWeb: "le site web (https://…)" };
@@ -26,6 +28,8 @@ export function ModaleAccepterDemande({ demande, onFermer, onAcceptee }: { deman
     animaux: null, accessible: null, terrasse: null, wifi: null, enfants: null, parking: null, paiements: [], reservation: null,
   });
   const [reponse, setReponse] = useState("");
+  // Un lieu semblable existe peut-être déjà (même nom dans la ville, même adresse) : on le dit avant de créer un doublon
+  const semblables = utiliserChargement(() => chercherLieuxSemblables({ nom: demande.nom, ville: demande.ville, adresse: demande.adresse }), []).donnees;
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const changer = (modif: Partial<SaisieLieu>) => setLieu({ ...lieu, ...modif });
 
@@ -53,6 +57,7 @@ export function ModaleAccepterDemande({ demande, onFermer, onAcceptee }: { deman
         </>
       }
     >
+      <AvertissementSemblables semblables={semblables} />
       <div className="grid gap-4 md:grid-cols-2">
         <Champ libelle="Nom" valeur={lieu.nom} maxLength={80} onChange={(nom) => changer({ nom })} />
         <Selecteur
