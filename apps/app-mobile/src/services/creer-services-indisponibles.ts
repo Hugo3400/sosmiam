@@ -66,6 +66,18 @@ export function creerServicesIndisponibles(): Services {
     suggestions: {
       proposer: indisponible,
     },
+    miamSafe: {
+      lireLieu: indisponible,
+      envoyerAlerte: indisponible,
+      suivreAlerte: indisponible,
+      signaler: indisponible,
+      repondreSentiBien: indisponible,
+      listerAlertesComptoir: async () => ({ ok: true, alertes: [] }),
+      direOnArrive: indisponible,
+      lireCharte: indisponible,
+      signerCharte: indisponible,
+      quitterCharte: indisponible,
+    },
     ambassadeur: {
       lireEspace: indisponible,
       listerMissions: async () => ({ ok: true, missions: [] }),

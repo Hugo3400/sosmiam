@@ -1,5 +1,5 @@
 // Toutes les erreurs que peuvent rendre les services des visites, de la fidélité, des réservations, des avis,
-// du comptoir, de l'espace ambassadeur et des propositions de modification d'une fiche. Chaque code a son texte dans contenus/messages-services.ts.
+// du comptoir, de l'espace ambassadeur, des propositions de modification d'une fiche et de Miam Safe. Chaque code a son texte dans contenus/messages-services.ts.
 
 export type ErreurService =
   | "connexion-requise"
@@ -52,4 +52,6 @@ export type ErreurService =
   | "avis-deja-donne"
   | "avis-invalide"
   | "compte-rendu-invalide"
-  | "deja-relu";
+  | "deja-relu"
+  | "pas-miam-safe"
+  | "charte-retiree";

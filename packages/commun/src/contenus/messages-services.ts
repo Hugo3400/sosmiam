@@ -262,4 +262,15 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Déjà relu",
     texte: "Cet avis a déjà ton verdict, merci !",
   },
+  // Miam Safe : ton doux et sérieux, pas de blague
+  "pas-miam-safe": {
+    emoji: "🛟",
+    titre: "Ce lieu ne reçoit pas les alertes",
+    texte: "Il n'a pas signé la charte Miam Safe. Appelle les secours si tu es en danger, ou préviens un pote.",
+  },
+  "charte-retiree": {
+    emoji: "🛡",
+    titre: "Charte retirée par l'équipe",
+    texte: "L'équipe SOS Miam a retiré la charte de ce lieu. Écris-nous à bonjour@sosmiam.fr pour en parler.",
+  },
 };

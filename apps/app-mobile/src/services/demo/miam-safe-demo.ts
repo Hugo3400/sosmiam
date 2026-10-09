@@ -6,6 +6,8 @@ import { DELAI_RELANCE_ALERTE_SECONDES, type EndroitAlerte } from "@sos-miam/com
 import type { CharteMiamSafe, StatutAlerteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { LIEUX_MIAM_SAFE_EXEMPLES } from "~/contenus/miam-safe";
 
+import type { ContexteDemo } from "./types-demo";
+
 /** Démo : l'équipe répond « On arrive » au bout de quelques secondes */
 const REPONSE_DEMO_MS = 4000;
 
@@ -16,8 +18,9 @@ function calculerStatut(a: AlerteDemo, maintenant: number): StatutAlerteMiamSafe
   return maintenant - a.creeLe >= DELAI_RELANCE_ALERTE_SECONDES * 1000 ? "sans-reponse" : "envoyee";
 }
 
-/** `prenom` : le prénom du profil, tel que l'équipe le verrait au comptoir */
-export function creerMiamSafeDemo(lirePrenom: () => string): ServiceMiamSafe {
+/** Le prénom du client de la démo, tel que l'équipe le verrait au comptoir ; l'heure de la démo */
+export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "maintenant">): ServiceMiamSafe {
+  const lirePrenom = () => ctx.lireClient()?.prenom ?? "Quelqu'un";
   const chartes = new Map<number, CharteMiamSafe>(
     Object.keys(LIEUX_MIAM_SAFE_EXEMPLES).map((id) => [Number(id), { signee: true, signeeLe: "2026-10-09T10:00:00.000Z", retireeParEquipe: false }]),
   );
@@ -32,8 +35,8 @@ export function creerMiamSafeDemo(lirePrenom: () => string): ServiceMiamSafe {
       return { ok: true, engage: engage(lieuId), repere: reponses ? calculerRepereSentiBien(reponses.oui, reponses.reponses) : false };
     },
     async envoyerAlerte({ lieuId, endroit, detail }) {
-      if (!engage(lieuId)) return { ok: false, erreur: "service-indisponible" };
-      const maintenant = Date.now();
+      if (!engage(lieuId)) return { ok: false, erreur: "pas-miam-safe" };
+      const maintenant = ctx.maintenant();
       const id = ++prochaine;
       alertes.push({ id, lieuId, endroit, detail: detail.trim().slice(0, 80), creeLe: maintenant, repondueLe: maintenant + REPONSE_DEMO_MS });
       return { ok: true, id };
@@ -41,7 +44,7 @@ export function creerMiamSafeDemo(lirePrenom: () => string): ServiceMiamSafe {
     async suivreAlerte(alerteId) {
       const a = alertes.find((x) => x.id === alerteId);
       if (!a) return { ok: false, erreur: "introuvable" };
-      const maintenant = Date.now();
+      const maintenant = ctx.maintenant();
       const statut = calculerStatut(a, maintenant);
       return { ok: true, alerte: { id: a.id, statut, creeLe: new Date(a.creeLe).toISOString(), repondueLe: statut === "en-route" ? new Date(a.repondueLe!).toISOString() : null } };
     },
@@ -52,7 +55,7 @@ export function creerMiamSafeDemo(lirePrenom: () => string): ServiceMiamSafe {
       return { ok: true };
     },
     async listerAlertesComptoir(lieuId) {
-      const maintenant = Date.now();
+      const maintenant = ctx.maintenant();
       const prenom = lirePrenom();
       return {
         ok: true,
@@ -65,7 +68,7 @@ export function creerMiamSafeDemo(lirePrenom: () => string): ServiceMiamSafe {
     async direOnArrive(lieuId, alerteId) {
       const a = alertes.find((x) => x.id === alerteId && x.lieuId === lieuId);
       if (!a) return { ok: false, erreur: "introuvable" };
-      a.repondueLe = Math.min(a.repondueLe ?? Date.now(), Date.now());
+      a.repondueLe = Math.min(a.repondueLe ?? ctx.maintenant(), ctx.maintenant());
       return { ok: true };
     },
     async lireCharte(lieuId) {
