@@ -37,6 +37,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const [type, setType] = useState("");
   const [categorie, setCategorie] = useState("");
   const [ville, setVille] = useState("");
+  const [qualite, setQualite] = useState<"" | "a-completer" | "complete">("");
   const [page, setPage] = useState(1);
   const haut = useRef<HTMLDivElement>(null);
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
@@ -50,12 +51,14 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerLieux(recherche, statut), [recherche, statut]);
   const tous = donnees ?? [];
   // Chaque liste compte les lieux qui répondent aux autres filtres (choisir « Bar » ne montre que les villes qui en ont)
-  const sansType = filtrerLieux(tous, { type: "", categorie, ville });
-  const sansCategorie = filtrerLieux(tous, { type, categorie: "", ville });
-  const sansVille = filtrerLieux(tous, { type, categorie, ville: "" });
+  const sansType = filtrerLieux(tous, { type: "", categorie, ville, qualite });
+  const sansCategorie = filtrerLieux(tous, { type, categorie: "", ville, qualite });
+  const sansVille = filtrerLieux(tous, { type, categorie, ville: "", qualite });
+  const sansQualite = filtrerLieux(tous, { type, categorie, ville });
+  const aCompleter = sansQualite.filter((lieu) => lieu.manques.length > 0).length;
   const categories = compterValeursLieux(sansCategorie, "info", categorie);
   const villes = compterValeursLieux(sansVille, "ville", ville);
-  const lieux = filtrerLieux(tous, { type, categorie, ville });
+  const lieux = filtrerLieux(tous, { type, categorie, ville, qualite });
   const pages = Math.max(1, Math.ceil(lieux.length / PAR_PAGE));
   const pageLieux = lieux.slice((page - 1) * PAR_PAGE, page * PAR_PAGE);
   const changerPage = (nouvelle: number) => {
@@ -68,12 +71,12 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
     return () => clearTimeout(minuteur);
   }, [saisie]);
   // Un nouveau filtre repart de la première page ; après une suppression, la page reste dans les bornes
-  useEffect(() => setPage(1), [recherche, statut, type, categorie, ville]);
+  useEffect(() => setPage(1), [recherche, statut, type, categorie, ville, qualite]);
   useEffect(() => setPage((avant) => Math.min(avant, pages)), [pages]);
   // La sélection ne garde que les lieux encore affichés (après un filtre ou une suppression), toutes pages comprises
   useEffect(() => {
     setChoisis((avant) => new Set([...avant].filter((id) => lieux.some((lieu) => lieu.id === id))));
-  }, [donnees, type, categorie, ville]);
+  }, [donnees, type, categorie, ville, qualite]);
   // Échap : tout désélectionner
   useEffect(() => {
     const touche = (evenement: KeyboardEvent) => evenement.key === "Escape" && !document.querySelector("dialog[open]") && setChoisis(new Set());
@@ -97,7 +100,19 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   }
 
   if (ouvert !== null) {
-    return <FormulaireLieu id={ouvert === "nouveau" ? null : ouvert} allerA={allerA} onFermer={() => { setOuvert(null); recharger(); }} />;
+    // Fiche suivante et précédente : dans l'ordre de la liste filtrée (toutes pages), pour enchaîner les fiches à compléter
+    const rang = ouvert === "nouveau" ? -1 : lieux.findIndex((lieu) => lieu.id === ouvert);
+    const voisin = (decalage: number) => (rang >= 0 && lieux[rang + decalage] ? () => setOuvert(lieux[rang + decalage]!.id) : null);
+    return (
+      <FormulaireLieu
+        key={ouvert}
+        id={ouvert === "nouveau" ? null : ouvert}
+        allerA={allerA}
+        onFermer={() => { setOuvert(null); recharger(); }}
+        navigation={rang >= 0 ? { position: `${rang + 1} / ${lieux.length}`, precedente: voisin(-1), suivante: voisin(1) } : undefined}
+        manques={rang >= 0 ? lieux[rang]!.manques : undefined}
+      />
+    );
   }
   const tousChoisis = lieux.length > 0 && lieux.every((lieu) => choisis.has(lieu.id));
   return (
@@ -147,6 +162,17 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
             ]}
             className="w-60"
           />
+          <Selecteur
+            libelle="Fiche"
+            valeur={qualite}
+            onChange={setQualite}
+            options={[
+              { valeur: "", libelle: `Toutes les fiches (${sansQualite.length})` },
+              { valeur: "a-completer", libelle: `À compléter (${aCompleter})` },
+              { valeur: "complete", libelle: `Complètes (${sansQualite.length - aCompleter})` },
+            ]}
+            className="w-52"
+          />
         </div>
       </div>
       <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-x-5 gap-y-2">
@@ -165,7 +191,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
       {!donnees && chargement && <Chargement />}
       {donnees && lieux.length === 0 && (
         <Carte>
-          <EtatVide emoji="🏪" titre={recherche || statut || type || categorie || ville ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
+          <EtatVide emoji="🏪" titre={recherche || statut || type || categorie || ville || qualite ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
             Chaque fiche décrit un lieu indépendant : son histoire, son plat signature, ses horaires. Les publications du fil s'y rattachent.
           </EtatVide>
         </Carte>

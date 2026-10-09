@@ -43,6 +43,7 @@ model Compte {
   appareils     AppareilPush[]
   candidaturesCertification CandidatureCertification[]
   suggestionsLieux          SuggestionLieu[]
+  rattachementsLieux        RattachementLieu[]
 
   @@index([derniereConnexion])
   @@map("comptes")

@@ -89,6 +89,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
             carte: client ? convertirCarteDemo(m, lieuId, client) : null,
             enCoursIci: enCours ? convertirVisiteDemo(enCours, lieu) : null,
             pratique: m.infosPratiques?.[lieuId] ?? null,
+            carteDuLieu: m.cartesDuLieu?.[lieuId] ?? null,
           },
         };
       });

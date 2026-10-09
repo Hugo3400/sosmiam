@@ -13,7 +13,6 @@ import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { PastillesSectionsCarte } from "~/composants/lieux/PastillesSectionsCarte";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { cartesExemples } from "~/contenus/cartes-exemples";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { regimesCarte } from "~/contenus/regimes-carte";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
@@ -22,6 +21,7 @@ import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age"
 import { filtrerCarteSelonRegimes } from "~/fonctions/lieux/filtrer-carte-selon-regimes";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -50,7 +50,8 @@ export default function CarteDuLieu() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieu = filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id);
-  const carteDuLieu = lieu ? cartesExemples[lieu.id] : undefined;
+  // Celle enregistrée par le lieu s'il l'a fait (sections vides retirées), sinon celle de la fiche
+  const carteDuLieu = utiliserCarteDuLieu(lieu?.id ?? null);
   const carteAutorisee = carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null;
 
   if (!lieu) {

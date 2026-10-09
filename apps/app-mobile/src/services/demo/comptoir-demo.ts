@@ -1,20 +1,24 @@
 // Le comptoir joué sur le téléphone (mode pro de démo) : l'équipe d'un lieu voit les additions et récompenses en attente,
 // montre le QR du comptoir, marque une addition réglée (code à saisir dès 2 en attente), refuse, annule une validation
-// faite par erreur (15 min) et règle la carte de fidélité. Le lieu est toujours relu sur la ressource, jamais pris dans
+// faite par erreur (15 min), règle la carte de fidélité, les infos pratiques et la carte du lieu (plats, boissons). Le lieu est toujours relu sur la ressource, jamais pris dans
 // la demande, et les droits sont revérifiés à chaque geste, comme le fera l'API.
 import type { ReponseComptoir, ServiceComptoir } from "@sos-miam/commun/client-api/contrat-comptoir";
 import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import { peutAgirAuComptoir } from "@sos-miam/commun/fonctions/roles/peut-agir-au-comptoir";
 import { peutReglerLieu } from "@sos-miam/commun/fonctions/roles/peut-regler-lieu";
 import { DEMANDES_AVANT_SAISIE_CODE } from "@sos-miam/commun/regles/visites";
+import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
 import type { InfosPratiques } from "@sos-miam/commun/types/infos-pratiques";
 import type { EvenementVisite } from "@sos-miam/commun/types/visite";
+import { validerCarteDuLieu } from "@sos-miam/commun/validation/valider-carte-du-lieu";
 import { validerReglageFidelite } from "@sos-miam/commun/validation/valider-reglage-fidelite";
 import { validerInfosPratiques } from "@sos-miam/commun/validation/valider-infos-pratiques";
 import { validerReglementVisite } from "@sos-miam/commun/validation/valider-reglement-visite";
 
+import { cartesExemples } from "~/contenus/cartes-exemples";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
+import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 
 import { calculerEtatComptoirDemo } from "./calculer-etat-comptoir-demo";
@@ -37,6 +41,8 @@ export type ComptoirDemo = Pick<
   | "reglerProgramme"
   | "lireInfosPratiques"
   | "reglerInfosPratiques"
+  | "lireCarteDuLieu"
+  | "reglerCarteDuLieu"
 >;
 
 const trouverLieu = (id: number) => lieuxExemples.find((l) => l.id === id);
@@ -156,6 +162,24 @@ export function creerComptoirDemo(ctx: ContexteDemo): ComptoirDemo {
       return ctx.magasin.modifier((m): ReponseApi<{ infos: InfosPratiques }> => {
         m.infosPratiques = { ...(m.infosPratiques ?? {}), [lieuId]: valide.infos };
         return { ok: true, infos: valide.infos };
+      });
+    },
+
+    async lireCarteDuLieu(lieuId) {
+      if (!peutAgirAuComptoir(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      // Celle du gérant si elle existe (même vide), sinon celle de la fiche
+      return ctx.magasin.lire((m) => ({ ok: true, carte: m.cartesDuLieu?.[lieuId] ?? cartesExemples[lieuId] ?? null }));
+    },
+
+    async reglerCarteDuLieu(lieuId, carte) {
+      if (!peutReglerLieu(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      const valide = validerCarteDuLieu(carte);
+      if (!valide.ok) return { ok: false, erreur: valide.erreur };
+      return ctx.magasin.modifier((m, maintenantMs): ReponseApi<{ carte: CarteLieu }> => {
+        // La date de mise à jour est celle du serveur (ici, l'horloge de la démo), jamais celle envoyée
+        const enregistree: CarteLieu = { ...valide.carte, majLe: formaterDateIso(new Date(maintenantMs)) };
+        m.cartesDuLieu = { ...(m.cartesDuLieu ?? {}), [lieuId]: enregistree };
+        return { ok: true, carte: enregistree };
       });
     },
   };

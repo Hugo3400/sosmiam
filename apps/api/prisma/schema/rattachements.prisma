@@ -1,0 +1,26 @@
+// Rattachement d'un compte pro à son lieu (décidé le 9 octobre 2026, voir docs/decisions.md, « Lieux vérifiés et non
+// vérifiés ») : un lieu est « vérifié ✓ » s'il a au moins un rattachement « valide ». Un compte peut tenir plusieurs lieux.
+
+model RattachementLieu {
+  id        Int       @id @default(autoincrement())
+  lieuId    Int       @map("lieu_id")
+  lieu      Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  compteId  Int       @map("compte_id")
+  compte    Compte    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// « gerant » ou « equipe »
+  role      String    @db.VarChar(20)
+  /// Ce qui prouve le lien : « je suis le gérant », SIRET, mail du domaine du lieu…
+  preuve    String    @db.VarChar(600)
+  siret     String?   @db.VarChar(14)
+  /// « en-attente », « valide », « refuse » ou « retire »
+  statut    String    @default("en-attente") @db.VarChar(12)
+  /// Réponse de l'équipe, envoyée par mail
+  reponse   String?   @db.VarChar(1000)
+  creeLe    DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  decideLe  DateTime? @map("decide_le") @db.Timestamptz(0)
+
+  @@unique([lieuId, compteId])
+  @@index([statut, creeLe])
+  @@index([compteId])
+  @@map("rattachements_lieux")
+}

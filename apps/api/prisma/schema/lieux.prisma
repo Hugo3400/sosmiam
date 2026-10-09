@@ -58,6 +58,7 @@ model Lieu {
   missions     MissionAmbassadeur[]
   bigSos       BigSos[]
   suggestions  SuggestionLieu[]
+  rattachements RattachementLieu[]
 
   @@index([statut, ville])
   @@map("lieux")

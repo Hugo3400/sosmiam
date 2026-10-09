@@ -5,8 +5,8 @@ import { Text, View } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ElementCarte } from "~/composants/lieux/ElementCarte";
-import { cartesExemples } from "~/contenus/cartes-exemples";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
+import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 
 type Props = {
   lieu: Lieu;
@@ -23,9 +23,10 @@ const NOMBRE_APERCU = 3;
  */
 export function ApercuCarte({ lieu, age }: Props) {
   const router = useRouter();
-  // Calculé une fois par lieu et par âge, pas à chaque rendu
+  // Celle enregistrée par le lieu s'il l'a fait, sinon celle de la fiche
+  const carteDuLieu = utiliserCarteDuLieu(lieu.id);
+  // Calculé une fois par carte et par âge, pas à chaque rendu
   const contenu = useMemo(() => {
-    const carteDuLieu = cartesExemples[lieu.id];
     if (!carteDuLieu) return null;
     const elements = filtrerCarteSelonAge(carteDuLieu, age).sections.flatMap((section) => section.elements);
     if (elements.length === 0) return null;
@@ -35,7 +36,7 @@ export function ApercuCarte({ lieu, age }: Props) {
       nombre: elements.length,
       avecSignatures: signatures.length > 0,
     };
-  }, [lieu.id, age]);
+  }, [carteDuLieu, age]);
   if (!contenu) return null;
 
   const { apercu, nombre, avecSignatures } = contenu;

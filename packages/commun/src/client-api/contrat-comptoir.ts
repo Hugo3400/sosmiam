@@ -2,6 +2,7 @@
 // Le lieu est toujours relu sur la ressource par le serveur (jamais pris dans la demande).
 
 import type { AvisPublic, ResumeAvis } from "../types/avis.ts";
+import type { CarteLieu } from "../types/carte.ts";
 import type { EtatComptoir } from "../types/comptoir.ts";
 import type { ProgrammeFidelite, ReglageFidelite } from "../types/fidelite.ts";
 import type { InfosPratiques } from "../types/infos-pratiques.ts";
@@ -33,6 +34,12 @@ export interface ServiceComptoir {
   /** Les infos pratiques du lieu (téléphone, animaux, accès…) ; le gérant seul peut les changer */
   lireInfosPratiques(lieuId: number): Promise<ReponseApi<{ infos: InfosPratiques | null }>>;
   reglerInfosPratiques(lieuId: number, infos: InfosPratiques): Promise<ReponseApi<{ infos: InfosPratiques }>>;
+  /**
+   * La carte du lieu (plats, boissons, formules) : toute l'équipe la lit, le gérant seul l'enregistre, d'un coup.
+   * Le serveur la revérifie (validerCarteDuLieu) et pose lui-même la date de mise à jour.
+   */
+  lireCarteDuLieu(lieuId: number): Promise<ReponseApi<{ carte: CarteLieu | null }>>;
+  reglerCarteDuLieu(lieuId: number, carte: CarteLieu): Promise<ReponseApi<{ carte: CarteLieu }>>;
   reglerProgramme(lieuId: number, reglage: ReglageFidelite): Promise<ReponseApi<{ programme: ProgrammeFidelite }>>;
   listerAvis(lieuId: number): Promise<ReponseApi<{ resume: ResumeAvis; avis: AvisPublic[] }>>;
   repondreAvis(avisId: number, texte: string): Promise<ReponseApi<{ avis: AvisPublic }>>;

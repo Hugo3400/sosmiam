@@ -1,5 +1,5 @@
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Save, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
@@ -11,6 +11,7 @@ import { Modale } from "~/composants/interface/Modale.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
 import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
+import { POINTS_FICHE } from "~/contenus/champs-lieu.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { enregistrerLieu, lireLieu, supprimerLieu, type EnvieLieu, type SaisieLieu } from "~/services/lieux.ts";
@@ -50,9 +51,16 @@ function Groupe({ titre, children }: { titre: string; children: ReactNode }) {
 }
 
 /** Fiche d'un lieu à créer (id null) ou à modifier, avec l'aperçu de sa carte dans l'app. */
-type Props = { id: number | null; onFermer: () => void; allerA?: (ecran: Ecran, id: number | null) => void };
+/** navigation : fiche précédente et suivante de la liste filtrée ; manques : ce qui manque à la fiche (contrôle qualité) */
+type Props = {
+  id: number | null;
+  onFermer: () => void;
+  allerA?: (ecran: Ecran, id: number | null) => void;
+  navigation?: { position: string; precedente: (() => void) | null; suivante: (() => void) | null };
+  manques?: string[];
+};
 
-export function FormulaireLieu({ id, onFermer, allerA }: Props) {
+export function FormulaireLieu({ id, onFermer, allerA, navigation, manques }: Props) {
   const [lieu, setLieu] = useState<SaisieLieu | null>(id ? null : NOUVEAU);
   const [tags, setTags] = useState("");
   // Nombres gardés en texte pendant la saisie (sinon « 43. » perdrait son point), convertis à l'enregistrement
@@ -60,6 +68,8 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
   const [erreurChargement, setErreurChargement] = useState<ErreurApi | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const [suppression, setSuppression] = useState(false);
+  /** La fiche telle qu'elle a été chargée : pour prévenir avant de quitter avec des changements non enregistrés */
+  const chargee = useRef<string | null>(null);
   // Monte après une modification proposée appliquée : la fiche se relit depuis le serveur
   const [version, setVersion] = useState(0);
 
@@ -67,9 +77,12 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
     if (!id) return;
     lireLieu(id).then(
       ({ id: _id, creeLe: _c, modifieLe: _m, ...saisie }) => {
+        const tagsTexte = saisie.tags.join(", ");
+        const nombresTexte = { latitude: saisie.latitude?.toString() ?? "", longitude: saisie.longitude?.toString() ?? "", prixMoyen: saisie.prixMoyen?.toString() ?? "" };
         setLieu(saisie);
-        setTags(saisie.tags.join(", "));
-        setNombres({ latitude: saisie.latitude?.toString() ?? "", longitude: saisie.longitude?.toString() ?? "", prixMoyen: saisie.prixMoyen?.toString() ?? "" });
+        setTags(tagsTexte);
+        setNombres(nombresTexte);
+        chargee.current = JSON.stringify({ lieu: saisie, tags: tagsTexte, nombres: nombresTexte });
       },
       (erreur: unknown) => setErreurChargement(erreur instanceof ErreurApi ? erreur : null),
     );
@@ -78,7 +91,7 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
   if (!lieu) return erreurChargement ? <MessageErreur erreur={erreurChargement} /> : <Chargement />;
   const changer = (modif: Partial<SaisieLieu>) => setLieu({ ...lieu, ...modif });
 
-  async function enregistrer() {
+  async function enregistrer(suivre = false) {
     if (!lieu) return;
     setEtat({ enCours: true, erreur: null });
     try {
@@ -89,11 +102,18 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
         longitude: nombreOuNull(nombres.longitude),
         prixMoyen: nombreOuNull(nombres.prixMoyen),
       });
-      onFermer();
+      if (suivre && navigation?.suivante) navigation.suivante();
+      else onFermer();
     } catch (probleme) {
       const erreur = probleme instanceof ErreurApi ? probleme : null;
       setEtat({ enCours: false, erreur: erreur?.champ ? `Vérifie ${NOMS_CHAMPS[erreur.champ] ?? erreur.champ}.` : expliquerErreur(erreur) });
     }
+  }
+  /** Change de fiche sans enregistrer, après confirmation s'il y a des changements */
+  function quitterVers(aller: (() => void) | null) {
+    if (!aller) return;
+    if (chargee.current && JSON.stringify({ lieu, tags, nombres }) !== chargee.current && !window.confirm("Tu as des changements non enregistrés sur cette fiche : les abandonner ?")) return;
+    aller();
   }
   async function supprimer() {
     if (!id) return;
@@ -108,12 +128,27 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
         actions={
           <>
             <Bouton icone={ArrowLeft} onClick={onFermer}>Retour</Bouton>
+            {navigation && (
+              <span className="flex items-center gap-1">
+                <Bouton icone={ChevronLeft} titre="Fiche précédente (sans enregistrer)" desactive={!navigation.precedente} onClick={() => quitterVers(navigation.precedente)} />
+                <span className="chiffres px-1 text-sm text-gris">{navigation.position}</span>
+                <Bouton icone={ChevronRight} titre="Fiche suivante (sans enregistrer)" desactive={!navigation.suivante} onClick={() => quitterVers(navigation.suivante)} />
+              </span>
+            )}
             {id && <Bouton variante="danger" icone={Trash2} onClick={() => setSuppression(true)}>Supprimer</Bouton>}
-            <Bouton variante="principal" icone={Save} chargement={etat.enCours} onClick={enregistrer}>Enregistrer</Bouton>
+            {navigation?.suivante && <Bouton icone={Save} chargement={etat.enCours} onClick={() => enregistrer(true)}>Enregistrer et suivante</Bouton>}
+            <Bouton variante="principal" icone={Save} chargement={etat.enCours} onClick={() => enregistrer()}>Enregistrer</Bouton>
           </>
         }
       />
       {id && <SuggestionsDuLieu lieuId={id} maintenant={lieu} onDecision={() => setVersion((v) => v + 1)} />}
+      {manques && (
+        <p role="note" className={`mb-5 rounded-xl px-4 py-3 text-sm ${manques.length ? "border border-ligne bg-white" : "bg-vert-clair font-semibold text-vert"}`}>
+          {manques.length === 0
+            ? "Fiche complète ✓ : rien ne manque pour la mettre en ligne."
+            : <><strong>À compléter avant la mise en ligne :</strong> {manques.map((point) => POINTS_FICHE[point] ?? point).join(" · ")}</>}
+        </p>
+      )}
       {etat.erreur && <p role="alert" className="mb-4 rounded-xl bg-rose-alerte px-4 py-2 text-sm font-semibold text-rouge-texte">{etat.erreur}</p>}
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-5">

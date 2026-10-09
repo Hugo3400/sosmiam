@@ -64,3 +64,9 @@ test("réponse à l'auteur d'une modification : tout, une partie (champs nommés
   const rien = redigerReponseSuggestion({ prenom: "Léa", lieu: "La Fournée", champsAppliques: [], total: 2 });
   assert.ok(rien.includes("on garde la fiche telle quelle") && rien.includes("[dis pourquoi"));
 });
+
+test("filtre de qualité : fiches à compléter ou complètes", () => {
+  const fiches = [{ id: 1, type: "resto", info: "x", ville: "Sète", manques: [] }, { id: 2, type: "resto", info: "x", ville: "Sète", manques: ["position"] }] as (Pick<ResumeLieu, "type" | "info" | "ville"> & { id: number; manques: string[] })[];
+  assert.deepEqual(filtrerLieux(fiches, { type: "", categorie: "", ville: "", qualite: "complete" }).map((l) => l.id), [1]);
+  assert.deepEqual(filtrerLieux(fiches, { type: "", categorie: "", ville: "", qualite: "a-completer" }).map((l) => l.id), [2]);
+});

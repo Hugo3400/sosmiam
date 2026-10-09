@@ -4,6 +4,7 @@ import type { Desabonner } from "@sos-miam/commun/client-api/reponse-api";
 import type { AvisARelire, NoteAvis, StatutAvis, VerdictRelecture } from "@sos-miam/commun/types/avis";
 import type { MessageAmbassadeur, MissionAmbassadeur } from "@sos-miam/commun/types/espace-ambassadeur";
 import type { DemandeRecompense, ProgrammeFidelite, RecompensePrete } from "@sos-miam/commun/types/fidelite";
+import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { InfosPratiques } from "@sos-miam/commun/types/infos-pratiques";
 import type { ResultatPosition } from "@sos-miam/commun/types/position";
 import type { MotifRefusReservation, StatutReservation } from "@sos-miam/commun/types/reservation";
@@ -115,6 +116,8 @@ export type MagasinDemo = {
   contestations: { visiteId: number; mot: string; le: string }[];
   /** Infos pratiques remplies par le gérant (mode pro), par lieu ; absent dans un magasin d'avant le 9 octobre 2026 */
   infosPratiques?: Record<number, InfosPratiques>;
+  /** Cartes (plats, boissons, formules) enregistrées par le gérant (mode pro), par lieu ; absent tant qu'aucune ne l'a été */
+  cartesDuLieu?: Record<number, CarteLieu>;
 };
 
 /** Un pépin réservé dans les Coulisses : il arrive une seule fois, à la prochaine demande qui peut le subir */

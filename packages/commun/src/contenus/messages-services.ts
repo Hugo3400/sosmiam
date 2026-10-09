@@ -212,6 +212,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Une info ne passe pas",
     texte: "Vérifie le téléphone (un numéro français), le site (en https) et le nom Instagram.",
   },
+  "carte-invalide": {
+    emoji: "🍽️",
+    titre: "Ta carte ne passe pas",
+    texte: "Vérifie les noms (sans gros mot ni texte trop long) et les prix, comme 12 ou 4,50.",
+  },
   "reglement-invalide": {
     emoji: "🧾",
     titre: "Ce règlement ne passe pas",

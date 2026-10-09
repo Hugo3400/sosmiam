@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
+import { POINTS_FICHE } from "~/contenus/champs-lieu.ts";
 import { EMOJIS_TYPE_LIEU, STATUTS_LIEU, TYPES_LIEU } from "~/contenus/statuts-lieu.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
 import type { ResumeLieu } from "~/services/lieux.ts";
@@ -45,7 +46,10 @@ export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Pro
             {lieu.info.trim() && <Badge>{lieu.info.trim()}</Badge>}
           </span>
           <span className="block text-xs text-gris">
-            {lieu._count.publications} publication{lieu._count.publications > 1 ? "s" : ""} · modifié {formaterDateRelative(lieu.modifieLe)}
+            {lieu._count.publications} publication{lieu._count.publications > 1 ? "s" : ""} · modifié {formaterDateRelative(lieu.modifieLe)} ·{" "}
+            {lieu.manques.length === 0
+              ? <span className="font-semibold text-vert">fiche complète ✓</span>
+              : <span className="font-semibold text-encre" title={`À compléter : ${lieu.manques.map((point) => POINTS_FICHE[point] ?? point).join(", ")}`}>{lieu.manques.length} point{lieu.manques.length > 1 ? "s" : ""} à compléter</span>}
           </span>
         </span>
       </button>
