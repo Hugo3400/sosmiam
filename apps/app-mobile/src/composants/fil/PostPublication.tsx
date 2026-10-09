@@ -271,7 +271,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
       {/* Le placement reste sur une View : NativeWind n'applique pas ses classes à une Animated.View qui porte un style animé */}
       <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + ECART_BAS }} className="absolute left-4 right-4 flex-row">
-        <Animated.View style={stylePastille}>
+        {/* flex 1 : la largeur est bornée, le message revient à la ligne au lieu de déborder */}
+        <Animated.View style={[stylePastille, { flex: 1 }]}>
           <View className="items-start gap-1.5">
             {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
             <Pressable

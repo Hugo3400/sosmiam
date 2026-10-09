@@ -129,11 +129,12 @@ test("l'équipe lit mais ne modifie pas (403 reserve-au-gerant) ; un autre compt
 
 test("une carte pleine (250 éléments aux textes les plus longs) passe ; 251 éléments non", async () => {
   const { jeton, lieuId } = await creerGerant();
-  const element = { nom: "é".repeat(LIMITES_CARTE.nom), description: "à".repeat(LIMITES_CARTE.description), prix: 9999.99, unite: "è".repeat(LIMITES_CARTE.unite), signature: true, alcool: true, etiquettes: ["vege", "vegan", "sans-gluten", "epice", "fait-maison", "local"] };
+  const element = { nom: "é".repeat(LIMITES_CARTE.nom), description: "à".repeat(LIMITES_CARTE.description), prix: LIMITES_CARTE.prixMax, unite: "è".repeat(LIMITES_CARTE.unite), signature: true, alcool: true, etiquettes: ["vege", "vegan", "sans-gluten", "epice", "fait-maison", "local"] };
   const parSection = [60, 60, 60, 60, 10];
   const pleine = { sections: parSection.map((nombre, i) => ({ titre: `Section ${i}`, elements: Array.from({ length: nombre }, () => element) })) };
   assert.ok(JSON.stringify({ carte: pleine }).length > 16_000, "plus grosse que la limite générale de l'espace");
-  assert.equal((await demander("PUT", `/pro/lieux/${lieuId}/carte`, { jeton, corps: { carte: pleine } })).statut, 200);
+  const passe = await demander("PUT", `/pro/lieux/${lieuId}/carte`, { jeton, corps: { carte: pleine } });
+  assert.equal(passe.statut, 200, JSON.stringify(passe.corps));
   pleine.sections[4]?.elements.push(element);
   const trop = await demander("PUT", `/pro/lieux/${lieuId}/carte`, { jeton, corps: { carte: pleine } });
   assert.deepEqual([trop.statut, trop.corps.champ, trop.corps.section], [400, "trop-d-elements", null]);

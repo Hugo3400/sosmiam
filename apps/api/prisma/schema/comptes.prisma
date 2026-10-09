@@ -44,6 +44,11 @@ model Compte {
   candidaturesCertification CandidatureCertification[]
   suggestionsLieux          SuggestionLieu[]
   rattachementsLieux        RattachementLieu[]
+  chartesMiamSafe           CharteMiamSafe[]
+  alertesMiamSafe           AlerteMiamSafe[]           @relation("AlertesEnvoyees")
+  alertesMiamSafeRepondues  AlerteMiamSafe[]           @relation("AlertesRepondues")
+  signalementsMiamSafe      SignalementMiamSafe[]
+  reponsesSentiBien         ReponseSentiBien[]
 
   @@index([derniereConnexion])
   @@map("comptes")

@@ -52,7 +52,8 @@ export function MentionPrevention({ variante = "ligne" }: Props) {
   const surImage = variante === "sur-image";
   return (
     <View className="flex-row flex-wrap items-center gap-x-2">
-      <Text className={`font-texte text-[12px] leading-4 ${surImage ? "text-white/90" : "text-gris"}`} style={surImage ? ombreTexte : undefined}>
+      {/* flexShrink : dans une rangée, le texte revient à la ligne au lieu de déborder */}
+      <Text className={`font-texte text-[12px] leading-4 ${surImage ? "text-white/90" : "text-gris"}`} style={[{ flexShrink: 1 }, surImage ? ombreTexte : null]}>
         {MESSAGE_SANITAIRE_ALCOOL}
       </Text>
       <Pressable

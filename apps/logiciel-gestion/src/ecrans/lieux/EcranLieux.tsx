@@ -150,17 +150,17 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
             valeur={type}
             onChange={setType}
             options={[
-              { valeur: "", libelle: `Tous les types (${sansType.length})` },
+              { valeur: "", libelle: `Tous (${sansType.length})` },
               ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${sansType.filter((lieu) => lieu.type === valeur).length})` })),
             ]}
-            className="w-48"
+            className="w-44"
           />
           <Selecteur
             libelle="Ville"
             valeur={ville}
             onChange={setVille}
             options={[
-              { valeur: "", libelle: `Toutes les villes (${sansVille.length})` },
+              { valeur: "", libelle: `Toutes (${sansVille.length})` },
               ...villes.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
             ]}
             className="w-56"
@@ -180,7 +180,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
             valeur={qualite}
             onChange={setQualite}
             options={[
-              { valeur: "", libelle: `Toutes les fiches (${sansQualite.length})` },
+              { valeur: "", libelle: `Toutes (${sansQualite.length})` },
               { valeur: "a-completer", libelle: `À compléter (${aCompleter})` },
               { valeur: "complete", libelle: `Complètes (${sansQualite.length - aCompleter})` },
             ]}

@@ -1,0 +1,87 @@
+// Miam Safe : se sentir en sécurité dans un lieu (décidé le 9 octobre 2026, voir docs/decisions.md).
+
+/// Un lieu qui a signé la charte Miam Safe (son équipe connaît la phrase « Le Capitaine est là ? » et l'écran, et reçoit
+/// les alertes silencieuses). Signée par un gérant ; retirée par l'équipe SOS Miam après un signalement retenu.
+model CharteMiamSafe {
+  lieuId        Int       @id @map("lieu_id")
+  lieu          Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Le gérant qui l'a signée (null s'il a supprimé son compte depuis)
+  signeeParId   Int?      @map("signee_par_id")
+  signeePar     Compte?   @relation(fields: [signeeParId], references: [id], onDelete: SetNull)
+  signeeLe      DateTime  @default(now()) @map("signee_le") @db.Timestamptz(0)
+  /// Retirée (par le gérant, ou par l'équipe SOS Miam) : le badge disparaît, les alertes silencieuses ne partent plus
+  retireeLe     DateTime? @map("retiree_le") @db.Timestamptz(0)
+  /// Pourquoi l'équipe SOS Miam l'a retirée (privé)
+  motifRetrait  String?   @map("motif_retrait") @db.VarChar(500)
+
+  @@map("chartes_miam_safe")
+}
+
+/// Une alerte silencieuse envoyée au comptoir d'un lieu Miam Safe : le prénom, l'endroit et un petit détail, jamais le nom ni
+/// la photo. Sans « On arrive » au bout de 2 minutes, elle compte comme « sans réponse » pour l'équipe SOS Miam.
+/// Effacée 30 jours après son envoi.
+model AlerteMiamSafe {
+  id           Int       @id @default(autoincrement())
+  lieuId       Int       @map("lieu_id")
+  lieu         Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  compteId     Int       @map("compte_id")
+  compte       Compte    @relation("AlertesEnvoyees", fields: [compteId], references: [id], onDelete: Cascade)
+  /// Le prénom tel que l'équipe le voit, recopié à l'envoi
+  prenom       String    @db.VarChar(40)
+  /// « salle », « terrasse », « toilettes » ou « ailleurs »
+  endroit      String    @db.VarChar(12)
+  /// « table 12, pull vert » (facultatif)
+  detail       String    @default("") @db.VarChar(80)
+  creeLe       DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  /// « On arrive » de l'équipe du lieu
+  repondueLe   DateTime? @map("repondue_le") @db.Timestamptz(0)
+  reponduParId Int?      @map("repondu_par_id")
+  reponduPar   Compte?   @relation("AlertesRepondues", fields: [reponduParId], references: [id], onDelete: SetNull)
+  /// L'équipe SOS Miam l'a vue (alerte sans réponse traitée dans le logiciel de gestion)
+  vueLe        DateTime? @map("vue_le") @db.Timestamptz(0)
+
+  @@index([lieuId, creeLe])
+  @@index([compteId, creeLe])
+  @@index([repondueLe, creeLe])
+  @@map("alertes_miam_safe")
+}
+
+/// Ce qu'une personne raconte après coup sur un lieu : jamais affiché sur la fiche, lu par l'équipe sous 48 heures.
+/// Gardé un an après la décision.
+model SignalementMiamSafe {
+  id          Int       @id @default(autoincrement())
+  lieuId      Int       @map("lieu_id")
+  lieu        Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// La personne, pour lui dire ce qu'on a décidé (null si elle a supprimé son compte depuis)
+  compteId    Int?      @map("compte_id")
+  compte      Compte?   @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  /// « harcelement », « agression », « discrimination », « personnel » ou « autre »
+  raison      String    @db.VarChar(16)
+  explication String    @default("") @db.VarChar(500)
+  /// « a-traiter » ou « traite »
+  statut      String    @default("a-traiter") @db.VarChar(10)
+  /// Ce que l'équipe a fait : « aucune », « lieu-contacte », « charte-retiree », « lieu-masque »
+  action      String?   @db.VarChar(16)
+  /// Note de l'équipe (privée)
+  note        String?   @db.VarChar(1000)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  traiteLe    DateTime? @map("traite_le") @db.Timestamptz(0)
+
+  @@index([statut, creeLe])
+  @@index([lieuId])
+  @@map("signalements_miam_safe")
+}
+
+/// La réponse d'une personne à « Tu t'es senti·e bien ici ? » (la dernière compte). Seul le total des oui s'affiche, à
+/// partir de 90 % sur au moins 20 réponses ; un non ne s'affiche jamais.
+model ReponseSentiBien {
+  lieuId    Int      @map("lieu_id")
+  lieu      Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  compteId  Int      @map("compte_id")
+  compte    Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  oui       Boolean
+  modifieLe DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@id([lieuId, compteId])
+  @@map("reponses_senti_bien")
+}

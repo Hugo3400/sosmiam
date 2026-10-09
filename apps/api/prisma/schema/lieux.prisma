@@ -64,6 +64,10 @@ model Lieu {
   bigSos       BigSos[]
   suggestions  SuggestionLieu[]
   rattachements RattachementLieu[]
+  miamSafe      CharteMiamSafe?
+  alertesMiamSafe       AlerteMiamSafe[]
+  signalementsMiamSafe  SignalementMiamSafe[]
+  reponsesSentiBien     ReponseSentiBien[]
 
   @@index([statut, ville])
   @@map("lieux")
