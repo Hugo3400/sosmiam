@@ -24,9 +24,11 @@ const carte = "rounded-carte border-2 border-encre px-6 py-10 md:px-12";
  */
 export function EtatCertification({ certifie, candidature, vientDArriver = false }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
+  // La réponse de l'envoi peut arriver avant la candidature relue : le focus attend que le titre de l'état soit là
+  const etat = certifie ? "certifie" : (candidature?.statut ?? "aucune");
   useEffect(() => {
     if (vientDArriver) titre.current?.focus();
-  }, [vientDArriver]);
+  }, [vientDArriver, etat]);
 
   if (certifie) {
     const profil = profilsCertifie.find((p) => p.valeur === certifie.profil);

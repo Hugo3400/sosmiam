@@ -26,9 +26,10 @@ const classeLien = "font-semibold underline decoration-jaune decoration-[3px] un
  */
 export function EtatCandidature({ candidature, vientDArriver = false, communeChangee = false }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
+  // Après une recandidature, la réponse peut arriver avant la candidature relue (encore « refusée ») : le focus suit le statut
   useEffect(() => {
     if (vientDArriver || communeChangee) titre.current?.focus();
-  }, [vientDArriver, communeChangee]);
+  }, [vientDArriver, communeChangee, candidature.statut]);
   const { zone, commune } = candidature;
 
   if (candidature.statut === "acceptee" || candidature.statut === "souvenir") {
