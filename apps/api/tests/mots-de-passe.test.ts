@@ -1,7 +1,7 @@
 // Tests des mots de passe et des petites fonctions des comptes : empreintes scrypt (et leur file d'attente), règles du
 // mot de passe, âge à Paris, attente après des échecs, clé d'un visiteur pour les limites. Aucune base de données n'est touchée.
 import assert from "node:assert/strict";
-import { randomBytes, scryptSync } from "node:crypto";
+import { createHash, randomBytes, scryptSync } from "node:crypto";
 import { test } from "node:test";
 
 import { creerAttenteParCompte } from "../src/controleurs/comptes-attente.ts";
@@ -137,7 +137,10 @@ test("des phrases normales et 200 000 mots de passe tirés au hasard ne sont jam
   }
   const lettres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.!?@#&*+=éèàç ";
   const mots = ["miam", "croissant", "tartine", "velo", "nuage", "riviere", "lampe", "orange", "tigre", "pomme", "jardin", "piano", "bleu", "vite"];
-  const octets = randomBytes(200_000 * 24);
+  // Tirage FIXE (et non randomBytes) : un tirage au hasard contient parfois, une fois sur quelques centaines de milliers,
+  // un mot de la liste par pur hasard, et le test échouait de temps en temps. Toujours le même tirage : le résultat aussi.
+  const octets = Buffer.alloc(200_000 * 24);
+  for (let bloc = 0; bloc * 32 < octets.length; bloc++) createHash("sha256").update(`tirage-mots-de-passe-${bloc}`).digest().copy(octets, bloc * 32);
   let refuses = 0;
   const debut = performance.now();
   for (let i = 0; i < 200_000; i++) {
