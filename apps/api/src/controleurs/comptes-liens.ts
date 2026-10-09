@@ -41,6 +41,15 @@ export function creerControleursLiens({ services, courriels, limiteOubli, limite
    * Nouveau mot de passe demandé pour cet e-mail : rien si le compte n'existe pas, ou s'il a déjà reçu un lien il y a
    * moins de 15 minutes (ou 5 en 24 heures) ; sinon un lien de 24 heures, comme celui que prépare l'équipe.
    */
+  /**
+   * Base des liens d'un compte : l'espace ambassadeur pour un ambassadeur, l'espace pro (pro.sosmiam.fr) pour un compte
+   * sans ligne Ambassadeur. L'API de démonstration garde sa propre adresse (pas de « ambassadeur. » dedans).
+   */
+  async function choisirAdresse(compteId: number): Promise<string> {
+    const compte = await services.lireCompte(compteId);
+    return compte && !compte.ambassadeur ? adresseEspace.replace("://ambassadeur.", "://pro.") : adresseEspace;
+  }
+
   async function preparerLienMotDePasse(email: string) {
     const compte = await services.trouverCompteParEmail(email);
     if (!compte) return;
@@ -49,15 +58,17 @@ export function creerControleursLiens({ services, courriels, limiteOubli, limite
     if (limiteOubli.lireAttente(cle) > 0) return;
     limiteOubli.noterEnvoi(cle);
     const { jeton, expireLe } = await services.preparerReinitialisation(compte.id);
-    envoyerSansAttendre("mot-de-passe", () => courriels.envoyerLienMotDePasse(compte.id, `${adresseEspace}/nouveau-mot-de-passe#jeton=${jeton}`, expireLe));
+    const adresse = await choisirAdresse(compte.id);
+    envoyerSansAttendre("mot-de-passe", () => courriels.envoyerLienMotDePasse(compte.id, `${adresse}/nouveau-mot-de-passe#jeton=${jeton}`, expireLe));
   }
 
   /** Nouveau lien de confirmation de l'e-mail (7 jours ; il remplace le précédent), envoyé sans attendre. */
   async function envoyerVerification(compteId: number) {
     limiteVerification.noterEnvoi(String(compteId));
     const { jeton, expireLe } = await services.preparerVerificationEmail(compteId);
+    const adresse = await choisirAdresse(compteId);
     envoyerSansAttendre("verification-email", () =>
-      courriels.envoyerLienVerificationEmail(compteId, `${adresseEspace}/verifier-email#jeton=${jeton}`, expireLe));
+      courriels.envoyerLienVerificationEmail(compteId, `${adresse}/verifier-email#jeton=${jeton}`, expireLe));
   }
 
   return {
