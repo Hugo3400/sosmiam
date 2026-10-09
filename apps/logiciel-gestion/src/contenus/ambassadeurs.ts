@@ -52,3 +52,18 @@ export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "j
  * false au signal de la session Site (candidature par commune et carte « n° 3 de Lyon · n° 147 en France » en ligne).
  */
 export const FONDATEURS_EN_PREPARATION = false;
+
+/** « Ambassadeur certifié » : qui candidate (decisions.md, « Ambassadeur certifié ») */
+export const PROFILS_CERTIFIE: Record<string, string> = {
+  ambassadeur: "Ambassadeur qui aime aider les lieux",
+  pro: "Pro (restaurateur, commerçant)",
+  structure: "Structure (asso, mairie, office de tourisme…)",
+};
+
+/** Ce qu'un candidat « certifié » aimerait faire */
+export const ENVIES_CERTIFIE: Record<string, string> = {
+  fiche: "Remplir une fiche",
+  photos: "Faire de belles photos",
+  presenter: "Présenter SOS Miam aux lieux du coin",
+  "big-sos": "Donner un coup de main pendant un BIG SOS",
+};
