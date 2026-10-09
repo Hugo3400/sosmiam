@@ -22,7 +22,51 @@ export type CompteConnecte = {
     quartier: string | null;
     /** Date de la dernière décision de l'équipe (ISO 8601) ; un compte refusé est effacé 30 jours après */
     decideLe: string | null;
+    /** Titre d'« ambassadeur certifié », donné (ou retiré) par l'équipe ; null sans titre (absent : ancienne API) */
+    certifie?: CertificationAmbassadeur | null;
   } | null;
+};
+
+/** « Tu es plutôt… » : un ambassadeur qui aime aider les lieux, un pro (resto, commerce…) ou une structure (asso, mairie…). */
+export type ProfilCertifie = "ambassadeur" | "pro" | "structure";
+
+/** Ce que l'ambassadeur certifié aimerait faire : mêmes codes que l'API (POST /comptes/moi/certification). */
+export type EnvieCertification = "fiche" | "photos" | "presenter" | "big-sos";
+
+/** Le titre d'« ambassadeur certifié » (docs/decisions.md, « Ambassadeur certifié ») : un titre à part, pas un palier. */
+export type CertificationAmbassadeur = {
+  /** Date ISO 8601 */
+  depuis: string;
+  profil: ProfilCertifie | null;
+  /** « Les Gourmands du 11e » : montré avec le prénom sur les fiches des lieux aidés */
+  structure: string | null;
+};
+
+/** La dernière candidature au titre d'ambassadeur certifié ; refusée, elle est effacée 3 mois après la réponse. */
+export type CandidatureCertification = {
+  statut: "en-attente" | "acceptee" | "refusee";
+  profil: ProfilCertifie;
+  structure: string | null;
+  commune: { code: string; nom: string; nomDepartement: string } | null;
+  envies: EnvieCertification[];
+  /** Dates ISO 8601 */
+  creeLe: string;
+  reponduLe: string | null;
+};
+
+/** Ce qu'envoie le formulaire de candidature « ambassadeur certifié » (structure absente si vide). */
+export type NouvelleCandidatureCertification = {
+  profil: ProfilCertifie;
+  structure?: string;
+  /** Code INSEE de la commune où l'on vit */
+  communeCode: string;
+  /** Comment tu aides déjà les lieux (1 à 600 caractères) */
+  aide: string;
+  envies: EnvieCertification[];
+  /** La case « jamais payé par un lieu », obligatoire */
+  engagementGratuit: true;
+  /** Champ piège du formulaire : rempli seulement par les robots */
+  piege?: string;
 };
 
 /** Ce qu'un futur fondateur aimerait faire (candidature « fondateur »). */

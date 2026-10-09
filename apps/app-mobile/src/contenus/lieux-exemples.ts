@@ -431,5 +431,12 @@ const lieuxSansInfosPratiques: Lieu[] = [
   },
 ];
 
-/** Les lieux d'exemple, avec leurs infos pratiques (téléphone de fiction, animaux, accès, paiements…) */
-export const lieuxExemples: Lieu[] = lieuxSansInfosPratiques.map((lieu) => ({ ...lieu, pratique: infosPratiquesExemples[lieu.id] }));
+// Deux lieux sans compte SOS Miam, pour montrer le cas « non vérifié » (pas de visite validée, ni de rescousse comptée)
+const LIEUX_NON_VERIFIES = new Set([10, 15]);
+
+/** Les lieux d'exemple, avec leurs infos pratiques (téléphone de fiction, animaux, accès, paiements…) et leur vérification */
+export const lieuxExemples: Lieu[] = lieuxSansInfosPratiques.map((lieu) => ({
+  ...lieu,
+  verifie: !LIEUX_NON_VERIFIES.has(lieu.id),
+  pratique: infosPratiquesExemples[lieu.id],
+}));

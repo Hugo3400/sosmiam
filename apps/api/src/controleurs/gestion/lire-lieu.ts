@@ -7,6 +7,11 @@ const ENVIES = ["terrasse", "vege", "amoureux", "potes", "famille"] as const;
 const PRIX = ["€", "€€", "€€€"] as const;
 const STATUTS = ["brouillon", "publie", "masque"] as const;
 const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
+// Infos pratiques : mêmes valeurs que packages/commun/src/types/infos-pratiques.ts
+const ANIMAUX = ["bienvenus", "terrasse", "non"] as const;
+const PAIEMENTS = ["cb", "sans-contact", "especes", "tickets-resto", "cheques-vacances"] as const;
+const RESERVATIONS = ["inutile", "conseillee", "obligatoire"] as const;
+const OUI_NON = ["accessible", "terrasse", "wifi", "enfants", "parking"] as const;
 
 function lireOuverture(valeur: unknown) {
   if (!Array.isArray(valeur) || valeur.length > 14) throw new ChampInvalide("ouverture");
@@ -45,6 +50,24 @@ export function lireModificationLot(corps: Record<string, unknown>): Modificatio
   return modification;
 }
 
+/**
+ * Infos pratiques envoyées (animaux, accès, équipements, paiements, réservation), toutes facultatives : null = pas
+ * renseigné. Un champ absent de la demande n'est pas rendu, pour ne jamais effacer ce que le lieu a rempli.
+ */
+function lireInfosPratiques(corps: Record<string, unknown>): Partial<LieuSaisi> {
+  const infos: Partial<LieuSaisi> = {};
+  const choixOuNull = <T extends string>(champ: string, choix: readonly T[]) => (corps[champ] === null || corps[champ] === "" ? null : lireChoix(corps, champ, choix));
+  if (corps.animaux !== undefined) infos.animaux = choixOuNull("animaux", ANIMAUX);
+  if (corps.reservation !== undefined) infos.reservation = choixOuNull("reservation", RESERVATIONS);
+  if (corps.paiements !== undefined) infos.paiements = lireListe(corps, "paiements", PAIEMENTS.length, 20, PAIEMENTS);
+  for (const champ of OUI_NON) {
+    if (corps[champ] === undefined) continue;
+    if (corps[champ] !== null && typeof corps[champ] !== "boolean") throw new ChampInvalide(champ);
+    infos[champ] = corps[champ] as boolean | null;
+  }
+  return infos;
+}
+
 /** Lit et vérifie une fiche de lieu envoyée par le logiciel. Lève ChampInvalide sur le premier champ qui ne va pas. */
 export function lireLieuSaisi(corps: Record<string, unknown>): LieuSaisi {
   const couleurs = lireListe(corps, "couleurs", 2, 9);
@@ -77,6 +100,7 @@ export function lireLieuSaisi(corps: Record<string, unknown>): LieuSaisi {
     decouvertPar: lireTexte(corps, "decouvertPar", 40),
     statut: lireChoix(corps, "statut", STATUTS),
     note: lireTexte(corps, "note", 1000),
+    ...lireInfosPratiques(corps),
   };
 }
 

@@ -9,7 +9,7 @@ const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 export type ErreurCompte =
   | "champ-invalide" | "email-deja-utilise" | "age-minimum" | "identifiants" | "session-expiree" | "ambassadeur-non-actif"
   | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
-  | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "erreur";
+  | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie" | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
@@ -19,6 +19,8 @@ const CODES = new Set<string>([
   // Changer la commune d'une candidature : il n'y en a pas (404), ou elle n'est plus en attente (409) ;
   // places de fondateurs d'une commune inconnue (404, services/fondateurs.server.ts)
   "aucune-candidature", "deja-traitee", "commune-inconnue",
+  // Candidature « ambassadeur certifié » d'une personne qui a déjà le titre (409, services/certification.server.ts)
+  "deja-certifie",
   // Missions de l'espace (services/espace-ambassadeur.server.ts)
   "compte-rendu-trop-court", "introuvable",
 ]);

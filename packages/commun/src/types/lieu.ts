@@ -48,6 +48,11 @@ export type Lieu = {
   /** Lieu qui vient d'arriver : le premier qui lui donne une rescousse devient son « premier sauveteur » */
   nouveau?: boolean;
   reservable: boolean;
+  /**
+   * Vrai si le lieu a un compte SOS Miam (pro) : lui seul valide les visites, lance des SOS, répond aux avis, et seul il
+   * compte les rescousses et les points de visite (décidé le 9 octobre 2026). Absent ou faux : « non vérifié ».
+   */
+  verifie?: boolean;
   /** Téléphone, site, animaux, accès, équipements, paiements… (absent : rien à afficher) */
   pratique?: InfosPratiques;
 };

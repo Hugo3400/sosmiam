@@ -3,5 +3,6 @@
 export const CHAMPS_SUGGERABLES = [
   "nom", "type", "info", "texte", "adresse", "quartier", "ville", "latitude", "longitude", "prix", "prixMoyen", "horaires",
   "ouverture", "plat", "tags", "envies", "reservable", "telephone", "siteWeb", "instagram",
+  "animaux", "accessible", "terrasse", "wifi", "enfants", "parking", "paiements", "reservation",
 ] as const;
 export type ChampSuggerable = (typeof CHAMPS_SUGGERABLES)[number];

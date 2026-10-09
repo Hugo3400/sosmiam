@@ -1,5 +1,6 @@
 // Réglages de validation des lieux d'exemple (démo des visites). En vrai, ils sont posés par l'équipe dans le logiciel de
-// gestion. Tous les lieux valident les visites, sauf Les Oreillettes de Bernadette (15), pour montrer le cas « pas encore ».
+// gestion. Tous les lieux valident les visites, sauf les deux lieux non vérifiés (sans compte SOS Miam) : Les Zézettes de
+// Ginette (10) et Les Oreillettes de Bernadette (15).
 // Le code public (8 caractères a-z et 2-9) est celui du QR de vitrine : sosmiam.fr/l/<code> ouvre la fiche, rien de plus.
 import type { ValidationLieu } from "@sos-miam/commun/types/validation-lieu";
 
@@ -21,7 +22,7 @@ export const validationLieuxExemples: Readonly<Record<number, ValidationLieu>> =
   7: valide(7, "cleruell"),
   8: valide(8, "gadoueci"),
   9: valide(9, "tiellepe"),
-  10: valide(10, "zezettes"),
+  10: valide(10, "zezettes", false),
   11: valide(11, "patesluc"),
   12: valide(12, "paddlefl"),
   13: valide(13, "cabanemi"),
