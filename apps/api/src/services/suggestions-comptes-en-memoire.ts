@@ -3,6 +3,7 @@
 import {
   CHAMPS_PROPOSABLES, SUGGESTIONS_EN_ATTENTE_PAR_LIEU, SUGGESTIONS_PAR_JOUR, UN_JOUR, type FicheSuggerable, type NouvelleSuggestionCompte, type ResultatSuggestionCompte,
 } from "./suggestions-comptes-regles.ts";
+import type { CarteGardee } from "./pro-regles.ts";
 
 /**
  * Un lieu de test : ses champs proposables et son statut (« brouillon », « publie » ou « masque ») ; le reste de la fiche
@@ -10,6 +11,8 @@ import {
  */
 export type LieuEnMemoire = FicheSuggerable & { statut: string } & Partial<{
   type: string; emoji: string; info: string; quartier: string; ville: string; prix: string; couleurs: string[]; decouvertPar: string | null;
+  /** La carte (espace pro), sans date, et le moment de sa dernière mise à jour */
+  carte: CarteGardee["carte"]; carteMajLe: number | null;
 }>;
 export type SuggestionEnMemoire = NouvelleSuggestionCompte & {
   id: number; compteId: number | null; source: "client" | "pro"; statut: string; creeLe: number;

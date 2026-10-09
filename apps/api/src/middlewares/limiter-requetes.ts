@@ -7,6 +7,11 @@ type Reglages = {
   fenetre: number;
   /** Nombre de requêtes acceptées par visiteur pendant cette fenêtre */
   maximum: number;
+  /**
+   * Ce qu'on compte, quand ce n'est pas le visiteur (son IP) : par exemple le compte connecté (après exigerCompte),
+   * pour qu'une limite suive la personne d'une connexion à l'autre. Rien n'est gardé au-delà de la fenêtre.
+   */
+  cle?: (requete: Request, reponse: Response) => string;
 };
 
 /**
@@ -14,7 +19,7 @@ type Reglages = {
  * L'API n'écoute qu'en local : le site lui transmet l'adresse IP du visiteur dans l'en-tête « X-IP-Visiteur ». Une IPv6
  * compte par son préfixe /56 (calculerCleVisiteur) : sinon, changer d'adresse dans son propre bloc suffirait à passer.
  */
-export function limiterRequetes({ fenetre, maximum }: Reglages) {
+export function limiterRequetes({ fenetre, maximum, cle: lireCle }: Reglages) {
   const compteurs = new Map<string, { nombre: number; finFenetre: number }>();
   // Ménage chaque minute, même sans nouvelle requête : une adresse IP ne reste pas en mémoire plus d'une minute
   // après la fin de sa fenêtre (la politique de confidentialité le promet). unref : ne retient pas l'arrêt du serveur.
@@ -25,7 +30,7 @@ export function limiterRequetes({ fenetre, maximum }: Reglages) {
 
   return (requete: Request, reponse: Response, suite: NextFunction) => {
     const maintenant = Date.now();
-    const cle = calculerCleVisiteur(requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu");
+    const cle = lireCle ? lireCle(requete, reponse) : calculerCleVisiteur(requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu");
     const compteur = compteurs.get(cle);
     if (!compteur || compteur.finFenetre <= maintenant) {
       compteurs.set(cle, { nombre: 1, finFenetre: maintenant + fenetre });

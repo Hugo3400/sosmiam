@@ -1,5 +1,6 @@
 // Espace pro (docs/decisions.md, « Espace pro ») : les formes échangées, les limites et ce que les routes demandent aux
 // données. Sans accès à la base : lu aussi par le double en mémoire (pro-en-memoire.ts). Prisma : pro.ts.
+import type { CarteLieu } from "../../../../packages/commun/src/types/carte.ts";
 import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompte } from "./suggestions-comptes-regles.ts";
 
 export type RoleRattachement = "gerant" | "equipe";
@@ -77,6 +78,12 @@ export type MembreEquipe = {
   creeLe: string; decideLe: string | null;
 };
 
+/**
+ * La carte d'un lieu telle qu'elle est gardée (colonnes carte et carteMajLe de Lieu) : la carte vérifiée par
+ * validerCarteDuLieu (packages/commun), sans date (la date est à part, posée par le serveur) ; null : pas de carte.
+ */
+export type CarteGardee = { carte: Omit<CarteLieu, "majLe"> | null; majLe: Date | null };
+
 export type DemandeRattachement = { lieuId: number; preuve: string; siret: string | null };
 export type ResultatDemande = { ok: true; id: number } | { ok: false; erreur: "lieu-inconnu" | "deja-demande" | "trop-de-demandes" };
 export type ResultatInvitation = { ok: true } | { ok: false; erreur: "compte-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" };
@@ -105,6 +112,10 @@ export type ServicesPro = {
   /** Champs directs écrits et suggestion « pro » créée ensemble ; rien n'est fait si la suggestion dépasse les limites */
   modifierFichePro: (compteId: number, lieuId: number, modification: ModificationFichePro, maintenant: Date) => Promise<ResultatModificationFiche>;
   listerSuggestionsDuLieu: (lieuId: number) => Promise<SuggestionVue[]>;
+  /** La carte du lieu ; null si le lieu n'existe pas */
+  lireCarte: (lieuId: number) => Promise<CarteGardee | null>;
+  /** Remplace la carte (déjà vérifiée) et pose sa date ; null efface la carte et sa date. Faux si le lieu n'existe pas */
+  enregistrerCarte: (lieuId: number, carte: Omit<CarteLieu, "majLe"> | null, maintenant: Date) => Promise<boolean>;
   listerEquipe: (lieuId: number) => Promise<MembreEquipe[]>;
   inviterMembre: (lieuId: number, inviteurId: number, email: string, maintenant: Date) => Promise<ResultatInvitation>;
   /** Un membre « equipe » retiré par le gérant ; faux s'il n'y est pas */

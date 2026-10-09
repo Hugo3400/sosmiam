@@ -1,11 +1,11 @@
 // Espace pro (pro.sosmiam.fr) avec Prisma : rattachements d'un compte à ses lieux, sa fiche, les suggestions sur son lieu
 // et son équipe. Formes, limites et contrat des services : pro-regles.ts ; double en mémoire : pro-en-memoire.ts.
 // La validation d'une demande « gerant » par l'équipe se fait dans le logiciel de gestion (pas ici).
-import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
+import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import {
   DEMANDES_RATTACHEMENT_PAR_JOUR, INVITATIONS_PAR_JOUR, MEMBRES_EQUIPE_MAX, RESULTATS_RECHERCHE, SUGGESTIONS_MONTREES, UN_JOUR_PRO,
-  type FichePro, type LieuTrouve, type MembreEquipe, type RattachementVu, type RoleRattachement, type ServicesPro, type StatutRattachement,
+  type CarteGardee, type FichePro, type LieuTrouve, type MembreEquipe, type RattachementVu, type RoleRattachement, type ServicesPro, type StatutRattachement,
   type SuggestionVue,
 } from "./pro-regles.ts";
 import { CHAMPS_PROPOSABLES, SUGGESTIONS_EN_ATTENTE_PAR_LIEU, SUGGESTIONS_PAR_JOUR, UN_JOUR } from "./suggestions-comptes-regles.ts";
@@ -140,6 +140,21 @@ export const servicesPro: ServicesPro = {
         creeLe: s.creeLe.toISOString(), decideLe: iso(s.decideLe),
       };
     });
+  },
+
+  async lireCarte(lieuId) {
+    const lieu = await baseDeDonnees.lieu.findUnique({ where: { id: lieuId }, select: { carte: true, carteMajLe: true } });
+    if (!lieu) return null;
+    return { carte: (lieu.carte ?? null) as CarteGardee["carte"], majLe: lieu.carteMajLe };
+  },
+
+  async enregistrerCarte(lieuId, carte, maintenant) {
+    const { count } = await baseDeDonnees.lieu.updateMany({
+      where: { id: lieuId },
+      // Prisma.DbNull : la colonne redevient vraiment vide (NULL), pas le JSON « null »
+      data: carte === null ? { carte: Prisma.DbNull, carteMajLe: null } : { carte: carte as Prisma.InputJsonObject, carteMajLe: maintenant },
+    });
+    return count === 1;
   },
 
   async listerEquipe(lieuId) {

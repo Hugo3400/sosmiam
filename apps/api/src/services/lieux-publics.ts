@@ -1,4 +1,6 @@
+import type { CarteLieu } from "../../../../packages/commun/src/types/carte.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
+import { presenterCarte } from "../fonctions/pro/presenter-carte.ts";
 
 /** Ce que le public voit d'un lieu : jamais la note interne, le téléphone ni l'adresse exacte. */
 export type LieuPublic = {
@@ -36,6 +38,8 @@ export type FichePublique = LieuPublic & {
   animaux: string | null; accessible: boolean | null; terrasse: boolean | null; wifi: boolean | null; enfants: boolean | null;
   parking: boolean | null; paiements: string[]; reservation: string | null;
   estVerifie: boolean;
+  /** La carte remplie par le lieu (majLe : « AAAA-MM-JJ »), ou null ; carteMajLe : le moment exact (ISO 8601), ou null */
+  carte: CarteLieu | null; carteMajLe: string | null;
 };
 
 /** La fiche d'un lieu publié, ou null (absent, brouillon ou masqué). */
@@ -45,11 +49,12 @@ export async function lireFichePublique(id: number): Promise<FichePublique | nul
     select: {
       id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true,
       adresse: true, horaires: true, texte: true, telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true,
-      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true,
+      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true, carte: true, carteMajLe: true,
       _count: { select: { rattachements: { where: { statut: "valide" } } } },
     },
   });
   if (!lieu) return null;
-  const { _count, ...fiche } = lieu;
-  return { ...fiche, estVerifie: _count.rattachements > 0 };
+  const { _count, carte: carteGardee, carteMajLe: majLeGarde, ...fiche } = lieu;
+  const { carte, majLe } = presenterCarte((carteGardee ?? null) as Omit<CarteLieu, "majLe"> | null, majLeGarde);
+  return { ...fiche, estVerifie: _count.rattachements > 0, carte, carteMajLe: majLe };
 }

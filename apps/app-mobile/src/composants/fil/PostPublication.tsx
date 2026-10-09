@@ -273,22 +273,22 @@ export const PostPublication = memo(function PostPublication(props: Props) {
       <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + ECART_BAS }} className="absolute left-4 right-4 flex-row">
         <Animated.View style={stylePastille}>
           <View className="items-start gap-1.5">
-          {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
-          <Pressable
-            ref={refPastille}
-            accessibilityRole="button"
-            accessibilityLabel={auteur.type === "lieu" ? `Afficher la fiche de ${lieu.nom}` : `Afficher la fiche : publication de ${nomAuteur} sur ${lieu.nom}`}
-            onPress={gestes.reduire}
-            className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 pl-1.5 pr-4 active:opacity-70"
-          >
-            <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
-              <Text className="text-sm">{emojiAuteur}</Text>
-            </View>
-            <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{nomAuteur}</Text>
-            <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
-          </Pressable>
-          {/* Fiche réduite (pour tout le fil) : le message sanitaire reste à l'écran avec la pastille */}
-          {alcool ? <MentionPrevention variante="sur-image" /> : null}
+            {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
+            <Pressable
+              ref={refPastille}
+              accessibilityRole="button"
+              accessibilityLabel={auteur.type === "lieu" ? `Afficher la fiche de ${lieu.nom}` : `Afficher la fiche : publication de ${nomAuteur} sur ${lieu.nom}`}
+              onPress={gestes.reduire}
+              className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 pl-1.5 pr-4 active:opacity-70"
+            >
+              <View className="h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-jaune">
+                <Text className="text-sm">{emojiAuteur}</Text>
+              </View>
+              <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{nomAuteur}</Text>
+              <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
+            </Pressable>
+            {/* Fiche réduite (pour tout le fil) : le message sanitaire reste à l'écran avec la pastille */}
+            {alcool ? <MentionPrevention variante="sur-image" /> : null}
           </View>
         </Animated.View>
       </View>

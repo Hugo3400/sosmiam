@@ -2,8 +2,8 @@ import { Pressable, Text, View } from "react-native";
 
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
-import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
 type Props = {
   carte: CarteFidelite;

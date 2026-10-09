@@ -166,9 +166,9 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 | Dossier | Contenu |
 |---|---|
 | `src/types/` | types TypeScript (Lieu, Sos, DossierBigSos…), suivis (abonnés, demandes, notifications), visites, rôles, comptoir, fidélité, réservations, avis, espace ambassadeur |
-| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS, qui peut suivre qui, compte privé, visibilité d'un profil, visites (rayon, QR, délais), fidélité, réservations, avis, Miam Safe (phrase, délais, seuil du repère, endroits et raisons) |
-| `src/fonctions/` | fonctions pures partagées, une par fichier (géo, visites, QR, fidélité, réservations, avis, Miam Safe, rôles, texte, temps (heure de Paris) ; contrôle plus tard) |
-| `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`), messages d'erreur des services, motifs de refus, modes de validation, statuts d'ambassadeur, raisons de relecture des avis |
+| `src/regles/` | règles métier : paliers, rayon d'alerte, anti-spam, étapes du BIG SOS, qui peut suivre qui, compte privé, visibilité d'un profil, visites (rayon, QR, délais), fidélité, carte du lieu (limites), réservations, avis, Miam Safe (phrase, délais, seuil du repère, endroits et raisons) |
+| `src/fonctions/` | fonctions pures partagées, une par fichier (géo, visites, QR, fidélité, réservations, avis, Miam Safe, rôles, texte, temps (heure de Paris), prévention (un texte, un lieu ou une carte qui parle d'alcool) ; contrôle plus tard) |
+| `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`), rectangles des 18 régions (`regions-france.ts`), message sanitaire de la loi Évin et Alcool Info Service (`prevention-alcool.ts`), messages d'erreur des services, motifs de refus, modes de validation, statuts d'ambassadeur, raisons de relecture des avis |
 | `src/theme/` | couleurs, polices, arrondis (utilisés par le site et l'app) |
 | `src/validation/` | règles des formulaires (inscription, demande de BIG SOS…) |
 | `src/client-api/` | contrats des services (visites, fidélité, réservations, avis, comptoir, espace ambassadeur) et forme des réponses de l'API |

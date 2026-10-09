@@ -1,5 +1,6 @@
 // Espace pro en mémoire, pour les tests et l'API de démonstration : mêmes règles que pro.ts (Prisma), rien n'est écrit
 // nulle part. Branché dans comptes-en-memoire.ts, qui lui prête ses comptes, ses lieux de test et ses suggestions.
+import { presenterCarte } from "../fonctions/pro/presenter-carte.ts";
 import type { FichePublique } from "./lieux-publics.ts";
 import { CHAMPS_PROPOSABLES, type FicheSuggerable } from "./suggestions-comptes-regles.ts";
 import type { LieuEnMemoire, creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
@@ -21,6 +22,12 @@ const actif = (r: RattachementEnMemoire) => r.statut === "en-attente" || r.statu
 const decrire = (lieu: LieuEnMemoire) => ({
   type: lieu.type ?? "resto", emoji: lieu.emoji ?? "🍽️", info: lieu.info ?? "", quartier: lieu.quartier ?? "", ville: lieu.ville ?? "",
 });
+
+/** carte et carteMajLe de la fiche publique */
+function presenterCartePublique(lieu: LieuEnMemoire) {
+  const { carte, majLe } = presenterCarte(lieu.carte ?? null, lieu.carteMajLe ? new Date(lieu.carteMajLe) : null);
+  return { carte, carteMajLe: majLe };
+}
 
 export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: Suggestions, horloge: () => number) {
   const { lieux } = suggestions;
@@ -117,6 +124,17 @@ export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: S
           creeLe: iso(s.creeLe) as string, decideLe: iso(s.decideLe ?? null),
         }));
     },
+    async lireCarte(lieuId) {
+      const lieu = lieux.get(lieuId);
+      if (!lieu) return null;
+      return structuredClone({ carte: lieu.carte ?? null, majLe: lieu.carteMajLe ? new Date(lieu.carteMajLe) : null });
+    },
+    async enregistrerCarte(lieuId, carte, maintenant) {
+      const lieu = lieux.get(lieuId);
+      if (!lieu) return false;
+      Object.assign(lieu, { carte: structuredClone(carte), carteMajLe: carte === null ? null : maintenant.getTime() });
+      return true;
+    },
     async listerEquipe(lieuId) {
       return rattachements
         .filter((r) => r.lieuId === lieuId && (r.role === "equipe" ? actif(r) : r.statut === "valide"))
@@ -179,7 +197,7 @@ export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: S
       const champs = Object.fromEntries(CHAMPS_PROPOSABLES.map((champ) => [champ, lieu[champ]])) as FicheSuggerable;
       return structuredClone({
         id, ...decrire(lieu), prix: lieu.prix ?? "€", couleurs: lieu.couleurs ?? [], decouvertPar: lieu.decouvertPar ?? null,
-        ...champs, estVerifie: estVerifie(id),
+        ...champs, estVerifie: estVerifie(id), ...presenterCartePublique(lieu),
       } as FichePublique);
     },
     /** Ménage de nuit (services/menage-comptes.ts) : refusés ou retirés depuis plus d'un an ; renvoie le nombre effacé. */
