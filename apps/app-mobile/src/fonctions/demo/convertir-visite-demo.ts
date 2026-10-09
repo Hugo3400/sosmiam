@@ -27,6 +27,8 @@ export function convertirVisiteDemo(v: VisiteDemo, lieu: Lieu): Visite {
     contestee: v.contestee,
     avis: v.avisOuvertLe && v.avisFermeLe ? { ouvertLe: v.avisOuvertLe, fermeLe: v.avisFermeLe, donne: v.avisDonne } : null,
     annulableJusqua: v.annulableJusqua,
+    // Rempli par la logique du comptoir (étape suivante) ; en attendant, une visite validée se lit « payée »
+    reglement: null,
     demo: true,
   };
 }

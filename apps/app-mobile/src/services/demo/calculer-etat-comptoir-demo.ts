@@ -70,6 +70,7 @@ export function calculerEtatComptoirDemo(m: Readonly<MagasinDemo>, lieu: Lieu, m
         avatar: client.avatar,
         valideLe: v.valideLe ?? v.creeLe,
         annulableJusqua: v.annulableJusqua ?? v.creeLe,
+        reglement: null,
       };
     });
 
