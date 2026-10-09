@@ -141,8 +141,11 @@ export type DependancesComptes = {
  *                                        prenom 1 à 40 car., sans gros mot ; nom 60 car., null ou "" : effacé ; pseudo : comme à
  *                                        l'inscription (le sien : accepté) ; ville 2 à 80 car. ; envies : comme à
  *                                        l'inscription, REMPLACENT les précédentes ; avatar : un seul emoji (16 car. au
- *                                        plus), null ou "" : effacé ; prive : booléen. dateNaissance envoyée : 400 {champ:
- *                                        dateNaissance} (jamais changée ici : l'équipe la corrige sur demande)
+ *                                        plus), null ou "" : effacé ; prive : booléen. dateNaissance ("AAAA-MM-JJ") :
+ *                                        acceptée UNE fois, seulement si le compte n'en a aucune (compte du site, ambassadeur
+ *                                        ou pro, qui arrive dans l'app) ; elle doit donner 18 ans ou plus (le compte du site
+ *                                        les a jurés), sinon 403 age-minimum ; mal écrite : 400 {champ: dateNaissance}. Un
+ *                                        compte qui en a déjà une : 400 {champ: dateNaissance} (l'équipe la corrige sur demande)
  * GET    /comptes/pseudo-disponible?pseudo=… → 200 { ok, disponible } (le sien : disponible ; gros mot : jamais) · 400
  *                                        champ-invalide {champ: pseudo} (forme de estPseudoValide, après « @ » retiré et
  *                                        minuscules) · 401 · 429 (60 par compte toutes les 10 minutes)
