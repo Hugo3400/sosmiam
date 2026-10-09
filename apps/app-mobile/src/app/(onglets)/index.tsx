@@ -39,8 +39,9 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
-// Une publication compte comme « à l'écran » quand on en voit plus de la moitié
-const VISIBILITE = { itemVisiblePercentThreshold: 60 };
+// Une publication compte comme « à l'écran » dès qu'on en voit la moitié : pendant un glissé, il y en a toujours une
+// (à 60 %, entre 40 et 60 % du geste, aucune ne l'était : la vidéo qu'on quittait se figeait encore à l'écran)
+const VISIBILITE = { itemVisiblePercentThreshold: 50 };
 // Ce que demande chaque choix du menu « ⋯ » (rien pour l'adresse : elle se regarde sans compte)
 const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
   rescousse: "rescousse",
@@ -352,7 +353,9 @@ export default function PourToi() {
   });
 
   const auChangementDeVisible = useCallback(({ viewableItems }: { viewableItems: ViewToken<Publication>[] }) => {
-    setVisible(viewableItems[0]?.item.id ?? null);
+    // Jamais « aucune » en plein geste : on garde la dernière tant qu'une autre n'a pas pris la place
+    const id = viewableItems[0]?.item.id;
+    if (id !== undefined) setVisible(id);
   }, []);
 
   const lieuDuMenu = menuAffiche ? lieuParId.get(menuAffiche.lieuId) : undefined;

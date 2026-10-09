@@ -30,7 +30,7 @@ const PAS_LECTEUR_ECRAN = 2;
 // Pendant qu'on fait glisser, on ne déplace la vidéo que toutes les 80 ms (la barre, elle, suit le doigt)
 const ECART_SAUTS = 80;
 // Distance parcourue par le doigt avant de savoir s'il règle la vidéo (de côté) ou fait défiler le fil (vers le haut ou le bas)
-const SEUIL_DIRECTION = 8;
+const SEUIL_DIRECTION = 12;
 const RAIL = 5;
 const POIGNEE = 14;
 const ACTIONS = [
@@ -138,7 +138,8 @@ export function BarreProgressionVideo({ lecteur, actif, enPause, duree, largeur,
       const dx = Math.abs(pageX - depart.current.x);
       const dy = Math.abs(pageY - depart.current.y);
       if (Math.max(dx, dy) < SEUIL_DIRECTION) return;
-      if (Platform.OS === "ios" && dy > dx) {
+      // Un pouce qui remonte en arc depuis le bas fait défiler le fil : seul un geste nettement de côté règle la vidéo
+      if (Platform.OS === "ios" && dx < dy * 2) {
         geste.current = "defilement";
         return;
       }

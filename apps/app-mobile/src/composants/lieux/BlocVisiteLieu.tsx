@@ -104,8 +104,11 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
   const reserver = () => {
     if (demanderCompte("reserver")) router.push({ pathname: "/lieu/[id]/reserver", params: { id: String(lieu.id) } });
   };
+  // Ta carte de ce lieu si tu en as une, sinon toutes tes cartes
   const voirCarte = () => {
-    if (demanderCompte("fidelite")) router.push("/fidelite");
+    if (!demanderCompte("fidelite")) return;
+    if (lecture.etat === "lu" && lecture.infos.carte) router.push({ pathname: "/fidelite/[lieuId]", params: { lieuId: String(lieu.id) } });
+    else router.push("/fidelite");
   };
 
   const contenu = () => {

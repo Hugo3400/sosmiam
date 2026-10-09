@@ -98,7 +98,7 @@ export function AccueilScan() {
           {cartes.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 pr-5" className="-mr-5">
               {cartes.map((carte) => (
-                <MiniCarteFidelite key={carte.lieu.id} carte={carte} onPress={() => router.push("/fidelite")} />
+                <MiniCarteFidelite key={carte.lieu.id} carte={carte} onPress={() => router.push({ pathname: "/fidelite/[lieuId]", params: { lieuId: String(carte.lieu.id) } })} />
               ))}
             </ScrollView>
           ) : (

@@ -9,6 +9,7 @@ import { CartePalier } from "~/composants/profil/CartePalier";
 import { ChiffresProfil } from "~/composants/profil/ChiffresProfil";
 import { CollectionsProfil } from "~/composants/profil/CollectionsProfil";
 import { EnTeteProfil } from "~/composants/profil/EnTeteProfil";
+import { EntreeFidelite } from "~/composants/profil/EntreeFidelite";
 import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
 import { GrilleBadges } from "~/composants/profil/GrilleBadges";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
@@ -89,6 +90,7 @@ export default function Profil() {
       <ScrollView contentContainerClassName="gap-6 px-5 pt-4" contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 24 }}>
         <EnTeteProfil profil={profil} avatar={avatar} age={age} />
         <EntreeSuivis suivis={activite.suivis} age={age} />
+        <EntreeFidelite />
         <CartePalier points={calculerPointsLocaux(mesures)} />
         <BoueesSemaine restantes={activite.restantes} />
         <ChiffresProfil
