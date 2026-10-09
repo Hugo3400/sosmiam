@@ -12,6 +12,7 @@ import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
 import { creerControleursSuggestions } from "../controleurs/comptes-suggestions.ts";
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
+import { creerControleursComptesExternes, type DependancesConnexionExterne } from "../controleurs/comptes-externes.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
@@ -44,6 +45,9 @@ export const LIMITE_RATTACHEMENTS = { fenetre: 60 * 60_000, maximum: 10 };
 export const LIMITE_PSEUDO_DISPONIBLE = { fenetre: DIX_MINUTES, maximum: 60 };
 /** Proposer un nouveau lieu (tout compte de 18 ans et plus) : 10 propositions par COMPTE et par 24 heures */
 export const LIMITE_PROPOSITIONS_LIEUX = { fenetre: 24 * 60 * 60_000, maximum: 10 };
+/** « Se connecter avec Apple » ou « avec Google » : 20 essais par visiteur toutes les 10 minutes pour chacun, comme la
+ * connexion par mot de passe (« Fais connaissance » en coûte un de plus) */
+export const LIMITE_CONNEXION_EXTERNE = { fenetre: DIX_MINUTES, maximum: 20 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -60,6 +64,9 @@ export type DependancesComptes = {
   /** Chiffrement du nom et de la date de naissance (services/chiffrement-donnees.ts) ; absent ou null : l'inscription
    * « app », le profil et la lecture de l'âge répondent 503 « chiffrement-indisponible » */
   chiffrement?: ChiffrementDonnees | null;
+  /** Connexion avec Apple et Google : données (services/comptes-externes.ts, ou la mémoire) et vérificateurs des jetons
+   * (services/connexion-externe.ts) ; absent : POST /comptes/apple et /comptes/google répondent 503 */
+  externes?: DependancesConnexionExterne;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
 };
@@ -108,6 +115,9 @@ export type DependancesComptes = {
  *                                        confirmation de l'e-mail part comme pour les autres (ambassadeur.sosmiam.fr).
  * POST   /comptes/session               { email, motDePasse, support? } → 201 { ok, session, compte } · 400 · 401
  *                                        identifiants · 429 {attente} (support : « site » par défaut, ou « app »)
+ * POST   /comptes/apple                 { identityToken, nonce, prenom?, nom?, dateNaissance?, ville?, envies?, pseudo?,
+ *                                        support? } : « Se connecter avec Apple » (le compte reste unique). Voir plus bas.
+ * POST   /comptes/google                { idToken, nonce?, mêmes champs } : « Se connecter avec Google ». Voir plus bas.
  * GET    /comptes/session               → 200 { ok, compte } · 401 session-expiree
  * DELETE /comptes/session               → 200 { ok } (déconnexion)
  * PATCH  /comptes/moi                   { prenom?, ville?, quartier? } (quartier "" : effacé) → 200 { ok, compte } · 400 · 401
@@ -133,6 +143,17 @@ export type DependancesComptes = {
  *                                        champ-invalide {champ: pseudo} (forme de estPseudoValide, après « @ » retiré et
  *                                        minuscules) · 401 · 429 (60 par compte toutes les 10 minutes)
  * DELETE /comptes/moi                   { motDePasse } → 200 { ok } (tout effacé) · 403 mot-de-passe-incorrect · 401 · 429 {attente}
+ *                                        Compte SANS vrai mot de passe (connexions.motDePasse faux : créé avec Apple ou
+ *                                        Google) : confirmé par un NOUVEAU jeton du compte Apple ou Google lié, { identityToken,
+ *                                        nonce } (Apple) ou { idToken, nonce? } (Google), même vérification qu'à la connexion
+ *                                        → 200 { ok } · 400 champ-invalide {champ: confirmation} (aucun jeton ; ou
+ *                                        identityToken|idToken|nonce mal formé) · 403 confirmation-incorrecte (jeton refusé,
+ *                                        ou d'un autre compte Apple ou Google) · 503 apple-indisponible|google-indisponible|
+ *                                        verification-indisponible. Une session seule ne suffit jamais : un téléphone
+ *                                        déverrouillé et volé ne peut pas effacer le compte sans Face ID ou Google.
+ * GET    /comptes/moi/connexions        → 200 { ok, connexions: { motDePasse, apple, google } } (booléens : vrai mot de passe,
+ *                                        compte Apple lié, compte Google lié ; jamais les identifiants) · 401. L'app s'en
+ *                                        sert pour « Supprimer mon compte » : mot de passe, ou bouton Apple ou Google.
  * POST   /comptes/nouveau-mot-de-passe  { jeton, motDePasse } → 200 { ok } (jeton effacé, toutes les sessions fermées)
  *                                        400 champ-invalide · 410 jeton-invalide · 429
  * POST   /comptes/mot-de-passe-oublie   { email } → toujours 200 { ok } (lien de 24 h envoyé seulement si le compte existe,
@@ -153,6 +174,41 @@ export type DependancesComptes = {
  *                                        comme ça) · 401 · 404 lieu-inconnu (absent ou pas publié) · 409 trop-de-suggestions
  *                                        (10 par 24 h par compte, ou déjà 3 en attente sur ce lieu) · 429 (20 par visiteur
  *                                        et par heure)
+ *
+ * Connexion avec Apple ou Google (décidé le 9 octobre 2026) : POST /comptes/apple et POST /comptes/google, sans session,
+ * 20 essais par visiteur toutes les 10 minutes pour chacun (429 au-delà). Le serveur vérifie lui-même le jeton : signature
+ * RS256 avec les clés publiques d'Apple ou de Google (gardées en mémoire), émetteur, audience (Apple : l'App ID,
+ * SOS_MIAM_APPLE_AUDIENCES ; Google : les identifiants client OAuth iOS, Android et web, SOS_MIAM_GOOGLE_CLIENT_IDS),
+ * exp et iat à 60 s près, et le nonce. Apple : `nonce` obligatoire, le nonce BRUT (8 à 256 caractères ASCII visibles) ;
+ * l'app donne son SHA-256 en hexadécimal minuscule à Apple (option nonce de signInAsync), le jeton le porte, l'API
+ * recalcule. Google : `nonce` facultatif, comparé tel quel au nonce du jeton s'il est envoyé ; email_verified exigé.
+ * support : « app » par défaut (session d'un an), ou « site ». Dans l'ordre :
+ *   a) jeton refusé → 401 jeton-externe-invalide (identityToken|idToken absent ou vide, nonce mal formé : 400
+ *      champ-invalide {champ}) ;
+ *   b) compte Apple ou Google (« sub ») déjà lié à un compte → connexion : 200 { ok, session, compte, nouveau: false,
+ *      rattache: false } (les champs du profil sont ignorés) ;
+ *   c) sinon, un compte a l'e-mail du jeton (vérifié : toujours chez Apple, adresse « privaterelay » comprise ;
+ *      email_verified chez Google) → ce compte Apple ou Google lui est LIÉ, son e-mail compte désormais comme confirmé,
+ *      et on se connecte : 200 { ok, session, compte, nouveau: false, rattache: true }. Un compte du site garde sa
+ *      situation (pas de date de naissance : majeur). 409 compte-deja-rattache si ce compte est déjà lié à un AUTRE
+ *      compte Apple (ou Google) ;
+ *   d) sinon, création d'un compte de l'app, avec les mêmes champs et règles que l'inscription « app » : prenom,
+ *      dateNaissance, ville obligatoires ; nom?, envies?, pseudo? (cgu : implicite, l'app affiche les conditions sous les
+ *      boutons ; la version du jour est gardée). D'abord l'âge : dateNaissance sous 15 ans → 403 age-minimum, rien
+ *      n'est gardé. Sans clé de chiffrement : 503 chiffrement-indisponible. Si prenom, dateNaissance ou ville manquent
+ *      → 409 { ok: false, erreur: "profil-a-completer", prefill: { email, prenom?, nom? } } (prenom et nom : ceux envoyés,
+ *      sinon ceux du jeton de Google ; Apple ne donne le nom qu'à la toute première connexion, l'app le renvoie) : l'app
+ *      montre « Fais connaissance » et renvoie la même demande, avec le même jeton s'il est encore valable (Apple : 10
+ *      minutes ; Google : 1 h), sinon un nouveau. Champ invalide : 400 champ-invalide {champ} ; 409 pseudo-pris. Le
+ *      compte : e-mail du jeton (confirmé), aucun vrai mot de passe (« Mot de passe oublié » permet d'en choisir un),
+ *      aucun lien de confirmation envoyé → 201 { ok, session, compte, nouveau: true }. Jeton sans e-mail (portée
+ *      « email » non demandée à Apple) : 400 email-manquant ;
+ *   e) jamais de compte sans date de naissance par ce chemin.
+ * Autres erreurs : 503 apple-indisponible | google-indisponible (pas réglé sur le serveur ; Google sans identifiant
+ * client), 503 verification-indisponible (clés publiques injoignables, Retry-After 30 : réessayer). Un compte sans vrai
+ * mot de passe ne se connecte pas par e-mail et mot de passe (401 identifiants) ; POST /comptes/moi/mot-de-passe lui
+ * répond 403 mot-de-passe-incorrect : il passe par « Mot de passe oublié ».
+ *
  * Tout compte de 18 ans et plus (âge connu ≥ 18, ou ambassadeur actif, ou au moins un lieu pro « valide » ; sinon 403
  * reserve-aux-majeurs ; 503 chiffrement-indisponible si sa date ne peut pas se lire) :
  * GET    /comptes/moi/propositions-lieux → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] } (les siennes,
@@ -216,6 +272,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
     attente: creerAttenteParCompte(horloge), attenteConnectee: creerAttenteParCompte(horloge),
     limiteOubli: creerLimiteEnvois(horloge), limiteVerification: creerLimiteEnvois(horloge),
     chiffrement, lireCompteVu: creerLecteurCompteVu(services.lireCompte, chiffrement, horloge).lireCompteVu,
+    externes: dependances.externes ?? null,
   };
   const c = creerControleursComptes(contexte);
   const moi = creerControleursMonCompte(contexte);
@@ -225,12 +282,15 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const suggestions = creerControleursSuggestions(services, horloge);
   const profil = creerControleursProfil(contexte);
   const propositionsLieux = creerControleursPropositionsLieux(contexte);
+  const externes = creerControleursComptesExternes(contexte);
   const parCompte = (reglages: { fenetre: number; maximum: number }) => limiterRequetes({ ...reglages, cle: (_requete, reponse) => `compte-${lireCompteId(reponse)}` });
   const routes = Router();
 
   // Sans session : une limite par visiteur pour chaque porte d'entrée, toujours AVANT de calculer une empreinte
   routes.post("/", limiterRequetes({ fenetre: 60 * 60_000, maximum: 10 }), c.inscrire);
   routes.post("/session", limiterRequetes({ fenetre: DIX_MINUTES, maximum: 20 }), c.connecter);
+  routes.post("/apple", limiterRequetes(LIMITE_CONNEXION_EXTERNE), externes.connecterApple);
+  routes.post("/google", limiterRequetes(LIMITE_CONNEXION_EXTERNE), externes.connecterGoogle);
   routes.post("/nouveau-mot-de-passe", limiterRequetes({ fenetre: DIX_MINUTES, maximum: 10 }), c.choisirNouveauMotDePasse);
   routes.post("/mot-de-passe-oublie", limiterRequetes(LIMITE_MOT_DE_PASSE_OUBLIE), liens.motDePasseOublie);
   routes.post("/verifier-email", limiterRequetes(LIMITE_VERIFIER_EMAIL), liens.verifierEmail);
@@ -245,6 +305,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
   routes.post("/moi/deconnecter-partout", protection.exigerCompte, moi.deconnecterPartout);
+  routes.get("/moi/connexions", protection.exigerCompte, externes.lireConnexions);
   routes.get("/moi/profil", protection.exigerCompte, profil.lire);
   routes.patch("/moi/profil", protection.exigerCompte, profil.modifier);
   routes.get("/pseudo-disponible", protection.exigerCompte, parCompte(LIMITE_PSEUDO_DISPONIBLE), profil.pseudoDisponible);

@@ -44,6 +44,9 @@ import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
 import { creerDepotVisites } from "./services/visites.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
+import { lireListeVirgules } from "./fonctions/texte/lire-liste-virgules.ts";
+import { servicesComptesExternes } from "./services/comptes-externes.ts";
+import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle } from "./services/connexion-externe.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -58,6 +61,10 @@ const versionMinimale = {
   android: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_ANDROID),
 };
 const zones = { trouverZoneDeCommune, listerZones, lireZone };
+// Connexion avec Apple et Google : audiences acceptées (séparées par des virgules). Apple : l'App ID de l'app iOS par
+// défaut ; Google : les identifiants client OAuth (iOS, Android, web), aucun par défaut (POST /comptes/google : 503)
+const audiencesApple = lireListeVirgules(process.env.SOS_MIAM_APPLE_AUDIENCES, AUDIENCES_APPLE_DEFAUT);
+const audiencesGoogle = lireListeVirgules(process.env.SOS_MIAM_GOOGLE_CLIENT_IDS);
 const vider = () => compteur.vider().catch((erreur: unknown) => console.error("Écriture des statistiques impossible :", erreur));
 const minuteur = setInterval(vider, 30_000);
 // Ménage et sauvegarde chiffrée de la base chaque nuit (pas pendant un essai sur un autre schéma)
@@ -98,6 +105,12 @@ const serveur = creerApplication({
     courriels: { envoyerLienMotDePasse, envoyerLienVerificationEmail },
     // Espace pro (pro.sosmiam.fr) : rattachements, fiche, suggestions sur son lieu, équipe
     pro: servicesPro,
+    // « Se connecter avec Apple » et « avec Google » : jetons vérifiés avec leurs clés publiques (gardées en mémoire)
+    externes: {
+      services: servicesComptesExternes,
+      apple: creerVerificateurApple({ audiences: audiencesApple }),
+      google: creerVerificateurGoogle({ audiences: audiencesGoogle }),
+    },
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
