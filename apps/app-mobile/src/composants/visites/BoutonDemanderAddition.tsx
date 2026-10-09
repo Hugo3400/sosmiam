@@ -120,6 +120,8 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
       {etape === "repos" ? (
         <Bouton
           libelle={libelle}
+          // Dans « Tu es chez qui ? », chaque ligne dit « Demander l'addition ici » : VoiceOver, lui, entend le lieu
+          libelleLu={libelle.endsWith(" ici") ? `${libelle.slice(0, -" ici".length)} ${direChezLieu(lieu.nom)}` : undefined}
           variante={variante}
           indice={`On vérifie que tu es bien ${direChezLieu(lieu.nom)}, puis tu reçois un code à montrer en payant`}
           onPress={() => void demander()}
