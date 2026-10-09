@@ -3,13 +3,22 @@ import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
 
 const ETOILE = "100,21 102.35,26.76 108.56,27.22 103.8,31.24 105.29,37.28 100,34 94.71,37.28 96.2,31.24 91.44,27.22 97.65,26.76";
 
+type Props = {
+  ruban: string;
+  className?: string;
+  /** Dans un autre dessin SVG (carte de fondateur) : position et côté, en unités de ce dessin */
+  x?: number;
+  y?: number;
+  taille?: number;
+};
+
 /** L'écusson du quartier (piste C du kit de marque) : couverts croisés, bouée et ruban. Décoratif. */
-export function Ecusson({ ruban, className = "" }: { ruban: string; className?: string }) {
+export function Ecusson({ ruban, className = "", x, y, taille }: Props) {
   // Jusqu'à 9 lettres (« FONDATEUR »), texte du ruban tel quel ; au-delà (« AMBASSADEUR »), plus petit et plus serré
   // dans la même proportion, pour garder la même marge, et toujours centré en hauteur dans le ruban
   const echelle = Math.min(1, 9 / ruban.length);
   return (
-    <svg viewBox="0 0 200 200" className={className} aria-hidden="true">
+    <svg viewBox="0 0 200 200" x={x} y={y} width={taille} height={taille} className={className || undefined} aria-hidden="true">
       <circle cx="100" cy="100" r="96" fill={c.encre} />
       <circle cx="100" cy="100" r="88" fill="none" stroke={c.jaune} strokeWidth="2" strokeDasharray="5 4" />
       <circle cx="100" cy="100" r="80" fill={c.jaune} />
@@ -39,6 +48,8 @@ export function Ecusson({ ruban, className = "" }: { ruban: string; className?: 
         y={echelle === 1 ? 150.5 : 144 + 6.5 * echelle}
         textAnchor="middle"
         className="font-titre"
+        // Pour un SVG ouvert seul (carte de fondateur) ; sur le site, la classe font-titre l'emporte
+        fontFamily="'Bricolage Grotesque Variable', system-ui, sans-serif"
         fontSize={18 * echelle}
         fontWeight="800"
         letterSpacing={2 * echelle}

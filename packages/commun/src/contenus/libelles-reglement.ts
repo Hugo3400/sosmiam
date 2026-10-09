@@ -32,3 +32,7 @@ export const MENTIONS_AVIS_REGLEMENT: Readonly<Record<TypeReglement, string | nu
   reduction: "Avec réduction",
   offert: "Repas offert",
 };
+
+/** Ce que lit le client d'une visite offerte : pourquoi ni points ni tampon, et ce qui reste (l'avis, marqué « Repas offert ») */
+export const TEXTE_VISITE_OFFERTE =
+  "Offerte par le lieu : pas de points ni de tampon cette fois, pour que les avis restent honnêtes. Ton avis compte quand même, marqué « Repas offert ».";

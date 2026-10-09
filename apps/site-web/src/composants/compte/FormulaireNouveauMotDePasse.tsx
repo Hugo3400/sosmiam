@@ -1,30 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useActionData } from "react-router";
 
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte, type ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserJetonDuLien } from "~/hooks/utiliser-jeton-du-lien";
 
 /**
- * Nouveau mot de passe, avec le lien préparé par l'équipe (…/nouveau-mot-de-passe#jeton=…). Le jeton est lu après le « # »
- * (jamais envoyé au serveur dans l'adresse, donc jamais dans un journal), puis retiré de la barre d'adresse ; il part dans
- * le corps du formulaire. Sans JavaScript (ou si le lien est abîmé), un champ « Code reçu par mail » le remplace.
+ * Nouveau mot de passe, avec le lien reçu par mail (…/nouveau-mot-de-passe#jeton=…), demandé avec « Mot de passe oublié »
+ * ou préparé par l'équipe. Le jeton est lu après le « # » (utiliserJetonDuLien) et part dans le corps du formulaire. Sans
+ * JavaScript (ou si le lien est abîmé), un champ « Code reçu par mail » le remplace.
  */
 export function FormulaireNouveauMotDePasse() {
   const reponse = useActionData<ReponseFormulaire>();
-  const [jetonDuLien, setJetonDuLien] = useState<string | null>(null);
-
-  useEffect(() => {
-    const trouve = /(?:^#|&)jeton=([^&]+)/.exec(window.location.hash);
-    if (!trouve) return;
-    try {
-      setJetonDuLien(decodeURIComponent(trouve[1]));
-    } catch {
-      return;
-    }
-    // Le jeton quitte la barre d'adresse et l'historique ; l'état de navigation de React Router est gardé
-    window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
-  }, []);
+  const [jetonDuLien, setJetonDuLien] = utiliserJetonDuLien();
 
   // Code refusé (mal formé, déjà servi ou trop vieux) : on montre le champ, l'erreur dessous, et on oublie le code du
   // lien, pour qu'il ne remplace pas un nouveau lien collé dans le champ si le mot de passe est refusé ensuite

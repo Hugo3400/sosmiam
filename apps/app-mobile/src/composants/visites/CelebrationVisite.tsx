@@ -2,13 +2,16 @@ import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
 import { Platform, ScrollView, Text, View } from "react-native";
 
+import { TEXTE_VISITE_OFFERTE } from "@sos-miam/commun/contenus/libelles-reglement";
 import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { ResultatValidation } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { CompteurPoints } from "~/composants/visites/CompteurPoints";
 import { ConfettisVisite } from "~/composants/visites/ConfettisVisite";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -17,7 +20,6 @@ import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
 import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 
 type Props = {
   resultat: ResultatValidation;
@@ -95,7 +97,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
           {fete && offert ? (
             <View className="w-full flex-row items-start gap-3 rounded-carte border-2 border-encre bg-rose-alerte p-4">
               <Text className="text-2xl">🎁</Text>
-              <Text className="flex-1 font-texte text-[15px] leading-6 text-encre">{lierPonctuation(OFFERT_EXPLIQUE)}</Text>
+              <Text className="flex-1 font-texte text-[15px] leading-6 text-encre">{lierPonctuation(TEXTE_VISITE_OFFERTE)}</Text>
             </View>
           ) : null}
 

@@ -3,7 +3,9 @@ import { Pressable, Text, View } from "react-native";
 
 import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
 import { decrireEtatAvis } from "@sos-miam/commun/fonctions/visites/decrire-etat-avis";
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { ModeValidation, Visite } from "@sos-miam/commun/types/visite";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
@@ -110,8 +112,15 @@ export function LigneVisite({ visite, onPress }: Props) {
   const moment = decrireMoment(visite.valideLe ?? visite.creeLe);
   const mode = aEteValidee ? LIBELLES_MODE_VALIDATION[visite.mode] : MODE_TENTE[visite.mode];
   const puces = listerPuces(visite);
+  // Payée, avec réduction ou offerte, et ses avantages (seulement pour une visite validée)
+  const reglement = aEteValidee ? decrireReglement(visite.reglement, "client") : null;
   // Une phrase par morceau, chacune avec sa majuscule : VoiceOver marque une petite pause entre elles
-  const libelle = [visite.lieu.nom, [moment.lu, mode.toLocaleLowerCase("fr-FR")].filter(Boolean).join(", "), ...puces.map((p) => p.lu)]
+  const libelle = [
+    visite.lieu.nom,
+    [moment.lu, mode.toLocaleLowerCase("fr-FR")].filter(Boolean).join(", "),
+    ...(reglement ? [[reglement.titre, ...reglement.etiquettes].join(", ")] : []),
+    ...puces.map((p) => p.lu),
+  ]
     .map((morceau) => morceau.charAt(0).toLocaleUpperCase("fr-FR") + morceau.slice(1))
     .join(". ");
   const fondRond = visite.statut === "validee" ? "bg-jaune" : visite.statut === "demandee" ? "bg-jaune-clair" : enRetrait ? "bg-creme" : "bg-white";
@@ -142,6 +151,11 @@ export function LigneVisite({ visite, onPress }: Props) {
           {visite.lieu.nom}
         </Text>
         <Text className="font-texte text-[13px] leading-[18px] text-gris">{[moment.court, mode].filter(Boolean).join(" · ")}</Text>
+        {aEteValidee ? (
+          <View className="mt-1.5">
+            <EtiquettesReglement reglement={visite.reglement} pour="client" taille="petite" />
+          </View>
+        ) : null}
         {puces.length > 0 ? (
           <View className="mt-1.5 flex-row flex-wrap gap-1.5">
             {puces.map((puce) => (

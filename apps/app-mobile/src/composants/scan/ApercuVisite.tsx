@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { StatutVisite, Visite } from "@sos-miam/commun/types/visite";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
@@ -26,11 +28,12 @@ export function ApercuVisite({ visite, onPress }: Props) {
   const statut = STATUTS[visite.statut];
   const jour = FORMAT_JOUR.format(new Date(visite.valideLe ?? visite.creeLe));
   const gain = visite.statut === "validee" && visite.points > 0 ? `+${visite.points} points${visite.tampon ? " · 1 tampon" : ""}` : null;
+  const reglement = visite.statut === "validee" ? decrireReglement(visite.reglement, "client") : null;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[`${visite.lieu.nom}, le ${jour}`, statut.texte, gain].filter(Boolean).join(", ")}
+      accessibilityLabel={[`${visite.lieu.nom}, le ${jour}`, statut.texte, reglement ? [reglement.titre, ...reglement.etiquettes].join(", ") : null, gain].filter(Boolean).join(", ")}
       accessibilityHint="Ouvre le détail de la visite"
       onPress={() => {
         vibrerLegerement();
@@ -49,6 +52,11 @@ export function ApercuVisite({ visite, onPress }: Props) {
           {jour}
           {gain ? ` · ${gain}` : ""}
         </Text>
+        {reglement ? (
+          <View className="mt-1">
+            <EtiquettesReglement reglement={visite.reglement} pour="client" taille="petite" />
+          </View>
+        ) : null}
       </View>
       <View className={`rounded-full px-2.5 py-1 ${statut.fond}`}>
         <Text className="font-texte-gras text-xs text-encre">{statut.texte}</Text>

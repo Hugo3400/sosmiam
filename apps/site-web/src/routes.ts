@@ -40,7 +40,7 @@ export default [
   route("deconnexion", "routes/compte/deconnexion.tsx"),
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
   // Carte de fondateur numérique (SVG), réservée à son fondateur
-  route("espace/fondateur/carte.svg", "routes/ressources/carte-fondateur.ts"),
+  route("espace/fondateur/carte.svg", "routes/ressources/carte-fondateur.tsx"),
   // Visuels du kit média à leur taille exacte, pour les capturer (serveur de développement seulement)
   route("rendu-kit/:visuel", "routes/ressources/rendu-kit.tsx"),
   // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »

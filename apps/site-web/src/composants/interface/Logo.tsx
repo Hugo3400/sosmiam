@@ -14,10 +14,14 @@ type Props = {
   /** Sur fond sombre : « SOS » passe en crème */
   clair?: boolean;
   className?: string;
+  /** Dans un autre dessin SVG (carte de fondateur) : position et largeur, en unités de ce dessin */
+  x?: number;
+  y?: number;
+  largeur?: number;
 };
 
 /** Le logo SOS Miam. Garder autour une marge au moins égale à la largeur de la bouée. */
-export function Logo({ avecTexte = true, clair = false, className }: Props) {
+export function Logo({ avecTexte = true, clair = false, className, x, y, largeur }: Props) {
   if (!avecTexte) {
     return (
       <svg viewBox="12 12 176 176" className={className ?? "h-10 w-10"} role="img" aria-label="SOS Miam">
@@ -26,7 +30,16 @@ export function Logo({ avecTexte = true, clair = false, className }: Props) {
     );
   }
   return (
-    <svg viewBox="0 -3 406 92.28" className={className ?? "h-10 w-auto"} role="img" aria-label="SOS Miam">
+    <svg
+      viewBox="0 -3 406 92.28"
+      x={x}
+      y={y}
+      width={largeur}
+      height={largeur === undefined ? undefined : (largeur * 92.28) / 406}
+      className={largeur === undefined ? (className ?? "h-10 w-auto") : className}
+      role="img"
+      aria-label="SOS Miam"
+    >
       <path d={VAGUE} fill="none" stroke={c.jaune} strokeWidth="10" strokeLinecap="round" />
       <path d={CONTOURS_SOS} fill={clair ? c.creme : c.encre} />
       <path d={CONTOURS_MIAM} fill={c.tomate} />
