@@ -120,7 +120,6 @@ export default function FicheLieu() {
           km={calculerKmLieu(lieu, depart)}
           margeHaut={marges.top}
           onEnvoyer={ouvrirEnvoi}
-          onMiamSafe={ouvrirMiamSafe}
           onAnnoncer={annoncer}
         />
         {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
@@ -138,6 +137,20 @@ export default function FicheLieu() {
         className="absolute left-4 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
       >
         <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
+      </Pressable>
+
+      {/* Miam Safe, toujours à portée de pouce, en miroir du retour : les secours, un pote, le comptoir (même sans compte, les
+          secours restent accessibles) */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Miam Safe"
+        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+        hitSlop={8}
+        onPress={ouvrirMiamSafe}
+        style={{ top: marges.top + 8 }}
+        className="absolute right-4 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+      >
+        <Text className="text-lg">🚨</Text>
       </Pressable>
 
       {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}

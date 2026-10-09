@@ -42,6 +42,15 @@ test("pastilles du menu : urgence en rouge, contestations comptées avec la mod�
   assert.equal(calculerPastilles(null, 2).maintenance?.nombre, 2);
 });
 
+test("pastille Miam Safe : signalements à lire et alertes sans réponse, en rouge dès qu'une attend trop", () => {
+  const base = { moderation: { aTraiter: 0, urgents: 0, contestes: 0 }, demandes: { aTraiter: 0 }, ambassadeurs: { enAttente: 0, candidatures: 0 }, missionsFaites: 0, bigSos: { aTraiter: 0, aCloturer: 0, demarrentBientot: [] } };
+  const calme = calculerPastilles({ ...base, miamSafe: { aTraiter: 2, enRetard: 0, sansReponse: 0 } }, 0)["miam-safe"];
+  assert.deepEqual([calme?.nombre, calme?.urgent], [2, false]);
+  const urgent = calculerPastilles({ ...base, miamSafe: { aTraiter: 1, enRetard: 0, sansReponse: 1 } }, 0)["miam-safe"];
+  assert.deepEqual([urgent?.nombre, urgent?.urgent], [2, true]);
+  assert.equal(calculerPastilles(base, 0)["miam-safe"], undefined, "API pas encore à jour : pas de pastille");
+});
+
 test("recherche : les écrans d'abord (sans accents), puis les données", () => {
   const resultats = listerResultatsRecherche("stat", { lieux: [{ id: 3, nom: "Statique", emoji: "🍝", ville: "Lyon", statut: "publie" }], comptes: [], publications: [], bigSos: [], demandes: [], inscrits: [] });
   assert.equal(resultats[0]?.titre, "Statistiques");

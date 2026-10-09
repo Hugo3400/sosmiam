@@ -23,6 +23,8 @@ const garderAnnonces = (ids: number[]) => {
 /** Ce qui déclenche une notification Windows quand le nombre monte d'une minute à l'autre */
 const NOUVEAUTES: { lire: (a: Alertes) => number; titre: string; texte: string }[] = [
   { lire: (a) => a.moderation.urgents, titre: "🚨 Publication masquée pour tous", texte: "Un signalement grave attend ta décision dans la modération." },
+  { lire: (a) => a.miamSafe?.sansReponse ?? 0, titre: "🛟 Alerte Miam Safe sans réponse", texte: "Quelqu'un a alerté un comptoir et personne n'a répondu. Appelle le lieu : Miam Safe → Alertes sans réponse." },
+  { lire: (a) => a.miamSafe?.aTraiter ?? 0, titre: "🛡 Signalement Miam Safe", texte: "Quelqu'un ne s'est pas senti en sécurité dans un lieu. À lire sous 48 heures : ouvre Miam Safe." },
   { lire: (a) => a.moderation.contestes, titre: "⚖️ Décision contestée", texte: "Une décision de modération est à réexaminer (onglet « Contestés »)." },
   { lire: (a) => a.demandes.aTraiter, titre: "📬 Nouvelle demande de lieu", texte: "Un lieu veut rejoindre SOS Miam, ou une pépite a été proposée." },
   { lire: (a) => a.ambassadeurs.enAttente, titre: "🙋 Nouvel ambassadeur", texte: "Une inscription à l'espace ambassadeur attend ta validation." },

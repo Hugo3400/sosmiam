@@ -18,6 +18,7 @@ import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.
 import { EcranDemandes } from "~/ecrans/demandes/EcranDemandes.tsx";
 import { EcranLieux } from "~/ecrans/lieux/EcranLieux.tsx";
 import { EcranMaintenance } from "~/ecrans/maintenance/EcranMaintenance.tsx";
+import { EcranMiamSafe } from "~/ecrans/miam-safe/EcranMiamSafe.tsx";
 import { EcranModeration } from "~/ecrans/moderation/EcranModeration.tsx";
 import { EcranNewsletter } from "~/ecrans/newsletter/EcranNewsletter.tsx";
 import { EcranPublications } from "~/ecrans/publications/EcranPublications.tsx";
@@ -159,6 +160,7 @@ export function Application() {
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
           {ecran === "moderation" && <EcranModeration />}
+          {ecran === "miam-safe" && <EcranMiamSafe />}
           {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} />}
           {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
           {ecran === "notifications" && <EcranNotifications />}
