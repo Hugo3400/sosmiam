@@ -1,73 +1,22 @@
 import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
-import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MiniCarteFidelite } from "~/composants/fidelite/MiniCarteFidelite";
 import { ApercuVisite } from "~/composants/scan/ApercuVisite";
-import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { CarteDemandeEnCours } from "~/composants/scan/CarteDemandeEnCours";
+import { EnTeteScan } from "~/composants/scan/EnTeteScan";
 import { EtapesCommentCaMarche } from "~/composants/scan/EtapesCommentCaMarche";
+import { SectionVideScan } from "~/composants/scan/SectionVideScan";
+import { TitreSectionScan } from "~/composants/scan/TitreSectionScan";
 import { TuileScan } from "~/composants/scan/TuileScan";
-import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import couleurs from "~/theme/couleurs";
 
 // Dans « Mes visites », seulement les dernières : la liste complète est à un toucher
 const VISITES_AFFICHEES = 3;
-
-/** Le titre d'une section, avec « Tout voir » à droite quand il y a une page complète */
-function TitreSection({ titre, libelleLu, onToutVoir }: { titre: string; libelleLu: string; onToutVoir?: () => void }) {
-  return (
-    <View className="flex-row items-center justify-between">
-      <Text accessibilityRole="header" accessibilityLabel={libelleLu} className="font-titre-gras text-xl text-encre">
-        {titre}
-      </Text>
-      {onToutVoir ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Tout voir : ${libelleLu}`}
-          hitSlop={8}
-          onPress={() => {
-            vibrerLegerement();
-            onToutVoir();
-          }}
-          className="min-h-11 justify-center active:opacity-60"
-        >
-          <Text className="font-texte-gras text-[15px] text-encre underline">Tout voir</Text>
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
-
-/** La carte d'une section encore vide : une phrase qui donne envie, sans culpabiliser */
-function SectionVide({ emoji, texte }: { emoji: string; texte: string }) {
-  return (
-    <View accessible accessibilityLabel={texte} className="flex-row items-center gap-3 rounded-carte border-2 border-dashed border-gris/40 px-4 py-4">
-      <Text className="text-2xl">{emoji}</Text>
-      <Text className="flex-1 font-texte text-sm leading-5 text-gris">{lierPonctuation(texte)}</Text>
-    </View>
-  );
-}
-
-/** En-tête de l'onglet : le titre, la promesse, et le rappel de démo s'il le faut */
-function EnTeteScan({ demo, enPlus }: { demo: boolean; enPlus?: ReactNode }) {
-  return (
-    <View className="gap-3">
-      <View className="gap-1.5">
-        <Text accessibilityRole="header" className="font-titre text-4xl text-encre">
-          Scan
-        </Text>
-        <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation("Ta visite compte quand tu paies : c'est ce qui rend les avis vrais.")}</Text>
-      </View>
-      {demo ? <BandeauDemoVisites /> : null}
-      {enPlus}
-    </View>
-  );
-}
 
 /**
  * L'onglet Scan pour un inscrit : scanner le QR du comptoir (la grande tuile), demander l'addition, la demande en cours,
@@ -141,7 +90,7 @@ export function AccueilScan() {
         {enCours ? <CarteDemandeEnCours visite={enCours} onPress={() => router.push({ pathname: "/visite/[id]", params: { id: String(enCours.id) } })} /> : null}
 
         <View className="gap-3">
-          <TitreSection
+          <TitreSectionScan
             titre="Mes cartes de fidélité"
             libelleLu={`Mes cartes de fidélité, ${cartes.length}`}
             onToutVoir={cartes.length > 0 ? () => router.push("/fidelite") : undefined}
@@ -153,12 +102,12 @@ export function AccueilScan() {
               ))}
             </ScrollView>
           ) : (
-            <SectionVide emoji="🎟️" texte="Ta première visite validée pose ton premier tampon. Les cartes se remplissent plus vite qu'un verre en terrasse." />
+            <SectionVideScan emoji="🎟️" texte="Ta première visite validée pose ton premier tampon. Les cartes se remplissent plus vite qu'un verre en terrasse." />
           )}
         </View>
 
         <View className="gap-3">
-          <TitreSection titre="Mes visites" libelleLu={`Mes visites, ${validees} validée${validees > 1 ? "s" : ""}`} onToutVoir={visites.length > 0 ? () => router.push("/visites") : undefined} />
+          <TitreSectionScan titre="Mes visites" libelleLu={`Mes visites, ${validees} validée${validees > 1 ? "s" : ""}`} onToutVoir={visites.length > 0 ? () => router.push("/visites") : undefined} />
           {dernieres.length > 0 ? (
             <View className="gap-2">
               {dernieres.map((visite) => (
@@ -169,7 +118,7 @@ export function AccueilScan() {
               </Text>
             </View>
           ) : (
-            <SectionVide emoji="🍽️" texte="Pas encore de visite : ton prochain resto indépendant n'attend que toi (et ton scan)." />
+            <SectionVideScan emoji="🍽️" texte="Pas encore de visite : ton prochain resto indépendant n'attend que toi (et ton scan)." />
           )}
         </View>
 
