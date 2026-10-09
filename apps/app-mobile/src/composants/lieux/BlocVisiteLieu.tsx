@@ -9,7 +9,6 @@ import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calcule
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { InfosVisiteLieu } from "@sos-miam/commun/types/visite";
-import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { LigneBlocVisite } from "~/composants/lieux/LigneBlocVisite";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
@@ -210,7 +209,8 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
             }
           />
         ) : null}
-        {fidelite && (infos.carte?.recompenseAlcool || infos.programme?.recompenseAlcool || parleDAlcool(infos.carte?.pretes[0]?.libelle)) ? <MentionPrevention /> : null}
+        {/* Une récompense prête garde l'alcool de son gain ; sinon, celle de la carte ou du programme */}
+        {fidelite && (infos.carte?.pretes[0] ? infos.carte.pretes[0].alcool === true : infos.carte?.recompenseAlcool || infos.programme?.recompenseAlcool) ? <MentionPrevention /> : null}
 
         {infos.reservable ? (
           <LigneBlocVisite

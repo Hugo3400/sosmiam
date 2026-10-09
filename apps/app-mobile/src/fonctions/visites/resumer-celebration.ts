@@ -3,9 +3,11 @@ import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-valida
 import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { PalierAmbassadeur } from "@sos-miam/commun/types/ambassadeur";
 import type { ResultatValidation } from "@sos-miam/commun/types/visite";
+import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { decrireOuvertureAvis } from "~/fonctions/visites/decrire-ouverture-avis";
 import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
+import { estRecompenseVisiteAlcool } from "~/fonctions/visites/est-recompense-visite-alcool";
 
 /**
  * La célébration d'une visite validée en une seule phrase, lue une fois par VoiceOver ou TalkBack : le lieu, les points
@@ -26,6 +28,7 @@ export function resumerCelebration(r: ResultatValidation, palier: PalierAmbassad
       morceaux.push(visite.pendantSos ? `+${visite.points} points : ta visite tombe pile pendant leur SOS.` : `+${visite.points} points.`);
     }
     if (tampon) morceaux.push(tampon.pleine ? tampon.texte : `Tampon posé : ${tampon.tampons} sur ${tampon.sur}. ${tampon.texte}`);
+    if (tampon && estRecompenseVisiteAlcool(r)) morceaux.push(MESSAGE_SANITAIRE_ALCOOL);
     if (palier) morceaux.push(`Tu passes ${palier.nom} !`);
   }
 

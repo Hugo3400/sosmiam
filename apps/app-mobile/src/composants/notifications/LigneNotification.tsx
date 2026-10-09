@@ -3,11 +3,13 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
+import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { RondPote } from "~/composants/potes/RondPote";
 import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   notification: NotificationSuivi;
@@ -38,7 +40,7 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
   const router = useRouter();
   const moment = formaterMomentRelatif(notification.date);
   const { ouvrir } = description;
-  const libelle = `${nouvelle ? "Nouveau. " : ""}${retirerEmoji(description.texte)}, ${moment.lu}`;
+  const libelle = `${nouvelle ? "Nouveau. " : ""}${retirerEmoji(description.texte)}${description.alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}, ${moment.lu}`;
   const classe = `min-h-16 flex-row items-center gap-3 px-3 py-3 ${nouvelle ? "bg-jaune-clair/50" : ""} ${derniere ? "" : "border-b border-ligne"}`;
 
   const contenu = (
@@ -59,6 +61,7 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
       )}
       <View className="flex-1 gap-0.5">
         <Text className={`text-[15px] leading-5 text-encre ${nouvelle ? "font-texte-semi" : "font-texte"}`}>{description.texte}</Text>
+        {description.alcool ? <MentionPrevention variante="courte" /> : null}
         <Text className="font-texte text-[13px] text-gris">{moment.court}</Text>
       </View>
       {nouvelle ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="h-2.5 w-2.5 rounded-full border border-encre bg-jaune" /> : null}

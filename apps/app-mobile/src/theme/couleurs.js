@@ -11,4 +11,7 @@ module.exports = {
   "rouge-sos": "#C62828",
   "rouge-texte": "#B3261E",
   "rose-alerte": "#FFE1DD",
+  // Texte secondaire sur fond encre (écrans sombres et discrets de Miam Safe) et son contour
+  "gris-nuit": "#BDB3A0",
+  "trait-nuit": "#5A5246",
 };

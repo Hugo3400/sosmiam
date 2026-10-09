@@ -25,7 +25,7 @@ export function convertirCarteDemo(m: Readonly<MagasinDemo>, lieuId: number, cli
     tampons: carte.tampons,
     sur: programme.visitesRequises,
     recompense,
-    recompenseAlcool: estRecompenseAlcool(programme, recompense),
+    recompenseAlcool: estRecompenseAlcool(programme, client.majeur),
     pretes: carte.pretes.map((r) => ({ ...r })),
     demande: carte.demande ? { ...carte.demande } : null,
   };

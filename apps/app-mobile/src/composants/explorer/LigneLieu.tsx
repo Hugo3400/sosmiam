@@ -4,6 +4,8 @@ import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
@@ -11,6 +13,7 @@ import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import couleurs from "~/theme/couleurs";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   lieu: Lieu;
@@ -34,12 +37,16 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
   const verifie = estLieuVerifie(lieu);
   const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
 
+  // Le bon plan affiché parle d'alcool (happy hour…) : le message sanitaire juste dessous
+  const offreAlcool = !sos && parleDAlcool(lieu.alerte);
+
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`,
     `À ${distance}, ${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
+    offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
   ]
     .filter(Boolean)
@@ -77,6 +84,11 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full bg-rose-alerte px-2 py-0.5 font-texte-gras text-xs text-rouge-texte">
             🔥 {lieu.alerte}
           </Text>
+        ) : null}
+        {offreAlcool ? (
+          <View className="mt-1">
+            <MentionPrevention variante="courte" />
+          </View>
         ) : null}
         {verifie ? null : (
           <View className="mt-1">

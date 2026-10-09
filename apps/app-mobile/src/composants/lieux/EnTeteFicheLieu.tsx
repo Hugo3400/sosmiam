@@ -7,6 +7,7 @@ import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifi
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { CarteLieuNonVerifie } from "~/composants/lieux/CarteLieuNonVerifie";
+import { BadgesMiamSafe } from "~/composants/miam-safe/BadgesMiamSafe";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
@@ -14,6 +15,7 @@ import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
+import { lireMiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -25,6 +27,8 @@ type Props = {
   /** Hauteur de la zone de l'heure et de l'encoche, en haut de l'écran */
   margeHaut: number;
   onEnvoyer: () => void;
+  /** « Miam Safe » : ouvre la feuille d'aide (une fonction stable : l'en-tête est mémorisé) */
+  onMiamSafe: () => void;
   /** Annonce « Tu suis maintenant… » / « Tu ne suis plus… » (une fonction stable : l'en-tête est mémorisé) */
   onAnnoncer: (texte: string) => void;
 };
@@ -36,16 +40,17 @@ const AUTEUR_LIEU = { type: "lieu" } as const;
 
 /**
  * Haut de la fiche d'un lieu, dessiné dès l'arrivée : dégradé et emoji, badges (SOS en cours, alerte), nom, infos, texte,
- * « Suivre » et « Envoyer à un pote ». Mémorisé : une rescousse ou une annonce ne le redessine pas
+ * « Suivre », « Envoyer à un pote » et « Miam Safe ». Mémorisé : une rescousse ou une annonce ne le redessine pas
  * (« Suivre » lit lui-même tes suivis, il est le seul à se redessiner quand tu suis le lieu).
  */
-export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
+export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onMiamSafe, onAnnoncer }: Props) {
   // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
   const avecCompte = utiliserProfil().profil !== null;
   // Sans compte SOS Miam, un lieu ne lance pas de SOS : rien à afficher
   const verifie = estLieuVerifie(lieu);
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
   const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
+  const miamSafe = lireMiamSafeLieu(lieu.id);
   return (
     <>
       <LinearGradient
@@ -62,6 +67,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
       <View className="gap-4 px-5 pt-5">
         <View className="flex-row flex-wrap gap-2">
           <BadgeVerification verifie={verifie} />
+          <BadgesMiamSafe miamSafe={miamSafe} />
           {sos ? (
             <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
               🛟 SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}{sos.offre ? ` · ${sos.offre}` : ""}
@@ -89,6 +95,15 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           petit
           indice={avecCompte ? "Choisis des potes de ta bande à qui envoyer ce lieu" : INDICE_COMPTE}
           onPress={onEnvoyer}
+          className="self-start"
+        />
+        {/* Pas bien ici ? Les secours, un pote, le comptoir (avec ou sans compte : les secours restent toujours accessibles) */}
+        <Bouton
+          libelle="Miam Safe"
+          variante="blanc"
+          petit
+          indice="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+          onPress={onMiamSafe}
           className="self-start"
         />
       </View>

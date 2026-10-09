@@ -1,11 +1,13 @@
 import { Pressable, ScrollView, Text, View, type ImageSourcePropType } from "react-native";
 
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   /** Lieux en SOS ou avec un bon plan ce soir (alerte), déjà filtrés et triés */
@@ -60,6 +62,7 @@ export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
                 <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">{lieu.nom}</Text>
                 <Text numberOfLines={1} className={`font-texte-semi text-[13px] ${lieu.sos ? "text-encre" : "text-rouge-texte"}`}>{ligne}</Text>
                 <Text numberOfLines={1} className="font-texte text-[13px] text-gris">📍 {distance}</Text>
+                {parleDAlcool(ligne) ? <MentionPrevention variante="courte" /> : null}
               </View>
             </Pressable>
           );

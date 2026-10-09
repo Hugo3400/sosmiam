@@ -1,0 +1,91 @@
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
+
+import { DELAI_RELANCE_ALERTE_SECONDES, ENDROITS_ALERTE, LONGUEUR_MAX_DETAIL_ALERTE, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
+import { Bouton } from "~/composants/interface/Bouton";
+import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { Pastille } from "~/composants/interface/Pastille";
+import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
+import { LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
+
+type Props = {
+  /** Après 2 minutes sans réponse : proposer de prévenir un pote */
+  onPrevenirPote: () => void;
+};
+
+/** Démo : l'équipe du Capitaine Bouiboui répond « On arrive » au bout de quelques secondes */
+const REPONSE_DEMO_MS = 4000;
+
+type Etat = "a-envoyer" | "envoyee" | "en-route" | "sans-reponse";
+
+/**
+ * Alerter le comptoir en silence, quand on ne peut pas y aller (lieux Miam Safe seulement) : où tu es, un petit détail si tu
+ * veux, et l'équipe reçoit ton prénom en notification sur ses téléphones pro (jamais ton nom ni ta photo). Rien ne sonne de
+ * ton côté. Sans « On arrive » au bout de 2 minutes, on te propose les secours ou un pote (et l'alerte remonte à notre équipe).
+ */
+export function AlerteComptoirMiamSafe({ onPrevenirPote }: Props) {
+  const [endroit, setEndroit] = useState<EndroitAlerte | null>(null);
+  const [detail, setDetail] = useState("");
+  const [etat, setEtat] = useState<Etat>("a-envoyer");
+
+  useEffect(() => {
+    if (etat !== "envoyee") return;
+    const reponse = setTimeout(() => setEtat("en-route"), REPONSE_DEMO_MS);
+    const relance = setTimeout(() => setEtat("sans-reponse"), DELAI_RELANCE_ALERTE_SECONDES * 1000);
+    return () => {
+      clearTimeout(reponse);
+      clearTimeout(relance);
+    };
+  }, [etat]);
+
+  if (etat === "sans-reponse") {
+    return (
+      <View className="gap-4">
+        <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">L'équipe n'a pas encore répondu.</Text>
+        <Text className="font-texte text-base leading-6 text-gris">On a prévenu l'équipe SOS Miam. Ne reste pas seul·e : appelle les secours ou préviens un pote.</Text>
+        <NumerosUrgence />
+        <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
+      </View>
+    );
+  }
+
+  if (etat !== "a-envoyer") {
+    return (
+      <View className="gap-3">
+        <View accessible accessibilityLiveRegion="polite" className={`gap-1 rounded-2xl p-4 ${etat === "en-route" ? "bg-jaune" : "bg-white"}`}>
+          <Text className="font-texte-gras text-lg text-encre">{etat === "en-route" ? "L'équipe arrive" : "Alerte envoyée"}</Text>
+          <Text className="font-texte text-base leading-6 text-encre">
+            {etat === "en-route" ? "Reste où tu es, quelqu'un vient te voir discrètement." : "L'équipe reçoit ton prénom et où tu es. Rien ne sonne de ton côté."}
+          </Text>
+        </View>
+        <Text className="font-texte text-sm leading-5 text-gris">Sans réponse dans 2 minutes, on te propose d'appeler les secours ou de prévenir un pote.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="gap-4">
+      <Text className="font-texte text-base leading-6 text-gris">L'équipe reçoit ton prénom et où tu es, jamais ton nom ni ta photo.</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {ENDROITS_ALERTE.map((e, i) => (
+          <Pastille key={e} libelle={LIBELLES_ENDROIT_ALERTE[e]} role="radio" position={i + 1} total={ENDROITS_ALERTE.length} choisi={endroit === e} onPress={() => setEndroit(e)} />
+        ))}
+      </View>
+      <ChampTexte
+        libelle="Un détail pour te trouver"
+        mention="facultatif"
+        valeur={detail}
+        onChangeTexte={setDetail}
+        placeholder="Table 12, pull vert…"
+        maxLength={LONGUEUR_MAX_DETAIL_ALERTE}
+      />
+      <Bouton
+        libelle="Envoyer en silence"
+        variante="encre"
+        desactive={endroit === null}
+        indice={endroit === null ? "Dis d'abord où tu es" : "L'équipe du lieu reçoit l'alerte sur ses téléphones"}
+        onPress={() => setEtat("envoyee")}
+      />
+    </View>
+  );
+}

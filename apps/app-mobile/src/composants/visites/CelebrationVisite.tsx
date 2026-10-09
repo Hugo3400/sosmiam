@@ -21,6 +21,7 @@ import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { estRecompenseVisiteAlcool } from "~/fonctions/visites/est-recompense-visite-alcool";
 
 type Props = {
   resultat: ResultatValidation;
@@ -115,7 +116,8 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
                 <View className={`gap-3 ${compteur ? "border-t-2 border-dashed border-ligne pt-4" : ""}`}>
                   <RangeeTampons tampons={tampon.tampons} sur={tampon.sur} animerDernier={fete} taille="grande" />
                   <Text className="text-center font-texte-semi text-base leading-6 text-encre">{lierPonctuation(tampon.texte)}</Text>
-                  {resultat.carte?.recompenseAlcool ? <MentionPrevention /> : null}
+                  {/* Dans le bloc lu d'un seul tenant : le message seul ici, et dans le résumé lu par VoiceOver (resumerCelebration) */}
+                  {estRecompenseVisiteAlcool(resultat) ? <MentionPrevention variante="courte" /> : null}
                 </View>
               ) : null}
             </View>

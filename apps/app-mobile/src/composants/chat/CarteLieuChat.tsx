@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
 
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
@@ -13,6 +14,7 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   conversationId: string;
@@ -110,6 +112,11 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
             <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full bg-rose-alerte px-2 py-0.5 font-texte-gras text-xs text-rouge-texte">
               🔥 {lieu.alerte}
             </Text>
+          ) : null}
+          {lieuEvoqueAlcool(lieu) ? (
+            <View className="mt-1">
+              <MentionPrevention variante="courte" />
+            </View>
           ) : null}
         </View>
       </Pressable>

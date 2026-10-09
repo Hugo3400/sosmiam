@@ -2,6 +2,7 @@
 // carte, dates de l'avis. Les effets « controle » (alertes anti-triche) sont ignorés en démo.
 import { appliquerTampon } from "@sos-miam/commun/fonctions/fidelite/appliquer-tampon";
 import { choisirRecompenseAffichee } from "@sos-miam/commun/fonctions/fidelite/choisir-recompense-affichee";
+import { estRecompenseAlcool } from "@sos-miam/commun/fonctions/fidelite/est-recompense-alcool";
 import type { EffetVisite } from "@sos-miam/commun/types/visite";
 
 import type { CarteDemo, ClientDemo, MagasinDemo, VisiteDemo } from "./types-demo";
@@ -28,7 +29,8 @@ function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantM
     { tampons: carte.tampons, pretes: carte.pretes },
     programme,
     delta,
-    { id: m.prochainId, libelle: libelle ?? programme.recompense },
+    // L'alcool est figé avec la récompense : si le lieu change ensuite de programme, le message sanitaire reste juste
+    { id: m.prochainId, libelle: libelle ?? programme.recompense, alcool: estRecompenseAlcool(programme, client.majeur) },
     maintenantMs,
   );
   if (resultat.recompenseGagnee) m.prochainId += 1;

@@ -11,7 +11,7 @@ export function appliquerTampon(
   carte: EtatCarteFidelite,
   programme: Pick<ProgrammeFidelite, "actif" | "visitesRequises">,
   delta: 1 | -1,
-  recompense: { id: number; libelle: string },
+  recompense: { id: number; libelle: string; alcool?: boolean },
   maintenantMs: number,
 ): { carte: EtatCarteFidelite; recompenseGagnee: boolean } {
   if (!programme.actif) return { carte, recompenseGagnee: false };
@@ -20,6 +20,11 @@ export function appliquerTampon(
   const tampons = Math.max(0, carte.tampons) + 1;
   if (tampons < Math.max(1, programme.visitesRequises)) return { carte: { tampons, pretes: carte.pretes }, recompenseGagnee: false };
 
-  const prete: RecompensePrete = { id: recompense.id, libelle: recompense.libelle, gagneeLe: new Date(maintenantMs).toISOString() };
+  const prete: RecompensePrete = {
+    id: recompense.id,
+    libelle: recompense.libelle,
+    gagneeLe: new Date(maintenantMs).toISOString(),
+    ...(recompense.alcool ? { alcool: true } : {}),
+  };
   return { carte: { tampons: 0, pretes: [...carte.pretes, prete] }, recompenseGagnee: true };
 }

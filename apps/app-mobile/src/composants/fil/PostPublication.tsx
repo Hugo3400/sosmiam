@@ -272,6 +272,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
       {/* Le placement reste sur une View : NativeWind n'applique pas ses classes à une Animated.View qui porte un style animé */}
       <View pointerEvents={reduit ? "box-none" : "none"} aria-hidden={!reduit} style={{ bottom: margeBas + ECART_BAS }} className="absolute left-4 right-4 flex-row">
         <Animated.View style={stylePastille}>
+          <View className="items-start gap-1.5">
           {/* L'auteur reste visible (son @ pour un créateur) ; toucher la pastille rouvre toujours la fiche */}
           <Pressable
             ref={refPastille}
@@ -286,6 +287,9 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[15px] text-white">{nomAuteur}</Text>
             <Ionicons name="chevron-up" size={18} color="#FFFFFF" />
           </Pressable>
+          {/* Fiche réduite (pour tout le fil) : le message sanitaire reste à l'écran avec la pastille */}
+          {alcool ? <MentionPrevention variante="sur-image" /> : null}
+          </View>
         </Animated.View>
       </View>
 

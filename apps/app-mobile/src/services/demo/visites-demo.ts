@@ -86,7 +86,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
             lieuId,
             validationActive: validationLieuxExemples[lieuId]?.validationActive ?? false,
             reservable: lieu.reservable,
-            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: estRecompenseAlcool(programme, recompense) } : null,
+            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: estRecompenseAlcool(programme, client?.majeur ?? false) } : null,
             carte: client ? convertirCarteDemo(m, lieuId, client) : null,
             enCoursIci: enCours ? convertirVisiteDemo(enCours, lieu) : null,
             pratique: m.infosPratiques?.[lieuId] ?? null,

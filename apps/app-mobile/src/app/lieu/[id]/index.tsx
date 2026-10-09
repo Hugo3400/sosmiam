@@ -13,11 +13,13 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { BlocVisiteLieu } from "~/composants/lieux/BlocVisiteLieu";
 import { EnTeteFicheLieu } from "~/composants/lieux/EnTeteFicheLieu";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
+import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { lireMiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -27,7 +29,7 @@ import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
-/** La feuille « Envoyer à un pote » : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
+/** Une feuille (« Envoyer à un pote », « Miam Safe ») : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
 
 /**
@@ -58,6 +60,15 @@ export default function FicheLieu() {
     if (exiger("envoyer")) setEnvoi("ouvert");
   }, [exiger]);
   const fermerEnvoi = useCallback(() => setEnvoi("ferme"), []);
+  // Miam Safe s'ouvre même sans compte : les secours restent toujours accessibles
+  const [miamSafe, setMiamSafe] = useState<EtatEnvoi>("jamais");
+  const ouvrirMiamSafe = useCallback(() => setMiamSafe("ouvert"), []);
+  const fermerMiamSafe = useCallback(() => setMiamSafe("ferme"), []);
+  // iOS n'ouvre pas une fenêtre pendant qu'une autre se referme : on laisse la feuille descendre d'abord
+  const apresFeuille = useCallback((suite: () => void) => {
+    setMiamSafe("ferme");
+    setTimeout(suite, 450);
+  }, []);
   const retour = useCallback(() => router.back(), [router]);
   const age = useMemo(() => (profil ? calculerAge(profil.dateNaissance) : null), [profil]);
   const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
@@ -104,7 +115,14 @@ export default function FicheLieu() {
       {focus ? <StatusBar style="light" /> : null}
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
-        <EnTeteFicheLieu lieu={lieu} km={calculerKmLieu(lieu, depart)} margeHaut={marges.top} onEnvoyer={ouvrirEnvoi} onAnnoncer={annoncer} />
+        <EnTeteFicheLieu
+          lieu={lieu}
+          km={calculerKmLieu(lieu, depart)}
+          margeHaut={marges.top}
+          onEnvoyer={ouvrirEnvoi}
+          onMiamSafe={ouvrirMiamSafe}
+          onAnnoncer={annoncer}
+        />
         {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
         {/* Sans compte SOS Miam, pas de visite validée : la fiche dit pourquoi (CarteLieuNonVerifie, dans le haut) */}
         {verifie ? <BlocVisiteLieu lieu={lieu} /> : null}
@@ -158,6 +176,17 @@ export default function FicheLieu() {
 
       {/* Préparée seulement au premier « Envoyer à un pote » : rien de plus à dessiner à l'arrivée sur la fiche */}
       {envoi !== "jamais" ? <EnvoyerAPote visible={envoi === "ouvert"} lieuId={lieu.id} onFermer={fermerEnvoi} /> : null}
+      {miamSafe !== "jamais" ? (
+        <FeuilleMiamSafe
+          visible={miamSafe === "ouvert"}
+          nomLieu={lieu.nom}
+          engage={lireMiamSafeLieu(lieu.id).engage}
+          avecCompte={avecCompte}
+          onFermer={fermerMiamSafe}
+          onMontrerEcran={() => apresFeuille(() => router.push("/miam-safe/comptoir"))}
+          onCreerCompte={() => apresFeuille(() => exiger("miam-safe"))}
+        />
+      ) : null}
       <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
     </View>
   );

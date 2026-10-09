@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
+import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
@@ -12,9 +13,13 @@ type Props = {
 /** Une carte de fidélité en petit, pour le carrousel de l'onglet Scan : le lieu, ses tampons, et la récompense quand elle est prête. */
 export function MiniCarteFidelite({ carte, onPress }: Props) {
   const prete = carte.pretes.length > 0;
-  const libelle = prete
-    ? `Carte de fidélité ${carte.lieu.nom} : ${carte.recompense} t'attend !`
-    : `Carte de fidélité ${carte.lieu.nom} : ${carte.tampons} tampon${carte.tampons > 1 ? "s" : ""} sur ${carte.sur}, pour ${carte.recompense}`;
+  // Une récompense prête garde l'alcool de son gain ; sinon, celle vers laquelle on avance
+  const alcool = prete ? carte.pretes[0].alcool === true : carte.recompenseAlcool;
+  const libelle = `${
+    prete
+      ? `Carte de fidélité ${carte.lieu.nom} : ${carte.recompense} t'attend !`
+      : `Carte de fidélité ${carte.lieu.nom} : ${carte.tampons} tampon${carte.tampons > 1 ? "s" : ""} sur ${carte.sur}, pour ${carte.recompense}`
+  }${alcool ? ` ${MESSAGE_SANITAIRE_ALCOOL}` : ""}`;
 
   return (
     <Pressable
@@ -43,7 +48,7 @@ export function MiniCarteFidelite({ carte, onPress }: Props) {
       <Text numberOfLines={2} className="font-texte-semi text-[13px] leading-[18px] text-encre">
         {prete ? `🎁 ${carte.recompense} t'attend !` : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
       </Text>
-      {carte.recompenseAlcool ? <MentionPrevention variante="courte" /> : null}
+      {alcool ? <MentionPrevention variante="courte" /> : null}
     </Pressable>
   );
 }

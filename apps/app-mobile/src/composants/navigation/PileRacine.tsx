@@ -52,6 +52,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="fidelite" />
           <Stack.Screen name="reservations" />
           <Stack.Screen name="avis/[visiteId]" />
+          {/* Miam Safe : l'écran discret à montrer au comptoir */}
+          <Stack.Screen name="miam-safe/comptoir" options={{ presentation: "fullScreenModal", animation: "fade" }} />
         </Stack.Protected>
         {/* Modes : pas de geste de retour, on en sort par « Revenir à mon SOS Miam » */}
         <Stack.Protected guard={inscrit && modes.modesOuverts.includes("pro")}>

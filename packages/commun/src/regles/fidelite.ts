@@ -24,4 +24,5 @@ export const MOTS_ALCOOL: readonly string[] = [
   "vin", "vins", "biere", "bieres", "pinte", "spritz", "apero", "aperitif", "cocktail", "cocktails", "shot", "shots",
   "picpoul", "muscat", "champagne", "cremant", "prosecco", "cidre", "pastis", "ricard", "rhum", "whisky", "vodka", "gin",
   "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "porto", "martini",
+  "cognac", "armagnac", "calvados", "caipirinha", "margarita", "ipa",
 ];

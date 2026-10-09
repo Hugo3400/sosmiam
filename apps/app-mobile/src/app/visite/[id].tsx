@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { DELAI_ANNULATION_LIEU_MS } from "@sos-miam/commun/regles/visites";
+import { QuestionSentiBien } from "~/composants/miam-safe/QuestionSentiBien";
 import { CarteAttenteAddition } from "~/composants/visites/CarteAttenteAddition";
 import { CelebrationVisite } from "~/composants/visites/CelebrationVisite";
 import { EtatVisiteTerminee } from "~/composants/visites/EtatVisiteTerminee";
@@ -121,12 +122,14 @@ export default function EcranVisite() {
     contenu = <CelebrationVisite resultat={fete.deja ? { ...resultat, dejaValidee: true } : resultat} onFermer={fermer} />;
   } else {
     contenu = (
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-2">
+      <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-2">
         {visite.statut === "demandee" ? (
           <CarteAttenteAddition visite={visite} prenom={signature} avatar={emoji} refTitre={refTitre} />
         ) : (
           <EtatVisiteTerminee resultat={resultat} lieu={lieu} refTitre={refTitre} onContester={() => setContestation(true)} />
         )}
+        {/* Miam Safe : après une visite validée, « Tu t'es senti·e bien ici ? » */}
+        {visite.statut === "validee" ? <QuestionSentiBien nomLieu={visite.lieu.nom} /> : null}
       </ScrollView>
     );
   }

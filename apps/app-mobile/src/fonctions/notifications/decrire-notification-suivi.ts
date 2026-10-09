@@ -3,12 +3,14 @@ import type { Href } from "expo-router";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import type { Publication } from "~/contenus/type-publication";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 /** Ce qu'une ligne de notification affiche : un emoji (avatar, 🎬, emoji du lieu, 🎂), une phrase, et ce qu'elle ouvre */
-export type NotificationDecrite = { emoji: string; texte: string; ouvrir: Href | null };
+/** alcool : la notification cite une publication de bar ou qui parle d'alcool (le message sanitaire s'affiche dessous) */
+export type NotificationDecrite = { emoji: string; texte: string; ouvrir: Href | null; alcool?: boolean };
 
 type Sources = {
   trouverPote: (id: string) => Pote | null;
@@ -63,15 +65,17 @@ export function decrireNotificationSuivi(n: NotificationSuivi, { trouverPote, pu
   const lieu = lieux.find((l) => l.id === publication.lieuId);
   if (!lieu) return null;
   const extrait = couperLegende(publication.legende);
+  const alcool = lieu.type === "bar" || parleDAlcool(publication.legende);
   if (cible.type === "createur") {
     return {
       emoji: "🎬",
       texte: lierPonctuation(`@${cible.pseudo} a posté : « ${extrait} »`),
       ouvrir: { pathname: "/createur/[pseudo]", params: { pseudo: cible.pseudo } },
+      alcool,
     };
   }
   if (cible.type === "lieu" && cible.id === lieu.id) {
-    return { emoji: lieu.emoji, texte: lierPonctuation(`${lieu.nom} a posté : « ${extrait} »`), ouvrir: { pathname: "/lieu/[id]", params: { id: String(lieu.id) } } };
+    return { emoji: lieu.emoji, texte: lierPonctuation(`${lieu.nom} a posté : « ${extrait} »`), ouvrir: { pathname: "/lieu/[id]", params: { id: String(lieu.id) } }, alcool };
   }
   return null;
 }

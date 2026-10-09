@@ -46,6 +46,11 @@ model Lieu {
   paiements    String[]             @default([])
   /// Réservation : « inutile », « conseillee » ou « obligatoire »
   reservation  String?              @db.VarChar(12)
+  /// La carte du lieu (plats, boissons, formules), au format CarteLieu de packages/commun (types/carte.ts), vérifiée par
+  /// validerCarteDuLieu ; null : pas de carte. Remplie par le gérant (espace pro du site, mode pro de l'app).
+  carte        Json?
+  /// Dernière mise à jour de la carte, posée par l'API
+  carteMajLe   DateTime?            @map("carte_maj_le") @db.Timestamptz(0)
   /// Prénom de la personne qui l'a fait découvrir
   decouvertPar String?              @map("decouvert_par") @db.VarChar(40)
   /// « brouillon », « publie » ou « masque »

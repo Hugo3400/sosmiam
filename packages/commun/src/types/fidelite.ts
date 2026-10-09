@@ -17,7 +17,8 @@ export type ProgrammeFidelite = ReglageFidelite & { lieuId: number; modifieLe: s
 export type ProgrammeFidelitePublic = { visitesRequises: number; recompense: string; recompenseAlcool: boolean };
 
 /** Récompense gagnée, figée au moment où la carte s'est remplie */
-export type RecompensePrete = { id: number; libelle: string; gagneeLe: string };
+/** alcool : la récompense gagnée est la version avec alcool (figé au moment du gain ; absent = sans alcool) */
+export type RecompensePrete = { id: number; libelle: string; gagneeLe: string; alcool?: boolean };
 
 export type DemandeRecompense = { id: number; recompenseId: number; code: string; creeLe: string; expireLe: string };
 
