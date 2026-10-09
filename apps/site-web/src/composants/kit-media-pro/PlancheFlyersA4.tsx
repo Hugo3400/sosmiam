@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { couleursMarque as c } from "~/composants/marque/couleurs-marque";
 import { formatsImpression } from "~/contenus/kit-media-pro";
 
 const { largeur, hauteur } = formatsImpression.A4;
@@ -23,11 +24,13 @@ export function PlancheFlyersA4({ children }: { children: ReactNode }) {
   const lignes = [haut, haut + bloc.hauteur / 2, haut + bloc.hauteur];
   return (
     <div className="relative bg-white" style={{ width: largeur, height: hauteur }}>
-      <div className="absolute grid grid-cols-2" style={{ left: gauche, top: haut, zoom: REDUCTION }}>
-        {[0, 1, 2, 3].map((n) => <div key={n}>{children}</div>)}
+      <div className="absolute" style={{ left: gauche, top: haut }}>
+        <div className="grid grid-cols-2" style={{ zoom: REDUCTION }}>
+          {[0, 1, 2, 3].map((n) => <div key={n}>{children}</div>)}
+        </div>
       </div>
       <svg className="absolute inset-0" width={largeur} height={hauteur} aria-hidden="true">
-        <g stroke="#1A1A1A" strokeWidth="3">
+        <g stroke={c.encre} strokeWidth="3">
           {colonnes.map((x) => (
             <g key={`c${x}`}>
               <line x1={x} x2={x} y1={haut - ECART_TRAIT - LONGUEUR_TRAIT} y2={haut - ECART_TRAIT} />

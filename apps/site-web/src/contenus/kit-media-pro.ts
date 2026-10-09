@@ -128,7 +128,7 @@ export const texteFlyerVerso = {
   titre: "Inscris ton lieu",
   titreFin: "en 3 étapes.",
   etapes: [
-    "Scanne le QR code, ou va sur sosmiam.fr/inscrire-mon-lieu.",
+    "Scanne le QR code, ou tape l'adresse écrite juste en dessous.",
     "Présente ton lieu en quelques mots : son nom, sa ville, ce qui le rend unique.",
     "On lit ta demande, on crée ta fiche et on t'écrit.",
   ],

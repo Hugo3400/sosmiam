@@ -67,7 +67,7 @@ export async function exporterDonneesCompte(id: number) {
     where: { id },
     select: {
       id: true, email: true, emailVerifieLe: true, prenom: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
-      ambassadeur: { select: { statut: true, ville: true, quartier: true, noteEquipe: true, decideLe: true, creeLe: true } },
+      ambassadeur: { select: { statut: true, ville: true, quartier: true, noteEquipe: true, decideLe: true, creeLe: true, certifieLe: true, profilCertifie: true, structure: true } },
       sessions: { select: { support: true, creeLe: true, activite: true } },
       badges: { select: { badge: true, obtenuLe: true } },
       journalPoints: { select: { points: true, raison: true, detail: true, creeLe: true }, orderBy: { creeLe: "asc" } },
@@ -75,6 +75,8 @@ export async function exporterDonneesCompte(id: number) {
       demandesLieux: { select: { nom: true, ville: true, adresse: true, description: true, statut: true, creeLe: true } },
       missions: { select: { titre: true, detail: true, echeance: true, statut: true, compteRendu: true, creeLe: true, faiteLe: true } },
       messages: { select: { titre: true, texte: true, creeLe: true } },
+      candidaturesCertification: { select: { profil: true, structure: true, communeCode: true, aide: true, envies: true, engagementGratuit: true, statut: true, creeLe: true, reponduLe: true } },
+      suggestionsLieux: { select: { lieuId: true, source: true, proposition: true, message: true, statut: true, reponse: true, creeLe: true, decideLe: true } },
       lectures: { select: { messageId: true, luLe: true } },
     },
   });

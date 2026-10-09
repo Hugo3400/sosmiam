@@ -34,7 +34,7 @@ export async function listerAmbassadeurs({ statut, palier, recherche, ville }: F
       take: 300,
       select: {
         id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
-        ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
+        ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true, certifieLe: true } },
         _count: { select: { badges: true, demandesLieux: true } },
       },
     }),
@@ -61,6 +61,7 @@ export async function lireAmbassadeur(id: number) {
       demandesLieux: { orderBy: { creeLe: "desc" }, take: 30, select: { id: true, nom: true, ville: true, statut: true, creeLe: true, lieuId: true } },
       missions: { orderBy: { creeLe: "desc" }, take: 30, include: { lieu: { select: { id: true, nom: true, emoji: true } } } },
       messages: { orderBy: { creeLe: "desc" }, take: 30 },
+      candidaturesCertification: { orderBy: { creeLe: "desc" } },
       _count: { select: { sessions: true } },
     },
   });
@@ -82,7 +83,8 @@ export async function deciderAmbassadeur(id: number, statut: StatutAmbassadeur, 
 
 /**
  * Retire le rôle d'ambassadeur (la personne arrête, ou l'équipe le décide) : sa fiche d'ambassadeur, ses missions,
- * ses messages personnels et ses candidatures fondateur partent ; le compte, l'app, ses points et ses badges restent.
+ * ses messages personnels et ses candidatures (fondateur, certifié) partent, et avec sa fiche son titre de certifié ; le
+ * compte, l'app, ses points et ses badges restent.
  */
 export async function retirerDuProgramme(id: number) {
   const ambassadeur = await baseDeDonnees.ambassadeur.findUnique({ where: { compteId: id }, select: { compte: { select: { prenom: true } } } });
@@ -91,6 +93,7 @@ export async function retirerDuProgramme(id: number) {
     baseDeDonnees.missionAmbassadeur.deleteMany({ where: { compteId: id } }),
     baseDeDonnees.messageAmbassadeur.deleteMany({ where: { compteId: id } }),
     baseDeDonnees.candidatureFondateur.deleteMany({ where: { compteId: id } }),
+    baseDeDonnees.candidatureCertification.deleteMany({ where: { compteId: id } }),
     baseDeDonnees.ambassadeur.delete({ where: { compteId: id } }),
   ]);
   return { prenom: ambassadeur.compte.prenom };

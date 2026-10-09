@@ -17,13 +17,17 @@ export function utiliserQrTournant(lieuId: number | null): EtatUtiliserComptoir 
 
   // Écran allumé tant que le QR est affiché (sur le web, le navigateur peut refuser : sans gravité)
   useEffect(() => {
-    activateKeepAwakeAsync(ETIQUETTE_EVEIL).catch(() => {});
+    // On n'éteint qu'une fois l'allumage fini (quitter l'écran tout de suite ne doit pas lever d'erreur)
+    let allume = false;
+    const allumage = activateKeepAwakeAsync(ETIQUETTE_EVEIL)
+      .then(() => {
+        allume = true;
+      })
+      .catch(() => {});
     return () => {
-      try {
-        deactivateKeepAwake(ETIQUETTE_EVEIL);
-      } catch {
-        // Rien à éteindre
-      }
+      allumage.then(() => {
+        if (allume) Promise.resolve(deactivateKeepAwake(ETIQUETTE_EVEIL)).catch(() => {});
+      });
     };
   }, []);
 

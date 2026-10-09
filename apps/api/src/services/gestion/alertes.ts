@@ -1,13 +1,14 @@
 // Ce que le logiciel de gestion surveille chaque minute, en une petite demande : de quoi mettre des pastilles dans le
 // menu et prévenir par une notification Windows quand quelque chose arrive (signalement grave, inscription
-// d'ambassadeur, demande de lieu, contestation, compte rendu de mission, BIG SOS qui démarre bientôt).
+// d'ambassadeur, demande de lieu, modification de fiche proposée, candidature, compte rendu de mission, BIG SOS qui
+// démarre bientôt).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
 
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -22,11 +23,14 @@ export async function lireAlertes(maintenant = new Date()) {
       where: { statut: "valide", debutLe: { gt: maintenant, lte: new Date(maintenant.getTime() + UN_JOUR) } },
       select: { id: true, debutLe: true, lieu: { select: { nom: true } } },
     }),
+    baseDeDonnees.suggestionLieu.count({ where: { statut: "en-attente" } }),
+    baseDeDonnees.candidatureCertification.count({ where: { statut: "en-attente" } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
     demandes: { aTraiter: demandes },
-    ambassadeurs: { enAttente, candidatures },
+    lieux: { suggestions },
+    ambassadeurs: { enAttente, candidatures, certifications },
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };
