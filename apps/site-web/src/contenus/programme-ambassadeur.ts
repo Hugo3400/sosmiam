@@ -1,7 +1,9 @@
 // Page /programme (https://ambassadeur.sosmiam.fr/programme) : le programme Ambassadeurs expliqué avec des mots simples.
 // Seules promesses permises (docs/decisions.md, « Espace ambassadeur ») : badges de palier, « Déniché par toi », points,
-// et pour les 10 fondateurs la carte numérotée, l'autocollant « Déniché par » à leur prénom, les badges et l'app en
-// avant-première. Aucune ville citée : le lancement se fait partout en France. L'app n'est pas encore sortie.
+// et pour les fondateurs de chaque ville (docs/decisions.md, « Fondateurs par ville ») la carte numérotée (numérique, puis
+// une vraie carte « plus tard », sans date), l'autocollant « Déniché par » à leur prénom, les badges, l'app en avant-première
+// et une visio d'environ 30 minutes. Aucune ville citée comme lieu de lancement : tout ouvre en même temps, partout en France.
+// L'app n'est pas encore sortie.
 // Barème des points : le même que docs/decisions.md et packages/commun/src/regles/ambassadeurs.ts (à garder en phase).
 import type { QuestionFaq } from "~/contenus/faq/type-faq";
 
@@ -68,18 +70,43 @@ export const noteAppProgramme =
 
 /** Comment ça marche : du compte à l'espace. */
 export const etapesProgramme = [
-  { titre: "Tu crées ton compte", texte: "Avec ton e-mail et un mot de passe. Il faut avoir 18 ans ou plus." },
+  {
+    titre: "Tu crées ton compte",
+    texte: "Avec ton e-mail et un mot de passe, dès 18 ans. Puis tu cliques sur le lien reçu par mail, pour confirmer que l'adresse est bien la tienne.",
+  },
   { titre: "L'équipe valide", texte: "On lit chaque inscription nous-mêmes, sans robot. Ça peut prendre un peu de temps : ton espace te dit où ça en est." },
   { titre: "Ton espace s'ouvre", texte: "Des images et des textes à poster, des lieux à proposer, les missions et les messages de l'équipe, et ta candidature pour devenir fondateur." },
 ];
 
-/** Ce que reçoivent les 10 ambassadeurs fondateurs. */
+/** Ce que reçoivent les fondateurs, dans chaque ville (la vraie carte : « plus tard », ni date ni coût décidés). */
 export const cadeauxFondateurs = [
-  { emoji: "🔢", texte: "Une carte de fondateur numérotée, de 1 à 10." },
+  {
+    emoji: "🔢",
+    texte: "Une carte numérotée « Fondateur n°\u00a03 de Lyon · n°\u00a0147 en France » : à télécharger et à partager tout de suite, et une vraie carte envoyée plus tard.",
+  },
   { emoji: "🏷️", texte: "Ton prénom en vitrine, sur un autocollant « Déniché par »." },
   { emoji: "🎖️", texte: "Des badges de fondateur." },
   { emoji: "📱", texte: "L'app en avant-première, en lien direct avec l'équipe." },
 ];
+
+/** Pour faire connaissance (remplace « 20 minutes, autour d'un café ou en visio »). */
+export const rencontreFondateurs =
+  "Pour faire connaissance : une visio d'environ 30 minutes avec les fondateurs de ta ville (de ta région si tu es fondateur de ton département), et un tête-à-tête si besoin.";
+
+/**
+ * Places de fondateur selon la population de la ville (population municipale INSEE). Les communes de moins de 50 000
+ * habitants partagent 1 place par département, et chaque collectivité d'outre-mer a la sienne : 367 places en tout.
+ */
+export const placesFondateurs = [
+  { taille: "Plus de 500\u00a0000 habitants", places: 10, villes: "Paris, Marseille, Lyon, Toulouse" },
+  { taille: "De 200\u00a0000 à 500\u00a0000 habitants", places: 5, villes: "Nice, Nantes, Montpellier, Strasbourg, Bordeaux, Lille, Rennes" },
+  { taille: "De 100\u00a0000 à 200\u00a0000 habitants", places: 3, villes: "31 villes, de Toulon à Nancy" },
+  { taille: "De 50\u00a0000 à 100\u00a0000 habitants", places: 1, villes: "93 villes, d'Avignon à Bondy" },
+  { taille: "Moins de 50\u00a0000 habitants", places: 1, villes: "1 place par département, partagée par ses communes, et 1 par collectivité d'outre-mer" },
+];
+
+/** Nombre total de places de fondateur en France (docs/decisions.md, « Fondateurs par ville »). */
+export const totalPlacesFondateurs = 367;
 
 /** Questions de la page : réponses courtes, sans rien promettre de plus. */
 export const questionsProgramme: QuestionFaq[] = [
@@ -104,6 +131,27 @@ export const questionsProgramme: QuestionFaq[] = [
     id: "question-ou",
     question: "C'est où ?",
     reponse: ["Partout en France. Là où tu vis, il y a forcément une pépite à faire connaître."],
+  },
+  {
+    id: "question-ville-fondateur",
+    question: "Je candidate pour quelle ville ?",
+    reponse: [
+      "Pour la ville où tu vis. Si ta commune a moins de 50\u00a0000 habitants, tu candidates pour ton département (ou ta collectivité d'outre-mer). Ensuite, c'est l'équipe qui choisit.",
+    ],
+  },
+  {
+    id: "question-ville-complete",
+    question: "Et si ma ville est déjà au complet ?",
+    reponse: [
+      "La candidature s'y ferme toute seule, et rouvre dès qu'une place se libère. Il n'y a pas de liste d'attente : jette un œil de temps en temps depuis ton espace.",
+    ],
+  },
+  {
+    id: "question-demenagement",
+    question: "Et si je déménage ?",
+    reponse: [
+      "Tu gardes ton titre de fondateur en souvenir, mais ta place dans ton ancienne ville se libère pour quelqu'un d'autre. Ton numéro, lui, n'est jamais redonné : il reste le tien.",
+    ],
   },
   {
     id: "question-pas-fondateur",

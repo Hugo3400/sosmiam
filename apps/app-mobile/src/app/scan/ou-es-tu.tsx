@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { RAYON_LIEUX_PROCHES_M } from "@sos-miam/commun/regles/visites";
@@ -21,6 +20,8 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { trierLieuxProches } from "~/fonctions/visites/trier-lieux-proches";
+import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
@@ -48,7 +49,6 @@ function chercher(lieux: readonly Lieu[], recherche: string): Lieu[] {
  * 15-17 ans. Chaque lieu a son bouton « Demander l'addition ici ».
  */
 export default function TuEsChezQui() {
-  const router = useRouter();
   const navigation = useNavigation();
   const services = utiliserServices();
   const { reglages } = utiliserReglagesDemo();
@@ -62,9 +62,10 @@ export default function TuEsChezQui() {
   const [lecture, setLecture] = useState<Lecture>({ etat: "attente" });
   const [recherche, setRecherche] = useState("");
 
-  // Premier écran de la pile du Scan : on le ferme ; ouvert depuis le scanner : on y revient
+  // Premier écran de la pile du Scan : on la referme entière ; ouvert depuis le scanner : on y revient
   const premier = (navigation.getState()?.index ?? 0) === 0;
-  const fermer = () => (router.canGoBack() ? router.back() : router.replace("/scan"));
+  const fermer = utiliserFermerPile("/scan");
+  const marges = utiliserMargesPleinEcran();
 
   useEffect(() => {
     let actif = true;
@@ -114,7 +115,8 @@ export default function TuEsChezQui() {
   actionsEchec.push({ libelle: "Réessayer", variante: actionsEchec.length > 0 ? "blanc" : "jaune", onPress: () => void lirePosition() });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
+    // Plein écran par-dessus les onglets : les marges viennent de utiliserMargesPleinEcran (jamais sous l'heure ni l'encoche)
+    <View style={{ flex: 1, backgroundColor: couleurs.creme, paddingTop: marges.top, paddingBottom: marges.bottom }}>
       <StatusBar style="dark" />
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
@@ -122,7 +124,7 @@ export default function TuEsChezQui() {
           accessibilityLabel={premier ? "Fermer" : "Retour"}
           hitSlop={12}
           onPress={fermer}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
         >
           <Ionicons name={premier ? "close" : "arrow-back"} size={20} color={couleurs.encre} />
         </Pressable>
@@ -245,6 +247,6 @@ export default function TuEsChezQui() {
         )}
       </ScrollView>
       <FeuillePositionVisite {...position.propsFeuille} />
-    </SafeAreaView>
+    </View>
   );
 }

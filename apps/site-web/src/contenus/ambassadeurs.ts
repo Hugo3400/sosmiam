@@ -1,7 +1,8 @@
 // Programme Ambassadeurs (voir docs/decisions.md, « Programme Ambassadeurs » et « Espace ambassadeur »). On n'annonce que
-// ce qui est décidé : badges de palier, « Déniché par toi », points, et pour les 10 fondateurs la carte numérotée,
-// l'autocollant « Déniché par » à leur prénom, les badges et l'app en avant-première (onglet « Recrutement ambassadeurs »
-// du document de Hugo du 7 octobre 2026). Ni avantage chez les commerçants, ni événement, ni groupe, ni rémunération.
+// ce qui est décidé : badges de palier, « Déniché par toi », points, et pour les fondateurs de chaque ville (367 places en
+// France, docs/decisions.md, « Fondateurs par ville ») la carte numérotée, l'autocollant « Déniché par » à leur prénom, les
+// badges, l'app en avant-première et une visio d'environ 30 minutes. Ni avantage chez les commerçants, ni événement, ni
+// groupe, ni rémunération.
 // Repris par l'accueil (DevenirAmbassadeur), la page /programme et la carte du palier de l'espace (CartePalier).
 import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
 
@@ -33,5 +34,5 @@ export const avantagesAmbassadeurs = [
   { fort: "Un badge", suite: "à chaque niveau passé." },
   { fort: "« Déniché par toi » :", suite: "ton prénom sur la fiche des lieux que tu fais entrer." },
   { fort: "Des points", suite: "pour grimper les niveaux." },
-  { fort: "Pour les 10 fondateurs :", suite: "une carte numérotée, ton prénom en vitrine et l'app en avant-première." },
+  { fort: "Pour les fondateurs de chaque ville :", suite: "une carte numérotée, ton prénom en vitrine et l'app en avant-première." },
 ];

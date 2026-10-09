@@ -54,11 +54,11 @@ export function DevenirAmbassadeur() {
 
       <div className="mt-10 flex flex-wrap items-center justify-center gap-5 text-center">
         <Ecusson ruban="FONDATEUR" className="h-24 w-24 -rotate-6" />
-        <p className="text-lg"><strong>On lance avec 10 ambassadeurs fondateurs</strong>.</p>
+        <p className="text-lg"><strong>Des fondateurs dans chaque ville</strong>{lierPonctuation(" : 367 places, partout en France.")}</p>
         <Bouton href={adresseEspaceAmbassadeur} variante="encre">Je deviens ambassadeur</Bouton>
       </div>
       <p className="mt-5 text-center text-[.95rem]">
-        {lierPonctuation("Dès 18 ans, sur ambassadeur.sosmiam.fr : crée ton compte, l'équipe le valide, et tu pourras candidater pour être fondateur, tant qu'il reste des places.")}
+        {lierPonctuation("Dès 18 ans, sur ambassadeur.sosmiam.fr : crée ton compte, l'équipe le valide, et tu pourras candidater pour être fondateur de ta ville (ou de ton département), tant qu'il y reste des places.")}
       </p>
     </Section>
   );

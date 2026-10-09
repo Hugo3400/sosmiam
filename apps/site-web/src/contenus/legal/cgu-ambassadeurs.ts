@@ -1,6 +1,6 @@
 // Conditions d'utilisation, section « Le programme Ambassadeurs », reprise par cgu.ts. Son id « ambassadeurs » ne doit pas
 // changer : la case à cocher de /inscription y renvoie (https://sosmiam.fr/cgu#ambassadeurs).
-// Décisions : docs/decisions.md, « Espace ambassadeur ». Influence commerciale : loi n° 2023-451 du 9 juin 2023.
+// Décisions : docs/decisions.md, « Espace ambassadeur » et « Fondateurs par ville ». Influence commerciale : loi n° 2023-451 du 9 juin 2023.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { site } from "~/contenus/legal/informations-legales";
 import type { SectionLegale } from "~/contenus/legal/type-legal";
@@ -16,7 +16,7 @@ export const sectionAmbassadeursCgu: SectionLegale = {
     {
       liste: [
         "**Dès 18 ans.** Ta date de naissance sert seulement à le vérifier à l'inscription : elle n'est pas gardée. Mentir sur ton âge est interdit ; si on apprend qu'un compte appartient à quelqu'un de moins de 18 ans, on le supprime.",
-        `**Un seul compte par personne**, avec des informations exactes. Ton prénom ou ton surnom peut s'afficher sur la fiche d'un lieu que tu as fait découvrir (« Déniché par… ») : choisis-en un que tu veux bien montrer. Garde ton mot de passe pour toi, et préviens-nous vite à ${lienContact} si quelqu'un d'autre utilise ton compte.`,
+        `**Un seul compte par personne**, avec des informations exactes et une adresse e-mail à toi : tu la confirmes en cliquant sur le lien reçu par mail à l'inscription. Ton prénom ou ton surnom peut s'afficher sur la fiche d'un lieu que tu as fait découvrir (« Déniché par… ») : choisis-en un que tu veux bien montrer. Garde ton mot de passe pour toi, et préviens-nous vite à ${lienContact} si quelqu'un d'autre utilise ton compte.`,
         "**Chaque inscription est validée par l'équipe**, à la main. L'équipe peut refuser une inscription sans avoir à en donner la raison. Tant que ton compte n'est pas validé, tu peux seulement voir où en est ton inscription et gérer ton compte.",
         "**Un programme de passionnés, pas un emploi** : pas de rémunération, ni horaires, ni objectifs. Tu participes quand tu veux, autant que tu veux, et tu peux arrêter à tout moment.",
         "**Jamais payé par un lieu que tu mets en avant.** Si un lieu t'offre quelque chose (un repas, un cadeau…), tu l'indiques clairement dans ce que tu publies, avec la mention « Collaboration commerciale », comme l'exige la loi n° 2023-451 du 9 juin 2023 sur l'influence commerciale.",
@@ -24,7 +24,7 @@ export const sectionAmbassadeursCgu: SectionLegale = {
         "**Le kit média** (logos, mascotte, badges, visuels et textes à partager) est réservé aux ambassadeurs validés. On t'accorde le droit de l'utiliser gratuitement, pour toi seul et sans but commercial, uniquement pour parler de SOS Miam, en suivant ses règles (par exemple, ne pas déformer ni recolorer le logo). Ce droit prend fin dès que tu n'es plus ambassadeur validé : compte supprimé, suspendu ou refusé, ou rôle d'ambassadeur retiré (que tu quittes le programme, qu'on t'en retire, ou après 1 an sans visite).",
         `**En cas d'abus** (fausses informations, faux lieux, collaboration commerciale cachée, kit média mal utilisé, propos blessants, se faire passer pour SOS Miam…), l'équipe peut suspendre ton compte. Un compte suspendu peut encore se connecter, voir son statut, corriger ses infos, changer son mot de passe et se supprimer, mais plus rien d'autre. Si tu penses qu'il y a une erreur, écris-nous à ${lienContact}.`,
         `**Supprimer ton compte** : à tout moment, depuis « Mon compte » dans ton espace (ton mot de passe t'est demandé), ou en nous écrivant à ${lienContact} depuis l'adresse de ton compte. Après 1 an sans aucune visite dans l'espace, le rôle d'ambassadeur est retiré ; après 2 ans sans connexion, le compte est effacé (un mail prévient un mois avant) ; un compte refusé est effacé 30 jours après le refus : tout est détaillé dans la [politique de confidentialité](/confidentialite#compte-ambassadeur).`,
-        "**Les 10 fondateurs** : une fois ton compte validé, tu peux candidater depuis ton espace, tant qu'il reste des places. Il n'y en a que 10 : une candidature peut ne pas être retenue, et tu restes alors ambassadeur, comme avant.",
+        "**Les fondateurs** : une fois ton compte validé, tu peux candidater depuis ton espace pour la ville où tu vis, ou pour ton département (ou ta collectivité d'outre-mer) si ta commune a moins de 50 000 habitants. Chaque ville et chaque département n'a que quelques places : l'équipe choisit, une candidature peut ne pas être retenue, et tu restes alors ambassadeur, comme avant. Quand toutes les places d'une ville ou d'un département sont prises, la candidature s'y ferme, et rouvre si une place se libère. Si tu déménages, tu gardes ton titre de fondateur en souvenir, mais ta place se libère ; ton numéro de fondateur n'est jamais redonné à quelqu'un d'autre.",
         "**Points et badges** : comme dans l'app, ils n'ont aucune valeur en argent (voir « Rescousses, visites et badges »).",
       ],
     },

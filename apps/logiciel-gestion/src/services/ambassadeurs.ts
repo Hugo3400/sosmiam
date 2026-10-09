@@ -1,4 +1,5 @@
 import { appeler, parametres } from "./client-gestion.ts";
+import type { Candidature } from "./fondateurs.ts";
 
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
 export type Palier = "curieux" | "denicheur" | "ambassadeur-quartier" | "ambassadeur-ville";
@@ -7,6 +8,8 @@ export type ResumeAmbassadeur = {
   id: number;
   prenom: string;
   email: string;
+  /** Adresse confirmée par le lien reçu à l'inscription (null : pas encore) */
+  emailVerifieLe: string | null;
   points: number;
   palier: Palier;
   creeLe: string;
@@ -44,21 +47,6 @@ export type MessageAmbassadeurs = {
   _count: { lectures: number };
   destinataires: number;
 };
-export type Candidature = {
-  id: number;
-  compteId: number;
-  pepites: string;
-  envies: string;
-  reseaux: string | null;
-  motivation: string;
-  partantRencontre: boolean;
-  connuPar: string | null;
-  statut: "en-attente" | "acceptee" | "refusee";
-  numero: number | null;
-  creeLe: string;
-  reponduLe: string | null;
-  compte?: { id: number; prenom: string; email: string; points: number; palier: Palier; ambassadeur: { ville: string; quartier: string | null; statut: StatutAmbassadeur } | null };
-};
 export type FicheAmbassadeur = Omit<ResumeAmbassadeur, "_count" | "bientotRetire" | "ambassadeur"> & {
   cguVersion: string;
   ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; noteEquipe: string | null; decideLe: string | null; creeLe: string } | null;
@@ -95,10 +83,6 @@ export const supprimerCompteAmbassadeur = (id: number) => appeler<{ ok: true }>(
 export const exporterAmbassadeurs = () => appeler<string>("GET", "/ambassadeurs/export", { reponse: "texte" });
 export const lireClassement = () => appeler<Classement>("GET", "/ambassadeurs/classement");
 export const lireCouverture = () => appeler<Couverture>("GET", "/ambassadeurs/couverture");
-
-export const listerCandidatures = (statut: string) => appeler<Candidature[]>("GET", `/candidatures${parametres({ statut })}`);
-export const accepterCandidature = (id: number) => appeler<{ ok: true; numero: number }>("POST", `/candidatures/${id}/accepter`, { corps: {} });
-export const refuserCandidature = (id: number) => appeler<{ ok: true }>("POST", `/candidatures/${id}/refuser`, { corps: {} });
 
 export const listerMissions = (statut: string) => appeler<Mission[]>("GET", `/missions${parametres({ statut })}`);
 export const creerMission = (mission: { compteId: number; titre: string; detail: string; lieuId: number | null; echeance: string | null }) =>

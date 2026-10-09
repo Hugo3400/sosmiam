@@ -26,10 +26,19 @@ export const questionsAmbassadeurs: QuestionFaq[] = [
     id: "faq-fondateurs",
     question: "C'est quoi, un ambassadeur fondateur ?",
     reponse: [
-      "L'un des 10 premiers ambassadeurs, qui lancent SOS Miam avec nous. Ils reçoivent une carte numérotée, leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe.",
-      `Pour candidater, crée d'abord ton compte sur ${lienEspace} : une fois ton compte validé, la candidature se fait depuis ton espace, tant qu'il reste des places.`,
+      "L'un des premiers ambassadeurs de sa ville, qui lancent SOS Miam avec nous. Le nombre de places dépend de la taille de la ville : 10 au-delà de 500\u00a0000 habitants, 5 de 200\u00a0000 à 500\u00a0000, 3 de 100\u00a0000 à 200\u00a0000 et 1 de 50\u00a0000 à 100\u00a0000. Les communes plus petites partagent 1 place par département, et chaque collectivité d'outre-mer a la sienne : 367 places en tout, ouvertes en même temps partout en France.",
+      "Les fondateurs reçoivent une carte numérotée « Fondateur n°\u00a03 de Lyon · n°\u00a0147 en France » (à télécharger et à partager tout de suite, et une vraie carte envoyée plus tard), leur prénom en vitrine sur un autocollant « Déniché par », des badges, et l'app en avant-première, en lien direct avec l'équipe. Pour faire connaissance : une visio d'environ 30 minutes avec les fondateurs de sa ville (de sa région pour un fondateur de département), et un tête-à-tête si besoin.",
+      `Pour candidater, crée d'abord ton compte sur ${lienEspace}. Une fois ton compte validé, tu candidates depuis ton espace pour la ville où tu vis, ou pour ton département si ta commune a moins de 50\u00a0000 habitants, tant qu'il y reste des places. Ensuite, c'est l'équipe qui choisit.`,
     ],
-    motsCles: ["fondateur", "candidature", "10"],
+    motsCles: ["fondateur", "candidature", "ville", "département", "places", "carte", "visio"],
+  },
+  {
+    id: "faq-fondateurs-complet",
+    question: "Ma ville est au complet : je fais comment ?",
+    reponse: [
+      "Quand toutes les places d'une ville (ou d'un département) sont prises, la candidature s'y ferme toute seule, et rouvre dès qu'une place se libère. Il n'y a pas de liste d'attente. Et si un fondateur déménage, il garde son titre en souvenir, mais sa place se libère. Un numéro de fondateur n'est jamais redonné : le suivant à Lyon après le n°\u00a010 sera le n°\u00a011.",
+    ],
+    motsCles: ["fondateur", "complet", "plus de place", "déménagement", "déménager", "numéro"],
   },
   {
     id: "faq-createurs",

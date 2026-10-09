@@ -3,7 +3,6 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "ex
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Pressable, Text, useWindowDimensions, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonLampe } from "~/composants/scan/BoutonLampe";
@@ -14,6 +13,7 @@ import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserValidationComptoir } from "~/hooks/utiliser-validation-comptoir";
 import couleurs from "~/theme/couleurs";
 
@@ -43,7 +43,7 @@ const DELAI_MEME_TEXTE_MS = 4000;
 export function ScannerComptoir() {
   const router = useRouter();
   const fermer = utiliserFermerPile("/scan");
-  const marges = useSafeAreaInsets();
+  const marges = utiliserMargesPleinEcran();
   const { width } = useWindowDimensions();
   const [permission, demanderPermission] = useCameraPermissions();
   const [visible, setVisible] = useState(true);

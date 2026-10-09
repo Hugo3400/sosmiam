@@ -17,8 +17,10 @@ export type ResultatAcceptation =
 
 /** Annule la transaction en rendant ce résultat : les numéros pris pendant la transaction ne sont pas consommés. */
 class Annulation extends Error {
-  constructor(readonly resultat: ResultatAcceptation) {
+  resultat: ResultatAcceptation;
+  constructor(resultat: ResultatAcceptation) {
     super(resultat.etat);
+    this.resultat = resultat;
   }
 }
 

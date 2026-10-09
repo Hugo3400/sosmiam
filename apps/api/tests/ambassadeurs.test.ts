@@ -22,15 +22,23 @@ const idPoste = calculerIdPoste(clePublique);
 let acces: AccesGestion | null = { postes: [{ id: idPoste, nom: "PC de test", clePublique }], secretTotp };
 
 const actions: string[] = [];
+const LYON = { code: "69123", type: "ville", nom: "Lyon", nomAvecDe: "de Lyon", places: 10 };
 const appels: unknown[] = [];
 const services = {
   noterAction: async (_poste: string, action: string) => void actions.push(action),
-  lirePrenom: async (id: number) => (id === 7 ? "Léa" : null),
+  lirePrenom: async (id: number) => (id === 7 ? "Léa" : id === 6 ? "Sam" : null),
   deciderAmbassadeur: async (id: number, statut: string) => (id === 7 ? (appels.push({ decider: statut }), { prenom: "Léa", avant: "en-attente" }) : null),
   prevenirAmbassadeurValide: async (id: number) => (appels.push({ bienvenue: id }), true),
   envoyerLienMotDePasse: async (id: number, lien: string) => (appels.push({ lienEnvoye: id, lien }), { ok: true }),
   retirerDuProgramme: async (id: number) => (id === 7 ? (appels.push("retire"), { prenom: "Léa" }) : null),
-  accepterCandidature: async (id: number) => (id === 1 ? { complet: false, numero: 3, compteId: 7 } : id === 2 ? { complet: true } : null),
+  accepterCandidature: async (id: number) =>
+    id === 1 ? { etat: "acceptee", compteId: 7, numeroLocal: 3, numeroNational: 147, zone: LYON }
+      : id === 2 ? { etat: "complet", zone: LYON }
+        : id === 4 ? { etat: "sans-zone" }
+          : { etat: "introuvable" },
+  choisirCommuneCandidature: async (id: number, code: string) => (appels.push({ commune: code }), id === 4 && code === "69383" ? { commune: "Lyon", zone: LYON } : null),
+  libererPlaceFondateur: async (id: number) => (id === 1 ? { compteId: 7, zone: LYON, encoreFondateurDeVille: false } : null),
+  estFondateurDeVille: async (id: number) => id === 7,
   creerMission: async (saisie: { compteId: number; titre: string }) => (saisie.compteId === 7 ? { id: 1, ...saisie, compte: { prenom: "Léa" } } : null),
   accepterDemande: async () => ({ id: 5, nom: "Le Petit Four", statut: "brouillon", compteIdAuteur: 7 }),
 } as unknown as ServicesGestion;
@@ -128,9 +136,34 @@ test("palier de ville, réinitialisation et candidature fondateur", async () => 
   assert.equal(envoye.envoye, true);
   assert.equal(envoye.lien, undefined);
   assert.deepEqual(appels.at(-1), { lienEnvoye: 7, lien: "https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe#jeton=jeton-secret" });
-  assert.deepEqual(await (await demander("POST", "/candidatures/1/accepter", { session, corps: "{}" })).json(), { ok: true, numero: 3 });
+});
+
+test("fondateurs par ville : deux numéros, zone complète, sans zone, commune, place libérée, ambassadeur de ville", async () => {
+  const session = await ouvrirSession();
+  assert.deepEqual(await (await demander("POST", "/candidatures/1/accepter", { session, corps: "{}" })).json(), { ok: true, numeroLocal: 3, numeroNational: 147, zone: LYON });
   assert.deepEqual(appels.at(-1), { badge: "fondateur", compteId: 7 });
-  assert.equal((await demander("POST", "/candidatures/2/accepter", { session, corps: "{}" })).status, 409);
+  // Le journal garde le numéro national et le compte, jamais la commune ni le prénom
+  assert.equal(actions.at(-1), "Candidature fondateur acceptée");
+  const complet = await demander("POST", "/candidatures/2/accepter", { session, corps: "{}" });
+  assert.equal(complet.status, 409);
+  assert.deepEqual(await complet.json(), { ok: false, erreur: "zone-complete", zone: LYON });
+  assert.deepEqual(await (await demander("POST", "/candidatures/4/accepter", { session, corps: "{}" })).json(), { ok: false, erreur: "sans-zone" });
+  assert.equal((await demander("POST", "/candidatures/9/accepter", { session, corps: "{}" })).status, 404);
+  // Commune : un code INSEE (Corse et outre-mer compris), rien d'autre
+  assert.equal((await demander("POST", "/candidatures/4/commune", { session, corps: json({ commune: "Lyon" }) })).status, 400);
+  assert.equal((await demander("POST", "/candidatures/4/commune", { session, corps: json({ commune: "2A004" }) })).status, 404);
+  assert.deepEqual(appels.at(-1), { commune: "2A004" });
+  assert.deepEqual(await (await demander("POST", "/candidatures/4/commune", { session, corps: json({ commune: "69383" }) })).json(), { ok: true, commune: "Lyon", zone: LYON });
+  assert.deepEqual(await (await demander("POST", "/candidatures/1/liberer", { session, corps: "{}" })).json(), { ok: true, encoreFondateurDeVille: false });
+  assert.equal((await demander("POST", "/candidatures/2/liberer", { session, corps: "{}" })).status, 404);
+  // Ambassadeur de ville : seulement un fondateur en place d'une ville
+  assert.equal((await demander("POST", "/ambassadeurs/7/palier-ville", { session, corps: json({ ville: true }) })).status, 200);
+  assert.equal(appels.at(-1), "ville");
+  const pasFondateur = await demander("POST", "/ambassadeurs/6/palier-ville", { session, corps: json({ ville: true }) });
+  assert.equal(pasFondateur.status, 409);
+  assert.deepEqual(await pasFondateur.json(), { ok: false, erreur: "pas-fondateur-de-ville" });
+  // Retirer le rôle reste toujours possible
+  assert.equal((await demander("POST", "/ambassadeurs/6/palier-ville", { session, corps: json({ ville: false }) })).status, 200);
 });
 
 test("missions : titre obligatoire, seulement pour un ambassadeur actif", async () => {
