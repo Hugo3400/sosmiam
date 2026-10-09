@@ -8,8 +8,8 @@ import type { Rattachement } from "~/types/pro";
 const classeLien = "font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
 /**
- * Un lieu du tableau (dans une liste) : son statut ; vérifié, les liens vers sa fiche, ses suggestions, son équipe et son
- * affichette (et « Quitter ce lieu » pour un membre de l'équipe) ; en attente, « Annuler ma demande » ; refusé, le mot
+ * Un lieu du tableau (dans une liste) : son statut ; vérifié, les liens vers sa fiche, sa carte, ses suggestions, son
+ * équipe et son affichette (et « Quitter ce lieu » pour un membre de l'équipe) ; en attente, « Annuler ma demande » ; refusé, le mot
  * de l'équipe et « Redemander ».
  */
 export function CarteLieuPro({ rattachement }: { rattachement: Rattachement }) {
@@ -32,6 +32,7 @@ export function CarteLieuPro({ rattachement }: { rattachement: Rattachement }) {
         <>
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
             <li><Link to={adresse} className={classeLien}>{gerant ? "Ma fiche" : "La fiche"}</Link></li>
+            <li><Link to={`${adresse}/carte`} className={classeLien}>{gerant ? "Ma carte" : "La carte"}</Link></li>
             <li><Link to={`${adresse}/suggestions`} className={classeLien}>Suggestions</Link></li>
             {gerant && <li><Link to={`${adresse}/equipe`} className={classeLien}>Mon équipe</Link></li>}
             <li><Link to={`${adresse}/affichette`} className={classeLien}>Affichette</Link></li>

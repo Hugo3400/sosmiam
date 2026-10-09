@@ -82,6 +82,11 @@ const raisons: Record<RaisonCompte, Omit<ChoixRaisonCompte, "titre">> = {
     action: "utiliser Miam Safe",
     phrase: "Prévenir un pote, alerter le comptoir, nous raconter ce qui s'est passé : un compte nous permet de prendre chaque alerte au sérieux.",
   },
+  proposer: {
+    emoji: "✏️",
+    action: "proposer une modification",
+    phrase: "Un horaire qui a bougé, un nouveau numéro : grâce à toi, les fiches restent justes. Il ne manque plus que ton compte.",
+  },
 };
 
 /** Pour chaque geste réservé aux inscrits : l'emoji, le titre « Crée ton compte pour … » et la phrase de la feuille. */

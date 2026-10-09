@@ -15,7 +15,8 @@ export type RaisonCompte =
   | "profil"
   | "scan"
   | "defis"
-  | "miam-safe";
+  | "miam-safe"
+  | "proposer";
 
 /** Vrai si la personne a un compte ; sinon, ouvre la feuille « Crée ton compte » pour cette raison et renvoie faux. */
 export type ExigerCompte = (raison: RaisonCompte) => boolean;

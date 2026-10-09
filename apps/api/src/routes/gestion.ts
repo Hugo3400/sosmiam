@@ -7,6 +7,7 @@ import { creerControleursCertification } from "../controleurs/gestion/controleur
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-fondateurs.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
+import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-outils-lieux.ts";
@@ -50,6 +51,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
+  const safe = creerControleursMiamSafe(services);
   const r = creerControleursReponsesTypes(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
@@ -174,6 +176,12 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/moderation", o.signalements);
   routes.post("/moderation/:id/decision", o.decider);
   routes.post("/moderation/:id/contestation", o.contester);
+
+  // Miam Safe : signalements (à lire sous 48 h), alertes silencieuses sans réponse, chartes des lieux
+  routes.get("/miam-safe", safe.liste);
+  routes.post("/miam-safe/signalements/:id/decision", safe.decider);
+  routes.post("/miam-safe/alertes/:id/vue", safe.alerteVue);
+  routes.post("/miam-safe/chartes/:id/rendre", safe.rendreCharte);
 
   routes.get("/demandes", c.demandes);
   routes.post("/demandes/:id/accepter", c.accepterDemande);

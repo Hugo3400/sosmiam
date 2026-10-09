@@ -43,12 +43,13 @@ export default [
     route("espace/missions", "routes/ambassadeur/missions.tsx"),
     route("espace/messages", "routes/ambassadeur/messages.tsx"),
   ]),
-  // Espace pro (https://pro.sosmiam.fr) : les lieux gèrent leur fiche, leur équipe et leur affichette de table
+  // Espace pro (https://pro.sosmiam.fr) : les lieux gèrent leur fiche, leur carte, leur équipe et leur affichette de table
   layout("routes/pro/mise-en-page-pro.tsx", [
     route("bienvenue", "routes/pro/bienvenue.tsx"),
     route("tableau", "routes/pro/tableau.tsx"),
     route("rattacher/:id?", "routes/pro/rattacher.tsx"),
     route("lieu/:id", "routes/pro/ma-fiche.tsx"),
+    route("lieu/:id/carte", "routes/pro/ma-carte.tsx"),
     route("lieu/:id/suggestions", "routes/pro/suggestions.tsx"),
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
     route("lieu/:id/affichette", "routes/pro/affichette.tsx"),

@@ -42,6 +42,7 @@ import {
 } from "./missions-messages.ts";
 import { ajouterMedia, retirerMedia, trouverFichierMedia } from "./medias.ts";
 import { contesterSignalement, deciderSignalement, listerSignalements } from "./moderation.ts";
+import { deciderSignalementMiamSafe, listerMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe } from "./miam-safe.ts";
 import {
   creerBrouillon, desinscrire, exporterInscrits, lireBrouillon, listerBrouillons, listerInscrits, modifierBrouillon, supprimerBrouillon,
 } from "./newsletter.ts";
@@ -64,6 +65,7 @@ export const servicesGestion = {
   listerPublications, lirePublication, creerPublication, modifierPublication, changerStatutPublication, supprimerPublication,
   ajouterMedia, retirerMedia, trouverFichierMedia,
   listerSignalements, deciderSignalement, contesterSignalement,
+  listerMiamSafe, deciderSignalementMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe,
   lireEtatServeur, relancerProcessus,
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,
