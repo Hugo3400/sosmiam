@@ -1,11 +1,9 @@
-import type { AccueilAnimaux, FichePro, MoyenPaiement, ReservationConseillee } from "~/types/pro";
-
-/** Ce que « Ma fiche » envoie, une fois lu et vérifié. */
-type ChampsFiche = Pick<FichePro, "nom" | "adresse" | "horaires" | "texte" | "telephone" | "siteWeb" | "instagram" | "animaux" | "accessible"
-  | "terrasse" | "wifi" | "enfants" | "parking" | "paiements" | "reservation">;
+import type { AccueilAnimaux, ChampsFiche, MoyenPaiement, ReservationConseillee } from "~/types/pro";
 
 type Resultat = {
   champs: ChampsFiche;
+  /** « Pourquoi ? » : accompagne un nouveau nom ou une nouvelle adresse (vide : rien) */
+  message: string;
   /** Le message de chaque champ à corriger, dans l'ordre du formulaire */
   erreurs: Record<string, string>;
   /** Ce qui avait été tapé, pour remettre le formulaire tel quel après un refus (cases : valeurs séparées par des virgules) */
@@ -20,7 +18,7 @@ const OUI_NON = ["accessible", "terrasse", "wifi", "enfants", "parking"] as cons
 /**
  * Lit et vérifie le formulaire de « Ma fiche » (mêmes limites que la table des lieux de l'API) : un texte vide devient
  * null (inconnu, jamais affiché), « oui » / « non » / rien deviennent true / false / null, et les choix inconnus sont
- * ignorés. Le compte Instagram est gardé sans « @ » ni adresse.
+ * ignorés. Le compte Instagram est gardé sans « @ » ni adresse. Les messages d'erreur sont à passer par lierPonctuation.
  */
 export function lireChampsFiche(formulaire: FormData): Resultat {
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/[ \t]+/g, " ").trim();
@@ -29,13 +27,18 @@ export function lireChampsFiche(formulaire: FormData): Resultat {
   const valeurs: Record<string, string> = {};
   for (const nom of ["nom", "adresse", "horaires", "telephone", "siteWeb", "instagram", "animaux", ...OUI_NON, "reservation"]) valeurs[nom] = lire(nom);
   valeurs.texte = texte;
-  const paiements = formulaire.getAll("paiements").map(String).filter((code): code is MoyenPaiement => PAIEMENTS.includes(code as MoyenPaiement));
+  const message = String(formulaire.get("message") ?? "").trim();
+  valeurs.message = message;
+  // Dans l'ordre de la liste, pour comparer avec la fiche enregistrée
+  const coches = formulaire.getAll("paiements").map(String);
+  const paiements = PAIEMENTS.filter((code) => coches.includes(code));
   valeurs.paiements = paiements.join(",");
 
   if (valeurs.nom.length < 2 || valeurs.nom.length > 80) erreurs.nom = "Le nom fait entre 2 et 80 caractères.";
   if (valeurs.adresse.length > 160) erreurs.adresse = "L'adresse fait 160 caractères au plus.";
   if (valeurs.horaires.length > 160) erreurs.horaires = "Les horaires font 160 caractères au plus : résume, les gourmands comprendront.";
   if (texte.length > 1000) erreurs.texte = "La présentation fait 1 000 caractères au plus.";
+  if (message.length > 1000) erreurs.message = "Ce petit mot fait 1 000 caractères au plus.";
   if (valeurs.telephone && !/^\+?[\d\s.()-]{6,30}$/.test(valeurs.telephone)) erreurs.telephone = "Ce numéro ne semble pas valide (chiffres et espaces : 04 67 12 34 56).";
   if (valeurs.siteWeb && (!/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(valeurs.siteWeb) || valeurs.siteWeb.length > 200)) {
     erreurs.siteWeb = "Écris l'adresse complète du site, avec https:// (200 caractères au plus).";
@@ -45,6 +48,7 @@ export function lireChampsFiche(formulaire: FormData): Resultat {
 
   const ouiNon = (nom: string) => (valeurs[nom] === "oui" ? true : valeurs[nom] === "non" ? false : null);
   return {
+    message,
     champs: {
       nom: valeurs.nom,
       adresse: valeurs.adresse || null,

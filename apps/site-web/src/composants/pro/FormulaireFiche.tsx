@@ -24,6 +24,14 @@ export function FormulaireFiche({ lieu }: { lieu: FichePro }) {
       >
         <ChampTexte nom="nom" libelle="Nom du lieu" valeur={lieu.nom} maximum={80} />
         <ChampTexte nom="adresse" libelle="Adresse" facultatif valeur={lieu.adresse ?? ""} maximum={160} exemple="12 rue de la Paix" />
+        <ChampTexte
+          nom="message"
+          libelle="Un mot pour l'équipe"
+          facultatif
+          lignes={2}
+          maximum={1000}
+          aide={lierPonctuation("Seulement si tu changes le nom ou l'adresse : pourquoi ? (« On a déménagé en septembre », par exemple.)")}
+        />
       </SectionFiche>
 
       <SectionFiche titre="Horaires et présentation" note={lierPonctuation("En ligne tout de suite.")}>
