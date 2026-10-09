@@ -41,6 +41,7 @@ const creerEtatDemo = (maintenant: Date): CommunauteLocale => ({
   commentaires: creerCommentairesExemples(maintenant),
   signalements: [],
   moyens: {},
+  masques: [],
 });
 
 const verifierTexte = (texte: string, max: number): ResultatTexte => {
@@ -119,13 +120,14 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   );
 
   const signales = useMemo(() => new Set(etat.signalements.map((s) => s.cibleId)), [etat.signalements]);
+  const masques = useMemo(() => new Set(etat.masques), [etat.masques]);
   const potes = useMemo(() => etat.bande.filter((id) => !etat.bloques.includes(id)).map((id) => parId.get(id)).filter((p): p is Pote => !!p), [etat.bande, etat.bloques, parId]);
   const bloques = useMemo(() => etat.bloques.map((id) => parId.get(id)).filter((p): p is Pote => !!p), [etat.bloques, parId]);
 
   const sorties = useMemo(() => {
     const maintenant = new Date().toISOString();
     return etat.sorties
-      .filter((s) => s.participants.includes(ID_MOI))
+      .filter((s) => s.participants.includes(ID_MOI) && !masques.has(s.id))
       .map((s): Sortie => {
         const propositions = s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants));
         const messages = s.messages.filter((m) => !etat.bloques.includes(m.auteur) && !signales.has(m.id));
@@ -133,7 +135,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return { ...s, propositions, messages, lieuChoisi };
       })
       .sort((a, b) => a.quand.localeCompare(b.quand));
-  }, [etat.sorties, etat.bloques, signales, lieuPermisDansSortie]);
+  }, [etat.sorties, etat.bloques, signales, masques, lieuPermisDansSortie]);
 
   const changerSortie = useCallback((id: string, changer: (s: Sortie) => Sortie) => {
     setEtat((e) => ({ ...e, sorties: e.sorties.map((s) => (s.id === id ? changer(s) : s)) }));
@@ -242,8 +244,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
 
-      // Une liste signalée disparaît pour toi
-      listes: etat.listes.filter((l) => !signales.has(l.id)),
+      // Une liste signalée, ou écartée de « À découvrir », disparaît pour toi
+      listes: etat.listes.filter((l) => !signales.has(l.id) && !masques.has(l.id)),
       creerListe: (titre, emoji, description) => {
         const id = creerIdentifiant("liste");
         setEtat((e) => ({ ...e, listes: [...e.listes, { id, titre: titre.trim(), emoji, description: description.trim(), auteur: ID_MOI, lieux: [], abonnes: [] }] }));
@@ -257,7 +259,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       ajouterLieuListe: (listeId, lieuId) => setEtat((e) => ({ ...e, listes: e.listes.map((l) => (l.id !== listeId || l.lieux.includes(lieuId) ? l : { ...l, lieux: [...l.lieux, lieuId] })) })),
       retirerLieuListe: (listeId, lieuId) => setEtat((e) => ({ ...e, listes: e.listes.map((l) => (l.id !== listeId ? l : { ...l, lieux: l.lieux.filter((x) => x !== lieuId) })) })),
 
-      activites: etat.activites.filter((a) => !etat.bloques.includes(a.pote)).sort((a, b) => b.date.localeCompare(a.date)),
+      activites: etat.activites.filter((a) => !etat.bloques.includes(a.pote) && !masques.has(a.id)).sort((a, b) => b.date.localeCompare(a.date)),
       classement: calculerClassement(potes, moi),
 
       recommandationsRecues: etat.recommandations.filter((r) => r.a === ID_MOI && !etat.bloques.includes(r.de) && !signales.has(r.id)).sort((a, b) => b.date.localeCompare(a.date)),
@@ -271,6 +273,16 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return "ok";
       },
       marquerRecommandationVue: (id) => setEtat((e) => ({ ...e, recommandations: e.recommandations.map((r) => (r.id === id ? { ...r, vue: true } : r)) })),
+      // Seulement les lieux qu'on t'a envoyés : ton pote n'en sait rien (ce qu'il t'a envoyé reste dans ses envois)
+      retirerRecommandations: (ids) => {
+        const retirees = etat.recommandations.filter((r) => ids.includes(r.id) && r.a === ID_MOI);
+        if (retirees.length > 0) setEtat((e) => ({ ...e, recommandations: e.recommandations.filter((r) => !(ids.includes(r.id) && r.a === ID_MOI)) }));
+        return retirees;
+      },
+      remettreRecommandations: (recommandations) =>
+        setEtat((e) => ({ ...e, recommandations: [...e.recommandations, ...recommandations.filter((r) => r.a === ID_MOI && !e.recommandations.some((x) => x.id === r.id))] })),
+      masquer: (id) => setEtat((e) => (e.masques.includes(id) ? e : { ...e, masques: [...e.masques, id] })),
+      demasquer: (id) => setEtat((e) => ({ ...e, masques: e.masques.filter((m) => m !== id) })),
 
       commentairesDe: (publicationId) => trierCommentaires(visiblesDe(publicationId), { bloques: etat.bloques, moi: ID_MOI }),
       nombreCommentaires: (publicationId) => trierCommentaires(visiblesDe(publicationId), { bloques: etat.bloques, moi: ID_MOI }).reduce((n, fil) => n + 1 + fil.reponses.length, 0),
@@ -304,7 +316,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         setEtat(creerEtatDemo(new Date()));
       },
     };
-  }, [pret, moi, moiMineur, potes, trouverPote, etat, parId, bloques, sorties, lieuPermisDansSortie, changerSortie, fairerVoterLesPotes, plusTard, signales]);
+  }, [pret, moi, moiMineur, potes, trouverPote, etat, parId, bloques, sorties, lieuPermisDansSortie, changerSortie, fairerVoterLesPotes, plusTard, signales, masques]);
 
   return <ContexteCommunaute.Provider value={valeur}>{children}</ContexteCommunaute.Provider>;
 }

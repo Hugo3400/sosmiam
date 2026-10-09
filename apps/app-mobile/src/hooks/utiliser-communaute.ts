@@ -77,7 +77,7 @@ export type EtatCommunaute = {
   ajouterLieuListe: (listeId: string, lieuId: number) => void;
   retirerLieuListe: (listeId: string, lieuId: number) => void;
 
-  /** Ce que font tes potes, du plus récent au plus ancien */
+  /** Ce que font tes potes, du plus récent au plus ancien (sans les lignes que tu as retirées) */
   activites: ActivitePote[];
   classement: PlaceClassement[];
 
@@ -86,6 +86,14 @@ export type EtatCommunaute = {
   recommandationsEnvoyees: Recommandation[];
   envoyerLieu: (lieuId: number, potes: string[], mot?: string) => ResultatTexte;
   marquerRecommandationVue: (id: string) => void;
+  /** Retire des lieux qu'on t'a envoyés (pour toi seulement : ton pote n'en sait rien) ; rend ceux retirés, pour « Annuler » */
+  retirerRecommandations: (ids: string[]) => Recommandation[];
+  /** « Annuler » : remet les lieux retirés */
+  remettreRecommandations: (recommandations: Recommandation[]) => void;
+  /** Retire de ta vue, pour toi seulement : une sortie passée, une liste à découvrir, une ligne de l'activité de ta bande */
+  masquer: (id: string) => void;
+  /** « Annuler » : remet ce qui avait été retiré de ta vue */
+  demasquer: (id: string) => void;
 
   /** Commentaires d'une publication, rangés (lieu en tête, plus aimés, récents) avec leurs réponses */
   commentairesDe: (publicationId: string) => FilCommentaire[];

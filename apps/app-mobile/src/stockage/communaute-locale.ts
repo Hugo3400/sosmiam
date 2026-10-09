@@ -19,6 +19,8 @@ export type CommunauteLocale = {
   signalements: SignalementContenu[];
   /** Comment chaque pote a été ajouté (lien, QR code ou pseudo) : un mineur ne discute qu'avec des potes ajoutés en vrai */
   moyens: Record<string, "lien" | "qr" | "pseudo">;
+  /** Ce que tu as retiré de ta vue, pour toi seulement (sorties passées, listes à découvrir, activité de ta bande), par identifiant */
+  masques: string[];
 };
 
 const CLE = "sosmiam.communaute";
@@ -42,6 +44,8 @@ export async function lireCommunauteLocale(): Promise<CommunauteLocale | null> {
       commentaires: listeOuVide(lu.commentaires),
       signalements: listeOuVide(lu.signalements),
       moyens: lu.moyens && typeof lu.moyens === "object" ? lu.moyens : {},
+      // Absent d'une communauté enregistrée avant le 9 octobre 2026 : rien de retiré
+      masques: listeOuVide(lu.masques).filter((id): id is string => typeof id === "string"),
     };
   } catch {
     return null;
