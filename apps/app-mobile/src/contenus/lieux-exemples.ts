@@ -2,8 +2,9 @@
 // Les noms sont fictifs ; quartiers, villes et spécialités sont réels. Remplacés par l'API au lancement.
 // Les SOS de ce soir (Chez Nonna Lia, La Clé des Ruelles) sont des exemples.
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { infosPratiquesExemples } from "~/contenus/infos-pratiques-exemples";
 
-export const lieuxExemples: Lieu[] = [
+const lieuxSansInfosPratiques: Lieu[] = [
   {
     id: 0,
     nom: "Chez Nonna Lia",
@@ -429,3 +430,6 @@ export const lieuxExemples: Lieu[] = [
     reservable: false,
   },
 ];
+
+/** Les lieux d'exemple, avec leurs infos pratiques (téléphone de fiction, animaux, accès, paiements…) */
+export const lieuxExemples: Lieu[] = lieuxSansInfosPratiques.map((lieu) => ({ ...lieu, pratique: infosPratiquesExemples[lieu.id] }));

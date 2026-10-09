@@ -6,12 +6,14 @@ type Props = {
   nom: string;
   /** Valeur envoyée quand la case est cochée */
   valeur?: string;
+  /** Case qu'on peut laisser vide (« Partant pour une visio ») : pas « requise » */
+  facultatif?: boolean;
   /** Le libellé de la case (peut contenir un lien) */
   children: ReactNode;
 };
 
 /** Case à cocher d'un FormulaireCompte (« J'accepte les conditions d'utilisation »), avec son erreur reliée. */
-export function CaseACocher({ nom, valeur = "oui", children }: Props) {
+export function CaseACocher({ nom, valeur = "oui", facultatif = false, children }: Props) {
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-${nom}`;
   const erreur = erreurs[nom];
@@ -23,7 +25,7 @@ export function CaseACocher({ nom, valeur = "oui", children }: Props) {
           type="checkbox"
           name={nom}
           value={valeur}
-          required
+          required={!facultatif}
           defaultChecked={valeurs[nom] === valeur}
           autoFocus={focusAuChargement === nom}
           aria-invalid={Boolean(erreur)}

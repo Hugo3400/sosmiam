@@ -1,3 +1,4 @@
+import { CaseACocher } from "~/composants/compte/CaseACocher";
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { ChoixMultiples } from "~/composants/compte/ChoixMultiples";
 import { FormulaireCompte } from "~/composants/compte/FormulaireCompte";
@@ -11,10 +12,16 @@ const envies = [
   { valeur: "faire-savoir", libelle: "Parler de SOS Miam autour de toi" },
 ];
 
-/** Candidature « fondateur » (action de routes/ambassadeur/fondateur.tsx). */
-export function FormulaireCandidature() {
+type Props = {
+  /** Code INSEE de la commune choisie juste avant (champ caché) : l'API en déduit la ville ou le département */
+  communeCode: string;
+};
+
+/** Candidature « fondateur » pour la commune choisie (action de routes/ambassadeur/fondateur.tsx). */
+export function FormulaireCandidature({ communeCode }: Props) {
   return (
     <FormulaireCompte nom="candidature" bouton="Envoyer ma candidature" piege className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
+      <input type="hidden" name="communeCode" value={communeCode} />
       <div className="grid gap-6">
         <ChampTexte
           nom="pepites"
@@ -39,13 +46,9 @@ export function FormulaireCandidature() {
           maximum={600}
           lignes={4}
         />
-        <ChoixMultiples
-          nom="partantRencontre"
-          legende={lierPonctuation("Partant pour faire connaissance 20 minutes, autour d'un café ou en visio ?")}
-          type="radio"
-          enLigne
-          options={[{ valeur: "oui", libelle: "Oui" }, { valeur: "non", libelle: "Non" }]}
-        />
+        <CaseACocher nom="partantRencontre" facultatif>
+          {lierPonctuation("Partant pour une visio d'environ 30 minutes avec les fondateurs de ta ville (de ta région pour un département)")}
+        </CaseACocher>
         <ChampTexte nom="connuPar" libelle={lierPonctuation("Comment tu as connu SOS Miam ?")} facultatif maximum={120} />
       </div>
     </FormulaireCompte>
