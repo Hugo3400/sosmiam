@@ -5,6 +5,7 @@ import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
+import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 
 type Props = {
   lieu: Lieu;
@@ -87,6 +88,8 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
           </View>
         ))}
       </View>
+
+      <InfosPratiquesLieu lieu={lieu} />
 
       <ApercuCarte lieu={lieu} age={age} />
 
