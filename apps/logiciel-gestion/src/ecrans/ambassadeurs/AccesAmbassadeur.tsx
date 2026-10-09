@@ -2,24 +2,27 @@ import { Copy, KeyRound, Mail, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
+import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
-import { creerLienCourrielGroupe } from "~/fonctions/texte/creer-lien-courriel-groupe.ts";
+import { ModaleEcrireMail } from "~/composants/interface/ModaleEcrireMail.tsx";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { reinitialiserMotDePasse, retirerDuProgramme, supprimerCompteAmbassadeur, type FicheAmbassadeur } from "~/services/ambassadeurs.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
-import { copier, ouvrirLien } from "~/services/systeme.ts";
+import { copier } from "~/services/systeme.ts";
 
 /** onSupprime : le rôle ou le compte n'existe plus, la fiche se ferme */
 type Props = { fiche: FicheAmbassadeur; onSupprime: () => void };
 
 /**
- * Le compte lui-même : mot de passe oublié (lien à lui transmettre), mail direct, retrait du programme (le compte et l'app
+ * Le compte lui-même : mot de passe oublié (lien à lui transmettre), mail écrit et envoyé depuis le logiciel, retrait du programme (le compte et l'app
  * restent) ou suppression de tout le compte SOS Miam (un seul compte pour l'app, l'espace ambassadeur et l'espace pro).
  */
 export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
   const [lien, setLien] = useState<{ adresse: string; expireLe: string } | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; texte: string | null }>({ enCours: false, texte: null });
+  const [ecrireLien, setEcrireLien] = useState(false);
+  const destinataire = { compteId: fiche.id, adresse: fiche.email, prenom: fiche.prenom };
 
   async function agir(action: () => Promise<void>) {
     setEtat({ enCours: true, texte: null });
@@ -68,8 +71,8 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
     <section className="grid gap-3">
       <h3 className="font-extrabold">Compte</h3>
       <div className="flex flex-wrap gap-2">
-        <Bouton petit icone={Mail} onClick={() => ouvrirLien(creerLienCourrielGroupe([fiche.email], "SOS Miam 🛟"))}>Écrire par mail</Bouton>
-        <BoutonReponseType categorie="ambassadeur" adresse={fiche.email} prenom={fiche.prenom} />
+        <BoutonEcrireMail destinataire={destinataire} categorie="ambassadeur" />
+        <BoutonReponseType categorie="ambassadeur" adresse={fiche.email} compteId={fiche.id} prenom={fiche.prenom} />
         <Bouton petit icone={KeyRound} chargement={etat.enCours && !lien} onClick={() => preparerLien(true)}>Envoyer un lien « mot de passe oublié »</Bouton>
         <Bouton petit variante="discret" desactive={etat.enCours} onClick={() => preparerLien(false)}>Préparer le lien sans l'envoyer</Bouton>
         <Bouton petit icone={UserMinus} desactive={etat.enCours} onClick={retirer}>Retirer du programme</Bouton>
@@ -83,14 +86,20 @@ export function AccesAmbassadeur({ fiche, onSupprime }: Props) {
           </p>
           <code className="block overflow-x-auto rounded-lg bg-white px-2 py-1 text-xs whitespace-nowrap">{lien.adresse}</code>
           <div className="flex flex-wrap gap-2">
-            <Bouton petit icone={Mail} onClick={() => ouvrirLien(`mailto:${encodeURIComponent(fiche.email)}?subject=${encodeURIComponent("Ton nouveau mot de passe SOS Miam")}&body=${encodeURIComponent(corpsMail)}`)}>
-              L'envoyer par mail
-            </Bouton>
+            <Bouton petit icone={Mail} onClick={() => setEcrireLien(true)}>L'envoyer par mail…</Bouton>
             <Bouton petit icone={Copy} onClick={() => copier(lien.adresse).then(() => setEtat({ enCours: false, texte: "Lien copié." }))}>Copier</Bouton>
           </div>
         </div>
       )}
       {etat.texte && <p role="status" className="text-sm font-semibold">{etat.texte}</p>}
+      <ModaleEcrireMail
+        ouverte={ecrireLien}
+        onFermer={() => setEcrireLien(false)}
+        destinataire={destinataire}
+        objet="Ton nouveau mot de passe SOS Miam"
+        texte={corpsMail}
+        onEnvoye={(bilan) => setEtat({ enCours: false, texte: bilan })}
+      />
     </section>
   );
 }

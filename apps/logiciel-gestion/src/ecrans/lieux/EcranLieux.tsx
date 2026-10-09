@@ -14,7 +14,7 @@ import { Pagination } from "~/composants/interface/Pagination.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { STATUTS_LIEU, TYPES_LIEU } from "~/contenus/statuts-lieu.ts";
-import { compterCategoriesLieux } from "~/fonctions/lieux/compter-categories-lieux.ts";
+import { compterValeursLieux } from "~/fonctions/lieux/compter-valeurs-lieux.ts";
 import { filtrerLieux } from "~/fonctions/lieux/filtrer-lieux.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerLieux, type StatutLieu } from "~/services/lieux.ts";
@@ -26,7 +26,7 @@ import { FormulaireLieu } from "./FormulaireLieu.tsx";
 const PAR_PAGE = 30;
 
 /**
- * Les fiches des lieux : liste par pages, recherche, filtres (statut, type, catégorie), sélection de plusieurs fiches (sur
+ * Les fiches des lieux : liste par pages, recherche, filtres (statut, type, ville, catégorie), sélection de plusieurs fiches (sur
  * toutes les pages), et la fiche complète à créer ou modifier.
  */
 export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null; allerA?: (ecran: Ecran, id: number | null) => void }) {
@@ -35,6 +35,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const [recherche, setRecherche] = useState("");
   const [type, setType] = useState("");
   const [categorie, setCategorie] = useState("");
+  const [ville, setVille] = useState("");
   const [page, setPage] = useState(1);
   const haut = useRef<HTMLDivElement>(null);
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
@@ -47,9 +48,13 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const dernierCoche = useRef<number | null>(null);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerLieux(recherche, statut), [recherche, statut]);
   const tous = donnees ?? [];
-  const duType = filtrerLieux(tous, { type, categorie: "" });
-  const categories = compterCategoriesLieux(duType);
-  const lieux = filtrerLieux(duType, { type: "", categorie });
+  // Chaque liste compte les lieux qui répondent aux autres filtres (choisir « Bar » ne montre que les villes qui en ont)
+  const sansType = filtrerLieux(tous, { type: "", categorie, ville });
+  const sansCategorie = filtrerLieux(tous, { type, categorie: "", ville });
+  const sansVille = filtrerLieux(tous, { type, categorie, ville: "" });
+  const categories = compterValeursLieux(sansCategorie, "info", categorie);
+  const villes = compterValeursLieux(sansVille, "ville", ville);
+  const lieux = filtrerLieux(tous, { type, categorie, ville });
   const pages = Math.max(1, Math.ceil(lieux.length / PAR_PAGE));
   const pageLieux = lieux.slice((page - 1) * PAR_PAGE, page * PAR_PAGE);
   const changerPage = (nouvelle: number) => {
@@ -62,12 +67,12 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
     return () => clearTimeout(minuteur);
   }, [saisie]);
   // Un nouveau filtre repart de la première page ; après une suppression, la page reste dans les bornes
-  useEffect(() => setPage(1), [recherche, statut, type, categorie]);
+  useEffect(() => setPage(1), [recherche, statut, type, categorie, ville]);
   useEffect(() => setPage((avant) => Math.min(avant, pages)), [pages]);
   // La sélection ne garde que les lieux encore affichés (après un filtre ou une suppression), toutes pages comprises
   useEffect(() => {
     setChoisis((avant) => new Set([...avant].filter((id) => lieux.some((lieu) => lieu.id === id))));
-  }, [donnees, type, categorie]);
+  }, [donnees, type, categorie, ville]);
   // Échap : tout désélectionner
   useEffect(() => {
     const touche = (evenement: KeyboardEvent) => evenement.key === "Escape" && !document.querySelector("dialog[open]") && setChoisis(new Set());
@@ -112,22 +117,29 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
         <Selecteur
           libelle="Type"
           valeur={type}
-          onChange={(nouveau) => {
-            setType(nouveau);
-            setCategorie("");
-          }}
+          onChange={setType}
           options={[
-            { valeur: "", libelle: `Tous les types (${tous.length})` },
-            ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${tous.filter((lieu) => lieu.type === valeur).length})` })),
+            { valeur: "", libelle: `Tous les types (${sansType.length})` },
+            ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${sansType.filter((lieu) => lieu.type === valeur).length})` })),
           ]}
           className="w-48"
+        />
+        <Selecteur
+          libelle="Ville"
+          valeur={ville}
+          onChange={setVille}
+          options={[
+            { valeur: "", libelle: `Toutes les villes (${sansVille.length})` },
+            ...villes.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
+          ]}
+          className="w-56"
         />
         <Selecteur
           libelle="Catégorie"
           valeur={categorie}
           onChange={setCategorie}
           options={[
-            { valeur: "", libelle: `Toutes (${duType.length})` },
+            { valeur: "", libelle: `Toutes (${sansCategorie.length})` },
             ...categories.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
           ]}
           className="w-60"
@@ -149,7 +161,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
       {!donnees && chargement && <Chargement />}
       {donnees && lieux.length === 0 && (
         <Carte>
-          <EtatVide emoji="🏪" titre={recherche || statut || type || categorie ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
+          <EtatVide emoji="🏪" titre={recherche || statut || type || categorie || ville ? "Aucun lieu ne correspond" : "Pas encore de lieu"} action={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Créer le premier</Bouton>}>
             Chaque fiche décrit un lieu indépendant : son histoire, son plat signature, ses horaires. Les publications du fil s'y rattachent.
           </EtatVide>
         </Carte>

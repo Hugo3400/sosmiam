@@ -1,11 +1,18 @@
 import { simplifierNom } from "../texte/simplifier-nom.ts";
 import type { ResumeLieu } from "~/services/lieux.ts";
 
+export type FiltresLieux = { type: string; categorie: string; ville: string };
+
 /**
- * Les lieux du type (« resto », « bar »…) et de la catégorie (« Ce que c'est » : Bar à tapas, Brasserie…) choisis, dans
- * le même ordre ; vide : pas de filtre. La catégorie se compare sans majuscules, accents ni espaces en trop.
+ * Les lieux du type (« resto », « bar »…), de la catégorie (« Ce que c'est » : Bar à tapas, Brasserie…) et de la ville
+ * choisis, dans le même ordre ; vide : pas de filtre. Catégorie et ville se comparent sans majuscules, accents, tirets
+ * ni espaces en trop (« saint-jean-de-vedas » trouve « Saint-Jean-de-Védas »).
  */
-export function filtrerLieux<T extends Pick<ResumeLieu, "type" | "info">>(lieux: T[], { type, categorie }: { type: string; categorie: string }): T[] {
-  const cle = simplifierNom(categorie);
-  return lieux.filter((lieu) => (!type || lieu.type === type) && (!cle || simplifierNom(lieu.info) === cle));
+export function filtrerLieux<T extends Pick<ResumeLieu, "type" | "info" | "ville">>(lieux: T[], { type, categorie, ville }: FiltresLieux): T[] {
+  const cleCategorie = simplifierNom(categorie);
+  const cleVille = simplifierNom(ville);
+  return lieux.filter((lieu) =>
+    (!type || lieu.type === type)
+    && (!cleCategorie || simplifierNom(lieu.info) === cleCategorie)
+    && (!cleVille || simplifierNom(lieu.ville) === cleVille));
 }

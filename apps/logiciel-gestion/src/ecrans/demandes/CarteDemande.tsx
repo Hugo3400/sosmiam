@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Mail, UserX, X } from "lucide-react";
+import { Check, ExternalLink, UserX, X } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
@@ -8,6 +8,7 @@ import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { effacerContactDemande, refuserDemande, type DemandeLieu } from "~/services/demandes.ts";
 import { ouvrirLien } from "~/services/systeme.ts";
+import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { ModaleAccepterDemande } from "./ModaleAccepterDemande.tsx";
 
@@ -18,7 +19,6 @@ export function CarteDemande({ demande, onChange }: { demande: DemandeLieu; onCh
   const [action, setAction] = useState<"accepter" | "refuser" | null>(null);
   const [motif, setMotif] = useState("");
   const aContact = demande.contactNom || demande.contactEmail || demande.contactTelephone;
-  const objetMail = encodeURIComponent(`Ta demande pour ${demande.nom} sur SOS Miam`);
 
   return (
     <article className="grid gap-3 rounded-carte border border-ligne bg-white p-5">
@@ -53,7 +53,9 @@ export function CarteDemande({ demande, onChange }: { demande: DemandeLieu; onCh
             <Bouton variante="danger" icone={X} onClick={() => setAction("refuser")}>Refuser</Bouton>
           </>
         )}
-        {demande.contactEmail && <Bouton icone={Mail} onClick={() => ouvrirLien(`mailto:${demande.contactEmail}?subject=${objetMail}`)}>Répondre par mail</Bouton>}
+        {demande.contactEmail && (
+          <BoutonEcrireMail petit={false} libelle="Répondre par mail" destinataire={{ adresse: demande.contactEmail, prenom: demande.contactNom }} categorie="demande" lieu={demande.nom} objet={`Ta demande pour ${demande.nom} sur SOS Miam`} />
+        )}
         {demande.contactEmail && <BoutonReponseType categorie="demande" adresse={demande.contactEmail} prenom={demande.contactNom} lieu={demande.nom} />}
         {demande.lienDiscord && <Bouton icone={ExternalLink} onClick={() => ouvrirLien(demande.lienDiscord!)}>Voir sur Discord</Bouton>}
         {aContact && demande.statut !== "a-traiter" && (

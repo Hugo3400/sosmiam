@@ -41,6 +41,7 @@ model Compte {
   lectures      LectureMessage[]
   bigSos        BigSos[]
   appareils     AppareilPush[]
+  candidaturesCertification CandidatureCertification[]
 
   @@index([derniereConnexion])
   @@map("comptes")
@@ -58,6 +59,12 @@ model Ambassadeur {
   noteEquipe String?   @map("note_equipe") @db.VarChar(2000)
   /// Date de la dernière décision de l'équipe (validation, refus ou suspension)
   decideLe   DateTime? @map("decide_le") @db.Timestamptz(0)
+  /// Ambassadeur certifié (docs/decisions.md) : depuis quand (null : pas certifié), titre à part du palier
+  certifieLe     DateTime? @map("certifie_le") @db.Timestamptz(0)
+  /// Profil du certifié : « ambassadeur », « pro » ou « structure »
+  profilCertifie String?   @map("profil_certifie") @db.VarChar(12)
+  /// Nom de sa structure ou de son lieu, montré avec son prénom sur le badge (« Marie, pour l'asso … »)
+  structure      String?   @db.VarChar(100)
   creeLe     DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
 
   compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)

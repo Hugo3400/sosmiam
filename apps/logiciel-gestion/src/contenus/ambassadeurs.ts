@@ -51,4 +51,4 @@ export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "j
  * candidature n'est acceptée ni refusée ; chacune est rangée dans la ville (ou le département) de la personne. Passe à
  * false au signal de la session Site (candidature par commune et carte « n° 3 de Lyon · n° 147 en France » en ligne).
  */
-export const FONDATEURS_EN_PREPARATION = true;
+export const FONDATEURS_EN_PREPARATION = false;
