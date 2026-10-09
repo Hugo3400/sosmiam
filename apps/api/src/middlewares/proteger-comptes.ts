@@ -1,29 +1,33 @@
-// Protection des routes des comptes (espace ambassadeur du site, puis l'app). La personne connectée envoie son jeton de
-// session dans l'en-tête X-Session-Compte (le site le garde dans un cookie HttpOnly, jamais dans une adresse) ; la base
-// n'en garde que l'empreinte SHA-256. Une session se ferme après 30 jours sans visite, et au plus tard après 90 jours.
+// Protection des routes des comptes (espace ambassadeur et espace pro du site, et l'app). La personne connectée envoie son
+// jeton de session dans l'en-tête X-Session-Compte (le site le garde dans un cookie HttpOnly, jamais dans une adresse) ou
+// dans « Authorization: Bearer <jeton> » (l'app, qui le garde dans le Trousseau ou le Keystore) ; la base n'en garde que
+// l'empreinte SHA-256. Session du site (support « site ») : fermée après 30 jours sans visite, et au plus tard après 90
+// jours. Session de l'app (support « app ») : 1 an, prolongé à chaque usage, sans limite totale
+// (fonctions/comptes/est-session-expiree.ts).
 // Rien n'est gardé en mémoire : une décision de l'équipe (refus, suspension) ou une déconnexion compte tout de suite.
 import type { NextFunction, Request, Response } from "express";
 
 import { ChampInvalide } from "../controleurs/gestion/lire-champs.ts";
+import { DUREES_SESSIONS, estSessionExpiree, type SupportSession } from "../fonctions/comptes/est-session-expiree.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import type { StatutAmbassadeur } from "../services/comptes.ts";
 
 const UN_JOUR = 86_400_000;
-const INACTIVITE_MAX = 30 * UN_JOUR;
-const DUREE_MAX = 90 * UN_JOUR;
-/** L'heure de dernière activité n'est réécrite dans la base qu'au plus toutes les 5 minutes */
-const ECRITURE_ACTIVITE = 5 * 60_000;
 /** La dernière visite du compte (effacé après 1 an sans visite) n'est réécrite qu'au plus une fois par jour */
 const ECRITURE_VISITE = UN_JOUR;
 /** Forme d'un jeton de creerJeton() (session, réinitialisation) : 43 caractères base64url, avec un peu de marge */
 export const FORME_JETON = /^[A-Za-z0-9_-]{32,128}$/;
 
 /** Ce que la protection met dans reponse.locals.compte pour les routes protégées */
-export type CompteSession = { id: number; prenom: string; statutAmbassadeur: StatutAmbassadeur | null };
+export type CompteSession = {
+  id: number; prenom: string; statutAmbassadeur: StatutAmbassadeur | null;
+  /** Support de la session en cours : un nouveau jeton (changement de mot de passe) garde le même */
+  support: SupportSession;
+};
 
-export type SessionOuverte = { compteId: number; creeLe: number; activite: number };
+export type SessionOuverte = { compteId: number; creeLe: number; activite: number; support: SupportSession };
 /** Ce que la protection doit savoir du titulaire d'une session (relu à chaque demande) */
 export type TitulaireSession = { prenom: string; statutAmbassadeur: StatutAmbassadeur | null; derniereConnexion: number };
 
@@ -31,7 +35,8 @@ export type TitulaireSession = { prenom: string; statutAmbassadeur: StatutAmbass
 export type StockageSessionsComptes = {
   /** La session et son titulaire, ou null (session inconnue, ou compte effacé) */
   lire: (empreinte: string) => Promise<(SessionOuverte & TitulaireSession) | null>;
-  creer: (empreinte: string, session: SessionOuverte) => Promise<void>;
+  /** Support absent : « site » */
+  creer: (empreinte: string, session: Omit<SessionOuverte, "support"> & { support?: SupportSession }) => Promise<void>;
   toucher: (empreinte: string, activite: number) => Promise<void>;
   /** Note la dernière visite connectée du compte (exigerCompte l'appelle au plus une fois par jour) */
   noterVisite: (compteId: number, moment: number) => Promise<void>;
@@ -50,7 +55,7 @@ export function creerStockageSessionsComptesEnMemoire(titulaires: Map<number, Ti
       if (!session || !titulaire) return null;
       return { ...session, prenom: titulaire.prenom, statutAmbassadeur: titulaire.statutAmbassadeur, derniereConnexion: titulaire.derniereConnexion };
     },
-    creer: async (empreinte, session) => void sessions.set(empreinte, { ...session }),
+    creer: async (empreinte, session) => void sessions.set(empreinte, { ...session, support: session.support ?? "site" }),
     toucher: async (empreinte, activite) => {
       const session = sessions.get(empreinte);
       if (session) session.activite = activite;
@@ -66,9 +71,12 @@ export function creerStockageSessionsComptesEnMemoire(titulaires: Map<number, Ti
   };
 }
 
-/** Le jeton de session de l'en-tête X-Session-Compte, s'il en a la forme (sinon null). */
+/**
+ * Le jeton de session, s'il en a la forme (sinon null) : l'en-tête X-Session-Compte (le site), sinon
+ * « Authorization: Bearer <jeton> » (l'app).
+ */
 export function lireJetonSession(requete: Request): string | null {
-  const jeton = requete.get("x-session-compte")?.trim() ?? "";
+  const jeton = requete.get("x-session-compte")?.trim() || /^Bearer\s+(\S+)\s*$/i.exec(requete.get("authorization") ?? "")?.[1] || "";
   return FORME_JETON.test(jeton) ? jeton : null;
 }
 
@@ -79,13 +87,16 @@ export function creerProtectionComptes(stockage: StockageSessionsComptes, horlog
     const empreinte = jeton ? calculerEmpreinteJeton(jeton) : null;
     const session = empreinte ? await stockage.lire(empreinte) : null;
     const maintenant = horloge();
-    if (!empreinte || !session || maintenant - session.activite > INACTIVITE_MAX || maintenant - session.creeLe > DUREE_MAX) {
+    if (!empreinte || !session || estSessionExpiree(session, maintenant)) {
       if (empreinte && session) await stockage.supprimer(empreinte);
       return reponse.status(401).json({ ok: false, erreur: "session-expiree" });
     }
-    if (maintenant - session.activite > ECRITURE_ACTIVITE) await stockage.toucher(empreinte, maintenant);
+    // Prolongée à chaque usage, mais la base n'est réécrite qu'au plus toutes les 5 minutes (site) ou une fois par jour (app)
+    if (maintenant - session.activite > DUREES_SESSIONS[session.support].ecritureActivite) await stockage.toucher(empreinte, maintenant);
     if (maintenant - session.derniereConnexion > ECRITURE_VISITE) await stockage.noterVisite(session.compteId, maintenant);
-    reponse.locals.compte = { id: session.compteId, prenom: session.prenom, statutAmbassadeur: session.statutAmbassadeur } satisfies CompteSession;
+    reponse.locals.compte = {
+      id: session.compteId, prenom: session.prenom, statutAmbassadeur: session.statutAmbassadeur, support: session.support,
+    } satisfies CompteSession;
     suite();
   }
 
@@ -101,12 +112,12 @@ export function creerProtectionComptes(stockage: StockageSessionsComptes, horlog
 
   /**
    * Nouvelle session (inscription, connexion, changement de mot de passe) : le jeton est rendu une seule fois, la base
-   * n'en garde que l'empreinte.
+   * n'en garde que l'empreinte. « app » : la session longue de l'app.
    */
-  async function ouvrirSession(compteId: number): Promise<string> {
+  async function ouvrirSession(compteId: number, support: SupportSession = "site"): Promise<string> {
     const jeton = creerJeton();
     const maintenant = horloge();
-    await stockage.creer(calculerEmpreinteJeton(jeton), { compteId, creeLe: maintenant, activite: maintenant });
+    await stockage.creer(calculerEmpreinteJeton(jeton), { compteId, creeLe: maintenant, activite: maintenant, support });
     return jeton;
   }
 

@@ -261,7 +261,7 @@ export function FormulaireLieu({ id, onFermer, allerA, navigation, manques }: Pr
           </>
         }
       >
-        <p><strong>{lieu.nom}</strong> disparaît, avec <strong>toutes ses publications</strong> et leurs vidéos et photos.</p>
+        <p><strong>{lieu.nom}</strong> disparaît, avec <strong>toutes ses publications</strong> et leurs vidéos et photos, et aussi les visites, rescousses, cartes de fidélité et SOS liés à ce lieu.</p>
         <p className="mt-2 text-sm text-gris">Pour le cacher sans rien perdre, passe plutôt son statut à « Masqué ».</p>
       </Modale>
     </>

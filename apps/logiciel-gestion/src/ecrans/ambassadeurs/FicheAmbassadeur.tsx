@@ -39,7 +39,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
   async function decider(statut: "actif" | "refuse" | "suspendu") {
     if (!fiche) return;
     const questions = {
-      refuse: `Refuser ${fiche.prenom} ? L'espace ambassadeur lui reste fermé, et son compte (créé pour cette inscription) est effacé 30 jours après.`,
+      refuse: `Refuser ${fiche.prenom} ? L'espace ambassadeur lui reste fermé ; son compte SOS Miam (l'app) reste.`,
       suspendu: `Suspendre ${fiche.prenom} ? L'espace ambassadeur lui est fermé tout de suite, jusqu'à ce que tu le réactives. Son compte et l'app ne changent pas.`,
       actif: null,
     };

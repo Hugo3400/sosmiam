@@ -1,0 +1,68 @@
+// Cartes de fidélité des lieux (docs/decisions.md, « Scan et validation des visites », fidélité) : un tampon par visite
+// validée, récompense figée quand la carte se remplit, remise par l'équipe au comptoir après une demande (code de 15 min).
+// Règles dans packages/commun (regles/fidelite.ts, fonctions/fidelite/).
+
+/// Le programme d'un lieu, réglé par son gérant : 3 à 10 visites, une récompense, sa version sans alcool pour les 15-17 ans
+model ProgrammeFidelite {
+  lieuId               Int      @id @map("lieu_id")
+  lieu                 Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  actif                Boolean  @default(true)
+  visitesRequises      Int      @map("visites_requises") @db.SmallInt
+  recompense           String   @db.VarChar(60)
+  alcool               Boolean  @default(false)
+  recompenseSansAlcool String?  @map("recompense_sans_alcool") @db.VarChar(60)
+  /// Mis en pause : les récompenses prêtes restent honorées 30 jours après cette date
+  modifieLe            DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("programmes_fidelite")
+}
+
+/// La carte d'une personne chez un lieu
+model CarteFidelite {
+  id         Int                 @id @default(autoincrement())
+  compteId   Int                 @map("compte_id")
+  compte     Compte              @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId     Int                 @map("lieu_id")
+  lieu       Lieu                @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  tampons    Int                 @default(0) @db.SmallInt
+  creeLe     DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
+  pretes     RecompensePrete[]
+  demandes   DemandeRecompense[]
+
+  @@unique([compteId, lieuId])
+  @@index([lieuId])
+  @@map("cartes_fidelite")
+}
+
+/// Une récompense gagnée (carte pleine), figée à ce moment-là : son libellé et si c'est la version avec alcool
+model RecompensePrete {
+  id           Int                 @id @default(autoincrement())
+  carteId      Int                 @map("carte_id")
+  carte        CarteFidelite       @relation(fields: [carteId], references: [id], onDelete: Cascade)
+  libelle      String              @db.VarChar(60)
+  alcool       Boolean             @default(false)
+  gagneeLe     DateTime            @default(now()) @map("gagnee_le") @db.Timestamptz(0)
+  /// Offerte par l'équipe au comptoir (null : encore à demander)
+  offerteLe    DateTime?           @map("offerte_le") @db.Timestamptz(0)
+  offerteParId Int?                @map("offerte_par_id")
+  offertePar   Compte?             @relation("RecompensesOffertes", fields: [offerteParId], references: [id], onDelete: SetNull)
+  demandes     DemandeRecompense[]
+
+  @@index([carteId, offerteLe])
+  @@map("recompenses_pretes")
+}
+
+/// « Demander ma récompense » : un code à 4 chiffres à montrer à l'équipe, valable 15 minutes
+model DemandeRecompense {
+  id           Int             @id @default(autoincrement())
+  carteId      Int             @map("carte_id")
+  carte        CarteFidelite   @relation(fields: [carteId], references: [id], onDelete: Cascade)
+  recompenseId Int             @map("recompense_id")
+  recompense   RecompensePrete @relation(fields: [recompenseId], references: [id], onDelete: Cascade)
+  code         String          @db.VarChar(4)
+  creeLe       DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
+  expireLe     DateTime        @map("expire_le") @db.Timestamptz(0)
+
+  @@index([carteId, expireLe])
+  @@map("demandes_recompenses")
+}

@@ -6,6 +6,12 @@ import { limiterRequetes } from "./middlewares/limiter-requetes.ts";
 import { creerProtectionComptes, gererErreursComptes } from "./middlewares/proteger-comptes.ts";
 import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
+import { creerRoutesApp } from "./routes/app.ts";
+import { creerRoutesContenuApp } from "./routes/contenu-app.ts";
+import { creerRoutesActivite } from "./routes/activite.ts";
+import type { DependancesActivite } from "./controleurs/activite.ts";
+import type { DependancesContenuApp } from "./controleurs/contenu-app.ts";
+import type { DependancesApp } from "./controleurs/app.ts";
 import { creerRoutesBot } from "./routes/bot.ts";
 import { creerRoutesComptes, LIMITE_CONNECTEE, type DependancesComptes } from "./routes/comptes.ts";
 import { creerRoutesDemandesLieux } from "./routes/demandes-lieux.ts";
@@ -55,6 +61,13 @@ type Dependances = {
   /** Miam Safe : alertes silencieuses, signalements, « Tu t'es senti·e bien ici ? », charte (routes /miam-safe, seulement avec
    * `comptes` et `comptes.pro`) */
   miamSafe?: DependancesMiamSafe;
+  /** L'app, sans session : heure du serveur et version minimale (routes /app ; absentes si non fourni) */
+  app?: DependancesApp;
+  /** L'app, sans session : lieux publiés, leur carte, le fil « Pour toi » et ses médias (routes /app/lieux, /app/publications,
+   * /app/medias ; absentes si non fourni). Monté avant `app` : sa limite générale ne compte pas les médias */
+  contenuApp?: DependancesContenuApp;
+  /** L'app, avec session : rescousses, lieux gardés, J'aime, masques et suivis (routes /app/activite ; seulement avec `comptes`) */
+  activiteApp?: DependancesActivite;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -68,6 +81,7 @@ export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
   enregistrerDemandeLieu, bot, gestion,
   comptes, espaceAmbassadeur, zones, miamSafe,
+  app, contenuApp, activiteApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -101,6 +115,8 @@ export function creerApplication({
     if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge));
+    // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version
+    if (activiteApp) application.use("/app/activite", creerRoutesActivite(activiteApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",
@@ -108,6 +124,12 @@ export function creerApplication({
       );
     }
   }
+
+  // L'app, sans session : heure du serveur et version minimale
+  // Lieux, fil et médias de l'app : avant le routeur suivant, qui limite toutes les adresses /app (ce que celui-ci ne
+  // connaît pas lui passe)
+  if (contenuApp) application.use("/app", creerRoutesContenuApp(contenuApp));
+  if (app) application.use("/app", creerRoutesApp(app));
 
   application.use((_requete, reponse) => {
     reponse.status(404).json({ ok: false, erreur: "introuvable" });

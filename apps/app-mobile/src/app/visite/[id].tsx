@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { DELAI_ANNULATION_LIEU_MS } from "@sos-miam/commun/regles/visites";
+import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { QuestionSentiBien } from "~/composants/miam-safe/QuestionSentiBien";
 import { CarteAttenteAddition } from "~/composants/visites/CarteAttenteAddition";
 import { CelebrationVisite } from "~/composants/visites/CelebrationVisite";
@@ -16,6 +17,7 @@ import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
 import couleurs from "~/theme/couleurs";
@@ -41,6 +43,8 @@ export default function EcranVisite() {
   const { pret, resultat, echec } = utiliserVisiteEnDirect(visiteId);
   const refTitre = useRef<Text>(null);
   const [contestation, setContestation] = useState(false);
+  // Miam Safe pendant une visite (décidé le 9 octobre 2026) : le même bouton 🚨 que sur la fiche du lieu
+  const [miamSafeOuvert, setMiamSafeOuvert] = useState(false);
   // La fête en cours, et si cette visite avait déjà été fêtée (un second scan du même QR : « C'est déjà validé »)
   const [fete, setFete] = useState<{ deja: boolean } | null>(null);
   const vueEnAttente = useRef(false);
@@ -81,6 +85,9 @@ export default function EcranVisite() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieuId = visite?.lieu.id ?? null;
+  const miamSafe = utiliserMiamSafeLieu(lieuId ?? 0);
+  // Dans le lieu : addition demandée, ou visite validée (on y est encore, souvent)
+  const dansLeLieu = statut === "demandee" || statut === "validee";
   const lieu = useMemo(() => (lieuId === null ? null : (filtrerLieuxSelonAge(lieuxExemples, age).find((l) => l.id === lieuId) ?? null)), [lieuId, age]);
 
   // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji (jamais la photo)
@@ -147,19 +154,49 @@ export default function EcranVisite() {
         >
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
-        {/* La fête porte sa propre étiquette « Démo » */}
-        {visite?.demo && !enFete ? (
-          <View
-            accessible
-            accessibilityLabel="Visite de démo : elle reste sur ce téléphone"
-            className="rotate-3 rounded-full border-2 border-encre bg-encre px-3 py-0.5"
-          >
-            <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
-          </View>
-        ) : null}
+        <View className="flex-row items-center gap-3">
+          {/* La fête porte sa propre étiquette « Démo » */}
+          {visite?.demo && !enFete ? (
+            <View
+              accessible
+              accessibilityLabel="Visite de démo : elle reste sur ce téléphone"
+              className="rotate-3 rounded-full border-2 border-encre bg-encre px-3 py-0.5"
+            >
+              <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
+            </View>
+          ) : null}
+          {visite && dansLeLieu && !enFete ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Miam Safe"
+              accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, le comptoir"
+              hitSlop={12}
+              onPress={() => setMiamSafeOuvert(true)}
+              className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            >
+              <Text className="text-base">🚨</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       {contenu}
       <FeuilleContestation visible={contestation} visite={visite} onFermer={() => setContestation(false)} />
+      {visite ? (
+        <FeuilleMiamSafe
+          visible={miamSafeOuvert}
+          lieuId={visite.lieu.id}
+          nomLieu={visite.lieu.nom}
+          engage={miamSafe.engage}
+          avecCompte
+          onFermer={() => setMiamSafeOuvert(false)}
+          onMontrerEcran={() => {
+            setMiamSafeOuvert(false);
+            // iOS n'ouvre pas une fenêtre pendant qu'une autre se referme : on laisse la feuille descendre d'abord
+            setTimeout(() => router.push("/miam-safe/comptoir"), 450);
+          }}
+          onCreerCompte={() => setMiamSafeOuvert(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

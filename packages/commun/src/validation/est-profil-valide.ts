@@ -1,7 +1,7 @@
-import type { Profil } from "../types/profil";
-import { AGE_MINIMUM_INSCRIPTION } from "../regles/ages";
-import { calculerAge } from "../regles/calculer-age";
-import { estPseudoValide } from "./est-pseudo-valide";
+import type { Profil } from "../types/profil.ts";
+import { AGE_MINIMUM_INSCRIPTION } from "../regles/ages.ts";
+import { calculerAge } from "../regles/calculer-age.ts";
+import { estPseudoValide } from "./est-pseudo-valide.ts";
 
 /**
  * Vérifie qu'une donnée lue (téléphone, plus tard API) est bien un profil complet et cohérent :

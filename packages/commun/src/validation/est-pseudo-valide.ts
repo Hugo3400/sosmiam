@@ -1,4 +1,4 @@
-import { FORME_PSEUDO } from "../regles/potes";
+import { FORME_PSEUDO } from "../regles/potes.ts";
 
 /**
  * Vrai si le pseudo a la bonne forme (3 à 20 caractères : minuscules, chiffres, point, tiret bas). L'unicité se vérifiera avec l'API.

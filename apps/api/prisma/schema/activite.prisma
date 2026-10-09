@@ -1,0 +1,97 @@
+// Activité de l'app gardée dans le compte (décidé le 9 octobre 2026, docs/decisions.md « Avant de brancher l'app ») :
+// rescousses, premier sauveteur, lieux gardés, J'aime, publications masquées pour soi, lieux et créateurs suivis.
+// Tout part avec le compte (suppression en cascade).
+
+/// Une rescousse donnée à un lieu vérifié, une semaine donnée : 3 par semaine (packages/commun/src/regles/rescousses.ts),
+/// rechargées le lundi à l'heure de Paris ; une rescousse se reprend dans la semaine (la ligne est effacée). +2 points.
+model Rescousse {
+  id       Int      @id @default(autoincrement())
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId   Int      @map("lieu_id")
+  lieu     Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Semaine à l'heure de Paris (« 2026-S41 », calculerClesPeriodes)
+  semaine  String   @db.VarChar(8)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@unique([compteId, lieuId, semaine])
+  @@index([lieuId])
+  @@index([compteId, semaine])
+  @@map("rescousses")
+}
+
+/// Le premier sauveteur d'un lieu tout juste arrivé (30 jours) : la toute première rescousse qu'il a reçue (+20 et le badge).
+/// Un seul par lieu ; gardé même si la personne supprime son compte (sans lien vers elle).
+model PremierSauveteur {
+  lieuId   Int      @id @map("lieu_id")
+  lieu     Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  compteId Int?     @map("compte_id")
+  compte   Compte?  @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@index([compteId])
+  @@map("premiers_sauveteurs")
+}
+
+/// Un lieu gardé pour plus tard (🔖)
+model LieuGarde {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId   Int      @map("lieu_id")
+  lieu     Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, lieuId])
+  @@index([lieuId])
+  @@map("lieux_gardes")
+}
+
+/// Un J'aime sur une publication du fil
+model JaimePublication {
+  compteId      Int         @map("compte_id")
+  compte        Compte      @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  publicationId Int         @map("publication_id")
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  creeLe        DateTime    @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, publicationId])
+  @@index([publicationId])
+  @@map("jaimes_publications")
+}
+
+/// « Pas intéressé » : la publication disparaît de TON fil seulement
+model PublicationMasquee {
+  compteId      Int         @map("compte_id")
+  compte        Compte      @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  publicationId Int         @map("publication_id")
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  creeLe        DateTime    @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, publicationId])
+  @@map("publications_masquees")
+}
+
+/// Un lieu suivi : ses publications passent dans l'onglet « Abonnements »
+model SuiviLieu {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId   Int      @map("lieu_id")
+  lieu     Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, lieuId])
+  @@index([lieuId])
+  @@map("suivis_lieux")
+}
+
+/// Un créateur suivi, par son pseudo (un créateur est pour l'instant un pseudo de publication, pas un compte)
+model SuiviCreateur {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  pseudo   String   @db.VarChar(40)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, pseudo])
+  @@index([pseudo])
+  @@map("suivis_createurs")
+}

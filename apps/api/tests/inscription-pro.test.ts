@@ -21,7 +21,7 @@ test("espace « pro » : le compte seul, sans fiche d'ambassadeur, et sans ville
   const { statut, corps } = await demander("POST", "/comptes", { corps: inscription() });
   assert.equal(statut, 201);
   assert.equal(corps.compte.ambassadeur, null);
-  assert.deepEqual(corps.compte.pro, { lieux: [] });
+  assert.deepEqual(corps.compte.pro, { lieux: [], lieuxValides: [] });
   const garde = [...memoire.comptes.values()].find((compte) => compte.email === corps.compte.email);
   assert.equal(garde?.statutAmbassadeur, null, "aucune demande d'ambassadeur à valider");
   assert.equal(garde?.ville, "");

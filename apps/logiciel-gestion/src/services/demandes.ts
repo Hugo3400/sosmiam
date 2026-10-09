@@ -5,8 +5,9 @@ export type StatutDemande = "a-traiter" | "acceptee" | "refusee";
 
 export type DemandeLieu = {
   id: number;
-  /** « lieu » : le lieu s'inscrit lui-même (site) ; « communaute » : proposé sur Discord */
-  origine: "lieu" | "communaute";
+  /** « lieu » : le lieu s'inscrit lui-même (site) ; « communaute » : proposé sur Discord ; « compte » : depuis l'app ;
+   * « ambassadeur » : depuis l'espace ambassadeur */
+  origine: "lieu" | "communaute" | "compte" | "ambassadeur";
   nom: string;
   type: string | null;
   ville: string;

@@ -64,7 +64,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, engage, avecCompte, 
       >
         <NumerosUrgence />
         <Text className="font-texte text-base leading-6 text-gris">
-          Prévenir un pote, alerter le comptoir ou nous raconter ce qui s'est passé demande un compte : c'est ce qui nous permet de prendre chaque alerte au sérieux.
+          Alerter le comptoir ou nous raconter ce qui s'est passé demande un compte : c'est ce qui nous permet de prendre chaque alerte au sérieux.
         </Text>
       </FeuilleBas>
     );
@@ -80,7 +80,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, engage, avecCompte, 
     >
       {vue === "choix" ? <ChoixAideMiamSafe engage={engage} onChoisir={setVue} /> : null}
       {vue === "pote" ? <PrevenirPoteMiamSafe nomLieu={nomLieu} /> : null}
-      {vue === "alerte" ? <AlerteComptoirMiamSafe lieuId={lieuId} onPrevenirPote={() => setVue("pote")} /> : null}
+      {vue === "alerte" ? <AlerteComptoirMiamSafe lieuId={lieuId} /> : null}
       {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" ? (
         <View className="gap-4">

@@ -3,6 +3,8 @@
 // Jamais de mot de passe ni de jeton : ni dans la liste, ni dans la fiche, ni dans l'export.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
+import type { ChiffrementDonnees } from "../chiffrement-donnees.ts";
+import { dechiffrerProfil } from "./profil-gestion.ts";
 
 const PAR_PAGE = 50;
 
@@ -24,7 +26,7 @@ export async function listerComptes({ recherche, role, page }: FiltresComptes) {
       skip: (Math.max(1, page) - 1) * PAR_PAGE,
       take: PAR_PAGE,
       select: {
-        id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
+        id: true, prenom: true, pseudo: true, ville: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
         ambassadeur: { select: { statut: true, ville: true } },
         _count: { select: { sessions: true } },
       },
@@ -39,7 +41,9 @@ export async function lireCompteGestion(id: number) {
     baseDeDonnees.compte.findUnique({
       where: { id },
       select: {
-        id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+        id: true, prenom: true, pseudo: true, ville: true, prive: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+        // Jamais le nom ni la date de naissance (chiffrés) : seulement « renseignés ou non », pour le bouton « Afficher »
+        dateNaissanceChiffree: true,
         ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
         badges: { select: { badge: true, obtenuLe: true }, orderBy: { obtenuLe: "asc" } },
         journalPoints: { select: { points: true, raison: true, detail: true, creeLe: true }, orderBy: { creeLe: "desc" }, take: 20 },
@@ -49,7 +53,8 @@ export async function lireCompteGestion(id: number) {
     baseDeDonnees.sessionCompte.groupBy({ by: ["support"], where: { compteId: id }, _count: { _all: true }, _max: { activite: true } }),
   ]);
   if (!compte) return null;
-  return { ...compte, sessions: sessions.map((s) => ({ support: s.support, nombre: s._count._all, derniereActivite: s._max.activite })) };
+  const { dateNaissanceChiffree, ...visible } = compte;
+  return { ...visible, dateNaissanceRenseignee: Boolean(dateNaissanceChiffree), sessions: sessions.map((s) => ({ support: s.support, nombre: s._count._all, derniereActivite: s._max.activite })) };
 }
 
 /** Ferme toutes les connexions du compte (site et app) : il devra se reconnecter. Rend le nombre de sessions fermées. */
@@ -60,13 +65,16 @@ export async function deconnecterPartout(id: number) {
 
 /**
  * Toutes les données d'un compte, pour répondre à une demande d'accès (RGPD, article 15) : en JSON lisible, sans
- * empreinte de mot de passe ni jeton. La note de l'équipe en fait partie (la politique le promet).
+ * empreinte de mot de passe ni jeton. La note de l'équipe en fait partie (la politique le promet), et le nom et la date de
+ * naissance y sont EN CLAIR (déchiffrés ici, jamais gardés ainsi).
  */
-export async function exporterDonneesCompte(id: number) {
+export async function exporterDonneesCompte(id: number, chiffrement: ChiffrementDonnees) {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      id: true, email: true, emailVerifieLe: true, prenom: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+      id: true, email: true, emailVerifieLe: true, prenom: true, pseudo: true, ville: true, envies: true, avatar: true, prive: true,
+      nomChiffre: true, dateNaissanceChiffree: true,
+      points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
       ambassadeur: { select: { statut: true, ville: true, quartier: true, noteEquipe: true, decideLe: true, creeLe: true, certifieLe: true, profilCertifie: true, structure: true } },
       sessions: { select: { support: true, creeLe: true, activite: true } },
       badges: { select: { badge: true, obtenuLe: true } },
@@ -78,6 +86,28 @@ export async function exporterDonneesCompte(id: number) {
       candidaturesCertification: { select: { profil: true, structure: true, communeCode: true, aide: true, envies: true, engagementGratuit: true, statut: true, creeLe: true, reponduLe: true } },
       suggestionsLieux: { select: { lieuId: true, source: true, proposition: true, message: true, statut: true, reponse: true, creeLe: true, decideLe: true } },
       lectures: { select: { messageId: true, luLe: true } },
+      // Activité de l'app (visites, fidélité, Miam Safe…) : tout ce qui la concerne, sauf les secrets techniques (jeton d'un
+      // téléphone, code d'une visite) et la note interne de l'équipe sur un signalement (elle porte sur le lieu)
+      appareils: { select: { plateforme: true, ville: true, actif: true, creeLe: true, vuLe: true } },
+      visites: { select: { lieuId: true, mode: true, statut: true, creeLe: true, valideLe: true, pendantSos: true, points: true, tampon: true, motifRefus: true, contestee: true, contestation: true, avisDonne: true } },
+      visitesDecidees: { select: { lieuId: true, statut: true, decideLe: true } },
+      rescousses: { select: { lieuId: true, semaine: true, creeLe: true } },
+      premiersSauvetages: { select: { lieuId: true, creeLe: true } },
+      lieuxGardes: { select: { lieuId: true, creeLe: true } },
+      jaimesPublications: { select: { publicationId: true, creeLe: true } },
+      publicationsMasquees: { select: { publicationId: true, creeLe: true } },
+      suivisLieux: { select: { lieuId: true, creeLe: true } },
+      suivisCreateurs: { select: { pseudo: true, creeLe: true } },
+      presentationsQr: { select: { lieuId: true, personnes: true, reglement: true, creeLe: true } },
+      cartesFidelite: { select: { lieuId: true, tampons: true, creeLe: true, pretes: { select: { libelle: true, gagneeLe: true, offerteLe: true } }, demandes: { select: { recompenseId: true, creeLe: true, expireLe: true } } } },
+      recompensesOffertes: { select: { libelle: true, offerteLe: true } },
+      sosLances: { select: { lieuId: true, places: true, jusqua: true, offre: true, creeLe: true, arreteLe: true } },
+      reponsesSentiBien: { select: { lieuId: true, oui: true, modifieLe: true } },
+      alertesMiamSafe: { select: { lieuId: true, prenom: true, endroit: true, detail: true, creeLe: true, repondueLe: true } },
+      alertesMiamSafeRepondues: { select: { lieuId: true, repondueLe: true } },
+      signalementsMiamSafe: { select: { lieuId: true, raison: true, explication: true, statut: true, creeLe: true, traiteLe: true } },
+      chartesMiamSafe: { select: { lieuId: true, signeeLe: true, retireeLe: true } },
+      rattachementsLieux: { select: { lieuId: true, role: true, preuve: true, siret: true, statut: true, reponse: true, creeLe: true, decideLe: true } },
     },
   });
   if (!compte) return null;
@@ -86,5 +116,6 @@ export async function exporterDonneesCompte(id: number) {
     select: { type: true, objet: true, statut: true, creeLe: true, envoyeLe: true },
     orderBy: { creeLe: "asc" },
   });
-  return { exporteLe: new Date().toISOString(), compte, mailsEnvoyes: mails };
+  const { nomChiffre, dateNaissanceChiffree, ...reste } = compte;
+  return { exporteLe: new Date().toISOString(), compte: { ...reste, ...dechiffrerProfil(chiffrement, { nomChiffre, dateNaissanceChiffree }) }, mailsEnvoyes: mails };
 }

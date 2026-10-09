@@ -35,7 +35,7 @@ function lireChampsCandidature(corps: Record<string, unknown>): NouvelleCandidat
 }
 
 /** Une pépite proposée : mêmes règles que « J'inscris mon lieu » (POST /demandes-lieux), sans la partie contact. */
-function lireChampsProposition(corps: Record<string, unknown>): NouvelleProposition {
+export function lireChampsProposition(corps: Record<string, unknown>): NouvelleProposition {
   const nom = lireTexte(corps, "nom", 80, true);
   const type = typeof corps.type === "string" && TYPES_LIEUX.includes(corps.type) ? corps.type : null;
   const ville = lireTexte(corps, "ville", 80, true);

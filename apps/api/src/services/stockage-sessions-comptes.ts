@@ -1,7 +1,8 @@
-// Sessions des comptes (espace ambassadeur) gardées dans la base : l'empreinte SHA-256 du jeton seulement, jamais le
+// Sessions des comptes (site et app, colonne « support ») gardées dans la base : l'empreinte SHA-256 du jeton seulement, jamais le
 // jeton. Chaque lecture relit aussi le titulaire (prénom, statut, dernière visite) : une décision de l'équipe compte tout de suite.
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import type { StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
+import { lireSupportSession } from "../fonctions/comptes/lire-support-session.ts";
 import type { StatutAmbassadeur } from "./comptes.ts";
 
 export const stockageSessionsComptes: StockageSessionsComptes = {
@@ -9,7 +10,7 @@ export const stockageSessionsComptes: StockageSessionsComptes = {
     const session = await baseDeDonnees.sessionCompte.findUnique({
       where: { empreinte },
       select: {
-        compteId: true, creeLe: true, activite: true,
+        compteId: true, creeLe: true, activite: true, support: true,
         compte: { select: { prenom: true, derniereConnexion: true, ambassadeur: { select: { statut: true } } } },
       },
     });
@@ -18,13 +19,14 @@ export const stockageSessionsComptes: StockageSessionsComptes = {
       compteId: session.compteId,
       creeLe: session.creeLe.getTime(),
       activite: session.activite.getTime(),
+      support: lireSupportSession(session.support),
       prenom: session.compte.prenom,
       statutAmbassadeur: (session.compte.ambassadeur?.statut ?? null) as StatutAmbassadeur | null,
       derniereConnexion: session.compte.derniereConnexion.getTime(),
     };
   },
-  async creer(empreinte, { compteId, creeLe, activite }) {
-    await baseDeDonnees.sessionCompte.create({ data: { empreinte, compteId, creeLe: new Date(creeLe), activite: new Date(activite) } });
+  async creer(empreinte, { compteId, creeLe, activite, support = "site" }) {
+    await baseDeDonnees.sessionCompte.create({ data: { empreinte, compteId, creeLe: new Date(creeLe), activite: new Date(activite), support } });
   },
   async toucher(empreinte, activite) {
     await baseDeDonnees.sessionCompte.updateMany({ where: { empreinte }, data: { activite: new Date(activite) } });

@@ -3,6 +3,7 @@ import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-pali
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { decrireCertifie, type CertifieVue } from "./certification.ts";
+import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import type { LieuDuPro, RoleRattachement, StatutRattachement } from "./pro-regles.ts";
 
 // Comptes SOS Miam (espace ambassadeur du site, puis l'app). Les fonctions ci-dessous servent aussi au logiciel de
@@ -80,8 +81,9 @@ export async function preparerReinitialisation(compteId: number): Promise<{ jeto
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
 
 /**
- * Le compte tel que la personne connectée le voit (exactement apps/site-web/src/types/compte.ts) : jamais le mot de
- * passe, ni la note de l'équipe. Dates en ISO 8601.
+ * Le compte tel que la personne connectée le voit (apps/site-web/src/types/compte.ts, plus `age` et `pro.lieuxValides`
+ * pour l'app) : jamais le mot de passe, ni la note de l'équipe. Dates en ISO 8601. Construit par presenterCompte
+ * (fonctions/comptes/presenter-compte.ts) à partir de CompteLu.
  */
 export type CompteConnecte = {
   prenom: string;
@@ -97,12 +99,31 @@ export type CompteConnecte = {
     /** Titre d'« ambassadeur certifié » (à part du palier), ou null */
     certifie: CertifieVue | null;
   } | null;
-  /** Espace pro : ses lieux (tous ses rattachements sauf « retire » ; liste vide s'il n'en a pas) */
-  pro: { lieux: LieuDuPro[] };
+  /** Âge en années pleines (date du jour à Paris) si la date de naissance est gardée (comptes de l'app), sinon null */
+  age: number | null;
+  /** Espace pro : ses lieux (tous ses rattachements sauf « retire » ; liste vide s'il n'en a pas) ; lieuxValides : ceux
+   * dont le rattachement est « valide » (les lieux qui sont à lui) */
+  pro: { lieux: LieuDuPro[]; lieuxValides: LieuDuPro[] };
 };
 
-/** Où la personne s'inscrit : l'espace ambassadeur (par défaut), ou l'espace pro (pro.sosmiam.fr) */
-export type EspaceInscription = "ambassadeur" | "pro";
+/**
+ * Le compte tel que les services le lisent : sans âge ni masquage des rôles (presenterCompte s'en charge), avec la date
+ * de naissance encore chiffrée (null : compte du site, qui ne la garde pas). Jamais envoyé tel quel.
+ */
+export type CompteLu = Omit<CompteConnecte, "age" | "pro"> & { pro: { lieux: LieuDuPro[] }; dateNaissanceChiffree: string | null };
+
+/** Où la personne s'inscrit : l'espace ambassadeur (par défaut), l'espace pro (pro.sosmiam.fr) ou l'app */
+export type EspaceInscription = "ambassadeur" | "pro" | "app";
+
+/** Profil de l'app, gardé à l'inscription « app » : nom et date de naissance déjà CHIFFRÉS (services/chiffrement-donnees.ts) */
+export type ProfilAppNouveau = {
+  nomChiffre: string | null;
+  dateNaissanceChiffree: string;
+  ville: string;
+  /** Envies par catégorie, jamais « regimes » */
+  envies: Record<string, string[]>;
+  pseudo: string | null;
+};
 
 export type NouveauCompte = {
   email: string;
@@ -112,8 +133,10 @@ export type NouveauCompte = {
   /** Ville et quartier de la fiche d'ambassadeur ; ignorés pour l'espace pro (le site envoie "" et null) */
   ville: string;
   quartier: string | null;
-  /** « pro » : compte seul, SANS fiche d'ambassadeur (aucune demande à valider) ; absent : « ambassadeur » */
+  /** « pro » ou « app » : compte seul, SANS fiche d'ambassadeur (aucune demande à valider) ; absent : « ambassadeur » */
   espace?: EspaceInscription;
+  /** Espace « app » seulement : le profil de l'app */
+  profil?: ProfilAppNouveau;
   /** Date de mise à jour des conditions d'utilisation acceptées (AAAA-MM-JJ) */
   cguVersion: string;
 };
@@ -121,21 +144,31 @@ export type NouveauCompte = {
 /** Ce que la personne change elle-même dans « Mon compte » (quartier null : effacé). L'e-mail ne se change pas en ligne. */
 export type ModificationCompte = { prenom?: string; ville?: string; quartier?: string | null };
 
-const estDoublon = (erreur: unknown) => typeof erreur === "object" && erreur !== null && "code" in erreur && erreur.code === "P2002";
+export const estDoublon = (erreur: unknown) => typeof erreur === "object" && erreur !== null && "code" in erreur && erreur.code === "P2002";
+/** Doublon sur le pseudo (et pas sur l'e-mail) : les détails de l'erreur Prisma citent la colonne ou l'index « pseudo » */
+export const estDoublonPseudo = (erreur: unknown) =>
+  estDoublon(erreur) && /pseudo/.test(JSON.stringify((erreur as { meta?: unknown }).meta ?? null) + String((erreur as Error).message ?? ""));
 
 /**
- * Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite), ou le compte seul pour l'espace pro ;
- * null si l'e-mail est déjà pris.
+ * Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite), ou le compte seul pour l'espace pro
+ * et pour l'app (avec son profil) ; null si l'e-mail est déjà pris. Pseudo déjà pris : lève PseudoDejaPris.
  */
-export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur" }: NouveauCompte): Promise<number | null> {
+export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil }: NouveauCompte): Promise<number | null> {
   try {
     const compte = await baseDeDonnees.compte.create({
-      data: { email, motDePasse, prenom, cguVersion, ...(espace === "ambassadeur" ? { ambassadeur: { create: { ville, quartier } } } : {}) },
+      data: {
+        email, motDePasse, prenom, cguVersion,
+        ...(espace === "ambassadeur" ? { ambassadeur: { create: { ville, quartier } } } : {}),
+        ...(espace === "app" && profil
+          ? { nomChiffre: profil.nomChiffre, dateNaissanceChiffree: profil.dateNaissanceChiffree, ville: profil.ville, envies: profil.envies, pseudo: profil.pseudo }
+          : {}),
+      },
       select: { id: true },
     });
     return compte.id;
   } catch (erreur) {
-    // La base refuse un second compte avec le même e-mail (contrainte unique : erreur P2002 de Prisma)
+    // La base refuse un second compte avec le même e-mail ou le même pseudo (contrainte unique : erreur P2002 de Prisma)
+    if (estDoublonPseudo(erreur)) throw new PseudoDejaPris();
     if (estDoublon(erreur)) return null;
     throw erreur;
   }
@@ -146,17 +179,17 @@ export async function trouverCompteParEmail(email: string): Promise<{ id: number
   return baseDeDonnees.compte.findUnique({ where: { email }, select: { id: true, motDePasse: true } });
 }
 
-/** Le compte tel que son titulaire le voit, ou null s'il n'existe plus. */
-export async function lireCompte(id: number): Promise<CompteConnecte | null> {
+/** Le compte tel que les services le lisent (CompteLu, à passer par presenterCompte), ou null s'il n'existe plus. */
+export async function lireCompte(id: number): Promise<CompteLu | null> {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true,
+      prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true, dateNaissanceChiffree: true,
       badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
       ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true, certifieLe: true, profilCertifie: true, structure: true } },
       rattachementsLieux: {
         where: { statut: { not: "retire" } }, orderBy: { creeLe: "asc" },
-        select: { lieuId: true, role: true, statut: true, lieu: { select: { nom: true, ville: true } } },
+        select: { lieuId: true, role: true, statut: true, lieu: { select: { nom: true, ville: true, emoji: true } } },
       },
     },
   });
@@ -170,6 +203,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
     badges: compte.badges.map(({ badge }) => badge),
     creeLe: compte.creeLe.toISOString(),
     emailVerifie: compte.emailVerifieLe !== null,
+    dateNaissanceChiffree: compte.dateNaissanceChiffree,
     ambassadeur: ambassadeur
       ? {
           statut: ambassadeur.statut as StatutAmbassadeur,
@@ -181,7 +215,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
       : null,
     pro: {
       lieux: compte.rattachementsLieux.map(({ lieuId, role, statut, lieu }) => ({
-        lieuId, nom: lieu.nom, ville: lieu.ville, role: role as RoleRattachement, statut: statut as StatutRattachement,
+        lieuId, nom: lieu.nom, ville: lieu.ville, emoji: lieu.emoji, role: role as RoleRattachement, statut: statut as StatutRattachement,
       })),
     },
   };

@@ -8,8 +8,9 @@ import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { creerStockageSessionsComptesEnMemoire } from "../middlewares/proteger-comptes.ts";
 import type { NouvelleCandidatureCertification, ProfilCertifie, StatutCandidatureCertification } from "./certification.ts";
-import type { CompteConnecte, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
-import type { NouvelleCandidature, NouvelleProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
+import type { CompteLu, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
+import type { NouvelleCandidature, NouvelleProposition, OrigineProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
+import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import { creerProEnMemoire } from "./pro-en-memoire.ts";
 import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
@@ -39,6 +40,15 @@ export type CompteEnMemoire = {
   verification: { empreinte: string; expireLe: number } | null;
   /** Titre d'« ambassadeur certifié » (depuis quand, profil, structure), ou null */
   certification: { certifieLe: number; profil: ProfilCertifie | null; structure: string | null } | null;
+  /** Profil de l'app (comme les colonnes de la base) : nom et date CHIFFRÉS, ville du profil (à part de celle de
+   * l'ambassadeur), envies sans « regimes », avatar emoji, compte privé */
+  pseudo: string | null;
+  nomChiffre: string | null;
+  dateNaissanceChiffree: string | null;
+  villeApp: string | null;
+  envies: Record<string, string[]> | null;
+  avatar: string | null;
+  prive: boolean;
 };
 
 export type CandidatureEnMemoire = NouvelleCandidature & {
@@ -53,14 +63,18 @@ export type CandidatureCertificationEnMemoire = NouvelleCandidatureCertification
 export type DecisionCertification = "accepter" | "refuser" | "retirer";
 /** Un mail qui serait parti : le type de lien, le compte, le lien lui-même (jeton compris) et son échéance */
 export type EnvoiEnMemoire = { type: "mot-de-passe" | "verification-email"; compteId: number; lien: string; expireLe: Date };
-export type PropositionEnMemoire = NouvelleProposition & { id: number; compteId: number | null; statut: PropositionVue["statut"]; creeLe: number };
+export type PropositionEnMemoire = NouvelleProposition & {
+  id: number; compteId: number | null; statut: PropositionVue["statut"]; creeLe: number; origine: OrigineProposition;
+};
 
 const iso = (moment: number) => new Date(moment).toISOString();
 /** Mêmes durées que services/comptes.ts (ce double n'importe rien qui touche à la base) : 24 heures et 7 jours */
 const DUREE_REINITIALISATION = 24 * 3600_000;
 const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
-/** Comme services/menage-comptes.ts : candidature refusée effacée 3 mois après la réponse */
+/** Comme services/menage-comptes.ts : candidature refusée effacée 3 mois après la réponse ; rôle d'un ambassadeur refusé
+ * retiré 30 jours après le refus */
 const MOIS_CANDIDATURE_REFUSEE = 3;
+const GARDE_REFUS = 30 * 24 * 3600_000;
 
 export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const comptes = new Map<number, CompteEnMemoire>();
@@ -74,6 +88,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const pro = creerProEnMemoire(comptes, suggestions, horloge);
   const compteurs = { comptes: 0, candidatures: 0, candidaturesCertification: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
+  const pseudoPris = (pseudo: string, saufCompteId?: number) => [...comptes.values()].some((compte) => compte.pseudo === pseudo && compte.id !== saufCompteId);
   const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
   const derniereCertification = (compteId: number) => candidaturesCertification.filter((candidature) => candidature.compteId === compteId).at(-1);
   /** Un jeton rendu une fois ; le compte n'en garde que l'empreinte et l'échéance */
@@ -93,8 +108,9 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const courriels: CourrielsComptes = { envoyerLienMotDePasse: noterEnvoi("mot-de-passe"), envoyerLienVerificationEmail: noterEnvoi("verification-email") };
 
   const services: ServicesComptes = {
-    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur" }) {
+    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil }) {
       if (trouverParEmail(email)) return null;
+      if (profil?.pseudo && pseudoPris(profil.pseudo)) throw new PseudoDejaPris();
       const id = ++compteurs.comptes;
       const maintenant = horloge();
       comptes.set(id, {
@@ -103,6 +119,10 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
         statutAmbassadeur: espace === "ambassadeur" ? "en-attente" : null, ville: espace === "ambassadeur" ? ville : "",
         quartier: espace === "ambassadeur" ? quartier : null, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
         certification: null,
+        ...(espace === "app" && profil
+          ? { pseudo: profil.pseudo, nomChiffre: profil.nomChiffre, dateNaissanceChiffree: profil.dateNaissanceChiffree, villeApp: profil.ville,
+              envies: structuredClone(profil.envies), avatar: null, prive: false }
+          : { pseudo: null, nomChiffre: null, dateNaissanceChiffree: null, villeApp: null, envies: null, avatar: null, prive: false }),
       });
       return id;
     },
@@ -113,9 +133,9 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     async lireCompte(id) {
       const compte = comptes.get(id);
       if (!compte) return null;
-      const vu: CompteConnecte = {
+      const vu: CompteLu = {
         prenom: compte.prenom, email: compte.email, points: compte.points, palier: compte.palier, badges: [...compte.badges], creeLe: iso(compte.creeLe),
-        emailVerifie: compte.emailVerifieLe !== null,
+        emailVerifie: compte.emailVerifieLe !== null, dateNaissanceChiffree: compte.dateNaissanceChiffree,
         ambassadeur: compte.statutAmbassadeur
           ? {
               statut: compte.statutAmbassadeur, ville: compte.ville, quartier: compte.quartier, decideLe: compte.decideLe === null ? null : iso(compte.decideLe),
@@ -211,8 +231,8 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
         .reverse()
         .map(({ id, nom, ville, statut, creeLe }) => ({ id, nom, ville, statut, creeLe: iso(creeLe) }));
     },
-    async creerProposition(compteId, proposition) {
-      propositions.push({ ...proposition, id: ++compteurs.propositions, compteId, statut: "a-traiter", creeLe: horloge() });
+    async creerProposition(compteId, proposition, origine = "ambassadeur") {
+      propositions.push({ ...proposition, id: ++compteurs.propositions, compteId, statut: "a-traiter", creeLe: horloge(), origine });
     },
     async lireCandidatureCertification(compteId) {
       const derniere = derniereCertification(compteId);
@@ -230,6 +250,26 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     },
     lireFichePourSuggestion: suggestions.lireFichePourSuggestion,
     creerSuggestionLieu: suggestions.creerSuggestionLieu,
+    async lireProfil(id) {
+      const compte = comptes.get(id);
+      if (!compte) return null;
+      const { prenom, nomChiffre, pseudo, dateNaissanceChiffree, villeApp, envies, avatar, prive } = compte;
+      return { prenom, nomChiffre, pseudo, dateNaissanceChiffree, ville: villeApp, envies: structuredClone(envies), avatar, prive, emailVerifie: compte.emailVerifieLe !== null };
+    },
+    async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive }) {
+      const compte = comptes.get(id);
+      if (!compte) return "ok";
+      if (pseudo !== undefined && pseudoPris(pseudo, id)) return "pseudo-pris";
+      if (prenom !== undefined) compte.prenom = prenom;
+      if (nomChiffre !== undefined) compte.nomChiffre = nomChiffre;
+      if (pseudo !== undefined) compte.pseudo = pseudo;
+      if (ville !== undefined) compte.villeApp = ville;
+      if (envies !== undefined) compte.envies = structuredClone(envies);
+      if (avatar !== undefined) compte.avatar = avatar;
+      if (prive !== undefined) compte.prive = prive;
+      return "ok";
+    },
+    pseudoEstPris: async (pseudo, saufCompteId) => pseudoPris(pseudo, saufCompteId),
   };
 
   return {
@@ -315,6 +355,21 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       Object.assign(candidature, { statut: decision === "accepter" ? "acceptee" : "refusee", reponduLe: horloge() });
       if (decision === "accepter") compte.certification = { certifieLe: horloge(), profil: candidature.profil, structure: candidature.structure };
       return true;
+    },
+    /**
+     * Ménage de nuit (services/menage-comptes.ts) : ambassadeurs refusés depuis plus de 30 jours, rôle retiré comme
+     * retirerDuProgramme (fiche d'ambassadeur, candidatures) ; le compte, ses sessions et son profil de l'app restent.
+     */
+    retirerAmbassadeursRefuses(maintenant = horloge()): number {
+      let retires = 0;
+      for (const compte of comptes.values()) {
+        if (compte.statutAmbassadeur !== "refuse" || compte.decideLe === null || compte.decideLe >= maintenant - GARDE_REFUS) continue;
+        Object.assign(compte, { statutAmbassadeur: null, ville: "", quartier: null, decideLe: null, certification: null });
+        for (let i = candidatures.length - 1; i >= 0; i--) if (candidatures[i]?.compteId === compte.id) candidatures.splice(i, 1);
+        for (let i = candidaturesCertification.length - 1; i >= 0; i--) if (candidaturesCertification[i]?.compteId === compte.id) candidaturesCertification.splice(i, 1);
+        retires += 1;
+      }
+      return retires;
     },
     /** Ménage de nuit (services/menage-comptes.ts) : candidatures certification refusées depuis plus de 3 mois ; renvoie le nombre effacé. */
     effacerCertificationsRefusees(maintenant = new Date(horloge())): number {

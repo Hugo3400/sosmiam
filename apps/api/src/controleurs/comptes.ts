@@ -4,6 +4,9 @@
 // Contrat des adresses : routes/comptes.ts. Jamais d'e-mail, de mot de passe, de jeton ni de date de naissance dans un journal.
 import type { Request, Response } from "express";
 
+import { AGE_MINIMUM_INSCRIPTION } from "../../../../packages/commun/src/regles/ages.ts";
+import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
+import type { SupportSession } from "../fonctions/comptes/est-session-expiree.ts";
 import { calculerAgeAParis } from "../fonctions/comptes/calculer-age-a-paris.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
@@ -13,30 +16,36 @@ import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
 import { FORME_JETON, lireJetonSession, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import type { CandidatureCertificationBrute, NouvelleCandidatureCertification, ResultatCandidatureCertification } from "../services/certification.ts";
-import type { CompteConnecte, EspaceInscription, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
+import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
+import type { CompteConnecte, CompteLu, EspaceInscription, ModificationCompte, NouveauCompte, ProfilAppNouveau } from "../services/comptes.ts";
 import type {
-  CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, PropositionVue, ResultatChangementCommune,
+  CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, OrigineProposition, PropositionVue, ResultatChangementCommune,
 } from "../services/comptes-espace.ts";
+import type { ModificationProfil, ProfilLu } from "../services/comptes-profil.ts";
+import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
 import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompte } from "../services/suggestions-comptes-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
+import { lireEnvies, lireNomChiffre, lirePseudo } from "./comptes-profil-champs.ts";
 import type { LimiteEnvois } from "./comptes-limite-envois.ts";
 import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
 /** Conditions d'utilisation acceptées à l'inscription : leur date de mise à jour (contenus/legal/cgu.ts du site, à garder en phase) */
 export const VERSION_CGU = "2026-10-09";
+/** Espace ambassadeur et espace pro : dès 18 ans ; l'app : dès 15 ans (AGE_MINIMUM_INSCRIPTION de packages/commun) */
 const AGE_MINIMUM = 18;
 
 /** Ce que les routes des comptes demandent aux données : services/comptes.ts et comptes-espace.ts (Prisma), ou la mémoire (tests). */
 export type ServicesComptes = {
-  /** Crée le compte et sa fiche d'ambassadeur « en-attente » (ou le compte seul, espace « pro ») ; null si l'e-mail est déjà pris */
+  /** Crée le compte et sa fiche d'ambassadeur « en-attente » (ou le compte seul, espaces « pro » et « app ») ; null si
+   * l'e-mail est déjà pris ; lève PseudoDejaPris (services/erreurs-comptes.ts) si le pseudo l'est */
   creerCompte: (compte: NouveauCompte) => Promise<number | null>;
   /** Pour la connexion : l'identifiant et l'empreinte du mot de passe (null si l'e-mail est inconnu) */
   trouverCompteParEmail: (email: string) => Promise<{ id: number; motDePasse: string } | null>;
-  /** Le compte tel que son titulaire le voit (null s'il n'existe plus) */
-  lireCompte: (id: number) => Promise<CompteConnecte | null>;
+  /** Le compte tel que les services le lisent (null s'il n'existe plus) : à présenter avec lireCompteVu (comptes-vu.ts) */
+  lireCompte: (id: number) => Promise<CompteLu | null>;
   /** E-mail et empreinte du mot de passe, pour vérifier le mot de passe actuel */
   lireIdentifiants: (id: number) => Promise<{ email: string; motDePasse: string } | null>;
   modifierCompte: (id: number, modification: ModificationCompte) => Promise<void>;
@@ -60,7 +69,8 @@ export type ServicesComptes = {
   /** Pose ou change la commune de sa dernière candidature, si elle est encore en attente */
   changerCommuneCandidature: (compteId: number, lieu: LieuCandidature) => Promise<ResultatChangementCommune>;
   listerPropositions: (compteId: number) => Promise<PropositionVue[]>;
-  creerProposition: (compteId: number, proposition: NouvelleProposition) => Promise<void>;
+  /** Origine absente : « ambassadeur » */
+  creerProposition: (compteId: number, proposition: NouvelleProposition, origine?: OrigineProposition) => Promise<void>;
   /** Sa dernière candidature « ambassadeur certifié » (null s'il n'en a pas) : services/certification.ts */
   lireCandidatureCertification: (compteId: number) => Promise<CandidatureCertificationBrute | null>;
   /** « deja-certifie » s'il a déjà le titre, « candidature-existante » s'il en a une en attente */
@@ -69,6 +79,11 @@ export type ServicesComptes = {
   lireFichePourSuggestion: (lieuId: number) => Promise<FicheSuggerable | null>;
   /** Suggestion de modification gardée, ou « trop-de-suggestions » (10 par 24 h, 3 en attente par lieu) */
   creerSuggestionLieu: (compteId: number, suggestion: NouvelleSuggestionCompte, maintenant: Date) => Promise<ResultatSuggestionCompte>;
+  /** Profil de l'app (services/comptes-profil.ts) : nom et date encore chiffrés */
+  lireProfil: (id: number) => Promise<ProfilLu | null>;
+  modifierProfil: (id: number, modification: ModificationProfil) => Promise<"ok" | "pseudo-pris">;
+  /** Vrai si un AUTRE compte a déjà ce pseudo */
+  pseudoEstPris: (pseudo: string, saufCompteId?: number) => Promise<boolean>;
 };
 
 /**
@@ -84,17 +99,44 @@ export type ContexteComptes = {
   courriels: CourrielsComptes; adresseEspace: string;
   /** Liens envoyés par compte : « Mot de passe oublié », et confirmation de l'e-mail */
   limiteOubli: LimiteEnvois; limiteVerification: LimiteEnvois;
+  /** Chiffrement du nom et de la date de naissance (null : pas de clé, l'inscription « app » et le profil répondent 503) */
+  chiffrement: ChiffrementDonnees | null;
+  /** Le compte présenté à la personne connectée (âge, rôles masqués sous 18 ans) : controleurs/comptes-vu.ts */
+  lireCompteVu: (id: number) => Promise<CompteConnecte | null>;
 };
 
-/** Espace de l'inscription : absent ou « ambassadeur » (par défaut), ou « pro » ; autre chose : champ invalide. */
+/** 503 « chiffrement-indisponible » : la clé des données des comptes n'a pas été lue au démarrage */
+export const repondreChiffrementIndisponible = (reponse: Response) =>
+  reponse.status(503).json({ ok: false, erreur: "chiffrement-indisponible" });
+
+/** Espace de l'inscription : absent ou « ambassadeur » (par défaut), « pro » ou « app » ; autre chose : champ invalide. */
 function lireEspace(corps: Record<string, unknown>): EspaceInscription {
   if (corps.espace === undefined || corps.espace === null || corps.espace === "ambassadeur") return "ambassadeur";
-  if (corps.espace === "pro") return "pro";
+  if (corps.espace === "pro" || corps.espace === "app") return corps.espace;
   throw new ChampInvalide("espace");
 }
 
+/** Support de la session à ouvrir : « site » ou « app » (absent : `defaut`) ; autre chose : champ invalide. */
+function lireSupport(corps: Record<string, unknown>, defaut: SupportSession): SupportSession {
+  if (corps.support === undefined || corps.support === null) return defaut;
+  if (corps.support === "site" || corps.support === "app") return corps.support;
+  throw new ChampInvalide("support");
+}
+
+/**
+ * Profil de l'inscription « app » : nom facultatif (chiffré), date de naissance GARDÉE (chiffrée), ville obligatoire,
+ * envies facultatives sans « regimes », pseudo facultatif.
+ */
+function lireProfilApp(corps: Record<string, unknown>, dateNaissance: string, chiffrement: ChiffrementDonnees): ProfilAppNouveau {
+  const nomChiffre = lireNomChiffre(corps, chiffrement);
+  const ville = lireLigne(corps, "ville", 2, 80);
+  const envies = corps.envies === undefined || corps.envies === null ? {} : lireEnvies(corps.envies);
+  const pseudo = corps.pseudo === undefined || corps.pseudo === null || corps.pseudo === "" ? null : lirePseudo(corps.pseudo);
+  return { nomChiffre, dateNaissanceChiffree: chiffrement.chiffrer(dateNaissance, "dateNaissance"), ville, envies, pseudo };
+}
+
 export function creerControleursComptes(contexte: ContexteComptes) {
-  const { services, protection, attente, attenteConnectee, horloge } = contexte;
+  const { services, protection, attente, attenteConnectee, horloge, chiffrement, lireCompteVu } = contexte;
   const { envoyerVerification } = creerControleursLiens(contexte);
   // Empreinte d'un mot de passe que personne n'a : vérifier un e-mail inconnu prend autant de temps qu'un vrai compte.
   // Calculée dès le démarrage (le .catch évite un arrêt du serveur pour une promesse rejetée que personne n'attend encore)
@@ -108,41 +150,53 @@ export function creerControleursComptes(contexte: ContexteComptes) {
     return compte && bon ? compte : null;
   }
 
-  /** 201 avec une nouvelle session : le jeton n'est rendu qu'une fois, le site le garde dans son cookie. */
-  async function ouvrirSessionEtRepondre(reponse: Response, compteId: number) {
-    const session = await protection.ouvrirSession(compteId);
-    reponse.status(201).json({ ok: true, session, compte: await services.lireCompte(compteId) });
+  /** 201 avec une nouvelle session : le jeton n'est rendu qu'une fois (cookie du site, coffre du téléphone pour l'app). */
+  async function ouvrirSessionEtRepondre(reponse: Response, compteId: number, support: SupportSession) {
+    const session = await protection.ouvrirSession(compteId, support);
+    reponse.status(201).json({ ok: true, session, compte: await lireCompteVu(compteId) });
   }
   const jetonInvalide = (reponse: Response) => reponse.status(410).json({ ok: false, erreur: "jeton-invalide" });
 
   return {
     /**
      * POST /comptes : le compte, sa fiche d'ambassadeur « en-attente » (l'équipe valide), et une session ouverte. Avec
-     * espace « pro » (inscription sur pro.sosmiam.fr) : le compte seul, sans fiche d'ambassadeur ni ville.
+     * espace « pro » (inscription sur pro.sosmiam.fr) : le compte seul, sans fiche d'ambassadeur ni ville. Avec espace
+     * « app » : dès 15 ans, le compte seul avec son profil de l'app (date de naissance gardée, chiffrée).
      */
     async inscrire(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (estRobot(corps)) return reponse.status(201).json({ ok: true });
-      // L'âge d'abord : avant 18 ans, inutile de corriger le reste. La date ne sert qu'à ce calcul (ni gardée, ni écrite).
-      const age = typeof corps.dateNaissance === "string" ? calculerAgeAParis(corps.dateNaissance, new Date(horloge())) : null;
-      if (age !== null && age < AGE_MINIMUM) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
+      const espace = lireEspace(corps);
+      // L'âge d'abord : trop jeune, inutile de corriger le reste, et rien n'est gardé. Sur le site, la date ne sert qu'à
+      // ce calcul (ni gardée, ni écrite) ; dans l'app, elle est gardée chiffrée. Jamais dans un journal.
+      const dateNaissance = typeof corps.dateNaissance === "string" ? corps.dateNaissance : null;
+      const maintenant = new Date(horloge());
+      const age = dateNaissance === null ? null : espace === "app" ? calculerAgeProfil(dateNaissance, maintenant) : calculerAgeAParis(dateNaissance, maintenant);
+      if (age !== null && age < (espace === "app" ? AGE_MINIMUM_INSCRIPTION : AGE_MINIMUM)) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
+      if (espace === "app" && !chiffrement) return repondreChiffrementIndisponible(reponse);
       const prenom = lireLigne(corps, "prenom", 1, 40);
       const email = lireEmail(corps);
       const motDePasse = lireMotDePasse(corps, "motDePasse");
       if (!validerMotDePasse(motDePasse, email)) throw new ChampInvalide("motDePasse");
-      if (age === null) throw new ChampInvalide("dateNaissance");
-      const espace = lireEspace(corps);
-      const ville = espace === "pro" ? "" : lireLigne(corps, "ville", 2, 80);
-      const quartier = espace === "pro" ? null : lireLigneFacultative(corps, "quartier", 80);
+      if (age === null || dateNaissance === null) throw new ChampInvalide("dateNaissance");
+      const support = lireSupport(corps, espace === "app" ? "app" : "site");
+      const profil = espace === "app" && chiffrement ? lireProfilApp(corps, dateNaissance, chiffrement) : undefined;
+      const ville = espace === "ambassadeur" ? lireLigne(corps, "ville", 2, 80) : "";
+      const quartier = espace === "ambassadeur" ? lireLigneFacultative(corps, "quartier", 80) : null;
       if (corps.cgu !== true) throw new ChampInvalide("cgu");
       const empreinte = await hacherMotDePasse(motDePasse);
-      const id = await services.creerCompte({ email, motDePasse: empreinte, prenom, ville, quartier, cguVersion: VERSION_CGU, espace });
+      const id = await services.creerCompte({ email, motDePasse: empreinte, prenom, ville, quartier, cguVersion: VERSION_CGU, espace, profil })
+        .catch((erreur: unknown) => {
+          if (erreur instanceof PseudoDejaPris) return "pseudo-pris" as const;
+          throw erreur;
+        });
       // Impossible à cacher sans envoyer de mail ; la limite d'essais par visiteur freine qui voudrait s'en servir
       if (id === null) return reponse.status(409).json({ ok: false, erreur: "email-deja-utilise" });
+      if (id === "pseudo-pris") return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
       // Le lien de confirmation de l'e-mail : préparé ici, envoyé sans attendre ; un raté n'empêche pas l'inscription
       // (la personne peut le redemander depuis son espace)
       await envoyerVerification(id).catch((erreur: unknown) => console.error("Comptes : lien de confirmation impossible :", resumerErreur(erreur)));
-      await ouvrirSessionEtRepondre(reponse, id);
+      await ouvrirSessionEtRepondre(reponse, id, support);
     },
 
     /** POST /comptes/session : connexion. La même erreur « identifiants » pour un e-mail inconnu ou un mot de passe faux. */
@@ -151,16 +205,17 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       const email = lireEmail(corps);
       const motDePasse = lireMotDePasse(corps, "motDePasse");
       if (!motDePasse) throw new ChampInvalide("motDePasse");
+      const support = lireSupport(corps, "site");
       // L'essai est compté avant de vérifier (des essais lancés tous en même temps ne passent pas tous) ; un succès l'efface
       if (faireAttendre(attente, reponse, email)) return;
       const compte = await verifierEnComptant(attente, email, () => verifierIdentifiants(email, motDePasse));
       if (!compte) return reponse.status(401).json({ ok: false, erreur: "identifiants" });
-      await ouvrirSessionEtRepondre(reponse, compte.id);
+      await ouvrirSessionEtRepondre(reponse, compte.id, support);
     },
 
     /** GET /comptes/session (après exigerCompte) : le compte de la personne connectée. */
     async lireSession(_requete: Request, reponse: Response) {
-      const compte = await services.lireCompte(lireCompteId(reponse));
+      const compte = await lireCompteVu(lireCompteId(reponse));
       if (!compte) return reponse.status(401).json({ ok: false, erreur: "session-expiree" });
       reponse.json({ ok: true, compte });
     },

@@ -65,7 +65,7 @@ async function nettoyerComptes() {
     const bilan = await faireLeMenageDesComptes();
     const lignes: [number, string][] = [
       [bilan.sessions, "session(s) expirée(s)"],
-      [bilan.comptesRefuses, "compte(s) refusé(s) depuis plus de 30 jours"],
+      [bilan.ambassadeursRefuses, "ambassadeur(s) refusé(s) depuis plus de 30 jours : rôle retiré, compte gardé"],
       [bilan.ambassadeursRetires, "ambassadeur(s) retiré(s) du programme : 1 an sans visite"],
       [bilan.comptesInactifs, "compte(s) effacé(s) : 2 ans sans connexion"],
       [bilan.candidatures, "candidature(s) fondateur refusée(s) depuis plus de 3 mois"],

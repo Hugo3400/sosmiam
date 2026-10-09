@@ -47,14 +47,14 @@
         "expo-image-picker",
         {
           "photosPermission": "SOS Miam ouvre tes photos seulement quand tu choisis ta photo de profil, ou une photo à envoyer à tes potes.",
-          "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR code d'un pote, prendre ta photo de profil ou une photo à envoyer à tes potes.",
+          "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR du comptoir d'un lieu (et valider ta visite), le QR code d'un pote, prendre ta photo de profil ou une photo à envoyer à tes potes.",
           "microphonePermission": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SOS Miam lit ta position seulement quand tu le demandes et que l'app est ouverte : pour trouver le nom de ta ville, ou te montrer les lieux autour de toi. On ne la garde pas.",
+          "locationWhenInUsePermission": "SOS Miam lit ta position seulement quand tu le demandes et que l'app est ouverte : pour vérifier que tu es bien dans le lieu quand tu valides une visite, trouver le nom de ta ville, ou te montrer les lieux autour de toi. On ne la garde pas.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": "SOS Miam ne se sert pas de tes mouvements : seuls tes petits creux nous intéressent."
@@ -63,7 +63,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR code d'un pote, prendre ta photo de profil ou une photo à envoyer à tes potes.",
+          "cameraPermission": "SOS Miam utilise l'appareil photo pour scanner le QR du comptoir d'un lieu (et valider ta visite), le QR code d'un pote, prendre ta photo de profil ou une photo à envoyer à tes potes.",
           "recordAudioAndroid": false
         }
       ],

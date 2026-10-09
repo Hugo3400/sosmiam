@@ -10,11 +10,7 @@ import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
-type Props = {
-  lieuId: number;
-  /** Après 2 minutes sans réponse : proposer de prévenir un pote */
-  onPrevenirPote: () => void;
-};
+type Props = { lieuId: number };
 
 /** L'état de l'alerte est relu toutes les 3 secondes, jusqu'à « L'équipe arrive » ou « sans réponse » */
 const RELECTURE_MS = 3000;
@@ -24,9 +20,9 @@ type Etat = "a-envoyer" | "envoyee" | "en-route" | "sans-reponse";
 /**
  * Alerter le comptoir en silence, quand on ne peut pas y aller (lieux Miam Safe seulement) : où tu es, un petit détail si tu
  * veux, et l'équipe reçoit ton prénom en notification sur ses téléphones pro (jamais ton nom ni ta photo). Rien ne sonne de
- * ton côté. Sans « On arrive » au bout de 2 minutes, on te propose les secours ou un pote (et l'alerte remonte à notre équipe).
+ * ton côté. Sans « On arrive » au bout de 2 minutes, on te propose d'appeler les secours ou un proche (et l'alerte remonte à notre équipe).
  */
-export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
+export function AlerteComptoirMiamSafe({ lieuId }: Props) {
   const { miamSafe } = utiliserServices();
   const [endroit, setEndroit] = useState<EndroitAlerte | null>(null);
   const [detail, setDetail] = useState("");
@@ -64,9 +60,8 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
     return (
       <View className="gap-4">
         <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">L'équipe n'a pas encore répondu.</Text>
-        <Text className="font-texte text-base leading-6 text-gris">On a prévenu l'équipe SOS Miam. Ne reste pas seul·e : appelle les secours ou préviens un pote.</Text>
+        <Text className="font-texte text-base leading-6 text-gris">On a prévenu l'équipe SOS Miam. Ne reste pas seul·e : appelle les secours, ou un proche.</Text>
         <NumerosUrgence />
-        <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
       </View>
     );
   }
@@ -80,7 +75,7 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
             {etat === "en-route" ? "Reste où tu es, quelqu'un vient te voir discrètement." : "L'équipe reçoit ton prénom et où tu es. Rien ne sonne de ton côté."}
           </Text>
         </View>
-        <Text className="font-texte text-sm leading-5 text-gris">Sans réponse dans 2 minutes, on te propose d'appeler les secours ou de prévenir un pote.</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">Sans réponse dans 2 minutes, on te propose d'appeler les secours ou un proche.</Text>
       </View>
     );
   }

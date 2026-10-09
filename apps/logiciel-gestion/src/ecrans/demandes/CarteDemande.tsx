@@ -9,6 +9,7 @@ import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { effacerContactDemande, refuserDemande, type DemandeLieu } from "~/services/demandes.ts";
 import { ouvrirLien } from "~/services/systeme.ts";
 import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
+import { ORIGINES_DEMANDE } from "~/contenus/origines-demandes.ts";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { ModaleAccepterDemande } from "./ModaleAccepterDemande.tsx";
 
@@ -23,7 +24,7 @@ export function CarteDemande({ demande, onChange }: { demande: DemandeLieu; onCh
   return (
     <article className="grid gap-3 rounded-carte border border-ligne bg-white p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge ton={demande.origine === "lieu" ? "jaune" : "neutre"}>{demande.origine === "lieu" ? "Le lieu s'inscrit" : "Proposé sur Discord"}</Badge>
+        <Badge ton={demande.origine === "lieu" ? "jaune" : "neutre"}>{ORIGINES_DEMANDE[demande.origine]?.badge ?? demande.origine}</Badge>
         {demande.statut === "acceptee" && <Badge ton="vert">Acceptée{demande.lieuId ? ` · fiche n° ${demande.lieuId}` : ""}</Badge>}
         {demande.statut === "refusee" && <Badge ton="rouge">Refusée</Badge>}
         <span className="ml-auto text-xs text-gris">{formaterDate(demande.creeLe, true)}</span>

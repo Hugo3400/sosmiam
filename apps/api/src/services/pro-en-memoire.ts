@@ -177,7 +177,10 @@ export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: S
         .sort((a, b) => a.creeLe - b.creeLe)
         .map((r) => {
           const lieu = lieux.get(r.lieuId);
-          return { lieuId: r.lieuId, nom: lieu?.nom as string, ville: lieu ? decrire(lieu).ville : "", role: r.role, statut: r.statut };
+          return {
+            lieuId: r.lieuId, nom: lieu?.nom as string, ville: lieu ? decrire(lieu).ville : "", emoji: lieu ? decrire(lieu).emoji : "", role: r.role,
+            statut: r.statut,
+          };
         });
     },
     /**

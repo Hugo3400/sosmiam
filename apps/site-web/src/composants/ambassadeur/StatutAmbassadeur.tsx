@@ -11,8 +11,8 @@ const lienContact = <a href={`mailto:${site.emailContact}`} className={classeLie
 type Props = { prenom: string; ambassadeur: CompteConnecte["ambassadeur"] };
 
 /**
- * L'espace d'un compte qui n'est pas (ou plus) ambassadeur validé : en attente de l'équipe, refusé (effacé 30 jours
- * après la décision), suspendu, ou compte sans demande d'ambassadeur.
+ * L'espace d'un compte qui n'est pas (ou plus) ambassadeur validé : en attente de l'équipe, refusé (rôle retiré 30 jours
+ * après la décision, le compte reste), suspendu, ou compte sans demande d'ambassadeur.
  */
 export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
   if (ambassadeur?.statut === "en-attente") {
@@ -29,8 +29,8 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
     );
   }
 
-  // Effacé 30 jours après le refus : juste tant que les comptes ne viennent que du site. Quand l'app aura ses comptes
-  // (un seul compte par personne, décision du 8 octobre 2026), seul le rôle d'ambassadeur partira : ce texte changera.
+  // 30 jours après le refus, seul le rôle d'ambassadeur part : le compte reste, il sert aussi à l'app (compte unique,
+  // décision du 8 octobre 2026 ; ménage de l'API, services/menage-comptes.ts).
   // Le ménage passe chaque nuit à 3 h 30, heure de Paris (apps/api/src/taches/taches-de-nuit.ts) : une échéance tombée
   // après 3 h 30 est effacée la nuit suivante, d'où le jour de plus et « au plus tard ».
   if (ambassadeur?.statut === "refuse") {
@@ -42,9 +42,9 @@ export function StatutAmbassadeur({ prenom, ambassadeur }: Props) {
         </p>
         {ambassadeur.decideLe && (
           <p className="mt-3 max-w-xl text-lg">
-            Ton compte sera effacé au plus tard le <strong><DateEnLettres iso={ambassadeur.decideLe} plusJours={31} /></strong>, avec tout ce qui va avec.
+            Ta demande sera retirée au plus tard le <strong><DateEnLettres iso={ambassadeur.decideLe} plusJours={31} /></strong> ; ton compte SOS Miam, lui, reste pour l'app.
             {/* L'espace au début de la phrase suivante, dans la même chaîne : seule, Chrome la perdrait pour les lecteurs d'écran */}
-            {lierPonctuation(" Tu peux aussi l'effacer tout de suite depuis « Mon compte ».")}
+            {lierPonctuation(" Tu peux aussi effacer ton compte tout de suite depuis « Mon compte ».")}
           </p>
         )}
         <p className="mt-3 max-w-xl text-gris">{lierPonctuation("Tu peux toujours suivre l'aventure sur sosmiam.fr.")}</p>

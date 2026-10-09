@@ -49,7 +49,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
   const compteurs = donnees?.compteurs ?? {};
 
   async function decider(ambassadeur: ResumeAmbassadeur, decision: "actif" | "refuse") {
-    if (decision === "refuse" && !window.confirm(`Refuser l'inscription de ${ambassadeur.prenom} ? L'espace lui reste fermé, et son compte (créé pour cette inscription) est effacé 30 jours après.`)) return;
+    if (decision === "refuse" && !window.confirm(`Refuser l'inscription de ${ambassadeur.prenom} ? L'espace ambassadeur lui reste fermé ; son compte SOS Miam (l'app) reste.`)) return;
     try {
       const { bienvenue } = await deciderAmbassadeur(ambassadeur.id, decision);
       const texte = decision === "refuse"

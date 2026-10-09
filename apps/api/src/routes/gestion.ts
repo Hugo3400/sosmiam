@@ -17,6 +17,7 @@ import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
+import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import type { AccesGestion } from "../services/gestion/acces.ts";
 import { TAILLE_MAX_VIDEO } from "../services/gestion/formats-medias.ts";
 import { creerJetonMaj, lireManifesteMaj, trouverInstallateur, verifierJetonMaj } from "../services/gestion/mises-a-jour.ts";
@@ -31,12 +32,14 @@ export type DependancesGestion = {
   sessions?: StockageSessions;
   /** Points, badges et réinitialisations des comptes (services/comptes.ts) ; actions absentes si non fourni */
   comptes?: OutilsComptes;
+  /** Chiffrement du nom et de la date de naissance des comptes (lu une fois au démarrage) ; null si la clé manque */
+  chiffrement?: ChiffrementDonnees | null;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
@@ -47,7 +50,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const boite = creerControleursBoite(services);
   const rattachements = creerControleursRattachements(services);
   const m = creerControleursCourriels(services);
-  const k = creerControleursComptesGestion(services, comptes);
+  const k = creerControleursComptesGestion(services, comptes, chiffrement);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -130,6 +133,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/comptes", k.liste);
   routes.get("/comptes/:id", k.fiche);
   routes.get("/comptes/:id/donnees", k.exporter);
+  routes.get("/comptes/:id/date-naissance", k.dateNaissance);
+  routes.put("/comptes/:id/date-naissance", k.corrigerDateNaissance);
   routes.post("/comptes/:id/deconnecter", k.deconnecter);
   routes.post("/comptes/:id/reinitialiser", k.reinitialiser);
   routes.delete("/comptes/:id", k.supprimer);

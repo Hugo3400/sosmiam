@@ -81,7 +81,7 @@ export function EcranComptes({ ouvrir }: { ouvrir?: { id: number } | null }) {
                 return (
                   <li key={compte.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ligne/70 px-5 py-3 text-sm last:border-0">
                     <button type="button" onClick={() => setOuvert(compte.id)} className="min-w-0 flex-1 text-left">
-                      <span className="block truncate font-semibold hover:underline">{compte.prenom} <span className="font-normal text-gris">· n° {compte.id}</span></span>
+                      <span className="block truncate font-semibold hover:underline">{compte.prenom} <span className="font-normal text-gris">{compte.pseudo ? `· @${compte.pseudo} ` : ""}· n° {compte.id}{compte.ville ? ` · ${compte.ville}` : ""}</span></span>
                       <span className="block truncate text-gris">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></span>
                     </button>
                     <span className="w-44">{role ? <Badge ton={role.ton}>Ambassadeur · {role.libelle}</Badge> : <Badge>Sans rôle</Badge>}</span>

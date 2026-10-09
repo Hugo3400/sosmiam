@@ -4,13 +4,18 @@ import { creerAttenteParCompte } from "../controleurs/comptes-attente.ts";
 import { creerControleursCertification } from "../controleurs/comptes-certification.ts";
 import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts";
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
+import { creerControleursProfil } from "../controleurs/comptes-profil.ts";
+import { creerControleursPropositionsLieux } from "../controleurs/comptes-propositions-lieux.ts";
+import { creerLecteurCompteVu } from "../controleurs/comptes-vu.ts";
 import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
 import { creerControleursSuggestions } from "../controleurs/comptes-suggestions.ts";
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
+import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
+import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import type { ServicesPro } from "../services/pro-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
@@ -31,6 +36,10 @@ export const LIMITE_VERIFIER_EMAIL = { fenetre: DIX_MINUTES, maximum: 20 };
 export const LIMITE_SUGGESTIONS = { fenetre: 60 * 60_000, maximum: 20 };
 /** Demander à gérer un lieu : 10 demandes par visiteur et par heure (en plus de la limite par compte : 5 par 24 heures) */
 export const LIMITE_RATTACHEMENTS = { fenetre: 60 * 60_000, maximum: 10 };
+/** « Ce pseudo est-il libre ? » : 60 questions par COMPTE toutes les 10 minutes (l'app attend une pause de frappe) */
+export const LIMITE_PSEUDO_DISPONIBLE = { fenetre: DIX_MINUTES, maximum: 60 };
+/** Proposer un nouveau lieu (tout compte de 18 ans et plus) : 10 propositions par COMPTE et par 24 heures */
+export const LIMITE_PROPOSITIONS_LIEUX = { fenetre: 24 * 60 * 60_000, maximum: 10 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -44,21 +53,38 @@ export type DependancesComptes = {
   adresseEspace?: string;
   /** Espace pro : rattachements, fiche, équipe (services/pro.ts, ou la mémoire) ; sans lui, ni /pro ni /comptes/moi/rattachements */
   pro?: ServicesPro;
+  /** Chiffrement du nom et de la date de naissance (services/chiffrement-donnees.ts) ; absent ou null : l'inscription
+   * « app », le profil et la lecture de l'âge répondent 503 « chiffrement-indisponible » */
+  chiffrement?: ChiffrementDonnees | null;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
 };
 
 /**
- * /comptes/… : comptes uniques de l'espace ambassadeur (ambassadeur.sosmiam.fr) et de l'espace pro (pro.sosmiam.fr),
- * appelés seulement par le serveur du site.
- * JSON ; jeton de session dans l'en-tête X-Session-Compte, IP du visiteur dans X-IP-Visiteur (elle ne sert qu'aux limites).
- * Réponses : { ok: true, … } ou { ok: false, erreur, champ?, attente? }, jamais en cache. `compte` a exactement la forme
- * de apps/site-web/src/types/compte.ts, plus `emailVerifie` (booléen : e-mail confirmé par le lien reçu). Les adresses qui calculent une empreinte de mot de passe peuvent aussi répondre
- * 503 « occupe » (avec Retry-After) quand trop de calculs attendent déjà : rien n'est fait, ni compté, on réessaie.
+ * /comptes/… : le compte unique de SOS Miam, pour l'espace ambassadeur (ambassadeur.sosmiam.fr) et l'espace pro
+ * (pro.sosmiam.fr), appelés par le serveur du site, et pour l'app.
+ * JSON ; jeton de session dans l'en-tête X-Session-Compte (le site) ou « Authorization: Bearer <jeton> » (l'app ; si les
+ * deux sont là, X-Session-Compte compte), IP du visiteur dans X-IP-Visiteur (elle ne sert qu'aux limites).
+ * Réponses : { ok: true, … } ou { ok: false, erreur, champ?, attente? }, jamais en cache. Les adresses qui calculent une
+ * empreinte de mot de passe peuvent aussi répondre 503 « occupe » (avec Retry-After) quand trop de calculs attendent
+ * déjà : rien n'est fait, ni compté, on réessaie. 503 « chiffrement-indisponible » : la clé des données des comptes
+ * manque au serveur (inscription « app », profil) ; rien n'est fait, on réessaie plus tard.
+ *
+ * `compte` (rendu par l'inscription, la connexion, GET /comptes/session et PATCH /comptes/moi) : la forme de
+ * apps/site-web/src/types/compte.ts, plus :
+ *   - `emailVerifie` (booléen : e-mail confirmé par le lien reçu) ;
+ *   - `age` : âge en années pleines au jour de Paris si la date de naissance est gardée (comptes de l'app), sinon null ;
+ *   - `pro.lieux[].emoji` (l'emoji du lieu) et `pro.lieuxValides` : les mêmes lieux, seulement ceux au statut « valide » ;
+ *   - si l'âge connu est sous 18 ans, AUCUN rôle : `ambassadeur` null, `pro` { lieux: [], lieuxValides: [] } (de même si
+ *     la date est gardée mais illisible faute de clé : dans le doute, on ne montre pas).
+ * Sessions : support « site » (par défaut) : fermée après 30 jours sans visite, 90 jours au plus ; support « app » : 1 an,
+ * prolongé à chaque usage (au plus une écriture par jour), sans limite totale. Expirée : 401 « session-expiree ».
  *
  * POST   /comptes                       { email, motDePasse, prenom, ville, quartier?, dateNaissance, cgu: true, espace?,
- *                                        piege? } → 201 { ok, session, compte } (piège rempli : 201 { ok } sans session)
- *                                        400 champ-invalide {champ} · 403 age-minimum · 409 email-deja-utilise · 429
+ *                                        support?, piege? } → 201 { ok, session, compte } (piège rempli : 201 { ok } sans
+ *                                        session) · 400 champ-invalide {champ} · 403 age-minimum · 409 email-deja-utilise
+ *                                        · 409 pseudo-pris (espace « app ») · 429 · 503 chiffrement-indisponible (« app »)
+ *                                        support : « site » ou « app » (absent : « app » pour l'espace « app », sinon « site »)
  *                                        espace : absent ou « ambassadeur » : le compte ET sa fiche d'ambassadeur
  *                                        « en-attente » (une demande que l'équipe valide). « pro » (inscription sur
  *                                        pro.sosmiam.fr) : le compte seul, SANS fiche d'ambassadeur (`compte.ambassadeur`
@@ -67,14 +93,41 @@ export type DependancesComptes = {
  *                                        mot de passe, suppression), confirme son e-mail et va dans l'espace pro comme les
  *                                        autres ; les adresses « ambassadeur actif » lui répondent 403. Ménage de nuit : seul
  *                                        l'effacement après 2 ans sans connexion le concerne.
- * POST   /comptes/session               { email, motDePasse } → 201 { ok, session, compte } · 400 · 401 identifiants · 429 {attente}
+ *                                        « app » : l'inscription de l'app, DÈS 15 ANS (âge au jour de Paris ; dessous : 403
+ *                                        age-minimum et rien n'est gardé) ; le compte seul, SANS fiche d'ambassadeur. Champs
+ *                                        en plus : nom? (60 car., gardé chiffré), ville (2 à 80 car., obligatoire, gardée
+ *                                        sur le compte ; quartier ignoré), envies? ({ lieux?, cuisines?, boissons?, bars?,
+ *                                        musique?, jeux?, moments?: string[] } : identifiants « a-z0-9- » de 40 car. au
+ *                                        plus, 60 par catégorie ; « regimes » ou une autre catégorie : 400 {champ: envies}),
+ *                                        pseudo? (forme estPseudoValide, sans « @ », mis en minuscules, sans gros mot,
+ *                                        sinon 400 {champ: pseudo}). La date de naissance est GARDÉE, chiffrée. Le lien de
+ *                                        confirmation de l'e-mail part comme pour les autres (ambassadeur.sosmiam.fr).
+ * POST   /comptes/session               { email, motDePasse, support? } → 201 { ok, session, compte } · 400 · 401
+ *                                        identifiants · 429 {attente} (support : « site » par défaut, ou « app »)
  * GET    /comptes/session               → 200 { ok, compte } · 401 session-expiree
  * DELETE /comptes/session               → 200 { ok } (déconnexion)
  * PATCH  /comptes/moi                   { prenom?, ville?, quartier? } (quartier "" : effacé) → 200 { ok, compte } · 400 · 401
  *                                        (sans fiche d'ambassadeur, ville et quartier sont vérifiés mais sans effet)
  * POST   /comptes/moi/mot-de-passe      { actuel, nouveau } → 200 { ok, session } (toutes les sessions fermées, un nouveau
  *                                        jeton remplace celui en cours) · 400 champ-invalide (nouveau) · 403 mot-de-passe-incorrect
- *                                        · 401 · 429 {attente}
+ *                                        · 401 · 429 {attente} (le nouveau jeton garde le support de la session en cours)
+ * POST   /comptes/moi/deconnecter-partout → 200 { ok } : TOUTES les sessions du compte (site et app) sont fermées, celle-ci
+ *                                        comprise · 401
+ * GET    /comptes/moi/profil            → 200 { ok, profil: { prenom, nom, pseudo, dateNaissance ("AAAA-MM-JJ"), ville,
+ *                                        envies ({ categorie: string[] }, {} si aucune), avatar, prive, emailVerifie, age } }
+ *                                        (nom, pseudo, dateNaissance, ville, avatar, age : null s'ils ne sont pas connus ;
+ *                                        un compte du site n'a ni date ni ville de profil) · 401 · 503 chiffrement-indisponible
+ * PATCH  /comptes/moi/profil            { prenom?, nom?, pseudo?, ville?, envies?, avatar?, prive? } → 200 { ok, profil }
+ *                                        (même forme que GET ; champ absent : inchangé) · 400 champ-invalide {champ} · 401
+ *                                        · 409 pseudo-pris · 503 chiffrement-indisponible
+ *                                        prenom 1 à 40 car. ; nom 60 car., null ou "" : effacé ; pseudo : comme à
+ *                                        l'inscription (le sien : accepté) ; ville 2 à 80 car. ; envies : comme à
+ *                                        l'inscription, REMPLACENT les précédentes ; avatar : un seul emoji (16 car. au
+ *                                        plus), null ou "" : effacé ; prive : booléen. dateNaissance envoyée : 400 {champ:
+ *                                        dateNaissance} (jamais changée ici : l'équipe la corrige sur demande)
+ * GET    /comptes/pseudo-disponible?pseudo=… → 200 { ok, disponible } (le sien : disponible ; gros mot : jamais) · 400
+ *                                        champ-invalide {champ: pseudo} (forme de estPseudoValide, après « @ » retiré et
+ *                                        minuscules) · 401 · 429 (60 par compte toutes les 10 minutes)
  * DELETE /comptes/moi                   { motDePasse } → 200 { ok } (tout effacé) · 403 mot-de-passe-incorrect · 401 · 429 {attente}
  * POST   /comptes/nouveau-mot-de-passe  { jeton, motDePasse } → 200 { ok } (jeton effacé, toutes les sessions fermées)
  *                                        400 champ-invalide · 410 jeton-invalide · 429
@@ -96,6 +149,14 @@ export type DependancesComptes = {
  *                                        comme ça) · 401 · 404 lieu-inconnu (absent ou pas publié) · 409 trop-de-suggestions
  *                                        (10 par 24 h par compte, ou déjà 3 en attente sur ce lieu) · 429 (20 par visiteur
  *                                        et par heure)
+ * Tout compte de 18 ans et plus (âge connu ≥ 18, ou ambassadeur actif, ou au moins un lieu pro « valide » ; sinon 403
+ * reserve-aux-majeurs ; 503 chiffrement-indisponible si sa date ne peut pas se lire) :
+ * GET    /comptes/moi/propositions-lieux → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] } (les siennes,
+ *                                        site compris, les plus récentes d'abord ; statut : a-traiter, acceptee, refusee)
+ * POST   /comptes/moi/propositions-lieux { nom, type?, ville, adresse?, description, plat?, horaires?, siteWeb?,
+ *                                        instagram?, piege? } (mêmes champs et règles que POST /comptes/moi/propositions)
+ *                                        → 201 { ok } (relue par l'équipe dans le logiciel de gestion, origine « compte »)
+ *                                        · 400 champ-invalide {champ} · 429 (10 par compte et par 24 h)
  * Ambassadeur « actif » seulement (sinon 403 ambassadeur-non-actif) :
  * GET    /comptes/moi/candidature       → 200 { ok, candidature: { statut, numero, numeroLocal, numeroNational, commune, zone,
  *                                        creeLe, reponduLe } | null, placesRestantes } (statut : en-attente, acceptee,
@@ -109,7 +170,7 @@ export type DependancesComptes = {
  *                                        aucune-candidature · 409 deja-traitee (plus en attente) · 409 plus-de-place
  * GET    /comptes/moi/propositions      → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] }
  * POST   /comptes/moi/propositions      { nom, type?, ville, adresse?, description, plat?, horaires?, siteWeb?, instagram?, piege? }
- *                                        201 { ok } · 400
+ *                                        201 { ok } · 400 (route du site, gardée telle quelle ; l'app : propositions-lieux)
  * GET    /comptes/moi/certification     → 200 { ok, certifie: { depuis, profil, structure } | null, candidature: { statut,
  *                                        profil, structure, commune: { code, nom, nomDepartement } | null, envies[], creeLe,
  *                                        reponduLe } | null } (statut : en-attente, acceptee, refusee ; la dernière envoyée)
@@ -120,8 +181,9 @@ export type DependancesComptes = {
  *                                        deja-certifie · 409 candidature-existante (une en attente ; après un refus, on peut
  *                                        recandidater tout de suite)
  * `compte.ambassadeur.certifie` (dans toutes les réponses qui rendent `compte`) : { depuis, profil, structure } ou null.
- * `compte.pro` (toujours là) : { lieux: [{ lieuId, nom, ville, role: "gerant"|"equipe", statut: "en-attente"|"valide"|
- * "refuse" }] }, tous ses rattachements sauf « retire », du plus ancien au plus récent. Un lieu est à lui quand statut
+ * `compte.pro` (toujours là) : { lieux: [{ lieuId, nom, ville, emoji, role: "gerant"|"equipe", statut: "en-attente"|"valide"|
+ * "refuse" }], lieuxValides: [même forme, statut « valide » seulement] }, tous ses rattachements sauf « retire », du plus
+ * ancien au plus récent (vides sous 18 ans). Un lieu est à lui quand statut
  * est « valide » : pages /pro/lieux/:id (routes/pro.ts).
  * Espace pro, tout compte connecté :
  * GET    /comptes/moi/rattachements     → 200 { ok, rattachements: [{ id, lieuId, nom, ville, emoji, role, statut, reponse,
@@ -142,13 +204,14 @@ export type DependancesComptes = {
  *                                        statut « retire ») · 404 rattachement-inconnu
  */
 export function creerRoutesComptes(dependances: DependancesComptes, protection: ProtectionComptes, limiteConnectee: RequestHandler) {
-  const { services, zones, courriels, adresseEspace = ADRESSE_ESPACE, horloge = Date.now } = dependances;
+  const { services, zones, courriels, adresseEspace = ADRESSE_ESPACE, horloge = Date.now, chiffrement = null } = dependances;
   // Deux attentes après des mots de passe faux : la connexion (par e-mail) et « Mon compte » (par id du compte) ; deux
   // limites de liens envoyés par mail (par id du compte)
   const contexte = {
     services, protection, zones, courriels, adresseEspace, horloge,
     attente: creerAttenteParCompte(horloge), attenteConnectee: creerAttenteParCompte(horloge),
     limiteOubli: creerLimiteEnvois(horloge), limiteVerification: creerLimiteEnvois(horloge),
+    chiffrement, lireCompteVu: creerLecteurCompteVu(services.lireCompte, chiffrement, horloge).lireCompteVu,
   };
   const c = creerControleursComptes(contexte);
   const moi = creerControleursMonCompte(contexte);
@@ -156,6 +219,9 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const espace = creerControleursEspaceComptes(services, zones);
   const certification = creerControleursCertification(services);
   const suggestions = creerControleursSuggestions(services, horloge);
+  const profil = creerControleursProfil(contexte);
+  const propositionsLieux = creerControleursPropositionsLieux(contexte);
+  const parCompte = (reglages: { fenetre: number; maximum: number }) => limiterRequetes({ ...reglages, cle: (_requete, reponse) => `compte-${lireCompteId(reponse)}` });
   const routes = Router();
 
   // Sans session : une limite par visiteur pour chaque porte d'entrée, toujours AVANT de calculer une empreinte
@@ -174,6 +240,15 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/mot-de-passe", protection.exigerCompte, moi.changerMotDePasse);
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
+  routes.post("/moi/deconnecter-partout", protection.exigerCompte, moi.deconnecterPartout);
+  routes.get("/moi/profil", protection.exigerCompte, profil.lire);
+  routes.patch("/moi/profil", protection.exigerCompte, profil.modifier);
+  routes.get("/pseudo-disponible", protection.exigerCompte, parCompte(LIMITE_PSEUDO_DISPONIBLE), profil.pseudoDisponible);
+  routes.get("/moi/propositions-lieux", protection.exigerCompte, propositionsLieux.exigerMajeur, propositionsLieux.lister);
+  routes.post(
+    "/moi/propositions-lieux",
+    protection.exigerCompte, propositionsLieux.exigerMajeur, parCompte(LIMITE_PROPOSITIONS_LIEUX), propositionsLieux.proposer,
+  );
   routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
   if (dependances.pro) {
     const rattachements = creerControleursRattachements(dependances.pro, horloge);

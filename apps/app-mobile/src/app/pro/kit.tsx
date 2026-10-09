@@ -13,7 +13,7 @@ import couleurs from "~/theme/couleurs";
 
 /**
  * « Mon kit » : le QR de vitrine du lieu (autocollant, chevalets de table), qui ouvre sa fiche dans l'app. Il ne valide
- * jamais une visite (ça, c'est le QR du comptoir, qui change toutes les 30 s). L'affichette à imprimer viendra sur le site.
+ * jamais une visite (ça, c'est le QR du comptoir, qui change toutes les 30 s). L'affichette à imprimer est dans l'espace pro du site.
  */
 export default function EcranKitPro() {
   const fermer = utiliserFermerPile();
@@ -58,7 +58,7 @@ export default function EcranKitPro() {
           <Text className="font-texte text-sm leading-5 text-gris">
             {lierPonctuation("Ce QR ouvre ta fiche : il ne valide jamais une visite (ça, c'est le QR du comptoir, qui change toutes les 30 s). Un scan ne demande jamais de mot de passe.")}
           </Text>
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("L'affichette à imprimer arrive dans l'espace pro du site.")}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("L'affichette de table à imprimer est dans l'espace pro du site : pro.sosmiam.fr.")}</Text>
         </View>
 
         {lien ? (

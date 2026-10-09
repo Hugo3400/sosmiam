@@ -69,7 +69,7 @@ test("retirer un membre : il perd l'accès tout de suite ; on peut le réinviter
   const retrait = await demander("DELETE", `/pro/lieux/${gerant.lieuId}/equipe/${employe.id}`, { jeton: gerant.jeton });
   assert.deepEqual([retrait.statut, retrait.corps], [200, { ok: true }]);
   assert.equal((await demander("GET", `/pro/lieux/${gerant.lieuId}`, { jeton: employe.jeton })).statut, 403);
-  assert.deepEqual((await demander("GET", "/comptes/session", { jeton: employe.jeton })).corps.compte.pro, { lieux: [] });
+  assert.deepEqual((await demander("GET", "/comptes/session", { jeton: employe.jeton })).corps.compte.pro, { lieux: [], lieuxValides: [] });
   for (const cible of [employe.id, gerant.id, 99_999, "abc"]) {
     const { statut, corps } = await demander("DELETE", `/pro/lieux/${gerant.lieuId}/equipe/${cible}`, { jeton: gerant.jeton });
     assert.deepEqual([statut, corps], [404, { ok: false, erreur: "membre-inconnu" }], String(cible));

@@ -166,6 +166,7 @@ test("propositions de lieux : mêmes règles que « J'inscris mon lieu », sans 
   assert.deepEqual(gardee, {
     nom: "Le Petit Four", type: "patisserie", ville: "Nantes", adresse: null, description: PROPOSITION.description, plat: null, horaires: null,
     siteWeb: "https://lepetitfour.fr", instagram: "lepetitfour", id: gardee?.id, compteId: id, statut: "a-traiter", creeLe: horloge,
+    origine: "ambassadeur",
   });
   assert.equal((await proposer({ ...PROPOSITION, nom: "La Fusée", type: "fusee", contactEmail: "lieu@exemple.fr" })).statut, 201);
   assert.equal(memoire.propositions.at(-1)?.type, null);

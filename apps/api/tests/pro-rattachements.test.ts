@@ -60,7 +60,9 @@ test("demander à gérer un lieu : 201, en attente, visible dans compte.pro et d
     statut: "en-attente", reponse: null, creeLe: banc.horloge, decideLe: null,
   });
   const session = await demander("GET", "/comptes/session", { jeton });
-  assert.deepEqual(session.corps.compte.pro, { lieux: [{ lieuId, nom: "Le Comptoir", ville: "Lyon", role: "gerant", statut: "en-attente" }] });
+  assert.deepEqual(session.corps.compte.pro, {
+    lieux: [{ lieuId, nom: "Le Comptoir", ville: "Lyon", emoji: "🍝", role: "gerant", statut: "en-attente" }], lieuxValides: [],
+  });
   const liste = await demander("GET", "/comptes/moi/rattachements", { jeton });
   assert.deepEqual(liste.corps, {
     ok: true,
@@ -112,7 +114,7 @@ test("déjà demandé : 409 ; après un refus ou un retrait, on redemande", asyn
   assert.ok(memoire.deciderRattachement(premiere.corps.id, "valide"));
   assert.equal((await demanderLieu(jeton, { lieuId })).statut, 409);
   assert.deepEqual((await demander("DELETE", `/comptes/moi/rattachements/${premiere.corps.id}`, { jeton })).corps, { ok: true });
-  assert.deepEqual((await demander("GET", "/comptes/session", { jeton })).corps.compte.pro, { lieux: [] }, "« retire » n'apparaît plus");
+  assert.deepEqual((await demander("GET", "/comptes/session", { jeton })).corps.compte.pro, { lieux: [], lieuxValides: [] }, "« retire » n'apparaît plus");
   assert.equal((await demanderLieu(jeton, { lieuId })).statut, 201);
 });
 

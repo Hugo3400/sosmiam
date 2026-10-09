@@ -1,8 +1,8 @@
 // Comptes et espace ambassadeur (décidé le 8 octobre 2026, voir docs/decisions.md)
 
-/// Un compte SOS Miam : celui de l'espace ambassadeur du site aujourd'hui, le même pour l'app plus tard (un compte par
-/// personne). Ni date de naissance ni nom : l'âge (18 ans au moins pour l'espace ambassadeur) est vérifié à l'inscription,
-/// puis oublié. Un compte sans visite connectée pendant 1 an est effacé (alerte avant dans le logiciel de gestion).
+/// Un compte SOS Miam, un seul par personne : app, espace ambassadeur et espace pro. Inscrit sur le site (ambassadeur, pro),
+/// l'âge (18 ans au moins) est vérifié puis oublié ; inscrit dans l'app (dès 15 ans), le nom et la date de naissance sont
+/// gardés CHIFFRÉS. Après 1 an sans visite, le rôle d'ambassadeur part ; après 2 ans sans connexion, tout le compte.
 model Compte {
   id                    Int       @id @default(autoincrement())
   /// Adresse de connexion, en minuscules et sans espaces
@@ -27,6 +27,22 @@ model Compte {
   jetonVerificationExpireLe DateTime? @map("jeton_verification_expire_le") @db.Timestamptz(0)
   creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe             DateTime  @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  /// Profil de l'app (décidé le 8 et le 9 octobre 2026, docs/decisions.md, « Comptes et données de l'app ») : pseudo unique
+  /// (3 à 20 caractères, règles de packages/commun) pour que les potes te trouvent ; null tant qu'il n'est pas choisi
+  pseudo                String?   @unique @db.VarChar(20)
+  /// Nom (facultatif) et date de naissance (AAAA-MM-JJ), CHIFFRÉS par l'API (AES-256-GCM, clé hors de la base) ; la date
+  /// de naissance n'est corrigée que par l'équipe. Les comptes du site (ambassadeur, pro) ne les ont pas.
+  nomChiffre            String?   @map("nom_chiffre") @db.VarChar(200)
+  dateNaissanceChiffree String?   @map("date_naissance_chiffree") @db.VarChar(200)
+  /// Ville du profil de l'app (celle de l'ambassadeur est sur sa fiche Ambassadeur)
+  ville                 String?   @db.VarChar(80)
+  /// Envies par catégorie ({ lieux: [...], cuisines: [...] }), SANS les régimes (qui restent sur le téléphone sans accord
+  /// explicite, RGPD article 9)
+  envies                Json?
+  /// Avatar : un emoji (une photo reste sur le téléphone)
+  avatar                String?   @db.VarChar(16)
+  /// Compte privé : les abonnements passent par une demande
+  prive                 Boolean   @default(false)
   /// Dernière visite connectée (au plus une écriture par jour)
   derniereConnexion     DateTime  @default(now()) @map("derniere_connexion") @db.Timestamptz(0)
 
@@ -49,13 +65,27 @@ model Compte {
   alertesMiamSafeRepondues  AlerteMiamSafe[]           @relation("AlertesRepondues")
   signalementsMiamSafe      SignalementMiamSafe[]
   reponsesSentiBien         ReponseSentiBien[]
+  // Activité de l'app, visites, fidélité et SOS du soir (session de l'app, 9 octobre 2026)
+  rescousses                Rescousse[]
+  premiersSauvetages        PremierSauveteur[]
+  lieuxGardes               LieuGarde[]
+  jaimesPublications        JaimePublication[]
+  publicationsMasquees      PublicationMasquee[]
+  suivisLieux               SuiviLieu[]
+  suivisCreateurs           SuiviCreateur[]
+  visites                   Visite[]                   @relation("VisitesClient")
+  visitesDecidees           Visite[]                   @relation("VisitesDecidees")
+  presentationsQr           PresentationQr[]           @relation("PresentationsMontrees")
+  cartesFidelite            CarteFidelite[]
+  recompensesOffertes       RecompensePrete[]          @relation("RecompensesOffertes")
+  sosLances                 SosLieu[]
 
   @@index([derniereConnexion])
   @@map("comptes")
 }
 
 /// Ce qui est propre à l'espace ambassadeur du site : dès 18 ans, chaque inscription est validée par l'équipe dans le
-/// logiciel de gestion. Un compte refusé est effacé 30 jours après le refus.
+/// logiciel de gestion. Refusé : seul le rôle (cette ligne) part 30 jours après le refus, le compte reste.
 model Ambassadeur {
   compteId   Int       @id @map("compte_id")
   /// « en-attente » (à l'inscription), « actif », « refuse » ou « suspendu »

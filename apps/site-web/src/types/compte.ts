@@ -22,7 +22,7 @@ export type CompteConnecte = {
     statut: StatutAmbassadeur;
     ville: string;
     quartier: string | null;
-    /** Date de la dernière décision de l'équipe (ISO 8601) ; un compte refusé est effacé 30 jours après */
+    /** Date de la dernière décision de l'équipe (ISO 8601) ; un refus retire le rôle d'ambassadeur 30 jours après (le compte reste) */
     decideLe: string | null;
     /** Titre d'« ambassadeur certifié », donné (ou retiré) par l'équipe ; null sans titre (absent : ancienne API) */
     certifie?: CertificationAmbassadeur | null;

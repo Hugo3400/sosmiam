@@ -1,5 +1,5 @@
 // « Mon compte » (toute personne connectée, quel que soit son statut) : changer prénom, ville et quartier, changer de
-// mot de passe, effacer son compte. Le mot de passe actuel est demandé pour les deux derniers, avec une attente propre au
+// mot de passe, se déconnecter partout, effacer son compte. Le mot de passe actuel est demandé pour les deux derniers, avec une attente propre au
 // compte connecté après plusieurs erreurs (clé : son id) : quelqu'un qui connaît seulement l'e-mail, et bloque la
 // connexion avec des mots de passe faux, n'empêche pas le titulaire connecté de changer de mot de passe.
 import type { Request, Response } from "express";
@@ -7,13 +7,14 @@ import type { Request, Response } from "express";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
 import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
+import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import type { ModificationCompte } from "../services/comptes.ts";
 import { faireAttendre, verifierEnComptant } from "./comptes-attente.ts";
 import { lireCompteId, lireCorps, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
 import type { ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
-export function creerControleursMonCompte({ services, protection, attente, attenteConnectee }: ContexteComptes) {
+export function creerControleursMonCompte({ services, protection, attente, attenteConnectee, lireCompteVu }: ContexteComptes) {
   const sessionExpiree = (reponse: Response) => reponse.status(401).json({ ok: false, erreur: "session-expiree" });
 
   /**
@@ -43,7 +44,7 @@ export function creerControleursMonCompte({ services, protection, attente, atten
       if (corps.quartier !== undefined) modification.quartier = lireLigneFacultative(corps, "quartier", 80);
       const id = lireCompteId(reponse);
       if (Object.keys(modification).length > 0) await services.modifierCompte(id, modification);
-      const compte = await services.lireCompte(id);
+      const compte = await lireCompteVu(id);
       if (!compte) return sessionExpiree(reponse);
       reponse.json({ ok: true, compte });
     },
@@ -63,7 +64,14 @@ export function creerControleursMonCompte({ services, protection, attente, atten
       if (!(await verifierMotDePasseActuel(reponse, id, identifiants, lireMotDePasse(corps, "actuel")))) return;
       await services.changerMotDePasse(id, await hacherMotDePasse(nouveau));
       await protection.fermerSessionsDuCompte(id);
-      reponse.json({ ok: true, session: await protection.ouvrirSession(id) });
+      // Le nouveau jeton garde le support de la session en cours (site ou app)
+      reponse.json({ ok: true, session: await protection.ouvrirSession(id, (reponse.locals.compte as CompteSession).support) });
+    },
+
+    /** POST /comptes/moi/deconnecter-partout : toutes les sessions du compte (site et app) sont fermées, celle-ci comprise. */
+    async deconnecterPartout(_requete: Request, reponse: Response) {
+      await protection.fermerSessionsDuCompte(lireCompteId(reponse));
+      reponse.json({ ok: true });
     },
 
     /** DELETE /comptes/moi : { motDePasse }. Tout est effacé, en cascade (ses sessions comprises). */

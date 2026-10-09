@@ -41,8 +41,8 @@ export type RattachementVu = {
   creeLe: string; decideLe: string | null;
 };
 
-/** `compte.pro.lieux` : tous ses rattachements sauf « retire » */
-export type LieuDuPro = { lieuId: number; nom: string; ville: string; role: RoleRattachement; statut: StatutRattachement };
+/** `compte.pro.lieux` : tous ses rattachements sauf « retire » (emoji : celui du lieu) */
+export type LieuDuPro = { lieuId: number; nom: string; ville: string; emoji: string; role: RoleRattachement; statut: StatutRattachement };
 
 /** Un résultat de « Chercher mon lieu » : rien de privé (ni note, ni adresse, ni contact) */
 export type LieuTrouve = {

@@ -55,6 +55,11 @@ model Lieu {
   decouvertPar String?              @map("decouvert_par") @db.VarChar(40)
   /// « brouillon », « publie » ou « masque »
   statut       String               @default("brouillon") @db.VarChar(12)
+  /// Première mise en ligne : un lieu reste « nouveau » 30 jours après (badge « Nouveau », premier sauveteur possible)
+  publieLe     DateTime?            @map("publie_le") @db.Timestamptz(0)
+  /// Message du moment, posé par le lieu : « Salle calme ce soir » (montré jusqu'à alerteJusqua)
+  alerte       String?              @db.VarChar(80)
+  alerteJusqua DateTime?            @map("alerte_jusqua") @db.Timestamptz(0)
   /// Note interne, jamais montrée au public
   note         String?              @db.VarChar(1000)
   creeLe       DateTime             @default(now()) @map("cree_le") @db.Timestamptz(0)
@@ -68,6 +73,17 @@ model Lieu {
   alertesMiamSafe       AlerteMiamSafe[]
   signalementsMiamSafe  SignalementMiamSafe[]
   reponsesSentiBien     ReponseSentiBien[]
+  // Activité de l'app, visites, fidélité et SOS du soir (session de l'app, 9 octobre 2026)
+  rescousses            Rescousse[]
+  premierSauveteur      PremierSauveteur?
+  gardesPar             LieuGarde[]
+  suivisPar             SuiviLieu[]
+  validation            ValidationLieu?
+  presentationsQr       PresentationQr[]
+  visites               Visite[]
+  programmeFidelite     ProgrammeFidelite?
+  cartesFidelite        CarteFidelite[]
+  sos                   SosLieu[]
 
   @@index([statut, ville])
   @@map("lieux")
@@ -94,6 +110,8 @@ model Publication {
   creeLe       DateTime           @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe    DateTime           @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
   medias       MediaPublication[]
+  jaimes       JaimePublication[]
+  masqueePar   PublicationMasquee[]
 
   @@index([statut, publieeLe])
   @@map("publications")

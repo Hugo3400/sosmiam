@@ -33,11 +33,26 @@ import { stockageStats } from "./services/stockage-stats.ts";
 import { listerZones, lireZone, trouverZoneDeCommune } from "./services/zones-fondateurs.ts";
 import { planifierTachesDeNuit } from "./taches/taches-de-nuit.ts";
 import { resumerErreur } from "./fonctions/comptes/resumer-erreur.ts";
+import { chargerChiffrementDonnees } from "./services/chiffrement-donnees.ts";
+import { lireProfil, modifierProfil, pseudoEstPris } from "./services/comptes-profil.ts";
+import { lireVersionApp } from "./fonctions/texte/lire-version-app.ts";
+import { DOSSIER_MEDIAS } from "./services/gestion/medias.ts";
+import { creerLieuxApp } from "./services/lieux-app.ts";
+import { creerPublicationsApp } from "./services/publications-app.ts";
+import { creerActivite } from "./services/activite.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
+const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
 const port = Number(process.env.PORT) || 5192;
 
 const compteur = creerCompteurVisites(stockageStats);
+// Clé des données des comptes (nom, date de naissance) : lue une seule fois ici ; sans elle, l'API démarre quand même
+const chiffrement = chargerChiffrementDonnees();
+// Version minimale de l'app (écran « mets à jour ») : « 0.0.0 » si rien n'est réglé
+const versionMinimale = {
+  ios: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_IOS),
+  android: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_ANDROID),
+};
 const zones = { trouverZoneDeCommune, listerZones, lireZone };
 const vider = () => compteur.vider().catch((erreur: unknown) => console.error("Écriture des statistiques impossible :", erreur));
 const minuteur = setInterval(vider, 30_000);
@@ -61,7 +76,7 @@ const serveur = creerApplication({
   lireFichePublique,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
-  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source),
+  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,
     comptes: { ajouterPoints, donnerBadge, preparerReinitialisation, nommerAmbassadeurVille, retirerAmbassadeurVille } },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
@@ -70,7 +85,10 @@ const serveur = creerApplication({
       reinitialiserMotDePasse, preparerReinitialisation, preparerVerificationEmail, verifierEmail, lireCandidature, creerCandidature,
       changerCommuneCandidature, listerPropositions, creerProposition, lireCandidatureCertification, creerCandidatureCertification,
       lireFichePourSuggestion, creerSuggestionLieu,
+      lireProfil, modifierProfil, pseudoEstPris,
     },
+    // Nom et date de naissance des comptes de l'app, chiffrés (AES-256-GCM)
+    chiffrement,
     sessions: stockageSessionsComptes,
     zones,
     courriels: { envoyerLienMotDePasse, envoyerLienVerificationEmail },
@@ -82,6 +100,16 @@ const serveur = creerApplication({
   zones,
   // Miam Safe : l'alerte silencieuse part aussitôt vers les téléphones de l'équipe du lieu
   miamSafe: { services: servicesMiamSafe, prevenirEquipe: prevenirEquipeMiamSafe },
+  // L'app, sans session : heure du serveur et version minimale
+  app: { versionMinimale: () => versionMinimale },
+  // Adresse publique des médias du fil, telle que l'app la lit (SOS_MIAM_ADRESSE_MEDIAS, par défaut celle de api.sosmiam.fr)
+  contenuApp: {
+    lieux: creerLieuxApp(),
+    publications: creerPublicationsApp((fichier) => `${adresseMedias}/${fichier}`),
+    dossierMedias: DOSSIER_MEDIAS,
+  },
+  // Rescousses, lieux gardés, J'aime, masques et suivis de l'app (points et badge donnés par le contrôleur)
+  activiteApp: { services: creerActivite(), ajouterPoints, donnerBadge },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

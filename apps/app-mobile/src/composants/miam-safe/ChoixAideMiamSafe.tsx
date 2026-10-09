@@ -14,7 +14,7 @@ type Props = {
 type Choix = { vue: VueAideMiamSafe; emoji: string; titre: string; detail: string; seulementEngage?: boolean };
 
 const CHOIX: readonly Choix[] = [
-  { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Il voit où tu es pendant 1 h et peut t'appeler." },
+  { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Bientôt. Pour l'instant : appelle un proche." },
   { vue: "comptoir", emoji: "🛎", titre: "Demander au comptoir", detail: "Une phrase à dire, ou un écran à montrer.", seulementEngage: true },
   { vue: "alerte", emoji: "🤫", titre: "Alerter le comptoir en silence", detail: "Si tu ne peux pas y aller.", seulementEngage: true },
   { vue: "raconter", emoji: "✏️", titre: "Raconter ce qui s'est passé", detail: "Reste entre toi et notre équipe." },
@@ -46,7 +46,7 @@ export function ChoixAideMiamSafe({ engage, onChoisir }: Props) {
         ))}
       </View>
       {engage ? (
-        <Text className="text-center font-texte text-sm leading-5 text-gris">Le souci vient de l'équipe du lieu ? Préviens plutôt un pote ou les secours.</Text>
+        <Text className="text-center font-texte text-sm leading-5 text-gris">Le souci vient de l'équipe du lieu ? Appelle plutôt un proche ou les secours.</Text>
       ) : (
         <Text className="text-center font-texte text-sm leading-5 text-gris">Ce lieu n'a pas encore signé la charte Miam Safe : son équipe ne connaît pas la phrase.</Text>
       )}

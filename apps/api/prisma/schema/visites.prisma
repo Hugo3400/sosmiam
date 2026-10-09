@@ -1,0 +1,86 @@
+// Visites validées : addition demandée dans l'app, QR du comptoir, réservation honorée (docs/decisions.md, « Scan et
+// validation des visites »). Règles et transitions dans packages/commun (regles/visites.ts, fonctions/visites/).
+// Gardées tant que le compte existe (décidé le 9 octobre 2026).
+
+/// Ce qu'un lieu a réglé pour valider les visites (posé par l'équipe SOS Miam dans le logiciel, jamais par le lieu) et le
+/// code public de son QR de vitrine (sosmiam.fr/l/<code> ouvre sa fiche, rien de plus)
+model ValidationLieu {
+  lieuId           Int      @id @map("lieu_id")
+  lieu             Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// 8 caractères a-z et 2-9
+  codePublic       String   @unique @map("code_public") @db.VarChar(8)
+  validationActive Boolean  @default(false) @map("validation_active")
+  /// Rayon de vérification de la position, en mètres (null : le rayon par défaut, 200 m)
+  rayonM           Int?     @map("rayon_m") @db.SmallInt
+  modifieLe        DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("validations_lieux")
+}
+
+/// Un QR du comptoir montré par l'équipe : il change toutes les 30 s (jeton signé calculé à la volée), vaut pour un nombre de
+/// personnes, et s'éteint à la demande ou au bout de sa durée
+model PresentationQr {
+  id           Int       @id @default(autoincrement())
+  lieuId       Int       @map("lieu_id")
+  lieu         Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Le membre de l'équipe qui l'a montré (null s'il a supprimé son compte depuis)
+  montreParId  Int?      @map("montre_par_id")
+  montrePar    Compte?   @relation("PresentationsMontrees", fields: [montreParId], references: [id], onDelete: SetNull)
+  personnes    Int       @db.SmallInt
+  restantes    Int       @db.SmallInt
+  /// Comment la table a réglé (ReglementVisite de packages/commun) ; null : payée
+  reglement    Json?
+  creeLe       DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  expireLe     DateTime  @map("expire_le") @db.Timestamptz(0)
+  cacheeLe     DateTime? @map("cachee_le") @db.Timestamptz(0)
+  visites      Visite[]
+
+  @@index([lieuId, expireLe])
+  @@map("presentations_qr")
+}
+
+/// Une visite : demandée, puis validée, refusée, annulée, expirée ou retirée (StatutVisite de packages/commun)
+model Visite {
+  id               Int             @id @default(autoincrement())
+  compteId         Int             @map("compte_id")
+  compte           Compte          @relation("VisitesClient", fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId           Int             @map("lieu_id")
+  lieu             Lieu            @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// « addition », « comptoir » ou « reservation »
+  mode             String          @db.VarChar(12)
+  /// « demandee », « validee », « refusee », « annulee », « expiree » ou « retiree »
+  statut           String          @db.VarChar(10)
+  /// Code de rapprochement à 4 chiffres (addition en attente)
+  code             String?         @db.VarChar(4)
+  creeLe           DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
+  expireLe         DateTime?       @map("expire_le") @db.Timestamptz(0)
+  valideLe         DateTime?       @map("valide_le") @db.Timestamptz(0)
+  decideLe         DateTime?       @map("decide_le") @db.Timestamptz(0)
+  /// Qui a décidé dans l'équipe (réglée, refusée, annulée) ; null pour le client ou l'expiration
+  decideParId      Int?            @map("decide_par_id")
+  decidePar        Compte?         @relation("VisitesDecidees", fields: [decideParId], references: [id], onDelete: SetNull)
+  pendantSos       Boolean         @default(false) @map("pendant_sos")
+  points           Int             @default(0) @db.SmallInt
+  tampon           Boolean         @default(false)
+  /// Résultat de la vérification de la position (ResultatPosition), jamais la position elle-même
+  resultatPosition Json?           @map("resultat_position")
+  /// « introuvable », « pas-venu », « doublon » ou « autre » (liste fermée)
+  motifRefus       String?         @map("motif_refus") @db.VarChar(12)
+  contestee        Boolean         @default(false)
+  /// Le mot du client qui conteste (relu par l'équipe SOS Miam)
+  contestation     String?         @db.VarChar(500)
+  avisOuvertLe     DateTime?       @map("avis_ouvert_le") @db.Timestamptz(0)
+  avisFermeLe      DateTime?       @map("avis_ferme_le") @db.Timestamptz(0)
+  avisDonne        Boolean         @default(false) @map("avis_donne")
+  presentationId   Int?            @map("presentation_id")
+  presentation     PresentationQr? @relation(fields: [presentationId], references: [id], onDelete: SetNull)
+  reservationId    Int?            @map("reservation_id")
+  annulableJusqua  DateTime?       @map("annulable_jusqua") @db.Timestamptz(0)
+  /// Comment l'équipe l'a réglée (ReglementVisite) ; null : pas encore validée
+  reglement        Json?
+
+  @@index([compteId, creeLe])
+  @@index([lieuId, statut])
+  @@index([statut, expireLe])
+  @@map("visites")
+}

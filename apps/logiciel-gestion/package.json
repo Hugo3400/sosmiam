@@ -1,7 +1,7 @@
 {
   "name": "@sos-miam/logiciel-gestion",
   "private": true,
-  "version": "0.7.9",
+  "version": "0.8.0",
   "type": "module",
   "description": "Logiciel ordinateur de gestion de SOS Miam (Tauri), réservé aux postes autorisés de Hugo.",
   "scripts": {

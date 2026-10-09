@@ -6,6 +6,7 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { MailsRecusDe } from "~/ecrans/boite/MailsRecusDe.tsx";
+import { DateNaissanceCompte } from "./DateNaissanceCompte.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
@@ -54,6 +55,9 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
           </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
             <dt className="text-gris">Adresse</dt><dd className="truncate">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></dd>
+            {compte.pseudo && <><dt className="text-gris">Pseudo</dt><dd>@{compte.pseudo}{compte.prive ? " · profil privé" : ""}</dd></>}
+            {compte.ville && <><dt className="text-gris">Ville</dt><dd>{compte.ville}</dd></>}
+            <DateNaissanceCompte compteId={compte.id} prenom={compte.prenom} renseignee={Boolean(compte.dateNaissanceRenseignee)} onChange={recharger} />
             <dt className="text-gris">Créé</dt><dd>{formaterDate(compte.creeLe)}</dd>
             <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(compte.derniereConnexion)}</dd>
             <dt className="text-gris">Conditions</dt><dd>version du {compte.cguVersion}</dd>

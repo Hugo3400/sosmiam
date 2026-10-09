@@ -7,6 +7,7 @@ import { Champ } from "~/composants/interface/Champ.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
 import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
+import { ORIGINES_DEMANDE } from "~/contenus/origines-demandes.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
@@ -24,7 +25,7 @@ export function ModaleAccepterDemande({ demande, onFermer, onAcceptee }: { deman
     ville: demande.ville, latitude: null, longitude: null, prix: "€€", prixMoyen: null, couleurs: ["#FFD60A", "#FF4D3D"], horaires: demande.horaires ?? "",
     ouverture: [], plat: demande.plat ?? "", tags: [], envies: [], reservable: false, telephone: null,
     siteWeb: demande.siteWeb?.startsWith("https://") ? demande.siteWeb : null, instagram: demande.instagram, decouvertPar: null, statut: "brouillon",
-    note: `Créée depuis la demande n° ${demande.id} (${demande.origine === "lieu" ? "inscription du lieu" : "proposition Discord"}).`,
+    note: `Créée depuis la demande n° ${demande.id} (${ORIGINES_DEMANDE[demande.origine]?.note ?? demande.origine}).`,
     animaux: null, accessible: null, terrasse: null, wifi: null, enfants: null, parking: null, paiements: [], reservation: null,
   });
   const [reponse, setReponse] = useState("");

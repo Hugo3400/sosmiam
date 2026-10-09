@@ -1,0 +1,20 @@
+// SOS « place ce soir » d'un lieu vérifié (docs/decisions.md) : des places à remplir jusqu'à une heure, et une offre
+// éventuelle. Montré tant qu'il n'est pas arrêté et que son heure n'est pas passée.
+
+model SosLieu {
+  id       Int       @id @default(autoincrement())
+  lieuId   Int       @map("lieu_id")
+  lieu     Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Le membre de l'équipe qui l'a lancé (null s'il a supprimé son compte depuis)
+  compteId Int?      @map("compte_id")
+  compte   Compte?   @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  places   Int       @db.SmallInt
+  jusqua   DateTime  @db.Timestamptz(0)
+  /// « Un tiramisu offert » (facultatif)
+  offre    String?   @db.VarChar(80)
+  creeLe   DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  arreteLe DateTime? @map("arrete_le") @db.Timestamptz(0)
+
+  @@index([lieuId, jusqua])
+  @@map("sos_lieux")
+}

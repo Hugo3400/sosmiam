@@ -42,12 +42,15 @@ export function creerControleursLiens({ services, courriels, limiteOubli, limite
    * moins de 15 minutes (ou 5 en 24 heures) ; sinon un lien de 24 heures, comme celui que prépare l'équipe.
    */
   /**
-   * Base des liens d'un compte : l'espace ambassadeur pour un ambassadeur, l'espace pro (pro.sosmiam.fr) pour un compte
-   * sans ligne Ambassadeur. L'API de démonstration garde sa propre adresse (pas de « ambassadeur. » dedans).
+   * Base des liens d'un compte : l'espace ambassadeur pour un ambassadeur et pour un compte de l'app (ses pages
+   * /verifier-email et /nouveau-mot-de-passe marchent pour tous), l'espace pro (pro.sosmiam.fr) pour un compte du site
+   * sans ligne Ambassadeur. Un compte de l'app se reconnaît à sa date de naissance gardée. L'API de démonstration garde
+   * sa propre adresse (pas de « ambassadeur. » dedans).
    */
   async function choisirAdresse(compteId: number): Promise<string> {
     const compte = await services.lireCompte(compteId);
-    return compte && !compte.ambassadeur ? adresseEspace.replace("://ambassadeur.", "://pro.") : adresseEspace;
+    const comptePro = compte && !compte.ambassadeur && compte.dateNaissanceChiffree === null;
+    return comptePro ? adresseEspace.replace("://ambassadeur.", "://pro.") : adresseEspace;
   }
 
   async function preparerLienMotDePasse(email: string) {

@@ -126,7 +126,13 @@ export async function listerPropositions(compteId: number): Promise<PropositionV
   }));
 }
 
+/**
+ * D'où vient une pépite proposée par un compte : « ambassadeur » (espace ambassadeur du site, POST /comptes/moi/propositions)
+ * ou « compte » (tout compte de 18 ans et plus, l'app : POST /comptes/moi/propositions-lieux)
+ */
+export type OrigineProposition = "ambassadeur" | "compte";
+
 /** Une pépite proposée : elle rejoint la file des demandes du logiciel de gestion, liée à son compte (« Déniché par »). */
-export async function creerProposition(compteId: number, proposition: NouvelleProposition): Promise<void> {
-  await baseDeDonnees.demandeLieu.create({ data: { ...proposition, origine: "ambassadeur", compteId } });
+export async function creerProposition(compteId: number, proposition: NouvelleProposition, origine: OrigineProposition = "ambassadeur"): Promise<void> {
+  await baseDeDonnees.demandeLieu.create({ data: { ...proposition, origine, compteId } });
 }
