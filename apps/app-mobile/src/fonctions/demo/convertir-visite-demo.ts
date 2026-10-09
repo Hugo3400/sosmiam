@@ -27,8 +27,8 @@ export function convertirVisiteDemo(v: VisiteDemo, lieu: Lieu): Visite {
     contestee: v.contestee,
     avis: v.avisOuvertLe && v.avisFermeLe ? { ouvertLe: v.avisOuvertLe, fermeLe: v.avisFermeLe, donne: v.avisDonne } : null,
     annulableJusqua: v.annulableJusqua,
-    // Rempli par la logique du comptoir (étape suivante) ; en attendant, une visite validée se lit « payée »
-    reglement: null,
+    // Absent d'un magasin enregistré avant le 9 octobre 2026 : une visite validée se lit alors « payée »
+    reglement: v.reglement ?? null,
     demo: true,
   };
 }

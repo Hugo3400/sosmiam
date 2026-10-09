@@ -6,7 +6,7 @@ import type { EtatComptoir } from "../types/comptoir.ts";
 import type { ProgrammeFidelite, ReglageFidelite } from "../types/fidelite.ts";
 import type { MotifRefusReservation, ReservationPro } from "../types/reservation.ts";
 import type { LieuGere } from "../types/roles.ts";
-import type { MotifRefusVisite } from "../types/visite.ts";
+import type { MotifRefusVisite, ReglementVisite } from "../types/visite.ts";
 import type { Desabonner, ReponseApi } from "./reponse-api.ts";
 
 export type ReponseComptoir = ReponseApi<{ etat: EtatComptoir }>;
@@ -14,10 +14,11 @@ export type ReponseComptoir = ReponseApi<{ etat: EtatComptoir }>;
 export interface ServiceComptoir {
   listerLieux(): Promise<ReponseApi<{ lieux: LieuGere[] }>>;
   lireComptoir(lieuId: number): Promise<ReponseComptoir>;
-  montrerQr(lieuId: number, personnes: number): Promise<ReponseComptoir>;
+  /** reglement : comment la table a réglé ; il vaut pour chaque visite validée avec ce QR */
+  montrerQr(lieuId: number, personnes: number, reglement: ReglementVisite): Promise<ReponseComptoir>;
   cacherQr(lieuId: number): Promise<ReponseComptoir>;
   /** codeSaisi obligatoire dès DEMANDES_AVANT_SAISIE_CODE additions en attente (sinon « code-faux ») */
-  marquerReglee(visiteId: number, codeSaisi: string | null): Promise<ReponseComptoir>;
+  marquerReglee(visiteId: number, codeSaisi: string | null, reglement: ReglementVisite): Promise<ReponseComptoir>;
   refuser(visiteId: number, motif: MotifRefusVisite): Promise<ReponseComptoir>;
   annulerValidation(visiteId: number, motif: MotifRefusVisite): Promise<ReponseComptoir>;
   offrirRecompense(demandeId: number): Promise<ReponseComptoir>;

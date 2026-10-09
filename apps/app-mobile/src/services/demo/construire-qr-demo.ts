@@ -25,5 +25,6 @@ export function construireQrDemo(p: PresentationDemo, maintenantMs: number): QrA
     personnes: p.personnes,
     restantes: p.restantes,
     finitLe: p.expireLe,
+    reglement: p.reglement ?? null,
   };
 }

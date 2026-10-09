@@ -29,6 +29,7 @@ export function deciderVisiteDemo(
   v.points = transition.points;
   v.annulableJusqua = transition.annulableJusqua;
   if (evenement.type === "refuser" || evenement.type === "annuler-lieu") v.motifRefus = evenement.motif;
+  if (evenement.type === "regler") v.reglement = evenement.reglement ?? { type: "paye", reductionPourcent: null, avantages: [] };
   appliquerEffetsVisite(m, v, transition.effets, maintenantMs, trouverClientDemo(m, v.client, moi));
   return { ok: true, visite: v };
 }

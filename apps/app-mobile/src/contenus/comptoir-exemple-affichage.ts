@@ -29,5 +29,5 @@ export function creerComptoirExempleAffichage(maintenant: Date): EtatComptoir {
 
 /** Le QR allumé pour 4 personnes, dont 2 ont déjà scanné */
 export function creerQrExempleAffichage(maintenant: Date): QrAffiche {
-  return { texte: "https://sosmiam.fr/c/exemple", presentationId: 99, fenetre: 0, changeDansMs: 18_000, personnes: 4, restantes: 2, finitLe: dans(maintenant, 1.2) };
+  return { texte: "https://sosmiam.fr/c/exemple", presentationId: 99, fenetre: 0, changeDansMs: 18_000, personnes: 4, restantes: 2, finitLe: dans(maintenant, 1.2), reglement: null };
 }

@@ -202,6 +202,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Il manque quelque chose",
     texte: "Vérifie la récompense, le nombre de visites, et la version sans alcool s'il y en a.",
   },
+  "reglement-invalide": {
+    emoji: "🧾",
+    titre: "Ce règlement ne passe pas",
+    texte: "Choisis payé, avec réduction ou offert, et les avantages de la liste.",
+  },
   "avis-pas-ouvert": {
     emoji: "🕐",
     titre: "Ton avis s'ouvre bientôt",

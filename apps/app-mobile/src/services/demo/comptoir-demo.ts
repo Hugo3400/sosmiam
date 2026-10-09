@@ -10,6 +10,7 @@ import { DEMANDES_AVANT_SAISIE_CODE } from "@sos-miam/commun/regles/visites";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
 import type { EvenementVisite } from "@sos-miam/commun/types/visite";
 import { validerReglageFidelite } from "@sos-miam/commun/validation/valider-reglage-fidelite";
+import { validerReglementVisite } from "@sos-miam/commun/validation/valider-reglement-visite";
 
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
@@ -58,11 +59,13 @@ export function creerComptoirDemo(ctx: ContexteDemo): ComptoirDemo {
       return ctx.magasin.lire((m, maintenantMs) => etat(m, lieuId, maintenantMs));
     },
 
-    async montrerQr(lieuId, personnes) {
+    async montrerQr(lieuId, personnes, reglement) {
       if (!peutAgirAuComptoir(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
       if (!validationLieuxExemples[lieuId]?.validationActive) return { ok: false, erreur: "lieu-sans-validation" };
+      const valide = validerReglementVisite(reglement);
+      if (!valide) return { ok: false, erreur: "reglement-invalide" };
       return ctx.magasin.modifier((m, maintenantMs) => {
-        creerPresentationDemo(m, lieuId, personnes, maintenantMs);
+        creerPresentationDemo(m, lieuId, personnes, maintenantMs, valide);
         return etat(m, lieuId, maintenantMs);
       });
     },
@@ -75,8 +78,10 @@ export function creerComptoirDemo(ctx: ContexteDemo): ComptoirDemo {
       });
     },
 
-    marquerReglee(visiteId, codeSaisi) {
-      return decider(visiteId, { type: "regler" }, (m, maintenantMs) => {
+    async marquerReglee(visiteId, codeSaisi, reglement) {
+      const valide = validerReglementVisite(reglement);
+      if (!valide) return { ok: false, erreur: "reglement-invalide" };
+      return decider(visiteId, { type: "regler", reglement: valide }, (m, maintenantMs) => {
         const visite = m.visites.find((v) => v.id === visiteId);
         if (!visite || visite.statut !== "demandee") return null;
         // Coup de feu : dès 2 additions en attente, on tape le code que montre le client (on ne valide pas tout d'un geste)

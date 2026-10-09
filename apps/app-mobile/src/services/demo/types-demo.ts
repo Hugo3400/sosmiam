@@ -7,7 +7,7 @@ import type { DemandeRecompense, ProgrammeFidelite, RecompensePrete } from "@sos
 import type { ResultatPosition } from "@sos-miam/commun/types/position";
 import type { MotifRefusReservation, StatutReservation } from "@sos-miam/commun/types/reservation";
 import type { RolesCompte } from "@sos-miam/commun/types/roles";
-import type { ModeValidation, MotifRefusVisite, StatutVisite } from "@sos-miam/commun/types/visite";
+import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } from "@sos-miam/commun/types/visite";
 
 /** « moi » : la personne qui tient le téléphone ; les figurants jouent les autres clients (Karim, Inès) */
 export type CleClientDemo = "moi" | `figurant:${string}`;
@@ -36,6 +36,8 @@ export type VisiteDemo = {
   presentationId: number | null;
   reservationId: number | null;
   annulableJusqua: string | null;
+  /** Comment l'équipe l'a réglée (absent dans un magasin enregistré avant le 9 octobre 2026 : lu « payée ») */
+  reglement?: ReglementVisite | null;
 };
 
 export type PresentationDemo = {
@@ -46,6 +48,8 @@ export type PresentationDemo = {
   creeLe: string;
   expireLe: string;
   cachee: boolean;
+  /** Comment la table a réglé : vaut pour chaque visite validée avec ce QR (absent : payée) */
+  reglement?: ReglementVisite;
 };
 
 export type CarteDemo = { lieuId: number; client: CleClientDemo; tampons: number; pretes: RecompensePrete[]; demande: DemandeRecompense | null };

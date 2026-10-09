@@ -74,6 +74,7 @@ export async function validerComptoirDemo(ctx: ContexteDemo, texte: string, posi
       resultatPosition: "dans-rayon",
       maintenantMs,
       delaiAvisMs,
+      reglement: presentation.reglement,
     });
     const resultat = construireResultatValidationDemo(m, visite, client, { recompenseGagnee, dejaValidee: false });
     return resultat ? { ok: true, ...resultat } : { ok: false, erreur: "introuvable" };

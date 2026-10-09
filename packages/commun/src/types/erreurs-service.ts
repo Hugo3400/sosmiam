@@ -41,6 +41,7 @@ export type ErreurService =
   | "hors-fenetre-presence"
   | "pas-de-recompense"
   | "programme-invalide"
+  | "reglement-invalide"
   | "avis-pas-ouvert"
   | "avis-deja-donne"
   | "avis-invalide"

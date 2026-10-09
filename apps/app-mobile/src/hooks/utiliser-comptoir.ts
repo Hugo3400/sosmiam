@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReponseComptoir } from "@sos-miam/commun/client-api/contrat-comptoir";
 import type { EtatComptoir } from "@sos-miam/commun/types/comptoir";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
-import type { MotifRefusVisite } from "@sos-miam/commun/types/visite";
+import type { MotifRefusVisite, ReglementVisite } from "@sos-miam/commun/types/visite";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
 export type EtatUtiliserComptoir = {
@@ -13,9 +13,10 @@ export type EtatUtiliserComptoir = {
   /** La dernière lecture a échoué (pas le droit, hors ligne…) ; on garde l'état d'avant */
   erreur: ErreurService | null;
   rafraichir: () => Promise<void>;
-  montrerQr: (personnes: number) => Promise<ReponseComptoir>;
+  /** reglement : comment la table a réglé (vaut pour chaque visite validée avec ce QR) */
+  montrerQr: (personnes: number, reglement: ReglementVisite) => Promise<ReponseComptoir>;
   cacherQr: () => Promise<ReponseComptoir>;
-  marquerReglee: (visiteId: number, codeSaisi: string | null) => Promise<ReponseComptoir>;
+  marquerReglee: (visiteId: number, codeSaisi: string | null, reglement: ReglementVisite) => Promise<ReponseComptoir>;
   refuser: (visiteId: number, motif: MotifRefusVisite) => Promise<ReponseComptoir>;
   annulerValidation: (visiteId: number, motif: MotifRefusVisite) => Promise<ReponseComptoir>;
   offrirRecompense: (demandeId: number) => Promise<ReponseComptoir>;
@@ -84,9 +85,9 @@ export function utiliserComptoir(lieuId: number | null): EtatUtiliserComptoir {
     etat,
     erreur,
     rafraichir,
-    montrerQr: async (personnes) => (lieuId === null ? PAS_DE_LIEU : appliquer(await comptoir.montrerQr(lieuId, personnes))),
+    montrerQr: async (personnes, reglement) => (lieuId === null ? PAS_DE_LIEU : appliquer(await comptoir.montrerQr(lieuId, personnes, reglement))),
     cacherQr: async () => (lieuId === null ? PAS_DE_LIEU : appliquer(await comptoir.cacherQr(lieuId))),
-    marquerReglee: async (visiteId, codeSaisi) => appliquer(await comptoir.marquerReglee(visiteId, codeSaisi)),
+    marquerReglee: async (visiteId, codeSaisi, reglement) => appliquer(await comptoir.marquerReglee(visiteId, codeSaisi, reglement)),
     refuser: async (visiteId, motif) => appliquer(await comptoir.refuser(visiteId, motif)),
     annulerValidation: async (visiteId, motif) => appliquer(await comptoir.annulerValidation(visiteId, motif)),
     offrirRecompense: async (demandeId) => appliquer(await comptoir.offrirRecompense(demandeId)),

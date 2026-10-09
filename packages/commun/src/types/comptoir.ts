@@ -25,6 +25,8 @@ export type QrAffiche = {
   personnes: number;
   restantes: number;
   finitLe: string;
+  /** Comment la table a réglé (choisi en montrant le QR) ; null : payée */
+  reglement: ReglementVisite | null;
 };
 
 export type ValidationRecente = {

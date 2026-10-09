@@ -123,6 +123,13 @@
   - pas de bar proposé.
 - Pour l'instant, démo locale : rien ne part du téléphone, les interlocuteurs sont des potes d'exemple.
 
+## Lieux vérifiés et non vérifiés (décidé le 9 octobre 2026)
+- **Un lieu présent dans l'app n'a pas forcément de compte SOS Miam.** Il y a deux sortes de lieux :
+  - **lieu « vérifié » ✓** : il a un compte SOS Miam (pro) ;
+  - **lieu « non vérifié »** : ajouté par l'équipe ou proposé par un ambassadeur, sans compte. C'est à dire clairement partout (fiche, carte, FAQ, CGU), pour ne pas laisser croire qu'il est inscrit.
+- **Seul un lieu vérifié valide les visites** (addition, QR du comptoir, réservation honorée), lance des SOS et répond aux avis. Les **points de visite** (+15, +25 pendant un SOS), les **rescousses** et les **avis vérifiés** n'existent donc que dans un lieu vérifié. Sans compte, pas de scan : on ne compte rien.
+- **Dans un lieu non vérifié**, on peut voir la fiche et l'itinéraire, le garder en favori, donner un avis (marqué « non vérifié », sans visite validée) et **inviter le lieu à rejoindre SOS Miam**.
+
 ## Scan et validation des visites (décidé le 8 octobre 2026)
 - **On valide son passage en payant**, comme le promet la FAQ. Trois façons pour la première version :
   - **l'addition demandée dans l'app**, que le lieu marque réglée d'un geste ;
