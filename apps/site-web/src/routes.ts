@@ -46,7 +46,7 @@ export default [
   layout("routes/pro/mise-en-page-pro.tsx", [
     route("bienvenue", "routes/pro/bienvenue.tsx"),
     route("tableau", "routes/pro/tableau.tsx"),
-    route("rattacher", "routes/pro/rattacher.tsx"),
+    route("rattacher/:id?", "routes/pro/rattacher.tsx"),
     route("lieu/:id", "routes/pro/ma-fiche.tsx"),
     route("lieu/:id/suggestions", "routes/pro/suggestions.tsx"),
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),

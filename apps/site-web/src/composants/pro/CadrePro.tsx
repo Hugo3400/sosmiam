@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { BandeauExemple } from "~/composants/pro/BandeauExemple";
 import { EnTetePro } from "~/composants/pro/EnTetePro";
 import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
@@ -11,8 +10,6 @@ type Props = {
   connecte: boolean;
   /** Le lieu des liens du menu (voir EnTetePro) */
   lieuMenu?: number | null;
-  /** Les lieux du compte sont des exemples (serveur de développement seulement) */
-  exemple?: boolean;
   children: ReactNode;
 };
 
@@ -20,13 +17,12 @@ type Props = {
  * Cadre de l'espace pro (https://pro.sosmiam.fr) : en-tête « SOS Miam · pro », contenu, pied de page commun. À
  * l'impression (affichette), seul le contenu reste.
  */
-export function CadrePro({ connecte, lieuMenu = null, exemple = false, children }: Props) {
+export function CadrePro({ connecte, lieuMenu = null, children }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-creme print:block print:min-h-0 print:bg-white">
       <LienCanonique site={`https://${HOTE_PRO}`} />
       <LienEvitement />
       <EnTetePro connecte={connecte} lieuMenu={lieuMenu} />
-      <BandeauExemple actif={exemple} duCadre />
       <main id="contenu" tabIndex={-1} className="flex-1">
         {children}
       </main>

@@ -51,6 +51,16 @@
 - **Promis dans les CGU (8 octobre 2026), à coder avant la sortie de l'app** : quand une publication est masquée ou retirée, ou un compte limité, on prévient l'auteur et on lui dit pourquoi ; s'il conteste, on réexamine la décision ; la personne qui a signalé apprend ce qu'on a décidé (règlement européen sur les services numériques).
 - Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement.
 
+## Miam Safe : se sentir en sécurité dans un lieu (concept posé le 9 octobre 2026, rien de construit)
+- **Compte obligatoire** pour tout Miam Safe. **En cas de danger réel, l'app renvoie d'abord vers le 17 (police), le 18 (pompiers), le 15 (Samu) ou le 112**, accessibles en un appui. Sur ces écrans, le ton reste doux et sérieux : pas de blague ni d'easter egg.
+- **Aide sur le moment** (bouton Miam Safe sur la fiche du lieu et pendant une visite) :
+  - **prévenir un pote de Ma bande** : il reçoit « Léa ne se sent pas en sécurité au [lieu] », la **position en direct pendant 1 h** (seulement si la personne le déclenche, arrêtable à tout moment) et un bouton pour l'appeler ;
+  - **demander de l'aide au comptoir** : une phrase à dire, sur le principe de « Demande Angela », **et** un écran à montrer au personnel (« J'ai besoin d'aide, discrètement »).
+- **Signaler après coup** (harcèlement, agression, discrimination, personnel déplacé…) : ça part en alerte de modération dans le logiciel de gestion. **Jamais public sur la fiche.** L'équipe peut contacter le lieu, lui retirer son badge, le suspendre ou le retirer.
+- **Lieux engagés** : dans l'espace pro, le lieu signe une **charte Miam Safe** (équipe qui connaît la phrase et l'écran, consigne au comptoir) et obtient le badge **« Miam Safe »** sur sa fiche.
+- **Avis des usagers, seulement en positif** : après une visite, on demande « Tu t'es senti·e bien ici ? ». Au-dessus d'un seuil (proposé : 90 % de oui sur au moins 20 réponses), la fiche affiche « Les Miamis s'y sentent bien ». **Un « non » ne s'affiche jamais : il devient un signalement privé.**
+- Points ouverts : texte de la charte et phrase au comptoir ; le 114 (urgences par SMS, pour les personnes sourdes ou qui ne peuvent pas parler) ; la position partagée pour les 15-17 ans ; délai de traitement des signalements Miam Safe ; seuil définitif de l'avis positif.
+
 ## Publications et compte (CGU du 8 octobre 2026)
 - Les publications restent à leur auteur : SOS Miam peut seulement les héberger, les adapter au format et les montrer dans l'app et sur le site. **Pour les reprendre ailleurs (nos réseaux TikTok, Instagram…), on demande d'abord l'accord de l'auteur.**
 - Un compte par personne ; suppression possible **depuis l'app** (exigé par Apple, à coder) ou par e-mail.

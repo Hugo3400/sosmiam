@@ -17,6 +17,7 @@ import { ErreurApi } from "~/services/client-gestion.ts";
 import { enregistrerLieu, lireLieu, supprimerLieu, type EnvieLieu, type SaisieLieu } from "~/services/lieux.ts";
 import type { Ecran } from "~/contenus/menu.ts";
 import { ApercuLieu } from "./ApercuLieu.tsx";
+import { ComptesProDuLieu } from "./ComptesProDuLieu.tsx";
 import { HistoriqueLieu } from "./HistoriqueLieu.tsx";
 import { SuggestionsDuLieu } from "./SuggestionsDuLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
@@ -244,6 +245,7 @@ export function FormulaireLieu({ id, onFermer, allerA, navigation, manques }: Pr
         <div className="sticky top-4 grid gap-2">
           <p className="text-sm font-semibold text-gris">Aperçu dans l'app</p>
           <ApercuLieu lieu={{ ...lieu, tags: tags.split(",").map((t) => t.trim()).filter(Boolean) }} />
+          {id && <ComptesProDuLieu lieuId={id} />}
           {id && <HistoriqueLieu id={id} allerA={allerA} />}
         </div>
       </div>

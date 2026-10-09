@@ -10,6 +10,7 @@ import { creerControleursCourriels } from "../controleurs/gestion/controleurs-co
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-outils-lieux.ts";
+import { creerControleursRattachements } from "../controleurs/gestion/controleurs-rattachements.ts";
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
@@ -43,6 +44,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const sug = creerControleursSuggestions(services);
   const outilsLieux = creerControleursOutilsLieux(services);
   const boite = creerControleursBoite(services);
+  const rattachements = creerControleursRattachements(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
@@ -155,6 +157,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/suggestions", sug.liste);
   routes.get("/suggestions/:id", sug.fiche);
   routes.post("/suggestions/:id/decision", sug.decider);
+  routes.get("/rattachements", rattachements.liste);
+  routes.post("/rattachements/:id/decision", rattachements.decider);
   routes.put("/lieux/:id", c.enregistrerLieu);
   routes.delete("/lieux/:id", c.supprimerLieu);
 

@@ -16,7 +16,10 @@ export function calculerPastilles(alertes: Alertes | null, problemesServeur: num
     libelle: `${moderation.aTraiter} à traiter, ${moderation.contestes} contestée(s)${moderation.urgents ? `, dont ${moderation.urgents} urgente(s)` : ""}`,
     urgent: moderation.urgents > 0,
   };
-  pastilles.demandes = { nombre: demandes.aTraiter, libelle: `${demandes.aTraiter} demande(s) à traiter` };
+  pastilles.demandes = {
+    nombre: demandes.aTraiter + (demandes.rattachements ?? 0),
+    libelle: `${demandes.aTraiter} demande(s) de lieu et ${demandes.rattachements ?? 0} demande(s) de compte pro à traiter`,
+  };
   pastilles.ambassadeurs = {
     nombre: ambassadeurs.enAttente + ambassadeurs.candidatures + certifications,
     libelle: `${ambassadeurs.enAttente} inscription(s), ${ambassadeurs.candidatures} candidature(s) fondateur et ${certifications} « certifié » à décider`,

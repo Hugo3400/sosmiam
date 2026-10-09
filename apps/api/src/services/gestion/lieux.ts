@@ -26,12 +26,13 @@ export async function listerLieux({ recherche, statut }: { recherche: string; st
       texte: true, horaires: true, ouverture: true, plat: true, telephone: true, siteWeb: true, instagram: true,
       animaux: true, accessible: true, terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true,
       _count: { select: { publications: true } },
+      rattachements: { where: { statut: "valide" }, select: { id: true }, take: 1 },
     },
   });
   return lieux.map((lieu) => ({
     id: lieu.id, nom: lieu.nom, type: lieu.type, emoji: lieu.emoji, info: lieu.info, quartier: lieu.quartier, ville: lieu.ville,
     statut: lieu.statut, couleurs: lieu.couleurs, modifieLe: lieu.modifieLe, adresse: lieu.adresse, latitude: lieu.latitude,
-    longitude: lieu.longitude, _count: lieu._count, manques: listerManquesLieu(lieu),
+    longitude: lieu.longitude, _count: lieu._count, manques: listerManquesLieu(lieu), verifie: lieu.rattachements.length > 0,
   }));
 }
 

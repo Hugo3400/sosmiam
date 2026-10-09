@@ -51,6 +51,8 @@ export type ResumeLieu = Pick<Lieu, "id" | "nom" | "type" | "emoji" | "info" | "
   _count: { publications: number };
   /** Ce qui manque à la fiche pour être complète (vide : complète), voir POINTS_FICHE */
   manques: string[];
+  /** Un compte pro est rattaché et validé : « Vérifié ✓ » */
+  verifie: boolean;
 };
 
 export const listerLieux = (recherche = "", statut = "") => appeler<ResumeLieu[]>("GET", `/lieux${parametres({ recherche, statut })}`);

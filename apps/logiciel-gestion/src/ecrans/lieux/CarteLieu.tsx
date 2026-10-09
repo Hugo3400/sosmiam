@@ -38,7 +38,10 @@ export function CarteLieu({ lieu, choisi, enSelection, onCocher, onOuvrir }: Pro
         <span className="grid min-w-0 flex-1 gap-1.5">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate font-titre text-lg font-extrabold">{lieu.nom}</span>
-            <span className="ml-auto shrink-0"><Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge></span>
+            <span className="ml-auto flex shrink-0 gap-1">
+              {lieu.verifie && <Badge ton="vert">Vérifié ✓</Badge>}
+              <Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge>
+            </span>
           </span>
           <span className="flex flex-wrap gap-1.5">
             <Badge ton="jaune">{EMOJIS_TYPE_LIEU[lieu.type] ?? ""} {TYPES_LIEU[lieu.type] ?? lieu.type}</Badge>

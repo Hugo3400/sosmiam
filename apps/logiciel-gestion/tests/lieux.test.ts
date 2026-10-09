@@ -91,3 +91,11 @@ test("colonnes reconnues : nom, commune, type en clair, nombres à virgule, site
   assert.deepEqual(reconnues, ["Nom du lieu", "Commune", "Type", "Catégorie", "Latitude", "Site web"]);
   assert.deepEqual(ignorees, ["Note interne"]);
 });
+
+test("réponse à une demande de compte pro : validée (sans crochets), refusée ou retirée (avec crochets)", async () => {
+  const { redigerReponseRattachement } = await import("../src/fonctions/lieux/rediger-reponse-rattachement.ts");
+  const ok = redigerReponseRattachement("valider", { prenom: "Inès", lieu: "La Fournée" });
+  assert.ok(ok.includes("La Fournée") && ok.includes("Vérifié ✓") && !ok.includes("["));
+  assert.ok(redigerReponseRattachement("refuser", { prenom: "Inès", lieu: "La Fournée" }).includes("[dis pourquoi"));
+  assert.ok(redigerReponseRattachement("retirer", { prenom: "Inès", lieu: "La Fournée" }).includes("retiré ton accès"));
+});

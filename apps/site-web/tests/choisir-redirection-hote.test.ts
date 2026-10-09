@@ -102,7 +102,7 @@ test("pro.sosmiam.fr : l'accueil mène à /bienvenue, avec ses paramètres", () 
 
 test("pro.sosmiam.fr : l'espace pro, les pages du compte et les fichiers des moteurs sont servis", () => {
   const servis = [
-    "/bienvenue", "/bienvenue/", "/tableau", "/tableau.data", "/rattacher", "/rattacher?texte=chez%20jo", "/recherche-lieux?texte=jo",
+    "/bienvenue", "/bienvenue/", "/tableau", "/tableau.data", "/rattacher", "/rattacher?texte=chez%20jo", "/rattacher/12", "/recherche-lieux?texte=jo",
     "/lieu/12", "/lieu/12.data", "/lieu/12/suggestions", "/lieu/12/equipe", "/lieu/12/affichette",
     "/connexion", "/connexion?retour=%2Flieu%2F12", "/inscription", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email",
     "/deconnexion", "/robots.txt", "/sitemap.xml",
@@ -132,6 +132,7 @@ test("sosmiam.fr et ambassadeur.sosmiam.fr : l'espace pro part sur pro.sosmiam.f
       ["/tableau.data?_routes=x", "https://pro.sosmiam.fr/tableau"],
       ["/rattacher?texte=jo", "https://pro.sosmiam.fr/rattacher?texte=jo"],
       ["/lieu/12/affichette", "https://pro.sosmiam.fr/lieu/12/affichette"],
+      ["/rattacher/12", "https://pro.sosmiam.fr/rattacher/12"],
     ];
     for (const [chemin, adresse] of attendus) assert.deepEqual(choisirRedirectionHote(hote, chemin), { adresse, statut: 301 }, `${hote}${chemin}`);
   }

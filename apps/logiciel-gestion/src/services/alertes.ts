@@ -3,7 +3,8 @@ import { appeler } from "./client-gestion.ts";
 /** Ce que le logiciel surveille chaque minute (pastilles du menu et notifications Windows). */
 export type Alertes = {
   moderation: { aTraiter: number; urgents: number; contestes: number };
-  demandes: { aTraiter: number };
+  /** rattachements : demandes de compte pro (gérant) à valider */
+  demandes: { aTraiter: number; rattachements?: number };
   /** Modifications de fiches proposées par un client ou un lieu, à examiner */
   lieux?: { suggestions: number };
   /** Mails pas encore lus dans bonjour@ (null : boîte injoignable) */

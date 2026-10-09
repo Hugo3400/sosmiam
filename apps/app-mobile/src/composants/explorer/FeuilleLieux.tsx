@@ -38,9 +38,11 @@ type Props = {
   onChangerHauteur?: (hauteur: number) => void;
 };
 
-type Cran = "repliee" | "moitie" | "depliee";
+type Cran = "carte" | "repliee" | "moitie" | "depliee";
 
 const HAUTEUR_POIGNEE = 44;
+/** Carte seule : la feuille n'est plus qu'une barre « 12 lieux · Voir la liste » tout en bas */
+const HAUTEUR_CARTE_SEULE = 56;
 /** Ce qu'on voit de la liste quand la feuille est repliée : à peu près une ligne */
 const HAUTEUR_APERCU = 84;
 /** Hauteur de la carte « Sélection » avant qu'on ait pu la mesurer */
@@ -51,11 +53,12 @@ const SEUIL_GLISSEMENT = 6;
 const ELAN = 180;
 const DUREE = 280;
 
-const CRAN_SUIVANT: Record<Cran, Cran> = { repliee: "moitie", moitie: "depliee", depliee: "repliee" };
+const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", moitie: "depliee", depliee: "repliee" };
 
 /**
- * La feuille de liste d'Explorer, posée en bas sur la carte : trois hauteurs (repliée, moitié, dépliée),
- * qu'on fait glisser par la poignée et l'en-tête (toucher la poignée passe à la suivante).
+ * La feuille de liste d'Explorer, posée en bas sur la carte : quatre hauteurs (carte seule, repliée, moitié, dépliée),
+ * qu'on fait glisser par la poignée et l'en-tête (toucher la poignée passe à la suivante ; le bouton ⌄ ne laisse que la
+ * carte, avec une barre « Voir la liste » pour revenir). Avec un lecteur d'écran, pas de « carte seule » (la carte lui est cachée).
  * Dedans : le lieu sélectionné sur la carte, « 🛟 SOS ce soir », puis tous les lieux.
  * À poser par l'écran en bas (position absolue, au-dessus de la barre d'onglets) : elle gère elle-même sa hauteur.
  */
@@ -87,7 +90,9 @@ export function FeuilleLieux(props: Props) {
     HAUTEUR_POIGNEE + hauteurEnTete + (lieuSelectionne ? hauteurSelection : 0) + (lecteurEcran || !lieuSelectionne ? HAUTEUR_APERCU : 0),
   );
   const moitie = Math.min(depliee, Math.max(repliee + 80, Math.round(depliee * 0.5)));
-  const hauteurs: Record<Cran, number> = { repliee, moitie, depliee };
+  // Avec un lecteur d'écran, « carte seule » vaut « repliée » : il ne reste jamais devant une carte qu'il ne lit pas
+  const carte = lecteurEcran ? repliee : Math.min(repliee, HAUTEUR_CARTE_SEULE);
+  const hauteurs: Record<Cran, number> = { carte, repliee, moitie, depliee };
   const cible = pleinEcran ? depliee : hauteurs[cran];
 
   const hauteur = useSharedValue(cible);
@@ -125,10 +130,18 @@ export function FeuilleLieux(props: Props) {
     rappelHauteur.current?.(cible);
   }, [cible]);
 
-  // Repliée, on revoit le haut de la liste (le carrousel SOS ou le premier lieu)
+  // Repliée (ou carte seule), on revoit le haut de la liste (le carrousel SOS ou le premier lieu)
   useEffect(() => {
-    if (cran === "repliee") refListe.current?.scrollToOffset({ offset: 0, animated: false });
+    if (cran === "repliee" || cran === "carte") refListe.current?.scrollToOffset({ offset: 0, animated: false });
   }, [cran]);
+
+  // Un lieu touché sur la carte seule : la feuille remonte juste assez pour montrer sa carte « Sélection »
+  useEffect(() => {
+    if (selection !== null && etat.current.cran === "carte") {
+      animerVers(etat.current.hauteurs.repliee);
+      setCran("repliee");
+    }
+  }, [selection]);
 
   // Un lieu touché sur la carte : le lecteur d'écran passe sur sa carte « Sélection »
   useEffect(() => {
@@ -158,7 +171,7 @@ export function FeuilleLieux(props: Props) {
       },
       onPanResponderMove: (_: unknown, g: { dy: number }) => {
         if (!glissement.current) return;
-        const { repliee: min, depliee: max } = etat.current.hauteurs;
+        const { carte: min, depliee: max } = etat.current.hauteurs;
         const actuelle = Math.min(max, Math.max(min, glissement.current.depart - g.dy));
         glissement.current.actuelle = actuelle;
         hauteur.value = actuelle;
@@ -173,7 +186,7 @@ export function FeuilleLieux(props: Props) {
       // Vers le bas, la vitesse est positive et la feuille rétrécit
       const projetee = actuelle - vitesse * ELAN;
       const { hauteurs: h } = etat.current;
-      const crans: Cran[] = ["repliee", "moitie", "depliee"];
+      const crans: Cran[] = ["carte", "repliee", "moitie", "depliee"];
       const proche = crans.reduce((a, b) => (Math.abs(h[b] - projetee) < Math.abs(h[a] - projetee) ? b : a));
       choisirCran(proche);
     }
@@ -187,13 +200,14 @@ export function FeuilleLieux(props: Props) {
         ...reglages,
         // Capture : un glissement vertical sur l'aperçu replié tire la feuille au lieu d'appuyer sur une ligne
         onMoveShouldSetPanResponderCapture: (_, g) =>
-          !etat.current.pleinEcran && !etat.current.lecteurEcran && etat.current.cran === "repliee" && vertical(g.dx, g.dy),
+          !etat.current.pleinEcran && !etat.current.lecteurEcran && (etat.current.cran === "repliee" || etat.current.cran === "carte") && vertical(g.dx, g.dy),
         onPanResponderTerminationRequest: () => false,
       }),
     ];
   });
 
   const deplie = cran === "depliee";
+  const carteSeule = cran === "carte" && !lecteurEcran;
   const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu) : false;
   const luSelection = lieuSelectionne
     ? [
@@ -212,18 +226,49 @@ export function FeuilleLieux(props: Props) {
         <View {...(pleinEcran ? {} : glissementEnTete.panHandlers)}>
           {pleinEcran ? (
             <View className="h-2" />
-          ) : (
+          ) : carteSeule ? (
             <Pressable
               ref={refPoignee}
               accessibilityRole="button"
-              accessibilityLabel={deplie ? "Réduire la liste" : "Afficher plus de lieux"}
-              accessibilityHint={cran === "repliee" ? "Déplie la liste à moitié" : deplie ? "Replie la liste en bas de l'écran" : "Déplie la liste sur tout l'écran"}
-              onPress={() => choisirCran(CRAN_SUIVANT[etat.current.cran])}
-              style={{ height: HAUTEUR_POIGNEE }}
-              className="items-center justify-center active:opacity-60"
+              accessibilityLabel={`${lieux.length} lieu${lieux.length > 1 ? "x" : ""}, voir la liste`}
+              onPress={() => choisirCran("repliee")}
+              style={{ height: HAUTEUR_CARTE_SEULE }}
+              className="items-center justify-center gap-1.5 active:opacity-60"
             >
               <View className="h-1.5 w-12 rounded-full bg-gris/40" />
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="chevron-up" size={16} color={couleurs.encre} />
+                <Text className="font-texte-gras text-[15px] text-encre">
+                  {lieux.length} lieu{lieux.length > 1 ? "x" : ""} · Voir la liste
+                </Text>
+              </View>
             </Pressable>
+          ) : (
+            <View>
+              <Pressable
+                ref={refPoignee}
+                accessibilityRole="button"
+                accessibilityLabel={deplie ? "Réduire la liste" : "Afficher plus de lieux"}
+                accessibilityHint={cran === "repliee" ? "Déplie la liste à moitié" : deplie ? "Replie la liste en bas de l'écran" : "Déplie la liste sur tout l'écran"}
+                onPress={() => choisirCran(CRAN_SUIVANT[etat.current.cran])}
+                style={{ height: HAUTEUR_POIGNEE }}
+                className="items-center justify-center active:opacity-60"
+              >
+                <View className="h-1.5 w-12 rounded-full bg-gris/40" />
+              </Pressable>
+              {/* Pas de « carte seule » pour un lecteur d'écran : la carte lui est cachée */}
+              {lecteurEcran ? null : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Masquer la liste et ne garder que la carte"
+                  hitSlop={4}
+                  onPress={() => choisirCran("carte")}
+                  className="absolute right-3 top-0 h-11 w-11 items-center justify-center active:opacity-60"
+                >
+                  <Ionicons name="chevron-down" size={22} color={couleurs.gris} />
+                </Pressable>
+              )}
+            </View>
           )}
 
           <View onLayout={(e) => setHauteurEnTete(Math.round(e.nativeEvent.layout.height))}>{enTete}</View>

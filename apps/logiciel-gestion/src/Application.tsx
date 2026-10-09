@@ -154,7 +154,7 @@ export function Application() {
           {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
           {ecran === "villes" && <EcranVilles allerA={allerA} />}
           {ecran === "boite" && <EcranBoite allerA={allerA} onLu={actualiserAlertes} />}
-          {ecran === "demandes" && <EcranDemandes />}
+          {ecran === "demandes" && <EcranDemandes onDecision={actualiserAlertes} />}
           {ecran === "annonces" && <EcranAnnonces />}
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}

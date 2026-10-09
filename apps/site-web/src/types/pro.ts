@@ -1,5 +1,5 @@
 // Types de l'espace pro (https://pro.sosmiam.fr) et de la fiche publique d'un lieu, tels que l'API les rend.
-// Contrat PRÉVU (docs/decisions.md, « Espace pro ») : à ajuster ici quand les routes /pro/… de l'API seront écrites.
+// Contrats complets : en tête de apps/api/src/routes/pro.ts, routes/comptes.ts (rattachements) et routes/lieux-publics.ts.
 // Les codes des infos pratiques sont ceux de packages/commun/src/types/infos-pratiques.ts (recopiés : le site ne charge
 // pas encore packages/commun).
 import type { CategorieLieu } from "~/types/lieux";
@@ -10,25 +10,40 @@ export type RoleLieu = "gerant" | "equipe";
 /** Le rattachement d'un compte à un lieu : « en-attente » tant que l'équipe (ou l'invité) n'a pas répondu. */
 export type StatutRattachement = "en-attente" | "valide" | "refuse";
 
-/** Un lieu tenu par le compte connecté (compte.pro.lieux). */
-export type LieuDuCompte = {
+/** Un lieu tenu par le compte connecté (compte.pro.lieux, toujours présent). */
+export type LieuDuCompte = { lieuId: number; nom: string; ville: string; role: RoleLieu; statut: StatutRattachement };
+
+/** La partie « pro » du compte connecté. */
+export type ComptePro = { lieux: LieuDuCompte[] };
+
+/**
+ * Une demande ou une invitation du compte (GET /comptes/moi/rattachements). Invitation dans une équipe : rôle « equipe »,
+ * statut « en-attente ». `reponse` : le mot de l'équipe SOS Miam (après un refus, par exemple). Dates ISO 8601.
+ */
+export type Rattachement = {
+  id: number;
   lieuId: number;
   nom: string;
   ville: string;
+  emoji: string;
   role: RoleLieu;
   statut: StatutRattachement;
-  /**
-   * Id du rattachement : sert à accepter une invitation (rôle « equipe » en attente : POST
-   * /comptes/moi/rattachements/:id/accepter). Absent du contrat de départ : à confirmer avec l'API.
-   */
-  rattachementId?: number;
+  reponse: string | null;
+  creeLe: string;
+  decideLe: string | null;
 };
 
-/** La partie « pro » du compte connecté ; absente tant que l'API ne la rend pas (aucun lieu). */
-export type ComptePro = { lieux: LieuDuCompte[] };
-
-/** Un lieu trouvé par « Chercher mon lieu » (GET /pro/recherche-lieux?texte=…). */
-export type LieuTrouve = { id: number; nom: string; ville: string; categorie: CategorieLieu };
+/** Un lieu trouvé par « Chercher mon lieu » (GET /pro/recherche-lieux) : publié, ou encore en brouillon. */
+export type LieuTrouve = {
+  id: number;
+  nom: string;
+  emoji: string;
+  type: CategorieLieu;
+  quartier: string;
+  ville: string;
+  statut: "publie" | "brouillon";
+  estVerifie: boolean;
+};
 
 /** Les animaux : bienvenus partout, seulement en terrasse, ou pas d'animaux. */
 export type AccueilAnimaux = "bienvenus" | "terrasse" | "non";
@@ -37,9 +52,7 @@ export type MoyenPaiement = "cb" | "sans-contact" | "especes" | "tickets-resto" 
 
 export type ReservationConseillee = "inutile" | "conseillee" | "obligatoire";
 
-/**
- * Les infos pratiques d'un lieu ; null (ou liste vide) : inconnu, jamais affiché au public (on ne devine pas).
- */
+/** Les infos pratiques d'un lieu ; null (ou liste vide) : inconnu, jamais affiché au public (on ne devine pas). */
 export type InfosPratiquesLieu = {
   telephone: string | null;
   siteWeb: string | null;
@@ -58,57 +71,71 @@ export type InfosPratiquesLieu = {
   reservation: ReservationConseillee | null;
 };
 
-/** La fiche d'un lieu vue par son gérant ou son équipe (GET /pro/lieux/:id). */
-export type FichePro = InfosPratiquesLieu & {
+/** Ce que la fiche d'un lieu a en commun, vue par son gérant ou par le public. */
+type BaseFiche = InfosPratiquesLieu & {
   id: number;
   nom: string;
   adresse: string | null;
+  type: CategorieLieu;
+  emoji: string;
+  /** « Trattoria », « Bar à cocktails »… */
+  info: string;
+  quartier: string;
   ville: string;
-  categorie: CategorieLieu;
-  /** Horaires lisibles : « Mar–sam, 12h–14h30 et 19h–23h » */
+  /** Horaires lisibles : « Mar–sam, 12h–14h30 et 19h–23h » ("" ou null : inconnus) */
   horaires: string | null;
-  /** La présentation du lieu */
+  /** La présentation du lieu ("" ou null : aucune) */
   texte: string | null;
   /** Vrai dès qu'un rattachement au lieu est validé */
   estVerifie: boolean;
 };
 
-/** Les champs qu'on peut modifier depuis « Ma fiche » (PATCH /pro/lieux/:id { champs }). */
-export type ChampFiche = Exclude<keyof FichePro, "id" | "ville" | "categorie" | "estVerifie">;
+/** La fiche d'un lieu vue par son gérant ou son équipe (GET /pro/lieux/:id). */
+export type FichePro = BaseFiche & { statut: "publie" | "brouillon" | "masque" };
 
-/** Réponse de PATCH /pro/lieux/:id : les champs changés tout de suite, et ceux partis vers l'équipe (nom, adresse). */
-export type ResultatModificationFiche = { appliques: string[]; envoyesEquipe: string[] };
+/** Ce que « Ma fiche » peut envoyer (PATCH /pro/lieux/:id) : null, "" ou [] efface l'info ; nom et adresse vont à l'équipe. */
+export type ChampsFiche = Pick<FichePro, "nom" | "adresse" | "horaires" | "texte" | "telephone" | "siteWeb" | "instagram" | "animaux"
+  | "accessible" | "terrasse" | "wifi" | "enfants" | "parking" | "paiements" | "reservation">;
 
-/** Une suggestion de modification de la fiche : d'un client, ou du lieu lui-même (nom, adresse). */
+/** Réponse de PATCH /pro/lieux/:id : champs changés tout de suite, ceux partis vers l'équipe, et la fiche à jour. */
+export type ResultatModificationFiche = { appliques: string[]; envoyesAEquipe: ("nom" | "adresse")[]; suggestionId: number | null; fiche: FichePro };
+
+/**
+ * Une suggestion de modification de la fiche (GET /pro/lieux/:id/suggestions) : d'un client, ou du lieu lui-même (nom,
+ * adresse). `avant` et `proposition` : les champs de `champs`, avant et proposés. Jamais l'auteur.
+ */
 export type SuggestionFiche = {
   id: number;
   source: "client" | "pro";
-  champs: { champ: string; avant: unknown; apres: unknown }[];
+  champs: string[];
+  avant: Record<string, unknown>;
+  proposition: Record<string, unknown>;
   /** « Pourquoi ? » écrit par l'auteur */
   message: string | null;
   statut: "en-attente" | "acceptee" | "partielle" | "refusee";
+  champsAcceptes: string[];
+  /** Réponse de l'équipe (seulement pour une suggestion du lieu) */
+  reponse: string | null;
   /** Dates ISO 8601 */
   creeLe: string;
   decideLe: string | null;
 };
 
-/** Un membre de l'équipe d'un lieu (GET /pro/lieux/:id/equipe) : jamais son e-mail. */
-export type MembreEquipe = { compteId: number; prenom: string; statut: StatutRattachement };
+/** Un membre de l'équipe d'un lieu (GET /pro/lieux/:id/equipe, gérant seulement) ; email null pour un gérant. */
+export type MembreEquipe = {
+  compteId: number;
+  prenom: string;
+  email: string | null;
+  role: RoleLieu;
+  statut: "en-attente" | "valide";
+  creeLe: string;
+  decideLe: string | null;
+};
 
 /** La fiche publique d'un lieu publié (GET /lieux/publics/:id), sur https://sosmiam.fr/lieux/:id. */
-export type FichePublique = InfosPratiquesLieu & {
-  id: number;
-  nom: string;
-  categorie: CategorieLieu;
-  /** « Trattoria », « Bar à cocktails »… */
-  info?: string | null;
-  emoji?: string | null;
-  adresse: string | null;
-  quartier?: string | null;
-  ville: string;
-  horaires: string | null;
-  texte: string | null;
+export type FichePublique = BaseFiche & {
+  prix: string;
+  couleurs: string[];
   /** Prénom de l'ambassadeur qui l'a fait découvrir */
-  decouvertPar?: string | null;
-  estVerifie: boolean;
+  decouvertPar: string | null;
 };

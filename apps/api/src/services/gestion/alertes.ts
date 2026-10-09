@@ -9,7 +9,7 @@ import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -28,10 +28,11 @@ export async function lireAlertes(maintenant = new Date()) {
     baseDeDonnees.candidatureCertification.count({ where: { statut: "en-attente" } }),
     // Boîte bonjour@ : relue au plus toutes les 5 minutes ; null si elle ne répond pas
     compterNonLus().catch(() => null),
+    baseDeDonnees.rattachementLieu.count({ where: { statut: "en-attente", role: "gerant" } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
-    demandes: { aTraiter: demandes },
+    demandes: { aTraiter: demandes, rattachements: rattachementsEnAttente },
     lieux: { suggestions },
     boite: { nonLus: mailsNonLus },
     ambassadeurs: { enAttente, candidatures, certifications },

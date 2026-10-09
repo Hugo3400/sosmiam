@@ -21,8 +21,8 @@ const DEBUTS_ESPACE = ["/espace/", "/kit-media/", "/kit-media-pro/"];
 const PAGES_COMPTE = ["/inscription", "/connexion", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email", "/deconnexion"];
 /** Pages de l'espace pro (« /recherche-lieux » : les suggestions de « Ton lieu », appelées par /rattacher) */
 const PAGES_PRO = ["/bienvenue", "/tableau", "/rattacher", "/recherche-lieux"];
-/** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…) */
-const DEBUTS_PRO = ["/lieu/"];
+/** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…), la demande pour un lieu */
+const DEBUTS_PRO = ["/lieu/", "/rattacher/"];
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 

@@ -12,17 +12,19 @@ type Props = {
   aide?: ReactNode;
   /** Les options côte à côte (« Oui » / « Non ») plutôt que l'une sous l'autre */
   enLigne?: boolean;
+  /** Choix cochés au départ (la valeur enregistrée, dans « Ma fiche ») ; après un refus sans JavaScript, ceux envoyés */
+  depart?: string[];
 };
 
 /**
  * Groupe de cases ou de boutons radio d'un FormulaireCompte : une légende, l'aide et l'erreur reliées au groupe. Après un
  * refus sans JavaScript, les choix faits sont remis (valeurs séparées par des virgules pour les cases).
  */
-export function ChoixMultiples({ nom, legende, type, options, aide, enLigne = false }: Props) {
+export function ChoixMultiples({ nom, legende, type, options, aide, enLigne = false, depart = [] }: Props) {
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-${nom}`;
   const erreur = erreurs[nom];
-  const choisis = (valeurs[nom] ?? "").split(",");
+  const choisis = valeurs[nom] !== undefined ? valeurs[nom].split(",") : depart;
   const decrit = [aide ? `${id}-aide` : "", erreur ? `${id}-erreur` : ""].filter(Boolean).join(" ") || undefined;
   return (
     <fieldset aria-describedby={decrit}>

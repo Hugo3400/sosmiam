@@ -10,7 +10,8 @@ export type ErreurCompte =
   | "champ-invalide" | "email-deja-utilise" | "age-minimum" | "identifiants" | "session-expiree" | "ambassadeur-non-actif"
   | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
   | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie"
-  | "deja-demande" | "lieu-inconnu" | "compte-inconnu" | "acces-refuse" | "erreur";
+  | "deja-demande" | "lieu-inconnu" | "compte-inconnu" | "pas-pro" | "reserve-au-gerant" | "proposition-invalide" | "trop-de-suggestions"
+  | "invitation-inconnue" | "rattachement-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" | "membre-inconnu" | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
@@ -24,9 +25,10 @@ const CODES = new Set<string>([
   "deja-certifie",
   // Missions de l'espace (services/espace-ambassadeur.server.ts)
   "compte-rendu-trop-court", "introuvable",
-  // Espace pro (services/pro.server.ts) : rattachement déjà demandé (409), lieu ou compte invité inconnu (404), lieu
-  // d'un autre compte, ou modification réservée au gérant (403)
-  "deja-demande", "lieu-inconnu", "compte-inconnu", "acces-refuse",
+  // Espace pro (services/pro.server.ts) : demandes et invitations (routes/comptes.ts), fiche et équipe (routes/pro.ts),
+  // fiche publique (routes/lieux-publics.ts)
+  "deja-demande", "lieu-inconnu", "compte-inconnu", "pas-pro", "reserve-au-gerant", "proposition-invalide", "trop-de-suggestions",
+  "invitation-inconnue", "rattachement-inconnu", "deja-membre", "trop-d-invitations", "equipe-complete", "membre-inconnu",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */

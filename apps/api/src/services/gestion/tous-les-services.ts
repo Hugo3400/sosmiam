@@ -23,6 +23,7 @@ import { importerLieux, verifierDoublonsImport } from "./import-lieux.ts";
 import { lireLancementVille, listerVilles } from "./villes.ts";
 import { lireDernierTestSauvegarde, testerSauvegarde } from "./test-sauvegarde.ts";
 import { listerMessagesRecus, lireMessageRecu, repondreMessageRecu } from "./boite-reception.ts";
+import { deciderRattachement, listerRattachements } from "./rattachements.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
@@ -80,6 +81,7 @@ export const servicesGestion = {
   listerSuggestions, lireSuggestion, deciderSuggestion,
   lireControleLieux, chercherLieuxSemblables, verifierDoublonsImport, importerLieux, listerVilles, lireLancementVille,
   testerSauvegarde, lireDernierTestSauvegarde, listerMessagesRecus, lireMessageRecu, repondreMessageRecu,
+  listerRattachements, deciderRattachement,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
