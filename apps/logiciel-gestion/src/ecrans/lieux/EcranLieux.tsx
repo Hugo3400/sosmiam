@@ -132,18 +132,16 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           ]}
           className="w-60"
         />
-        {lieux.length > 0 && (
-          <div className="ml-auto pb-2">
-            <CaseACocher
-              libelle={tousChoisis ? "Tout désélectionner" : `Tout sélectionner (${lieux.length})`}
-              coche={tousChoisis}
-              onChange={(coche) => setChoisis(coche ? new Set(lieux.map((lieu) => lieu.id)) : new Set())}
-            />
-          </div>
-        )}
       </div>
-      <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-3">
+      <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-x-5 gap-y-2">
         {donnees && <p className="text-sm text-gris">{lieux.length} lieu{lieux.length > 1 ? "x" : ""}{lieux.length !== tous.length ? ` sur ${tous.length}` : ""}</p>}
+        {lieux.length > 0 && (
+          <CaseACocher
+            libelle={tousChoisis ? "Tout désélectionner" : `Tout sélectionner (${lieux.length})`}
+            coche={tousChoisis}
+            onChange={(coche) => setChoisis(coche ? new Set(lieux.map((lieu) => lieu.id)) : new Set())}
+          />
+        )}
         <div className="ml-auto"><Pagination page={page} parPage={PAR_PAGE} total={lieux.length} onChange={changerPage} /></div>
       </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
