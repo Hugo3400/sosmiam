@@ -10,7 +10,7 @@ import type { DemandeComptoir, ValidationRecente } from "@sos-miam/commun/types/
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
-import { CarteAlerteMiamSafe } from "~/composants/pro/CarteAlerteMiamSafe";
+import { AlertesMiamSafeComptoir } from "~/composants/pro/AlertesMiamSafeComptoir";
 import { BoutonMontrerQr } from "~/composants/pro/BoutonMontrerQr";
 import { CarteDemandeComptoir } from "~/composants/pro/CarteDemandeComptoir";
 import { CarteQrAffiche } from "~/composants/pro/CarteQrAffiche";
@@ -20,9 +20,9 @@ import { FeuilleReglement } from "~/composants/pro/FeuilleReglement";
 import { FeuilleRefusVisite } from "~/composants/pro/FeuilleRefusVisite";
 import { ListeValideesInstant } from "~/composants/pro/ListeValideesInstant";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { lireMiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
+import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -39,6 +39,7 @@ export default function EcranComptoir() {
   const { lieuPro } = utiliserModes();
   const demo = utiliserOutilsDemo() !== null;
   const comptoir = utiliserComptoir(lieuPro?.id ?? null);
+  const miamSafe = utiliserMiamSafeLieu(lieuPro?.id ?? 0);
   const { etat } = comptoir;
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -84,8 +85,8 @@ export default function EcranComptoir() {
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
         <EnTeteMode mode="pro" titre="Comptoir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
         {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
-        {/* Miam Safe : une alerte silencieuse d'exemple, en tête du comptoir (lieux qui ont signé la charte) */}
-        {demo && lireMiamSafeLieu(lieuPro.id).engage ? <CarteAlerteMiamSafe onRepondre={annoncer} /> : null}
+        {/* Miam Safe : les alertes silencieuses en tête du comptoir (lieux qui ont signé la charte) */}
+        {miamSafe.engage ? <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} /> : null}
 
         {etat === null ? (
           comptoir.erreur ? (

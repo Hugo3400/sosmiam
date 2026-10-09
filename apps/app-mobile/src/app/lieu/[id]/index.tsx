@@ -19,12 +19,12 @@ import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { lireMiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
+import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
@@ -74,6 +74,7 @@ export default function FicheLieu() {
   const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
   const contenuDefilant = useMemo(() => ({ paddingBottom: marges.bottom + 120 }), [marges.bottom]);
   const inviter = utiliserInviterLieu();
+  const miamSafeLieu = utiliserMiamSafeLieu(Number(id));
 
   if (!lieu) {
     // Le lieu existe, mais c'est un bar : réservé aux 18 ans et plus (et tout public tant qu'on ne connaît pas ton âge)
@@ -193,7 +194,8 @@ export default function FicheLieu() {
         <FeuilleMiamSafe
           visible={miamSafe === "ouvert"}
           nomLieu={lieu.nom}
-          engage={lireMiamSafeLieu(lieu.id).engage}
+          lieuId={lieu.id}
+          engage={miamSafeLieu.engage}
           avecCompte={avecCompte}
           onFermer={fermerMiamSafe}
           onMontrerEcran={() => apresFeuille(() => router.push("/miam-safe/comptoir"))}

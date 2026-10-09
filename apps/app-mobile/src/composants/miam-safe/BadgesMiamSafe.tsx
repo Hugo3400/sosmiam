@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 
-import type { MiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
+import type { MiamSafeLieu } from "@sos-miam/commun/types/miam-safe";
 
 type Props = { miamSafe: MiamSafeLieu };
 

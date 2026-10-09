@@ -15,9 +15,9 @@ import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
-import { lireMiamSafeLieu } from "~/fonctions/miam-safe/lire-miam-safe-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
@@ -48,7 +48,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
   const verifie = estLieuVerifie(lieu);
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
   const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
-  const miamSafe = lireMiamSafeLieu(lieu.id);
+  const miamSafe = utiliserMiamSafeLieu(lieu.id);
   return (
     <>
       <LinearGradient
