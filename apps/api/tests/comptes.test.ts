@@ -7,6 +7,7 @@ import type { AddressInfo } from "node:net";
 import { after, before, test } from "node:test";
 
 import { creerApplication } from "../src/application.ts";
+import { VERSION_CGU } from "../src/controleurs/comptes.ts";
 import { calculerEmpreinteJeton } from "../src/fonctions/securite/calculer-empreinte-jeton.ts";
 import { calculerScrypt } from "../src/fonctions/securite/calculer-scrypt.ts";
 import { creerJeton } from "../src/fonctions/securite/creer-jeton.ts";
@@ -88,7 +89,7 @@ test("une inscription valable crée le compte « en-attente », ouvre une sessio
   });
   const garde = [...memoire.comptes.values()].find((compte) => compte.email === "zoe.martin@exemple.fr");
   assert.ok(garde?.motDePasse.startsWith("scrypt$16384$8$5$"));
-  assert.equal(garde?.cguVersion, "2026-10-08");
+  assert.equal(garde?.cguVersion, VERSION_CGU);
   assert.ok(!JSON.stringify(garde).includes("2000-01-31") && !JSON.stringify(garde).includes("croissants"));
   const session = await demander("GET", "/comptes/session", { jeton: corps.session });
   assert.equal(session.statut, 200);

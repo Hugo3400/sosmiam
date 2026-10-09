@@ -26,7 +26,7 @@ import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacul
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
 /** Conditions d'utilisation acceptées à l'inscription : leur date de mise à jour (contenus/legal/cgu.ts du site, à garder en phase) */
-export const VERSION_CGU = "2026-10-08";
+export const VERSION_CGU = "2026-10-09";
 const AGE_MINIMUM = 18;
 
 /** Ce que les routes des comptes demandent aux données : services/comptes.ts et comptes-espace.ts (Prisma), ou la mémoire (tests). */
