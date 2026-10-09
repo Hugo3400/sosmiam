@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { creerAttenteParCompte } from "../src/controleurs/comptes-attente.ts";
 import { calculerAgeAParis } from "../src/fonctions/comptes/calculer-age-a-paris.ts";
 import { calculerAttenteConnexion } from "../src/fonctions/comptes/calculer-attente-connexion.ts";
+import { chargerMotsDePasseCourants } from "../src/fonctions/comptes/charger-mots-de-passe-courants.ts";
 import { nettoyerLigne } from "../src/fonctions/comptes/nettoyer-ligne.ts";
 import { resumerErreur } from "../src/fonctions/comptes/resumer-erreur.ts";
 import { validerMotDePasse } from "../src/fonctions/comptes/valider-mot-de-passe.ts";
@@ -111,6 +112,44 @@ test("mot de passe : rien d'évident, même entouré de chiffres ou de signes ; 
   }
   assert.equal(validerMotDePasse("4829 1037 4652 9183", email), true);
   assert.equal(validerMotDePasse("Crème brûlée du dimanche", email), true);
+});
+
+test("grande liste de mots de passe courants : plus de 10 000, en français et en anglais, chargée une seule fois", () => {
+  const liste = chargerMotsDePasseCourants();
+  assert.ok(liste.size > 10_000, `${liste.size} mots de passe`);
+  assert.equal(chargerMotsDePasseCourants(), liste, "lue une fois, puis gardée");
+  for (const mot of ["azerty", "motdepasse", "soleil", "doudou", "chouchou", "marseille", "jennifer", "football", "pssw0rd"]) assert.ok(liste.has(mot), mot);
+  assert.ok([...liste].every((mot) => mot.length >= 6 && mot === mot.toLowerCase() && !/\s/.test(mot)));
+  const email = "camille@exemple.fr";
+  for (const courant of ["Chouchou2026!!", "P@ssw0rd2026!", "!!Marseille13!!", "Jennifer1985", "iloveyou2026", "Doudou 123456", "Nicolas.2026!", "loulou 06 12 34"]) {
+    assert.equal(validerMotDePasse(courant, email), false, courant);
+  }
+});
+
+test("des phrases normales et 200 000 mots de passe tirés au hasard ne sont jamais refusés à tort", () => {
+  const email = "camille@exemple.fr";
+  for (const phrase of [
+    "mon chat adore les croissants", "Crème brûlée du dimanche", "le soleil se lève sur Marseille", "J'aime le chocolat chaud 2026",
+    "doudou dort sous la couette", "une petite phrase de passe", "football le mardi soir avec Nico", "Les crêpes de mamie Jeanne",
+    "ma pizza préférée : la 4 fromages", "Azerty est un clavier bizarre",
+  ]) {
+    assert.equal(validerMotDePasse(phrase, email), true, phrase);
+  }
+  const lettres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.!?@#&*+=éèàç ";
+  const mots = ["miam", "croissant", "tartine", "velo", "nuage", "riviere", "lampe", "orange", "tigre", "pomme", "jardin", "piano", "bleu", "vite"];
+  const octets = randomBytes(200_000 * 24);
+  let refuses = 0;
+  const debut = performance.now();
+  for (let i = 0; i < 200_000; i++) {
+    const tranche = octets.subarray(i * 24, i * 24 + 24);
+    const motDePasse = i % 2 === 0
+      ? [...tranche.subarray(0, 12 + (tranche[23] % 12))].map((octet) => lettres[octet % lettres.length]).join("")
+      // 4 mots différents (le même mot répété est un petit motif, refusé à raison), dans un ordre tiré au hasard
+      : mots.map((mot, j) => ({ mot, rang: tranche[j] })).sort((a, b) => a.rang - b.rang).slice(0, 4).map(({ mot }) => mot).join(" ") + String(tranche[20] % 100);
+    if (!validerMotDePasse(motDePasse, email)) refuses++;
+  }
+  assert.equal(refuses, 0);
+  assert.ok(performance.now() - debut < 10_000, "rapide : la liste n'est lue qu'une fois");
 });
 
 test("l'âge se calcule avec la date du jour à Paris", () => {
