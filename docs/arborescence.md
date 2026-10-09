@@ -178,5 +178,6 @@ Paquet autonome (son propre node_modules). Node lance les fichiers `.ts` tels qu
 | `src/contenus/` | données partagées par le site et l'app : villes de France avec leurs coordonnées (`villes-france.ts`), rectangles des 18 régions (`regions-france.ts`), message sanitaire de la loi Évin et Alcool Info Service (`prevention-alcool.ts`), messages d'erreur des services, motifs de refus, modes de validation, statuts d'ambassadeur, raisons de relecture des avis |
 | `src/theme/` | couleurs, polices, arrondis (utilisés par le site et l'app) |
 | `src/validation/` | règles des formulaires (inscription, demande de BIG SOS…) |
-| `src/client-api/` | contrats des services (visites, fidélité, réservations, avis, comptoir, espace ambassadeur) et forme des réponses de l'API |
+| `src/client-api/` | contrats des services (visites, fidélité, réservations, avis, comptoir, espace ambassadeur, Miam Safe, suggestions, activité, contenu, compte) et forme des réponses de l'API ; `client-http.ts` : le client HTTP de l'API (session en Bearer, erreurs traduites en ErreurService) |
+| `src/client-api/api/` | la version API de chaque service (un fichier par service : `api-visites.ts`, `api-comptoir.ts`, `api-compte.ts`…), l'écoute régulière des écrans abonnés, et l'assemblage `creer-services-api.ts` |
 | `tests/` | tests des règles (`npm run commun:tester`) |

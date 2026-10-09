@@ -36,7 +36,9 @@ export const LIMITE_LECTURE_LIEU = { fenetre: 60_000, maximum: 120 };
  *                                          explication? (500 car. ; 10 au moins pour « autre ») } → 201 { ok } : jamais
  *                                          affiché sur la fiche, lu par l'équipe sous 48 h · 404 lieu-inconnu · 429 (5 par 24 h)
  * PUT  /miam-safe/lieux/:id/senti-bien   { oui: boolean } → 200 { ok } (la dernière réponse compte) · 404 lieu-inconnu
- * Équipe du lieu (rattachement VALIDÉ, sinon 403 pas-pro ; « gérant » là où c'est écrit, sinon 403 reserve-au-gerant) :
+ * Équipe du lieu (18 ans et plus d'abord : 403 reserve-aux-majeurs si l'âge connu est sous 18 ans, 503 chiffrement-indisponible
+ * si la date gardée est illisible, un compte sans date passe ; puis rattachement VALIDÉ, sinon 403 pas-pro ; « gérant » là
+ * où c'est écrit, sinon 403 reserve-au-gerant) :
  * GET    /miam-safe/pro/lieux/:id/alertes            → 200 { ok, alertes: [{ id, prenom, endroit, detail, statut, creeLe }] }
  *                                                      (2 dernières heures, les plus récentes d'abord)
  * POST   /miam-safe/pro/lieux/:id/alertes/:alerteId/on-arrive → 200 { ok } (la personne voit « L'équipe arrive ») ·
@@ -52,6 +54,8 @@ export function creerRoutesMiamSafe(
   protection: ProtectionComptes,
   limiteConnectee: RequestHandler,
   horloge: () => number = Date.now,
+  /** Les adresses /miam-safe/pro/… : réservées aux 18 ans et plus (middlewares/exiger-majeur.ts) */
+  exigerMajeur: RequestHandler,
 ) {
   const c = creerControleursMiamSafe(dependances, horloge);
   const exigerRattachement = creerProtectionPro(servicesPro);
@@ -65,6 +69,7 @@ export function creerRoutesMiamSafe(
   routes.get("/alertes/:id", c.suivreAlerte);
   routes.post("/signalements", parCompte(LIMITE_SIGNALEMENTS), c.signaler);
   routes.put("/lieux/:id/senti-bien", parCompte(LIMITE_SENTI_BIEN), c.repondreSentiBien);
+  routes.use("/pro", exigerMajeur);
   routes.get("/pro/lieux/:id/alertes", exigerRattachement(), c.listerAlertes);
   routes.post("/pro/lieux/:id/alertes/:alerteId/on-arrive", exigerRattachement(), c.direOnArrive);
   routes.get("/pro/lieux/:id/charte", exigerRattachement(), c.lireCharte);

@@ -24,6 +24,9 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  * /pro/… : espace pro (pro.sosmiam.fr), appelé seulement par le serveur du site, avec la session du compte unique
  * (en-tête X-Session-Compte, IP du visiteur dans X-IP-Visiteur) : mêmes conventions que routes/comptes.ts, jamais en
  * cache. Toute adresse demande une session (401 « session-expiree » sinon) ; 429 « trop-de-demandes » au-delà des limites.
+ * Toute adresse est réservée aux 18 ans et plus, AVANT le reste (même un lieu inconnu) : âge connu sous 18 ans → 403
+ * reserve-aux-majeurs ; date de naissance gardée mais illisible (clé absente) → 503 chiffrement-indisponible ; un compte
+ * sans date gardée (compte du site, qui a prouvé 18 ans) passe.
  * Le compte connecté voit ses lieux dans `compte.pro.lieux` ; ses demandes : /comptes/moi/rattachements (routes/comptes.ts).
  *
  * GET    /pro/recherche-lieux?texte=…   (tout compte connecté) chercher son lieu : chaque mot (2 à 80 caractères en tout,
@@ -77,14 +80,19 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  * POST   /pro/lieux/:id/equipe  (gérant) { email } → 201 { ok } : invitation « equipe » « en-attente », que l'employé
  *                                        accepte (POST /comptes/moi/rattachements/:id/accepter)
  *                                        · 400 champ-invalide {champ: "email"} · 404 compte-inconnu {message} (aucun compte
- *                                          à cette adresse : la personne crée d'abord son compte) · 409 deja-membre (invité
- *                                          ou validé, gérant compris) · 409 trop-d-invitations (10 par lieu et par 24 h)
+ *                                          à cette adresse : la personne crée d'abord son compte) · 409 compte-mineur
+ *                                          {message} (âge connu sous 18 ans ; jamais l'âge lui-même) · 409 deja-membre (invité
+ *                                          ou validé, gérant compris) · 503 chiffrement-indisponible (date de l'invité illisible) · 409 trop-d-invitations (10 par lieu et par 24 h)
  *                                          · 409 equipe-complete (30) · 429 (30 essais par gérant et par 24 h ; 20 par
  *                                          visiteur et par heure)
  * DELETE /pro/lieux/:id/equipe/:compteId (gérant) → 200 { ok } (statut « retire ») · 404 membre-inconnu (pas un membre
  *                                        « equipe » invité ou validé : un gérant ne se retire pas ici)
  */
-export function creerRoutesPro(services: ServicesPro, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number = Date.now) {
+export function creerRoutesPro(
+  services: ServicesPro, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number = Date.now,
+  /** Réservé aux 18 ans et plus (middlewares/exiger-majeur.ts) */
+  exigerMajeur: RequestHandler,
+) {
   const exigerRattachement = creerProtectionPro(services);
   const rattachements = creerControleursRattachements(services, horloge);
   const fiche = creerControleursFichePro(services, horloge);
@@ -93,7 +101,7 @@ export function creerRoutesPro(services: ServicesPro, protection: ProtectionComp
   const limiteCarte = limiterRequetes({ ...LIMITE_ENREGISTRER_CARTE, cle: (_requete, reponse) => `compte:${lireCompteId(reponse)}` });
   const routes = Router();
 
-  routes.use(limiteConnectee, protection.exigerCompte);
+  routes.use(limiteConnectee, protection.exigerCompte, exigerMajeur);
   routes.get("/recherche-lieux", limiterRequetes(LIMITE_RECHERCHE_LIEUX), rattachements.chercher);
   routes.get("/lieux/:id", exigerRattachement(), fiche.lire);
   routes.patch("/lieux/:id", limiterRequetes(LIMITE_MODIFIER_FICHE), exigerRattachement(true), fiche.modifier);

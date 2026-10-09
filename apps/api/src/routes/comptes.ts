@@ -14,6 +14,7 @@ import { creerControleursRattachements } from "../controleurs/pro-rattachements.
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { creerControleursComptesExternes, type DependancesConnexionExterne } from "../controleurs/comptes-externes.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
+import { creerExigenceMajeur } from "../middlewares/exiger-majeur.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
@@ -246,7 +247,9 @@ export type DependancesComptes = {
  * "refuse" }], lieuxValides: [même forme, statut « valide » seulement] }, tous ses rattachements sauf « retire », du plus
  * ancien au plus récent (vides sous 18 ans). Un lieu est à lui quand statut
  * est « valide » : pages /pro/lieux/:id (routes/pro.ts).
- * Espace pro, tout compte connecté :
+ * Espace pro, tout compte connecté (demander et accepter : 18 ans et plus, sinon 403 reserve-aux-majeurs si l'âge connu
+ * est sous 18 ans, 503 chiffrement-indisponible si la date gardée est illisible ; un compte sans date, créé sur le site,
+ * passe ; lister et quitter restent ouverts) :
  * GET    /comptes/moi/rattachements     → 200 { ok, rattachements: [{ id, lieuId, nom, ville, emoji, role, statut, reponse,
  *                                        creeLe, decideLe }] } (sauf « retire » ; les plus récents d'abord ; reponse : celle
  *                                        de l'équipe, ou null). Une invitation dans une équipe : role « equipe », statut
@@ -317,10 +320,12 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   );
   routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
   if (dependances.pro) {
-    const rattachements = creerControleursRattachements(dependances.pro, horloge);
+    const rattachements = creerControleursRattachements(dependances.pro, horloge, chiffrement);
+    // Demander à gérer un lieu ou rejoindre une équipe : 18 ans et plus (la liste et « quitter » restent ouvertes)
+    const exigerMajeur = creerExigenceMajeur(services.lireCompte, chiffrement, horloge);
     routes.get("/moi/rattachements", protection.exigerCompte, rattachements.lister);
-    routes.post("/moi/rattachements", limiterRequetes(LIMITE_RATTACHEMENTS), protection.exigerCompte, rattachements.demander);
-    routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, rattachements.accepter);
+    routes.post("/moi/rattachements", limiterRequetes(LIMITE_RATTACHEMENTS), protection.exigerCompte, exigerMajeur, rattachements.demander);
+    routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, exigerMajeur, rattachements.accepter);
     routes.delete("/moi/rattachements/:id", protection.exigerCompte, rattachements.quitter);
   }
   routes.get("/moi/candidature", protection.exigerAmbassadeurActif, espace.lireCandidature);
