@@ -1,5 +1,6 @@
 // Contrôleurs du logiciel de gestion pour les mails : état de l'envoi (boîte bonjour@ chez l'hébergement mail),
-// essai, envois groupés à un public choisi (destinataires, lancer, suivre, arrêter) et derniers mails partis.
+// essai, mail écrit à une personne, envois groupés à un public choisi (destinataires, lancer, suivre, arrêter) et
+// derniers mails partis.
 import type { Request, Response } from "express";
 
 import { verifierEmail } from "../../fonctions/texte/verifier-email.ts";
@@ -55,6 +56,27 @@ export function creerControleursCourriels(s: ServicesGestion) {
       const resultat = await s.envoyerEssaiNewsletter(adresse, lireContenu(corps));
       if (!resultat.ok) return reponse.status(502).json({ ok: false, erreur: resultat.erreur, message: "message" in resultat ? resultat.message : undefined });
       await noter(reponse, "Mail d'essai envoyé");
+      reponse.json({ ok: true });
+    }),
+    /** Un mail écrit dans le logiciel, à un compte (son adresse est lue sur le serveur) ou à une adresse donnée */
+    ecrire: verifier(async (requete, reponse) => {
+      const corps = corpsDe(requete);
+      const objet = lireTexte(corps, "objet", 150, true);
+      const texte = lireTexte(corps, "texte", 10_000, true);
+      const compteId = corps.compteId === undefined || corps.compteId === null ? null : lireNombre(corps, "compteId", 1, 1e9);
+      if (corps.compteId !== undefined && corps.compteId !== null && !compteId) throw new ChampInvalide("compteId");
+      let adresse: string | null = null;
+      if (!compteId) {
+        adresse = lireTexte(corps, "adresse", 254, true).trim().toLowerCase();
+        if (!verifierEmail(adresse)) throw new ChampInvalide("adresse");
+      }
+      const resultat = await s.envoyerCourrielEcrit(compteId ? { compteId } : { adresse: adresse! }, objet, texte);
+      if (!resultat.ok) {
+        if (resultat.erreur === "introuvable") return reponse.status(404).json({ ok: false, erreur: "introuvable" });
+        return reponse.status(502).json({ ok: false, erreur: resultat.erreur, message: "message" in resultat ? resultat.message : undefined });
+      }
+      // Ni l'adresse ni le texte dans le journal de gestion (il n'est jamais effacé)
+      await noter(reponse, "Mail écrit depuis le logiciel", compteId ? `compte n° ${compteId}` : "à une adresse");
       reponse.json({ ok: true });
     }),
     destinataires: verifier(async (requete, reponse) => {

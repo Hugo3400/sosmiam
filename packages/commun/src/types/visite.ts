@@ -4,6 +4,7 @@
 import type { CarteFidelite, ProgrammeFidelitePublic } from "./fidelite.ts";
 import type { LieuResume } from "./lieu-resume.ts";
 import type { ResultatPosition } from "./position.ts";
+import type { InfosPratiques } from "./infos-pratiques.ts";
 
 /** Les trois façons de valider une visite (« ticket » plus tard) */
 export type ModeValidation = "addition" | "comptoir" | "reservation";
@@ -95,6 +96,8 @@ export type InfosVisiteLieu = {
   carte: CarteFidelite | null;
   /** Ta demande d'addition en attente, si elle est chez ce lieu */
   enCoursIci: Visite | null;
+  /** Les infos pratiques remplies par le lieu lui-même ; null : celles de la fiche */
+  pratique: InfosPratiques | null;
 };
 
 export type ResultatValidation = { visite: Visite; carte: CarteFidelite | null; recompenseGagnee: boolean; dejaValidee: boolean };

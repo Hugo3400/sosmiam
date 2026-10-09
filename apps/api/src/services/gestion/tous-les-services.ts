@@ -14,6 +14,7 @@ import { lireCalendrier } from "./calendrier.ts";
 import { creerReponseType, listerReponsesTypes, modifierReponseType, supprimerReponseType } from "./reponses-types.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
 import { envoyerLienMotDePasse, prevenirAmbassadeurValide } from "../courriels/courriels-comptes.ts";
+import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
@@ -65,7 +66,7 @@ export const servicesGestion = {
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
   lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, listerDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
-  prevenirAmbassadeurValide, envoyerLienMotDePasse,
+  prevenirAmbassadeurValide, envoyerLienMotDePasse, envoyerCourrielEcrit,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,

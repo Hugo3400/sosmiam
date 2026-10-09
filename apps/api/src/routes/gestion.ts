@@ -123,6 +123,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.delete("/comptes/:id", k.supprimer);
   routes.get("/courriels/derniers", m.derniers);
   routes.post("/courriels/essai", m.essai);
+  routes.post("/courriels/ecrire", m.ecrire);
   routes.get("/newsletter/brouillons", c.brouillons);
   routes.post("/newsletter/brouillons", c.enregistrerBrouillon);
   routes.get("/newsletter/brouillons/:id", c.brouillon);

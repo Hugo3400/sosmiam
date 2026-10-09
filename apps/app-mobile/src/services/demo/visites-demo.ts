@@ -88,6 +88,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
             programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense } : null,
             carte: client ? convertirCarteDemo(m, lieuId, client) : null,
             enCoursIci: enCours ? convertirVisiteDemo(enCours, lieu) : null,
+            pratique: m.infosPratiques?.[lieuId] ?? null,
           },
         };
       });

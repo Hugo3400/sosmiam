@@ -4,6 +4,7 @@
 import type { AvisPublic, ResumeAvis } from "../types/avis.ts";
 import type { EtatComptoir } from "../types/comptoir.ts";
 import type { ProgrammeFidelite, ReglageFidelite } from "../types/fidelite.ts";
+import type { InfosPratiques } from "../types/infos-pratiques.ts";
 import type { MotifRefusReservation, ReservationPro } from "../types/reservation.ts";
 import type { LieuGere } from "../types/roles.ts";
 import type { MotifRefusVisite, ReglementVisite } from "../types/visite.ts";
@@ -29,6 +30,9 @@ export interface ServiceComptoir {
   ): Promise<ReponseApi<{ reservation: ReservationPro }>>;
   marquerArrivee(id: number, venu: boolean): Promise<ReponseApi<{ reservation: ReservationPro }>>;
   lireProgramme(lieuId: number): Promise<ReponseApi<{ programme: ProgrammeFidelite | null }>>;
+  /** Les infos pratiques du lieu (téléphone, animaux, accès…) ; le gérant seul peut les changer */
+  lireInfosPratiques(lieuId: number): Promise<ReponseApi<{ infos: InfosPratiques | null }>>;
+  reglerInfosPratiques(lieuId: number, infos: InfosPratiques): Promise<ReponseApi<{ infos: InfosPratiques }>>;
   reglerProgramme(lieuId: number, reglage: ReglageFidelite): Promise<ReponseApi<{ programme: ProgrammeFidelite }>>;
   listerAvis(lieuId: number): Promise<ReponseApi<{ resume: ResumeAvis; avis: AvisPublic[] }>>;
   repondreAvis(avisId: number, texte: string): Promise<ReponseApi<{ avis: AvisPublic }>>;

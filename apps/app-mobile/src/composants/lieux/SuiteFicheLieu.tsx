@@ -6,6 +6,7 @@ import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
+import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 
 type Props = {
   lieu: Lieu;
@@ -61,6 +62,8 @@ function utiliserArriveeTerminee(): boolean {
  * Elle s'ajoute sous le haut de la fiche : rien ne bouge au-dessus. Mémorisée : une rescousse ne la redessine pas.
  */
 export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props) {
+  // Celles remplies par le lieu (mode pro) si elles existent, sinon celles de la fiche
+  const pratique = utiliserInfosPratiquesLieu(lieu);
   const arrivee = utiliserArriveeTerminee();
   const animationsReduites = useReducedMotion();
 
@@ -89,7 +92,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
         ))}
       </View>
 
-      <InfosPratiquesLieu nom={lieu.nom} pratique={lieu.pratique} />
+      <InfosPratiquesLieu nom={lieu.nom} pratique={pratique} />
 
       <ApercuCarte lieu={lieu} age={age} />
 

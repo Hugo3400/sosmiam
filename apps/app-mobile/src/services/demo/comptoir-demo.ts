@@ -8,8 +8,10 @@ import { peutAgirAuComptoir } from "@sos-miam/commun/fonctions/roles/peut-agir-a
 import { peutReglerLieu } from "@sos-miam/commun/fonctions/roles/peut-regler-lieu";
 import { DEMANDES_AVANT_SAISIE_CODE } from "@sos-miam/commun/regles/visites";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
+import type { InfosPratiques } from "@sos-miam/commun/types/infos-pratiques";
 import type { EvenementVisite } from "@sos-miam/commun/types/visite";
 import { validerReglageFidelite } from "@sos-miam/commun/validation/valider-reglage-fidelite";
+import { validerInfosPratiques } from "@sos-miam/commun/validation/valider-infos-pratiques";
 import { validerReglementVisite } from "@sos-miam/commun/validation/valider-reglement-visite";
 
 import { lieuxExemples } from "~/contenus/lieux-exemples";
@@ -23,7 +25,18 @@ import type { ContexteDemo, MagasinDemo } from "./types-demo";
 
 export type ComptoirDemo = Pick<
   ServiceComptoir,
-  "listerLieux" | "lireComptoir" | "montrerQr" | "cacherQr" | "marquerReglee" | "refuser" | "annulerValidation" | "offrirRecompense" | "lireProgramme" | "reglerProgramme"
+  | "listerLieux"
+  | "lireComptoir"
+  | "montrerQr"
+  | "cacherQr"
+  | "marquerReglee"
+  | "refuser"
+  | "annulerValidation"
+  | "offrirRecompense"
+  | "lireProgramme"
+  | "reglerProgramme"
+  | "lireInfosPratiques"
+  | "reglerInfosPratiques"
 >;
 
 const trouverLieu = (id: number) => lieuxExemples.find((l) => l.id === id);
@@ -127,6 +140,22 @@ export function creerComptoirDemo(ctx: ContexteDemo): ComptoirDemo {
         const programme: ProgrammeFidelite = { ...valide.reglage, lieuId, modifieLe: new Date(maintenantMs).toISOString() };
         m.programmes = [...m.programmes.filter((p) => p.lieuId !== lieuId), programme];
         return { ok: true, programme };
+      });
+    },
+
+    async lireInfosPratiques(lieuId) {
+      if (!peutAgirAuComptoir(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      // Celles du gérant si elles existent, sinon celles de la fiche
+      return ctx.magasin.lire((m) => ({ ok: true, infos: m.infosPratiques?.[lieuId] ?? trouverLieu(lieuId)?.pratique ?? null }));
+    },
+
+    async reglerInfosPratiques(lieuId, infos) {
+      if (!peutReglerLieu(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      const valide = validerInfosPratiques(infos);
+      if (!valide.ok) return { ok: false, erreur: valide.erreur };
+      return ctx.magasin.modifier((m): ReponseApi<{ infos: InfosPratiques }> => {
+        m.infosPratiques = { ...(m.infosPratiques ?? {}), [lieuId]: valide.infos };
+        return { ok: true, infos: valide.infos };
       });
     },
   };

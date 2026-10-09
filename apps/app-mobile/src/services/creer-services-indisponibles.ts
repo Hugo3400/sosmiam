@@ -55,6 +55,8 @@ export function creerServicesIndisponibles(): Services {
       marquerArrivee: indisponible,
       lireProgramme: indisponible,
       reglerProgramme: indisponible,
+      lireInfosPratiques: indisponible,
+      reglerInfosPratiques: indisponible,
       listerAvis: async () => ({ ok: true, resume: resumeVide(), avis: [] }),
       repondreAvis: indisponible,
       ecouter: rienAEcouter,
