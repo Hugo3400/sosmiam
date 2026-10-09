@@ -1,16 +1,17 @@
 // Ce que le logiciel de gestion surveille chaque minute, en une petite demande : de quoi mettre des pastilles dans le
 // menu et prévenir par une notification Windows quand quelque chose arrive (signalement grave, inscription
 // d'ambassadeur, demande de lieu, modification de fiche proposée, candidature, compte rendu de mission, BIG SOS qui
-// démarre bientôt).
+// démarre bientôt, compte signalé par la surveillance des visites).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { compterNonLus } from "./boite-reception.ts";
 import { compterMiamSafe } from "./miam-safe.ts";
 import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
+import { compterSurveillance } from "./surveillance-visites.ts";
 
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -32,6 +33,8 @@ export async function lireAlertes(maintenant = new Date()) {
     baseDeDonnees.rattachementLieu.count({ where: { statut: "en-attente", role: "gerant" } }),
     // Miam Safe : signalements à lire (en retard après 48 h) et alertes silencieuses restées sans « On arrive »
     compterMiamSafe(maintenant),
+    // Visites : comptes signalés et lieux qui refusent pas encore vus, contestations à relire (recalculé toutes les 5 min)
+    compterSurveillance(maintenant),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
@@ -40,6 +43,7 @@ export async function lireAlertes(maintenant = new Date()) {
     lieux: { suggestions },
     boite: { nonLus: mailsNonLus },
     ambassadeurs: { enAttente, candidatures, certifications },
+    surveillance,
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };

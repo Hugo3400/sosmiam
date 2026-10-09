@@ -14,6 +14,7 @@ import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-
 import { creerControleursRattachements } from "../controleurs/gestion/controleurs-rattachements.ts";
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
+import { creerControleursSurveillance } from "../controleurs/gestion/controleurs-surveillance.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -51,6 +52,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const rattachements = creerControleursRattachements(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes, chiffrement);
+  const surveillance = creerControleursSurveillance(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -138,6 +140,12 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/comptes/:id/deconnecter", k.deconnecter);
   routes.post("/comptes/:id/reinitialiser", k.reinitialiser);
   routes.delete("/comptes/:id", k.supprimer);
+  // Surveillance des visites : comptes louches, lieux qui refusent beaucoup, contestations (rien n'est bloqué tout seul)
+  routes.get("/surveillance", surveillance.lire);
+  routes.put("/surveillance/seuils", surveillance.regler);
+  routes.post("/surveillance/comptes/:id/vu", surveillance.vuCompte);
+  routes.post("/surveillance/lieux/:id/vu", surveillance.vuLieu);
+  routes.post("/surveillance/contestations/:id/relue", surveillance.relue);
   routes.get("/courriels/derniers", m.derniers);
   routes.post("/courriels/essai", m.essai);
   routes.post("/courriels/ecrire", m.ecrire);

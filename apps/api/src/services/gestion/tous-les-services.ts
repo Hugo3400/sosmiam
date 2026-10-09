@@ -25,9 +25,7 @@ import { lireDernierTestSauvegarde, testerSauvegarde } from "./test-sauvegarde.t
 import { listerMessagesRecus, lireMessageRecu, repondreMessageRecu } from "./boite-reception.ts";
 import { deciderRattachement, listerRattachements } from "./rattachements.ts";
 import { corrigerDateNaissance, lireDateNaissance } from "./profil-gestion.ts";
-import {
-  compterSurveillance, ecrireSeuilsSurveillance, lireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu,
-} from "./surveillance-visites.ts";
+import { ecrireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu } from "./surveillance-visites.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
@@ -89,7 +87,7 @@ export const servicesGestion = {
   testerSauvegarde, lireDernierTestSauvegarde, listerMessagesRecus, lireMessageRecu, repondreMessageRecu,
   listerRattachements, deciderRattachement, lireDateNaissance, corrigerDateNaissance,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
-  lireSurveillance, compterSurveillance, lireSeuilsSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
+  lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,
