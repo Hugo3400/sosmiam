@@ -5,7 +5,7 @@ import type { EtatComptoir, QrAffiche } from "@sos-miam/commun/types/comptoir";
 const il = (maintenant: Date, minutes: number) => new Date(maintenant.getTime() - minutes * 60_000).toISOString();
 const dans = (maintenant: Date, minutes: number) => new Date(maintenant.getTime() + minutes * 60_000).toISOString();
 
-/** Un comptoir bien rempli : deux additions, une récompense à offrir, deux validations encore annulables */
+/** Un comptoir bien rempli : deux additions, une récompense à offrir, trois validations encore annulables (réduction, offert, payé) */
 export function creerComptoirExempleAffichage(maintenant: Date): EtatComptoir {
   return {
     lieu: { id: 0, nom: "Chez Nonna Lia", emoji: "🍝", type: "resto", ville: "Montpellier" },
@@ -19,8 +19,9 @@ export function creerComptoirExempleAffichage(maintenant: Date): EtatComptoir {
     arrivees: [],
     reservationsARepondre: 0,
     validees: [
-      { visiteId: 10, mode: "comptoir", prenom: "Léa", initialeNom: "M", avatar: "🍜", valideLe: il(maintenant, 3), annulableJusqua: dans(maintenant, 12) },
-      { visiteId: 11, mode: "addition", prenom: "Tom", initialeNom: "D", avatar: "🎸", valideLe: il(maintenant, 9), annulableJusqua: dans(maintenant, 6) },
+      { visiteId: 10, mode: "comptoir", prenom: "Léa", initialeNom: "M", avatar: "🍜", valideLe: il(maintenant, 3), annulableJusqua: dans(maintenant, 12), reglement: { type: "reduction", reductionPourcent: 20, avantages: ["happy-hour"] } },
+      { visiteId: 11, mode: "addition", prenom: "Tom", initialeNom: "D", avatar: "🎸", valideLe: il(maintenant, 9), annulableJusqua: dans(maintenant, 6), reglement: { type: "offert", reductionPourcent: null, avantages: ["partenariat"] } },
+      { visiteId: 12, mode: "addition", prenom: "Sofia", initialeNom: "K", avatar: "🌻", valideLe: il(maintenant, 11), annulableJusqua: dans(maintenant, 4), reglement: { type: "paye", reductionPourcent: null, avantages: ["recompense-fidelite"] } },
     ],
     genereLe: maintenant.toISOString(),
   };
