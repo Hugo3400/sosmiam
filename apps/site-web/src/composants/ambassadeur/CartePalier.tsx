@@ -1,7 +1,7 @@
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
 import { paliersAmbassadeurs } from "~/contenus/ambassadeurs";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import type { PalierCompte } from "~/types/compte";
+import type { CertificationAmbassadeur, PalierCompte } from "~/types/compte";
 
 // Les paliers dans l'ordre (leur position donne le niveau du badge) et les points pour y arriver (docs/decisions.md) ;
 // « Ambassadeur de ville » : jamais aux points, l'équipe le choisit parmi les fondateurs de la ville.
@@ -18,10 +18,19 @@ const badgesConnus: Record<string, { emoji: string; nom: string }> = {
   fondateur: { emoji: "🎖️", nom: "Fondateur" },
 };
 
-type Props = { palier: PalierCompte; points: number; badges: string[] };
+type Props = {
+  palier: PalierCompte;
+  points: number;
+  badges: string[];
+  /** Titre d'ambassadeur certifié (un titre à part, pas un palier) : la pastille « Certifié ✓ » */
+  certifie?: CertificationAmbassadeur | null;
+};
 
-/** Le palier de l'ambassadeur (badge du kit de marque), ses points, ce qu'il manque pour le suivant, et ses badges. */
-export function CartePalier({ palier, points, badges }: Props) {
+/**
+ * Le palier de l'ambassadeur (badge du kit de marque), « Certifié ✓ » s'il a ce titre, ses points, ce qu'il manque pour
+ * le suivant, et ses badges.
+ */
+export function CartePalier({ palier, points, badges, certifie = null }: Props) {
   const index = Math.max(0, paliers.findIndex((p) => p.cle === palier));
   const suivant = paliers[index + 1];
   const nomSuivant = paliersAmbassadeurs[index + 1]?.titre;
@@ -41,6 +50,12 @@ export function CartePalier({ palier, points, badges }: Props) {
         <div>
           <p className="text-sm font-semibold text-gris">Ton palier</p>
           <h2 id="titre-palier" className="text-3xl font-extrabold">{paliersAmbassadeurs[index]?.titre ?? "Curieux"}</h2>
+          {certifie && (
+            <p className="mt-2 inline-block max-w-full rounded-full border-2 border-encre bg-jaune px-3 py-1 text-sm font-bold break-words">
+              {lierPonctuation("Certifié ✓")}
+              {certifie.structure && <span className="font-semibold">{` · ${certifie.structure}`}</span>}
+            </p>
+          )}
           <p className="mt-1 text-lg"><strong className="font-titre text-2xl font-extrabold">{points}</strong> point{points > 1 ? "s" : ""}</p>
         </div>
       </div>

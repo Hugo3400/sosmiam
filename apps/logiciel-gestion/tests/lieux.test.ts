@@ -41,3 +41,26 @@ test("catégories et villes comptées : les plus fréquentes d'abord, écritures
     { libelle: "Bar à cocktail", nombre: 1 },
   ]);
 });
+
+test("valeurs d'une fiche lisibles : vide, Oui/Non, type, infos pratiques, listes, créneaux du lundi au dimanche", async () => {
+  const { formaterValeurLieu } = await import("../src/fonctions/lieux/formater-valeur-lieu.ts");
+  assert.equal(formaterValeurLieu("telephone", null), "—");
+  assert.equal(formaterValeurLieu("tags", []), "—");
+  assert.equal(formaterValeurLieu("wifi", true), "Oui");
+  assert.equal(formaterValeurLieu("parking", false), "Non");
+  assert.equal(formaterValeurLieu("type", "patisserie"), "Pâtisserie");
+  assert.equal(formaterValeurLieu("animaux", "terrasse"), "En terrasse seulement");
+  assert.equal(formaterValeurLieu("paiements", ["cb", "tickets-resto"]), "CB, Tickets resto");
+  assert.equal(formaterValeurLieu("ouverture", [{ jours: [0, 2, 1], de: "12:00", a: "14:00" }]), "lun, mar, dim · 12:00–14:00");
+  assert.equal(formaterValeurLieu("prixMoyen", 18), "18");
+});
+
+test("réponse à l'auteur d'une modification : tout, une partie (champs nommés), ou rien (avec des crochets)", async () => {
+  const { redigerReponseSuggestion } = await import("../src/fonctions/lieux/rediger-reponse-suggestion.ts");
+  const tout = redigerReponseSuggestion({ prenom: "Léa", lieu: "La Fournée", champsAppliques: ["Horaires", "Wifi"], total: 2 });
+  assert.ok(tout.startsWith("Salut Léa !") && tout.includes("c'est à jour") && !tout.includes("["));
+  const partie = redigerReponseSuggestion({ prenom: null, lieu: "La Fournée", champsAppliques: ["Horaires"], total: 3 });
+  assert.ok(partie.startsWith("Salut !") && partie.includes("On a mis à jour : horaires."));
+  const rien = redigerReponseSuggestion({ prenom: "Léa", lieu: "La Fournée", champsAppliques: [], total: 2 });
+  assert.ok(rien.includes("on garde la fiche telle quelle") && rien.includes("[dis pourquoi"));
+});

@@ -137,7 +137,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
                   <span className="block truncate text-gris">{ambassadeur.email} · <PastilleEmailVerifie le={ambassadeur.emailVerifieLe} /></span>
                 </button>
                 <span className="w-44 truncate text-gris">{[ambassadeur.ambassadeur?.quartier, ambassadeur.ambassadeur?.ville].filter(Boolean).join(", ") || "—"}</span>
-                <span className="w-48 truncate" title={p?.nom}>{p ? `${p.emoji} ${p.nom}` : ambassadeur.palier}</span>
+                <span className="w-48 truncate" title={p?.nom}>{p ? `${p.emoji} ${p.nom}` : ambassadeur.palier}{ambassadeur.ambassadeur?.certifieLe ? " · ✅" : ""}</span>
                 <span className="chiffres w-20 text-right font-semibold">{formaterNombre(ambassadeur.points)} pts</span>
                 <span className="w-44 whitespace-nowrap text-gris" title={`Inscrit le ${formaterDate(ambassadeur.creeLe)}`}>
                   {ambassadeur.bientotRetire ? <Badge ton="rouge">Retiré le {formaterDate(ambassadeur.retireLe)}</Badge> : formaterDateRelative(ambassadeur.derniereConnexion)}

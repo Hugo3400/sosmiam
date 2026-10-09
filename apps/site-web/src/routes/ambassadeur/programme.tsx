@@ -1,6 +1,7 @@
 import type { Route } from "./+types/programme";
 
 import { AppelProgramme } from "~/composants/programme/AppelProgramme";
+import { CertifieProgramme } from "~/composants/programme/CertifieProgramme";
 import { EtapesProgramme } from "~/composants/programme/EtapesProgramme";
 import { FondateursProgramme } from "~/composants/programme/FondateursProgramme";
 import { GainsProgramme } from "~/composants/programme/GainsProgramme";
@@ -50,6 +51,7 @@ export default function PageProgramme({ loaderData }: Route.ComponentProps) {
       <NiveauxProgramme />
       <EtapesProgramme />
       <FondateursProgramme recherche={loaderData.recherche} />
+      <CertifieProgramme />
       <QuestionsProgramme />
       <AppelProgramme />
     </>

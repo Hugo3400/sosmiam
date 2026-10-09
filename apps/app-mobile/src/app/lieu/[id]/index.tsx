@@ -87,7 +87,8 @@ export default function FicheLieu() {
     if (!exiger("rescousse")) return;
     // activite est l'état d'avant l'appui : un lieu déjà compté ne refait pas « Premier sauveteur »
     const premierSauveteur = estPremierSauvetagePossible(lieu, activite.premiersSauvetages);
-    const resultat = activite.basculerRescousse(lieu.id);
+    const resultat = activite.basculerRescousse(lieu);
+    if (resultat === "non-verifie") return annoncer("Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣");
     if (resultat === "epuisee") return annoncer("Plus de rescousse cette semaine, reviens lundi ! 🛟");
     if (resultat === "annulee") return annoncer("Rescousse reprise");
     const reste = activite.restantes - 1;

@@ -58,7 +58,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const parametres = new URL(request.url).searchParams;
   const changer = parametres.get("changer") === "1";
   const enAttente = candidature?.statut === "en-attente";
-  const mode: "candidater" | "preciser" | "changer" | null = !candidature || candidature.statut === "souvenir" ? "candidater"
+  // Pas de candidature, un titre gardé en souvenir, ou une candidature non retenue : on peut (re)candidater tout de suite
+  const mode: "candidater" | "preciser" | "changer" | null = !candidature || candidature.statut === "souvenir" || candidature.statut === "refusee" ? "candidater"
     : enAttente && !candidature.commune ? "preciser"
       : enAttente && changer ? "changer"
         : null;
@@ -130,7 +131,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 
 /**
  * Page /espace/fondateur : d'abord la commune (et les places de sa ville ou de son département), puis le formulaire ; ou
- * l'état de la candidature (commune à préciser, à l'étude, acceptée avec la carte à télécharger, souvenir, refusée).
+ * l'état de la candidature (commune à préciser, à l'étude, acceptée avec la carte à télécharger, souvenir, refusée), suivi
+ * du choix de commune quand on peut (re)candidater : après un souvenir ou un refus, tout de suite.
  */
 export default function PageFondateur({ loaderData, actionData }: Route.ComponentProps) {
   const { candidature, mode, recherche, communeChangee } = loaderData;

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
 
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { RESCOUSSES_PAR_SEMAINE } from "@sos-miam/commun/regles/rescousses";
+import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { calculerCleSemaine } from "~/fonctions/dates/calculer-cle-semaine";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
@@ -46,7 +48,8 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
   const restantes = RESCOUSSES_PAR_SEMAINE - activite.rescousses.length;
 
   const basculerRescousse = useCallback(
-    (idLieu: number): ResultatRescousse => {
+    (lieu: Pick<Lieu, "id" | "verifie">): ResultatRescousse => {
+      const idLieu = lieu.id;
       // Semaine revérifiée au moment de donner (passage au lundi pendant que l'app est ouverte)
       const courante = mettreAJourSemaine(activite);
       if (courante.rescousses.includes(idLieu)) {
@@ -64,6 +67,8 @@ export function FournisseurActivite({ children }: { children: ReactNode }) {
         });
         return "annulee";
       }
+      // Une rescousse déjà donnée se reprend toujours ; une nouvelle, seulement chez un lieu vérifié (avec un compte SOS Miam)
+      if (!estLieuVerifie(lieu)) return "non-verifie";
       if (RESCOUSSES_PAR_SEMAINE - courante.rescousses.length <= 0) return "epuisee";
       setActivite((precedente) => {
         const a = mettreAJourSemaine(precedente);

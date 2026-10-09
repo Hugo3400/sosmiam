@@ -69,6 +69,7 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
               <div className="flex flex-wrap items-center gap-2">
                 {etat && <Badge ton={etat.ton}>{etat.libelle}</Badge>}
                 {palier && <Badge ton="jaune">{palier.emoji} {palier.nom}</Badge>}
+                {fiche.ambassadeur?.certifieLe && <Badge ton="vert">✅ Certifié{fiche.ambassadeur.structure ? ` · ${fiche.ambassadeur.structure}` : ""}</Badge>}
                 <Badge ton="encre">{formaterNombre(fiche.points)} points</Badge>
                 {fondateur && <Badge ton="encre">🏅 {decrireNumerosFondateur(fondateur) ?? "Fondateur"}</Badge>}
                 {fiche.badges.filter((b) => b.badge !== "fondateur").map((b) => <Badge key={b.id}>{BADGES[b.badge] ?? b.badge}</Badge>)}

@@ -41,6 +41,16 @@ export const questionsAmbassadeurs: QuestionFaq[] = [
     motsCles: ["fondateur", "complet", "plus de place", "déménagement", "déménager", "numéro"],
   },
   {
+    id: "faq-ambassadeur-certifie",
+    question: "C'est quoi, un ambassadeur certifié ?",
+    reponse: [
+      "Quelqu'un qui aide les lieux partenaires : un ambassadeur, un pro (resto, commerce…) ou une structure (asso, mairie, office de tourisme, école…), représentée par une personne avec son compte. C'est un titre à part, qui s'ajoute au niveau.",
+      `On le devient sur candidature, depuis son espace sur ${lienEspace} une fois son compte validé, ou sur invitation de l'équipe, qui choisit. On a alors le badge « Ambassadeur certifié ✓ » sur les fiches des lieux qu'on a aidés (avec son prénom, et sa structure s'il y en a une), des missions chez les lieux partenaires et un kit média pro pour leur présenter SOS Miam. Bientôt, avec l'espace pro, on pourra aussi contacter les lieux par la messagerie SOS Miam. Il n'y a pas de liste publique des ambassadeurs certifiés : seulement ce badge.`,
+      "Et comme tous les ambassadeurs, un ambassadeur certifié n'est jamais payé par un lieu : si un lieu lui offre quelque chose, il l'écrit « Collaboration commerciale ».",
+    ],
+    motsCles: ["certifié", "certification", "badge", "structure", "association", "mairie", "pro", "kit média pro", "missions"],
+  },
+  {
     id: "faq-createurs",
     question: "Je suis créateur de contenu : comment ça marche ?",
     reponse: [

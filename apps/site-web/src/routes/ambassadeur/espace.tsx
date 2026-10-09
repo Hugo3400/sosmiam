@@ -10,12 +10,13 @@ import { Section } from "~/composants/mise-en-page/Section";
 import { decrirePlacesZone } from "~/fonctions/fondateurs/decrire-places-zone";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { lireCertification } from "~/services/certification.server";
 import { lireCandidature, listerPropositions } from "~/services/comptes.server";
 import { listerMessages, listerMissions } from "~/services/espace-ambassadeur.server";
 import { trouverZoneDeVille } from "~/services/fondateurs.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 import { traiterRenvoiVerification } from "~/services/verification-email.server";
-import type { CandidatureFondateur, ZoneFondateurs } from "~/types/compte";
+import type { CandidatureCertification, CandidatureFondateur, CertificationAmbassadeur, ZoneFondateurs } from "~/types/compte";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
@@ -31,15 +32,18 @@ export function meta(_: Route.MetaArgs) {
  */
 export async function loader({ request }: Route.LoaderArgs) {
   const { jeton, compte } = await exigerCompte(request);
-  const profil = { prenom: compte.prenom, points: compte.points, palier: compte.palier, badges: compte.badges, ambassadeur: compte.ambassadeur };
+  const profil = {
+    prenom: compte.prenom, points: compte.points, palier: compte.palier, badges: compte.badges, ambassadeur: compte.ambassadeur,
+    certifie: compte.ambassadeur?.certifie ?? null,
+  };
   const email = { verifie: compte.emailVerifie !== false, justeInscrit: new URL(request.url).searchParams.get("inscription") === "1" };
   if (compte.ambassadeur?.statut !== "actif") return { profil, email, actif: null };
 
   const ip = lireIpVisiteur(request);
-  const [propositions, candidature, missions, messages] = await Promise.all([
-    listerPropositions(jeton, ip), lireCandidature(jeton, ip), listerMissions(jeton, ip), listerMessages(jeton, ip),
+  const [propositions, candidature, missions, messages, certification] = await Promise.all([
+    listerPropositions(jeton, ip), lireCandidature(jeton, ip), listerMissions(jeton, ip), listerMessages(jeton, ip), lireCertification(jeton, ip),
   ]);
-  for (const reponse of [propositions, candidature, missions, messages]) {
+  for (const reponse of [propositions, candidature, missions, messages, certification]) {
     if (!reponse.ok) await redirigerSiSessionFermee(request, reponse.erreur);
   }
   // Places de SA ville (écrite dans son compte), tant qu'il n'a pas de candidature à l'étude ou acceptée
@@ -59,6 +63,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       zoneVille: zoneVille?.zone ?? null,
       missionsAFaire: missions.ok ? missions.missions.filter((mission) => mission.statut === "a-faire").length : null,
       messagesNonLus: messages.ok ? messages.messages.filter((message) => message.luLe === null).length : null,
+      /** Statut de la dernière candidature « ambassadeur certifié » ; undefined : pas pu être lue */
+      statutCertification: certification.ok ? (certification.candidature?.statut ?? null) : undefined,
     },
   };
 }
@@ -83,7 +89,7 @@ function decrireCandidature(candidature: CandidatureFondateur | null | undefined
     if (!candidature.commune) return { titre: "Ma candidature", texte: "Précise ta commune : on saura pour quelle ville tu candidates.", pastille: "À compléter" };
     return { titre: "Ma candidature", texte: `Ta candidature pour ${zone?.nom ?? candidature.commune.nom} est bien arrivée : l'équipe la lit.`, pastille: "À l'étude" };
   }
-  if (candidature?.statut === "refusee") return { titre: "Ma candidature", texte: "Cette fois, ta candidature n'a pas été retenue.", pastille: null };
+  if (candidature?.statut === "refusee") return { titre: "Ma candidature", texte: "Cette fois, ta candidature n'a pas été retenue. Tu peux recandidater quand tu veux.", pastille: null };
 
   // Pas de candidature en cours (ou un titre gardé en souvenir) : les places de sa ville, sinon de toute la France
   const souvenir = candidature?.statut === "souvenir" ? `Tu as été fondateur${pastilleNumero ? ` ${pastilleNumero.replace("N° ", "n° ")}` : ""}. ` : "";
@@ -94,6 +100,14 @@ function decrireCandidature(candidature: CandidatureFondateur | null | undefined
   }
   const places = placesRestantes === null ? "" : ` Encore ${placesRestantes} place${placesRestantes > 1 ? "s" : ""} en France.`;
   return { titre: souvenir ? "Fondateur en souvenir" : "Devenir fondateur", texte: `${souvenir}Des fondateurs dans chaque ville.${places} Tente ta chance !`, pastille: pastilleNumero };
+}
+
+/** Ce que dit la tuile « ambassadeur certifié », selon le titre et la dernière candidature. */
+function decrireCertification(certifie: CertificationAmbassadeur | null, statut: CandidatureCertification["statut"] | null | undefined) {
+  if (certifie) return { texte: "Ton badge, tes missions chez les lieux et ton kit média pro.", pastille: "Certifié ✓" };
+  if (statut === "en-attente") return { texte: "Ta candidature est bien arrivée : l'équipe la lit.", pastille: "À l'étude" };
+  if (statut === "refusee") return { texte: "Pas retenue cette fois : tu peux recandidater quand tu veux.", pastille: null };
+  return { texte: "Tu aides déjà les lieux de ton coin ? Un titre à part pour aller plus loin.", pastille: null };
 }
 
 /** Page /espace : selon le statut, l'attente, le refus, la suspension, ou tout l'espace d'un ambassadeur validé. */
@@ -117,6 +131,7 @@ export default function PageEspace({ loaderData }: Route.ComponentProps) {
   }
 
   const fondateur = decrireCandidature(actif.candidature, actif.placesRestantes, actif.zoneVille);
+  const certification = decrireCertification(profil.certifie, actif.statutCertification);
   const pluriel = (nombre: number) => (nombre > 1 ? "s" : "");
   return (
     <Section fond="creme">
@@ -125,12 +140,22 @@ export default function PageEspace({ loaderData }: Route.ComponentProps) {
       <p className="mt-2 mb-10 max-w-xl text-lg text-gris">{lierPonctuation("Bienvenue dans ton espace ambassadeur : tout ce qu'il faut pour faire briller les pépites du coin.")}</p>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <CartePalier palier={profil.palier} points={profil.points} badges={profil.badges} />
+        <CartePalier palier={profil.palier} points={profil.points} badges={profil.badges} certifie={profil.certifie} />
         <nav aria-label="Ton espace">
           <ul className="grid gap-4 sm:grid-cols-2">
             <TuileEspace vers="/espace/kit-media" emoji="🎨" titre="Kit média" texte="Logos, visuels et textes prêts à poster." />
             <TuileEspace vers="/espace/proposer-un-lieu" emoji="🔎" titre="Proposer un lieu" texte={lierPonctuation("Une pépite qui mérite plus de monde ? Raconte-la-nous.")} />
             <TuileEspace vers="/espace/fondateur" emoji="🎖️" titre={fondateur.titre} texte={lierPonctuation(fondateur.texte)} pastille={fondateur.pastille} />
+            <TuileEspace
+              vers="/espace/certification"
+              emoji="✅"
+              titre="Ambassadeur certifié"
+              texte={lierPonctuation(certification.texte)}
+              pastille={certification.pastille}
+            />
+            {profil.certifie && (
+              <TuileEspace vers="/espace/kit-media-pro" emoji="🧰" titre="Kit média pro" texte="L'affiche, le flyer et les mots pour présenter SOS Miam aux lieux." />
+            )}
             <TuileEspace
               vers="/espace/missions"
               emoji="📋"

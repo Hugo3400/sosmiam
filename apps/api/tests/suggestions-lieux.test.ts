@@ -37,6 +37,12 @@ async function proposer(corps: unknown, jeton?: string, ip = `visiteur-${++visit
   return { statut: reponse.status, corps: (await reponse.json()) as Corps };
 }
 
+async function ouvrirSession(compteId: number) {
+  const jeton = creerJeton();
+  await memoire.sessions.creer(calculerEmpreinteJeton(jeton), { compteId, creeLe: horloge, activite: horloge });
+  return jeton;
+}
+
 let numero = 0;
 /** Un compte (sans fiche d'ambassadeur : un simple client) et une session ouverte pour lui */
 async function creerClient() {
@@ -46,9 +52,7 @@ async function creerClient() {
   if (id === null) throw new Error("compte de test impossible");
   const compte = memoire.comptes.get(id);
   if (compte) compte.statutAmbassadeur = null;
-  const jeton = creerJeton();
-  await memoire.sessions.creer(calculerEmpreinteJeton(jeton), { compteId: id, creeLe: horloge, activite: horloge });
-  return { id, jeton };
+  return { id, jeton: await ouvrirSession(id) };
 }
 
 const FICHE: LieuEnMemoire = {
@@ -127,7 +131,7 @@ test("rien de nouveau : 400 rien-a-changer", async () => {
 });
 
 test("limites par compte : 3 en attente sur un même lieu, puis 10 par 24 heures", async () => {
-  const { jeton } = await creerClient();
+  const { id: compteId, jeton } = await creerClient();
   for (let i = 0; i < 3; i++) assert.equal((await proposer({ lieuId: 10, proposition: { horaires: `Horaires ${i}` } }, jeton)).statut, 201);
   const quatrieme = await proposer({ lieuId: 10, proposition: { horaires: "Encore" } }, jeton);
   assert.equal(quatrieme.statut, 409);
@@ -137,8 +141,33 @@ test("limites par compte : 3 en attente sur un même lieu, puis 10 par 24 heures
   assert.equal((await proposer({ lieuId: 18, proposition: { wifi: true } }, jeton)).statut, 409);
   // Un autre compte n'est pas bloqué
   assert.equal((await proposer({ lieuId: 18, proposition: { wifi: true } }, (await creerClient()).jeton)).statut, 201);
-  // 24 heures plus tard, de nouveau possible (sauf sur le lieu où 3 attentent toujours)
+  // 24 heures plus tard, de nouveau possible, sauf sur le lieu où 3 attendent toujours
   horloge += 24 * 3600_000 + 1000;
-  const memeCompte = [...memoire.sessions_jetons_pour_test()];
-  void memeCompte;
+  const demain = await ouvrirSession(compteId);
+  assert.equal((await proposer({ lieuId: 10, proposition: { horaires: "Demain" } }, demain)).corps.erreur, "trop-de-suggestions");
+  assert.equal((await proposer({ lieuId: 19, proposition: { wifi: true } }, demain)).statut, 201);
+});
+
+test("limite par visiteur : au-delà de 20 envois par heure, 429 (avant même la session)", async () => {
+  const ip = "visiteur-pressé";
+  for (let i = 0; i < LIMITE_SUGGESTIONS.maximum; i++) assert.equal((await proposer({ lieuId: 1 }, undefined, ip)).statut, 401);
+  const { statut, corps } = await proposer({ lieuId: 1 }, undefined, ip);
+  assert.equal(statut, 429);
+  assert.equal(corps.erreur, "trop-de-demandes");
+});
+
+test("compte effacé : ses suggestions restent, sans auteur", async () => {
+  const { id, jeton } = await creerClient();
+  const { corps } = await proposer({ lieuId: 20, proposition: { terrasse: true } }, jeton);
+  await memoire.services.effacerCompte(id);
+  assert.equal(memoire.suggestions.find((s) => s.id === corps.id)?.compteId, null);
+});
+
+test("retirerChampsInchanges : listes sans ordre, téléphone sans espaces, site sans « / » final, false face à null", () => {
+  const actuel = { paiements: ["especes", "cb"], telephone: "04 67 12 34 56", siteWeb: "https://a.fr", wifi: null, nom: "A" };
+  assert.deepEqual(
+    retirerChampsInchanges({ paiements: ["cb", "especes"], telephone: "0467123456", siteWeb: "https://a.fr/", wifi: false, nom: "B" }, actuel),
+    { wifi: false, nom: "B" },
+  );
+  assert.deepEqual(retirerChampsInchanges({ paiements: ["cb"] }, actuel), { paiements: ["cb"] });
 });

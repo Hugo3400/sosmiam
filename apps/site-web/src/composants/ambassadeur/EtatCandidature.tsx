@@ -22,7 +22,7 @@ const classeLien = "font-semibold underline decoration-jaune decoration-[3px] un
 
 /**
  * Où en est la candidature « fondateur » : à l'étude (pour quelle commune, qu'on peut encore changer), acceptée (avec les
- * numéros de la carte), gardée en souvenir après un déménagement, ou non retenue.
+ * numéros de la carte), gardée en souvenir après un déménagement, ou non retenue (on peut alors recandidater tout de suite).
  */
 export function EtatCandidature({ candidature, vientDArriver = false, communeChangee = false }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
@@ -65,7 +65,7 @@ export function EtatCandidature({ candidature, vientDArriver = false, communeCha
       <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 shadow-brut md:px-12">
         <h2 ref={titre} tabIndex={-1} className="text-3xl font-extrabold">Ta candidature n'a pas été retenue</h2>
         <p className="mt-3 max-w-xl text-lg">
-          {lierPonctuation("Merci d'avoir tenté ta chance ! Les places de fondateur sont très peu nombreuses. Tu restes ambassadeur et tu grimpes les niveaux, comme tout le monde.")}
+          {lierPonctuation("Merci d'avoir tenté ta chance ! Les places de fondateur sont très peu nombreuses. Tu restes ambassadeur et tu grimpes les niveaux, comme tout le monde. Et tu peux recandidater tout de suite, juste en dessous.")}
         </p>
         {/* Le ménage de nuit (3 h 30, heure de Paris) efface après l'échéance : « au plus tard », avec un jour de marge */}
         {candidature.reponduLe && (

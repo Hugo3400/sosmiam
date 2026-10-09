@@ -7,6 +7,7 @@ import { RAISONS_POINTS } from "~/contenus/ambassadeurs.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ajouterPoints, changerPalierVille, type FicheAmbassadeur } from "~/services/ambassadeurs.ts";
+import { retirerCertification } from "~/services/certification.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 
 /** Points donnés ou retirés à la main (avec un motif, gardé dans son journal), rôle d'ambassadeur de ville, journal des points. */
@@ -59,6 +60,17 @@ export function PointsAmbassadeur({ fiche, onChange }: { fiche: FicheAmbassadeur
               && agir(() => changerPalierVille(fiche.id, !deVille), deVille ? "Rôle d'ambassadeur de ville retiré" : "Nommé ambassadeur de ville 🎖️")}
           >
             {deVille ? "Retirer « ambassadeur de ville »" : "Nommer ambassadeur de ville"}
+          </Bouton>
+        )}
+        {fiche.ambassadeur?.certifieLe && (
+          <Bouton
+            petit
+            variante="discret"
+            desactive={etat.enCours}
+            onClick={() => window.confirm(`Retirer le titre d'ambassadeur certifié à ${fiche.prenom} ? Son palier et ses points ne changent pas.`)
+              && agir(() => retirerCertification(fiche.id), "Titre de certifié retiré")}
+          >
+            Retirer « certifié »
           </Bouton>
         )}
       </div>

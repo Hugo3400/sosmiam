@@ -14,7 +14,7 @@ export type ResumeAmbassadeur = {
   palier: Palier;
   creeLe: string;
   derniereConnexion: string;
-  ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null } | null;
+  ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null; certifieLe?: string | null } | null;
   _count: { badges: number; demandesLieux: number };
   /** Sans visite : rôle d'ambassadeur retiré après 1 an, compte effacé après 2 ans ; alerte 30 jours avant le retrait */
   retireLe: string;
@@ -49,7 +49,11 @@ export type MessageAmbassadeurs = {
 };
 export type FicheAmbassadeur = Omit<ResumeAmbassadeur, "_count" | "bientotRetire" | "ambassadeur"> & {
   cguVersion: string;
-  ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; noteEquipe: string | null; decideLe: string | null; creeLe: string } | null;
+  ambassadeur: {
+    statut: StatutAmbassadeur; ville: string; quartier: string | null; noteEquipe: string | null; decideLe: string | null; creeLe: string;
+    /** Ambassadeur certifié depuis (null : pas certifié), son profil et sa structure */
+    certifieLe?: string | null; profilCertifie?: string | null; structure?: string | null;
+  } | null;
   badges: { id: number; badge: string; obtenuLe: string }[];
   journalPoints: { id: number; points: number; raison: string; detail: string | null; creeLe: string }[];
   candidatures: Candidature[];

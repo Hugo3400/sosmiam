@@ -9,12 +9,14 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
 /** « signaler » n'arrive au fil qu'en visite sans compte (avec un compte, le signalement se fait dans le menu) */
-export type ChoixMenu = "rescousse" | "adresse" | "envoyer" | "pas-interesse" | "signaler";
+export type ChoixMenu = "rescousse" | "inviter" | "adresse" | "envoyer" | "pas-interesse" | "signaler";
 
 type Props = {
   visible: boolean;
   nomLieu: string;
   sauve: boolean;
+  /** Faux pour un lieu sans compte SOS Miam : pas de rescousse, « Inviter ce lieu » à la place */
+  verifie: boolean;
   restantes: number;
   /** Faux en visite sans compte : seule « Voir l'adresse » est libre, le reste mène à « Crée ton compte » (le fil s'en charge) */
   avecCompte: boolean;
@@ -40,7 +42,7 @@ const SECOURS_IOS = 1000;
  * Le menu « ⋯ » d'une publication, qui monte du bas : rescousse, adresse, envoyer à un pote, pas intéressé, et « Signaler » qui ouvre son propre parcours.
  * En visite sans compte, un cadenas sur tout sauf l'adresse : le fil referme le menu et propose de créer un compte.
  */
-export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, restantes, avecCompte, onChoisir, onSignaler, onFermer, onRefermee }: Props) {
+export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, verifie, restantes, avecCompte, onChoisir, onSignaler, onFermer, onRefermee }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const defilement = useRef<ScrollView>(null);
@@ -101,16 +103,19 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
 
   // En visite, pas encore de rescousses à compter : on dit seulement ce qui t'attend
   const epuisees = avecCompte && !sauve && restantes <= 0;
+  // Lieu non vérifié : une rescousse déjà donnée se reprend encore, sinon on l'invite à nous rejoindre
   const options: { choix: ChoixMenu; emoji: string; titre: string; detail: string; desactive?: boolean }[] = [
-    {
-      choix: "rescousse",
-      emoji: "🛟",
-      titre: avecCompte && sauve ? "Reprendre ma rescousse" : "Donner une rescousse",
-      detail: !avecCompte
-        ? "Avec ton compte, tu en as à offrir chaque semaine"
-        : sauve ? "Elle te sera rendue pour un autre lieu" : epuisees ? "Plus de rescousse cette semaine, reviens lundi !" : `Il t'en reste ${restantes} cette semaine`,
-      desactive: epuisees,
-    },
+    verifie || (avecCompte && sauve)
+      ? {
+          choix: "rescousse",
+          emoji: "🛟",
+          titre: avecCompte && sauve ? "Reprendre ma rescousse" : "Donner une rescousse",
+          detail: !avecCompte
+            ? "Avec ton compte, tu en as à offrir chaque semaine"
+            : sauve ? "Elle te sera rendue pour un autre lieu" : epuisees ? "Plus de rescousse cette semaine, reviens lundi !" : `Il t'en reste ${restantes} cette semaine`,
+          desactive: epuisees,
+        }
+      : { choix: "inviter", emoji: "📣", titre: "Inviter ce lieu", detail: "Il n'a pas encore de compte SOS Miam : envoie-lui le lien d'inscription" },
     { choix: "adresse", emoji: "📍", titre: "Voir l'adresse", detail: "Horaires, plat signature, itinéraire" },
     { choix: "envoyer", emoji: "💌", titre: "Envoyer à un pote", detail: "Fais-le découvrir à ta bande" },
     { choix: "pas-interesse", emoji: "🙈", titre: "Pas intéressé", detail: "On t'en montrera moins comme ça" },

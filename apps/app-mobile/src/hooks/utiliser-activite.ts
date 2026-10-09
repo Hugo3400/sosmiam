@@ -1,7 +1,9 @@
 import { createContext, useContext } from "react";
 
-/** Résultat d'un appui sur « rescousse » */
-export type ResultatRescousse = "donnee" | "annulee" | "epuisee";
+import type { Lieu } from "@sos-miam/commun/types/lieu";
+
+/** Résultat d'un appui sur « rescousse » (« non-verifie » : le lieu n'a pas de compte SOS Miam, aucune rescousse comptée) */
+export type ResultatRescousse = "donnee" | "annulee" | "epuisee" | "non-verifie";
 
 export type EtatActivite = {
   /** Rescousses qu'il reste à donner cette semaine */
@@ -24,8 +26,8 @@ export type EtatActivite = {
   chargee: boolean;
   aSauve: (idLieu: number) => boolean;
   estGarde: (idLieu: number) => boolean;
-  /** Donne une rescousse au lieu, ou la reprend si elle était déjà donnée */
-  basculerRescousse: (idLieu: number) => ResultatRescousse;
+  /** Donne une rescousse au lieu (vérifié seulement), ou la reprend si elle était déjà donnée */
+  basculerRescousse: (lieu: Pick<Lieu, "id" | "verifie">) => ResultatRescousse;
   /** Garde le lieu pour plus tard, ou l'enlève ; renvoie vrai s'il est maintenant gardé */
   basculerGarde: (idLieu: number) => boolean;
   aime: (idPublication: string) => boolean;

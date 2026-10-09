@@ -42,6 +42,7 @@ const VISIBILITE = { itemVisiblePercentThreshold: 60 };
 // Ce que demande chaque choix du menu « ⋯ » (rien pour l'adresse : elle se regarde sans compte)
 const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
   rescousse: "rescousse",
+  inviter: "partager",
   adresse: null,
   envoyer: "envoyer",
   "pas-interesse": "masquer",
@@ -204,7 +205,8 @@ export default function PourToi() {
   function rescousse(p: Publication) {
     const lieu = lieuParId.get(p.lieuId);
     if (!lieu) return;
-    const resultat = activite.basculerRescousse(lieu.id);
+    const resultat = activite.basculerRescousse(lieu);
+    if (resultat === "non-verifie") return annoncer("Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣");
     if (resultat === "epuisee") return annoncer("Plus de rescousse cette semaine, reviens lundi ! 🛟");
     if (resultat === "annulee") return annoncer("Rescousse reprise");
     setBouees((b) => ({ ...b, [p.id]: Date.now() }));
@@ -231,6 +233,11 @@ export default function PourToi() {
     const raison = raisonsMenu[choix];
     if (raison && !exigerApresMenu(raison)) return;
     if (choix === "rescousse") rescousse(p);
+    // La feuille de partage s'ouvre une fois le menu refermé (iOS refuse pendant qu'il glisse)
+    if (choix === "inviter") {
+      const lieu = lieuParId.get(p.lieuId);
+      if (lieu) apresMenu.current = () => inviter(lieu);
+    }
     if (choix === "adresse") router.push({ pathname: "/lieu/[id]", params: { id: String(p.lieuId) } });
     if (choix === "envoyer") ouvrirEnvoi(p.lieuId);
     if (choix === "pas-interesse") {
@@ -425,6 +432,7 @@ export default function PourToi() {
         visible={menu !== null}
         nomLieu={lieuDuMenu?.nom ?? ""}
         sauve={lieuDuMenu ? activite.aSauve(lieuDuMenu.id) : false}
+        verifie={lieuDuMenu ? estLieuVerifie(lieuDuMenu) : true}
         restantes={activite.restantes}
         avecCompte={profil !== null}
         onChoisir={actionsMenu.choisir}

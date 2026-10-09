@@ -11,14 +11,16 @@ import { CarteCouverture } from "./CarteCouverture.tsx";
 import { FicheAmbassadeur } from "./FicheAmbassadeur.tsx";
 import { ListeCandidats } from "./ListeCandidats.tsx";
 import { ListeCandidatures } from "./ListeCandidatures.tsx";
+import { ListeCertifications } from "./ListeCertifications.tsx";
 import { ListeComptes } from "./ListeComptes.tsx";
 import { ListeMessages } from "./ListeMessages.tsx";
 import { ListeMissions } from "./ListeMissions.tsx";
 
-type Partie = "comptes" | "fondateurs" | "missions" | "messages" | "classement" | "villes" | "candidats";
+type Partie = "comptes" | "fondateurs" | "certifies" | "missions" | "messages" | "classement" | "villes" | "candidats";
 const PARTIES: { valeur: Partie; libelle: string }[] = [
   { valeur: "comptes", libelle: "Comptes" },
   { valeur: "fondateurs", libelle: "Fondateurs" },
+  { valeur: "certifies", libelle: "Certifiés" },
   { valeur: "missions", libelle: "Missions" },
   { valeur: "messages", libelle: "Messages" },
   { valeur: "classement", libelle: "Classement" },
@@ -26,7 +28,7 @@ const PARTIES: { valeur: Partie; libelle: string }[] = [
   { valeur: "candidats", libelle: "À inviter" },
 ];
 
-/** Les ambassadeurs : leurs comptes (espace ambassadeur.sosmiam.fr), fondateurs, missions, messages, classement et villes. */
+/** Les ambassadeurs : leurs comptes (espace ambassadeur.sosmiam.fr), fondateurs, certifiés, missions, messages, classement et villes. */
 export function EcranAmbassadeurs({ onDecision, cible }: { onDecision: () => void; cible?: { id: number } | null }) {
   const [partie, setPartie] = useState<Partie>("comptes");
   const [fiche, setFiche] = useState<number | null>(null);
@@ -59,6 +61,7 @@ export function EcranAmbassadeurs({ onDecision, cible }: { onDecision: () => voi
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
       {partie === "comptes" && <ListeComptes onOuvrirCompte={ouvrir} tour={tour} onDecision={onDecision} />}
       {partie === "fondateurs" && <ListeCandidatures onOuvrirCompte={ouvrir} tour={tour} onDecision={onDecision} />}
+      {partie === "certifies" && <ListeCertifications onOuvrirCompte={ouvrir} tour={tour} onDecision={onDecision} />}
       {partie === "missions" && <ListeMissions onOuvrirCompte={ouvrir} tour={tour} />}
       {partie === "messages" && <ListeMessages onOuvrirCompte={ouvrir} tour={tour} />}
       {partie === "classement" && <CarteClassement onOuvrirCompte={ouvrir} tour={tour} />}
