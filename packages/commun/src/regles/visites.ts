@@ -41,6 +41,9 @@ export const DEMANDES_AVANT_SAISIE_CODE = 2;
 /** Le lieu peut annuler une validation pendant 15 minutes */
 export const DELAI_ANNULATION_LIEU_MS = 15 * 60_000;
 
+/** Réductions que l'équipe peut indiquer en validant (liste fermée, décidé le 9 octobre 2026) */
+export const REDUCTIONS_POURCENT: readonly number[] = [10, 15, 20, 25, 30, 50];
+
 /** L'avis s'ouvre une heure après la visite, à tête reposée */
 export const DELAI_INVITATION_AVIS_MS = 60 * 60_000;
 
