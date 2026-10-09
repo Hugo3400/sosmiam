@@ -12,7 +12,8 @@
       "bundleIdentifier": "fr.sosmiam.app",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "fr.sosmiam.app",
@@ -73,7 +74,13 @@
           "microphonePermission": "SOS Miam utilise le micro seulement quand tu enregistres une note vocale pour tes potes."
         }
       ],
-      "@react-native-google-signin/google-signin"
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.186162767871-8r0s3pr05lgii94qg26trichbahb38vg"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
