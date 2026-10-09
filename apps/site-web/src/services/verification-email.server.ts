@@ -1,11 +1,9 @@
 // « Renvoyer le lien » qui confirme l'e-mail : le même traitement pour le bandeau de /espace et pour /verifier-email.
+import { FORMULAIRE_RENVOI } from "~/composants/compte/BandeauVerificationEmail";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireAttente, renvoyerVerification } from "~/services/comptes.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
-
-/** Nom du formulaire (champ caché « formulaire ») du bouton « Renvoyer le lien ». */
-export const FORMULAIRE_RENVOI = "renvoyer-verification";
 
 /**
  * Demande un nouveau lien (personne connectée) : un toutes les 15 minutes et 5 par 24 heures, l'envoi de l'inscription

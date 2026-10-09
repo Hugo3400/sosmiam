@@ -1,5 +1,7 @@
 // Un lieu de SOS Miam (resto, pâtisserie, bar, sortie). Données d'exemple pour l'instant, puis l'API.
 
+import type { InfosPratiques } from "./infos-pratiques.ts";
+
 export type TypeLieu = "resto" | "patisserie" | "bar" | "sortie";
 
 /** Ambiances et usages d'un lieu, rapprochés des envies de la personne */
@@ -46,4 +48,6 @@ export type Lieu = {
   /** Lieu qui vient d'arriver : le premier qui lui donne une rescousse devient son « premier sauveteur » */
   nouveau?: boolean;
   reservable: boolean;
+  /** Téléphone, site, animaux, accès, équipements, paiements… (absent : rien à afficher) */
+  pratique?: InfosPratiques;
 };

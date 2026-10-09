@@ -4,11 +4,12 @@ import { Form, useActionData } from "react-router";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
+/** Nom du formulaire « Renvoyer le lien » (champ caché « formulaire ») : services/verification-email.server.ts y répond. */
+export const FORMULAIRE_RENVOI = "renvoyer-verification";
+
 type Props = {
   /** Juste après l'inscription : le lien vient de partir */
   justeInscrit?: boolean;
-  /** Nom du formulaire « Renvoyer le lien » (services/verification-email.server.ts) */
-  formulaire: string;
   /** Un autre texte que « Confirme ton adresse e-mail… » (page /verifier-email, lien qui ne marche plus) */
   texte?: string;
   bouton?: string;
@@ -18,9 +19,9 @@ type Props = {
  * Bandeau discret de l'espace tant que l'e-mail n'est pas confirmé, avec « Renvoyer le lien » (formulaire POST : marche
  * sans JavaScript). La réponse (envoyé, attente à respecter) s'affiche dessous, lue par les lecteurs d'écran.
  */
-export function BandeauVerificationEmail({ justeInscrit = false, formulaire, texte: autreTexte, bouton = "Renvoyer le lien" }: Props) {
+export function BandeauVerificationEmail({ justeInscrit = false, texte: autreTexte, bouton = "Renvoyer le lien" }: Props) {
   const donnees = useActionData<ReponseFormulaire>();
-  const reponse = donnees?.formulaire === formulaire ? donnees : undefined;
+  const reponse = donnees?.formulaire === FORMULAIRE_RENVOI ? donnees : undefined;
   const [enAttente, setEnAttente] = useState(false);
   // Chaque réponse (même identique à la précédente) arrête « Envoi… »
   useEffect(() => setEnAttente(false), [donnees]);
@@ -30,7 +31,7 @@ export function BandeauVerificationEmail({ justeInscrit = false, formulaire, tex
   return (
     <div className="mb-8 rounded-2xl border-2 border-dashed border-encre/40 bg-white/70 px-4 py-3">
       <Form method="post" onSubmit={() => setEnAttente(true)} className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <input type="hidden" name="formulaire" value={formulaire} />
+        <input type="hidden" name="formulaire" value={FORMULAIRE_RENVOI} />
         <p className="min-w-0 flex-[1_1_16rem]">
           <span aria-hidden="true">✉️ </span>
           {lierPonctuation(texte)}

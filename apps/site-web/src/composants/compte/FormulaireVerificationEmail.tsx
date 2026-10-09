@@ -11,8 +11,6 @@ import { utiliserJetonDuLien } from "~/hooks/utiliser-jeton-du-lien";
 type Props = {
   /** Connecté : un lien qui ne marche plus peut être renvoyé d'ici */
   connecte: boolean;
-  /** Nom du formulaire « Renvoyer le lien » */
-  formulaireRenvoi: string;
 };
 
 const nom = "verifier-email";
@@ -22,7 +20,7 @@ const nom = "verifier-email";
  * « # », utiliserJetonDuLien) part tout seul dès l'ouverture de la page. Sans JavaScript, ou si le lien ne marche plus :
  * un champ « Code reçu par mail », et de quoi recevoir un nouveau lien.
  */
-export function FormulaireVerificationEmail({ connecte, formulaireRenvoi }: Props) {
+export function FormulaireVerificationEmail({ connecte }: Props) {
   const donnees = useActionData<ReponseFormulaire>();
   const reponse = donnees?.formulaire === nom ? donnees : undefined;
   const [jetonDuLien] = utiliserJetonDuLien();
@@ -53,7 +51,6 @@ export function FormulaireVerificationEmail({ connecte, formulaireRenvoi }: Prop
       </FormulaireCompte>
       {connecte ? (
         <BandeauVerificationEmail
-          formulaire={formulaireRenvoi}
           texte={lienRefuse ? "Ton lien ne marche plus ? On t'en envoie un nouveau, à l'adresse de ton compte." : "Pas reçu de lien ? On t'en envoie un nouveau, à l'adresse de ton compte."}
           bouton="Renvoyer un lien"
         />

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { data, useActionData } from "react-router";
 
 import type { Route } from "./+types/verifier-email";
+import { FORMULAIRE_RENVOI } from "~/composants/compte/BandeauVerificationEmail";
 import { FormulaireVerificationEmail } from "~/composants/compte/FormulaireVerificationEmail";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -13,7 +14,7 @@ import { extraireJeton } from "~/fonctions/texte/extraire-jeton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { confirmerEmail, decrireAttente } from "~/services/comptes.server";
 import { lireCompteConnecte, lireIpVisiteur } from "~/services/session-compte.server";
-import { FORMULAIRE_RENVOI, traiterRenvoiVerification } from "~/services/verification-email.server";
+import { traiterRenvoiVerification } from "~/services/verification-email.server";
 
 const nom = "verifier-email";
 const messages = {
@@ -82,7 +83,7 @@ export default function PageVerifierEmail({ loaderData }: Route.ComponentProps) 
           </Bouton>
         </div>
       ) : (
-        <FormulaireVerificationEmail connecte={loaderData.connecte} formulaireRenvoi={FORMULAIRE_RENVOI} />
+        <FormulaireVerificationEmail connecte={loaderData.connecte} />
       )}
     </Section>
   );

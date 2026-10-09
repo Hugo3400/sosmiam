@@ -14,7 +14,7 @@ import { lireCandidature, listerPropositions } from "~/services/comptes.server";
 import { listerMessages, listerMissions } from "~/services/espace-ambassadeur.server";
 import { trouverZoneDeVille } from "~/services/fondateurs.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
-import { FORMULAIRE_RENVOI, traiterRenvoiVerification } from "~/services/verification-email.server";
+import { traiterRenvoiVerification } from "~/services/verification-email.server";
 import type { CandidatureFondateur, ZoneFondateurs } from "~/types/compte";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
@@ -99,7 +99,7 @@ function decrireCandidature(candidature: CandidatureFondateur | null | undefined
 /** Page /espace : selon le statut, l'attente, le refus, la suspension, ou tout l'espace d'un ambassadeur validé. */
 export default function PageEspace({ loaderData }: Route.ComponentProps) {
   const { profil, email, actif } = loaderData;
-  const bandeau = email.verifie ? null : <BandeauVerificationEmail formulaire={FORMULAIRE_RENVOI} justeInscrit={email.justeInscrit} />;
+  const bandeau = email.verifie ? null : <BandeauVerificationEmail justeInscrit={email.justeInscrit} />;
 
   if (!actif) {
     return (
