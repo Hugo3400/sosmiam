@@ -12,6 +12,9 @@ import { lireAvatar, lireEnvies, lireNomChiffre, lirePseudo, normaliserPseudo, r
 import { repondreChiffrementIndisponible, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
+/** Un compte créé sur le site a juré ses 18 ans : la date donnée ensuite dans l'app doit le confirmer */
+const AGE_COMPTE_DU_SITE = 18;
+
 /** Le profil tel que l'app le reçoit (GET et PATCH /comptes/moi/profil) */
 export type ProfilVu = {
   prenom: string;
@@ -46,8 +49,8 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
   /** Ce que la demande veut changer ; champs absents : inchangés. */
   /** `prenomActuel` : le prénom enregistré, qui passe toujours (lirePrenom) */
   function lireModification(corps: Record<string, unknown>, prenomActuel: string): ModificationProfil {
-    // La date de naissance ne se change jamais ici : l'équipe la corrige sur demande (« Écris-nous »)
-    if (corps.dateNaissance !== undefined) throw new ChampInvalide("dateNaissance");
+    // La date de naissance : seulement si le compte n'en a aucune (lue à part, dans modifier) ; sinon l'équipe la corrige
+    // sur demande (« Écris-nous »)
     const modification: ModificationProfil = {};
     if (corps.prenom !== undefined) modification.prenom = lirePrenom(corps, prenomActuel);
     if (corps.nom !== undefined && chiffrement) modification.nomChiffre = lireNomChiffre(corps, chiffrement);
@@ -75,7 +78,20 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
     async modifier(requete: Request, reponse: Response) {
       if (!chiffrement) return repondreChiffrementIndisponible(reponse);
       const id = lireCompteId(reponse);
-      const modification = lireModification(lireCorps(requete), (reponse.locals.compte as CompteSession).prenom);
+      const corps = lireCorps(requete);
+      const modification = lireModification(corps, (reponse.locals.compte as CompteSession).prenom);
+      // Compte du site (ambassadeur, pro) qui arrive dans l'app : il donne sa date une fois, et elle doit confirmer les
+      // 18 ans juré à l'inscription. Ensuite, plus jamais ici.
+      if (corps.dateNaissance !== undefined) {
+        const actuel = await services.lireProfil(id);
+        if (!actuel) return sessionExpiree(reponse);
+        if (actuel.dateNaissanceChiffree !== null) throw new ChampInvalide("dateNaissance");
+        const date = typeof corps.dateNaissance === "string" ? corps.dateNaissance : null;
+        const age = date === null ? null : calculerAgeProfil(date, new Date(horloge()));
+        if (date === null || age === null) throw new ChampInvalide("dateNaissance");
+        if (age < AGE_COMPTE_DU_SITE) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
+        modification.dateNaissanceChiffree = chiffrement.chiffrer(date, "dateNaissance");
+      }
       if (modification.pseudo !== undefined && (await services.pseudoEstPris(modification.pseudo, id))) {
         return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
       }

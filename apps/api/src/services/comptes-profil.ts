@@ -28,6 +28,8 @@ export type ModificationProfil = {
   envies?: Record<string, string[]>;
   avatar?: string | null;
   prive?: boolean;
+  /** Seulement pour un compte qui n'en a aucune (compte du site arrivé dans l'app) ; jamais remplacée ici */
+  dateNaissanceChiffree?: string;
 };
 
 export async function lireProfil(id: number): Promise<ProfilLu | null> {

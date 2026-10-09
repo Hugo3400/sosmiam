@@ -263,7 +263,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const { prenom, nomChiffre, pseudo, dateNaissanceChiffree, villeApp, envies, avatar, prive } = compte;
       return { prenom, nomChiffre, pseudo, dateNaissanceChiffree, ville: villeApp, envies: structuredClone(envies), avatar, prive, emailVerifie: compte.emailVerifieLe !== null };
     },
-    async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive }) {
+    async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive, dateNaissanceChiffree }) {
       const compte = comptes.get(id);
       if (!compte) return "ok";
       if (pseudo !== undefined && pseudoPris(pseudo, id)) return "pseudo-pris";
@@ -274,6 +274,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       if (envies !== undefined) compte.envies = structuredClone(envies);
       if (avatar !== undefined) compte.avatar = avatar;
       if (prive !== undefined) compte.prive = prive;
+      if (dateNaissanceChiffree !== undefined && compte.dateNaissanceChiffree === null) compte.dateNaissanceChiffree = dateNaissanceChiffree;
       return "ok";
     },
     pseudoEstPris: async (pseudo, saufCompteId) => pseudoPris(pseudo, saufCompteId),
