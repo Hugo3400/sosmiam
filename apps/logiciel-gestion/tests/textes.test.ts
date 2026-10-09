@@ -114,3 +114,12 @@ test("surveillance : la raison d'un signalement en une phrase", async () => {
   assert.equal(decrireRaisonCompte({ type: "par-jour", jour: "2026-10-09", validees: 6 }, seuils), "6 visites validées le 9 oct. 2026 (plus de 4 dans la journée)");
   assert.equal(decrireRaisonCompte({ type: "refus", refusees: 3, decidees: 7, part: 43, lieux: 2 }, seuils), "3 refus sur 7 visites (43 %), venant de 2 lieux différents");
 });
+
+test("QR de vitrine : un SVG carré, marge blanche comprise, sans service en ligne", async () => {
+  const { dessinerQrSvg } = await import("../src/fonctions/qr/dessiner-qr-svg.ts");
+  const svg = dessinerQrSvg("https://sosmiam.fr/l/k7m2p9qa");
+  // 29 modules (version 3) + 2 × 4 de marge blanche : la première case noire est à (4, 4)
+  assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 37 37"/);
+  assert.match(svg, /<path d="M4 4h1v1h-1z/);
+  assert.equal(svg, dessinerQrSvg("https://sosmiam.fr/l/k7m2p9qa"), "toujours le même dessin pour le même lien");
+});

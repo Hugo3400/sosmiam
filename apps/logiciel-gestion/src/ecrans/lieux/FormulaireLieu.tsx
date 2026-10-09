@@ -22,6 +22,7 @@ import { HistoriqueLieu } from "./HistoriqueLieu.tsx";
 import { SuggestionsDuLieu } from "./SuggestionsDuLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
 import { InfosPratiquesLieu } from "./InfosPratiquesLieu.tsx";
+import { ValidationVisitesLieu } from "./ValidationVisitesLieu.tsx";
 import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
 const NOUVEAU: SaisieLieu = {
@@ -241,6 +242,7 @@ export function FormulaireLieu({ id, onFermer, allerA, navigation, manques }: Pr
             <CaseACocher libelle="Réservable" coche={lieu.reservable} onChange={(reservable) => changer({ reservable })} />
             <ZoneTexte libelle="Note interne (jamais montrée)" valeur={lieu.note ?? ""} maximum={1000} lignes={3} onChange={(v) => changer({ note: texteOuNull(v) })} className="md:col-span-2" />
           </Groupe>
+          {id && <ValidationVisitesLieu lieuId={id} nom={lieu.nom} />}
         </div>
         <div className="sticky top-4 grid gap-2">
           <p className="text-sm font-semibold text-gris">Aperçu dans l'app</p>

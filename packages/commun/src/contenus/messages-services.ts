@@ -17,6 +17,66 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Ça arrive avec les comptes",
     texte: "La validation des visites s'allume dès que les comptes SOS Miam sont ouverts. Encore un peu de patience !",
   },
+  "erreur-serveur": {
+    emoji: "🧯",
+    titre: "Petit pépin de notre côté",
+    texte: "Notre serveur a trébuché, ce n'est pas toi. Réessaie dans un instant ; si ça continue, écris-nous.",
+  },
+  "champ-invalide": {
+    emoji: "✏️",
+    titre: "Une info ne va pas",
+    texte: "Jette un œil au champ indiqué, corrige-le, et c'est reparti.",
+  },
+  "identifiants": {
+    emoji: "🔑",
+    titre: "E-mail ou mot de passe incorrect",
+    texte: "Vérifie les deux. Compte créé avec Apple ou Google ? Passe par leur bouton, ou choisis un mot de passe avec « Mot de passe oublié ».",
+  },
+  "email-deja-utilise": {
+    emoji: "📮",
+    titre: "Cet e-mail a déjà un compte",
+    texte: "Connecte-toi avec, ou passe par « Mot de passe oublié » si tu ne t'en souviens plus.",
+  },
+  "age-minimum": {
+    emoji: "🧒",
+    titre: "Encore un peu de patience",
+    texte: "SOS Miam, c'est à partir de 15 ans. On garde une table pour toi !",
+  },
+  "pseudo-pris": {
+    emoji: "🏷️",
+    titre: "Ce pseudo est déjà pris",
+    texte: "Quelqu'un a eu la même idée géniale. Essaie une variante, avec ton quartier ou ton plat préféré.",
+  },
+  "mot-de-passe-incorrect": {
+    emoji: "🔒",
+    titre: "Mot de passe incorrect",
+    texte: "Ce n'est pas le bon. Réessaie, ou passe par « Mot de passe oublié ».",
+  },
+  "jeton-externe-invalide": {
+    emoji: "🪪",
+    titre: "La connexion n'est pas passée",
+    texte: "Apple ou Google n'a pas confirmé que c'est bien toi. Réessaie dans un instant.",
+  },
+  "compte-deja-rattache": {
+    emoji: "🔗",
+    titre: "Déjà lié à un autre compte",
+    texte: "Ce compte Apple ou Google est déjà relié à un autre compte SOS Miam. Connecte-toi avec lui.",
+  },
+  "confirmation-incorrecte": {
+    emoji: "🛑",
+    titre: "Confirmation refusée",
+    texte: "Pour effacer ton compte, reconnecte-toi avec le même compte Apple ou Google que d'habitude.",
+  },
+  "email-manquant": {
+    emoji: "📭",
+    titre: "Il nous faut ton e-mail",
+    texte: "Autorise le partage de ton e-mail (même masqué) au moment de te connecter, puis réessaie.",
+  },
+  "profil-a-completer": {
+    emoji: "👋",
+    titre: "Encore quelques infos",
+    texte: "Ton prénom, ta date de naissance et ta ville, et on y est.",
+  },
   "hors-ligne": {
     emoji: "📶",
     titre: "Pas de réseau ici",
