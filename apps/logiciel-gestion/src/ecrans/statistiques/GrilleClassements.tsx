@@ -6,7 +6,11 @@ import type { Dimension, Statistiques } from "~/services/statistiques.ts";
 
 type Classement = { dimension: Dimension; titre: string; unite: string; nommer?: (valeur: string) => string; vide?: string };
 
-const NOMS_CLICS: Record<string, string> = { site: "Le site", discord: "Discord", tiktok: "TikTok", instagram: "Instagram" };
+/** Boutons de la page /liens du site (mêmes noms que apps/site-web/src/contenus/liens-publics.ts) */
+const NOMS_CLICS: Record<string, string> = {
+  prevenu: "Être prévenu du lancement", ambassadeur: "Devenir ambassadeur", pro: "Espace pro", "inscrire-lieu": "J'inscris mon lieu",
+  site: "Le site", discord: "Discord", tiktok: "TikTok", instagram: "Instagram",
+};
 /** Tranches de temps de réponse, dans l'ordre (pas du plus fréquent au moins fréquent) */
 const ORDRE_TEMPS = ["< 100 ms", "100–300 ms", "300 ms–1 s", "> 1 s"];
 
