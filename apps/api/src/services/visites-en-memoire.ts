@@ -1,15 +1,19 @@
-// Double en mémoire des visites, de la fidélité et du comptoir, pour les tests (aucune base de données). Mêmes gestes que
-// visites.ts ; une seule chose à la fois en JavaScript, donc les verrous ne font rien.
+// Double en mémoire des visites, de la fidélité, du comptoir et des réservations, pour les tests (aucune base de données).
+// Mêmes gestes que visites.ts ; une seule chose à la fois en JavaScript, donc les verrous ne font rien.
+import { EXPIRATION_AVANT_CRENEAU_MS, VENU_APRES_CRENEAU_MS } from "../../../../packages/commun/src/regles/reservations.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type {
   CompteVisiteur, DepotVisites, LieuVisite, LigneCarte, LigneDemande, LignePresentation, LigneProgramme, LigneRecompense, LigneVisite, TablesVisites,
 } from "./visites-regles.ts";
+import type { FiltreReservations, LigneReservation } from "./reservations-regles.ts";
 
 /** Un lieu des tests : publié ou non (un lieu non publié garde son résumé pour l'historique) */
 export type LieuVisiteEnMemoire = LieuVisite & { publie: boolean };
 type CarteEnMemoire = { id: number; compteId: number; lieuId: number; tampons: number };
 type RecompenseEnMemoire = LigneRecompense & { carteId: number; offerteLe: Date | null; offerteParId: number | null };
 type DemandeEnMemoire = LigneDemande & { carteId: number };
+/** Un SOS du soir des tests (lancé, arrêté ou non) */
+export type SosEnMemoire = { lieuId: number; creeLe: Date; jusqua: Date; arreteLe: Date | null };
 
 const copier = <T extends object>(ligne: T): T => ({ ...ligne });
 
@@ -22,6 +26,8 @@ export function creerVisitesEnMemoire() {
   const cartes: CarteEnMemoire[] = [];
   const recompenses: RecompenseEnMemoire[] = [];
   const demandes: DemandeEnMemoire[] = [];
+  const reservations: LigneReservation[] = [];
+  const sos: SosEnMemoire[] = [];
   let prochainId = 1;
 
   const resumer = (l: LieuVisiteEnMemoire): LieuResume => ({ id: l.id, nom: l.nom, emoji: l.emoji, type: l.type, ville: l.ville });
@@ -29,8 +35,12 @@ export function creerVisitesEnMemoire() {
     const lieu = lieux.get(id);
     if (!lieu?.publie) return null;
     const { publie: _publie, ...reste } = lieu;
-    return { ...reste, position: reste.position ? { ...reste.position } : null };
+    return { ...reste, position: reste.position ? { ...reste.position } : null, ouverture: reste.ouverture.map((c) => ({ ...c, jours: [...c.jours] })) };
   };
+  /** Les réservations qui répondent au filtre (créneau : depuis compris, avant exclu) */
+  const filtrerReservations = ({ compteId, lieuId, statuts, creneauDepuis, creneauAvant }: FiltreReservations) => reservations.filter((r) =>
+    (compteId === undefined || r.compteId === compteId) && (lieuId === undefined || r.lieuId === lieuId) && (statuts === undefined || statuts.includes(r.statut))
+    && (creneauDepuis === undefined || r.creneau >= creneauDepuis) && (creneauAvant === undefined || r.creneau < creneauAvant));
   const versCarte = (c: CarteEnMemoire, maintenant: Date): LigneCarte => ({
     ...c,
     pretes: recompenses
@@ -71,10 +81,11 @@ export function creerVisitesEnMemoire() {
       const v = visites.find((x) => x.id === id);
       return v ? copier(v) : null;
     },
-    async listerVisites({ compteId, lieuId, statuts, presentationId, limite }) {
+    async listerVisites({ compteId, lieuId, statuts, presentationId, reservationIds, limite }) {
       const trouvees = visites
         .filter((v) => (compteId === undefined || v.compteId === compteId) && (lieuId === undefined || v.lieuId === lieuId)
-          && (statuts === undefined || statuts.includes(v.statut)) && (presentationId === undefined || v.presentationId === presentationId))
+          && (statuts === undefined || statuts.includes(v.statut)) && (presentationId === undefined || v.presentationId === presentationId)
+          && (reservationIds === undefined || (v.reservationId !== null && reservationIds.includes(v.reservationId))))
         .sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime() || b.id - a.id)
         .map(copier);
       return limite === undefined ? trouvees : trouvees.slice(0, limite);
@@ -97,6 +108,8 @@ export function creerVisitesEnMemoire() {
       const codes = new Set<string>();
       for (const v of visites) if (v.lieuId === lieuId && v.statut === "demandee" && v.code && v.expireLe && v.expireLe > maintenant) codes.add(v.code);
       for (const d of demandes) if (d.expireLe > maintenant && cartes.find((c) => c.id === d.carteId)?.lieuId === lieuId) codes.add(d.code);
+      const depuis = maintenant.getTime() - VENU_APRES_CRENEAU_MS;
+      for (const r of reservations) if (r.lieuId === lieuId && r.statut === "acceptee" && r.code && r.creneau.getTime() > depuis) codes.add(r.code);
       return codes;
     },
 
@@ -177,8 +190,41 @@ export function creerVisitesEnMemoire() {
       Object.assign(r, { offerteLe: le, offerteParId: parId });
       return true;
     },
+
+    async lireReservation(id) {
+      const r = reservations.find((x) => x.id === id);
+      return r ? copier(r) : null;
+    },
+    async listerReservations(filtre) {
+      const sens = filtre.ordre === "creneau-decroissant" ? -1 : 1;
+      const trouvees = filtrerReservations(filtre).sort((a, b) => sens * (a.creneau.getTime() - b.creneau.getTime() || a.id - b.id)).map(copier);
+      return filtre.limite === undefined ? trouvees : trouvees.slice(0, filtre.limite);
+    },
+    async compterReservations(filtre) {
+      return filtrerReservations(filtre).length;
+    },
+    async creerReservation(reservation) {
+      const ligne = { ...reservation, id: prochainId++ };
+      reservations.push(ligne);
+      return copier(ligne);
+    },
+    async modifierReservation(id, champs) {
+      const r = reservations.find((x) => x.id === id);
+      if (r) Object.assign(r, champs);
+    },
+    async expirerReservations(maintenant) {
+      const limite = maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS;
+      for (const r of reservations) if (r.statut === "demandee" && r.creneau.getTime() <= limite) r.statut = "expiree";
+    },
+    async lireSosA(lieuId, instant) {
+      if (!lieux.get(lieuId)?.verifie) return null;
+      const trouve = sos
+        .filter((x) => x.lieuId === lieuId && x.creeLe <= instant && x.jusqua > instant && (!x.arreteLe || x.arreteLe > instant))
+        .sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime())[0];
+      return trouve ? { jusqua: trouve.jusqua } : null;
+    },
   };
 
   const depot: DepotVisites = { lire: (fn) => fn(tables), ecrire: (fn) => fn(tables) };
-  return { depot, lieux, comptes, visites, presentations, programmes, cartes, recompenses, demandes };
+  return { depot, lieux, comptes, visites, presentations, programmes, cartes, recompenses, demandes, reservations, sos };
 }

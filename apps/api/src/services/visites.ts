@@ -1,18 +1,22 @@
-// Les visites, la fidélité et le comptoir dans la base : seulement lire et écrire (les règles sont dans visites-client.ts,
-// fidelite-client.ts et comptoir.ts). ecrire passe par une transaction ; les verrous portent sur la ligne du compte ou
+// Les visites, la fidélité, le comptoir et les réservations dans la base : seulement lire et écrire (les règles sont dans
+// visites-client.ts, fidelite-client.ts, comptoir.ts, reservations-client.ts et reservations-pro.ts). ecrire passe par une transaction ; les verrous portent sur la ligne du compte ou
 // du lieu (SELECT … FOR UPDATE), et ne font rien en lecture.
-import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
+import { EXPIRATION_AVANT_CRENEAU_MS, VENU_APRES_CRENEAU_MS } from "../../../../packages/commun/src/regles/reservations.ts";
+import type { CreneauOuverture, TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { ResultatPosition } from "../../../../packages/commun/src/types/position.ts";
+import type { MotifRefusReservation, StatutReservation } from "../../../../packages/commun/src/types/reservation.ts";
 import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } from "../../../../packages/commun/src/types/visite.ts";
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
+import type { FiltreReservations, LigneReservation } from "./reservations-regles.ts";
 import type { ChampsVisite, DepotVisites, LieuVisite, LigneCarte, LignePresentation, LigneVisite, TablesVisites } from "./visites-regles.ts";
 
 type Client = Prisma.TransactionClient;
 type VisiteBrute = Awaited<ReturnType<typeof baseDeDonnees.visite.findFirstOrThrow>>;
 type PresentationBrute = Awaited<ReturnType<typeof baseDeDonnees.presentationQr.findFirstOrThrow>>;
+type ReservationBrute = Awaited<ReturnType<typeof baseDeDonnees.reservation.findFirstOrThrow>>;
 
 /** Un Json facultatif : null s'écrit DbNull */
 const json = (valeur: unknown) => (valeur === null ? Prisma.DbNull : (valeur as Prisma.InputJsonValue));
@@ -28,6 +32,17 @@ const versVisite = (v: VisiteBrute): LigneVisite => ({
 
 const versPresentation = (p: PresentationBrute): LignePresentation => ({ ...p, reglement: (p.reglement ?? null) as ReglementVisite | null });
 
+const versReservation = (r: ReservationBrute): LigneReservation => ({
+  ...r, statut: r.statut as StatutReservation, motifRefus: r.motifRefus as MotifRefusReservation | null,
+});
+
+/** Le filtre des réservations (créneau : depuis compris, avant exclu) */
+const ouReservations = ({ compteId, lieuId, statuts, creneauDepuis, creneauAvant }: FiltreReservations) => ({
+  compteId, lieuId,
+  ...(statuts ? { statut: { in: statuts } } : {}),
+  ...(creneauDepuis || creneauAvant ? { creneau: { ...(creneauDepuis ? { gte: creneauDepuis } : {}), ...(creneauAvant ? { lt: creneauAvant } : {}) } } : {}),
+});
+
 /** Les champs d'une visite à écrire (Json facultatifs compris) */
 function versDonnees(champs: ChampsVisite) {
   const { resultatPosition, reglement, ...reste } = champs;
@@ -42,12 +57,12 @@ const RESUME = { id: true, nom: true, emoji: true, type: true, ville: true } as 
 
 /** Les champs d'un lieu pour valider, avec le SOS du soir en cours */
 const champsLieu = (maintenant: Date) => ({
-  ...RESUME, latitude: true, longitude: true, reservable: true,
+  ...RESUME, latitude: true, longitude: true, reservable: true, ouverture: true,
   validation: { select: { validationActive: true, rayonM: true, codePublic: true } },
   _count: { select: { rattachements: { where: { statut: "valide" } } } },
   sos: { where: { arreteLe: null, jusqua: { gt: maintenant } }, take: 1, select: { id: true } },
 });
-type LieuBrut = { id: number; nom: string; emoji: string; type: string; ville: string; latitude: number | null; longitude: number | null; reservable: boolean;
+type LieuBrut = { id: number; nom: string; emoji: string; type: string; ville: string; latitude: number | null; longitude: number | null; reservable: boolean; ouverture: Prisma.JsonValue;
   validation: { validationActive: boolean; rayonM: number | null; codePublic: string } | null; _count: { rattachements: number }; sos: { id: number }[] };
 
 const versLieu = (l: LieuBrut): LieuVisite => ({
@@ -59,6 +74,8 @@ const versLieu = (l: LieuBrut): LieuVisite => ({
   codePublic: l.validation?.codePublic ?? null,
   // Le SOS du soir ne compte que pour un lieu vérifié (comme sur la fiche)
   sosEnCours: l._count.rattachements > 0 && l.sos.length > 0,
+  verifie: l._count.rattachements > 0,
+  ouverture: (Array.isArray(l.ouverture) ? l.ouverture : []) as CreneauOuverture[],
 });
 
 /** La carte, ses récompenses pas encore offertes (la plus ancienne d'abord) et sa demande encore valable */
@@ -113,9 +130,9 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
       const v = await b.visite.findUnique({ where: { id } });
       return v ? versVisite(v) : null;
     },
-    async listerVisites({ compteId, lieuId, statuts, presentationId, limite }) {
+    async listerVisites({ compteId, lieuId, statuts, presentationId, reservationIds, limite }) {
       const visites = await b.visite.findMany({
-        where: { compteId, lieuId, presentationId, ...(statuts ? { statut: { in: statuts } } : {}) },
+        where: { compteId, lieuId, presentationId, ...(statuts ? { statut: { in: statuts } } : {}), ...(reservationIds ? { reservationId: { in: reservationIds } } : {}) },
         orderBy: [{ creeLe: "desc" }, { id: "desc" }],
         take: limite,
       });
@@ -132,11 +149,14 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
       await b.visite.updateMany({ where: { statut: "demandee", expireLe: { lte: maintenant } }, data: { statut: "expiree", decideLe: maintenant } });
     },
     async listerCodesPris(lieuId, maintenant) {
-      const [visites, demandes] = await Promise.all([
+      const [visites, demandes, reservations] = await Promise.all([
         b.visite.findMany({ where: { lieuId, statut: "demandee", code: { not: null }, expireLe: { gt: maintenant } }, select: { code: true } }),
         b.demandeRecompense.findMany({ where: { carte: { lieuId }, expireLe: { gt: maintenant } }, select: { code: true } }),
+        b.reservation.findMany({
+          where: { lieuId, statut: "acceptee", code: { not: null }, creneau: { gt: new Date(maintenant.getTime() - VENU_APRES_CRENEAU_MS) } }, select: { code: true },
+        }),
       ]);
-      return new Set([...visites.map((v) => v.code ?? ""), ...demandes.map((d) => d.code)].filter(Boolean));
+      return new Set([...visites.map((v) => v.code ?? ""), ...demandes.map((d) => d.code), ...reservations.map((r) => r.code ?? "")].filter(Boolean));
     },
 
     async lirePresentation(id) {
@@ -196,6 +216,40 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
     async offrirRecompense(recompenseId, parId, le) {
       const { count } = await b.recompensePrete.updateMany({ where: { id: recompenseId, offerteLe: null }, data: { offerteLe: le, offerteParId: parId } });
       return count === 1;
+    },
+
+    async lireReservation(id) {
+      const r = await b.reservation.findUnique({ where: { id } });
+      return r ? versReservation(r) : null;
+    },
+    async listerReservations(filtre) {
+      const sens = filtre.ordre === "creneau-decroissant" ? ("desc" as const) : ("asc" as const);
+      const reservations = await b.reservation.findMany({ where: ouReservations(filtre), orderBy: [{ creneau: sens }, { id: sens }], take: filtre.limite });
+      return reservations.map(versReservation);
+    },
+    async compterReservations(filtre) {
+      return b.reservation.count({ where: ouReservations(filtre) });
+    },
+    async creerReservation(reservation) {
+      return versReservation(await b.reservation.create({ data: reservation }));
+    },
+    async modifierReservation(id, champs) {
+      await b.reservation.update({ where: { id }, data: champs });
+    },
+    async expirerReservations(maintenant) {
+      await b.reservation.updateMany({
+        where: { statut: "demandee", creneau: { lte: new Date(maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS) } }, data: { statut: "expiree" },
+      });
+    },
+    async lireSosA(lieuId, instant) {
+      return b.sosLieu.findFirst({
+        where: {
+          lieuId, creeLe: { lte: instant }, jusqua: { gt: instant }, OR: [{ arreteLe: null }, { arreteLe: { gt: instant } }],
+          lieu: { rattachements: { some: { statut: "valide" } } },
+        },
+        orderBy: { creeLe: "desc" },
+        select: { jusqua: true },
+      });
     },
   };
 }

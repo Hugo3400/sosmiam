@@ -64,6 +64,7 @@ export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
   let numero = 0;
+  let appel = 0;
 
   /** Un compte avec session ; `naissance` : date gardée chiffrée (sans : compte du site, 18 ans) */
   async function creerCompte(o: { prenom?: string; naissance?: string } = {}) {
@@ -90,7 +91,7 @@ export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
   async function demander(methode: string, chemin: string, o: { jeton?: string; ip?: string } = {}): Promise<Reponse> {
     const reponse = await fetch(`${adresse}${chemin}`, {
       method: methode,
-      headers: { "X-IP-Visiteur": o.ip ?? `10.0.${numero % 250}.${Math.floor(Math.random() * 250)}`, ...(o.jeton ? { Authorization: `Bearer ${o.jeton}` } : {}) },
+      headers: { "X-IP-Visiteur": o.ip ?? `10.${(++appel >> 16) & 255}.${(appel >> 8) & 255}.${appel & 255}`, ...(o.jeton ? { Authorization: `Bearer ${o.jeton}` } : {}) },
     });
     const texte = await reponse.text();
     return { statut: reponse.status, corps: texte ? (JSON.parse(texte) as Record<string, any>) : null, entetes: reponse.headers };

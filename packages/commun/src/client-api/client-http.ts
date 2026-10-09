@@ -46,6 +46,7 @@ const EQUIVALENTS: Readonly<Record<string, ErreurService>> = {
   "media-inconnu": "introuvable",
   "alerte-inconnue": "introuvable",
   "compte-inconnu": "introuvable",
+  "compte-rendu-trop-court": "compte-rendu-invalide",
 };
 
 /** Ce qui peut servir au texte de l'erreur (distance arrondie, nom du lieu…), rien d'autre */
