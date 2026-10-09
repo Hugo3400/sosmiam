@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { CarteLieu, ElementCarte, SectionCarte } from "@sos-miam/commun/types/carte";
 
@@ -18,6 +18,11 @@ function changerSection(sections: readonly SectionCarte[], index: number, change
 
 export type BrouillonCarte = {
   carte: CarteLieu;
+  /**
+   * Clé React stable d'une section ou d'un élément : un déplacement garde la même (les lignes sont déplacées, pas recréées,
+   * et VoiceOver garde sa place) ; une modification en donne une nouvelle.
+   */
+  cle: (objet: object) => string;
   /** Vrai dès qu'un changement n'est pas encore enregistré */
   modifiee: boolean;
   /** Repart d'une carte (relue ou tout juste enregistrée) : plus rien à enregistrer */
@@ -41,6 +46,17 @@ export type BrouillonCarte = {
 export function utiliserBrouillonCarte(initiale: CarteLieu): BrouillonCarte {
   const [carte, setCarte] = useState<CarteLieu>(initiale);
   const [modifiee, setModifiee] = useState(false);
+  // Les objets ne changent pas quand on les déplace : on les numérote une fois, sans rien ajouter à la carte envoyée
+  const numeros = useRef(new WeakMap<object, number>());
+  const suivant = useRef(0);
+  const cle = useCallback((objet: object) => {
+    let n = numeros.current.get(objet);
+    if (n === undefined) {
+      n = ++suivant.current;
+      numeros.current.set(objet, n);
+    }
+    return String(n);
+  }, []);
 
   const changer = useCallback((fn: (sections: SectionCarte[]) => SectionCarte[]) => {
     setCarte((c) => ({ ...c, sections: fn(c.sections) }));
@@ -71,5 +87,5 @@ export function utiliserBrouillonCarte(initiale: CarteLieu): BrouillonCarte {
     [changer],
   );
 
-  return { carte, modifiee, repartirDe, ...actions };
+  return { carte, modifiee, cle, repartirDe, ...actions };
 }

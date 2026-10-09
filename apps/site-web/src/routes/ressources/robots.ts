@@ -1,12 +1,12 @@
 import type { Route } from "./+types/robots";
 
 import { site } from "~/contenus/legal/informations-legales";
-import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
+import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
 
 /**
  * GET /robots.txt : ce que les moteurs de recherche peuvent parcourir. Le vrai site est ouvert, avec son plan ; sur
  * l'espace ambassadeur, seule la page du programme l'est, avec ce qu'elle charge, la racine qui y renvoie et le plan du
- * site (le reste est réservé aux comptes). L'aperçu (apercu.sosmiam.fr) et le serveur de développement restent fermés.
+ * site (le reste est réservé aux comptes) ; sur l'espace pro, de même avec la page /bienvenue. L'aperçu (apercu.sosmiam.fr) et le serveur de développement restent fermés.
  * Cloudflare ajoute devant ses propres lignes de commentaires sur les usages par l'IA.
  */
 export function loader({ request }: Route.LoaderArgs) {
@@ -28,6 +28,20 @@ export function loader({ request }: Route.LoaderArgs) {
       "Disallow: /",
       "",
       `Sitemap: https://${HOTE_AMBASSADEUR}/sitemap.xml`,
+    ];
+  } else if (hote === HOTE_PRO) {
+    // Même principe : seule /bienvenue (vers laquelle mène la racine) est ouverte, avec ce qu'elle charge
+    lignes = [
+      "User-agent: *",
+      "Allow: /bienvenue",
+      "Allow: /sitemap.xml",
+      "Allow: /assets/",
+      "Allow: /icones/",
+      "Allow: /favicon.ico",
+      "Allow: /$",
+      "Disallow: /",
+      "",
+      `Sitemap: https://${HOTE_PRO}/sitemap.xml`,
     ];
   }
   return new Response(`${lignes.join("\n")}\n`, {

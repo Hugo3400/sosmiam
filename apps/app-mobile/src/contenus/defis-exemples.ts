@@ -25,9 +25,10 @@ export const defisExemples: Defi[] = [
     id: "premiers",
     emoji: "🚀",
     titre: "Toujours le premier",
-    // 2 et pas 3 : dans les exemples, 2 des 3 lieux tout juste arrivés sont ouverts à tous (le 3e est un bar, caché avant 18 ans)
-    texte: "Sois le premier sauveteur de 2 lieux",
-    objectif: 2,
+    // 1 et pas 3 : des 3 lieux tout juste arrivés des exemples, un seul est vérifié et ouvert à tous (le 15 n'a pas de compte
+    // SOS Miam, donc pas de rescousse ; le 17 est un bar, caché avant 18 ans)
+    texte: "Sois le premier sauveteur d'un lieu tout juste arrivé",
+    objectif: 1,
     points: 40,
     fin: "2026-12-31",
     lieux: [],

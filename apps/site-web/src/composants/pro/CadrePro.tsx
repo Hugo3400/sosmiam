@@ -9,7 +9,7 @@ import { HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
 type Props = {
   connecte: boolean;
   /** Le lieu des liens du menu (voir EnTetePro) */
-  lieuMenu?: number | null;
+  lieuMenu?: { id: number; gerant: boolean } | null;
   children: ReactNode;
 };
 

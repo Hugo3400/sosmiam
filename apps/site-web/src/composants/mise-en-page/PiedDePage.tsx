@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { Logo } from "~/composants/interface/Logo";
 import { site } from "~/contenus/legal/informations-legales";
+import { MESSAGE_SANITAIRE_ALCOOL } from "~/contenus/legal/prevention";
 import { groupesPiedDePage, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
 import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -49,7 +50,12 @@ export function PiedDePage({ espace = "principal", accroche = "Fait avec 🧡 po
           </nav>
         </div>
         {/* Année calculée au rendu : peut différer entre serveur et navigateur autour du 1er janvier */}
-        <p className="mt-10 border-t border-creme/15 pt-6 text-center text-sm opacity-70" suppressHydrationWarning>© {annee} SOS Miam</p>
+        {/* Message sanitaire de la loi Évin, mot pour mot (des lieux servent de l'alcool) ; détails et aide sur /prevention */}
+        <p className="mt-10 border-t border-creme/15 pt-6 text-center text-sm">
+          {MESSAGE_SANITAIRE_ALCOOL}{" "}
+          <LienDuPied lien={{ texte: "Besoin d'aide ?", adresse: "/prevention", site: "principal" }} espace={espace} />
+        </p>
+        <p className="mt-2 text-center text-sm opacity-70" suppressHydrationWarning>© {annee} SOS Miam</p>
       </div>
     </footer>
   );

@@ -11,16 +11,16 @@ const classeLienMenu = `${classeLien} aria-[current=page]:underline`;
 type Props = {
   connecte: boolean;
   /** Le lieu des liens « Ma fiche », « Suggestions »… (celui de la page, sinon le premier lieu vérifié) ; null : aucun */
-  lieuMenu: number | null;
+  lieuMenu: { id: number; gerant: boolean } | null;
 };
 
 /**
  * En-tête de l'espace pro : « SOS Miam · pro ». Connecté : Tableau, puis, dès qu'un lieu est à toi, Ma fiche,
- * Suggestions, Mon équipe et Affichette, et « Se déconnecter » ; sinon « Se connecter » et « Créer mon compte ». Sur
+ * Suggestions, Mon équipe (gérant seulement) et Affichette, et « Se déconnecter » ; sinon « Se connecter » et « Créer mon compte ». Sur
  * téléphone, le menu passe sous le logo et revient à la ligne (jamais de défilement de côté).
  */
 export function EnTetePro({ connecte, lieuMenu }: Props) {
-  const lieu = lieuMenu === null ? null : `/lieu/${lieuMenu}`;
+  const lieu = lieuMenu === null ? null : `/lieu/${lieuMenu.id}`;
   return (
     <header className="border-b border-encre/5 bg-creme print:hidden">
       <div className="mx-auto flex w-[min(1120px,100%-32px)] flex-wrap items-center gap-x-4 gap-y-3 py-3.5 sm:min-h-[72px] sm:gap-x-6">
@@ -41,7 +41,7 @@ export function EnTetePro({ connecte, lieuMenu }: Props) {
                   <>
                     <li><NavLink to={lieu} end className={classeLienMenu}>Ma fiche</NavLink></li>
                     <li><NavLink to={`${lieu}/suggestions`} className={classeLienMenu}>Suggestions</NavLink></li>
-                    <li><NavLink to={`${lieu}/equipe`} className={classeLienMenu}>Mon équipe</NavLink></li>
+                    {lieuMenu?.gerant && <li><NavLink to={`${lieu}/equipe`} className={classeLienMenu}>Mon équipe</NavLink></li>}
                     <li><NavLink to={`${lieu}/affichette`} className={classeLienMenu}>Affichette</NavLink></li>
                   </>
                 )}

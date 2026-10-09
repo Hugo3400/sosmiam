@@ -20,13 +20,15 @@ type Props = {
   onAjouter: () => void;
   onModifierElement: (index: number) => void;
   onDeplacerElement: (index: number, sens: -1 | 1) => void;
+  /** Clé stable d'un élément (utiliserBrouillonCarte) : déplacé, il garde sa ligne et VoiceOver sa place */
+  cle: (element: object) => string;
 };
 
 /**
  * Une section de la carte, côté pro : son titre (à renommer, ou à ranger avec des flèches), ses éléments, et de quoi en
  * ajouter un à la fin. Une section vide le dit gentiment.
  */
-export function SectionCartePro({ section, index, total, rangement, formules, onRenommer, onDeplacer, onAjouter, onModifierElement, onDeplacerElement }: Props) {
+export function SectionCartePro({ section, index, total, rangement, formules, onRenommer, onDeplacer, onAjouter, onModifierElement, onDeplacerElement, cle }: Props) {
   const nombre = section.elements.length;
   const quoi = formules ? "une formule" : "un plat ou une boisson";
 
@@ -52,7 +54,7 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
       <View className="rounded-carte border-2 border-encre bg-white px-4 py-1">
         {section.elements.map((element, rang) => (
           <LigneElementCartePro
-            key={`${rang}-${element.nom}`}
+            key={cle(element)}
             element={element}
             rangement={rangement}
             premier={rang === 0}

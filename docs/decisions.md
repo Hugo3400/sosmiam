@@ -272,6 +272,11 @@
 - Pas de suggestion sans compte. Limites : 10 par 24 h par compte, 3 en attente au plus sur un même lieu.
 - **Conservation : 1 an après la décision de l'équipe** (ménage de nuit) ; si le compte est supprimé avant, la proposition reste sans auteur jusqu'à cette date.
 
+## Santé et prévention (décidé le 9 octobre 2026)
+- **Message sanitaire de la loi Évin, mot pour mot** : « L'abus d'alcool est dangereux pour la santé, à consommer avec modération. » Il est affiché dans le pied de page de toutes les pages, sur la fiche des bars (et des lieux qui servent de l'alcool), et dans l'app (fiches, publications et offres qui parlent d'alcool).
+- **Page https://sosmiam.fr/prevention** (contenu : apps/site-web/src/contenus/legal/prevention.ts) : alcool et Alcool Info Service (0 980 980 930, appel anonyme et non surtaxé, alcool-info-service.fr), « quand on boit, on ne conduit pas », les conseils mangerbouger.fr, et comment signaler un lieu qui pousse à boire.
+- **Happy hours et offres sur l'alcool** : Hugo les autorise dans les avantages, **avec le message sanitaire**. À faire vérifier par un juriste avant d'ouvrir les offres aux lieux : la loi Évin encadre strictement la publicité pour l'alcool.
+
 ## Espace pro (décidé le 9 octobre 2026)
 - **https://pro.sosmiam.fr**, servi par le site (comme ambassadeur.sosmiam.fr), avec son propre cookie. **Compte unique** : « pro » est un rôle, obtenu quand l'équipe valide le **rattachement** du compte à un lieu (table `rattachements_lieux` : rôle « gerant » ou « equipe », preuve, SIRET facultatif ; un compte peut tenir plusieurs lieux). Un lieu est **vérifié ✓** dès qu'il a un rattachement validé.
 - **Modifier sa fiche** : horaires, texte, contact et infos pratiques changent **tout de suite** ; le **nom et l'adresse** passent par l'équipe (suggestion « pro » décidée dans le logiciel), contre les abus.

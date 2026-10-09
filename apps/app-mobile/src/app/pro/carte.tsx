@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
 import type { CarteLieu, ElementCarte } from "@sos-miam/commun/types/carte";
 import { validerCarteDuLieu } from "@sos-miam/commun/validation/valider-carte-du-lieu";
 import { Annonce } from "~/composants/interface/Annonce";
@@ -17,6 +18,7 @@ import { FeuilleSectionCarte } from "~/composants/pro/FeuilleSectionCarte";
 import { SectionCartePro } from "~/composants/pro/SectionCartePro";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonCarte } from "~/hooks/utiliser-brouillon-carte";
@@ -37,8 +39,14 @@ const SOUCIS: Record<string, string> = {
   titre: "le titre ne passe pas (vide, trop long ou avec un gros mot)",
 };
 
-/** Quelle feuille est ouverte : un élément (nouveau si index null) ou une section (nouvelle si index null) */
-type FeuilleOuverte = { type: "element"; section: number; index: number | null } | { type: "section"; index: number | null } | null;
+/**
+ * Quelle feuille est ouverte : un élément (nouveau si index null) ou une section (nouvelle si index null), avec ce qu'elle
+ * montre, figé à l'ouverture (pendant qu'elle redescend, la carte a déjà changé : elle ne doit pas montrer l'élément suivant)
+ */
+type FeuilleOuverte =
+  | { type: "element"; section: number; index: number | null; element: ElementCarte | null }
+  | { type: "section"; index: number | null; titre: string | null; nombre: number }
+  | null;
 
 /**
  * « Ta carte » (gérant) : les sections et leurs plats, boissons ou formules, à ajouter, modifier, retirer ou ranger.
@@ -65,6 +73,7 @@ export default function EcranCartePro() {
   const derniere = useRef<FeuilleOuverte>(null);
   if (feuille) derniere.current = feuille;
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const finAnnonce = useCallback(() => setAnnonce(null), []);
   const [departDemande, setDepartDemande] = useState(false);
   const actionDepart = useRef<(() => void) | null>(null);
 
@@ -98,8 +107,34 @@ export default function EcranCartePro() {
   const fermerFeuille = () => setFeuille(null);
 
   const ouverte = feuille ?? derniere.current;
-  const elementOuvert = ouverte?.type === "element" && ouverte.index !== null ? (carte.sections[ouverte.section]?.elements[ouverte.index] ?? null) : null;
-  const sectionOuverte = ouverte?.type === "section" && ouverte.index !== null ? (carte.sections[ouverte.index] ?? null) : null;
+  const ouvrirElement = (section: number, index: number | null) =>
+    setFeuille({ type: "element", section, index, element: index === null ? null : (carte.sections[section]?.elements[index] ?? null) });
+  const ouvrirSection = (index: number | null) => {
+    const s = index === null ? undefined : carte.sections[index];
+    setFeuille({ type: "section", index, titre: s?.titre ?? null, nombre: s?.elements.length ?? 0 });
+  };
+
+  // Ranger : la ligne garde sa clé (VoiceOver reste dessus) et on dit sa nouvelle place
+  function deplacerElement(section: number, rang: number, sens: -1 | 1) {
+    const s = carte.sections[section];
+    const element = s?.elements[rang];
+    if (!s || !element || rang + sens < 0 || rang + sens >= s.elements.length) return;
+    brouillon.deplacerElement(section, rang, sens);
+    annoncerLecteurEcran(`${element.nom}, ${rang + sens + 1} sur ${s.elements.length}`);
+  }
+
+  function deplacerSection(index: number, sens: -1 | 1) {
+    const s = carte.sections[index];
+    if (!s || index + sens < 0 || index + sens >= carte.sections.length) return;
+    brouillon.deplacerSection(index, sens);
+    annoncerLecteurEcran(`Section ${s.titre}, ${index + sens + 1} sur ${carte.sections.length}`);
+  }
+
+  function annulerTout() {
+    repartirDe(depart ?? CARTE_VIDE);
+    // Revenue à une carte trop courte pour être rangée, l'écran ne doit pas rester coincé en mode Ranger
+    setRangement(false);
+  }
 
   function garderElement(element: ElementCarte, section: number) {
     if (feuille?.type !== "element") return;
@@ -134,9 +169,15 @@ export default function EcranCartePro() {
     if (!valide.ok) {
       const section = valide.section !== null ? carte.sections[valide.section] : undefined;
       const element = valide.element !== null ? section?.elements[valide.element] : undefined;
-      const ou = element ? `« ${element.nom} »` : section ? `La section « ${section.titre} »` : "Ta carte";
-      const souci = SOUCIS[valide.champ] ?? (valide.champ === "trop-de-sections" ? "a trop de sections (20 au plus)" : valide.champ === "trop-d-elements" ? "est trop longue (60 par section, 250 en tout)" : "ne passe pas");
-      return annoncer(`${ou} : ${souci}.`);
+      if (valide.champ === "trop-de-sections") return annoncer(`Ta carte a trop de sections (${LIMITES_CARTE.sections} au plus).`);
+      if (valide.champ === "trop-d-elements")
+        return annoncer(
+          section
+            ? `La section « ${section.titre} » est trop longue (${LIMITES_CARTE.elementsParSection} éléments au plus).`
+            : `Ta carte est trop longue (${LIMITES_CARTE.elements} éléments au plus).`,
+        );
+      const ou = element ? `Pour « ${element.nom} »` : section ? `Pour la section « ${section.titre} »` : "Sur ta carte";
+      return annoncer(`${ou}, ${SOUCIS[valide.champ] ?? "quelque chose ne passe pas"}.`);
     }
     setEnregistrement(true);
     const r = await comptoir.reglerCarteDuLieu(lieuPro.id, valide.carte);
@@ -169,10 +210,10 @@ export default function EcranCartePro() {
             {lieuPro.emoji} {lieuPro.nom}
           </Text>
         </View>
-        {nombre > 1 || carte.sections.length > 1 ? (
+        {rangement || nombre > 1 || carte.sections.length > 1 ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={rangement ? "Terminer le rangement" : "Ranger la carte"}
+            accessibilityLabel={rangement ? "Terminé, quitter le rangement" : "Ranger, changer l'ordre de la carte"}
             accessibilityHint={rangement ? undefined : "Des flèches apparaissent pour changer l'ordre des sections et des éléments"}
             onPress={() => {
               vibrerLegerement();
@@ -212,23 +253,24 @@ export default function EcranCartePro() {
         ) : (
           carte.sections.map((section, index) => (
             <SectionCartePro
-              key={`${index}-${section.titre}`}
+              key={brouillon.cle(section)}
               section={section}
               index={index}
               total={carte.sections.length}
               rangement={rangement}
               formules={formules}
-              onRenommer={() => setFeuille({ type: "section", index })}
-              onDeplacer={(sens) => brouillon.deplacerSection(index, sens)}
-              onAjouter={() => setFeuille({ type: "element", section: index, index: null })}
-              onModifierElement={(rang) => setFeuille({ type: "element", section: index, index: rang })}
-              onDeplacerElement={(rang, sens) => brouillon.deplacerElement(index, rang, sens)}
+              onRenommer={() => ouvrirSection(index)}
+              onDeplacer={(sens) => deplacerSection(index, sens)}
+              onAjouter={() => ouvrirElement(index, null)}
+              onModifierElement={(rang) => ouvrirElement(index, rang)}
+              onDeplacerElement={(rang, sens) => deplacerElement(index, rang, sens)}
+              cle={brouillon.cle}
             />
           ))
         )}
 
         {rangement || depart === null ? null : (
-          <Bouton libelle="Ajouter une section" variante="blanc" indice="Une section range ta carte : les plats, les desserts, à boire…" onPress={() => setFeuille({ type: "section", index: null })} />
+          <Bouton libelle="Ajouter une section" variante="blanc" indice="Une section range ta carte : les plats, les desserts, à boire…" onPress={() => ouvrirSection(null)} />
         )}
 
         {carte.majLe && !brouillon.modifiee ? <Text className="text-center font-texte text-sm text-gris">Dernière mise à jour le {formaterDateLongue(carte.majLe)}</Text> : null}
@@ -241,7 +283,7 @@ export default function EcranCartePro() {
               Des changements pas encore enregistrés
             </Text>
             <View className="flex-row gap-3">
-              <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" desactive={enregistrement} onPress={() => repartirDe(depart ?? CARTE_VIDE)} />
+              <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" desactive={enregistrement} onPress={annulerTout} />
               <Bouton className="flex-1" libelle={enregistrement ? "Envoi…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />
             </View>
           </>
@@ -256,22 +298,22 @@ export default function EcranCartePro() {
 
       <FeuilleElementCarte
         visible={feuille?.type === "element"}
-        element={elementOuvert}
+        element={ouverte?.type === "element" ? ouverte.element : null}
         sections={titres}
         section={ouverte?.type === "element" ? ouverte.section : 0}
         formules={formules}
         onGarder={garderElement}
-        onRetirer={elementOuvert ? retirerElement : undefined}
+        onRetirer={ouverte?.type === "element" && ouverte.element ? retirerElement : undefined}
         onFermer={fermerFeuille}
       />
       <FeuilleSectionCarte
         visible={feuille?.type === "section"}
-        titre={sectionOuverte?.titre ?? null}
-        nombreElements={sectionOuverte?.elements.length ?? 0}
+        titre={ouverte?.type === "section" ? ouverte.titre : null}
+        nombreElements={ouverte?.type === "section" ? ouverte.nombre : 0}
         titresPris={titres}
         formules={formules}
         onGarder={garderSection}
-        onRetirer={sectionOuverte ? retirerSection : undefined}
+        onRetirer={ouverte?.type === "section" && ouverte.titre !== null ? retirerSection : undefined}
         onFermer={fermerFeuille}
       />
       <FeuilleConfirmation
@@ -282,9 +324,7 @@ export default function EcranCartePro() {
         libelleConfirmer="Partir sans enregistrer"
         libelleRester="Rester"
         indiceRester="Tu restes sur ta carte, rien n'est perdu"
-        onConfirmer={() => {
-          repartirDe(depart ?? CARTE_VIDE);
-        }}
+        onConfirmer={annulerTout}
         onRefermee={() => {
           const action = actionDepart.current;
           actionDepart.current = null;
@@ -292,7 +332,7 @@ export default function EcranCartePro() {
         }}
         onFermer={() => setDepartDemande(false)}
       />
-      <Annonce annonce={annonce} haut={marges.top + 12} onFin={() => setAnnonce(null)} />
+      <Annonce annonce={annonce} haut={marges.top + 12} onFin={finAnnonce} />
     </SafeAreaView>
   );
 }

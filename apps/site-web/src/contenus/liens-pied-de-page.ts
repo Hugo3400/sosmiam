@@ -44,6 +44,7 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
     liens: [
       ...liensLegaux.map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
       { texte: "SOS Miam et l'âge", adresse: "/age", site: "principal" },
+      { texte: "Santé et prévention", adresse: "/prevention", site: "principal" },
       { texte: "Statistiques de visite", adresse: "/statistiques", site: "principal" },
     ],
   },

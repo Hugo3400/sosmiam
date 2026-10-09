@@ -9,6 +9,7 @@ export const pagesIndexees = [
   "/cookies",
   "/cgu",
   "/age",
+  "/prevention",
   "/accessibilite",
   "/statistiques",
 ];

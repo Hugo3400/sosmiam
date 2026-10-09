@@ -11,7 +11,7 @@ export const potesExemples: Pote[] = [
   { id: "ines", pseudo: "ines.boutonnet", prenom: "Inès", avatar: "🐙", ville: "Montpellier", mineur: true, points: 128, pointsDuMois: 30, rescoussesDuMois: 5, lieuxSauves: [1, 3, 4], gardes: [11, 15], badges: ["premiere-rescousse"] },
   { id: "tom", pseudo: "tom.portmarianne", prenom: "Tom", avatar: "🦁", ville: "Montpellier", mineur: false, points: 96, pointsDuMois: 22, rescoussesDuMois: 3, lieuxSauves: [6, 7], gardes: [12, 16], badges: ["premiere-rescousse"] },
   { id: "sofia", pseudo: "sofia.antigone", prenom: "Sofia", avatar: "🐝", ville: "Montpellier", mineur: false, points: 210, pointsDuMois: 40, rescoussesDuMois: 6, lieuxSauves: [0, 8, 12], gardes: [4, 13], badges: ["premiere-rescousse", "premier-sauveteur"] },
-  { id: "max", pseudo: "max.sete", prenom: "Max", avatar: "🐢", ville: "Sète", mineur: false, points: 54, pointsDuMois: 12, rescoussesDuMois: 2, lieuxSauves: [9, 10], gardes: [13, 14], badges: [] },
+  { id: "max", pseudo: "max.sete", prenom: "Max", avatar: "🐢", ville: "Sète", mineur: false, points: 54, pointsDuMois: 12, rescoussesDuMois: 2, lieuxSauves: [9, 13], gardes: [11, 14], badges: [] },
   { id: "camille", pseudo: "camille.ecusson", prenom: "Camille", avatar: "🦉", ville: "Montpellier", mineur: false, points: 418, pointsDuMois: 71, rescoussesDuMois: 11, lieuxSauves: [0, 2, 3, 5, 7], gardes: [1], badges: ["premiere-rescousse", "premier-sauveteur"] },
   { id: "jade", pseudo: "jade.mtp", prenom: "Jade", avatar: "🦩", ville: "Montpellier", mineur: true, points: 121, pointsDuMois: 18, rescoussesDuMois: 3, lieuxSauves: [1, 4], gardes: [3], badges: ["premiere-rescousse"] },
 ];

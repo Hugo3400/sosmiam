@@ -2,6 +2,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { LIEU_DEMO_PRO_ID } from "~/contenus/lieu-demo-pro";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
@@ -13,8 +14,8 @@ type Props = {
   desactive?: boolean;
 };
 
-// Le lieu d'exemple qui montre son QR quand le mode pro de démo n'en affiche aucun
-const LIEU_DEMO = 0;
+// Le lieu qui montre son QR quand le mode pro de démo n'en affiche aucun : celui du mode pro (et de ta carte à 4 tampons)
+const LIEU_DEMO = LIEU_DEMO_PRO_ID;
 
 /**
  * Démo seulement : simule un scan du comptoir. Si le mode pro de démo montre déjà un QR, on « scanne » celui-là ;

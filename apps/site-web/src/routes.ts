@@ -18,6 +18,7 @@ export default [
     route("cgu", "routes/public/cgu.tsx"),
     route("age", "routes/public/age.tsx"),
     route("accessibilite", "routes/public/accessibilite.tsx"),
+    route("prevention", "routes/public/prevention.tsx"),
     route("statistiques", "routes/public/statistiques.tsx"),
   ]),
   // Pages du compte, servies sur ambassadeur.sosmiam.fr ET sur pro.sosmiam.fr : leur cadre suit l'hôte. Le partage des

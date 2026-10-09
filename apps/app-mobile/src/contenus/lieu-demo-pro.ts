@@ -18,7 +18,7 @@ export const lieuDemoPro: Lieu = {
   prixMoyen: 20,
   info: "Cuisine de bord",
   couleurs: ["#FFD60A", "#FF4D3D"],
-  texte: "Le restaurant imaginaire de Capitaine Bouiboui, la mascotte de SOS Miam : c'est ici qu'on essaie le mode pro de la démo. Moules du port, pêche du jour et île flottante, servis par la Brigade.",
+  texte: "Le restaurant imaginaire de Capitaine Bouiboui, la mascotte de SOS Miam : moules du port, pêche du jour et île flottante, servis par la Brigade.",
   rescousses: 42,
   horaires: "12h–14h30 · 19h–23h",
   ouverture: [{ jours: [0, 1, 2, 3, 4, 5, 6], de: "12:00", a: "14:30" }, { jours: [0, 1, 2, 3, 4, 5, 6], de: "19:00", a: "23:00" }],

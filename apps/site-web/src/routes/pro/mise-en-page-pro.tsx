@@ -22,8 +22,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!connecte) return { connecte: false, lieuMenu: null };
   const valides = (connecte.compte.pro?.lieux ?? []).filter((lieu) => lieu.statut === "valide");
   const idAdresse = Number("id" in params ? params.id : NaN);
-  const lieuMenu = valides.find((lieu) => lieu.lieuId === idAdresse)?.lieuId ?? valides[0]?.lieuId ?? null;
-  return { connecte: true, lieuMenu };
+  const choisi = valides.find((lieu) => lieu.lieuId === idAdresse) ?? valides[0];
+  return { connecte: true, lieuMenu: choisi ? { id: choisi.lieuId, gerant: choisi.role === "gerant" } : null };
 }
 
 /** Cadre de l'espace pro (https://pro.sosmiam.fr) : voir composants/pro/CadrePro.tsx. */
