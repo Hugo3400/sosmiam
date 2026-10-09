@@ -55,5 +55,10 @@ export function creerLieuxApp(): ServicesLieuxApp {
       if (!ligne) return null;
       return presenterCarte((ligne.carte ?? null) as Omit<CarteLieu, "majLe"> | null, ligne.carteMajLe);
     },
+
+    async trouverParCode(codePublic: string) {
+      const lieu = await baseDeDonnees.lieu.findFirst({ where: { statut: "publie", validation: { codePublic } }, select: { id: true } });
+      return lieu?.id ?? null;
+    },
   };
 }

@@ -17,6 +17,8 @@ export const LIMITE_MEDIAS_APP = { fenetre: 60_000, maximum: 1200 };
  *     calcule, la position du téléphone n'est jamais envoyée), 1 000 au plus ; avec une zone (les quatre bords, en degrés),
  *     seulement ceux qui y ont leur position. Cache public 60 s · 400 champ-invalide { champ: "zone" }
  * GET /app/lieux/:id → 200 { ok, lieu: LieuApi } · 404 lieu-inconnu (absent, brouillon ou masqué)
+ * GET /app/lieux/code/:code → 200 { ok, lieuId } : le lieu publié du QR de vitrine (sosmiam.fr/l/<code>, 8 caractères a-z
+ *     et 2-9) ; il ouvre la fiche, il ne valide jamais une visite. Cache public 5 min · 404 lieu-inconnu
  * GET /app/lieux/:id/carte
  *   → 200 { ok, carte: CarteLieu | null, majLe: ISO 8601 | null } : la carte complète, alcool compris (l'app le retire pour
  *     les moins de 18 ans et l'âge inconnu) · 404 lieu-inconnu
@@ -35,6 +37,7 @@ export function creerRoutesContenuApp(dependances: DependancesContenuApp) {
   const routes = Router();
   if (dependances.lieux) {
     routes.get("/lieux", lectures, c.listerLieux);
+    routes.get("/lieux/code/:code", lectures, c.trouverParCode);
     routes.get("/lieux/:id", lectures, c.lireLieu);
     routes.get("/lieux/:id/carte", lectures, c.lireCarte);
   }

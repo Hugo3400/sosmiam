@@ -18,4 +18,9 @@ export interface ServicesLieuxApp {
    * le moment exact de sa mise à jour ; null : lieu inconnu (absent, brouillon ou masqué)
    */
   lireCarte(id: number): Promise<{ carte: CarteLieu | null; majLe: string | null } | null>;
+  /** Le lieu publié dont c'est le code du QR de vitrine (sosmiam.fr/l/<code>), ou null */
+  trouverParCode(codePublic: string): Promise<number | null>;
 }
+
+/** Le code public d'un QR de vitrine : 8 caractères a-z et 2-9 (comme lireCodeScanne) */
+export const FORME_CODE_PUBLIC = /^[a-z2-9]{8}$/;

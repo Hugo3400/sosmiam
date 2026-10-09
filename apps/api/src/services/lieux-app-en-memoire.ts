@@ -5,7 +5,11 @@ import { presenterCarte } from "../fonctions/pro/presenter-carte.ts";
 import { LIEUX_PAR_LECTURE, type ServicesLieuxApp, type ZoneLieux } from "./lieux-app-regles.ts";
 
 /** Un lieu de test : la ligne lue par l'app, plus son statut et sa carte */
-export type LieuAppEnMemoire = LigneLieuApp & { statut: "brouillon" | "publie" | "masque"; carte: Omit<CarteLieu, "majLe"> | null; carteMajLe: Date | null };
+export type LieuAppEnMemoire = LigneLieuApp & {
+  statut: "brouillon" | "publie" | "masque"; carte: Omit<CarteLieu, "majLe"> | null; carteMajLe: Date | null;
+  /** Le code de son QR de vitrine (facultatif dans les tests) */
+  codePublic?: string;
+};
 
 export function creerLieuxAppEnMemoire() {
   const lieux = new Map<number, LieuAppEnMemoire>();
@@ -31,6 +35,9 @@ export function creerLieuxAppEnMemoire() {
     async lireCarte(id) {
       const l = publie(id);
       return l ? presenterCarte(l.carte, l.carteMajLe) : null;
+    },
+    async trouverParCode(codePublic) {
+      return [...lieux.values()].find((l) => l.statut === "publie" && l.codePublic === codePublic)?.id ?? null;
     },
   };
   return { services, lieux };

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { Request, Response } from "express";
 
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
-import type { ServicesLieuxApp, ZoneLieux } from "../services/lieux-app-regles.ts";
+import { FORME_CODE_PUBLIC, type ServicesLieuxApp, type ZoneLieux } from "../services/lieux-app-regles.ts";
 import { PUBLICATIONS_PAR_PAGE, PUBLICATIONS_PAR_PAGE_MAX, type CurseurFil, type ServicesPublicationsApp } from "../services/publications-app-regles.ts";
 
 export type DependancesContenuApp = {
@@ -62,6 +62,14 @@ export function creerControleursContenuApp({ lieux, publications, dossierMedias,
       const lieu = id === null ? null : await lieux!.lireLieu(id, maintenant());
       if (!lieu) return reponse.status(404).json({ ok: false, erreur: "lieu-inconnu" });
       reponse.set("Cache-Control", "public, max-age=60").json({ ok: true, lieu });
+    },
+
+    /** GET /app/lieux/code/:code : le QR de vitrine scanné (ou ouvert depuis sosmiam.fr/l/<code>) */
+    async trouverParCode(requete: Request, reponse: Response) {
+      const code = String(requete.params.code);
+      const lieuId = FORME_CODE_PUBLIC.test(code) ? await lieux!.trouverParCode(code) : null;
+      if (lieuId === null) return reponse.status(404).json({ ok: false, erreur: "lieu-inconnu" });
+      reponse.set("Cache-Control", "public, max-age=300").json({ ok: true, lieuId });
     },
 
     /** GET /app/lieux/:id/carte */
