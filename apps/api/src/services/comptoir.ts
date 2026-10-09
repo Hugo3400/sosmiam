@@ -1,6 +1,6 @@
-// Le comptoir de l'équipe d'un lieu (voir routes/comptoir.ts) : additions et récompenses en attente, QR montré à la
-// demande, addition réglée (code à saisir dès 2 en attente), refus, validation annulée (15 min), récompense offerte,
-// programme de fidélité. Le lieu est toujours relu sur la ressource (visite, demande), jamais pris dans la demande, et
+// Le comptoir de l'équipe d'un lieu (voir routes/comptoir.ts) : additions et récompenses en attente, arrivées du jour
+// (réservations acceptées) et demandes de réservation à traiter, QR montré à la demande, addition réglée (code à saisir dès
+// 2 en attente), refus, validation annulée (15 min), récompense offerte, programme de fidélité. Le lieu est toujours relu sur la ressource (visite, demande), jamais pris dans la demande, et
 // le rôle est revérifié à chaque geste (rattachement validé, 18 ans et plus).
 import { DEMANDES_AVANT_SAISIE_CODE, DUREE_PRESENTATION_QR_MS, PERSONNES_PRESENTATION_MAX } from "../../../../packages/commun/src/regles/visites.ts";
 import type { DemandeComptoir, EtatComptoir, ValidationRecente } from "../../../../packages/commun/src/types/comptoir.ts";
@@ -8,9 +8,11 @@ import type { ProgrammeFidelite, ReglageFidelite } from "../../../../packages/co
 import type { LieuGere } from "../../../../packages/commun/src/types/roles.ts";
 import type { EvenementVisite, MotifRefusVisite, ReglementVisite } from "../../../../packages/commun/src/types/visite.ts";
 import { validerReglageFidelite } from "../../../../packages/commun/src/validation/valider-reglage-fidelite.ts";
+import { calculerFenetreArrivees } from "../fonctions/reservations/calculer-fenetre-arrivees.ts";
+import { presenterReservationPro } from "../fonctions/reservations/presenter-reservation-pro.ts";
 import { construireQrAffiche } from "../fonctions/visites/construire-qr-affiche.ts";
 import { deciderVisite } from "../fonctions/visites/decider-visite.ts";
-import { lireInitialeNom } from "../fonctions/visites/lire-initiale-nom.ts";
+import { presenterClientComptoir } from "../fonctions/visites/presenter-client-comptoir.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
 import type { PointsAPoser } from "./visites-client.ts";
 import { VALIDEES_AU_COMPTOIR, type LigneProgramme, type LigneVisite, type TablesVisites } from "./visites-regles.ts";
@@ -38,26 +40,28 @@ export function creerComptoir(c: ContexteComptoir) {
   async function lireEtat(t: TablesVisites, lieuId: number): Promise<EtatComptoir> {
     const maintenant = o.maintenant();
     await t.expirerDemandes(maintenant);
-    const [lieu, resumes, presentation, enAttente, cartes, validees] = await Promise.all([
+    await t.expirerReservations(maintenant);
+    const fenetre = calculerFenetreArrivees(maintenant);
+    const [lieu, resumes, presentation, enAttente, cartes, validees, arrivees, reservationsARepondre] = await Promise.all([
       t.lireLieu(lieuId, maintenant),
       t.resumerLieux([lieuId]),
       t.lirePresentationAffichee(lieuId, maintenant),
       t.listerVisites({ lieuId, statuts: ["demandee"] }),
       t.listerCartes({ lieuId, avecDemande: true }, maintenant),
       t.listerVisites({ lieuId, statuts: ["validee"], limite: 50 }),
+      // Les tables attendues aujourd'hui (et celles de la soirée tant que « Venu » est possible), la plus proche d'abord
+      t.listerReservations({ lieuId, statuts: ["acceptee"], creneauDepuis: fenetre.depuis, creneauAvant: fenetre.avant }),
+      t.compterReservations({ lieuId, statuts: ["demandee"] }),
     ]);
     const additions = enAttente.filter((v) => v.code && v.expireLe && v.expireLe > maintenant);
     const recentes = validees
       .filter((v) => v.valideLe && v.annulableJusqua && v.annulableJusqua > maintenant)
       .sort((a, b) => (b.valideLe?.getTime() ?? 0) - (a.valideLe?.getTime() ?? 0))
       .slice(0, VALIDEES_AU_COMPTOIR);
-    const ids = [...new Set([...additions, ...recentes].map((v) => v.compteId).concat(cartes.map((carte) => carte.compteId)))];
+    const ids = [...new Set([...additions, ...recentes, ...arrivees].map((v) => v.compteId).concat(cartes.map((carte) => carte.compteId)))];
     const comptes = await t.lireComptes(ids);
     // Le lieu voit seulement le prénom, l'initiale, l'emoji, le code et les tampons chez lui
-    const client = (id: number) => {
-      const compte = comptes.get(id);
-      return { prenom: compte?.prenom ?? "Quelqu'un", initialeNom: lireInitialeNom(compte?.nomChiffre ?? null, c.chiffrement), avatar: compte?.avatar ?? "🙂" };
-    };
+    const client = (id: number) => presenterClientComptoir(comptes.get(id), c.chiffrement);
     const tamponsAdditions = await Promise.all(additions.map((v) => t.lireCarte(v.compteId, lieuId, maintenant)));
 
     const demandes: DemandeComptoir[] = [
@@ -83,8 +87,8 @@ export function creerComptoir(c: ContexteComptoir) {
       qr: presentation ? construireQrAffiche(presentation, maintenant.getTime(), c.signerQr) : null,
       // Les plus anciennes d'abord : c'est l'ordre du passage en caisse
       demandes: demandes.sort((a, b) => a.depuis.localeCompare(b.depuis)),
-      arrivees: [],
-      reservationsARepondre: 0,
+      arrivees: arrivees.map((r) => presenterReservationPro(r, client(r.compteId))),
+      reservationsARepondre,
       validees: valideesVues,
       genereLe: maintenant.toISOString(),
     };

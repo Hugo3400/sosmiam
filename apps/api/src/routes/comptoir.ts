@@ -11,8 +11,9 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
 
 /**
  * /pro/comptoir : le comptoir de l'équipe d'un lieu (mode pro de l'app, puis pro.sosmiam.fr), même compte et même session
- * que le reste (Bearer ou X-Session-Compte), jamais en cache. Il faut un rattachement VALIDÉ au lieu ET 18 ans (sans date
- * gardée : compte du site, 18 ans) ; sinon 403 role-requis (aussi pour un lieu, une visite ou une demande inconnus de
+ * que le reste (Bearer ou X-Session-Compte), jamais en cache. Comme tout /pro : 403 reserve-aux-majeurs sous 18 ans, 503
+ * chiffrement-indisponible si la date ne se lit pas (middlewares/exiger-majeur.ts). Il faut aussi un rattachement VALIDÉ au
+ * lieu (et 18 ans : sans date gardée, compte du site, 18 ans) ; sinon 403 role-requis (aussi pour un lieu, une visite ou une demande inconnus de
  * l'équipe… sauf 404 introuvable quand la visite ou la demande n'existe pas du tout). Le lieu d'une visite ou d'une demande
  * est relu sur la ressource, jamais pris dans la demande. Formes dans packages/commun (types/comptoir.ts).
  * Réponse des gestes : 200 { ok, etat: EtatComptoir } (l'écran à jour) ; l'équipe ne voit que le prénom, l'initiale du nom,

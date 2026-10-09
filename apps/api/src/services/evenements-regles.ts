@@ -38,15 +38,15 @@ export type LigneEvenement = {
 /** Ce que l'équipe écrit (POST, PUT), déjà vérifié par validerEvenement */
 export type ChampsEvenement = Pick<LigneEvenement, "titre" | "type" | "description" | "debut" | "fin" | "hebdoJusqua" | "tarif" | "prixCentimes" | "places" | "alcool">;
 
-/** Un lieu, avec son statut de publication (« publie » : visible dans l'app) */
-export type LieuEvenement = LieuResume & { publie: boolean };
+/** Un lieu, avec ce qui rend ses événements visibles : publié (dans l'app) et vérifié (un rattachement validé) */
+export type LieuEvenement = LieuResume & { publie: boolean; verifie: boolean };
 
 export type EvenementAvecLieu = LigneEvenement & { lieu: LieuEvenement };
 
 /** Pour l'équipe : le prénom de qui l'a publié et le nombre de « Ça m'intéresse » */
 export type EvenementEquipe = LigneEvenement & { publiePar: string | null; interesses: number };
 
-/** Lieu publié, ni suspendus ni annulés, une date possible dans [du, au) ; dans la zone, ou d'un seul lieu */
+/** Lieu publié et vérifié, ni suspendus ni annulés, une date possible dans [du, au) ; dans la zone, ou d'un seul lieu */
 export type FiltreEvenementsVisibles = { zone: ZoneLieux | null; lieuId: number | null; du: Date; au: Date };
 
 /**
@@ -59,7 +59,7 @@ export const calculerBornePeutFinir = (depuis: Date) => new Date(depuis.getTime(
 export interface ServicesEvenements {
   /** Le lieu (publié ou non), ou null s'il n'existe pas */
   lireLieu(lieuId: number): Promise<LieuEvenement | null>;
-  /** Les événements du lieu qui peuvent finir après `depuis` (annulés et suspendus compris), EVENEMENTS_EQUIPE_LUS_MAX au plus */
+  /** Les événements du lieu qui peuvent finir après `depuis` (annulés et suspendus compris), EVENEMENTS_EQUIPE_LUS_MAX au plus (les plus récents) */
   listerPourEquipe(lieuId: number, depuis: Date): Promise<EvenementEquipe[]>;
   /** Un événement, de n'importe quel lieu (le contrôleur vérifie que c'est celui de l'adresse), ou null */
   lirePourEquipe(evenementId: number): Promise<EvenementEquipe | null>;

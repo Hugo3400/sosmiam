@@ -27,6 +27,7 @@ import { servicesGestion } from "./services/gestion/tous-les-services.ts";
 import { enregistrerInscription } from "./services/inscriptions.ts";
 import { creerSuggestionLieu, lireFichePourSuggestion } from "./services/suggestions-comptes.ts";
 import { lireFichePublique, listerLieuxPublics } from "./services/lieux-publics.ts";
+import { listerLieuxDuPlan } from "./services/lieux-publics.ts";
 import { servicesPro } from "./services/pro.ts";
 import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
@@ -88,6 +89,7 @@ const serveur = creerApplication({
   trouverCommune,
   listerLieuxPublics,
   lireFichePublique,
+  listerLieuxDuPlan,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,

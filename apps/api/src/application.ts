@@ -22,6 +22,7 @@ import { creerRoutesEspaceAmbassadeur, type DependancesEspaceAmbassadeur } from 
 import { creerRoutesFondateurs } from "./routes/fondateurs.ts";
 import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
 import { creerRoutesLieuxPublics } from "./routes/lieux-publics.ts";
+import { creerRoutePlanLieux } from "./routes/lieux-publics.ts";
 import { creerRoutesLocalisation } from "./routes/localisation.ts";
 import { creerRoutesMesure } from "./routes/mesure.ts";
 import { creerRoutesMiamSafe } from "./routes/miam-safe.ts";
@@ -32,6 +33,7 @@ import type { NouvelleDemandeLieu } from "./services/demandes-lieux.ts";
 import type { SignalementRecu } from "./services/gestion/moderation.ts";
 import type { NouvelleInscription } from "./services/inscriptions.ts";
 import type { FichePublique, LieuPublic } from "./services/lieux-publics.ts";
+import type { LieuDuPlan } from "./services/lieux-publics.ts";
 import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
 import type { ServicesZones } from "./services/zones-fondateurs.ts";
@@ -49,6 +51,8 @@ type Dependances = {
   listerLieuxPublics?: () => Promise<LieuPublic[]>;
   /** Fiche publique d'un lieu publié, pour sa page sur le site (GET /lieux/publics/:id ; absente si non fournie) */
   lireFichePublique?: (id: number) => Promise<FichePublique | null>;
+  /** Tous les lieux publiés (id et date de modification), pour le plan du site (GET /lieux/plan ; absente si non fournie) */
+  listerLieuxDuPlan?: () => Promise<LieuDuPlan[]>;
   /** Un lieu qui demande à être sur SOS Miam, depuis le site (route absente si non fournie) */
   enregistrerDemandeLieu?: (demande: NouvelleDemandeLieu) => Promise<void>;
   /** Bot Discord : propositions de lieux et annonces à publier (routes absentes si non fourni) */
@@ -86,6 +90,7 @@ const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
 export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
   enregistrerDemandeLieu, bot, gestion,
+  listerLieuxDuPlan,
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp,
 }: Dependances) {
@@ -106,6 +111,7 @@ export function creerApplication({
   application.use("/inscriptions", creerRoutesInscriptions(enregistrerInscription));
   if (trouverCommune) application.use("/localisation", creerRoutesLocalisation(trouverCommune));
   if (listerLieuxPublics || lireFichePublique) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics, lireFichePublique));
+  if (listerLieuxDuPlan) application.use("/lieux", creerRoutePlanLieux(listerLieuxDuPlan));
   if (enregistrerDemandeLieu) application.use("/demandes-lieux", creerRoutesDemandesLieux(enregistrerDemandeLieu));
   if (bot) application.use("/bot", creerRoutesBot(bot));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
@@ -118,15 +124,15 @@ export function creerApplication({
     const limiteConnectee = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
     application.use("/comptes", creerRoutesComptes(comptes, protection, limiteConnectee));
     // Visites, fidélité et comptoir (même compte, même session) : le comptoir avant le routeur /pro de l'espace pro
+    // Rôle pro (espace pro, comptoir de l'app, comptoir de Miam Safe) : réservé aux 18 ans et plus, vérifié à chaque demande
+    const majorite = creerControleMajorite(comptes.services.lireCompte, comptes.chiffrement ?? null, comptes.horloge);
     if (visitesApp) {
-      const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now);
+      const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, majorite.exigerMajeur);
       application.use("/app/visites", routesVisites.visites);
       application.use("/app/fidelite", routesVisites.fidelite);
       application.use("/pro/comptoir", routesVisites.comptoir);
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
-    // Rôle pro (espace pro, comptoir de Miam Safe) : réservé aux 18 ans et plus, vérifié à chaque demande
-    const majorite = creerControleMajorite(comptes.services.lireCompte, comptes.chiffrement ?? null, comptes.horloge);
     if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));

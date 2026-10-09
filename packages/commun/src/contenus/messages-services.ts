@@ -77,6 +77,16 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Encore quelques infos",
     texte: "Ton prénom, ta date de naissance et ta ville, et on y est.",
   },
+  "reserve-aux-majeurs": {
+    emoji: "🔞",
+    titre: "C'est pour les 18 ans et plus",
+    texte: "Ce coin-là de SOS Miam ouvre à tes 18 ans. En attendant, tout le reste est à toi !",
+  },
+  "compte-mineur": {
+    emoji: "🧑‍🍳",
+    titre: "Pas avant 18 ans",
+    texte: "Cette personne n'a pas encore 18 ans : elle ne peut pas rejoindre l'équipe d'un lieu sur SOS Miam.",
+  },
   "hors-ligne": {
     emoji: "📶",
     titre: "Pas de réseau ici",

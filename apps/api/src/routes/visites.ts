@@ -44,7 +44,8 @@ export const LIMITE_GESTES_VISITES = { fenetre: 10 * 60_000, maximum: 40 };
  * DELETE /app/fidelite/cartes/:lieuId/demande → 200 { ok, carte } · 404 introuvable
  * Le comptoir de l'équipe : routes/comptoir.ts (/pro/comptoir).
  */
-export function creerRoutesVisites(d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number) {
+/** `exigerMajeur` (middlewares/exiger-majeur.ts) : posé sur le comptoir, comme sur tout /pro (403 reserve-aux-majeurs) */
+export function creerRoutesVisites(d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number, exigerMajeur?: RequestHandler) {
   const c = creerControleursVisites(d, horloge);
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const avant: RequestHandler[] = [limiteConnectee, protection.exigerCompte, (_q, reponse, suite) => {
@@ -74,5 +75,6 @@ export function creerRoutesVisites(d: DependancesVisites, protection: Protection
   fidelite.use(gererErreursComptes);
 
   const moment = creerControleursMomentLieu(d.moment, (compteId, lieuId) => c.comptoir.roleDe(compteId, lieuId), horloge);
-  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), moment, avant, parCompte) };
+  const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
+  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), moment, avantComptoir, parCompte) };
 }

@@ -16,6 +16,8 @@ export type ErreurService =
   | "confirmation-incorrecte"
   | "email-manquant"
   | "profil-a-completer"
+  | "reserve-aux-majeurs"
+  | "compte-mineur"
   | "hors-ligne"
   | "trop-de-demandes"
   | "compte-limite"

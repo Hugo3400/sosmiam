@@ -1,12 +1,20 @@
 import type { Request, Response } from "express";
 
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
-import type { FichePublique, LieuPublic } from "../services/lieux-publics.ts";
+import type { FichePublique, LieuDuPlan, LieuPublic } from "../services/lieux-publics.ts";
 
 /** Renvoie les lieux publiés. Une liste vide est une réponse normale : il n'y a pas encore de lieu. */
 export function creerControleurLieuxPublics(lister: () => Promise<LieuPublic[]>) {
   return async (_requete: Request, reponse: Response) => {
     reponse.json({ ok: true, lieux: await lister() });
+  };
+}
+
+/** Les fiches publiées pour le plan du site (/sitemap.xml) : identifiant et date de modification (ISO 8601). */
+export function creerControleurLieuxDuPlan(lister: () => Promise<LieuDuPlan[]>) {
+  return async (_requete: Request, reponse: Response) => {
+    const lieux = (await lister()).map(({ id, modifieLe }) => ({ id, modifieLe: modifieLe.toISOString() }));
+    reponse.set("Cache-Control", "public, max-age=300").json({ ok: true, lieux });
   };
 }
 

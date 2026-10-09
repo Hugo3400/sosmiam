@@ -36,7 +36,8 @@ export type RedirectionHote = { adresse: string; statut: 301 | 302 };
  *   reste → 301 vers sosmiam.fr.
  * - pro.sosmiam.fr : « / » → 302 vers /bienvenue ; l'espace pro et les pages du compte sont servis ; les pages propres à
  *   l'espace ambassadeur → 301 vers lui ; tout le reste → 301 vers sosmiam.fr.
- * - sosmiam.fr : les pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi.
+ * - sosmiam.fr : les pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi, dont les QR de vitrine
+ *   /l/<code> (ailleurs, ils suivent « tout le reste » : 301 vers sosmiam.fr, où le QR imprimé mène de toute façon).
  * - autres hôtes (127.0.0.1, localhost, pro.localhost, apercu.sosmiam.fr) : rien n'est renvoyé, pour pouvoir tout essayer.
  * Les demandes de données de React Router (« /espace.data », « /_.data » pour « / ») suivent leur page, sans recopier
  * leurs paramètres techniques (« _routes », « index » vide).

@@ -27,6 +27,16 @@ export async function listerLieuxPublics(): Promise<LieuPublic[]> {
   });
 }
 
+/** Une fiche publiée pour le plan du site : son identifiant et sa dernière modification */
+export type LieuDuPlan = { id: number; modifieLe: Date };
+/** Le plus d'adresses qu'un plan du site peut tenir (protocole sitemaps.org) */
+export const LIEUX_DU_PLAN_MAX = 50_000;
+
+/** Tous les lieux publiés (statut « publie »), rangés par identifiant : seulement id et modifieLe, rien d'autre. */
+export async function listerLieuxDuPlan(): Promise<LieuDuPlan[]> {
+  return baseDeDonnees.lieu.findMany({ where: { statut: "publie" }, select: { id: true, modifieLe: true }, orderBy: { id: "asc" }, take: LIEUX_DU_PLAN_MAX });
+}
+
 /**
  * La fiche publique d'un lieu publié (page du lieu sur le site) : ce que le lieu montre à tout le monde, contact et
  * infos pratiques compris (null ou liste vide : info inconnue, jamais affichée). Jamais la note interne de l'équipe, ni

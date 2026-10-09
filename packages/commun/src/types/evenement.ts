@@ -70,6 +70,7 @@ export type StatutEvenement = "a-venir" | "passe" | "annule";
 export type EvenementLieuPro = Omit<ReglageEvenement, "alcool"> & {
   id: number;
   photo: string | null;
+  /** Comme dans l'app : case cochée, mot d'alcool ou lieu de type bar (l'événement est caché aux 15-17 ans) */
   alcool: boolean;
   /** La prochaine date pas encore finie (null : passé ou annulé) */
   prochaine: OccurrenceEvenement | null;

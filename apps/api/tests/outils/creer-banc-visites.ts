@@ -1,14 +1,23 @@
-// Banc d'essai des visites, de la fidélité et du comptoir : l'API avec les comptes (sessions) et les visites EN MÉMOIRE
-// (aucune base), une horloge réglable, une clé de QR et une clé de chiffrement de test, des rôles pro posés à la main
-// et des points notés au lieu d'être écrits. Chaque appel a sa propre IP.
+// Banc d'essai des visites, de la fidélité, du comptoir et des réservations : l'API avec les comptes (sessions) et les
+// visites EN MÉMOIRE (aucune base), une horloge réglable, une clé de QR et une clé de chiffrement de test, des rôles pro
+// posés à la main et des points notés au lieu d'être écrits. Chaque appel a sa propre IP.
 import type { AddressInfo } from "node:net";
 
+import express, { Router } from "express";
+
 import { creerApplication } from "../../src/application.ts";
+import type { DependancesVisites } from "../../src/controleurs/visites.ts";
+import { creerControleursReservationsPro } from "../../src/controleurs/reservations-pro.ts";
 import { calculerEmpreinteJeton } from "../../src/fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
 import { creerSignatureQr } from "../../src/fonctions/securite/creer-signature-qr.ts";
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
+import { creerLimiteConnectes } from "../../src/middlewares/limiter-connectes.ts";
+import { creerProtectionComptes, gererErreursComptes } from "../../src/middlewares/proteger-comptes.ts";
+import { LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP } from "../../src/routes/comptes.ts";
+import { creerRoutesReservationsApp } from "../../src/routes/reservations.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
+import { creerComptoir } from "../../src/services/comptoir.ts";
 import type { RoleRattachement } from "../../src/services/pro-regles.ts";
 import { creerMomentLieuEnMemoire } from "../../src/services/moment-lieu-en-memoire.ts";
 import { creerVisitesEnMemoire, type LieuVisiteEnMemoire } from "../../src/services/visites-en-memoire.ts";
@@ -18,14 +27,47 @@ export type Reponse = { statut: number; corps: Record<string, any>; entetes: Hea
 /** Une lecture de position prise au lieu, précise et fraîche */
 export const SUR_PLACE = { latitude: 43.6108, longitude: 3.8767, precision: 15, ageMs: 2_000, simulee: false };
 
-/** Un restaurant publié qui valide les visites, à Montpellier */
+/** Ouvert tous les jours, 12 h – 14 h 30 et 19 h – 23 h */
+const OUVERTURE_TEST = [{ jours: [0, 1, 2, 3, 4, 5, 6], de: "12:00", a: "14:30" }, { jours: [0, 1, 2, 3, 4, 5, 6], de: "19:00", a: "23:00" }];
+
+/** Un restaurant publié et vérifié qui valide les visites, à Montpellier (il ne prend pas les réservations) */
 export const LIEU_TEST: LieuVisiteEnMemoire = {
   id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "Montpellier", publie: true,
   position: { latitude: 43.6108, longitude: 3.8767 }, reservable: false, validationActive: true, rayonM: null, codePublic: "chezlea2", sosEnCours: false,
+  verifie: true, ouverture: OUVERTURE_TEST,
 };
 
+/**
+ * Provisoire, tant que application.ts et routes/comptoir.ts ne montent pas les réservations : les mêmes routes, montées
+ * devant l'API, comme le coordinateur les branchera. Inutile (et jamais monté) dès que /app/reservations existe.
+ */
+function monterReservations(d: DependancesVisites, sessions: Parameters<typeof creerProtectionComptes>[0], horloge: () => number) {
+  const protection = creerProtectionComptes(sessions, horloge);
+  const limite = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
+  const comptoir = creerComptoir({ ...d, horloge });
+  const pro = creerControleursReservationsPro(d, (compteId, lieuId) => comptoir.roleDe(compteId, lieuId), horloge);
+  const routesPro = Router();
+  routesPro.use(limite, protection.exigerCompte, (_q, reponse, suite) => {
+    reponse.set("Cache-Control", "private, no-store");
+    suite();
+  });
+  routesPro.get("/lieux/:id/reservations", pro.lister);
+  routesPro.post("/reservations/:reservationId/accepter", pro.accepter);
+  routesPro.post("/reservations/:reservationId/refuser", pro.refuser);
+  routesPro.post("/reservations/:reservationId/annuler", pro.annuler);
+  routesPro.post("/reservations/:reservationId/venu", pro.marquerVenu);
+  routesPro.post("/reservations/:reservationId/absent", pro.marquerAbsent);
+  routesPro.use(gererErreursComptes);
+  const routes = Router();
+  routes.use(express.json({ limit: "4kb" }));
+  routes.use("/app/reservations", creerRoutesReservationsApp(d, protection, limite, horloge));
+  routes.use("/pro/comptoir", routesPro);
+  return routes;
+}
+
 export async function creerBancVisites() {
-  const banc = { horloge: Date.parse("2026-10-09T10:00:00Z") };
+  /** horloge réglable ; tirage : rang du prochain code à 4 chiffres (1234 + tirage) */
+  const banc = { horloge: Date.parse("2026-10-09T10:00:00Z"), tirage: 0 };
   const memoire = creerComptesEnMemoire(() => banc.horloge);
   const visites = creerVisitesEnMemoire();
   const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
@@ -33,21 +75,31 @@ export async function creerBancVisites() {
   const roles = new Map<string, RoleRattachement>();
   const moment = creerMomentLieuEnMemoire((compteId) => visites.comptes.get(compteId)?.prenom ?? null);
   const points: { compteId: number; valeur: number; raison: string }[] = [];
-  let tirage = 0;
-  const serveur = creerApplication({
+  const horloge = () => banc.horloge;
+  const visitesApp: DependancesVisites = {
+    depot: visites.depot, chiffrement, signerQr,
+    // Codes à 4 chiffres prévisibles : 1234, 1235… (de nouveau 1234 à chaque test)
+    tirer: () => 1234 + banc.tirage++,
+    lireRole: async (compteId, lieuId) => roles.get(`${compteId}:${lieuId}`) ?? null,
+    ajouterPoints: async (compteId, valeur, raison) => void points.push({ compteId, valeur, raison }),
+    moment: moment.services,
+  };
+  const api = creerApplication({
     enregistrerInscription: async () => {},
-    comptes: { services: memoire.services, sessions: memoire.sessions, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro, horloge: () => banc.horloge },
-    visitesApp: {
-      depot: visites.depot, chiffrement, signerQr,
-      // Codes à 4 chiffres prévisibles : 1234, 1235…
-      tirer: () => 1234 + tirage++,
-      lireRole: async (compteId, lieuId) => roles.get(`${compteId}:${lieuId}`) ?? null,
-      ajouterPoints: async (compteId, valeur, raison) => void points.push({ compteId, valeur, raison }),
-      moment: moment.services,
-    },
-  }).listen(0, "127.0.0.1");
+    comptes: { services: memoire.services, sessions: memoire.sessions, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro, horloge },
+    visitesApp,
+  });
+  let reservations: Router | null = null;
+  const devant = express();
+  devant.use((requete, reponse, suite) => (reservations ? reservations(requete, reponse, suite) : suite()));
+  devant.use(api);
+  const serveur = devant.listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
+  // Sans session : 401 si l'API monte déjà les réservations, 404 sinon (branchement provisoire)
+  if ((await fetch(`${adresse}/app/reservations`, { headers: { "X-IP-Visiteur": "sonde" } })).status === 404) {
+    reservations = monterReservations(visitesApp, memoire.sessions, horloge);
+  }
   let numero = 0;
 
   /** Un compte avec session ; `naissance` : date gardée chiffrée (sans : compte du site, 18 ans) */
@@ -84,14 +136,15 @@ export async function creerBancVisites() {
   /** Remet tout à zéro entre deux tests (comptes et sessions restent) */
   function vider() {
     banc.horloge = Date.parse("2026-10-09T10:00:00Z");
+    banc.tirage = 0;
     visites.lieux.clear();
-    for (const liste of [visites.visites, visites.presentations, visites.cartes, visites.recompenses, visites.demandes]) liste.length = 0;
+    for (const liste of [visites.visites, visites.presentations, visites.cartes, visites.recompenses, visites.demandes, visites.reservations, visites.sos]) liste.length = 0;
     visites.programmes.clear();
     points.length = 0;
-    visites.lieux.set(1, { ...LIEU_TEST, position: { ...LIEU_TEST.position! } });
+    visites.lieux.set(1, { ...LIEU_TEST, position: { ...LIEU_TEST.position! }, ouverture: OUVERTURE_TEST.map((c) => ({ ...c, jours: [...c.jours] })) });
     moment.lieux.clear();
     moment.sos.length = 0;
-    moment.lieux.set(1, { ouverture: [{ jours: [0, 1, 2, 3, 4, 5, 6], de: "12:00", a: "14:30" }, { jours: [0, 1, 2, 3, 4, 5, 6], de: "19:00", a: "23:00" }], alerte: null, alerteJusqua: null });
+    moment.lieux.set(1, { ouverture: OUVERTURE_TEST.map((c) => ({ ...c, jours: [...c.jours] })), alerte: null, alerteJusqua: null });
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));

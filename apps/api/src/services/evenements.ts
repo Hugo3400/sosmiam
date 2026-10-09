@@ -13,15 +13,19 @@ const CHAMPS = {
   id: true, lieuId: true, compteId: true, titre: true, type: true, description: true, debut: true, fin: true, hebdoJusqua: true,
   tarif: true, prixCentimes: true, places: true, photo: true, alcool: true, creeLe: true, modifieLe: true, annuleLe: true, suspendu: true,
 } as const;
-const CHAMPS_LIEU = { id: true, nom: true, emoji: true, type: true, ville: true, statut: true } as const;
+const CHAMPS_LIEU = {
+  id: true, nom: true, emoji: true, type: true, ville: true, statut: true, _count: { select: { rattachements: { where: { statut: "valide" } } } },
+} as const;
 const CHAMPS_EQUIPE = { ...CHAMPS, compte: { select: { prenom: true } }, _count: { select: { interets: true } } } as const;
 
 type LigneLue = Omit<LigneEvenement, "type" | "tarif"> & { type: string; tarif: string };
-type LieuLu = { id: number; nom: string; emoji: string; type: string; ville: string; statut: string };
+type LieuLu = { id: number; nom: string; emoji: string; type: string; ville: string; statut: string; _count: { rattachements: number } };
 
 /** Le type et le tarif sont écrits par l'API seulement (validerEvenement) : relus tels quels */
 const versLigne = (l: LigneLue): LigneEvenement => ({ ...l, type: l.type as TypeEvenement, tarif: l.tarif as TarifEvenement });
-const versLieu = ({ statut, type, ...l }: LieuLu): LieuEvenement => ({ ...l, type: type as TypeLieu, publie: statut === "publie" });
+const versLieu = ({ statut, type, _count, ...l }: LieuLu): LieuEvenement => ({
+  ...l, type: type as TypeLieu, publie: statut === "publie", verifie: _count.rattachements > 0,
+});
 const versEquipe = ({ compte, _count, ...l }: LigneLue & { compte: { prenom: string } | null; _count: { interets: number } }) => ({
   ...versLigne(l), publiePar: compte?.prenom ?? null, interesses: _count.interets,
 });
@@ -44,7 +48,8 @@ export function creerEvenements(): ServicesEvenements {
       const lignes = await baseDeDonnees.evenementLieu.findMany({
         where: { lieuId, ...peutFinirApres(depuis) },
         select: CHAMPS_EQUIPE,
-        orderBy: [{ debut: "asc" }, { id: "asc" }],
+        // Les plus récents d'abord : au-delà du maximum, ce sont les plus anciens qui manquent (le contrôleur trie ensuite)
+        orderBy: [{ debut: "desc" }, { id: "desc" }],
         take: EVENEMENTS_EQUIPE_LUS_MAX,
       });
       return lignes.map(versEquipe);
@@ -86,6 +91,7 @@ export function creerEvenements(): ServicesEvenements {
           ...(lieuId === null ? {} : { lieuId }),
           lieu: {
             statut: "publie",
+            rattachements: { some: { statut: "valide" } },
             ...(zone ? { latitude: { gte: zone.sud, lte: zone.nord }, longitude: { gte: zone.ouest, lte: zone.est } } : {}),
           },
         },

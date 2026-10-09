@@ -20,7 +20,7 @@ export function creerEvenementsEnMemoire() {
   const peutFinirApres = (e: LigneEvenement, depuis: Date) => (e.hebdoJusqua ?? e.debut) >= calculerBornePeutFinir(depuis);
   const parDebut = (a: LigneEvenement, b: LigneEvenement) => a.debut.getTime() - b.debut.getTime() || a.id - b.id;
   const lieuDe = (lieuId: number): LieuEvenement => {
-    const { latitude: _la, longitude: _lo, ...lieu } = lieux.get(lieuId) ?? { id: lieuId, nom: "?", emoji: "📍", type: "resto", ville: "", publie: false, latitude: null, longitude: null };
+    const { latitude: _la, longitude: _lo, ...lieu } = lieux.get(lieuId) ?? { id: lieuId, nom: "?", emoji: "📍", type: "resto", ville: "", publie: false, verifie: false, latitude: null, longitude: null };
     return { ...lieu };
   };
   const copier = (e: LigneEvenement): LigneEvenement => ({ ...e });
@@ -36,7 +36,7 @@ export function creerEvenementsEnMemoire() {
       return lieux.has(lieuId) ? lieuDe(lieuId) : null;
     },
     async listerPourEquipe(lieuId, depuis) {
-      return evenements.filter((e) => e.lieuId === lieuId && peutFinirApres(e, depuis)).sort(parDebut).slice(0, EVENEMENTS_EQUIPE_LUS_MAX).map(pourEquipe);
+      return evenements.filter((e) => e.lieuId === lieuId && peutFinirApres(e, depuis)).sort((a, b) => parDebut(b, a)).slice(0, EVENEMENTS_EQUIPE_LUS_MAX).map(pourEquipe);
     },
     async lirePourEquipe(evenementId) {
       const e = evenements.find((x) => x.id === evenementId);
@@ -61,7 +61,7 @@ export function creerEvenementsEnMemoire() {
       return evenements
         .filter((e) => {
           const lieu = lieux.get(e.lieuId);
-          if (!lieu?.publie || e.suspendu || e.annuleLe !== null || e.debut >= au || !peutFinirApres(e, du)) return false;
+          if (!lieu?.publie || !lieu.verifie || e.suspendu || e.annuleLe !== null || e.debut >= au || !peutFinirApres(e, du)) return false;
           if (lieuId !== null && e.lieuId !== lieuId) return false;
           if (!zone) return true;
           return lieu.latitude !== null && lieu.longitude !== null && lieu.latitude >= zone.sud && lieu.latitude <= zone.nord && lieu.longitude >= zone.ouest && lieu.longitude <= zone.est;

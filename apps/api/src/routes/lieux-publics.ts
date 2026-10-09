@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { creerControleurFichePublique, creerControleurLieuxPublics } from "../controleurs/lieux-publics.ts";
-import type { FichePublique, LieuPublic } from "../services/lieux-publics.ts";
+import { creerControleurFichePublique, creerControleurLieuxDuPlan, creerControleurLieuxPublics } from "../controleurs/lieux-publics.ts";
+import type { FichePublique, LieuDuPlan, LieuPublic } from "../services/lieux-publics.ts";
 
 /**
  * /lieux/… : lecture publique, sans session (chaque adresse n'existe que si son service est fourni).
@@ -16,10 +16,21 @@ import type { FichePublique, LieuPublic } from "../services/lieux-publics.ts";
  *                           visiteur : il les montre avec le message sanitaire) ; carteMajLe : moment exact (ISO 8601) ;
  *                           null tous deux : pas de carte. Cache public d'une minute.
  *                           · 404 lieu-inconnu (absent, brouillon ou masqué, ou identifiant mal écrit)
+ * GET /lieux/plan         → 200 { ok, lieux: [{ id, modifieLe }] } : TOUS les lieux publiés (50 000 au plus), rangés par
+ *                           id, pour le plan du site (/sitemap.xml) ; modifieLe : dernière modification de la fiche (ISO
+ *                           8601). Rien d'autre (ni nom, ni ville). Cache public de 5 minutes. Monté à part
+ *                           (creerRoutePlanLieux), seulement si son service est fourni.
  */
 export function creerRoutesLieuxPublics(lister?: () => Promise<LieuPublic[]>, lireFiche?: (id: number) => Promise<FichePublique | null>) {
   const routes = Router();
   if (lister) routes.get("/", creerControleurLieuxPublics(lister));
   if (lireFiche) routes.get("/publics/:id", creerControleurFichePublique(lireFiche));
+  return routes;
+}
+
+/** GET /lieux/plan (voir le contrat ci-dessus) */
+export function creerRoutePlanLieux(lister: () => Promise<LieuDuPlan[]>) {
+  const routes = Router();
+  routes.get("/plan", creerControleurLieuxDuPlan(lister));
   return routes;
 }

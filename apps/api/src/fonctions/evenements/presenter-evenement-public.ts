@@ -7,7 +7,7 @@ import type { EvenementAvecLieu } from "../../services/evenements-regles.ts";
  * modération. Alcool relu à chaque fois (case, mots, lieu de type bar).
  */
 export function presenterEvenementPublic(e: EvenementAvecLieu, date: { debut: Date; fin: Date | null }): EvenementLieuPublic {
-  const { publie: _publie, ...lieu } = e.lieu;
+  const { publie: _publie, verifie: _verifie, ...lieu } = e.lieu;
   return {
     id: e.id, lieu, titre: e.titre, type: e.type, description: e.description,
     debut: date.debut.toISOString(), fin: date.fin?.toISOString() ?? null, hebdoJusqua: e.hebdoJusqua?.toISOString() ?? null,

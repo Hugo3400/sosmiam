@@ -9,6 +9,8 @@ export default [
     route("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
     // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
+    // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)
+    route("l/:code", "routes/public/qr-vitrine.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [

@@ -5,6 +5,7 @@ import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } f
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
+import { FournisseurSession } from "~/composants/compte/FournisseurSession";
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
 import { FournisseurModes } from "~/composants/modes/FournisseurModes";
@@ -36,6 +37,8 @@ export default function RacineApp() {
   });
 
   return (
+    // La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert
+    <FournisseurSession>
     <FournisseurProfil>
       {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
       <FournisseurInvite>
@@ -61,5 +64,6 @@ export default function RacineApp() {
         </FournisseurActivite>
       </FournisseurInvite>
     </FournisseurProfil>
+    </FournisseurSession>
   );
 }

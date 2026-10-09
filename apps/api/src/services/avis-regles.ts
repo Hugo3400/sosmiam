@@ -2,9 +2,12 @@
 // réglages, les lignes lues et écrites, et les gestes élémentaires demandés aux données. Les règles sont écrites une fois,
 // au-dessus de ces gestes (avis-client.ts, avis-relecture.ts, avis-pro.ts) ; la base (avis.ts) et le double des tests
 // (avis-en-memoire.ts) ne font que lire et écrire. Sans accès à la base ici.
-import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
+import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
 import type { RaisonRelecture, StatutAvis, StatutReponseAvis, VerdictRelecture } from "../../../../packages/commun/src/types/avis.ts";
+import type { ErreurService } from "../../../../packages/commun/src/types/erreurs-service.ts";
+import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { ModeValidation, ReglementVisite } from "../../../../packages/commun/src/types/visite.ts";
+import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import type { LigneVisite } from "./visites-regles.ts";
 
 /** Un avis vérifié avec photo : +10 points (raison « avis-photo »), jamais pour un repas offert ni un avis non vérifié */
@@ -35,6 +38,24 @@ export const AVIS_A_RELIRE_MAX = 20;
  * un avis automatiquement, la relecture se fait après la mise en ligne, comme pour la réponse du lieu.
  */
 export const STATUTS_AVIS_VISIBLES: readonly StatutAvis[] = ["publie", "en-relecture"];
+
+/**
+ * Les codes propres aux avis, en plus de ceux d'ErreurService (à y ajouter, avec leur texte dans messages-services) :
+ * avis-ferme (14 jours passés), avis-visite-requise (lieu vérifié : il faut une visite validée), avis-recent (un avis non
+ * vérifié par lieu tous les 30 jours), reponse-deja-donnee (une réponse du lieu par avis).
+ */
+export type ErreurAvis = ErreurService | "avis-ferme" | "avis-visite-requise" | "avis-recent" | "reponse-deja-donnee";
+export type EchecAvis = { ok: false; erreur: ErreurAvis; details?: DetailsErreur; champ?: string };
+
+/** Ce que partagent les services des avis : données, chiffrement (âge et initiale du nom), tirage au sort, horloge */
+export type ContexteAvis = {
+  depot: DepotAvis;
+  /** null : clé absente (prudence : prénom seul, compté comme un 15-17 ans) */
+  chiffrement: ChiffrementDonnees | null;
+  /** Un entier de 0 à max − 1 (crypto.randomInt) : les avis relus au hasard */
+  tirer: (max: number) => number;
+  horloge: () => number;
+};
 
 export type LigneAvis = {
   id: number;
