@@ -67,6 +67,12 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Tu fais partie de l'équipe ici",
     texte: "Tes passages chez toi ne comptent pas, sinon ce serait trop facile. Va goûter chez les voisins !",
   },
+  "email-non-verifie": {
+    emoji: "📬",
+    titre: "Confirme d'abord ton e-mail",
+    texte: "Pour valider une visite, on a besoin d'un e-mail confirmé. Touche le lien qu'on t'a envoyé, ou redemande-le depuis ton compte.",
+  },
+
   "position-refusee": {
     emoji: "📍",
     titre: "Sans ta position, on ne peut pas vérifier que tu es là",

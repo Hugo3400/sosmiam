@@ -54,6 +54,15 @@
 - **Profil de l'app gardé sur le serveur** (construit le 9 octobre 2026) : inscription « app » dès 15 ans, sans rôle d'ambassadeur ; nom et date de naissance **chiffrés** par l'API (AES-256-GCM, clé lue au démarrage dans un fichier hors de la base) ; envies **sans les régimes** ; pseudo unique sans gros mot ; avatar emoji ; compte privé. Sans clé, l'API démarre mais ces adresses répondent « chiffrement-indisponible ». Aucun rôle ambassadeur ou pro n'est montré sous 18 ans.
 - **Heure du serveur et version minimale** : `GET /app/temps` (jour de Paris, pour le verrou d'âge) et `GET /app/version` (versions minimales iOS et Android, « 0.0.0 » par défaut), sans session ; l'app compare elle-même.
 - **Miam Safe, « Prévenir un pote »** : la position passera par le serveur, en direct pendant 1 h, visible dans l'app du pote. Ça attend les vrais potes côté serveur (avec la messagerie). Pas de partage par SMS en attendant.
+- **Construit côté API le 9 octobre 2026** (pas encore branché dans l'app) :
+  - lieux, carte et fil « Pour toi » (`/app/lieux`, `/app/publications`), sans compte ;
+  - rescousses, lieux gardés, J'aime, « Pas intéressé » et suivis (`/app/activite`) ;
+  - visites et fidélité (`/app/visites`, `/app/fidelite`) et comptoir de l'équipe (`/pro/comptoir`), avec les mêmes règles que la démo.
+- **Visites dans l'API** :
+  - le QR du comptoir est signé par l'API, avec une clé tirée à chaque démarrage et jamais écrite (un redémarrage éteint seulement les QR affichés à ce moment-là) ;
+  - un compte sans date de naissance gardée vient du site, où 18 ans sont demandés : il compte comme majeur ; une date illisible compte comme 15-17 ans, par prudence ;
+  - les seuils anti-triche (visites par jour, part de refus) restent à calculer dans le logiciel, à partir des visites (statut, qui a décidé) ;
+  - réservations et avis ne sont pas encore côté serveur.
 
 ## Onglet Explorer de l'app (décidé le 8 octobre 2026)
 - **Carte + liste glissante** (comme Google Maps) : la carte des lieux en haut, une liste qu'on remonte du bas. Sur l'aperçu web, pas de carte : la liste seule.

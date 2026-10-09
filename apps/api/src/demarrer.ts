@@ -1,6 +1,8 @@
 // Point d'entrée de l'API de SOS Miam. Elle n'écoute qu'en local (127.0.0.1) : le site lui parle côté serveur, et seul
 // le chemin /api-gestion est joignable de l'extérieur (nginx), pour le logiciel de gestion, avec des demandes signées.
 // Lancement : npm start (ou npm run dev, qui relance à chaque modification). Réglages : .env (DATABASE_URL, HOST, PORT).
+import { randomBytes, randomInt } from "node:crypto";
+
 import { creerApplication } from "./application.ts";
 import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/annonces-discord.ts";
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
@@ -40,6 +42,8 @@ import { DOSSIER_MEDIAS } from "./services/gestion/medias.ts";
 import { creerLieuxApp } from "./services/lieux-app.ts";
 import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
+import { creerDepotVisites } from "./services/visites.ts";
+import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -110,6 +114,11 @@ const serveur = creerApplication({
   },
   // Rescousses, lieux gardés, J'aime, masques et suivis de l'app (points et badge donnés par le contrôleur)
   activiteApp: { services: creerActivite(), ajouterPoints, donnerBadge },
+  // La clé des QR du comptoir est tirée à chaque démarrage, jamais écrite (un QR vit 60 s au plus)
+  visitesApp: {
+    depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
+    lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints,
+  },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

@@ -1,4 +1,4 @@
-import type { PalierAmbassadeur } from "../types/ambassadeur";
+import type { PalierAmbassadeur } from "../types/ambassadeur.ts";
 
 // Programme Ambassadeurs (voir docs/decisions.md) : une seule progression, une seule monnaie, les points.
 

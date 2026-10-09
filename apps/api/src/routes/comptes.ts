@@ -21,11 +21,15 @@ import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
 const DIX_MINUTES = 10 * 60_000;
 /**
- * Adresses de la personne connectée (et l'espace ambassadeur) : 600 appels d'API par visiteur toutes les 10 minutes. Une
- * page en coûte plusieurs (/espace : 5 ; le kit média : 18 avec ses aperçus), et une IP peut être partagée (box, Wi-Fi).
- * Les routes qui vérifient un mot de passe gardent en plus l'attente par compte et la file des calculs.
+ * Adresses de la personne connectée (et l'espace ambassadeur) : 600 appels d'API par SESSION toutes les 10 minutes (par
+ * IP s'il n'y a pas de jeton). Une page en coûte plusieurs (/espace : 5 ; le kit média : 18 avec ses aperçus). Une IP
+ * partagée (opérateur mobile, Wi-Fi d'un resto) a en plus sa propre limite, bien plus large : LIMITE_CONNECTEE_IP
+ * (middlewares/limiter-connectes.ts). Les routes qui vérifient un mot de passe gardent l'attente par compte et la file
+ * des calculs.
  */
 export const LIMITE_CONNECTEE = { fenetre: DIX_MINUTES, maximum: 600 };
+/** La limite large par IP, devant la limite par session : arrête un robot qui changerait de jeton à chaque appel */
+export const LIMITE_CONNECTEE_IP = { fenetre: DIX_MINUTES, maximum: 12_000 };
 /** « Mot de passe oublié » : 5 demandes par visiteur et par heure (en plus de la limite par compte : 1 lien toutes les
  * 15 minutes, 5 par 24 heures) */
 export const LIMITE_MOT_DE_PASSE_OUBLIE = { fenetre: 60 * 60_000, maximum: 5 };

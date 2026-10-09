@@ -2,7 +2,7 @@
 import express from "express";
 
 import { gererErreurs } from "./middlewares/gerer-erreurs.ts";
-import { limiterRequetes } from "./middlewares/limiter-requetes.ts";
+import { creerLimiteConnectes } from "./middlewares/limiter-connectes.ts";
 import { creerProtectionComptes, gererErreursComptes } from "./middlewares/proteger-comptes.ts";
 import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
@@ -10,10 +10,12 @@ import { creerRoutesApp } from "./routes/app.ts";
 import { creerRoutesContenuApp } from "./routes/contenu-app.ts";
 import { creerRoutesActivite } from "./routes/activite.ts";
 import type { DependancesActivite } from "./controleurs/activite.ts";
+import { creerRoutesVisites } from "./routes/visites.ts";
+import type { DependancesVisites } from "./controleurs/visites.ts";
 import type { DependancesContenuApp } from "./controleurs/contenu-app.ts";
 import type { DependancesApp } from "./controleurs/app.ts";
 import { creerRoutesBot } from "./routes/bot.ts";
-import { creerRoutesComptes, LIMITE_CONNECTEE, type DependancesComptes } from "./routes/comptes.ts";
+import { creerRoutesComptes, LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP, type DependancesComptes } from "./routes/comptes.ts";
 import { creerRoutesDemandesLieux } from "./routes/demandes-lieux.ts";
 import { creerRoutesEspaceAmbassadeur, type DependancesEspaceAmbassadeur } from "./routes/espace-ambassadeur.ts";
 import { creerRoutesFondateurs } from "./routes/fondateurs.ts";
@@ -68,6 +70,9 @@ type Dependances = {
   contenuApp?: DependancesContenuApp;
   /** L'app, avec session : rescousses, lieux gardés, J'aime, masques et suivis (routes /app/activite ; seulement avec `comptes`) */
   activiteApp?: DependancesActivite;
+  /** L'app, avec session : visites, fidélité (routes /app/visites, /app/fidelite) et comptoir de l'équipe (routes
+   * /pro/comptoir, montées avant /pro) ; seulement avec `comptes` */
+  visitesApp?: DependancesVisites;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -81,7 +86,7 @@ export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
   enregistrerDemandeLieu, bot, gestion,
   comptes, espaceAmbassadeur, zones, miamSafe,
-  app, contenuApp, activiteApp,
+  app, contenuApp, activiteApp, visitesApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -109,8 +114,15 @@ export function creerApplication({
   if (comptes) {
     // Une seule protection (sessions) et une seule limite « connecté » pour /comptes et /espace-ambassadeur
     const protection = creerProtectionComptes(comptes.sessions, comptes.horloge);
-    const limiteConnectee = limiterRequetes(LIMITE_CONNECTEE);
+    const limiteConnectee = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
     application.use("/comptes", creerRoutesComptes(comptes, protection, limiteConnectee));
+    // Visites, fidélité et comptoir (même compte, même session) : le comptoir avant le routeur /pro de l'espace pro
+    if (visitesApp) {
+      const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now);
+      application.use("/app/visites", routesVisites.visites);
+      application.use("/app/fidelite", routesVisites.fidelite);
+      application.use("/pro/comptoir", routesVisites.comptoir);
+    }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
     if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro

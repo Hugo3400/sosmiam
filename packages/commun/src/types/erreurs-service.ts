@@ -14,6 +14,7 @@ export type ErreurService =
   | "lieu-sans-validation"
   | "mineur-bar"
   | "membre-du-lieu"
+  | "email-non-verifie"
   | "position-refusee"
   | "position-bloquee"
   | "position-coupee"
