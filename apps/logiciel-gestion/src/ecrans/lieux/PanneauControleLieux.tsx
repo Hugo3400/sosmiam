@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Carte } from "~/composants/interface/Carte.tsx";
@@ -19,16 +19,20 @@ const RAISONS = { "meme-nom": "même nom, même ville", "meme-adresse": "même a
 
 type Props = { tous: ResumeLieu[]; onOuvrir: (id: number) => void };
 
-function LigneLieu({ lieu, detail, onOuvrir }: { lieu: Pick<LieuControle, "id" | "nom" | "ville" | "statut" | "emoji">; detail?: ReactNode; onOuvrir: (id: number) => void }) {
+/** Une fiche dans le contrôle : nom et statut en haut, ville et détail (adresse, distance) en dessous, sur toute la largeur. */
+function LigneLieu({ lieu, detail, onOuvrir }: { lieu: Pick<LieuControle, "id" | "nom" | "ville" | "statut" | "emoji">; detail?: string; onOuvrir: (id: number) => void }) {
   return (
     <li>
-      <button type="button" onClick={() => onOuvrir(lieu.id)} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-creme">
-        <span aria-hidden>{lieu.emoji}</span>
-        <span className="font-semibold">{lieu.nom}</span>
-        <span className="text-gris">· {lieu.ville || "ville ?"}</span>
-        <Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge>
-        {detail && <span className="text-gris">{detail}</span>}
-        <ChevronRight className="ml-auto size-4" aria-hidden />
+      <button type="button" onClick={() => onOuvrir(lieu.id)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-creme">
+        <span aria-hidden className="shrink-0">{lieu.emoji}</span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-semibold">{lieu.nom}</span>
+            <Badge ton={STATUTS_LIEU[lieu.statut].ton}>{STATUTS_LIEU[lieu.statut].libelle}</Badge>
+          </span>
+          <span className="block text-[13px] text-gris">{[lieu.ville || "ville ?", detail].filter(Boolean).join(" · ")}</span>
+        </span>
+        <ChevronRight className="size-4 shrink-0" aria-hidden />
       </button>
     </li>
   );
@@ -63,7 +67,7 @@ export function PanneauControleLieux({ tous, onOuvrir }: Props) {
             ) : (
               <ul className="grid gap-0.5">
                 {tranche(positions, "positions", pages.positions).map(({ lieu, distanceKm }) => (
-                  <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={distanceKm === null ? "· posé en (0, 0)" : `· à ${distanceKm} km des autres lieux de la ville`} />
+                  <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={distanceKm === null ? "posé en (0, 0)" : `à ${distanceKm} km des autres lieux de la ville`} />
                 ))}
               </ul>
             )}
@@ -76,7 +80,7 @@ export function PanneauControleLieux({ tous, onOuvrir }: Props) {
                 {tranche(doublons, "doublons", pages.doublons).map((groupe) => (
                   <div key={groupe.lieux.map((lieu) => lieu.id).join("-")} className="rounded-xl border border-ligne p-2">
                     <p className="px-2 pb-1 text-[13px] font-semibold text-gris">{RAISONS[groupe.raison]}</p>
-                    <ul className="grid gap-0.5">{groupe.lieux.map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ? `· ${lieu.adresse}` : undefined} />)}</ul>
+                    <ul className="grid gap-0.5">{groupe.lieux.map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? undefined} />)}</ul>
                   </div>
                 ))}
               </div>
@@ -90,7 +94,7 @@ export function PanneauControleLieux({ tous, onOuvrir }: Props) {
           <p className="text-sm text-gris">Toutes les fiches de cette liste sont placées sur la carte.</p>
         ) : (
           <ul className="grid gap-0.5">
-            {tranche(sansPosition, "sansPosition", pages.sansPosition).map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ? `· ${lieu.adresse}` : "· pas d'adresse"} />)}
+            {tranche(sansPosition, "sansPosition", pages.sansPosition).map((lieu) => <LigneLieu key={lieu.id} lieu={lieu} onOuvrir={onOuvrir} detail={lieu.adresse ?? "pas d'adresse"} />)}
           </ul>
         )}
       </Carte>

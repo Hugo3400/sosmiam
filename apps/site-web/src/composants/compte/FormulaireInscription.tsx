@@ -8,7 +8,10 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
-/** Ce qui change sur pro.sosmiam.fr : l'aide du prénom, les conditions, le petit mot sous le formulaire. */
+/**
+ * Ce qui change sur pro.sosmiam.fr : l'aide du prénom, les conditions (partie « L'espace pro »), le petit mot sous le
+ * formulaire et la confidentialité (partie « Ton espace pro »). Ville et quartier ne sont demandés qu'aux ambassadeurs.
+ */
 const textes: Record<EspaceCompte, { aidePrenom: string; cgu: string; apres: string; confidentialite: string }> = {
   ambassadeur: {
     aidePrenom: "Il pourra s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé.",
@@ -18,9 +21,9 @@ const textes: Record<EspaceCompte, { aidePrenom: string; cgu: string; apres: str
   },
   pro: {
     aidePrenom: "Ton équipe le verra quand tu l'inviteras.",
-    cgu: "https://sosmiam.fr/cgu",
+    cgu: "https://sosmiam.fr/cgu#pro",
     apres: "Un seul compte SOS Miam : le même pour l'app quand elle sortira. Ce qu'on fait de tes données : ",
-    confidentialite: "https://sosmiam.fr/confidentialite",
+    confidentialite: "https://sosmiam.fr/confidentialite#compte-pro",
   },
 };
 
@@ -61,8 +64,12 @@ export function FormulaireInscription({ espace = "ambassadeur" }: { espace?: Esp
           aide="Elle sert seulement à vérifier que tu as 18 ans. On ne la garde pas."
           className="sm:col-span-2"
         />
-        <ChampTexte nom="ville" libelle="Ta ville" autoComplete="address-level2" maximum={80} />
-        <ChampTexte nom="quartier" libelle="Ton quartier" facultatif maximum={80} />
+        {espace === "ambassadeur" && (
+          <>
+            <ChampTexte nom="ville" libelle="Ta ville" autoComplete="address-level2" maximum={80} />
+            <ChampTexte nom="quartier" libelle="Ton quartier" facultatif maximum={80} />
+          </>
+        )}
       </div>
       <div className="mt-7">
         <CaseACocher nom="cgu">

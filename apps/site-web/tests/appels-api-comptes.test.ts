@@ -20,6 +20,8 @@ const reponses: Record<string, { statut: number; corps: unknown }> = {
   "GET /fondateurs/zone?commune=99999": { statut: 404, corps: { ok: false, erreur: "commune-inconnue" } },
   "POST /comptes/mot-de-passe-oublie": { statut: 429, corps: { ok: false, erreur: "trop-de-demandes" } },
   "POST /comptes/moi/renvoyer-verification": { statut: 429, corps: { ok: false, erreur: "trop-de-demandes", attente: 840 } },
+  // Espace pro : inviter une adresse sans compte (l'API joint un « message » que le site ne reprend pas)
+  "POST /pro/lieux/7/equipe": { statut: 404, corps: { ok: false, erreur: "compte-inconnu", message: "Pas de compte SOS Miam à cette adresse." } },
 };
 const serveur = createServer((requete, reponse) => {
   const prevue = reponses[`${requete.method} ${requete.url}`] ?? { statut: 404, corps: { ok: false, erreur: "introuvable" } };
@@ -68,4 +70,11 @@ test("fondateurs par ville et liens par mail : codes reconnus, attente lue dans 
   assert.deepEqual(await comptes.demanderNouveauMotDePasse("sam@exemple.fr", null), { ok: false, erreur: "trop-de-demandes", attente: 1800 });
   // Limite par compte : l'attente du corps l'emporte
   assert.deepEqual(await comptes.renvoyerVerification("jeton", null), { ok: false, erreur: "trop-de-demandes", attente: 840 });
+});
+
+test("inviter une adresse sans compte : le code « compte-inconnu » seul, le « message » de l'API n'est pas repris", async () => {
+  // La page de l'équipe (routes/pro/equipe.tsx) a son propre texte pour ce code
+  assert.deepEqual(await comptes.appelerApiComptes("/pro/lieux/7/equipe", { methode: "POST", jeton: "jeton", corps: { email: "lea@exemple.fr" } }), {
+    ok: false, erreur: "compte-inconnu",
+  });
 });

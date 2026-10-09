@@ -62,6 +62,8 @@ export async function loader({ request }: Route.LoaderArgs) {
  * cookie de session et ouvre l'espace.
  */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseInscription> {
+  // L'espace pro ne demande ni ville ni quartier : l'API crée le compte sans demande d'ambassadeur
+  const espace = lireEspaceHote(new URL(request.url).host);
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\s+/g, " ").trim();
@@ -86,24 +88,22 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   if (!/^\d{4}-\d{2}-\d{2}$/.test(valeurs.dateNaissance) || Number.isNaN(date.getTime()) || !date.toISOString().startsWith(valeurs.dateNaissance)) {
     erreurs.dateNaissance = messages.dateNaissance;
   }
-  if (valeurs.ville.length < 2 || valeurs.ville.length > 80) erreurs.ville = messages.ville;
-  if (valeurs.quartier.length > 80) erreurs.quartier = messages.quartier;
+  if (espace === "ambassadeur" && (valeurs.ville.length < 2 || valeurs.ville.length > 80)) erreurs.ville = messages.ville;
+  if (espace === "ambassadeur" && valeurs.quartier.length > 80) erreurs.quartier = messages.quartier;
   if (!valeurs.cgu) erreurs.cgu = messages.cgu;
   for (const nom of Object.keys(erreurs)) erreurs[nom] = lierPonctuation(erreurs[nom]);
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "inscription", erreurs, valeurs };
 
-  const espace = lireEspaceHote(new URL(request.url).host);
   const reponse = await inscrireAmbassadeur(
     {
       email: valeurs.email,
       motDePasse,
       prenom: valeurs.prenom,
-      ville: valeurs.ville,
-      ...(valeurs.quartier ? { quartier: valeurs.quartier } : {}),
+      ...(espace === "ambassadeur" ? { ville: valeurs.ville, ...(valeurs.quartier ? { quartier: valeurs.quartier } : {}) } : {}),
       dateNaissance: valeurs.dateNaissance,
       cgu: true,
       piege: lire("piege"),
-      // Inscription depuis l'espace pro : à lire par l'API (pas de demande d'ambassadeur) quand elle saura le faire
+      // Inscription depuis l'espace pro : l'API crée le compte seul, sans demande d'ambassadeur
       ...(espace === "pro" ? { espace } : {}),
     },
     lireIpVisiteur(request),

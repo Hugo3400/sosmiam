@@ -99,7 +99,8 @@ export type DemandeInscription = {
   email: string;
   motDePasse: string;
   prenom: string;
-  ville: string;
+  /** Ville et quartier de l'ambassadeur : absents pour l'espace pro */
+  ville?: string;
   quartier?: string;
   /** AAAA-MM-JJ : l'API vérifie les 18 ans, puis l'oublie (jamais gardée) */
   dateNaissance: string;
@@ -107,7 +108,7 @@ export type DemandeInscription = {
   /** Champ piège du formulaire : rempli seulement par les robots */
   piege?: string;
   /** « pro » : inscription depuis pro.sosmiam.fr. L'API crée alors le compte seul, sans demande d'ambassadeur, et ne
-   * demande ni ne garde la ville (le site l'envoie vide) */
+   * demande ni ne garde la ville (le site ne l'envoie pas) */
   espace?: "pro";
 };
 

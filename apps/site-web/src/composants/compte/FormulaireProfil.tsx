@@ -30,7 +30,7 @@ export function FormulaireProfil({ prenom, email, lieu }: Props) {
           maximum={40}
           valeur={prenom}
           className="sm:col-span-2"
-          aide={lierPonctuation("Il peut s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé. Une fiche déjà en ligne garde le prénom d'alors : écris-nous pour le changer.")}
+          aide={lieu ? lierPonctuation("Il peut s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé. Une fiche déjà en ligne garde le prénom d'alors : écris-nous pour le changer.") : undefined}
         />
         {lieu && (
           <>

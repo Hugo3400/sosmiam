@@ -291,6 +291,15 @@
 - **Message sanitaire de la loi Évin, mot pour mot** : « L'abus d'alcool est dangereux pour la santé, à consommer avec modération. » Il est affiché dans le pied de page de toutes les pages, sur la fiche des bars (et des lieux qui servent de l'alcool), et dans l'app (fiches, publications et offres qui parlent d'alcool).
 - **Page https://sosmiam.fr/prevention** (contenu : apps/site-web/src/contenus/legal/prevention.ts) : alcool et Alcool Info Service (0 980 980 930, appel anonyme et non surtaxé, alcool-info-service.fr), « quand on boit, on ne conduit pas », les conseils mangerbouger.fr, et comment signaler un lieu qui pousse à boire.
 - **Happy hours et offres sur l'alcool** : Hugo les autorise dans les avantages, **avec le message sanitaire**. À faire vérifier par un juriste avant d'ouvrir les offres aux lieux : la loi Évin encadre strictement la publicité pour l'alcool.
+- **Dans l'app (construit le 9 octobre 2026)** : le message sanitaire, mot pour mot, s'affiche :
+  - sous une offre du moment qui parle d'alcool (happy hour, verre offert) ;
+  - en encadré avec Alcool Info Service (téléphone et site) sur la fiche d'un bar, d'un lieu dont une offre ou la carte parle d'alcool, et sous la carte complète ;
+  - sur l'image d'une publication de bar ou qui parle d'alcool ;
+  - en bas de la liste d'Explorer ;
+  - à côté d'une récompense de fidélité avec alcool (fiche, accueil du scan, célébration).
+  - Un 15-17 ans ne voit rien de tout ça (ni l'alcool, ni le message).
+  - Lien « Santé et prévention » dans les réglages.
+  - Textes et détection dans packages/commun : `contenus/prevention-alcool.ts`, `fonctions/prevention/`.
 
 ## Espace pro (décidé le 9 octobre 2026)
 - **https://pro.sosmiam.fr**, servi par le site (comme ambassadeur.sosmiam.fr), avec son propre cookie. **Compte unique** : « pro » est un rôle, obtenu quand l'équipe valide le **rattachement** du compte à un lieu (table `rattachements_lieux` : rôle « gerant » ou « equipe », preuve, SIRET facultatif ; un compte peut tenir plusieurs lieux). Un lieu est **vérifié ✓** dès qu'il a un rattachement validé.
