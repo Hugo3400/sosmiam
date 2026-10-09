@@ -5,6 +5,7 @@ import { creerControleursCartePro } from "../controleurs/pro-carte.ts";
 import { creerControleursEquipe } from "../controleurs/pro-equipe.ts";
 import { creerControleursFichePro } from "../controleurs/pro-fiche.ts";
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
+import type { ControleMajorite } from "../middlewares/exiger-majeur.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import { creerProtectionPro } from "../middlewares/proteger-pro.ts";
@@ -90,18 +91,18 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  */
 export function creerRoutesPro(
   services: ServicesPro, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number = Date.now,
-  /** Réservé aux 18 ans et plus (middlewares/exiger-majeur.ts) */
-  exigerMajeur: RequestHandler,
+  /** Réservé aux 18 ans et plus, et pas d'invitation d'un mineur (middlewares/exiger-majeur.ts) */
+  majorite: ControleMajorite,
 ) {
   const exigerRattachement = creerProtectionPro(services);
   const rattachements = creerControleursRattachements(services, horloge);
   const fiche = creerControleursFichePro(services, horloge);
-  const equipe = creerControleursEquipe(services, horloge);
+  const equipe = creerControleursEquipe(services, horloge, majorite.lireMajorite);
   const carte = creerControleursCartePro(services, horloge);
   const limiteCarte = limiterRequetes({ ...LIMITE_ENREGISTRER_CARTE, cle: (_requete, reponse) => `compte:${lireCompteId(reponse)}` });
   const routes = Router();
 
-  routes.use(limiteConnectee, protection.exigerCompte, exigerMajeur);
+  routes.use(limiteConnectee, protection.exigerCompte, majorite.exigerMajeur);
   routes.get("/recherche-lieux", limiterRequetes(LIMITE_RECHERCHE_LIEUX), rattachements.chercher);
   routes.get("/lieux/:id", exigerRattachement(), fiche.lire);
   routes.patch("/lieux/:id", limiterRequetes(LIMITE_MODIFIER_FICHE), exigerRattachement(true), fiche.modifier);

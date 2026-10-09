@@ -86,7 +86,11 @@ export type CarteGardee = { carte: Omit<CarteLieu, "majLe"> | null; majLe: Date 
 
 export type DemandeRattachement = { lieuId: number; preuve: string; siret: string | null };
 export type ResultatDemande = { ok: true; id: number } | { ok: false; erreur: "lieu-inconnu" | "deja-demande" | "trop-de-demandes" };
-export type ResultatInvitation = { ok: true } | { ok: false; erreur: "compte-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" };
+export type ResultatInvitation =
+  | { ok: true }
+  | { ok: false; erreur: "compte-inconnu" | "compte-mineur" | "chiffrement-indisponible" | "deja-membre" | "trop-d-invitations" | "equipe-complete" };
+/** La majorité du compte invité d'après sa date de naissance chiffrée (fonctions/comptes/lire-majorite-compte.ts) */
+export type LireMajoriteInvite = (dateNaissanceChiffree: string | null) => "majeur" | "mineur" | "illisible";
 export type ModificationFichePro = {
   /** Champs changés tout de suite (null, "" ou [] : info effacée) */
   directs: ValeursDirectes;
@@ -117,7 +121,8 @@ export type ServicesPro = {
   /** Remplace la carte (déjà vérifiée) et pose sa date ; null efface la carte et sa date. Faux si le lieu n'existe pas */
   enregistrerCarte: (lieuId: number, carte: Omit<CarteLieu, "majLe"> | null, maintenant: Date) => Promise<boolean>;
   listerEquipe: (lieuId: number) => Promise<MembreEquipe[]>;
-  inviterMembre: (lieuId: number, inviteurId: number, email: string, maintenant: Date) => Promise<ResultatInvitation>;
+  /** Un compte connu comme mineur n'est jamais invité (« compte-mineur ») ; date illisible : « chiffrement-indisponible » */
+  inviterMembre: (lieuId: number, inviteurId: number, email: string, maintenant: Date, lireMajorite: LireMajoriteInvite) => Promise<ResultatInvitation>;
   /** Un membre « equipe » retiré par le gérant ; faux s'il n'y est pas */
   retirerMembre: (lieuId: number, compteId: number, maintenant: Date) => Promise<boolean>;
 };

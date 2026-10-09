@@ -3,7 +3,7 @@ import express from "express";
 
 import { gererErreurs } from "./middlewares/gerer-erreurs.ts";
 import { creerLimiteConnectes } from "./middlewares/limiter-connectes.ts";
-import { creerExigenceMajeur } from "./middlewares/exiger-majeur.ts";
+import { creerControleMajorite } from "./middlewares/exiger-majeur.ts";
 import { creerProtectionComptes, gererErreursComptes } from "./middlewares/proteger-comptes.ts";
 import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
@@ -126,10 +126,10 @@ export function creerApplication({
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
     // Rôle pro (espace pro, comptoir de Miam Safe) : réservé aux 18 ans et plus, vérifié à chaque demande
-    const exigerMajeur = creerExigenceMajeur(comptes.services.lireCompte, comptes.chiffrement ?? null, comptes.horloge);
-    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, exigerMajeur));
+    const majorite = creerControleMajorite(comptes.services.lireCompte, comptes.chiffrement ?? null, comptes.horloge);
+    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
-    if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, exigerMajeur));
+    if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));
     // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version
     if (activiteApp) application.use("/app/activite", creerRoutesActivite(activiteApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     if (espaceAmbassadeur) {

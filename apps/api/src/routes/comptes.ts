@@ -14,7 +14,7 @@ import { creerControleursRattachements } from "../controleurs/pro-rattachements.
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { creerControleursComptesExternes, type DependancesConnexionExterne } from "../controleurs/comptes-externes.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
-import { creerExigenceMajeur } from "../middlewares/exiger-majeur.ts";
+import { creerControleMajorite } from "../middlewares/exiger-majeur.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
@@ -320,9 +320,9 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   );
   routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
   if (dependances.pro) {
-    const rattachements = creerControleursRattachements(dependances.pro, horloge, chiffrement);
+    const rattachements = creerControleursRattachements(dependances.pro, horloge);
     // Demander à gérer un lieu ou rejoindre une équipe : 18 ans et plus (la liste et « quitter » restent ouvertes)
-    const exigerMajeur = creerExigenceMajeur(services.lireCompte, chiffrement, horloge);
+    const { exigerMajeur } = creerControleMajorite(services.lireCompte, chiffrement, horloge);
     routes.get("/moi/rattachements", protection.exigerCompte, rattachements.lister);
     routes.post("/moi/rattachements", limiterRequetes(LIMITE_RATTACHEMENTS), protection.exigerCompte, exigerMajeur, rattachements.demander);
     routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, exigerMajeur, rattachements.accepter);

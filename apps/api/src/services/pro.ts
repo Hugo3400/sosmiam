@@ -169,11 +169,14 @@ export const servicesPro: ServicesPro = {
     }));
   },
 
-  async inviterMembre(lieuId, inviteurId, email, maintenant) {
+  async inviterMembre(lieuId, inviteurId, email, maintenant, lireMajorite) {
     try {
       return await baseDeDonnees.$transaction(async (transaction) => {
-        const compte = await transaction.compte.findUnique({ where: { email }, select: { id: true } });
+        const compte = await transaction.compte.findUnique({ where: { email }, select: { id: true, dateNaissanceChiffree: true } });
         if (!compte) return { ok: false, erreur: "compte-inconnu" } as const;
+        const majorite = lireMajorite(compte.dateNaissanceChiffree);
+        if (majorite === "mineur") return { ok: false, erreur: "compte-mineur" } as const;
+        if (majorite === "illisible") return { ok: false, erreur: "chiffrement-indisponible" } as const;
         const existant = await transaction.rattachementLieu.findUnique({ where: { lieuId_compteId: { lieuId, compteId: compte.id } }, select: { id: true, statut: true } });
         if (existant && (existant.statut === "en-attente" || existant.statut === "valide")) return { ok: false, erreur: "deja-membre" } as const;
         const [duJour, membres] = await Promise.all([

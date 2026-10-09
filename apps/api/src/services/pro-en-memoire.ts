@@ -13,7 +13,7 @@ export type RattachementEnMemoire = {
   id: number; lieuId: number; compteId: number; role: RoleRattachement; preuve: string; siret: string | null;
   statut: StatutRattachement; reponse: string | null; creeLe: number; decideLe: number | null;
 };
-type CompteVu = { email: string; prenom: string };
+type CompteVu = { email: string; prenom: string; dateNaissanceChiffree?: string | null };
 type Suggestions = ReturnType<typeof creerSuggestionsEnMemoire>;
 
 const iso = (moment: number | null) => (moment === null ? null : new Date(moment).toISOString());
@@ -147,9 +147,12 @@ export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: S
           };
         });
     },
-    async inviterMembre(lieuId, inviteurId, email, maintenant) {
-      const compteId = [...comptes.entries()].find(([, compte]) => compte.email === email)?.[0];
+    async inviterMembre(lieuId, inviteurId, email, maintenant, lireMajorite) {
+      const [compteId, invite] = [...comptes.entries()].find(([, compte]) => compte.email === email) ?? [];
       if (compteId === undefined) return { ok: false, erreur: "compte-inconnu" };
+      const majorite = lireMajorite(invite?.dateNaissanceChiffree ?? null);
+      if (majorite === "mineur") return { ok: false, erreur: "compte-mineur" };
+      if (majorite === "illisible") return { ok: false, erreur: "chiffrement-indisponible" };
       const existant = trouver(lieuId, compteId);
       if (existant && actif(existant)) return { ok: false, erreur: "deja-membre" };
       const moment = maintenant.getTime();

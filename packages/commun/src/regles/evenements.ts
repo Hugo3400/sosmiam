@@ -68,5 +68,6 @@ export const EXPRESSIONS_OPEN_BAR: readonly RegExp[] = [
   /\bforfaits? (boissons?|alcool|a boire|consos?)\b/,
   /\bgratuit(e|s|es)? a boire\b/,
   /\ba boire gratuit/,
-  /\b(boissons?|consos?|consommations?|alcools?|verres?|shots?|bieres?|vins?|cocktails?) (a volonte|gratuit|illimit)/,
+  // « Boissons gratuites », « l'alcool est gratuit » (un seul verre offert reste permis)
+  /\b(boissons|consos|consommations|alcools?) (est |sont )?(gratuit|offert)/,
 ];
