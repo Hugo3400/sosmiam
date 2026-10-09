@@ -15,10 +15,17 @@ const reponses: Record<string, { statut: number; corps: unknown }> = {
   "POST /comptes/moi/mot-de-passe": { statut: 200, corps: { ok: true, session: "nouveau-jeton-de-session-de-43-caracteres-x" } },
   "GET /comptes/moi/candidature": { statut: 200, corps: { ok: true, candidature: null, placesRestantes: 0 } },
   "GET /comptes/session": { statut: 418, corps: { ok: false, erreur: "code-inconnu" } },
+  // Fondateurs par ville, mot de passe oublié et confirmation de l'e-mail
+  "POST /comptes/moi/candidature/commune": { statut: 409, corps: { ok: false, erreur: "deja-traitee" } },
+  "GET /fondateurs/zone?commune=99999": { statut: 404, corps: { ok: false, erreur: "commune-inconnue" } },
+  "POST /comptes/mot-de-passe-oublie": { statut: 429, corps: { ok: false, erreur: "trop-de-demandes" } },
+  "POST /comptes/moi/renvoyer-verification": { statut: 429, corps: { ok: false, erreur: "trop-de-demandes", attente: 840 } },
 };
 const serveur = createServer((requete, reponse) => {
   const prevue = reponses[`${requete.method} ${requete.url}`] ?? { statut: 404, corps: { ok: false, erreur: "introuvable" } };
-  reponse.writeHead(prevue.statut, { "Content-Type": "application/json" }).end(JSON.stringify(prevue.corps));
+  // Les limites par visiteur ne donnent l'attente que dans l'en-tête Retry-After
+  const enTetes = { "Content-Type": "application/json", ...(prevue.statut === 429 ? { "Retry-After": "1800" } : {}) };
+  reponse.writeHead(prevue.statut, enTetes).end(JSON.stringify(prevue.corps));
 });
 await new Promise<void>((pret) => serveur.listen(0, "127.0.0.1", pret));
 after(() => serveur.close());
@@ -31,6 +38,7 @@ const comptes = await import("../src/services/comptes.server.ts");
 test("« occupe » (503) et « plus-de-place » (409) sont reconnus, pas changés en « erreur »", async () => {
   assert.deepEqual(await comptes.connecterCompte("sam@exemple.fr", "une petite phrase de passe", null), { ok: false, erreur: "occupe" });
   const envoi = comptes.envoyerCandidature("jeton", null, {
+    communeCode: "69123",
     pepites: "Trois pépites, et pourquoi.", envies: ["denicher"], motivation: "Parce que j'adore ça.", partantRencontre: true,
   });
   assert.deepEqual(await envoi, { ok: false, erreur: "plus-de-place" });
@@ -51,4 +59,13 @@ test("changer de mot de passe rend le nouveau jeton ; la candidature rend les pl
   assert.equal(change.ok && change.session, "nouveau-jeton-de-session-de-43-caracteres-x");
   const lue = await comptes.lireCandidature("jeton", null);
   assert.equal(lue.ok && lue.placesRestantes, 0);
+});
+
+test("fondateurs par ville et liens par mail : codes reconnus, attente lue dans le corps ou dans Retry-After", async () => {
+  assert.deepEqual(await comptes.changerCommuneCandidature("jeton", null, "69123"), { ok: false, erreur: "deja-traitee" });
+  assert.deepEqual(await comptes.appelerApiComptes("/fondateurs/zone?commune=99999"), { ok: false, erreur: "commune-inconnue" });
+  // Limite par visiteur : l'attente vient de Retry-After
+  assert.deepEqual(await comptes.demanderNouveauMotDePasse("sam@exemple.fr", null), { ok: false, erreur: "trop-de-demandes", attente: 1800 });
+  // Limite par compte : l'attente du corps l'emporte
+  assert.deepEqual(await comptes.renvoyerVerification("jeton", null), { ok: false, erreur: "trop-de-demandes", attente: 840 });
 });

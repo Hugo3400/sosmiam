@@ -161,7 +161,18 @@
   - **démo** : en développement seulement ; les visites de démo ne seront jamais importées dans un vrai compte ; dans une version publiée sans API, aucune fausse visite vérifiée ;
   - **sanctions** décidées à la main dans le logiciel ; seuls des freins techniques temporaires sont automatiques.
 - **Limites assumées** (à écrire aussi dans les CGU) : la position est un frein, pas une preuve (sur iPhone, aucun indice d'une position simulée) ; un complice sur place avec plusieurs comptes peut tricher au prix d'un vrai effort, on le détecte après coup ; la règle « membre du lieu » se contourne avec un second compte ; l'âge est déclaratif, le lieu reste responsable de l'alcool qu'il sert.
+- **Comment la visite a été réglée (décidé le 9 octobre 2026)** : en validant (addition, QR du comptoir, réservation), l'équipe choisit dans une liste fermée, jamais en texte libre :
+  - **payée** : +15 (ou +25 pendant un SOS), tampon, avis ;
+  - **payée avec réduction** : pareil, avec la réduction indiquée (−10, 15, 20, 25, 30 ou 50 %, ou sans préciser) ;
+  - **offerte par le lieu** : la visite est notée, mais sans points ni tampon (pour qu'un lieu ne puisse pas offrir des repas pour gonfler ses visites) ; l'avis reste possible, marqué « Repas offert » ;
+  - plus des **avantages** : récompense fidélité, happy hour ou formule, offre SOS, collaboration commerciale (toujours affichée, en premier), autre avantage.
+  - C'est affiché partout : au comptoir pro, côté client (célébration, visite, Mes visites, onglet Scan), sur les avis publics (« Repas offert », « Avec réduction ») et dans le logiciel de gestion (part d'offerts par lieu, alerte s'il y en a trop).
 - **Points ouverts, à trancher avant de brancher l'API** : rattacher un pro à son lieu (SIREN + vérification), e-mail vérifié obligatoire pour valider, seuils anti-triche, durées de conservation des visites, adresse de l'espace pro (pro.sosmiam.fr ?).
+
+## Infos pratiques des lieux (décidé le 9 octobre 2026)
+- Chaque fiche montre un bloc « Infos pratiques » : téléphone (bouton « Appeler »), site, Instagram, accueil des animaux (bienvenus, en terrasse seulement, pas d'animaux), accès en fauteuil roulant, terrasse, Wi-Fi, chaise haute ou menu enfant, parking, réservation (inutile, conseillée, obligatoire) et moyens de paiement (dont tickets resto et chèques-vacances).
+- Une info inconnue n'est jamais affichée (on ne devine pas). Plus tard, le lieu les remplit lui-même (mode pro, espace pro du site).
+- Lieux d'exemple : numéros pris dans la tranche que l'ARCEP réserve à la fiction (04 65 71 xx xx), sites en example.com, pas de compte Instagram inventé.
 
 ## Visite sans compte (décidé le 8 octobre 2026, construite le 9 octobre)
 - **Sans compte, on regarde seulement** : fil, Explorer, fiches des lieux et leur carte, pages des créateurs, lecture des commentaires, « Y aller ».

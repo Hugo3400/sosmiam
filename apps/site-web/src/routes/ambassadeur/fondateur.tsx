@@ -58,7 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const parametres = new URL(request.url).searchParams;
   const changer = parametres.get("changer") === "1";
   const enAttente = candidature?.statut === "en-attente";
-  const mode = !candidature || candidature.statut === "souvenir" ? "candidater"
+  const mode: "candidater" | "preciser" | "changer" | null = !candidature || candidature.statut === "souvenir" ? "candidater"
     : enAttente && !candidature.commune ? "preciser"
       : enAttente && changer ? "changer"
         : null;
