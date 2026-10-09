@@ -1,7 +1,9 @@
 import { data } from "react-router";
 
 import type { Route } from "./+types/fiche-lieu";
+import { carteContientAlcool } from "../../../../../packages/commun/src/fonctions/prevention/carte-contient-alcool.ts";
 import { BadgeVerifie } from "~/composants/lieux/BadgeVerifie";
+import { BlocCarteDuLieu } from "~/composants/lieux/BlocCarteDuLieu";
 import { BlocInfosPratiques } from "~/composants/lieux/BlocInfosPratiques";
 import { BlocPrevention } from "~/composants/lieux/BlocPrevention";
 import { EncartCeLieuEstAToi } from "~/composants/lieux/EncartCeLieuEstAToi";
@@ -41,7 +43,8 @@ export function headers() {
 
 /**
  * Page /lieux/:id : la fiche publique d'un lieu, avec « Vérifié ✓ » ou « Lieu non vérifié », l'adresse et l'itinéraire,
- * les horaires, la présentation, les infos pratiques (une info inconnue n'est pas affichée) et « Ce lieu est à toi ? ».
+ * les horaires, la présentation, la carte remplie par le lieu (avec le message sanitaire si elle a de l'alcool), les infos
+ * pratiques (une info inconnue n'est pas affichée) et « Ce lieu est à toi ? ».
  */
 export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
   const { lieu } = loaderData;
@@ -85,9 +88,12 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
               {lieu.texte && <p className={`whitespace-pre-line [overflow-wrap:anywhere] ${lieu.horaires ? "mt-4" : ""}`}>{lieu.texte}</p>}
             </section>
           )}
+          {/* La carte remplie par le lieu ; avec de l'alcool, le message sanitaire suit, juste dessous */}
+          {lieu.carte && <BlocCarteDuLieu carte={lieu.carte} type={lieu.type} />}
           <BlocInfosPratiques infos={lieu} />
-          {/* Un bar sert de l'alcool : message sanitaire (loi Évin) et aide, décidé par Hugo le 9 octobre 2026 */}
-          {lieu.type === "bar" && <BlocPrevention />}
+          {/* Un bar sert de l'alcool : message sanitaire (loi Évin) et aide, décidé par Hugo le 9 octobre 2026 (une seule
+              fois sur la page : s'il est déjà sous la carte, il n'est pas répété) */}
+          {lieu.type === "bar" && !carteContientAlcool(lieu.carte) && <BlocPrevention />}
           {lieu.decouvertPar && <p className="font-semibold"><span aria-hidden="true">🛟 </span>Déniché par {lieu.decouvertPar}</p>}
           <EncartCeLieuEstAToi lieuId={lieu.id} verifie={lieu.estVerifie} />
         </div>
