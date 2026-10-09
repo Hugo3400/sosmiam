@@ -13,6 +13,23 @@ export type StatutVisite = "demandee" | "validee" | "refusee" | "annulee" | "exp
 /** Motifs fermés : jamais de texte libre du lieu vers le client */
 export type MotifRefusVisite = "introuvable" | "pas-venu" | "doublon" | "autre";
 
+/**
+ * Comment la visite a été réglée, choisi par l'équipe en validant (décidé le 9 octobre 2026) : payée (+15 ou +25, tampon,
+ * avis), payée avec une réduction (pareil, la réduction est indiquée) ou offerte par le lieu (visite notée, ni points ni
+ * tampon, avis marqué « Repas offert »).
+ */
+export type TypeReglement = "paye" | "reduction" | "offert";
+
+/** Avantages indiqués par l'équipe : liste fermée, jamais de texte libre du lieu vers le client */
+export type AvantageVisite = "recompense-fidelite" | "happy-hour" | "offre-sos" | "partenariat" | "autre";
+
+export type ReglementVisite = {
+  type: TypeReglement;
+  /** Seulement pour une réduction : un des pourcentages de REDUCTIONS_POURCENT, ou null si l'équipe ne le précise pas */
+  reductionPourcent: number | null;
+  avantages: AvantageVisite[];
+};
+
 export type Visite = {
   id: number;
   lieu: LieuResume;
@@ -34,6 +51,8 @@ export type Visite = {
   contestee: boolean;
   avis: { ouvertLe: string; fermeLe: string; donne: boolean } | null;
   annulableJusqua: string | null;
+  /** Comment elle a été réglée ; null tant qu'elle n'est pas validée (une visite validée sans règlement connu se lit « payée ») */
+  reglement: ReglementVisite | null;
   /** Visite de démo : reste sur le téléphone, jamais importée dans un vrai compte */
   demo: boolean;
 };

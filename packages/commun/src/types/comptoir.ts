@@ -2,7 +2,7 @@
 
 import type { LieuResume } from "./lieu-resume.ts";
 import type { ReservationPro } from "./reservation.ts";
-import type { ModeValidation } from "./visite.ts";
+import type { ModeValidation, ReglementVisite } from "./visite.ts";
 
 /** Ce que voit l'équipe : jamais l'âge, le nom complet ni l'historique ailleurs */
 export type DemandeComptoir = {
@@ -35,6 +35,8 @@ export type ValidationRecente = {
   avatar: string;
   valideLe: string;
   annulableJusqua: string;
+  /** Payée, avec réduction ou offerte, et les avantages indiqués ; null si inconnu (lu « payée ») */
+  reglement: ReglementVisite | null;
 };
 
 export type EtatComptoir = {
