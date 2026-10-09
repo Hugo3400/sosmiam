@@ -35,7 +35,17 @@ export function FondateursAuComplet({ zone, idRecherche, apresEnvoi = false }: P
       </p>
       <p className="mx-auto mt-4 max-w-lg">
         {lierPonctuation("Tu t'es trompé de commune ? ")}
-        <a href={`#${idRecherche}`} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
+        {/* Avec JavaScript, le champ de recherche prend aussi le focus (un lien « # » vers un champ ne fait que défiler) */}
+        <a
+          href={`#${idRecherche}`}
+          onClick={(evenement) => {
+            const champ = document.getElementById(idRecherche);
+            if (!champ) return;
+            evenement.preventDefault();
+            champ.scrollIntoView({ block: "center" });
+            champ.focus({ preventScroll: true });
+          }}
+          className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
           Choisis-en une autre
         </a>
         .
