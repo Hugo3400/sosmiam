@@ -57,9 +57,9 @@ export function faireEvoluerVisite(
           statut: "validee",
           valideLe: maintenant,
           decideLe: maintenant,
-          points: calculerPointsVisite(v.pendantSos),
+          points: calculerPointsVisite(v.pendantSos, e.reglement ?? null),
           annulableJusqua: new Date(maintenantMs + DELAI_ANNULATION_LIEU_MS).toISOString(),
-          effets: calculerEffetsValidation(v.pendantSos, maintenantMs, options?.delaiAvisMs),
+          effets: calculerEffetsValidation(v.pendantSos, maintenantMs, options?.delaiAvisMs, e.reglement ?? null),
         };
       case "refuser":
         return terminer("refusee", [{ type: "controle", motif: "refus-lieu" }]);

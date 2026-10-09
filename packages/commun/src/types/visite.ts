@@ -58,7 +58,8 @@ export type Visite = {
 };
 
 export type EvenementVisite =
-  | { type: "regler" }
+  /** Réglée par le lieu, avec comment (payée, réduction, offerte) ; sans précision : payée */
+  | { type: "regler"; reglement?: ReglementVisite }
   | { type: "refuser"; motif: MotifRefusVisite }
   | { type: "annuler-client" }
   | { type: "expirer" }
