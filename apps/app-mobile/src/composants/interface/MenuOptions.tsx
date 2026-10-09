@@ -8,6 +8,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import couleurs from "~/theme/couleurs";
 
 export type OptionMenu = {
@@ -94,7 +95,7 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
             </View>
           ) : (
             <>
-              <Text ref={titreOptions} accessibilityRole="header" numberOfLines={2} className="mb-2 font-titre text-2xl text-encre">
+              <Text ref={titreOptions} accessibilityRole="header" accessibilityLabel={retirerEmoji(affiche.titre)} numberOfLines={2} className="mb-2 font-titre text-2xl text-encre">
                 {lierPonctuation(affiche.titre)}
               </Text>
               {affiche.options.map((o) => (

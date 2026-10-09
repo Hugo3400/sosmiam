@@ -30,7 +30,7 @@ type Ligne = { activite: ActivitePote; pote: Pote; lieu: Lieu | null };
 // Les 5 dernières, puis 10 de plus à chaque « Voir plus »
 const PREMIERES = 5;
 const PAR_PAGE = 10;
-const NOM = { un: "nouvelle", des: "nouvelles", feminin: true };
+const NOM = { un: "nouvelle", des: "nouvelles" };
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
 /** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », « le 12 septembre » */
@@ -89,7 +89,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
     if ((activite.type === "rescousse" || activite.type === "garde") && !lieu) return [];
     return [{ activite, pote, lieu }];
   });
-  const pages = utiliserPagination(lignes, PREMIERES, PAR_PAGE);
+  const pages = utiliserPagination(lignes, PREMIERES, PAR_PAGE, (l) => l.activite.id);
   const ouvrirProfil = (pote: Pote) => router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
   const ouvrirLieu = (lieu: Lieu) => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
 
@@ -138,6 +138,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
               // Le « ⋯ » est à côté de la ligne (pas dedans) : le lecteur d'écran les lit l'un après l'autre
               <View key={activite.id} className={`flex-row items-center ${i > 0 ? "border-t border-ligne" : ""}`}>
                 <Pressable
+                  ref={pages.refDe(activite.id)}
                   accessibilityRole="button"
                   accessibilityLabel={`${phrase}, ${quand}`}
                   accessibilityHint={lieu ? "Ouvre la fiche du lieu" : `Ouvre le profil de ${pote.prenom}`}
@@ -188,7 +189,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
         </View>
       )}
 
-      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
 
       <MenuOptions visible={menuPour !== null} titre={menuPour ? `Ce qu'a fait ${menuPour.pote.prenom}` : ""} options={options(menuPour)} onFermer={() => setMenuPour(null)} />
     </View>

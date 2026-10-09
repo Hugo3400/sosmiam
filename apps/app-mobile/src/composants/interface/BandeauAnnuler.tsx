@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
+import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { BandeauAnnulerAffiche } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
@@ -17,6 +18,9 @@ type Props = {
 // Le temps d'atteindre « Annuler » ; plus long avec un lecteur d'écran, qui doit d'abord y aller
 const DUREE = 6_000;
 const DUREE_LECTEUR_ECRAN = 15_000;
+// Le bandeau suit toujours une feuille qui se referme : on attend qu'elle soit partie, sinon VoiceOver, qui revient à l'écran,
+// couperait l'annonce (même règle que FeuilleConfirmation et onRefermee)
+const DELAI_ANNONCE = 500;
 
 /**
  * Petit bandeau sombre en bas de l'écran après un retrait (« Lieu retiré »), avec « Annuler » pour tout remettre, comme Gmail
@@ -27,11 +31,12 @@ export function BandeauAnnuler({ bandeau, bas, onFermer }: Props) {
 
   useEffect(() => {
     if (!bandeau) return;
-    const texte = `${bandeau.texte}. Tu peux annuler.`;
-    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
-    else AccessibilityInfo.announceForAccessibility(texte);
+    const annonce = setTimeout(() => annoncerLecteurEcran(`${bandeau.texte}. Tu peux annuler.`), DELAI_ANNONCE);
     const minuterie = setTimeout(onFermer, lecteurEcran ? DUREE_LECTEUR_ECRAN : DUREE);
-    return () => clearTimeout(minuterie);
+    return () => {
+      clearTimeout(annonce);
+      clearTimeout(minuterie);
+    };
   }, [bandeau, lecteurEcran, onFermer]);
 
   if (!bandeau) return null;
@@ -47,7 +52,7 @@ export function BandeauAnnuler({ bandeau, bas, onFermer }: Props) {
             vibrerLegerement();
             bandeau.annuler();
             onFermer();
-            AccessibilityInfo.announceForAccessibility("C'est remis");
+            annoncerLecteurEcran("C'est remis");
           }}
           className="min-h-11 items-center justify-center rounded-full px-4 active:opacity-70"
         >

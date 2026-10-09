@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -24,7 +24,7 @@ type Props = {
   onRetire: (texte: string, annuler: () => void) => void;
 };
 
-// Les 3 plus récents d'abord, puis 5 de plus à chaque « Voir plus »
+// Les nouveaux d'abord, puis les plus récents : 3, puis 5 de plus à chaque « Voir plus »
 const PREMIERS = 3;
 const PAR_PAGE = 5;
 const NOM = { un: "lieu", des: "lieux" };
@@ -40,7 +40,9 @@ export function RecommandationsRecues({ recommandations, lieux, onRetire }: Prop
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   // Les lieux déjà vus au moment de demander (le texte de la feuille ne bouge pas pendant qu'elle se referme)
   const [nettoyage, setNettoyage] = useState<{ ids: string[]; ouvert: boolean }>({ ids: [], ouvert: false });
-  const pages = utiliserPagination(recommandations, PREMIERS, PAR_PAGE);
+  // Chacun de son côté reste du plus récent au plus ancien
+  const ordre = useMemo(() => [...recommandations.filter((r) => !r.vue), ...recommandations.filter((r) => r.vue)], [recommandations]);
+  const pages = utiliserPagination(ordre, PREMIERS, PAR_PAGE, (r) => r.id);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 
@@ -79,11 +81,12 @@ export function RecommandationsRecues({ recommandations, lieux, onRetire }: Prop
               router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
             }}
             onMenu={() => setMenuPour({ cible: "recommandation", id: r.id, pote: de })}
+            refPrincipal={pages.refDe(r.id)}
           />
         );
       })}
 
-      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
 
       {vues.length > 1 ? (
         <Pressable

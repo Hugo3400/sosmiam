@@ -14,15 +14,17 @@ type Props = {
   /** Les lieux de la liste que tu peux voir (sans les bars sous 18 ans), avec leur image */
   lieux: { lieu: Lieu; image: ImageSourcePropType | null }[];
   onOuvrir: (id: string) => void;
-  /** Le menu « ⋯ » (liste d'un pote : son profil, signaler la liste, bloquer) ; sans lui, une simple flèche */
+  /** Le menu « ⋯ » (liste d'un pote : la retirer d'ici, son profil, signaler la liste, bloquer) ; sans lui, une simple flèche */
   onMenu?: () => void;
+  /** Posée sur la carte (utiliserPagination) : « Voir plus » y amène le lecteur d'écran */
+  refPrincipal?: (vue: View | null) => void;
 };
 
 const TAILLE_VIGNETTE = 36;
 const MAX_VIGNETTES = 3;
 
 /** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
-export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu }: Props) {
+export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipal }: Props) {
   const nombre = lieux.length;
   const abonnes = liste.abonnes.length;
   const lieuxTexte = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
@@ -31,6 +33,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu }: Props) {
 
   const carte = (
     <Pressable
+      ref={refPrincipal}
       accessibilityRole="button"
       accessibilityLabel={lu}
       accessibilityHint="Ouvre la liste"
@@ -77,7 +80,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu }: Props) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Plus d'options sur la liste ${liste.titre}`}
-        accessibilityHint={`Voir le profil de ${auteur}, signaler la liste, ou bloquer cette personne`}
+        accessibilityHint={`La retirer d'ici, voir le profil de ${auteur}, signaler la liste, ou bloquer cette personne`}
         onPress={() => {
           vibrerLegerement();
           onMenu();

@@ -28,7 +28,7 @@ type Props = {
 
 // 5 listes par section, puis 5 de plus à chaque « Voir plus »
 const PAR_PAGE = 5;
-const NOM = { un: "liste", des: "listes", feminin: true };
+const NOM = { un: "liste", des: "listes" };
 
 /**
  * Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
@@ -60,11 +60,12 @@ export function SectionListes({ lieux, onRetire }: Props) {
       (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
   );
 
-  const pagesMiennes = utiliserPagination(miennes, PAR_PAGE);
-  const pagesSuivies = utiliserPagination(suivies, PAR_PAGE);
-  const pagesADecouvrir = utiliserPagination(aDecouvrir, PAR_PAGE);
+  const parId = (l: ListePartagee) => l.id;
+  const pagesMiennes = utiliserPagination(miennes, PAR_PAGE, PAR_PAGE, parId);
+  const pagesSuivies = utiliserPagination(suivies, PAR_PAGE, PAR_PAGE, parId);
+  const pagesADecouvrir = utiliserPagination(aDecouvrir, PAR_PAGE, PAR_PAGE, parId);
   const boutonVoirPlus = (pages: ReturnType<typeof utiliserPagination<ListePartagee>>) => (
-    <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+    <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
   );
 
   // Le choix propre à la section : ne plus suivre une liste suivie, ou écarter une liste à découvrir
@@ -98,7 +99,8 @@ export function SectionListes({ lieux, onRetire }: Props) {
     : undefined;
 
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
-  const carte = (liste: ListePartagee) => {
+  // La carte d'une liste, dans sa section (sa pagination y pose la ref du lecteur d'écran)
+  const carte = (pages: { refDe: (k: string) => (vue: View | null) => void }) => (liste: ListePartagee) => {
     const auteur = liste.auteur === ID_MOI ? null : trouverPote(liste.auteur);
     return (
       <CarteListe
@@ -111,6 +113,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
         })}
         onOuvrir={ouvrir}
         onMenu={auteur ? () => setMenuPour({ cible: "liste", id: liste.id, pote: auteur }) : undefined}
+        refPrincipal={pages.refDe(liste.id)}
       />
     );
   };
@@ -134,7 +137,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
             </Text>
           </View>
         ) : (
-          pagesMiennes.visibles.map(carte)
+          pagesMiennes.visibles.map(carte(pagesMiennes))
         )}
         {boutonVoirPlus(pagesMiennes)}
         <Bouton libelle="Nouvelle liste" indice="Choisis un emoji et un nom, puis ajoute tes lieux" onPress={() => setCreation(true)} className="mt-2" />
@@ -149,7 +152,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
             {lierPonctuation("Tu ne suis aucune liste pour l'instant. Ouvre celle d'un pote et suis-la : elle t'attendra ici.")}
           </Text>
         ) : (
-          pagesSuivies.visibles.map(carte)
+          pagesSuivies.visibles.map(carte(pagesSuivies))
         )}
         {boutonVoirPlus(pagesSuivies)}
       </View>
@@ -162,7 +165,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
             </Text>
             <Text className="font-texte text-sm text-gris">Les bonnes adresses de ta bande et des gens que tu suis, à piocher sans complexe.</Text>
           </View>
-          {pagesADecouvrir.visibles.map(carte)}
+          {pagesADecouvrir.visibles.map(carte(pagesADecouvrir))}
           {boutonVoirPlus(pagesADecouvrir)}
         </View>
       ) : null}

@@ -10,7 +10,9 @@ import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
 import { CarteSortie } from "~/composants/potes/CarteSortie";
 import { RecommandationsRecues } from "~/composants/potes/RecommandationsRecues";
+import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 
@@ -28,7 +30,7 @@ const DUREE_SORTIE = 4 * 3_600_000;
 // L'heure de l'onglet avance toute seule : une fin de vote passe sans qu'il faille changer d'onglet
 const RAFRAICHISSEMENT = 30_000;
 // À venir : 5, puis 5 de plus ; déjà vécues : 3, puis 5 de plus
-const NOM = { un: "sortie", des: "sorties", feminin: true };
+const NOM = { un: "sortie", des: "sorties" };
 
 /**
  * Onglet « Sorties » : les lieux reçus de tes potes, tes sorties à venir, « Nouvelle sortie », puis les sorties passées, par
@@ -61,8 +63,8 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
   // Les plus récentes d'abord
   const passees = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE < instant).reverse();
   const ouvrir = (id: string) => router.push({ pathname: "/potes/sortie/[id]", params: { id } });
-  const pagesAVenir = utiliserPagination(aVenir, 5);
-  const pagesPassees = utiliserPagination(passees, 3, 5);
+  const pagesAVenir = utiliserPagination(aVenir, 5, 5, (x) => x.id);
+  const pagesPassees = utiliserPagination(passees, 3, 5, (x) => x.id);
 
   const options = (choix: { sortie: Sortie; passee: boolean } | null): OptionMenu[] => {
     if (!choix) return [];
@@ -88,7 +90,11 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
         confirmer: "Quitter",
         rester: "Je reste",
       },
-      agir: () => quitterSortie(sortie.id),
+      agir: () => {
+        quitterSortie(sortie.id);
+        // La carte disparaît, sans « Annuler » (on ne rejoint pas une sortie qu'on a quittée) : on le dit, une fois la feuille partie
+        setTimeout(() => annoncerLecteurEcran(retirerEmoji(`Tu as quitté « ${sortie.titre} »`)), 500);
+      },
     }];
   };
 
@@ -120,17 +126,19 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
           </View>
         ) : (
           pagesAVenir.visibles.map((s) => (
-            <CarteSortie key={s.id} sortie={s} lieux={lieux} passee={false} maintenant={maintenant} onOuvrir={ouvrir} onMenu={() => setMenuPour({ sortie: s, passee: false })} />
+            <CarteSortie
+              key={s.id}
+              sortie={s}
+              lieux={lieux}
+              passee={false}
+              maintenant={maintenant}
+              onOuvrir={ouvrir}
+              onMenu={() => setMenuPour({ sortie: s, passee: false })}
+              refPrincipal={pagesAVenir.refDe(s.id)}
+            />
           ))
         )}
-        <BoutonVoirPlus
-          restants={pagesAVenir.restants}
-          prochains={pagesAVenir.prochains}
-          deplie={pagesAVenir.deplie}
-          nom={NOM}
-          onVoirPlus={pagesAVenir.voirPlus}
-          onReplier={pagesAVenir.replier}
-        />
+        <BoutonVoirPlus restants={pagesAVenir.restants} prochains={pagesAVenir.prochains} nom={NOM} onVoirPlus={pagesAVenir.voirPlus} />
 
         {potes.length > 0 ? (
           <Bouton
@@ -150,16 +158,18 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
             Déjà vécues
           </Text>
           {pagesPassees.visibles.map((s) => (
-            <CarteSortie key={s.id} sortie={s} lieux={lieux} passee maintenant={maintenant} onOuvrir={ouvrir} onMenu={() => setMenuPour({ sortie: s, passee: true })} />
+            <CarteSortie
+              key={s.id}
+              sortie={s}
+              lieux={lieux}
+              passee
+              maintenant={maintenant}
+              onOuvrir={ouvrir}
+              onMenu={() => setMenuPour({ sortie: s, passee: true })}
+              refPrincipal={pagesPassees.refDe(s.id)}
+            />
           ))}
-          <BoutonVoirPlus
-            restants={pagesPassees.restants}
-            prochains={pagesPassees.prochains}
-            deplie={pagesPassees.deplie}
-            nom={NOM}
-            onVoirPlus={pagesPassees.voirPlus}
-            onReplier={pagesPassees.replier}
-          />
+          <BoutonVoirPlus restants={pagesPassees.restants} prochains={pagesPassees.prochains} nom={NOM} onVoirPlus={pagesPassees.voirPlus} />
         </View>
       ) : null}
 

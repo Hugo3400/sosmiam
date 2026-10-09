@@ -16,12 +16,14 @@ type Props = {
   /** Image du lieu (trouverVignetteLieu) ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   onOuvrir: () => void;
-  /** Le menu « ⋯ » : profil du pote, signaler ce lieu envoyé ou le profil, bloquer */
+  /** Le menu « ⋯ » : le retirer d'ici, profil du pote, signaler ce lieu envoyé ou le profil, bloquer */
   onMenu: () => void;
+  /** Posée sur la carte (utiliserPagination) : « Voir plus » y amène le lecteur d'écran */
+  refPrincipal?: (vue: View | null) => void;
 };
 
 /** Un lieu envoyé par un pote : qui, le lieu en vignette, son petit mot, et « Nouveau » tant que tu ne l'as pas ouvert. */
-export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir, onMenu }: Props) {
+export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir, onMenu, refPrincipal }: Props) {
   const nouveau = !recommandation.vue;
   const lu = [
     nouveau ? "Nouveau" : null,
@@ -35,6 +37,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
     // Le menu « ⋯ » est posé à côté de la carte (pas dedans) : le lecteur d'écran les lit l'un après l'autre
     <View className="relative">
       <Pressable
+        ref={refPrincipal}
         accessibilityRole="button"
         accessibilityLabel={lu}
         accessibilityHint="Ouvre la fiche du lieu"
@@ -79,7 +82,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Plus d'options sur ce lieu envoyé par ${de.prenom}`}
-        accessibilityHint="Voir son profil, signaler ce lieu envoyé, ou bloquer cette personne"
+        accessibilityHint="Le retirer d'ici, voir son profil, signaler ce lieu envoyé, ou bloquer cette personne"
         hitSlop={4}
         onPress={() => {
           vibrerLegerement();

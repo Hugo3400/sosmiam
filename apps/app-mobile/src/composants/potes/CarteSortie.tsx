@@ -22,6 +22,8 @@ type Props = {
   onOuvrir: (id: string) => void;
   /** Le menu « ⋯ » (quitter, retirer de tes sorties), posé à côté de la carte ; sans lui, une simple flèche */
   onMenu?: () => void;
+  /** Posée sur la carte (utiliserPagination) : « Voir plus » y amène le lecteur d'écran */
+  refPrincipal?: (vue: View | null) => void;
 };
 
 const TAILLE_ROND = 32;
@@ -51,7 +53,7 @@ const formaterMoment = (iso: string, maintenant: Date) => {
 const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
 
 /** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
-export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu }: Props) {
+export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu, refPrincipal }: Props) {
   const { trouverPote, bloques } = utiliserCommunaute();
   const bloquesIds = new Set(bloques.map((b) => b.id));
 
@@ -96,6 +98,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
 
   const carte = (
     <Pressable
+      ref={refPrincipal}
       accessibilityRole="button"
       accessibilityLabel={lu}
       accessibilityHint="Ouvre la sortie : vote, lieux proposés et discussion"
