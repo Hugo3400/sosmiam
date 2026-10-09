@@ -2,8 +2,8 @@ import { liensLegaux } from "~/contenus/legal/liens-legaux";
 import { site } from "~/contenus/legal/informations-legales";
 
 /**
- * Pied de page simple des pages légales et de /liens.
- * Les liens sont des <a> classiques (rechargement complet), hérités de l'époque de la page « Bientôt ».
+ * Pied de page simple de /liens (la page des bios des réseaux), qui est elle-même une liste de liens : seulement les pages
+ * légales et le contact. Les autres pages ont le pied de page complet (PiedDePage).
  */
 export function PiedDePageLegal() {
   return (

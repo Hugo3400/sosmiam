@@ -1,5 +1,6 @@
 // Ambassadeurs dans le logiciel de gestion : les comptes de l'espace ambassadeur.sosmiam.fr (modèle et règles des
-// points : services/comptes.ts), leurs décisions, leurs candidatures fondateur, le classement et la couverture des villes.
+// points : services/comptes.ts), leurs décisions, le classement et la couverture des villes (candidatures fondateur :
+// fondateurs.ts).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 
@@ -13,7 +14,8 @@ const echeances = (derniereConnexion: Date) => ({
   retireLe: new Date(derniereConnexion.getTime() + RETRAIT).toISOString(),
   effaceLe: new Date(derniereConnexion.getTime() + EFFACEMENT).toISOString(),
 });
-/** Nombre de fondateurs (numéros 1 à 10) */
+/** Ancien nombre de fondateurs pour toute la France : encore lu par services/comptes-espace.ts (session Site) jusqu'à la
+ * candidature par commune, puis à retirer. Les fondateurs par ville sont dans fondateurs.ts. */
 export const FONDATEURS_MAX = 10;
 
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
@@ -34,7 +36,7 @@ export async function listerAmbassadeurs({ statut, palier, recherche, ville }: F
       orderBy: [{ creeLe: "desc" }],
       take: 300,
       select: {
-        id: true, prenom: true, email: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
+        id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
         ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
         _count: { select: { badges: true, demandesLieux: true } },
       },
@@ -54,11 +56,11 @@ export async function lireAmbassadeur(id: number) {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      id: true, prenom: true, email: true, points: true, palier: true, cguVersion: true, creeLe: true, derniereConnexion: true,
+      id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, derniereConnexion: true,
       ambassadeur: true,
       badges: { orderBy: { obtenuLe: "asc" } },
       journalPoints: { orderBy: { creeLe: "desc" }, take: 50 },
-      candidatures: { orderBy: { creeLe: "desc" } },
+      candidatures: { orderBy: { creeLe: "desc" }, include: { zone: { select: { code: true, type: true, nom: true, nomAvecDe: true, places: true } } } },
       demandesLieux: { orderBy: { creeLe: "desc" }, take: 30, select: { id: true, nom: true, ville: true, statut: true, creeLe: true, lieuId: true } },
       missions: { orderBy: { creeLe: "desc" }, take: 30, include: { lieu: { select: { id: true, nom: true, emoji: true } } } },
       messages: { orderBy: { creeLe: "desc" }, take: 30 },
@@ -115,33 +117,6 @@ export async function supprimerCompte(id: number) {
   if (!compte) return null;
   await baseDeDonnees.compte.delete({ where: { id } });
   return compte;
-}
-
-// ─── Candidatures fondateur ───
-
-export async function listerCandidatures(statut: string) {
-  return baseDeDonnees.candidatureFondateur.findMany({
-    where: statut ? { statut } : {},
-    orderBy: { creeLe: statut === "en-attente" ? "asc" : "desc" },
-    take: 100,
-    include: { compte: { select: { id: true, prenom: true, email: true, points: true, palier: true, ambassadeur: { select: { ville: true, quartier: true, statut: true } } } } },
-  });
-}
-
-/** Accepte une candidature : elle reçoit le premier numéro de fondateur libre (1 à 10). Null si impossible. */
-export async function accepterCandidature(id: number, maintenant = new Date()) {
-  const candidature = await baseDeDonnees.candidatureFondateur.findUnique({ where: { id } });
-  if (!candidature || candidature.statut !== "en-attente") return null;
-  const pris = new Set((await baseDeDonnees.candidatureFondateur.findMany({ where: { numero: { not: null } }, select: { numero: true } })).map((c) => c.numero));
-  const numero = Array.from({ length: FONDATEURS_MAX }, (_, i) => i + 1).find((n) => !pris.has(n));
-  if (!numero) return { complet: true as const };
-  await baseDeDonnees.candidatureFondateur.update({ where: { id }, data: { statut: "acceptee", numero, reponduLe: maintenant } });
-  return { complet: false as const, numero, compteId: candidature.compteId };
-}
-
-export async function refuserCandidature(id: number, maintenant = new Date()) {
-  const { count } = await baseDeDonnees.candidatureFondateur.updateMany({ where: { id, statut: "en-attente" }, data: { statut: "refusee", reponduLe: maintenant } });
-  return count > 0;
 }
 
 // ─── Classement, couverture, export ───

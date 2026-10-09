@@ -1,8 +1,12 @@
 // Tous les services du logiciel de gestion, passés d'un bloc à creerApplication (des faux les remplacent dans les tests).
 import {
-  accepterCandidature, deciderAmbassadeur, exporterAmbassadeurs, lireAmbassadeur, lireClassement, lireCouverture,
-  listerAmbassadeurs, listerCandidatures, lirePrenom, modifierAmbassadeur, refuserCandidature, retirerDuProgramme, supprimerCompte,
+  deciderAmbassadeur, exporterAmbassadeurs, lireAmbassadeur, lireClassement, lireCouverture, listerAmbassadeurs, lirePrenom,
+  modifierAmbassadeur, retirerDuProgramme, supprimerCompte,
 } from "./ambassadeurs.ts";
+import {
+  accepterCandidature, chercherCommunesAvecZone, choisirCommuneCandidature, estFondateurDeVille, libererPlaceFondateur,
+  listerCandidatures, listerZonesFondateurs, refuserCandidature,
+} from "./fondateurs.ts";
 import { lireAlertes } from "./alertes.ts";
 import { rechercherPartout } from "./recherche.ts";
 import { lireHistoriqueLieu } from "./historique-lieu.ts";
@@ -55,7 +59,8 @@ export const servicesGestion = {
   lireEtatBoite, synchroniserBoite,
   lireObjectifMois, ecrireObjectifMois,
   listerAmbassadeurs, lireAmbassadeur, deciderAmbassadeur, modifierAmbassadeur, lirePrenom, retirerDuProgramme, supprimerCompte, exporterAmbassadeurs,
-  lireClassement, lireCouverture, listerCandidatures, accepterCandidature, refuserCandidature,
+  lireClassement, lireCouverture, listerCandidatures, accepterCandidature, refuserCandidature, choisirCommuneCandidature, libererPlaceFondateur,
+  estFondateurDeVille, listerZonesFondateurs, chercherCommunesAvecZone,
   listerMissions, creerMission, changerStatutMission, supprimerMission, listerMessages, envoyerMessage, supprimerMessage,
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,

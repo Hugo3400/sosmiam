@@ -2,9 +2,9 @@ import { Outlet } from "react-router";
 
 import type { Route } from "./+types/mise-en-page-ambassadeur";
 import { EnTeteAmbassadeur } from "~/composants/ambassadeur/EnTeteAmbassadeur";
-import { PiedDePageAmbassadeur } from "~/composants/ambassadeur/PiedDePageAmbassadeur";
 import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
+import { PiedDePage } from "~/composants/mise-en-page/PiedDePage";
 import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lireCompteConnecte } from "~/services/session-compte.server";
 
@@ -38,7 +38,7 @@ export default function MiseEnPageAmbassadeur({ loaderData }: Route.ComponentPro
       <main id="contenu" tabIndex={-1} className="flex-1">
         <Outlet />
       </main>
-      <PiedDePageAmbassadeur />
+      <PiedDePage espace="ambassadeur" accroche={"SOS Miam Ambassadeurs : un programme de passionnés, dès 18\u00a0ans."} />
     </div>
   );
 }

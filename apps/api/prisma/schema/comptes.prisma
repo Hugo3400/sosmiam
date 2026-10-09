@@ -16,9 +16,15 @@ model Compte {
   palier                String    @default("curieux") @db.VarChar(20)
   /// Version des conditions d'utilisation acceptées à l'inscription (leur date de mise à jour, AAAA-MM-JJ)
   cguVersion            String    @map("cgu_version") @db.VarChar(10)
-  /// Réinitialisation du mot de passe préparée par l'équipe : empreinte SHA-256 du jeton (valable 24 h, une seule fois)
+  /// Nouveau mot de passe, lien préparé par l'équipe ou demandé par la personne (« Mot de passe oublié ») : empreinte SHA-256
+  /// du jeton (valable 24 h, une seule fois)
   jetonReinitialisation String?   @unique @map("jeton_reinitialisation") @db.VarChar(64)
   jetonExpireLe         DateTime? @map("jeton_expire_le") @db.Timestamptz(0)
+  /// E-mail confirmé par le lien reçu à l'inscription (null : pas encore) ; le logiciel affiche « e-mail vérifié ✓ »
+  emailVerifieLe        DateTime? @map("email_verifie_le") @db.Timestamptz(0)
+  /// Lien de confirmation de l'e-mail : empreinte SHA-256 du jeton (valable 7 jours, une seule fois)
+  jetonVerification     String?   @unique @map("jeton_verification") @db.VarChar(64)
+  jetonVerificationExpireLe DateTime? @map("jeton_verification_expire_le") @db.Timestamptz(0)
   creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe             DateTime  @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
   /// Dernière visite connectée (au plus une écriture par jour)

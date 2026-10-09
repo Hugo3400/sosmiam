@@ -24,7 +24,7 @@ export async function listerComptes({ recherche, role, page }: FiltresComptes) {
       skip: (Math.max(1, page) - 1) * PAR_PAGE,
       take: PAR_PAGE,
       select: {
-        id: true, prenom: true, email: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
+        id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
         ambassadeur: { select: { statut: true, ville: true } },
         _count: { select: { sessions: true } },
       },
@@ -39,7 +39,7 @@ export async function lireCompteGestion(id: number) {
     baseDeDonnees.compte.findUnique({
       where: { id },
       select: {
-        id: true, prenom: true, email: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+        id: true, prenom: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
         ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
         badges: { select: { badge: true, obtenuLe: true }, orderBy: { obtenuLe: "asc" } },
         journalPoints: { select: { points: true, raison: true, detail: true, creeLe: true }, orderBy: { creeLe: "desc" }, take: 20 },
@@ -66,12 +66,12 @@ export async function exporterDonneesCompte(id: number) {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      id: true, email: true, prenom: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+      id: true, email: true, emailVerifieLe: true, prenom: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
       ambassadeur: { select: { statut: true, ville: true, quartier: true, noteEquipe: true, decideLe: true, creeLe: true } },
       sessions: { select: { support: true, creeLe: true, activite: true } },
       badges: { select: { badge: true, obtenuLe: true } },
       journalPoints: { select: { points: true, raison: true, detail: true, creeLe: true }, orderBy: { creeLe: "asc" } },
-      candidatures: { select: { pepites: true, envies: true, reseaux: true, motivation: true, partantRencontre: true, connuPar: true, statut: true, numero: true, creeLe: true, reponduLe: true } },
+      candidatures: { select: { pepites: true, envies: true, reseaux: true, motivation: true, partantRencontre: true, connuPar: true, statut: true, communeCode: true, zoneCode: true, numeroLocal: true, numeroNational: true, creeLe: true, reponduLe: true } },
       demandesLieux: { select: { nom: true, ville: true, adresse: true, description: true, statut: true, creeLe: true } },
       missions: { select: { titre: true, detail: true, echeance: true, statut: true, compteRendu: true, creeLe: true, faiteLe: true } },
       messages: { select: { titre: true, texte: true, creeLe: true } },

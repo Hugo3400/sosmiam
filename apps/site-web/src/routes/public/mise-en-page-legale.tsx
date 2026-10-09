@@ -3,7 +3,7 @@ import { Outlet } from "react-router";
 import { Logo } from "~/composants/interface/Logo";
 import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
-import { PiedDePageLegal } from "~/composants/mise-en-page/PiedDePageLegal";
+import { PiedDePage } from "~/composants/mise-en-page/PiedDePage";
 import { utiliserAncresSansDiese } from "~/hooks/utiliser-ancres-sans-diese";
 
 /**
@@ -30,7 +30,7 @@ export default function MiseEnPageLegale() {
       <main id="contenu" tabIndex={-1} className="flex-1">
         <Outlet />
       </main>
-      <PiedDePageLegal />
+      <PiedDePage />
     </div>
   );
 }

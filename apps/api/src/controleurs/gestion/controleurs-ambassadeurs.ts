@@ -1,5 +1,5 @@
-// Contrôleurs du logiciel de gestion pour les ambassadeurs : comptes, décisions, points, candidatures fondateur,
-// missions et messages. Les règles des points et des badges restent dans services/comptes.ts (passées en `comptes`).
+// Contrôleurs du logiciel de gestion pour les ambassadeurs : comptes, décisions, points, missions et messages
+// (candidatures fondateur : controleurs-fondateurs.ts). Les règles des points et des badges restent dans services/comptes.ts (passées en `comptes`).
 // Journal : seulement des numéros (« compte n° X »), jamais un prénom ni une adresse (il n'est jamais effacé).
 import type { Request, Response } from "express";
 
@@ -91,6 +91,8 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
       const ville = corpsDe(requete).ville === true;
       const prenom = await s.lirePrenom(id(requete));
       if (!prenom) return introuvable(reponse);
+      // Réservé aux fondateurs en place d'une ville, pas d'un département (décidé par Hugo le 9 octobre 2026)
+      if (ville && !(await s.estFondateurDeVille(id(requete)))) return reponse.status(409).json({ ok: false, erreur: "pas-fondateur-de-ville" });
       let palier = "ambassadeur-ville";
       if (ville) await comptes.nommerAmbassadeurVille(id(requete));
       else palier = await comptes.retirerAmbassadeurVille(id(requete));
@@ -132,21 +134,6 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
     }),
     classement: verifier(async (_requete, reponse) => reponse.json(await s.lireClassement())),
     couverture: verifier(async (_requete, reponse) => reponse.json(await s.lireCouverture())),
-
-    candidatures: verifier(async (requete, reponse) => reponse.json(await s.listerCandidatures(lireParametre(requete.query.statut, 12)))),
-    accepterCandidature: verifier(async (requete, reponse) => {
-      const resultat = await s.accepterCandidature(id(requete));
-      if (!resultat) return introuvable(reponse);
-      if (resultat.complet) return reponse.status(409).json({ ok: false, erreur: "fondateurs-complets" });
-      if (comptes) await comptes.donnerBadge(resultat.compteId, "fondateur");
-      await noter(reponse, "Candidature fondateur acceptée", `fondateur n° ${resultat.numero} (compte n° ${resultat.compteId})`);
-      reponse.json({ ok: true, numero: resultat.numero });
-    }),
-    refuserCandidature: verifier(async (requete, reponse) => {
-      if (!(await s.refuserCandidature(id(requete)))) return introuvable(reponse);
-      await noter(reponse, "Candidature fondateur refusée", `candidature n° ${id(requete)}`);
-      reponse.json({ ok: true });
-    }),
 
     missions: verifier(async (requete, reponse) => reponse.json(await s.listerMissions(lireParametre(requete.query.statut, 10)))),
     creerMission: verifier(async (requete, reponse) => {

@@ -37,7 +37,7 @@ sos-miam/
 | `src/composants/legal/` | affichage des pages légales (mentions, confidentialité, cookies, CGU) |
 | `src/composants/liens/` | cartes et icônes de la page `/liens` (site, Discord, TikTok, Instagram) |
 | `src/composants/pro/` | composants de l'espace pro : formulaire « J'inscris mon lieu », carte « tout est gratuit » |
-| `src/composants/ambassadeur/` | espace ambassadeur : en-tête et pied de page du cadre, carte du palier, tuiles et statut de `/espace`, candidature fondateur, propositions de lieux, missions, messages |
+| `src/composants/ambassadeur/` | espace ambassadeur : en-tête du cadre (le pied de page est `mise-en-page/PiedDePage`), carte du palier, tuiles et statut de `/espace`, candidature fondateur, propositions de lieux, missions, messages |
 | `src/composants/compte/` | formulaires du compte : inscription (et refus d'âge), connexion, nouveau mot de passe, profil, changement de mot de passe, suppression, déconnexion, et leurs champs |
 | `src/composants/programme/` | blocs de la page `/programme` : le programme Ambassadeurs expliqué simplement |
 | `src/composants/kit-media/` | visuels du kit média dessinés à leur taille exacte (route `/rendu-kit`, capturés par `scripts/generer-kit-media.sh`, `npm run site:kit-media`) et blocs de la page /espace/kit-media (cartes de téléchargement, bouton Copier, couleurs, polices, règles) |
@@ -46,7 +46,7 @@ sos-miam/
 | `src/services/` | appels à l'API, côté serveur (un fichier par domaine : `lieux.server.ts`, `comptes.server.ts`, `espace-ambassadeur.server.ts`…) ; `session-compte.server.ts` : cookie de session de l'espace ambassadeur ; `mesure.server.ts` signale chaque page vue à l'API (statistiques sans cookie, middleware de `root.tsx`) |
 | `src/hooks/` | hooks React (`utiliser-…`) |
 | `src/types/` | formes des réponses de l'API : lieux publics, compte connecté, missions et messages |
-| `src/contenus/` | textes éditoriaux : étapes, programme Ambassadeurs (`ambassadeurs.ts`, et `programme-ambassadeur.ts` pour `/programme`), kit média (`kit-media.ts`), ce qu'on offre aux lieux, villes et régions du formulaire d'inscription, catégories de lieux, champs du formulaire « J'inscris mon lieu » (`demande-lieu.ts`), liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram). Aucun lieu inventé : l'accueil lit les vrais lieux publiés par l'API |
+| `src/contenus/` | textes éditoriaux : étapes, programme Ambassadeurs (`ambassadeurs.ts`, et `programme-ambassadeur.ts` pour `/programme`), kit média (`kit-media.ts`), ce qu'on offre aux lieux, villes et régions du formulaire d'inscription, catégories de lieux, champs du formulaire « J'inscris mon lieu » (`demande-lieu.ts`), liens publics (`liens-publics.ts` : site, Discord, TikTok, Instagram), tous les liens du pied de page par groupe (`liens-pied-de-page.ts`). Aucun lieu inventé : l'accueil lit les vrais lieux publiés par l'API |
 | `src/contenus/faq/` | questions de la FAQ, un fichier par onglet, l'ordre des onglets (`onglets-faq.ts`) et la forme d'une question (`type-faq.ts`) |
 | `src/contenus/legal/` | pages légales (un fichier par page ; les sections sur l'espace ambassadeur à part : `confidentialite-compte-ambassadeur.ts`, `cgu-ambassadeurs.ts`) et informations de l'éditeur et de l'hébergeur (`informations-legales.ts`) |
 | `src/styles/` | thème Tailwind (couleurs, polices) et styles globaux |
