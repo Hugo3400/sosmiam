@@ -17,6 +17,8 @@ const INACTIVITE_ROLE = 365 * UN_JOUR;
 const INACTIVITE_COMPTE = 730 * UN_JOUR;
 /** Candidature fondateur ou « ambassadeur certifié » refusée : effacée 3 mois après la réponse */
 const MOIS_CANDIDATURE_REFUSEE = 3;
+/** Proposition de modification d'une fiche de lieu : effacée 1 an après la décision de l'équipe (décidé le 9 octobre 2026) */
+const GARDE_SUGGESTION = 365 * UN_JOUR;
 
 /** Nombre de lignes effacées ou vidées par catégorie (rien de personnel : de quoi tenir le journal) */
 export type BilanMenageComptes = {
@@ -24,12 +26,14 @@ export type BilanMenageComptes = {
   /** Candidatures « ambassadeur certifié » refusées depuis plus de 3 mois */
   candidaturesCertification: number;
   liens: number;
+  /** Propositions de modification de fiche décidées depuis plus d'un an */
+  suggestions: number;
 };
 
 /**
  * Efface ce qui a dépassé sa durée de conservation (décision de Hugo du 8 octobre 2026) : sessions, comptes refusés, rôle
  * ambassadeur après 1 an sans visite, compte après 2 ans sans connexion, candidatures refusées (fondateur et certifié),
- * liens de réinitialisation.
+ * liens de réinitialisation et de confirmation d'e-mail périmés, propositions de modification de fiche décidées depuis 1 an.
  */
 export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<BilanMenageComptes> {
   const avant = (duree: number) => new Date(maintenant.getTime() - duree);
@@ -61,6 +65,11 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
     where: { jetonExpireLe: { lt: maintenant } },
     data: { jetonReinitialisation: null, jetonExpireLe: null },
   });
+  const liensVerification = await baseDeDonnees.compte.updateMany({
+    where: { jetonVerificationExpireLe: { lt: maintenant } },
+    data: { jetonVerification: null, jetonVerificationExpireLe: null },
+  });
+  const suggestions = await baseDeDonnees.suggestionLieu.deleteMany({ where: { decideLe: { lt: avant(GARDE_SUGGESTION) } } });
   return {
     sessions: sessions.count,
     comptesRefuses: comptesRefuses.count,
@@ -68,6 +77,7 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
     comptesInactifs: comptesInactifs.count,
     candidatures: candidatures.count,
     candidaturesCertification: candidaturesCertification.count,
-    liens: liens.count,
+    liens: liens.count + liensVerification.count,
+    suggestions: suggestions.count,
   };
 }

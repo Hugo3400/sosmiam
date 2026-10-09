@@ -225,6 +225,7 @@
   - des missions chez les lieux partenaires, confiées par l'équipe ;
   - un kit média pro (visuels pour présenter SOS Miam aux lieux) ;
   - le contact direct avec les lieux, **par la messagerie SOS Miam** (demande depuis l'espace pro, reçue dans « Mes messages »), sans aucune adresse ni aucun numéro montré. Ça arrivera avec l'espace pro.
+- **Titre et rôle** : le titre part avec le rôle d'ambassadeur (retrait par l'équipe ou après 1 an sans visite) ; on peut recandidater en revenant (décidé le 9 octobre 2026).
 - **Pas de liste publique** des ambassadeurs certifiés : seulement le badge sur les fiches des lieux aidés.
 - **Jamais payé par un lieu**, comme tous les ambassadeurs : si un lieu lui offre quelque chose, il l'écrit « Collaboration commerciale ».
 - **Candidature** (validée par Hugo le 9 octobre 2026) :
@@ -237,6 +238,11 @@
   Une candidature refusée est effacée 3 mois après la réponse, comme pour les fondateurs.
 - **Kit média pro**, réservé aux certifiés : une affiche A4 (« Ton lieu sur SOS Miam, c'est gratuit », avec un QR vers « J'inscris mon lieu »), un flyer A6 (recto : ce que SOS Miam apporte à un lieu ; verso : comment s'inscrire, gratuit et sans abonnement), un mot de 30 secondes à dire au comptoir et un mail type avec le lien d'inscription.
 - Base : colonnes `certifie_le`, `profil_certifie` et `structure` sur `ambassadeurs`, et table `candidatures_certification` (migration du 9 octobre 2026).
+
+## Propositions de modification de fiche (décidé le 9 octobre 2026)
+- Un compte connecté propose de corriger une fiche de lieu (nom, adresse, horaires, texte, contact, infos pratiques) : POST /comptes/moi/suggestions, vérifié par validerPropositionLieu (packages/commun). L'équipe est prévenue dans le logiciel, voit avant / maintenant / proposé, accepte tout ou par champ, ou refuse avec une réponse envoyée par mail.
+- Pas de suggestion sans compte. Limites : 10 par 24 h par compte, 3 en attente au plus sur un même lieu.
+- **Conservation : 1 an après la décision de l'équipe** (ménage de nuit) ; si le compte est supprimé avant, la proposition reste sans auteur jusqu'à cette date.
 
 ## Espace ambassadeur (décidé le 8 octobre 2026)
 - **https://ambassadeur.sosmiam.fr**, servi par le site (apps/site-web) : « / » mène à `/programme`, la page publique (et indexée) qui explique le programme ; sur sosmiam.fr, les adresses de l'espace renvoient vers ce sous-domaine. Lancement partout en France : aucune ville n'y est citée comme lieu de lancement.

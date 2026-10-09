@@ -3,10 +3,12 @@ import { useCallback, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
+import { cartesExemples } from "~/contenus/cartes-exemples";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -18,9 +20,17 @@ function decrireProgramme(programme: ProgrammeFidelite | null): string {
   return `${programme.visitesRequises} visites → ${programme.recompense} · ${etat}`;
 }
 
+/** « 4 sections · 11 sur la carte », ou l'invitation à la remplir */
+function decrireCarte(carte: CarteLieu | undefined): string {
+  const nombre = carte?.sections.reduce((somme, s) => somme + s.elements.length, 0) ?? 0;
+  if (!carte || nombre === 0) return "Pas encore de carte : ajoute tes plats et tes boissons.";
+  const sections = carte.sections.length;
+  return `${sections} section${sections > 1 ? "s" : ""} · ${nombre} sur la carte`;
+}
+
 /**
- * « Mon lieu » (gérant) : ce qui se règle une fois pour toutes. La carte de fidélité, les infos pratiques affichées sur la
- * fiche, le kit (QR de vitrine), puis plus tard l'équipe, le SOS du soir et les statistiques.
+ * « Mon lieu » (gérant) : ce qui se règle une fois pour toutes. La carte (plats, boissons, formules), la carte de fidélité,
+ * les infos pratiques affichées sur la fiche, le kit (QR de vitrine), puis plus tard l'équipe, le SOS du soir et les statistiques.
  */
 export default function EcranMonLieu() {
   const router = useRouter();
@@ -58,6 +68,7 @@ export default function EcranMonLieu() {
         </View>
 
         <View className="gap-3">
+          <LigneMonLieu emoji="🍽️" titre="La carte" detail={decrireCarte(cartesExemples[lieuPro.id])} onPress={() => router.push("/pro/carte")} />
           <LigneMonLieu emoji="🎟️" titre="Carte de fidélité" detail={programme === undefined ? "…" : decrireProgramme(programme)} onPress={() => router.push("/pro/fidelite")} />
           <LigneMonLieu emoji="📋" titre="Infos pratiques" detail="Téléphone, animaux, accès, terrasse, paiements… ce qu'on voit sur ta fiche" onPress={() => router.push("/pro/infos")} />
           <LigneMonLieu emoji="🪧" titre="Mon kit" detail="Le QR de ta vitrine, qui ouvre ta fiche" onPress={() => router.push("/pro/kit")} />

@@ -47,8 +47,10 @@ export type SaisieLieu = {
 
 export type Lieu = SaisieLieu & { id: number; creeLe: string; modifieLe: string };
 
-export type ResumeLieu = Pick<Lieu, "id" | "nom" | "type" | "emoji" | "info" | "quartier" | "ville" | "statut" | "couleurs" | "modifieLe"> & {
+export type ResumeLieu = Pick<Lieu, "id" | "nom" | "type" | "emoji" | "info" | "quartier" | "ville" | "statut" | "couleurs" | "modifieLe" | "adresse" | "latitude" | "longitude"> & {
   _count: { publications: number };
+  /** Ce qui manque à la fiche pour être complète (vide : complète), voir POINTS_FICHE */
+  manques: string[];
 };
 
 export const listerLieux = (recherche = "", statut = "") => appeler<ResumeLieu[]>("GET", `/lieux${parametres({ recherche, statut })}`);

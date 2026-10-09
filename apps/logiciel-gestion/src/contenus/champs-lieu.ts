@@ -16,3 +16,17 @@ export const VALEURS_INFOS_PRATIQUES: Record<string, Record<string, string>> = {
 };
 
 export const SOURCES_SUGGESTION: Record<string, string> = { client: "un client", pro: "le lieu lui-même" };
+
+/** Contrôle qualité d'une fiche : les 10 points vérifiés par le serveur (fonctions/lieux/lister-manques-lieu.ts de l'API) */
+export const POINTS_FICHE: Record<string, string> = {
+  categorie: "Catégorie (« Ce que c'est »)",
+  presentation: "Présentation d'au moins 80 caractères",
+  adresse: "Adresse",
+  position: "Position sur la carte",
+  quartier: "Quartier",
+  horaires: "Horaires",
+  creneaux: "Créneaux d'ouverture (pour « ouvert maintenant »)",
+  plat: "Plat signature",
+  contact: "Un contact (téléphone, site ou Instagram)",
+  "infos-pratiques": "Au moins une info pratique",
+};

@@ -62,7 +62,8 @@ async function nettoyerComptes() {
       [bilan.comptesInactifs, "compte(s) effacé(s) : 2 ans sans connexion"],
       [bilan.candidatures, "candidature(s) fondateur refusée(s) depuis plus de 3 mois"],
       [bilan.candidaturesCertification, "candidature(s) d'ambassadeur certifié refusée(s) depuis plus de 3 mois"],
-      [bilan.liens, "lien(s) de réinitialisation expiré(s)"],
+      [bilan.liens, "lien(s) de réinitialisation ou de confirmation d'e-mail expiré(s)"],
+      [bilan.suggestions, "proposition(s) de modification de fiche décidée(s) depuis plus d'un an"],
     ];
     const detail = lignes.filter(([nombre]) => nombre > 0).map(([nombre, quoi]) => `${nombre} ${quoi}`).join(", ");
     if (detail) await noterAction("serveur", "Ménage des comptes", detail);

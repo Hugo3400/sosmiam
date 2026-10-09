@@ -1,13 +1,18 @@
 // Fiches des lieux, saisies dans le logiciel de gestion.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
+import { listerManquesLieu } from "../../fonctions/lieux/lister-manques-lieu.ts";
 import { supprimerFichiersMedias } from "./medias.ts";
 
 /** Ce que le logiciel envoie pour créer ou modifier une fiche (déjà vérifié par le contrôleur) */
 export type LieuSaisi = Omit<Prisma.LieuCreateInput, "publications" | "creeLe" | "modifieLe">;
 
+/**
+ * Les fiches pour la liste du logiciel : de quoi afficher la carte (et la carte géographique), et ce qui manque à
+ * chacune pour être complète (contrôle qualité avant la mise en ligne). Le texte et les infos pratiques ne repartent pas.
+ */
 export async function listerLieux({ recherche, statut }: { recherche: string; statut: string }) {
-  return baseDeDonnees.lieu.findMany({
+  const lieux = await baseDeDonnees.lieu.findMany({
     where: {
       ...(statut ? { statut } : {}),
       ...(recherche
@@ -17,9 +22,17 @@ export async function listerLieux({ recherche, statut }: { recherche: string; st
     orderBy: [{ modifieLe: "desc" }],
     select: {
       id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, statut: true, couleurs: true, modifieLe: true,
+      adresse: true, latitude: true, longitude: true,
+      texte: true, horaires: true, ouverture: true, plat: true, telephone: true, siteWeb: true, instagram: true,
+      animaux: true, accessible: true, terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true,
       _count: { select: { publications: true } },
     },
   });
+  return lieux.map((lieu) => ({
+    id: lieu.id, nom: lieu.nom, type: lieu.type, emoji: lieu.emoji, info: lieu.info, quartier: lieu.quartier, ville: lieu.ville,
+    statut: lieu.statut, couleurs: lieu.couleurs, modifieLe: lieu.modifieLe, adresse: lieu.adresse, latitude: lieu.latitude,
+    longitude: lieu.longitude, _count: lieu._count, manques: listerManquesLieu(lieu),
+  }));
 }
 
 export const lireLieu = (id: number) => baseDeDonnees.lieu.findUnique({ where: { id } });

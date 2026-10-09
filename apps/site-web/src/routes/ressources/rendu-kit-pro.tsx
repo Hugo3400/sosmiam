@@ -1,8 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 
 import type { Route } from "./+types/rendu-kit-pro";
-import { pagesKitPro } from "~/composants/kit-media-pro/dessins-kit-pro";
-import { PageRenduKitPro } from "~/composants/kit-media-pro/PageRenduKitPro";
 import {
   fichiersKitMediaPro, mailType, motComptoir, reglesKitMediaPro, texteAffiche, texteFlyerRecto, texteFlyerVerso, usageKitMediaPro,
   visuelsKitMediaPro, EMAIL_CONTACT_KIT_PRO, LIEN_INSCRIRE_LIEU,
@@ -32,10 +30,13 @@ async function rendreKitPro(demande: string, impression: boolean): Promise<Respo
   if (!visuel || (impression ? !visuel.pdf : !visuel.png)) throw new Response("Visuel inconnu", { status: 404 });
 
   // Chargés ici seulement (et pas en haut du fichier) : la version en ligne n'embarque ni ces fichiers ni leurs copies
-  const [{ default: feuilleStyle }, { default: policeTitre }, { default: policeTexte }] = await Promise.all([
+  // Les dessins aussi (le QR code utilise uqr, une dépendance de développement) : aucun import en haut du fichier
+  const [{ default: feuilleStyle }, { default: policeTitre }, { default: policeTexte }, { pagesKitPro }, { PageRenduKitPro }] = await Promise.all([
     import("~/styles/app.css?url"),
     import("@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url"),
     import("@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url"),
+    import("~/composants/kit-media-pro/dessins-kit-pro"),
+    import("~/composants/kit-media-pro/PageRenduKitPro"),
   ]);
   const page = renderToStaticMarkup(
     <PageRenduKitPro format={visuel.page} impression={impression} feuilleStyle={feuilleStyle} policeTitre={policeTitre} policeTexte={policeTexte}>
