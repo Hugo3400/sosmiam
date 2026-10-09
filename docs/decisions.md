@@ -67,6 +67,27 @@
 - **Comptoir** : seulement **le téléphone de chaque membre** de l'équipe, chacun avec son compte (on sait qui a validé quoi). Pas de tablette partagée.
 - **Plat phare et gamme de prix** : réglés par **le gérant** depuis Ma fiche (le plat phare passe au filtre de mots).
 
+## Construit côté API le 9 octobre 2026, au soir (choix de construction, à confirmer par Hugo)
+- **Vues des fiches** : une vue par visiteur, par lieu et par jour de Paris, reconnue seulement en mémoire (empreinte de l'IP oubliée à minuit) ; seul le compteur du jour est écrit. Plusieurs téléphones derrière la même connexion ne comptent qu'une fois : des chiffres prudents, jamais gonflés.
+- **Statistiques du lieu** (gérant et équipe) : par semaine de Paris, jusqu'à 26 semaines : vues, rescousses, visites validées (offertes comprises), nouveaux clients. Recalculées à chaque lecture : un compte supprimé fait baisser les chiffres passés.
+- **Événements** :
+  - « 3 mois » comptés 92 jours ; « chaque semaine » au même jour et à la même heure de Paris ; 24 h au plus ; sans heure de fin, une date compte comme finie 3 h après son début ;
+  - prix de 0,01 € à 500 €, places de 1 à 500 ;
+  - alcool : la case du lieu, un texte qui en parle (happy hour, « verre »…) ou un bar ; jamais d'open bar ;
+  - visibles seulement pour un lieu publié et vérifié ; un événement suspendu compte toujours dans les 10 à venir.
+- **Avis** :
+  - un avis en relecture **reste visible** (on ne masque jamais un avis tout seul) : l'équipe tranche dans le logiciel ;
+  - raisons de relecture : rafale de notes tranchées, compte de moins de 7 jours, tirage d'1 sur 20 ;
+  - un ambassadeur relit 20 avis à la fois ; un avis sort de sa liste après 3 verdicts ;
+  - pas de +10 pour la photo d'un repas offert ; un avis non vérifié ne rapporte rien, demande un e-mail confirmé et compte dans la moyenne ;
+  - pas de photo tant que l'envoi de photos n'existe pas.
+- **Réservations** :
+  - un lieu réservable est publié, vérifié et a coché « réservable » ;
+  - une réservation honorée donne une visite « payée » (« Venu » se touche avant l'addition) ;
+  - +25 si la demande a été faite pendant un SOS du soir, pour un créneau avant sa fin ;
+  - absences et annulations tardives notées, sans rien d'automatique ;
+  - limites : 20 demandes par heure et par compte.
+
 ## L'app parle au serveur (décidé le 9 octobre 2026 ; socle de l'API construit le 9 octobre)
 - **Adresse : `api.sosmiam.fr`**, un sous-domaine à part, derrière Cloudflare comme le site. On n'y ouvre que ce dont l'app a besoin (comptes, Miam Safe, puis visites, potes…), jamais `/api-gestion` ni `/bot`.
 - **Connexion dès la sortie : e-mail, Apple et Google.** Le compte reste unique (le même que l'espace ambassadeur et l'espace pro). Le serveur vérifie lui-même les jetons d'Apple et de Google. Rappel d'Apple : proposer Google oblige à proposer « Se connecter avec Apple ».

@@ -43,5 +43,5 @@ export type FiltreReservations = {
 };
 
 /** « trop-de-reservations » : à ajouter à ErreurService (packages/commun) avec son message */
-export type ErreurReservation = ErreurService | "trop-de-reservations";
+export type ErreurReservation = ErreurService;
 export type EchecReservation = { ok: false; erreur: ErreurReservation; details?: DetailsErreur; champ?: string };

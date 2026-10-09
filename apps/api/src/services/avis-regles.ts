@@ -44,7 +44,7 @@ export const STATUTS_AVIS_VISIBLES: readonly StatutAvis[] = ["publie", "en-relec
  * avis-ferme (14 jours passés), avis-visite-requise (lieu vérifié : il faut une visite validée), avis-recent (un avis non
  * vérifié par lieu tous les 30 jours), reponse-deja-donnee (une réponse du lieu par avis).
  */
-export type ErreurAvis = ErreurService | "avis-ferme" | "avis-visite-requise" | "avis-recent" | "reponse-deja-donnee";
+export type ErreurAvis = ErreurService;
 export type EchecAvis = { ok: false; erreur: ErreurAvis; details?: DetailsErreur; champ?: string };
 
 /** Ce que partagent les services des avis : données, chiffrement (âge et initiale du nom), tirage au sort, horloge */

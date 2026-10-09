@@ -87,6 +87,56 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Pas avant 18 ans",
     texte: "Cette personne n'a pas encore 18 ans : elle ne peut pas rejoindre l'équipe d'un lieu sur SOS Miam.",
   },
+  "evenement-invalide": {
+    emoji: "📝",
+    titre: "Un détail à revoir",
+    texte: "Un champ de ton événement coince : celui qui est surligné. Pas de gros mot, pas d'open bar, et 3 mois à l'avance au plus.",
+  },
+  "trop-d-evenements": {
+    emoji: "🗓️",
+    titre: "Ton agenda déborde",
+    texte: "10 événements à venir, c'est le maximum par lieu. Annules-en un ou attends que le prochain soit passé.",
+  },
+  "evenement-passe": {
+    emoji: "🎬",
+    titre: "C'est déjà fini",
+    texte: "Cet événement est passé : il ne se modifie plus et ne s'annule plus. Le prochain sera encore mieux !",
+  },
+  "evenement-inconnu": {
+    emoji: "🎈",
+    titre: "Événement envolé",
+    texte: "Il a été annulé ou retiré entre-temps. Jette un œil aux autres événements du coin !",
+  },
+  "mineur-alcool": {
+    emoji: "🧃",
+    titre: "Réservé aux 18 ans et plus",
+    texte: "Cet événement tourne autour de l'alcool, alors on te le garde pour plus tard. Plein d'autres sorties t'attendent !",
+  },
+  "avis-ferme": {
+    emoji: "⌛",
+    titre: "Trop tard pour cet avis",
+    texte: "Les avis se donnent dans les 14 jours après ta visite. Repasse les voir : ta prochaine visite t'en ouvre un tout neuf !",
+  },
+  "avis-visite-requise": {
+    emoji: "🧾",
+    titre: "Ici, l'avis se gagne à table",
+    texte: "Ce lieu est vérifié : fais valider ta visite en payant, et ton avis s'ouvre une heure après.",
+  },
+  "avis-recent": {
+    emoji: "📆",
+    titre: "Tu as déjà donné ton avis ici",
+    texte: "Un avis par lieu tous les 30 jours : le prochain sera possible à partir du {date}. Tes papilles ont bonne mémoire !",
+  },
+  "reponse-deja-donnee": {
+    emoji: "💬",
+    titre: "Tu as déjà répondu",
+    texte: "Une réponse par avis, et la tienne est déjà passée. L'équipe SOS Miam la relit, comme toutes les autres.",
+  },
+  "trop-de-reservations": {
+    emoji: "🗓️",
+    titre: "Ton agenda est déjà bien rempli",
+    texte: "Tu as déjà 3 réservations à venir. Profite d'abord de celles-là, ou annules-en une, puis reviens en faire une autre.",
+  },
   "hors-ligne": {
     emoji: "📶",
     titre: "Pas de réseau ici",
