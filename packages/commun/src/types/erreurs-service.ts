@@ -42,6 +42,7 @@ export type ErreurService =
   | "pas-de-recompense"
   | "programme-invalide"
   | "reglement-invalide"
+  | "infos-invalides"
   | "avis-pas-ouvert"
   | "avis-deja-donne"
   | "avis-invalide"

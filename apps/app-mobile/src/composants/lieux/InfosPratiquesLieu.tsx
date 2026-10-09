@@ -3,11 +3,15 @@ import type { ComponentProps } from "react";
 import { Linking, Pressable, Text, View } from "react-native";
 
 import { LIBELLES_ANIMAUX, LIBELLES_PAIEMENT, LIBELLES_RESERVATION } from "@sos-miam/commun/contenus/libelles-infos-pratiques";
-import type { Lieu } from "@sos-miam/commun/types/lieu";
+import type { InfosPratiques } from "@sos-miam/commun/types/infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
-type Props = { lieu: Lieu };
+type Props = {
+  /** Le nom du lieu, lu par VoiceOver sur les boutons (« Appeler Chez Nonna Lia ») */
+  nom: string;
+  pratique: InfosPratiques | null | undefined;
+};
 
 type Contact = { cle: string; icone: ComponentProps<typeof Ionicons>["name"]; texte: string; lu: string; adresse: string };
 
@@ -19,8 +23,8 @@ const listerAvecEt = (mots: string[]) => (mots.length <= 1 ? mots.join("") : `${
  * faut savoir avant de venir (animaux, accès en fauteuil, terrasse, Wi-Fi, enfants, parking, réservation, paiements).
  * Une info inconnue n'est jamais affichée ; sans aucune info, le bloc ne s'affiche pas.
  */
-export function InfosPratiquesLieu({ lieu }: Props) {
-  const p = lieu.pratique;
+export function InfosPratiquesLieu({ nom, pratique }: Props) {
+  const p = pratique;
   if (!p) return null;
 
   const contacts: Contact[] = [];
@@ -29,13 +33,13 @@ export function InfosPratiquesLieu({ lieu }: Props) {
       cle: "tel",
       icone: "call",
       texte: p.telephone,
-      lu: `Appeler ${lieu.nom}, ${p.telephone}`,
+      lu: `Appeler ${nom}, ${p.telephone}`,
       adresse: `tel:${p.telephone.replace(/[^\d+]/g, "")}`,
     });
   }
-  if (p.siteWeb) contacts.push({ cle: "site", icone: "globe-outline", texte: "Site", lu: `Ouvrir le site de ${lieu.nom}`, adresse: p.siteWeb });
+  if (p.siteWeb) contacts.push({ cle: "site", icone: "globe-outline", texte: "Site", lu: `Ouvrir le site de ${nom}`, adresse: p.siteWeb });
   if (p.instagram) {
-    contacts.push({ cle: "insta", icone: "logo-instagram", texte: "Instagram", lu: `Ouvrir l'Instagram de ${lieu.nom}`, adresse: `https://instagram.com/${p.instagram}` });
+    contacts.push({ cle: "insta", icone: "logo-instagram", texte: "Instagram", lu: `Ouvrir l'Instagram de ${nom}`, adresse: `https://instagram.com/${p.instagram}` });
   }
 
   const faits: { emoji: string; texte: string }[] = [];

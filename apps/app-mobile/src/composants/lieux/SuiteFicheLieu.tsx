@@ -89,7 +89,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
         ))}
       </View>
 
-      <InfosPratiquesLieu lieu={lieu} />
+      <InfosPratiquesLieu nom={lieu.nom} pratique={lieu.pratique} />
 
       <ApercuCarte lieu={lieu} age={age} />
 

@@ -44,6 +44,8 @@ export type ValidationRecente = {
 export type EtatComptoir = {
   lieu: LieuResume;
   validationActive: boolean;
+  /** Le code du QR de vitrine (kit) : il ouvre la fiche du lieu, il ne valide jamais une visite */
+  codePublic: string;
   qr: QrAffiche | null;
   demandes: DemandeComptoir[];
   /** Réservations acceptées du jour (arrivées) */

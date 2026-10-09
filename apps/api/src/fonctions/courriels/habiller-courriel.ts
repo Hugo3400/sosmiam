@@ -2,9 +2,17 @@ import { echapperHtml } from "./echapper-html.ts";
 
 const POLICE = "font-family:Inter,Arial,Helvetica,sans-serif";
 
+/** Dans un paragraphe déjà échappé : retours à la ligne gardés, adresses https:// cliquables (sans la ponctuation qui
+ * les suit : « https://sosmiam.fr. » garde son point hors du lien). */
+const enrichir = (html: string) =>
+  html
+    .replace(/https:\/\/[^\s<]+?(?=[.,;:!?)\]]*(?:\s|<|$))/g, (adresse) => `<a href="${adresse}" style="color:#1A1A1A;font-weight:700">${adresse}</a>`)
+    .replace(/\n/g, "<br>");
+
 export type ContenuCourriel = {
-  titre: string;
-  /** Paragraphes en texte simple (échappés ici) */
+  /** Grand titre en haut du mail ; sans titre (mail écrit à la main), le texte commence tout de suite */
+  titre?: string;
+  /** Paragraphes en texte simple (échappés ici) : un retour à la ligne y est gardé, une adresse https:// devient un lien */
   paragraphes: string[];
   bouton?: { texte: string; adresse: string };
   /** Petite ligne du bas : pourquoi la personne reçoit ce mail */
@@ -17,25 +25,24 @@ export type ContenuCourriel = {
  */
 export function habillerCourriel({ titre, paragraphes, bouton, pied }: ContenuCourriel): { html: string; texte: string } {
   const corps = paragraphes
-    .map((p) => `<p style="${POLICE};font-size:16px;line-height:1.6;color:#1A1A1A;margin:0 0 16px">${echapperHtml(p)}</p>`)
+    .map((p) => `<p style="${POLICE};font-size:16px;line-height:1.6;color:#1A1A1A;margin:0 0 16px">${enrichir(echapperHtml(p))}</p>`)
     .join("\n");
   const lienBouton = bouton
     ? `<p style="margin:8px 0 20px"><a href="${echapperHtml(bouton.adresse)}" style="${POLICE};display:inline-block;background:#FFD60A;color:#1A1A1A;font-weight:800;font-size:16px;text-decoration:none;padding:12px 22px;border:2px solid #1A1A1A;border-radius:999px">${echapperHtml(bouton.texte)}</a></p>`
     : "";
   const html = `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${echapperHtml(titre)}</title></head>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${echapperHtml(titre ?? "SOS Miam")}</title></head>
 <body style="margin:0;padding:0;background:#FFF8E7">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8E7"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;border:2px solid #1A1A1A;border-radius:20px">
 <tr><td style="background:#FFD60A;border-radius:18px 18px 0 0;padding:20px 28px;${POLICE};font-size:22px;font-weight:800;color:#1A1A1A">🛟 SOS Miam</td></tr>
 <tr><td style="padding:28px">
-<h1 style="${POLICE};font-size:26px;line-height:1.15;font-weight:800;color:#1A1A1A;margin:0 0 16px">${echapperHtml(titre)}</h1>
-${corps}
+${titre ? `<h1 style="${POLICE};font-size:26px;line-height:1.15;font-weight:800;color:#1A1A1A;margin:0 0 16px">${echapperHtml(titre)}</h1>\n` : ""}${corps}
 ${lienBouton}
 </td></tr>
 <tr><td style="padding:20px 28px;border-top:1px solid #EDE6D3;${POLICE};font-size:13px;line-height:1.5;color:#5C5A55">${echapperHtml(pied)}</td></tr>
 </table></td></tr></table>
 </body></html>`;
-  const texte = [titre, "", ...paragraphes.flatMap((p) => [p, ""]), ...(bouton ? [`${bouton.texte} : ${bouton.adresse}`, ""] : []), "—", pied].join("\n");
+  const texte = [...(titre ? [titre, ""] : []), ...paragraphes.flatMap((p) => [p, ""]), ...(bouton ? [`${bouton.texte} : ${bouton.adresse}`, ""] : []), "—", pied].join("\n");
   return { html, texte };
 }

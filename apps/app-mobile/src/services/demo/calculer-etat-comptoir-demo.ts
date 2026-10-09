@@ -77,6 +77,7 @@ export function calculerEtatComptoirDemo(m: Readonly<MagasinDemo>, lieu: Lieu, m
   return {
     lieu: resumerLieu(lieu),
     validationActive: validationLieuxExemples[lieu.id]?.validationActive ?? false,
+    codePublic: validationLieuxExemples[lieu.id]?.codePublic ?? "",
     qr: presentation ? construireQrDemo(presentation, maintenantMs) : null,
     // Les plus anciennes d'abord : c'est l'ordre du passage en caisse
     demandes: [...additions, ...recompenses].sort((a, b) => a.depuis.localeCompare(b.depuis)),
