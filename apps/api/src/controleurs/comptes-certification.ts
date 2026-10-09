@@ -5,16 +5,17 @@ import type { Request, Response } from "express";
 
 import { decrireCommune } from "../fonctions/geo/decrire-commune.ts";
 import { lireCodeCommune } from "../fonctions/geo/lire-code-commune.ts";
-import {
-  ENVIES_CERTIFICATION, PROFILS_CERTIFIES, type CandidatureCertificationBrute, type NouvelleCandidatureCertification,
-} from "../services/certification.ts";
+import type { CandidatureCertificationBrute, NouvelleCandidatureCertification, ProfilCertifie } from "../services/certification.ts";
 import { estRobot, lireCompteId, lireCorps, lireLigneFacultative } from "./comptes-champs.ts";
 import type { ServicesComptes } from "./comptes.ts";
 import { ChampInvalide, lireChoix, lireListe } from "./gestion/lire-champs.ts";
 
 /** « Comment tu aides déjà les lieux » : 600 caractères au plus */
 const AIDE_MAX = 600;
-const ENVIES: readonly string[] = ENVIES_CERTIFICATION;
+/** « Tu es plutôt… » : un ambassadeur qui aime aider les lieux, un pro ou une structure (asso, mairie…) */
+const PROFILS_CERTIFIES: readonly ProfilCertifie[] = ["ambassadeur", "pro", "structure"];
+/** Ce que la personne aimerait faire : remplir une fiche, faire de belles photos, présenter SOS Miam, aider pendant un BIG SOS */
+const ENVIES: readonly string[] = ["fiche", "photos", "presenter", "big-sos"];
 
 /** Texte libre obligatoire, sauts de ligne gardés (\r\n compté comme un seul), espaces répétés réduits, 1 à 600 caractères. */
 function lireAide(corps: Record<string, unknown>): string {

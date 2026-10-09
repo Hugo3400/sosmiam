@@ -2,8 +2,8 @@
 // des demandes de lieux de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
 // comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées (fondateur et certifié), liens de
 // réinitialisation expirés), les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et
-// l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde tout de suite si la
-// dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
+// l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde
+// tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
 import { effacerReceptionsAnciennes } from "../services/notifications/file-push.ts";

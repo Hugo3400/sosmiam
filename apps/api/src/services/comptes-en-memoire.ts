@@ -1,11 +1,13 @@
 // Comptes en mémoire, pour les tests et l'API de démonstration (essais du site sans toucher à la vraie base) : mêmes
-// règles que les services Prisma (comptes.ts, comptes-espace.ts, zones-fondateurs.ts) ; rien n'est écrit nulle part, tout
+// règles que les services Prisma (comptes.ts, comptes-espace.ts, certification.ts, zones-fondateurs.ts) ; rien n'est écrit nulle part, tout
 // s'efface à l'arrêt. Les mails ne partent pas : ils sont notés dans `envois` (lien compris, pour les essais).
 import type { CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import type { ServicesComptes } from "../controleurs/comptes.ts";
+import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { creerStockageSessionsComptesEnMemoire } from "../middlewares/proteger-comptes.ts";
+import type { NouvelleCandidatureCertification, ProfilCertifie, StatutCandidatureCertification } from "./certification.ts";
 import type { CompteConnecte, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
 import type { NouvelleCandidature, NouvelleProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
@@ -33,12 +35,20 @@ export type CompteEnMemoire = {
   emailVerifieLe: number | null;
   /** Lien de confirmation de l'e-mail en attente (empreinte du jeton) */
   verification: { empreinte: string; expireLe: number } | null;
+  /** Titre d'« ambassadeur certifié » (depuis quand, profil, structure), ou null */
+  certification: { certifieLe: number; profil: ProfilCertifie | null; structure: string | null } | null;
 };
 
 export type CandidatureEnMemoire = NouvelleCandidature & {
   id: number; compteId: number; statut: StatutCandidature; communeCode: string | null; zoneCode: string | null;
   numeroLocal: number | null; numeroNational: number | null; creeLe: number; reponduLe: number | null;
 };
+export type CandidatureCertificationEnMemoire = NouvelleCandidatureCertification & {
+  id: number; compteId: number; statut: StatutCandidatureCertification; creeLe: number; reponduLe: number | null;
+};
+/** Décision de l'équipe sur la certification (logiciel de gestion) : accepter ou refuser la candidature en attente, ou
+ * retirer le titre */
+export type DecisionCertification = "accepter" | "refuser" | "retirer";
 /** Un mail qui serait parti : le type de lien, le compte, le lien lui-même (jeton compris) et son échéance */
 export type EnvoiEnMemoire = { type: "mot-de-passe" | "verification-email"; compteId: number; lien: string; expireLe: Date };
 export type PropositionEnMemoire = NouvelleProposition & { id: number; compteId: number | null; statut: PropositionVue["statut"]; creeLe: number };
@@ -47,17 +57,21 @@ const iso = (moment: number) => new Date(moment).toISOString();
 /** Mêmes durées que services/comptes.ts (ce double n'importe rien qui touche à la base) : 24 heures et 7 jours */
 const DUREE_REINITIALISATION = 24 * 3600_000;
 const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
+/** Comme services/menage-comptes.ts : candidature refusée effacée 3 mois après la réponse */
+const MOIS_CANDIDATURE_REFUSEE = 3;
 
 export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const comptes = new Map<number, CompteEnMemoire>();
   const candidatures: CandidatureEnMemoire[] = [];
+  const candidaturesCertification: CandidatureCertificationEnMemoire[] = [];
   const propositions: PropositionEnMemoire[] = [];
   const envois: EnvoiEnMemoire[] = [];
   const sessions = creerStockageSessionsComptesEnMemoire(comptes);
   const zones = creerZonesEnMemoire(() => candidatures);
-  const compteurs = { comptes: 0, candidatures: 0, propositions: 0, numeroNational: 0 };
+  const compteurs = { comptes: 0, candidatures: 0, candidaturesCertification: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
   const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
+  const derniereCertification = (compteId: number) => candidaturesCertification.filter((candidature) => candidature.compteId === compteId).at(-1);
   /** Un jeton rendu une fois ; le compte n'en garde que l'empreinte et l'échéance */
   const preparerJeton = (duree: number) => {
     const jeton = creerJeton();
@@ -82,6 +96,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       comptes.set(id, {
         id, email, motDePasse, prenom, points: 0, palier: "curieux", badges: [], cguVersion, creeLe: maintenant, derniereConnexion: maintenant,
         statutAmbassadeur: "en-attente", ville, quartier, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
+        certification: null,
       });
       return id;
     },
@@ -96,7 +111,12 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
         prenom: compte.prenom, email: compte.email, points: compte.points, palier: compte.palier, badges: [...compte.badges], creeLe: iso(compte.creeLe),
         emailVerifie: compte.emailVerifieLe !== null,
         ambassadeur: compte.statutAmbassadeur
-          ? { statut: compte.statutAmbassadeur, ville: compte.ville, quartier: compte.quartier, decideLe: compte.decideLe === null ? null : iso(compte.decideLe) }
+          ? {
+              statut: compte.statutAmbassadeur, ville: compte.ville, quartier: compte.quartier, decideLe: compte.decideLe === null ? null : iso(compte.decideLe),
+              certifie: compte.certification
+                ? { depuis: iso(compte.certification.certifieLe), profil: compte.certification.profil, structure: compte.certification.structure }
+                : null,
+            }
           : null,
       };
       return vu;
@@ -120,6 +140,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       comptes.delete(id);
       await sessions.supprimerDuCompte(id);
       for (let i = candidatures.length - 1; i >= 0; i--) if (candidatures[i]?.compteId === id) candidatures.splice(i, 1);
+      for (let i = candidaturesCertification.length - 1; i >= 0; i--) if (candidaturesCertification[i]?.compteId === id) candidaturesCertification.splice(i, 1);
       for (const proposition of propositions) if (proposition.compteId === id) proposition.compteId = null;
     },
     async trouverCompteParJeton(empreinteJeton, maintenant) {
@@ -183,6 +204,20 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     async creerProposition(compteId, proposition) {
       propositions.push({ ...proposition, id: ++compteurs.propositions, compteId, statut: "a-traiter", creeLe: horloge() });
     },
+    async lireCandidatureCertification(compteId) {
+      const derniere = derniereCertification(compteId);
+      if (!derniere) return null;
+      const { statut, profil, structure, communeCode, envies } = derniere;
+      return { statut, profil, structure, communeCode, envies: [...envies], creeLe: iso(derniere.creeLe), reponduLe: derniere.reponduLe === null ? null : iso(derniere.reponduLe) };
+    },
+    async creerCandidatureCertification(compteId, candidature) {
+      if (comptes.get(compteId)?.certification) return "deja-certifie";
+      if (candidaturesCertification.some((c) => c.compteId === compteId && c.statut === "en-attente")) return "candidature-existante";
+      candidaturesCertification.push({
+        ...candidature, envies: [...candidature.envies], id: ++compteurs.candidaturesCertification, compteId, statut: "en-attente", creeLe: horloge(), reponduLe: null,
+      });
+      return "ok";
+    },
   };
 
   return {
@@ -196,6 +231,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     /** Les données elles-mêmes, que les tests et la démonstration peuvent lire ou retoucher */
     comptes,
     candidatures,
+    candidaturesCertification,
     propositions,
     envois,
     /**
@@ -237,6 +273,38 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       }
       Object.assign(candidature, { statut, reponduLe: horloge() });
       return true;
+    },
+    /**
+     * Décision de l'équipe sur la certification, comme le fera le logiciel de gestion : « accepter » ou « refuser » la
+     * dernière candidature si elle est en attente (accepter donne le titre, avec le profil et la structure de la
+     * candidature) ; « retirer » enlève le titre (la candidature acceptée reste). Faux si rien n'a changé.
+     */
+    repondreCertification(compteId: number, decision: DecisionCertification): boolean {
+      const compte = comptes.get(compteId);
+      if (!compte) return false;
+      if (decision === "retirer") {
+        if (!compte.certification) return false;
+        compte.certification = null;
+        return true;
+      }
+      const candidature = derniereCertification(compteId);
+      if (!candidature || candidature.statut !== "en-attente") return false;
+      Object.assign(candidature, { statut: decision === "accepter" ? "acceptee" : "refusee", reponduLe: horloge() });
+      if (decision === "accepter") compte.certification = { certifieLe: horloge(), profil: candidature.profil, structure: candidature.structure };
+      return true;
+    },
+    /** Ménage de nuit (services/menage-comptes.ts) : candidatures certification refusées depuis plus de 3 mois ; renvoie le nombre effacé. */
+    effacerCertificationsRefusees(maintenant = new Date(horloge())): number {
+      const limite = reculerDeMois(maintenant, MOIS_CANDIDATURE_REFUSEE).getTime();
+      let effacees = 0;
+      for (let i = candidaturesCertification.length - 1; i >= 0; i--) {
+        const candidature = candidaturesCertification[i];
+        if (candidature?.statut === "refusee" && candidature.reponduLe !== null && candidature.reponduLe < limite) {
+          candidaturesCertification.splice(i, 1);
+          effacees += 1;
+        }
+      }
+      return effacees;
     },
   };
 }

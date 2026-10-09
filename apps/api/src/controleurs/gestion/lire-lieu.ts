@@ -79,3 +79,18 @@ export function lireLieuSaisi(corps: Record<string, unknown>): LieuSaisi {
     note: lireTexte(corps, "note", 1000),
   };
 }
+
+/** Une fiche valable de départ : les champs acceptés d'une suggestion y sont posés, puis vérifiés comme dans le formulaire */
+const FICHE_DE_DEPART = {
+  nom: "x", type: "resto", emoji: "x", info: "x", texte: "x", quartier: "x", ville: "x", prix: "€", couleurs: ["#FFD60A", "#FF4D3D"],
+  horaires: "x", plat: "x", statut: "brouillon",
+};
+
+/**
+ * Les champs acceptés d'une suggestion, vérifiés avec les mêmes règles que le formulaire de lieu (ChampInvalide sur le
+ * premier qui ne va pas). Seuls ces champs sont vérifiés : une fiche importée incomplète (sans quartier…) n'empêche rien.
+ */
+export function lireChampsSuggeres(proposition: Record<string, unknown>, champs: readonly string[]): Partial<LieuSaisi> {
+  const verifiee = lireLieuSaisi({ ...FICHE_DE_DEPART, ...Object.fromEntries(champs.map((champ) => [champ, proposition[champ]])) });
+  return Object.fromEntries(champs.map((champ) => [champ, verifiee[champ as keyof LieuSaisi]])) as Partial<LieuSaisi>;
+}

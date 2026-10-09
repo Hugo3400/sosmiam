@@ -41,6 +41,28 @@ export async function prevenirAmbassadeurValide(compteId: number) {
   return true;
 }
 
+/** Bienvenue chez les ambassadeurs certifiés (titre accepté dans le logiciel) : ce que le titre apporte, et la règle d'or. */
+export async function prevenirCertifie(compteId: number) {
+  if (!(await envoiPret())) return false;
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  if (!compte) return false;
+  await mettreEnFile("certifie", compte.email, {
+    objet: `Te voilà Ambassadeur certifié ✓, ${compte.prenom} !`,
+    ...habillerCourriel({
+      titre: `Bravo ${compte.prenom}, tu es certifié ✓`,
+      paragraphes: [
+        "On a lu ta candidature et c'est oui : tu fais désormais partie des ambassadeurs certifiés, ceux qui donnent un vrai coup de main aux lieux.",
+        "Ton badge « Ambassadeur certifié ✓ » apparaîtra sur les fiches des lieux que tu aides. L'équipe pourra te confier des missions chez les lieux partenaires, et ton kit média pro t'attend dans ton espace.",
+        "La règle d'or ne change pas : tu n'es jamais payé par un lieu. Si un lieu t'offre quelque chose, écris-le clairement : « Collaboration commerciale ».",
+        "Une question ? Réponds simplement à ce mail, on lit tout.",
+      ],
+      bouton: { texte: "Ouvrir mon espace", adresse: ESPACE_AMBASSADEUR },
+      pied: "Tu reçois ce mail parce que ta candidature d'ambassadeur certifié a été acceptée.",
+    }),
+  });
+  return true;
+}
+
 type Alerte = { type: "alerte-retrait" | "alerte-effacement"; delai: number; seulementAmbassadeurs: boolean };
 
 /** Les comptes arrivés à 30 jours de l'échéance, et pas déjà prévenus dans les 60 derniers jours. */

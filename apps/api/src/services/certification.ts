@@ -5,9 +5,6 @@ import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 
 /** « Tu es plutôt… » : un ambassadeur qui aime aider les lieux, un pro ou une structure (asso, mairie…) */
 export type ProfilCertifie = "ambassadeur" | "pro" | "structure";
-export const PROFILS_CERTIFIES: readonly ProfilCertifie[] = ["ambassadeur", "pro", "structure"];
-/** Ce que la personne aimerait faire : remplir une fiche, faire de belles photos, présenter SOS Miam, aider pendant un BIG SOS */
-export const ENVIES_CERTIFICATION = ["fiche", "photos", "presenter", "big-sos"] as const;
 
 export type StatutCandidatureCertification = "en-attente" | "acceptee" | "refusee";
 
@@ -32,6 +29,7 @@ export type NouvelleCandidatureCertification = {
   communeCode: string;
   /** Comment la personne aide déjà les lieux (600 caractères au plus) */
   aide: string;
+  /** Parmi « fiche », « photos », « presenter », « big-sos » (liste : controleurs/comptes-certification.ts) */
   envies: string[];
   /** Toujours vrai : la case est obligatoire */
   engagementGratuit: true;

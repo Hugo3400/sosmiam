@@ -177,7 +177,7 @@ test("propositions de lieux : mêmes règles que « J'inscris mon lieu », sans 
 test("refusé ou suspendu : il se connecte et voit son statut, rien d'autre ; une décision de l'équipe compte tout de suite, sans déconnecter", async () => {
   const refuse = await creerCompteEtSession("refuse");
   const session = await demander("GET", "/comptes/session", { jeton: refuse.jeton });
-  assert.deepEqual(session.corps.compte?.ambassadeur, { statut: "refuse", ville: "Lyon", quartier: null, decideLe: new Date(horloge).toISOString() });
+  assert.deepEqual(session.corps.compte?.ambassadeur, { statut: "refuse", ville: "Lyon", quartier: null, decideLe: new Date(horloge).toISOString(), certifie: null });
   assert.equal((await demander("GET", "/comptes/moi/propositions", { jeton: refuse.jeton })).statut, 403);
   assert.equal((await demander("PATCH", "/comptes/moi", { corps: { prenom: "Noa" }, jeton: refuse.jeton })).statut, 200);
   const actif = await creerCompteEtSession();
