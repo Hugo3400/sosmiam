@@ -1,55 +1,87 @@
-import { Link } from "react-router";
+import { useEffect, useRef } from "react";
+import { data, Link } from "react-router";
 
 import type { Route } from "./+types/mot-de-passe-oublie";
-import { Bouton } from "~/composants/interface/Bouton";
+import { ChampTexte } from "~/composants/compte/ChampTexte";
+import { FormulaireCompte, type ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
 import { site } from "~/contenus/legal/informations-legales";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { verifierEmail } from "~/fonctions/texte/verifier-email";
+import { decrireAttente, demanderNouveauMotDePasse } from "~/services/comptes.server";
+import { lireIpVisiteur } from "~/services/session-compte.server";
 
-// Le site n'envoie pas encore de mails : l'équipe prépare le lien depuis le logiciel de gestion et l'envoie à la main
-const etapes = [
-  `Écris-nous à ${site.emailContact} depuis l'adresse e-mail de ton compte : c'est comme ça qu'on sait que c'est bien toi.`,
-  "On te répond avec un lien pour choisir un nouveau mot de passe. Il marche pendant 24 heures, et une seule fois.",
-  "Tu ouvres le lien, tu choisis ton nouveau mot de passe, et c'est reparti !",
-];
+const nom = "mot-de-passe-oublie";
+const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
+
+/** La même réponse, que l'adresse ait un compte ou non : personne ne peut s'en servir pour savoir qui est inscrit. */
+const REPONSE_ENVOI = "Si un compte existe avec cette adresse, tu vas recevoir un lien pour choisir un nouveau mot de passe. Il marche 24 heures, une seule fois. Pense à regarder tes indésirables !";
 
 export function meta(_: Route.MetaArgs) {
   return [
-    ...creerMeta({ titre: "Mot de passe oublié", description: "Mot de passe oublié dans l'espace ambassadeur SOS Miam : la marche à suivre." }),
+    ...creerMeta({ titre: "Mot de passe oublié", description: "Mot de passe oublié dans l'espace ambassadeur SOS Miam : reçois un lien pour en choisir un nouveau." }),
     { name: "robots", content: "noindex" },
   ];
 }
 
-/** Page /mot-de-passe-oublie : la marche à suivre, par mail (pas de formulaire tant que le site n'envoie pas de mails). */
-export default function PageMotDePasseOublie() {
-  const sujet = encodeURIComponent("Mot de passe oublié (espace ambassadeur)");
+/** Demande le lien de nouveau mot de passe (l'API ne l'envoie que si le compte existe, et répond pareil sinon). */
+export async function action({ request }: Route.ActionArgs): Promise<ReponseFormulaire> {
+  const formulaire = await request.formData().catch(() => null);
+  if (!formulaire) throw data("Formulaire illisible", { status: 400 });
+  const email = String(formulaire.get("email") ?? "").replace(/\s+/g, "").toLowerCase();
+  const erreurEmail = { ok: false, formulaire: nom, erreurs: { email: "Cette adresse e-mail ne semble pas valide." }, valeurs: { email } };
+  if (!verifierEmail(email) || email.length > 254) return erreurEmail;
+
+  const reponse = await demanderNouveauMotDePasse(email, lireIpVisiteur(request));
+  if (reponse.ok) return { ok: true, formulaire: nom };
+  if (reponse.erreur === "champ-invalide") return erreurEmail;
+  const message = reponse.erreur === "trop-de-demandes"
+    ? `Doucement ! Trop de demandes d'affilée depuis ta connexion : réessaie dans ${decrireAttente(reponse.attente)}.`
+    : `Oups, ta demande n'est pas passée. Réessaie dans un instant, ou écris-nous à ${site.emailContact}.`;
+  return { ok: false, formulaire: nom, message: lierPonctuation(message), valeurs: { email } };
+}
+
+/** Page /mot-de-passe-oublie : « Ton e-mail », puis un lien reçu par mail (24 h, une seule fois). */
+export default function PageMotDePasseOublie({ actionData }: Route.ComponentProps) {
+  const titreReussite = useRef<HTMLHeadingElement>(null);
+  const envoye = actionData?.ok === true;
+  useEffect(() => {
+    if (envoye) titreReussite.current?.focus();
+  }, [envoye]);
+
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation("Pas de panique, ça arrive à tout le monde. Voici comment en choisir un nouveau.")}>
+      <TitreSection principal chapo={lierPonctuation("Pas de panique, ça arrive à tout le monde. Donne-nous ton e-mail : on t'envoie un lien pour en choisir un nouveau.")}>
         {lierPonctuation("Mot de passe oublié ?")}
       </TitreSection>
-      <div className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
-        <Mascotte expression="surprise" className="mb-5 h-20 w-20" />
-        <ol className="grid gap-4 text-lg">
-          {etapes.map((etape, i) => (
-            <li key={etape} className="flex gap-4">
-              <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-encre bg-jaune font-titre font-extrabold">
-                {i + 1}
-              </span>
-              <span className="pt-0.5">{lierPonctuation(etape)}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <Bouton href={`mailto:${site.emailContact}?subject=${sujet}`}>{`Écrire à ${site.emailContact}`}</Bouton>
-          <Link to="/connexion" className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-            Retour à la connexion
-          </Link>
+      {envoye ? (
+        <div className="rounded-carte border-2 border-encre bg-jaune px-6 py-10 text-center shadow-brut-grand md:px-12">
+          <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24" />
+          <h2 ref={titreReussite} tabIndex={-1} className="text-3xl font-extrabold">{lierPonctuation("C'est noté !")}</h2>
+          <p className="mx-auto mt-3 max-w-lg text-lg">{lierPonctuation(REPONSE_ENVOI)}</p>
+          <p className="mx-auto mt-5 max-w-lg">
+            <Link to="/connexion" className={classeLien}>Retour à la connexion</Link>
+          </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <FormulaireCompte
+            nom={nom}
+            bouton="Recevoir le lien"
+            className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10"
+            apres={<Link to="/connexion" className={`text-sm ${classeLien}`}>Retour à la connexion</Link>}
+          >
+            <ChampTexte nom="email" libelle="Ton e-mail" type="email" autoComplete="email" inputMode="email" maximum={254} aide="L'adresse de ton compte." />
+          </FormulaireCompte>
+          <p className="mt-6 text-center text-gris">
+            {lierPonctuation("Rien reçu, même dans tes indésirables ? Écris-nous depuis l'adresse de ton compte à ")}
+            <a href={`mailto:${site.emailContact}`} className={classeLien}>{site.emailContact}</a>.
+          </p>
+        </>
+      )}
     </Section>
   );
 }

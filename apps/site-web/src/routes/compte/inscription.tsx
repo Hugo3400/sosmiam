@@ -25,7 +25,7 @@ const messages = {
   ville: "Indique ta ville (2 à 80 caractères).",
   quartier: "Le quartier fait 80 caractères au plus.",
   cgu: "Pour créer ton compte, coche la case qui accepte les conditions d'utilisation.",
-  emailPris: "Un compte existe déjà avec cette adresse. Connecte-toi, ou écris-nous à bonjour@sosmiam.fr si tu as oublié ton mot de passe.",
+  emailPris: "Un compte existe déjà avec cette adresse. Connecte-toi, ou passe par « Mot de passe oublié ».",
 };
 
 export function meta(_: Route.MetaArgs) {
@@ -41,7 +41,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
-/** Vérifie le formulaire (avec ou sans JavaScript), crée le compte, pose le cookie de session et ouvre l'espace. */
+/**
+ * Vérifie le formulaire (avec ou sans JavaScript), crée le compte (l'API envoie le lien qui confirme l'e-mail), pose le
+ * cookie de session et ouvre l'espace.
+ */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseInscription> {
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
@@ -89,7 +92,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   if (reponse.ok) {
     // Sans session : le champ piège était rempli (un robot), rien n'a été créé
     if (!reponse.session) throw redirect("/connexion");
-    throw redirect("/espace", { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
+    // ?inscription=1 : l'espace dit que le lien qui confirme l'e-mail vient de partir (7 jours)
+    throw redirect("/espace?inscription=1", { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
   }
   // Moins de 18 ans : l'API n'a rien gardé ; la page ne renvoie rien de ce qui a été tapé
   if (reponse.erreur === "age-minimum") return { ok: false, formulaire: "inscription", refusAge: true };

@@ -9,6 +9,7 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { extraireJeton } from "~/fonctions/texte/extraire-jeton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { MESSAGE_OCCUPE, reinitialiserMotDePasse } from "~/services/comptes.server";
 import { effacerCookieSession, lireIpVisiteur } from "~/services/session-compte.server";
@@ -18,7 +19,7 @@ const messages = {
   motDePasse: "Ton mot de passe doit faire au moins 12 caractères (et 128 au plus).",
   // Refusé par l'API : trop facile à deviner (courant, suite, répétition, e-mail), ou que des chiffres et moins de 16
   motDePasseRefuse: "Ce mot de passe est trop facile à deviner (trop courant, une suite, une répétition, ton e-mail…), ou il n'a que des chiffres (il en faut alors 16) : choisis-en un autre. Une petite phrase marche très bien.",
-  jetonInvalide: "Ce lien ne marche plus : il a déjà servi, ou il a plus de 24 heures. Écris-nous à bonjour@sosmiam.fr pour en recevoir un nouveau.",
+  jetonInvalide: "Ce lien ne marche plus : il a déjà servi, ou il a plus de 24 heures. Demandes-en un nouveau sur la page Mot de passe oublié.",
 };
 
 export function meta(_: Route.MetaArgs) {
@@ -34,15 +35,14 @@ export async function action({ request }: Route.ActionArgs) {
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const motDePasse = String(formulaire.get("motDePasse") ?? "");
   // Le code peut être collé seul, ou avec tout le lien
-  const saisie = String(formulaire.get("jeton") ?? "").trim();
-  const jeton = saisie.includes("jeton=") ? saisie.slice(saisie.lastIndexOf("jeton=") + "jeton=".length) : saisie;
+  const jeton = extraireJeton(String(formulaire.get("jeton") ?? ""));
   const nom = "nouveau-mot-de-passe";
 
   const erreurs: Record<string, string> = {};
   const longueur = [...motDePasse.normalize("NFC")].length;
-  if (!/^[\w-]{16,200}$/.test(jeton)) erreurs.jeton = lierPonctuation(messages.jeton);
+  if (!jeton) erreurs.jeton = lierPonctuation(messages.jeton);
   if (longueur < 12 || longueur > 128) erreurs.motDePasse = messages.motDePasse;
-  if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: nom, erreurs } satisfies ReponseFormulaire;
+  if (!jeton || Object.keys(erreurs).length > 0) return { ok: false, formulaire: nom, erreurs } satisfies ReponseFormulaire;
 
   const reponse = await reinitialiserMotDePasse(jeton, motDePasse, lireIpVisiteur(request));
   if (reponse.ok) {
@@ -53,7 +53,7 @@ export async function action({ request }: Route.ActionArgs) {
     return { ok: false, formulaire: nom, erreurs: { [reponse.champ === "jeton" ? "jeton" : "motDePasse"]: lierPonctuation(message) } } satisfies ReponseFormulaire;
   }
   // Lien déjà servi ou trop vieux : l'erreur va sous le champ « Code reçu par mail », qui remplace le bandeau « Ton lien
-  // est bien reconnu » (on peut y coller le nouveau lien envoyé par l'équipe)
+  // est bien reconnu » (on peut y coller le nouveau lien reçu)
   if (reponse.erreur === "jeton-invalide") {
     return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(messages.jetonInvalide) } } satisfies ReponseFormulaire;
   }
@@ -65,7 +65,7 @@ export async function action({ request }: Route.ActionArgs) {
   return { ok: false, formulaire: nom, message: lierPonctuation(message) } satisfies ReponseFormulaire;
 }
 
-/** Page /nouveau-mot-de-passe : ouverte depuis le lien préparé par l'équipe (24 h, une seule fois). */
+/** Page /nouveau-mot-de-passe : ouverte depuis le lien reçu par mail (« Mot de passe oublié » ou l'équipe ; 24 h, une seule fois). */
 export default function PageNouveauMotDePasse({ actionData }: Route.ComponentProps) {
   const titreReussite = useRef<HTMLHeadingElement>(null);
   const reussi = actionData?.ok === true;
