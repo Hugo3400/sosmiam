@@ -13,6 +13,9 @@ type Props = {
   message: string | null;
 };
 
+/** Le formulaire de demande d'un lieu ; nom et ville suivent, pour un lieu en brouillon (sans fiche publique). */
+const adresseLieu = (lieu: LieuTrouve) => `/rattacher/${lieu.id}?${new URLSearchParams({ nom: lieu.nom, ville: lieu.ville })}`;
+
 const classeLien = "font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
 /**
@@ -35,7 +38,7 @@ export function RechercheLieu({ texte, trouves, message }: Props) {
             valeurInitiale={texte}
             decritPar={decrit}
             invalide={Boolean(message)}
-            onChoisir={(lieu) => navigate(`/rattacher/${lieu.id}`)}
+            onChoisir={(lieu) => navigate(adresseLieu(lieu))}
             className="min-w-0 flex-[1_1_14rem]"
           />
           <button
@@ -54,8 +57,11 @@ export function RechercheLieu({ texte, trouves, message }: Props) {
           <ul aria-labelledby="rattacher-trouves" className="grid gap-2">
             {trouves.map((lieu) => (
               <li key={lieu.id}>
-                <Link to={`/rattacher/${lieu.id}`} className={classeLien}>{lieu.nom}</Link>
-                <span className="text-gris">{` (${lieu.ville})`}</span>
+                <span aria-hidden="true">{`${lieu.emoji} `}</span>
+                <Link to={adresseLieu(lieu)} className={classeLien}>{lieu.nom}</Link>
+                <span className="text-gris">{` (${lieu.quartier ? `${lieu.quartier}, ` : ""}${lieu.ville})`}</span>
+                {lieu.statut === "brouillon" && <span className="ml-2 text-sm text-gris">{lierPonctuation("· pas encore publié")}</span>}
+                {lieu.estVerifie && <span className="ml-2 text-sm font-semibold">· Vérifié ✓</span>}
               </li>
             ))}
           </ul>

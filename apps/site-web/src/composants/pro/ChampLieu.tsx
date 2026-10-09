@@ -138,8 +138,10 @@ export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar,
               onMouseMove={() => setActif(position)}
               className={`cursor-pointer px-4 py-2 ${position === actif ? "bg-encre text-jaune forced-colors:outline-3 forced-colors:-outline-offset-3 forced-colors:outline-[Highlight]" : ""}`}
             >
-              <span className="block font-semibold">{lieu.nom}</span>
-              <span className={`block text-sm ${position === actif ? "text-jaune-clair" : "text-gris"}`}>{lieu.ville}</span>
+              <span className="block font-semibold"><span aria-hidden="true">{`${lieu.emoji} `}</span>{lieu.nom}</span>
+              <span className={`block text-sm ${position === actif ? "text-jaune-clair" : "text-gris"}`}>
+                {lieu.quartier ? `${lieu.quartier}, ${lieu.ville}` : lieu.ville}{lieu.statut === "brouillon" ? " · pas encore publié" : ""}
+              </span>
             </li>
           ))}
         </ul>
