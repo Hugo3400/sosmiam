@@ -15,9 +15,10 @@ import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerCommentairesExemples } from "~/contenus/commentaires-exemples";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
-import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples } from "~/contenus/potes-exemples";
+import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples, VERSION_EXEMPLES } from "~/contenus/potes-exemples";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
+import { ajouterNouveauxExemples } from "~/fonctions/communaute/ajouter-nouveaux-exemples";
 import { basculerVote } from "~/fonctions/communaute/basculer-vote";
 import { calculerClassement } from "~/fonctions/communaute/calculer-classement";
 import { chercherParPseudo } from "~/fonctions/communaute/chercher-par-pseudo";
@@ -42,6 +43,7 @@ const creerEtatDemo = (maintenant: Date): CommunauteLocale => ({
   signalements: [],
   moyens: {},
   masques: [],
+  exemples: VERSION_EXEMPLES,
 });
 
 const verifierTexte = (texte: string, max: number): ResultatTexte => {
@@ -69,7 +71,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   useEffect(() => {
     lireCommunauteLocale().then((lue) => {
       charge.current = true;
-      if (lue) setEtat(lue);
+      // Une démo enregistrée avant les derniers exemples les reçoit une fois (sans rien perdre de ce que tu y as changé)
+      if (lue) setEtat(ajouterNouveauxExemples(lue, new Date()));
       setPret(true);
     });
     const enCours = minuteries.current;
@@ -244,8 +247,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
 
-      // Une liste signalée, ou écartée de « À découvrir », disparaît pour toi
-      listes: etat.listes.filter((l) => !signales.has(l.id) && !masques.has(l.id)),
+      // Une liste signalée disparaît pour toi (une liste écartée de « À découvrir » reste sur le profil de son auteur : estMasque)
+      listes: etat.listes.filter((l) => !signales.has(l.id)),
       creerListe: (titre, emoji, description) => {
         const id = creerIdentifiant("liste");
         setEtat((e) => ({ ...e, listes: [...e.listes, { id, titre: titre.trim(), emoji, description: description.trim(), auteur: ID_MOI, lieux: [], abonnes: [] }] }));
@@ -281,6 +284,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       },
       remettreRecommandations: (recommandations) =>
         setEtat((e) => ({ ...e, recommandations: [...e.recommandations, ...recommandations.filter((r) => r.a === ID_MOI && !e.recommandations.some((x) => x.id === r.id))] })),
+      estMasque: (id) => masques.has(id),
       masquer: (id) => setEtat((e) => (e.masques.includes(id) ? e : { ...e, masques: [...e.masques, id] })),
       demasquer: (id) => setEtat((e) => ({ ...e, masques: e.masques.filter((m) => m !== id) })),
 

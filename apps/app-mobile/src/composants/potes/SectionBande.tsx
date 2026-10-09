@@ -12,14 +12,16 @@ const SOUS_TITRE_SUGGESTIONS = "Des potes de tes potes. Suivre, c'est voir passe
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
+  /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
+  onRetire: (texte: string, annuler: () => void) => void;
 };
 
 /** Onglet « Ma bande » : le classement du mois, ce que font tes potes, ta bande et de quoi l'agrandir, puis des potes de potes à suivre. */
-export function SectionBande({ lieux }: Props) {
+export function SectionBande({ lieux, onRetire }: Props) {
   return (
     <View className="gap-8">
       <ClassementPotes />
-      <ActivitePotes lieux={lieux} />
+      <ActivitePotes lieux={lieux} onRetire={onRetire} />
       <RangeeBande />
       <SuggestionsSuivre titre="Tu pourrais suivre" sousTitre={SOUS_TITRE_SUGGESTIONS} types={TYPES_SUGGESTIONS} />
     </View>

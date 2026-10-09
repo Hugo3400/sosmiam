@@ -67,7 +67,8 @@ export function creerCacheCles({ adresse, chercher = fetch as ChercherCles, horl
     async trouverCle(kid: unknown): Promise<JsonWebKey | null> {
       if (typeof kid !== "string" || kid === "" || kid.length > 200) return null;
       const maintenant = horloge();
-      if (maintenant >= expireLe && maintenant - dernierEssai >= 5_000) await recharger();
+      // Un chargement en cours : on l'attend (les demandes simultanées n'en lancent qu'un)
+      if (enCours || (maintenant >= expireLe && maintenant - dernierEssai >= 5_000)) await recharger();
       else if (!cles.has(kid) && maintenant - dernierEssai >= UNE_MINUTE) await recharger();
       if (cles.size === 0) throw new ClesIndisponibles("aucune clé en mémoire");
       return cles.get(kid) ?? null;

@@ -5,6 +5,7 @@ import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixPseudoManquant } from "~/composants/potes/ChoixPseudoManquant";
@@ -15,6 +16,7 @@ import { SectionListes } from "~/composants/potes/SectionListes";
 import { SectionSorties } from "~/composants/potes/SectionSorties";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
@@ -23,7 +25,11 @@ const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
 const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) => o === valeur) ?? null;
 
-/** Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées. Démo pour l'instant. Sans compte, on montre ce qui t'attend. */
+/**
+ * Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées, par
+ * morceaux (« Voir plus »). Ce que tu retires disparaît pour toi seulement, avec « Annuler » en bas. Démo pour l'instant. Sans
+ * compte, on montre ce qui t'attend.
+ */
 export default function Potes() {
   const { profil, invite } = utiliserProfil();
   const { pret, moi, recommandationsRecues, trouverPote } = utiliserCommunaute();
@@ -34,6 +40,7 @@ export default function Potes() {
   const defilement = useRef<ScrollView>(null);
   const hautOnglets = useRef(0);
   const position = useRef(0);
+  const { bandeau, montrer: signalerRetrait, fermer: fermerBandeau } = utiliserBandeauAnnuler();
 
   useEffect(() => {
     const demande = lireOnglet(ongletDemande);
@@ -99,14 +106,15 @@ export default function Potes() {
         <OngletsPotes onglet={onglet} onChoisir={choisir} nouveautes={recues.filter((r) => !r.vue).length} />
         <View className="px-5 pt-5">
           {onglet === "sorties" ? (
-            <SectionSorties recommandations={recues} lieux={lieux} />
+            <SectionSorties recommandations={recues} lieux={lieux} onRetire={signalerRetrait} />
           ) : onglet === "bande" ? (
-            <SectionBande lieux={lieux} />
+            <SectionBande lieux={lieux} onRetire={signalerRetrait} />
           ) : (
-            <SectionListes lieux={lieux} />
+            <SectionListes lieux={lieux} onRetire={signalerRetrait} />
           )}
         </View>
       </ScrollView>
+      <BandeauAnnuler bandeau={bandeau} bas={hauteurBarreOnglets + 12} onFermer={fermerBandeau} />
     </SafeAreaView>
   );
 }

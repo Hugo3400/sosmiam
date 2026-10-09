@@ -21,6 +21,8 @@ export type CommunauteLocale = {
   moyens: Record<string, "lien" | "qr" | "pseudo">;
   /** Ce que tu as retiré de ta vue, pour toi seulement (sorties passées, listes à découvrir, activité de ta bande), par identifiant */
   masques: string[];
+  /** Version des exemples de la démo déjà reçus (absent : 1) ; voir ajouterNouveauxExemples */
+  exemples?: number;
 };
 
 const CLE = "sosmiam.communaute";
@@ -46,6 +48,7 @@ export async function lireCommunauteLocale(): Promise<CommunauteLocale | null> {
       moyens: lu.moyens && typeof lu.moyens === "object" ? lu.moyens : {},
       // Absent d'une communauté enregistrée avant le 9 octobre 2026 : rien de retiré
       masques: listeOuVide(lu.masques).filter((id): id is string => typeof id === "string"),
+      exemples: typeof lu.exemples === "number" ? lu.exemples : 1,
     };
   } catch {
     return null;

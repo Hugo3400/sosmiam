@@ -17,13 +17,21 @@ import couleurs from "~/theme/couleurs";
 /** Ce qu'un pote a partagé avec toi : un lieu envoyé (identifiant de la recommandation) ou une liste, et ce pote */
 export type ContenuPote = { cible: "recommandation" | "liste"; id: string; pote: Pote };
 
+/** Un choix en plus, en tête du menu (« Retirer de « Reçu de tes potes » », « Ne plus suivre cette liste »…) : il agit et ferme */
+export type ActionContenuPote = { cle: string; emoji: string; titre: string; detail: string; agir: () => void };
+
 type Props = {
   /** null : menu fermé */
   contenu: ContenuPote | null;
+  /** Les choix propres à l'endroit où on est, avant ceux de toujours (profil, signaler, bloquer) */
+  actionsEnPlus?: ActionContenuPote[];
   onFermer: () => void;
 };
 
 type Vue = "options" | "signaler-contenu" | "signaler-profil" | "bloquer";
+
+// Toujours la même liste vide : une nouvelle à chaque rendu relancerait sans fin la copie des choix affichés
+const AUCUNE_ACTION: ActionContenuPote[] = [];
 
 const TEXTES = {
   recommandation: {
@@ -41,10 +49,11 @@ const TEXTES = {
 };
 
 /**
- * Le menu « ⋯ » d'un lieu envoyé par un pote ou de sa liste : voir son profil, signaler ce contenu (il disparaît pour toi),
- * signaler son profil, ou le bloquer (tout ce qui vient de lui disparaît alors pour toi). Chaque étape a son retour.
+ * Le menu « ⋯ » d'un lieu envoyé par un pote ou de sa liste : les choix propres à l'endroit (retirer, ne plus suivre…), puis voir
+ * son profil, signaler ce contenu (il disparaît pour toi), signaler son profil, ou le bloquer (tout ce qui vient de lui disparaît
+ * alors pour toi). Chaque étape a son retour.
  */
-export function MenuContenuPote({ contenu, onFermer }: Props) {
+export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
@@ -60,6 +69,8 @@ export function MenuContenuPote({ contenu, onFermer }: Props) {
   // Le contenu affiché reste celui de l'ouverture pendant que la feuille redescend (et quand il disparaît après un signalement)
   const [affiche, setAffiche] = useState<ContenuPote | null>(contenu);
   if (contenu && contenu !== affiche) setAffiche(contenu);
+  const [actionsAffichees, setActionsAffichees] = useState(actionsEnPlus);
+  if (contenu && actionsEnPlus !== actionsAffichees) setActionsAffichees(actionsEnPlus);
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
   const [ouvert, setOuvert] = useState(contenu !== null);
   if ((contenu !== null) !== ouvert) {
@@ -143,6 +154,28 @@ export function MenuContenuPote({ contenu, onFermer }: Props) {
                 <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
                   {textes.titre(pote.prenom)}
                 </Text>
+                {actionsAffichees.map((a) => (
+                  <Pressable
+                    key={a.cle}
+                    accessibilityRole="button"
+                    accessibilityLabel={a.titre}
+                    accessibilityHint={a.detail}
+                    onPress={() => {
+                      vibrerLegerement();
+                      onFermer();
+                      a.agir();
+                    }}
+                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                  >
+                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
+                      {a.emoji}
+                    </Text>
+                    <View className="flex-1">
+                      <Text className="font-texte-gras text-base text-encre">{a.titre}</Text>
+                      <Text className="font-texte text-sm text-gris">{a.detail}</Text>
+                    </View>
+                  </Pressable>
+                ))}
                 {options.map((o) => (
                   <Pressable
                     key={o.cle}

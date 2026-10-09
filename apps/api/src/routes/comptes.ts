@@ -186,17 +186,18 @@ export type DependancesComptes = {
  *   a) jeton refusé → 401 jeton-externe-invalide (identityToken|idToken absent ou vide, nonce mal formé : 400
  *      champ-invalide {champ}) ;
  *   b) compte Apple ou Google (« sub ») déjà lié à un compte → connexion : 200 { ok, session, compte, nouveau: false,
- *      rattache: false } (les champs du profil sont ignorés) ;
+ *      rattache: false } (les champs du profil et cgu sont ignorés : ni b ni c ne demandent cgu) ;
  *   c) sinon, un compte a l'e-mail du jeton (vérifié : toujours chez Apple, adresse « privaterelay » comprise ;
  *      email_verified chez Google) → ce compte Apple ou Google lui est LIÉ, son e-mail compte désormais comme confirmé,
  *      et on se connecte : 200 { ok, session, compte, nouveau: false, rattache: true }. Un compte du site garde sa
  *      situation (pas de date de naissance : majeur). 409 compte-deja-rattache si ce compte est déjà lié à un AUTRE
  *      compte Apple (ou Google) ;
  *   d) sinon, création d'un compte de l'app, avec les mêmes champs et règles que l'inscription « app » : prenom,
- *      dateNaissance, ville obligatoires ; nom?, envies?, pseudo? (cgu : implicite, l'app affiche les conditions sous les
- *      boutons ; la version du jour est gardée). D'abord l'âge : dateNaissance sous 15 ans → 403 age-minimum, rien
- *      n'est gardé. Sans clé de chiffrement : 503 chiffrement-indisponible. Si prenom, dateNaissance ou ville manquent
- *      → 409 { ok: false, erreur: "profil-a-completer", prefill: { email, prenom?, nom? } } (prenom et nom : ceux envoyés,
+ *      dateNaissance, ville et cgu: true obligatoires (comme l'inscription ; la version du jour est gardée) ; nom?,
+ *      envies?, pseudo?. D'abord l'âge : dateNaissance sous 15 ans → 403 age-minimum, rien n'est gardé. Sans clé de
+ *      chiffrement : 503 chiffrement-indisponible. cgu envoyé mais pas true : 400 champ-invalide {champ: cgu}. Si
+ *      prenom, dateNaissance, ville ou cgu manquent → 409 { ok: false, erreur: "profil-a-completer", manque: [ces champs,
+ *      dans cet ordre], prefill: { email, prenom?, nom? } } (prenom et nom : ceux envoyés,
  *      sinon ceux du jeton de Google ; Apple ne donne le nom qu'à la toute première connexion, l'app le renvoie) : l'app
  *      montre « Fais connaissance » et renvoie la même demande, avec le même jeton s'il est encore valable (Apple : 10
  *      minutes ; Google : 1 h), sinon un nouveau. Champ invalide : 400 champ-invalide {champ} ; 409 pseudo-pris. Le

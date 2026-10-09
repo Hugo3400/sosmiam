@@ -74,6 +74,8 @@ export async function exporterDonneesCompte(id: number, chiffrement: Chiffrement
     select: {
       id: true, email: true, emailVerifieLe: true, prenom: true, pseudo: true, ville: true, envies: true, avatar: true, prive: true,
       nomChiffre: true, dateNaissanceChiffree: true,
+      // Connexion avec Apple ou Google : seulement « oui » ou « non », jamais l'identifiant lui-même
+      appleSub: true, googleSub: true,
       points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
       ambassadeur: { select: { statut: true, ville: true, quartier: true, noteEquipe: true, decideLe: true, creeLe: true, certifieLe: true, profilCertifie: true, structure: true } },
       sessions: { select: { support: true, creeLe: true, activite: true } },
@@ -116,6 +118,15 @@ export async function exporterDonneesCompte(id: number, chiffrement: Chiffrement
     select: { type: true, objet: true, statut: true, creeLe: true, envoyeLe: true },
     orderBy: { creeLe: "asc" },
   });
-  const { nomChiffre, dateNaissanceChiffree, ...reste } = compte;
-  return { exporteLe: new Date().toISOString(), compte: { ...reste, ...dechiffrerProfil(chiffrement, { nomChiffre, dateNaissanceChiffree }) }, mailsEnvoyes: mails };
+  const { nomChiffre, dateNaissanceChiffree, appleSub, googleSub, ...reste } = compte;
+  return {
+    exporteLe: new Date().toISOString(),
+    compte: {
+      ...reste,
+      ...dechiffrerProfil(chiffrement, { nomChiffre, dateNaissanceChiffree }),
+      connecteAvecApple: appleSub ? "oui" : "non",
+      connecteAvecGoogle: googleSub ? "oui" : "non",
+    },
+    mailsEnvoyes: mails,
+  };
 }

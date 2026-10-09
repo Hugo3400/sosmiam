@@ -4,6 +4,8 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Recommandation } from "@sos-miam/commun/types/potes";
+import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
+import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { CarteRecommandation } from "~/composants/potes/CarteRecommandation";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
 import { publicationsExemples } from "~/contenus/publications-exemples";
@@ -11,30 +13,44 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserPagination } from "~/hooks/utiliser-pagination";
 
 type Props = {
   /** Lieux reçus, du plus récent au plus ancien, déjà limités à ceux que tu peux voir (sans ceux que tu as signalés) */
   recommandations: Recommandation[];
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
+  /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
+  onRetire: (texte: string, annuler: () => void) => void;
 };
 
-// Au-delà, les plus anciens attendent derrière « Voir les autres »
-const NOMBRE_VISIBLE = 3;
+// Les 3 plus récents d'abord, puis 5 de plus à chaque « Voir plus »
+const PREMIERS = 3;
+const PAR_PAGE = 5;
+const NOM = { un: "lieu", des: "lieux" };
 
-/** Les lieux que tes potes t'ont envoyés : les nouveaux sont mis en avant ; en ouvrir un l'ouvre en fiche et le marque comme vu. */
-export function RecommandationsRecues({ recommandations, lieux }: Props) {
+/**
+ * Les lieux que tes potes t'ont envoyés : les nouveaux sont mis en avant ; en ouvrir un l'ouvre en fiche et le marque comme vu.
+ * Chacun se retire par son « ⋯ » (pour toi seulement), ceux déjà vus d'un coup ; « Annuler » les remet.
+ */
+export function RecommandationsRecues({ recommandations, lieux, onRetire }: Props) {
   const router = useRouter();
-  const { trouverPote, marquerRecommandationVue } = utiliserCommunaute();
+  const { trouverPote, marquerRecommandationVue, retirerRecommandations, remettreRecommandations } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
-  const [tout, setTout] = useState(false);
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
+  // Les lieux déjà vus au moment de demander (le texte de la feuille ne bouge pas pendant qu'elle se referme)
+  const [nettoyage, setNettoyage] = useState<{ ids: string[]; ouvert: boolean }>({ ids: [], ouvert: false });
+  const pages = utiliserPagination(recommandations, PREMIERS, PAR_PAGE);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 
   const nouvelles = recommandations.filter((r) => !r.vue).length;
-  const affichees = tout ? recommandations : recommandations.slice(0, NOMBRE_VISIBLE);
-  const cachees = recommandations.length - affichees.length;
+  const vues = recommandations.filter((r) => r.vue);
+
+  const retirer = (ids: string[], texte: string) => {
+    const retirees = retirerRecommandations(ids);
+    if (retirees.length > 0) onRetire(texte, () => remettreRecommandations(retirees));
+  };
 
   return (
     <View className="gap-3">
@@ -47,7 +63,7 @@ export function RecommandationsRecues({ recommandations, lieux }: Props) {
         </Text>
       </View>
 
-      {affichees.map((r) => {
+      {pages.visibles.map((r) => {
         const de = trouverPote(r.de);
         const lieu = lieux.get(r.lieuId);
         if (!de || !lieu) return null;
@@ -67,22 +83,48 @@ export function RecommandationsRecues({ recommandations, lieux }: Props) {
         );
       })}
 
-      {recommandations.length > NOMBRE_VISIBLE ? (
+      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+
+      {vues.length > 1 ? (
         <Pressable
           accessibilityRole="button"
+          accessibilityHint="Ils disparaissent d'ici, pour toi seulement"
           onPress={() => {
             vibrerLegerement();
-            setTout(!tout);
+            setNettoyage({ ids: vues.map((r) => r.id), ouvert: true });
           }}
           className="min-h-11 items-center justify-center self-center px-4 active:opacity-70"
         >
-          <Text className="font-texte-gras text-[15px] text-encre underline">
-            {tout ? "Voir moins" : `Voir ${cachees > 1 ? `les ${cachees} autres` : "l'autre"}`}
-          </Text>
+          <Text className="font-texte-semi text-[15px] text-gris underline">{`Retirer les ${vues.length} déjà vus`}</Text>
         </Pressable>
       ) : null}
 
-      <MenuContenuPote contenu={menuPour} onFermer={() => setMenuPour(null)} />
+      <MenuContenuPote
+        contenu={menuPour}
+        actionsEnPlus={
+          menuPour
+            ? [{
+                cle: "retirer",
+                emoji: "🧹",
+                titre: "Retirer de « Reçu de tes potes »",
+                detail: `Il disparaît d'ici, pour toi seulement. ${menuPour.pote.prenom} n'en saura rien.`,
+                agir: () => retirer([menuPour.id], "Lieu retiré"),
+              }]
+            : undefined
+        }
+        onFermer={() => setMenuPour(null)}
+      />
+
+      <FeuilleConfirmation
+        visible={nettoyage.ouvert}
+        emoji="🧹"
+        titre={`Retirer les ${nettoyage.ids.length} lieux déjà vus ?`}
+        detail="Ceux que tu as déjà ouverts disparaissent d'ici, pour toi seulement. Les nouveaux restent."
+        libelleConfirmer="Retirer"
+        libelleRester="Je les garde"
+        onConfirmer={() => retirer(nettoyage.ids, `${nettoyage.ids.length} lieux retirés`)}
+        onFermer={() => setNettoyage((n) => ({ ...n, ouvert: false }))}
+      />
     </View>
   );
 }

@@ -20,6 +20,8 @@ type Props = {
   /** L'heure de l'onglet, rafraîchie par la section : la fin du vote et « aujourd'hui » restent justes */
   maintenant: Date;
   onOuvrir: (id: string) => void;
+  /** Le menu « ⋯ » (quitter, retirer de tes sorties), posé à côté de la carte ; sans lui, une simple flèche */
+  onMenu?: () => void;
 };
 
 const TAILLE_ROND = 32;
@@ -48,8 +50,8 @@ const formaterMoment = (iso: string, maintenant: Date) => {
 
 const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
 
-/** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc. */
-export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir }: Props) {
+/** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
+export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu }: Props) {
   const { trouverPote, bloques } = utiliserCommunaute();
   const bloquesIds = new Set(bloques.map((b) => b.id));
 
@@ -92,7 +94,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir }: Pro
     .filter(Boolean)
     .join(". ");
 
-  return (
+  const carte = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={lu}
@@ -118,7 +120,8 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir }: Pro
             {quand}
           </Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
+        {/* Avec un « ⋯ », il prend la place de la flèche */}
+        {onMenu ? <View className="w-8" /> : <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />}
       </View>
 
       <View className="flex-row items-center gap-3">
@@ -157,5 +160,26 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir }: Pro
         ) : null}
       </View>
     </Pressable>
+  );
+
+  if (!onMenu) return carte;
+  return (
+    // Le menu « ⋯ » est posé à côté de la carte (pas dedans) : le lecteur d'écran les lit l'un après l'autre
+    <View className="relative">
+      {carte}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Plus d'options sur la sortie ${sortie.titre}`}
+        accessibilityHint={passee ? "La retirer de tes sorties" : "La quitter"}
+        hitSlop={4}
+        onPress={() => {
+          vibrerLegerement();
+          onMenu();
+        }}
+        className="absolute right-2 top-3 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+      >
+        <Ionicons name="ellipsis-horizontal" size={20} color={couleurs.gris} />
+      </Pressable>
+    </View>
   );
 }

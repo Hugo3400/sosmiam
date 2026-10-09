@@ -90,8 +90,11 @@ export type EtatCommunaute = {
   retirerRecommandations: (ids: string[]) => Recommandation[];
   /** « Annuler » : remet les lieux retirés */
   remettreRecommandations: (recommandations: Recommandation[]) => void;
-  /** Retire de ta vue, pour toi seulement : une sortie passée, une liste à découvrir, une ligne de l'activité de ta bande */
+  /** Retire de ta vue, pour toi seulement : une sortie passée (elle sort de tes sorties), une ligne de l'activité de ta bande (elle
+   * sort de « Quoi de neuf »), une liste de « À découvrir » (elle reste sur le profil de son auteur : voir estMasque) */
   masquer: (id: string) => void;
+  /** Vrai si tu as retiré cet élément de ta vue */
+  estMasque: (id: string) => boolean;
   /** « Annuler » : remet ce qui avait été retiré de ta vue */
   demasquer: (id: string) => void;
 

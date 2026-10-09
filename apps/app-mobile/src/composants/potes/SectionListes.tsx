@@ -6,6 +6,7 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
+import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { CarteListe } from "~/composants/potes/CarteListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
@@ -14,21 +15,28 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
+  /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
+  onRetire: (texte: string, annuler: () => void) => void;
 };
+
+// 5 listes par section, puis 5 de plus à chaque « Voir plus »
+const PAR_PAGE = 5;
+const NOM = { un: "liste", des: "listes", feminin: true };
 
 /**
  * Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
- * profil, signaler, bloquer), et « Nouvelle liste ».
+ * ne plus suivre ou « Pas intéressé », profil, signaler, bloquer), et « Nouvelle liste ». Chaque section par morceaux (« Voir plus »).
  */
-export function SectionListes({ lieux }: Props) {
+export function SectionListes({ lieux, onRetire }: Props) {
   const router = useRouter();
-  const { listes, potes, bloques, trouverPote } = utiliserCommunaute();
+  const { listes, potes, bloques, trouverPote, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   // Abonnements acceptés seulement (déjà sans les personnes bloquées) : leurs listes passent dans « À découvrir »
   const { abonnements } = utiliserSuivisPersonnes();
@@ -45,10 +53,49 @@ export function SectionListes({ lieux }: Props) {
   const aDecouvrir = visibles.filter(
     (l) =>
       l.auteur !== ID_MOI &&
+      // « Pas intéressé » : elle sort d'ici (et reste sur le profil de son auteur)
+      !estMasque(l.id) &&
       !l.abonnes.includes(ID_MOI) &&
       !!voitEnEntier?.(l.auteur) &&
       (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
   );
+
+  const pagesMiennes = utiliserPagination(miennes, PAR_PAGE);
+  const pagesSuivies = utiliserPagination(suivies, PAR_PAGE);
+  const pagesADecouvrir = utiliserPagination(aDecouvrir, PAR_PAGE);
+  const boutonVoirPlus = (pages: ReturnType<typeof utiliserPagination<ListePartagee>>) => (
+    <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+  );
+
+  // Le choix propre à la section : ne plus suivre une liste suivie, ou écarter une liste à découvrir
+  const suivieOuverte = menuPour ? suivies.some((l) => l.id === menuPour.id) : false;
+  const actionsListe = menuPour
+    ? [
+        suivieOuverte
+          ? {
+              cle: "ne-plus-suivre",
+              emoji: "👋",
+              titre: "Ne plus suivre cette liste",
+              detail: `Elle quitte « Celles que tu suis ». ${menuPour.pote.prenom} n'en saura rien.`,
+              agir: () => {
+                const id = menuPour.id;
+                basculerSuiviListe(id);
+                onRetire("Tu ne suis plus cette liste", () => basculerSuiviListe(id));
+              },
+            }
+          : {
+              cle: "pas-interesse",
+              emoji: "🙈",
+              titre: "Pas intéressé",
+              detail: `Elle disparaît de « À découvrir », pour toi seulement. Elle reste sur le profil de ${menuPour.pote.prenom}.`,
+              agir: () => {
+                const id = menuPour.id;
+                masquer(id);
+                onRetire("Liste retirée", () => demasquer(id));
+              },
+            },
+      ]
+    : undefined;
 
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
   const carte = (liste: ListePartagee) => {
@@ -87,8 +134,9 @@ export function SectionListes({ lieux }: Props) {
             </Text>
           </View>
         ) : (
-          miennes.map(carte)
+          pagesMiennes.visibles.map(carte)
         )}
+        {boutonVoirPlus(pagesMiennes)}
         <Bouton libelle="Nouvelle liste" indice="Choisis un emoji et un nom, puis ajoute tes lieux" onPress={() => setCreation(true)} className="mt-2" />
       </View>
 
@@ -101,8 +149,9 @@ export function SectionListes({ lieux }: Props) {
             {lierPonctuation("Tu ne suis aucune liste pour l'instant. Ouvre celle d'un pote et suis-la : elle t'attendra ici.")}
           </Text>
         ) : (
-          suivies.map(carte)
+          pagesSuivies.visibles.map(carte)
         )}
+        {boutonVoirPlus(pagesSuivies)}
       </View>
 
       {aDecouvrir.length > 0 ? (
@@ -113,11 +162,12 @@ export function SectionListes({ lieux }: Props) {
             </Text>
             <Text className="font-texte text-sm text-gris">Les bonnes adresses de ta bande et des gens que tu suis, à piocher sans complexe.</Text>
           </View>
-          {aDecouvrir.map(carte)}
+          {pagesADecouvrir.visibles.map(carte)}
+          {boutonVoirPlus(pagesADecouvrir)}
         </View>
       ) : null}
 
-      <MenuContenuPote contenu={menuPour} onFermer={() => setMenuPour(null)} />
+      <MenuContenuPote contenu={menuPour} actionsEnPlus={actionsListe} onFermer={() => setMenuPour(null)} />
 
       <FeuilleNouvelleListe
         visible={creation}

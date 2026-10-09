@@ -95,11 +95,18 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     const age = dateNaissance === null ? null : calculerAgeProfil(dateNaissance, maintenant);
     if (age !== null && age < AGE_MINIMUM_INSCRIPTION) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
     if (!chiffrement) return repondreChiffrementIndisponible(reponse);
-    if (estAbsent(corps.prenom) || dateNaissance === null || estAbsent(corps.ville)) {
+    // Ce qui manque pour créer le compte (cgu : les conditions acceptées, comme à l'inscription ; une autre valeur que true
+    // est une erreur, pas un manque)
+    if (!estAbsent(corps.cgu) && corps.cgu !== true) throw new ChampInvalide("cgu");
+    const manque = (["prenom", "dateNaissance", "ville", "cgu"] as const).filter((champ) => estAbsent(corps[champ]));
+    if (manque.length > 0) {
       const prenom = lirePrefill(corps.prenom, 40) ?? identite.prenom;
       const nom = lirePrefill(corps.nom, 60) ?? identite.nom;
-      return reponse.status(409).json({ ok: false, erreur: "profil-a-completer", prefill: { email, ...(prenom ? { prenom } : {}), ...(nom ? { nom } : {}) } });
+      return reponse.status(409).json({
+        ok: false, erreur: "profil-a-completer", manque, prefill: { email, ...(prenom ? { prenom } : {}), ...(nom ? { nom } : {}) },
+      });
     }
+    if (dateNaissance === null) throw new ChampInvalide("dateNaissance");
     if (age === null) throw new ChampInvalide("dateNaissance");
     const prenom = lireLigne(corps, "prenom", 1, 40);
     const profil = lireProfilApp(corps, dateNaissance, chiffrement);

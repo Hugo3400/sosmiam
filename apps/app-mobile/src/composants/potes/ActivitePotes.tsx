@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -5,22 +6,31 @@ import { Pressable, Text, View } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ActivitePote, Pote } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
+import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
+import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
 import { RondPote } from "~/composants/potes/RondPote";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
+import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
+  /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
+  onRetire: (texte: string, annuler: () => void) => void;
 };
 
 type Ligne = { activite: ActivitePote; pote: Pote; lieu: Lieu | null };
 
-const NOMBRE_VISIBLE = 5;
+// Les 5 dernières, puis 10 de plus à chaque « Voir plus »
+const PREMIERES = 5;
+const PAR_PAGE = 10;
+const NOM = { un: "nouvelle", des: "nouvelles", feminin: true };
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
 /** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », « le 12 septembre » */
@@ -58,15 +68,16 @@ const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null): { emoji: st
 };
 
 /**
- * Ce que fait ta bande : rescousses, adresses gardées, badges, listes. Toucher un lieu ouvre sa fiche, sinon le profil du pote.
+ * Ce que fait ta bande : rescousses, adresses gardées, badges, listes, par morceaux (« Voir plus »). Toucher un lieu ouvre sa
+ * fiche, sinon le profil du pote ; le « ⋯ » d'une ligne la retire, pour toi seulement (« Annuler » la remet).
  * Seulement les potes dont tu vois le profil en entier : l'activité d'un compte privé ajouté par son pseudo reste cachée.
  */
-export function ActivitePotes({ lieux }: Props) {
+export function ActivitePotes({ lieux, onRetire }: Props) {
   const router = useRouter();
-  const { activites, trouverPote } = utiliserCommunaute();
+  const { activites, trouverPote, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   const voitEnEntier = utiliserVoitEnEntier();
-  const [tout, setTout] = useState(false);
+  const [menuPour, setMenuPour] = useState<Ligne | null>(null);
   const maintenant = Date.now();
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 
@@ -78,7 +89,25 @@ export function ActivitePotes({ lieux }: Props) {
     if ((activite.type === "rescousse" || activite.type === "garde") && !lieu) return [];
     return [{ activite, pote, lieu }];
   });
-  const affichees = tout ? lignes : lignes.slice(0, NOMBRE_VISIBLE);
+  const pages = utiliserPagination(lignes, PREMIERES, PAR_PAGE);
+  const ouvrirProfil = (pote: Pote) => router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
+  const ouvrirLieu = (lieu: Lieu) => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
+
+  const options = (ligne: Ligne | null): OptionMenu[] => {
+    if (!ligne) return [];
+    const { activite, pote, lieu } = ligne;
+    return [
+      ...(lieu ? [{ cle: "lieu", emoji: "📍", titre: `Voir ${lieu.nom}`, agir: () => ouvrirLieu(lieu) }] : []),
+      { cle: "profil", emoji: "👀", titre: `Voir le profil de ${pote.prenom}`, detail: `@${pote.pseudo}`, agir: () => ouvrirProfil(pote) },
+      {
+        cle: "retirer", emoji: "🧹", titre: "Retirer de « Quoi de neuf »", detail: `Pour toi seulement : ${pote.prenom} n'en saura rien`,
+        agir: () => {
+          masquer(activite.id);
+          onRetire("Nouvelle retirée", () => demasquer(activite.id));
+        },
+      },
+    ];
+  };
 
   return (
     <View className="gap-3">
@@ -100,60 +129,68 @@ export function ActivitePotes({ lieux }: Props) {
         </View>
       ) : (
         <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
-          {affichees.map(({ activite, pote, lieu }, i) => {
+          {pages.visibles.map((ligne, i) => {
+            const { activite, pote, lieu } = ligne;
             const { emoji, morceaux } = decrire(activite, lieu);
             const quand = formaterIlYa(activite.date, maintenant);
+            const phrase = `${pote.prenom}${morceaux.map((m) => m.texte).join("")}`;
             return (
-              <Pressable
-                key={activite.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${pote.prenom}${morceaux.map((m) => m.texte).join("")}, ${quand}`}
-                accessibilityHint={lieu ? "Ouvre la fiche du lieu" : `Ouvre le profil de ${pote.prenom}`}
-                onPress={() => {
-                  vibrerLegerement();
-                  if (lieu) router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
-                  else router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
-                }}
-                className={`min-h-16 flex-row items-center gap-3 px-4 py-3 active:opacity-70 ${i > 0 ? "border-t border-ligne" : ""}`}
-              >
-                <View>
-                  <RondPote pote={pote} taille={40} />
-                  <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-creme">
-                    <Text allowFontScaling={false} className="text-[11px]">
-                      {emoji}
-                    </Text>
-                  </View>
-                </View>
-                <View className="flex-1 gap-0.5">
-                  <Text className="font-texte text-[15px] leading-5 text-encre">
-                    <Text className="font-texte-gras">{pote.prenom}</Text>
-                    {morceaux.map((m, j) => (
-                      <Text key={j} className={m.gras ? "font-texte-gras" : undefined}>
-                        {m.texte}
+              // Le « ⋯ » est à côté de la ligne (pas dedans) : le lecteur d'écran les lit l'un après l'autre
+              <View key={activite.id} className={`flex-row items-center ${i > 0 ? "border-t border-ligne" : ""}`}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${phrase}, ${quand}`}
+                  accessibilityHint={lieu ? "Ouvre la fiche du lieu" : `Ouvre le profil de ${pote.prenom}`}
+                  onPress={() => {
+                    vibrerLegerement();
+                    if (lieu) ouvrirLieu(lieu);
+                    else ouvrirProfil(pote);
+                  }}
+                  className="min-h-16 flex-1 flex-row items-center gap-3 py-3 pl-4 active:opacity-70"
+                >
+                  <View>
+                    <RondPote pote={pote} taille={40} />
+                    <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-creme">
+                      <Text allowFontScaling={false} className="text-[11px]">
+                        {emoji}
                       </Text>
-                    ))}
-                  </Text>
-                  <Text className="font-texte text-[13px] text-gris">{quand}</Text>
-                </View>
-                {lieu ? <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, publications)} hauteur={44} arrondi={10} /> : null}
-              </Pressable>
+                    </View>
+                  </View>
+                  <View className="flex-1 gap-0.5">
+                    <Text className="font-texte text-[15px] leading-5 text-encre">
+                      <Text className="font-texte-gras">{pote.prenom}</Text>
+                      {morceaux.map((m, j) => (
+                        <Text key={j} className={m.gras ? "font-texte-gras" : undefined}>
+                          {m.texte}
+                        </Text>
+                      ))}
+                    </Text>
+                    <Text className="font-texte text-[13px] text-gris">{quand}</Text>
+                  </View>
+                  {lieu ? <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, publications)} hauteur={44} arrondi={10} /> : null}
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Plus d'options : ${phrase}`}
+                  accessibilityHint="Voir le profil, ou retirer cette nouvelle"
+                  hitSlop={4}
+                  onPress={() => {
+                    vibrerLegerement();
+                    setMenuPour(ligne);
+                  }}
+                  className="mr-1 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+                >
+                  <Ionicons name="ellipsis-horizontal" size={18} color={couleurs.gris} />
+                </Pressable>
+              </View>
             );
           })}
         </View>
       )}
 
-      {lignes.length > NOMBRE_VISIBLE ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            vibrerLegerement();
-            setTout(!tout);
-          }}
-          className="min-h-11 items-center justify-center self-center px-4 active:opacity-70"
-        >
-          <Text className="font-texte-gras text-[15px] text-encre underline">{tout ? "Voir moins" : "Voir plus"}</Text>
-        </Pressable>
-      ) : null}
+      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} deplie={pages.deplie} nom={NOM} onVoirPlus={pages.voirPlus} onReplier={pages.replier} />
+
+      <MenuOptions visible={menuPour !== null} titre={menuPour ? `Ce qu'a fait ${menuPour.pote.prenom}` : ""} options={options(menuPour)} onFermer={() => setMenuPour(null)} />
     </View>
   );
 }

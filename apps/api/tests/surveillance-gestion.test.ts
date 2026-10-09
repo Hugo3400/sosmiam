@@ -22,7 +22,7 @@ after(() => banc.fermer());
 test("lecture de la surveillance", async () => {
   const reponse = await banc.demander("GET", "/surveillance", { session });
   assert.equal(reponse.status, 200);
-  assert.deepEqual((await reponse.json()).seuils, SEUILS_PAR_DEFAUT);
+  assert.deepEqual(((await reponse.json()) as { seuils: unknown }).seuils, SEUILS_PAR_DEFAUT);
 });
 
 test("seuils : tous obligatoires, entiers et dans leurs bornes ; noté au journal", async () => {
