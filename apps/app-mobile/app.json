@@ -72,7 +72,8 @@
         {
           "microphonePermission": "SOS Miam utilise le micro seulement quand tu enregistres une note vocale pour tes potes."
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true
