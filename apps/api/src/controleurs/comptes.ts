@@ -1,9 +1,11 @@
 // Comptes de l'espace ambassadeur (puis de l'app) : inscription, connexion, session, nouveau mot de passe avec le lien
-// préparé par l'équipe. « Mon compte » : comptes-moi.ts ; candidature et propositions : comptes-espace.ts.
+// reçu par mail. « Mon compte » : comptes-moi.ts ; candidature et propositions : comptes-espace.ts ; « Mot de passe
+// oublié » et confirmation de l'e-mail : comptes-liens.ts.
 // Contrat des adresses : routes/comptes.ts. Jamais d'e-mail, de mot de passe, de jeton ni de date de naissance dans un journal.
 import type { Request, Response } from "express";
 
 import { calculerAgeAParis } from "../fonctions/comptes/calculer-age-a-paris.ts";
+import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
@@ -11,8 +13,13 @@ import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
 import { FORME_JETON, lireJetonSession, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import type { CompteConnecte, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
-import type { CandidatureVue, NouvelleCandidature, NouvelleProposition, PropositionVue } from "../services/comptes-espace.ts";
+import type {
+  CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, PropositionVue, ResultatChangementCommune,
+} from "../services/comptes-espace.ts";
+import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
+import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
+import type { LimiteEnvois } from "./comptes-limite-envois.ts";
 import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -38,11 +45,18 @@ export type ServicesComptes = {
   trouverCompteParJeton: (empreinteJeton: string, maintenant: Date) => Promise<{ id: number; email: string } | null>;
   /** Nouveau mot de passe, seulement si le jeton est toujours le sien et valable (il est effacé en même temps) */
   reinitialiserMotDePasse: (id: number, empreinteJeton: string, empreinte: string, maintenant: Date) => Promise<boolean>;
-  lireCandidature: (compteId: number) => Promise<CandidatureVue | null>;
+  /** Lien de nouveau mot de passe (24 h) : le jeton, rendu une seule fois ; la base n'en garde que l'empreinte */
+  preparerReinitialisation: (compteId: number) => Promise<{ jeton: string; expireLe: Date }>;
+  /** Lien de confirmation de l'e-mail (7 jours) : le jeton, rendu une seule fois ; il remplace le précédent */
+  preparerVerificationEmail: (compteId: number) => Promise<{ jeton: string; expireLe: Date }>;
+  /** E-mail confirmé si ce jeton (par son empreinte) est valable ; il est effacé en même temps */
+  verifierEmail: (empreinteJeton: string, maintenant: Date) => Promise<boolean>;
+  /** Sa dernière candidature fondateur (null s'il n'en a pas) */
+  lireCandidature: (compteId: number) => Promise<CandidatureBrute | null>;
   /** Faux s'il a déjà une candidature en attente ou acceptée */
-  creerCandidature: (compteId: number, candidature: NouvelleCandidature) => Promise<boolean>;
-  /** Places de fondateur encore libres : 10 moins les numéros donnés (jamais moins de 0), recomptées à chaque demande */
-  compterPlacesFondateur: () => Promise<number>;
+  creerCandidature: (compteId: number, candidature: NouvelleCandidature & LieuCandidature) => Promise<boolean>;
+  /** Pose ou change la commune de sa dernière candidature, si elle est encore en attente */
+  changerCommuneCandidature: (compteId: number, lieu: LieuCandidature) => Promise<ResultatChangementCommune>;
   listerPropositions: (compteId: number) => Promise<PropositionVue[]>;
   creerProposition: (compteId: number, proposition: NouvelleProposition) => Promise<void>;
 };
@@ -54,9 +68,17 @@ export type ServicesComptes = {
  */
 export type ContexteComptes = {
   services: ServicesComptes; protection: ProtectionComptes; attente: AttenteParCompte; attenteConnectee: AttenteParCompte; horloge: () => number;
+  /** Zones des fondateurs (candidature) */
+  zones: ServicesZones;
+  /** Envoi des liens par mail, et adresse de l'espace qui sert de base aux liens */
+  courriels: CourrielsComptes; adresseEspace: string;
+  /** Liens envoyés par compte : « Mot de passe oublié », et confirmation de l'e-mail */
+  limiteOubli: LimiteEnvois; limiteVerification: LimiteEnvois;
 };
 
-export function creerControleursComptes({ services, protection, attente, attenteConnectee, horloge }: ContexteComptes) {
+export function creerControleursComptes(contexte: ContexteComptes) {
+  const { services, protection, attente, attenteConnectee, horloge } = contexte;
+  const { envoyerVerification } = creerControleursLiens(contexte);
   // Empreinte d'un mot de passe que personne n'a : vérifier un e-mail inconnu prend autant de temps qu'un vrai compte.
   // Calculée dès le démarrage (le .catch évite un arrêt du serveur pour une promesse rejetée que personne n'attend encore)
   const empreinteFactice = hacherMotDePasse(creerJeton());
@@ -96,6 +118,9 @@ export function creerControleursComptes({ services, protection, attente, attente
       const id = await services.creerCompte({ email, motDePasse: empreinte, prenom, ville, quartier, cguVersion: VERSION_CGU });
       // Impossible à cacher sans envoyer de mail ; la limite d'essais par visiteur freine qui voudrait s'en servir
       if (id === null) return reponse.status(409).json({ ok: false, erreur: "email-deja-utilise" });
+      // Le lien de confirmation de l'e-mail : préparé ici, envoyé sans attendre ; un raté n'empêche pas l'inscription
+      // (la personne peut le redemander depuis son espace)
+      await envoyerVerification(id).catch((erreur: unknown) => console.error("Comptes : lien de confirmation impossible :", resumerErreur(erreur)));
       await ouvrirSessionEtRepondre(reponse, id);
     },
 
@@ -127,8 +152,9 @@ export function creerControleursComptes({ services, protection, attente, attente
     },
 
     /**
-     * POST /comptes/nouveau-mot-de-passe : nouveau mot de passe avec le lien préparé par l'équipe (24 h, usage unique).
-     * Le jeton est effacé et toutes les sessions du compte sont fermées.
+     * POST /comptes/nouveau-mot-de-passe : nouveau mot de passe avec le lien reçu par mail (24 h, usage unique),
+     * préparé par l'équipe ou demandé (« Mot de passe oublié »). Le jeton est effacé et toutes les sessions du compte
+     * sont fermées.
      */
     async choisirNouveauMotDePasse(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);

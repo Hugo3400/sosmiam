@@ -5,6 +5,8 @@ export type ResumeCompte = {
   id: number;
   prenom: string;
   email: string;
+  /** Adresse confirmée par le lien reçu à l'inscription (null : pas encore) */
+  emailVerifieLe: string | null;
   points: number;
   palier: Palier;
   creeLe: string;

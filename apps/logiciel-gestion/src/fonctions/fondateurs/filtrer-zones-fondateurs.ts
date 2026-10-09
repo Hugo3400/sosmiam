@@ -1,4 +1,4 @@
-import { simplifierNom } from "~/fonctions/texte/simplifier-nom.ts";
+import { simplifierNom } from "../texte/simplifier-nom.ts";
 import type { ZoneFondateurs } from "~/services/fondateurs.ts";
 
 export type FiltreZones = "toutes" | "villes" | "departements" | "actives" | "completes";

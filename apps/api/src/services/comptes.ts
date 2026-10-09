@@ -15,8 +15,10 @@ export type PalierCompte = "curieux" | "denicheur" | "ambassadeur-quartier" | "a
 export type RaisonPoints =
   | "visite" | "visite-sos" | "avis-photo" | "proposer-lieu" | "corriger-fiche" | "premier-sauveteur" | "rescousse" | "defi" | "equipe";
 
-/** Durée de validité d'un lien de réinitialisation préparé par l'équipe (24 h au plus : CNIL, OWASP) */
+/** Durée de validité d'un lien de réinitialisation, préparé par l'équipe ou demandé (24 h au plus : CNIL, OWASP) */
 const DUREE_REINITIALISATION = 24 * 3600_000;
+/** Durée de validité du lien qui confirme l'e-mail, envoyé à l'inscription */
+export const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
 
 /**
  * Ajoute (ou retire, si négatif) des points : journal, total et palier changent ensemble. Le total ne descend jamais
@@ -55,7 +57,7 @@ export async function retirerAmbassadeurVille(compteId: number): Promise<PalierC
 }
 
 /**
- * Prépare une réinitialisation du mot de passe (demandée par mail à l'équipe, tant que le site n'envoie pas de mails).
+ * Prépare une réinitialisation du mot de passe (lien préparé par l'équipe, ou « Mot de passe oublié » en libre-service).
  * Renvoie le jeton UNE seule fois, pour le lien https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe#jeton=… (après un « # »,
  * le jeton n'est jamais envoyé au serveur, donc jamais écrit dans les journaux) ; la base n'en garde que l'empreinte,
  * valable 24 h. Un nouveau lien remplace le précédent.
@@ -86,6 +88,8 @@ export type CompteConnecte = {
   palier: PalierCompte;
   badges: string[];
   creeLe: string;
+  /** Adresse confirmée par le lien reçu à l'inscription */
+  emailVerifie: boolean;
   ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null } | null;
 };
 
@@ -130,7 +134,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      prenom: true, email: true, points: true, palier: true, creeLe: true,
+      prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true,
       badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
       ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
     },
@@ -144,6 +148,7 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
     palier: compte.palier as PalierCompte,
     badges: compte.badges.map(({ badge }) => badge),
     creeLe: compte.creeLe.toISOString(),
+    emailVerifie: compte.emailVerifieLe !== null,
     ambassadeur: ambassadeur
       ? {
           statut: ambassadeur.statut as StatutAmbassadeur,
@@ -199,6 +204,33 @@ export async function reinitialiserMotDePasse(id: number, empreinteJeton: string
   const { count } = await baseDeDonnees.compte.updateMany({
     where: { id, jetonReinitialisation: empreinteJeton, jetonExpireLe: { gt: maintenant } },
     data: { motDePasse: empreinte, jetonReinitialisation: null, jetonExpireLe: null },
+  });
+  return count === 1;
+}
+
+/**
+ * Prépare le lien qui confirme l'e-mail (à l'inscription, ou renvoyé à la demande) : jeton de 32 octets rendu UNE fois,
+ * pour https://ambassadeur.sosmiam.fr/verifier-email#jeton=… ; la base n'en garde que l'empreinte, valable 7 jours. Un
+ * nouveau lien remplace le précédent.
+ */
+export async function preparerVerificationEmail(compteId: number): Promise<{ jeton: string; expireLe: Date }> {
+  const jeton = creerJeton();
+  const expireLe = new Date(Date.now() + DUREE_VERIFICATION_EMAIL);
+  await baseDeDonnees.compte.update({
+    where: { id: compteId },
+    data: { jetonVerification: calculerEmpreinteJeton(jeton), jetonVerificationExpireLe: expireLe },
+  });
+  return { jeton, expireLe };
+}
+
+/**
+ * Confirme l'e-mail du compte qui détient ce jeton (par son empreinte), s'il n'a pas expiré : la date est notée et le
+ * jeton effacé dans la même écriture (il ne sert qu'une fois). Faux si le jeton est inconnu, déjà servi ou expiré.
+ */
+export async function verifierEmail(empreinteJeton: string, maintenant: Date): Promise<boolean> {
+  const { count } = await baseDeDonnees.compte.updateMany({
+    where: { jetonVerification: empreinteJeton, jetonVerificationExpireLe: { gt: maintenant } },
+    data: { emailVerifieLe: maintenant, jetonVerification: null, jetonVerificationExpireLe: null },
   });
   return count === 1;
 }

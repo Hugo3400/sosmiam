@@ -17,6 +17,8 @@ export function PointsAmbassadeur({ fiche, onChange }: { fiche: FicheAmbassadeur
   const nombre = Number.parseInt(points, 10);
   const valide = Number.isInteger(nombre) && nombre !== 0 && Math.abs(nombre) <= 10_000 && motif.trim().length > 0;
   const deVille = fiche.palier === "ambassadeur-ville";
+  /** Réservé aux fondateurs en place d'une ville, pas d'un département (décidé par Hugo le 9 octobre 2026) */
+  const villeFondee = fiche.candidatures.find((candidature) => candidature.statut === "acceptee" && candidature.zone?.type === "ville")?.zone ?? null;
 
   async function agir(action: () => Promise<unknown>, reussite: string) {
     setEtat({ enCours: true, texte: null });
@@ -51,8 +53,9 @@ export function PointsAmbassadeur({ fiche, onChange }: { fiche: FicheAmbassadeur
           <Bouton
             petit
             icone={Award}
-            desactive={etat.enCours}
-            onClick={() => (deVille || window.confirm(`Nommer ${fiche.prenom} ambassadeur de ${fiche.ambassadeur?.ville ?? "sa ville"} ? C'est le palier le plus haut, donné seulement à la main.`))
+            desactive={etat.enCours || (!deVille && !villeFondee)}
+            titre={!deVille && !villeFondee ? "Réservé aux fondateurs d'une ville (pas d'un département)" : undefined}
+            onClick={() => (deVille || window.confirm(`Nommer ${fiche.prenom} ambassadeur ${villeFondee?.nomAvecDe ?? "de sa ville"} ? C'est le palier le plus haut, donné seulement à la main, parmi les fondateurs de la ville.`))
               && agir(() => changerPalierVille(fiche.id, !deVille), deVille ? "Rôle d'ambassadeur de ville retiré" : "Nommé ambassadeur de ville 🎖️")}
           >
             {deVille ? "Retirer « ambassadeur de ville »" : "Nommer ambassadeur de ville"}

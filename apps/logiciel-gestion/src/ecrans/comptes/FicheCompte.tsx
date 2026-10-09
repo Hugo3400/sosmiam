@@ -7,6 +7,7 @@ import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx"
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
+import { PastilleEmailVerifie } from "~/composants/interface/PastilleEmailVerifie.tsx";
 import { BADGES, PALIERS, RAISONS_POINTS, STATUTS_AMBASSADEUR } from "~/contenus/ambassadeurs.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
@@ -50,7 +51,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
             {compte.badges.map((b) => <Badge key={b.badge}>{BADGES[b.badge] ?? b.badge}</Badge>)}
           </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
-            <dt className="text-gris">Adresse</dt><dd className="truncate">{compte.email}</dd>
+            <dt className="text-gris">Adresse</dt><dd className="truncate">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></dd>
             <dt className="text-gris">Créé</dt><dd>{formaterDate(compte.creeLe)}</dd>
             <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(compte.derniereConnexion)}</dd>
             <dt className="text-gris">Conditions</dt><dd>version du {compte.cguVersion}</dd>

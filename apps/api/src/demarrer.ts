@@ -6,9 +6,11 @@ import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/anno
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
 import {
   ajouterPoints, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte, nommerAmbassadeurVille,
-  preparerReinitialisation, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
+  preparerReinitialisation, preparerVerificationEmail, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
+  verifierEmail,
 } from "./services/comptes.ts";
-import { compterPlacesFondateur, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
+import { changerCommuneCandidature, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
+import { envoyerLienMotDePasse, envoyerLienVerificationEmail } from "./services/courriels/courriels-comptes.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
 import { traiterNotifications } from "./services/notifications/file-push.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
@@ -23,6 +25,7 @@ import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
 import { stockageSessionsComptes } from "./services/stockage-sessions-comptes.ts";
 import { stockageStats } from "./services/stockage-stats.ts";
+import { listerZones, lireZone, trouverZoneDeCommune } from "./services/zones-fondateurs.ts";
 import { planifierTachesDeNuit } from "./taches/taches-de-nuit.ts";
 import { resumerErreur } from "./fonctions/comptes/resumer-erreur.ts";
 
@@ -30,6 +33,7 @@ const hote = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT) || 5192;
 
 const compteur = creerCompteurVisites(stockageStats);
+const zones = { trouverZoneDeCommune, listerZones, lireZone };
 const vider = () => compteur.vider().catch((erreur: unknown) => console.error("Écriture des statistiques impossible :", erreur));
 const minuteur = setInterval(vider, 30_000);
 // Ménage et sauvegarde chiffrée de la base chaque nuit (pas pendant un essai sur un autre schéma)
@@ -57,11 +61,16 @@ const serveur = creerApplication({
   comptes: {
     services: {
       creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
-      reinitialiserMotDePasse, lireCandidature, creerCandidature, compterPlacesFondateur, listerPropositions, creerProposition,
+      reinitialiserMotDePasse, preparerReinitialisation, preparerVerificationEmail, verifierEmail, lireCandidature, creerCandidature,
+      changerCommuneCandidature, listerPropositions, creerProposition,
     },
     sessions: stockageSessionsComptes,
+    zones,
+    courriels: { envoyerLienMotDePasse, envoyerLienVerificationEmail },
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
+  // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
+  zones,
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

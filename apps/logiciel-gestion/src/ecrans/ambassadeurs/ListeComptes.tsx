@@ -11,6 +11,7 @@ import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
+import { PastilleEmailVerifie } from "~/composants/interface/PastilleEmailVerifie.tsx";
 import { PALIERS, STATUTS_AMBASSADEUR } from "~/contenus/ambassadeurs.ts";
 import { creerLienCourrielGroupe, LONGUEUR_MAX_MAILTO } from "~/fonctions/texte/creer-lien-courriel-groupe.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
@@ -133,7 +134,7 @@ export function ListeComptes({ onOuvrirCompte, tour, onDecision }: Props) {
               <li key={ambassadeur.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ligne/70 px-5 py-3 text-sm last:border-0">
                 <button type="button" onClick={() => onOuvrirCompte(ambassadeur.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate font-semibold hover:underline">{ambassadeur.prenom}</span>
-                  <span className="block truncate text-gris">{ambassadeur.email}</span>
+                  <span className="block truncate text-gris">{ambassadeur.email} · <PastilleEmailVerifie le={ambassadeur.emailVerifieLe} /></span>
                 </button>
                 <span className="w-44 truncate text-gris">{[ambassadeur.ambassadeur?.quartier, ambassadeur.ambassadeur?.ville].filter(Boolean).join(", ") || "—"}</span>
                 <span className="w-48 truncate" title={p?.nom}>{p ? `${p.emoji} ${p.nom}` : ambassadeur.palier}</span>

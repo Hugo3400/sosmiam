@@ -10,6 +10,7 @@ import { creerRoutesBot } from "./routes/bot.ts";
 import { creerRoutesComptes, LIMITE_CONNECTEE, type DependancesComptes } from "./routes/comptes.ts";
 import { creerRoutesDemandesLieux } from "./routes/demandes-lieux.ts";
 import { creerRoutesEspaceAmbassadeur, type DependancesEspaceAmbassadeur } from "./routes/espace-ambassadeur.ts";
+import { creerRoutesFondateurs } from "./routes/fondateurs.ts";
 import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
 import { creerRoutesLieuxPublics } from "./routes/lieux-publics.ts";
 import { creerRoutesLocalisation } from "./routes/localisation.ts";
@@ -21,6 +22,7 @@ import type { NouvelleInscription } from "./services/inscriptions.ts";
 import type { LieuPublic } from "./services/lieux-publics.ts";
 import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
+import type { ServicesZones } from "./services/zones-fondateurs.ts";
 
 type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
@@ -43,6 +45,8 @@ type Dependances = {
   comptes?: DependancesComptes;
   /** « Mes missions » et « Mes messages » de l'espace ambassadeur (routes /espace-ambassadeur, seulement avec `comptes`) */
   espaceAmbassadeur?: DependancesEspaceAmbassadeur;
+  /** Zones des fondateurs : routes publiques /communes et /fondateurs (absentes si non fourni) */
+  zones?: ServicesZones;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -54,7 +58,7 @@ const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
 
 export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, enregistrerDemandeLieu, bot, gestion,
-  comptes, espaceAmbassadeur,
+  comptes, espaceAmbassadeur, zones,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -75,6 +79,8 @@ export function creerApplication({
   if (bot) application.use("/bot", creerRoutesBot(bot));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
   if (enregistrerSignalement) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
+  // Sans session : recherche de commune et places de fondateurs (GET /communes, /fondateurs/zone, /fondateurs/zones)
+  if (zones) application.use(creerRoutesFondateurs(zones));
   if (comptes) {
     // Une seule protection (sessions) et une seule limite « connecté » pour /comptes et /espace-ambassadeur
     const protection = creerProtectionComptes(comptes.sessions, comptes.horloge);

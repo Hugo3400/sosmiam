@@ -6,7 +6,9 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
+import { PastilleEmailVerifie } from "~/composants/interface/PastilleEmailVerifie.tsx";
 import { BADGES, PALIERS, STATUTS_AMBASSADEUR } from "~/contenus/ambassadeurs.ts";
+import { decrireNumerosFondateur } from "~/fonctions/fondateurs/decrire-numeros-fondateur.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
@@ -68,11 +70,11 @@ export function FicheAmbassadeur({ id, onFermer, onChange }: Props) {
                 {etat && <Badge ton={etat.ton}>{etat.libelle}</Badge>}
                 {palier && <Badge ton="jaune">{palier.emoji} {palier.nom}</Badge>}
                 <Badge ton="encre">{formaterNombre(fiche.points)} points</Badge>
-                {fondateur && <Badge ton="encre">🏅 Fondateur n° {fondateur.numero}</Badge>}
+                {fondateur && <Badge ton="encre">🏅 {decrireNumerosFondateur(fondateur) ?? "Fondateur"}</Badge>}
                 {fiche.badges.filter((b) => b.badge !== "fondateur").map((b) => <Badge key={b.id}>{BADGES[b.badge] ?? b.badge}</Badge>)}
               </div>
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
-                <dt className="text-gris">Adresse</dt><dd className="truncate">{fiche.email}</dd>
+                <dt className="text-gris">Adresse</dt><dd className="truncate">{fiche.email} · <PastilleEmailVerifie le={fiche.emailVerifieLe} /></dd>
                 <dt className="text-gris">Inscrit</dt><dd>{formaterDate(fiche.creeLe)}{fiche.ambassadeur?.decideLe && ` · décidé le ${formaterDate(fiche.ambassadeur.decideLe)}`}</dd>
                 <dt className="text-gris">Dernière visite</dt><dd>{formaterDateRelative(fiche.derniereConnexion)} · {fiche._count.sessions} connexion(s) ouverte(s), app comprise</dd>
                 <dt className="text-gris">Sans visite</dt><dd>rôle retiré le {formaterDate(fiche.retireLe)}, compte effacé le {formaterDate(fiche.effaceLe)}</dd>

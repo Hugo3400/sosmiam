@@ -48,6 +48,7 @@ export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "j
 
 /**
  * Fondateurs par ville (décidé le 9 octobre 2026, docs/decisions.md) : en attendant la nouvelle version, aucune
- * candidature n'est acceptée ni refusée ; chacune sera reprise dans la ville (ou le département) de la personne.
+ * candidature n'est acceptée ni refusée ; chacune est rangée dans la ville (ou le département) de la personne. Passe à
+ * false au signal de la session Site (candidature par commune et carte « n° 3 de Lyon · n° 147 en France » en ligne).
  */
 export const FONDATEURS_EN_PREPARATION = true;

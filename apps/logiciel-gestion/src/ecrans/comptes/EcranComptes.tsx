@@ -11,6 +11,7 @@ import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { Pagination } from "~/composants/interface/Pagination.tsx";
 import { TuileChiffre } from "~/composants/interface/TuileChiffre.tsx";
+import { PastilleEmailVerifie } from "~/composants/interface/PastilleEmailVerifie.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { PALIERS, STATUTS_AMBASSADEUR } from "~/contenus/ambassadeurs.ts";
 import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.ts";
@@ -81,7 +82,7 @@ export function EcranComptes({ ouvrir }: { ouvrir?: { id: number } | null }) {
                   <li key={compte.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ligne/70 px-5 py-3 text-sm last:border-0">
                     <button type="button" onClick={() => setOuvert(compte.id)} className="min-w-0 flex-1 text-left">
                       <span className="block truncate font-semibold hover:underline">{compte.prenom} <span className="font-normal text-gris">· n° {compte.id}</span></span>
-                      <span className="block truncate text-gris">{compte.email}</span>
+                      <span className="block truncate text-gris">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></span>
                     </button>
                     <span className="w-44">{role ? <Badge ton={role.ton}>Ambassadeur · {role.libelle}</Badge> : <Badge>Sans rôle</Badge>}</span>
                     <span className="w-44 truncate">{palier ? `${palier.emoji} ${palier.nom}` : compte.palier}</span>

@@ -3,9 +3,12 @@ import { Router, type RequestHandler } from "express";
 import { creerAttenteParCompte } from "../controleurs/comptes-attente.ts";
 import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts";
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
+import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
+import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
+import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
 const DIX_MINUTES = 10 * 60_000;
 /**
@@ -14,11 +17,22 @@ const DIX_MINUTES = 10 * 60_000;
  * Les routes qui vérifient un mot de passe gardent en plus l'attente par compte et la file des calculs.
  */
 export const LIMITE_CONNECTEE = { fenetre: DIX_MINUTES, maximum: 600 };
+/** « Mot de passe oublié » : 5 demandes par visiteur et par heure (en plus de la limite par compte : 1 lien toutes les
+ * 15 minutes, 5 par 24 heures) */
+export const LIMITE_MOT_DE_PASSE_OUBLIE = { fenetre: 60 * 60_000, maximum: 5 };
+/** Confirmation de l'e-mail par le lien reçu : 20 essais par visiteur toutes les 10 minutes */
+export const LIMITE_VERIFIER_EMAIL = { fenetre: DIX_MINUTES, maximum: 20 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
   /** Où garder les sessions (la base en vrai : services/stockage-sessions-comptes.ts) */
   sessions: StockageSessionsComptes;
+  /** Zones des fondateurs, pour la candidature (services/zones-fondateurs.ts, ou la mémoire) */
+  zones: ServicesZones;
+  /** Envoi des liens par mail (services/courriels/courriels-comptes.ts) */
+  courriels: CourrielsComptes;
+  /** Base des liens envoyés par mail (https://ambassadeur.sosmiam.fr ; l'API de démonstration met la sienne) */
+  adresseEspace?: string;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
 };
@@ -27,7 +41,7 @@ export type DependancesComptes = {
  * /comptes/… : comptes de l'espace ambassadeur (ambassadeur.sosmiam.fr), appelés seulement par le serveur du site.
  * JSON ; jeton de session dans l'en-tête X-Session-Compte, IP du visiteur dans X-IP-Visiteur (elle ne sert qu'aux limites).
  * Réponses : { ok: true, … } ou { ok: false, erreur, champ?, attente? }, jamais en cache. `compte` a exactement la forme
- * de apps/site-web/src/types/compte.ts. Les adresses qui calculent une empreinte de mot de passe peuvent aussi répondre
+ * de apps/site-web/src/types/compte.ts, plus `emailVerifie` (booléen : e-mail confirmé par le lien reçu). Les adresses qui calculent une empreinte de mot de passe peuvent aussi répondre
  * 503 « occupe » (avec Retry-After) quand trop de calculs attendent déjà : rien n'est fait, ni compté, on réessaie.
  *
  * POST   /comptes                       { email, motDePasse, prenom, ville, quartier?, dateNaissance, cgu: true, piege? }
@@ -43,27 +57,48 @@ export type DependancesComptes = {
  * DELETE /comptes/moi                   { motDePasse } → 200 { ok } (tout effacé) · 403 mot-de-passe-incorrect · 401 · 429 {attente}
  * POST   /comptes/nouveau-mot-de-passe  { jeton, motDePasse } → 200 { ok } (jeton effacé, toutes les sessions fermées)
  *                                        400 champ-invalide · 410 jeton-invalide · 429
+ * POST   /comptes/mot-de-passe-oublie   { email } → toujours 200 { ok } (lien de 24 h envoyé seulement si le compte existe,
+ *                                        1 toutes les 15 min et 5 par 24 h par compte) · 400 champ-invalide (email mal
+ *                                        formé) · 429 (5 demandes par visiteur et par heure)
+ * POST   /comptes/verifier-email        { jeton } → 200 { ok } (e-mail confirmé, jeton effacé) · 400 jeton-invalide · 429
+ * POST   /comptes/moi/renvoyer-verification → 200 { ok, dejaVerifie } · 401 · 429 trop-de-demandes {attente} (1 lien toutes
+ *                                        les 15 min et 5 par 24 h, l'envoi de l'inscription compris)
  * Ambassadeur « actif » seulement (sinon 403 ambassadeur-non-actif) :
- * GET    /comptes/moi/candidature       → 200 { ok, candidature: { statut, numero, creeLe, reponduLe } | null, placesRestantes }
- *                                        (places de fondateur encore libres : 10 moins les numéros donnés, jamais sous 0)
- * POST   /comptes/moi/candidature       { pepites, envies[], reseaux?, motivation, partantRencontre, connuPar?, piege? }
- *                                        201 { ok } · 400 · 409 candidature-existante · 409 plus-de-place (placesRestantes = 0)
+ * GET    /comptes/moi/candidature       → 200 { ok, candidature: { statut, numero, numeroLocal, numeroNational, commune, zone,
+ *                                        creeLe, reponduLe } | null, placesRestantes } (statut : en-attente, acceptee,
+ *                                        refusee, souvenir ; numero = numeroLocal ; commune { code, nom, nomDepartement } ou
+ *                                        null ; zone { code, type, nom, nomAvecDe, places, prises, libres } ou null ;
+ *                                        placesRestantes : libres de sa zone, sinon de toute la France)
+ * POST   /comptes/moi/candidature       { communeCode, pepites, envies[], reseaux?, motivation, partantRencontre, connuPar?,
+ *                                        piege? } → 201 { ok } · 400 (champ communeCode : absente ou inconnue) · 409
+ *                                        plus-de-place (zone complète) · 409 candidature-existante
+ * POST   /comptes/moi/candidature/commune { communeCode } → 200 { ok, candidature } · 400 champ-invalide communeCode · 404
+ *                                        aucune-candidature · 409 deja-traitee (plus en attente) · 409 plus-de-place
  * GET    /comptes/moi/propositions      → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] }
  * POST   /comptes/moi/propositions      { nom, type?, ville, adresse?, description, plat?, horaires?, siteWeb?, instagram?, piege? }
  *                                        201 { ok } · 400
  */
-export function creerRoutesComptes({ services, horloge = Date.now }: DependancesComptes, protection: ProtectionComptes, limiteConnectee: RequestHandler) {
-  // Deux attentes après des mots de passe faux : la connexion (par e-mail) et « Mon compte » (par id du compte)
-  const contexte = { services, protection, attente: creerAttenteParCompte(horloge), attenteConnectee: creerAttenteParCompte(horloge), horloge };
+export function creerRoutesComptes(dependances: DependancesComptes, protection: ProtectionComptes, limiteConnectee: RequestHandler) {
+  const { services, zones, courriels, adresseEspace = ADRESSE_ESPACE, horloge = Date.now } = dependances;
+  // Deux attentes après des mots de passe faux : la connexion (par e-mail) et « Mon compte » (par id du compte) ; deux
+  // limites de liens envoyés par mail (par id du compte)
+  const contexte = {
+    services, protection, zones, courriels, adresseEspace, horloge,
+    attente: creerAttenteParCompte(horloge), attenteConnectee: creerAttenteParCompte(horloge),
+    limiteOubli: creerLimiteEnvois(horloge), limiteVerification: creerLimiteEnvois(horloge),
+  };
   const c = creerControleursComptes(contexte);
   const moi = creerControleursMonCompte(contexte);
-  const espace = creerControleursEspaceComptes(services);
+  const liens = creerControleursLiens(contexte);
+  const espace = creerControleursEspaceComptes(services, zones);
   const routes = Router();
 
   // Sans session : une limite par visiteur pour chaque porte d'entrée, toujours AVANT de calculer une empreinte
   routes.post("/", limiterRequetes({ fenetre: 60 * 60_000, maximum: 10 }), c.inscrire);
   routes.post("/session", limiterRequetes({ fenetre: DIX_MINUTES, maximum: 20 }), c.connecter);
   routes.post("/nouveau-mot-de-passe", limiterRequetes({ fenetre: DIX_MINUTES, maximum: 10 }), c.choisirNouveauMotDePasse);
+  routes.post("/mot-de-passe-oublie", limiterRequetes(LIMITE_MOT_DE_PASSE_OUBLIE), liens.motDePasseOublie);
+  routes.post("/verifier-email", limiterRequetes(LIMITE_VERIFIER_EMAIL), liens.verifierEmail);
   // La déconnexion passe toujours, même limite atteinte : le site efface son cookie quoi qu'il arrive, la session doit donc
   // disparaître aussi (une empreinte SHA-256 et une suppression, réponse toujours « ok » : rien à deviner ni à protéger)
   routes.delete("/session", c.deconnecter);
@@ -73,8 +108,10 @@ export function creerRoutesComptes({ services, horloge = Date.now }: Dependances
   routes.patch("/moi", protection.exigerCompte, moi.modifier);
   routes.post("/moi/mot-de-passe", protection.exigerCompte, moi.changerMotDePasse);
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
+  routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
   routes.get("/moi/candidature", protection.exigerAmbassadeurActif, espace.lireCandidature);
   routes.post("/moi/candidature", protection.exigerAmbassadeurActif, espace.candidater);
+  routes.post("/moi/candidature/commune", protection.exigerAmbassadeurActif, espace.changerCommune);
   routes.get("/moi/propositions", protection.exigerAmbassadeurActif, espace.listerPropositions);
   routes.post("/moi/propositions", protection.exigerAmbassadeurActif, espace.proposer);
   routes.use(gererErreursComptes);
