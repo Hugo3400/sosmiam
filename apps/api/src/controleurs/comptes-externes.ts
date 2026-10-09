@@ -7,6 +7,7 @@ import type { Request, Response } from "express";
 
 import { AGE_MINIMUM_INSCRIPTION } from "../../../../packages/commun/src/regles/ages.ts";
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
+import { estSansMotDePasse } from "../fonctions/comptes/est-sans-mot-de-passe.ts";
 import type { SupportSession } from "../fonctions/comptes/est-session-expiree.ts";
 import type { FournisseurExterne, IdentiteExterne } from "../fonctions/comptes/lire-identite-externe.ts";
 import { nettoyerLigne } from "../fonctions/comptes/nettoyer-ligne.ts";
@@ -16,7 +17,6 @@ import { ClesIndisponibles } from "../services/cles-jwks.ts";
 import type { ServicesComptesExternes } from "../services/comptes-externes-regles.ts";
 import type { VerifierJetonExterne } from "../services/connexion-externe.ts";
 import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
-import { faireAttendre, verifierEnComptant } from "./comptes-attente.ts";
 import { lireCompteId, lireCorps, lireLigne } from "./comptes-champs.ts";
 import { lireProfilApp, lireSupport, repondreChiffrementIndisponible, VERSION_CGU, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
@@ -54,7 +54,7 @@ const lirePrefill = (valeur: unknown, maximum: number) => {
 };
 
 export function creerControleursComptesExternes(contexte: ContexteComptes) {
-  const { services, protection, horloge, chiffrement, lireCompteVu, attente, attenteConnectee, externes } = contexte;
+  const { services, protection, horloge, chiffrement, lireCompteVu, attente, externes } = contexte;
   const indisponible = (reponse: Response, fournisseur: FournisseurExterne) =>
     reponse.status(503).json({ ok: false, erreur: `${fournisseur}-indisponible` });
 
@@ -155,40 +155,33 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     /** GET /comptes/moi/connexions : { motDePasse, apple, google } (booléens ; jamais les identifiants eux-mêmes) */
     async lireConnexions(_requete: Request, reponse: Response) {
       const id = lireCompteId(reponse);
-      const connexions = externes ? await externes.services.lireConnexions(id) : null;
-      const identifiants = connexions ? null : await services.lireIdentifiants(id);
-      if (!connexions && !identifiants) return reponse.status(401).json({ ok: false, erreur: "session-expiree" });
-      reponse.json({
-        ok: true,
-        connexions: connexions
-          ? { motDePasse: !connexions.sansMotDePasse, apple: connexions.appleSub !== null, google: connexions.googleSub !== null }
-          : { motDePasse: true, apple: false, google: false },
-      });
+      // Sans connexion externe branchée, aucun compte n'en a : seul le mot de passe compte
+      const connexions = externes
+        ? await externes.services.lireConnexions(id)
+        : await services.lireIdentifiants(id).then((lu) => lu && { sansMotDePasse: estSansMotDePasse(lu.motDePasse), appleSub: null, googleSub: null });
+      if (!connexions) return reponse.status(401).json({ ok: false, erreur: "session-expiree" });
+      const { sansMotDePasse, appleSub, googleSub } = connexions;
+      reponse.json({ ok: true, connexions: { motDePasse: !sansMotDePasse, apple: appleSub !== null, google: googleSub !== null } });
     },
 
     /**
      * Effacer un compte SANS vrai mot de passe (DELETE /comptes/moi) : confirmé par un NOUVEAU jeton d'Apple (identityToken
-     * et nonce) ou de Google (idToken, nonce?) du même compte Apple ou Google. Faux si la réponse est déjà partie (400 sans
-     * jeton, 403 « confirmation-incorrecte », 429 après des échecs, 503). Essais comptés comme ceux d'un mot de passe.
+     * et nonce) ou de Google (idToken, nonce?) du même compte Apple ou Google que celui lié. Faux si la réponse est déjà
+     * partie : 400 {champ: confirmation} sans jeton, 403 « confirmation-incorrecte » (jeton refusé, ou d'un autre compte),
+     * 503. Un jeton signé ne se devine pas : pas d'attente par compte ici (la limite des adresses connectées suffit).
      */
     async confirmerSansMotDePasse(reponse: Response, corps: Record<string, unknown>): Promise<boolean> {
-      const id = lireCompteId(reponse);
       const fournisseur: FournisseurExterne | null = !estAbsent(corps.identityToken) ? "apple" : !estAbsent(corps.idToken) ? "google" : null;
       if (!fournisseur) throw new ChampInvalide("confirmation");
       const jeton = lireJeton(corps, fournisseur);
       const nonce = lireNonce(corps, fournisseur === "apple");
-      const cle = String(id);
-      if (faireAttendre(attenteConnectee, reponse, cle)) return false;
-      let repondu = false;
-      const bon = await verifierEnComptant(attenteConnectee, cle, async () => {
-        const identite = await verifierJeton(reponse, fournisseur, jeton, nonce);
-        if (identite === null) return (repondu = true, false);
-        if (identite === "invalide" || !externes) return false;
-        const connexions = await externes.services.lireConnexions(id);
-        return connexions !== null && identite.sub === (fournisseur === "apple" ? connexions.appleSub : connexions.googleSub);
-      });
-      if (!bon && !repondu) reponse.status(403).json({ ok: false, erreur: "confirmation-incorrecte" });
-      return bon;
+      const identite = await verifierJeton(reponse, fournisseur, jeton, nonce);
+      if (identite === null) return false;
+      const connexions = externes && identite !== "invalide" ? await externes.services.lireConnexions(lireCompteId(reponse)) : null;
+      const lie = connexions && (fournisseur === "apple" ? connexions.appleSub : connexions.googleSub);
+      if (identite !== "invalide" && lie && identite.sub === lie) return true;
+      reponse.status(403).json({ ok: false, erreur: "confirmation-incorrecte" });
+      return false;
     },
   };
 }
