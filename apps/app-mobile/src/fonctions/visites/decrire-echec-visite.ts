@@ -5,6 +5,8 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 const deuxChiffres = (n: number) => String(n).padStart(2, "0");
 
@@ -16,10 +18,14 @@ function lireJour(iso: string | undefined): string | null {
   return formaterDateLongue(`${date.getFullYear()}-${deuxChiffres(date.getMonth() + 1)}-${deuxChiffres(date.getDate())}`);
 }
 
-/** Remplace {lieu} : par « Ce lieu » en début de phrase et « ce lieu » ailleurs quand le nom n'est pas connu */
+/**
+ * Remplace {lieu} sans bégayer (« chez Nonna Lia » plutôt que « chez Chez Nonna Lia », « du Chou Rieur » plutôt que
+ * « de Le Chou Rieur ») ; quand le nom n'est pas connu, « Ce lieu » en début de phrase et « ce lieu » ailleurs.
+ */
 function remplirLieu(modele: string, lieu: string | null): string {
-  if (lieu) return remplirModele(modele, { lieu });
-  return remplirModele(modele.replace(/^\{lieu\}/, "Ce lieu"), { lieu: "ce lieu" });
+  if (!lieu) return remplirModele(modele.replace(/^\{lieu\}/, "Ce lieu"), { lieu: "ce lieu" });
+  const accorde = modele.replace(/\bchez \{lieu\}/g, () => direChezLieu(lieu)).replace(/\bde \{lieu\}/g, () => direDeLieu(lieu));
+  return remplirModele(accorde, { lieu });
 }
 
 /**

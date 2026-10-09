@@ -112,35 +112,35 @@ model JournalPoints {
 /// Candidature pour être fondateur de sa ville, ou de son département si sa commune a moins de 50 000 habitants (places
 /// par zone : ZoneFondateur, dans fondateurs.prisma). Refusée : effacée 3 mois après la réponse.
 model CandidatureFondateur {
-  id               Int            @id @default(autoincrement())
-  compteId         Int            @map("compte_id")
+  id               Int       @id @default(autoincrement())
+  compteId         Int       @map("compte_id")
   /// Les 3 pépites du quartier, et pourquoi
-  pepites          String         @db.VarChar(1500)
+  pepites          String    @db.VarChar(1500)
   /// Ce que la personne aimerait faire, séparé par des virgules : « denicher », « fiches », « selections », « faire-savoir »
-  envies           String         @db.VarChar(80)
+  envies           String    @db.VarChar(80)
   /// Réseaux sociaux (facultatif)
-  reseaux          String?        @db.VarChar(200)
+  reseaux          String?   @db.VarChar(200)
   /// « Pourquoi toi ? »
-  motivation       String         @db.VarChar(600)
+  motivation       String    @db.VarChar(600)
   /// Partant pour la visio des fondateurs de sa ville (environ 30 minutes)
-  partantRencontre Boolean        @map("partant_rencontre")
+  partantRencontre Boolean   @map("partant_rencontre")
   /// Comment la personne a connu SOS Miam (facultatif)
-  connuPar         String?        @map("connu_par") @db.VarChar(120)
+  connuPar         String?   @map("connu_par") @db.VarChar(120)
   /// « en-attente », « acceptee », « refusee » ou « souvenir » (fondateur qui a déménagé : il garde ses numéros et son
   /// titre, mais ne compte plus dans les places de sa zone)
-  statut           String         @default("en-attente") @db.VarChar(12)
+  statut           String    @default("en-attente") @db.VarChar(12)
   /// Ancien numéro de 1 à 10, à retirer dans une prochaine migration (plus utilisé : numeroLocal et numeroNational)
   numero           Int?
   /// Commune déclarée par la personne : son code INSEE (« 69123 » ; un arrondissement est rendu comme sa commune)
-  communeCode      String?        @map("commune_code") @db.VarChar(5)
+  communeCode      String?   @map("commune_code") @db.VarChar(5)
   /// Zone où elle candidate : sa ville, ou son département si sa commune a moins de 50 000 habitants
-  zoneCode         String?        @map("zone_code") @db.VarChar(5)
+  zoneCode         String?   @map("zone_code") @db.VarChar(5)
   /// Numéro dans sa zone (« Fondateur n° 3 de Lyon »), donné à l'acceptation, jamais redonné
-  numeroLocal      Int?           @map("numero_local")
+  numeroLocal      Int?      @map("numero_local")
   /// Numéro dans toute la France (« n° 147 en France »), donné à l'acceptation, jamais redonné
-  numeroNational   Int?           @unique @map("numero_national")
-  creeLe           DateTime       @default(now()) @map("cree_le") @db.Timestamptz(0)
-  reponduLe        DateTime?      @map("repondu_le") @db.Timestamptz(0)
+  numeroNational   Int?      @unique @map("numero_national")
+  creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe        DateTime? @map("repondu_le") @db.Timestamptz(0)
 
   compte Compte         @relation(fields: [compteId], references: [id], onDelete: Cascade)
   /// Une zone qui a des candidatures ne peut pas être effacée (leurs numéros en dépendent)

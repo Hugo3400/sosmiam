@@ -40,7 +40,7 @@ const FICHIER_COMMUNES = fileURLToPath(new URL("../apps/api/src/donnees/communes
 /** Totaux de la décision du 9 octobre 2026 : un écart est signalé, jamais corrigé ici */
 const ATTENDU = { zones: 241, places: 367, villes: 135, placesVilles: 261, departements: 100, collectivites: 6 };
 
-type CommuneGeo = { code: string; nom: string; population?: number; codeDepartement: string; codesPostaux?: string[]; codeParent?: string };
+type CommuneGeo = { code: string; nom: string; population?: number; codeDepartement: string; codeRegion?: string; codesPostaux?: string[]; codeParent?: string };
 type DepartementGeo = { code: string; nom: string; codeRegion: string; zone: string };
 type RegionGeo = { code: string; nom: string };
 
@@ -88,7 +88,7 @@ const source = `geo.api.gouv.fr (communes, arrondissements, départements ; popu
 
 console.log(`Téléchargement depuis ${GEO} et ${ADRESSE_COG} (COG ${ANNEE_COG})…`);
 const [communesGeo, arrondissementsGeo, departementsGeo, regionsGeo, departementsCog, collectivitesCog, communesCog, communesOutreMerCog] = await Promise.all([
-  lireGeo<CommuneGeo[]>("/communes?zone=metro,drom,com&fields=nom,code,population,codeDepartement,codesPostaux&format=json"),
+  lireGeo<CommuneGeo[]>("/communes?zone=metro,drom,com&fields=nom,code,population,codeDepartement,codeRegion,codesPostaux&format=json"),
   lireGeo<CommuneGeo[]>("/communes?type=arrondissement-municipal&fields=nom,code,codeDepartement,codesPostaux,codeParent&format=json"),
   lireGeo<DepartementGeo[]>("/departements?zone=metro,drom,com&fields=nom,code,codeRegion,zone"),
   lireGeo<RegionGeo[]>("/regions?fields=nom,code"),
@@ -118,6 +118,12 @@ if (departements.length - nombreCollectivites !== 101 || nombreCollectivites !==
 // Communes habitées des départements et collectivités gardés, et arrondissements de Paris, Lyon et Marseille
 const gardes = new Set(departements.map((departement) => departement.code));
 const dansLaListe = communesGeo.filter((commune) => gardes.has(commune.codeDepartement));
+const regionDuDepartement = new Map(departements.map((departement) => [departement.code, departement.codeRegion]));
+const horsRegion = dansLaListe.filter((commune) => {
+  const region = regionDuDepartement.get(commune.codeDepartement);
+  return region !== null && commune.codeRegion !== region; // une collectivité d'outre-mer n'a pas de région
+});
+if (horsRegion.length > 0) throw new Error(`Région différente de celle du département : ${horsRegion.map((commune) => `${commune.nom} (${commune.code})`).join(", ")}`);
 const sansHabitants = dansLaListe.filter((commune) => !((commune.population ?? 0) > 0));
 const communes = dansLaListe
   .filter((commune) => (commune.population ?? 0) > 0)

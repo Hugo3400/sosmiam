@@ -6,8 +6,8 @@ import type { Visite } from "@sos-miam/commun/types/visite";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
 import { PanneauSimulationLieu } from "~/composants/visites/PanneauSimulationLieu";
-import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { decrireAttenteAddition } from "~/fonctions/visites/decrire-attente-addition";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
@@ -60,7 +60,7 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
 
       <View className="mt-1 gap-3 rounded-carte border-2 border-encre bg-white p-4">
         <Text className="font-texte text-base leading-6 text-encre">
-          {lierPonctuation(`L'équipe ${eliderDe(lieu.nom)} va la marquer réglée. Tu peux fermer l'app : ta demande reste au chaud.`)}
+          {lierPonctuation(`L'équipe ${direDeLieu(lieu.nom)} va la marquer réglée. Tu peux fermer l'app : ta demande reste au chaud.`)}
         </Text>
         {attente ? (
           <View accessible accessibilityLabel={attente} className="flex-row items-center gap-2">

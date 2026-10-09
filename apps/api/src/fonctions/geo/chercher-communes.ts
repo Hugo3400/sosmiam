@@ -51,7 +51,7 @@ function retenir(meilleures: Trouvaille[], nombre: number, commune: CommuneIndex
   if (meilleures.length > nombre) meilleures.pop();
 }
 
-/** Premier nom dont la clé vient au plus tôt après `cle` (les noms sont triés par clé) */
+/** Rang du premier nom dont la clé vaut `cle` ou vient après elle (les noms sont triés par clé) */
 function premierAPartirDe(noms: NomIndexe[], cle: string): number {
   let bas = 0;
   let haut = noms.length;

@@ -14,20 +14,24 @@ const NOMBRE = 28;
 
 // Pluie toujours la même d'une fois sur l'autre (pas de hasard au rendu) : position, retard, durée, dérive et rotation
 // tirées d'une petite suite de nombres ; assez variée pour avoir l'air jetée à la main
-const CONFETTIS = Array.from({ length: NOMBRE }, (_, i) => ({
-  gauche: (i * 37 + 11) % 100,
-  retardMs: (i * 53) % 450,
-  dureeMs: 1700 + ((i * 71) % 900),
-  derive: ((i * 29) % 70) - 35,
-  rotation: 360 + ((i * 97) % 540),
-  largeur: 6 + (i % 3) * 2,
-  hauteur: i % 2 === 0 ? 12 : 7,
-  rond: i % 5 === 0,
-  teinte: TEINTES[i % TEINTES.length],
-  // Version figée (« Réduire les animations ») : posés en haut de l'écran, sans bouger
-  figeHaut: 8 + ((i * 41) % 130),
-  figeRotation: ((i * 67) % 120) - 60,
-}));
+const CONFETTIS = Array.from({ length: NOMBRE }, (_, i) => {
+  const gauche = (i * 37 + 11) % 100;
+  return {
+    gauche,
+    retardMs: (i * 53) % 450,
+    dureeMs: 1700 + ((i * 71) % 900),
+    derive: ((i * 29) % 70) - 35,
+    rotation: 360 + ((i * 97) % 540),
+    largeur: 6 + (i % 3) * 2,
+    hauteur: i % 2 === 0 ? 12 : 7,
+    rond: i % 5 === 0,
+    teinte: TEINTES[i % TEINTES.length],
+    // Version figée (« Réduire les animations ») : posés en haut de l'écran, sans bouger, de part et d'autre de la mascotte
+    figeGauche: gauche < 50 ? gauche * 0.6 : 40 + gauche * 0.6,
+    figeHaut: 8 + ((i * 41) % 130),
+    figeRotation: ((i * 67) % 120) - 60,
+  };
+});
 
 /**
  * Pluie de confettis aux couleurs de SOS Miam quand une visite est validée : une seule fois, puis ils disparaissent.
@@ -68,7 +72,9 @@ export function ConfettisVisite({ hauteur = 420 }: Props) {
           backgroundColor: c.teinte,
         };
         if (animationsReduites) {
-          return <View key={i} style={[forme, { top: c.figeHaut, opacity: 0.85, transform: [{ rotate: `${c.figeRotation}deg` }] }]} />;
+          return (
+            <View key={i} style={[forme, { left: `${c.figeGauche}%`, top: c.figeHaut, opacity: 0.85, transform: [{ rotate: `${c.figeRotation}deg` }] }]} />
+          );
         }
         return (
           <Animated.View

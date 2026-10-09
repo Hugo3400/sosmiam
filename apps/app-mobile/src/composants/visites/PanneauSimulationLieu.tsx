@@ -4,8 +4,8 @@ import { Text, View } from "react-native";
 
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
-import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
@@ -62,7 +62,7 @@ export function PanneauSimulationLieu({ visite }: Props) {
           <Text className="font-texte text-sm leading-5 text-encre">
             {lierPonctuation(
               joueParMoi
-                ? `C'est toi qui joues l'équipe ${eliderDe(lieu.nom)} : passe en mode pro pour marquer l'addition réglée.`
+                ? `C'est toi qui joues l'équipe ${direDeLieu(lieu.nom)} : passe en mode pro pour marquer l'addition réglée.`
                 : reglages.lieuxRepondentSeuls
                   ? "Les lieux répondent tout seuls (Coulisses) : réponse dans quelques secondes. Ou réponds à leur place :"
                   : "En vrai, c'est l'équipe qui répond depuis son comptoir. Ici, tu peux le faire à sa place :",

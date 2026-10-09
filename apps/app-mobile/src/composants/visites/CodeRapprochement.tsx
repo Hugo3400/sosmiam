@@ -33,7 +33,7 @@ export function CodeRapprochement({ code, prenom, avatar, legende, taille = "gra
       <View className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-carte bg-encre" />
       <View
         accessible
-        accessibilityLabel={`${legende}. Code ${formaterCodeLu(code)}. Au nom de ${prenom}.`}
+        accessibilityLabel={`${legende}. Code ${formaterCodeLu(code)}. Au nom de ${prenom}${prenom.endsWith(".") ? "" : "."}`}
         className={`items-center rounded-carte border-2 border-encre bg-white ${taille === "grand" ? "px-4 py-5" : "px-3 py-4"}`}
       >
         <Text className="text-center font-texte-semi text-sm text-gris">{lierPonctuation(legende)}</Text>

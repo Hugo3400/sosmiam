@@ -37,7 +37,7 @@ function decrireJour(iso: string | null): string | null {
   return `${JOURS[date.getDay()]} ${jour} ${MOIS[date.getMonth()]} à ${formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`)}`;
 }
 
-/** En-tête commun à tous les états : emoji, titre (où se pose VoiceOver), lieu, phrase */
+/** En-tête commun à tous les états : emoji, titre (où se pose VoiceOver), lieu (s'il n'est pas déjà dans le titre), phrase */
 function dessinerEnTete(emoji: string, titre: string, visite: Visite, texte: string, refTitre?: Ref<Text>) {
   return (
     <View className="items-center gap-2">
@@ -51,12 +51,14 @@ function dessinerEnTete(emoji: string, titre: string, visite: Visite, texte: str
       <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
         {lierPonctuation(titre)}
       </Text>
-      <View className="flex-row items-center justify-center gap-2">
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-base">
-          {visite.lieu.emoji}
-        </Text>
-        <Text className="shrink text-center font-texte-semi text-base text-gris">{visite.lieu.nom}</Text>
-      </View>
+      {titre.includes(visite.lieu.nom) ? null : (
+        <View className="flex-row items-center justify-center gap-2">
+          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-base">
+            {visite.lieu.emoji}
+          </Text>
+          <Text className="shrink text-center font-texte-semi text-base text-gris">{visite.lieu.nom}</Text>
+        </View>
+      )}
       <Text className="mt-1 text-center font-texte text-base leading-6 text-encre">{lierPonctuation(texte)}</Text>
     </View>
   );

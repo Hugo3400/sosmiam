@@ -161,7 +161,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
               <Ionicons name="chevron-forward" size={18} color={couleurs.encre} />
             </View>
             <Text className="pl-[18px] font-texte text-sm leading-5 text-gris">
-              {lierPonctuation("Montre ton code au moment de payer · ")}
+              {lierPonctuation("Montre ton code au moment de payer. ")}
               <Text className="font-texte-gras text-encre underline">Voir le code</Text>
             </Text>
           </Pressable>
