@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
-import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { CHAMPS_SEUILS } from "~/contenus/seuils-surveillance.ts";
+import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
+import { ErreurApi } from "~/services/client-gestion.ts";
 import { reglerSeuilsSurveillance, type SeuilsSurveillance } from "~/services/surveillance.ts";
 
 type Props = { ouverte: boolean; seuils: SeuilsSurveillance; parDefaut: SeuilsSurveillance; onFermer: () => void; onEnregistre: () => void };
@@ -16,7 +17,7 @@ const enTextes = (seuils: SeuilsSurveillance) =>
 export function ModaleSeuils({ ouverte, seuils, parDefaut, onFermer, onEnregistre }: Props) {
   const [saisies, setSaisies] = useState(enTextes(seuils));
   const [envoi, setEnvoi] = useState(false);
-  const [erreur, setErreur] = useState<unknown>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
   useEffect(() => {
     if (ouverte) {
       setSaisies(enTextes(seuils));
@@ -37,8 +38,8 @@ export function ModaleSeuils({ ouverte, seuils, parDefaut, onFermer, onEnregistr
       await reglerSeuilsSurveillance(Object.fromEntries(CHAMPS_SEUILS.map((c) => [c.cle, Number(saisies[c.cle])])) as SeuilsSurveillance);
       onEnregistre();
       onFermer();
-    } catch (e) {
-      setErreur(e);
+    } catch (probleme) {
+      setErreur(expliquerErreur(probleme instanceof ErreurApi ? probleme : null));
     } finally {
       setEnvoi(false);
     }
@@ -76,7 +77,7 @@ export function ModaleSeuils({ ouverte, seuils, parDefaut, onFermer, onEnregistr
           />
         ))}
       </div>
-      <div className="mt-3"><MessageErreur erreur={erreur} /></div>
+      {erreur && <p role="alert" className="mt-3 text-sm font-semibold text-tomate">{erreur}</p>}
     </Modale>
   );
 }

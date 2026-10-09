@@ -107,3 +107,10 @@ test("l'invitation ambassadeur : une adresse en destinataire, plusieurs en copie
   assert.ok(plusieurs.startsWith("mailto:?subject="));
   assert.ok(plusieurs.endsWith(`&bcc=${encodeURIComponent("a@exemple.fr,b@exemple.fr")}`));
 });
+
+test("surveillance : la raison d'un signalement en une phrase", async () => {
+  const { decrireRaisonCompte } = await import("../src/fonctions/surveillance/decrire-raison-compte.ts");
+  const seuils = { parJour: 4, partRefusMin: 34, decisionsMin: 6, lieuxPartRefusMin: 34, lieuxDecisionsMin: 10, fenetreJours: 30 };
+  assert.equal(decrireRaisonCompte({ type: "par-jour", jour: "2026-10-09", validees: 6 }, seuils), "6 visites validées le 9 oct. 2026 (plus de 4 dans la journée)");
+  assert.equal(decrireRaisonCompte({ type: "refus", refusees: 3, decidees: 7, part: 43, lieux: 2 }, seuils), "3 refus sur 7 visites (43 %), venant de 2 lieux différents");
+});

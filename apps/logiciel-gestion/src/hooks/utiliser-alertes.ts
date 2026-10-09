@@ -33,6 +33,9 @@ const NOUVEAUTES: { lire: (a: Alertes) => number; titre: string; texte: string }
   { lire: (a) => a.demandes.rattachements ?? 0, titre: "🏪 Demande de compte pro", texte: "Quelqu'un dit gérer un lieu : Demandes de lieux → Comptes pro." },
   { lire: (a) => a.boite?.nonLus ?? 0, titre: "📨 Nouveau mail", texte: "Un mail est arrivé sur bonjour@sosmiam.fr : ouvre la Boîte mail." },
   { lire: (a) => a.lieux?.suggestions ?? 0, titre: "✏️ Modification de fiche proposée", texte: "Un client ou un lieu propose de modifier une fiche : ouvre Lieux pour voir l'avant et l'après." },
+  { lire: (a) => a.surveillance?.contestations ?? 0, titre: "⚖️ Refus de visite contesté", texte: "Un Miami conteste le refus d'un lieu : Comptes → Contestations." },
+  { lire: (a) => a.surveillance?.comptes ?? 0, titre: "🕵️ Compte à regarder", texte: "Un compte dépasse les seuils de la surveillance des visites (rien n'est bloqué) : Comptes → À surveiller." },
+  { lire: (a) => a.surveillance?.lieux ?? 0, titre: "🧐 Un lieu refuse beaucoup de visites", texte: "Sa part de refus dépasse le seuil : Comptes → À surveiller." },
   { lire: (a) => a.missionsFaites, titre: "🎯 Mission faite", texte: "Un ambassadeur a envoyé son compte rendu : va le lire dans Ambassadeurs → Missions." },
   { lire: (a) => a.bigSos.aTraiter, titre: "🛟 BIG SOS à étudier", texte: "Un BIG SOS attend ton attention." },
 ];

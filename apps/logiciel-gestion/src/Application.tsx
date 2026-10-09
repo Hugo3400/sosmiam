@@ -161,7 +161,7 @@ export function Application() {
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
           {ecran === "moderation" && <EcranModeration />}
           {ecran === "miam-safe" && <EcranMiamSafe onDecision={actualiserAlertes} />}
-          {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} />}
+          {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} surveillance={alertes?.surveillance} onDecision={actualiserAlertes} />}
           {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
           {ecran === "notifications" && <EcranNotifications />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}

@@ -12,6 +12,8 @@ export type Alertes = {
   /** Mails pas encore lus dans bonjour@ (null : boîte injoignable) */
   boite?: { nonLus: number | null };
   ambassadeurs: { enAttente: number; candidatures: number; certifications?: number };
+  /** Surveillance des visites : comptes et lieux signalés pas encore vus, refus contestés à relire */
+  surveillance?: { comptes: number; lieux: number; contestations: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };
