@@ -31,3 +31,38 @@ export async function trouverZoneDeVille(ville: string, ip: string | null): Prom
   const zone = await lireZoneDeCommune(commune.code, ip);
   return zone.ok ? { commune: zone.commune, zone: zone.zone } : null;
 }
+
+/** Ce que montre une recherche de commune : sa zone, une liste où choisir, ou un message (rien trouvé, API muette). */
+export type ResultatRecherche =
+  | { etat: "zone"; commune: CommuneFondateurs; zone: ZoneFondateurs }
+  | { etat: "choix"; communes: CommuneFondateurs[] }
+  | { etat: "message"; message: string }
+  | { etat: "vide" };
+
+const MESSAGE_PANNE = "Le compteur des places fait une pause : réessaie dans un instant.";
+
+/**
+ * Lit la recherche d'une adresse (formulaire GET, marche sans JavaScript) : `code` (une commune choisie dans une liste ou
+ * dans les suggestions), sinon `texte` (nom ou code postal). Une seule commune correspond (ou une seule porte exactement ce
+ * nom, ou ce code postal) : sa zone ; plusieurs : la liste où choisir.
+ */
+export async function resoudreRecherche(texte: string | null, code: string | null, ip: string | null): Promise<ResultatRecherche> {
+  if (code) {
+    const reponse = await lireZoneDeCommune(code, ip);
+    if (reponse.ok) return { etat: "zone", commune: reponse.commune, zone: reponse.zone };
+    return { etat: "message", message: reponse.erreur === "commune-inconnue" ? "On ne trouve pas cette commune : cherche-la par son nom." : MESSAGE_PANNE };
+  }
+  const recherche = (texte ?? "").replace(/\s+/g, " ").trim();
+  if (!recherche) return { etat: "vide" };
+  if (recherche.length < 2) return { etat: "message", message: "Écris au moins 2 lettres du nom de ta commune." };
+  const reponse = await chercherCommunes(recherche, ip, 8);
+  if (!reponse.ok) return { etat: "message", message: MESSAGE_PANNE };
+  const { communes } = reponse;
+  if (communes.length === 0) return { etat: "message", message: `On ne trouve pas « ${recherche.slice(0, 80)} » : vérifie l'orthographe, ou essaie avec ton code postal.` };
+  const cherche = simplifierRecherche(recherche);
+  const exactes = communes.filter((commune) => simplifierRecherche(commune.nom) === cherche || commune.codePostal === recherche);
+  const seule = communes.length === 1 ? communes[0] : exactes.length === 1 ? exactes[0] : null;
+  if (!seule) return { etat: "choix", communes };
+  const zone = await lireZoneDeCommune(seule.code, ip);
+  return zone.ok ? { etat: "zone", commune: { ...zone.commune, codePostal: seule.codePostal }, zone: zone.zone } : { etat: "message", message: MESSAGE_PANNE };
+}

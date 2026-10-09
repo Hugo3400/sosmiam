@@ -2,11 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
 import type { QrAffiche } from "@sos-miam/commun/types/comptoir";
+import type { ReglementVisite } from "@sos-miam/commun/types/visite";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
   qr: QrAffiche;
+  /** Comment la table a réglé (choisi en montrant le QR) : vaut pour chacune de ses visites */
+  reglement?: ReglementVisite | null;
   maintenant: Date;
   onVoir: () => void;
   onCacher: () => void;
@@ -19,7 +23,7 @@ function formaterReste(finitLe: string, maintenant: Date): string {
 }
 
 /** Le QR est allumé : pour combien de personnes, combien de scans restent, quand il s'éteint, et de quoi le revoir ou le cacher. */
-export function CarteQrAffiche({ qr, maintenant, onVoir, onCacher }: Props) {
+export function CarteQrAffiche({ qr, reglement = null, maintenant, onVoir, onCacher }: Props) {
   const reste = formaterReste(qr.finitLe, maintenant);
   const scans = `${qr.restantes} scan${qr.restantes > 1 ? "s" : ""} sur ${qr.personnes}`;
   return (
@@ -35,6 +39,7 @@ export function CarteQrAffiche({ qr, maintenant, onVoir, onCacher }: Props) {
           </Text>
         </View>
       </View>
+      <EtiquettesReglement reglement={reglement} pour="lieu" taille="petite" />
       <View className="flex-row gap-3">
         <Pressable
           accessibilityRole="button"

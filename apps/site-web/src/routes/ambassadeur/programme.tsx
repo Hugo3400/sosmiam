@@ -11,6 +11,9 @@ import { QuestionsProgramme } from "~/composants/programme/QuestionsProgramme";
 import { descriptionProgramme, questionsProgramme } from "~/contenus/programme-ambassadeur";
 import { creerDonneesFaq } from "~/fonctions/seo/creer-donnees-faq";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { lireCodeCommune } from "~/fonctions/fondateurs/lire-code-commune";
+import { resoudreRecherche } from "~/services/fondateurs.server";
+import { lireIpVisiteur } from "~/services/session-compte.server";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -24,10 +27,21 @@ export function meta(_: Route.MetaArgs) {
 }
 
 /**
+ * « Et dans ta ville ? » : la recherche de l'adresse (?ville=… tapée, ou ?commune=CODE choisie), faite ici pour que la
+ * page marche sans JavaScript. La page reste la même pour Google : son adresse canonique est /programme, sans paramètres.
+ */
+export async function loader({ request }: Route.LoaderArgs) {
+  const parametres = new URL(request.url).searchParams;
+  const saisie = (parametres.get("ville") ?? "").slice(0, 80);
+  const resultat = await resoudreRecherche(saisie, lireCodeCommune(parametres.get("commune")), lireIpVisiteur(request));
+  return { recherche: { saisie, resultat } };
+}
+
+/**
  * Page /programme (https://ambassadeur.sosmiam.fr, publique et indexée) : le programme Ambassadeurs expliqué simplement,
  * puis « Créer mon compte » ou « J'ai déjà un compte ». Textes : src/contenus/programme-ambassadeur.ts.
  */
-export default function PageProgramme() {
+export default function PageProgramme({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <HautProgramme />
@@ -35,7 +49,7 @@ export default function PageProgramme() {
       <GainsProgramme />
       <NiveauxProgramme />
       <EtapesProgramme />
-      <FondateursProgramme />
+      <FondateursProgramme recherche={loaderData.recherche} />
       <QuestionsProgramme />
       <AppelProgramme />
     </>

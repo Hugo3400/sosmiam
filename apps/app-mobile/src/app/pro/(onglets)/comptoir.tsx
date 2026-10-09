@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { QrAffiche } from "@sos-miam/commun/types/comptoir";
+import type { DemandeComptoir, QrAffiche } from "@sos-miam/commun/types/comptoir";
+import type { ReglementVisite } from "@sos-miam/commun/types/visite";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { BoutonMontrerQr } from "~/composants/pro/BoutonMontrerQr";
 import { CarteDemandeComptoir } from "~/composants/pro/CarteDemandeComptoir";
 import { CarteQrAffiche } from "~/composants/pro/CarteQrAffiche";
+import { ChoixPersonnesQr } from "~/composants/pro/ChoixPersonnesQr";
 import { ComptoirVide } from "~/composants/pro/ComptoirVide";
+import { FeuilleReglement } from "~/composants/pro/FeuilleReglement";
 import { ListeValideesInstant } from "~/composants/pro/ListeValideesInstant";
 import { creerComptoirExempleAffichage, creerQrExempleAffichage } from "~/contenus/comptoir-exemple-affichage";
 import couleurs from "~/theme/couleurs";
@@ -22,7 +25,11 @@ export default function EcranComptoir() {
   const marges = useSafeAreaInsets();
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [etat] = useState(() => creerComptoirExempleAffichage(new Date()));
-  const [qr, setQr] = useState<QrAffiche | null>(null);
+  const [qr, setQr] = useState<{ qr: QrAffiche; reglement: ReglementVisite } | null>(null);
+  const [choixQr, setChoixQr] = useState(false);
+  // La feuille « Réglée » : la demande visée reste gardée pendant que la feuille se referme
+  const [aRegler, setARegler] = useState<DemandeComptoir | null>(null);
+  const [feuilleReglement, setFeuilleReglement] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
 
   // Les attentes (« depuis 3 min ») et le compte à rebours du QR bougent tout seuls
@@ -41,9 +48,9 @@ export default function EcranComptoir() {
         <BandeauDemoPro nomLieu={etat.lieu.nom} />
 
         {qr ? (
-          <CarteQrAffiche qr={qr} maintenant={maintenant} onVoir={bientot} onCacher={() => setQr(null)} />
+          <CarteQrAffiche qr={qr.qr} reglement={qr.reglement} maintenant={maintenant} onVoir={bientot} onCacher={() => setQr(null)} />
         ) : (
-          <BoutonMontrerQr onPress={() => setQr(creerQrExempleAffichage(new Date()))} />
+          <BoutonMontrerQr onPress={() => setChoixQr(true)} />
         )}
 
         <View className="gap-3">
@@ -56,12 +63,33 @@ export default function EcranComptoir() {
           {additions === 0 ? (
             <ComptoirVide />
           ) : (
-            etat.demandes.map((d) => <CarteDemandeComptoir key={`${d.type}-${d.id}`} demande={d} maintenant={maintenant} onRegler={bientot} onRefuser={bientot} onOffrir={bientot} />)
+            etat.demandes.map((d) => <CarteDemandeComptoir key={`${d.type}-${d.id}`} demande={d} maintenant={maintenant} onRegler={() => {
+                  setARegler(d);
+                  setFeuilleReglement(true);
+                }} onRefuser={bientot} onOffrir={bientot} />)
           )}
         </View>
 
         <ListeValideesInstant validees={etat.validees} maintenant={maintenant} onAnnuler={bientot} />
       </ScrollView>
+      <ChoixPersonnesQr
+        visible={choixQr}
+        onMontrer={(personnes, reglement) => {
+          setChoixQr(false);
+          setQr({ qr: { ...creerQrExempleAffichage(new Date()), personnes, restantes: personnes }, reglement });
+        }}
+        onFermer={() => setChoixQr(false)}
+      />
+      <FeuilleReglement
+        visible={feuilleReglement}
+        nom={aRegler ? (aRegler.initialeNom ? `${aRegler.prenom} ${aRegler.initialeNom}.` : aRegler.prenom) : ""}
+        codeRequis={additions >= 2}
+        onValider={() => {
+          setFeuilleReglement(false);
+          bientot();
+        }}
+        onFermer={() => setFeuilleReglement(false)}
+      />
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={() => setAnnonce(null)} />
     </SafeAreaView>
   );
