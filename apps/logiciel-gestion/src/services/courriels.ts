@@ -54,3 +54,9 @@ export const lancerEnvoi = (envoi: PublicEnvoi & ContenuNewsletter & { adresses:
   appeler<{ ok: true; id: number; total: number }>("POST", "/newsletter/envois", { corps: envoi });
 export const listerCampagnes = () => appeler<Campagne[]>("GET", "/newsletter/envois");
 export const annulerCampagne = (id: number) => appeler<{ ok: true; annules: number }>("POST", `/newsletter/envois/${id}/annuler`, { corps: {} });
+
+/** À qui écrire : un compte (son adresse est relue sur le serveur), ou une adresse (contact d'une demande de lieu…) */
+export type DestinataireMail = { compteId: number } | { adresse: string };
+/** Un mail écrit dans le logiciel, envoyé tout de suite par bonjour@sosmiam.fr (la personne répond à cette adresse) */
+export const ecrireCourriel = (destinataire: DestinataireMail, objet: string, texte: string) =>
+  appeler<{ ok: true }>("POST", "/courriels/ecrire", { corps: { ...destinataire, objet, texte } });
