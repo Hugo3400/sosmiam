@@ -19,6 +19,7 @@ import { ApercuLieu } from "./ApercuLieu.tsx";
 import { HistoriqueLieu } from "./HistoriqueLieu.tsx";
 import { SuggestionsDuLieu } from "./SuggestionsDuLieu.tsx";
 import { EditeurCreneaux } from "./EditeurCreneaux.tsx";
+import { InfosPratiquesLieu } from "./InfosPratiquesLieu.tsx";
 import { RechercheAdresse } from "./RechercheAdresse.tsx";
 
 const NOUVEAU: SaisieLieu = {
@@ -26,6 +27,7 @@ const NOUVEAU: SaisieLieu = {
   latitude: null, longitude: null, prix: "€€", prixMoyen: null, couleurs: ["#FFD60A", "#FF4D3D"], horaires: "",
   ouverture: [], plat: "", tags: [], envies: [], reservable: false, telephone: null, siteWeb: null, instagram: null,
   decouvertPar: null, statut: "brouillon", note: null,
+  animaux: null, accessible: null, terrasse: null, wifi: null, enfants: null, parking: null, paiements: [], reservation: null,
 };
 const ENVIES: { valeur: EnvieLieu; libelle: string }[] = [
   { valeur: "terrasse", libelle: "Terrasse" },
@@ -192,6 +194,9 @@ export function FormulaireLieu({ id, onFermer, allerA }: Props) {
             </div>
           </Carte>
 
+          <Groupe titre="Infos pratiques">
+            <InfosPratiquesLieu lieu={lieu} changer={changer} />
+          </Groupe>
           <Groupe titre="Contact et coulisses">
             <Champ libelle="Téléphone" valeur={lieu.telephone ?? ""} maxLength={30} onChange={(v) => changer({ telephone: texteOuNull(v) })} />
             <Champ libelle="Site web" valeur={lieu.siteWeb ?? ""} maxLength={200} placeholder="https://…" onChange={(v) => changer({ siteWeb: texteOuNull(v) })} />

@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
@@ -27,7 +28,8 @@ function decrireLieu(lieu: Lieu): string[] {
   const sos = lieu.sos
     ? `En SOS ce soir : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}`
     : null;
-  return [`${lieu.info}, ${lieu.quartier}`, sos, lieu.alerte ?? null].filter((morceau): morceau is string => !!morceau);
+  const nonVerifie = estLieuVerifie(lieu) ? null : "Lieu non vérifié, sans compte SOS Miam";
+  return [`${lieu.info}, ${lieu.quartier}`, sos, lieu.alerte ?? null, nonVerifie].filter((morceau): morceau is string => !!morceau);
 }
 
 /**
@@ -37,7 +39,8 @@ function decrireLieu(lieu: Lieu): string[] {
  */
 export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selectionne, onPress }: Props) {
   // Android dessine le marqueur en image : on suit ses changements le temps de le redessiner, puis on le fige (bien plus fluide)
-  const apparence = `${selectionne ? 1 : 0}|${lieu.sos ? 1 : 0}|${lieu.alerte ? 1 : 0}|${lieu.emoji}`;
+  const verifie = estLieuVerifie(lieu);
+  const apparence = `${selectionne ? 1 : 0}|${lieu.sos ? 1 : 0}|${lieu.alerte ? 1 : 0}|${verifie ? 1 : 0}|${lieu.emoji}`;
   const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
   useEffect(() => {
     const minuterie = setTimeout(() => setApparenceFigee(apparence), DUREE_SUIVI);
@@ -48,7 +51,8 @@ export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selecti
   // Le rond est centré dans le marqueur : l'ombre et la pastille se placent depuis son bord
   const autour = (COTE - diametre) / 2;
   const decalageOmbre = selectionne ? 4 : 3;
-  const fond = lieu.sos ? "bg-jaune" : lieu.alerte ? "bg-rose-alerte" : "bg-white";
+  // Non vérifié : un rond crème en pointillé, sans ombre, qu'on ne confond pas avec un lieu inscrit
+  const fond = !verifie ? "bg-creme" : lieu.sos ? "bg-jaune" : lieu.alerte ? "bg-rose-alerte" : "bg-white";
   const details = decrireLieu(lieu);
 
   return (
@@ -77,12 +81,14 @@ export const MarqueurLieu = memo(function MarqueurLieu({ lieu, position, selecti
         className="items-center justify-center"
       >
         {selectionne ? <View style={{ position: "absolute", inset: 1, borderRadius: 999 }} className="bg-jaune/50" /> : null}
+        {verifie ? (
+          <View
+            style={{ position: "absolute", left: autour + decalageOmbre, top: autour + decalageOmbre, width: diametre, height: diametre, borderRadius: diametre / 2 }}
+            className="bg-encre"
+          />
+        ) : null}
         <View
-          style={{ position: "absolute", left: autour + decalageOmbre, top: autour + decalageOmbre, width: diametre, height: diametre, borderRadius: diametre / 2 }}
-          className="bg-encre"
-        />
-        <View
-          style={{ width: diametre, height: diametre, borderRadius: diametre / 2, borderWidth: selectionne ? 3 : 2 }}
+          style={{ width: diametre, height: diametre, borderRadius: diametre / 2, borderWidth: selectionne ? 3 : 2, borderStyle: verifie ? "solid" : "dashed" }}
           className={`items-center justify-center border-encre ${fond}`}
         >
           {/* Taille fixe : le rond ne grandit pas avec le texte du téléphone (le lecteur d'écran a le libellé complet) */}

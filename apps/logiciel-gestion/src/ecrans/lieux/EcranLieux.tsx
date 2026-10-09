@@ -107,7 +107,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
         sousTitre="Les fiches des restos, pâtisseries, bars et sorties. Seuls les lieux « En ligne » seront montrés dans l'app."
         actions={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Nouveau lieu</Bouton>}
       />
-      <BandeauSuggestions tour={donnees ? 1 : 0} onOuvrir={setOuvert} />
+      <BandeauSuggestions onOuvrir={setOuvert} />
       <div className="mb-5 flex flex-wrap items-end gap-4">
         <Champ libelle={<span className="inline-flex items-center gap-1"><Search className="size-3.5" aria-hidden /> Recherche</span>} valeur={saisie} onChange={setSaisie} placeholder="Nom, ville, quartier…" className="w-72" />
         <Onglets

@@ -126,22 +126,22 @@ export default function FicheLieu() {
         {/* 3/5 pour « À la rescousse » : à moitié-moitié, le libellé passait sur deux lignes sous 440 pt de large.
             Lieu non vérifié : pas de rescousse comptée, on l'invite à nous rejoindre à la place */}
         {verifie ? (
-        <Bouton
-          className="flex-[3]"
-          libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}
-          variante={sauve ? "encre" : "jaune"}
-          desactive={epuisee}
-          indice={
-            !avecCompte
-              ? "Il te faut un compte pour donner une rescousse à ce lieu, une minute suffit"
-              : sauve
-                ? "Reprend ta rescousse, elle te sera rendue pour un autre lieu"
-                : epuisee
-                  ? "Plus de rescousse cette semaine, elles reviennent lundi"
-                  : `Donne une de tes rescousses à ce lieu, il t'en reste ${activite.restantes} cette semaine`
-          }
-          onPress={basculerRescousse}
-        />
+          <Bouton
+            className="flex-[3]"
+            libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}
+            variante={sauve ? "encre" : "jaune"}
+            desactive={epuisee}
+            indice={
+              !avecCompte
+                ? "Il te faut un compte pour donner une rescousse à ce lieu, une minute suffit"
+                : sauve
+                  ? "Reprend ta rescousse, elle te sera rendue pour un autre lieu"
+                  : epuisee
+                    ? "Plus de rescousse cette semaine, elles reviennent lundi"
+                    : `Donne une de tes rescousses à ce lieu, il t'en reste ${activite.restantes} cette semaine`
+            }
+            onPress={basculerRescousse}
+          />
         ) : (
           <Bouton className="flex-[3]" libelle="Inviter ce lieu" indice="Partage-lui le lien d'inscription, c'est gratuit" onPress={() => inviter(lieu)} />
         )}

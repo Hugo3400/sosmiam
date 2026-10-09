@@ -32,7 +32,7 @@ export function PresentationFondateurs() {
         <span>{lierPonctuation(rencontreFondateurs)}</span>
       </p>
       <p className="mt-6">
-        {lierPonctuation("C'est un programme de passionnés : pas de rémunération, ni horaires ni objectifs. Pas retenu ? Tu restes ambassadeur et tu grimpes les niveaux, comme tout le monde.")}
+        {lierPonctuation("C'est un programme de passionnés : pas de rémunération, ni horaires ni objectifs. Pas retenu ? Tu restes ambassadeur, tu grimpes les niveaux comme tout le monde, et tu peux recandidater quand tu veux.")}
       </p>
     </section>
   );

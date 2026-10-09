@@ -5,6 +5,17 @@ export type TypeLieu = "resto" | "patisserie" | "bar" | "sortie";
 export type EnvieLieu = "terrasse" | "vege" | "amoureux" | "potes" | "famille";
 export type StatutLieu = "brouillon" | "publie" | "masque";
 export type CreneauOuverture = { jours: number[]; de: string; a: string };
+/** Infos pratiques (packages/commun/src/types/infos-pratiques.ts) : null = pas renseigné, jamais affiché dans l'app */
+export type InfosPratiquesLieu = {
+  animaux: "bienvenus" | "terrasse" | "non" | null;
+  accessible: boolean | null;
+  terrasse: boolean | null;
+  wifi: boolean | null;
+  enfants: boolean | null;
+  parking: boolean | null;
+  paiements: string[];
+  reservation: "inutile" | "conseillee" | "obligatoire" | null;
+};
 
 export type SaisieLieu = {
   nom: string;
@@ -32,7 +43,7 @@ export type SaisieLieu = {
   decouvertPar: string | null;
   statut: StatutLieu;
   note: string | null;
-};
+} & InfosPratiquesLieu;
 
 export type Lieu = SaisieLieu & { id: number; creeLe: string; modifieLe: string };
 

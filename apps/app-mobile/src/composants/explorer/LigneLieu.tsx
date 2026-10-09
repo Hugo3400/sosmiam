@@ -3,7 +3,9 @@ import { memo } from "react";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
+import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -28,7 +30,9 @@ const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€
 export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir }: Props) {
   const ouvert = estOuvertMaintenant(lieu);
   const distance = formaterDistance(km);
-  const sos = lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
+  // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)
+  const verifie = estLieuVerifie(lieu);
+  const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
 
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
@@ -36,6 +40,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
     `À ${distance}, ${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
+    verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
   ]
     .filter(Boolean)
     .join(". ");
@@ -73,6 +78,11 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
             🔥 {lieu.alerte}
           </Text>
         ) : null}
+        {verifie ? null : (
+          <View className="mt-1">
+            <BadgeVerification verifie={false} taille="petite" />
+          </View>
+        )}
       </View>
 
       <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
