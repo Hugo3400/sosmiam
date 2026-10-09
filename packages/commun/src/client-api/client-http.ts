@@ -21,9 +21,16 @@ export type OptionsClientHttp = {
   fetch?: typeof fetch;
 };
 
+export type OptionsDemande = { corps?: unknown; session?: boolean };
+
 export type ClientHttp = {
   /** `session: false` : la demande part sans jeton (lectures publiques) */
-  demander<T extends object = Record<never, never>>(methode: MethodeHttp, chemin: string, options?: { corps?: unknown; session?: boolean }): Promise<ReponseApi<T>>;
+  demander<T extends object = Record<never, never>>(methode: MethodeHttp, chemin: string, options?: OptionsDemande): Promise<ReponseApi<T>>;
+  /**
+   * La réponse telle quelle (statut et corps JSON), pour les rares erreurs qui portent des données (« profil-a-completer »
+   * d'Apple et Google) ; null : pas de réponse lisible (hors ligne, trop long, pas du JSON).
+   */
+  demanderBrut(methode: MethodeHttp, chemin: string, options?: OptionsDemande): Promise<{ statut: number; corps: Record<string, unknown> } | null>;
 };
 
 const DELAI_DEFAUT_MS = 15_000;
@@ -61,51 +68,68 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
   const chercher = o.fetch ?? fetch;
   const adresse = o.adresse.replace(/\/+$/, "");
 
-  return {
-    async demander<T extends object>(methode: MethodeHttp, chemin: string, options: { corps?: unknown; session?: boolean } = {}): Promise<ReponseApi<T>> {
-      const entetes: Record<string, string> = { Accept: "application/json" };
-      if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
-      if (options.session !== false) {
-        const jeton = await o.lireJeton();
-        if (jeton) entetes.Authorization = `Bearer ${jeton}`;
-      }
-      const arret = new AbortController();
-      const minuterie = setTimeout(() => arret.abort(), o.delaiMs ?? DELAI_DEFAUT_MS);
-      let reponse: Response;
-      try {
-        reponse = await chercher(`${adresse}${chemin}`, {
-          method: methode,
-          headers: entetes,
-          body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
-          signal: arret.signal,
-        });
-      } catch {
-        // Pas de réseau, serveur injoignable, ou trop long
-        return { ok: false, erreur: "hors-ligne" };
-      } finally {
-        clearTimeout(minuterie);
-      }
+  /** Envoie la demande (session comprise) ; null : pas de réponse (pas de réseau, serveur injoignable, ou trop long) */
+  async function envoyer(methode: MethodeHttp, chemin: string, options: OptionsDemande): Promise<Response | null> {
+    const entetes: Record<string, string> = { Accept: "application/json" };
+    if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
+    if (options.session !== false) {
+      const jeton = await o.lireJeton();
+      if (jeton) entetes.Authorization = `Bearer ${jeton}`;
+    }
+    const arret = new AbortController();
+    const minuterie = setTimeout(() => arret.abort(), o.delaiMs ?? DELAI_DEFAUT_MS);
+    try {
+      return await chercher(`${adresse}${chemin}`, {
+        method: methode,
+        headers: entetes,
+        body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
+        signal: arret.signal,
+      });
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(minuterie);
+    }
+  }
 
+  /** Le corps JSON d'une réponse ; null s'il ne se lit pas */
+  async function lire(reponse: Response): Promise<Record<string, unknown> | null> {
+    try {
+      const corps: unknown = await reponse.json();
+      return typeof corps === "object" && corps !== null ? (corps as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return {
+    async demander<T extends object>(methode: MethodeHttp, chemin: string, options: OptionsDemande = {}): Promise<ReponseApi<T>> {
+      const reponse = await envoyer(methode, chemin, options);
+      if (!reponse) return { ok: false, erreur: "hors-ligne" };
       if (reponse.status === 429) {
         const attente = Number(reponse.headers.get("Retry-After"));
         return { ok: false, erreur: "trop-de-demandes", ...(Number.isFinite(attente) && attente > 0 ? { details: { attenteS: Math.ceil(attente) } } : {}) };
       }
-      let corps: Record<string, unknown>;
-      try {
-        corps = (await reponse.json()) as Record<string, unknown>;
-      } catch {
-        return { ok: false, erreur: "erreur-serveur" };
-      }
+      const corps = await lire(reponse);
+      if (!corps) return { ok: false, erreur: "erreur-serveur" };
       if (reponse.ok && corps.ok === true) return corps as ReponseApi<T>;
 
       const code = typeof corps.erreur === "string" ? corps.erreur : "";
       if (code === "session-expiree") o.surSessionExpiree?.();
-      // Un code que l'app ne connaît pas (champ refusé, serveur en panne…) : c'est de notre côté, jamais de la faute de la personne
+      // Un code que l'app ne connaît pas (serveur en panne…) : c'est de notre côté, jamais de la faute de la personne
       const erreur: ErreurService = EQUIVALENTS[code] ?? (CONNUS.has(code) ? (code as ErreurService) : reponse.status === 401 ? "connexion-requise" : "erreur-serveur");
       const details = lireDetails(corps);
       // Le champ refusé d'un formulaire (« pseudo », « dateNaissance »…), pour le montrer à côté de la bonne case
       const champ = typeof corps.champ === "string" ? corps.champ : undefined;
       return { ok: false, erreur, ...(details ? { details } : {}), ...(champ ? { champ } : {}) };
+    },
+
+    async demanderBrut(methode: MethodeHttp, chemin: string, options: OptionsDemande = {}) {
+      const reponse = await envoyer(methode, chemin, options);
+      const corps = reponse ? await lire(reponse) : null;
+      if (!reponse || !corps) return null;
+      if (corps.erreur === "session-expiree") o.surSessionExpiree?.();
+      return { statut: reponse.status, corps };
     },
   };
 }
