@@ -31,7 +31,7 @@ import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts
 import type { DependancesConnexionExterne } from "./comptes-externes.ts";
 import { lireEnvies, lireNomChiffre, lirePseudo } from "./comptes-profil-champs.ts";
 import type { LimiteEnvois } from "./comptes-limite-envois.ts";
-import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
+import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse, lirePrenom } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
 /** Conditions d'utilisation acceptées à l'inscription : leur date de mise à jour (contenus/legal/cgu.ts du site, à garder en phase) */
@@ -182,7 +182,7 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       const age = dateNaissance === null ? null : espace === "app" ? calculerAgeProfil(dateNaissance, maintenant) : calculerAgeAParis(dateNaissance, maintenant);
       if (age !== null && age < (espace === "app" ? AGE_MINIMUM_INSCRIPTION : AGE_MINIMUM)) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
       if (espace === "app" && !chiffrement) return repondreChiffrementIndisponible(reponse);
-      const prenom = lireLigne(corps, "prenom", 1, 40);
+      const prenom = lirePrenom(corps);
       const email = lireEmail(corps);
       const motDePasse = lireMotDePasse(corps, "motDePasse");
       if (!validerMotDePasse(motDePasse, email)) throw new ChampInvalide("motDePasse");

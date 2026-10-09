@@ -2,6 +2,7 @@
 // gererErreursComptes transforme en 400 « champ-invalide » avec le nom du champ).
 import type { Request, Response } from "express";
 
+import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import { nettoyerLigne } from "../fonctions/comptes/nettoyer-ligne.ts";
 import { verifierEmail } from "../fonctions/texte/verifier-email.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
@@ -42,6 +43,17 @@ export function lireLigne(corps: Record<string, unknown>, champ: string, minimum
   const propre = typeof valeur === "string" ? nettoyerLigne(valeur) : "";
   if (propre.length < minimum || propre.length > maximum) throw new ChampInvalide(champ);
   return propre;
+}
+
+/**
+ * Le prénom (1 à 40 caractères), montré aux autres : refusé s'il contient un gros mot (nomPublicContientMotInterdit de
+ * packages/commun, comme le pseudo). Vérifié seulement à l'écriture : `actuel` (le prénom déjà enregistré, renvoyé tel quel
+ * par un formulaire) passe toujours, pour qu'un mot ajouté plus tard à la liste ne bloque jamais un compte.
+ */
+export function lirePrenom(corps: Record<string, unknown>, actuel?: string): string {
+  const prenom = lireLigne(corps, "prenom", 1, 40);
+  if (prenom !== actuel && nomPublicContientMotInterdit(prenom)) throw new ChampInvalide("prenom");
+  return prenom;
 }
 
 /** Une ligne facultative (quartier) : null si elle est absente ou vide. */

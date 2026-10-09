@@ -7,6 +7,7 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { ModeApp, RolesCompte } from "@sos-miam/commun/types/roles";
 import { ContexteModes, type EtatModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE as DEMO } from "~/services/demo/demo-visites-active";
 import { effacerModeApp, enregistrerModeApp, lireModeApp, MODE_APP_PAR_DEFAUT, type ModeAppGarde } from "~/stockage/mode-app";
 import { effacerRolesDemo, enregistrerRolesDemo, lireRolesDemo, ROLES_VIDES } from "~/stockage/roles-demo";
@@ -27,14 +28,15 @@ function contientOnglets(etat: EtatNavigation): boolean {
 
 /**
  * Modes de l'app : perso pour tout le monde ; pro (équipe d'un lieu) et ambassadeur pour les 18 ans et plus qui ont le rôle.
- * En démo, les rôles sont ceux joués dans les Coulisses ; sans démo, aucun en attendant le compte unique.
+ * Avec un vrai compte connecté, les rôles sont les siens (relus par le serveur) ; sinon, en démo, ceux joués dans les
+ * Coulisses, et aucun hors démo.
  * Le dernier mode est gardé sur le téléphone : au lancement, s'il est encore ouvert, on y revient une fois la navigation prête.
  * Un rôle qui disparaît (ou un profil effacé) ramène au mode perso ; la garde de PileRacine ferme alors les écrans du mode.
  */
 export function FournisseurModes({ children }: { children: ReactNode }) {
   const { profil, chargement } = utiliserProfil();
   const navigation = useNavigationContainerRef();
-  const [roles, setRoles] = useState<RolesCompte>(ROLES_VIDES);
+  const [rolesDemo, setRoles] = useState<RolesCompte>(ROLES_VIDES);
   const [garde, setGarde] = useState<ModeAppGarde>(MODE_APP_PAR_DEFAUT);
   const [relu, setRelu] = useState(false);
   const pret = relu && !chargement;
@@ -49,6 +51,15 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
       .finally(() => setRelu(true));
   }, []);
 
+  // Un vrai compte connecté : ses rôles à lui (rattachements validés, statut d'ambassadeur), relus par le serveur, jamais ceux de la démo
+  const { compte } = utiliserSession();
+  const roles = useMemo<RolesCompte>(
+    () =>
+      compte
+        ? { ambassadeur: compte.ambassadeur?.statut ?? null, pro: compte.pro.lieuxValides.map((l) => ({ id: l.lieuId, nom: l.nom, emoji: l.emoji, role: l.role })) }
+        : rolesDemo,
+    [compte, rolesDemo],
+  );
   const majeur = profil !== null && calculerAge(profil.dateNaissance) >= AGE_ALCOOL;
   const modesOuverts = useMemo(() => (profil ? listerModesOuverts(roles, majeur) : SEUL_MODE_PERSO), [profil, roles, majeur]);
   const proOuvert = modesOuverts.includes("pro");

@@ -11,7 +11,7 @@ import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import type { ModificationCompte } from "../services/comptes.ts";
 import { faireAttendre, verifierEnComptant } from "./comptes-attente.ts";
-import { lireCompteId, lireCorps, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
+import { lireCompteId, lireCorps, lireLigne, lireLigneFacultative, lireMotDePasse, lirePrenom } from "./comptes-champs.ts";
 import type { ContexteComptes } from "./comptes.ts";
 import { creerControleursComptesExternes } from "./comptes-externes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
@@ -43,7 +43,7 @@ export function creerControleursMonCompte(contexte: ContexteComptes) {
     async modifier(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       const modification: ModificationCompte = {};
-      if (corps.prenom !== undefined) modification.prenom = lireLigne(corps, "prenom", 1, 40);
+      if (corps.prenom !== undefined) modification.prenom = lirePrenom(corps, (reponse.locals.compte as CompteSession).prenom);
       if (corps.ville !== undefined) modification.ville = lireLigne(corps, "ville", 2, 80);
       if (corps.quartier !== undefined) modification.quartier = lireLigneFacultative(corps, "quartier", 80);
       const id = lireCompteId(reponse);

@@ -5,15 +5,14 @@ import { choisirRecompenseAffichee } from "../../../../packages/commun/src/fonct
 import { estRecompenseAlcool } from "../../../../packages/commun/src/fonctions/fidelite/est-recompense-alcool.ts";
 import { lireCodeScanne } from "../../../../packages/commun/src/fonctions/qr/lire-code-scanne.ts";
 import { verifierJetonComptoir } from "../../../../packages/commun/src/fonctions/qr/verifier-jeton-comptoir.ts";
-import { calculerEffetsValidation } from "../../../../packages/commun/src/fonctions/visites/calculer-effets-validation.ts";
-import { calculerPointsVisite } from "../../../../packages/commun/src/fonctions/visites/calculer-points-visite.ts";
 import { choisirCodeAddition } from "../../../../packages/commun/src/fonctions/visites/choisir-code-addition.ts";
-import { DELAI_ANNULATION_LIEU_MS, DUREE_DEMANDE_ADDITION_MS } from "../../../../packages/commun/src/regles/visites.ts";
+import { DUREE_DEMANDE_ADDITION_MS } from "../../../../packages/commun/src/regles/visites.ts";
 import type { LecturePosition } from "../../../../packages/commun/src/types/position.ts";
 import type { InfosVisiteLieu, ReglementVisite, ResultatValidation, Visite } from "../../../../packages/commun/src/types/visite.ts";
 import { presenterCarteFidelite } from "../fonctions/fidelite/presenter-carte-fidelite.ts";
 import type { PointsVisite } from "../fonctions/visites/appliquer-effets-visite.ts";
-import { appliquerEffetsVisite } from "../fonctions/visites/appliquer-effets-visite.ts";
+import { construireResultatValidation } from "../fonctions/visites/construire-resultat-validation.ts";
+import { creerVisiteValidee } from "../fonctions/visites/creer-visite-validee.ts";
 import { deciderVisite } from "../fonctions/visites/decider-visite.ts";
 import { presenterVisite } from "../fonctions/visites/presenter-visite.ts";
 import { MOT_CONTESTATION_MAX, VISITES_RENDUES, type LigneVisite, type TablesVisites } from "./visites-regles.ts";
@@ -32,11 +31,7 @@ export function creerVisitesClient(c: ContexteVisites) {
   /** Ce que reçoit le client pour une visite : la visite, sa carte chez ce lieu, et si la carte vient de se remplir */
   async function construireResultat(t: TablesVisites, v: LigneVisite, majeur: boolean, recompenseGagnee: boolean | null, dejaValidee = false): Promise<ResultatValidation> {
     const lieu = (await t.resumerLieux([v.lieuId])).get(v.lieuId) ?? o.lieuDisparu(v.lieuId);
-    const [ligneCarte, programme] = await Promise.all([t.lireCarte(v.compteId, v.lieuId, o.maintenant()), t.lireProgramme(v.lieuId)]);
-    const carte = ligneCarte ? presenterCarteFidelite(ligneCarte, programme, lieu, majeur) : null;
-    // Sans indication : une récompense gagnée à l'instant même de la validation
-    const retrouvee = v.statut === "validee" && v.tampon && v.valideLe !== null && (ligneCarte?.pretes.some((r) => r.gagneeLe.getTime() === v.valideLe?.getTime()) ?? false);
-    return { visite: presenterVisite(v, lieu), carte, recompenseGagnee: recompenseGagnee ?? retrouvee, dejaValidee };
+    return construireResultatValidation(t, v, lieu, majeur, recompenseGagnee, o.maintenant(), dejaValidee);
   }
 
   /** Une visite du client, relue sous le verrou de son compte (null : pas la sienne, ou introuvable) */
@@ -154,26 +149,13 @@ export function creerVisitesClient(c: ContexteVisites) {
         if (deja) return { ok: true, ...(await construireResultat(t, deja, visiteur.majeur, false, true)), pointsAPoser: { compteId, points: [] } };
         if (!(await t.consommerPresentation(presentation.id))) return o.echec("qr-epuise");
 
-        const reglement = presentation.reglement ?? payee();
-        const visite = await t.creerVisite({
-          ...o.visiteVide(compteId, lieu.id, maintenant),
-          mode: "comptoir",
-          statut: "validee",
-          valideLe: maintenant,
-          decideLe: maintenant,
+        const { visite, points, recompenseGagnee } = await creerVisiteValidee(t, {
+          compteId, lieuId: lieu.id, mode: "comptoir", pendantSos: lieu.sosEnCours,
           // Le membre de l'équipe qui a montré le QR : on sait qui a validé quoi
           decideParId: presentation.montreParId,
-          pendantSos: lieu.sosEnCours,
-          points: calculerPointsVisite(lieu.sosEnCours, reglement),
-          resultatPosition: "dans-rayon",
-          presentationId: presentation.id,
-          annulableJusqua: new Date(maintenant.getTime() + DELAI_ANNULATION_LIEU_MS),
-          reglement,
-        });
-        const effets = calculerEffetsValidation(lieu.sosEnCours, maintenant.getTime(), undefined, reglement);
-        const { champs, points, recompenseGagnee } = await appliquerEffetsVisite(t, visite, effets, maintenant, visiteur.majeur);
-        await t.modifierVisite(visite.id, champs);
-        const resultat = await construireResultat(t, { ...visite, ...champs }, visiteur.majeur, recompenseGagnee);
+          presentationId: presentation.id, reservationId: null, reglement: presentation.reglement ?? payee(),
+        }, maintenant, visiteur.majeur);
+        const resultat = await construireResultat(t, visite, visiteur.majeur, recompenseGagnee);
         return { ok: true, ...resultat, pointsAPoser: { compteId, points } };
       });
     },

@@ -89,6 +89,9 @@ export type DependancesComptes = {
  *   - `pro.lieux[].emoji` (l'emoji du lieu) et `pro.lieuxValides` : les mêmes lieux, seulement ceux au statut « valide » ;
  *   - si l'âge connu est sous 18 ans, AUCUN rôle : `ambassadeur` null, `pro` { lieux: [], lieuxValides: [] } (de même si
  *     la date est gardée mais illisible faute de clé : dans le doute, on ne montre pas).
+ * `prenom` (inscription du site et de l'app, Apple et Google à la création, PATCH /comptes/moi, PATCH /comptes/moi/profil) :
+ * 1 à 40 caractères, sans gros mot (nomPublicContientMotInterdit de packages/commun, comme le pseudo), sinon 400
+ * champ-invalide { champ: "prenom" } ; vérifié seulement à l'écriture : le prénom déjà enregistré, renvoyé tel quel, passe.
  * Sessions : support « site » (par défaut) : fermée après 30 jours sans visite, 90 jours au plus ; support « app » : 1 an,
  * prolongé à chaque usage (au plus une écriture par jour), sans limite totale. Expirée : 401 « session-expiree ».
  *
@@ -135,7 +138,7 @@ export type DependancesComptes = {
  * PATCH  /comptes/moi/profil            { prenom?, nom?, pseudo?, ville?, envies?, avatar?, prive? } → 200 { ok, profil }
  *                                        (même forme que GET ; champ absent : inchangé) · 400 champ-invalide {champ} · 401
  *                                        · 409 pseudo-pris · 503 chiffrement-indisponible
- *                                        prenom 1 à 40 car. ; nom 60 car., null ou "" : effacé ; pseudo : comme à
+ *                                        prenom 1 à 40 car., sans gros mot ; nom 60 car., null ou "" : effacé ; pseudo : comme à
  *                                        l'inscription (le sien : accepté) ; ville 2 à 80 car. ; envies : comme à
  *                                        l'inscription, REMPLACENT les précédentes ; avatar : un seul emoji (16 car. au
  *                                        plus), null ou "" : effacé ; prive : booléen. dateNaissance envoyée : 400 {champ:

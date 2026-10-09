@@ -17,7 +17,7 @@ import { ClesIndisponibles } from "../services/cles-jwks.ts";
 import type { ServicesComptesExternes } from "../services/comptes-externes-regles.ts";
 import type { VerifierJetonExterne } from "../services/connexion-externe.ts";
 import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
-import { lireCompteId, lireCorps, lireLigne } from "./comptes-champs.ts";
+import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
 import { lireProfilApp, lireSupport, repondreChiffrementIndisponible, VERSION_CGU, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -108,7 +108,7 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     }
     if (dateNaissance === null) throw new ChampInvalide("dateNaissance");
     if (age === null) throw new ChampInvalide("dateNaissance");
-    const prenom = lireLigne(corps, "prenom", 1, 40);
+    const prenom = lirePrenom(corps);
     const profil = lireProfilApp(corps, dateNaissance, chiffrement);
     const id = await services.creerCompte({
       email, motDePasse: creerEmpreinteSansMotDePasse(), prenom, ville: "", quartier: null, cguVersion: VERSION_CGU, espace: "app", profil,

@@ -4,6 +4,7 @@
 
 import type { AvisARelire } from "../../types/avis.ts";
 import type { EspaceAmbassadeur, MessageAmbassadeur, MissionAmbassadeur, TypeMission } from "../../types/espace-ambassadeur.ts";
+import type { PositionLieu } from "../../types/lieu.ts";
 import type { StatutAmbassadeur } from "../../types/roles.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { ServiceEspaceAmbassadeur } from "../contrat-espace-ambassadeur.ts";
@@ -17,7 +18,7 @@ const INTERVALLE_MS = 60_000;
 type MissionLue = Omit<MissionAmbassadeur, "type" | "presenceVerifieeLe" | "lieu"> & {
   type?: string;
   presenceVerifieeLe?: string | null;
-  lieu: { id: number; nom: string; ville: string; emoji?: string; position?: MissionAmbassadeur["lieu"] extends infer L ? L extends { position: infer P } ? P : null : null } | null;
+  lieu: { id: number; nom: string; ville: string; emoji?: string; position?: PositionLieu | null } | null;
 };
 
 const completer = (m: MissionLue): MissionAmbassadeur => ({

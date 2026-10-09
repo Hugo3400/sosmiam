@@ -103,7 +103,7 @@ test("validerEvenement : alcool coché d'office, et jamais d'open bar", () => {
   const happy = validerEvenement({ ...QUIZ, description: "Happy hour pendant le quiz" }, MAINTENANT);
   assert.ok(happy.ok && happy.evenement.alcool);
   assert.ok(valider({}).ok && !(valider({}) as { evenement: ReglageEvenement }).evenement.alcool);
-  assert.equal(champ({ titre: "Soirée OPEN-BAR" , alcool: true }), "titre");
+  assert.equal(champ({ titre: "Soirée OPEN-BAR", alcool: true }), "titre");
   assert.equal(champ({ titre: "Soirée open bar" }), null, "sans alcool, « open bar » ne veut rien dire de grave");
   assert.equal(champ({ description: "Bières à volonté toute la soirée" }), "description");
   assert.equal(champ({ titre: "Concert", description: "Cocktails illimités" }), "description");

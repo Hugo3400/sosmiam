@@ -5,8 +5,9 @@ import type { Request, Response } from "express";
 import { estPseudoValide } from "../../../../packages/commun/src/validation/est-pseudo-valide.ts";
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
+import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import type { ModificationProfil, ProfilLu } from "../services/comptes-profil.ts";
-import { lireCompteId, lireCorps, lireLigne } from "./comptes-champs.ts";
+import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
 import { lireAvatar, lireEnvies, lireNomChiffre, lirePseudo, normaliserPseudo, relireEnvies } from "./comptes-profil-champs.ts";
 import { repondreChiffrementIndisponible, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
@@ -43,11 +44,12 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
   }
 
   /** Ce que la demande veut changer ; champs absents : inchangés. */
-  function lireModification(corps: Record<string, unknown>): ModificationProfil {
+  /** `prenomActuel` : le prénom enregistré, qui passe toujours (lirePrenom) */
+  function lireModification(corps: Record<string, unknown>, prenomActuel: string): ModificationProfil {
     // La date de naissance ne se change jamais ici : l'équipe la corrige sur demande (« Écris-nous »)
     if (corps.dateNaissance !== undefined) throw new ChampInvalide("dateNaissance");
     const modification: ModificationProfil = {};
-    if (corps.prenom !== undefined) modification.prenom = lireLigne(corps, "prenom", 1, 40);
+    if (corps.prenom !== undefined) modification.prenom = lirePrenom(corps, prenomActuel);
     if (corps.nom !== undefined && chiffrement) modification.nomChiffre = lireNomChiffre(corps, chiffrement);
     if (corps.pseudo !== undefined) modification.pseudo = lirePseudo(corps.pseudo);
     if (corps.ville !== undefined) modification.ville = lireLigne(corps, "ville", 2, 80);
@@ -73,7 +75,7 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
     async modifier(requete: Request, reponse: Response) {
       if (!chiffrement) return repondreChiffrementIndisponible(reponse);
       const id = lireCompteId(reponse);
-      const modification = lireModification(lireCorps(requete));
+      const modification = lireModification(lireCorps(requete), (reponse.locals.compte as CompteSession).prenom);
       if (modification.pseudo !== undefined && (await services.pseudoEstPris(modification.pseudo, id))) {
         return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
       }
