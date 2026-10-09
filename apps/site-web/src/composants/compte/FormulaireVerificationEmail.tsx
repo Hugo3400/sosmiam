@@ -27,7 +27,8 @@ export function FormulaireVerificationEmail({ connecte }: Props) {
   const submit = useSubmit();
 
   useEffect(() => {
-    if (jetonDuLien) submit({ formulaire: nom, jeton: jetonDuLien }, { method: "post" });
+    // Adresse donnée sans « # » : sinon React Router, qui a encore l'ancienne adresse en tête, remettrait le jeton dans la barre
+    if (jetonDuLien) submit({ formulaire: nom, jeton: jetonDuLien }, { method: "post", action: "/verifier-email", replace: true });
   }, [jetonDuLien]);
 
   if (jetonDuLien && !reponse) {
