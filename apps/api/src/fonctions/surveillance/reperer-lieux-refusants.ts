@@ -1,5 +1,5 @@
-/** Une décision d'un lieu sur une visite */
-export type DecisionLieu = { lieuId: number; statut: "validee" | "refusee" };
+/** Une décision d'un lieu sur une visite (« retiree » compte comme un refus) */
+export type DecisionLieu = { lieuId: number; statut: "validee" | "refusee" | "retiree" };
 
 /**
  * Les lieux qui refusent beaucoup (le taux de refus des lieux est surveillé, décidé le 9 octobre 2026) : une part de refus
@@ -10,7 +10,7 @@ export function repererLieuxRefusants(decisions: DecisionLieu[], seuils: { partR
   for (const { lieuId, statut } of decisions) {
     const compte = parLieu.get(lieuId) ?? { refusees: 0, decidees: 0 };
     compte.decidees++;
-    if (statut === "refusee") compte.refusees++;
+    if (statut !== "validee") compte.refusees++;
     parLieu.set(lieuId, compte);
   }
   return [...parLieu.entries()]

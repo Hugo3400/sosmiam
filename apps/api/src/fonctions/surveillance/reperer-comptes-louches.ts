@@ -1,7 +1,8 @@
 import { calculerClesPeriodes } from "../dates/calculer-cles-periodes.ts";
 
-/** Une visite décidée, telle que la surveillance la lit (jamais la position) */
-export type VisiteDecidee = { compteId: number; lieuId: number; statut: "validee" | "refusee"; valideLe: Date | null; decideLe: Date | null };
+/** Une visite décidée par un lieu, telle que la surveillance la lit (jamais la position ni le code). « retiree » : validée
+ * puis annulée par le lieu dans les 15 minutes, comptée comme un refus. */
+export type VisiteDecidee = { compteId: number; lieuId: number; statut: "validee" | "refusee" | "retiree"; valideLe: Date | null };
 export type SeuilsComptes = { parJour: number; partRefusMin: number; decisionsMin: number };
 export type RaisonCompte =
   | { type: "par-jour"; jour: string; validees: number }
@@ -13,7 +14,8 @@ const LIEUX_REFUS_MIN = 2;
 /**
  * Les comptes à regarder de près (jamais bloqués : l'équipe décide), d'après leurs visites décidées : plus de `parJour`
  * visites validées dans une même journée (jour de Paris), ou une part de refus d'au moins `partRefusMin` % sur au moins
- * `decisionsMin` visites décidées, avec des refus venant d'au moins 2 lieux différents. Rend chaque compte avec ses raisons.
+ * `decisionsMin` visites décidées, avec des refus venant d'au moins 2 lieux différents (« au moins 2 gérants » : un seul
+ * lieu ne suffit jamais à signaler quelqu'un). Rend chaque compte avec ses raisons.
  */
 export function repererComptesLouches(visites: VisiteDecidee[], seuils: SeuilsComptes): Map<number, RaisonCompte[]> {
   const parCompte = new Map<number, VisiteDecidee[]>();
@@ -28,7 +30,7 @@ export function repererComptesLouches(visites: VisiteDecidee[], seuils: SeuilsCo
       parJour.set(jour, (parJour.get(jour) ?? 0) + 1);
     }
     for (const [jour, validees] of parJour) if (validees > seuils.parJour) raisons.push({ type: "par-jour", jour, validees });
-    const refusees = siennes.filter((visite) => visite.statut === "refusee");
+    const refusees = siennes.filter((visite) => visite.statut !== "validee");
     const part = siennes.length ? Math.round((refusees.length / siennes.length) * 100) : 0;
     const lieux = new Set(refusees.map((visite) => visite.lieuId)).size;
     if (siennes.length >= seuils.decisionsMin && part >= seuils.partRefusMin && lieux >= LIEUX_REFUS_MIN) {

@@ -6,8 +6,8 @@ import { repererComptesLouches, type VisiteDecidee } from "../src/fonctions/surv
 import { repererLieuxRefusants } from "../src/fonctions/surveillance/reperer-lieux-refusants.ts";
 
 const seuils = { parJour: 4, partRefusMin: 34, decisionsMin: 6 };
-const visite = (compteId: number, lieuId: number, statut: "validee" | "refusee", iso: string): VisiteDecidee =>
-  ({ compteId, lieuId, statut, valideLe: statut === "validee" ? new Date(iso) : null, decideLe: new Date(iso) });
+const visite = (compteId: number, lieuId: number, statut: VisiteDecidee["statut"], iso: string): VisiteDecidee =>
+  ({ compteId, lieuId, statut, valideLe: statut === "refusee" ? null : new Date(iso) });
 
 test("plus de 4 visites validées le même jour de Paris (minuit à Paris, pas en temps universel)", () => {
   const cinq = [1, 2, 3, 4, 5].map((i) => visite(7, i, "validee", `2026-10-09T1${i}:00:00Z`));
@@ -25,6 +25,9 @@ test("trop de refus : au moins un tiers sur 6 décisions, et refusé par au moin
   assert.equal(repererComptesLouches(deuxLieux, seuils).has(8), false, "33 % de refus, sous le seuil de 34 %");
   assert.deepEqual(repererComptesLouches(deuxLieux, { ...seuils, partRefusMin: 33 }).get(8), [{ type: "refus", refusees: 2, decidees: 6, part: 33, lieux: 2 }]);
   assert.equal(repererComptesLouches(deuxLieux.slice(1), { ...seuils, partRefusMin: 33 }).has(8), false, "moins de 6 décisions : trop tôt pour juger");
+  // Une validation retirée par le lieu (dans les 15 minutes) compte comme un refus, et ne compte pas dans la journée
+  const avecRetrait = [...deuxLieux, visite(8, 97, "retiree", "2026-10-07T12:00:00Z")];
+  assert.deepEqual(repererComptesLouches(avecRetrait, seuils).get(8), [{ type: "refus", refusees: 3, decidees: 7, part: 43, lieux: 3 }]);
 });
 
 test("lieux qui refusent beaucoup : part et nombre minimum de décisions", () => {
