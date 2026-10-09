@@ -125,8 +125,9 @@ export default function FicheLieu() {
       {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}
       <View style={{ paddingBottom: marges.bottom + 12 }} className="absolute inset-x-0 bottom-0 flex-row gap-3 border-t border-ligne bg-creme px-5 pt-3">
         {/* 3/5 pour « À la rescousse » : à moitié-moitié, le libellé passait sur deux lignes sous 440 pt de large.
-            Lieu non vérifié : pas de rescousse comptée, on l'invite à nous rejoindre à la place */}
-        {verifie ? (
+            Lieu non vérifié : pas de rescousse comptée, on l'invite à nous rejoindre à la place (une rescousse déjà donnée
+            se reprend encore : le bouton « Sauvé ! » reste, comme dans le menu du fil) */}
+        {verifie || sauve ? (
           <Bouton
             className="flex-[3]"
             libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}

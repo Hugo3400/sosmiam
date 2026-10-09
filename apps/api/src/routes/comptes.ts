@@ -49,19 +49,29 @@ export type DependancesComptes = {
 };
 
 /**
- * /comptes/… : comptes de l'espace ambassadeur (ambassadeur.sosmiam.fr), appelés seulement par le serveur du site.
+ * /comptes/… : comptes uniques de l'espace ambassadeur (ambassadeur.sosmiam.fr) et de l'espace pro (pro.sosmiam.fr),
+ * appelés seulement par le serveur du site.
  * JSON ; jeton de session dans l'en-tête X-Session-Compte, IP du visiteur dans X-IP-Visiteur (elle ne sert qu'aux limites).
  * Réponses : { ok: true, … } ou { ok: false, erreur, champ?, attente? }, jamais en cache. `compte` a exactement la forme
  * de apps/site-web/src/types/compte.ts, plus `emailVerifie` (booléen : e-mail confirmé par le lien reçu). Les adresses qui calculent une empreinte de mot de passe peuvent aussi répondre
  * 503 « occupe » (avec Retry-After) quand trop de calculs attendent déjà : rien n'est fait, ni compté, on réessaie.
  *
- * POST   /comptes                       { email, motDePasse, prenom, ville, quartier?, dateNaissance, cgu: true, piege? }
- *                                        201 { ok, session, compte } (piège rempli : 201 { ok } sans session)
+ * POST   /comptes                       { email, motDePasse, prenom, ville, quartier?, dateNaissance, cgu: true, espace?,
+ *                                        piege? } → 201 { ok, session, compte } (piège rempli : 201 { ok } sans session)
  *                                        400 champ-invalide {champ} · 403 age-minimum · 409 email-deja-utilise · 429
+ *                                        espace : absent ou « ambassadeur » : le compte ET sa fiche d'ambassadeur
+ *                                        « en-attente » (une demande que l'équipe valide). « pro » (inscription sur
+ *                                        pro.sosmiam.fr) : le compte seul, SANS fiche d'ambassadeur (`compte.ambassadeur`
+ *                                        null) ; ville et quartier ne sont ni exigés ni gardés. Autre valeur : 400 {champ:
+ *                                        espace}. Un compte sans ambassadeur se connecte, lit et modifie son compte (prénom,
+ *                                        mot de passe, suppression), confirme son e-mail et va dans l'espace pro comme les
+ *                                        autres ; les adresses « ambassadeur actif » lui répondent 403. Ménage de nuit : seul
+ *                                        l'effacement après 2 ans sans connexion le concerne.
  * POST   /comptes/session               { email, motDePasse } → 201 { ok, session, compte } · 400 · 401 identifiants · 429 {attente}
  * GET    /comptes/session               → 200 { ok, compte } · 401 session-expiree
  * DELETE /comptes/session               → 200 { ok } (déconnexion)
  * PATCH  /comptes/moi                   { prenom?, ville?, quartier? } (quartier "" : effacé) → 200 { ok, compte } · 400 · 401
+ *                                        (sans fiche d'ambassadeur, ville et quartier sont vérifiés mais sans effet)
  * POST   /comptes/moi/mot-de-passe      { actuel, nouveau } → 200 { ok, session } (toutes les sessions fermées, un nouveau
  *                                        jeton remplace celui en cours) · 400 champ-invalide (nouveau) · 403 mot-de-passe-incorrect
  *                                        · 401 · 429 {attente}

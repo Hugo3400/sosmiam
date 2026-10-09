@@ -4,8 +4,10 @@ import { Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { CarteLieuNonVerifie } from "~/composants/lieux/CarteLieuNonVerifie";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
@@ -69,6 +71,8 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
             <Text className="overflow-hidden rounded-full bg-rose-alerte px-3 py-1 font-texte-gras text-[13px] text-rouge-texte">🔥 {lieu.alerte}</Text>
           ) : null}
         </View>
+        {/* Une offre qui parle d'alcool (happy hour, verre offert) : le message sanitaire juste dessous (l'encadré d'aide est plus bas) */}
+        {parleDAlcool(lieu.alerte) || parleDAlcool(sos?.offre) ? <MentionPrevention /> : null}
         <Text accessibilityRole="header" className="font-titre text-[34px] leading-[38px] text-encre">
           {lieu.nom}
         </Text>

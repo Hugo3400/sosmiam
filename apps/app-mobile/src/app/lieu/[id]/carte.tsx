@@ -6,12 +6,14 @@ import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte-contient-alcool";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ElementCarte } from "~/composants/lieux/ElementCarte";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { PastillesSectionsCarte } from "~/composants/lieux/PastillesSectionsCarte";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { regimesCarte } from "~/contenus/regimes-carte";
@@ -20,6 +22,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
 import { filtrerCarteSelonRegimes } from "~/fonctions/lieux/filtrer-carte-selon-regimes";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -149,7 +152,7 @@ export default function CarteDuLieu() {
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-gris">
             {lieu.emoji} {lieu.nom}
           </Text>
-          <Text accessibilityRole="header" accessibilityLabel={`${titre} de ${lieu.nom}`} className="mt-1 font-titre text-[32px] leading-[36px] text-encre">
+          <Text accessibilityRole="header" accessibilityLabel={`${titre} ${direDeLieu(lieu.nom)}`} className="mt-1 font-titre text-[32px] leading-[36px] text-encre">
             {formules ? "🎟️" : "🍽️"} {titre}
           </Text>
           {regimes.length > 0 ? (
@@ -215,6 +218,8 @@ export default function CarteDuLieu() {
               <Bouton libelle="Tout afficher" variante="blanc" petit onPress={toutAfficher} />
             </View>
           ) : null}
+
+          {carteContientAlcool(carte) ? <MentionPrevention variante="bloc" /> : null}
 
           <View className="gap-1 pt-1">
             <Text className="text-center font-texte text-sm leading-5 text-gris">

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Alert, Linking, Platform, Text, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
@@ -187,6 +188,13 @@ export default function Reglages() {
           detail="Qui se cache derrière SOS Miam"
           role="lien"
           onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales")}
+        />
+        <LigneReglage
+          emoji="🩺"
+          titre="Santé et prévention"
+          detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
+          role="lien"
+          onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
         />
         <LigneReglage
           emoji="💌"

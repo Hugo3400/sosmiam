@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { contientMotAlcool } from "@sos-miam/commun/fonctions/fidelite/contient-mot-alcool";
@@ -11,6 +11,7 @@ import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { Pastille } from "~/composants/interface/Pastille";
 import { etiquettesCarte } from "~/contenus/etiquettes-carte";
+import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lireSaisiePrix } from "~/fonctions/prix/lire-saisie-prix";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
@@ -84,6 +85,10 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
   };
   const basculerEtiquette = (e: EtiquetteCarte) => changer({ etiquettes: b.etiquettes.includes(e) ? b.etiquettes.filter((x) => x !== e) : [...b.etiquettes, e] });
   const sembleAlcool = !b.alcool && contientMotAlcool(`${b.nom} ${b.description}`);
+  // L'avertissement apparaît pendant qu'on écrit : VoiceOver le dit aussi (le rôle « live » ne marche que sur Android)
+  useEffect(() => {
+    if (visible && sembleAlcool) annoncerLecteurEcran("On dirait de l'alcool. Un bouton juste en dessous permet de le cacher aux moins de 18 ans.");
+  }, [visible, sembleAlcool]);
   const unites = formules ? UNITES_FORMULES : UNITES_CARTE;
 
   function garder() {
@@ -114,7 +119,15 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
       {sembleAlcool ? (
         <View accessibilityLiveRegion="polite" className="gap-3 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
           <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation("🍷 On dirait de l'alcool. Si c'est une boisson alcoolisée, on la cache aux moins de 18 ans.")}</Text>
-          <Bouton libelle="Oui, ça contient de l'alcool" variante="blanc" petit onPress={() => changer({ alcool: true })} />
+          <Bouton
+            libelle="Oui, ça contient de l'alcool"
+            variante="blanc"
+            petit
+            onPress={() => {
+              changer({ alcool: true });
+              annoncerLecteurEcran("Contient de l'alcool : activé. Caché aux moins de 18 ans.");
+            }}
+          />
         </View>
       ) : null}
 

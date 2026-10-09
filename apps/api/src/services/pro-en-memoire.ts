@@ -4,7 +4,7 @@ import type { FichePublique } from "./lieux-publics.ts";
 import { CHAMPS_PROPOSABLES, type FicheSuggerable } from "./suggestions-comptes-regles.ts";
 import type { LieuEnMemoire, creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import {
-  DEMANDES_RATTACHEMENT_PAR_JOUR, INVITATIONS_PAR_JOUR, MEMBRES_EQUIPE_MAX, RESULTATS_RECHERCHE, SUGGESTIONS_MONTREES, UN_JOUR_PRO,
+  DEMANDES_RATTACHEMENT_PAR_JOUR, GARDE_RATTACHEMENT_CLOS, INVITATIONS_PAR_JOUR, MEMBRES_EQUIPE_MAX, RESULTATS_RECHERCHE, SUGGESTIONS_MONTREES, UN_JOUR_PRO,
   type FichePro, type LieuDuPro, type LieuTrouve, type MembreEquipe, type RoleRattachement, type ServicesPro, type StatutRattachement,
 } from "./pro-regles.ts";
 
@@ -181,6 +181,19 @@ export function creerProEnMemoire(comptes: Map<number, CompteVu>, suggestions: S
         id, ...decrire(lieu), prix: lieu.prix ?? "€", couleurs: lieu.couleurs ?? [], decouvertPar: lieu.decouvertPar ?? null,
         ...champs, estVerifie: estVerifie(id),
       } as FichePublique);
+    },
+    /** Ménage de nuit (services/menage-comptes.ts) : refusés ou retirés depuis plus d'un an ; renvoie le nombre effacé. */
+    effacerRattachementsClos(maintenant = horloge()): number {
+      const limite = maintenant - GARDE_RATTACHEMENT_CLOS;
+      let effaces = 0;
+      for (let i = rattachements.length - 1; i >= 0; i--) {
+        const r = rattachements[i];
+        if (r && (r.statut === "refuse" || r.statut === "retire") && r.decideLe !== null && r.decideLe < limite) {
+          rattachements.splice(i, 1);
+          effaces += 1;
+        }
+      }
+      return effaces;
     },
     /** Compte effacé : ses rattachements partent avec lui (onDelete: Cascade) */
     oublierCompte(compteId: number) {

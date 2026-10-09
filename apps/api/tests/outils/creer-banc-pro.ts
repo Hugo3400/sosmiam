@@ -49,10 +49,8 @@ export async function creerBancPro() {
   /** Un compte (simple client, sans fiche d'ambassadeur) et une session ouverte pour lui */
   async function creerCompte(prenom = "Léa") {
     const email = `compte${++numero}@exemple.fr`;
-    const id = await memoire.services.creerCompte({ email, motDePasse: "empreinte", prenom, ville: "Montpellier", quartier: null, cguVersion: "2026-10-08" });
+    const id = await memoire.services.creerCompte({ email, motDePasse: "empreinte", prenom, ville: "", quartier: null, cguVersion: "2026-10-08", espace: "pro" });
     if (id === null) throw new Error("compte de test impossible");
-    const compte = memoire.comptes.get(id);
-    if (compte) compte.statutAmbassadeur = null;
     const jeton = creerJeton();
     await memoire.sessions.creer(calculerEmpreinteJeton(jeton), { compteId: id, creeLe: banc.horloge, activite: banc.horloge });
     return { id, email, jeton };

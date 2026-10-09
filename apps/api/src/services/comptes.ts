@@ -101,13 +101,19 @@ export type CompteConnecte = {
   pro: { lieux: LieuDuPro[] };
 };
 
+/** Où la personne s'inscrit : l'espace ambassadeur (par défaut), ou l'espace pro (pro.sosmiam.fr) */
+export type EspaceInscription = "ambassadeur" | "pro";
+
 export type NouveauCompte = {
   email: string;
   /** L'empreinte (hacherMotDePasse), jamais le mot de passe lui-même */
   motDePasse: string;
   prenom: string;
+  /** Ville et quartier de la fiche d'ambassadeur ; ignorés pour l'espace pro (le site envoie "" et null) */
   ville: string;
   quartier: string | null;
+  /** « pro » : compte seul, SANS fiche d'ambassadeur (aucune demande à valider) ; absent : « ambassadeur » */
+  espace?: EspaceInscription;
   /** Date de mise à jour des conditions d'utilisation acceptées (AAAA-MM-JJ) */
   cguVersion: string;
 };
@@ -117,11 +123,14 @@ export type ModificationCompte = { prenom?: string; ville?: string; quartier?: s
 
 const estDoublon = (erreur: unknown) => typeof erreur === "object" && erreur !== null && "code" in erreur && erreur.code === "P2002";
 
-/** Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite) ; null si l'e-mail est déjà pris. */
-export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion }: NouveauCompte): Promise<number | null> {
+/**
+ * Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite), ou le compte seul pour l'espace pro ;
+ * null si l'e-mail est déjà pris.
+ */
+export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur" }: NouveauCompte): Promise<number | null> {
   try {
     const compte = await baseDeDonnees.compte.create({
-      data: { email, motDePasse, prenom, cguVersion, ambassadeur: { create: { ville, quartier } } },
+      data: { email, motDePasse, prenom, cguVersion, ...(espace === "ambassadeur" ? { ambassadeur: { create: { ville, quartier } } } : {}) },
       select: { id: true },
     });
     return compte.id;

@@ -16,7 +16,7 @@ type Props = {
 
 /**
  * En-tête de l'espace pro : « SOS Miam · pro ». Connecté : Tableau, puis, dès qu'un lieu est à toi, Ma fiche,
- * Suggestions, Mon équipe (gérant seulement) et Affichette, et « Se déconnecter » ; sinon « Se connecter » et « Créer mon compte ». Sur
+ * Suggestions, Mon équipe (gérant seulement) et Affichette, puis Mon compte et « Se déconnecter » ; sinon « Se connecter » et « Créer mon compte ». Sur
  * téléphone, le menu passe sous le logo et revient à la ligne (jamais de défilement de côté).
  */
 export function EnTetePro({ connecte, lieuMenu }: Props) {
@@ -45,6 +45,7 @@ export function EnTetePro({ connecte, lieuMenu }: Props) {
                     <li><NavLink to={`${lieu}/affichette`} className={classeLienMenu}>Affichette</NavLink></li>
                   </>
                 )}
+                <li><NavLink to="/mon-compte" className={classeLienMenu}>Mon compte</NavLink></li>
                 <li className="ml-auto lg:ml-0"><BoutonDeconnexion discret /></li>
               </>
             ) : (

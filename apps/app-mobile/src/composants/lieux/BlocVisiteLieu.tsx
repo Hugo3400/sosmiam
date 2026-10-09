@@ -9,6 +9,7 @@ import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calcule
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { InfosVisiteLieu } from "@sos-miam/commun/types/visite";
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { LigneBlocVisite } from "~/composants/lieux/LigneBlocVisite";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
@@ -19,6 +20,7 @@ import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import couleurs from "~/theme/couleurs";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Lecture = { etat: "attente" } | { etat: "lu"; infos: InfosVisiteLieu } | { etat: "erreur"; erreur: ErreurService };
 
@@ -208,6 +210,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
             }
           />
         ) : null}
+        {fidelite && (infos.carte?.recompenseAlcool || infos.programme?.recompenseAlcool || parleDAlcool(infos.carte?.pretes[0]?.libelle)) ? <MentionPrevention /> : null}
 
         {infos.reservable ? (
           <LigneBlocVisite

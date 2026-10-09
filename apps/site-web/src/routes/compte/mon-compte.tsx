@@ -31,13 +31,29 @@ const messages = {
 /** Après un changement de mot de passe : « ?mot-de-passe-change=<marque> », une marque nouvelle à chaque changement. */
 const PARAMETRE_CHANGE = "mot-de-passe-change";
 
-export function meta(_: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Mon compte", description: "Ton compte ambassadeur SOS Miam." }), { name: "robots", content: "noindex" }];
+/**
+ * La même page sert deux espaces, chacun avec son cookie : /espace/mon-compte (ambassadeur.sosmiam.fr) et /mon-compte
+ * (pro.sosmiam.fr, cadre pro : voir routes.ts). L'adresse dit lequel ; « chemin » : celle de la page, pour y revenir.
+ */
+function lireEspacePage(request: Request) {
+  const chemin = new URL(request.url).pathname.replace(/\.data$/, "").replace(/\/+$/, "");
+  return chemin === "/mon-compte"
+    ? { espace: "pro" as const, chemin, retour: { vers: "/tableau", texte: "Retour à mon tableau" } }
+    : { espace: "ambassadeur" as const, chemin: "/espace/mon-compte", retour: { vers: "/espace", texte: "Retour à mon espace" } };
 }
 
-/** Ce que la page montre du compte : prénom, e-mail, ville et quartier ; et si le mot de passe vient d'être changé. */
+export function meta({ loaderData }: Route.MetaArgs) {
+  const description = loaderData?.espace === "pro" ? "Ton compte SOS Miam, dans l'espace pro." : "Ton compte ambassadeur SOS Miam.";
+  return [...creerMeta({ titre: "Mon compte", description }), { name: "robots", content: "noindex" }];
+}
+
+/**
+ * Ce que la page montre du compte : prénom, e-mail, ville et quartier (seulement avec une fiche d'ambassadeur) ; si le mot
+ * de passe vient d'être changé ; l'espace qui sert la page et son lien de retour.
+ */
 export async function loader({ request }: Route.LoaderArgs) {
   const { compte } = await exigerCompte(request);
+  const { espace, retour } = lireEspacePage(request);
   // La marque est l'heure du changement (Date.now() en base 36) : passé 2 minutes (rechargement, retour arrière, adresse
   // tapée à la main), plus de message
   const marque = new URL(request.url).searchParams.get(PARAMETRE_CHANGE);
@@ -47,6 +63,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     email: compte.email,
     lieu: compte.ambassadeur ? { ville: compte.ambassadeur.ville, quartier: compte.ambassadeur.quartier } : null,
     motDePasseChange: recente ? marque : null,
+    espace,
+    retour,
   };
 }
 
@@ -99,7 +117,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
       // jeton part dans le cookie par une REDIRECTION. Avec data(), une page envoyée sans JavaScript relirait ses loaders
       // avec l'ancien jeton, déjà fermé, et renverrait à la connexion. L'ancre ramène à cette partie de la page.
       const cookie = reponse.session ? { "Set-Cookie": await poserCookieSession(reponse.session) } : undefined;
-      throw redirect(`/espace/mon-compte?${PARAMETRE_CHANGE}=${Date.now().toString(36)}#mon-mot-de-passe`, { headers: cookie });
+      throw redirect(`${lireEspacePage(request).chemin}?${PARAMETRE_CHANGE}=${Date.now().toString(36)}#mon-mot-de-passe`, { headers: cookie });
     }
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { actuel: messages.actuelIncorrect } };
@@ -120,9 +138,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   throw data("Formulaire inconnu", { status: 400 });
 }
 
-/** Page /espace/mon-compte : infos, mot de passe, déconnexion et suppression du compte. */
+/** Pages /espace/mon-compte et /mon-compte (espace pro) : infos, mot de passe, déconnexion et suppression du compte. */
 export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
-  const { prenom, email, lieu, motDePasseChange } = loaderData;
+  const { prenom, email, lieu, motDePasseChange, espace, retour } = loaderData;
   // Mot de passe changé (on revient ici par une redirection, sans réponse d'action) : le formulaire l'annonce comme une
   // réussite et se vide. Un nouvel objet seulement quand la marque change : chaque changement est annoncé une fois.
   const confirmation = useMemo<ReponseFormulaire | undefined>(
@@ -148,12 +166,12 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           <BoutonDeconnexion />
         </PartieCompte>
         <PartieCompte id="supprimer-mon-compte" titre="Supprimer mon compte">
-          <FormulaireSupprimerCompte />
+          <FormulaireSupprimerCompte espace={espace} />
         </PartieCompte>
       </div>
       <p className="mt-8 text-center">
-        <Link to="/espace" className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-          <span aria-hidden="true">← </span>Retour à mon espace
+        <Link to={retour.vers} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
+          <span aria-hidden="true">← </span>{retour.texte}
         </Link>
       </p>
     </Section>

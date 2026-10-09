@@ -3,9 +3,14 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
+import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte-contient-alcool";
+import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
+import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 
 type Props = {
@@ -57,13 +62,18 @@ function utiliserArriveeTerminee(): boolean {
 }
 
 /**
- * Suite de la fiche d'un lieu (horaires, plat signature, aperçu de la carte, tags), dessinée juste après l'animation
+ * Suite de la fiche d'un lieu (horaires, plat signature, aperçu de la carte, message sanitaire si l'alcool y est évoqué,
+ * tags), dessinée juste après l'animation
  * d'arrivée pour que l'ouverture reste fluide, avec un fondu discret (aucun si les animations sont réduites).
  * Elle s'ajoute sous le haut de la fiche : rien ne bouge au-dessus. Mémorisée : une rescousse ne la redessine pas.
  */
 export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props) {
   // Celles remplies par le lieu (mode pro) si elles existent, sinon celles de la fiche
   const pratique = utiliserInfosPratiquesLieu(lieu);
+  // Celle enregistrée par le lieu s'il l'a fait, sinon celle de la fiche (lue une fois, pour l'aperçu et la prévention)
+  const carteDuLieu = utiliserCarteDuLieu(lieu.id);
+  // Un bar, une offre qui parle d'alcool, ou des boissons alcoolisées sur la carte telle qu'elle est montrée : message sanitaire
+  const alcool = useMemo(() => lieuEvoqueAlcool(lieu) || carteContientAlcool(carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null), [lieu, carteDuLieu, age]);
   const arrivee = utiliserArriveeTerminee();
   const animationsReduites = useReducedMotion();
 
@@ -94,7 +104,9 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
 
       <InfosPratiquesLieu nom={lieu.nom} pratique={pratique} />
 
-      <ApercuCarte lieu={lieu} age={age} />
+      <ApercuCarte lieu={lieu} age={age} carteDuLieu={carteDuLieu} />
+
+      {alcool ? <MentionPrevention variante="bloc" /> : null}
 
       <View className="flex-row flex-wrap gap-2">
         {lieu.tags.map((tag) => (

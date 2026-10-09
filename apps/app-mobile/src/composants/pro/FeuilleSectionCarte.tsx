@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
@@ -7,6 +7,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { Pastille } from "~/composants/interface/Pastille";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const IDEES_CARTE = ["Pour commencer", "Plats", "Desserts", "À boire", "Vins", "Cocktails", "Formules", "Menu enfant"];
@@ -35,6 +36,7 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
   const [texte, setTexte] = useState(titre ?? "");
   const [erreur, setErreur] = useState(false);
   const [confirmerRetrait, setConfirmerRetrait] = useState(false);
+  const refConfirmation = useRef<Text>(null);
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
     setOuvert(visible);
@@ -44,6 +46,13 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
       setConfirmerRetrait(false);
     }
   }
+
+  // Le bouton touché laisse place à l'encadré : le lecteur d'écran va le lire
+  useEffect(() => {
+    if (!confirmerRetrait) return;
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refConfirmation.current), 150);
+    return () => clearTimeout(minuterie);
+  }, [confirmerRetrait]);
 
   const idees = (formules ? IDEES_FORMULES : IDEES_CARTE).filter((idee) => !titresPris.includes(idee));
 
@@ -88,7 +97,18 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
           <Text className="font-texte-semi text-sm text-gris">Des idées</Text>
           <View className="flex-row flex-wrap gap-2">
             {idees.map((idee, i) => (
-              <Pastille key={idee} libelle={idee} role="radio" position={i + 1} total={idees.length} choisi={texte.trim() === idee} onPress={() => setTexte(idee)} />
+              <Pastille
+                key={idee}
+                libelle={idee}
+                role="radio"
+                position={i + 1}
+                total={idees.length}
+                choisi={texte.trim() === idee}
+                onPress={() => {
+                  setTexte(idee);
+                  setErreur(false);
+                }}
+              />
             ))}
           </View>
         </View>
@@ -97,7 +117,7 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
       {onRetirer ? (
         confirmerRetrait ? (
           <View className="gap-3 rounded-2xl border-2 border-tomate bg-rose-alerte p-4">
-            <Text className="font-texte-semi text-sm leading-5 text-encre">
+            <Text ref={refConfirmation} className="font-texte-semi text-sm leading-5 text-encre">
               {lierPonctuation(`${nombreElements > 1 ? `Ses ${nombreElements} éléments partiront` : "Son élément partira"} avec elle. Tu pourras encore tout annuler tant que la carte n'est pas enregistrée.`)}
             </Text>
             <Bouton libelle="Retirer la section" variante="encre" petit onPress={retirer} />

@@ -16,6 +16,9 @@ export const RESULTATS_RECHERCHE = 10;
 /** Suggestions montrées au lieu (les plus récentes) */
 export const SUGGESTIONS_MONTREES = 100;
 export const UN_JOUR_PRO = 24 * 3600_000;
+/** Demande de rattachement refusée, ou rattachement retiré (preuve, SIRET, réponse) : effacé 1 an après la décision ou le
+ * retrait, par le ménage de nuit (décision de Hugo du 9 octobre 2026) ; en attente ou validé, il est gardé */
+export const GARDE_RATTACHEMENT_CLOS = 365 * UN_JOUR_PRO;
 
 /** Les champs que le gérant change tout de suite (colonnes de Lieu du même nom) */
 export const CHAMPS_DIRECTS = [

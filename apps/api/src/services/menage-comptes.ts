@@ -3,6 +3,7 @@
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
 import { retirerDuProgramme } from "./gestion/ambassadeurs.ts";
+import { GARDE_RATTACHEMENT_CLOS } from "./pro-regles.ts";
 
 const UN_JOUR = 86_400_000;
 /** Sessions : fermées après 30 jours sans visite, et au plus tard après 90 jours (comme middlewares/proteger-comptes.ts) */
@@ -28,12 +29,15 @@ export type BilanMenageComptes = {
   liens: number;
   /** Propositions de modification de fiche décidées depuis plus d'un an */
   suggestions: number;
+  /** Demandes de rattachement à un lieu refusées, ou rattachements retirés, depuis plus d'un an */
+  rattachements: number;
 };
 
 /**
  * Efface ce qui a dépassé sa durée de conservation (décision de Hugo du 8 octobre 2026) : sessions, comptes refusés, rôle
  * ambassadeur après 1 an sans visite, compte après 2 ans sans connexion, candidatures refusées (fondateur et certifié),
- * liens de réinitialisation et de confirmation d'e-mail périmés, propositions de modification de fiche décidées depuis 1 an.
+ * liens de réinitialisation et de confirmation d'e-mail périmés, propositions de modification de fiche décidées depuis 1 an,
+ * rattachements à un lieu refusés ou retirés depuis 1 an (décision du 9 octobre 2026 ; en attente ou validés : gardés).
  */
 export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<BilanMenageComptes> {
   const avant = (duree: number) => new Date(maintenant.getTime() - duree);
@@ -70,6 +74,10 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
     data: { jetonVerification: null, jetonVerificationExpireLe: null },
   });
   const suggestions = await baseDeDonnees.suggestionLieu.deleteMany({ where: { decideLe: { lt: avant(GARDE_SUGGESTION) } } });
+  // Preuve, SIRET et réponse de l'équipe partent avec la ligne ; le lieu reste (vérifié tant qu'un autre rattachement est validé)
+  const rattachements = await baseDeDonnees.rattachementLieu.deleteMany({
+    where: { statut: { in: ["refuse", "retire"] }, decideLe: { lt: avant(GARDE_RATTACHEMENT_CLOS) } },
+  });
   return {
     sessions: sessions.count,
     comptesRefuses: comptesRefuses.count,
@@ -79,5 +87,6 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
     candidaturesCertification: candidaturesCertification.count,
     liens: liens.count + liensVerification.count,
     suggestions: suggestions.count,
+    rattachements: rattachements.count,
   };
 }

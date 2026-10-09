@@ -3,6 +3,7 @@
 import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ServiceVisites } from "@sos-miam/commun/client-api/contrat-visites";
 import { choisirRecompenseAffichee } from "@sos-miam/commun/fonctions/fidelite/choisir-recompense-affichee";
+import { estRecompenseAlcool } from "@sos-miam/commun/fonctions/fidelite/est-recompense-alcool";
 import { peutAgirAuComptoir } from "@sos-miam/commun/fonctions/roles/peut-agir-au-comptoir";
 import { choisirCodeAddition } from "@sos-miam/commun/fonctions/visites/choisir-code-addition";
 import { DUREE_DEMANDE_ADDITION_MS } from "@sos-miam/commun/regles/visites";
@@ -85,7 +86,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
             lieuId,
             validationActive: validationLieuxExemples[lieuId]?.validationActive ?? false,
             reservable: lieu.reservable,
-            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense } : null,
+            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: estRecompenseAlcool(programme, recompense) } : null,
             carte: client ? convertirCarteDemo(m, lieuId, client) : null,
             enCoursIci: enCours ? convertirVisiteDemo(enCours, lieu) : null,
             pratique: m.infosPratiques?.[lieuId] ?? null,

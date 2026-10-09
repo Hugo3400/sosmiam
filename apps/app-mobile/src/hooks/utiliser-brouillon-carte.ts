@@ -20,7 +20,8 @@ export type BrouillonCarte = {
   carte: CarteLieu;
   /**
    * Clé React stable d'une section ou d'un élément : un déplacement garde la même (les lignes sont déplacées, pas recréées,
-   * et VoiceOver garde sa place) ; une modification en donne une nouvelle.
+   * et VoiceOver garde sa place). Une section renommée, ou dont un élément change, garde la sienne ; un élément modifié en
+   * reçoit une nouvelle.
    */
   cle: (objet: object) => string;
   /** Vrai dès qu'un changement n'est pas encore enregistré */
@@ -59,7 +60,19 @@ export function utiliserBrouillonCarte(initiale: CarteLieu): BrouillonCarte {
   }, []);
 
   const changer = useCallback((fn: (sections: SectionCarte[]) => SectionCarte[]) => {
-    setCarte((c) => ({ ...c, sections: fn(c.sections) }));
+    setCarte((c) => {
+      const sections = fn(c.sections);
+      // Même nombre de sections : celle qui a été recréée à sa place (renommée, élément ajouté, déplacé…) reprend la clé
+      // de l'ancienne, sinon toute la section serait redessinée et VoiceOver perdrait sa place
+      if (sections.length === c.sections.length) {
+        sections.forEach((s, i) => {
+          const avant = c.sections[i];
+          const n = numeros.current.get(avant);
+          if (s !== avant && n !== undefined && !sections.includes(avant) && !numeros.current.has(s)) numeros.current.set(s, n);
+        });
+      }
+      return { ...c, sections };
+    });
     setModifiee(true);
   }, []);
 

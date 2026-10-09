@@ -19,8 +19,9 @@ const PAGES_ESPACE = [
 const DEBUTS_ESPACE = ["/espace/", "/kit-media/", "/kit-media-pro/"];
 /** Pages du compte, servies aussi sur pro.sosmiam.fr (un seul compte SOS Miam, mais un cookie par hôte) */
 const PAGES_COMPTE = ["/inscription", "/connexion", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email", "/deconnexion"];
-/** Pages de l'espace pro (« /recherche-lieux » : les suggestions de « Ton lieu », appelées par /rattacher) */
-const PAGES_PRO = ["/bienvenue", "/tableau", "/rattacher", "/recherche-lieux"];
+/** Pages de l'espace pro (« /recherche-lieux » : les suggestions de « Ton lieu », appelées par /rattacher ; « /mon-compte » :
+ * la page « Mon compte » de l'espace pro, qui est /espace/mon-compte dans l'espace ambassadeur) */
+const PAGES_PRO = ["/bienvenue", "/tableau", "/rattacher", "/recherche-lieux", "/mon-compte"];
 /** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…), la demande pour un lieu */
 const DEBUTS_PRO = ["/lieu/", "/rattacher/"];
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
@@ -30,8 +31,9 @@ export type RedirectionHote = { adresse: string; statut: 301 | 302 };
 
 /**
  * Où renvoyer une demande arrivée sur `hote` pour `chemin` (avec ses paramètres) ; null : elle est servie ici.
- * - ambassadeur.sosmiam.fr : « / » → 302 vers /programme ; l'espace est servi ; l'espace pro → 301 vers pro.sosmiam.fr ;
- *   tout le reste → 301 vers sosmiam.fr.
+ * - ambassadeur.sosmiam.fr : « / » → 302 vers /programme ; « /mon-compte » → 302 vers /espace/mon-compte (sa page
+ *   « Mon compte », avec le cookie de cet hôte) ; l'espace est servi ; l'espace pro → 301 vers pro.sosmiam.fr ; tout le
+ *   reste → 301 vers sosmiam.fr.
  * - pro.sosmiam.fr : « / » → 302 vers /bienvenue ; l'espace pro et les pages du compte sont servis ; les pages propres à
  *   l'espace ambassadeur → 301 vers lui ; tout le reste → 301 vers sosmiam.fr.
  * - sosmiam.fr : les pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi.
@@ -70,6 +72,7 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
   const pagePro = PAGES_PRO.includes(cle) || DEBUTS_PRO.some((debut) => cle.startsWith(debut));
   const vers = (hoteCible: string) => ({ adresse: `https://${hoteCible}${page}${suite}`, statut: 301 as const });
 
+  if (cle === "/mon-compte" && nomHote === HOTE_AMBASSADEUR) return { adresse: `/espace/mon-compte${suite}`, statut: 302 };
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);
   if (nomHote === HOTE_SITE) return pageEspace ? vers(HOTE_AMBASSADEUR) : null;
   if (nomHote === HOTE_PRO) {

@@ -52,14 +52,16 @@
 - Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement.
 
 ## Miam Safe : se sentir en sécurité dans un lieu (concept posé le 9 octobre 2026, rien de construit)
-- **Compte obligatoire** pour tout Miam Safe. **En cas de danger réel, l'app renvoie d'abord vers le 17 (police), le 18 (pompiers), le 15 (Samu) ou le 112**, accessibles en un appui. Sur ces écrans, le ton reste doux et sérieux : pas de blague ni d'easter egg.
+- **Compte obligatoire** pour tout Miam Safe. **En cas de danger réel, l'app renvoie d'abord vers le 17 (police), le 18 (pompiers), le 15 (Samu), le 112 ou le 114 (urgences par SMS, pour les personnes sourdes ou qui ne peuvent pas parler)**, accessibles en un appui. Sur ces écrans, le ton reste doux et sérieux : pas de blague ni d'easter egg.
 - **Aide sur le moment** (bouton Miam Safe sur la fiche du lieu et pendant une visite) :
-  - **prévenir un pote de Ma bande** : il reçoit « Léa ne se sent pas en sécurité au [lieu] », la **position en direct pendant 1 h** (seulement si la personne le déclenche, arrêtable à tout moment) et un bouton pour l'appeler ;
-  - **demander de l'aide au comptoir** : une phrase à dire, sur le principe de « Demande Angela », **et** un écran à montrer au personnel (« J'ai besoin d'aide, discrètement »).
+  - **prévenir un pote de Ma bande** : il reçoit « Léa ne se sent pas en sécurité au [lieu] », la **position en direct pendant 1 h** (seulement si la personne le déclenche, arrêtable à tout moment ; pareil pour les 15-17 ans, décidé le 9 octobre) et un bouton pour l'appeler ;
+  - **demander de l'aide au comptoir** : une phrase à dire, sur le principe de « Demande Angela » : **« Le Capitaine est là ? »** (décidée le 9 octobre), **et** un écran à montrer au personnel. L'écran est discret : sombre, le Capitaine Bouiboui qui fait un clin d'œil, la phrase en gros et la vraie consigne en petit, pour l'équipe seulement ;
+  - **alerter le comptoir en silence**, quand on ne peut pas y aller (lieux Miam Safe seulement) : l'alerte arrive **en notification push sur les appareils pro du lieu, même app en arrière-plan ou fermée**, avec le prénom, l'endroit (salle, terrasse, toilettes, table si on la connaît) et un détail facultatif (« pull vert »), jamais le nom ni la photo. L'équipe appuie sur « On arrive », et la personne le voit. **Sans réponse au bout de 2 min**, l'app propose d'appeler les secours ou de prévenir un pote, et l'alerte remonte au logiciel de gestion. Sous le bouton : « Le souci vient de l'équipe ? Préviens plutôt un pote ou les secours. »
 - **Signaler après coup** (harcèlement, agression, discrimination, personnel déplacé…) : ça part en alerte de modération dans le logiciel de gestion. **Jamais public sur la fiche.** L'équipe peut contacter le lieu, lui retirer son badge, le suspendre ou le retirer.
-- **Lieux engagés** : dans l'espace pro, le lieu signe une **charte Miam Safe** (équipe qui connaît la phrase et l'écran, consigne au comptoir) et obtient le badge **« Miam Safe »** sur sa fiche.
-- **Avis des usagers, seulement en positif** : après une visite, on demande « Tu t'es senti·e bien ici ? ». Au-dessus d'un seuil (proposé : 90 % de oui sur au moins 20 réponses), la fiche affiche « Les Miamis s'y sentent bien ». **Un « non » ne s'affiche jamais : il devient un signalement privé.**
-- Points ouverts : texte de la charte et phrase au comptoir ; le 114 (urgences par SMS, pour les personnes sourdes ou qui ne peuvent pas parler) ; la position partagée pour les 15-17 ans ; délai de traitement des signalements Miam Safe ; seuil définitif de l'avis positif.
+- **Lieux engagés** : dans l'espace pro, le lieu signe une **charte Miam Safe** (toute l'équipe connaît la phrase et l'écran ; consigne au comptoir ; au moins un téléphone du comptoir reçoit les notifications Miam Safe pendant le service, et on répond le plus vite possible, sans délai chiffré) et obtient le badge **« Miam Safe »** sur sa fiche.
+- **Avis des usagers, seulement en positif** : après une visite, on demande « Tu t'es senti·e bien ici ? ». À partir de **90 % de oui sur au moins 20 réponses** (décidé le 9 octobre), la fiche affiche « Les Miamis s'y sentent bien ». **Un « non » ne s'affiche jamais : il devient un signalement privé.**
+- **Délai promis : un signalement Miam Safe est lu sous 48 h**, en priorité dans le logiciel de gestion.
+- Points ouverts : texte final de la charte ; sur iPhone, une notification qui sonne même en mode silencieux (« alerte critique ») demande une autorisation spéciale d'Apple. Sans elle, on utilise une notification « urgente » (time-sensitive), qui passe les modes Concentration mais pas le silencieux.
 
 ## Publications et compte (CGU du 8 octobre 2026)
 - Les publications restent à leur auteur : SOS Miam peut seulement les héberger, les adapter au format et les montrer dans l'app et sur le site. **Pour les reprendre ailleurs (nos réseaux TikTok, Instagram…), on demande d'abord l'accord de l'auteur.**
@@ -191,7 +193,7 @@
 - **Le gérant remplit sa carte lui-même** : mode pro de l'app > Mon lieu > La carte (l'espace pro du site suivra). Elle se compose de :
   - **sections** à titre libre, avec des idées toutes prêtes (Plats, Desserts, À boire, Menu enfant…) ;
   - **éléments** : nom, description, prix au centime, « pour » (le verre, la part, par personne…), spécialité ⭐, alcool, repères (végé, vegan, sans gluten, épicé, fait maison, local).
-  - Le gérant range sections et éléments avec des flèches (mode « Ranger », aussi en actions VoiceOver).
+  - Le gérant range sections et éléments avec des flèches (mode « Ranger ») ; les éléments se rangent aussi par les actions VoiceOver « Monter » et « Descendre », et la nouvelle place est annoncée.
 - **Tout part d'un coup avec « Enregistrer »** ; quitter avant redemande (« Partir sans enregistrer ? »). Le serveur revérifie la carte (`validerCarteDuLieu`, dans packages/commun) et pose lui-même la date affichée aux gourmands (« Mise à jour par le lieu le … »).
 - **Limites** :
   - 20 sections, 60 éléments par section, 250 en tout ;
@@ -204,6 +206,19 @@
 - **Ce que voient les gourmands** : une section vide reste chez le gérant mais n'apparaît pas aux gourmands. Une carte enregistrée remplace celle de la fiche, même si elle est vide.
 - **Droits** : seul le gérant enregistre ; toute l'équipe peut lire.
 - **Contrat** : `lireCarteDuLieu` / `reglerCarteDuLieu` (ServiceComptoir). Ils restent à brancher dans l'API (stockage de la carte) quand Hugo le décidera.
+
+## Explorer : jusqu'où on regarde (décidé et construit le 9 octobre 2026)
+- **La pastille de zone** est en tête de la rangée de filtres, en jaune : elle remplace « Toutes les villes ». Elle ouvre « On explore où ? », avec quatre choix :
+  - **à quelques kilomètres** : rayon réglable au curseur, de 1 à 50 km, 5 au départ, gardé sur le téléphone ;
+  - **ta région** ;
+  - **toute la France** ;
+  - **une ville précise**.
+- **Le choix vaut pour la carte et pour la liste** : la carte cadre la zone, la liste ne garde que ses lieux.
+  - « Autour de moi » regarde autour de ta position, dans le rayon réglé.
+  - Une liste vide propose d'élargir (« Voir toute ta région », « Voir toute la France »).
+- **Ta région** : celle de ta position (« Autour de moi »), sinon celle de ta ville. Les contours approximatifs des 18 régions sont dans `packages/commun/src/contenus/regions-france.ts`.
+- **Au départ**, Explorer s'ouvre sur « quelques km » autour de ta ville.
+- **Carte seule** : la liste se descend tout en bas (glisser, ou le bouton ⌄ à droite de la poignée). Il ne reste qu'une barre « 12 lieux · Voir la liste ». Toucher un lieu sur la carte remonte la liste juste assez pour le montrer. Avec VoiceOver ou TalkBack, ce mode n'existe pas, parce que la carte leur est cachée.
 
 ## Infos pratiques des lieux (décidé le 9 octobre 2026)
 - Chaque fiche montre un bloc « Infos pratiques » : téléphone (bouton « Appeler »), site, Instagram, accueil des animaux (bienvenus, en terrasse seulement, pas d'animaux), accès en fauteuil roulant, terrasse, Wi-Fi, chaise haute ou menu enfant, parking, réservation (inutile, conseillée, obligatoire) et moyens de paiement (dont tickets resto et chèques-vacances).
@@ -281,6 +296,8 @@
 - **https://pro.sosmiam.fr**, servi par le site (comme ambassadeur.sosmiam.fr), avec son propre cookie. **Compte unique** : « pro » est un rôle, obtenu quand l'équipe valide le **rattachement** du compte à un lieu (table `rattachements_lieux` : rôle « gerant » ou « equipe », preuve, SIRET facultatif ; un compte peut tenir plusieurs lieux). Un lieu est **vérifié ✓** dès qu'il a un rattachement validé.
 - **Modifier sa fiche** : horaires, texte, contact et infos pratiques changent **tout de suite** ; le **nom et l'adresse** passent par l'équipe (suggestion « pro » décidée dans le logiciel), contre les abus.
 - **Première version** : rattachement à mon lieu (chercher mon lieu, ou le proposer s'il n'existe pas), ma fiche et mes infos pratiques, les suggestions des clients sur ma fiche (et la décision de l'équipe), mon équipe (inviter un employé, rôle « equipe »), l'affichette de table (QR vers la fiche).
+- **Inscription sur pro.sosmiam.fr** : le compte est créé **sans** rôle d'ambassadeur (aucune demande à valider, pas de ville demandée) ; il devient « pro » par le rattachement.
+- **Conservation des rattachements** (décidé le 9 octobre 2026) : en attente ou validé, gardé tant qu'il dure ; une demande **refusée** ou un rattachement **retiré** (preuve, SIRET, réponse de l'équipe) est **effacé 1 an** après la décision ou le retrait, par le ménage de nuit.
 - **Deuxième version, avec les visites côté serveur** (à construire avec l'app) : le QR du comptoir, lancer un SOS « place ce soir », mes statistiques (vues, rescousses, visites validées), mes avis et y répondre.
 
 ## Espace ambassadeur (décidé le 8 octobre 2026)

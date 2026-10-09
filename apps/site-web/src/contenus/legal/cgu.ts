@@ -8,8 +8,10 @@
 // ouvert à tous, décision expliquée. Apple (règle 1.2) : « tolérance zéro » écrite noir sur blanc.
 // Âge et règles de modération : docs/decisions.md ; page dédiée à l'âge : src/contenus/legal/age.ts.
 // Espace ambassadeur (8 octobre 2026, dès 18 ans) : section « ambassadeurs » dans cgu-ambassadeurs.ts.
+// Espace pro (9 octobre 2026, pro.sosmiam.fr) : section « pro » dans cgu-pro.ts.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { sectionAmbassadeursCgu } from "~/contenus/legal/cgu-ambassadeurs";
+import { sectionProCgu } from "~/contenus/legal/cgu-pro";
 import { editeur, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -101,6 +103,7 @@ export const documentCgu: DocumentLegal = {
       ],
     },
     sectionAmbassadeursCgu,
+    sectionProCgu,
     {
       id: "publications",
       titre: "Ce que tu publies dans l'app",

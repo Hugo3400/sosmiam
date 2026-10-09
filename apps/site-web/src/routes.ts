@@ -52,6 +52,8 @@ export default [
     route("lieu/:id/suggestions", "routes/pro/suggestions.tsx"),
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
     route("lieu/:id/affichette", "routes/pro/affichette.tsx"),
+    // « Mon compte » de l'espace pro : la même page que /espace/mon-compte (son propre id, son cadre pro)
+    route("mon-compte", "routes/compte/mon-compte.tsx", { id: "routes/pro/mon-compte" }),
   ]),
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
   // et les fichiers du kit média, réservés aux ambassadeurs validés

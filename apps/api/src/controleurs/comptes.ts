@@ -13,7 +13,7 @@ import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
 import { FORME_JETON, lireJetonSession, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import type { CandidatureCertificationBrute, NouvelleCandidatureCertification, ResultatCandidatureCertification } from "../services/certification.ts";
-import type { CompteConnecte, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
+import type { CompteConnecte, EspaceInscription, ModificationCompte, NouveauCompte } from "../services/comptes.ts";
 import type {
   CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, PropositionVue, ResultatChangementCommune,
 } from "../services/comptes-espace.ts";
@@ -31,7 +31,7 @@ const AGE_MINIMUM = 18;
 
 /** Ce que les routes des comptes demandent aux données : services/comptes.ts et comptes-espace.ts (Prisma), ou la mémoire (tests). */
 export type ServicesComptes = {
-  /** Crée le compte et sa fiche d'ambassadeur « en-attente » ; null si l'e-mail est déjà pris */
+  /** Crée le compte et sa fiche d'ambassadeur « en-attente » (ou le compte seul, espace « pro ») ; null si l'e-mail est déjà pris */
   creerCompte: (compte: NouveauCompte) => Promise<number | null>;
   /** Pour la connexion : l'identifiant et l'empreinte du mot de passe (null si l'e-mail est inconnu) */
   trouverCompteParEmail: (email: string) => Promise<{ id: number; motDePasse: string } | null>;
@@ -86,6 +86,13 @@ export type ContexteComptes = {
   limiteOubli: LimiteEnvois; limiteVerification: LimiteEnvois;
 };
 
+/** Espace de l'inscription : absent ou « ambassadeur » (par défaut), ou « pro » ; autre chose : champ invalide. */
+function lireEspace(corps: Record<string, unknown>): EspaceInscription {
+  if (corps.espace === undefined || corps.espace === null || corps.espace === "ambassadeur") return "ambassadeur";
+  if (corps.espace === "pro") return "pro";
+  throw new ChampInvalide("espace");
+}
+
 export function creerControleursComptes(contexte: ContexteComptes) {
   const { services, protection, attente, attenteConnectee, horloge } = contexte;
   const { envoyerVerification } = creerControleursLiens(contexte);
@@ -109,7 +116,10 @@ export function creerControleursComptes(contexte: ContexteComptes) {
   const jetonInvalide = (reponse: Response) => reponse.status(410).json({ ok: false, erreur: "jeton-invalide" });
 
   return {
-    /** POST /comptes : le compte, sa fiche d'ambassadeur « en-attente » (l'équipe valide), et une session ouverte. */
+    /**
+     * POST /comptes : le compte, sa fiche d'ambassadeur « en-attente » (l'équipe valide), et une session ouverte. Avec
+     * espace « pro » (inscription sur pro.sosmiam.fr) : le compte seul, sans fiche d'ambassadeur ni ville.
+     */
     async inscrire(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (estRobot(corps)) return reponse.status(201).json({ ok: true });
@@ -121,11 +131,12 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       const motDePasse = lireMotDePasse(corps, "motDePasse");
       if (!validerMotDePasse(motDePasse, email)) throw new ChampInvalide("motDePasse");
       if (age === null) throw new ChampInvalide("dateNaissance");
-      const ville = lireLigne(corps, "ville", 2, 80);
-      const quartier = lireLigneFacultative(corps, "quartier", 80);
+      const espace = lireEspace(corps);
+      const ville = espace === "pro" ? "" : lireLigne(corps, "ville", 2, 80);
+      const quartier = espace === "pro" ? null : lireLigneFacultative(corps, "quartier", 80);
       if (corps.cgu !== true) throw new ChampInvalide("cgu");
       const empreinte = await hacherMotDePasse(motDePasse);
-      const id = await services.creerCompte({ email, motDePasse: empreinte, prenom, ville, quartier, cguVersion: VERSION_CGU });
+      const id = await services.creerCompte({ email, motDePasse: empreinte, prenom, ville, quartier, cguVersion: VERSION_CGU, espace });
       // Impossible à cacher sans envoyer de mail ; la limite d'essais par visiteur freine qui voudrait s'en servir
       if (id === null) return reponse.status(409).json({ ok: false, erreur: "email-deja-utilise" });
       // Le lien de confirmation de l'e-mail : préparé ici, envoyé sans attendre ; un raté n'empêche pas l'inscription

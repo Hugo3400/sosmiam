@@ -69,7 +69,9 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     if (typeof lu !== "object" || lu === null) return { ok: false, erreur: "erreur" };
     const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown };
     if (donnees.ok === true && reponse.ok) return lu as { ok: true } & T;
-    // L'attente est dans le corps (attente par compte), ou seulement dans l'en-tête Retry-After (limites par visiteur)
+    // Le « message » que l'API joint parfois (invitation d'une adresse sans compte) n'est pas repris : chaque page a son
+    // propre texte pour chaque code (routes/pro/equipe.tsx), au ton du site, et rien de ce que l'API écrit n'arrive tel quel
+    // dans une page. L'attente est dans le corps (attente par compte), ou seulement dans l'en-tête Retry-After (limites par visiteur)
     const retryAfter = Number(reponse.headers.get("Retry-After"));
     const attente = typeof donnees.attente === "number" ? donnees.attente : reponse.status === 429 && retryAfter > 0 ? retryAfter : undefined;
     return {
@@ -104,12 +106,13 @@ export type DemandeInscription = {
   cgu: true;
   /** Champ piège du formulaire : rempli seulement par les robots */
   piege?: string;
-  /** « pro » : inscription depuis pro.sosmiam.fr (l'API ne le lit pas encore : elle crée aussi la demande d'ambassadeur) */
+  /** « pro » : inscription depuis pro.sosmiam.fr. L'API crée alors le compte seul, sans demande d'ambassadeur, et ne
+   * demande ni ne garde la ville (le site l'envoie vide) */
   espace?: "pro";
 };
 
 /**
- * Crée le compte et sa demande d'ambassadeur (« en-attente ») et ouvre une session ; l'API envoie aussi le lien qui
+ * Crée le compte et sa demande d'ambassadeur (« en-attente » ; sans demande avec espace « pro ») et ouvre une session ; l'API envoie aussi le lien qui
  * confirme l'e-mail (7 jours). Sans session dans la réponse : le champ piège était rempli, rien n'a été créé.
  */
 export function inscrireAmbassadeur(demande: DemandeInscription, ip: string | null) {

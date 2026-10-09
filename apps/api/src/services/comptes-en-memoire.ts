@@ -93,13 +93,15 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const courriels: CourrielsComptes = { envoyerLienMotDePasse: noterEnvoi("mot-de-passe"), envoyerLienVerificationEmail: noterEnvoi("verification-email") };
 
   const services: ServicesComptes = {
-    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion }) {
+    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur" }) {
       if (trouverParEmail(email)) return null;
       const id = ++compteurs.comptes;
       const maintenant = horloge();
       comptes.set(id, {
         id, email, motDePasse, prenom, points: 0, palier: "curieux", badges: [], cguVersion, creeLe: maintenant, derniereConnexion: maintenant,
-        statutAmbassadeur: "en-attente", ville, quartier, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
+        // Espace pro : pas de fiche d'ambassadeur, donc ni ville ni quartier
+        statutAmbassadeur: espace === "ambassadeur" ? "en-attente" : null, ville: espace === "ambassadeur" ? ville : "",
+        quartier: espace === "ambassadeur" ? quartier : null, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
         certification: null,
       });
       return id;
@@ -134,8 +136,9 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const compte = comptes.get(id);
       if (!compte) return;
       if (prenom !== undefined) compte.prenom = prenom;
-      if (ville !== undefined) compte.ville = ville;
-      if (quartier !== undefined) compte.quartier = quartier;
+      // Comme la base : ville et quartier n'existent que sur une fiche d'ambassadeur
+      if (ville !== undefined && compte.statutAmbassadeur) compte.ville = ville;
+      if (quartier !== undefined && compte.statutAmbassadeur) compte.quartier = quartier;
     },
     async changerMotDePasse(id, empreinte) {
       const compte = comptes.get(id);
@@ -251,6 +254,8 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     pro: pro.services,
     rattachements: pro.rattachements,
     deciderRattachement: pro.deciderRattachement,
+    /** Ménage de nuit : rattachements refusés ou retirés depuis plus d'un an (comme services/menage-comptes.ts) */
+    effacerRattachementsClos: pro.effacerRattachementsClos,
     lireFichePublique: pro.lireFichePublique,
     /**
      * Décision de l'équipe, comme deciderAmbassadeur (logiciel de gestion) : les sessions restent ouvertes, le statut est

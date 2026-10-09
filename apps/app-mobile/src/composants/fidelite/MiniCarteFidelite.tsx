@@ -2,6 +2,7 @@ import { Pressable, Text, View } from "react-native";
 
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   carte: CarteFidelite;
@@ -42,6 +43,7 @@ export function MiniCarteFidelite({ carte, onPress }: Props) {
       <Text numberOfLines={2} className="font-texte-semi text-[13px] leading-[18px] text-encre">
         {prete ? `🎁 ${carte.recompense} t'attend !` : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
       </Text>
+      {carte.recompenseAlcool ? <MentionPrevention variante="courte" /> : null}
     </Pressable>
   );
 }

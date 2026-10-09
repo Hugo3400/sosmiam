@@ -1,4 +1,5 @@
 import { choisirRecompenseAffichee } from "@sos-miam/commun/fonctions/fidelite/choisir-recompense-affichee";
+import { estRecompenseAlcool } from "@sos-miam/commun/fonctions/fidelite/est-recompense-alcool";
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 
 import { lieuxExemples } from "~/contenus/lieux-exemples";
@@ -24,6 +25,7 @@ export function convertirCarteDemo(m: Readonly<MagasinDemo>, lieuId: number, cli
     tampons: carte.tampons,
     sur: programme.visitesRequises,
     recompense,
+    recompenseAlcool: estRecompenseAlcool(programme, recompense),
     pretes: carte.pretes.map((r) => ({ ...r })),
     demande: carte.demande ? { ...carte.demande } : null,
   };

@@ -47,7 +47,9 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
   const { lieu } = loaderData;
   const [debut, fin] = lieu.couleurs.length >= 2 && lieu.couleurs.every((couleur) => COULEUR.test(couleur)) ? lieu.couleurs : ["#FFD60A", "#FF4D3D"];
   const categorie = categoriesLieux.find((uneCategorie) => uneCategorie.valeur === lieu.type)?.libelle;
-  const lieuComplet = [lieu.nom, lieu.adresse, lieu.ville].filter(Boolean).join(", ");
+  // L'adresse saisie contient parfois déjà la ville : on ne la répète pas
+  const adresse = lieu.adresse && !lieu.adresse.toLowerCase().includes(lieu.ville.toLowerCase()) ? `${lieu.adresse}, ${lieu.ville}` : lieu.adresse;
+  const lieuComplet = [lieu.nom, adresse ?? lieu.ville].join(", ");
   const itineraire = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lieuComplet)}`;
   return (
     <article className="bg-creme pb-16 md:pb-24">
@@ -70,7 +72,7 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
             </p>
           )}
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span><span aria-hidden="true">📍 </span>{lieu.adresse ? `${lieu.adresse}, ${lieu.ville}` : [lieu.quartier, lieu.ville].filter(Boolean).join(", ")}</span>
+            <span><span aria-hidden="true">📍 </span>{adresse ?? [lieu.quartier, lieu.ville].filter(Boolean).join(", ")}</span>
             <a href={itineraire} rel="noopener nofollow" className={classeLien}>Itinéraire<span className="sr-only">{` vers ${lieu.nom}`}</span></a>
           </p>
         </header>

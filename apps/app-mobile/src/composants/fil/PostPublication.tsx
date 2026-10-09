@@ -6,6 +6,7 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepea
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { ActionPost } from "~/composants/fil/ActionPost";
 import { AvatarSuivre } from "~/composants/fil/AvatarSuivre";
 import { HAUTEUR_ZONE_PROGRESSION } from "~/composants/fil/BarreProgressionVideo";
@@ -15,6 +16,7 @@ import { CoeurEnvol } from "~/composants/fil/CoeurEnvol";
 import { LegendeRepliable } from "~/composants/fil/LegendeRepliable";
 import { MediaPublication } from "~/composants/fil/MediaPublication";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
@@ -103,6 +105,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   // Un lieu non vérifié (sans compte SOS Miam) ne lance pas de SOS, et le fil le dit
   const verifie = estLieuVerifie(lieu);
   const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
+  // Un bar, ou une publication ou une offre qui parle d'alcool (happy hour…) : message sanitaire sous le lieu
+  const alcool = lieu.type === "bar" || parleDAlcool(publication.legende) || parleDAlcool(lieu.alerte) || parleDAlcool(sos?.offre);
   const enSos = sos !== undefined;
 
   // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré (un appui simple en attente est oublié)
@@ -334,6 +338,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
               </Text>
             </View>
+            {alcool ? <MentionPrevention variante="sur-image" /> : null}
             <LegendeRepliable texte={lierPonctuation(publication.legende)} />
           </View>
           <View className="mt-3 flex-row gap-2">

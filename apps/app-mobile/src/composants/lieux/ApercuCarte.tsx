@@ -2,16 +2,19 @@ import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Text, View } from "react-native";
 
+import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ElementCarte } from "~/composants/lieux/ElementCarte";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
-import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
+import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 type Props = {
   lieu: Lieu;
   /** Âge de la personne (null s'il est inconnu) : sous 18 ans, l'alcool est retiré de la carte */
   age: number | null;
+  /** La carte du lieu (utiliserCarteDuLieu : celle enregistrée par le lieu, sinon celle de la fiche) */
+  carteDuLieu: CarteLieu | undefined;
 };
 
 // Pas plus de trois éléments sur la fiche : la carte complète est à un toucher
@@ -21,10 +24,8 @@ const NOMBRE_APERCU = 3;
  * Bloc « La carte » de la fiche d'un lieu (« Les formules » pour une sortie) : ses spécialités, sinon ses premiers
  * éléments, et un bouton vers la carte complète. Rien du tout si le lieu n'a pas (encore) de carte.
  */
-export function ApercuCarte({ lieu, age }: Props) {
+export function ApercuCarte({ lieu, age, carteDuLieu }: Props) {
   const router = useRouter();
-  // Celle enregistrée par le lieu s'il l'a fait, sinon celle de la fiche
-  const carteDuLieu = utiliserCarteDuLieu(lieu.id);
   // Calculé une fois par carte et par âge, pas à chaque rendu
   const contenu = useMemo(() => {
     if (!carteDuLieu) return null;
@@ -61,7 +62,7 @@ export function ApercuCarte({ lieu, age }: Props) {
       <Bouton
         libelle={`${formules ? "Voir toutes les formules" : "Voir toute la carte"} (${nombre})`}
         variante="blanc"
-        indice={`Ouvre ${formules ? "toutes les formules" : "la carte complète"} de ${lieu.nom}, rangée par sections`}
+        indice={`Ouvre ${formules ? "toutes les formules" : "la carte complète"} ${direDeLieu(lieu.nom)}, rangée par sections`}
         onPress={() => router.push({ pathname: "/lieu/[id]/carte", params: { id: String(lieu.id) } })}
       />
     </View>

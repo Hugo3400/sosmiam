@@ -3,9 +3,11 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, FlatList, PanResponder, Pressable, Text, View, type ImageSourcePropType } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 
+import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { CarrouselSos } from "~/composants/explorer/CarrouselSos";
 import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
+import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -81,6 +83,8 @@ export function FeuilleLieux(props: Props) {
   }, [lieux, estMasquee]);
 
   const lieuSelectionne = selection === null ? null : (lieux.find((l) => l.lieu.id === selection) ?? null);
+  // Un bar ou une offre qui parle d'alcool dans la liste (happy hour…) : le message sanitaire en bas
+  const alcool = useMemo(() => lieux.some(({ lieu }) => lieuEvoqueAlcool(lieu)), [lieux]);
 
   // Les trois hauteurs : repliée = poignée + en-tête + une ligne (ou la carte « Sélection »), dépliée = toute la place.
   // Avec un lecteur d'écran, la ligne reste visible même sous la carte « Sélection » : il ne parcourt jamais une liste cachée
@@ -331,6 +335,7 @@ export function FeuilleLieux(props: Props) {
               ) : null
             }
             ListEmptyComponent={<View className="px-4 py-2">{vide}</View>}
+            ListFooterComponent={alcool ? <View className="px-4 pt-3"><MentionPrevention /></View> : null}
             renderItem={({ item }) => (
               <LigneLieu
                 lieu={item.lieu}
