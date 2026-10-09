@@ -2,6 +2,17 @@ import { createContext, useContext } from "react";
 
 import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 
+/**
+ * Comment le compte sera créé ou complété à la fin (« C'est prêt ») ; gardé en mémoire seulement, jamais sur le téléphone :
+ * e-mail et mot de passe, jeton d'Apple ou de Google (valable 10 min chez Apple, 1 h chez Google), ou un compte déjà
+ * connecté dont il faut compléter le profil (compte créé sur le site).
+ */
+export type ConnexionInscription =
+  | { type: "email"; email: string; motDePasse: string }
+  | { type: "apple"; identityToken: string; nonce: string }
+  | { type: "google"; idToken: string }
+  | { type: "completer" };
+
 /** Ce que la personne a rempli pendant l'inscription, avant l'enregistrement final (écran « C'est prêt »). */
 export type BrouillonInscription = {
   prenom: string;
@@ -12,6 +23,8 @@ export type BrouillonInscription = {
   dateNaissance: string | null;
   ville: string | null;
   envies: Partial<Record<CategorieEnvie, string[]>>;
+  /** null : profil gardé sur le téléphone seulement (démo, ou avant les comptes) */
+  connexion: ConnexionInscription | null;
 };
 
 export type EtatBrouillon = {
