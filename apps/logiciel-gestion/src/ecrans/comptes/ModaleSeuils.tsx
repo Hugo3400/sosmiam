@@ -48,6 +48,7 @@ export function ModaleSeuils({ ouverte, seuils, parDefaut, onFermer, onEnregistr
   return (
     <Modale
       titre="Seuils de la surveillance"
+      large
       ouverte={ouverte}
       onFermer={onFermer}
       actions={
@@ -62,21 +63,26 @@ export function ModaleSeuils({ ouverte, seuils, parDefaut, onFermer, onEnregistr
         Un compte n'est signalé pour ses refus que si au moins 2 lieux différents l'ont refusé : un seul lieu ne suffit jamais.
         Les seuils ne bloquent rien, ils te disent seulement où regarder.
       </p>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {CHAMPS_SEUILS.map((c) => (
-          <Champ
-            key={c.cle}
-            libelle={c.libelle}
-            type="number"
-            min={c.min}
-            max={c.max}
-            valeur={saisies[c.cle]}
-            onChange={(valeur) => setSaisies((avant) => ({ ...avant, [c.cle]: valeur }))}
-            aide={c.aide}
-            erreur={invalide(c.cle) ? `Un nombre entier entre ${c.min} et ${c.max}.` : null}
-          />
-        ))}
-      </div>
+      {(["comptes", "lieux"] as const).map((ligne) => (
+        <fieldset key={ligne} className="mb-4">
+          <legend className="mb-2 font-titre text-[15px] font-extrabold">{ligne === "comptes" ? "Comptes" : "Lieux, et période regardée"}</legend>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {CHAMPS_SEUILS.filter((c) => c.ligne === ligne).map((c) => (
+              <Champ
+                key={c.cle}
+                libelle={c.libelle}
+                type="number"
+                min={c.min}
+                max={c.max}
+                valeur={saisies[c.cle]}
+                onChange={(valeur) => setSaisies((avant) => ({ ...avant, [c.cle]: valeur }))}
+                aide={c.aide}
+                erreur={invalide(c.cle) ? `Un nombre entier entre ${c.min} et ${c.max}.` : null}
+              />
+            ))}
+          </div>
+        </fieldset>
+      ))}
       {erreur && <p role="alert" className="mt-3 text-sm font-semibold text-tomate">{erreur}</p>}
     </Modale>
   );

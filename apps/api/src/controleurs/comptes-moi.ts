@@ -4,6 +4,7 @@
 // connexion avec des mots de passe faux, n'empêche pas le titulaire connecté de changer de mot de passe.
 import type { Request, Response } from "express";
 
+import { estSansMotDePasse } from "../fonctions/comptes/est-sans-mot-de-passe.ts";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
 import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
@@ -12,9 +13,12 @@ import type { ModificationCompte } from "../services/comptes.ts";
 import { faireAttendre, verifierEnComptant } from "./comptes-attente.ts";
 import { lireCompteId, lireCorps, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
 import type { ContexteComptes } from "./comptes.ts";
+import { creerControleursComptesExternes } from "./comptes-externes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
-export function creerControleursMonCompte({ services, protection, attente, attenteConnectee, lireCompteVu }: ContexteComptes) {
+export function creerControleursMonCompte(contexte: ContexteComptes) {
+  const { services, protection, attente, attenteConnectee, lireCompteVu } = contexte;
+  const externes = creerControleursComptesExternes(contexte);
   const sessionExpiree = (reponse: Response) => reponse.status(401).json({ ok: false, erreur: "session-expiree" });
 
   /**
@@ -74,12 +78,18 @@ export function creerControleursMonCompte({ services, protection, attente, atten
       reponse.json({ ok: true });
     },
 
-    /** DELETE /comptes/moi : { motDePasse }. Tout est effacé, en cascade (ses sessions comprises). */
+    /**
+     * DELETE /comptes/moi : { motDePasse } ; un compte sans vrai mot de passe (créé avec Apple ou Google) confirme avec un
+     * nouveau jeton d'Apple ou de Google (comptes-externes.ts). Tout est effacé, en cascade (ses sessions comprises).
+     */
     async supprimer(requete: Request, reponse: Response) {
       const id = lireCompteId(reponse);
       const identifiants = await services.lireIdentifiants(id);
       if (!identifiants) return sessionExpiree(reponse);
-      if (!(await verifierMotDePasseActuel(reponse, id, identifiants, lireMotDePasse(lireCorps(requete), "motDePasse")))) return;
+      const corps = lireCorps(requete);
+      if (estSansMotDePasse(identifiants.motDePasse)) {
+        if (!(await externes.confirmerSansMotDePasse(reponse, corps))) return;
+      } else if (!(await verifierMotDePasseActuel(reponse, id, identifiants, lireMotDePasse(corps, "motDePasse")))) return;
       await services.effacerCompte(id);
       await protection.fermerSessionsDuCompte(id);
       reponse.json({ ok: true });

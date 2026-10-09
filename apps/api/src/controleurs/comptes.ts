@@ -8,6 +8,7 @@ import { AGE_MINIMUM_INSCRIPTION } from "../../../../packages/commun/src/regles/
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
 import type { SupportSession } from "../fonctions/comptes/est-session-expiree.ts";
 import { calculerAgeAParis } from "../fonctions/comptes/calculer-age-a-paris.ts";
+import { estSansMotDePasse } from "../fonctions/comptes/est-sans-mot-de-passe.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
@@ -27,6 +28,7 @@ import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompt
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
+import type { DependancesConnexionExterne } from "./comptes-externes.ts";
 import { lireEnvies, lireNomChiffre, lirePseudo } from "./comptes-profil-champs.ts";
 import type { LimiteEnvois } from "./comptes-limite-envois.ts";
 import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacultative, lireMotDePasse } from "./comptes-champs.ts";
@@ -103,6 +105,8 @@ export type ContexteComptes = {
   chiffrement: ChiffrementDonnees | null;
   /** Le compte présenté à la personne connectée (âge, rôles masqués sous 18 ans) : controleurs/comptes-vu.ts */
   lireCompteVu: (id: number) => Promise<CompteConnecte | null>;
+  /** Connexion avec Apple ou Google (controleurs/comptes-externes.ts) ; null : non branchée (routes /apple et /google : 503) */
+  externes: DependancesConnexionExterne | null;
 };
 
 /** 503 « chiffrement-indisponible » : la clé des données des comptes n'a pas été lue au démarrage */
@@ -117,7 +121,7 @@ function lireEspace(corps: Record<string, unknown>): EspaceInscription {
 }
 
 /** Support de la session à ouvrir : « site » ou « app » (absent : `defaut`) ; autre chose : champ invalide. */
-function lireSupport(corps: Record<string, unknown>, defaut: SupportSession): SupportSession {
+export function lireSupport(corps: Record<string, unknown>, defaut: SupportSession): SupportSession {
   if (corps.support === undefined || corps.support === null) return defaut;
   if (corps.support === "site" || corps.support === "app") return corps.support;
   throw new ChampInvalide("support");
@@ -127,7 +131,7 @@ function lireSupport(corps: Record<string, unknown>, defaut: SupportSession): Su
  * Profil de l'inscription « app » : nom facultatif (chiffré), date de naissance GARDÉE (chiffrée), ville obligatoire,
  * envies facultatives sans « regimes », pseudo facultatif.
  */
-function lireProfilApp(corps: Record<string, unknown>, dateNaissance: string, chiffrement: ChiffrementDonnees): ProfilAppNouveau {
+export function lireProfilApp(corps: Record<string, unknown>, dateNaissance: string, chiffrement: ChiffrementDonnees): ProfilAppNouveau {
   const nomChiffre = lireNomChiffre(corps, chiffrement);
   const ville = lireLigne(corps, "ville", 2, 80);
   const envies = corps.envies === undefined || corps.envies === null ? {} : lireEnvies(corps.envies);
@@ -143,11 +147,15 @@ export function creerControleursComptes(contexte: ContexteComptes) {
   const empreinteFactice = hacherMotDePasse(creerJeton());
   empreinteFactice.catch(() => {});
 
-  /** Le compte si le mot de passe est le bon, sinon null (e-mail inconnu : le même calcul, avec l'empreinte factice). */
+  /**
+   * Le compte si le mot de passe est le bon, sinon null. E-mail inconnu, ou compte créé avec Apple ou Google sans vrai mot
+   * de passe : le même calcul, avec l'empreinte factice (la durée ne trahit rien).
+   */
   async function verifierIdentifiants(email: string, motDePasse: string) {
     const compte = await services.trouverCompteParEmail(email);
-    const bon = await verifierMotDePasse(motDePasse, compte?.motDePasse ?? (await empreinteFactice));
-    return compte && bon ? compte : null;
+    const vrai = compte && !estSansMotDePasse(compte.motDePasse) ? compte : null;
+    const bon = await verifierMotDePasse(motDePasse, vrai?.motDePasse ?? (await empreinteFactice));
+    return vrai && bon ? vrai : null;
   }
 
   /** 201 avec une nouvelle session : le jeton n'est rendu qu'une fois (cookie du site, coffre du téléphone pour l'app). */
