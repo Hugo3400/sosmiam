@@ -2,6 +2,7 @@
 // de session et l'IP du visiteur comme les autres appels (services/comptes.server.ts). Contrats : en tête de
 // apps/api/src/routes/pro.ts, routes/comptes.ts (rattachements) et routes/lieux-publics.ts.
 import { appelerApiComptes } from "~/services/comptes.server";
+import type { CarteLieu } from "~/types/carte";
 import type { ChampsFiche, FichePro, FichePublique, LieuTrouve, MembreEquipe, Rattachement, ResultatModificationFiche, RoleLieu, SuggestionFiche } from "~/types/pro";
 
 // ─── Les demandes et invitations du compte (/comptes/moi/rattachements) ───
@@ -55,6 +56,19 @@ export function modifierFichePro(jeton: string, ip: string | null, lieuId: numbe
 /** Les suggestions de modification de la fiche (clients et lieu), les plus récentes d'abord. */
 export function listerSuggestions(jeton: string, ip: string | null, lieuId: number) {
   return appelerApiComptes<{ suggestions: SuggestionFiche[] }>(`/pro/lieux/${lieuId}/suggestions`, { jeton, ip });
+}
+
+/** La carte du lieu (gérant et équipe) : null tant qu'il n'y en a pas ; majLe : moment exact (ISO 8601). */
+export function lireCartePro(jeton: string, ip: string | null, lieuId: number) {
+  return appelerApiComptes<{ carte: CarteLieu | null; majLe: string | null }>(`/pro/lieux/${lieuId}/carte`, { jeton, ip });
+}
+
+/**
+ * Remplace la carte du lieu (gérant) ; null l'efface. Erreurs : carte-invalide {champ, section, element},
+ * reserve-au-gerant, pas-pro, trop-de-demandes (60 enregistrements par heure).
+ */
+export function enregistrerCartePro(jeton: string, ip: string | null, lieuId: number, carte: CarteLieu | null) {
+  return appelerApiComptes<{ carte: CarteLieu | null; majLe: string | null }>(`/pro/lieux/${lieuId}/carte`, { methode: "PUT", jeton, ip, corps: { carte } });
 }
 
 /** L'équipe du lieu (gérant seulement : reserve-au-gerant sinon). */

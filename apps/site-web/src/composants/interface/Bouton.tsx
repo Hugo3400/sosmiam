@@ -12,6 +12,9 @@ type Props = {
   /** Lien externe, ancre (#section) ou mailto */
   href?: string;
   type?: "button" | "submit";
+  /** Bouton d'envoi d'un formulaire à plusieurs boutons : son nom et sa valeur partent avec le formulaire */
+  name?: string;
+  value?: string;
   onClick?: () => void;
   className?: string;
 };
@@ -23,7 +26,7 @@ const couleurs: Record<Variante, string> = {
 };
 
 /** Le bouton SOS Miam : bord noir, ombre décalée. Devient un lien si `vers` ou `href` est donné. */
-export function Bouton({ children, variante = "jaune", petit, vers, href, type = "button", onClick, className = "" }: Props) {
+export function Bouton({ children, variante = "jaune", petit, vers, href, type = "button", name, value, onClick, className = "" }: Props) {
   const classes = [
     "inline-flex items-center justify-center rounded-full border-2 border-encre font-semibold",
     "transition-[translate,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5",
@@ -35,5 +38,5 @@ export function Bouton({ children, variante = "jaune", petit, vers, href, type =
 
   if (vers) return <Link to={vers} onClick={onClick} className={classes}>{children}</Link>;
   if (href) return <a href={href} onClick={onClick} className={classes}>{children}</a>;
-  return <button type={type} onClick={onClick} className={classes}>{children}</button>;
+  return <button type={type} name={name} value={value} onClick={onClick} className={classes}>{children}</button>;
 }

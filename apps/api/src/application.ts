@@ -15,6 +15,8 @@ import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
 import { creerRoutesLieuxPublics } from "./routes/lieux-publics.ts";
 import { creerRoutesLocalisation } from "./routes/localisation.ts";
 import { creerRoutesMesure } from "./routes/mesure.ts";
+import { creerRoutesMiamSafe } from "./routes/miam-safe.ts";
+import type { DependancesMiamSafe } from "./controleurs/miam-safe.ts";
 import { creerRoutesPro } from "./routes/pro.ts";
 import { creerRoutesSignalements } from "./routes/signalements.ts";
 import type { NouvelleDemandeLieu } from "./services/demandes-lieux.ts";
@@ -50,10 +52,13 @@ type Dependances = {
   espaceAmbassadeur?: DependancesEspaceAmbassadeur;
   /** Zones des fondateurs : routes publiques /communes et /fondateurs (absentes si non fourni) */
   zones?: ServicesZones;
+  /** Miam Safe : alertes silencieuses, signalements, « Tu t'es senti·e bien ici ? », charte (routes /miam-safe, seulement avec
+   * `comptes` et `comptes.pro`) */
+  miamSafe?: DependancesMiamSafe;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
-const PREFIXES_COMPTES = ["/comptes", "/espace-ambassadeur", "/pro"];
+const PREFIXES_COMPTES = ["/comptes", "/espace-ambassadeur", "/pro", "/miam-safe"];
 const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
   reponse.set("Cache-Control", "private, no-store");
   suite();
@@ -62,7 +67,7 @@ const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
 export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
   enregistrerDemandeLieu, bot, gestion,
-  comptes, espaceAmbassadeur, zones,
+  comptes, espaceAmbassadeur, zones, miamSafe,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -94,6 +99,8 @@ export function creerApplication({
     application.use("/comptes", creerRoutesComptes(comptes, protection, limiteConnectee));
     // Espace pro (pro.sosmiam.fr) : même compte, même session
     if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge));
+    // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
+    if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",

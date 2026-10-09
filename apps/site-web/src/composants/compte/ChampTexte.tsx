@@ -17,7 +17,7 @@ type Props = {
   /** Zone de texte sur plusieurs lignes, avec un compteur de caractères */
   lignes?: number;
   exemple?: string;
-  inputMode?: "text" | "email" | "url";
+  inputMode?: "text" | "email" | "url" | "decimal";
   className?: string;
 };
 

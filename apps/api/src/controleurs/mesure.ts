@@ -4,7 +4,7 @@ import type { Vue } from "../services/mesure.ts";
 
 const texte = (valeur: unknown, maximum: number) => (typeof valeur === "string" ? valeur.slice(0, maximum) : "");
 /** Boutons de la page /liens (mêmes noms que apps/site-web/src/contenus/liens-publics.ts) */
-const CIBLES_CLIC = ["site", "discord", "tiktok", "instagram"];
+const CIBLES_CLIC = ["prevenu", "ambassadeur", "pro", "inscrire-lieu", "site", "discord", "tiktok", "instagram"];
 
 /**
  * POST /mesure/vue : le serveur du site signale une page vue, un passage de robot ou une page introuvable

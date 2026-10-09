@@ -12,7 +12,7 @@ import { creerMeta } from "~/fonctions/seo/creer-meta";
 export function meta(_: Route.MetaArgs) {
   return creerMeta({
     titre: "Nos liens",
-    description: "Le site, le Discord, le TikTok et l'Instagram de SOS Miam, au même endroit. Choisis ta porte d'entrée !",
+    description: "Être prévenu du lancement, devenir ambassadeur, l'espace pro, inscrire ton lieu, le Discord, le TikTok, l'Instagram et le site de SOS Miam, au même endroit.",
   });
 }
 

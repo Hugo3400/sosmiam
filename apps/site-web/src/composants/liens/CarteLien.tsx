@@ -3,6 +3,10 @@ import type { LienPublic, Reseau } from "~/contenus/liens-publics";
 
 // Pastille de l'icône : la couleur du réseau, pour qu'on le reconnaisse d'un coup d'œil ; la bouée sur jaune clair pour le site
 const pastilles: Record<Reseau, string> = {
+  prevenu: "bg-jaune",
+  ambassadeur: "bg-jaune",
+  pro: "bg-jaune",
+  "inscrire-lieu": "bg-jaune",
   site: "bg-jaune-clair",
   discord: "bg-[#5865F2] text-white",
   tiktok: "bg-encre text-white",
@@ -24,7 +28,7 @@ export function CarteLien({ lien }: Props) {
         active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre"
     >
       <span className={`grid size-14 shrink-0 place-items-center rounded-2xl border-2 border-encre ${pastilles[lien.reseau]}`}>
-        <IconeReseau reseau={lien.reseau} className={lien.reseau === "site" ? "size-11" : "size-7"} />
+        <IconeReseau reseau={lien.reseau} className={lien.reseau === "site" ? "size-11" : "size-7 text-2xl leading-none"} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block font-titre text-xl font-extrabold leading-tight">{lien.nom}</span>

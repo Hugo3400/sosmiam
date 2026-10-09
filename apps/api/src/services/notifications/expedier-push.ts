@@ -5,7 +5,8 @@ import { connect, type ClientHttp2Session } from "node:http2";
 import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.ts";
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
-export type MessagePush = { titre: string; texte: string; lien: string | null };
+/** `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive ») ; réservé aux alertes Miam Safe */
+export type MessagePush = { titre: string; texte: string; lien: string | null; urgent?: boolean };
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
 export type ResultatPush = "envoyee" | "jeton-invalide" | { erreur: string };
 export type ExpedierPush = (appareil: { jeton: string; plateforme: string }, message: MessagePush) => Promise<ResultatPush>;
@@ -34,7 +35,8 @@ function lireConnexionApple(serveur: string): ClientHttp2Session {
 }
 
 async function envoyerApple(r: ReglagesApple, jeton: string, message: MessagePush): Promise<ResultatPush> {
-  const corps = JSON.stringify({ aps: { alert: { title: message.titre, body: message.texte }, sound: "default" }, ...(message.lien ? { lien: message.lien } : {}) });
+  const aps = { alert: { title: message.titre, body: message.texte }, sound: "default", ...(message.urgent ? { "interruption-level": "time-sensitive" } : {}) };
+  const corps = JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}) });
   return new Promise((resoudre) => {
     const flux = lireConnexionApple(r.serveur).request({
       ":method": "POST",

@@ -2,6 +2,7 @@
 // Contrats complets : en tête de apps/api/src/routes/pro.ts, routes/comptes.ts (rattachements) et routes/lieux-publics.ts.
 // Les codes des infos pratiques sont ceux de packages/commun/src/types/infos-pratiques.ts (recopiés : le site ne charge
 // pas encore packages/commun).
+import type { CarteLieu } from "~/types/carte";
 import type { CategorieLieu } from "~/types/lieux";
 
 /** Le rôle d'un compte dans un lieu : le gérant (il modifie la fiche) ou un membre de l'équipe (il la lit). */
@@ -138,4 +139,8 @@ export type FichePublique = BaseFiche & {
   couleurs: string[];
   /** Prénom de l'ambassadeur qui l'a fait découvrir */
   decouvertPar: string | null;
+  /** La carte remplie par le lieu (son majLe : « AAAA-MM-JJ »), ou null ; absente d'une API plus ancienne */
+  carte?: CarteLieu | null;
+  /** Moment exact de sa dernière mise à jour (ISO 8601), ou null */
+  carteMajLe?: string | null;
 };

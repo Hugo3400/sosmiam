@@ -3,7 +3,7 @@
 // (sosmiam.fr, ambassadeur.sosmiam.fr, pro.sosmiam.fr). Les réseaux viennent de liens-publics.ts, les pages légales de liens-legaux.ts.
 import { site } from "~/contenus/legal/informations-legales";
 import { liensLegaux } from "~/contenus/legal/liens-legaux";
-import { liensPublics } from "~/contenus/liens-publics";
+import { liensPublics, RESEAUX_SOCIAUX } from "~/contenus/liens-publics";
 
 export type SiteDuLien = "principal" | "ambassadeur" | "pro" | "externe";
 
@@ -34,7 +34,7 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
     titre: "Nous suivre",
     liens: [
       ...liensPublics
-        .filter((lien) => lien.reseau !== "site")
+        .filter((lien) => RESEAUX_SOCIAUX.includes(lien.reseau))
         .map((lien) => ({ texte: lien.nom, adresse: lien.adresse, site: "externe" as const })),
       { texte: "Tous nos liens", adresse: "/liens", site: "principal" },
     ],

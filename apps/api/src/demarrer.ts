@@ -14,6 +14,8 @@ import { changerCommuneCandidature, creerCandidature, creerProposition, lireCand
 import { envoyerLienMotDePasse, envoyerLienVerificationEmail } from "./services/courriels/courriels-comptes.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
 import { traiterNotifications } from "./services/notifications/file-push.ts";
+import { prevenirEquipeMiamSafe } from "./services/notifications/prevenir-equipe-miam-safe.ts";
+import { servicesMiamSafe } from "./services/miam-safe.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { marquerMessageLu, messagesDuCompte, missionsDuCompte, terminerMission } from "./services/gestion/missions-messages.ts";
@@ -78,6 +80,8 @@ const serveur = creerApplication({
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
   zones,
+  // Miam Safe : l'alerte silencieuse part aussitôt vers les téléphones de l'équipe du lieu
+  miamSafe: { services: servicesMiamSafe, prevenirEquipe: prevenirEquipeMiamSafe },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

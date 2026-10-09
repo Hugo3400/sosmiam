@@ -11,7 +11,8 @@ export type ErreurCompte =
   | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
   | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie"
   | "deja-demande" | "lieu-inconnu" | "compte-inconnu" | "pas-pro" | "reserve-au-gerant" | "proposition-invalide" | "trop-de-suggestions"
-  | "invitation-inconnue" | "rattachement-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" | "membre-inconnu" | "erreur";
+  | "invitation-inconnue" | "rattachement-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" | "membre-inconnu" | "carte-invalide"
+  | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
@@ -29,6 +30,8 @@ const CODES = new Set<string>([
   // fiche publique (routes/lieux-publics.ts)
   "deja-demande", "lieu-inconnu", "compte-inconnu", "pas-pro", "reserve-au-gerant", "proposition-invalide", "trop-de-suggestions",
   "invitation-inconnue", "rattachement-inconnu", "deja-membre", "trop-d-invitations", "equipe-complete", "membre-inconnu",
+  // « Ma carte » (routes/pro.ts) : 400 avec le champ, la section et l'élément en faute
+  "carte-invalide",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
@@ -48,9 +51,15 @@ export function decrireAttente(secondes?: number): string {
 }
 
 /** Réponse de l'API : les données demandées, ou un code d'erreur (avec le champ en faute, ou l'attente en secondes). */
-export type ReponseComptes<T extends object> = ({ ok: true } & T) | { ok: false; erreur: ErreurCompte; champ?: string; attente?: number };
+export type ReponseComptes<T extends object> =
+  | ({ ok: true } & T)
+  | {
+      ok: false; erreur: ErreurCompte; champ?: string; attente?: number;
+      /** « carte-invalide » : la section et l'élément en faute (à partir de 0), null quand c'est toute la carte */
+      section?: number | null; element?: number | null;
+    };
 
-type OptionsAppel = { methode?: "GET" | "POST" | "PATCH" | "DELETE"; jeton?: string | null; ip?: string | null; corps?: unknown };
+type OptionsAppel = { methode?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; jeton?: string | null; ip?: string | null; corps?: unknown };
 
 /** Appelle l'API des comptes et lit sa réponse JSON. */
 export async function appelerApiComptes<T extends object>(chemin: string, { methode = "GET", jeton, ip, corps }: OptionsAppel = {}): Promise<ReponseComptes<T>> {
@@ -67,7 +76,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     });
     const lu: unknown = await reponse.json().catch(() => null);
     if (typeof lu !== "object" || lu === null) return { ok: false, erreur: "erreur" };
-    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown };
+    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown; section?: unknown; element?: unknown };
     if (donnees.ok === true && reponse.ok) return lu as { ok: true } & T;
     // Le « message » que l'API joint parfois (invitation d'une adresse sans compte) n'est pas repris : chaque page a son
     // propre texte pour chaque code (routes/pro/equipe.tsx), au ton du site, et rien de ce que l'API écrit n'arrive tel quel
@@ -79,6 +88,8 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
       erreur: typeof donnees.erreur === "string" && CODES.has(donnees.erreur) ? (donnees.erreur as ErreurCompte) : "erreur",
       ...(typeof donnees.champ === "string" ? { champ: donnees.champ } : {}),
       ...(attente !== undefined ? { attente } : {}),
+      ...(typeof donnees.section === "number" || donnees.section === null ? { section: donnees.section } : {}),
+      ...(typeof donnees.element === "number" || donnees.element === null ? { element: donnees.element } : {}),
     };
   } catch {
     return { ok: false, erreur: "erreur" };

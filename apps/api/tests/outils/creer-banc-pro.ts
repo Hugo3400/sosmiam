@@ -6,6 +6,8 @@ import { creerApplication } from "../../src/application.ts";
 import { calculerEmpreinteJeton } from "../../src/fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
+import { creerMiamSafeEnMemoire } from "../../src/services/miam-safe-en-memoire.ts";
+import type { NouvelleAlerte } from "../../src/services/miam-safe-regles.ts";
 import type { LieuEnMemoire } from "../../src/services/suggestions-comptes-en-memoire.ts";
 
 /** Une fiche de test complète (numéros de la tranche réservée à la fiction, site en example.com) */
@@ -21,6 +23,9 @@ export type Reponse = { statut: number; corps: Record<string, any>; entetes: Hea
 export async function creerBancPro() {
   const banc = { horloge: Date.parse("2026-10-09T10:00:00Z") };
   const memoire = creerComptesEnMemoire(() => banc.horloge);
+  // Miam Safe en mémoire : les lieux publiés du banc ; les alertes « envoyées » à l'équipe sont notées ici, sans push
+  const miamSafe = creerMiamSafeEnMemoire((lieuId) => memoire.lieux.get(lieuId)?.statut === "publie");
+  const equipesPrevenues: (NouvelleAlerte & { id: number })[] = [];
   const serveur = creerApplication({
     enregistrerInscription: async () => {},
     lireFichePublique: memoire.lireFichePublique,
@@ -28,6 +33,7 @@ export async function creerBancPro() {
       services: memoire.services, sessions: memoire.sessions, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro,
       horloge: () => banc.horloge,
     },
+    miamSafe: { services: miamSafe.services, prevenirEquipe: async (alerte) => void equipesPrevenues.push(alerte) },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
@@ -73,7 +79,7 @@ export async function creerBancPro() {
   }
 
   return {
-    banc, memoire, demander, creerCompte, ajouterLieu, creerGerant,
+    banc, memoire, miamSafe, equipesPrevenues, demander, creerCompte, ajouterLieu, creerGerant,
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),
   };
 }
