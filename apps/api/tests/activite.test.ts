@@ -77,7 +77,10 @@ test("sans session : 401 ; avec session : l'activité vide, jamais en cache", as
 
 test("rescousses : 3 par semaine, +2 points chacune, rechargées le lundi à Paris", async () => {
   const { id, jeton } = await creerCompte();
-  for (const lieuId of [1, 2, 3]) assert.equal((await demander("POST", "/app/activite/rescousses", jeton, { lieuId })).statut, 201);
+  for (const lieuId of [1, 2, 3]) {
+    banc.horloge += 60_000;
+    assert.equal((await demander("POST", "/app/activite/rescousses", jeton, { lieuId })).statut, 201);
+  }
   const quatrieme = await demander("POST", "/app/activite/rescousses", jeton, { lieuId: 4 });
   assert.deepEqual([quatrieme.statut, quatrieme.corps.erreur], [409, "plus-de-rescousse"]);
   // Déjà donnée cette semaine : 200, rien ne change (pas de points en plus)

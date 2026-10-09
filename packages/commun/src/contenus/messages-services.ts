@@ -222,6 +222,21 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Beaucoup de propositions d'un coup",
     texte: "Tu en as déjà envoyé beaucoup aujourd'hui, ou ce lieu en a déjà plusieurs en attente. L'équipe les relit : réessaie demain.",
   },
+  "lieu-non-verifie": {
+    emoji: "🛟",
+    titre: "Pas encore de rescousse ici",
+    texte: "Ce lieu n'a pas encore été vérifié par l'équipe. Garde-le sous le coude, tu pourras lui donner un coup de main bientôt.",
+  },
+  "plus-de-rescousse": {
+    emoji: "🛟",
+    titre: "Tes 3 rescousses sont données",
+    texte: "Bravo, tu as tout donné cette semaine ! Elles reviennent lundi.",
+  },
+  "publication-inconnue": {
+    emoji: "🔍",
+    titre: "Publication introuvable",
+    texte: "Elle a été retirée ou n'est plus en ligne.",
+  },
   "infos-invalides": {
     emoji: "📋",
     titre: "Une info ne passe pas",
