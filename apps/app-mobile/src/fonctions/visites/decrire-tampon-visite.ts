@@ -6,7 +6,7 @@ export type TamponVisite = {
   sur: number;
   /** La carte vient de se remplir avec cette visite */
   pleine: boolean;
-  /** « Carte pleine : Un tiramisu maison t'attend ! », « Plus qu'une visite pour un chou à la crème ! »… */
+  /** « Carte pleine : un tiramisu maison t'attend ! », « Plus qu'une visite pour un chou à la crème ! »… */
   texte: string;
 };
 
@@ -25,7 +25,7 @@ export function decrireTamponVisite(r: ResultatValidation): TamponVisite | null 
   if (r.recompenseGagnee) {
     // La récompense figée par cette visite (gagnée à l'instant de la validation), sinon la dernière prête, sinon celle d'aujourd'hui
     const gagnee = carte.pretes.find((p) => p.gagneeLe === visite.valideLe) ?? carte.pretes[carte.pretes.length - 1];
-    return { tampons: carte.sur, sur: carte.sur, pleine: true, texte: `Carte pleine : ${gagnee?.libelle ?? carte.recompense} t'attend !` };
+    return { tampons: carte.sur, sur: carte.sur, pleine: true, texte: `Carte pleine : ${mettreMinusculeInitiale(gagnee?.libelle ?? carte.recompense)} t'attend !` };
   }
   const tampons = Math.min(carte.sur, Math.max(0, carte.tampons));
   const reste = carte.sur - tampons;
