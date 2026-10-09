@@ -30,6 +30,13 @@ export function creerControleursOutilsLieux(s: ServicesGestion) {
 
   return {
     controle: async (_requete: Request, reponse: Response) => reponse.json(await s.lireControleLieux()),
+    villes: async (_requete: Request, reponse: Response) => reponse.json(await s.listerVilles()),
+    /** ?ville= : où en est cette ville (fiches, ambassadeurs, fondateurs, public à prévenir) */
+    lancement: async (requete: Request, reponse: Response) => {
+      const ville = lireParametre(requete.query.ville, 80);
+      if (!ville) return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: "ville" });
+      reponse.json(await s.lireLancementVille(ville));
+    },
     /** ?nom=&ville=&adresse=&latitude=&longitude= : lieux déjà en base qui ressemblent à cette fiche */
     semblables: async (requete: Request, reponse: Response) => {
       const nom = lireParametre(requete.query.nom, 80);

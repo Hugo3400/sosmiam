@@ -143,6 +143,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/lieux/semblables", outilsLieux.semblables);
   routes.post("/lieux/import/verifier", outilsLieux.verifierImport);
   routes.post("/lieux/import", outilsLieux.importer);
+  routes.get("/villes", outilsLieux.villes);
+  routes.get("/villes/lancement", outilsLieux.lancement);
   routes.get("/lieux/:id", c.lieu);
   routes.get("/lieux/:id/historique", c.historiqueLieu);
   routes.get("/suggestions", sug.liste);

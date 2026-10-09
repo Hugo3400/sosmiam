@@ -70,3 +70,24 @@ test("filtre de qualité : fiches à compléter ou complètes", () => {
   assert.deepEqual(filtrerLieux(fiches, { type: "", categorie: "", ville: "", qualite: "complete" }).map((l) => l.id), [1]);
   assert.deepEqual(filtrerLieux(fiches, { type: "", categorie: "", ville: "", qualite: "a-completer" }).map((l) => l.id), [2]);
 });
+
+test("CSV : séparateur deviné, guillemets, retours Windows, lignes vides", async () => {
+  const { lireCsv } = await import("../src/fonctions/lieux/lire-csv.ts");
+  assert.deepEqual(lireCsv("﻿Nom;Ville\r\n\"Chez \"\"Lia\"\"\";Montpellier\r\n\r\n\"Bar; tapas\";Sète"), [["Nom", "Ville"], ['Chez "Lia"', "Montpellier"], ["Bar; tapas", "Sète"]]);
+  assert.deepEqual(lireCsv("nom,ville\nLe 140,La Grande-Motte\n"), [["nom", "ville"], ["Le 140", "La Grande-Motte"]]);
+});
+
+test("colonnes reconnues : nom, commune, type en clair, nombres à virgule, site sans https", async () => {
+  const { convertirLignesLieux } = await import("../src/fonctions/lieux/convertir-lignes-lieux.ts");
+  const { lieux, reconnues, ignorees } = convertirLignesLieux([
+    ["Nom du lieu", "Commune", "Type", "Catégorie", "Latitude", "Site web", "Note interne"],
+    ["Le 140", "La Grande-Motte", "Restaurant gastronomique", "Brasserie", "43,561", "www.le140.fr", "à rappeler"],
+    ["Pepita", "Montpellier", "", "", "", "", ""],
+  ]);
+  assert.deepEqual(lieux, [
+    { nom: "Le 140", ville: "La Grande-Motte", type: "resto", info: "Brasserie", latitude: 43.561, siteWeb: "https://www.le140.fr" },
+    { nom: "Pepita", ville: "Montpellier" },
+  ]);
+  assert.deepEqual(reconnues, ["Nom du lieu", "Commune", "Type", "Catégorie", "Latitude", "Site web"]);
+  assert.deepEqual(ignorees, ["Note interne"]);
+});

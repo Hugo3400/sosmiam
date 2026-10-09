@@ -166,7 +166,7 @@
   - **rôles** : même compte ; modes pro (gérant ou équipe) et ambassadeur dans l'app et sur le site ; 18 ans et plus ; un 15-17 ans n'a qu'un mode. L'équipe d'un lieu ne valide ni ne note chez elle. Le lieu voit seulement le prénom, l'initiale, l'emoji, le code et les tampons chez lui. Aucun texte libre du lieu vers le client en v1 ;
   - **avis vérifiés** : liés à une visite, ouverts 1 h après, pendant 14 jours ; signés « Prénom I. » (prénom seul avant 18 ans), datés au mois ; moyenne prudente ; part de clients qui reviennent à partir de 20 clients (jours distincts). Un ambassadeur relit sans voir l'auteur, jamais un avis de mineur ; son verdict est consultatif, l'équipe tranche. On ne masque jamais un avis automatiquement ;
   - **fidélité** : un tampon par visite validée ; 3 à 10 visites (5 par défaut) ; récompense figée quand la carte se remplit, remise depuis « Récompenses à donner » ; une récompense avec alcool exige une version sans alcool, la seule montrée aux 15-17 ans ;
-  - **démo** : en développement seulement ; les visites de démo ne seront jamais importées dans un vrai compte ; dans une version publiée sans API, aucune fausse visite vérifiée ;
+  - **démo** : en développement seulement ; les visites de démo ne seront jamais importées dans un vrai compte ; dans une version publiée sans API, aucune fausse visite vérifiée ; le mode pro de démo joue le **Restaurant du Capitaine Bouiboui** (lieu inventé d'après la mascotte du kit, décidé le 9 octobre 2026), jamais un nom de lieu qui pourrait exister ;
   - **sanctions** décidées à la main dans le logiciel ; seuls des freins techniques temporaires sont automatiques.
 - **Limites assumées** (à écrire aussi dans les CGU) : la position est un frein, pas une preuve (sur iPhone, aucun indice d'une position simulée) ; un complice sur place avec plusieurs comptes peut tricher au prix d'un vrai effort, on le détecte après coup ; la règle « membre du lieu » se contourne avec un second compte ; l'âge est déclaratif, le lieu reste responsable de l'alcool qu'il sert.
 - **Comment la visite a été réglée (décidé le 9 octobre 2026)** : en validant (addition, QR du comptoir, réservation), l'équipe choisit dans une liste fermée, jamais en texte libre :
@@ -176,6 +176,24 @@
   - plus des **avantages** : récompense fidélité, happy hour ou formule, offre SOS, collaboration commerciale (toujours affichée, en premier), autre avantage.
   - C'est affiché partout : au comptoir pro, côté client (célébration, visite, Mes visites, onglet Scan), sur les avis publics (« Repas offert », « Avec réduction ») et dans le logiciel de gestion (part d'offerts par lieu, alerte s'il y en a trop).
 - **Points ouverts, à trancher avant de brancher l'API** : rattacher un pro à son lieu (SIREN + vérification), e-mail vérifié obligatoire pour valider, seuils anti-triche, durées de conservation des visites, adresse de l'espace pro (pro.sosmiam.fr ?).
+
+## Carte du lieu (construite le 9 octobre 2026)
+- **Le gérant remplit sa carte lui-même** : mode pro de l'app > Mon lieu > La carte (l'espace pro du site suivra). Elle se compose de :
+  - **sections** à titre libre, avec des idées toutes prêtes (Plats, Desserts, À boire, Menu enfant…) ;
+  - **éléments** : nom, description, prix au centime, « pour » (le verre, la part, par personne…), spécialité ⭐, alcool, repères (végé, vegan, sans gluten, épicé, fait maison, local).
+  - Le gérant range sections et éléments avec des flèches (mode « Ranger », aussi en actions VoiceOver).
+- **Tout part d'un coup avec « Enregistrer »** ; quitter avant redemande (« Partir sans enregistrer ? »). Le serveur revérifie la carte (`validerCarteDuLieu`, dans packages/commun) et pose lui-même la date affichée aux gourmands (« Mise à jour par le lieu le … »).
+- **Limites** :
+  - 20 sections, 60 éléments par section, 250 en tout ;
+  - noms de 80 caractères au plus, descriptions de 200, titres de 40 ;
+  - prix de 0 à 9 999 € ;
+  - pas de gros mot.
+- **Alcool** :
+  - coché par le gérant, et caché aux moins de 18 ans et quand l'âge est inconnu (visite sans compte) ;
+  - l'app prévient quand un nom fait penser à de l'alcool, sans rien imposer : un « coq au vin » reste un plat.
+- **Ce que voient les gourmands** : une section vide reste chez le gérant mais n'apparaît pas aux gourmands. Une carte enregistrée remplace celle de la fiche, même si elle est vide.
+- **Droits** : seul le gérant enregistre ; toute l'équipe peut lire.
+- **Contrat** : `lireCarteDuLieu` / `reglerCarteDuLieu` (ServiceComptoir). Ils restent à brancher dans l'API (stockage de la carte) quand Hugo le décidera.
 
 ## Infos pratiques des lieux (décidé le 9 octobre 2026)
 - Chaque fiche montre un bloc « Infos pratiques » : téléphone (bouton « Appeler »), site, Instagram, accueil des animaux (bienvenus, en terrasse seulement, pas d'animaux), accès en fauteuil roulant, terrasse, Wi-Fi, chaise haute ou menu enfant, parking, réservation (inutile, conseillée, obligatoire) et moyens de paiement (dont tickets resto et chèques-vacances).
@@ -243,6 +261,12 @@
 - Un compte connecté propose de corriger une fiche de lieu (nom, adresse, horaires, texte, contact, infos pratiques) : POST /comptes/moi/suggestions, vérifié par validerPropositionLieu (packages/commun). L'équipe est prévenue dans le logiciel, voit avant / maintenant / proposé, accepte tout ou par champ, ou refuse avec une réponse envoyée par mail.
 - Pas de suggestion sans compte. Limites : 10 par 24 h par compte, 3 en attente au plus sur un même lieu.
 - **Conservation : 1 an après la décision de l'équipe** (ménage de nuit) ; si le compte est supprimé avant, la proposition reste sans auteur jusqu'à cette date.
+
+## Espace pro (décidé le 9 octobre 2026)
+- **https://pro.sosmiam.fr**, servi par le site (comme ambassadeur.sosmiam.fr), avec son propre cookie. **Compte unique** : « pro » est un rôle, obtenu quand l'équipe valide le **rattachement** du compte à un lieu (table `rattachements_lieux` : rôle « gerant » ou « equipe », preuve, SIRET facultatif ; un compte peut tenir plusieurs lieux). Un lieu est **vérifié ✓** dès qu'il a un rattachement validé.
+- **Modifier sa fiche** : horaires, texte, contact et infos pratiques changent **tout de suite** ; le **nom et l'adresse** passent par l'équipe (suggestion « pro » décidée dans le logiciel), contre les abus.
+- **Première version** : rattachement à mon lieu (chercher mon lieu, ou le proposer s'il n'existe pas), ma fiche et mes infos pratiques, les suggestions des clients sur ma fiche (et la décision de l'équipe), mon équipe (inviter un employé, rôle « equipe »), l'affichette de table (QR vers la fiche).
+- **Deuxième version, avec les visites côté serveur** (à construire avec l'app) : le QR du comptoir, lancer un SOS « place ce soir », mes statistiques (vues, rescousses, visites validées), mes avis et y répondre.
 
 ## Espace ambassadeur (décidé le 8 octobre 2026)
 - **https://ambassadeur.sosmiam.fr**, servi par le site (apps/site-web) : « / » mène à `/programme`, la page publique (et indexée) qui explique le programme ; sur sosmiam.fr, les adresses de l'espace renvoient vers ce sous-domaine. Lancement partout en France : aucune ville n'y est citée comme lieu de lancement.

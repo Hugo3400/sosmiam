@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+import { FileUp, Plus, Search } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 import type { Ecran } from "~/contenus/menu.ts";
@@ -23,6 +23,7 @@ import { BarreSelectionLieux } from "./BarreSelectionLieux.tsx";
 import { CarteGeographiqueLieux } from "./CarteGeographiqueLieux.tsx";
 import { CarteLieu } from "./CarteLieu.tsx";
 import { FormulaireLieu } from "./FormulaireLieu.tsx";
+import { ModaleImportLieux } from "./ModaleImportLieux.tsx";
 import { PanneauControleLieux } from "./PanneauControleLieux.tsx";
 
 /** Fiches par page (2 ou 3 par ligne selon la largeur : 30 remplit les deux) */
@@ -41,6 +42,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
   const [ville, setVille] = useState("");
   const [qualite, setQualite] = useState<"" | "a-completer" | "complete">("");
   const [vue, setVue] = useState<"liste" | "carte" | "controle">("liste");
+  const [importOuvert, setImport] = useState(false);
   const [page, setPage] = useState(1);
   const haut = useRef<HTMLDivElement>(null);
   const [ouvert, setOuvert] = useState<number | "nouveau" | null>(null);
@@ -123,7 +125,12 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
       <EnTeteEcran
         titre="Lieux"
         sousTitre="Les fiches des restos, pâtisseries, bars et sorties. Seuls les lieux « En ligne » seront montrés dans l'app."
-        actions={<Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Nouveau lieu</Bouton>}
+        actions={
+          <>
+            <Bouton icone={FileUp} onClick={() => setImport(true)}>Importer un CSV</Bouton>
+            <Bouton variante="principal" icone={Plus} onClick={() => setOuvert("nouveau")}>Nouveau lieu</Bouton>
+          </>
+        }
       />
       <BandeauSuggestions onOuvrir={setOuvert} />
       <div className="mb-5 flex flex-wrap items-end gap-4">
@@ -234,6 +241,7 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           }}
         />
       )}
+      {importOuvert && <ModaleImportLieux onFermer={() => setImport(false)} onImporte={(bilan) => { setImport(false); setMessage(bilan); recharger(); }} />}
     </>
   );
 }
