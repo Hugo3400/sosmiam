@@ -1,8 +1,8 @@
 // Zones des fondateurs en mémoire, pour les tests et l'API de démonstration : construites depuis src/donnees/communes.json
 // avec construireZonesFondateurs (mêmes 241 zones et 367 places que la base), sans rien lire ni écrire dans la base.
 // Une seule différence : communes.json ne dit pas l'article officiel des noms (champ TNCC de l'Insee). Il est deviné
-// d'après le nom (« Le Havre » → « du Havre », « Angers » → « d'Angers ») ; un département n'en a pas (« de Rhône » ici,
-// « du Rhône » dans la base).
+// d'après le nom (« Le Havre » → « du Havre », « Angers » → « d'Angers », « Ain » → « de l'Ain » dans la base mais
+// « d'Ain » ici) : un nom sans article visible reste approché (« de Rhône » ici, « du Rhône » dans la base).
 import { readFileSync } from "node:fs";
 
 import { calculerCodeZone } from "../fonctions/fondateurs/calculer-code-zone.ts";
@@ -30,7 +30,7 @@ function preparerZones(): ZonePreparee[] {
   const donnees = JSON.parse(readFileSync(new URL("../donnees/communes.json", import.meta.url), "utf8")) as DonneesCommunes;
   const communes = donnees.communes.map(([code, nom, codeDepartement, population]) => ({ code, nom, codeDepartement, population }));
   const departements = Object.entries(donnees.departements).map(([code, nom]) => ({
-    code, nom, nomSansArticle: nom, tncc: 0, codeRegion: COLLECTIVITES.has(code) ? null : "00",
+    code, nom, ...devinerArticle(nom), codeRegion: COLLECTIVITES.has(code) ? null : "00",
   }));
   const nomsInsee = new Map(communes.map((commune) => [commune.code, devinerArticle(commune.nom)]));
   zonesPreparees = construireZonesFondateurs({ communes, departements, nomsInsee });
