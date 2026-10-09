@@ -2,7 +2,9 @@ import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-palier-aux-points.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
+import type { FournisseurExterne } from "../fonctions/comptes/lire-identite-externe.ts";
 import { decrireCertifie, type CertifieVue } from "./certification.ts";
+import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import type { LieuDuPro, RoleRattachement, StatutRattachement } from "./pro-regles.ts";
 
@@ -139,6 +141,8 @@ export type NouveauCompte = {
   profil?: ProfilAppNouveau;
   /** Date de mise à jour des conditions d'utilisation acceptées (AAAA-MM-JJ) */
   cguVersion: string;
+  /** Compte créé avec Apple ou Google (espace « app ») : l'identifiant (« sub ») à lier, et l'e-mail déjà vérifié par eux */
+  externe?: { fournisseur: FournisseurExterne; sub: string; emailVerifieLe: Date };
 };
 
 /** Ce que la personne change elle-même dans « Mon compte » (quartier null : effacé). L'e-mail ne se change pas en ligne. */
@@ -151,13 +155,15 @@ export const estDoublonPseudo = (erreur: unknown) =>
 
 /**
  * Crée le compte et sa fiche d'ambassadeur « en-attente » (l'équipe valide ensuite), ou le compte seul pour l'espace pro
- * et pour l'app (avec son profil) ; null si l'e-mail est déjà pris. Pseudo déjà pris : lève PseudoDejaPris.
+ * et pour l'app (avec son profil) ; null si l'e-mail est déjà pris (ou, avec Apple ou Google, l'identifiant : la route
+ * relit alors qui l'a). Pseudo déjà pris : lève PseudoDejaPris.
  */
-export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil }: NouveauCompte): Promise<number | null> {
+export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe }: NouveauCompte): Promise<number | null> {
   try {
     const compte = await baseDeDonnees.compte.create({
       data: {
         email, motDePasse, prenom, cguVersion,
+        ...(externe ? { [CHAMP_SUB[externe.fournisseur]]: externe.sub, emailVerifieLe: externe.emailVerifieLe } : {}),
         ...(espace === "ambassadeur" ? { ambassadeur: { create: { ville, quartier } } } : {}),
         ...(espace === "app" && profil
           ? { nomChiffre: profil.nomChiffre, dateNaissanceChiffree: profil.dateNaissanceChiffree, ville: profil.ville, envies: profil.envies, pseudo: profil.pseudo }

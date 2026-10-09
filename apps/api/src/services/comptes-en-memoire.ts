@@ -11,6 +11,8 @@ import type { NouvelleCandidatureCertification, ProfilCertifie, StatutCandidatur
 import type { CompteLu, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
 import type { NouvelleCandidature, NouvelleProposition, OrigineProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
 import { PseudoDejaPris } from "./erreurs-comptes.ts";
+import { creerComptesExternesEnMemoire } from "./comptes-externes-en-memoire.ts";
+import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { creerProEnMemoire } from "./pro-en-memoire.ts";
 import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
@@ -49,6 +51,9 @@ export type CompteEnMemoire = {
   envies: Record<string, string[]> | null;
   avatar: string | null;
   prive: boolean;
+  /** Identifiants Apple et Google (« sub ») liés au compte (absents ou null : jamais liés) */
+  appleSub?: string | null;
+  googleSub?: string | null;
 };
 
 export type CandidatureEnMemoire = NouvelleCandidature & {
@@ -108,8 +113,9 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const courriels: CourrielsComptes = { envoyerLienMotDePasse: noterEnvoi("mot-de-passe"), envoyerLienVerificationEmail: noterEnvoi("verification-email") };
 
   const services: ServicesComptes = {
-    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil }) {
+    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe }) {
       if (trouverParEmail(email)) return null;
+      if (externe && [...comptes.values()].some((compte) => compte[CHAMP_SUB[externe.fournisseur]] === externe.sub)) return null;
       if (profil?.pseudo && pseudoPris(profil.pseudo)) throw new PseudoDejaPris();
       const id = ++compteurs.comptes;
       const maintenant = horloge();
@@ -123,6 +129,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
           ? { pseudo: profil.pseudo, nomChiffre: profil.nomChiffre, dateNaissanceChiffree: profil.dateNaissanceChiffree, villeApp: profil.ville,
               envies: structuredClone(profil.envies), avatar: null, prive: false }
           : { pseudo: null, nomChiffre: null, dateNaissanceChiffree: null, villeApp: null, envies: null, avatar: null, prive: false }),
+        ...(externe ? { [CHAMP_SUB[externe.fournisseur]]: externe.sub, emailVerifieLe: externe.emailVerifieLe.getTime() } : {}),
       });
       return id;
     },
@@ -275,6 +282,8 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   return {
     services,
     sessions,
+    /** Connexion avec Apple ou Google (comptes-externes-en-memoire.ts) */
+    externes: creerComptesExternesEnMemoire(comptes),
     /** Zones des fondateurs (241 zones, 367 places), places prises d'après les candidatures ci-dessous */
     zones: zones.services,
     /** Les mails des liens : notés dans `envois` au lieu de partir */
