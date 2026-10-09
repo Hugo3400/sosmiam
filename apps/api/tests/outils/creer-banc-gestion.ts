@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 
 import { creerApplication } from "../../src/application.ts";
 import type { OutilsComptes } from "../../src/controleurs/gestion/controleurs-ambassadeurs.ts";
+import type { VisitesGestion } from "../../src/controleurs/gestion/controleurs-surveillance.ts";
 import { calculerCodeTotp } from "../../src/fonctions/securite/calculer-code-totp.ts";
 import { calculerIdPoste } from "../../src/fonctions/securite/calculer-id-poste.ts";
 import { construireMessageGestion } from "../../src/fonctions/securite/construire-message-gestion.ts";
@@ -15,7 +16,7 @@ import type { ServicesGestion } from "../../src/services/gestion/tous-les-servic
 
 const { subtle } = webcrypto;
 
-export async function creerBancGestion(services: Partial<ServicesGestion>, comptes?: OutilsComptes, chiffrement: ChiffrementDonnees | null = null) {
+export async function creerBancGestion(services: Partial<ServicesGestion>, comptes?: OutilsComptes, chiffrement: ChiffrementDonnees | null = null, visites?: VisitesGestion) {
   const secretTotp = new Uint8Array(randomBytes(20));
   let horloge = Date.now();
   const cles = (await subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as webcrypto.CryptoKeyPair;
@@ -31,6 +32,7 @@ export async function creerBancGestion(services: Partial<ServicesGestion>, compt
       sessions: creerStockageSessionsEnMemoire(),
       comptes,
       chiffrement,
+      visites,
     },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));

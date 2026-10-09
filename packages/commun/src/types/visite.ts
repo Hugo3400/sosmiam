@@ -66,7 +66,10 @@ export type EvenementVisite =
   | { type: "annuler-client" }
   | { type: "expirer" }
   | { type: "annuler-lieu"; motif: MotifRefusVisite }
-  | { type: "retirer" };
+  | { type: "retirer" }
+  /** L'équipe SOS Miam donne raison au client qui contestait un refus ou un retrait : validée, avec les effets d'une validation ;
+   * `reglement` : celui de la visite s'il y en avait un (une visite retirée), sinon payée */
+  | { type: "donner-raison"; reglement?: ReglementVisite };
 
 export type EffetVisite =
   | { type: "points"; valeur: number; raison: "visite" | "visite-sos" | "annulation-visite" }

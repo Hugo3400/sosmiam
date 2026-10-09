@@ -30,6 +30,8 @@ function calculerEffetsRetrait(v: EtatVisitePourTransition): EffetVisite[] {
  * - annuler-client : demandee → annulee. expirer : demandee → expiree, à partir de `expireLe`.
  * - annuler-lieu : validee → retiree, jusqu'à `valideLe` + 15 min inclus (contrôle « annulation-lieu »).
  * - retirer (équipe SOS Miam) : validee → retiree, à tout moment, sans contrôle.
+ * - donner-raison (équipe SOS Miam, après une contestation) : refusee ou retiree → validee, maintenant, avec les effets d'une
+ *   validation (points, tampon, avis) ; jamais annulable par le lieu. Que la visite soit bien contestée, c'est à l'appelant de le voir.
  */
 export function faireEvoluerVisite(
   v: EtatVisitePourTransition,
@@ -80,6 +82,19 @@ export function faireEvoluerVisite(
     const effets = calculerEffetsRetrait(v);
     if (e.type === "annuler-lieu") effets.push({ type: "controle", motif: "annulation-lieu" });
     return { ok: true, statut: "retiree", valideLe: v.valideLe, decideLe: maintenant, points: 0, annulableJusqua: null, effets };
+  }
+
+  if ((v.statut === "refusee" || v.statut === "retiree") && e.type === "donner-raison") {
+    const reglement = e.reglement ?? null;
+    return {
+      ok: true,
+      statut: "validee",
+      valideLe: maintenant,
+      decideLe: maintenant,
+      points: calculerPointsVisite(v.pendantSos, reglement),
+      annulableJusqua: null,
+      effets: calculerEffetsValidation(v.pendantSos, maintenantMs, options?.delaiAvisMs, reglement),
+    };
   }
 
   return INTERDITE;

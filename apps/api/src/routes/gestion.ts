@@ -14,7 +14,7 @@ import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-
 import { creerControleursRattachements } from "../controleurs/gestion/controleurs-rattachements.ts";
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
-import { creerControleursSurveillance } from "../controleurs/gestion/controleurs-surveillance.ts";
+import { creerControleursSurveillance, type VisitesGestion } from "../controleurs/gestion/controleurs-surveillance.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -35,12 +35,14 @@ export type DependancesGestion = {
   comptes?: OutilsComptes;
   /** Chiffrement du nom et de la date de naissance des comptes (lu une fois au démarrage) ; null si la clé manque */
   chiffrement?: ChiffrementDonnees | null;
+  /** Visites décidées par l'équipe (services/visites-gestion.ts de l'App) : « donner raison au client » ; absent → 503 */
+  visites?: VisitesGestion;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
@@ -52,7 +54,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const rattachements = creerControleursRattachements(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes, chiffrement);
-  const surveillance = creerControleursSurveillance(services);
+  const surveillance = creerControleursSurveillance(services, visites);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -146,6 +148,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/surveillance/comptes/:id/vu", surveillance.vuCompte);
   routes.post("/surveillance/lieux/:id/vu", surveillance.vuLieu);
   routes.post("/surveillance/contestations/:id/relue", surveillance.relue);
+  routes.post("/surveillance/contestations/:id/raison", surveillance.donnerRaison);
   routes.get("/courriels/derniers", m.derniers);
   routes.post("/courriels/essai", m.essai);
   routes.post("/courriels/ecrire", m.ecrire);

@@ -118,6 +118,11 @@ export function creerComptoir(c: ContexteComptoir) {
   }
 
   return {
+    /** Le rôle du compte au comptoir de ce lieu (rattachement validé et 18 ans), pour les autres gestes de l'équipe (SOS du soir…) */
+    roleDe(compteId: number, lieuId: number): Promise<RoleRattachement | null> {
+      return c.depot.lire((t) => lireRoleComptoir(t, compteId, lieuId));
+    },
+
     /** GET /pro/comptoir/lieux : les lieux où le compte a un rattachement validé */
     listerLieux(compteId: number): Promise<{ ok: true; lieux: LieuGere[] }> {
       return c.depot.lire(async (t) => {

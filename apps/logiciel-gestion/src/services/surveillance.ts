@@ -40,7 +40,8 @@ export type LieuRefusant = {
 export type ContestationVisite = {
   id: number;
   mode: string;
-  statut: "refusee" | "retiree";
+  /** « validee » : l'équipe a donné raison au client */
+  statut: "refusee" | "retiree" | "validee";
   motifRefus: string | null;
   /** Le mot du client : lu par l'équipe SOS Miam, jamais montré au lieu */
   contestation: string | null;
@@ -48,6 +49,8 @@ export type ContestationVisite = {
   decideLe: string | null;
   compte: { id: number; prenom: string; pseudo: string | null; email: string };
   lieu: LieuResume;
+  /** L'équipe a donné raison au client : la visite est validée */
+  raisonDonnee: boolean;
   relue: boolean;
 };
 
@@ -65,4 +68,6 @@ export const reglerSeuilsSurveillance = (seuils: SeuilsSurveillance) =>
   appeler<{ ok: true; seuils: SeuilsSurveillance }>("PUT", "/surveillance/seuils", { corps: seuils });
 /** « Vu, rien à signaler » : il revient s'il y a du nouveau (un autre jour au-delà du seuil, plus de refus) */
 export const marquerSurveilleVu = (type: "comptes" | "lieux", id: number) => appeler<{ ok: true }>("POST", `/surveillance/${type}/${id}/vu`);
+/** La visite passe en validée (points, tampon, avis) et le client est prévenu ; le lieu ne reçoit rien */
+export const donnerRaisonAuClient = (id: number) => appeler<{ ok: true }>("POST", `/surveillance/contestations/${id}/raison`);
 export const marquerContestationRelue = (id: number) => appeler<{ ok: true }>("POST", `/surveillance/contestations/${id}/relue`);

@@ -14,10 +14,16 @@ const banc = await creerBancGestion({
   ecrireSeuilsSurveillance: async (seuils: unknown) => void appels.push({ seuils }),
   marquerSurveilleVu: async (type: string, id: number) => (appels.push({ vu: type, id }), id === 7),
   marquerContestationRelue: async (id: number) => (id === 31 ? { compteId: 7, lieuId: 12 } : null),
-} as never);
+} as never, undefined, null, {
+  donnerRaisonAuClient: async (visiteId: number) => (
+    appels.push({ raison: visiteId }),
+    visiteId === 31 ? { ok: true, visiteId, compteId: 7, lieuId: 12 } : visiteId === 33 ? { ok: false, erreur: "transition-interdite" } : { ok: false, erreur: "introuvable" }
+  ),
+});
+const sansVisites = await creerBancGestion({} as never);
 let session = "";
 before(async () => void (session = await banc.ouvrirSession()));
-after(() => banc.fermer());
+after(() => (banc.fermer(), sansVisites.fermer()));
 
 test("lecture de la surveillance", async () => {
   const reponse = await banc.demander("GET", "/surveillance", { session });
@@ -47,4 +53,14 @@ test("contestation relue : le journal garde les numéros, jamais le mot du clien
   assert.deepEqual(await (await banc.demander("POST", "/surveillance/contestations/31/relue", { session })).json(), { ok: true });
   assert.equal(journal.at(-1), "Contestation de refus relue · visite n° 31, compte n° 7, lieu n° 12");
   assert.equal((await banc.demander("POST", "/surveillance/contestations/32/relue", { session })).status, 404);
+});
+
+test("donner raison au client : visite validée par l'App, contestation relue, numéros seulement au journal", async () => {
+  assert.deepEqual(await (await banc.demander("POST", "/surveillance/contestations/31/raison", { session })).json(), { ok: true });
+  assert.equal(journal.at(-1), "Raison donnée au client (visite validée) · visite n° 31, compte n° 7, lieu n° 12");
+  assert.deepEqual(await (await banc.demander("POST", "/surveillance/contestations/33/raison", { session })).json(), { ok: false, erreur: "transition-interdite" });
+  assert.equal((await banc.demander("POST", "/surveillance/contestations/34/raison", { session })).status, 404);
+  assert.equal(journal.at(-1), "Raison donnée au client (visite validée) · visite n° 31, compte n° 7, lieu n° 12", "rien de noté sur un refus");
+  const autre = await sansVisites.ouvrirSession();
+  assert.deepEqual(await (await sansVisites.demander("POST", "/surveillance/contestations/31/raison", { session: autre })).json(), { ok: false, erreur: "bientot-disponible" });
 });

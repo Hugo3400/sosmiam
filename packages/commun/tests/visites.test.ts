@@ -23,6 +23,7 @@ const EVENEMENTS: EvenementVisite[] = [
   { type: "expirer" },
   { type: "annuler-lieu", motif: "pas-venu" },
   { type: "retirer" },
+  { type: "donner-raison" },
 ];
 
 /** Une addition demandée à T0, qui expire 30 min plus tard */
@@ -97,6 +98,8 @@ test("chaque transition interdite", () => {
   const permises: Partial<Record<StatutVisite, EvenementVisite["type"][]>> = {
     demandee: ["regler", "refuser", "annuler-client", "expirer"],
     validee: ["annuler-lieu", "retirer"],
+    refusee: ["donner-raison"],
+    retiree: ["donner-raison"],
   };
   const statuts: StatutVisite[] = ["demandee", "validee", "refusee", "annulee", "expiree", "retiree"];
   for (const statut of statuts) {
@@ -137,6 +140,25 @@ test("retirer (équipe SOS Miam) : effets inverses exacts, à tout moment, sans 
   const sansTampon = faireEvoluerVisite(validee(15, false), { type: "retirer" }, T0 + HEURE);
   assert.ok(sansTampon.ok);
   assert.deepEqual(sansTampon.effets, [{ type: "points", valeur: -15, raison: "annulation-visite" }, { type: "masquer-avis" }]);
+});
+
+test("donner-raison (équipe SOS Miam) : refusée ou retirée → validée, effets d'une validation, jamais annulable", () => {
+  for (const statut of ["refusee", "retiree"] as const) {
+    const t = faireEvoluerVisite({ ...validee(0, false), statut }, { type: "donner-raison" }, T0 + 2 * JOUR);
+    assert.deepEqual(t, {
+      ok: true, statut: "validee", valideLe: iso(T0 + 2 * JOUR), decideLe: iso(T0 + 2 * JOUR), points: 15, annulableJusqua: null,
+      effets: [
+        { type: "points", valeur: 15, raison: "visite" },
+        { type: "tampon", delta: 1 },
+        { type: "ouvrir-avis", ouvertLe: iso(T0 + 2 * JOUR + HEURE), fermeLe: iso(T0 + 2 * JOUR + HEURE + 14 * JOUR) },
+      ],
+    });
+  }
+  // Pendant un SOS : +25 ; une table offerte (règlement gardé de la visite retirée) : seulement l'avis
+  const sos = faireEvoluerVisite({ ...validee(0, false), statut: "refusee", pendantSos: true }, { type: "donner-raison" }, T0);
+  assert.ok(sos.ok && sos.points === 25);
+  const offerte = faireEvoluerVisite({ ...validee(0, false), statut: "retiree" }, { type: "donner-raison", reglement: { type: "offert", reductionPourcent: null, avantages: [] } }, T0);
+  assert.ok(offerte.ok && offerte.points === 0 && offerte.effets.length === 1 && offerte.effets[0].type === "ouvrir-avis");
 });
 
 test("regler puis retirer : la somme des points et des tampons revient à zéro", () => {

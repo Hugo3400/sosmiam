@@ -28,6 +28,8 @@ const MESSAGES: Record<string, string> = {
   "synchro-impossible": "Impossible de synchroniser la boîte mail avant l'envoi (les désinscriptions doivent partir d'abord) : rien n'est parti.",
   "boite-absente": "La boîte bonjour@ n'est pas encore réglée sur le serveur (fichier de la boîte absent) : regarde Newsletter → Envois.",
   "boite-injoignable": "La boîte bonjour@ ne répond pas pour l'instant (serveur mail ou mot de passe d'application) : réessaie dans un moment.",
+  "transition-interdite": "Cette visite n'est plus refusée : quelqu'un lui a peut-être déjà donné raison. Actualise.",
+  "pas-contestee": "Cette visite n'est pas contestée.",
   "chiffrement-indisponible": "La clé des données des comptes n'est pas encore installée sur le serveur : nom et date de naissance sont illisibles pour l'instant.",
   "trop-jeune": "Moins de 15 ans : SOS Miam n'est pas ouvert avant 15 ans.",
   "date-invalide": "Cette date n'existe pas, ou elle est dans le futur.",

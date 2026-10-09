@@ -72,10 +72,13 @@ async function reperer(maintenant: Date) {
 const compteNouveau = (raisons: RaisonCompte[], vu: Vus["comptes"][string] | undefined) =>
   !vu || raisons.some((raison) => (raison.type === "par-jour" ? !vu.jours.includes(raison.jour) : raison.refusees > vu.refus));
 
-/** Les contestations de refus, les non relues d'abord (les relues des 90 derniers jours ensuite) */
+/**
+ * Les contestations de refus, les non relues d'abord (les relues des 90 derniers jours ensuite). Une visite contestée puis
+ * validée est une visite à laquelle l'équipe a donné raison (« raison donnée ») : la seule façon pour un refus de le devenir.
+ */
 async function listerContestations(maintenant: Date, relues: number[]) {
   const lignes = await baseDeDonnees.visite.findMany({
-    where: { contestee: true, statut: { in: ["refusee", "retiree"] }, OR: [{ id: { notIn: relues } }, { decideLe: { gte: new Date(maintenant.getTime() - RELUES_AFFICHEES) } }] },
+    where: { contestee: true, statut: { in: ["refusee", "retiree", "validee"] }, OR: [{ id: { notIn: relues } }, { decideLe: { gte: new Date(maintenant.getTime() - RELUES_AFFICHEES) } }] },
     orderBy: { decideLe: "desc" },
     take: CONTESTATIONS_MAX,
     select: {
@@ -84,7 +87,7 @@ async function listerContestations(maintenant: Date, relues: number[]) {
       lieu: { select: { id: true, nom: true, ville: true } },
     },
   });
-  const contestations = lignes.map((ligne) => ({ ...ligne, relue: relues.includes(ligne.id) }));
+  const contestations = lignes.map((ligne) => ({ ...ligne, raisonDonnee: ligne.statut === "validee", relue: ligne.statut === "validee" || relues.includes(ligne.id) }));
   return [...contestations.filter((c) => !c.relue), ...contestations.filter((c) => c.relue)];
 }
 
@@ -107,7 +110,7 @@ export async function lireSurveillance(maintenant = new Date()) {
     return [{
       compte, raisons, nouveau: compteNouveau(raisons, vus.comptes[id]),
       refusPar: [...refusParLieu.entries()].map(([lieuId, refus]) => ({ lieu: lieuDe.get(lieuId) ?? { id: lieuId, nom: "Lieu supprimé", ville: "" }, refus })).sort((a, b) => b.refus - a.refus),
-      contestations: contestations.filter((c) => c.compte.id === id).length,
+      contestations: contestations.filter((c) => c.compte.id === id && !c.raisonDonnee).length,
     }];
   });
   const lieuxSignales = lieux.flatMap((l) => {

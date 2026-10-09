@@ -6,7 +6,8 @@ const iso = (date: Date | null) => (date ? date.toISOString() : null);
 
 /**
  * Une visite telle que la personne la voit (packages/commun, types/visite.ts) : le code à 4 chiffres seulement tant que
- * l'addition attend, jamais le mot de sa contestation ni qui l'a décidée. Jamais « demo » : c'est une vraie visite.
+ * l'addition attend, le motif seulement d'un refus ou d'un retrait, jamais le mot de sa contestation ni qui l'a décidée. Jamais
+ * « demo » : c'est une vraie visite.
  */
 export function presenterVisite(v: LigneVisite, lieu: LieuResume): Visite {
   return {
@@ -23,7 +24,8 @@ export function presenterVisite(v: LigneVisite, lieu: LieuResume): Visite {
     points: v.points,
     tampon: v.tampon,
     resultatPosition: v.resultatPosition,
-    motifRefus: v.motifRefus,
+    // Une visite revalidée par l'équipe garde son motif dans la base (pour le logiciel), mais le client ne le voit plus
+    motifRefus: v.statut === "refusee" || v.statut === "retiree" ? v.motifRefus : null,
     contestee: v.contestee,
     avis: v.avisOuvertLe && v.avisFermeLe ? { ouvertLe: v.avisOuvertLe.toISOString(), fermeLe: v.avisFermeLe.toISOString(), donne: v.avisDonne } : null,
     annulableJusqua: iso(v.annulableJusqua),
