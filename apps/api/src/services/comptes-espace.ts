@@ -1,12 +1,44 @@
-// Ce qu'un ambassadeur validé (« actif ») fait depuis son espace : candidater pour être l'un des 10 fondateurs, et
-// proposer des lieux (ils arrivent dans la file des demandes du logiciel de gestion, liés à son compte).
+// Ce qu'un ambassadeur validé (« actif ») fait depuis son espace : candidater pour être fondateur de sa ville (ou de son
+// département : « Fondateurs par ville », docs/decisions.md), et proposer des lieux (ils arrivent dans la file des
+// demandes du logiciel de gestion, liés à son compte).
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
-import { FONDATEURS_MAX } from "./gestion/ambassadeurs.ts";
+import type { CommuneVue, ZoneVue } from "./zones-fondateurs.ts";
 
-export type StatutCandidature = "en-attente" | "acceptee" | "refusee";
+/** « souvenir » : fondateur qui a déménagé ; il garde son titre et ses numéros, sa place s'est libérée */
+export type StatutCandidature = "en-attente" | "acceptee" | "refusee" | "souvenir";
 
-/** La candidature « fondateur » telle que l'ambassadeur la voit (dates en ISO 8601) */
-export type CandidatureVue = { statut: StatutCandidature; numero: number | null; creeLe: string; reponduLe: string | null };
+/** La dernière candidature « fondateur » d'un compte, telle que la base la garde (dates en ISO 8601) */
+export type CandidatureBrute = {
+  statut: StatutCandidature;
+  numeroLocal: number | null;
+  numeroNational: number | null;
+  /** Null pour une candidature envoyée avant les fondateurs par ville */
+  communeCode: string | null;
+  zoneCode: string | null;
+  creeLe: string;
+  reponduLe: string | null;
+};
+
+/**
+ * La candidature telle que l'ambassadeur la voit. `numero` = `numeroLocal`, gardé pour le site d'avant les fondateurs par
+ * ville (il lisait « numero ») ; à retirer quand le site n'en aura plus besoin.
+ */
+export type CandidatureVue = {
+  statut: StatutCandidature;
+  numero: number | null;
+  numeroLocal: number | null;
+  numeroNational: number | null;
+  commune: Pick<CommuneVue, "code" | "nom" | "nomDepartement"> | null;
+  zone: ZoneVue | null;
+  creeLe: string;
+  reponduLe: string | null;
+};
+
+/** Où la personne candidate : sa commune (code INSEE) et la zone calculée par l'API */
+export type LieuCandidature = { communeCode: string; zoneCode: string };
+
+/** Changer la commune d'une candidature : faite, aucune candidature, ou plus en attente */
+export type ResultatChangementCommune = "ok" | "aucune" | "deja-traitee";
 
 export type NouvelleCandidature = {
   pepites: string;
@@ -35,43 +67,48 @@ export type NouvelleProposition = {
 };
 
 /** Sa dernière candidature fondateur, ou null s'il n'en a jamais envoyé (ou si la dernière refusée a été effacée). */
-export async function lireCandidature(compteId: number): Promise<CandidatureVue | null> {
+export async function lireCandidature(compteId: number): Promise<CandidatureBrute | null> {
   const candidature = await baseDeDonnees.candidatureFondateur.findFirst({
     where: { compteId },
     orderBy: [{ creeLe: "desc" }, { id: "desc" }],
-    select: { statut: true, numero: true, creeLe: true, reponduLe: true },
+    select: { statut: true, numeroLocal: true, numeroNational: true, communeCode: true, zoneCode: true, creeLe: true, reponduLe: true },
   });
   if (!candidature) return null;
   return {
+    ...candidature,
     statut: candidature.statut as StatutCandidature,
-    numero: candidature.numero,
     creeLe: candidature.creeLe.toISOString(),
     reponduLe: candidature.reponduLe?.toISOString() ?? null,
   };
 }
 
 /**
- * Places de fondateur encore libres : 10 moins les numéros donnés (même règle que accepterCandidature, dans
- * services/gestion/ambassadeurs.ts), jamais moins de 0. Recomptées à chaque demande : une place se libère si un fondateur
- * quitte le programme ou efface son compte.
+ * Enregistre la candidature, dans la zone calculée d'après sa commune ; faux s'il en a déjà une en attente ou acceptée
+ * (après un refus, ou en « souvenir » après un déménagement, il peut recandidater). Les places de la zone sont vérifiées
+ * avant (controleurs/comptes-espace.ts), et de nouveau par l'équipe à l'acceptation.
  */
-export async function compterPlacesFondateur(): Promise<number> {
-  const donnes = await baseDeDonnees.candidatureFondateur.findMany({
-    where: { numero: { gte: 1, lte: FONDATEURS_MAX } },
-    distinct: ["numero"],
-    select: { numero: true },
-  });
-  return Math.max(0, FONDATEURS_MAX - donnes.length);
-}
-
-/** Enregistre la candidature ; faux s'il en a déjà une en attente ou acceptée (après un refus, il peut recandidater). */
-export async function creerCandidature(compteId: number, { envies, ...candidature }: NouvelleCandidature): Promise<boolean> {
+export async function creerCandidature(compteId: number, { envies, ...candidature }: NouvelleCandidature & LieuCandidature): Promise<boolean> {
   return baseDeDonnees.$transaction(async (transaction) => {
     const enCours = await transaction.candidatureFondateur.count({ where: { compteId, statut: { in: ["en-attente", "acceptee"] } } });
     if (enCours > 0) return false;
     await transaction.candidatureFondateur.create({ data: { ...candidature, compteId, envies: envies.join(",") } });
     return true;
   });
+}
+
+/**
+ * Pose ou change la commune (et la zone) de sa dernière candidature, seulement si elle est encore en attente : une
+ * candidature d'avant les fondateurs par ville, ou une commune mal choisie.
+ */
+export async function changerCommuneCandidature(compteId: number, { communeCode, zoneCode }: LieuCandidature): Promise<ResultatChangementCommune> {
+  const derniere = await baseDeDonnees.candidatureFondateur.findFirst({
+    where: { compteId },
+    orderBy: [{ creeLe: "desc" }, { id: "desc" }],
+    select: { id: true },
+  });
+  if (!derniere) return "aucune";
+  const { count } = await baseDeDonnees.candidatureFondateur.updateMany({ where: { id: derniere.id, statut: "en-attente" }, data: { communeCode, zoneCode } });
+  return count === 1 ? "ok" : "deja-traitee";
 }
 
 /** Ses propositions de lieux, les plus récentes d'abord. */

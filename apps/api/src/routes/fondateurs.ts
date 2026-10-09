@@ -15,6 +15,7 @@ export const LIMITE_ZONES = { fenetre: DIX_MINUTES, maximum: 300 };
 /** Les communes ne changent qu'une fois par an : une heure en cache. Les places, elles, bougent à chaque acceptation. */
 const CACHE_COMMUNES = "public, max-age=3600";
 const CACHE_ZONES = "public, max-age=60";
+
 /**
  * Adresses publiques (sans session) : recherche de commune et places de fondateurs, pour la page du programme et le
  * formulaire de candidature. JSON ; réponses en cache public court ; 429 « trop-de-demandes » (avec Retry-After) au-delà
