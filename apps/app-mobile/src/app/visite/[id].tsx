@@ -129,7 +129,7 @@ export default function EcranVisite() {
           <EtatVisiteTerminee resultat={resultat} lieu={lieu} refTitre={refTitre} onContester={() => setContestation(true)} />
         )}
         {/* Miam Safe : après une visite validée, « Tu t'es senti·e bien ici ? » */}
-        {visite.statut === "validee" ? <QuestionSentiBien nomLieu={visite.lieu.nom} /> : null}
+        {visite.statut === "validee" ? <QuestionSentiBien lieuId={visite.lieu.id} nomLieu={visite.lieu.nom} /> : null}
       </ScrollView>
     );
   }

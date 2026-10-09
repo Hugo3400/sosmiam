@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
-import { DELAI_RELANCE_ALERTE_SECONDES, ENDROITS_ALERTE, LONGUEUR_MAX_DETAIL_ALERTE, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { ENDROITS_ALERTE, LONGUEUR_MAX_DETAIL_ALERTE, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
+import { utiliserServices } from "~/hooks/utiliser-services";
 
 type Props = {
+  lieuId: number;
   /** Après 2 minutes sans réponse : proposer de prévenir un pote */
   onPrevenirPote: () => void;
 };
 
-/** Démo : l'équipe du Capitaine Bouiboui répond « On arrive » au bout de quelques secondes */
-const REPONSE_DEMO_MS = 4000;
+/** L'état de l'alerte est relu toutes les 3 secondes, jusqu'à « L'équipe arrive » ou « sans réponse » */
+const RELECTURE_MS = 3000;
 
 type Etat = "a-envoyer" | "envoyee" | "en-route" | "sans-reponse";
 
@@ -23,20 +26,39 @@ type Etat = "a-envoyer" | "envoyee" | "en-route" | "sans-reponse";
  * veux, et l'équipe reçoit ton prénom en notification sur ses téléphones pro (jamais ton nom ni ta photo). Rien ne sonne de
  * ton côté. Sans « On arrive » au bout de 2 minutes, on te propose les secours ou un pote (et l'alerte remonte à notre équipe).
  */
-export function AlerteComptoirMiamSafe({ onPrevenirPote }: Props) {
+export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
+  const { miamSafe } = utiliserServices();
   const [endroit, setEndroit] = useState<EndroitAlerte | null>(null);
   const [detail, setDetail] = useState("");
   const [etat, setEtat] = useState<Etat>("a-envoyer");
+  const [alerteId, setAlerteId] = useState<number | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
 
+  // Envoyée : on relit son état (le serveur dit « en-route » au « On arrive » de l'équipe, « sans-reponse » après 2 minutes)
   useEffect(() => {
-    if (etat !== "envoyee") return;
-    const reponse = setTimeout(() => setEtat("en-route"), REPONSE_DEMO_MS);
-    const relance = setTimeout(() => setEtat("sans-reponse"), DELAI_RELANCE_ALERTE_SECONDES * 1000);
-    return () => {
-      clearTimeout(reponse);
-      clearTimeout(relance);
-    };
-  }, [etat]);
+    if (etat !== "envoyee" || alerteId === null) return;
+    const minuterie = setInterval(async () => {
+      const r = await miamSafe.suivreAlerte(alerteId).catch(() => null);
+      if (r?.ok && r.alerte.statut !== "envoyee") setEtat(r.alerte.statut);
+    }, RELECTURE_MS);
+    return () => clearInterval(minuterie);
+  }, [etat, alerteId, miamSafe]);
+
+  const envoyer = async () => {
+    if (endroit === null || envoi) return;
+    setEnvoi(true);
+    setErreur(null);
+    const r = await miamSafe.envoyerAlerte({ lieuId, endroit, detail }).catch(() => null);
+    setEnvoi(false);
+    if (r?.ok) {
+      setAlerteId(r.id);
+      setEtat("envoyee");
+    } else {
+      const message = MESSAGES_SERVICE[r ? r.erreur : "hors-ligne"];
+      setErreur(`${message.titre}. ${message.texte}`);
+    }
+  };
 
   if (etat === "sans-reponse") {
     return (
@@ -82,10 +104,16 @@ export function AlerteComptoirMiamSafe({ onPrevenirPote }: Props) {
       <Bouton
         libelle="Envoyer en silence"
         variante="encre"
-        desactive={endroit === null}
+        desactive={endroit === null || envoi}
         indice={endroit === null ? "Dis d'abord où tu es" : "L'équipe du lieu reçoit l'alerte sur ses téléphones"}
-        onPress={() => setEtat("envoyee")}
+        onPress={() => void envoyer()}
       />
+      {erreur ? (
+        <>
+          <Text accessibilityRole="alert" className="font-texte-semi text-base leading-6 text-rouge-texte">{erreur}</Text>
+          <NumerosUrgence />
+        </>
+      ) : null}
     </View>
   );
 }

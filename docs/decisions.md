@@ -30,6 +30,13 @@
 - **Base de données ultra sécurisée** : PostgreSQL sur le VPS, jamais exposée à Internet, rôle limité au strict nécessaire, données sensibles (date de naissance, nom, régimes) chiffrées par l'API (AES-256-GCM, clé hors de la base), sauvegardes chiffrées, journaux sans données personnelles, suppression de compte réelle.
 - **Régime particulier** (végétarien, vegan, halal, casher, sans gluten, allergies…) : ces données peuvent révéler une religion ou un état de santé. Elles restent sur le téléphone tant qu'il n'y a pas d'accord explicite (RGPD, article 9) pour les envoyer au serveur.
 
+## L'app parle au serveur (décidé le 9 octobre 2026, rien de construit)
+- **Adresse : `api.sosmiam.fr`**, un sous-domaine à part, derrière Cloudflare comme le site. On n'y ouvre que ce dont l'app a besoin (comptes, Miam Safe, puis visites, potes…), jamais `/api-gestion` ni `/bot`.
+- **Connexion dès la sortie : e-mail, Apple et Google.** Le compte reste unique (le même que l'espace ambassadeur et l'espace pro). Le serveur vérifie lui-même les jetons d'Apple et de Google. Rappel d'Apple : proposer Google oblige à proposer « Se connecter avec Apple ».
+- **Session : 1 an, prolongée à chaque usage.** Le jeton est gardé dans le coffre-fort chiffré du téléphone (Trousseau ou Keystore), jamais dans les fichiers de l'app. « Me déconnecter partout » le coupe aussitôt. Le site garde ses durées (30 jours sans visite, 90 jours au plus).
+- Proposition de la session de l'app, à confirmer en le construisant : adresse figée à la compilation (`EXPO_PUBLIC_API_URL`), jeton envoyé en `Authorization: Bearer`.
+- **Miam Safe, « Prévenir un pote »** : la position passera par le serveur, en direct pendant 1 h, visible dans l'app du pote. Ça attend les vrais potes côté serveur (avec la messagerie). Pas de partage par SMS en attendant.
+
 ## Onglet Explorer de l'app (décidé le 8 octobre 2026)
 - **Carte + liste glissante** (comme Google Maps) : la carte des lieux en haut, une liste qu'on remonte du bas. Sur l'aperçu web, pas de carte : la liste seule.
 - **Recherche et filtres** : par nom, plat ou quartier ; type de lieu, ville, budget (€ à €€€), « ouvert maintenant ».
@@ -63,6 +70,7 @@
 - **Délai promis : un signalement Miam Safe est lu sous 48 h**, en priorité dans le logiciel de gestion.
 - **Serveur (9 octobre 2026, proposé par Claude, à valider par Hugo)** : une alerte silencieuse est gardée 30 jours, puis effacée ; un signalement Miam Safe, 1 an après la décision (comme les autres signalements), avec le compte de la personne pour lui répondre, jamais transmis au lieu ; une réponse « Tu t'es senti·e bien ici ? » tant que le compte existe. Limites : 3 alertes par compte toutes les 10 minutes, 5 signalements par 24 h. Dans le logiciel, l'équipe décide « rien à faire », « lieu contacté », « retirer la charte » ou « retirer la charte et masquer le lieu » ; une charte retirée ne se re-signe que si l'équipe la rend. Décrit dans la politique de confidentialité (au futur).
 - **Fait le 9 octobre 2026** : signature de la charte dans l'espace pro du site (pro.sosmiam.fr, /lieu/:id/miam-safe, gérant seulement, case « mon équipe s'engage ») ; effacement automatique la nuit des signalements traités depuis plus d'un an et des alertes de plus de 30 jours. **Bloqué** : le partage de position avec un pote (les potes n'existent pas encore sur le serveur) et le branchement de l'app à l'API (l'app n'appelle pas encore l'API, qui n'est pas ouverte à Internet).
+- **App prête pour l'API** : les écrans Miam Safe passent par un service (`ServiceMiamSafe`, packages/commun/src/client-api/contrat-miam-safe.ts), joué en démo sur le téléphone ; il suffira d'en écrire la version API quand l'app aura son client HTTP (adresse et session pas encore décidées).
 - Points ouverts : texte final de la charte ; sur iPhone, une notification qui sonne même en mode silencieux (« alerte critique ») demande une autorisation spéciale d'Apple. Sans elle, on utilise une notification « urgente » (time-sensitive), qui passe les modes Concentration mais pas le silencieux.
 
 ## Publications et compte (CGU du 8 octobre 2026)

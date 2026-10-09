@@ -160,7 +160,7 @@ export function Application() {
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
           {ecran === "moderation" && <EcranModeration />}
-          {ecran === "miam-safe" && <EcranMiamSafe />}
+          {ecran === "miam-safe" && <EcranMiamSafe onDecision={actualiserAlertes} />}
           {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} />}
           {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
           {ecran === "notifications" && <EcranNotifications />}

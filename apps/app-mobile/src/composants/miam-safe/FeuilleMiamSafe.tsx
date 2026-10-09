@@ -12,6 +12,7 @@ import { RaconterMiamSafe } from "~/composants/miam-safe/RaconterMiamSafe";
 
 type Props = {
   visible: boolean;
+  lieuId: number;
   nomLieu: string;
   /** Le lieu a signé la charte Miam Safe */
   engage: boolean;
@@ -39,7 +40,7 @@ const TITRES: Record<Vue, string> = {
  * au comptoir (phrase ou écran), l'alerte silencieuse (lieux Miam Safe seulement) et raconter après coup.
  * Ton doux et sérieux : pas de blague ici.
  */
-export function FeuilleMiamSafe({ visible, nomLieu, engage, avecCompte, onFermer, onMontrerEcran, onCreerCompte }: Props) {
+export function FeuilleMiamSafe({ visible, lieuId, nomLieu, engage, avecCompte, onFermer, onMontrerEcran, onCreerCompte }: Props) {
   const [vue, setVue] = useState<Vue>("choix");
 
   // Chaque ouverture repart du début
@@ -79,8 +80,8 @@ export function FeuilleMiamSafe({ visible, nomLieu, engage, avecCompte, onFermer
     >
       {vue === "choix" ? <ChoixAideMiamSafe engage={engage} onChoisir={setVue} /> : null}
       {vue === "pote" ? <PrevenirPoteMiamSafe nomLieu={nomLieu} /> : null}
-      {vue === "alerte" ? <AlerteComptoirMiamSafe onPrevenirPote={() => setVue("pote")} /> : null}
-      {vue === "raconter" ? <RaconterMiamSafe nomLieu={nomLieu} /> : null}
+      {vue === "alerte" ? <AlerteComptoirMiamSafe lieuId={lieuId} onPrevenirPote={() => setVue("pote")} /> : null}
+      {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" ? (
         <View className="gap-4">
           <Text className="font-texte text-base leading-6 text-gris">Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres.</Text>

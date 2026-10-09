@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { DELAI_LECTURE_SIGNALEMENT_HEURES, RAISONS_SIGNALEMENT_MIAM_SAFE, type RaisonSignalementMiamSafe } from "@sos-miam/commun/regles/miam-safe";
 import { LONGUEUR_MAX_EXPLICATION_SIGNALEMENT, LONGUEUR_MIN_EXPLICATION_SIGNALEMENT } from "@sos-miam/commun/regles/signalement";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -8,14 +9,18 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { LIBELLES_RAISON_MIAM_SAFE } from "~/contenus/miam-safe";
+import { utiliserServices } from "~/hooks/utiliser-services";
 
-type Props = { nomLieu: string };
+type Props = { lieuId: number; nomLieu: string };
 
 /**
  * Raconter après coup ce qui s'est passé dans un lieu : une raison, tes mots, et c'est lu par notre équipe sous 48 h.
- * Jamais affiché sur la fiche du lieu. Démo : rien n'est encore envoyé.
+ * Jamais affiché sur la fiche du lieu. Envoyé par le service Miam Safe (démo, ou API plus tard).
  */
-export function RaconterMiamSafe({ nomLieu }: Props) {
+export function RaconterMiamSafe({ lieuId, nomLieu }: Props) {
+  const { miamSafe } = utiliserServices();
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
   const [raison, setRaison] = useState<RaisonSignalementMiamSafe | null>(null);
   const [texte, setTexte] = useState("");
   const [envoye, setEnvoye] = useState(false);
@@ -62,10 +67,20 @@ export function RaconterMiamSafe({ nomLieu }: Props) {
       <Bouton
         libelle="Envoyer à l'équipe"
         variante="encre"
-        desactive={raison === null || texteRequis}
+        desactive={raison === null || texteRequis || envoi}
         indice={raison === null ? "Choisis d'abord ce qui s'est passé" : texteRequis ? "Raconte en quelques mots ce qui s'est passé" : undefined}
-        onPress={() => setEnvoye(true)}
+        onPress={async () => {
+          if (raison === null || envoi) return;
+          setEnvoi(true);
+          setErreur(null);
+          const r = await miamSafe.signaler({ lieuId, raison, explication: texte.trim() }).catch(() => null);
+          setEnvoi(false);
+          if (r?.ok) return setEnvoye(true);
+          const message = MESSAGES_SERVICE[r ? r.erreur : "hors-ligne"];
+          setErreur(`${message.titre}. ${message.texte}`);
+        }}
       />
+      {erreur ? <Text accessibilityRole="alert" className="font-texte-semi text-base leading-6 text-rouge-texte">{erreur}</Text> : null}
     </View>
   );
 }

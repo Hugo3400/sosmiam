@@ -24,9 +24,14 @@ const VIDES: Record<VueMiamSafe, { emoji: string; titre: string; texte: string }
  * Miam Safe : les signalements à lire sous 48 heures (les plus anciens d'abord, en rouge après 48 h), les alertes silencieuses
  * restées sans réponse au comptoir, et les lieux qui ont signé la charte. Rien de tout ça n'est public.
  */
-export function EcranMiamSafe() {
+export function EcranMiamSafe({ onDecision }: { onDecision: () => void }) {
   const [vue, setVue] = useState<VueMiamSafe>("a-traiter");
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerMiamSafe(vue), [vue]);
+  // Après une action : la liste se relit, et la pastille du menu aussi, tout de suite
+  const apresAction = () => {
+    recharger();
+    onDecision();
+  };
   const compteurs = donnees?.compteurs;
   const nombre = donnees ? (donnees.signalements ?? donnees.alertes ?? donnees.chartes ?? []).length : 0;
   const vide = VIDES[vue];
@@ -60,11 +65,11 @@ export function EcranMiamSafe() {
       )}
       {donnees?.vue === vue && donnees.signalements && (
         <div className="grid gap-4">
-          {donnees.signalements.map((s) => <CarteSignalementMiamSafe key={s.id} signalement={s} onDecide={recharger} />)}
+          {donnees.signalements.map((s) => <CarteSignalementMiamSafe key={s.id} signalement={s} onDecide={apresAction} />)}
         </div>
       )}
-      {donnees?.vue === vue && donnees.alertes && <ListeAlertesSansReponse alertes={donnees.alertes} onChange={recharger} />}
-      {donnees?.vue === vue && donnees.chartes && <ListeChartes chartes={donnees.chartes} onChange={recharger} />}
+      {donnees?.vue === vue && donnees.alertes && <ListeAlertesSansReponse alertes={donnees.alertes} onChange={apresAction} />}
+      {donnees?.vue === vue && donnees.chartes && <ListeChartes chartes={donnees.chartes} onChange={apresAction} />}
     </>
   );
 }
