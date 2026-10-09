@@ -9,6 +9,7 @@ import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
 import { EcranVilles } from "~/ecrans/villes/EcranVilles.tsx";
+import { EcranBoite } from "~/ecrans/boite/EcranBoite.tsx";
 import { EcranComptes } from "~/ecrans/comptes/EcranComptes.tsx";
 import { EcranNotifications } from "~/ecrans/notifications/EcranNotifications.tsx";
 import { EcranAutorisation } from "~/ecrans/connexion/EcranAutorisation.tsx";
@@ -152,6 +153,7 @@ export function Application() {
           {ecran === "newsletter" && <EcranNewsletter />}
           {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
           {ecran === "villes" && <EcranVilles allerA={allerA} />}
+          {ecran === "boite" && <EcranBoite allerA={allerA} onLu={actualiserAlertes} />}
           {ecran === "demandes" && <EcranDemandes />}
           {ecran === "annonces" && <EcranAnnonces />}
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}

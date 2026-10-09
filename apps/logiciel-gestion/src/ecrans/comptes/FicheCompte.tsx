@@ -5,6 +5,7 @@ import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
+import { MailsRecusDe } from "~/ecrans/boite/MailsRecusDe.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
@@ -85,6 +86,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
             <div className="flex flex-wrap gap-2">
               <BoutonEcrireMail destinataire={{ compteId: compte.id, adresse: compte.email, prenom: compte.prenom }} categorie="autre" />
               <BoutonReponseType categorie="autre" adresse={compte.email} compteId={compte.id} prenom={compte.prenom} />
+              <MailsRecusDe adresse={compte.email} prenom={compte.prenom} />
               <Bouton
                 petit
                 icone={Download}

@@ -102,6 +102,8 @@ export type DemandeInscription = {
   cgu: true;
   /** Champ piège du formulaire : rempli seulement par les robots */
   piege?: string;
+  /** « pro » : inscription depuis pro.sosmiam.fr (l'API ne le lit pas encore : elle crée aussi la demande d'ambassadeur) */
+  espace?: "pro";
 };
 
 /**

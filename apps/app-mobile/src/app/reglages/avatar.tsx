@@ -161,7 +161,7 @@ export default function ReglagesAvatar() {
           return (
             <Pressable
               key={emoji}
-              // Même règle que Pastille et ChoixVilleExplorer : sur iPhone, la radio et « checked » sont lus en anglais
+              // Même règle que Pastille et LigneChoixZone : sur iPhone, la radio et « checked » sont lus en anglais
               // (« radio button ») : bouton « sélectionné », avec sa place dans la grille ; radio cochée ou non ailleurs
               accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
               accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}

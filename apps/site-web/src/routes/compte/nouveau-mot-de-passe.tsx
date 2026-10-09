@@ -24,7 +24,7 @@ const messages = {
 
 export function meta(_: Route.MetaArgs) {
   return [
-    ...creerMeta({ titre: "Nouveau mot de passe", description: "Choisis un nouveau mot de passe pour ton espace ambassadeur SOS Miam." }),
+    ...creerMeta({ titre: "Nouveau mot de passe", description: "Choisis un nouveau mot de passe pour ton compte SOS Miam." }),
     { name: "robots", content: "noindex" },
   ];
 }

@@ -3,12 +3,30 @@ import { Link } from "react-router";
 import { CaseACocher } from "~/composants/compte/CaseACocher";
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte } from "~/composants/compte/FormulaireCompte";
+import type { EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
-/** Formulaire « Créer mon compte » de l'espace ambassadeur (action de routes/compte/inscription.tsx). */
-export function FormulaireInscription() {
+/** Ce qui change sur pro.sosmiam.fr : l'aide du prénom, les conditions, le petit mot sous le formulaire. */
+const textes: Record<EspaceCompte, { aidePrenom: string; cgu: string; apres: string; confidentialite: string }> = {
+  ambassadeur: {
+    aidePrenom: "Il pourra s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé.",
+    cgu: "https://sosmiam.fr/cgu#ambassadeurs",
+    apres: "L'équipe lit chaque inscription avant d'ouvrir ton espace. Ce compte sera aussi celui de l'app SOS Miam quand elle sortira. Ce qu'on fait de tes données : ",
+    confidentialite: "https://sosmiam.fr/confidentialite#compte-ambassadeur",
+  },
+  pro: {
+    aidePrenom: "Ton équipe le verra quand tu l'inviteras.",
+    cgu: "https://sosmiam.fr/cgu",
+    apres: "Un seul compte SOS Miam : le même pour l'app quand elle sortira. Ce qu'on fait de tes données : ",
+    confidentialite: "https://sosmiam.fr/confidentialite",
+  },
+};
+
+/** Formulaire « Créer mon compte » de l'espace ambassadeur ou de l'espace pro (action de routes/compte/inscription.tsx). */
+export function FormulaireInscription({ espace = "ambassadeur" }: { espace?: EspaceCompte }) {
+  const texte = textes[espace];
   return (
     <FormulaireCompte
       nom="inscription"
@@ -23,7 +41,7 @@ export function FormulaireInscription() {
           libelle="Ton prénom (ou un surnom)"
           autoComplete="given-name"
           maximum={40}
-          aide={lierPonctuation("Il pourra s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé.")}
+          aide={lierPonctuation(texte.aidePrenom)}
           className="sm:col-span-2"
         />
         <ChampTexte nom="email" libelle="Ton e-mail" type="email" autoComplete="email" inputMode="email" maximum={254} exemple="ton@email.fr" className="sm:col-span-2" />
@@ -50,14 +68,14 @@ export function FormulaireInscription() {
         <CaseACocher nom="cgu">
           {/* L'espace reste dans la chaîne : seule, Chrome la perdrait pour les lecteurs d'écran (« lesconditions ») */}
           {"J'accepte les "}
-          <a href="https://sosmiam.fr/cgu#ambassadeurs" target="_blank" rel="noopener" className={classeLien}>
+          <a href={texte.cgu} target="_blank" rel="noopener" className={classeLien}>
             conditions d'utilisation<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
           </a>
         </CaseACocher>
       </div>
       <p className="mt-5 text-sm text-gris">
-        {lierPonctuation("L'équipe lit chaque inscription avant d'ouvrir ton espace. Ce compte sera aussi celui de l'app SOS Miam quand elle sortira. Ce qu'on fait de tes données : ")}
-        <a href="https://sosmiam.fr/confidentialite#compte-ambassadeur" target="_blank" rel="noopener" className={classeLien}>
+        {lierPonctuation(texte.apres)}
+        <a href={texte.confidentialite} target="_blank" rel="noopener" className={classeLien}>
           confidentialité<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
         </a>.
       </p>

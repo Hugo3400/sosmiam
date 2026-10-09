@@ -26,6 +26,8 @@ const MESSAGES: Record<string, string> = {
   "envoi-refuse": "Le serveur mail a refusé l'envoi.",
   "envoi-en-cours": "Un envoi groupé est déjà en train de partir : attends qu'il soit fini, ou arrête-le dans « Envois ».",
   "synchro-impossible": "Impossible de synchroniser la boîte mail avant l'envoi (les désinscriptions doivent partir d'abord) : rien n'est parti.",
+  "boite-absente": "La boîte bonjour@ n'est pas encore réglée sur le serveur (fichier de la boîte absent) : regarde Newsletter → Envois.",
+  "boite-injoignable": "La boîte bonjour@ ne répond pas pour l'instant (serveur mail ou mot de passe d'application) : réessaie dans un moment.",
   "aucun-destinataire": "Personne à qui envoyer : aucun destinataire coché ne fait partie de ce public.",
 };
 

@@ -22,7 +22,7 @@ const REPONSE_ENVOI = "Si un compte existe avec cette adresse, tu vas recevoir u
 
 export function meta(_: Route.MetaArgs) {
   return [
-    ...creerMeta({ titre: "Mot de passe oublié", description: "Mot de passe oublié dans l'espace ambassadeur SOS Miam : reçois un lien pour en choisir un nouveau." }),
+    ...creerMeta({ titre: "Mot de passe oublié", description: "Mot de passe oublié sur ton compte SOS Miam : reçois un lien pour en choisir un nouveau." }),
     { name: "robots", content: "noindex" },
   ];
 }

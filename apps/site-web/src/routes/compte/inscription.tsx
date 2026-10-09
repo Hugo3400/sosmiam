@@ -6,6 +6,7 @@ import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { RefusAge } from "~/composants/compte/RefusAge";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
@@ -28,17 +29,32 @@ const messages = {
   emailPris: "Un compte existe déjà avec cette adresse. Connecte-toi, ou passe par « Mot de passe oublié ».",
 };
 
-export function meta(_: Route.MetaArgs) {
-  return [
-    ...creerMeta({ titre: "Devenir ambassadeur", description: "Crée ton compte ambassadeur SOS Miam, dès 18 ans : l'équipe valide chaque inscription." }),
-    { name: "robots", content: "noindex" },
-  ];
+/** Ce qui change d'un espace à l'autre : la page ouverte après l'inscription, et les mots de la page. */
+const textes: Record<EspaceCompte, { accueil: string; titre: string; description: string; chapo: string }> = {
+  ambassadeur: {
+    accueil: "/espace",
+    titre: "Deviens ambassadeur",
+    description: "Crée ton compte ambassadeur SOS Miam, dès 18 ans : l'équipe valide chaque inscription.",
+    chapo: "C'est gratuit, dès 18 ans. L'équipe lit chaque inscription : une fois la tienne validée, ton espace s'ouvre.",
+  },
+  pro: {
+    accueil: "/tableau",
+    titre: "Crée ton compte pro",
+    description: "Crée ton compte SOS Miam pour gérer la fiche de ton lieu : gratuit, sans abonnement ni commission.",
+    chapo: "C'est gratuit, sans abonnement ni commission. Ensuite, tu cherches ton lieu et l'équipe vérifie qu'il est bien à toi.",
+  },
+};
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  const texte = textes[loaderData?.espace ?? "ambassadeur"];
+  return [...creerMeta({ titre: texte.titre, description: texte.description }), { name: "robots", content: "noindex" }];
 }
 
 /** Déjà connecté : direction l'espace. */
 export async function loader({ request }: Route.LoaderArgs) {
-  if (await lireCompteConnecte(request)) throw redirect("/espace");
-  return null;
+  const espace = lireEspaceHote(new URL(request.url).host);
+  if (await lireCompteConnecte(request)) throw redirect(textes[espace].accueil);
+  return { espace };
 }
 
 /**
@@ -76,6 +92,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   for (const nom of Object.keys(erreurs)) erreurs[nom] = lierPonctuation(erreurs[nom]);
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "inscription", erreurs, valeurs };
 
+  const espace = lireEspaceHote(new URL(request.url).host);
   const reponse = await inscrireAmbassadeur(
     {
       email: valeurs.email,
@@ -86,6 +103,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
       dateNaissance: valeurs.dateNaissance,
       cgu: true,
       piege: lire("piege"),
+      // Inscription depuis l'espace pro : à lire par l'API (pas de demande d'ambassadeur) quand elle saura le faire
+      ...(espace === "pro" ? { espace } : {}),
     },
     lireIpVisiteur(request),
   );
@@ -93,7 +112,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     // Sans session : le champ piège était rempli (un robot), rien n'a été créé
     if (!reponse.session) throw redirect("/connexion");
     // ?inscription=1 : l'espace dit que le lien qui confirme l'e-mail vient de partir (7 jours)
-    throw redirect("/espace?inscription=1", { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
+    throw redirect(`${textes[espace].accueil}?inscription=1`, { headers: { "Set-Cookie": await poserCookieSession(reponse.session) } });
   }
   // Moins de 18 ans : l'API n'a rien gardé ; la page ne renvoie rien de ce qui a été tapé
   if (reponse.erreur === "age-minimum") return { ok: false, formulaire: "inscription", refusAge: true };
@@ -114,17 +133,15 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   return { ok: false, formulaire: "inscription", message: lierPonctuation(message), valeurs };
 }
 
-/** Page /inscription : créer son compte ambassadeur (dès 18 ans, validé ensuite par l'équipe). */
-export default function PageInscription({ actionData }: Route.ComponentProps) {
+/** Page /inscription : créer son compte (ambassadeur, dès 18 ans, validé ensuite par l'équipe ; ou pro, sur pro.sosmiam.fr). */
+export default function PageInscription({ loaderData, actionData }: Route.ComponentProps) {
+  const { espace } = loaderData;
   return (
     <Section fond="creme" etroit>
-      <TitreSection
-        principal
-        chapo={lierPonctuation("C'est gratuit, dès 18 ans. L'équipe lit chaque inscription : une fois la tienne validée, ton espace s'ouvre.")}
-      >
-        Deviens ambassadeur
+      <TitreSection principal chapo={lierPonctuation(textes[espace].chapo)}>
+        {textes[espace].titre}
       </TitreSection>
-      {actionData?.refusAge ? <RefusAge /> : <FormulaireInscription />}
+      {actionData?.refusAge ? <RefusAge /> : <FormulaireInscription espace={espace} />}
     </Section>
   );
 }
