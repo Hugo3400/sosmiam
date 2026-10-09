@@ -5,6 +5,7 @@ import { AccessibilityInfo, Pressable, Text, View, type AccessibilityActionEvent
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming, type SharedValue } from "react-native-reanimated";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { ActionPost } from "~/composants/fil/ActionPost";
 import { AvatarSuivre } from "~/composants/fil/AvatarSuivre";
 import { HAUTEUR_ZONE_PROGRESSION } from "~/composants/fil/BarreProgressionVideo";
@@ -13,6 +14,7 @@ import { BoutonSuivre } from "~/composants/fil/BoutonSuivre";
 import { CoeurEnvol } from "~/composants/fil/CoeurEnvol";
 import { LegendeRepliable } from "~/composants/fil/LegendeRepliable";
 import { MediaPublication } from "~/composants/fil/MediaPublication";
+import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
@@ -98,7 +100,9 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   const refReduire = useRef<View>(null);
   const reduitAvant = useRef(reduit);
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (ni pastille, ni point qui bat, ni mention pour VoiceOver)
-  const sos = estSosEnCours(lieu) ? lieu.sos : undefined;
+  // Un lieu non vérifié (sans compte SOS Miam) ne lance pas de SOS, et le fil le dit
+  const verifie = estLieuVerifie(lieu);
+  const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
   const enSos = sos !== undefined;
 
   // En quittant l'écran, la vidéo reprendra du début de la boucle, pas en pause ni en accéléré (un appui simple en attente est oublié)
@@ -197,6 +201,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     auteur.type === "createur" && auteur.partenariat ? `Collaboration commerciale : ${auteur.partenariat}` : null,
     sos ? `SOS : ${sos.places} place${sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(sos.jusqua)}` : null,
     lieu.alerte,
+    verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
     raison,
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
@@ -321,6 +326,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                 {lieu.alerte ? (
                   <Text className="overflow-hidden rounded-full bg-tomate px-3 py-1 font-texte-gras text-[13px] text-white">🔥 {lieu.alerte}</Text>
                 ) : null}
+                {verifie ? null : <BadgeVerification verifie={false} />}
               </View>
               {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
@@ -399,7 +405,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <ActionPost
             icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
             libelle=""
-            description="Plus d'options : rescousse, adresse, envoyer à un pote, pas intéressé, signaler"
+            description={`Plus d'options : ${verifie ? "rescousse" : "inviter ce lieu"}, adresse, envoyer à un pote, pas intéressé, signaler`}
             onPress={() => gestes.menu(publication)}
             style="transparent"
           />

@@ -1,4 +1,4 @@
-import { simplifierTexteFiltre } from "./simplifier-texte-filtre";
+import { simplifierTexteFiltre } from "./simplifier-texte-filtre.ts";
 
 // Ne trouve jamais rien : pour une liste vide (un « (?:) » vide trouverait chaque espace)
 const MOTIF_VIDE = /(?!)/;

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
@@ -32,6 +33,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
+import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
@@ -74,6 +76,7 @@ export default function PourToi() {
   const { profil, invite } = utiliserProfil();
   // Stable : les gestes mémorisés l'appellent sans redessiner le fil
   const exiger = utiliserCompteRequis();
+  const inviter = utiliserInviterLieu();
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
   const depart = utiliserPointDeDepart();
   const activite = utiliserActivite();

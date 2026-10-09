@@ -1,0 +1,40 @@
+SOS Miam : kit de marque (logos, mascotte, pictos, bannières)
+
+Chaque visuel existe en deux formats :
+- SVG : vectoriel, texte vectorisé, s'agrandit sans perte. Idéal pour l'impression et pour un graphiste.
+- PNG : prêt à poster, fond transparent quand c'est possible.
+
+01_Logos
+- SOSMiam_logo_couleur_fond_clair : la version principale, sur fond blanc ou crème.
+- SOSMiam_logo_couleur_fond_jaune : sur fond jaune, avec la vague blanche sous « Miam ».
+- SOSMiam_logo_blanc_fond_sombre : sur une photo ou un fond foncé.
+- SOSMiam_logo_noir : documents en noir et blanc.
+- SOSMiam_logo_une_couleur_tomate : gravure, tampon, tote bag.
+- SOSMiam_logo_empile_couleur : formats carrés et autocollants.
+- Icones : icône d'app 1024 px (stores), icône arrondie (présentations), favicons 512, 180 et 32 px (site),
+  avatar rond (photo de profil Instagram, TikTok et Facebook).
+- Emblemes : bouée gourmande, écusson « SOS MIAM », autocollant détouré.
+
+02_Mascotte
+Capitaine Bouiboui : la bouée de SOS Miam, coiffée de sa casquette de capitaine.
+Au quotidien, on peut dire « le Capitaine » quand il donne l'alerte et « Bouiboui » pour les moments plus tendres.
+Six expressions : Miam !, Clin d'œil, Place ce soir !, Fait dodo, Coup de cœur, C'est la fête.
+
+03_Pictos_et_epingles
+Restos, pâtisseries, bars et sorties. Épingle jaune pour un lieu, épingle tomate avec halo pour un lieu en SOS.
+
+04_Bannieres_reseaux
+- Facebook : couverture de page 1640 × 624 (le texte reste dans la zone visible sur téléphone)
+  et couverture d'événement 1920 × 1005.
+- Bannieres_3x1 : 1500 × 500, grand public et ambassadeurs (en-tête X, site, newsletter).
+- Instagram_stories_a_la_une : 5 couvertures (Pépites, SOS, Nouveaux, Ambassadeurs, FAQ).
+
+05_Couleurs
+Palette, codes couleur et typographies.
+
+Vocabulaire
+- Les Miamis : la communauté SOS Miam, au quotidien (« Salut les Miamis ! »).
+- La Brigade : les Miamis quand un lieu lance un SOS ou pour fêter les rescousses (« Merci la Brigade ! »).
+- Capitaine Bouiboui : la mascotte, chef de la Brigade.
+
+Compte Instagram : @official.sosmiam

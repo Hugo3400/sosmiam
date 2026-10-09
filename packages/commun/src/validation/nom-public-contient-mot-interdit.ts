@@ -1,9 +1,9 @@
-import { EXPRESSIONS_INTERDITES, EXPRESSIONS_INTERDITES_NOM_PUBLIC } from "../regles/mots-interdits";
-import { construireMotifExpressions } from "./construire-motif-expressions";
-import { contientMorceauInterdit } from "./contient-morceau-interdit";
-import { contientMotInterdit } from "./contient-mot-interdit";
-import { preparerFormesFiltre } from "./preparer-formes-filtre";
-import { simplifierTexteFiltre } from "./simplifier-texte-filtre";
+import { EXPRESSIONS_INTERDITES, EXPRESSIONS_INTERDITES_NOM_PUBLIC } from "../regles/mots-interdits.ts";
+import { construireMotifExpressions } from "./construire-motif-expressions.ts";
+import { contientMorceauInterdit } from "./contient-morceau-interdit.ts";
+import { contientMotInterdit } from "./contient-mot-interdit.ts";
+import { preparerFormesFiltre } from "./preparer-formes-filtre.ts";
+import { simplifierTexteFiltre } from "./simplifier-texte-filtre.ts";
 
 const MOTIF_INTERDIT_NOM_PUBLIC = construireMotifExpressions(EXPRESSIONS_INTERDITES_NOM_PUBLIC);
 // Chaque expression interdite écrite d'un bloc (« pu.te » et « p_d42 » se lisent « pute » et « pd »)

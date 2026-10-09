@@ -24,3 +24,6 @@ apps/api/uploads/
 # Fichiers de travail : numéros de processus, cache de Python
 *.pid
 __pycache__/
+
+# Archives des vidéos du kit (trop lourdes pour le dépôt, gardées sur le serveur)
+kits/*.zip

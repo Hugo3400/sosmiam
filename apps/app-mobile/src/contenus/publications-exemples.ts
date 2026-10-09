@@ -109,7 +109,8 @@ export const publicationsExemples: Publication[] = [
   {
     id: "lieu-10",
     lieuId: 10,
-    auteur: { type: "lieu" },
+    // Lieu non vérifié (sans compte SOS Miam) : il ne publie pas lui-même, c'est un créateur qui en parle
+    auteur: { type: "createur", pseudo: "sete.gourmand" },
     legende: "Les zézettes de Ginette, croquantes comme il faut. Recette sétoise, fournée du matin.",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-10-1.jpg"), require("../../assets/medias-demo/lieu-10-2.jpg"), require("../../assets/medias-demo/lieu-10-3.jpg")] },
     jaimes: 520,
@@ -159,7 +160,8 @@ export const publicationsExemples: Publication[] = [
   {
     id: "lieu-15",
     lieuId: 15,
-    auteur: { type: "lieu" },
+    // Lieu non vérifié : publication d'une créatrice, sans collaboration commerciale (le lieu n'a pas de compte pour en proposer)
+    auteur: { type: "createur", pseudo: "lea.mange" },
     legende: "Les oreillettes de Bernadette, fines et sucrées, dans une ruelle au calme de Saint-Guilhem.",
     media: { type: "photos", photos: [require("../../assets/medias-demo/lieu-15-1.jpg"), require("../../assets/medias-demo/lieu-15-2.jpg"), require("../../assets/medias-demo/lieu-15-3.jpg")] },
     jaimes: 310,

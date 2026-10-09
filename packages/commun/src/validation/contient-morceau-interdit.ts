@@ -1,5 +1,5 @@
-import { EXPRESSIONS_PERMISES, MORCEAUX_INTERDITS } from "../regles/mots-interdits";
-import { simplifierTexteFiltre } from "./simplifier-texte-filtre";
+import { EXPRESSIONS_PERMISES, MORCEAUX_INTERDITS } from "../regles/mots-interdits.ts";
+import { simplifierTexteFiltre } from "./simplifier-texte-filtre.ts";
 
 // Listes comparées sans espaces ni « * » : « fils de pute » → « filsdepute », « pain batard* » → « painbatard »
 const compacter = (expression: string) => simplifierTexteFiltre(expression).replace(/[^a-z0-9]/g, "");

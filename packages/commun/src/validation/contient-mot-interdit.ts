@@ -1,7 +1,7 @@
-import { EXPRESSIONS_INTERDITES } from "../regles/mots-interdits";
-import { construireMotifExpressions } from "./construire-motif-expressions";
-import { contientMorceauInterdit } from "./contient-morceau-interdit";
-import { preparerFormesFiltre } from "./preparer-formes-filtre";
+import { EXPRESSIONS_INTERDITES } from "../regles/mots-interdits.ts";
+import { construireMotifExpressions } from "./construire-motif-expressions.ts";
+import { contientMorceauInterdit } from "./contient-morceau-interdit.ts";
+import { preparerFormesFiltre } from "./preparer-formes-filtre.ts";
 
 const MOTIF_INTERDIT = construireMotifExpressions(EXPRESSIONS_INTERDITES);
 

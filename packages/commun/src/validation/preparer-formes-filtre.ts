@@ -1,6 +1,6 @@
-import { EXPRESSIONS_PERMISES } from "../regles/mots-interdits";
-import { construireMotifExpressions } from "./construire-motif-expressions";
-import { simplifierTexteFiltre } from "./simplifier-texte-filtre";
+import { EXPRESSIONS_PERMISES } from "../regles/mots-interdits.ts";
+import { construireMotifExpressions } from "./construire-motif-expressions.ts";
+import { simplifierTexteFiltre } from "./simplifier-texte-filtre.ts";
 
 const MOTIF_PERMIS = construireMotifExpressions(EXPRESSIONS_PERMISES, "g");
 // Chiffres et symboles pris pour des lettres (« c0nn4rd », « s@lope ») ; le « 1 » vaut un « i » ou un « l », on essaie les deux

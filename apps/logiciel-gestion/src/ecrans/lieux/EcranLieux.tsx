@@ -116,36 +116,38 @@ export function EcranLieux({ ouvrir, allerA }: { ouvrir?: { id: number } | null;
           onChange={setStatut}
           options={[{ valeur: "", libelle: "Tous" }, ...Object.entries(STATUTS_LIEU).map(([valeur, { libelle }]) => ({ valeur: valeur as StatutLieu, libelle }))]}
         />
-        <Selecteur
-          libelle="Type"
-          valeur={type}
-          onChange={setType}
-          options={[
-            { valeur: "", libelle: `Tous les types (${sansType.length})` },
-            ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${sansType.filter((lieu) => lieu.type === valeur).length})` })),
-          ]}
-          className="w-48"
-        />
-        <Selecteur
-          libelle="Ville"
-          valeur={ville}
-          onChange={setVille}
-          options={[
-            { valeur: "", libelle: `Toutes les villes (${sansVille.length})` },
-            ...villes.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
-          ]}
-          className="w-56"
-        />
-        <Selecteur
-          libelle="Catégorie"
-          valeur={categorie}
-          onChange={setCategorie}
-          options={[
-            { valeur: "", libelle: `Toutes (${sansCategorie.length})` },
-            ...categories.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
-          ]}
-          className="w-60"
-        />
+        <div className="flex basis-full flex-wrap items-end gap-4">
+          <Selecteur
+            libelle="Type"
+            valeur={type}
+            onChange={setType}
+            options={[
+              { valeur: "", libelle: `Tous les types (${sansType.length})` },
+              ...Object.entries(TYPES_LIEU).map(([valeur, libelle]) => ({ valeur, libelle: `${libelle} (${sansType.filter((lieu) => lieu.type === valeur).length})` })),
+            ]}
+            className="w-48"
+          />
+          <Selecteur
+            libelle="Ville"
+            valeur={ville}
+            onChange={setVille}
+            options={[
+              { valeur: "", libelle: `Toutes les villes (${sansVille.length})` },
+              ...villes.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
+            ]}
+            className="w-56"
+          />
+          <Selecteur
+            libelle="Catégorie"
+            valeur={categorie}
+            onChange={setCategorie}
+            options={[
+              { valeur: "", libelle: `Toutes (${sansCategorie.length})` },
+              ...categories.map(({ libelle, nombre }) => ({ valeur: libelle, libelle: `${libelle} (${nombre})` })),
+            ]}
+            className="w-60"
+          />
+        </div>
       </div>
       <div ref={haut} className="mb-3 flex scroll-mt-6 flex-wrap items-center gap-x-5 gap-y-2">
         {donnees && <p className="text-sm text-gris">{lieux.length} lieu{lieux.length > 1 ? "x" : ""}{lieux.length !== tous.length ? ` sur ${tous.length}` : ""}</p>}
