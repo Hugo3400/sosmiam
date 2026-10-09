@@ -1,0 +1,36 @@
+// Réservations faites dans l'app (docs/decisions.md, « Scan et validation des visites ») : demandées par le client,
+// acceptées ou refusées par l'équipe (motifs fermés), « Je suis là » (position vérifiée) et « Venu » ; quand les deux sont
+// réunis, une visite validée est créée (Visite.reservationId). Machine à états : faireEvoluerReservation (packages/commun).
+
+model Reservation {
+  id           Int       @id @default(autoincrement())
+  compteId     Int       @map("compte_id")
+  compte       Compte    @relation("ReservationsClient", fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId       Int       @map("lieu_id")
+  lieu         Lieu      @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  personnes    Int       @db.SmallInt
+  /// Le créneau (jour et heure de Paris, en instant)
+  creneau      DateTime  @db.Timestamptz(0)
+  /// Le petit mot du client au lieu (140 caractères)
+  message      String?   @db.VarChar(140)
+  /// « demandee », « acceptee », « refusee », « annulee », « expiree », « honoree » ou « absent »
+  statut       String    @default("demandee") @db.VarChar(10)
+  /// « complet », « ferme », « groupe-trop-grand » ou « autre » (liste fermée)
+  motifRefus   String?   @map("motif_refus") @db.VarChar(18)
+  /// Annulée par le client moins de 2 h avant le créneau
+  tardive      Boolean   @default(false)
+  creeLe       DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe    DateTime? @map("repondu_le") @db.Timestamptz(0)
+  /// Le membre de l'équipe qui a répondu ou touché « Venu » (null s'il a supprimé son compte depuis)
+  reponduParId Int?      @map("repondu_par_id")
+  reponduPar   Compte?   @relation("ReservationsTraitees", fields: [reponduParId], references: [id], onDelete: SetNull)
+  /// « Je suis là » confirmé, position vérifiée (jamais la position elle-même)
+  presenceLe   DateTime? @map("presence_le") @db.Timestamptz(0)
+  /// Code de rapprochement à 4 chiffres, montré à l'arrivée
+  code         String?   @db.VarChar(4)
+
+  @@index([compteId, creneau])
+  @@index([lieuId, statut, creneau])
+  @@index([statut, creneau])
+  @@map("reservations")
+}

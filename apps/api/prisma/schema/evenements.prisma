@@ -1,0 +1,64 @@
+// Événements des lieux vérifiés (docs/decisions.md, « Décidé le 9 octobre 2026, au soir ») et vues des fiches dans l'app
+// (statistiques du lieu, sans pister personne).
+
+/// Un événement publié par l'équipe d'un lieu : une seule fois, ou chaque semaine jusqu'à `hebdoJusqua` (3 mois au plus)
+model EvenementLieu {
+  id           Int                @id @default(autoincrement())
+  lieuId       Int                @map("lieu_id")
+  lieu         Lieu               @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Le membre de l'équipe qui l'a publié (null s'il a supprimé son compte depuis)
+  compteId     Int?               @map("compte_id")
+  compte       Compte?            @relation("EvenementsPublies", fields: [compteId], references: [id], onDelete: SetNull)
+  titre        String             @db.VarChar(60)
+  /// « concert », « soiree-theme », « degustation », « atelier », « quiz », « match », « marche » ou « autre »
+  type         String             @db.VarChar(16)
+  description  String             @db.VarChar(500)
+  debut        DateTime           @db.Timestamptz(0)
+  fin          DateTime?          @db.Timestamptz(0)
+  /// Chaque semaine, à la même heure, jusqu'à cette date (null : une seule fois)
+  hebdoJusqua  DateTime?          @map("hebdo_jusqua") @db.Timestamptz(0)
+  /// « gratuit », « prix » (prix indicatif en centimes) ou « reservation »
+  tarif        String             @db.VarChar(12)
+  prixCentimes Int?               @map("prix_centimes")
+  places       Int?               @db.SmallInt
+  /// Photo facultative : nom du fichier dans le dossier des médias
+  photo        String?            @db.VarChar(120)
+  /// Il y a de l'alcool (dégustation…) : caché aux 15-17 ans, avec le message sanitaire
+  alcool       Boolean            @default(false)
+  creeLe       DateTime           @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe    DateTime           @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  /// Annulé par le lieu : montré « Annulé » à ceux que ça intéressait, puis plus rien
+  annuleLe     DateTime?          @map("annule_le") @db.Timestamptz(0)
+  /// Masqué par la modération (signalement)
+  suspendu     Boolean            @default(false)
+  interets     InteretEvenement[]
+
+  @@index([lieuId, debut])
+  @@index([debut])
+  @@map("evenements_lieux")
+}
+
+/// « Ça m'intéresse » : un compteur pour le lieu, et un rappel le jour J si la personne le veut
+model InteretEvenement {
+  compteId    Int           @map("compte_id")
+  compte      Compte        @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  evenementId Int           @map("evenement_id")
+  evenement   EvenementLieu @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  rappel      Boolean       @default(false)
+  creeLe      DateTime      @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, evenementId])
+  @@index([evenementId])
+  @@map("interets_evenements")
+}
+
+/// Vues de la fiche d'un lieu dans l'app, par jour de Paris : un simple compteur, jamais qui a regardé
+model VueLieu {
+  lieuId Int      @map("lieu_id")
+  lieu   Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  jour   DateTime @db.Date
+  nombre Int      @default(0)
+
+  @@id([lieuId, jour])
+  @@map("vues_lieux")
+}

@@ -1,0 +1,59 @@
+// Avis des lieux (docs/decisions.md, « Scan et validation des visites ») : vérifiés (liés à une visite validée, ouverts 1 h
+// après et pendant 14 jours) ou non vérifiés (lieu sans compte SOS Miam). Signés « Prénom I. » (prénom seul avant 18 ans),
+// datés au mois. Un ambassadeur relit sans voir l'auteur (jamais l'avis d'un mineur) ; l'équipe tranche dans le logiciel.
+
+model Avis {
+  id              Int             @id @default(autoincrement())
+  compteId        Int             @map("compte_id")
+  compte          Compte          @relation("AvisEcrits", fields: [compteId], references: [id], onDelete: Cascade)
+  lieuId          Int             @map("lieu_id")
+  lieu            Lieu            @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// La visite validée qui le rend « vérifié » (une seule fois par visite) ; null : avis non vérifié
+  visiteId        Int?            @unique @map("visite_id")
+  visite          Visite?         @relation(fields: [visiteId], references: [id], onDelete: SetNull)
+  note            Int             @db.SmallInt
+  texte           String          @db.VarChar(1000)
+  /// Photo facultative : nom du fichier dans le dossier des médias (+10 points pour un avis vérifié)
+  photo           String?         @db.VarChar(120)
+  /// La signature figée à l'écriture : « Léa M. », ou « Léa » pour un 15-17 ans
+  signature       String          @db.VarChar(60)
+  /// L'auteur avait moins de 18 ans en l'écrivant : jamais relu par un ambassadeur
+  mineur          Boolean         @default(false)
+  /// « publie », « en-relecture » ou « masque »
+  statut          String          @default("publie") @db.VarChar(12)
+  /// Pourquoi il part en relecture (RaisonRelecture de packages/commun) ; null sinon
+  raisonRelecture String?         @map("raison_relecture") @db.VarChar(20)
+  /// Le repas était offert par le lieu (la visite était « offerte ») : montré « Repas offert »
+  repasOffert     Boolean         @default(false) @map("repas_offert")
+  creeLe          DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
+  /// La réponse publique du lieu (une par avis), relue comme l'avis
+  reponseTexte    String?         @map("reponse_texte") @db.VarChar(600)
+  reponseLe       DateTime?       @map("reponse_le") @db.Timestamptz(0)
+  reponseParId    Int?            @map("reponse_par_id")
+  reponsePar      Compte?         @relation("ReponsesAvis", fields: [reponseParId], references: [id], onDelete: SetNull)
+  /// « publiee », « en-relecture » ou « masquee »
+  reponseStatut   String?         @map("reponse_statut") @db.VarChar(12)
+  relectures      RelectureAvis[]
+
+  @@index([lieuId, statut, creeLe])
+  @@index([compteId, creeLe])
+  @@index([statut, creeLe])
+  @@map("avis")
+}
+
+/// Le verdict consultatif d'un ambassadeur sur un avis louche (l'équipe SOS Miam décide)
+model RelectureAvis {
+  id            Int      @id @default(autoincrement())
+  avisId        Int      @map("avis_id")
+  avis          Avis     @relation(fields: [avisId], references: [id], onDelete: Cascade)
+  ambassadeurId Int?     @map("ambassadeur_id")
+  ambassadeur   Compte?  @relation("RelecturesAvis", fields: [ambassadeurId], references: [id], onDelete: SetNull)
+  /// « ok », « louche » ou « deporte » (il connaît le lieu ou l'auteur : il passe son tour)
+  verdict       String   @db.VarChar(8)
+  /// MotifAvisLouche de packages/commun, pour « louche »
+  motif         String?  @db.VarChar(12)
+  creeLe        DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@unique([avisId, ambassadeurId])
+  @@map("relectures_avis")
+}

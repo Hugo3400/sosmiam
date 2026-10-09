@@ -78,6 +78,8 @@ model Visite {
   annulableJusqua  DateTime?       @map("annulable_jusqua") @db.Timestamptz(0)
   /// Comment l'équipe l'a réglée (ReglementVisite) ; null : pas encore validée
   reglement        Json?
+  /// L'avis vérifié écrit grâce à cette visite (un seul)
+  avis             Avis?
 
   @@index([compteId, creeLe])
   @@index([lieuId, statut])

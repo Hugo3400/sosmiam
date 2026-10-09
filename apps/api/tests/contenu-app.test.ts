@@ -130,6 +130,16 @@ test("GET /app/lieux/:id et sa carte : 404 pour un brouillon, un inconnu ou un i
   }
 });
 
+test("GET /app/lieux/code/:code : le lieu publié du QR de vitrine, rien d'autre", async () => {
+  lieux.lieux.set(1, { ...structuredClone(LIEU), codePublic: "chezlea2" });
+  lieux.lieux.set(2, { ...structuredClone(LIEU), id: 2, statut: "brouillon", codePublic: "brouill2" });
+  const r = await lire("/app/lieux/code/chezlea2");
+  assert.deepEqual([r.statut, r.corps.lieuId, r.entetes.get("cache-control")], [200, 1, "public, max-age=300"]);
+  for (const code of ["brouill2", "inconnu2", "CHEZLEA2", "court"]) {
+    assert.deepEqual([(await lire(`/app/lieux/code/${code}`)).statut], [404], code);
+  }
+});
+
 test("GET /app/publications : seulement les visibles, de la plus récente à la plus ancienne", async () => {
   fil.publications.set(1, publication({ id: 1 }));
   fil.publications.set(2, publication({ id: 2, publieeLe: new Date("2026-10-09T12:00:00Z"), auteurType: "createur", auteurPseudo: "lea.mange", partenariat: "Repas offert", lieuVerifie: false }));

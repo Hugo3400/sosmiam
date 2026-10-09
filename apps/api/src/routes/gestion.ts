@@ -15,6 +15,7 @@ import { creerControleursRattachements } from "../controleurs/gestion/controleur
 import { creerControleursReponsesTypes } from "../controleurs/gestion/controleurs-reponses-types.ts";
 import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-suggestions.ts";
 import { creerControleursSurveillance, type VisitesGestion } from "../controleurs/gestion/controleurs-surveillance.ts";
+import { creerControleursValidationLieu } from "../controleurs/gestion/controleurs-validation-lieu.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
 import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
@@ -55,6 +56,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes, chiffrement);
   const surveillance = creerControleursSurveillance(services, visites);
+  const validationLieu = creerControleursValidationLieu(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -171,6 +173,10 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/villes", outilsLieux.villes);
   routes.get("/villes/lancement", outilsLieux.lancement);
   routes.get("/lieux/:id", c.lieu);
+  // Validation des visites du lieu (active, rayon) et code du QR de vitrine
+  routes.get("/lieux/:id/validation", validationLieu.lire);
+  routes.put("/lieux/:id/validation", validationLieu.regler);
+  routes.post("/lieux/:id/validation/code", validationLieu.changerCode);
   routes.get("/lieux/:id/historique", c.historiqueLieu);
   routes.get("/suggestions", sug.liste);
   routes.get("/suggestions/:id", sug.fiche);

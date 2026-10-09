@@ -83,6 +83,14 @@ model Compte {
   cartesFidelite            CarteFidelite[]
   recompensesOffertes       RecompensePrete[]          @relation("RecompensesOffertes")
   sosLances                 SosLieu[]
+  // Événements, avis et réservations (session de l'app, 9 octobre 2026 au soir)
+  evenementsPublies         EvenementLieu[]            @relation("EvenementsPublies")
+  interetsEvenements        InteretEvenement[]
+  avisEcrits                Avis[]                     @relation("AvisEcrits")
+  reponsesAvis              Avis[]                     @relation("ReponsesAvis")
+  relecturesAvis            RelectureAvis[]            @relation("RelecturesAvis")
+  reservations              Reservation[]              @relation("ReservationsClient")
+  reservationsTraitees      Reservation[]              @relation("ReservationsTraitees")
 
   @@index([derniereConnexion])
   @@map("comptes")

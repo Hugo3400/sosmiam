@@ -84,6 +84,11 @@ model Lieu {
   programmeFidelite     ProgrammeFidelite?
   cartesFidelite        CarteFidelite[]
   sos                   SosLieu[]
+  // Événements, vues des fiches, avis et réservations (session de l'app, 9 octobre 2026 au soir)
+  evenements            EvenementLieu[]
+  vues                  VueLieu[]
+  avis                  Avis[]
+  reservations          Reservation[]
 
   @@index([statut, ville])
   @@map("lieux")
