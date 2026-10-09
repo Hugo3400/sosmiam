@@ -7,7 +7,7 @@ import { after, test } from "node:test";
 import { lireVersionApp } from "../src/fonctions/texte/lire-version-app.ts";
 import { creerBancApp } from "./outils/creer-banc-app.ts";
 
-const { banc, memoire, demander, inscrireApp, rendrePro, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" } });
+const { banc, memoire, demander, inscrireApp, rendrePro, poserRattachementValide, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" } });
 const sansCle = await creerBancApp({ sansCle: true });
 after(async () => {
   await fermer();
@@ -102,8 +102,8 @@ test("proposer un nouveau lieu : 18 ans et plus (âge connu, ambassadeur actif o
   const proposer = (jeton: string, corps: unknown = PROPOSITION) => demander("POST", "/comptes/moi/propositions-lieux", { jeton, corps });
   assert.deepEqual((await proposer(mineur.jeton)).corps, { ok: false, erreur: "reserve-aux-majeurs" });
   assert.equal((await demander("GET", "/comptes/moi/propositions-lieux", { jeton: mineur.jeton })).statut, 403);
-  // Mineur avec un lieu validé quand même : toujours non
-  await rendrePro(mineur.jeton);
+  // Mineur avec un lieu validé quand même (l'API ne le lui donne plus, il est posé à la main) : toujours non
+  poserRattachementValide(mineur.id);
   assert.equal((await proposer(mineur.jeton)).statut, 403);
 
   const majeur = await inscrireApp({ dateNaissance: "2008-10-09" });

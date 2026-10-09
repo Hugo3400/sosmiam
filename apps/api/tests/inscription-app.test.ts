@@ -7,7 +7,7 @@ import { after, test } from "node:test";
 
 import { creerBancApp } from "./outils/creer-banc-app.ts";
 
-const { banc, memoire, chiffrement, demander, inscriptionApp, inscrireApp, rendrePro, fermer } = await creerBancApp();
+const { banc, memoire, chiffrement, demander, inscriptionApp, inscrireApp, rendrePro, poserRattachementValide, fermer } = await creerBancApp();
 const sansCle = await creerBancApp({ sansCle: true });
 after(async () => {
   await fermer();
@@ -123,7 +123,7 @@ test("sans clé de chiffrement : inscription « app » 503 chiffrement-indisponi
 
 test("rôles : sous 18 ans, ni ambassadeur ni pro rendus (même un lieu validé) ; dès 18 ans, lieuxValides et emoji", async () => {
   const mineur = await inscrireApp({ dateNaissance: "2010-01-01" });
-  await rendrePro(mineur.jeton);
+  poserRattachementValide(mineur.id);
   const vuMineur = (await demander("GET", "/comptes/session", { jeton: mineur.jeton })).corps.compte;
   assert.equal(vuMineur.age, 16);
   assert.deepEqual(vuMineur.pro, { lieux: [], lieuxValides: [] });

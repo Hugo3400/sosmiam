@@ -83,9 +83,9 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  *                                        · 400 champ-invalide {champ: "email"} · 404 compte-inconnu {message} (aucun compte
  *                                          à cette adresse : la personne crée d'abord son compte) · 409 compte-mineur
  *                                          {message} (âge connu sous 18 ans ; jamais l'âge lui-même) · 409 deja-membre (invité
- *                                          ou validé, gérant compris) · 503 chiffrement-indisponible (date de l'invité illisible) · 409 trop-d-invitations (10 par lieu et par 24 h)
+ *                                          ou validé, gérant compris) · 409 trop-d-invitations (10 par lieu et par 24 h)
  *                                          · 409 equipe-complete (30) · 429 (30 essais par gérant et par 24 h ; 20 par
- *                                          visiteur et par heure)
+ *                                          visiteur et par heure) · 503 chiffrement-indisponible (date de l'invité illisible)
  * DELETE /pro/lieux/:id/equipe/:compteId (gérant) → 200 { ok } (statut « retire ») · 404 membre-inconnu (pas un membre
  *                                        « equipe » invité ou validé : un gérant ne se retire pas ici)
  */

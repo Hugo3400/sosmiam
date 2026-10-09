@@ -3,11 +3,12 @@
 // (visites-client.ts, fidelite-client.ts, comptoir.ts) ; la base (visites.ts) et le double des tests
 // (visites-en-memoire.ts) ne font que lire et écrire. Sans accès à la base ici.
 import type { ProgrammeFidelite } from "../../../../packages/commun/src/types/fidelite.ts";
-import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
+import type { CreneauOuverture, TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { ResultatPosition } from "../../../../packages/commun/src/types/position.ts";
 import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } from "../../../../packages/commun/src/types/visite.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
+import type { ChampsReservation, FiltreReservations, LigneReservation, NouvelleReservation } from "./reservations-regles.ts";
 
 /** Le petit mot d'une contestation (lu par l'équipe SOS Miam, jamais par le lieu) */
 export const MOT_CONTESTATION_MAX = 500;
@@ -76,6 +77,10 @@ export type LieuVisite = LieuResume & {
   codePublic: string | null;
   /** Un SOS du soir est en cours (lieu vérifié seulement) */
   sosEnCours: boolean;
+  /** Vérifié : au moins un rattachement validé (un compte pro) */
+  verifie: boolean;
+  /** Créneaux d'ouverture (réservations) */
+  ouverture: CreneauOuverture[];
 };
 
 /** Ce qu'il faut d'un compte pour valider une visite, ou pour l'afficher au comptoir (prénom, initiale, emoji) */
@@ -90,7 +95,12 @@ export type CompteVisiteur = {
   rattachements: { lieuId: number; role: RoleRattachement }[];
 };
 
-export type FiltreVisites = { compteId?: number; lieuId?: number; statuts?: StatutVisite[]; presentationId?: number; limite?: number };
+export type FiltreVisites = {
+  compteId?: number; lieuId?: number; statuts?: StatutVisite[]; presentationId?: number;
+  /** Les visites nées de ces réservations */
+  reservationIds?: number[];
+  limite?: number;
+};
 
 /**
  * Les gestes élémentaires, dans une transaction (ecrire) ou non (lire) ; jamais de règle métier ici. Règle des appelants :
@@ -116,7 +126,8 @@ export interface TablesVisites {
   modifierVisite(id: number, champs: ChampsVisite): Promise<void>;
   /** Les additions sans réponse dont l'heure est passée deviennent « expiree » (sans effet : ni points ni tampon) */
   expirerDemandes(maintenant: Date): Promise<void>;
-  /** Codes à 4 chiffres en attente chez un lieu (additions et demandes de récompense) */
+  /** Codes à 4 chiffres pris chez un lieu (additions et demandes de récompense en attente, réservations acceptées pas
+   * encore passées de 4 h) */
   listerCodesPris(lieuId: number, maintenant: Date): Promise<Set<string>>;
 
   lirePresentation(id: number): Promise<LignePresentation | null>;
@@ -142,6 +153,16 @@ export interface TablesVisites {
   lireDemande(id: number): Promise<(LigneDemande & { carteId: number; compteId: number; lieuId: number }) | null>;
   /** Vrai si elle n'avait pas déjà été offerte */
   offrirRecompense(recompenseId: number, parId: number, le: Date): Promise<boolean>;
+
+  lireReservation(id: number): Promise<LigneReservation | null>;
+  listerReservations(filtre: FiltreReservations): Promise<LigneReservation[]>;
+  compterReservations(filtre: Omit<FiltreReservations, "limite" | "ordre">): Promise<number>;
+  creerReservation(reservation: NouvelleReservation): Promise<LigneReservation>;
+  modifierReservation(id: number, champs: ChampsReservation): Promise<void>;
+  /** Les demandes sans réponse à 30 min du créneau (ou moins) deviennent « expiree » (sans effet) */
+  expirerReservations(maintenant: Date): Promise<void>;
+  /** Le SOS du soir qui était en cours à cet instant chez ce lieu vérifié (arrêté depuis ou non), avec sa fin prévue */
+  lireSosA(lieuId: number, instant: Date): Promise<{ jusqua: Date } | null>;
 }
 
 /** lire : sans transaction ; ecrire : tout ou rien, verrous compris */

@@ -83,8 +83,19 @@ export async function creerBancApp({ sansCle = false, versionMinimale }: Options
     return lieuId;
   }
 
+  /** Rattachement « gerant » validé posé directement dans la mémoire, sans passer par l'API (qui le refuse sous 18 ans) :
+   * un lieu validé avant une correction de la date de naissance, par exemple */
+  function poserRattachementValide(compteId: number) {
+    const lieuId = ajouterLieu();
+    const id = Math.max(0, ...memoire.rattachements.map((r) => r.id)) + 1;
+    memoire.rattachements.push({
+      id, lieuId, compteId, role: "gerant", preuve: "Posé par le test.", siret: null, statut: "valide", reponse: null, creeLe: banc.horloge, decideLe: banc.horloge,
+    });
+    return lieuId;
+  }
+
   return {
-    banc, memoire, chiffrement, ecritures, demander, inscriptionApp, inscrireApp, rendrePro,
+    banc, memoire, chiffrement, ecritures, demander, inscriptionApp, inscrireApp, rendrePro, poserRattachementValide,
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),
   };
 }
