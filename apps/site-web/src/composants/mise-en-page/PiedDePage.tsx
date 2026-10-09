@@ -3,10 +3,10 @@ import { Link } from "react-router";
 import { Logo } from "~/composants/interface/Logo";
 import { site } from "~/contenus/legal/informations-legales";
 import { groupesPiedDePage, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
-import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
+import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-type Espace = "principal" | "ambassadeur";
+type Espace = "principal" | "ambassadeur" | "pro";
 
 type Props = {
   /** Le site qui affiche le pied de page : les liens vers l'autre site deviennent des adresses complètes */
@@ -20,12 +20,13 @@ const classeLien = "opacity-80 underline-offset-4 hover:underline hover:opacity-
 /** Un lien du pied de page : <Link> sur le même site, <a> avec l'adresse complète vers l'autre site ou un réseau. */
 function LienDuPied({ lien, espace }: { lien: LienPiedDePage; espace: Espace }) {
   if (lien.site === espace) return <Link to={lien.adresse} className={classeLien}>{lien.texte}</Link>;
-  const hote = lien.site === "principal" ? site.adresse : lien.site === "ambassadeur" ? HOTE_AMBASSADEUR : null;
+  const hotes = { principal: site.adresse, ambassadeur: HOTE_AMBASSADEUR, pro: HOTE_PRO, externe: null };
+  const hote = hotes[lien.site];
   const adresse = hote ? `https://${hote}${lien.adresse}` : lien.adresse;
   return <a href={adresse} className={classeLien}>{lien.texte}</a>;
 }
 
-/** Pied de page de sosmiam.fr et de l'espace ambassadeur : tous les liens du site, de l'espace, des réseaux et légaux. */
+/** Pied de page de sosmiam.fr, de l'espace ambassadeur et de l'espace pro : tous les liens du site, de l'espace, des réseaux et légaux. */
 export function PiedDePage({ espace = "principal", accroche = "Fait avec 🧡 pour les adresses de ton quartier." }: Props) {
   const annee = new Date().getFullYear();
   return (

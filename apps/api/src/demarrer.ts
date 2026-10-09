@@ -22,7 +22,8 @@ import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
 import { enregistrerInscription } from "./services/inscriptions.ts";
 import { creerSuggestionLieu, lireFichePourSuggestion } from "./services/suggestions-comptes.ts";
-import { listerLieuxPublics } from "./services/lieux-publics.ts";
+import { lireFichePublique, listerLieuxPublics } from "./services/lieux-publics.ts";
+import { servicesPro } from "./services/pro.ts";
 import { trouverCommune } from "./services/localisation.ts";
 import { creerCompteurVisites } from "./services/mesure.ts";
 import { stockageSessionsComptes } from "./services/stockage-sessions-comptes.ts";
@@ -55,6 +56,7 @@ const serveur = creerApplication({
   enregistrerSignalement,
   trouverCommune,
   listerLieuxPublics,
+  lireFichePublique,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source),
@@ -70,6 +72,8 @@ const serveur = creerApplication({
     sessions: stockageSessionsComptes,
     zones,
     courriels: { envoyerLienMotDePasse, envoyerLienVerificationEmail },
+    // Espace pro (pro.sosmiam.fr) : rattachements, fiche, suggestions sur son lieu, équipe
+    pro: servicesPro,
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)

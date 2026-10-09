@@ -11,6 +11,10 @@ export type MessageCourriel = {
   texte: string;
   /** Newsletter : « répondre STOP » devient le bouton de désinscription des messageries (Gmail, Outlook…) */
   newsletter?: boolean;
+  /** Écrit par une personne dans le logiciel : pas marqué « généré automatiquement » */
+  ecritALaMain?: boolean;
+  /** Réponse à un mail reçu : il reste dans le même fil de discussion chez la personne */
+  enReponseA?: { messageId: string; references: string | null };
 };
 export type ExpedierCourriel = (reglages: ReglagesEnvoi, message: MessageCourriel) => Promise<void>;
 
@@ -54,6 +58,9 @@ export const expedierCourriel: ExpedierCourriel = async (reglages, message) => {
     text: message.texte,
     headers: message.newsletter
       ? { "List-Unsubscribe": `<mailto:${adresse}?subject=STOP>` }
-      : { "Auto-Submitted": "auto-generated" },
+      : message.ecritALaMain ? {} : { "Auto-Submitted": "auto-generated" },
+    ...(message.enReponseA
+      ? { inReplyTo: message.enReponseA.messageId, references: [message.enReponseA.references, message.enReponseA.messageId].filter(Boolean).join(" ") }
+      : {}),
   });
 };

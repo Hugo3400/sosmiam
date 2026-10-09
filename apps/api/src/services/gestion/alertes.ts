@@ -3,12 +3,13 @@
 // d'ambassadeur, demande de lieu, modification de fiche proposée, candidature, compte rendu de mission, BIG SOS qui
 // démarre bientôt).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { compterNonLus } from "./boite-reception.ts";
 import { RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "./moderation.ts";
 
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -25,11 +26,14 @@ export async function lireAlertes(maintenant = new Date()) {
     }),
     baseDeDonnees.suggestionLieu.count({ where: { statut: "en-attente" } }),
     baseDeDonnees.candidatureCertification.count({ where: { statut: "en-attente" } }),
+    // Boîte bonjour@ : relue au plus toutes les 5 minutes ; null si elle ne répond pas
+    compterNonLus().catch(() => null),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
     demandes: { aTraiter: demandes },
     lieux: { suggestions },
+    boite: { nonLus: mailsNonLus },
     ambassadeurs: { enAttente, candidatures, certifications },
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },

@@ -3,6 +3,7 @@ import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-pali
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import { decrireCertifie, type CertifieVue } from "./certification.ts";
+import type { LieuDuPro, RoleRattachement, StatutRattachement } from "./pro-regles.ts";
 
 // Comptes SOS Miam (espace ambassadeur du site, puis l'app). Les fonctions ci-dessous servent aussi au logiciel de
 // gestion (services/gestion) : la logique des points, des badges et des réinitialisations reste à un seul endroit.
@@ -96,6 +97,8 @@ export type CompteConnecte = {
     /** Titre d'« ambassadeur certifié » (à part du palier), ou null */
     certifie: CertifieVue | null;
   } | null;
+  /** Espace pro : ses lieux (tous ses rattachements sauf « retire » ; liste vide s'il n'en a pas) */
+  pro: { lieux: LieuDuPro[] };
 };
 
 export type NouveauCompte = {
@@ -142,6 +145,10 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
       prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true,
       badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
       ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true, certifieLe: true, profilCertifie: true, structure: true } },
+      rattachementsLieux: {
+        where: { statut: { not: "retire" } }, orderBy: { creeLe: "asc" },
+        select: { lieuId: true, role: true, statut: true, lieu: { select: { nom: true, ville: true } } },
+      },
     },
   });
   if (!compte) return null;
@@ -163,6 +170,11 @@ export async function lireCompte(id: number): Promise<CompteConnecte | null> {
           certifie: decrireCertifie(ambassadeur.certifieLe, ambassadeur.profilCertifie, ambassadeur.structure),
         }
       : null,
+    pro: {
+      lieux: compte.rattachementsLieux.map(({ lieuId, role, statut, lieu }) => ({
+        lieuId, nom: lieu.nom, ville: lieu.ville, role: role as RoleRattachement, statut: statut as StatutRattachement,
+      })),
+    },
   };
 }
 

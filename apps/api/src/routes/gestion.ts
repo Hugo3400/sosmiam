@@ -2,6 +2,7 @@ import express, { Router } from "express";
 
 import { creerControleursAmbassadeurs, type OutilsComptes } from "../controleurs/gestion/controleurs-ambassadeurs.ts";
 import { creerControleursBigSos } from "../controleurs/gestion/controleurs-big-sos.ts";
+import { creerControleursBoite } from "../controleurs/gestion/controleurs-boite.ts";
 import { creerControleursCertification } from "../controleurs/gestion/controleurs-certification.ts";
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-fondateurs.ts";
@@ -41,6 +42,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const cert = creerControleursCertification(services);
   const sug = creerControleursSuggestions(services);
   const outilsLieux = creerControleursOutilsLieux(services);
+  const boite = creerControleursBoite(services);
   const m = creerControleursCourriels(services);
   const k = creerControleursComptesGestion(services, comptes);
   const g = creerControleursBigSos(services);
@@ -130,6 +132,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/courriels/derniers", m.derniers);
   routes.post("/courriels/essai", m.essai);
   routes.post("/courriels/ecrire", m.ecrire);
+  routes.get("/boite", boite.liste);
+  routes.get("/boite/:uid", boite.message);
+  routes.post("/boite/:uid/repondre", boite.repondre);
   routes.get("/newsletter/brouillons", c.brouillons);
   routes.post("/newsletter/brouillons", c.enregistrerBrouillon);
   routes.get("/newsletter/brouillons/:id", c.brouillon);
@@ -209,6 +214,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
 
   routes.get("/sauvegardes", c.sauvegardes);
   routes.post("/sauvegardes", c.sauvegarder);
+  routes.get("/sauvegardes/test", outilsLieux.dernierTestSauvegarde);
+  routes.post("/sauvegardes/test", outilsLieux.testerSauvegarde);
   routes.get("/sauvegardes/:nom", c.telechargerSauvegarde);
   routes.get("/geocodage", c.geocodage);
 

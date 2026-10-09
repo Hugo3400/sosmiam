@@ -3,6 +3,7 @@
 // les autres envois, le journal ne garde que l'adresse, l'objet et le résultat (effacé après 90 jours), jamais le texte.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { habillerCourriel } from "../../fonctions/courriels/habiller-courriel.ts";
+import type { MessageCourriel } from "./expedier-courriel.ts";
 import { envoyerToutDeSuite } from "./file-courriels.ts";
 
 export type DestinataireEcrit = { compteId: number } | { adresse: string };
@@ -14,10 +15,10 @@ const couperParagraphes = (texte: string) =>
   texte.replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((paragraphe) => paragraphe.trim()).filter(Boolean);
 
 /** Envoie le mail ; « introuvable » si le compte n'existe plus, sinon le résultat de l'envoi (réglages, refus…). */
-export async function envoyerCourrielEcrit(destinataire: DestinataireEcrit, objet: string, texte: string) {
+export async function envoyerCourrielEcrit(destinataire: DestinataireEcrit, objet: string, texte: string, enReponseA?: MessageCourriel["enReponseA"]) {
   const adresse = "compteId" in destinataire
     ? (await baseDeDonnees.compte.findUnique({ where: { id: destinataire.compteId }, select: { email: true } }))?.email
     : destinataire.adresse;
   if (!adresse) return { ok: false as const, erreur: "introuvable" };
-  return envoyerToutDeSuite("ecrit", adresse, { objet, ...habillerCourriel({ paragraphes: couperParagraphes(texte), pied: PIED }) });
+  return envoyerToutDeSuite("ecrit", adresse, { objet, ...habillerCourriel({ paragraphes: couperParagraphes(texte), pied: PIED }), ecritALaMain: true, enReponseA });
 }

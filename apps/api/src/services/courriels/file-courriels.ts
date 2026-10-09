@@ -5,7 +5,7 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { calculerProchainEssai } from "../../fonctions/courriels/calculer-prochain-essai.ts";
 import { classerErreurEnvoi } from "../../fonctions/courriels/classer-erreur-envoi.ts";
 import { lireListeInscrits } from "../gestion/boite-mail.ts";
-import { expedierCourriel, type ExpedierCourriel } from "./expedier-courriel.ts";
+import { expedierCourriel, type ExpedierCourriel, type MessageCourriel } from "./expedier-courriel.ts";
 import { lireReglagesEnvoi, type EtatReglagesEnvoi } from "./reglages-envoi.ts";
 
 const UNE_HEURE = 3600_000;
@@ -102,7 +102,12 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
 }
 
 /** Envoie tout de suite, sans passer par la file (essai, lien de mot de passe) ; le journal ne garde que l'objet. */
-export async function envoyerToutDeSuite(type: string, destinataire: string, contenu: ContenuEnvoi, expedier: ExpedierCourriel = expedierCourriel) {
+export async function envoyerToutDeSuite(
+  type: string,
+  destinataire: string,
+  contenu: ContenuEnvoi & Pick<MessageCourriel, "ecritALaMain" | "enReponseA">,
+  expedier: ExpedierCourriel = expedierCourriel,
+) {
   const { etat, reglages } = await lireReglagesEnvoi();
   if (!reglages) return { ok: false as const, erreur: `envoi-${etat}` };
   try {

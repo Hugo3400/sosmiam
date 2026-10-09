@@ -9,25 +9,34 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BarreRechercheExplorer } from "~/composants/explorer/BarreRechercheExplorer";
 import { BoutonAutourDeMoi } from "~/composants/explorer/BoutonAutourDeMoi";
 import { CarteLieux } from "~/composants/explorer/CarteLieux";
+import { ChoixPorteeExplorer } from "~/composants/explorer/ChoixPorteeExplorer";
 import { FeuilleLieux } from "~/composants/explorer/FeuilleLieux";
+import { FeuilleRayonExplorer } from "~/composants/explorer/FeuilleRayonExplorer";
 import { FiltresExplorer } from "~/composants/explorer/FiltresExplorer";
 import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
+import type { PorteeExplorer, ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
+import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
+import { direDansRegion } from "~/fonctions/geo/dire-dans-region";
+import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
+import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle, type ErreurPosition } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
 import couleurs from "~/theme/couleurs";
 
 // Sur l'aperçu web, pas de carte : la liste prend toute la place
@@ -60,6 +69,7 @@ function lieuxDuMoment(lieux: Lieu[], maintenant: Date): Lieu[] {
  * Onglet « Explorer » : la carte des lieux et une liste qu'on remonte du bas, avec recherche, filtres,
  * les SOS du soir en tête, la roulette et « Autour de moi » (position demandée seulement au toucher).
  * Partout en France : la carte s'ouvre sur ta ville et les distances partent d'elle (ou de ta position avec « Autour de moi »).
+ * Jusqu'où on regarde (carte et liste) : à quelques km (5 au départ, réglable de 1 à 50 et gardé), ta région, ou toute la France.
  */
 export default function Explorer() {
   const router = useRouter();
@@ -69,6 +79,9 @@ export default function Explorer() {
   const pointDeDepart = utiliserPointDeDepart();
   const { position, recherche, chercher, oublier } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
+  const [portee, setPortee] = useState<PorteeExplorer>("proche");
+  const [rayon, changerRayon] = utiliserRayonExplorer();
+  const [reglageRayon, setReglageRayon] = useState(false);
   const [selection, setSelection] = useState<number | null>(null);
   const [roulette, setRoulette] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -116,12 +129,6 @@ export default function Explorer() {
   const barsPermis = lieuxPermis.length === lieuxExemples.length;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
   const lieuxActuels = useMemo(() => lieuxDuMoment(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
-  const lieux = useMemo(
-    () => trierLieuxExplorer(filtrerLieuxExplorer(lieuxActuels, filtres, maintenant), profil, position, pointDeDepart),
-    [lieuxActuels, filtres, maintenant, profil, position, pointDeDepart],
-  );
-  // SOS d'abord, puis les alertes du soir
-  const sos = useMemo(() => lieux.filter(({ lieu }) => lieu.sos || lieu.alerte).sort((a, b) => Number(!!b.lieu.sos) - Number(!!a.lieu.sos)), [lieux]);
   // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux
   const centre = useMemo((): PositionLieu | null => {
     if (!filtres.ville) return pointDeDepart;
@@ -129,6 +136,24 @@ export default function Explorer() {
     if (ville) return { latitude: ville.latitude, longitude: ville.longitude };
     return lieuxPermis.find((l) => l.ville === filtres.ville && l.position)?.position ?? null;
   }, [filtres.ville, lieuxPermis, pointDeDepart]);
+
+  // Ta région : celle de la ville choisie, sinon celle où tu es (« Autour de moi »), sinon celle de ta ville
+  const region = useMemo(
+    () => trouverRegionFrance(filtres.ville ?? (position ? null : (profil?.ville ?? null)), position ?? centre),
+    [filtres.ville, position, profil?.ville, centre],
+  );
+  const zone = useMemo((): ZonePortee => {
+    if (portee === "proche") return { portee, centre: position ?? centre, rayonKm: rayon };
+    if (portee === "region") return { portee, region };
+    return { portee };
+  }, [portee, position, centre, rayon, region]);
+  const cadre = useMemo(() => calculerCadrePortee(zone), [zone]);
+  const lieux = useMemo(
+    () => trierLieuxExplorer(filtrerLieuxExplorer(lieuxActuels.filter((l) => estDansPortee(l, zone)), filtres, maintenant), profil, position, pointDeDepart),
+    [lieuxActuels, zone, filtres, maintenant, profil, position, pointDeDepart],
+  );
+  // SOS d'abord, puis les alertes du soir
+  const sos = useMemo(() => lieux.filter(({ lieu }) => lieu.sos || lieu.alerte).sort((a, b) => Number(!!b.lieu.sos) - Number(!!a.lieu.sos)), [lieux]);
 
   // Un lieu sélectionné que les filtres ont retiré n'est plus sélectionné
   useEffect(() => {
@@ -141,11 +166,12 @@ export default function Explorer() {
     nombre.current.lieux = lieux.length;
     nombre.current.recherche = filtres.texte.trim() !== "";
   });
-  // Les filtres ou la recherche ont changé : le lecteur d'écran dit combien de lieux restent (rien au premier affichage)
-  const filtresAnnonces = useRef(filtres);
+  // Les filtres, la recherche ou la zone ont changé : le lecteur d'écran dit combien de lieux restent (rien au premier affichage)
+  const choixAnnonces = useMemo(() => ({ filtres, portee, rayon }), [filtres, portee, rayon]);
+  const filtresAnnonces = useRef(choixAnnonces);
   useEffect(() => {
-    if (filtresAnnonces.current === filtres) return;
-    filtresAnnonces.current = filtres;
+    if (filtresAnnonces.current === choixAnnonces) return;
+    filtresAnnonces.current = choixAnnonces;
     // Effacés depuis la liste vide : le focus passe sur le compteur, qui le dit déjà
     const sauter = nombre.current.sauter;
     nombre.current.sauter = false;
@@ -157,7 +183,7 @@ export default function Explorer() {
       else AccessibilityInfo.announceForAccessibility(texte);
     }, DELAI_ANNONCE_NOMBRE);
     return () => clearTimeout(minuterie);
-  }, [filtres]);
+  }, [choixAnnonces]);
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -165,6 +191,8 @@ export default function Explorer() {
 
   async function basculerAutourDeMoi() {
     if (position) return oublier();
+    // « Autour de moi » regarde autour de toi, dans le rayon réglé
+    setPortee("proche");
     const resultat = await chercher();
     if (!("erreur" in resultat)) return;
     const message = messagesPosition[resultat.erreur];
@@ -191,29 +219,37 @@ export default function Explorer() {
   // Ce qui est sous la feuille : la barre d'onglets, ou le clavier quand il est ouvert (il la recouvre)
   const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
   const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
-  const resume = position ? "les plus proches d'abord" : profil ? "selon tes envies" : "";
+  const ouOnRegarde = portee === "proche" ? `à ${rayon} km ou moins` : portee === "region" && region ? direDansRegion(region) : "dans toute la France";
+  const resume = [ouOnRegarde, position ? "les plus proches d'abord" : profil ? "selon tes envies" : null].filter(Boolean).join(" · ");
+  const autourDe = position ? "de toi" : filtres.ville ? eliderDe(filtres.ville) : profil?.ville ? eliderDe(profil.ville) : "de ta ville";
+  // Liste vide alors qu'on regarde près : on propose de regarder plus loin
+  const elargir: { portee: PorteeExplorer; libelle: string } | null =
+    portee === "proche" ? (region ? { portee: "region", libelle: "Voir toute ta région" } : { portee: "france", libelle: "Voir toute la France" }) : portee === "region" ? { portee: "france", libelle: "Voir toute la France" } : null;
 
   const outils = (
-    <View className="flex-row items-center gap-2 px-4 pb-2">
-      <View className="flex-1">
-        <Text ref={refCompteur} accessibilityRole="header" className="font-titre text-xl text-encre">
-          {lieux.length} lieu{lieux.length > 1 ? "x" : ""}
-        </Text>
-        {resume ? <Text className="font-texte text-xs text-gris">{resume}</Text> : null}
+    <View>
+      <View className="flex-row items-center gap-2 px-4 pb-2">
+        <View className="flex-1">
+          <Text ref={refCompteur} accessibilityRole="header" className="font-titre text-xl text-encre">
+            {lieux.length} lieu{lieux.length > 1 ? "x" : ""}
+          </Text>
+          {resume ? <Text className="font-texte text-xs text-gris">{resume}</Text> : null}
+        </View>
+        <BoutonAutourDeMoi actif={position !== null} recherche={recherche} onPress={basculerAutourDeMoi} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Roulette"
+          accessibilityHint="Tire un lieu au hasard parmi ceux qui correspondent à tes filtres"
+          onPress={() => {
+            vibrerLegerement();
+            setRoulette(true);
+          }}
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
+        >
+          <Text className="text-xl">🎲</Text>
+        </Pressable>
       </View>
-      <BoutonAutourDeMoi actif={position !== null} recherche={recherche} onPress={basculerAutourDeMoi} />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Roulette"
-        accessibilityHint="Tire un lieu au hasard parmi ceux qui correspondent à tes filtres"
-        onPress={() => {
-          vibrerLegerement();
-          setRoulette(true);
-        }}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
-      >
-        <Text className="text-xl">🎲</Text>
-      </Pressable>
+      <ChoixPorteeExplorer portee={portee} rayonKm={rayon} regionConnue={region !== null} onChoisir={setPortee} onReglerRayon={() => setReglageRayon(true)} />
     </View>
   );
 
@@ -224,6 +260,12 @@ export default function Explorer() {
     <View className="items-center gap-3 px-6 py-6">
       <Mascotte expression="surprise" taille={96} />
       <Text className="text-center font-titre text-xl text-encre">Rien par ici…</Text>
+      {elargir ? (
+        <Text className="text-center font-texte text-base leading-6 text-gris">
+          {lierPonctuation(portee === "proche" ? `Tu regardes à ${rayon} km ou moins ${autourDe}.` : `Tu regardes ${ouOnRegarde}.`)}
+        </Text>
+      ) : null}
+      {elargir ? <Bouton libelle={elargir.libelle} petit onPress={() => setPortee(elargir.portee)} /> : null}
       <Text className="text-center font-texte text-base leading-6 text-gris">
         {lierPonctuation(
           !motRecherche
@@ -249,6 +291,7 @@ export default function Explorer() {
         <CarteLieux
           lieux={lieux}
           centre={centre}
+          cadre={cadre}
           position={position}
           selection={selection}
           onSelection={setSelection}
@@ -295,6 +338,16 @@ export default function Explorer() {
           setRoulette(false);
           ouvrir(id);
         }}
+      />
+      <FeuilleRayonExplorer
+        visible={reglageRayon}
+        rayonKm={rayon}
+        autourDe={autourDe}
+        onValider={(km) => {
+          changerRayon(km);
+          setReglageRayon(false);
+        }}
+        onFermer={() => setReglageRayon(false)}
       />
       <Annonce annonce={annonce} haut={hauteurEnTete} onFin={finAnnonce} />
     </View>

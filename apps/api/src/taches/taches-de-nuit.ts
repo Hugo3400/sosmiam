@@ -2,7 +2,7 @@
 // des demandes de lieux de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
 // comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées (fondateur et certifié), liens de
 // réinitialisation expirés), les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et
-// l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base. Au démarrage, le ménage et une sauvegarde
+// l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base, aussitôt relue en entier pour la tester. Au démarrage, le ménage et une sauvegarde
 // tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
@@ -10,6 +10,7 @@ import { effacerReceptionsAnciennes } from "../services/notifications/file-push.
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
+import { testerSauvegarde } from "../services/gestion/test-sauvegarde.ts";
 import { faireLeMenageDesComptes } from "../services/menage-comptes.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { formaterOctets } from "../fonctions/texte/formater-octets.ts";
@@ -21,6 +22,9 @@ async function sauvegarder() {
   try {
     const sauvegarde = await sauvegarderBase();
     await noterAction("serveur", "Sauvegarde automatique", `${sauvegarde.nom} (${formaterOctets(sauvegarde.taille)})`);
+    // Et tout de suite relue en entier : une sauvegarde qu'on ne peut pas relire ne sert à rien (résultat dans Maintenance)
+    const test = await testerSauvegarde(sauvegarde.nom);
+    if (test && !test.ok) await noterAction("serveur", "Sauvegarde de la nuit : relecture ratée", test.erreur ?? "");
   } catch (erreur) {
     console.error("Sauvegarde automatique impossible :", erreur);
     await noterAction("serveur", "Sauvegarde automatique ratée", String((erreur as Error).message).slice(0, 250)).catch(() => {});

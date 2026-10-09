@@ -15,11 +15,12 @@ import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
 import { creerRoutesLieuxPublics } from "./routes/lieux-publics.ts";
 import { creerRoutesLocalisation } from "./routes/localisation.ts";
 import { creerRoutesMesure } from "./routes/mesure.ts";
+import { creerRoutesPro } from "./routes/pro.ts";
 import { creerRoutesSignalements } from "./routes/signalements.ts";
 import type { NouvelleDemandeLieu } from "./services/demandes-lieux.ts";
 import type { SignalementRecu } from "./services/gestion/moderation.ts";
 import type { NouvelleInscription } from "./services/inscriptions.ts";
-import type { LieuPublic } from "./services/lieux-publics.ts";
+import type { FichePublique, LieuPublic } from "./services/lieux-publics.ts";
 import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
 import type { ServicesZones } from "./services/zones-fondateurs.ts";
@@ -35,6 +36,8 @@ type Dependances = {
   trouverCommune?: (latitude: number, longitude: number) => Promise<Commune | null>;
   /** Lieux publiés, pour l'accueil du site (route absente si non fournie) */
   listerLieuxPublics?: () => Promise<LieuPublic[]>;
+  /** Fiche publique d'un lieu publié, pour sa page sur le site (GET /lieux/publics/:id ; absente si non fournie) */
+  lireFichePublique?: (id: number) => Promise<FichePublique | null>;
   /** Un lieu qui demande à être sur SOS Miam, depuis le site (route absente si non fournie) */
   enregistrerDemandeLieu?: (demande: NouvelleDemandeLieu) => Promise<void>;
   /** Bot Discord : propositions de lieux et annonces à publier (routes absentes si non fourni) */
@@ -50,14 +53,15 @@ type Dependances = {
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
-const PREFIXES_COMPTES = ["/comptes", "/espace-ambassadeur"];
+const PREFIXES_COMPTES = ["/comptes", "/espace-ambassadeur", "/pro"];
 const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
   reponse.set("Cache-Control", "private, no-store");
   suite();
 };
 
 export function creerApplication({
-  enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, enregistrerDemandeLieu, bot, gestion,
+  enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
+  enregistrerDemandeLieu, bot, gestion,
   comptes, espaceAmbassadeur, zones,
 }: Dependances) {
   const application = express();
@@ -74,7 +78,7 @@ export function creerApplication({
   });
   application.use("/inscriptions", creerRoutesInscriptions(enregistrerInscription));
   if (trouverCommune) application.use("/localisation", creerRoutesLocalisation(trouverCommune));
-  if (listerLieuxPublics) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics));
+  if (listerLieuxPublics || lireFichePublique) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics, lireFichePublique));
   if (enregistrerDemandeLieu) application.use("/demandes-lieux", creerRoutesDemandesLieux(enregistrerDemandeLieu));
   if (bot) application.use("/bot", creerRoutesBot(bot));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
@@ -86,6 +90,8 @@ export function creerApplication({
     const protection = creerProtectionComptes(comptes.sessions, comptes.horloge);
     const limiteConnectee = limiterRequetes(LIMITE_CONNECTEE);
     application.use("/comptes", creerRoutesComptes(comptes, protection, limiteConnectee));
+    // Espace pro (pro.sosmiam.fr) : même compte, même session
+    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",

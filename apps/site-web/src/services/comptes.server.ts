@@ -9,7 +9,8 @@ const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 export type ErreurCompte =
   | "champ-invalide" | "email-deja-utilise" | "age-minimum" | "identifiants" | "session-expiree" | "ambassadeur-non-actif"
   | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
-  | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie" | "erreur";
+  | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie"
+  | "deja-demande" | "lieu-inconnu" | "compte-inconnu" | "acces-refuse" | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
@@ -23,6 +24,9 @@ const CODES = new Set<string>([
   "deja-certifie",
   // Missions de l'espace (services/espace-ambassadeur.server.ts)
   "compte-rendu-trop-court", "introuvable",
+  // Espace pro (services/pro.server.ts) : rattachement déjà demandé (409), lieu ou compte invité inconnu (404), lieu
+  // d'un autre compte, ou modification réservée au gérant (403)
+  "deja-demande", "lieu-inconnu", "compte-inconnu", "acces-refuse",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */

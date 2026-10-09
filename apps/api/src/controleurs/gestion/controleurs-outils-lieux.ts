@@ -1,5 +1,5 @@
-// Contrôleurs des outils sur les fiches de lieux : contrôle (positions douteuses, doublons), lieux semblables à une
-// fiche pas encore créée, et import en lot (CSV lu par le logiciel).
+// Contrôleurs des outils du logiciel : contrôle des fiches de lieux (positions douteuses, doublons), lieux semblables à
+// une fiche pas encore créée, import en lot (CSV lu par le logiciel), villes à lancer et test des sauvegardes.
 import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
@@ -31,6 +31,14 @@ export function creerControleursOutilsLieux(s: ServicesGestion) {
   return {
     controle: async (_requete: Request, reponse: Response) => reponse.json(await s.lireControleLieux()),
     villes: async (_requete: Request, reponse: Response) => reponse.json(await s.listerVilles()),
+    dernierTestSauvegarde: async (_requete: Request, reponse: Response) => reponse.json(await s.lireDernierTestSauvegarde()),
+    /** Teste la sauvegarde la plus récente (déchiffrée et relue en entier, rien n'est restauré) */
+    testerSauvegarde: async (_requete: Request, reponse: Response) => {
+      const resultat = await s.testerSauvegarde();
+      if (!resultat) return reponse.status(404).json({ ok: false, erreur: "introuvable" });
+      await noter(reponse, resultat.ok ? "Sauvegarde testée : relue en entier" : "Sauvegarde testée : ÉCHEC", resultat.nom);
+      reponse.json(resultat);
+    },
     /** ?ville= : où en est cette ville (fiches, ambassadeurs, fondateurs, public à prévenir) */
     lancement: async (requete: Request, reponse: Response) => {
       const ville = lireParametre(requete.query.ville, 80);

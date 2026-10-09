@@ -10,6 +10,7 @@ import { creerStockageSessionsComptesEnMemoire } from "../middlewares/proteger-c
 import type { NouvelleCandidatureCertification, ProfilCertifie, StatutCandidatureCertification } from "./certification.ts";
 import type { CompteConnecte, PalierCompte, StatutAmbassadeur } from "./comptes.ts";
 import type { NouvelleCandidature, NouvelleProposition, PropositionVue, StatutCandidature } from "./comptes-espace.ts";
+import { creerProEnMemoire } from "./pro-en-memoire.ts";
 import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
 
@@ -70,6 +71,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const sessions = creerStockageSessionsComptesEnMemoire(comptes);
   const zones = creerZonesEnMemoire(() => candidatures);
   const suggestions = creerSuggestionsEnMemoire(horloge);
+  const pro = creerProEnMemoire(comptes, suggestions, horloge);
   const compteurs = { comptes: 0, candidatures: 0, candidaturesCertification: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
   const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
@@ -120,6 +122,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
                 : null,
             }
           : null,
+        pro: { lieux: pro.lieuxDuCompte(id) },
       };
       return vu;
     },
@@ -145,6 +148,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       for (let i = candidaturesCertification.length - 1; i >= 0; i--) if (candidaturesCertification[i]?.compteId === id) candidaturesCertification.splice(i, 1);
       for (const proposition of propositions) if (proposition.compteId === id) proposition.compteId = null;
       suggestions.oublierCompte(id);
+      pro.oublierCompte(id);
     },
     async trouverCompteParJeton(empreinteJeton, maintenant) {
       const compte = [...comptes.values()].find(({ reinitialisation }) =>
@@ -242,6 +246,12 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     /** Lieux de test (à remplir par les tests : champs proposables et statut) et suggestions reçues */
     lieux: suggestions.lieux,
     suggestions: suggestions.suggestions,
+    /** Espace pro : ses services (routes /pro et /comptes/moi/rattachements), les rattachements, la décision de l'équipe
+     * sur une demande « gerant » (deciderRattachement) et la fiche publique d'un lieu de test (lireFichePublique) */
+    pro: pro.services,
+    rattachements: pro.rattachements,
+    deciderRattachement: pro.deciderRattachement,
+    lireFichePublique: pro.lireFichePublique,
     /**
      * Décision de l'équipe, comme deciderAmbassadeur (logiciel de gestion) : les sessions restent ouvertes, le statut est
      * relu à chaque demande (§9 : un refus ou une suspension compte tout de suite, sans déconnecter).

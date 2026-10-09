@@ -3,6 +3,7 @@ import { AccessibilityInfo, Keyboard, Platform, StyleSheet, View } from "react-n
 import MapView, { type LatLng, type MapPressEvent } from "react-native-maps";
 import { useReducedMotion } from "react-native-reanimated";
 
+import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import { MarqueurLieu } from "~/composants/explorer/MarqueurLieu";
 import { MarqueurPosition } from "~/composants/explorer/MarqueurPosition";
@@ -14,6 +15,11 @@ type Props = {
   lieux: LieuExplorer[];
   /** Ville à montrer : celle choisie dans les filtres, sinon la tienne (partout en France) ; null si on ne la connaît pas (on montre alors nos lieux) */
   centre: PositionLieu | null;
+  /**
+   * La zone choisie (à quelques km, ta région, toute la France), cadrée dès qu'elle change ; sa clé dit quand elle change
+   * vraiment. null si on ne sait pas quoi cadrer : la carte cadre alors ta position, ta ville ou nos lieux.
+   */
+  cadre: (ZoneGeo & { cle: string }) | null;
   /** « Autour de moi » (sinon null) */
   position: PositionLieu | null;
   /** Id du lieu sélectionné */
@@ -64,6 +70,14 @@ function coinsAutour(points: LatLng[], demiMin: number): LatLng[] {
   ];
 }
 
+/** Les deux coins opposés d'un rectangle (nord-ouest, sud-est) */
+function coinsZone(z: ZoneGeo): LatLng[] {
+  return [
+    { latitude: z.nord, longitude: z.ouest },
+    { latitude: z.sud, longitude: z.est },
+  ];
+}
+
 /** Ce qu'on montre sans « Autour de moi » ni filtre qui vient de changer : la ville, sinon tous nos lieux (null s'il n'y a rien à montrer) */
 function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu }[]): LatLng[] | null {
   if (ville) return coinsAutour([ville], DEMI_VILLE);
@@ -73,9 +87,10 @@ function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu 
 /**
  * La carte d'Explorer (iPhone et Android) : Apple Plans sur iPhone, Google Maps sur Android, sans clé à fournir dans Expo Go.
  * Elle remplit son parent ; l'écran pose par-dessus la recherche, les filtres (margeHaut) et la feuille de liste (margeBas).
- * Elle part de ta ville (ou de nos lieux), cadre les lieux quand les filtres changent, ta position quand elle arrive, et va doucement vers le lieu sélectionné.
+ * Elle part de la zone choisie (sinon ta ville ou nos lieux), la recadre quand elle change (rayon, région, France, ta position
+ * qui arrive), cadre les lieux trouvés quand les filtres changent, et va doucement vers le lieu sélectionné.
  */
-export function CarteLieux({ lieux, centre, position, selection, onSelection, margeHaut, margeBas }: Props) {
+export function CarteLieux({ lieux, centre, cadre, position, selection, onSelection, margeHaut, margeBas }: Props) {
   const carte = useRef<MapView>(null);
   const animationsReduites = useReducedMotion();
   const [chargee, setChargee] = useState(false);
@@ -99,10 +114,11 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
     .join(",");
   const clePosition = position ? `${position.latitude.toFixed(5)},${position.longitude.toFixed(5)}` : null;
   const cleCentre = centre ? `${centre.latitude},${centre.longitude}` : null;
+  const cleCadre = cadre?.cle ?? null;
 
-  // Région de départ (avant le premier cadrage) : ta ville, sinon nos lieux
+  // Région de départ (avant le premier cadrage) : la zone choisie, sinon ta ville, sinon nos lieux
   const [regionDepart] = useState(() => {
-    const coins = zoneVille(centre, places);
+    const coins = cadre ? coinsZone(cadre) : zoneVille(centre, places);
     if (!coins) return REGION_FRANCE;
     const [nordOuest, sudEst] = coins;
     return {
@@ -115,9 +131,9 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
 
   // Ce que lisent les cadrages (lancés par les effets, parfois après une attente) : toujours les dernières valeurs.
   // Déclaré avant les autres effets, pour être à jour quand ils passent.
-  const etat = useRef({ places, centre, position, haut, bas, hauteur, animationsReduites });
+  const etat = useRef({ places, centre, cadre, position, haut, bas, hauteur, animationsReduites });
   useEffect(() => {
-    etat.current = { places, centre, position, haut, bas, hauteur, animationsReduites };
+    etat.current = { places, centre, cadre, position, haut, bas, hauteur, animationsReduites };
   });
 
   // VoiceOver ou TalkBack : la carte leur est cachée (voir plus bas)
@@ -171,23 +187,25 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
   }
 
   // Ce qu'on a déjà cadré (null avant le premier cadrage) : on ne recadre que quand ça change vraiment
-  const vus = useRef<{ lieux: string; position: string | null; centre: string | null } | null>(null);
+  const vus = useRef<{ lieux: string; position: string | null; centre: string | null; cadre: string | null } | null>(null);
 
-  // Un seul cadrage par changement, le plus utile : ta position quand elle arrive ; sinon les lieux trouvés quand les filtres changent
-  // (même quand la ville choisie change avec eux : on montre les résultats, jamais une autre ville par-dessus) ;
-  // sinon la ville, quand elle change toute seule (ville du profil modifiée).
+  // Un seul cadrage par changement, le plus utile : la zone choisie quand elle change (rayon, région, France, ou son centre :
+  // ta position qui arrive, ta ville) ; sinon ta position quand elle arrive ; sinon les lieux trouvés quand les filtres
+  // changent (on montre les résultats, jamais une autre ville par-dessus) ; sinon la ville, quand elle change toute seule.
   useEffect(() => {
     if (!prete) return;
     const avant = vus.current;
-    vus.current = { lieux: cleLieux, position: clePosition, centre: cleCentre };
-    const { places: trouves, position: ici, centre: ville } = etat.current;
-    // Premier cadrage, sans animation : ta position si on l'a déjà, sinon ta ville (ou nos lieux)
+    vus.current = { lieux: cleLieux, position: clePosition, centre: cleCentre, cadre: cleCadre };
+    const { places: trouves, position: ici, centre: ville, cadre: zone } = etat.current;
+    // Premier cadrage, sans animation : la zone choisie, sinon ta position si on l'a déjà, sinon ta ville (ou nos lieux)
     if (!avant) {
-      const coins = ici ? coinsAutour([ici], DEMI_AUTOUR) : zoneVille(ville, trouves);
+      const coins = zone ? coinsZone(zone) : ici ? coinsAutour([ici], DEMI_AUTOUR) : zoneVille(ville, trouves);
       if (coins) cadrer(coins, false);
       return;
     }
-    if (ici && avant.position !== clePosition) {
+    if (zone && avant.cadre !== cleCadre) {
+      cadrer(coinsZone(zone));
+    } else if (ici && avant.position !== clePosition) {
       cadrer(coinsAutour([ici], DEMI_AUTOUR));
     } else if (avant.lieux !== cleLieux && trouves.length > 0) {
       const points = ici ? [ici, ...trouves.slice(0, PLUS_PROCHES).map((p) => p.position)] : trouves.map((p) => p.position);
@@ -197,7 +215,7 @@ export function CarteLieux({ lieux, centre, position, selection, onSelection, ma
       const coins = zoneVille(ville, trouves);
       if (coins) cadrer(coins);
     }
-  }, [prete, cleLieux, clePosition, cleCentre]);
+  }, [prete, cleLieux, clePosition, cleCentre, cleCadre]);
 
   // Un lieu sélectionné (sur la carte ou dans la liste) : la carte va doucement vers lui
   useEffect(() => {

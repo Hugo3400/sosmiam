@@ -1,3 +1,5 @@
+import type { ComptePro } from "~/types/pro";
+
 /** Statut dans l'espace ambassadeur : l'équipe valide chaque inscription (docs/decisions.md). */
 export type StatutAmbassadeur = "en-attente" | "actif" | "refuse" | "suspendu";
 
@@ -25,6 +27,8 @@ export type CompteConnecte = {
     /** Titre d'« ambassadeur certifié », donné (ou retiré) par l'équipe ; null sans titre (absent : ancienne API) */
     certifie?: CertificationAmbassadeur | null;
   } | null;
+  /** Les lieux tenus par le compte (espace pro) ; absent tant que l'API ne le rend pas (contrat prévu, types/pro.ts) */
+  pro?: ComptePro | null;
 };
 
 /** « Tu es plutôt… » : un ambassadeur qui aime aider les lieux, un pro (resto, commerce…) ou une structure (asso, mairie…). */

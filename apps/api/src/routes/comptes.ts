@@ -7,9 +7,11 @@ import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
 import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
 import { creerControleursSuggestions } from "../controleurs/comptes-suggestions.ts";
+import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
+import type { ServicesPro } from "../services/pro-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
 const DIX_MINUTES = 10 * 60_000;
@@ -27,6 +29,8 @@ export const LIMITE_VERIFIER_EMAIL = { fenetre: DIX_MINUTES, maximum: 20 };
 /** « Proposer une modification » d'une fiche : 20 envois par visiteur et par heure (en plus des limites par compte : 10
  * par 24 heures, 3 en attente sur un même lieu) */
 export const LIMITE_SUGGESTIONS = { fenetre: 60 * 60_000, maximum: 20 };
+/** Demander à gérer un lieu : 10 demandes par visiteur et par heure (en plus de la limite par compte : 5 par 24 heures) */
+export const LIMITE_RATTACHEMENTS = { fenetre: 60 * 60_000, maximum: 10 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -38,6 +42,8 @@ export type DependancesComptes = {
   courriels: CourrielsComptes;
   /** Base des liens envoyés par mail (https://ambassadeur.sosmiam.fr ; l'API de démonstration met la sienne) */
   adresseEspace?: string;
+  /** Espace pro : rattachements, fiche, équipe (services/pro.ts, ou la mémoire) ; sans lui, ni /pro ni /comptes/moi/rattachements */
+  pro?: ServicesPro;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
 };
@@ -104,6 +110,26 @@ export type DependancesComptes = {
  *                                        deja-certifie · 409 candidature-existante (une en attente ; après un refus, on peut
  *                                        recandidater tout de suite)
  * `compte.ambassadeur.certifie` (dans toutes les réponses qui rendent `compte`) : { depuis, profil, structure } ou null.
+ * `compte.pro` (toujours là) : { lieux: [{ lieuId, nom, ville, role: "gerant"|"equipe", statut: "en-attente"|"valide"|
+ * "refuse" }] }, tous ses rattachements sauf « retire », du plus ancien au plus récent. Un lieu est à lui quand statut
+ * est « valide » : pages /pro/lieux/:id (routes/pro.ts).
+ * Espace pro, tout compte connecté :
+ * GET    /comptes/moi/rattachements     → 200 { ok, rattachements: [{ id, lieuId, nom, ville, emoji, role, statut, reponse,
+ *                                        creeLe, decideLe }] } (sauf « retire » ; les plus récents d'abord ; reponse : celle
+ *                                        de l'équipe, ou null). Une invitation dans une équipe : role « equipe », statut
+ *                                        « en-attente ».
+ * POST   /comptes/moi/rattachements     { lieuId, role: "gerant", preuve (1 à 600 car.), siret? (14 chiffres, espaces
+ *                                        tolérés, clé de Luhn juste ; "" ou null : sans) } → 201 { ok, id } (statut
+ *                                        « en-attente », validé ou refusé par l'équipe dans le logiciel de gestion)
+ *                                        · 400 champ-invalide {champ: lieuId|role|preuve|siret} · 404 lieu-inconnu (absent
+ *                                        ou masqué ; un brouillon se demande) · 409 deja-demande (une demande en attente ou
+ *                                        validée sur ce lieu, ou déjà dans son équipe ; après un refus ou un retrait, on
+ *                                        redemande) · 409 trop-de-demandes (5 par 24 h par compte) · 429 (10 par visiteur
+ *                                        et par heure)
+ * POST   /comptes/moi/rattachements/:id/accepter → 200 { ok } (invitation « equipe » acceptée : statut « valide ») · 404
+ *                                        invitation-inconnue (pas à lui, pas une invitation, ou plus en attente)
+ * DELETE /comptes/moi/rattachements/:id → 200 { ok } (refuser une invitation, annuler sa demande ou quitter un lieu :
+ *                                        statut « retire ») · 404 rattachement-inconnu
  */
 export function creerRoutesComptes(dependances: DependancesComptes, protection: ProtectionComptes, limiteConnectee: RequestHandler) {
   const { services, zones, courriels, adresseEspace = ADRESSE_ESPACE, horloge = Date.now } = dependances;
@@ -139,6 +165,13 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
   routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
+  if (dependances.pro) {
+    const rattachements = creerControleursRattachements(dependances.pro, horloge);
+    routes.get("/moi/rattachements", protection.exigerCompte, rattachements.lister);
+    routes.post("/moi/rattachements", limiterRequetes(LIMITE_RATTACHEMENTS), protection.exigerCompte, rattachements.demander);
+    routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, rattachements.accepter);
+    routes.delete("/moi/rattachements/:id", protection.exigerCompte, rattachements.quitter);
+  }
   routes.get("/moi/candidature", protection.exigerAmbassadeurActif, espace.lireCandidature);
   routes.post("/moi/candidature", protection.exigerAmbassadeurActif, espace.candidater);
   routes.post("/moi/candidature/commune", protection.exigerAmbassadeurActif, espace.changerCommune);
