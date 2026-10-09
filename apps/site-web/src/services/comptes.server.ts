@@ -9,13 +9,16 @@ const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 export type ErreurCompte =
   | "champ-invalide" | "email-deja-utilise" | "age-minimum" | "identifiants" | "session-expiree" | "ambassadeur-non-actif"
   | "candidature-existante" | "plus-de-place" | "jeton-invalide" | "mot-de-passe-incorrect" | "trop-de-demandes" | "occupe"
-  | "compte-rendu-trop-court" | "introuvable" | "erreur";
+  | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "erreur";
 
 const CODES = new Set<string>([
   "champ-invalide", "email-deja-utilise", "age-minimum", "identifiants", "session-expiree", "ambassadeur-non-actif",
   "candidature-existante", "jeton-invalide", "mot-de-passe-incorrect", "trop-de-demandes",
-  // Les 10 places de fondateur sont prises (409) ; trop de mots de passe à vérifier en même temps (503, Retry-After)
+  // Les places de fondateur de la zone sont toutes prises (409) ; trop de mots de passe à vérifier en même temps (503, Retry-After)
   "plus-de-place", "occupe",
+  // Changer la commune d'une candidature : il n'y en a pas (404), ou elle n'est plus en attente (409) ;
+  // places de fondateurs d'une commune inconnue (404, services/fondateurs.server.ts)
+  "aucune-candidature", "deja-traitee", "commune-inconnue",
   // Missions de l'espace (services/espace-ambassadeur.server.ts)
   "compte-rendu-trop-court", "introuvable",
 ]);
@@ -58,11 +61,14 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     if (typeof lu !== "object" || lu === null) return { ok: false, erreur: "erreur" };
     const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown };
     if (donnees.ok === true && reponse.ok) return lu as { ok: true } & T;
+    // L'attente est dans le corps (attente par compte), ou seulement dans l'en-tête Retry-After (limites par visiteur)
+    const retryAfter = Number(reponse.headers.get("Retry-After"));
+    const attente = typeof donnees.attente === "number" ? donnees.attente : reponse.status === 429 && retryAfter > 0 ? retryAfter : undefined;
     return {
       ok: false,
       erreur: typeof donnees.erreur === "string" && CODES.has(donnees.erreur) ? (donnees.erreur as ErreurCompte) : "erreur",
       ...(typeof donnees.champ === "string" ? { champ: donnees.champ } : {}),
-      ...(typeof donnees.attente === "number" ? { attente: donnees.attente } : {}),
+      ...(attente !== undefined ? { attente } : {}),
     };
   } catch {
     return { ok: false, erreur: "erreur" };
@@ -74,7 +80,7 @@ export function lireSession(jeton: string, ip: string | null) {
   return appelerApiComptes<{ compte: CompteConnecte }>("/comptes/session", { jeton, ip });
 }
 
-// ─── Sans session : inscription, connexion, nouveau mot de passe ───
+// ─── Sans session : inscription, connexion, mot de passe oublié, confirmation de l'e-mail ───
 
 /** Ce que l'API rend après une inscription ou une connexion : le jeton de session (donné une seule fois) et le compte. */
 type SessionOuverte = { session: string; compte: CompteConnecte };
@@ -93,8 +99,8 @@ export type DemandeInscription = {
 };
 
 /**
- * Crée le compte et sa demande d'ambassadeur (« en-attente ») et ouvre une session. Sans session dans la réponse : le champ
- * piège était rempli, rien n'a été créé.
+ * Crée le compte et sa demande d'ambassadeur (« en-attente ») et ouvre une session ; l'API envoie aussi le lien qui
+ * confirme l'e-mail (7 jours). Sans session dans la réponse : le champ piège était rempli, rien n'a été créé.
  */
 export function inscrireAmbassadeur(demande: DemandeInscription, ip: string | null) {
   return appelerApiComptes<Partial<SessionOuverte>>("/comptes", { methode: "POST", ip, corps: demande });
@@ -105,9 +111,22 @@ export function connecterCompte(email: string, motDePasse: string, ip: string | 
   return appelerApiComptes<SessionOuverte>("/comptes/session", { methode: "POST", ip, corps: { email, motDePasse } });
 }
 
-/** Nouveau mot de passe avec le jeton du lien préparé par l'équipe (24 h, une seule fois) ; ferme toutes les sessions. */
+/** Nouveau mot de passe avec le jeton du lien reçu par mail (24 h, une seule fois) ; ferme toutes les sessions. */
 export function reinitialiserMotDePasse(jetonReinitialisation: string, motDePasse: string, ip: string | null) {
   return appelerApiComptes<object>("/comptes/nouveau-mot-de-passe", { methode: "POST", ip, corps: { jeton: jetonReinitialisation, motDePasse } });
+}
+
+/**
+ * « Mot de passe oublié » : l'API envoie le lien de nouveau mot de passe (24 h, une seule fois) si un compte a cet
+ * e-mail, et répond pareil sinon. Erreurs : champ-invalide (e-mail mal formé), trop-de-demandes (par visiteur).
+ */
+export function demanderNouveauMotDePasse(email: string, ip: string | null) {
+  return appelerApiComptes<object>("/comptes/mot-de-passe-oublie", { methode: "POST", ip, corps: { email } });
+}
+
+/** Confirme l'e-mail avec le jeton du lien reçu à l'inscription (7 jours, une seule fois) : « jeton-invalide » sinon. */
+export function confirmerEmail(jetonVerification: string, ip: string | null) {
+  return appelerApiComptes<object>("/comptes/verifier-email", { methode: "POST", ip, corps: { jeton: jetonVerification } });
 }
 
 // ─── Avec session : le compte connecté ───
@@ -130,22 +149,42 @@ export function changerMotDePasse(jeton: string, ip: string | null, actuel: stri
   return appelerApiComptes<{ session: string }>("/comptes/moi/mot-de-passe", { methode: "POST", jeton, ip, corps: { actuel, nouveau } });
 }
 
+/**
+ * Renvoie le lien qui confirme l'e-mail (un toutes les 15 minutes, 5 par 24 heures : « trop-de-demandes » avec l'attente).
+ * dejaVerifie : l'adresse était déjà confirmée, rien n'est parti.
+ */
+export function renvoyerVerification(jeton: string, ip: string | null) {
+  return appelerApiComptes<{ dejaVerifie?: boolean }>("/comptes/moi/renvoyer-verification", { methode: "POST", jeton, ip });
+}
+
 /** Supprime le compte et tout ce qui va avec (mot de passe demandé). */
 export function supprimerCompte(jeton: string, ip: string | null, motDePasse: string) {
   return appelerApiComptes<object>("/comptes/moi", { methode: "DELETE", jeton, ip, corps: { motDePasse } });
 }
 
 /**
- * La candidature « fondateur » du compte (ou null) et les places de fondateur encore libres : 10 moins les numéros déjà
- * donnés, recomptées à chaque demande (ambassadeurs validés seulement).
+ * La candidature « fondateur » du compte (ou null) et les places de fondateur encore libres : celles de la zone de sa
+ * candidature (sa ville ou son département), sinon celles de toute la France ; recomptées à chaque demande (ambassadeurs
+ * validés seulement).
  */
 export function lireCandidature(jeton: string, ip: string | null) {
   return appelerApiComptes<{ candidature: CandidatureFondateur | null; placesRestantes: number }>("/comptes/moi/candidature", { jeton, ip });
 }
 
-/** Envoie la candidature « fondateur » (refusée s'il y en a déjà une en attente ou acceptée, ou s'il ne reste plus de place). */
+/**
+ * Envoie la candidature « fondateur » pour la zone de la commune choisie (refusée s'il y en a déjà une en attente ou
+ * acceptée, ou si la zone n'a plus de place ; champ-invalide « communeCode » si la commune est inconnue).
+ */
 export function envoyerCandidature(jeton: string, ip: string | null, candidature: NouvelleCandidature) {
   return appelerApiComptes<object>("/comptes/moi/candidature", { methode: "POST", jeton, ip, corps: candidature });
+}
+
+/**
+ * Précise ou change la commune d'une candidature en attente (envoyée avant les fondateurs par ville, ou pour une autre
+ * commune). Erreurs : aucune-candidature, deja-traitee (plus en attente), plus-de-place, champ-invalide (communeCode).
+ */
+export function changerCommuneCandidature(jeton: string, ip: string | null, communeCode: string) {
+  return appelerApiComptes<{ candidature: CandidatureFondateur }>("/comptes/moi/candidature/commune", { methode: "POST", jeton, ip, corps: { communeCode } });
 }
 
 /** Les lieux proposés par le compte, avec leur statut (« a-traiter », « acceptee », « refusee »). */

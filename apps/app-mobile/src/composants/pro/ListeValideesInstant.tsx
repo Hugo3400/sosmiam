@@ -1,6 +1,8 @@
 import { Pressable, Text, View } from "react-native";
 
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { ValidationRecente } from "@sos-miam/commun/types/comptoir";
+import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
 type Props = {
@@ -27,7 +29,7 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
         const reste = resteMin <= 1 ? "encore moins d'une minute" : `encore ${resteMin} min`;
         return (
           <View key={v.visiteId} className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
-            <View accessible accessibilityLabel={`${nom}, validé par ${MODES[v.mode]}. Annulable ${reste}.`} className="flex-1 flex-row items-center gap-3">
+            <View accessible accessibilityLabel={`${nom}, validé par ${MODES[v.mode]}. ${decrireReglement(v.reglement, "lieu").titre}. Annulable ${reste}.`} className="flex-1 flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-full bg-jaune">
                 <Text className="text-lg">{v.avatar}</Text>
               </View>
@@ -38,6 +40,9 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
                 <Text className="font-texte text-[13px] leading-[18px] text-gris">
                   {MODES[v.mode]} · annulable {reste}
                 </Text>
+                <View className="mt-1.5">
+                  <EtiquettesReglement reglement={v.reglement} pour="lieu" taille="petite" />
+                </View>
               </View>
             </View>
             <Pressable

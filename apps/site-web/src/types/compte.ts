@@ -14,6 +14,8 @@ export type CompteConnecte = {
   badges: string[];
   /** Date de création (ISO 8601) */
   creeLe: string;
+  /** Vrai une fois l'adresse confirmée par le lien reçu à l'inscription (7 jours ; « Renvoyer le lien » dans l'espace) */
+  emailVerifie: boolean;
   ambassadeur: {
     statut: StatutAmbassadeur;
     ville: string;
@@ -26,11 +28,47 @@ export type CompteConnecte = {
 /** Ce qu'un futur fondateur aimerait faire (candidature « fondateur »). */
 export type EnvieFondateur = "denicher" | "fiches" | "selections" | "faire-savoir";
 
-/** La candidature « fondateur » du compte ; une candidature refusée est effacée 3 mois après la réponse. */
+/**
+ * Une zone de fondateurs : une ville de 50 000 habitants ou plus (10, 5, 3 ou 1 place), ou un département (ou une
+ * collectivité d'outre-mer) pour ses communes plus petites (1 place). docs/decisions.md, « Fondateurs par ville ».
+ */
+export type ZoneFondateurs = {
+  code: string;
+  type: "ville" | "departement";
+  /** « Lyon », « Rhône », « Saint-Denis (La Réunion) » */
+  nom: string;
+  /** « de Lyon », « du Rhône », « de La Rochelle », « des Landes » : pour « Fondateur n° 3 de Lyon » */
+  nomAvecDe: string;
+  places: number;
+  prises: number;
+  libres: number;
+};
+
+/** Une commune (code INSEE), telle que la recherche de l'API la rend. */
+export type CommuneFondateurs = {
+  code: string;
+  nom: string;
+  nomDepartement: string;
+  codeDepartement: string;
+  population: number;
+  /** Le code postal tapé, quand la recherche s'est faite par code postal */
+  codePostal?: string | null;
+};
+
+/**
+ * La candidature « fondateur » du compte ; une candidature refusée est effacée 3 mois après la réponse. « souvenir » :
+ * le fondateur a déménagé, sa place s'est libérée, il garde son titre (et peut candidater ailleurs).
+ */
 export type CandidatureFondateur = {
-  statut: "en-attente" | "acceptee" | "refusee";
-  /** Numéro de la carte de fondateur (1 à 10), donné à l'acceptation */
+  statut: "en-attente" | "acceptee" | "refusee" | "souvenir";
+  /** Numéro dans sa ville ou son département (le même que numeroLocal), donné à l'acceptation, jamais redonné */
   numero: number | null;
+  numeroLocal: number | null;
+  /** Numéro en France, dans l'ordre des acceptations */
+  numeroNational: number | null;
+  /** null : candidature envoyée avant les fondateurs par ville (à préciser depuis l'espace) */
+  commune: { code: string; nom: string; nomDepartement: string } | null;
+  zone: ZoneFondateurs | null;
   /** Dates ISO 8601 */
   creeLe: string;
   reponduLe: string | null;
@@ -38,6 +76,8 @@ export type CandidatureFondateur = {
 
 /** Ce qu'envoie le formulaire de candidature (les champs facultatifs vides sont absents). */
 export type NouvelleCandidature = {
+  /** Code INSEE de la commune où l'on vit : l'API en déduit la ville ou le département */
+  communeCode: string;
   pepites: string;
   envies: EnvieFondateur[];
   reseaux?: string;
