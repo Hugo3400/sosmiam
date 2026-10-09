@@ -31,6 +31,21 @@ model Lieu {
   telephone    String?              @db.VarChar(30)
   siteWeb      String?              @map("site_web") @db.VarChar(200)
   instagram    String?              @db.VarChar(60)
+  /// Infos pratiques (docs/decisions.md, « Infos pratiques des lieux ») ; null ou liste vide : inconnu, jamais affiché.
+  /// Animaux : « bienvenus », « terrasse » (seulement en terrasse) ou « non »
+  animaux      String?              @db.VarChar(10)
+  /// Accessible en fauteuil roulant (entrée et salle)
+  accessible   Boolean?
+  terrasse     Boolean?
+  wifi         Boolean?
+  /// Chaise haute ou menu enfant
+  enfants      Boolean?
+  /// Parking facile juste à côté
+  parking      Boolean?
+  /// « cb », « sans-contact », « especes », « tickets-resto », « cheques-vacances »
+  paiements    String[]             @default([])
+  /// Réservation : « inutile », « conseillee » ou « obligatoire »
+  reservation  String?              @db.VarChar(12)
   /// Prénom de la personne qui l'a fait découvrir
   decouvertPar String?              @map("decouvert_par") @db.VarChar(40)
   /// « brouillon », « publie » ou « masque »
