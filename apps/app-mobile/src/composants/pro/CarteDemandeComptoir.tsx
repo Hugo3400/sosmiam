@@ -52,20 +52,23 @@ export function CarteDemandeComptoir({ demande, maintenant, onRegler, onRefuser,
   return (
     <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${recompense ? "bg-jaune-clair" : "bg-white"}`}>
       <View accessible accessibilityLabel={`${nom}, ${attente}. ${detail}. Code : ${codeLu}`} className="gap-3">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-start gap-3">
           <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-creme">
             <Text className="text-2xl">{demande.avatar}</Text>
           </View>
           <View className="flex-1 gap-0.5">
-            <Text numberOfLines={1} className="font-texte-gras text-lg text-encre">
-              {nom}
-            </Text>
-            <Text numberOfLines={1} className="font-texte-semi text-sm text-gris">
+            <View className="flex-row items-baseline gap-2">
+              <Text numberOfLines={1} className="flex-1 font-texte-gras text-lg text-encre">
+                {nom}
+              </Text>
+              <Text className="font-texte text-sm text-gris">{attente}</Text>
+            </View>
+            {/* Jamais coupé : la récompense entière, ou le nombre de tampons */}
+            <Text className="font-texte-semi text-sm leading-5 text-gris">
               {recompense ? "🎁 " : ""}
               {lierPonctuation(detail)}
             </Text>
           </View>
-          <Text className="font-texte text-sm text-gris">{attente}</Text>
         </View>
         <View className="flex-row justify-center gap-2">
           {demande.code.split("").map((chiffre, i) => (

@@ -35,7 +35,7 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
                 <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
                   ✓ {nom}
                 </Text>
-                <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
+                <Text className="font-texte text-[13px] leading-[18px] text-gris">
                   {MODES[v.mode]} · annulable {reste}
                 </Text>
               </View>

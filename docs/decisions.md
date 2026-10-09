@@ -197,6 +197,18 @@
 - **Ambassadeur de ville** : nommé plus tard par l'équipe parmi les fondateurs de la ville (son capitaine). Réservé aux fondateurs d'une ville : un fondateur de département garde son titre de fondateur, sans palier équivalent (décidé par Hugo le 9 octobre 2026).
 - **En attendant la nouvelle version** : la candidature reste ouverte avec l'ancien texte ; l'équipe n'accepte personne d'ici là ; chaque candidature reçue sera reprise dans la ville ou le département de la personne.
 
+## Ambassadeur certifié (décidé le 9 octobre 2026, à construire)
+- **Qui** : quelqu'un qui aide les lieux partenaires. Ça peut être un ambassadeur, un pro (restaurateur, commerçant) ou une structure (asso, mairie, office de tourisme…). Une structure est représentée par **une personne** qui a son compte (18 ans ou plus) et indique le nom de sa structure : « Marie, pour l'asso Les Gourmands du 11e ».
+- **Comment** : l'équipe le choisit, sur candidature depuis l'espace ou sur invitation, et valide dans le logiciel de gestion.
+- **Un titre à part**, pas un palier : il s'ajoute au palier (et au titre de fondateur s'il y en a un).
+- **Ce qu'il a de plus** :
+  - un badge « Ambassadeur certifié ✓ » sur son profil et sur les fiches des lieux qu'il a aidés (prénom, ou prénom et structure) ;
+  - des missions chez les lieux partenaires, confiées par l'équipe ;
+  - un kit média pro (visuels pour présenter SOS Miam aux lieux) ;
+  - le contact direct avec les lieux, **par la messagerie SOS Miam** (demande depuis l'espace pro, reçue dans « Mes messages »), sans aucune adresse ni aucun numéro montré. Ça arrivera avec l'espace pro.
+- **Pas de liste publique** des ambassadeurs certifiés : seulement le badge sur les fiches des lieux aidés.
+- **Jamais payé par un lieu**, comme tous les ambassadeurs : si un lieu lui offre quelque chose, il l'écrit « Collaboration commerciale ».
+
 ## Espace ambassadeur (décidé le 8 octobre 2026)
 - **https://ambassadeur.sosmiam.fr**, servi par le site (apps/site-web) : « / » mène à `/programme`, la page publique (et indexée) qui explique le programme ; sur sosmiam.fr, les adresses de l'espace renvoient vers ce sous-domaine. Lancement partout en France : aucune ville n'y est citée comme lieu de lancement.
 - **Dès 18 ans** : date de naissance demandée à l'inscription, âge calculé avec la date du jour à Paris, date jamais gardée ni écrite dans un journal (moins de 18 ans : rien n'est gardé). **Chaque inscription est validée par l'équipe** dans le logiciel de gestion : statut « en attente », puis « actif », « refusé » ou « suspendu ». Seul « actif » ouvre le kit média, les propositions de lieux, la candidature fondateur, les missions et les messages ; « refusé » et « suspendu » peuvent se connecter pour voir leur statut et gérer leur compte dans « Mon compte » (infos, mot de passe, suppression), rien d'autre.
