@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
@@ -33,6 +33,7 @@ const DELAI_FOCUS_MS = 450;
  */
 export default function EcranVisite() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { id, celebrer, deja } = useLocalSearchParams<{ id: string; celebrer?: string; deja?: string }>();
   const visiteId = typeof id === "string" && /^\d+$/.test(id) ? Number(id) : null;
   const { profil, avatar } = utiliserProfil();
@@ -86,7 +87,17 @@ export default function EcranVisite() {
   const signature = profil ? (initiale ? `${profil.prenom} ${initiale}.` : profil.prenom) : "Toi";
   const emoji = avatar.type === "emoji" ? avatar.emoji : "🙂";
 
-  const fermer = () => (router.canGoBack() ? router.back() : router.replace("/scan"));
+  // Ouverte par-dessus le parcours du Scan (« Tu es chez qui ? », le scanner) : on referme tout le parcours d'un coup, pour
+  // retrouver l'onglet (ou la fiche) d'où l'on était parti, plutôt que de retomber sur « Tu es chez qui ? » une fois la visite faite
+  const fermer = () => {
+    const etat = navigation.getState();
+    const routes = etat?.routes ?? [];
+    const ici = etat?.index ?? routes.length - 1;
+    const parcours = routes.findIndex((r, i) => i < ici && r.name === "scan");
+    if (parcours > 0) router.dismiss(ici - parcours + 1);
+    else if (navigation.canGoBack()) navigation.goBack();
+    else router.replace("/scan");
+  };
 
   let contenu;
   if (!pret) {
