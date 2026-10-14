@@ -3,21 +3,30 @@ import { useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
+import { CIBLES_MODERATION } from "~/contenus/cibles-moderation.ts";
 import { RAISONS_SIGNALEMENT } from "~/contenus/raisons-signalement.ts";
 import { VignetteMedia } from "~/ecrans/publications/VignetteMedia.tsx";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
-import { deciderSignalement, type Signalement } from "~/services/moderation.ts";
+import { deciderSignalement, type LieuCite, type Signalement } from "~/services/moderation.ts";
+import { InstantaneSignale } from "./InstantaneSignale.tsx";
+import { MediaSignale } from "./MediaSignale.tsx";
 import { ModaleDecisionModeration, type ChoixModeration } from "./ModaleDecisionModeration.tsx";
 import { SuiteDecision } from "./SuiteDecision.tsx";
 
-/** Un contenu signalé (une ou plusieurs fois) : ce qu'on lui reproche, le contenu lui-même, et la décision. */
-export function CarteContenuSignale({ signalements, onDecide }: { signalements: Signalement[]; onDecide: () => void }) {
+type Props = { signalements: Signalement[]; lieux: Record<string, LieuCite>; onDecide: () => void };
+
+/**
+ * Un contenu signalé (une ou plusieurs fois) : ce qu'on lui reproche, le contenu lui-même (la publication, ou l'instantané
+ * d'un contenu social), qui l'a signalé, et la décision.
+ */
+export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
   const [decision, setDecision] = useState<"retenu" | "rejete" | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const premier = signalements[0]!;
   const publication = premier.publication;
+  const cible = CIBLES_MODERATION[premier.cible] ?? { libelle: premier.cible, le: "le contenu", emoji: "❔" };
   const urgent = signalements.some((s) => s.urgent && s.statut === "a-traiter");
   // Contestée et pas encore réexaminée : on peut décider à nouveau
   const conteste = !!premier.contesteLe && !premier.reexamineLe;
@@ -25,7 +34,7 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
   const media = publication?.medias.find((m) => m.type === "affiche") ?? publication?.medias.find((m) => m.type === "photo") ?? publication?.medias[0];
   const contenu = publication
     ? `${publication.medias.some((m) => m.type === "video") ? "ta vidéo" : "ta publication"} sur ${publication.lieu.nom} (« ${publication.legende.slice(0, 60)}${publication.legende.length > 60 ? "…" : ""} »)`
-    : "ta publication";
+    : cible.le.replace(/^le /, "ton ").replace(/^la /, "ta ");
 
   async function confirmer(choix: ChoixModeration) {
     setEtat({ enCours: true, erreur: null });
@@ -41,7 +50,13 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
 
   return (
     <article className={`grid gap-5 rounded-carte border bg-white p-5 lg:grid-cols-[160px_minmax(0,1fr)_auto] ${urgent ? "border-2 border-tomate" : "border-ligne"}`}>
-      <VignetteMedia fichier={media?.fichier ?? null} video={media?.type === "video"} controles className="aspect-[9/16] w-40 rounded-xl border border-ligne" />
+      {publication ? (
+        <VignetteMedia fichier={media?.fichier ?? null} video={media?.type === "video"} controles className="aspect-[9/16] w-40 rounded-xl border border-ligne" />
+      ) : premier.avecMedia && aTraiter ? (
+        <MediaSignale signalementId={premier.id} />
+      ) : (
+        <div className="grid aspect-square w-40 place-items-center rounded-xl bg-creme text-5xl" aria-hidden>{cible.emoji}</div>
+      )}
       <div className="grid content-start gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {urgent && <Badge ton="rouge"><Siren className="size-3.5" aria-hidden /> Masquée pour tous</Badge>}
@@ -58,8 +73,15 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
             </p>
             <p className="mt-1 text-sm">{publication.legende}</p>
           </div>
-        ) : (
+        ) : premier.cible === "publication" ? (
           <p className="text-sm text-gris">Contenu introuvable ({premier.cible} n° {premier.cibleId}) : il a peut-être été supprimé.</p>
+        ) : (
+          <InstantaneSignale signalement={premier} lieux={lieux} />
+        )}
+        {cible.aLaMain && aTraiter && (
+          <p className="rounded-xl border border-ligne px-3 py-2 text-[13px]">
+            Retenir ne change rien tout seul pour {cible.le} : corrige-le à la main (effacer l'avatar, remettre le titre « Sortie » ou « Groupe », ou agir sur le compte depuis sa fiche). L'auteur et la personne qui a signalé sont quand même prévenus.
+          </p>
         )}
         <ul className="grid gap-2">
           {signalements.map((s) => (
@@ -70,6 +92,13 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
                 <span className="float-right text-xs font-normal text-gris">{formaterDate(s.creeLe, true)}</span>
               </p>
               {s.explication && <p className="mt-0.5 text-gris">« {s.explication} »</p>}
+              {(s.signaleParId || s.source === "lieu") && (
+                <p className="mt-0.5 text-xs text-gris">
+                  {s.source === "lieu" ? "Masqué par le gérant du lieu" : `Signalé par le compte n° ${s.signaleParId}`}
+                  {s.signaleur && ` · ${s.signaleur.ceMois} signalement(s) ce mois-ci`}
+                  {s.signaleur?.partRejets !== null && s.signaleur?.partRejets !== undefined && ` · ${s.signaleur.partRejets} % rejetés sur 12 mois (${s.signaleur.juges} jugés)`}
+                </p>
+              )}
             </li>
           ))}
         </ul>
@@ -79,7 +108,7 @@ export function CarteContenuSignale({ signalements, onDecide }: { signalements: 
       </div>
       {aTraiter && (
         <div className="flex flex-col gap-2 lg:w-52">
-          <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir le retrait" : "Retirer la publication"}</Bouton>
+          <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir le retrait" : cible.aLaMain ? "Retenir" : `Retirer ${cible.le}`}</Bouton>
           <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? "Remettre en ligne" : urgent ? "Remettre en ligne" : "Rien à redire"}</Bouton>
         </div>
       )}

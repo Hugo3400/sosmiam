@@ -3,13 +3,16 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { DiscussionSortie, type LigneDiscussion } from "~/composants/potes/DiscussionSortie";
 import { EnTeteSortie } from "~/composants/potes/EnTeteSortie";
+import { MembresSortie } from "~/composants/potes/MembresSortie";
 import { VoteSortie } from "~/composants/potes/VoteSortie";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
@@ -17,6 +20,7 @@ import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserDiscussionSortie } from "~/hooks/utiliser-discussion-sortie";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Onglet = "vote" | "discussion";
@@ -34,6 +38,8 @@ function decrireJour(date: Date, maintenant: Date): string {
   const longue = formaterDateLongue(formaterDateIso(date));
   return `${JOURS[date.getDay()]} ${date.getFullYear() === maintenant.getFullYear() ? longue.replace(/ \d+$/, "") : longue}`;
 }
+// Une sortie reste « à venir » quelques heures après son début (le temps du repas), comme dans l'onglet Sorties
+const DUREE_SORTIE = 4 * 3_600_000;
 const decrireHeure = (date: Date) => formaterHeure(`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`);
 
 /** Demande une confirmation (Alert n'existe pas sur le web : on passe par la boîte du navigateur). */
@@ -48,16 +54,21 @@ function confirmer(titre: string, message: string, action: string, destructive: 
   ]);
 }
 
-/** Une sortie entre potes : en-tête, puis « Le vote » (lieux proposés, votes, lieu retenu) et « La discussion » (messages). */
+/**
+ * Une sortie entre potes : en-tête, puis « Le vote » (lieux proposés, votes, lieu retenu, qui vient) et « La discussion »
+ * (messages). L'organisateur invite d'autres potes, retire quelqu'un ou annule la sortie. Compte connecté : la sortie est relue
+ * à l'ouverture, et sa discussion passe par la messagerie.
+ */
 export default function EcranSortie() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { id, onglet: ongletDemande } = useLocalSearchParams<{ id: string; onglet?: string }>();
-  const { pret, trouverSortie, trouverPote, bloques, terminerVote, quitterSortie } = utiliserCommunaute();
+  const { pret, trouverSortie, trouverPote, bloques, terminerVote, quitterSortie, lireSortie, annulerSortie } = utiliserCommunaute();
   const monId = utiliserMonId();
   const [onglet, setOnglet] = useState<Onglet>(ongletDemande === "discussion" ? "discussion" : "vote");
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [quittee, setQuittee] = useState(false);
+  const [annulation, setAnnulation] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
@@ -68,8 +79,16 @@ export default function EcranSortie() {
     return () => clearInterval(minuterie);
   }, []);
 
+  // Compte connecté : on relit la sortie à l'ouverture (propositions, votes, invités) ; démo : rien
+  useEffect(() => {
+    if (id) lireSortie(id);
+    // lireSortie change à chaque relecture de la communauté : seulement à l'ouverture
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   const retour = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
   const sortie = id ? trouverSortie(id) : null;
+  const discussion = utiliserDiscussionSortie(sortie);
 
   // Le temps de lire la communauté sur le téléphone, ou juste après avoir quitté la sortie : rien à montrer
   if (!pret || quittee) return <View className="flex-1 bg-creme" />;
@@ -93,8 +112,10 @@ export default function EcranSortie() {
 
   const quand = new Date(sortie.quand);
   const fin = new Date(sortie.finVote);
-  const voteFini = sortie.lieuChoisi !== null || fin <= maintenant;
-  const lieuChoisi = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length }))) : null);
+  const voteFini = sortie.lieuChoisi !== null || sortie.voteTermine === true || fin <= maintenant;
+  // Avec un compte, nombreVotes compte aussi les votes qu'on ne te nomme pas : c'est lui qui décide
+  const lieuChoisi =
+    sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.nombreVotes ?? p.votes.length }))) : null);
   const minutesRestantes = Math.ceil((fin.getTime() - maintenant.getTime()) / 60_000);
   const finVote = minutesRestantes < 60 ? `dans ${Math.max(1, minutesRestantes)} min` : `${decrireJour(fin, maintenant)} à ${decrireHeure(fin)}`;
 
@@ -105,16 +126,22 @@ export default function EcranSortie() {
     .map(trouverPote)
     .filter((p): p is Pote => p !== null);
 
-  const lignes: LigneDiscussion[] = sortie.messages.map((m, i) => {
+  const enAttente = (sortie.invites ?? []).filter((p) => !bloquesIds.has(p) && !sortie.participants.includes(p)).length;
+  const organisateur = sortie.organisateur === monId;
+  const passee = quand.getTime() + DUREE_SORTIE < maintenant.getTime();
+
+  const messages = discussion.messages;
+  const lignes: LigneDiscussion[] = messages.map((m, i) => {
     const date = new Date(m.date);
-    const precedente = sortie.messages[i - 1];
+    const precedente = messages[i - 1];
     const nouveauJour = !precedente || debutDuJour(new Date(precedente.date)) !== debutDuJour(date);
     return { message: m, auteur: trouverPote(m.auteur), deMoi: m.auteur === monId, heure: decrireHeure(date), jour: nouveauJour ? capitaliser(decrireJour(date, maintenant)) : null };
   });
 
   const onglets = [
     { cle: "vote" as const, emoji: "🗳️", nom: "Le vote" },
-    { cle: "discussion" as const, emoji: "💬", nom: "La discussion", nombre: sortie.messages.length },
+    // Des messages plus anciens restent à lire : le nombre serait faux
+    { cle: "discussion" as const, emoji: "💬", nom: "La discussion", nombre: discussion.plusAnciens ? undefined : messages.length },
   ];
 
   const demanderFinDuVote = () =>
@@ -126,7 +153,7 @@ export default function EcranSortie() {
   const demanderDepart = () =>
     confirmer(
       "Quitter la sortie ?",
-      sortie.organisateur === monId
+      organisateur
         ? "Tu organises cette sortie : tes potes la garderont sans toi, et tu ne verras plus le vote ni la discussion."
         : "Tu ne verras plus le vote ni la discussion de cette sortie.",
       "Quitter",
@@ -138,6 +165,14 @@ export default function EcranSortie() {
       },
     );
 
+  async function annuler() {
+    if (!sortie) return;
+    const erreur = await annulerSortie(sortie.id);
+    if (erreur) return annoncer(MESSAGES_SERVICE[erreur].texte);
+    setQuittee(true);
+    retour();
+  }
+
   return (
     <View className="flex-1 bg-creme">
       {/* « padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre pour le clavier */}
@@ -147,6 +182,7 @@ export default function EcranSortie() {
             sortie={sortie}
             quand={`${capitaliser(decrireJour(quand, maintenant))} à ${decrireHeure(quand)}`}
             participants={participants}
+            enAttente={enAttente}
             organisateur={bloquesIds.has(sortie.organisateur) ? null : trouverPote(sortie.organisateur)}
             onRetour={retour}
           />
@@ -187,14 +223,50 @@ export default function EcranSortie() {
                 finVote={finVote}
                 onAnnoncer={annoncer}
                 onTerminer={demanderFinDuVote}
-                onQuitter={demanderDepart}
               />
+              <MembresSortie sortie={sortie} passee={passee} onAnnoncer={annoncer} />
+              <View className="mt-2 items-center">
+                <Pressable accessibilityRole="button" onPress={demanderDepart} hitSlop={4} className="min-h-11 items-center justify-center px-4 active:opacity-70">
+                  <Text className="font-texte-semi text-base text-rouge-texte underline">Quitter la sortie</Text>
+                </Pressable>
+                {organisateur ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityHint="La sortie et sa discussion disparaissent pour tout le monde, après confirmation"
+                    onPress={() => setAnnulation(true)}
+                    hitSlop={4}
+                    className="min-h-11 items-center justify-center px-4 active:opacity-70"
+                  >
+                    <Text className="font-texte-semi text-base text-rouge-texte underline">Annuler la sortie</Text>
+                  </Pressable>
+                ) : null}
+              </View>
             </ScrollView>
           ) : (
-            <DiscussionSortie sortieId={sortie.id} lignes={lignes} margeBas={marges.bottom} onAnnoncer={annoncer} />
+            <DiscussionSortie
+              lignes={lignes}
+              envoyer={discussion.envoyer}
+              renvoyer={discussion.renvoyer}
+              plusAnciens={discussion.plusAnciens}
+              onChargerPlusAnciens={discussion.chargerPlusAnciens}
+              margeBas={marges.bottom}
+              onAnnoncer={annoncer}
+            />
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <FeuilleConfirmation
+        visible={annulation}
+        emoji="🗑️"
+        titre={`Annuler « ${sortie.titre} » ?`}
+        detail="La sortie et sa discussion disparaissent pour tout le monde, sans retour possible. Pas de panique : une autre se lance en deux minutes."
+        libelleConfirmer="Annuler la sortie"
+        libelleRester="Je la garde"
+        indiceRester="La sortie continue comme avant"
+        onConfirmer={() => void annuler()}
+        onFermer={() => setAnnulation(false)}
+      />
 
       <Annonce annonce={annonce} haut={marges.top + 8} onFin={finAnnonce} />
     </View>

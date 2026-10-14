@@ -6,7 +6,9 @@ import { Carte } from "~/composants/interface/Carte.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
+import { ChoixEnPastilles } from "~/composants/interface/ChoixEnPastilles.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
+import { CIBLES_MODERATION } from "~/contenus/cibles-moderation.ts";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { listerSignalements, type Signalement, type VueModeration } from "~/services/moderation.ts";
@@ -25,17 +27,24 @@ function regrouper(signalements: Signalement[]) {
 /** File de modération : les signalements de l'app, les graves (publication masquée pour tous) en tête. */
 export function EcranModeration() {
   const [statut, setStatut] = useState<VueModeration>("a-traiter");
-  const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerSignalements(statut), [statut]);
+  const [cible, setCible] = useState("");
+  const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerSignalements(statut, cible), [statut, cible]);
   const groupes = donnees ? regrouper(donnees.signalements) : [];
 
   return (
     <>
       <EnTeteEcran
         titre="Modération"
-        sousTitre="Pour « Violence ou contenu sexuel », la publication est masquée pour tout le monde dès le premier signalement, en attendant ta décision. Pour le reste, elle ne disparaît que pour la personne qui l'a signalée."
+        sousTitre="Pour « Violence ou contenu sexuel », le contenu est masqué pour tout le monde dès le premier signalement, en attendant ta décision. Un commentaire, un message ou une liste se juge sur sa copie prise au moment du signalement : jamais sur le contenu vivant."
         actions={<Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={recharger}>Actualiser</Bouton>}
       />
-      <div className="mb-5">
+      <div className="mb-5 grid gap-3">
+        <ChoixEnPastilles
+          libelle="Contenu"
+          valeur={cible}
+          onChange={setCible}
+          options={[{ valeur: "", libelle: "Tout" }, ...Object.entries(CIBLES_MODERATION).map(([valeur, c]) => ({ valeur, libelle: `${c.emoji} ${c.libelle}` }))]}
+        />
         <Onglets
           libelle="Signalements"
           valeur={statut}
@@ -60,7 +69,7 @@ export function EcranModeration() {
         </Carte>
       )}
       <div className="grid gap-4">
-        {groupes.map((groupe) => <CarteContenuSignale key={`${groupe[0]!.cible}|${groupe[0]!.cibleId}`} signalements={groupe} onDecide={recharger} />)}
+        {groupes.map((groupe) => <CarteContenuSignale key={`${groupe[0]!.cible}|${groupe[0]!.cibleId}`} signalements={groupe} lieux={donnees?.lieux ?? {}} onDecide={recharger} />)}
       </div>
     </>
   );
