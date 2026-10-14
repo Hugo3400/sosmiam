@@ -37,7 +37,7 @@ export function EcranBoite({ allerA, onLu }: { allerA: (ecran: Ecran, id: number
   }, [ouvert]);
   const messages = (liste.donnees ?? []).filter((m) => automatiques || !m.automatique);
   const caches = (liste.donnees ?? []).length - messages.length;
-  const actuel = DOSSIERS.find((d) => d.valeur === dossier) ?? DOSSIERS[0];
+  const actuel = DOSSIERS.find((d) => d.valeur === dossier) ?? DOSSIERS[0]!;
 
   return (
     <>

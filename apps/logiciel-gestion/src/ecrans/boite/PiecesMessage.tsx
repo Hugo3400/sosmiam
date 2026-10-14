@@ -52,7 +52,7 @@ export function PiecesMessage({ uid, dossier, pieces }: Props) {
         <ul className="flex flex-wrap gap-3">
           {images.map((piece) => (
             <li key={piece.numero} className="grid w-36 gap-1">
-              <button type="button" onClick={() => apercus[piece.numero] && setGrande(apercus[piece.numero])} className="grid size-36 place-items-center overflow-hidden rounded-xl border border-ligne bg-white">
+              <button type="button" onClick={() => setGrande(apercus[piece.numero] ?? null)} className="grid size-36 place-items-center overflow-hidden rounded-xl border border-ligne bg-white">
                 {apercus[piece.numero] ? <img src={apercus[piece.numero]} alt={piece.nom} className="size-full object-cover" /> : <span className="text-xs text-gris">Chargement…</span>}
               </button>
               <button type="button" onClick={() => void enregistrer(piece)} className="truncate text-left text-xs text-gris hover:underline" title={`Enregistrer ${piece.nom}`}>
