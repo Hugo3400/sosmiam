@@ -14,6 +14,7 @@ import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { RAISONS_SUGGESTION, utiliserSuggestionsPersonnesCompte } from "~/hooks/utiliser-suggestions-personnes-compte";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /**
@@ -21,7 +22,8 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
  * potes puis ta bande ; créateurs : de ta ville puis populaires ; lieux : les plus proches), coupées à `max`. Jamais : toi, une personne bloquée ou signalée
  * (ni rien que la règle peutSuivre refuse), ce que tu suis ou as déjà demandé, une suggestion masquée (✕), une publication
  * masquée, un bar en visite sans compte (âge inconnu, filtrerLieuxSelonAge). Vide tant que l'activité et les suivis ne sont pas relus.
- * Visite sans compte : des créateurs (et des lieux si ta ville est connue), aucune personne.
+ * Visite sans compte : des créateurs (et des lieux si ta ville est connue), aucune personne. Compte connecté : les personnes
+ * viennent du serveur (« Te suit », « Ta bande », « Dans la bande de tes potes »), revérifiées ici de la même façon.
  */
 export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max = 10): Suggestion[] {
   const { profil, invite } = utiliserProfil();
@@ -33,6 +35,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const pret = activite.chargee && (suivis.pret || invite);
+  const duServeur = utiliserSuggestionsPersonnesCompte(suivis.source === "compte" && types.includes("personne"));
   // Les appelants passent souvent un tableau écrit sur place : on compare son contenu, pas son identité
   const cleTypes = types.join(",");
   const age = profil ? calculerAge(profil.dateNaissance) : null;
@@ -57,6 +60,13 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
           const relation = relationAvec(id);
           return relation !== null && relation.jeSuis === "aucun" && relation.verdict.permis;
         };
+        if (duServeur !== null || suivis.source === "compte") {
+          return (duServeur ?? []).flatMap(({ personne, raison }) => {
+            const pote = trouverPote(personne.id);
+            if (!pote || !estCandidat(personne.id)) return [];
+            return [{ cle: `personne:${personne.id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison: RAISONS_SUGGESTION[raison], ouvrir: { pathname: "/potes/profil/[id]" as const, params: { id: personne.id } } }];
+          });
+        }
         const prenomDe = (id: string) => trouverPote(id)?.prenom ?? id;
         // Celles qui te suivent déjà, en tête et avec « Te suit » : la carte n'a que le nom et la raison pour le dire
         // (son bouton compact affiche « Suivre », pas « Suivre en retour »)
@@ -98,5 +108,5 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
     const demandes = cleTypes.split(",").filter((t): t is TypeSuggestion => t === "personne" || t === "createur" || t === "lieu");
     return [...new Set(demandes)].flatMap((type) => listes[type]()).slice(0, max);
-  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, relationAvec, suggestionsMasquees, abonnes, monId]);
+  }, [pret, suivis.pret, suivis.source, duServeur, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, relationAvec, suggestionsMasquees, abonnes, monId]);
 }

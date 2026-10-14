@@ -8,10 +8,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import type { Pote } from "@sos-miam/commun/types/potes";
 
 import { Annonce } from "~/composants/interface/Annonce";
-import { DemandesBande } from "~/composants/potes/DemandesBande";
 import { BoutonRetirerArrivee } from "~/composants/notifications/BoutonRetirerArrivee";
 import { LigneNotification } from "~/composants/notifications/LigneNotification";
 import { SectionDemandesSuivi } from "~/composants/notifications/SectionDemandesSuivi";
+import { DemandesBande } from "~/composants/potes/DemandesBande";
 import { convertirPersonneEnPote } from "~/fonctions/communaute/convertir-personne-en-pote";
 import { decrireNotificationSuivi, type NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode";
