@@ -20,7 +20,7 @@ const estTexteRecompense = (texte: string) =>
  * Vérifie le réglage de la carte de fidélité d'un lieu (mode pro, espace pro du site, API), dans l'ordre du formulaire :
  * récompense (3 à 60 caractères, sans insulte), version sans alcool, nombre de visites (3 à 10).
  * « Alcool » est coché d'office si la récompense contient un mot d'alcool. La version sans alcool est alors
- * facultative (montrée seulement en visite sans compte) ; donnée, elle suit les mêmes règles que la récompense et ne
+ * facultative (la fidélité demande un compte : seule la démo de l'app la montre, en visite sans compte) ; donnée, elle suit les mêmes règles que la récompense et ne
  * doit pas contenir d'alcool. Rend le réglage nettoyé (textes sans espaces autour, version sans alcool à null quand
  * elle est vide ou qu'il n'y a pas d'alcool), ou le premier champ à corriger.
  */

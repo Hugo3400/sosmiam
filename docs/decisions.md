@@ -318,6 +318,10 @@
 - **Activité de l'app sur le serveur** (14 octobre 2026) : avec un compte connecté, rescousses, lieux gardés, J'aime, « Pas intéressé » et suivis passent par `/app/activite` (réponse immédiate à l'écran, gestes rejoués au retour du réseau ; une rescousse n'est jamais mise en attente). Points, palier et badges affichés sont ceux du compte. Rien n'est repris du téléphone.
 - **Défi « premiers » et badge « Premier sauveteur »** : Hugo a laissé choisir et a demandé d'ajouter des défis. Le badge récompense le premier sauvetage ; le défi en demande plusieurs avant sa date de fin, pour ne plus payer deux fois le même geste.
 
+## Espace ambassadeur dans l'app (construit le 14 octobre 2026)
+- Le mode ambassadeur de l'app a ses quatre onglets : **Espace** (où en est ton rôle, missions à faire, avis à relire, messages non lus), **Missions** (compte rendu de 5 caractères au moins), **Relectures** (« Ça me va », « Ça me paraît louche » avec un motif de la liste, « Je passe mon tour » si tu connais le lieu ou la personne ; consultatif, l'équipe tranche) et **Messages** de l'équipe. Fondateurs, propositions de lieux et ambassadeur certifié restent sur ambassadeur.sosmiam.fr.
+- **« Je suis sur place »** (demandé par Hugo le 14 octobre 2026 ; choix de construction, à confirmer) : dans une mission à faire liée à un lieu, la position est vérifiée comme pour une visite (même rayon, même précision, lecture fraîche, jamais simulée) ; seule l'heure est gardée, jamais la position. Le type de mission (vérifier un lieu, vérifier un BIG SOS, passer voir un lieu, autre) se choisit dans le logiciel.
+
 ## Potes, messagerie et profils sur le serveur (décidé le 14 octobre 2026)
 - **Ma bande** : un lien ou un QR code avec le code secret ajoute les deux personnes tout de suite, dans les deux bandes ; par pseudo, c'est une demande que l'autre accepte. Retirer quelqu'un vaut des deux côtés, sans prévenir.
 - **Messages chiffrés par l'API** (AES-256-GCM, clé hors de la base, comme la date de naissance) : l'équipe ne relit qu'un message signalé, pour la modération.

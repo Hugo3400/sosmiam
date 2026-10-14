@@ -60,6 +60,7 @@ export async function envoyerVerification(id: number, compteId: number, echeance
   if (!bigSos || !["demande", "verification"].includes(bigSos.statut)) return null;
   const mission = await creerMission({
     compteId,
+    type: "verifier-big-sos",
     titre: `Vérifier sur place : ${bigSos.lieu.nom}`.slice(0, 100),
     detail: [
       `${bigSos.lieu.nom} (${bigSos.lieu.ville}) demande un BIG SOS : une semaine à la une pour un lieu en vraie difficulté.`,

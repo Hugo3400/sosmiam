@@ -42,7 +42,7 @@ export function creerOutilsVisites(c: ContexteVisites) {
     /** Ce compte peut-il faire valider une visite ici (règles de packages/commun) ? null si oui */
     verifierDroits(lieu: LieuVisite, v: Visiteur): EchecVisite | null {
       const droit = verifierDroitValidation({
-        lieu: { id: lieu.id, type: lieu.type, validationActive: lieu.validationActive },
+        lieu: { id: lieu.id, validationActive: lieu.validationActive },
         compte: { limiteJusqua: null, lieuxMembre: v.rattachements.map((r) => r.lieuId) },
         maintenantMs: c.horloge(),
       });

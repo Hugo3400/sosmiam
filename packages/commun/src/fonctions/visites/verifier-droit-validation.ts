@@ -1,7 +1,5 @@
-import type { TypeLieu } from "../../types/lieu.ts";
-
 export type ContexteDroitValidation = {
-  lieu: { id: number; type: TypeLieu; validationActive: boolean };
+  lieu: { id: number; validationActive: boolean };
   /** `limiteJusqua` : validations en pause jusqu'à cette date (ISO) */
   compte: { limiteJusqua: string | null; lieuxMembre: readonly number[] };
   maintenantMs: number;

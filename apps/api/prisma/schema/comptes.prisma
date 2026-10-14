@@ -1,7 +1,7 @@
 // Comptes et espace ambassadeur (décidé le 8 octobre 2026, voir docs/decisions.md)
 
 /// Un compte SOS Miam, un seul par personne : app, espace ambassadeur et espace pro. Inscrit sur le site (ambassadeur, pro),
-/// l'âge (18 ans au moins) est vérifié puis oublié ; inscrit dans l'app (dès 15 ans), le nom et la date de naissance sont
+/// l'âge (18 ans au moins) est vérifié puis oublié ; inscrit dans l'app (dès 18 ans), le nom et la date de naissance sont
 /// gardés CHIFFRÉS. Après 1 an sans visite, le rôle d'ambassadeur part ; après 2 ans sans connexion, tout le compte.
 model Compte {
   id                    Int       @id @default(autoincrement())

@@ -15,7 +15,7 @@ type Props = {
   notification: NotificationSuivi;
   /** Phrase, emoji et destination (decrireNotificationSuivi) */
   description: NotificationDecrite;
-  /** La personne dont parle la notification (son avatar dans le rond), ou null (lieu, créateur, anniversaire) */
+  /** La personne dont parle la notification (son avatar dans le rond), ou null (lieu, créateur) */
   pote: Pote | null;
   /** Arrivée depuis ta visite précédente : mise en avant (fond jaune clair, point jaune) */
   nouvelle: boolean;

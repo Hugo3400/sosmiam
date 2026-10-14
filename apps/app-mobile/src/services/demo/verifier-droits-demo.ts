@@ -12,7 +12,7 @@ type Echec = Extract<ReponseApi, { ok: false }>;
  */
 export function verifierDroitsDemo(lieu: Lieu, maintenantMs: number): Echec | null {
   const droit = verifierDroitValidation({
-    lieu: { id: lieu.id, type: lieu.type, validationActive: validationLieuxExemples[lieu.id]?.validationActive ?? false },
+    lieu: { id: lieu.id, validationActive: validationLieuxExemples[lieu.id]?.validationActive ?? false },
     compte: { limiteJusqua: null, lieuxMembre: [] },
     maintenantMs,
   });

@@ -54,7 +54,7 @@ test("relecture : compte de moins de 7 jours, rafale de notes tranchées, tirage
 test("ambassadeur : jamais l'auteur, jamais le sien ni un lieu lié", async () => {
   const ambassadeur = await b.creerCompte({ prenom: "Hugo", ambassadeur: true });
   const lie = await b.creerCompte({ prenom: "Sam", ambassadeur: true, lies: [2] });
-  const adulte = await avisVerifie({ neuf: true });
+  const aRelire = await avisVerifie({ neuf: true });
   const publie = await avisVerifie();
   // Son propre avis (non vérifié, au lieu 2), et un avis d'un lieu masqué
   b.banc.tirage = 0;
@@ -66,13 +66,13 @@ test("ambassadeur : jamais l'auteur, jamais le sien ni un lieu lié", async () =
   const liste = await b.demander("GET", "/app/avis/a-relire", ambassadeur.jeton);
   assert.equal(liste.entetes.get("cache-control"), "private, no-store");
   assert.deepEqual(liste.corps.avis, [
-    { id: adulte.avisId, lieu: { id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "Montpellier" }, note: 4, texte: "Une belle table, des assiettes généreuses.", photo: null, preuve: "comptoir", mois: "2026-10", raison: "compte-neuf" },
+    { id: aRelire.avisId, lieu: { id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "Montpellier" }, note: 4, texte: "Une belle table, des assiettes généreuses.", photo: null, preuve: "comptoir", mois: "2026-10", raison: "compte-neuf" },
     { id: autre.id, lieu: { id: 2, nom: "La Crêpe du Port", emoji: "🥞", type: "resto", ville: "Sète" }, note: 4, texte: "Très bonne adresse, on reviendra.", photo: null, preuve: null, mois: "2026-10", raison: "tirage" },
   ]);
   assert.equal(JSON.stringify(liste.corps).includes("Martin") || JSON.stringify(liste.corps).includes("Léa M."), false);
   // Rattaché au lieu 2 (ou qui demande à l'être) : il ne relit rien de ce lieu
   const ids = (await b.demander("GET", "/app/avis/a-relire", lie.jeton)).corps.avis.map((a: { id: number }) => a.id);
-  assert.deepEqual(ids, [adulte.avisId]);
+  assert.deepEqual(ids, [aRelire.avisId]);
   // Jamais relus : un avis publié sans relecture, le sien, un lieu lié
   for (const [jeton, id] of [[ambassadeur.jeton, publie.avisId], [ambassadeur.jeton, sien.corps.avis.id], [lie.jeton, autre.id]] as const) {
     const r = await b.demander("POST", `/app/avis/${id}/relecture`, jeton, { verdict: { type: "ok" } });

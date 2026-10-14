@@ -31,7 +31,7 @@ const ERREURS = {
 /**
  * La carte de fidélité du lieu (gérant) : ce qu'il offre, au bout de combien de visites, avec l'aperçu de ce que verront
  * ses clients. Une récompense avec de l'alcool s'affiche avec le message de prévention ; sa version sans alcool est
- * facultative (seule montrée à qui visite sans compte).
+ * facultative (la fidélité demande un compte : seule la démo la montre, en visite sans compte).
  */
 export default function EcranFidelitePro() {
   const marges = useSafeAreaInsets();
@@ -117,7 +117,7 @@ export default function EcranFidelitePro() {
               mention="facultatif"
               valeur={reglage.recompenseSansAlcool ?? ""}
               onChangeTexte={(t) => changer({ recompenseSansAlcool: t })}
-              aide="Montrée à qui visite sans compte. Un jus pressé, un sirop maison…"
+              aide="Si tu veux, une idée sans une goutte d'alcool en plus : un jus pressé, un sirop maison…"
               erreur={erreur === "recompenseSansAlcool" ? ERREURS.recompenseSansAlcool : null}
               maxLength={60}
             />
