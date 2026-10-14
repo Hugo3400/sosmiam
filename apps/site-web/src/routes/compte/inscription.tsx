@@ -8,6 +8,7 @@ import { RefusAge } from "~/composants/compte/RefusAge";
 import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireCaseNewsletter } from "~/fonctions/compte/lire-case-newsletter";
 import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
 import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
@@ -85,9 +86,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     cgu: formulaire.get("cgu") === "oui" ? "oui" : "",
     newsletter: formulaire.get("newsletter") === "oui" ? "oui" : "",
   };
-  // Case « newsletter » de l'espace ambassadeur (cochée d'avance) : décochée, l'API retient le « non ». Seulement si le
-  // formulaire avait la case (champ caché) : une page affichée avant elle n'envoie rien, et rien n'est retenu
-  const newsletter = espace === "ambassadeur" && formulaire.get("newsletterProposee") === "oui" ? valeurs.newsletter === "oui" : undefined;
+  // Case « newsletter » de l'espace ambassadeur (cochée d'avance) : décochée, l'API retient le « non »
+  const newsletter = espace === "ambassadeur" ? lireCaseNewsletter(formulaire) : undefined;
 
   // Mêmes règles que l'API, vérifiées ici pour signaler d'un coup tous les champs à corriger (dans l'ordre du formulaire)
   const erreurs: Record<string, string> = {};

@@ -1,6 +1,5 @@
 import type { KeyboardEvent, Ref } from "react";
 
-import { Bouton } from "~/composants/interface/Bouton";
 import { PanneauChoixCookies } from "~/composants/cookies/PanneauChoixCookies";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { textesConsentement } from "~/contenus/cookies-consentement";
@@ -22,6 +21,14 @@ type Props = {
   onEchap: () => void;
   refDialogue: Ref<HTMLDivElement>;
 };
+
+/** Les trois boutons de la première couche : même style, côte à côte même sur téléphone (le texte passe à la ligne) */
+const classeBouton = [
+  "inline-flex min-h-11 w-full items-center justify-center rounded-full border-2 border-encre bg-jaune px-2 py-1.5 text-center",
+  "text-sm leading-tight font-semibold text-encre shadow-brut-petit transition-[translate,box-shadow] duration-150 sm:px-[18px]",
+  "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brut active:translate-x-0.5 active:translate-y-0.5",
+  "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre",
+].join(" ");
 
 /** « a », « a et b », « a, b et c » */
 function joindre(morceaux: string[]): string {
@@ -60,7 +67,7 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
         method="post"
         action={actionFormulaire}
         onSubmit={envoyerFormulaire}
-        className="pointer-events-auto relative mx-auto max-h-[85vh] max-w-3xl overflow-y-auto rounded-carte border-2 border-encre bg-white p-5 shadow-brut-grand sm:p-6"
+        className="pointer-events-auto relative mx-auto max-h-[85vh] max-w-3xl overflow-y-auto rounded-carte border-2 border-encre bg-white p-4 shadow-brut-grand sm:p-6"
       >
         <input type="hidden" name="retour" value={retour} />
         <button
@@ -75,7 +82,7 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
           <span aria-hidden="true">×</span>
         </button>
         {apercu && (
-          <p className="mb-3 mr-10 rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">
+          <p className="mr-10 mb-3 rounded-xl bg-rose-alerte px-3 py-1.5 text-[.8rem] font-semibold text-rouge-texte sm:text-sm">
             {lierPonctuation(textesConsentement.apercu)}
           </p>
         )}
@@ -83,17 +90,17 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
           <PanneauChoixCookies prefixe="bandeau" Titre="h2" />
         ) : (
           <>
-            <div className="flex items-start gap-4 pr-10">
+            <div className="flex items-start gap-4 pr-9">
               <Mascotte expression="clin" className="hidden size-16 shrink-0 sm:block" />
               <div>
-                <h2 id={titreId} className="font-titre text-xl font-extrabold">{lierPonctuation(textesConsentement.titre)}</h2>
-                <div id={texteId} className="mt-2 grid gap-1.5 text-[.95rem] text-gris">
+                <h2 id={titreId} className="font-titre text-lg font-extrabold sm:text-xl">{lierPonctuation(textesConsentement.titre)}</h2>
+                <div id={texteId} className="mt-1.5 grid gap-1.5 text-sm leading-snug text-gris sm:text-[.95rem] sm:leading-normal">
                   <p>
                     {lierPonctuation(
                       `Pour ${joindre(aChoisir.map((categorie) => categorie.pourBandeau))}, ${partenaires > 1 ? "des partenaires aimeraient" : "un partenaire aimerait"} poser des cookies dans ton navigateur. ${textesConsentement.sansAccord}`,
                     )}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-[.8rem] sm:text-sm">
                     {lierPonctuation(`${textesConsentement.changerDAvis} ${textesConsentement.portee}`)}{" "}
                     <a href={adressePage} className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2">
                       {textesConsentement.lienPage}
@@ -102,13 +109,13 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
                 </div>
               </div>
             </div>
-            <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
-              <Bouton type="submit" name="geste" value="tout-accepter" petit className="w-full">{textesConsentement.toutAccepter}</Bouton>
-              <Bouton type="submit" name="geste" value="tout-refuser" petit className="w-full">{textesConsentement.toutRefuser}</Bouton>
+            <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-2.5">
+              <button type="submit" name="geste" value="tout-accepter" className={classeBouton}>{textesConsentement.toutAccepter}</button>
+              <button type="submit" name="geste" value="tout-refuser" className={classeBouton}>{textesConsentement.toutRefuser}</button>
               {javascript ? (
-                <Bouton onClick={onChoisir} petit className="w-full">{textesConsentement.choisir}</Bouton>
+                <button type="button" onClick={onChoisir} className={classeBouton}>{textesConsentement.choisir}</button>
               ) : (
-                <Bouton href={adresseReglages} petit className="w-full">{textesConsentement.choisir}</Bouton>
+                <a href={adresseReglages} className={classeBouton}>{textesConsentement.choisir}</a>
               )}
             </div>
           </>

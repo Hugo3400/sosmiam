@@ -17,17 +17,15 @@ export function CategorieCookies({ categorie, prefixe, coche }: Props) {
   const traceurs = categorie.partenaires.reduce((total, partenaire) => total + partenaire.traceurs.length, 0);
   return (
     <div className="rounded-2xl border-2 border-encre/15 bg-creme p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p id={`${id}-nom`} className="font-titre text-lg font-extrabold">{categorie.nom}</p>
-          <p id={`${id}-explication`} className="mt-1 text-sm text-gris">{lierPonctuation(categorie.explication)}</p>
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <p id={`${id}-nom`} className="font-titre text-lg leading-tight font-extrabold">{categorie.nom}</p>
         {necessaires ? (
           <p className="shrink-0 rounded-full bg-jaune-clair px-3 py-1 text-sm font-semibold">{textesConsentement.toujoursActifs}</p>
         ) : (
           <Interrupteur id={id} nom="accepter" valeur={categorie.id} coche={coche} libelleId={`${id}-nom`} descriptionId={`${id}-explication`} />
         )}
       </div>
+      <p id={`${id}-explication`} className="mt-1.5 text-sm text-gris">{lierPonctuation(categorie.explication)}</p>
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer font-semibold underline decoration-jaune decoration-2 underline-offset-4">
           {textesConsentement.voirPartenaires} ({categorie.partenaires.length} {categorie.partenaires.length > 1 ? "partenaires" : "partenaire"},{" "}

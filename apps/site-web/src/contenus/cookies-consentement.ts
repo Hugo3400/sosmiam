@@ -158,7 +158,7 @@ export const textesConsentement = {
   changerDAvis: "Tu peux changer d'avis quand tu veux avec « Gérer mes cookies », en bas de chaque page.",
   portee: "Ton choix est gardé 6 mois, pour sosmiam.fr et ses espaces ambassadeur et pro.",
   lienPage: "Tout savoir sur nos cookies",
-  apercu: "Aperçu du bandeau : le partenaire est imaginaire, rien n'est chargé. Seul ton choix est retenu, pour l'aperçu.",
+  apercu: "Aperçu : partenaire imaginaire, rien n'est chargé ni déposé, à part ton choix.",
   toutAccepter: "Tout accepter",
   toutRefuser: "Tout refuser",
   choisir: "Choisir",

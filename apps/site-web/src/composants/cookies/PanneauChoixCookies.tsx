@@ -32,7 +32,12 @@ export function PanneauChoixCookies({ prefixe, Titre }: Props) {
         ))}
         {necessaires && <li><CategorieCookies categorie={necessaires} prefixe={prefixe} coche /></li>}
       </ul>
-      <div className="mt-5 grid gap-2.5 sm:grid-cols-3">
+      {/* Dans le bandeau, les boutons restent visibles en bas pendant qu'on fait défiler les catégories */}
+      <div
+        className={`mt-5 grid gap-2.5 sm:grid-cols-3 ${
+          prefixe === "bandeau" ? "sticky -bottom-4 -mx-4 -mb-4 border-t-2 border-encre/10 bg-white px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6" : ""
+        }`}
+      >
         <Bouton type="submit" name="geste" value="enregistrer" petit className="w-full">{textesConsentement.enregistrer}</Bouton>
         <Bouton type="submit" name="geste" value="tout-refuser" petit className="w-full">{textesConsentement.toutRefuser}</Bouton>
         <Bouton type="submit" name="geste" value="tout-accepter" petit className="w-full">{textesConsentement.toutAccepter}</Bouton>

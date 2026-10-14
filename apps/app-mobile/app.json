@@ -97,7 +97,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SOS Miam lit ta position seulement quand tu le demandes et que l'app est ouverte : pour vérifier que tu es bien dans le lieu quand tu valides une visite, trouver le nom de ta ville, ou te montrer les lieux autour de toi. On ne la garde pas.",
+          "locationWhenInUsePermission": "SOS Miam lit ta position seulement quand tu le demandes et que l'app est ouverte : pour vérifier que tu es bien dans le lieu quand tu valides une visite, trouver le nom de ta ville, te montrer les lieux autour de toi, ou, avec Miam Safe, la montrer pendant 1 h à un pote que tu préviens.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": "SOS Miam ne se sert pas de tes mouvements : seuls tes petits creux nous intéressent."
