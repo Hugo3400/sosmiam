@@ -54,14 +54,16 @@ export function SectionListes({ lieux, onRetire }: Props) {
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));
   const estAMoi = (l: ListePartagee) => (l.serveur ? l.serveur.moi.auteur : l.auteur === monId);
   // Co-auteur qui a dit oui : tu la remplis avec son auteur
-  const estRemplie = (l: ListePartagee) => (l.serveur ? l.serveur.moi.coAuteur === "accepte" : (l.coAuteurs ?? []).some((c) => c.id === monId && c.statut === "accepte"));
+  const statutCoAuteur = (l: ListePartagee) => (l.serveur ? l.serveur.moi.coAuteur : ((l.coAuteurs ?? []).find((c) => c.id === monId)?.statut ?? null));
+  const estRemplie = (l: ListePartagee) => statutCoAuteur(l) === "accepte";
   const miennes = visibles.filter(estAMoi);
   const remplies = visibles.filter((l) => !estAMoi(l) && estRemplie(l));
   const suivies = visibles.filter((l) => !estAMoi(l) && !estRemplie(l) && estListeSuivie(l, monId));
   const aDecouvrir = visibles.filter(
     (l) =>
       !estAMoi(l) &&
-      !estRemplie(l) &&
+      // Celles que tu remplis ont leur section, celles où l'on t'invite leur carte en haut
+      statutCoAuteur(l) === null &&
       // « Pas intéressé » : elle sort d'ici (et reste sur le profil de son auteur)
       !estMasque("liste", l.id) &&
       !estListeSuivie(l, monId) &&
