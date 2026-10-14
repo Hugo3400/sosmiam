@@ -6,7 +6,7 @@
 // packages/commun/src/regles/signalement.ts (7 jours, 183 jours, 365 jours).
 // PAS ENCORE CONSTRUIT au 14 octobre 2026 : l'envoi des signalements sociaux depuis l'app (lot A7 : ils restent sur le
 // téléphone) et l'écran « décisions » de l'app. Fait le 14 au soir (session Logiciel, F.2) : effacement à 1 an après la
-// décision, publications comprises, et instantané déchiffré dans le logiciel (écran dans sa prochaine version).
+// décision, publications comprises, et instantané déchiffré dans le logiciel (écran en place depuis la version 1.0.2).
 import type { SectionLegale } from "~/contenus/legal/type-legal";
 
 export const sectionSignalementsSociaux: SectionLegale = {
