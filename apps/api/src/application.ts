@@ -9,6 +9,8 @@ import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
 import { creerRoutesApp } from "./routes/app.ts";
 import { creerRoutesContenuApp } from "./routes/contenu-app.ts";
+import { creerRoutesAppareils } from "./routes/appareils.ts";
+import type { DependancesAppareils } from "./controleurs/appareils.ts";
 import { creerRoutesActivite } from "./routes/activite.ts";
 import type { DependancesActivite } from "./controleurs/activite.ts";
 import { creerRoutesVisites } from "./routes/visites.ts";
@@ -98,6 +100,8 @@ type Dependances = {
   avisApp?: DependancesAvis;
   /** Désinscription de la newsletter par le lien signé des mails (routes /newsletter, sans session ; absentes si non fourni) */
   newsletter?: DependancesNewsletterPublic;
+  /** Téléphones inscrits aux notifications push (routes /app/appareils ; seulement avec `comptes`) */
+  appareilsApp?: DependancesAppareils;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -113,7 +117,7 @@ export function creerApplication({
   listerLieuxDuPlan,
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
-  newsletter,
+  newsletter, appareilsApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -168,6 +172,8 @@ export function creerApplication({
     // session), avant le routeur /app de l'heure et de la version
     if (evenementsApp) application.use("/app/evenements", creerRoutesEvenementsApp(evenementsApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+    // Téléphones inscrits aux notifications (session facultative : le compte vient d'elle si elle est valable)
+    if (appareilsApp) application.use("/app/appareils", creerRoutesAppareils(appareilsApp, protection));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",
