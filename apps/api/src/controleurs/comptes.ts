@@ -109,6 +109,8 @@ export type ContexteComptes = {
   externes: DependancesConnexionExterne | null;
   /** Newsletter cochée à la création d'un compte de l'app (controleurs/comptes-newsletter.ts) ; absente : on n'inscrit pas */
   newsletter?: InscriptionNewsletterComptes;
+  /** Repasser en public par le profil accepte les demandes de suivi en attente (partie sociale) ; absente : rien de plus */
+  apresPassageEnPublic?: (compteId: number) => Promise<void>;
 };
 
 /** 503 « chiffrement-indisponible » : la clé des données des comptes n'a pas été lue au démarrage */

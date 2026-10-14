@@ -5,6 +5,7 @@ import type { Request, Response } from "express";
 import { estPseudoValide } from "../../../../packages/commun/src/validation/est-pseudo-valide.ts";
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
+import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import type { ModificationProfil, ProfilLu } from "../services/comptes-profil.ts";
 import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
@@ -31,7 +32,7 @@ export type ProfilVu = {
   age: number | null;
 };
 
-export function creerControleursProfil({ services, chiffrement, horloge }: ContexteComptes) {
+export function creerControleursProfil({ services, chiffrement, horloge, apresPassageEnPublic }: ContexteComptes) {
   const sessionExpiree = (reponse: Response) => reponse.status(401).json({ ok: false, erreur: "session-expiree" });
 
   /** Déchiffre le nom et la date (une donnée illisible lève une erreur : 500, sans rien citer). */
@@ -100,6 +101,11 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
       // Deux comptes qui prennent le même pseudo au même moment : la base n'en garde qu'un
       if (Object.keys(modification).length > 0 && (await services.modifierProfil(id, modification, maintenant)) === "pseudo-pris") {
         return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
+      }
+      // Repasser en public accepte les demandes de suivi en attente (partie sociale). Le profil est déjà écrit : un échec ici
+      // ne le fait pas échouer (l'app passe d'abord par PUT /app/suivis-personnes/confidentialite), et rien de personnel au journal
+      if (modification.prive === false && apresPassageEnPublic) {
+        await apresPassageEnPublic(id).catch((erreur: unknown) => console.error("Passage en public : demandes de suivi non acceptées :", resumerErreur(erreur)));
       }
       const profil = await services.lireProfil(id);
       if (!profil) return sessionExpiree(reponse);

@@ -77,6 +77,9 @@ export type DependancesComptes = {
   newsletter?: InscriptionNewsletterComptes;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
+  /** PATCH /comptes/moi/profil { prive: false } : le compte repasse en public et accepte ses demandes de suivi en attente,
+   * comme PUT /app/suivis-personnes/confidentialite (partie sociale, creerApresPassageEnPublic) ; absente : rien de plus */
+  apresPassageEnPublic?: (compteId: number) => Promise<void>;
 };
 
 /**
@@ -329,6 +332,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
     chiffrement, lireCompteVu: creerLecteurCompteVu(services.lireCompte, chiffrement, horloge).lireCompteVu,
     externes: dependances.externes ?? null,
     newsletter: dependances.newsletter,
+    apresPassageEnPublic: dependances.apresPassageEnPublic,
   };
   const c = creerControleursComptes(contexte);
   const moi = creerControleursMonCompte(contexte);

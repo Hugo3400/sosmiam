@@ -67,6 +67,7 @@ import { creerDefis } from "./services/defis.ts";
 import { brancherReevaluationDefis } from "./fonctions/defis/brancher-reevaluation-defis.ts";
 import { servicesConnexionQr } from "./services/connexion-qr.ts";
 import { creerDependancesSociales } from "./services/dependances-sociales.ts";
+import { creerApresPassageEnPublic } from "./controleurs/suivis-personnes.ts";
 import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
@@ -171,6 +172,8 @@ const serveur = creerApplication({
     },
     // Case « newsletter » cochée à la création d'un compte de l'app (inscription, Apple, Google) : soft opt-in de la CNIL
     newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app") },
+    // Repasser en public par le profil accepte les demandes de suivi en attente, comme PUT /app/suivis-personnes/confidentialite
+    apresPassageEnPublic: creerApresPassageEnPublic(socialApp, Date.now),
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu, noterPresence },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
