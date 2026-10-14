@@ -38,30 +38,26 @@ export const documentConfidentialite: DocumentLegal = {
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
     "SOS Miam est encore en préparation : l'app n'est pas encore sur les stores, et tout ce que tu y fais reste sur ton téléphone ; il n'y a pas de pub pour l'instant. Les seuls comptes qui existent aujourd'hui sont ceux de l'espace ambassadeur et de l'espace pro (pour gérer la fiche d'un lieu), dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
-  sections: [
+  enBref: [
     {
-      id: "en-bref",
-      titre: "En bref",
-      blocs: [
-        {
-          liste: [
-            "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté à ton espace ambassadeur ou pro, celui qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
-            "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
-            "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
-            "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
-            "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un clic sur « Me désinscrire » en bas de chaque newsletter, ou un simple mail, même juste « STOP »). Si tu crées un compte dans l'app, c'est toi qui choisis à l'inscription (une case, que tu peux décocher) ; si tu deviens ambassadeur, tu y es inscrit par défaut une fois ta candidature validée.",
-            "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
-            "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Après 1 an sans visite dans ton espace, ton rôle d'ambassadeur est retiré ; après 2 ans sans connexion, ton compte est effacé (on te prévient par mail un mois avant) ; et tu peux le supprimer toi-même à tout moment.",
-            "**Ton espace pro** (dès 18 ans, pour gérer la fiche d'un lieu) : avec le même compte, ta demande pour gérer un lieu et ce qui prouve qu'il est à toi ne sont vus que par l'équipe de SOS Miam ; ce que tu changes sur la fiche est public, mais sans ton nom. Une demande refusée ou un rattachement retiré est effacé 1 an après.",
-            "**L'app SOS Miam** (pas encore sur les stores) : tout ce que tu y fais reste sur ton téléphone, rien n'est envoyé à notre serveur. Ta position, seulement quand tu le demandes, sert à trouver ta ville (par le service d'Apple ou de Google) ou les lieux autour de toi, et n'est jamais gardée. Les comptes de l'app arriveront bientôt : on t'explique déjà ce qu'ils garderont.",
-            "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
-            "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
-            "**On ne vend jamais tes données**, et on ne les loue pas.",
-            `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation. Ton compte ambassadeur, lui, se corrige et se supprime aussi directement dans ton espace.`,
-          ],
-        },
+      liste: [
+        "**Aucun cookie de suivi, aucun pistage, aucune pub.** Seules exceptions possibles, strictement nécessaires : un cookie de sécurité de Cloudflare, le cookie qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro), deux cookies de 10 minutes pendant une connexion avec Apple ou Google, celui qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et, sur le site, la position où tu étais sur la page, gardée dans ton navigateur le temps de ta visite (détails plus bas).",
+        "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
+        "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
+        "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
+        "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un clic sur « Me désinscrire » en bas de chaque newsletter, ou un simple mail, même juste « STOP »). Si tu crées un compte dans l'app, c'est toi qui choisis à l'inscription (une case, que tu peux décocher) ; si tu deviens ambassadeur, tu y es inscrit par défaut une fois ta candidature validée.",
+        "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
+        "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
+        "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
+        "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Après 1 an sans visite dans ton espace, ton rôle d'ambassadeur est retiré ; après 2 ans sans connexion, ton compte est effacé (on te prévient par mail un mois avant) ; et tu peux le supprimer toi-même à tout moment.",
+        "**Ton espace pro** (dès 18 ans, pour gérer la fiche d'un lieu) : avec le même compte, ta demande pour gérer un lieu et ce qui prouve qu'il est à toi ne sont vus que par l'équipe de SOS Miam ; ce que tu changes sur la fiche est public, mais sans ton nom. Une demande refusée ou un rattachement retiré est effacé 1 an après.",
+        "**L'app SOS Miam** (pas encore sur les stores) : tout ce que tu y fais reste sur ton téléphone, rien n'est envoyé à notre serveur. Ta position, seulement quand tu le demandes, sert à trouver ta ville (par le service d'Apple ou de Google) ou les lieux autour de toi, et n'est jamais gardée. Les comptes de l'app arriveront bientôt : on t'explique déjà ce qu'ils garderont.",
+        "**On ne vend jamais tes données**, et on ne les loue pas.",
+        `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation. Ton compte ambassadeur, lui, se corrige et se supprime aussi directement dans ton espace.`,
       ],
     },
+  ],
+  sections: [
     {
       id: "responsable",
       titre: "Qui s'occupe de tes données",
@@ -126,7 +122,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Obligatoire ?** C'est automatique : c'est le chemin par lequel le site arrive jusqu'à toi.",
           ],
         },
-        "**Et les cookies ?** Dans certains cas, Cloudflare peut déposer un cookie de sécurité strictement nécessaire, comme « __cf_bm », qui aide à distinguer les humains des robots et expire au bout d'environ 30 minutes. Ce type de cookie indispensable ne nécessite pas ton accord. À ce jour, nos pages n'en déposent aucun : tous les détails sont sur la page [Cookies](/cookies).",
+        "**Et les cookies ?** Cloudflare dépose un cookie de sécurité strictement nécessaire, « cf_clearance », qui retient que ton navigateur a passé sa vérification anti-robots (durée relevée : 1 an) ; dans certains cas, il peut aussi déposer « __cf_bm », qui aide à distinguer les humains des robots et expire au bout d'environ 30 minutes. Ces cookies indispensables ne nécessitent pas ton accord : tous les détails sont sur la page [Cookies](/cookies#liste-des-cookies).",
       ],
     },
     {
@@ -190,12 +186,6 @@ export const documentConfidentialite: DocumentLegal = {
         },
       ],
     },
-    sectionCompteAmbassadeur,
-    sectionComptePro,
-    sectionConnexionAppleGoogle,
-    sectionApp,
-    sectionAppComptes,
-    sectionMiamSafe,
     {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
@@ -214,6 +204,12 @@ export const documentConfidentialite: DocumentLegal = {
         "Pas besoin de nous envoyer d'informations sensibles (santé, opinions, coordonnées bancaires…) : on n'en a pas l'usage.",
       ],
     },
+    sectionCompteAmbassadeur,
+    sectionComptePro,
+    sectionConnexionAppleGoogle,
+    sectionApp,
+    sectionAppComptes,
+    sectionMiamSafe,
     {
       id: "ce-qu-on-ne-fait-pas",
       titre: "Ce qu'on ne fait pas",
@@ -221,7 +217,7 @@ export const documentConfidentialite: DocumentLegal = {
         {
           liste: [
             "**On ne vend jamais tes données**, on ne les loue pas, et on ne les confie qu'aux prestataires techniques présentés plus bas, pour notre compte (sauf obligation légale).",
-            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes, et celui qui te garde connecté à ton espace ambassadeur ou pro. Détails sur la page [Cookies](/cookies).",
+            "**Aucun cookie de suivi** : à ce jour, nos pages n'en déposent aucun. Seules exceptions possibles : le cookie de sécurité de Cloudflare présenté plus haut, le cookie qui retient ton refus d'être compté dans les statistiques, si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro) et, le temps d'une connexion avec Apple ou Google, deux cookies de 10 minutes. La liste complète est sur la page [Cookies](/cookies#liste-des-cookies).",
             "**Presque rien dans ton navigateur** : le site garde seulement, dans le stockage de session de ton navigateur, la position où tu étais sur chaque page, pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, aucune donnée personnelle, et tout s'efface quand tu fermes l'onglet : c'est strictement nécessaire à la navigation, donc sans demande d'accord.",
             "**Aucun outil de mesure d'audience extérieur** (ni Google Analytics, ni pixel de réseau social) : nos statistiques de visite sont comptées par notre serveur, sans cookie (voir « Les statistiques de visite »). Et **aucune publicité** pour l'instant.",
             "**Aucun contenu tiers intégré** : pas de vidéo, de carte ou de bouton de réseau social qui préviendrait un autre service de ta visite. Même nos polices de caractères sont hébergées avec le site, sur notre serveur chez notre hébergeur.",
@@ -342,5 +338,20 @@ export const documentConfidentialite: DocumentLegal = {
         "Si un changement touche à des données que tu nous as déjà confiées, on te prévient, et on te redemande ton accord quand il le faut.",
       ],
     },
+  ],
+  chapitres: [
+    { id: "qui-on-est", titre: "Qui on est", sections: ["responsable"] },
+    { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare"] },
+    { id: "quand-tu-nous-ecris", titre: "Quand tu t'inscris ou nous écris", sections: ["newsletter", "formulaire", "demande-lieu", "messages"] },
+    {
+      id: "ton-compte-et-l-app",
+      titre: "Ton compte et l'app",
+      sections: ["compte-ambassadeur", "compte-pro", "connexion-apple-google", "app", "app-comptes", "miam-safe"],
+    },
+    { id: "jamais", titre: "Ce qu'on ne fait pas", sections: ["ce-qu-on-ne-fait-pas"] },
+    { id: "avec-qui", titre: "Avec qui, où, et comment c'est protégé", sections: ["destinataires", "securite"] },
+    { id: "tes-droits", titre: "Tes droits", sections: ["droits", "exercer-tes-droits", "cnil"] },
+    { id: "moins-de-18-ans", titre: "Les mineurs", sections: ["mineurs"] },
+    { id: "la-suite", titre: "Ce qui va changer", sections: ["a-venir", "mises-a-jour"] },
   ],
 };
