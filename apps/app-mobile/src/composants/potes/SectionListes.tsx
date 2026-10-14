@@ -6,9 +6,11 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
+import { CarteInvitationListe } from "~/composants/potes/CarteInvitationListe";
 import { CarteListe } from "~/composants/potes/CarteListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
+import { estListeSuivie } from "~/fonctions/communaute/est-liste-suivie";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -31,12 +33,12 @@ const PAR_PAGE = 5;
 const NOM = { un: "liste", des: "listes" };
 
 /**
- * Onglet « Listes » : tes listes, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
+ * Onglet « Listes » : les invitations à remplir la liste d'un pote, tes listes, celles que tu remplis avec un pote, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
  * ne plus suivre ou « Pas intéressé », profil, signaler, bloquer), et « Nouvelle liste ». Chaque section par morceaux (« Voir plus »).
  */
 export function SectionListes({ lieux, onRetire }: Props) {
   const router = useRouter();
-  const { listes, potes, bloques, trouverPote, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
+  const { listes, potes, bloques, trouverPote, invitationsListes, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -50,29 +52,37 @@ export function SectionListes({ lieux, onRetire }: Props) {
 
   // Rien de la part des personnes bloquées (les listes signalées, elles, sont déjà retirées par la communauté)
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));
-  const miennes = visibles.filter((l) => l.auteur === monId);
-  const suivies = visibles.filter((l) => l.auteur !== monId && l.abonnes.includes(monId));
+  const estAMoi = (l: ListePartagee) => (l.serveur ? l.serveur.moi.auteur : l.auteur === monId);
+  // Co-auteur qui a dit oui : tu la remplis avec son auteur
+  const estRemplie = (l: ListePartagee) => (l.serveur ? l.serveur.moi.coAuteur === "accepte" : (l.coAuteurs ?? []).some((c) => c.id === monId && c.statut === "accepte"));
+  const miennes = visibles.filter(estAMoi);
+  const remplies = visibles.filter((l) => !estAMoi(l) && estRemplie(l));
+  const suivies = visibles.filter((l) => !estAMoi(l) && !estRemplie(l) && estListeSuivie(l, monId));
   const aDecouvrir = visibles.filter(
     (l) =>
-      l.auteur !== monId &&
+      !estAMoi(l) &&
+      !estRemplie(l) &&
       // « Pas intéressé » : elle sort d'ici (et reste sur le profil de son auteur)
       !estMasque("liste", l.id) &&
-      !l.abonnes.includes(monId) &&
+      !estListeSuivie(l, monId) &&
       !!voitEnEntier?.(l.auteur) &&
       (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
   );
 
   const parId = (l: ListePartagee) => l.id;
   const pagesMiennes = utiliserPagination(miennes, PAR_PAGE, PAR_PAGE, parId);
+  const pagesRemplies = utiliserPagination(remplies, PAR_PAGE, PAR_PAGE, parId);
   const pagesSuivies = utiliserPagination(suivies, PAR_PAGE, PAR_PAGE, parId);
   const pagesADecouvrir = utiliserPagination(aDecouvrir, PAR_PAGE, PAR_PAGE, parId);
   const boutonVoirPlus = (pages: ReturnType<typeof utiliserPagination<ListePartagee>>) => (
     <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
   );
 
-  // Le choix propre à la section : ne plus suivre une liste suivie, ou écarter une liste à découvrir
+  // Le choix propre à la section : ne plus suivre une liste suivie, ou écarter une liste à découvrir (rien pour celles que tu
+  // remplis : on arrête de les remplir depuis la liste elle-même)
   const suivieOuverte = menuPour ? suivies.some((l) => l.id === menuPour.id) : false;
-  const actionsListe = menuPour
+  const rempliesOuverte = menuPour ? remplies.some((l) => l.id === menuPour.id) : false;
+  const actionsListe = menuPour && !rempliesOuverte
     ? [
         suivieOuverte
           ? {
@@ -103,12 +113,12 @@ export function SectionListes({ lieux, onRetire }: Props) {
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
   // La carte d'une liste, dans sa section (sa pagination y pose la ref du lecteur d'écran)
   const carte = (pages: { refDe: (k: string) => (vue: View | null) => void }) => (liste: ListePartagee) => {
-    const auteur = liste.auteur === monId ? null : trouverPote(liste.auteur);
+    const auteur = estAMoi(liste) ? null : trouverPote(liste.auteur);
     return (
       <CarteListe
         key={liste.id}
         liste={liste}
-        auteur={liste.auteur === monId ? "toi" : (auteur?.prenom ?? "un pote")}
+        auteur={estAMoi(liste) ? "toi" : (auteur?.prenom ?? "un pote")}
         lieux={liste.lieux.flatMap((id) => {
           const lieu = lieux.get(id);
           return lieu ? [{ lieu, image: trouverVignetteLieu(id, publications) }] : [];
@@ -122,6 +132,17 @@ export function SectionListes({ lieux, onRetire }: Props) {
 
   return (
     <View className="gap-8">
+      {invitationsListes.length > 0 ? (
+        <View className="gap-3">
+          <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
+            {"On t'invite à remplir"}
+          </Text>
+          {invitationsListes.map((l) => (
+            <CarteInvitationListe key={l.id} liste={l} />
+          ))}
+        </View>
+      ) : null}
+
       <View className="gap-3">
         <View>
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
@@ -144,6 +165,19 @@ export function SectionListes({ lieux, onRetire }: Props) {
         {boutonVoirPlus(pagesMiennes)}
         <Bouton libelle="Nouvelle liste" indice="Choisis un emoji et un nom, puis ajoute tes lieux" onPress={() => setCreation(true)} className="mt-2" />
       </View>
+
+      {remplies.length > 0 ? (
+        <View className="gap-3">
+          <View>
+            <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
+              Celles que tu remplis
+            </Text>
+            <Text className="font-texte text-sm text-gris">{"À plusieurs, c'est encore meilleur."}</Text>
+          </View>
+          {pagesRemplies.visibles.map(carte(pagesRemplies))}
+          {boutonVoirPlus(pagesRemplies)}
+        </View>
+      ) : null}
 
       <View className="gap-3">
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">

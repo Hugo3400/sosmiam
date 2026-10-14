@@ -30,7 +30,7 @@ const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) =
  */
 export default function Potes() {
   const { profil, invite } = utiliserProfil();
-  const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demo, demandesRecues } = utiliserCommunaute();
+  const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demo, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { onglet: ongletDemande } = useLocalSearchParams<{ onglet?: string }>();
@@ -106,7 +106,14 @@ export default function Potes() {
           {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
           {demo ? <BandeauDemoPotes /> : null}
         </View>
-        <OngletsPotes onglet={onglet} onChoisir={choisir} nouveautes={recues.filter((r) => !r.vue).length} demandesBande={demandesRecues.length} />
+        <OngletsPotes
+          onglet={onglet}
+          onChoisir={choisir}
+          nouveautes={recues.filter((r) => !r.vue).length}
+          demandesBande={demandesRecues.length}
+          invitationsSorties={invitationsSorties.length}
+          invitationsListes={invitationsListes.length}
+        />
         <View className="px-5 pt-5">
           {onglet === "sorties" ? (
             <SectionSorties recommandations={recues} lieux={lieux} onRetire={signalerRetrait} />

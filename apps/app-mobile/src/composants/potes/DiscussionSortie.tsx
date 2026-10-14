@@ -139,7 +139,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                 }}
                 className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
               >
-                <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
+                <Text className="font-texte-gras text-sm text-encre">{"Voir les messages d'avant"}</Text>
               </Pressable>
             ) : null}
             <BandeauDemoPotes />

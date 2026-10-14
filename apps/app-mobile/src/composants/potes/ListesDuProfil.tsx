@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -41,7 +42,8 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
       ) : (
         <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
           {siennes.map((liste, i) => {
-            const nombre = liste.lieux.filter((id) => connus.has(id)).length;
+            // Compte connecté, lue en résumé : le nombre du serveur ; sinon, ses lieux encore dans l'app
+            const nombre = liste.serveur && !liste.serveur.complete ? compterLieuxListe(liste) : liste.lieux.filter((id) => connus.has(id)).length;
             const lieux = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
             return (
               <Pressable

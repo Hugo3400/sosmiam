@@ -11,7 +11,13 @@ type Props = {
   nouveautes: number;
   /** Demandes de bande reçues, pas encore acceptées : une pastille sur « Ma bande » */
   demandesBande?: number;
+  /** Sorties où l'on t'invite, en attente de ta réponse : comptées dans la pastille de « Sorties » */
+  invitationsSorties?: number;
+  /** Listes qu'on t'invite à remplir, en attente de ta réponse : une pastille sur « Listes » */
+  invitationsListes?: number;
 };
+
+const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
 
 const onglets: { cle: OngletPotes; nom: string }[] = [
   { cle: "sorties", nom: "Sorties" },
@@ -20,18 +26,25 @@ const onglets: { cle: OngletPotes; nom: string }[] = [
 ];
 
 /** Les trois onglets de Potes (Sorties, Ma bande, Listes), sur fond crème pour rester lisibles quand ils restent collés en haut. */
-export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0 }: Props) {
+export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0, invitationsSorties = 0, invitationsListes = 0 }: Props) {
   return (
     // Fond crème sur toute la largeur : les onglets restent lisibles quand ils restent collés en haut de l'écran
     <View className="bg-creme px-5 pt-1">
       <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne">
         {onglets.map((o, i) => {
           const actif = o.cle === onglet;
-          const pastille = o.cle === "sorties" ? nouveautes : o.cle === "bande" ? demandesBande : 0;
+          const pastille = o.cle === "sorties" ? nouveautes + invitationsSorties : o.cle === "bande" ? demandesBande : invitationsListes;
           const quoi =
             o.cle === "bande"
-              ? `${pastille} demande${pastille > 1 ? "s" : ""} pour rejoindre ta bande`
-              : `${pastille} lieu${pastille > 1 ? "x" : ""} reçu${pastille > 1 ? "s" : ""} pas encore vu${pastille > 1 ? "s" : ""}`;
+              ? `${pluriel(pastille, "demande")} pour rejoindre ta bande`
+              : o.cle === "listes"
+                ? `${pluriel(pastille, "invitation")} à remplir une liste`
+                : [
+                    nouveautes > 0 ? `${nouveautes} lieu${nouveautes > 1 ? "x" : ""} reçu${nouveautes > 1 ? "s" : ""} pas encore vu${nouveautes > 1 ? "s" : ""}` : null,
+                    invitationsSorties > 0 ? `${pluriel(invitationsSorties, "invitation")} à une sortie` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(", ");
           const lu = pastille > 0 ? `${o.nom}, ${quoi}` : o.nom;
           // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
           return (

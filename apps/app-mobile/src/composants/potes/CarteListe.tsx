@@ -4,6 +4,8 @@ import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
+import { compterAbonnesListe } from "~/fonctions/communaute/compter-abonnes-liste";
+import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
@@ -25,8 +27,9 @@ const MAX_VIGNETTES = 3;
 
 /** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipal }: Props) {
-  const nombre = lieux.length;
-  const abonnes = liste.abonnes.length;
+  // Compte connecté : le nombre du serveur (la liste n'est souvent lue qu'en résumé) ; démo : ses lieux encore dans l'app
+  const nombre = liste.serveur ? compterLieuxListe(liste) : lieux.length;
+  const abonnes = compterAbonnesListe(liste);
   const lieuxTexte = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
   const abonnesTexte = abonnes > 0 ? `${abonnes} abonné${abonnes > 1 ? "s" : ""}` : null;
   const lu = [liste.titre, lieuxTexte, auteur === "toi" ? "Créée par toi" : `Par ${auteur}`, abonnesTexte].filter(Boolean).join(", ");
@@ -59,7 +62,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipa
         </Text>
       </View>
 
-      {nombre > 0 ? (
+      {lieux.length > 0 ? (
         <View className="flex-row pl-3">
           {lieux.slice(0, MAX_VIGNETTES).map(({ lieu, image }) => (
             <View key={lieu.id} className="-ml-3 rounded-[12px] border-2 border-white">

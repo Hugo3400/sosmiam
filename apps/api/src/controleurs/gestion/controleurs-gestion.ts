@@ -113,9 +113,9 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
       reponse.json({ ok: true });
     }),
     /**
-     * POST /newsletter/inscrire-comptes-app : DÉSACTIVÉ (audit du 14 octobre 2026). Il inscrirait aussi les comptes qui ont
-     * décoché la case (leur « non » n'est pas encore noté) et ceux créés sur le site avec Google ou Apple. Il reviendra quand
-     * le « non » sera noté (noterDesinscription) et que seuls les comptes vus sur l'app (session app ou appareil) compteront.
+     * POST /newsletter/inscrire-comptes-app : DÉSACTIVÉ pour de bon (audit et choix de Hugo du 14 octobre 2026). Ceux qui
+     * cochent la case newsletter sont déjà inscrits tout seuls (session Site) : ce bouton n'inscrirait plus que des comptes
+     * qui n'ont jamais donné leur accord (créés avant la case). On n'inscrit que ceux qui ont dit oui.
      */
     inscrireComptesApp: verifier(async (_requete, reponse) => {
       if (INSCRIPTION_COMPTES_APP_DESACTIVEE) return reponse.status(409).json({ ok: false, erreur: "desactive" });

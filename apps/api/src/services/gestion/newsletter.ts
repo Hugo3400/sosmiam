@@ -136,10 +136,14 @@ export async function inscrireCompteNewsletter(email: string, ville: string | nu
   return true;
 }
 
-/** « Inscrire les comptes de l'app à la newsletter » (logiciel) : ceux qu'on a vus sur l'app, sauf les désinscrits */
+/**
+ * « Inscrire les comptes de l'app à la newsletter » (logiciel) : ceux qu'on a vus SUR L'APP (connexion depuis l'app, ou
+ * téléphone enregistré), jamais seulement parce qu'ils ont Google ou Apple (on peut s'en servir sur le site), et jamais ceux
+ * qui ont décoché la case ou se sont désinscrits (desinscrits.txt, noterRefus de la session Site). Audit du 14 octobre 2026.
+ */
 export async function inscrireComptesAppNewsletter(maintenant = new Date()) {
   const comptes = await baseDeDonnees.compte.findMany({
-    where: { OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }, { googleSub: { not: null } }, { appleSub: { not: null } }] },
+    where: { OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }] },
     select: { email: true, ville: true },
   });
   let inscrits = 0;

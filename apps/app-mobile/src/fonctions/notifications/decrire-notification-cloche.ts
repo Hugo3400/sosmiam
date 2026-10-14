@@ -1,6 +1,6 @@
+import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
-import { LIBELLES_MOTIFS_MODERATION } from "~/contenus/motifs-moderation";
 import type { Publication } from "~/contenus/type-publication";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -65,7 +65,8 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
         null,
       );
     case "contenu-retire": {
-      const motif = n.detail ? LIBELLES_MOTIFS_MODERATION[n.detail] : undefined;
+      // Un code que cette version de l'app ne connaît pas encore : la phrase générale
+      const motif = n.detail ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { enClair: string } | undefined>>)[n.detail]?.enClair : undefined;
       return decrire("🧹", motif ? `Un de tes contenus a été retiré par la modération (motif : ${motif}).` : "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", null);
     }
     case "signalement-decide":
