@@ -76,6 +76,8 @@ export async function lireCompteGestion(id: number) {
         id: true, prenom: true, pseudo: true, ville: true, prive: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
         // Jamais le nom ni la date de naissance (chiffrés) : seulement « renseignés ou non », pour le bouton « Afficher »
         dateNaissanceChiffree: true,
+        // Lus pour dire « mail, Google, Apple », jamais rendus tels quels
+        motDePasse: true, googleSub: true, appleSub: true,
         ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true } },
         badges: { select: { badge: true, obtenuLe: true }, orderBy: { obtenuLe: "asc" } },
         journalPoints: { select: { points: true, raison: true, detail: true, creeLe: true }, orderBy: { creeLe: "desc" }, take: 20 },
@@ -85,8 +87,11 @@ export async function lireCompteGestion(id: number) {
     baseDeDonnees.sessionCompte.groupBy({ by: ["support"], where: { compteId: id }, _count: { _all: true }, _max: { activite: true } }),
   ]);
   if (!compte) return null;
-  const { dateNaissanceChiffree, ...visible } = compte;
-  return { ...visible, dateNaissanceRenseignee: Boolean(dateNaissanceChiffree), sessions: sessions.map((s) => ({ support: s.support, nombre: s._count._all, derniereActivite: s._max.activite })) };
+  const { dateNaissanceChiffree, motDePasse, googleSub, appleSub, ...visible } = compte;
+  return {
+    ...visible,
+    connexions: { mail: !motDePasse.startsWith(PREFIXE_SANS_MOT_DE_PASSE), google: googleSub !== null, apple: appleSub !== null },
+    dateNaissanceRenseignee: Boolean(dateNaissanceChiffree), sessions: sessions.map((s) => ({ support: s.support, nombre: s._count._all, derniereActivite: s._max.activite })) };
 }
 
 /** Ferme toutes les connexions du compte (site et app) : il devra se reconnecter. Rend le nombre de sessions fermées. */

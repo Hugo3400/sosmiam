@@ -131,6 +131,8 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
     }
     if (!collerEnBas.current) setNouveaux((n) => n + 1);
     if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
+    // Une seule annonce par nouveau message : relire les lieux ne la refait pas
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derniere]);
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {

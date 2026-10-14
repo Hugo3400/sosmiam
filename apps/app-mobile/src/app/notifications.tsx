@@ -71,7 +71,7 @@ export default function Notifications() {
       return [{ date: notification.date, notification, description, pote }];
     });
     return grouperParPeriode(lignes);
-  }, [notifications.notifications, trouverPote, lieux]);
+  }, [notifications.notifications, trouverPote, toutesLesPublications, lieux]);
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
   const pretAAfficher = pret && suivis.pret;

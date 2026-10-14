@@ -33,7 +33,7 @@ const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() 
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
   const { trouverLieu } = utiliserLieux();
-  const estUnBar = (lieuId: number) => trouverLieu(lieuId)?.type === "bar";
+  const estUnBar = useCallback((lieuId: number) => trouverLieu(lieuId)?.type === "bar", [trouverLieu]);
   const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsExemples(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
@@ -201,7 +201,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsExemples(new Date()));
       },
     };
-  }, [conversations, bloques, estSignale, moi, moyenAjout, trouverLieu, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
+  }, [conversations, bloques, estSignale, moi, moyenAjout, estUnBar, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }
