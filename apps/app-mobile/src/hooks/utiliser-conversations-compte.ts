@@ -18,7 +18,7 @@ import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conv
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { effacerMediasChatCompte, garderEnvoiChat } from "~/stockage/medias-chat-compte";
+import { effacerMediasChatCompte, garderEnvoiChat, oublierEnvoiChat, oublierMediaChat } from "~/stockage/medias-chat-compte";
 
 type Fil = { messages: MessageChat[]; suite: string | null; version: number };
 /** Un envoi en cours ou raté : son message à l'écran, et de quoi le renvoyer tel quel (même idClient : jamais deux fois) */
@@ -198,6 +198,9 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       departs.current.delete(idClient);
       const recu = convertirMessageApi(r.message);
       const conversationId = envoisLus.current[idClient]?.conversationId;
+      // La note vocale gardée pour l'envoi ne sert plus : le serveur l'a
+      const copie = envoisLus.current[idClient]?.message.fichier;
+      if (copie) oublierEnvoiChat(copie);
       setEnvois(({ [idClient]: _parti, ...reste }) => reste);
       // Le message du serveur prend la place de celui de l'écran (la discussion ouverte n'attend pas sa prochaine relecture)
       if (conversationId) {
@@ -383,6 +386,16 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       },
       supprimerMessage: (id, messageId) => {
         void sociaux.messagerie.supprimerMessage(id, messageId).then(() => lireFil(id));
+      },
+      effacerPourMoi: (id) => {
+        // Tout de suite à l'écran (avec les photos et notes gardées en cache), puis le serveur ; la relecture remet ce qui reste
+        (fils[id]?.messages ?? []).forEach((m) => (m.type === "photo" || m.type === "vocal") && oublierMediaChat(monId, m.id, m.type));
+        setFils(({ [id]: _efface, ...reste }) => reste);
+        changerConversation(id, (c) => ({ ...c, nonLus: 0, dernierMessage: null }));
+        void sociaux.messagerie.effacerPourMoi(id).then(() => {
+          void lireFil(id);
+          void chargerListe();
+        });
       },
       quitterGroupe: (id) => {
         setListe((avant) => avant.filter((c) => c.id !== id));

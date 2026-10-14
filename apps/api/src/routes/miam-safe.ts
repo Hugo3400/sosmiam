@@ -45,16 +45,18 @@ export const LIMITE_LECTURE_PARTAGES = { fenetre: 60_000, maximum: 30 };
  * PUT  /miam-safe/lieux/:id/senti-bien   { oui: boolean } → 200 { ok } (la dernière réponse compte) · 404 lieu-inconnu
  * « Prévenir un pote » de sa bande (position chiffrée dans la base, effacée dès la fin du partage, jamais dans un journal ;
  * un pote retiré ou bloqué ne voit plus rien). partage = { id, sens: "envoye"|"recu", personne: PersonneResume (l'autre),
- * lieu: { id, nom } | null, position: { latitude, longitude, precisionM, le } | null (seulement en cours), creeLe, expireLe,
- * actif } :
- * POST   /miam-safe/prevenir             { pote: identifiant public, lieuId, position?: { latitude, longitude, precisionM? } }
+ * lieu: { id, nom } | null, avecPosition, position: { latitude, longitude, precisionM, le } | null (seulement en cours),
+ * creeLe, expireLe, actif } :
+ * POST   /miam-safe/prevenir             { pote: identifiant public, lieuId, partagerPosition? (vrai par défaut ; faux : aucune
+ *                                          position, jamais), position?: { latitude, longitude, precisionM? } }
  *                                        → 201 { ok, partage, telephones } : notification urgente au pote, position partagée
  *                                          1 h ; telephones = sur combien de ses téléphones elle est partie (0 : il n'est PAS
  *                                          prévenu, l'app propose d'appeler) · 400 champ-invalide · 404 pote-inconnu (pas dans
  *                                          ta bande, inconnu, blocage) · 404 lieu-inconnu · 429 (10 par 10 min)
  * PUT    /miam-safe/partages/:id/position { latitude, longitude, precisionM? } → 200 { ok, expireLe } (la personne qui
  *                                          partage) · 404 partage-inconnu · 410 partage-termine (arrêté, l'heure passée, plus
- *                                          potes : il s'arrête alors) · 503 chiffrement-indisponible · 429 (12 par minute)
+ *                                          potes : il s'arrête alors) · 409 position-non-partagee (interrupteur coupé) · 503
+ *                                          chiffrement-indisponible · 429 (12 par minute)
  * DELETE /miam-safe/partages/:id         → 200 { ok } : arrêté, position effacée (la personne qui partage) · 404 partage-inconnu
  * GET    /miam-safe/partages             → 200 { ok, partages } : en cours, envoyés et reçus · 429 (30 par minute)
  * GET    /miam-safe/partages/:id         → 200 { ok, partage } (la personne qui partage, ou son pote) · 404 partage-inconnu

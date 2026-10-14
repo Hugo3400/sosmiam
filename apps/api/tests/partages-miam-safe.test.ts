@@ -152,3 +152,28 @@ test("Prévenir un pote : sans téléphone connecté, l'app le sait (0) ; sans p
     await b.fermer();
   }
 });
+
+test("Prévenir un pote : interrupteur coupé, aucune position n'est jamais acceptée", async () => {
+  const { b, lea, sam, lieuId } = await preparer();
+  try {
+    b.rendrePotes(lea.id, sam.id);
+    assert.equal((await b.demander("POST", "/miam-safe/prevenir", { jeton: lea.jeton, corps: { pote: b.idPublic(sam.id), lieuId, partagerPosition: "non" } })).corps.champ, "partagerPosition");
+    const r = await b.demander("POST", "/miam-safe/prevenir", { jeton: lea.jeton, corps: { pote: b.idPublic(sam.id), lieuId, partagerPosition: false, position: POSITION } });
+    assert.equal(r.statut, 201);
+    assert.equal(r.corps.partage.avecPosition, false);
+    assert.equal(r.corps.partage.position, null, "même envoyée, la position est ignorée");
+    assert.equal(b.potesPrevenus[0].message.texte, "Léa ne se sent pas en sécurité à « Chez Mo ». Prends vite de ses nouvelles.");
+    const maj = await b.demander("PUT", `/miam-safe/partages/${r.corps.partage.id}/position`, { jeton: lea.jeton, corps: POSITION });
+    assert.equal(maj.statut, 409);
+    assert.equal(maj.corps.erreur, "position-non-partagee");
+    assert.equal(b.partages.lignes[0].position, null);
+    const vu = await b.demander("GET", `/miam-safe/partages/${r.corps.partage.id}`, { jeton: sam.jeton });
+    assert.equal(vu.corps.partage.avecPosition, false);
+    assert.equal(vu.corps.partage.actif, true);
+    // Par défaut (ancienne app, sans le champ), la position est partagée
+    const defaut = await b.demander("POST", "/miam-safe/prevenir", { jeton: lea.jeton, corps: { pote: b.idPublic(sam.id), lieuId, position: POSITION } });
+    assert.equal(defaut.corps.partage.avecPosition, true);
+  } finally {
+    await b.fermer();
+  }
+});

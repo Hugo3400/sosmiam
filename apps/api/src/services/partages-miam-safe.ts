@@ -13,12 +13,12 @@ const CONTEXTE_CLE = "miam-safe:position";
 const contexte = (id: number) => `partage:${id}:position`;
 
 const CHAMPS = {
-  id: true, compteId: true, poteId: true, positionChiffree: true, creeLe: true, expireLe: true, arreteLe: true,
+  id: true, compteId: true, poteId: true, avecPosition: true, positionChiffree: true, creeLe: true, expireLe: true, arreteLe: true,
   lieu: { select: { id: true, nom: true } },
 } as const;
 
 type LigneBase = {
-  id: number; compteId: number; poteId: number; positionChiffree: string | null; creeLe: Date; expireLe: Date; arreteLe: Date | null;
+  id: number; compteId: number; poteId: number; avecPosition: boolean; positionChiffree: string | null; creeLe: Date; expireLe: Date; arreteLe: Date | null;
   lieu: { id: number; nom: string } | null;
 };
 
@@ -48,7 +48,7 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
   };
 
   const versLigne = (l: LigneBase): LignePartage => ({
-    id: l.id, compteId: l.compteId, poteId: l.poteId, lieu: l.lieu, position: dechiffrer(l.id, l.positionChiffree),
+    id: l.id, compteId: l.compteId, poteId: l.poteId, lieu: l.lieu, avecPosition: l.avecPosition, position: dechiffrer(l.id, l.positionChiffree),
     creeLe: l.creeLe, expireLe: l.expireLe, arreteLe: l.arreteLe,
   });
 
@@ -57,7 +57,7 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
     baseDeDonnees.partagePositionMiamSafe.updateMany({ where: { positionChiffree: { not: null }, ...fini(maintenant) }, data: { positionChiffree: null } });
 
   return {
-    async creer({ compteId, poteId, lieuId, position }, maintenant) {
+    async creer({ compteId, poteId, lieuId, avecPosition, position }, maintenant) {
       const lieu = await baseDeDonnees.lieu.findFirst({ where: { id: lieuId, statut: "publie" }, select: { id: true } });
       if (!lieu) return { ok: false, erreur: "lieu-inconnu" };
       const ligne = await baseDeDonnees.$transaction(async (tx) => {
@@ -66,11 +66,11 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
           data: { arreteLe: maintenant, positionChiffree: null },
         });
         const { id } = await tx.partagePositionMiamSafe.create({
-          data: { compteId, poteId, lieuId, creeLe: maintenant, expireLe: new Date(maintenant.getTime() + DUREE_PARTAGE_MS) },
+          data: { compteId, poteId, lieuId, avecPosition, creeLe: maintenant, expireLe: new Date(maintenant.getTime() + DUREE_PARTAGE_MS) },
           select: { id: true },
         });
         // Le contexte du chiffré contient l'id : la position s'écrit juste après la création
-        const chiffre = position ? chiffrer(id, position, maintenant) : null;
+        const chiffre = avecPosition && position ? chiffrer(id, position, maintenant) : null;
         return tx.partagePositionMiamSafe.update({ where: { id }, data: { positionChiffree: chiffre }, select: CHAMPS });
       });
       await effacerPositionsFinies(maintenant);
@@ -81,12 +81,13 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
       if (!chiffrement) return "indisponible";
       const chiffre = chiffrer(id, position, maintenant);
       const { count } = await baseDeDonnees.partagePositionMiamSafe.updateMany({
-        where: { id, compteId, arreteLe: null, expireLe: { gt: maintenant } },
+        where: { id, compteId, avecPosition: true, arreteLe: null, expireLe: { gt: maintenant } },
         data: { positionChiffree: chiffre },
       });
       if (count > 0) return "ok";
-      const existe = await baseDeDonnees.partagePositionMiamSafe.count({ where: { id, compteId } });
-      if (existe === 0) return "inconnu";
+      const ligne = await baseDeDonnees.partagePositionMiamSafe.findFirst({ where: { id, compteId }, select: { avecPosition: true } });
+      if (!ligne) return "inconnu";
+      if (!ligne.avecPosition) return "sans-position";
       await effacerPositionsFinies(maintenant);
       return "termine";
     },

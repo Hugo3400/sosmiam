@@ -114,6 +114,9 @@ model PartagePositionMiamSafe {
   expireLe   DateTime  @map("expire_le") @db.Timestamptz(0)
   /// Arrêté par la personne avant la fin de l'heure
   arreteLe   DateTime? @map("arrete_le") @db.Timestamptz(0)
+  /// La personne a choisi de partager sa position (interrupteur « Partager ma position pendant 1 h ») ; faux : le pote est
+  /// prévenu, mais aucune position n'est jamais acceptée pour ce partage
+  avecPosition Boolean  @default(true) @map("avec_position")
 
   @@index([compteId, expireLe])
   @@index([poteId, expireLe])

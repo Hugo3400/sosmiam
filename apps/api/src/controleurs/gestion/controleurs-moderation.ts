@@ -1,8 +1,10 @@
 // Contrôleurs de la modération (logiciel de gestion) : la file des signalements, la décision avec sa règle et son
-// explication pour l'auteur (règlement européen sur les services numériques, art. 17), la contestation et le réexamen.
+// explication pour l'auteur (règlement européen sur les services numériques, art. 17), la contestation et le réexamen ; pour un
+// contenu social, son instantané déchiffré et le média signalé (lu noté au journal, jamais son contenu).
 import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
+import { CIBLES_SOCIALES, type ModerationSociale } from "../../services/gestion/cibles-moderation.ts";
 import { MOTIFS_MODERATION } from "../../services/gestion/motifs-moderation.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 import { ChampInvalide, lireChoix, lireId, lireParametre, lireTexte } from "./lire-champs.ts";
@@ -22,12 +24,26 @@ function verifier(controleur: (requete: Request, reponse: Response) => Promise<u
   };
 }
 
-export function creerControleursModeration(s: ServicesGestion) {
+const CIBLES = ["publication", ...CIBLES_SOCIALES] as readonly string[];
+
+export function creerControleursModeration(s: ServicesGestion, social?: ModerationSociale) {
   const noter = (reponse: Response, action: string, detail?: string) => s.noterAction((reponse.locals.gestion as ContexteGestion).poste.nom, action, detail);
   const id = (requete: Request) => lireId(requete.params.id) ?? 0;
 
   return {
-    signalements: verifier(async (requete, reponse) => reponse.json(await s.listerSignalements(lireParametre(requete.query.statut, 10)))),
+    /** GET /moderation?statut=&cible= */
+    signalements: verifier(async (requete, reponse) => {
+      const cible = lireParametre(requete.query.cible, 12);
+      reponse.json(await s.listerSignalements(lireParametre(requete.query.statut, 10), social, CIBLES.includes(cible) ? cible : ""));
+    }),
+    /** GET /moderation/:id/media : la photo ou la note vocale d'un message signalé, déchiffrée, tant qu'il n'est pas jugé */
+    media: verifier(async (requete, reponse) => {
+      const media = await s.lireMediaSignale(id(requete), social);
+      if (!media) return introuvable(reponse);
+      if (media.etat === "sans-cle") return reponse.status(503).json({ ok: false, erreur: "chiffrement-indisponible" });
+      await noter(reponse, "Média signalé lu", `signalement n° ${id(requete)}`);
+      reponse.set("Cache-Control", "no-store").set("X-Content-Type-Options", "nosniff").type(media.type).send(media.octets);
+    }),
     decider: verifier(async (requete, reponse) => {
       const corps = corpsDe(requete);
       const decision = lireChoix(corps, "decision", ["retenu", "rejete"] as const);
@@ -35,7 +51,7 @@ export function creerControleursModeration(s: ServicesGestion) {
       const motif = decision === "retenu" ? lireChoix(corps, "motif", MOTIFS_MODERATION) : null;
       const motivation = decision === "retenu" ? lireTexte(corps, "motivation", 1000, true) : lireTexte(corps, "motivation", 1000);
       if (decision === "retenu" && (motivation ?? "").trim().length < 10) throw new ChampInvalide("motivation");
-      const resultat = await s.deciderSignalement(id(requete), { decision, note: lireTexte(corps, "note", 500), motif, motivation });
+      const resultat = await s.deciderSignalement(id(requete), { decision, note: lireTexte(corps, "note", 500), motif, motivation }, social);
       if (!resultat) return introuvable(reponse);
       if (resultat === "deja-decide") return reponse.status(409).json({ ok: false, erreur: "deja-decide" });
       const action = decision === "retenu" ? "Signalement retenu (contenu retiré)" : "Signalement rejeté";

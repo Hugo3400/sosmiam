@@ -97,4 +97,5 @@ export type ErreurService =
   | "charte-retiree"
   | "pote-inconnu"
   | "partage-inconnu"
-  | "partage-termine";
+  | "partage-termine"
+  | "position-non-partagee";

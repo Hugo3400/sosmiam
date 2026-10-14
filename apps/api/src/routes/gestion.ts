@@ -11,6 +11,7 @@ import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion
 import { creerControleursPresse } from "../controleurs/gestion/controleurs-presse.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
+import type { ModerationSociale } from "../services/gestion/cibles-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-outils-lieux.ts";
 import { creerControleursRattachements } from "../controleurs/gestion/controleurs-rattachements.ts";
@@ -40,6 +41,8 @@ export type DependancesGestion = {
   chiffrement?: ChiffrementDonnees | null;
   /** Visites décidées par l'équipe (services/visites-gestion.ts de l'App) : « donner raison au client » ; absent → 503 */
   visites?: VisitesGestion;
+  /** Modération des contenus sociaux : instantanés, médias signalés et cloche (les objets de la partie sociale de l'app) */
+  moderationSociale?: ModerationSociale;
   /** Défis de l'app (services/defis.ts de la session App) ; absent → 503 */
   defis?: DefisGestion;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
@@ -47,7 +50,7 @@ export type DependancesGestion = {
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
@@ -65,7 +68,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const presse = creerControleursPresse(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
-  const o = creerControleursModeration(services);
+  const o = creerControleursModeration(services, moderationSociale);
   const safe = creerControleursMiamSafe(services);
   const r = creerControleursReponsesTypes(services);
   const routes = Router();
@@ -219,6 +222,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/medias/:fichier", c.media);
 
   routes.get("/moderation", o.signalements);
+  routes.get("/moderation/:id/media", o.media);
   routes.post("/moderation/:id/decision", o.decider);
   routes.post("/moderation/:id/contestation", o.contester);
 

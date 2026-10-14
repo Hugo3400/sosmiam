@@ -30,6 +30,8 @@ export type PartagePositionMiamSafe = {
   sens: "envoye" | "recu";
   personne: PersonneResume;
   lieu: { id: number; nom: string } | null;
+  /** La personne a choisi de partager sa position (sinon, le pote voit seulement le lieu, et rien n'est jamais envoyé) */
+  avecPosition: boolean;
   position: (PositionMiamSafe & { le: string }) | null;
   creeLe: string;
   expireLe: string;

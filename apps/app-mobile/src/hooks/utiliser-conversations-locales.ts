@@ -179,6 +179,13 @@ export function utiliserConversationsLocales(): EtatConversations {
       renvoyer: () => {},
       couper: () => {},
       supprimerMessage: () => {},
+      effacerPourMoi: (id) => {
+        const conversation = conversations.find((c) => c.id === id);
+        if (!conversation) return;
+        // Sur le téléphone, les messages partent avec leurs photos et notes vocales (démo : les potes n'ont rien à garder)
+        setConversations((cs) => cs.map((c) => (c.id === id ? { ...c, messages: [] } : c)));
+        supprimerFichiersChat(conversation.messages.flatMap((m) => (m.fichier ? [m.fichier] : [])));
+      },
       quitterGroupe: (id) => {
         const groupe = conversations.find((c) => c.id === id && c.type === "groupe");
         if (!groupe) return;

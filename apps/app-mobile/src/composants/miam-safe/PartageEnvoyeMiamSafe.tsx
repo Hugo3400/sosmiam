@@ -22,7 +22,8 @@ type Props = {
  * la position est visible, et « Arrêter le partage ». La position part d'ici, tant que l'écran est ouvert.
  */
 export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, onTermine }: Props) {
-  const { etat, derniere } = utiliserEnvoiPositionMiamSafe(partage.actif ? partage.id : null, onTermine);
+  // Interrupteur coupé : aucune position ne part, jamais (le serveur les refuserait de toute façon)
+  const { etat, derniere } = utiliserEnvoiPositionMiamSafe(partage.actif && partage.avecPosition ? partage.id : null, onTermine);
   const prenom = partage.personne.prenom;
 
   return (
@@ -41,7 +42,14 @@ export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, o
         </View>
       ) : null}
 
-      {partage.actif ? (
+      {partage.actif && !partage.avecPosition ? (
+        <View className="gap-3 rounded-2xl bg-white p-4">
+          <Text className="font-texte-gras text-base text-encre">
+            Tu n'as pas partagé ta position : {prenom} voit seulement le lieu, jusqu'à {ecrireHeure(partage.expireLe)}.
+          </Text>
+          <Bouton libelle={arret ? "Arrêt…" : "Arrêter le partage"} variante="blanc" desactive={arret} onPress={onArreter} />
+        </View>
+      ) : partage.actif ? (
         <View className="gap-3 rounded-2xl bg-white p-4">
           <Text className="font-texte-gras text-base text-encre">
             📍 {prenom} voit ta position jusqu'à {ecrireHeure(partage.expireLe)}.

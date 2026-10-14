@@ -66,7 +66,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
     setErreur(null);
     const lue = avecPosition ? await lirePositionMiamSafe() : null;
     const position = lue === "refusee" ? null : lue;
-    const r = await miamSafe.prevenirPote({ pote: pote.id, lieuId, position }).catch(() => null);
+    const r = await miamSafe.prevenirPote({ pote: pote.id, lieuId, partagerPosition: avecPosition, position }).catch(() => null);
     setEnvoi(false);
     if (r?.ok) return onOuvrirPartage(r.partage.id, r.telephones);
     const message = MESSAGES_SERVICE[r ? r.erreur : "hors-ligne"];

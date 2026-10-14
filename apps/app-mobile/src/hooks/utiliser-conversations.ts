@@ -38,6 +38,8 @@ export type EtatConversations = {
   renvoyer: (conversationId: string, messageId: string) => void;
   /** Coupe (ou remet) les notifications d'une discussion (compte connecté) */
   couper: (conversationId: string, coupee: boolean) => void;
+  /** Efface la discussion pour toi seul : tu ne vois plus les messages d'avant, les autres les gardent */
+  effacerPourMoi: (conversationId: string) => void;
   /** Supprime ton message pour tout le monde (compte connecté) : il reste « Message supprimé » */
   supprimerMessage: (conversationId: string, messageId: string) => void;
   envoyerTexte: (conversationId: string, texte: string) => ResultatEnvoiChat;

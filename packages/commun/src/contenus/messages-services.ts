@@ -468,6 +468,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Le partage est terminé",
     texte: "La position n'est plus partagée : l'heure est passée, ou le partage a été arrêté.",
   },
+  "position-non-partagee": {
+    emoji: "📍",
+    titre: "Position non partagée",
+    texte: "Tu as choisi de ne pas partager ta position avec ce pote : rien n'est envoyé.",
+  },
   ...MESSAGES_SERVICES_SOCIAUX,
   // Connexion par QR code (messages-connexion-qr.ts)
   ...MESSAGES_CONNEXION_QR,

@@ -19,6 +19,8 @@ export type LignePartage = {
   /** Le pote qui voit */
   poteId: number;
   lieu: { id: number; nom: string } | null;
+  /** Interrupteur « Partager ma position pendant 1 h » : faux, aucune position n'est jamais acceptée */
+  avecPosition: boolean;
   position: (PositionMiamSafe & { le: Date }) | null;
   creeLe: Date;
   expireLe: Date;
@@ -37,14 +39,15 @@ export interface ServicesPartagesMiamSafe {
    * sans position (partage.position vaut null : l'app le dit).
    */
   creer(
-    partage: { compteId: number; poteId: number; lieuId: number; position: PositionMiamSafe | null },
+    partage: { compteId: number; poteId: number; lieuId: number; avecPosition: boolean; position: PositionMiamSafe | null },
     maintenant: Date,
   ): Promise<{ ok: true; partage: LignePartage } | { ok: false; erreur: "lieu-inconnu" }>;
   /**
    * Seulement la personne qui partage ; « inconnu » : pas le sien ; « termine » : arrêté ou l'heure passée ;
-   * « indisponible » : la clé des données manque, la position ne peut pas être gardée chiffrée
+   * « indisponible » : la clé des données manque, la position ne peut pas être gardée chiffrée ; « sans-position » : la
+   * personne a choisi de ne pas partager sa position
    */
-  envoyerPosition(id: number, compteId: number, position: PositionMiamSafe, maintenant: Date): Promise<"ok" | "inconnu" | "termine" | "indisponible">;
+  envoyerPosition(id: number, compteId: number, position: PositionMiamSafe, maintenant: Date): Promise<"ok" | "inconnu" | "termine" | "indisponible" | "sans-position">;
   /** Seulement la personne qui partage ; efface la position. false : pas le sien. Déjà fini : true quand même */
   arreter(id: number, compteId: number, maintenant: Date): Promise<boolean>;
   /** Un partage (null : inconnu ou déjà effacé) ; qui a le droit de le voir est vérifié par le contrôleur */

@@ -2,6 +2,7 @@
 // « Signalements et modération »). Une décision vaut pour tous les signalements encore ouverts sur le même contenu :
 // on juge la publication, pas chaque signalement.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, type ModerationSociale } from "./moderation-sociale.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
 /** Même liste que RAISONS_AVEC_MASQUAGE_IMMEDIAT (packages/commun/src/regles/signalement.ts), que l'API ne peut pas encore importer */
@@ -11,10 +12,15 @@ export const RAISONS_AVEC_MASQUAGE_IMMEDIAT = ["choquant"];
 /** Contestée et pas encore réexaminée */
 const CONTESTES = { contesteLe: { not: null }, reexamineLe: null } as const;
 
-export async function listerSignalements(statut: string) {
+/**
+ * La file : les signalements d'un statut (ou contestés), éventuellement d'une seule cible. Une publication est montrée telle
+ * qu'elle est ; un contenu social, par son INSTANTANÉ déchiffré (jamais le contenu vivant), avec les noms des lieux qu'il
+ * cite et l'historique de la personne qui a signalé.
+ */
+export async function listerSignalements(statut: string, social?: ModerationSociale, cible = "") {
   const [signalements, compteurs, contestes] = await Promise.all([
     baseDeDonnees.signalement.findMany({
-      where: statut === "conteste" ? CONTESTES : statut ? { statut } : {},
+      where: { ...(statut === "conteste" ? CONTESTES : statut ? { statut } : {}), ...(cible ? { cible } : {}) },
       orderBy: { creeLe: statut === "a-traiter" || statut === "conteste" ? "asc" : "desc" },
       take: 300,
     }),
@@ -32,16 +38,25 @@ export async function listerSignalements(statut: string) {
     },
   });
   const parId = new Map(publications.map((publication) => [String(publication.id), publication]));
-  const enrichis = signalements.map((signalement) => ({
+  const instantanes = new Map(signalements.map((s) => [s.id, lireInstantane(social, s)]));
+  const [lieux, signaleurs] = await Promise.all([
+    lireLieuxDesInstantanes([...instantanes.values()].map((i) => (i?.etat === "lu" ? i.contenu : undefined))),
+    lireHistoriqueSignaleurs([...new Set(signalements.flatMap((s) => (s.signaleParId ? [s.signaleParId] : [])))]),
+  ]);
+  const enrichis = signalements.map(({ instantaneChiffre: _chiffre, fichierMedia, ...signalement }) => ({
     ...signalement,
     urgent: RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(signalement.raison),
     publication: signalement.cible === "publication" ? parId.get(signalement.cibleId) ?? null : null,
+    instantane: instantanes.get(signalement.id) ?? null,
+    avecMedia: fichierMedia !== null,
+    signaleur: signalement.signaleParId ? signaleurs[signalement.signaleParId] ?? null : null,
   }));
   // Les signalements graves encore ouverts passent en tête de file
   if (statut === "a-traiter") enrichis.sort((a, b) => Number(b.urgent) - Number(a.urgent));
   return {
     compteurs: { ...Object.fromEntries(compteurs.map((groupe) => [groupe.statut, groupe._count._all])), conteste: contestes },
     signalements: enrichis,
+    lieux,
   };
 }
 
@@ -49,16 +64,17 @@ export type DecisionModeration = { decision: "retenu" | "rejete"; note: string |
 
 /**
  * Décide d'un signalement, et du même coup de tous ceux encore ouverts sur le même contenu (ou réexamine une décision
- * contestée). « retenu » : la publication est retirée pour de bon (masquée), avec la règle enfreinte et le pourquoi
- * pour l'auteur. « rejete » : elle reste ou revient en ligne. Null si le signalement n'existe pas ; « deja-decide »
- * si la décision est déjà prise et pas contestée.
+ * contestée). « retenu » : la publication, le commentaire, le message ou la liste est retiré pour de bon, avec la règle
+ * enfreinte et le pourquoi pour l'auteur. « rejete » : il reste ou revient en ligne. Ensuite, la cloche prévient l'auteur et
+ * ceux qui ont signalé (moderation-sociale.ts). Null si le signalement n'existe pas ; « deja-decide » si la décision est déjà
+ * prise et pas contestée.
  */
-export async function deciderSignalement(id: number, { decision, note, motif, motivation }: DecisionModeration, maintenant = new Date()) {
+export async function deciderSignalement(id: number, { decision, note, motif, motivation }: DecisionModeration, social?: ModerationSociale, maintenant = new Date()) {
   const signalement = await baseDeDonnees.signalement.findUnique({ where: { id } });
   if (!signalement) return null;
   const reexamen = signalement.statut !== "a-traiter";
   if (reexamen && !(signalement.contesteLe && !signalement.reexamineLe)) return "deja-decide" as const;
-  return baseDeDonnees.$transaction(async (transaction) => {
+  const resultat = await baseDeDonnees.$transaction(async (transaction) => {
     const idPublication = Number(signalement.cibleId);
     if (signalement.cible === "publication" && Number.isInteger(idPublication)) {
       await transaction.publication.updateMany({
@@ -68,17 +84,23 @@ export async function deciderSignalement(id: number, { decision, note, motif, mo
       // Réexamen qui donne raison à l'auteur : la publication retirée revient en ligne
       if (decision === "rejete" && reexamen) await transaction.publication.updateMany({ where: { id: idPublication, statut: "masquee" }, data: { statut: "publiee" } });
     }
+    const { fichier } = await appliquerDecisionSociale(transaction, signalement, decision, reexamen, maintenant);
     const memeContenu = { cible: signalement.cible, cibleId: signalement.cibleId };
+    const concernes = { OR: [{ id }, { ...memeContenu, statut: "a-traiter" }, ...(reexamen ? [{ ...memeContenu, ...CONTESTES }] : [])] };
+    const decides = await transaction.signalement.findMany({ where: concernes, select: { id: true, signaleParId: true, auteurContenuId: true } });
     const { count } = await transaction.signalement.updateMany({
-      where: { OR: [{ id }, { ...memeContenu, statut: "a-traiter" }, ...(reexamen ? [{ ...memeContenu, ...CONTESTES }] : [])] },
+      where: concernes,
       data: {
         statut: decision, decision: note, traiteLe: maintenant,
         motif: decision === "retenu" ? motif : null, motivation,
         ...(reexamen ? { reexamineLe: maintenant } : {}),
       },
     });
-    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen };
+    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier };
   });
+  const { decides, fichier, ...rendu } = resultat;
+  await prevenirApresDecision(social, decides, decision, motif, fichier, maintenant);
+  return rendu;
 }
 
 /**

@@ -6,7 +6,8 @@ import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.t
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
 /**
- * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive ») ; réservé aux alertes Miam Safe.
+ * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive », une fois la capacité cochée sur l'App ID), et
+ * sur Android le canal « miam-safe » de l'app (importance maximale) ; réservé aux alertes Miam Safe.
  * `regroupement` (« conversation:<id> », 64 octets au plus) : une seule notification par conversation à l'écran, la suivante
  * remplace la précédente (apns-collapse-id et thread-id sur iPhone, tag sur Android).
  * `sonore` (vrai par défaut) : faux, l'iPhone la montre sans son (les messages d'une même rafale de 30 s). Sur Android, le son
@@ -67,7 +68,14 @@ export function construireCorpsGoogle(jeton: string, message: MessagePush) {
       token: jeton,
       notification: { title: message.titre, body: message.texte },
       data: message.lien ? { lien: message.lien } : {},
-      android: { priority: "high", ...(regroupement ? { notification: { tag: regroupement } } : {}) },
+      // Miam Safe (urgent) : le canal « miam-safe » de l'app, en importance maximale ; tant qu'il n'existe pas sur le
+      // téléphone, Android retombe sur le canal par défaut
+      android: {
+        priority: "high",
+        ...(regroupement || message.urgent
+          ? { notification: { ...(regroupement ? { tag: regroupement } : {}), ...(message.urgent ? { channel_id: "miam-safe" } : {}) } }
+          : {}),
+      },
     },
   };
 }

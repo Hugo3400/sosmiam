@@ -63,6 +63,7 @@ function presenterPartage(ligne: LignePartage, moi: number, personne: PersonneRe
     sens: ligne.compteId === moi ? "envoye" : "recu",
     personne,
     lieu: ligne.lieu,
+    avecPosition: ligne.avecPosition,
     position: actif && ligne.position ? { ...ligne.position, le: ligne.position.le.toISOString() } : null,
     creeLe: ligne.creeLe.toISOString(),
     expireLe: ligne.expireLe.toISOString(),
@@ -95,19 +96,22 @@ export function creerControleursPartagesMiamSafe({ services, potes, prevenirComp
   }
 
   return {
-    /** POST /miam-safe/prevenir : { pote, lieuId, position? } */
+    /** POST /miam-safe/prevenir : { pote, lieuId, partagerPosition?, position? } */
     async prevenir(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       const pote = lireIdPublic(corps.pote);
       const lieuId = lireLieuId(corps);
-      const position = corps.position === undefined || corps.position === null ? null : lirePosition(corps.position);
+      if (corps.partagerPosition !== undefined && typeof corps.partagerPosition !== "boolean") throw new ChampInvalide("partagerPosition");
+      // Interrupteur coupé : aucune position, ni maintenant ni plus tard (même si le téléphone en envoie une)
+      const avecPosition = corps.partagerPosition !== false;
+      const position = !avecPosition || corps.position === undefined || corps.position === null ? null : lirePosition(corps.position);
       const moi = compte(reponse);
       const poteId = await potes.trouverCompte(pote, moi.id);
       if (poteId === null || poteId === moi.id || !(await potes.estPote(moi.id, poteId))) {
         return reponse.status(404).json({ ok: false, erreur: "pote-inconnu" });
       }
       const quand = maintenant();
-      const resultat = await services.creer({ compteId: moi.id, poteId, lieuId, position }, quand);
+      const resultat = await services.creer({ compteId: moi.id, poteId, lieuId, avecPosition, position }, quand);
       if (!resultat.ok) return reponse.status(404).json({ ok: false, erreur: resultat.erreur });
       const partage = resultat.partage;
       const message = ecrireMessagePote({ id: partage.id, prenom: moi.prenom, nomLieu: partage.lieu?.nom ?? null, avecPosition: partage.position !== null });
@@ -137,6 +141,7 @@ export function creerControleursPartagesMiamSafe({ services, potes, prevenirComp
       if (resultat === "inconnu") return introuvable(reponse);
       if (resultat === "termine") return reponse.status(410).json({ ok: false, erreur: "partage-termine" });
       if (resultat === "indisponible") return reponse.status(503).json({ ok: false, erreur: "chiffrement-indisponible" });
+      if (resultat === "sans-position") return reponse.status(409).json({ ok: false, erreur: "position-non-partagee" });
       reponse.json({ ok: true, expireLe: ligne.expireLe.toISOString() });
     },
 

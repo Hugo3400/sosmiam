@@ -21,7 +21,7 @@ export type EtatProfilCommunautaire = {
  */
 export function utiliserProfilCommunautaire(id: string): EtatProfilCommunautaire {
   const { sociaux } = utiliserSession();
-  const { source, moi, noterPersonne } = utiliserCommunaute();
+  const { source, moi, noterPersonne, noterListes } = utiliserCommunaute();
   const { noterProfil } = utiliserSuivisPersonnes();
   const aLire = source === "compte" && id !== "" && id !== moi.id;
   const [etat, setEtat] = useState<EtatProfilCommunautaire>({ profil: null, chargement: aLire });
@@ -51,6 +51,8 @@ export function utiliserProfilCommunautaire(id: string): EtatProfilCommunautaire
         },
       );
       noterProfil(profil);
+      // Ses listes que tu peux voir : l'écran de chacune les retrouve ensuite (lues en entier à l'ouverture)
+      if (profil.listes) noterListes(profil.listes);
       setEtat({ profil, chargement: false });
     });
     return () => {

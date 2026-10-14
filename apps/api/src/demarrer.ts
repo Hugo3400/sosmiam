@@ -148,6 +148,8 @@ const serveur = creerApplication({
     comptes: { ajouterPoints: ajouterPointsEtDefis, donnerBadge, preparerReinitialisation, preparerVerificationEmail, nommerAmbassadeurVille, retirerAmbassadeurVille },
     // « Donner raison au client » sur une contestation de refus (logique des visites de la session App)
     defis,
+    // Modération des contenus sociaux : instantanés, médias signalés et cloche, ceux de la partie sociale de l'app
+    moderationSociale: { chiffrement: socialApp.chiffrement, medias: socialApp.medias, cloche: socialApp.cloche },
     visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }) },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {

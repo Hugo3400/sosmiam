@@ -26,8 +26,11 @@ export interface ServiceMiamSafe {
    * pendant 1 h si tu en donnes une. telephones : sur combien de ses téléphones la notification est partie (0 : aucun
    * téléphone connecté, il n'est PAS prévenu : propose d'appeler). « pote-inconnu », « lieu-inconnu », « trop-de-demandes »
    */
-  prevenirPote(demande: { pote: string; lieuId: number; position: PositionMiamSafe | null }): Promise<ReponseApi<{ partage: PartagePositionMiamSafe; telephones: number }>>;
-  /** La personne qui partage envoie sa nouvelle position. « partage-inconnu », « partage-termine » (arrêté, l'heure passée, plus potes) */
+  prevenirPote(demande: { pote: string; lieuId: number; partagerPosition: boolean; position: PositionMiamSafe | null }): Promise<ReponseApi<{ partage: PartagePositionMiamSafe; telephones: number }>>;
+  /**
+   * La personne qui partage envoie sa nouvelle position. « partage-inconnu », « partage-termine » (arrêté, l'heure passée,
+   * plus potes), « position-non-partagee » (l'interrupteur était coupé)
+   */
   envoyerPosition(partageId: number, position: PositionMiamSafe): Promise<ReponseApi<{ expireLe: string }>>;
   /** Arrêter le partage tout de suite : la position est effacée */
   arreterPartage(partageId: number): Promise<ReponseApi>;

@@ -45,6 +45,17 @@ export async function garderEnvoiChat(uriTemporaire: string, extension: "m4a" | 
   return destination.uri;
 }
 
+/** Une fois l'envoi confirmé, sa copie ne sert plus (seules celles de « cache/chat/envois » sont concernées) */
+export function oublierEnvoiChat(uri: string): void {
+  if (surLeWeb || !uri.includes(`/${DOSSIER}/envois/`)) return;
+  try {
+    const fichier = new File(uri);
+    if (fichier.exists) fichier.delete();
+  } catch {
+    // Déjà parti : rien à faire
+  }
+}
+
 /** Efface tout le cache des médias du chat (déconnexion, suppression du compte, entrée ou sortie de la démo) */
 export function effacerMediasChatCompte(): void {
   if (surLeWeb) return;

@@ -25,7 +25,11 @@ export type Pote = {
 /** nombreVotes (compte connecté) : tous les votes, même ceux qu'on ne te nomme pas (blocage) ; c'est lui qui décide */
 export type PropositionSortie = { lieuId: number; proposePar: string; votes: string[]; nombreVotes?: number };
 
-export type MessageSortie = { id: string; auteur: string; texte: string; date: string };
+/**
+ * etat (compte connecté, la discussion étant une conversation) : « envoi » (parti, pas encore confirmé), « echec » (pas parti,
+ * toucher pour réessayer), « supprime », « masque », « retire » (modération) ou « illisible » ; texte dit alors ce qu'il en est
+ */
+export type MessageSortie = { id: string; auteur: string; texte: string; date: string; etat?: "envoi" | "echec" | "supprime" | "masque" | "retire" | "illisible" };
 
 export type Sortie = {
   id: string;

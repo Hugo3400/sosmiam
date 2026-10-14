@@ -8,6 +8,8 @@
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
 import { purgerCopiesEnvoyees } from "../services/courriels/ranger-envoye.ts";
+import { effacerSignalementsAnciens } from "../services/gestion/moderation-sociale.ts";
+import { creerStockageMediasChat } from "../services/stockage-medias-chat.ts";
 import { effacerReceptionsAnciennes } from "../services/notifications/file-push.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { effacerMiamSafeAncien } from "../services/gestion/miam-safe.ts";
@@ -44,6 +46,9 @@ async function faireLeMenage() {
   try {
     const effaces = await effacerContactsAnciens();
     if (effaces > 0) await noterAction("serveur", "Demandes de lieu effacées (plus de 3 ans)", `${effaces} demande(s)`);
+    // Signalements jugés depuis plus d'un an (publications et contenus sociaux), avec leur instantané et leur média
+    const signalements = await effacerSignalementsAnciens(creerStockageMediasChat());
+    if (signalements > 0) await noterAction("serveur", "Signalements effacés (jugés depuis plus d'un an)", `${signalements} signalement(s)`);
     const copies = await purgerCopiesEnvoyees();
     if (copies) await noterAction("serveur", "Copies de mails effacées de « Envoyés » (plus de 90 jours)", `${copies} mail(s)`);
     const envois = await effacerEnvoisAnciens();
@@ -53,7 +58,7 @@ async function faireLeMenage() {
     const desinscrits = await purgerDesinscritsAnciens();
     if (desinscrits > 0) await noterAction("serveur", "Liste des désinscrits allégée (plus de 3 ans, doublons)", `${desinscrits} ligne(s)`);
     const miamSafe = await effacerMiamSafeAncien();
-    if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an)", `${miamSafe.signalements} signalement(s)`);
+    if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an, ou jamais traités en un an)", `${miamSafe.signalements} signalement(s)`);
     if (miamSafe.alertes > 0) await noterAction("serveur", "Alertes Miam Safe effacées (plus de 30 jours)", `${miamSafe.alertes} alerte(s)`);
     if (miamSafe.partages > 0) await noterAction("serveur", "Partages de position Miam Safe effacés (finis)", `${miamSafe.partages} partage(s)`);
     // L'app : téléphones des notifications silencieux depuis 90 jours, « Ça m'intéresse » 30 jours après l'événement
