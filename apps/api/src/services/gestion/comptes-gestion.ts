@@ -5,21 +5,42 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import type { ChiffrementDonnees } from "../chiffrement-donnees.ts";
 import { dechiffrerProfil } from "./profil-gestion.ts";
+import { PREFIXE_SANS_MOT_DE_PASSE } from "../../fonctions/securite/creer-empreinte-sans-mot-de-passe.ts";
 
 const PAR_PAGE = 50;
 
-export type FiltresComptes = { recherche: string; role: "" | "ambassadeur" | "sans-role"; page: number };
+export type MethodeConnexion = "mail" | "google" | "apple";
+export type FiltresComptes = { recherche: string; role: "" | "ambassadeur" | "sans-role"; page: number; methode?: "" | MethodeConnexion; lieu?: "" | "app" | "site" };
 
-export async function listerComptes({ recherche, role, page }: FiltresComptes) {
+/** Comment on se connecte : mot de passe (inscription par mail), Google ou Apple (on peut en avoir plusieurs) */
+const PAR_METHODE: Record<MethodeConnexion, Prisma.CompteWhereInput> = {
+  mail: { NOT: { motDePasse: { startsWith: PREFIXE_SANS_MOT_DE_PASSE } } },
+  google: { googleSub: { not: null } },
+  apple: { appleSub: { not: null } },
+};
+/** Vu sur l'app : connecté depuis l'app, téléphone enregistré, ou Apple / Google (ils n'existent que dans l'app) */
+const SUR_APP: Prisma.CompteWhereInput = {
+  OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }, PAR_METHODE.google, PAR_METHODE.apple],
+};
+
+export async function listerComptes({ recherche, role, page, methode = "", lieu = "" }: FiltresComptes) {
   const ou: Prisma.CompteWhereInput = {
-    ...(role === "ambassadeur" ? { ambassadeur: { isNot: null } } : role === "sans-role" ? { ambassadeur: { is: null } } : {}),
-    ...(recherche ? { OR: [{ prenom: { contains: recherche, mode: "insensitive" } }, { email: { contains: recherche, mode: "insensitive" } }] } : {}),
+    AND: [
+      role === "ambassadeur" ? { ambassadeur: { isNot: null } } : role === "sans-role" ? { ambassadeur: { is: null } } : {},
+      recherche ? { OR: [{ prenom: { contains: recherche, mode: "insensitive" } }, { email: { contains: recherche, mode: "insensitive" } }] } : {},
+      methode ? PAR_METHODE[methode] : {},
+      lieu === "app" ? SUR_APP : lieu === "site" ? { NOT: SUR_APP } : {},
+    ],
   };
-  const [trouves, total, ambassadeurs, actifsSemaine, comptes] = await Promise.all([
+  const [trouves, total, ambassadeurs, actifsSemaine, parMail, parGoogle, parApple, surApp, comptes] = await Promise.all([
     baseDeDonnees.compte.count({ where: ou }),
     baseDeDonnees.compte.count(),
     baseDeDonnees.compte.count({ where: { ambassadeur: { isNot: null } } }),
     baseDeDonnees.compte.count({ where: { derniereConnexion: { gte: new Date(Date.now() - 7 * 86_400_000) } } }),
+    baseDeDonnees.compte.count({ where: PAR_METHODE.mail }),
+    baseDeDonnees.compte.count({ where: PAR_METHODE.google }),
+    baseDeDonnees.compte.count({ where: PAR_METHODE.apple }),
+    baseDeDonnees.compte.count({ where: SUR_APP }),
     baseDeDonnees.compte.findMany({
       where: ou,
       orderBy: { creeLe: "desc" },
@@ -28,11 +49,22 @@ export async function listerComptes({ recherche, role, page }: FiltresComptes) {
       select: {
         id: true, prenom: true, pseudo: true, ville: true, email: true, emailVerifieLe: true, points: true, palier: true, creeLe: true, derniereConnexion: true,
         ambassadeur: { select: { statut: true, ville: true } },
-        _count: { select: { sessions: true } },
+        _count: { select: { sessions: true, appareils: true } },
+        // Lus pour dire « mail, Google, Apple », jamais rendus tels quels
+        motDePasse: true, googleSub: true, appleSub: true,
+        sessions: { where: { support: "app" }, select: { id: true }, take: 1 },
       },
     }),
   ]);
-  return { total, trouves, parPage: PAR_PAGE, compteurs: { ambassadeurs, actifsSemaine }, comptes };
+  return {
+    total, trouves, parPage: PAR_PAGE,
+    compteurs: { ambassadeurs, actifsSemaine, parMail, parGoogle, parApple, surApp },
+    comptes: comptes.map(({ motDePasse, googleSub, appleSub, sessions, ...compte }) => ({
+      ...compte,
+      connexions: { mail: !motDePasse.startsWith(PREFIXE_SANS_MOT_DE_PASSE), google: googleSub !== null, apple: appleSub !== null },
+      surApp: sessions.length > 0 || compte._count.appareils > 0 || googleSub !== null || appleSub !== null,
+    })),
+  };
 }
 
 /** La fiche d'un compte : ce qu'on en sait, ses rôles et ses connexions ouvertes (par support : site, app). */

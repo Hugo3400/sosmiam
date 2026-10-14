@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -15,6 +14,7 @@ import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   visible: boolean;
@@ -60,6 +60,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const [affiche, setAffiche] = useState<LieuExplorer | null>(null);
   const [tourne, setTourne] = useState(false);
   const dernierTirage = useRef<number | null>(null);
@@ -154,7 +155,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
 
   const lieu = affiche?.lieu ?? null;
   // L'image seulement une fois arrêtée : pendant que ça tourne, le dégradé et l'emoji suffisent (et ne clignotent pas)
-  const image = lieu && !tourne ? trouverVignetteLieu(lieu.id, publicationsExemples.filter((p) => !estMasquee(p.id))) : null;
+  const image = lieu && !tourne ? trouverVignetteLieu(lieu.id, toutesLesPublications.filter((p) => !estMasquee(p.id))) : null;
   const seul = lieux.length === 1;
 
   return (

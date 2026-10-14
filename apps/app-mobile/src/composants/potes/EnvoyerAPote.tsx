@@ -10,7 +10,6 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -18,6 +17,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   visible: boolean;
@@ -46,6 +46,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const { profil } = utiliserProfil();
   const { potes, envoyerLieu } = utiliserCommunaute();
   const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const [choisis, setChoisis] = useState<string[]>([]);
   const [mot, setMot] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -113,7 +114,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   ) : (
     <View className="gap-4">
       <View className="flex-row items-center gap-3">
-        <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, publicationsExemples)} hauteur={52} />
+        <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, toutesLesPublications)} hauteur={52} />
         <View className="flex-1">
           <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
             Envoyer à un pote

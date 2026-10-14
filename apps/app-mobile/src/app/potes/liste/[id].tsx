@@ -13,7 +13,6 @@ import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { EnTeteListe } from "~/composants/potes/EnTeteListe";
 import { LigneLieuListe } from "~/composants/potes/LigneLieuListe";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -21,6 +20,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
 
 
@@ -35,6 +35,7 @@ export default function EcranListePartagee() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const { trouverLieu } = utiliserLieux();
   // Distance depuis le centre de ta ville (partout en France)
   const depart = utiliserPointDeDepart();
@@ -98,7 +99,7 @@ export default function EcranListePartagee() {
   const visibles = communaute.moiMineur ? lieux.filter((l) => l.type !== "bar") : lieux;
   const barsCaches = lieux.length - visibles.length;
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
   const basculerSuivi = () => {
     communaute.basculerSuiviListe(liste.id);

@@ -9,13 +9,13 @@ import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { badges } from "~/contenus/badges";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   pote: Pote;
@@ -43,6 +43,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
   const router = useRouter();
   const { profil } = utiliserProfil();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const { lieux: tousLesLieux } = utiliserLieux();
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { actuel } = calculerPalier(pote.points);
@@ -92,7 +93,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
 
   const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans ta collection)
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const obtenus = badges.filter((b) => pote.badges.includes(b.id));
   const sauves = pote.lieuxSauves.flatMap((id) => lieux.filter((l) => l.id === id));
   const gardes = pote.gardes.flatMap((id) => lieux.filter((l) => l.id === id));

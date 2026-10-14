@@ -20,9 +20,13 @@ export function creerControleursComptesGestion(s: ServicesGestion, comptes?: Out
   return {
     liste: async (requete: Request, reponse: Response) => {
       const role = lireParametre(requete.query.role, 12);
+      const methode = lireParametre(requete.query.methode, 8);
+      const lieu = lireParametre(requete.query.lieu, 8);
       reponse.json(await s.listerComptes({
         recherche: lireParametre(requete.query.recherche),
         role: role === "ambassadeur" || role === "sans-role" ? role : "",
+        methode: methode === "mail" || methode === "google" || methode === "apple" ? methode : "",
+        lieu: lieu === "app" || lieu === "site" ? lieu : "",
         page: Math.min(10_000, Math.max(1, Math.floor(Number(requete.query.page)) || 1)),
       }));
     },

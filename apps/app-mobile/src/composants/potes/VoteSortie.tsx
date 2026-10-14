@@ -9,7 +9,6 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { LieuChoisiSortie } from "~/composants/potes/LieuChoisiSortie";
 import { PropositionVote } from "~/composants/potes/PropositionVote";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -17,6 +16,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   sortie: Sortie;
@@ -50,13 +50,14 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
   const router = useRouter();
   const { trouverPote, voter, proposerLieu, lieuPermisDansSortie, bloques } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const { trouverLieu } = utiliserLieux();
   const depart = utiliserPointDeDepart();
   const [choixOuvert, setChoixOuvert] = useState(false);
 
   const participants = sortie.participants;
   const permis = useCallback((lieu: Lieu) => lieuPermisDansSortie(lieu.id, participants), [lieuPermisDansSortie, participants]);
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const bloquesIds = new Set(bloques.map((b) => b.id));
   const organisateur = sortie.organisateur === ID_MOI;
   const avecMineur = participants.some((id) => trouverPote(id)?.mineur);

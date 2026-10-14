@@ -4,7 +4,6 @@ import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { NotificationSuivi, NouvelleNotificationSuivi } from "@sos-miam/commun/types/suivis";
 import { creerNotificationsDemo, DELAI_PUBLICATION_EXEMPLE } from "~/contenus/notifications-exemples";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
@@ -14,6 +13,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { ContexteNotifications, type EtatNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import {
   effacerNotificationsLocales,
   enregistrerNotificationsLocales,
@@ -61,10 +61,11 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   const pret = relu && activite.chargee && communaute.pret && pourCeProfil;
 
   const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
   // Ce que la minuterie « a posté » revérifie au moment de se déclencher
-  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, profilCreeLe: profil?.creeLe ?? null });
+  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null });
   useEffect(() => {
-    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, profilCreeLe: profil?.creeLe ?? null };
+    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null };
   });
 
   useEffect(() => {
@@ -122,11 +123,11 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     for (const cle of nouvelles) {
       minuteries.current.push(
         setTimeout(() => {
-          const { suivis, estMasquee, age, tousLesLieux, profilCreeLe: profilActuel } = courant.current;
+          const { suivis, estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profilActuel } = courant.current;
           // Plus suivi entre-temps, ou plus le même profil : rien
           if (profilActuel !== profilCreeLe || !suivis.includes(cle)) return;
           const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
-          const publication = publicationsExemples.find(
+          const publication = toutesLesPublications.find(
             (p) => calculerCleSuivi(p.auteur, p.lieuId) === cle && !estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId),
           );
           if (publication) ajouter({ type: "nouvelle-publication", cle, publicationId: publication.id });
@@ -171,7 +172,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     return etat.notifications.filter((n) => {
       if (n.type === "majorite") return !moiMineur;
       if (n.type === "nouvelle-publication") {
-        const publication = publicationsExemples.find((p) => p.id === n.publicationId);
+        const publication = toutesLesPublications.find((p) => p.id === n.publicationId);
         return (
           !!publication &&
           !estMasquee(publication.id) &&
@@ -183,7 +184,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
       const cible = lireCleSuivi(n.cle);
       return cible?.type === "personne" && trouverPote(cible.id) !== null && !idsBloques.has(cible.id);
     });
-  }, [pret, etat, bloques, trouverPote, moiMineur, estMasquee, tousLesLieux, age]);
+  }, [pret, etat, bloques, trouverPote, moiMineur, estMasquee, tousLesLieux, toutesLesPublications, age]);
 
   const vuesLe = pret && etat ? etat.vuesLe : null;
   const valeur = useMemo<EtatNotifications>(

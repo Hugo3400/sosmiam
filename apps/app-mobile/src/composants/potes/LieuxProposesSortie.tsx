@@ -4,7 +4,6 @@ import { Keyboard, Pressable, Text, View } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
@@ -13,6 +12,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -30,8 +30,9 @@ type Props = {
 /** Les lieux proposés au départ d'une nouvelle sortie : la liste (avec de quoi en retirer) et « Ajouter un lieu ». */
 export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, note, erreur }: Props) {
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const depart = utiliserPointDeDepart();
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const complet = lieux.length >= max;
 
   return (

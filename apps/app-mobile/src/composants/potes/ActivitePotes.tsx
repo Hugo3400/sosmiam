@@ -9,12 +9,12 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
 import { RondPote } from "~/composants/potes/RondPote";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 import couleurs from "~/theme/couleurs";
 
@@ -76,10 +76,11 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
   const router = useRouter();
   const { activites, trouverPote, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const voitEnEntier = utiliserVoitEnEntier();
   const [menuPour, setMenuPour] = useState<Ligne | null>(null);
   const maintenant = Date.now();
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
   // Seulement ce que tu peux voir : pas de bar sous 18 ans, pas de lieu disparu
   const lignes = activites.flatMap((activite): Ligne[] => {

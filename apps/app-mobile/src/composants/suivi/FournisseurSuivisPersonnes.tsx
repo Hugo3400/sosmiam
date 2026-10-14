@@ -22,6 +22,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { ContexteSuivisPersonnes, type EtatSuivisPersonnes, type RelationPersonne, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
 import { effacerSuivisPersonnesLocaux, enregistrerSuivisPersonnesLocaux, lireSuivisPersonnesLocaux, type SuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
@@ -42,6 +43,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const communaute = utiliserCommunaute();
   const { ajouter } = utiliserNotifications();
   const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const { moiMineur, potes, trouverPote, moyenAjout } = communaute;
   const [etat, setEtat] = useState<SuivisPersonnesLocaux | null>(null);
   const [relu, setRelu] = useState(false);
@@ -225,7 +227,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   // Tes listes, déjà filtrées (le ménage les enregistrera ensuite)
   const propre = useMemo(() => (pret && etat ? nettoyerSuivisPersonnes(etat, contexte) : null), [pret, etat, contexte]);
   // Lieux et créateurs suivis encore affichables (comptés dans tes abonnements, comme dans « Tu suis »)
-  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(tousLesLieux, age)).length, [activite.suivis, tousLesLieux, age]);
+  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(tousLesLieux, age), toutesLesPublications).length, [activite.suivis, tousLesLieux, toutesLesPublications, age]);
 
   const valeur = useMemo<EtatSuivisPersonnes>(() => {
     const abonnes = propre ? convertirLiensEnPersonnes(propre.abonnes, trouverPote) : [];

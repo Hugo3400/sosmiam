@@ -8,7 +8,6 @@ import { CarrouselSos } from "~/composants/explorer/CarrouselSos";
 import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -16,6 +15,7 @@ import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -68,6 +68,7 @@ export function FeuilleLieux(props: Props) {
   const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur } = props;
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const [cran, setCran] = useState<Cran>("moitie");
   const [hauteurEnTete, setHauteurEnTete] = useState(56);
   const [hauteurSelection, setHauteurSelection] = useState(HAUTEUR_SELECTION_ESTIMEE);
@@ -78,9 +79,9 @@ export function FeuilleLieux(props: Props) {
 
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans le profil)
   const vignettes = useMemo(() => {
-    const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+    const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
     return new Map<number, ImageSourcePropType | null>(lieux.map(({ lieu }) => [lieu.id, trouverVignetteLieu(lieu.id, publications)]));
-  }, [lieux, estMasquee]);
+  }, [lieux, toutesLesPublications, estMasquee]);
 
   const lieuSelectionne = selection === null ? null : (lieux.find((l) => l.lieu.id === selection) ?? null);
   // Un bar ou une offre qui parle d'alcool dans la liste (happy hour…) : le message sanitaire en bas

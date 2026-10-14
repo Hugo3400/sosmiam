@@ -5,7 +5,6 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
@@ -15,6 +14,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   conversationId: string;
@@ -38,6 +38,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   const { moiMineur, lieuPermisDansSortie } = utiliserCommunaute();
   const { trouverConversation } = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const largeur = Math.min(260, Math.round(width * 0.66));
 
   const trouve = lieuId === undefined ? null : (trouverLieu(lieuId) ?? null);
@@ -95,7 +96,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
         {...actionsLecteur}
         className="active:opacity-80"
       >
-        <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, publicationsExemples)} hauteur={112} largeur="100%" arrondi={0} />
+        <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, toutesLesPublications)} hauteur={112} largeur="100%" arrondi={0} />
         <View className="gap-0.5 px-3.5 pb-1 pt-2.5">
           <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
             {lieu.nom}

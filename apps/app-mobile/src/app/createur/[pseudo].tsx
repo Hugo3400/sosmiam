@@ -11,7 +11,6 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -21,6 +20,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
 
 /**
@@ -33,13 +33,17 @@ export default function PageCreateur() {
   const { pseudo = "" } = useLocalSearchParams<{ pseudo: string }>();
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications, pret } = utiliserPublications();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
-  const siennes = publicationsExemples.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === pseudo);
+  const siennes = toutesLesPublications.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === pseudo);
 
+  // Le fil n'est pas encore lu : rien plutôt qu'un « s'est éclipsé » d'une seconde
+  if (siennes.length === 0 && !pret) return null;
   if (siennes.length === 0) {
     return (
       <EcranReglage
@@ -53,7 +57,6 @@ export default function PageCreateur() {
 
   const nom = `@${pseudo}`;
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const { lieux: tousLesLieux } = utiliserLieux();
   const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Comme dans le fil : rien de masqué (« Pas intéressé », signalé), et seulement les lieux que ton âge permet
   const publications = siennes.flatMap((publication) => {

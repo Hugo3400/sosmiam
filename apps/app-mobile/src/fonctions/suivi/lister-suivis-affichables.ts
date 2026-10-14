@@ -1,6 +1,5 @@
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 
@@ -9,9 +8,10 @@ export type SuiviAffichable = { cle: string; type: "lieu"; lieu: Lieu } | { cle:
 
 /**
  * Les suivis à montrer (liste « Tu suis » et son compte sur le profil), dans l'ordre reçu : les lieux encore là parmi `lieux`
- * (déjà filtrés selon ton âge) et les créateurs qui ont au moins une publication. Une clé abîmée ou inconnue est ignorée.
+ * (déjà filtrés selon ton âge) et les créateurs qui ont au moins une publication parmi `publications`. Une clé abîmée ou
+ * inconnue est ignorée.
  */
-export function listerSuivisAffichables(cles: readonly string[], lieux: readonly Lieu[]): SuiviAffichable[] {
+export function listerSuivisAffichables(cles: readonly string[], lieux: readonly Lieu[], publications: readonly Publication[]): SuiviAffichable[] {
   return cles.flatMap((cle): SuiviAffichable[] => {
     const cible = lireCleSuivi(cle);
     if (cible?.type === "lieu") {
@@ -19,8 +19,8 @@ export function listerSuivisAffichables(cles: readonly string[], lieux: readonly
       return lieu ? [{ cle, type: "lieu", lieu }] : [];
     }
     if (cible?.type === "createur") {
-      const publications = publicationsExemples.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === cible.pseudo);
-      return publications.length > 0 ? [{ cle, type: "createur", pseudo: cible.pseudo, publications }] : [];
+      const siennes = publications.filter((p) => p.auteur.type === "createur" && p.auteur.pseudo === cible.pseudo);
+      return siennes.length > 0 ? [{ cle, type: "createur", pseudo: cible.pseudo, publications: siennes }] : [];
     }
     return [];
   });

@@ -10,12 +10,12 @@ import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { CarteListe } from "~/composants/potes/CarteListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
@@ -38,13 +38,14 @@ export function SectionListes({ lieux, onRetire }: Props) {
   const router = useRouter();
   const { listes, potes, bloques, trouverPote, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   // Abonnements acceptés seulement (déjà sans les personnes bloquées) : leurs listes passent dans « À découvrir »
   const { abonnements } = utiliserSuivisPersonnes();
   // Comme sur son profil : les listes d'un compte privé ajouté par son pseudo (sans son accord) ne s'affichent pas
   const voitEnEntier = utiliserVoitEnEntier();
   const [creation, setCreation] = useState(false);
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
   // Rien de la part des personnes bloquées (les listes signalées, elles, sont déjà retirées par la communauté)
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));

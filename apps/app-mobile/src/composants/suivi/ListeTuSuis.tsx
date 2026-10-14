@@ -14,6 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
@@ -54,6 +55,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
   const activite = utiliserActivite();
   const suivis = utiliserSuivisPersonnes();
   const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
 
   // Les lieux et créateurs suivis au moment où la liste s'ouvre (ou dès que l'activité du téléphone est relue)
   const [cles, setCles] = useState<readonly string[] | null>(() => (activite.chargee ? activite.suivis : null));
@@ -71,7 +73,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
 
   // Seulement ce qui existe encore et que ton âge autorise (comme dans le fil)
   const lieux = filtrerLieuxSelonAge(tousLesLieux, profil ? calculerAge(profil.dateNaissance) : null);
-  const pages = listerSuivisAffichables(cles, lieux);
+  const pages = listerSuivisAffichables(cles, lieux, toutesLesPublications);
 
   const lignesPersonnes: LigneAffichee[] = personnes.flatMap(({ pote }) => {
     const relation = suivis.relationAvec(pote.id);

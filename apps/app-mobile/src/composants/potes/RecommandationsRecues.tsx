@@ -8,12 +8,12 @@ import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { CarteRecommandation } from "~/composants/potes/CarteRecommandation";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
   /** Lieux reçus, du plus récent au plus ancien, déjà limités à ceux que tu peux voir (sans ceux que tu as signalés) */
@@ -37,6 +37,7 @@ export function RecommandationsRecues({ recommandations, lieux, onRetire }: Prop
   const router = useRouter();
   const { trouverPote, marquerRecommandationVue, retirerRecommandations, remettreRecommandations } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const [menuPour, setMenuPour] = useState<ContenuPote | null>(null);
   // Les lieux déjà vus au moment de demander (le texte de la feuille ne bouge pas pendant qu'elle se referme)
   const [nettoyage, setNettoyage] = useState<{ ids: string[]; ouvert: boolean }>({ ids: [], ouvert: false });
@@ -44,7 +45,7 @@ export function RecommandationsRecues({ recommandations, lieux, onRetire }: Prop
   const ordre = useMemo(() => [...recommandations.filter((r) => !r.vue), ...recommandations.filter((r) => r.vue)], [recommandations]);
   const pages = utiliserPagination(ordre, PREMIERS, PAR_PAGE, (r) => r.id);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
-  const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
+  const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
   const nouvelles = recommandations.filter((r) => !r.vue).length;
   const vues = recommandations.filter((r) => r.vue);

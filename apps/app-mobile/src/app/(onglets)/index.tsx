@@ -19,7 +19,6 @@ import type { ChoixSignalement } from "~/composants/signalement/SignalementPubli
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
@@ -36,6 +35,7 @@ import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
@@ -130,9 +130,10 @@ export default function PourToi() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { lieux: tousLesLieux } = utiliserLieux();
+  const { publications: toutesLesPublications } = utiliserPublications();
   const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
-  const publications = useMemo(() => ordonnerPublications(publicationsExemples, lieux, profil, suivisDuTri), [lieux, profil, suivisDuTri]);
+  const publications = useMemo(() => ordonnerPublications(toutesLesPublications, lieux, profil, suivisDuTri), [toutesLesPublications, lieux, profil, suivisDuTri]);
 
   const { estMasquee } = activite;
   const liste = useMemo(() => {
