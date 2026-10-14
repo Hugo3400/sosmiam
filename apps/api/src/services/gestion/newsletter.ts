@@ -81,6 +81,18 @@ export async function desinscrire(id: number, maintenant = new Date()): Promise<
 }
 
 /**
+ * Note une désinscription (lien d'un mail, « un clic » d'une messagerie) dans la liste des désinscrits : adresse en
+ * minuscules et date, une seule fois. La synchronisation de la liste la respecte ensuite.
+ */
+export async function noterDesinscription(email: string, maintenant = new Date()): Promise<void> {
+  const adresse = email.trim().toLowerCase();
+  const desinscrits = await readFile(FICHIER_DESINSCRITS, "utf8").catch(() => "");
+  if (desinscrits.split("\n").some((ligne) => ligne.split(" ")[0]?.trim().toLowerCase() === adresse)) return;
+  await mkdir(dirname(FICHIER_DESINSCRITS), { recursive: true, mode: 0o700 });
+  await appendFile(FICHIER_DESINSCRITS, `${adresse} ${maintenant.toISOString().slice(0, 10)}\n`, { mode: 0o600 });
+}
+
+/**
  * Inscrit un ambassadeur validé à la newsletter (décidé par Hugo le 14 octobre 2026 : les ambassadeurs le sont par défaut),
  * sauf s'il s'en est désinscrit un jour. Rend true s'il est (ou était déjà) inscrit.
  */

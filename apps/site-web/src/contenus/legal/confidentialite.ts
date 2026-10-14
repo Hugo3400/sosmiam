@@ -311,7 +311,7 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam s'adresse à tout le monde, ados compris. En France, la loi Informatique et Libertés permet de consentir seul au traitement de ses données à partir de **15 ans**.",
         "Si tu as moins de 15 ans, il faut l'accord de tes parents (ou de la personne qui a l'autorité parentale), en plus du tien, avant de t'inscrire à la newsletter ou via le formulaire « Préviens-moi ».",
         `Si on apprend qu'un enfant de moins de 15 ans s'est inscrit sans cet accord, on efface ses données. Un parent peut nous le signaler à ${lienEmail}.`,
-        "L'app est ouverte à partir de **15 ans**, et de 15 à 17 ans, tout ce qui touche à l'alcool y est masqué (voir « L'app SOS Miam, aujourd'hui »).",
+        "L'app, elle, est réservée aux personnes majeures : **18 ans** en France (voir « L'app SOS Miam, aujourd'hui »).",
         "L'espace ambassadeur et l'espace pro, eux, sont réservés aux **18 ans et plus** : ta date de naissance sert seulement à le vérifier à l'inscription, et n'est pas gardée. Si on apprend qu'un compte ambassadeur ou pro appartient à quelqu'un de moins de 18 ans, on l'efface.",
       ],
     },

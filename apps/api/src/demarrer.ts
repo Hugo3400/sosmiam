@@ -57,7 +57,7 @@ import { servicesComptesExternes } from "./services/comptes-externes.ts";
 import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle } from "./services/connexion-externe.ts";
 import { brancherCleDesinscription } from "./services/liens-desinscription.ts";
 import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
-import { desinscrire } from "./services/gestion/newsletter.ts";
+import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -160,7 +160,7 @@ const serveur = creerApplication({
   // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
   avisApp: { depot: depotAvis, chiffrement, ajouterPoints, tirer: (max) => randomInt(max) },
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
-  newsletter: { cle: cleDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id) },
+  newsletter: { cle: cleDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

@@ -35,9 +35,7 @@ import { estRobot, lireCompteId, lireCorps, lireEmail, lireLigne, lireLigneFacul
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
 /** Conditions d'utilisation acceptées à l'inscription : leur date de mise à jour (contenus/legal/cgu.ts du site, à garder en phase) */
-export const VERSION_CGU = "2026-10-09";
-/** Espace ambassadeur et espace pro : dès 18 ans ; l'app : dès 15 ans (AGE_MINIMUM_INSCRIPTION de packages/commun) */
-const AGE_MINIMUM = 18;
+export const VERSION_CGU = "2026-10-14";
 
 /** Ce que les routes des comptes demandent aux données : services/comptes.ts et comptes-espace.ts (Prisma), ou la mémoire (tests). */
 export type ServicesComptes = {
@@ -169,7 +167,7 @@ export function creerControleursComptes(contexte: ContexteComptes) {
     /**
      * POST /comptes : le compte, sa fiche d'ambassadeur « en-attente » (l'équipe valide), et une session ouverte. Avec
      * espace « pro » (inscription sur pro.sosmiam.fr) : le compte seul, sans fiche d'ambassadeur ni ville. Avec espace
-     * « app » : dès 15 ans, le compte seul avec son profil de l'app (date de naissance gardée, chiffrée).
+     * « app » : le compte seul avec son profil de l'app (date de naissance gardée, chiffrée).
      */
     async inscrire(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
@@ -180,7 +178,8 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       const dateNaissance = typeof corps.dateNaissance === "string" ? corps.dateNaissance : null;
       const maintenant = new Date(horloge());
       const age = dateNaissance === null ? null : espace === "app" ? calculerAgeProfil(dateNaissance, maintenant) : calculerAgeAParis(dateNaissance, maintenant);
-      if (age !== null && age < (espace === "app" ? AGE_MINIMUM_INSCRIPTION : AGE_MINIMUM)) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
+      // Partout (app, espace ambassadeur, espace pro) : dès la majorité, 18 ans en France (décidé le 14 octobre 2026)
+      if (age !== null && age < AGE_MINIMUM_INSCRIPTION) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
       if (espace === "app" && !chiffrement) return repondreChiffrementIndisponible(reponse);
       const prenom = lirePrenom(corps);
       const email = lireEmail(corps);

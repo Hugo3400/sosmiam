@@ -11,8 +11,10 @@ export type MessageCourriel = {
   objet: string;
   html: string;
   texte: string;
-  /** Newsletter : « répondre STOP » devient le bouton de désinscription des messageries (Gmail, Outlook…) */
+  /** Newsletter : bouton de désinscription des messageries (Gmail, Outlook…) : « un clic » si `desinscriptionUnClic`, sinon « répondre STOP » */
   newsletter?: boolean;
+  /** Adresse https de désinscription en un clic de cette personne (List-Unsubscribe-Post, RFC 8058) */
+  desinscriptionUnClic?: string | null;
   /** Écrit par une personne dans le logiciel : pas marqué « généré automatiquement » */
   ecritALaMain?: boolean;
   /** Réponse à un mail reçu : il reste dans le même fil de discussion chez la personne */
@@ -67,7 +69,9 @@ export function composerCourriel(reglages: ReglagesEnvoi, message: MessageCourri
     html: message.html,
     text: message.texte,
     headers: message.newsletter
-      ? { "List-Unsubscribe": `<mailto:${adresse}?subject=STOP>` }
+      ? message.desinscriptionUnClic
+        ? { "List-Unsubscribe": `<${message.desinscriptionUnClic}>, <mailto:${adresse}?subject=STOP>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }
+        : { "List-Unsubscribe": `<mailto:${adresse}?subject=STOP>` }
       : message.ecritALaMain ? {} : { "Auto-Submitted": "auto-generated" },
     ...(message.enReponseA
       ? { inReplyTo: message.enReponseA.messageId, references: [message.enReponseA.references, message.enReponseA.messageId].filter(Boolean).join(" ") }

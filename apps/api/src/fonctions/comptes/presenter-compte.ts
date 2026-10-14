@@ -1,6 +1,9 @@
 import type { CompteConnecte, CompteLu } from "../../services/comptes.ts";
 
-/** Les rôles ambassadeur et pro ne sont jamais rendus sous cet âge (docs/decisions.md : espace ambassadeur dès 18 ans) */
+/**
+ * Les rôles ambassadeur et pro ne sont jamais rendus sous cet âge (docs/decisions.md : espace ambassadeur dès 18 ans).
+ * On ne s'inscrit plus avant 18 ans depuis le 14 octobre 2026 : filet de sécurité pour les comptes créés plus jeunes avant.
+ */
 export const AGE_ROLES = 18;
 
 /**

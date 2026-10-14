@@ -88,7 +88,8 @@ export type DependancesComptes = {
  *   - `age` : âge en années pleines au jour de Paris si la date de naissance est gardée (comptes de l'app), sinon null ;
  *   - `pro.lieux[].emoji` (l'emoji du lieu) et `pro.lieuxValides` : les mêmes lieux, seulement ceux au statut « valide » ;
  *   - si l'âge connu est sous 18 ans, AUCUN rôle : `ambassadeur` null, `pro` { lieux: [], lieuxValides: [] } (de même si
- *     la date est gardée mais illisible faute de clé : dans le doute, on ne montre pas).
+ *     la date est gardée mais illisible faute de clé : dans le doute, on ne montre pas). Depuis le 14 octobre 2026, on ne
+ *     s'inscrit plus avant 18 ans : filet de sécurité pour les comptes de l'app créés plus jeunes avant cette date.
  * `prenom` (inscription du site et de l'app, Apple et Google à la création, PATCH /comptes/moi, PATCH /comptes/moi/profil) :
  * 1 à 40 caractères, sans gros mot (nomPublicContientMotInterdit de packages/commun, comme le pseudo), sinon 400
  * champ-invalide { champ: "prenom" } ; vérifié seulement à l'écriture : le prénom déjà enregistré, renvoyé tel quel, passe.
@@ -108,7 +109,7 @@ export type DependancesComptes = {
  *                                        mot de passe, suppression), confirme son e-mail et va dans l'espace pro comme les
  *                                        autres ; les adresses « ambassadeur actif » lui répondent 403. Ménage de nuit : seul
  *                                        l'effacement après 2 ans sans connexion le concerne.
- *                                        « app » : l'inscription de l'app, DÈS 15 ANS (âge au jour de Paris ; dessous : 403
+ *                                        « app » : l'inscription de l'app, DÈS 18 ANS (âge au jour de Paris ; dessous : 403
  *                                        age-minimum et rien n'est gardé) ; le compte seul, SANS fiche d'ambassadeur. Champs
  *                                        en plus : nom? (60 car., gardé chiffré), ville (2 à 80 car., obligatoire, gardée
  *                                        sur le compte ; quartier ignoré), envies? ({ lieux?, cuisines?, boissons?, bars?,
@@ -201,7 +202,7 @@ export type DependancesComptes = {
  *      compte Apple (ou Google) ;
  *   d) sinon, création d'un compte de l'app, avec les mêmes champs et règles que l'inscription « app » : prenom,
  *      dateNaissance, ville et cgu: true obligatoires (comme l'inscription ; la version du jour est gardée) ; nom?,
- *      envies?, pseudo?. D'abord l'âge : dateNaissance sous 15 ans → 403 age-minimum, rien n'est gardé. Sans clé de
+ *      envies?, pseudo?. D'abord l'âge : dateNaissance sous 18 ans → 403 age-minimum, rien n'est gardé. Sans clé de
  *      chiffrement : 503 chiffrement-indisponible. cgu envoyé mais pas true : 400 champ-invalide {champ: cgu}. Si
  *      prenom, dateNaissance, ville ou cgu manquent → 409 { ok: false, erreur: "profil-a-completer", manque: [ces champs,
  *      dans cet ordre], prefill: { email, prenom?, nom? } } (prenom et nom : ceux envoyés,

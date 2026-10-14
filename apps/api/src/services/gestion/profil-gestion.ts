@@ -45,8 +45,8 @@ export type CorrectionDate = { etat: "introuvable" | "date-invalide" | "trop-jeu
 
 /**
  * Corrige la date de naissance (« AAAA-MM-JJ », jamais dans le futur) et l'enregistre chiffrée. Une date qui donnerait
- * moins que la majorité (AGE_MINIMUM_INSCRIPTION, 18 ans en France ; décidé par Hugo le 14 octobre 2026), au jour de Paris, est refusée (« trop-jeune ») : SOS Miam est réservé aux majeurs, et un tel compte n'a
- * pas sa place ; c'est à l'équipe de le supprimer si c'est vrai.
+ * moins que la majorité au jour de Paris (AGE_MINIMUM_INSCRIPTION : 18 ans en France, décidé par Hugo le 14 octobre 2026)
+ * est refusée (« trop-jeune ») : SOS Miam est réservé aux majeurs, un tel compte n'a pas sa place, l'équipe le supprime.
  */
 export async function corrigerDateNaissance(id: number, date: string, chiffrement: ChiffrementDonnees, maintenant = new Date()): Promise<CorrectionDate> {
   const age = /^\d{4}-\d{2}-\d{2}$/.test(date) ? calculerAgeProfil(date, maintenant) : null;

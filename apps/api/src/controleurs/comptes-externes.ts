@@ -1,6 +1,6 @@
 // « Se connecter avec Apple » et « Se connecter avec Google » (décidé le 9 octobre 2026) : le compte reste unique. Un
 // « sub » déjà connu se connecte ; sinon un compte qui a le même e-mail VÉRIFIÉ reçoit ce « sub » ; sinon un compte de
-// l'app est créé, avec les mêmes champs que l'inscription « app » (dès 15 ans). Aussi : comment le compte se connecte, et
+// l'app est créé, avec les mêmes champs que l'inscription « app » (dès 18 ans). Aussi : comment le compte se connecte, et
 // la confirmation par un nouveau jeton pour effacer un compte sans vrai mot de passe. Contrat : routes/comptes.ts.
 // Jamais de jeton, d'e-mail, de « sub », de nom ni de date de naissance dans un journal.
 import type { Request, Response } from "express";
@@ -84,7 +84,7 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
 
   /**
    * Création d'un compte de l'app avec cette identité : mêmes champs et règles que l'inscription « app » (âge d'abord :
-   * sous 15 ans, 403 et rien n'est gardé). Profil incomplet : 409 « profil-a-completer » avec de quoi pré-remplir.
+   * sous 18 ans, 403 et rien n'est gardé). Profil incomplet : 409 « profil-a-completer » avec de quoi pré-remplir.
    * « recommencer » : un autre envoi a créé ou lié ce compte au même moment.
    */
   async function creerAvecIdentite(reponse: Response, corps: Record<string, unknown>, identite: IdentiteExterne, support: SupportSession) {

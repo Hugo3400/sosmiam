@@ -4,7 +4,9 @@
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { calculerProchainEssai } from "../../fonctions/courriels/calculer-prochain-essai.ts";
 import { classerErreurEnvoi } from "../../fonctions/courriels/classer-erreur-envoi.ts";
+import { ajouterLienDesinscription } from "../../fonctions/courriels/ajouter-lien-desinscription.ts";
 import { lireListeInscrits } from "../gestion/boite-mail.ts";
+import { creerAdresseDesinscriptionUnClic, creerLienDesinscription } from "../liens-desinscription.ts";
 import { expedierCourriel, type ExpedierCourriel, type MessageCourriel } from "./expedier-courriel.ts";
 import { lireReglagesEnvoi, type EtatReglagesEnvoi } from "./reglages-envoi.ts";
 
@@ -66,11 +68,18 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
         await baseDeDonnees.envoiCourriel.update({ where: { id: envoi.id }, data: { statut: "annule", erreur: raison } });
         continue;
       }
-      const contenu = envoi.campagne
+      const newsletter = envoi.campagne?.public === "newsletter";
+      // Newsletter : le lien « Me désinscrire » de cette personne en bas du mail, et la désinscription en un clic des messageries
+      const lien = newsletter ? creerLienDesinscription(envoi.destinataire) : null;
+      const base = envoi.campagne
         ? { objet: envoi.campagne.objet, html: envoi.campagne.html, texte: envoi.campagne.texte }
         : { objet: envoi.objet ?? "", html: envoi.html ?? "", texte: envoi.texte ?? "" };
+      const contenu = lien ? { ...base, ...ajouterLienDesinscription(base, lien) } : base;
       try {
-        await expedier(reglages, { a: envoi.destinataire, ...contenu, newsletter: envoi.campagne?.public === "newsletter", sansCopie: Boolean(envoi.campagne) });
+        await expedier(reglages, {
+          a: envoi.destinataire, ...contenu, newsletter, sansCopie: Boolean(envoi.campagne),
+          desinscriptionUnClic: newsletter ? creerAdresseDesinscriptionUnClic(envoi.destinataire) : null,
+        });
         // Parti : le contenu n'a plus à être gardé (l'objet reste, pour le journal)
         await baseDeDonnees.envoiCourriel.update({
           where: { id: envoi.id },

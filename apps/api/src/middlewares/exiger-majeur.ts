@@ -3,6 +3,8 @@
 // exigerMajeur, après exigerCompte : 403 « reserve-aux-majeurs » si l'âge connu est sous 18 ans (même code que les
 // propositions de lieux) ; 503 « chiffrement-indisponible » si la date gardée ne peut pas se lire ; un compte sans date
 // (compte du site, qui a prouvé 18 ans) passe ; 401 « session-expiree » si le compte n'existe plus.
+// Depuis le 14 octobre 2026, personne ne s'inscrit avant 18 ans : ce contrôle reste en filet de sécurité pour les comptes
+// de l'app créés à 15-17 ans avant cette date.
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 
 import { lireMajoriteCompte, type MajoriteCompte } from "../fonctions/comptes/lire-majorite-compte.ts";
