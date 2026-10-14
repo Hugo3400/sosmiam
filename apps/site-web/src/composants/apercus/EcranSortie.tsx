@@ -9,6 +9,7 @@ const PARTICIPANTS: [string, string, string][] = [
   ["@lea.croque", "#FFE1DD", "organise"],
   ["@ines.gourmande", "#DDE5FF", "habituée"],
   ["@malo.galette", "#D9EEDF", "dans ta bande"],
+  ["toi", "#FFD60A", "c'est toi !"],
 ];
 
 /** Écran d'une sortie : habitués, qui vient, place gardée pour un nouveau, liste d'attente, rappel et QR du comptoir. */
@@ -33,17 +34,17 @@ export function EcranSortie() {
 
         <span className="flex shrink-0 items-baseline justify-between">
           <span className="font-titre text-[15px] font-extrabold">Qui vient</span>
-          <span className="text-[11px] text-gris">8 / 8 · complet</span>
+          <span className="text-[11px] text-gris">7 / 8</span>
         </span>
         <div className="flex shrink-0 flex-col gap-1.5">
           {PARTICIPANTS.map(([pseudo, fond, note]) => (
             <span key={pseudo} className="flex items-center gap-2 text-[12px]">
               <AvatarMiami nom={pseudo} fond={fond} taille={26} />
               <span className="font-semibold">{pseudo}</span>
-              <span className="text-[11px] text-gris">{note}</span>
+              <span className="text-[11px] text-gris">{lierPonctuation(note)}</span>
             </span>
           ))}
-          <span className="pl-[34px] text-[11px] text-gris">et 5 autres Miamis</span>
+          <span className="pl-[34px] text-[11px] text-gris">et 3 autres Miamis</span>
         </div>
 
         <div className="shrink-0 rounded-[14px] border-2 border-dashed border-encre bg-jaune-clair px-3 py-2 text-[11.5px] font-semibold">
@@ -52,7 +53,7 @@ export function EcranSortie() {
         <div className="flex shrink-0 items-center gap-2 rounded-[14px] bg-white px-3 py-2 text-[11.5px]">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-creme font-bold">2</span>
           <span>
-            <b>{lierPonctuation("Liste d'attente : tu es 2e.")}</b> Tu entres dès qu'une place se libère.
+            <b>{lierPonctuation("Liste d'attente : 2 Miamis.")}</b> Ils entrent dès qu'une place se libère.
           </span>
         </div>
         <span className="shrink-0 text-[11px] text-gris">
