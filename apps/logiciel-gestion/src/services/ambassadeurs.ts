@@ -31,6 +31,10 @@ export type Mission = {
   lieuId: number | null;
   echeance: string | null;
   statut: "a-faire" | "faite" | "annulee";
+  /** null : autre */
+  type?: TypeMission | null;
+  /** « Je suis sur place » dans l'app (la position n'est jamais gardée) */
+  presenceVerifieeLe?: string | null;
   compteRendu: string | null;
   creeLe: string;
   faiteLe: string | null;
@@ -89,7 +93,8 @@ export const lireClassement = () => appeler<Classement>("GET", "/ambassadeurs/cl
 export const lireCouverture = () => appeler<Couverture>("GET", "/ambassadeurs/couverture");
 
 export const listerMissions = (statut: string) => appeler<Mission[]>("GET", `/missions${parametres({ statut })}`);
-export const creerMission = (mission: { compteId: number; titre: string; detail: string; lieuId: number | null; echeance: string | null }) =>
+export type TypeMission = "verifier-lieu" | "verifier-big-sos" | "controler-lieu" | "autre";
+export const creerMission = (mission: { compteId: number; titre: string; detail: string; lieuId: number | null; echeance: string | null; type: TypeMission }) =>
   appeler<Mission>("POST", "/missions", { corps: mission });
 export const changerStatutMission = (id: number, statut: "a-faire" | "annulee") => appeler<{ ok: true }>("POST", `/missions/${id}/statut`, { corps: { statut } });
 export const supprimerMission = (id: number) => appeler<{ ok: true }>("DELETE", `/missions/${id}`);

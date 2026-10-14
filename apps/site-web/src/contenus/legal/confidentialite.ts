@@ -350,7 +350,7 @@ export const documentConfidentialite: DocumentLegal = {
     },
     { id: "jamais", titre: "Ce qu'on ne fait pas", sections: ["ce-qu-on-ne-fait-pas"] },
     { id: "avec-qui", titre: "Avec qui, où, et comment c'est protégé", sections: ["destinataires", "securite"] },
-    { id: "tes-droits", titre: "Tes droits", sections: ["droits", "exercer-tes-droits", "cnil"] },
+    { id: "tes-droits", titre: "Tes droits, et comment les exercer", sections: ["droits", "exercer-tes-droits", "cnil"] },
     { id: "moins-de-18-ans", titre: "Les mineurs", sections: ["mineurs"] },
     { id: "la-suite", titre: "Ce qui va changer", sections: ["a-venir", "mises-a-jour"] },
   ],

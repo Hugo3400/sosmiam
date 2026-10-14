@@ -19,6 +19,10 @@ model MissionAmbassadeur {
   compteRendu String?   @map("compte_rendu") @db.VarChar(2000)
   creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   faiteLe     DateTime? @map("faite_le") @db.Timestamptz(0)
+  /// « verifier-lieu », « verifier-big-sos », « controler-lieu » ou « autre » (null : autre), choisi dans le logiciel
+  type        String?   @db.VarChar(20)
+  /// « Je suis sur place » : l'heure où la position a été vérifiée au lieu (la position elle-même n'est jamais gardée)
+  presenceVerifieeLe DateTime? @map("presence_verifiee_le") @db.Timestamptz(0)
   /// Le BIG SOS que cette mission vérifie sur place, s'il y en a un
   bigSos      BigSos?
 

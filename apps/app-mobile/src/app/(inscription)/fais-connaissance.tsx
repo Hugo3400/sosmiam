@@ -230,7 +230,7 @@ export default function FaisConnaissance() {
           <ChoixDateNaissance
             valeur={brouillon.dateNaissance}
             onChangeDate={(dateNaissance) => modifier({ dateNaissance })}
-            aide="Elle sert juste à vérifier ton âge, et elle reste sur ton téléphone."
+            aide="Elle sert juste à vérifier ton âge. On la garde chiffrée sur notre serveur, et elle n'est jamais montrée aux autres Miamis."
           />
         </View>
 

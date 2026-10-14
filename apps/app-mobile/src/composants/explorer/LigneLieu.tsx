@@ -43,8 +43,8 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
   const verifie = estLieuVerifie(lieu);
   const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
 
-  // Le bon plan affiché parle d'alcool (happy hour…) : le message sanitaire juste dessous
-  const offreAlcool = !sos && parleDAlcool(lieu.alerte);
+  // Le bon plan affiché parle d'alcool (happy hour…) ou l'événement montré en a (comme sur la fiche) : le message sanitaire juste dessous
+  const offreAlcool = (!sos && parleDAlcool(lieu.alerte)) || evenement?.alcool === true;
 
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
@@ -52,9 +52,9 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
     `À ${distance}, ${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
+    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,
     offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
-    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -92,15 +92,15 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
             🔥 {lieu.alerte}
           </Text>
         ) : null}
-        {offreAlcool ? (
-          <View className="mt-1">
-            <MentionPrevention variante="courte" />
-          </View>
-        ) : null}
         {evenement ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-white px-2 py-0.5 font-texte-gras text-xs text-encre">
             {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
           </Text>
+        ) : null}
+        {offreAlcool ? (
+          <View className="mt-1">
+            <MentionPrevention variante="courte" />
+          </View>
         ) : null}
         {verifie ? null : (
           <View className="mt-1">

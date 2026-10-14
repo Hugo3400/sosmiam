@@ -4,7 +4,8 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 
 // ─── Côté logiciel de gestion ───
 
-export type SaisieMission = { compteId: number; titre: string; detail: string; lieuId: number | null; echeance: Date | null };
+/** type : « verifier-lieu », « verifier-big-sos », « controler-lieu » ou « autre » (null : autre) */
+export type SaisieMission = { compteId: number; titre: string; detail: string; lieuId: number | null; echeance: Date | null; type: string | null };
 
 export async function listerMissions(statut: string) {
   return baseDeDonnees.missionAmbassadeur.findMany({

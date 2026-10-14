@@ -8,7 +8,7 @@ import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { EtatVide } from "~/composants/interface/EtatVide.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
-import { ETATS_MISSION } from "~/contenus/ambassadeurs.ts";
+import { TYPES_MISSION, ETATS_MISSION } from "~/contenus/ambassadeurs.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { changerStatutMission, listerMissions, supprimerMission, type Mission } from "~/services/ambassadeurs.ts";
@@ -53,6 +53,8 @@ export function ListeMissions({ onOuvrirCompte, tour }: { onOuvrirCompte: (compt
                   <span className="font-semibold">{mission.titre}</span>
                   <Badge ton={ETATS_MISSION[mission.statut].ton}>{ETATS_MISSION[mission.statut].libelle}</Badge>
                   {enRetard && <Badge ton="rouge">En retard</Badge>}
+                  {mission.type && mission.type !== "autre" && <Badge ton="contour">{TYPES_MISSION[mission.type]}</Badge>}
+                  {mission.presenceVerifieeLe && <Badge ton="vert">📍 Présence vérifiée le {formaterDate(mission.presenceVerifieeLe, true)}</Badge>}
                   <span className="ml-auto flex gap-1">
                     {mission.statut === "a-faire" && <Bouton petit variante="discret" icone={X} onClick={() => agir(changerStatutMission(mission.id, "annulee"))}>Annuler</Bouton>}
                     {mission.statut === "annulee" && <Bouton petit variante="discret" icone={RotateCcw} onClick={() => agir(changerStatutMission(mission.id, "a-faire"))}>Remettre à faire</Bouton>}

@@ -23,6 +23,7 @@ const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
 /** Lien pour choisir un nouveau mot de passe : le jeton après « # » reste dans le navigateur, jamais dans les journaux */
 export const creerLienVerification = (jeton: string) => `${ESPACE_AMBASSADEUR}/verifier-email#jeton=${encodeURIComponent(jeton)}`;
 export const creerLienReinitialisation = (jeton: string) => `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`;
+const TYPES_MISSION = ["verifier-lieu", "verifier-big-sos", "controler-lieu", "autre"] as const;
 const corpsDe = (requete: Request): Record<string, unknown> =>
   typeof requete.body === "object" && requete.body !== null && !Buffer.isBuffer(requete.body) ? requete.body : {};
 const introuvable = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "introuvable" });
@@ -154,6 +155,8 @@ export function creerControleursAmbassadeurs(s: ServicesGestion, comptes?: Outil
         detail: lireTexte(corps, "detail", 2000) ?? "",
         lieuId: lireNombre(corps, "lieuId", 1, 1e9),
         echeance,
+        // Le genre de mission (l'app adapte l'écran : « Je suis sur place » pour une vérification) ; absent : autre
+        type: corps.type === undefined || corps.type === null || corps.type === "" ? null : lireChoix(corps, "type", TYPES_MISSION),
       });
       if (!mission) return reponse.status(400).json({ ok: false, erreur: "ambassadeur-non-actif" });
       await noter(reponse, "Mission confiée", `${mission.titre} → compte n° ${compteId}`);

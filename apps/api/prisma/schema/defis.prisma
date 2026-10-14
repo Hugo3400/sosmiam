@@ -1,0 +1,46 @@
+// Défis de l'app (décidé par Hugo le 14 octobre 2026, docs/decisions.md « Majorité, fidélité et défis ») : la liste est gérée
+// dans le logiciel de gestion ; le serveur compte l'avancée de chacun entre debut et fin (jours à l'heure de Paris) et crédite
+// les points une seule fois (DefiReussi). Un défi déjà réussi par quelqu'un se dépublie, il ne se supprime pas.
+
+/// Un défi : une mesure (rescousses, visites…), d'éventuels filtres, un objectif, des points, une période, publié ou brouillon.
+model Defi {
+  id        Int          @id @default(autoincrement())
+  emoji     String       @db.VarChar(16)
+  titre     String       @db.VarChar(60)
+  texte     String       @db.VarChar(300)
+  /// « rescousses », « premiers-sauvetages », « visites », « lieux-differents », « villes-differentes », « semaines-d-affilee », « avis »
+  mesure    String       @db.VarChar(24)
+  /// Filtres de la mesure (FiltresDefi de packages/commun) : typesLieu, apresHeure, pendantSos, avecPhoto
+  filtres   Json?
+  objectif  Int          @db.SmallInt
+  points    Int          @db.SmallInt
+  /// Premier jour compté, « AAAA-MM-JJ » à l'heure de Paris
+  debut     String       @db.Char(10)
+  /// Dernier jour compté (compris) ; null : sans fin
+  fin       String?      @db.Char(10)
+  /// Visible dans l'app (un brouillon reste dans le logiciel)
+  publie    Boolean      @default(false)
+  /// Ordre d'affichage (le plus petit d'abord)
+  ordre     Int          @default(0) @db.SmallInt
+  creeLe    DateTime     @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe DateTime     @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+  reussites DefiReussi[]
+
+  @@index([publie, debut])
+  @@map("defis")
+}
+
+/// Un défi réussi par un compte : ses points (figés au moment de la réussite) sont crédités une fois, et repris si l'avancée
+/// retombe avant la fin (rescousse reprise, visite retirée). Part avec le compte.
+model DefiReussi {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  defiId   Int      @map("defi_id")
+  defi     Defi     @relation(fields: [defiId], references: [id], onDelete: Cascade)
+  points   Int      @db.SmallInt
+  reussiLe DateTime @default(now()) @map("reussi_le") @db.Timestamptz(0)
+
+  @@id([compteId, defiId])
+  @@index([defiId])
+  @@map("defis_reussis")
+}

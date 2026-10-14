@@ -1,5 +1,5 @@
 // Libellés du programme Ambassadeurs (règles : packages/commun/src/regles/ambassadeurs.ts, docs/decisions.md).
-import type { Mission, Palier, StatutAmbassadeur } from "~/services/ambassadeurs.ts";
+import type { Mission, Palier, StatutAmbassadeur, TypeMission } from "~/services/ambassadeurs.ts";
 
 export const PALIERS: Record<Palier, { nom: string; emoji: string }> = {
   curieux: { nom: "Curieux", emoji: "👀" },
@@ -46,6 +46,14 @@ export const ENVIES_FONDATEUR: Record<string, string> = {
   fiches: "Faire les fiches avec les lieux",
   selections: "Préparer des sélections",
   "faire-savoir": "Faire connaître SOS Miam",
+};
+
+/** Les genres de mission : l'app adapte l'écran (« Je suis sur place » pour une vérification) */
+export const TYPES_MISSION: Record<TypeMission, string> = {
+  autre: "Autre",
+  "verifier-lieu": "Vérifier un lieu",
+  "verifier-big-sos": "Vérifier un BIG SOS",
+  "controler-lieu": "Contrôler un lieu",
 };
 
 export const ETATS_MISSION: Record<Mission["statut"], { libelle: string; ton: "jaune" | "vert" | "neutre" }> = {

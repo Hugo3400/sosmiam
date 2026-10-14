@@ -92,6 +92,8 @@ model Compte {
   reservations              Reservation[]              @relation("ReservationsClient")
   reservationsTraitees      Reservation[]              @relation("ReservationsTraitees")
 
+  /// Défis réussis (defis.prisma)
+  defisReussis DefiReussi[]
   @@index([derniereConnexion])
   @@map("comptes")
 }

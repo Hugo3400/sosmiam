@@ -6,7 +6,9 @@ import { Champ } from "~/composants/interface/Champ.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { ZoneTexte } from "~/composants/interface/ZoneTexte.tsx";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
-import { creerMission } from "~/services/ambassadeurs.ts";
+import { Selecteur } from "~/composants/interface/Selecteur.tsx";
+import { TYPES_MISSION } from "~/contenus/ambassadeurs.ts";
+import { creerMission, type TypeMission } from "~/services/ambassadeurs.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { SelecteurAmbassadeur } from "./SelecteurAmbassadeur.tsx";
 
@@ -19,6 +21,7 @@ export function ModaleMission({ compteId: compteImpose, prenom, onFermer, onCree
   const [detail, setDetail] = useState("");
   const [echeance, setEcheance] = useState("");
   const [lieuId, setLieuId] = useState("");
+  const [type, setType] = useState<TypeMission>("autre");
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
 
   async function confier() {
@@ -29,6 +32,7 @@ export function ModaleMission({ compteId: compteImpose, prenom, onFermer, onCree
         titre: titre.trim(),
         detail: detail.trim(),
         lieuId: lieuId ? Number(lieuId) : null,
+        type,
         // Échéance : la fin de la journée choisie
         echeance: echeance ? new Date(`${echeance}T23:59:00`).toISOString() : null,
       });
@@ -53,6 +57,7 @@ export function ModaleMission({ compteId: compteImpose, prenom, onFermer, onCree
     >
       <div className="grid gap-4">
         {!compteImpose && <SelecteurAmbassadeur valeur={compteId} onChange={setCompteId} />}
+        <Selecteur libelle="Genre de mission" valeur={type} onChange={setType} options={Object.entries(TYPES_MISSION).map(([valeur, libelle]) => ({ valeur: valeur as TypeMission, libelle }))} />
         <Champ libelle="Mission" valeur={titre} onChange={setTitre} maxLength={100} placeholder="Goûter le nouveau bouchon de la rue Mercière" className="w-full min-w-0" />
         <ZoneTexte libelle="Détails (facultatif)" valeur={detail} onChange={setDetail} maximum={2000} lignes={4} placeholder="Ce qu'il faut regarder, à qui parler, quoi photographier…" />
         <div className="grid grid-cols-2 gap-3">

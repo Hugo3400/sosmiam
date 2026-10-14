@@ -15,6 +15,7 @@ import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSession } from "~/hooks/utiliser-session";
 import couleurs from "~/theme/couleurs";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
@@ -29,9 +30,13 @@ const REGLES_PSEUDO =
   "De 3 à 20 caractères\u00a0: lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).";
 // Clavier sans accents ni emoji sur iPhone, sans suggestions sur Android
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
-// Tant que le profil n'existe que sur le téléphone, personne ne peut corriger la date à ta place
-const EXPLICATION_DATE = lierPonctuation(
-  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Pour l'instant, tout est rangé sur ton téléphone et on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des réglages (le reste repart aussi à zéro).",
+// Avec un compte, la date est gardée chiffrée sur le serveur : seule l'équipe la corrige, sur demande (docs/decisions.md)
+const EXPLICATION_DATE_COMPTE = lierPonctuation(
+  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Écris-nous à bonjour@sosmiam.fr, on la corrige avec toi.",
+);
+// Sans compte connecté (la démo), le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
+const EXPLICATION_DATE_TELEPHONE = lierPonctuation(
+  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Ce profil n'existe que sur ton téléphone, on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des réglages (le reste repart aussi à zéro).",
 );
 
 /**
@@ -42,6 +47,7 @@ const EXPLICATION_DATE = lierPonctuation(
 export default function ReglagesInfos() {
   const router = useRouter();
   const { profil, enregistrer } = utiliserProfil();
+  const { connecte } = utiliserSession();
   const champPseudo = useRef<TextInput>(null);
   const champNom = useRef<TextInput>(null);
   const [prenom, setPrenom] = useState(profil?.prenom ?? "");
@@ -86,6 +92,7 @@ export default function ReglagesInfos() {
   const change = prenomNettoye !== profil.prenom || pseudoChange || nomNettoye !== (profil.nom ?? "") || ville !== profil.ville;
   const dateNaissance = formaterDateLongue(profil.dateNaissance);
   const age = calculerAge(profil.dateNaissance);
+  const explicationDate = connecte ? EXPLICATION_DATE_COMPTE : EXPLICATION_DATE_TELEPHONE;
 
   function proposer() {
     vibrerLegerement();
@@ -193,13 +200,13 @@ export default function ReglagesInfos() {
           returnKeyType="done"
         />
 
-        <View accessible accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. ${EXPLICATION_DATE}`} className="gap-2">
+        <View accessible accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. ${explicationDate}`} className="gap-2">
           <Text className="font-texte-semi text-base text-encre">Ta date de naissance</Text>
           <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
             <Text className="flex-1 font-texte text-[17px] text-encre">{`${dateNaissance} · ${age} ans`}</Text>
             <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
           </View>
-          <Text className="font-texte text-sm leading-5 text-gris">{EXPLICATION_DATE}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{explicationDate}</Text>
         </View>
 
         <ChoixVille valeur={ville} onChangeVille={setVille} />

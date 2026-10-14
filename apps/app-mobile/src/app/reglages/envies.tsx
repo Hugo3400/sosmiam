@@ -56,7 +56,7 @@ export default function ReglagesEnvies() {
       <View className="gap-10">
         {etapesEnvies.map((etape) => {
           const coches = envies[etape.categorie] ?? [];
-          // Seuls les choix affichés sont comptés (pas ceux masqués par l'âge)
+          // Seuls les choix encore proposés sont comptés (un ancien identifiant gardé dans le profil est ignoré)
           const nombre = etape.choix.filter((choix) => coches.includes(choix.id)).length;
           return (
             <View key={etape.categorie} className="gap-4">
