@@ -8,6 +8,7 @@ import { creerControleursComptesGestion } from "../controleurs/gestion/controleu
 import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-fondateurs.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion/controleurs-defis.ts";
+import { creerControleursPresse } from "../controleurs/gestion/controleurs-presse.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
@@ -61,6 +62,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const surveillance = creerControleursSurveillance(services, visites);
   const validationLieu = creerControleursValidationLieu(services);
   const d = creerControleursDefis(services, defis);
+  const presse = creerControleursPresse(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -154,6 +156,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.delete("/comptes/:id", k.supprimer);
   // Surveillance des visites : comptes louches, lieux qui refusent beaucoup, contestations (rien n'est bloqué tout seul)
   // Défis de l'app : liste (brouillons compris), création, modification, suppression
+  // Espace presse : kits et visuels à télécharger
+  routes.get("/presse", presse.liste);
+  routes.get("/presse/fichiers/:id", presse.fichier);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

@@ -27,6 +27,7 @@ import { deciderRattachement, listerRattachements } from "./rattachements.ts";
 import { corrigerDateNaissance, corrigerIdentite, lireDateNaissance, lireIdentite } from "./profil-gestion.ts";
 import { ecrireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu } from "./surveillance-visites.ts";
 import { changerCodePublic, lireValidationLieu, reglerValidationLieu } from "./validation-lieu.ts";
+import { listerPresse, trouverFichierPresse } from "./presse.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
@@ -90,6 +91,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
+  listerPresse, trouverFichierPresse,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

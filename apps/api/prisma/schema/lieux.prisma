@@ -93,6 +93,7 @@ model Lieu {
   propositionsSorties   PropositionSortie[]
   sortiesRetenues       Sortie[]                 @relation("SortiesRetenues")
   dansLesListes         LieuDeListe[]
+  commentairesCommeLieu CommentairePublication[]
 
   @@index([statut, ville])
   @@map("lieux")
@@ -121,6 +122,7 @@ model Publication {
   medias       MediaPublication[]
   jaimes       JaimePublication[]
   masqueePar   PublicationMasquee[]
+  commentaires CommentairePublication[]
 
   @@index([statut, publieeLe])
   @@map("publications")

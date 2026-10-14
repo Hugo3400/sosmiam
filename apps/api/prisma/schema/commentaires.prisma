@@ -1,0 +1,63 @@
+// Commentaires sous les publications du fil (décidé le 8 octobre 2026) : réponses (un niveau), J'aime, mentions @, réponse du
+// lieu mise en avant, modifier ou supprimer les siens, le lieu peut masquer, filtre de mots. Contenu PUBLIC (lu sans compte) :
+// pas chiffré. Un commentaire part avec son auteur ; les réponses des autres restent (reponseA à null, premier niveau).
+// Supprimer un commentaire qui a des réponses, ou un signalement pas encore jugé, laisse « Commentaire supprimé ».
+
+model CommentairePublication {
+  id              Int                      @id @default(autoincrement())
+  publicationId   Int                      @map("publication_id")
+  publication     Publication              @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  /// L'auteur (une personne) ; null pour une réponse du lieu
+  auteurId        Int?                     @map("auteur_id")
+  auteur          Compte?                  @relation("CommentairesEcrits", fields: [auteurId], references: [id], onDelete: Cascade)
+  /// Réponse du lieu de la publication (mise en avant) : le lieu, et le gérant qui l'a écrite (gardé pour savoir qui a fait
+  /// quoi, jamais montré)
+  commeLieuId     Int?                     @map("comme_lieu_id")
+  commeLieu       Lieu?                    @relation(fields: [commeLieuId], references: [id], onDelete: Cascade)
+  ecritParId      Int?                     @map("ecrit_par_id")
+  ecritPar        Compte?                  @relation("CommentairesDuLieu", fields: [ecritParId], references: [id], onDelete: SetNull)
+  /// 500 caractères, filtre de mots
+  texte           String                   @db.VarChar(500)
+  /// Personnes citées avec « @ », retrouvées au moment de l'écriture : [{ "p": pseudo tel qu'écrit, "id": identifiant
+  /// public }], 10 au plus. Le lien suit l'identifiant public : quelqu'un qui reprend plus tard un pseudo libéré n'hérite
+  /// jamais des anciennes mentions
+  mentions        Json                     @default("[]")
+  /// Commentaire auquel il répond (un seul niveau : répondre à une réponse répond à son commentaire) ; null s'il est parti
+  /// avec son auteur
+  reponseAId      Int?                     @map("reponse_a_id")
+  reponseA        CommentairePublication?  @relation("Reponses", fields: [reponseAId], references: [id], onDelete: SetNull)
+  reponses        CommentairePublication[] @relation("Reponses")
+  creeLe          DateTime                 @default(now()) @map("cree_le") @db.Timestamptz(3)
+  /// Modifié par son auteur (« modifié » s'affiche)
+  modifieLe       DateTime?                @map("modifie_le") @db.Timestamptz(0)
+  /// Supprimé par son auteur alors qu'il a des réponses ou un signalement pas encore jugé : « Commentaire supprimé », texte
+  /// vidé (l'instantané du signalement le garde). Effacé pour de bon la nuit où il n'a plus ni réponse ni signalement ouvert
+  supprimeLe      DateTime?                @map("supprime_le") @db.Timestamptz(0)
+  /// Masqué par le gérant du lieu : il part en modération (son auteur est prévenu) et ne se voit plus que de son auteur ;
+  /// vidé si la modération rejette, et le lieu ne peut plus le masquer
+  masqueParLieuLe DateTime?                @map("masque_par_lieu_le") @db.Timestamptz(0)
+  /// Masqué pour tous dès un signalement « choquant », en attendant la modération
+  suspenduLe      DateTime?                @map("suspendu_le") @db.Timestamptz(0)
+  /// Retiré par la modération (signalement retenu)
+  retireLe        DateTime?                @map("retire_le") @db.Timestamptz(0)
+  jaimes          JaimeCommentaire[]
+
+  @@index([publicationId, id])
+  @@index([auteurId])
+  @@index([commeLieuId])
+  @@index([ecritParId])
+  @@index([reponseAId])
+  @@map("commentaires_publications")
+}
+
+model JaimeCommentaire {
+  commentaireId Int                    @map("commentaire_id")
+  commentaire   CommentairePublication @relation(fields: [commentaireId], references: [id], onDelete: Cascade)
+  compteId      Int                    @map("compte_id")
+  compte        Compte                 @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe        DateTime               @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([commentaireId, compteId])
+  @@index([compteId])
+  @@map("jaimes_commentaires")
+}

@@ -126,6 +126,9 @@ model Compte {
   lieuxAjoutesListes         LieuDeListe[]
   coAuteurListes             CoAuteurListe[]
   abonnementsListes          AbonnementListe[]
+  commentairesEcrits         CommentairePublication[] @relation("CommentairesEcrits")
+  commentairesPourLeLieu     CommentairePublication[] @relation("CommentairesDuLieu")
+  jaimesCommentaires         JaimeCommentaire[]
   @@index([derniereConnexion])
   @@map("comptes")
 }
