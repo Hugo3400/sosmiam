@@ -31,7 +31,7 @@ const MESSAGES: Record<string, string> = {
   "transition-interdite": "Cette visite n'est plus refusée : quelqu'un lui a peut-être déjà donné raison. Actualise.",
   "pas-contestee": "Cette visite n'est pas contestée.",
   "chiffrement-indisponible": "La clé des données des comptes n'est pas encore installée sur le serveur : nom et date de naissance sont illisibles pour l'instant.",
-  "trop-jeune": "Moins de 15 ans : SOS Miam n'est pas ouvert avant 15 ans.",
+  "trop-jeune": "Moins de 18 ans : SOS Miam est réservé aux majeurs. La date n'est pas changée ; si c'est vrai, ce compte doit être supprimé.",
   "date-invalide": "Cette date n'existe pas, ou elle est dans le futur.",
   "aucun-destinataire": "Personne à qui envoyer : aucun destinataire coché ne fait partie de ce public.",
 };

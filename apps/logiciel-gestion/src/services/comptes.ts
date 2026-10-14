@@ -66,6 +66,6 @@ export const supprimerCompte = (id: number) => appeler<{ ok: true }>("DELETE", `
 
 /** La date de naissance en clair (« AAAA-MM-JJ ») ; l'affichage est noté au journal de gestion (sans la date) */
 export const lireDateNaissance = (id: number) => appeler<{ dateNaissance: string | null }>("GET", `/comptes/${id}/date-naissance`);
-/** Correction sur demande de la personne ; sous 18 ans, ses rôles d'ambassadeur et de pro partent */
+/** Correction sur demande de la personne ; refusée sous 18 ans (« trop-jeune ») : SOS Miam est réservé aux majeurs */
 export const corrigerDateNaissance = (id: number, date: string) =>
-  appeler<{ ok: true; rolesRetires: ("ambassadeur" | "pro")[]; majeur: boolean }>("PUT", `/comptes/${id}/date-naissance`, { corps: { date } });
+  appeler<{ ok: true }>("PUT", `/comptes/${id}/date-naissance`, { corps: { date } });

@@ -13,8 +13,8 @@ type Props = { compteId: number; prenom: string; renseignee: boolean; onChange: 
 
 /**
  * La date de naissance d'un compte (chiffrée sur le serveur) : cachée, « Afficher » la montre (et l'écrit au journal),
- * « Corriger… » la change sur demande de la personne (jamais par elle-même) : 15 ans au moins, et sous 18 ans ses
- * rôles d'ambassadeur et de pro partent.
+ * « Corriger… » la change sur demande de la personne (jamais par elle-même) : 18 ans au moins, SOS Miam étant réservé
+ * aux majeurs (décidé par Hugo le 14 octobre 2026).
  */
 export function DateNaissanceCompte({ compteId, prenom, renseignee, onChange }: Props) {
   const [affichee, setAffichee] = useState<string | null | undefined>(undefined);
@@ -36,11 +36,8 @@ export function DateNaissanceCompte({ compteId, prenom, renseignee, onChange }: 
   async function corriger() {
     setEtat({ enCours: true, texte: null });
     try {
-      const resultat = await corrigerDateNaissance(compteId, nouvelle);
-      const noms = resultat.rolesRetires.map((r) => (r === "pro" ? "de pro" : "d'ambassadeur"));
-      const roles = noms.length === 2 ? ` ${prenom} a moins de 18 ans : ses rôles d'ambassadeur et de pro sont retirés.`
-        : noms.length === 1 ? ` ${prenom} a moins de 18 ans : son rôle ${noms[0]} est retiré.` : "";
-      setEtat({ enCours: false, texte: `Date de naissance corrigée.${roles}` });
+      await corrigerDateNaissance(compteId, nouvelle);
+      setEtat({ enCours: false, texte: "Date de naissance corrigée." });
       setAffichee(nouvelle);
       setCorrection(false);
       onChange();
@@ -74,7 +71,7 @@ export function DateNaissanceCompte({ compteId, prenom, renseignee, onChange }: 
             <p>Seulement sur demande de {prenom} (« Écris-nous »), et après avoir vérifié que c'est bien sa demande. La date reste chiffrée sur le serveur.</p>
             <Champ libelle="Nouvelle date de naissance" type="date" valeur={nouvelle} onChange={setNouvelle} />
             <p className="rounded-xl bg-jaune-clair px-3 py-2">
-              15 ans au moins. <strong>Sous 18 ans</strong>, ses rôles d'ambassadeur et de pro partent tout de suite (ces espaces sont réservés aux majeurs).
+              <strong>18 ans au moins</strong> : SOS Miam est réservé aux majeurs. Si {prenom} a en fait moins de 18 ans, la date est refusée : son compte n'a pas sa place, supprime-le (bouton en bas de la fiche) après l'avoir prévenu.
             </p>
             {etat.texte && <p role="alert" className="font-semibold text-rouge-texte">{etat.texte}</p>}
           </div>

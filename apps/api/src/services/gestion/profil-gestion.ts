@@ -6,12 +6,6 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { calculerAgeProfil } from "../../fonctions/comptes/calculer-age-profil.ts";
 import type { ChiffrementDonnees } from "../chiffrement-donnees.ts";
 
-/**
- * SOS Miam n'est ouvert qu'aux majeurs (décidé par Hugo le 14 octobre 2026 : 18 ans en France, seul pays pour l'instant).
- * Le plus haut des deux, pour rester juste avant comme après le passage de la règle commune à la majorité.
- */
-const AGE_MINIMUM = Math.max(AGE_MINIMUM_INSCRIPTION, 18);
-
 /** Déchiffre un champ ; « illisible » si la donnée ou la clé ne correspond pas (jamais d'erreur qui ferait tout échouer). */
 function dechiffrerOuIllisible(chiffrement: ChiffrementDonnees, valeur: string | null, champ: "nom" | "dateNaissance") {
   if (!valeur) return null;
@@ -51,13 +45,13 @@ export type CorrectionDate = { etat: "introuvable" | "date-invalide" | "trop-jeu
 
 /**
  * Corrige la date de naissance (« AAAA-MM-JJ », jamais dans le futur) et l'enregistre chiffrée. Une date qui donnerait
- * moins de 18 ans (jour de Paris) est refusée (« trop-jeune ») : SOS Miam est réservé aux majeurs, et un tel compte n'a
+ * moins que la majorité (AGE_MINIMUM_INSCRIPTION, 18 ans en France ; décidé par Hugo le 14 octobre 2026), au jour de Paris, est refusée (« trop-jeune ») : SOS Miam est réservé aux majeurs, et un tel compte n'a
  * pas sa place ; c'est à l'équipe de le supprimer si c'est vrai.
  */
 export async function corrigerDateNaissance(id: number, date: string, chiffrement: ChiffrementDonnees, maintenant = new Date()): Promise<CorrectionDate> {
   const age = /^\d{4}-\d{2}-\d{2}$/.test(date) ? calculerAgeProfil(date, maintenant) : null;
   if (age === null) return { etat: "date-invalide" };
-  if (age < AGE_MINIMUM) return { etat: "trop-jeune" };
+  if (age < AGE_MINIMUM_INSCRIPTION) return { etat: "trop-jeune" };
   const { count } = await baseDeDonnees.compte.updateMany({ where: { id }, data: { dateNaissanceChiffree: chiffrement.chiffrer(date, "dateNaissance") } });
   return count > 0 ? { etat: "corrigee", age } : { etat: "introuvable" };
 }

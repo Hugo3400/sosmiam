@@ -80,7 +80,7 @@ test("date de naissance : afficher (journal sans la date), corriger (trop jeune 
   assert.deepEqual([tropJeune.status, await tropJeune.json()], [400, { ok: false, erreur: "trop-jeune" }]);
   const corrigee = await banc.demander("PUT", "/comptes/7/date-naissance", { session, corps: { date: "2001-04-12" } });
   assert.deepEqual(await corrigee.json(), { ok: true });
-  assert.equal(actions.at(-1), "Date de naissance corrigée | compte n° 7 ; rôles retirés (moins de 18 ans) : ambassadeur, pro");
+  assert.equal(actions.at(-1), "Date de naissance corrigée | compte n° 7");
   assert.ok(actions.every((ligne) => !ligne.includes("2010") && !ligne.includes("2001")), "jamais de date au journal");
   assert.equal((await banc.demander("PUT", "/comptes/9/date-naissance", { session, corps: { date: "1990-05-05" } })).status, 404);
 });
