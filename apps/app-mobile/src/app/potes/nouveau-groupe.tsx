@@ -125,7 +125,7 @@ export default function NouveauGroupe() {
           {erreurBas ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
-          <Bouton libelle={enCours ? "Un instant…" : "Créer le groupe"} desactive={enCours} onPress={() => void creer()} indice="Chaque pote choisi reçoit une invitation à rejoindre le groupe" />
+          <Bouton libelle={enCours ? "Un instant…" : "Créer le groupe"} desactive={enCours} onPress={() => void creer()} indice="Tes potes choisis pourront discuter tous ensemble" />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

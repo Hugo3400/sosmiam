@@ -41,6 +41,7 @@ import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
 import { creerLieu, lireLieu, listerLieux, modifierLieu, modifierLieuxEnLot, supprimerLieu, supprimerLieuxEnLot } from "./lieux.ts";
 import { lireEtatServeur, relancerProcessus } from "./maintenance.ts";
+import { lireMenageManuel } from "./menage-manuel.ts";
 import {
   changerStatutMission, creerMission, envoyerMessage, listerMessages, listerMissions, supprimerMessage, supprimerMission,
 } from "./missions-messages.ts";
@@ -70,7 +71,7 @@ export const servicesGestion = {
   ajouterMedia, retirerMedia, trouverFichierMedia,
   listerSignalements, deciderSignalement, contesterSignalement,
   listerMiamSafe, deciderSignalementMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe,
-  lireEtatServeur, relancerProcessus,
+  lireEtatServeur, relancerProcessus, lireMenageManuel,
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,

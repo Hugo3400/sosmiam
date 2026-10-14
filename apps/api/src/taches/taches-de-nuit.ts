@@ -1,5 +1,6 @@
-// Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts
-// des demandes de lieux et désinscriptions de la newsletter de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
+// Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (demandes
+// de lieux entières et désinscriptions de la newsletter de plus de 3 ans, journal des mails, copies dans « Envoyés » et
+// détail des notifications de plus de 90 jours, puis les
 // comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées (fondateur et certifié), liens de
 // réinitialisation expirés), les signalements Miam Safe traités depuis plus d'un an et ses alertes de plus de 30 jours, les téléphones des notifications silencieux depuis 90 jours et les « Ça m'intéresse » 30 jours après l'événement, les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et
 // l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base, aussitôt relue en entier pour la tester. Au démarrage, le ménage et une sauvegarde

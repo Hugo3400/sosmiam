@@ -79,9 +79,9 @@ export function GestionnaireConsentement({ etat, children }: Props) {
 
   // Une cale de la hauteur du bandeau en bas de page : le pied de page ne reste pas caché dessous
   useEffect(() => {
-    const element = refDialogue.current?.firstElementChild;
+    const element = refDialogue.current;
     if (!visible || !element) return;
-    const observateur = new ResizeObserver(() => setHauteur(element.getBoundingClientRect().height + 24));
+    const observateur = new ResizeObserver(() => setHauteur(element.getBoundingClientRect().height));
     observateur.observe(element);
     return () => observateur.disconnect();
   }, [visible]);
@@ -138,6 +138,7 @@ export function GestionnaireConsentement({ etat, children }: Props) {
     ouvrirReglages: (element) => {
       if (aChoisir.length === 0) return false;
       declencheur.current = element;
+      setAnnonce("");
       setPanneauOuvert(true);
       return true;
     },

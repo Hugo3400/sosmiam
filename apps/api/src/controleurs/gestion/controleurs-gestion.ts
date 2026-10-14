@@ -309,6 +309,8 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
 
     // ─── Maintenance ───
     maintenance: verifier(async (_requete, reponse) => reponse.json(await s.lireEtatServeur())),
+    /** GET /maintenance/menage-manuel : le ménage que le serveur ne fait pas tout seul (rappel) */
+    menageManuel: verifier(async (_requete, reponse) => reponse.json(await s.lireMenageManuel())),
     relancer: verifier(async (requete, reponse) => {
       const nom = lireTexte(corpsDe(requete), "processus", 60, true);
       if (!(await s.relancerProcessus(nom))) return reponse.status(400).json({ ok: false, erreur: "processus-refuse" });

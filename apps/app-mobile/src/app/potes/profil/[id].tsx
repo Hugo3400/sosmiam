@@ -217,7 +217,7 @@ export default function ProfilPote() {
         ajoutable && !demandeBandeRecue && !demandeBandeEnvoyee ? (
           <Bouton key="ajouter" libelle={`Ajouter ${prenom} à ma bande`} variante="blanc" indice="Pour organiser des sorties et vous envoyer des lieux" onPress={() => void ajouter()} />
         ) : null,
-        dansBande ? <Bouton key="ecrire" libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={ecrire} /> : null,
+        dansBande ? <Bouton key="ecrire" libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={() => void ecrire()} /> : null,
         message ? (
           <Text key="message" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-center font-texte-semi text-sm text-encre">
             {lierPonctuation(message)}

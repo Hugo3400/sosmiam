@@ -277,6 +277,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/geocodage", c.geocodage);
 
   routes.get("/maintenance", c.maintenance);
+  routes.get("/maintenance/menage-manuel", c.menageManuel);
   routes.post("/maintenance/relancer", c.relancer);
 
   routes.use((_requete, reponse) => {
