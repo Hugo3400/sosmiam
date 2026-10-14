@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-import type { Pote } from "@sos-miam/commun/types/potes";
+import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -18,19 +18,58 @@ type Props = {
   debutSerie: boolean;
   /** Menu du message (signaler, bloquer), par appui long ou par « ⋯ » ; absent pour tes messages */
   onOptions?: () => void;
+  /** Compte connecté : « envoi » (parti, pas encore confirmé), « echec » (pas parti), ou un message qui n'est plus visible */
+  etat?: MessageSortie["etat"];
+  /** Un de tes messages qui n'est pas parti : le renvoyer */
+  onRenvoyer?: () => void;
 };
 
 const TAILLE_AVATAR = 32;
+const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "retire", "illisible"]);
 
-/** Un message de la discussion d'une sortie : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar et leur prénom. */
-export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions }: Props) {
+/**
+ * Un message de la discussion d'une sortie : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar et leur
+ * prénom. Compte connecté : « Envoi… » le temps qu'il parte, « Pas parti. Touche pour réessayer. » s'il n'est pas parti.
+ */
+export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer }: Props) {
+  // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
+  const cache = ETATS_CACHES.has(etat);
+  const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : "font-texte text-base leading-[22px] text-encre"}>{lierPonctuation(texte)}</Text>;
+
   if (deMoi) {
+    const echec = etat === "echec";
     return (
-      <View accessible accessibilityLabel={`Toi, ${heure} : ${texte}`} className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
-        <View className="rounded-2xl rounded-br-md border-2 border-encre bg-jaune px-3.5 py-2.5">
-          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
+      <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
+        <View accessible accessibilityLabel={`Toi, ${heure} : ${texte}${etat === "envoi" ? ". En cours d'envoi" : ""}`} className="items-end">
+          <View
+            className={`rounded-2xl rounded-br-md border-2 px-3.5 py-2.5 ${
+              cache ? "border-dashed border-gris/50 bg-white/60" : echec ? "border-rouge-texte bg-jaune-clair" : `border-encre bg-jaune ${etat === "envoi" ? "opacity-70" : ""}`
+            }`}
+          >
+            {texteBulle}
+          </View>
+          {etat === "envoi" || echec ? null : <Text className="mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>}
+          {etat === "envoi" ? (
+            <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
+              Envoi…
+            </Text>
+          ) : null}
         </View>
-        <Text className="mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
+        {echec ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Pas parti. Touche pour réessayer."
+            onPress={() => {
+              vibrerLegerement();
+              onRenvoyer?.();
+            }}
+            hitSlop={{ top: 4, bottom: 4 }}
+            className="mt-0.5 min-h-8 flex-row items-center gap-1 active:opacity-70"
+          >
+            <Ionicons name="refresh" size={14} color={couleurs.rougeTexte} />
+            <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
+          </Pressable>
+        ) : null}
       </View>
     );
   }
@@ -60,9 +99,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
             {prenom}
           </Text>
         ) : null}
-        <View className="rounded-2xl rounded-tl-md border-2 border-encre bg-white px-3.5 py-2.5">
-          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
-        </View>
+        <View className={`rounded-2xl rounded-tl-md border-2 px-3.5 py-2.5 ${cache ? "border-dashed border-gris/50 bg-white/60" : "border-encre bg-white"}`}>{texteBulle}</View>
         <Text className="ml-1 mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
       </Pressable>
       {onOptions ? (

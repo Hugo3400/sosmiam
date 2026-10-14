@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { AccessibilityInfo, Linking, Platform, Pressable, Text, View } from "react-native";
+import { AccessibilityInfo, Linking, Platform, Text, View } from "react-native";
 
 import { MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
-import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
+import type { Pote, PropositionSortie, Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { LieuChoisiSortie } from "~/composants/potes/LieuChoisiSortie";
@@ -31,10 +31,10 @@ type Props = {
   onAnnoncer: (texte: string) => void;
   /** Demande de terminer le vote (l'écran confirme) */
   onTerminer: () => void;
-  /** Demande de quitter la sortie (l'écran confirme) */
-  onQuitter: () => void;
 };
 
+/** Tous les votes d'un lieu : avec un compte, nombreVotes compte aussi ceux qu'on ne te nomme pas (c'est lui qui décide) */
+const compterVotes = (p: PropositionSortie) => p.nombreVotes ?? p.votes.length;
 
 /** Ouvre l'itinéraire vers un lieu : Plans sur iPhone, Google Maps ailleurs (par sa position quand on la connaît). */
 function ouvrirItineraire(lieu: Lieu) {
@@ -47,7 +47,7 @@ function ouvrirItineraire(lieu: Lieu) {
 }
 
 /** La partie « Le vote » d'une sortie : les lieux proposés et leurs votes, proposer un lieu, terminer le vote, puis le lieu retenu. */
-export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, onTerminer, onQuitter }: Props) {
+export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, onTerminer }: Props) {
   const router = useRouter();
   const { trouverPote, voter, proposerLieu, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -64,9 +64,10 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
   // Vote fini : le lieu retenu en tête, puis les autres du plus voté au moins voté
   const propositions = voteFini
-    ? [...sortie.propositions].sort((a, b) => Number(b.lieuId === lieuChoisi) - Number(a.lieuId === lieuChoisi) || b.votes.length - a.votes.length)
+    ? [...sortie.propositions].sort((a, b) => Number(b.lieuId === lieuChoisi) - Number(a.lieuId === lieuChoisi) || compterVotes(b) - compterVotes(a))
     : sortie.propositions;
   const gagnant = lieuChoisi !== null ? trouverLieu(lieuChoisi) : undefined;
+  const propositionGagnante = sortie.propositions.find((p) => p.lieuId === lieuChoisi);
   const ouvrirFiche = (id: number) => router.push({ pathname: "/lieu/[id]", params: { id: String(id) } });
 
   function basculerVote(lieu: Lieu, aVote: boolean) {
@@ -92,7 +93,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
           lieu={gagnant}
           image={trouverVignetteLieu(gagnant.id, publications)}
           km={calculerKmLieu(gagnant, depart)}
-          votes={sortie.propositions.find((p) => p.lieuId === gagnant.id)?.votes.length ?? 0}
+          votes={propositionGagnante ? compterVotes(propositionGagnante) : 0}
           onFiche={() => ouvrirFiche(gagnant.id)}
           onItineraire={() => ouvrirItineraire(gagnant)}
         />
@@ -127,7 +128,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
                 km={calculerKmLieu(lieu, depart)}
                 image={trouverVignetteLieu(lieu.id, publications)}
                 proposePar={bloquesIds.has(p.proposePar) ? null : trouverPote(p.proposePar)}
-                votes={p.votes.length}
+                votes={compterVotes(p)}
                 votants={votants}
                 aVote={aVote}
                 termine={voteFini}
@@ -152,10 +153,6 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
           {organisateur ? <Bouton libelle="Terminer le vote" variante="encre" indice="Le lieu qui a le plus de votes l'emporte" onPress={onTerminer} /> : null}
         </View>
       )}
-
-      <Pressable accessibilityRole="button" onPress={onQuitter} hitSlop={4} className="mt-2 min-h-11 items-center justify-center self-center px-4 active:opacity-70">
-        <Text className="font-texte-semi text-base text-rouge-texte underline">Quitter la sortie</Text>
-      </Pressable>
 
       <ChoixLieu
         visible={choixOuvert}

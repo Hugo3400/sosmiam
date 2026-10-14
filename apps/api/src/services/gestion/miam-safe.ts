@@ -110,13 +110,15 @@ export async function rendreCharteMiamSafe(lieuId: number): Promise<boolean> {
 
 /**
  * Ménage de nuit (taches-de-nuit.ts), promis par la politique de confidentialité : les signalements Miam Safe traités depuis
- * plus d'un an (ou jamais traités, un an après leur envoi), les alertes silencieuses de plus de 30 jours (aussi effacées à chaque nouvelle alerte) et les partages de
+ * plus d'un an (ou jamais traités, un an après leur envoi), les réponses « Tu t'es senti·e bien ici ? » de plus de 2 ans, les alertes silencieuses de plus de 30 jours (aussi effacées à chaque nouvelle alerte) et les partages de
  * position finis (leur position est déjà effacée à la fin du partage).
  */
 export async function effacerMiamSafeAncien(maintenant = new Date()) {
   const unAn = new Date(maintenant);
   unAn.setFullYear(unAn.getFullYear() - 1);
-  const [signalements, alertes, partages] = await Promise.all([
+  const deuxAns = new Date(maintenant);
+  deuxAns.setFullYear(deuxAns.getFullYear() - 2);
+  const [signalements, alertes, partages, sentiBien] = await Promise.all([
     // Traité depuis plus d'un an, ou jamais traité un an après son envoi (décision de Hugo du 14 octobre 2026)
     baseDeDonnees.signalementMiamSafe.deleteMany({
       where: { OR: [{ statut: "traite", traiteLe: { lt: unAn } }, { statut: "a-traiter", creeLe: { lt: unAn } }] },
@@ -124,6 +126,9 @@ export async function effacerMiamSafeAncien(maintenant = new Date()) {
     baseDeDonnees.alerteMiamSafe.deleteMany({ where: { creeLe: { lt: new Date(maintenant.getTime() - DUREE_GARDE_ALERTES_MS) } } }),
     // « Prévenir un pote » : les partages finis (arrêtés, ou l'heure passée) disparaissent entièrement
     baseDeDonnees.partagePositionMiamSafe.deleteMany({ where: { OR: [{ arreteLe: { not: null } }, { expireLe: { lte: maintenant } }] } }),
+    // « Tu t'es senti·e bien ici ? » : une réponse s'efface 2 ans après la dernière fois que la personne a répondu (décision
+    // de Hugo du 14 octobre 2026) ; le repère du lieu se recalcule sur ce qui reste
+    baseDeDonnees.reponseSentiBien.deleteMany({ where: { modifieLe: { lt: deuxAns } } }),
   ]);
-  return { signalements: signalements.count, alertes: alertes.count, partages: partages.count };
+  return { signalements: signalements.count, alertes: alertes.count, partages: partages.count, sentiBien: sentiBien.count };
 }

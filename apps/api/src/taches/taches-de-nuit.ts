@@ -61,6 +61,7 @@ async function faireLeMenage() {
     if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an, ou jamais traités en un an)", `${miamSafe.signalements} signalement(s)`);
     if (miamSafe.alertes > 0) await noterAction("serveur", "Alertes Miam Safe effacées (plus de 30 jours)", `${miamSafe.alertes} alerte(s)`);
     if (miamSafe.partages > 0) await noterAction("serveur", "Partages de position Miam Safe effacés (finis)", `${miamSafe.partages} partage(s)`);
+    if (miamSafe.sentiBien > 0) await noterAction("serveur", "Réponses « Tu t'es senti·e bien ici ? » effacées (plus de 2 ans)", `${miamSafe.sentiBien} réponse(s)`);
     // L'app : téléphones des notifications silencieux depuis 90 jours, « Ça m'intéresse » 30 jours après l'événement
     const appareils = await effacerAppareilsSilencieux();
     if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés (90 jours sans signe de vie, ou jeton mort)", `${appareils} téléphone(s)`);

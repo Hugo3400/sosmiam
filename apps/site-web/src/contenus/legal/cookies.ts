@@ -13,8 +13,8 @@
 // - Stockage de session : react-router-scroll-positions (toutes les pages), react-router-manifest-version (après une mise
 //   à jour du site). Aucun localStorage. Aucune requête vers un autre domaine (polices, images, scripts : tout vient de sosmiam.fr).
 // - Pas des cookies : scripts ajoutés par Cloudflare (détection des robots, décodage des adresses e-mail
-//   /cdn-cgi/scripts/…/email-decode.min.js) et en-tête NEL (rapports d'erreurs réseau vers a.nel.cloudflare.com, 7 jours,
-//   success_fraction 0).
+//   /cdn-cgi/scripts/…/email-decode.min.js). L'en-tête NEL (rapports d'erreurs réseau vers Cloudflare) est coupé depuis le
+//   14 octobre 2026 (« Journalisation des erreurs réseau » sur Off, vérifié : plus d'en-tête NEL ni Report-To).
 // - sosmiam-consentement (fonctions/consentement/ecrire-cookie-consentement.ts) : le choix du bandeau, 6 mois,
 //   Domain=sosmiam.fr (un choix pour les trois hôtes), lisible par la page. Pas encore posé en ligne : aucune catégorie
 //   facultative n'est active (contenus/cookies-consentement.ts), donc ni bandeau ni choix ; seulement en aperçu.
@@ -122,7 +122,7 @@ export const documentCookies: DocumentLegal = {
           ],
         },
         `Ces cookies sont **strictement nécessaires** à la sécurité du site : la loi les dispense de ton accord. Ils ne servent qu'à protéger le site, pas à la publicité ni à la mesure d'audience, et on ne s'en sert pas pour te suivre. C'est l'éditeur de ${site.nom} qui a choisi ce prestataire : il reste donc responsable de ces cookies, même quand c'est ${cloudflare} qui les dépose.`,
-        `Pour faire ce travail, ${cloudflare} ajoute aussi à nos pages deux petits scripts servis depuis notre propre adresse : l'un vérifie que ton navigateur n'est pas un robot, l'autre protège notre adresse e-mail des robots qui ramassent les adresses. Et il demande à ton navigateur (en-tête « NEL ») de lui signaler, pendant 7 jours, les erreurs de connexion au site, pour repérer les pannes : seulement les échecs, jamais les pages qui s'affichent bien. Ce ne sont pas des cookies, et ils ne servent pas à la publicité.`,
+        `Pour faire ce travail, ${cloudflare} ajoute aussi à nos pages deux petits scripts servis depuis notre propre adresse : l'un vérifie que ton navigateur n'est pas un robot, l'autre protège notre adresse e-mail des robots qui ramassent les adresses. Ce ne sont pas des cookies, et ils ne servent pas à la publicité.`,
         "Tu peux quand même bloquer ou effacer ces cookies depuis ton navigateur (voir plus bas). La protection du site pourrait alors te demander une vérification supplémentaire, voire t'empêcher d'y accéder tant qu'elle est active.",
         `${cloudflare} est une entreprise américaine : des données peuvent donc être traitées aux États-Unis. Ce transfert est encadré par le Data Privacy Framework UE–États-Unis, auquel ${cloudflare} est certifié, et par des clauses contractuelles types. Les données traitées et ces garanties sont détaillées dans notre [politique de confidentialité](/confidentialite#cloudflare). Tu peux aussi lire la [politique de confidentialité de Cloudflare](https://www.cloudflare.com/privacypolicy/).`,
       ],
