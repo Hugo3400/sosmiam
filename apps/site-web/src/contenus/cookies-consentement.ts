@@ -167,6 +167,7 @@ export const textesConsentement = {
   fermerSansChanger: "Fermer sans rien changer",
   titrePanneau: "Tes choix, catégorie par catégorie",
   introPanneau: "Tout est décoché au départ : sans ton accord, c'est non. Coche seulement ce que tu veux bien.",
+  introGestion: "Voici tes choix actuels. Change ce que tu veux, puis enregistre : retirer un accord est aussi simple que de le donner.",
   toujoursActifs: "Toujours actifs",
   voirPartenaires: "Qui pose quoi",
   choixEnregistre: "C'est noté, ton choix est enregistré.",

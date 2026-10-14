@@ -23,7 +23,7 @@ export function PanneauChoixCookies({ prefixe, Titre }: Props) {
       <Titre id={`${prefixe}-cookies-titre-panneau`} tabIndex={-1} className="pr-10 font-titre text-lg font-extrabold sm:text-xl">
         {textesConsentement.titrePanneau}
       </Titre>
-      <p id={`${prefixe}-cookies-intro-panneau`} className="mt-1.5 text-[.95rem] text-gris">{lierPonctuation(textesConsentement.introPanneau)}</p>
+      <p id={`${prefixe}-cookies-intro-panneau`} className="mt-1.5 text-[.95rem] text-gris">{lierPonctuation(choix ? textesConsentement.introGestion : textesConsentement.introPanneau)}</p>
       <ul className="mt-4 grid gap-3">
         {aChoisir.map((categorie) => (
           <li key={categorie.id}>
