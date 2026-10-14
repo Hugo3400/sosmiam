@@ -1,6 +1,6 @@
-// Le seul endroit qui choisit les services de l'app : la démo locale en développement (ou avec EXPO_PUBLIC_DEMO_VISITES=1,
-// valeur figée à la compilation, jamais un réglage caché), sinon les services « indisponibles ». Plus tard,
-// creerServicesApi() (lot P6) remplacera la démo.
+// Les services de l'app sans compte connecté (FournisseurServices prend creerServicesApi() dès qu'un compte l'est) : la
+// démo locale quand le mode démo est allumé (bouton « Démo », en développement seulement), sinon les services
+// « indisponibles » (une visite sans compte ne valide rien).
 import type { Services } from "@sos-miam/commun/client-api/services";
 import type { RolesCompte } from "@sos-miam/commun/types/roles";
 
