@@ -7,7 +7,7 @@ import { after, test } from "node:test";
 import { lireVersionApp } from "../src/fonctions/texte/lire-version-app.ts";
 import { creerBancApp } from "./outils/creer-banc-app.ts";
 
-const { banc, memoire, demander, inscrireApp, rendrePro, poserRattachementValide, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" } });
+const { banc, memoire, demander, inscrireApp, inscrireAncienMineur, rendrePro, poserRattachementValide, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" } });
 const sansCle = await creerBancApp({ sansCle: true });
 after(async () => {
   await fermer();
@@ -18,14 +18,14 @@ const lireProfil = (jeton: string) => demander("GET", "/comptes/moi/profil", { j
 const modifier = (jeton: string, corps: unknown) => demander("PATCH", "/comptes/moi/profil", { jeton, corps });
 
 test("GET profil : déchiffré, avec l'âge ; un compte du site n'a ni date ni ville de profil ; sans session : 401", async () => {
-  const { jeton } = await inscrireApp({ nom: "Martin", dateNaissance: "2009-03-14", ville: "Nantes", pseudo: "zoe_m", envies: { boissons: ["cafe"] } });
+  const { jeton } = await inscrireApp({ nom: "Martin", dateNaissance: "2007-03-14", ville: "Nantes", pseudo: "zoe_m", envies: { boissons: ["cafe"] } });
   const { statut, corps } = await lireProfil(jeton);
   assert.equal(statut, 200);
   assert.deepEqual(corps, {
     ok: true,
     profil: {
-      prenom: "Zoé", nom: "Martin", pseudo: "zoe_m", dateNaissance: "2009-03-14", ville: "Nantes", envies: { boissons: ["cafe"] }, avatar: null,
-      prive: false, emailVerifie: false, age: 17,
+      prenom: "Zoé", nom: "Martin", pseudo: "zoe_m", dateNaissance: "2007-03-14", ville: "Nantes", envies: { boissons: ["cafe"] }, avatar: null,
+      prive: false, emailVerifie: false, age: 19,
     },
   });
   const site = await demander("POST", "/comptes", {
@@ -97,8 +97,8 @@ test("sans clé : GET et PATCH profil répondent 503 chiffrement-indisponible", 
 
 const PROPOSITION = { nom: "Le Petit Four", type: "patisserie", ville: "Nantes", description: "Des choux garnis à la minute, une équipe adorable." };
 
-test("proposer un nouveau lieu : 18 ans et plus (âge connu, ambassadeur actif ou pro validé) ; 15-17 ans : 403", async () => {
-  const mineur = await inscrireApp({ dateNaissance: "2010-06-01" });
+test("proposer un nouveau lieu : 18 ans et plus (âge connu, ambassadeur actif ou pro validé) ; ancien compte de 15-17 ans : 403", async () => {
+  const mineur = await inscrireAncienMineur("2010-06-01");
   const proposer = (jeton: string, corps: unknown = PROPOSITION) => demander("POST", "/comptes/moi/propositions-lieux", { jeton, corps });
   assert.deepEqual((await proposer(mineur.jeton)).corps, { ok: false, erreur: "reserve-aux-majeurs" });
   assert.equal((await demander("GET", "/comptes/moi/propositions-lieux", { jeton: mineur.jeton })).statut, 403);

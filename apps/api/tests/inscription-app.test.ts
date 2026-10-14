@@ -1,25 +1,26 @@
-// Tests de l'inscription de l'app (POST /comptes avec espace « app ») : dès 15 ans, sans fiche d'ambassadeur, nom et date
+// Tests de l'inscription de l'app (POST /comptes avec espace « app ») : dès 18 ans, sans fiche d'ambassadeur, nom et date
 // de naissance gardés CHIFFRÉS, envies sans « regimes », pseudo unique et sans gros mot, lien de confirmation de l'e-mail ;
-// sans clé de chiffrement : 503. Et `compte.age`, les rôles masqués sous 18 ans, `pro.lieuxValides` et l'emoji du lieu.
+// sans clé de chiffrement : 503. Et `compte.age`, les rôles masqués sous 18 ans (anciens comptes de 15-17 ans, filet de
+// sécurité), `pro.lieuxValides` et l'emoji du lieu.
 // Tout en mémoire, avec une clé de TEST : aucune base de données, jamais la vraie clé.
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 
 import { creerBancApp } from "./outils/creer-banc-app.ts";
 
-const { banc, memoire, chiffrement, demander, inscriptionApp, inscrireApp, rendrePro, poserRattachementValide, fermer } = await creerBancApp();
+const { banc, memoire, chiffrement, demander, inscriptionApp, inscrireApp, inscrireAncienMineur, rendrePro, poserRattachementValide, fermer } = await creerBancApp();
 const sansCle = await creerBancApp({ sansCle: true });
 after(async () => {
   await fermer();
   await sansCle.fermer();
 });
 
-/** Le 9 octobre 2026 : née le 9 octobre 2011, on a 15 ans tout juste ; le 10, pas encore */
-test("dès 15 ans (jour de Paris) : 201, session « app », compte sans fiche d'ambassadeur, âge rendu", async () => {
-  const { statut, corps } = await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2011-10-09" }) });
+/** Le 9 octobre 2026 : née le 9 octobre 2008, on a 18 ans tout juste ; le 10, pas encore */
+test("dès 18 ans (jour de Paris) : 201, session « app », compte sans fiche d'ambassadeur, âge rendu", async () => {
+  const { statut, corps } = await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2008-10-09" }) });
   assert.equal(statut, 201);
   assert.match(corps.session, /^[A-Za-z0-9_-]{43}$/);
-  assert.equal(corps.compte.age, 15);
+  assert.equal(corps.compte.age, 18);
   assert.equal(corps.compte.ambassadeur, null);
   assert.deepEqual(corps.compte.pro, { lieux: [], lieuxValides: [] });
   assert.equal(corps.compte.emailVerifie, false);
@@ -30,25 +31,27 @@ test("dès 15 ans (jour de Paris) : 201, session « app », compte sans fiche d'
   const debut = banc.horloge;
   try {
     banc.horloge = Date.parse("2026-10-08T22:30:00Z");
-    assert.equal((await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2011-10-09" }) })).statut, 201);
+    assert.equal((await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2008-10-09" }) })).statut, 201);
     banc.horloge = Date.parse("2026-10-08T21:30:00Z");
-    assert.equal((await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2011-10-09" }) })).statut, 403);
+    assert.equal((await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance: "2008-10-09" }) })).statut, 403);
   } finally {
     banc.horloge = debut;
   }
 });
 
-test("sous 15 ans : 403 age-minimum, et rien n'est gardé (même avec d'autres champs faux)", async () => {
+test("sous 18 ans : 403 age-minimum, et rien n'est gardé (même avec d'autres champs faux) ; pareil sur le site", async () => {
   const avant = memoire.comptes.size;
-  for (const dateNaissance of ["2011-10-10", "2020-01-01"]) {
+  for (const dateNaissance of ["2008-10-10", "2011-10-09", "2020-01-01"]) {
     const { statut, corps } = await demander("POST", "/comptes", { corps: inscriptionApp({ dateNaissance, email: "pas-une-adresse", ville: "" }) });
     assert.equal(statut, 403);
     assert.deepEqual(corps, { ok: false, erreur: "age-minimum" });
   }
+  // Le site (espace ambassadeur ou pro) : la même règle, 18 ans
+  for (const espace of ["ambassadeur", "pro"]) {
+    const site = await demander("POST", "/comptes", { corps: inscriptionApp({ espace, dateNaissance: "2010-01-01" }) });
+    assert.equal(site.statut, 403, espace);
+  }
   assert.equal(memoire.comptes.size, avant);
-  // Le site, lui, reste à 18 ans
-  const site = await demander("POST", "/comptes", { corps: inscriptionApp({ espace: "ambassadeur", dateNaissance: "2010-01-01" }) });
-  assert.equal(site.statut, 403);
 });
 
 test("nom et date de naissance gardés CHIFFRÉS (jamais en clair), ville et envies gardées, pas de fiche d'ambassadeur", async () => {
@@ -121,8 +124,8 @@ test("sans clé de chiffrement : inscription « app » 503 chiffrement-indisponi
   assert.equal(site.corps.compte.ambassadeur.statut, "en-attente");
 });
 
-test("rôles : sous 18 ans, ni ambassadeur ni pro rendus (même un lieu validé) ; dès 18 ans, lieuxValides et emoji", async () => {
-  const mineur = await inscrireApp({ dateNaissance: "2010-01-01" });
+test("rôles : ancien compte de moins de 18 ans, ni ambassadeur ni pro rendus (même un lieu validé) ; dès 18 ans, lieuxValides et emoji", async () => {
+  const mineur = await inscrireAncienMineur("2010-01-01");
   poserRattachementValide(mineur.id);
   const vuMineur = (await demander("GET", "/comptes/session", { jeton: mineur.jeton })).corps.compte;
   assert.equal(vuMineur.age, 16);

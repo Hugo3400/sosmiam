@@ -1,5 +1,7 @@
 // Proposer un nouveau lieu depuis n'importe quel compte de 18 ans et plus (décidé le 9 octobre 2026, « Avant de brancher
 // l'app ») : âge connu d'au moins 18 ans, ou ambassadeur actif, ou pro validé (ces deux rôles prouvent déjà 18 ans).
+// Depuis le 14 octobre 2026, on ne s'inscrit plus avant 18 ans : le refus d'un âge connu sous 18 ans reste en filet de
+// sécurité pour les anciens comptes de l'app créés à 15-17 ans.
 // Relu par l'équipe dans le logiciel de gestion, comme les propositions de l'espace ambassadeur (origine « compte »).
 // La route du site pour les ambassadeurs (POST /comptes/moi/propositions) ne change pas.
 import type { NextFunction, Request, Response } from "express";

@@ -48,14 +48,14 @@ async function demander(methode: string, chemin: string, options: { corps?: unkn
 }
 
 const NONCE = "nonce-brut-de-l-app-0001";
-const PROFIL = { prenom: "Zoé", nom: "Martin", dateNaissance: "2009-03-14", ville: "Nantes", envies: { boissons: ["cafe"] }, cgu: true };
+const PROFIL = { prenom: "Zoé", nom: "Martin", dateNaissance: "2007-03-14", ville: "Nantes", envies: { boissons: ["cafe"] }, cgu: true };
 const viaApple = (sub: string, email: string | null, corps: Record<string, unknown> = {}) =>
   demander("POST", "/comptes/apple", { corps: { identityToken: apple.jeton(sub, email, NONCE), nonce: NONCE, ...corps } });
 const viaGoogle = (sub: string, email: string, corps: Record<string, unknown> = {}, retouches: Record<string, unknown> = {}) =>
   demander("POST", "/comptes/google", { corps: { idToken: google.jeton(sub, email, null, retouches), ...corps } });
 const trouver = (email: string) => [...memoire.comptes.values()].find((compte) => compte.email === email);
 
-test("Apple, première fois : profil à compléter (rien n'est gardé), puis création d'un compte de l'app dès 15 ans", async () => {
+test("Apple, première fois : profil à compléter (rien n'est gardé), puis création d'un compte de l'app dès 18 ans", async () => {
   const email = "abc123@privaterelay.appleid.com";
   const incomplet = await viaApple("apple-zoe", email, { prenom: "Zoé" });
   assert.equal(incomplet.statut, 409);
@@ -69,16 +69,16 @@ test("Apple, première fois : profil à compléter (rien n'est gardé), puis cr�
   const cree = await viaApple("apple-zoe", email, PROFIL);
   assert.equal(cree.statut, 201);
   assert.equal(cree.corps.nouveau, true);
-  assert.deepEqual([cree.corps.compte.email, cree.corps.compte.emailVerifie, cree.corps.compte.age, cree.corps.compte.ambassadeur], [email, true, 17, null]);
+  assert.deepEqual([cree.corps.compte.email, cree.corps.compte.emailVerifie, cree.corps.compte.age, cree.corps.compte.ambassadeur], [email, true, 19, null]);
   const garde = trouver(email);
   assert.ok(garde);
   assert.equal(garde.appleSub, "apple-zoe");
   assert.equal(garde.cguVersion, VERSION_CGU);
   assert.match(garde.motDePasse, /^aucun\$/, "aucun vrai mot de passe");
-  assert.ok(!JSON.stringify(garde).includes("Martin") && !JSON.stringify(garde).includes("2009-03-14"), "nom et date chiffrés");
+  assert.ok(!JSON.stringify(garde).includes("Martin") && !JSON.stringify(garde).includes("2007-03-14"), "nom et date chiffrés");
   // Session « app » : le profil se lit avec le jeton
   const profil = await demander("GET", "/comptes/moi/profil", { jeton: cree.corps.session });
-  assert.deepEqual([profil.corps.profil.nom, profil.corps.profil.dateNaissance, profil.corps.profil.ville], ["Martin", "2009-03-14", "Nantes"]);
+  assert.deepEqual([profil.corps.profil.nom, profil.corps.profil.dateNaissance, profil.corps.profil.ville], ["Martin", "2007-03-14", "Nantes"]);
   const connexions = await demander("GET", "/comptes/moi/connexions", { jeton: cree.corps.session });
   assert.deepEqual(connexions.corps, { ok: true, connexions: { motDePasse: false, apple: true, google: false } });
   // Sans vrai mot de passe, la connexion par e-mail ne passe jamais
@@ -97,9 +97,11 @@ test("Apple, fois suivantes : même sub → connexion (les champs du profil sont
   assert.equal(parSession.statut, 200);
 });
 
-test("création : sous 15 ans → 403 et rien n'est gardé ; champs invalides → 400 ; pseudo pris → 409 ; sans e-mail → 400", async () => {
+test("création : sous 18 ans → 403 et rien n'est gardé ; champs invalides → 400 ; pseudo pris → 409 ; sans e-mail → 400", async () => {
   const jeune = await viaApple("apple-jeune", "jeune@exemple.fr", { ...PROFIL, dateNaissance: "2012-01-01" });
   assert.deepEqual([jeune.statut, jeune.corps.erreur], [403, "age-minimum"]);
+  const dixSeptAns = await viaApple("apple-jeune", "jeune@exemple.fr", { ...PROFIL, dateNaissance: "2009-03-14" });
+  assert.deepEqual([dixSeptAns.statut, dixSeptAns.corps.erreur], [403, "age-minimum"], "17 ans : plus d'inscription depuis le 14 octobre 2026");
   // L'âge passe avant tout : même sans prénom ni ville
   assert.equal((await viaApple("apple-jeune", "jeune@exemple.fr", { dateNaissance: "2012-01-01" })).statut, 403);
   assert.equal(trouver("jeune@exemple.fr"), undefined);
