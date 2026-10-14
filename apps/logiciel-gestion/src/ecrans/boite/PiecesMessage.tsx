@@ -38,8 +38,10 @@ export function PiecesMessage({ uid, dossier, pieces }: Props) {
     setErreur(null);
     try {
       await enregistrerFichierBinaire(piece.nom, await lirePieceMessage(uid, piece.numero, dossier));
-    } catch {
-      setErreur(`« ${piece.nom} » n'a pas pu être récupéré (trop lourd, ou la boîte ne répond pas).`);
+    } catch (probleme) {
+      setErreur(String(probleme).includes("format refusé")
+        ? `« ${piece.nom} » : ce format ne s'enregistre pas depuis le logiciel (programme ou script, par prudence). Ouvre-le depuis le webmail si tu en as vraiment besoin.`
+        : `« ${piece.nom} » n'a pas pu être récupéré (trop lourd, ou la boîte ne répond pas).`);
     }
   }
 

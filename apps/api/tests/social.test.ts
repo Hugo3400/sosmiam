@@ -135,6 +135,14 @@ test("une lecture ne crée jamais le profil social ; écrire demande un pseudo, 
     assert.equal((await p.demander("PUT", "/app/masques/suggestion/personne:abcdefghij")).statut, 200);
     assert.equal((await p.demander("GET", "/app/personnes/suggestions")).statut, 200);
     assert.equal((await p.demander("POST", "/app/personnes/recherche", { debut: "zz" })).statut, 200);
+    // Les listes des domaines : conversations, sorties et listes de lieux, vides
+    const vides = [
+      [await p.demander("GET", "/app/conversations"), { ok: true, conversations: [], invitations: [], suite: null }],
+      [await p.demander("GET", "/app/sorties"), { ok: true, sorties: [], invitations: [] }],
+      [await p.demander("GET", "/app/listes"), { ok: true, miennes: [], coEcrites: [], suivies: [], invitations: [] }],
+      [await p.demander("GET", "/app/listes/a-decouvrir"), { ok: true, listes: [], suite: null }],
+    ] as const;
+    for (const [r, attendu] of vides) assert.deepEqual([r.statut, r.corps], [200, attendu]);
   }
   assert.equal(banc.tables.profils.size, avant, "aucune ligne profils_sociaux");
   for (const [methode, corps] of [["POST", undefined], ["PATCH", { trouvable: false }]] as const) {

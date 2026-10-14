@@ -51,8 +51,8 @@ export type ServicesComptes = {
   lireIdentifiants: (id: number) => Promise<{ email: string; motDePasse: string } | null>;
   modifierCompte: (id: number, modification: ModificationCompte) => Promise<void>;
   changerMotDePasse: (id: number, empreinte: string) => Promise<void>;
-  /** Efface le compte et tout ce qui lui est lié */
-  effacerCompte: (id: number) => Promise<void>;
+  /** Efface le compte et tout ce qui lui est lié ; son pseudo reste réservé 30 jours pour personne (pseudos-reserves.ts) */
+  effacerCompte: (id: number, maintenant?: Date) => Promise<void>;
   /** Le compte qui a ce jeton de réinitialisation (par son empreinte), s'il n'a pas expiré */
   trouverCompteParJeton: (empreinteJeton: string, maintenant: Date) => Promise<{ id: number; email: string } | null>;
   /** Nouveau mot de passe, seulement si le jeton est toujours le sien et valable (il est effacé en même temps) */
@@ -82,9 +82,10 @@ export type ServicesComptes = {
   creerSuggestionLieu: (compteId: number, suggestion: NouvelleSuggestionCompte, maintenant: Date) => Promise<ResultatSuggestionCompte>;
   /** Profil de l'app (services/comptes-profil.ts) : nom et date encore chiffrés */
   lireProfil: (id: number) => Promise<ProfilLu | null>;
-  modifierProfil: (id: number, modification: ModificationProfil) => Promise<"ok" | "pseudo-pris">;
-  /** Vrai si un AUTRE compte a déjà ce pseudo */
-  pseudoEstPris: (pseudo: string, saufCompteId?: number) => Promise<boolean>;
+  /** Un changement de pseudo réserve l'ancien 30 jours pour ce compte ; « pseudo-pris » s'il est porté ou réservé par un autre */
+  modifierProfil: (id: number, modification: ModificationProfil, maintenant?: Date) => Promise<"ok" | "pseudo-pris">;
+  /** Vrai si un AUTRE compte a déjà ce pseudo, ou s'il est réservé (30 jours) pour un autre compte ou pour personne */
+  pseudoEstPris: (pseudo: string, saufCompteId?: number, maintenant?: Date) => Promise<boolean>;
 };
 
 /**

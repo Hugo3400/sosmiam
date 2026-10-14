@@ -16,7 +16,8 @@ export type CibleCloche = "sortie" | "conversation" | "liste" | "publication" | 
 export type NotificationClocheApi = {
   id: string;
   type: TypeCloche;
-  /** null : l'équipe SOS Miam */
+  /** null : personne en particulier (l'équipe SOS Miam et ses décisions, un contenu masqué, la fin automatique d'un vote,
+   *  un lien d'invitation changé tout seul, ou la réponse d'un lieu : « reponse-commentaire » avec detail « lieu ») */
   acteur: PersonneResume | null;
   date: string;
   cible: { type: CibleCloche; id: string } | null;

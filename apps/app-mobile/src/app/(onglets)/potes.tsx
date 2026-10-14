@@ -30,7 +30,7 @@ const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) =
  */
 export default function Potes() {
   const { profil, invite } = utiliserProfil();
-  const { pret, moi, recommandationsRecues, trouverPote } = utiliserCommunaute();
+  const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demo, demandesRecues } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { onglet: ongletDemande } = useLocalSearchParams<{ onglet?: string }>();
@@ -44,6 +44,11 @@ export default function Potes() {
     const demande = lireOnglet(ongletDemande);
     if (demande) setOnglet(demande);
   }, [ongletDemande]);
+
+  // Compte connecté : ouvrir Potes crée ton profil social s'il manque (une fois par lancement ; sans effet en démo ou en visite)
+  useEffect(() => {
+    if (!invite) ouvrirProfilSocial();
+  }, [invite, ouvrirProfilSocial]);
 
   // Les lieux connus (en visite sans compte, l'onglet n'est pas montré : rien à calculer)
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -97,11 +102,11 @@ export default function Potes() {
           className="gap-5 px-5 pb-5"
         >
           <EnTetePotes moi={moi} />
-          {/* Profils créés avant Potes : pas encore de pseudo */}
-          {profil.pseudo ? null : <ChoixPseudoManquant />}
-          <BandeauDemoPotes />
+          {/* Profils créés avant Potes, ou le serveur qui attend ton pseudo : pas encore de pseudo */}
+          {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
+          {demo ? <BandeauDemoPotes /> : null}
         </View>
-        <OngletsPotes onglet={onglet} onChoisir={choisir} nouveautes={recues.filter((r) => !r.vue).length} />
+        <OngletsPotes onglet={onglet} onChoisir={choisir} nouveautes={recues.filter((r) => !r.vue).length} demandesBande={demandesRecues.length} />
         <View className="px-5 pt-5">
           {onglet === "sorties" ? (
             <SectionSorties recommandations={recues} lieux={lieux} onRetire={signalerRetrait} />

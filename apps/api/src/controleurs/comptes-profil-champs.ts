@@ -5,6 +5,7 @@ import { estPseudoValide } from "../../../../packages/commun/src/validation/est-
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import type { CategorieEnvie } from "../../../../packages/commun/src/types/profil.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
+import { normaliserPseudo } from "../fonctions/comptes/normaliser-pseudo.ts";
 import { lireLigneFacultative } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -54,10 +55,8 @@ export function lirePseudo(valeur: unknown): string {
   return pseudo;
 }
 
-/** Pseudo nettoyé (sans « @ », en minuscules), ou "" si ce n'est pas un texte. */
-export function normaliserPseudo(valeur: unknown): string {
-  return typeof valeur === "string" ? valeur.trim().replace(/^@/, "").toLowerCase() : "";
-}
+/** Pseudo nettoyé (sans « @ », en minuscules), ou "" si ce n'est pas un texte : fonctions/comptes/normaliser-pseudo.ts */
+export { normaliserPseudo };
 
 /** Avatar : un seul emoji (une seule « lettre » à l'écran, 16 caractères au plus) ; null ou "" : effacé. */
 export function lireAvatar(valeur: unknown): string | null {

@@ -5,6 +5,7 @@ import { construireFiltreSessionsExpirees } from "../fonctions/comptes/construir
 import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
 import { retirerDuProgramme } from "./gestion/ambassadeurs.ts";
 import { GARDE_RATTACHEMENT_CLOS } from "./pro-regles.ts";
+import { reserverPseudoDans, tablePseudosReservesPresente } from "./pseudos-reserves.ts";
 
 const UN_JOUR = 86_400_000;
 /** Ambassadeur refusé par l'équipe : seul son RÔLE est retiré 30 jours après le refus ; le compte reste (il sert à l'app,
@@ -33,6 +34,17 @@ export type BilanMenageComptes = {
   /** Demandes de rattachement à un lieu refusées, ou rattachements retirés, depuis plus d'un an */
   rattachements: number;
 };
+
+/** Efface les comptes sans connexion depuis `limite` ; leurs pseudos sont réservés 30 jours pour personne, dans la même transaction. */
+async function effacerComptesInactifs(limite: Date, maintenant: Date): Promise<{ count: number }> {
+  const where = { derniereConnexion: { lt: limite } };
+  if (!(await tablePseudosReservesPresente())) return baseDeDonnees.compte.deleteMany({ where });
+  return baseDeDonnees.$transaction(async (transaction) => {
+    const pseudos = await transaction.compte.findMany({ where: { ...where, pseudo: { not: null } }, select: { pseudo: true } });
+    for (const { pseudo } of pseudos) if (pseudo) await reserverPseudoDans(transaction, pseudo, null, "suppression", maintenant);
+    return transaction.compte.deleteMany({ where });
+  }, { timeout: 60_000 });
+}
 
 /**
  * Efface ce qui a dépassé sa durée de conservation (décision de Hugo du 8 octobre 2026) : sessions (selon leur support,
@@ -65,7 +77,8 @@ export async function faireLeMenageDesComptes(maintenant = new Date()): Promise<
   for (const { id } of aRetirer) if (await retirerDuProgramme(id)) ambassadeursRetires += 1;
   // 2 ans sans connexion : tout le compte est effacé. Un compte effacé emporte avec lui (en cascade) son ambassadeur, ses
   // sessions, badges, points, candidatures, missions, messages et lectures ; ses propositions de lieux restent, sans lien
-  const comptesInactifs = await baseDeDonnees.compte.deleteMany({ where: { derniereConnexion: { lt: avant(INACTIVITE_COMPTE) } } });
+  // Leurs pseudos restent réservés 30 jours pour personne, comme après une suppression demandée (pseudos-reserves.ts)
+  const comptesInactifs = await effacerComptesInactifs(avant(INACTIVITE_COMPTE), maintenant);
   const candidatures = await baseDeDonnees.candidatureFondateur.deleteMany({ where: { statut: "refusee", reponduLe: { lt: limiteCandidatures } } });
   const candidaturesCertification = await baseDeDonnees.candidatureCertification.deleteMany({
     where: { statut: "refusee", reponduLe: { lt: limiteCandidatures } },

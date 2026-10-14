@@ -9,6 +9,8 @@ type Props = {
   onChoisir: (onglet: OngletPotes) => void;
   /** Lieux reçus de tes potes et pas encore ouverts : une pastille sur « Sorties » */
   nouveautes: number;
+  /** Demandes de bande reçues, pas encore acceptées : une pastille sur « Ma bande » */
+  demandesBande?: number;
 };
 
 const onglets: { cle: OngletPotes; nom: string }[] = [
@@ -18,15 +20,19 @@ const onglets: { cle: OngletPotes; nom: string }[] = [
 ];
 
 /** Les trois onglets de Potes (Sorties, Ma bande, Listes), sur fond crème pour rester lisibles quand ils restent collés en haut. */
-export function OngletsPotes({ onglet, onChoisir, nouveautes }: Props) {
+export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0 }: Props) {
   return (
     // Fond crème sur toute la largeur : les onglets restent lisibles quand ils restent collés en haut de l'écran
     <View className="bg-creme px-5 pt-1">
       <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne">
         {onglets.map((o, i) => {
           const actif = o.cle === onglet;
-          const pastille = o.cle === "sorties" ? nouveautes : 0;
-          const lu = pastille > 0 ? `${o.nom}, ${pastille} lieu${pastille > 1 ? "x" : ""} reçu${pastille > 1 ? "s" : ""} pas encore vu${pastille > 1 ? "s" : ""}` : o.nom;
+          const pastille = o.cle === "sorties" ? nouveautes : o.cle === "bande" ? demandesBande : 0;
+          const quoi =
+            o.cle === "bande"
+              ? `${pastille} demande${pastille > 1 ? "s" : ""} pour rejoindre ta bande`
+              : `${pastille} lieu${pastille > 1 ? "x" : ""} reçu${pastille > 1 ? "s" : ""} pas encore vu${pastille > 1 ? "s" : ""}`;
+          const lu = pastille > 0 ? `${o.nom}, ${quoi}` : o.nom;
           // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
           return (
             <Pressable

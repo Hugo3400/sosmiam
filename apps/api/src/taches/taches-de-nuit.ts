@@ -20,6 +20,7 @@ import { formaterOctets } from "../fonctions/texte/formater-octets.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import { rechiffrerComptes } from "../services/rechiffrement-comptes.ts";
 import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
+import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -58,6 +59,9 @@ async function faireLeMenage() {
     // Connexion par QR code : les demandes expirées depuis plus d'un jour (un nombre seulement dans le journal)
     const demandesQr = await effacerDemandesQrExpirees();
     if (demandesQr > 0) await noterAction("serveur", "Demandes de connexion par QR effacées (expirées depuis plus d'un jour)", `${demandesQr} demande(s)`);
+    // Pseudos libérés dont les 30 jours de réservation sont passés (un nombre seulement, jamais un pseudo)
+    const pseudosReserves = await effacerPseudosReservesExpires();
+    if (pseudosReserves > 0) await noterAction("serveur", "Réservations de pseudos libérés effacées (30 jours passés)", `${pseudosReserves} pseudo(s)`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }

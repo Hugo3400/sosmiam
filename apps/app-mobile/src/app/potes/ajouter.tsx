@@ -14,6 +14,7 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserSession } from "~/hooks/utiliser-session";
 
 /** Un pseudo seul (« @lea.croque » ou « lea.croque »), sans « @ » et en minuscules ; null si ce n'en est pas un */
 const lirePseudoSeul = (texte: string): string | null => {
@@ -22,11 +23,14 @@ const lirePseudoSeul = (texte: string): string | null => {
 };
 
 /**
- * Ajouter un pote : ton QR code et ton lien, le scan du QR code d'un pote (ou son lien collé), et la recherche par pseudo.
- * Démo : seuls les potes d'exemple se trouvent, on le dit en haut de l'écran.
+ * Ajouter un pote : ton QR code et ton lien, le scan du QR code d'un pote (ou son lien collé), et la recherche par pseudo. Un
+ * lien ou un QR code avec son code secret vous met dans la même bande tout de suite ; un pseudo seul envoie une demande.
+ * Démo : seuls les potes d'exemple se trouvent (ajoutés tout de suite), on le dit en haut de l'écran.
  */
 export default function AjouterPote() {
   const communaute = utiliserCommunaute();
+  const { sociaux } = utiliserSession();
+  const [enCours, setEnCours] = useState(false);
   const [lienColle, setLienColle] = useState("");
   const [retour, setRetour] = useState<RetourAjout | null>(null);
   // Ouvert par un lien d'invitation (sosmiam.fr/invitation/…) : on l'ajoute tout de suite, comme un lien collé
@@ -35,46 +39,64 @@ export default function AjouterPote() {
   useEffect(() => {
     if (!lien || lienTraite.current || !communaute.pret) return;
     lienTraite.current = true;
-    ajouterDepuis(lien, "champ");
+    void ajouterDepuis(lien, "champ");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lien, communaute.pret]);
 
-  // Après un scan ou un texte collé : on retrouve la personne par son pseudo dans l'annuaire de la démo, puis on l'ajoute.
-  // Seul un lien d'invitation complet (sosmiam.fr/invitation/…) compte comme un ajout par lien ou QR code ;
-  // un pseudo seul, collé ou caché dans un QR code, est une recherche par pseudo comme les autres.
-  function ajouterDepuis(texte: string, source: "qr" | "champ") {
+  // Le pseudo seul d'un compte connecté : on le cherche sur le serveur (le pseudo exact), sans les personnes bloquées
+  async function trouverParPseudo(pseudo: string) {
+    if (communaute.source !== "compte") return communaute.chercherParPseudo(pseudo).find((r) => r.pote.pseudo === pseudo)?.pote ?? null;
+    const r = await sociaux.social.chercher(pseudo);
+    const trouve = r.ok ? r.resultats.find((x) => x.personne.pseudo === pseudo) : undefined;
+    if (!trouve) return null;
+    communaute.noterPersonne(trouve.personne);
+    return communaute.trouverPote(trouve.personne.id);
+  }
+
+  // Après un scan ou un texte collé. Un lien d'invitation complet (sosmiam.fr/invitation/…, avec son code secret) vous met
+  // dans la même bande tout de suite ; un pseudo seul, collé ou caché dans un QR code, est une demande, comme la recherche.
+  async function ajouterDepuis(texte: string, source: "qr" | "champ") {
     const invitation = lireLienInvitation(texte);
     const pseudo = invitation?.pseudo ?? lirePseudoSeul(texte);
     if (!pseudo) return setRetour({ type: "pas-invitation" });
     if (pseudo === communaute.moi.pseudo) return setRetour({ type: "toi" });
-    const moyen = !invitation ? "pseudo" : source === "qr" ? "qr" : "lien";
-    // Démo : le code secret du lien (invitation.code) n'est pas encore vérifié, l'API s'en chargera avec les comptes
-    const pote =
-      communaute.chercherParPseudo(pseudo).find((r) => r.pote.pseudo === pseudo)?.pote ??
-      // La recherche cache les personnes bloquées : on les retrouve à part pour le dire
-      communaute.bloques.find((p) => p.pseudo === pseudo) ??
-      null;
-    if (!pote) return setRetour({ type: "introuvable", pseudo });
-    const resultat = communaute.ajouterPote(pote.id, moyen);
-    setRetour(resultat === "introuvable" ? { type: "introuvable", pseudo } : { type: resultat, pote });
-    if (source === "champ" && resultat === "ajoute") setLienColle("");
+    // La recherche cache les personnes bloquées : on les retrouve à part pour le dire
+    const bloque = communaute.bloques.find((p) => p.pseudo === pseudo);
+    if (bloque) return setRetour({ type: "bloque", pote: bloque });
+    setEnCours(true);
+    try {
+      let resultat;
+      if (invitation?.code) resultat = await communaute.rejoindreParInvitation(pseudo, invitation.code, source === "qr" ? "qr" : "lien");
+      else {
+        const pote = await trouverParPseudo(pseudo);
+        resultat = pote ? await communaute.demanderAjout(pote.id) : { type: "introuvable" as const, pseudo };
+      }
+      setRetour(resultat);
+      if (source === "champ" && (resultat.type === "ajoute" || resultat.type === "demande")) setLienColle("");
+    } finally {
+      setEnCours(false);
+    }
   }
 
   return (
     <EcranReglage titre="Ajouter un pote" sousTitre="Plus on est de fous, plus on sauve de lieux.">
-      <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
-          🧪
-        </Text>
-        <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
-          <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
-          {lierPonctuation(" : tes vrais potes arriveront avec les comptes.")}
-        </Text>
-      </View>
+      {communaute.demo ? (
+        <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
+            🧪
+          </Text>
+          <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
+            <Text className="font-texte-gras text-encre">Démo</Text>
+            {lierPonctuation(" : seuls les potes d'exemple se trouvent, et ils arrivent tout de suite.")}
+          </Text>
+        </View>
+      ) : null}
 
       <SectionReglages titre="Ton QR code">
         <View className="gap-3 pt-1">
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Quand les comptes arriveront, ton pote le scannera dans l'app, et hop : vous serez dans la même bande.")}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">
+            {lierPonctuation(communaute.demo ? "Dans la démo, ton QR code ne sert que dans l'app." : "Ton pote le scanne dans l'app (Potes, « Ajouter un pote »), et hop : vous êtes dans la même bande.")}
+          </Text>
           <CodeQrInvitation pseudo={communaute.moi.pseudo} />
         </View>
       </SectionReglages>
@@ -82,7 +104,7 @@ export default function AjouterPote() {
       <SectionReglages titre="Scanner un QR code">
         <View className="gap-3 pt-1">
           <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton pote te montre le sien (dans Potes, « Ajouter un pote ») : vise, c'est fait.")}</Text>
-          <ScannerQrCode onLu={(texte) => ajouterDepuis(texte, "qr")} onOuvrir={() => setRetour(null)} />
+          <ScannerQrCode onLu={(texte) => void ajouterDepuis(texte, "qr")} onOuvrir={() => setRetour(null)} />
           <ChampTexte
             libelle="Ou colle le lien de ton pote"
             valeur={lienColle}
@@ -95,16 +117,16 @@ export default function AjouterPote() {
             keyboardType="url"
             returnKeyType="done"
             onSubmitEditing={() => {
-              if (lienColle.trim()) ajouterDepuis(lienColle, "champ");
+              if (lienColle.trim()) void ajouterDepuis(lienColle, "champ");
             }}
           />
           <Bouton
-            libelle="Ajouter avec ce lien"
+            libelle={enCours ? "Un instant…" : "Ajouter avec ce lien"}
             variante="blanc"
             petit
-            desactive={lienColle.trim() === ""}
+            desactive={lienColle.trim() === "" || enCours}
             indice="Retrouve ton pote grâce à son lien et l'ajoute à ta bande"
-            onPress={() => ajouterDepuis(lienColle, "champ")}
+            onPress={() => void ajouterDepuis(lienColle, "champ")}
           />
           {retour ? <RetourAjoutPote retour={retour} /> : null}
         </View>

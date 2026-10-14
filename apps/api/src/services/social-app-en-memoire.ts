@@ -15,12 +15,13 @@ import { creerStockageMediasChatEnMemoire } from "./stockage-medias-chat.ts";
 import { creerTablesSocialesEnMemoire, type CompteSocialEnMemoire } from "./tables-sociales-en-memoire.ts";
 import { creerBandeEnMemoire } from "./bande-en-memoire.ts";
 import { creerSuivisPersonnesEnMemoire } from "./suivis-personnes-en-memoire.ts";
+import { creerMessagerie } from "./messagerie.ts";
+import { creerDepotMessagerieEnMemoire } from "./messagerie-en-memoire.ts";
 import { creerSortiesEnMemoire } from "./sorties-en-memoire.ts";
 import { creerListesEnMemoire } from "./listes-en-memoire.ts";
 import { creerCommentairesEnMemoire } from "./commentaires-en-memoire.ts";
 import { creerDecisionsModerationAppEnMemoire, creerSignalementsSociauxEnMemoire } from "./signalements-sociaux-en-memoire.ts";
-import { creerMessagerie } from "./messagerie.ts";
-import { creerDepotMessagerieEnMemoire } from "./messagerie-en-memoire.ts";
+import type { LireAncienTitulaire } from "./bande-regles.ts";
 
 export type OptionsSocialAppEnMemoire = {
   /** Absent : une clé de test tirée au hasard ; null : pas de clé (routes 🔐 en 503 chiffrement-indisponible) */
@@ -34,6 +35,8 @@ export type OptionsSocialAppEnMemoire = {
   horloge?: () => number;
   /** Pour essayer une notification qui échoue */
   prevenirCompte?: DependancesSocialApp["prevenirCompte"];
+  /** Les pseudos libérés des comptes en mémoire (lireAncienTitulaireEnMemoire) ; absent : aucun pseudo réservé */
+  lireAncienTitulaire?: LireAncienTitulaire;
 };
 
 export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
@@ -45,6 +48,8 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
   const relations = creerRelationsSocialesEnMemoire(tables);
   const cloche = creerClocheEnMemoire(tables, relations);
   const chiffrement = creerChiffrementSocial(o.chiffrement === undefined ? creerChiffrementDonnees(randomBytes(32)) : o.chiffrement);
+  // Sans état : le même service sert aux domaines qui lisent un profil (suivis, commentaires)
+  const social = creerSocialEnMemoire(tables, relations, tirer);
 
   const dependances: DependancesSocialApp = {
     chiffrement,
@@ -60,18 +65,16 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
       return true;
     },
     lireRole: o.lireRole ?? (async () => null),
-    social: creerSocialEnMemoire(tables, relations, tirer),
+    social,
     // Un domaine par ligne, à la fin (lots L3 à L7)
-    bande: creerBandeEnMemoire(tables, relations, chiffrement, tirer),
-    suivis: creerSuivisPersonnesEnMemoire(tables, relations, creerSocialEnMemoire(tables, relations, tirer)),
+    bande: creerBandeEnMemoire(tables, relations, chiffrement, tirer, o.lireAncienTitulaire),
+    suivis: creerSuivisPersonnesEnMemoire(tables, relations, social),
+    messagerie: creerMessagerie({ depot: creerDepotMessagerieEnMemoire(tables, relations, medias), relations, chiffrement, medias }),
     sorties: creerSortiesEnMemoire(tables, relations, medias),
     listes: creerListesEnMemoire(tables, relations),
-    commentaires: creerCommentairesEnMemoire(tables, {
-      relations, social: creerSocialEnMemoire(tables, relations, tirer), lireRole: (c, l) => dependances.lireRole(c, l), chiffrement,
-    }),
+    commentaires: creerCommentairesEnMemoire(tables, { relations, social, lireRole: (c, l) => dependances.lireRole(c, l), chiffrement }),
     signalements: creerSignalementsSociauxEnMemoire(tables, relations, chiffrement),
     decisions: creerDecisionsModerationAppEnMemoire(tables, (id, texte, maintenant) => dependances.contesterSignalement(id, texte, maintenant)),
-    messagerie: creerMessagerie({ depot: creerDepotMessagerieEnMemoire(tables, relations, medias), relations, chiffrement, medias }),
   };
   return { dependances, tables, pushs, contestations, medias };
 }

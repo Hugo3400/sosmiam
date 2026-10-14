@@ -2,7 +2,7 @@ import { estPseudoValide } from "../../validation/est-pseudo-valide.ts";
 
 // « https://sosmiam.fr/invitation/lea.croque#c=k7mq2x9pa4vt » (ou l'ancien « ?c=… »), avec ou sans « https:// » ni
 // « www. », et le lien de secours de l'app « sosmiam://invitation/lea.croque#c=… » ; « @ » toléré devant le pseudo, suivi
-// ou non de « / ». Même règle que apps/app-mobile/src/fonctions/communaute/lire-lien-invitation.ts
+// ou non de « / ». La seule règle : l'app la lit d'ici (ajouter un pote, code scanné)
 const LIEN = /^(?:(?:https?:\/\/)?(?:www\.)?sosmiam\.fr\/|sosmiam:\/\/)invitation\/([^/?#\s]+)\/?(?:\?([^#\s]*))?(?:#(\S*))?$/i;
 const CODE = /(?:^|&)c=([a-z0-9]{6,64})(?:&|$)/i;
 

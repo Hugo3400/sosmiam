@@ -92,7 +92,8 @@ export function creerControleursMonCompte(contexte: ContexteComptes) {
       if (estSansMotDePasse(identifiants.motDePasse)) {
         if (!(await externes.confirmerSansMotDePasse(reponse, corps))) return;
       } else if (!(await verifierMotDePasseActuel(reponse, id, identifiants, lireMotDePasse(corps, "motDePasse")))) return;
-      await services.effacerCompte(id);
+      // Son pseudo reste réservé 30 jours, pour personne : nul ne peut se faire passer pour lui
+      await services.effacerCompte(id, new Date(contexte.horloge()));
       await protection.fermerSessionsDuCompte(id);
       reponse.json({ ok: true });
     },

@@ -3,6 +3,7 @@ import { View } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ActivitePotes } from "~/composants/potes/ActivitePotes";
 import { ClassementPotes } from "~/composants/potes/ClassementPotes";
+import { DemandesBande } from "~/composants/potes/DemandesBande";
 import { RangeeBande } from "~/composants/potes/RangeeBande";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
 
@@ -16,10 +17,14 @@ type Props = {
   onRetire: (texte: string, annuler: () => void) => void;
 };
 
-/** Onglet « Ma bande » : le classement du mois, ce que font tes potes, ta bande et de quoi l'agrandir, puis des potes de potes à suivre. */
+/**
+ * Onglet « Ma bande » : les demandes reçues (s'il y en a), le classement du mois, ce que font tes potes, ta bande et de quoi
+ * l'agrandir, puis des potes de potes à suivre.
+ */
 export function SectionBande({ lieux, onRetire }: Props) {
   return (
     <View className="gap-8">
+      <DemandesBande />
       <ClassementPotes />
       <ActivitePotes lieux={lieux} onRetire={onRetire} />
       <RangeeBande />

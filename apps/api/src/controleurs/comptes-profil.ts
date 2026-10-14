@@ -92,11 +92,13 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
         if (age < AGE_COMPTE_DU_SITE) return reponse.status(403).json({ ok: false, erreur: "age-minimum" });
         modification.dateNaissanceChiffree = chiffrement.chiffrer(date, "dateNaissance");
       }
-      if (modification.pseudo !== undefined && (await services.pseudoEstPris(modification.pseudo, id))) {
+      // Pseudo porté par un autre, ou réservé pour un autre (libéré depuis moins de 30 jours) : la même réponse « pris »
+      const maintenant = new Date(horloge());
+      if (modification.pseudo !== undefined && (await services.pseudoEstPris(modification.pseudo, id, maintenant))) {
         return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
       }
       // Deux comptes qui prennent le même pseudo au même moment : la base n'en garde qu'un
-      if (Object.keys(modification).length > 0 && (await services.modifierProfil(id, modification)) === "pseudo-pris") {
+      if (Object.keys(modification).length > 0 && (await services.modifierProfil(id, modification, maintenant)) === "pseudo-pris") {
         return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
       }
       const profil = await services.lireProfil(id);
@@ -105,13 +107,13 @@ export function creerControleursProfil({ services, chiffrement, horloge }: Conte
     },
 
     /**
-     * GET /comptes/pseudo-disponible?pseudo= : libre ou pas (le sien compte comme libre). Forme invalide : 400 ; gros mot :
-     * jamais disponible.
+     * GET /comptes/pseudo-disponible?pseudo= : libre ou pas (le sien compte comme libre, et son ancien pseudo encore réservé
+     * pour lui aussi). Réservé pour un autre : « pris », comme un pseudo porté. Forme invalide : 400 ; gros mot : jamais disponible.
      */
     async pseudoDisponible(requete: Request, reponse: Response) {
       const pseudo = normaliserPseudo(requete.query.pseudo);
       if (!estPseudoValide(pseudo)) throw new ChampInvalide("pseudo");
-      const disponible = !nomPublicContientMotInterdit(pseudo) && !(await services.pseudoEstPris(pseudo, lireCompteId(reponse)));
+      const disponible = !nomPublicContientMotInterdit(pseudo) && !(await services.pseudoEstPris(pseudo, lireCompteId(reponse), new Date(horloge())));
       reponse.json({ ok: true, disponible });
     },
   };

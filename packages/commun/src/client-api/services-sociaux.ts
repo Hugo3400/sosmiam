@@ -5,20 +5,26 @@
 
 import type { ServiceCloche } from "./contrat-cloche.ts";
 import type { ServiceSocial } from "./contrat-social.ts";
+import type { ServiceBande } from "./contrat-bande.ts";
+import type { ServiceSuivisPersonnes } from "./contrat-suivis-personnes.ts";
+import type { ServiceMessagerie } from "./contrat-messagerie.ts";
 import type { ServiceSorties } from "./contrat-sorties.ts";
 import type { ServiceListes } from "./contrat-listes.ts";
 import type { ServiceCommentaires } from "./contrat-commentaires.ts";
 import type { ServiceModerationApp } from "./contrat-moderation-app.ts";
 import type { ServiceSignalementsSociaux } from "./contrat-signalements-sociaux.ts";
-import type { ServiceBande } from "./contrat-bande.ts";
-import type { ServiceSuivisPersonnes } from "./contrat-suivis-personnes.ts";
-import type { ServiceMessagerie } from "./contrat-messagerie.ts";
 
 export type ServicesSociaux = {
   /** Profil social, pouls, personnes et masques (/app/social, /app/personnes, /app/masques) */
   social: ServiceSocial;
   /** Notifications dans l'app (/app/cloche) */
   cloche: ServiceCloche;
+  /** Bande, invitations, demandes, blocages, « Quoi de neuf » et classement (/app/bande, /app/blocages) */
+  bande: ServiceBande;
+  /** Suivis entre personnes (/app/suivis-personnes) */
+  suivis: ServiceSuivisPersonnes;
+  /** Messagerie, médias du chat et lieux envoyés (/app/conversations, /app/lieux-envoyes) */
+  messagerie: ServiceMessagerie;
   /** Sorties entre potes (/app/sorties) */
   sorties: ServiceSorties;
   /** Listes de lieux (/app/listes) */
@@ -29,10 +35,4 @@ export type ServicesSociaux = {
   signalements: ServiceSignalementsSociaux;
   /** Décisions de la modération et contestation (/app/moderation) */
   moderation: ServiceModerationApp;
-  /** Bande, invitations, demandes, blocages, « Quoi de neuf » et classement (/app/bande, /app/blocages) */
-  bande: ServiceBande;
-  /** Suivis entre personnes (/app/suivis-personnes) */
-  suivis: ServiceSuivisPersonnes;
-  /** Messagerie, médias du chat et lieux envoyés (/app/conversations, /app/lieux-envoyes) */
-  messagerie: ServiceMessagerie;
 };

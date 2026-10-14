@@ -1,5 +1,5 @@
-import { choisirOrganisateurSortie } from "../../../../../packages/commun/src/fonctions/sorties/choisir-organisateur-sortie.ts";
 import type { InvitationSortie, PropositionSortie, Sortie } from "../../base-de-donnees/client-genere/client.ts";
+import { trouverOrganisateurEffectif } from "./trouver-organisateur-effectif.ts";
 
 /** Les lignes d'une sortie telles que la base (ou le double en mémoire) les rend */
 export type LignesSortie = {
@@ -30,7 +30,7 @@ const arrivee = (i: { creeLe: Date; reponduLe: Date | null }) => (i.reponduLe ??
 /**
  * Range les lignes d'une sortie : participants par ordre d'arrivée (à égalité, le plus petit compte), invitations en
  * attente, refus, propositions des lieux encore publiés dans l'ordre où ils ont été proposés (votes des participants
- * seulement), et l'organisateur qui a la main (choisirOrganisateurSortie : son compte supprimé ou parti, c'est le plus
+ * seulement), et l'organisateur qui a la main (trouverOrganisateurEffectif : son compte supprimé ou parti, c'est le plus
  * ancien participant).
  */
 export function assemblerSortie(l: LignesSortie, lieuxPublies: ReadonlySet<number>): DonneesSortie {
@@ -43,14 +43,10 @@ export function assemblerSortie(l: LignesSortie, lieuxPublies: ReadonlySet<numbe
     .filter((i) => i.statut === statut)
     .sort((a, b) => a.creeLe.getTime() - b.creeLe.getTime() || a.compteId - b.compteId)
     .map((i) => i.compteId);
-  // Les identifiants passent en texte pour la fonction commune (ils ne sortent jamais d'ici) ; même ordre d'arrivée
-  const choisi = choisirOrganisateurSortie(
-    l.sortie.organisateurId === null ? null : String(l.sortie.organisateurId),
-    acceptees.map((i) => ({ id: String(i.compteId), depuis: new Date(arrivee(i)).toISOString() })),
-  );
   return {
     ...l.sortie,
-    organisateurEffectif: choisi === null ? null : Number(choisi),
+    // La même règle que le blocage (bande.ts), qui sort le bloqué des sorties où tu as la main
+    organisateurEffectif: trouverOrganisateurEffectif(l.sortie.organisateurId, acceptees),
     participants,
     invites: parInvitation("invite"),
     refus: parInvitation("refuse"),

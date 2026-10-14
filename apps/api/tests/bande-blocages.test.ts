@@ -96,15 +96,37 @@ test("bloquer coupe tout dans les deux sens, et sort le bloqué des sorties que 
 });
 
 test("version Prisma : bloquer verrouille, puis coupe tout dans la même transaction (le bloqué sort de mes sorties, votes compris)", async () => {
-  const { base, appels } = fausseBase({ "tx.sortie.findMany": [{ id: 7, conversationId: 8 }] });
+  const { base, appels } = fausseBase({ "tx.sortie.findMany": [{ id: 7, conversationId: 8, organisateurId: 1, invitations: [{ compteId: 1, creeLe: new Date(), reponduLe: null }] }] });
   const relations = { verrouillerComptes: async (_t: unknown, ids: readonly number[]) => void appels.push(`verrou:${ids.join(",")}`) };
   const r = await creerBande({ relations: relations as never, chiffrement: null, tirer: () => 0, base: base as never }).bloquer(1, 2, new Date());
   assert.deepEqual(r, { ok: true });
   assert.deepEqual(appels, [
-    "verrou:1,2", "tx.blocage.findUnique", "tx.blocage.count", "tx.blocage.create", "tx.conversation.updateMany", "tx.sortie.updateMany",
-    "tx.sortie.findMany", "tx.invitationSortie.deleteMany", "tx.membreConversation.deleteMany", "tx.voteSortie.deleteMany", "tx.membreBande.deleteMany", "tx.demandeBande.deleteMany", "tx.suiviPersonne.deleteMany", "tx.coAuteurListe.deleteMany",
+    // Les comptes (verrou), puis les sorties, puis les conversations : le même ordre que sorties.ts
+    "verrou:1,2", "tx.blocage.findUnique", "tx.blocage.count", "tx.blocage.create", "tx.sortie.updateMany", "tx.sortie.findMany",
+    "tx.conversation.updateMany", "tx.invitationSortie.deleteMany", "tx.membreConversation.deleteMany", "tx.voteSortie.deleteMany", "tx.membreBande.deleteMany", "tx.demandeBande.deleteMany", "tx.suiviPersonne.deleteMany", "tx.coAuteurListe.deleteMany",
     "tx.abonnementListe.deleteMany", "tx.invitationSortie.deleteMany", "tx.invitationGroupe.deleteMany", "tx.notificationCloche.deleteMany",
   ]);
+});
+
+test("le blocage suit qui a la main sur la sortie, pas seulement la colonne de l'organisateur", async () => {
+  const [ancien, nouveau, lui, autre] = [await banc.creerPersonne(), await banc.creerPersonne(), await banc.creerPersonne(), await banc.creerPersonne()];
+  // L'organisateur est parti : la main passe au plus ancien participant (nouveau), la colonne n'a pas encore bougé
+  const s = sortie(ancien, [[nouveau, "accepte"], [lui, "accepte"], [autre, "accepte"]]);
+  banc.tables.invitationsSorties.find((i) => i.sortieId === s.id && i.compteId === nouveau.compteId)!.creeLe = date(-JOUR);
+  banc.tables.invitationsSorties.splice(banc.tables.invitationsSorties.findIndex((i) => i.sortieId === s.id && i.compteId === ancien.compteId), 1);
+  banc.tables.membres.splice(banc.tables.membres.findIndex((m) => m.conversationId === s.conversationId && m.compteId === ancien.compteId), 1);
+  // Une sortie où lui a la main, et où nouveau est invité par quelqu'un d'autre
+  const t = sortie(lui, [[nouveau, "invite"], [autre, "accepte"]]);
+  banc.tables.invitationsSorties.find((i) => i.sortieId === t.id && i.compteId === nouveau.compteId)!.inviteParId = autre.compteId;
+  const dans = (x: { id: number }, p: PersonneDeTest) => banc.tables.invitationsSorties.some((i) => i.sortieId === x.id && i.compteId === p.compteId);
+
+  assert.equal((await ancien.demander("PUT", `/app/blocages/${autre.idPublic}`)).statut, 200);
+  assert.equal(dans(s, autre), true, "celui qui est parti n'a plus la main : il ne sort personne");
+  assert.equal((await nouveau.demander("PUT", `/app/blocages/${lui.idPublic}`)).statut, 200);
+  assert.equal(dans(s, lui), false, "celui qui a la main sort le bloqué");
+  assert.equal(banc.tables.membres.some((m) => m.conversationId === s.conversationId && m.compteId === lui.compteId), false, "et de sa discussion");
+  assert.equal(dans(t, nouveau), false, "son invitation en attente chez celui qu'il bloque part, même invitée par un autre");
+  assert.equal(dans(t, autre), true);
 });
 
 /** Une sortie, sa discussion (organisateur et participants « accepte ») et ses invitations */

@@ -20,6 +20,7 @@ import { lirePersonne, refuserSocial } from "./social-champs.ts";
 const ERREURS: Readonly<Record<string, number>> = {
   "personne-inconnue": 404,
   "invitation-invalide": 404,
+  "invitation-inconnue": 404,
   "demande-inconnue": 404,
   "bande-pleine": 409,
   "trop-de-demandes-en-attente": 409,

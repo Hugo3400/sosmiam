@@ -10,10 +10,13 @@ export type NouvelleNotificationCloche = {
   /** Qui la reçoit */
   compteId: number;
   type: TypeCloche;
-  /** Qui agit ; null : l'équipe SOS Miam (décisions de la modération) */
+  /** Qui agit ; null : personne en particulier (l'équipe SOS Miam et ses décisions, un contenu masqué, la fin automatique
+   *  d'un vote « sortie-lieu-choisi », un lien changé tout seul « lien-renouvele », la réponse d'un lieu « reponse-commentaire »
+   *  avec detail « lieu ») ; la cloche ne prévient jamais l'acteur lui-même */
   acteurId: number | null;
   cible?: { type: CibleCloche; id: string };
-  /** 120 caractères au plus (coupé au-delà) : titre d'une sortie, nom du lieu retenu, motif d'une décision ; jamais le titre d'un groupe */
+  /** 120 caractères au plus (coupé au-delà) : titre d'une sortie, nom du lieu retenu, motif d'une décision, ou un mot-clé
+   *  (« lieu », « choquant », « masque-par-le-lieu », « retenu », « rejete ») ; jamais le titre d'un groupe */
   detail?: string;
   /** « … te suit en retour » */
   enRetour?: boolean;
@@ -24,11 +27,11 @@ export type SortePush = "bande-ajout" | "bande-acceptee" | "invitation-sortie" |
 
 /**
  * Une notification sur le téléphone. `regroupement` (« conversation:<id> ») : une par conversation, la suivante remplace la
- * précédente ; `sonore` (vrai par défaut) est posé par l'applicateur. Ces deux champs sont lus par expedierPush une fois
- * ajoutés à MessagePush (lot L4) ; d'ici là, ils sont ignorés sans rien casser. Jamais le texte d'un message : seulement le
- * prénom et la sorte de message (il passerait en clair par Apple et Google).
+ * précédente ; `sonore` (vrai par défaut) est posé par l'applicateur. Les deux sont des champs de MessagePush, lus par
+ * expedierPush (apns-collapse-id et thread-id chez Apple, tag chez Google ; sur Android 8 et plus, le son dépend du canal).
+ * Jamais le texte d'un message : seulement le prénom et la sorte de message (il passerait en clair par Apple et Google).
  */
-export type MessagePushSocial = MessagePush & { regroupement?: string; sonore?: boolean };
+export type MessagePushSocial = MessagePush;
 
 export type EffetSocial =
   | { quoi: "cloche"; notification: NouvelleNotificationCloche }

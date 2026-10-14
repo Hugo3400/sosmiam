@@ -9,6 +9,7 @@ import type { AddressInfo } from "node:net";
 import { creerApplication } from "../../src/application.ts";
 import { calculerEmpreinteJeton } from "../../src/fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
+import { lireAncienTitulaireEnMemoire } from "../../src/services/bande-en-memoire.ts";
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
 import { creerSocialAppEnMemoire, type OptionsSocialAppEnMemoire } from "../../src/services/social-app-en-memoire.ts";
@@ -36,6 +37,8 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
     ...o, chiffrement, comptes: memoire.comptes, horloge: lireHorloge,
     // Le gérant d'un lieu : un rattachement validé du double pro (memoire.rattachements, ou le parcours /pro)
     lireRole: o.lireRole ?? ((compteId, lieuId) => memoire.pro.lireRole(compteId, lieuId)),
+    // Les pseudos libérés du double des comptes (un ancien lien d'invitation après un changement de pseudo)
+    lireAncienTitulaire: lireAncienTitulaireEnMemoire(memoire.pseudosReserves),
   });
   // Comme la base : effacer un compte efface aussi ses lignes sociales (cascades) et le remplace par null ailleurs (SET NULL)
   const effacerCompte = memoire.services.effacerCompte.bind(memoire.services);

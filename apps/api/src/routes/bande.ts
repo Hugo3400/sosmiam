@@ -33,8 +33,11 @@ export const LIMITE_DEMANDES_BANDE = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  *            effacées ; l'autre reçoit « bande-ajout » dans sa cloche (avec « Retirer » en un geste) et sur son téléphone
  *          → 200 { ok, personne, deja: true } : déjà potes, rien ne change
  *          · 400 champ-invalide { champ: "pseudo" | "code" | "moyen" } (ton propre lien : { champ: "pseudo" })
- *          · 404 invitation-invalide : pseudo inconnu (ou changé depuis), code faux ou changé, lien qui a trop tourné, ou
- *            blocage dans un sens ou dans l'autre (la même réponse, pour ne rien laisser deviner)
+ *          · 404 invitation-invalide : pseudo inconnu, code faux ou changé, lien qui a trop tourné, ou blocage dans un sens
+ *            ou dans l'autre (la même réponse, pour ne rien laisser deviner)
+ *          · 404 invitation-inconnue : l'ancien lien d'un pote qui a changé de pseudo depuis (le pseudo d'avant, réservé 30
+ *            jours) : il faut son nouveau lien. Seulement avec son bon code et sans blocage : sinon invitation-invalide (un
+ *            pseudo réservé ne se devine pas) ; rien n'est écrit
  *          · 409 bande-pleine (l'une des deux bandes a déjà 200 potes)
  *          · 429 : 20 essais par 10 minutes par compte, et 40 par IP
  *          Lien qui a fuité : la 10e arrivée en 24 h par un même lien passe ; juste après, le code change tout seul et son
@@ -66,7 +69,7 @@ export const LIMITE_DEMANDES_BANDE = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  * PUT    /app/blocages/:personne   → 200 { ok } : bloque. La personne est trouvée même si ELLE t'a bloqué, et la réponse est
  *          toujours 200 (déjà bloquée comprise) : ce n'est jamais un indice. Dans les deux sens, entre vous : bande, demandes,
  *          suivis, co-auteurs et abonnements aux listes de l'autre, invitations en attente (groupes et sorties), cloche ; et
- *          elle sort des sorties que tu organises (invitation et discussion), sans prévenir
+ *          elle sort des sorties où tu as la main (invitation, discussion et votes), sans prévenir
  *          · 400 champ-invalide { champ: "personne" } (toi) · 404 personne-inconnue (identifiant inconnu seulement) · 409
  *          trop-de-blocages (1 000)
  * DELETE /app/blocages/:personne   → 200 { ok } : débloque, sans rien rétablir (même recherche que PUT)

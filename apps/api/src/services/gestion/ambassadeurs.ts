@@ -4,6 +4,7 @@
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import { inscrireAmbassadeurNewsletter } from "./newsletter.ts";
+import { effacerCompte } from "../comptes.ts";
 
 const UN_JOUR = 86_400_000;
 /** Sans visite connectée pendant 1 an : le rôle d'ambassadeur est retiré ; 2 ans : le compte est effacé. On prévient
@@ -115,10 +116,11 @@ export async function lirePrenom(id: number): Promise<string | null> {
 }
 
 /** Supprime tout le compte pour de vrai (demande de la personne, RGPD), app comprise : tout ce qui lui est lié part avec lui. */
-export async function supprimerCompte(id: number) {
+export async function supprimerCompte(id: number, maintenant = new Date()) {
   const compte = await baseDeDonnees.compte.findUnique({ where: { id }, select: { prenom: true } });
   if (!compte) return null;
-  await baseDeDonnees.compte.delete({ where: { id } });
+  // Par effacerCompte (session Site) : le pseudo libéré reste réservé 30 jours, même après une suppression par l'équipe
+  await effacerCompte(id, maintenant);
   return compte;
 }
 

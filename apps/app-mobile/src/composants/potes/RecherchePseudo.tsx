@@ -8,6 +8,7 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserRecherchePseudo } from "~/hooks/utiliser-recherche-pseudo";
 
 // « @ » + 20 caractères au plus (FORME_PSEUDO)
 const LONGUEUR_MAX_SAISIE = 21;
@@ -15,42 +16,46 @@ const LONGUEUR_MAX_SAISIE = 21;
 const DELAI_ANNONCE = 700;
 
 /**
- * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom (à toucher pour ouvrir son profil), puis « Ajouter » ou « Déjà dans ta bande ».
- * Les personnes bloquées n'apparaissent pas (chercherParPseudo).
+ * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom (à toucher pour ouvrir son profil), puis « Ajouter » (une
+ * demande qu'il accepte ; démo : ajouté tout de suite) ou « Déjà dans ta bande ». Les personnes bloquées n'apparaissent pas.
  */
 export function RecherchePseudo() {
   const router = useRouter();
-  const { chercherParPseudo, ajouterPote } = utiliserCommunaute();
+  const { demanderAjout, demandesEnvoyees, demo } = utiliserCommunaute();
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const cherche = texte.trim().replace(/^@/, "");
-  const resultats = chercherParPseudo(texte);
+  const { resultats, enCours, erreur: rechercheRatee } = utiliserRecherchePseudo(texte);
   const nombre = resultats.length;
-  const aucun = `On ne trouve personne pour @${cherche} dans la démo. Tes vrais potes arriveront avec les comptes !`;
+  const aucun = demo
+    ? `On ne trouve personne pour @${cherche} dans la démo. Essaie @camille !`
+    : `On ne trouve personne pour @${cherche}. Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code !`;
 
   // VoiceOver ignore accessibilityLiveRegion (qui sert à TalkBack) : sur iPhone, on annonce les résultats une fois la frappe posée
   useEffect(() => {
-    if (Platform.OS !== "ios" || cherche.length < 2) return;
+    if (Platform.OS !== "ios" || cherche.length < 2 || enCours) return;
     const minuterie = setTimeout(
       () => AccessibilityInfo.announceForAccessibilityWithOptions(nombre === 0 ? aucun : `${nombre} résultat${nombre > 1 ? "s" : ""} pour @${cherche}`, { queue: true }),
       DELAI_ANNONCE,
     );
     return () => clearTimeout(minuterie);
-  }, [cherche, nombre, aucun]);
+  }, [cherche, nombre, aucun, enCours]);
 
-  function ajouter(pote: Pote) {
+  async function ajouter(pote: Pote) {
     vibrerLegerement();
-    const resultat = ajouterPote(pote.id, "pseudo");
-    // La ligne passe d'elle-même à « Déjà dans ta bande » ; les autres cas ne devraient pas arriver depuis la recherche
+    const resultat = await demanderAjout(pote.id);
+    // La ligne passe d'elle-même à « Déjà dans ta bande » ou « Demande envoyée »
     const message =
-      resultat === "ajoute"
+      resultat.type === "ajoute"
         ? `${pote.prenom} a rejoint ta bande !`
-        : resultat === "deja"
-          ? `${pote.prenom} est déjà dans ta bande.`
-          : resultat === "bloque"
-            ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
-            : "Cette personne n'est plus là. Bizarre… réessaie ?";
-    setErreur(resultat === "ajoute" || resultat === "deja" ? null : message);
+        : resultat.type === "demande"
+          ? `Demande envoyée à ${pote.prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
+          : resultat.type === "deja"
+            ? `${pote.prenom} est déjà dans ta bande.`
+            : resultat.type === "bloque"
+              ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
+              : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
+    setErreur(resultat.type === "ajoute" || resultat.type === "deja" || resultat.type === "demande" ? null : message);
     AccessibilityInfo.announceForAccessibility(message);
   }
 
@@ -74,7 +79,13 @@ export function RecherchePseudo() {
       />
 
       {cherche.length < 2 ? (
-        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Tape au moins 2 lettres. Pour essayer la démo : cherche @camille !")}</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(demo ? "Tape au moins 2 lettres. Pour essayer la démo : cherche @camille !" : "Tape au moins 2 lettres.")}</Text>
+      ) : enCours && resultats.length === 0 ? (
+        <Text className="font-texte text-sm leading-5 text-gris">On cherche…</Text>
+      ) : rechercheRatee ? (
+        <Text accessibilityLiveRegion="polite" className="font-texte text-sm leading-5 text-gris">
+          {lierPonctuation("La recherche n'a pas marché cette fois. Réessaie dans un instant !")}
+        </Text>
       ) : resultats.length === 0 ? (
         <Text accessibilityLiveRegion="polite" className="font-texte text-sm leading-5 text-gris">
           {lierPonctuation(aucun)}
@@ -107,12 +118,16 @@ export function RecherchePseudo() {
                 <Text accessibilityLabel="Déjà dans ta bande" className="font-texte-semi text-[13px] text-gris">
                   ✓ Déjà dans ta bande
                 </Text>
+              ) : demandesEnvoyees.some((p) => p.id === pote.id) ? (
+                <Text accessibilityLabel="Demande envoyée" className="font-texte-semi text-[13px] text-gris">
+                  ✓ Demande envoyée
+                </Text>
               ) : (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Ajouter ${pote.prenom}, @${pote.pseudo}`}
-                  accessibilityHint="L'ajoute à ta bande"
-                  onPress={() => ajouter(pote)}
+                  accessibilityHint={demo ? "L'ajoute à ta bande" : "Lui demande de rejoindre ta bande"}
+                  onPress={() => void ajouter(pote)}
                   className="min-h-11 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
                 >
                   <Text className="font-texte-gras text-sm text-encre">Ajouter</Text>

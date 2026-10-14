@@ -14,6 +14,7 @@ import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import { creerComptesExternesEnMemoire } from "./comptes-externes-en-memoire.ts";
 import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { creerProEnMemoire } from "./pro-en-memoire.ts";
+import { creerPseudosReservesEnMemoire } from "./pseudos-reserves-en-memoire.ts";
 import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
 
@@ -93,7 +94,14 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const pro = creerProEnMemoire(comptes, suggestions, horloge);
   const compteurs = { comptes: 0, candidatures: 0, candidaturesCertification: 0, propositions: 0, numeroNational: 0 };
   const trouverParEmail = (email: string) => [...comptes.values()].find((compte) => compte.email === email);
-  const pseudoPris = (pseudo: string, saufCompteId?: number) => [...comptes.values()].some((compte) => compte.pseudo === pseudo && compte.id !== saufCompteId);
+  const pseudoPorte = (pseudo: string) => [...comptes.values()].find((compte) => compte.pseudo === pseudo);
+  /** Pseudos libérés, réservés 30 jours (comme services/pseudos-reserves.ts) */
+  const pseudosReserves = creerPseudosReservesEnMemoire((pseudo) => pseudoPorte(pseudo) !== undefined, horloge);
+  /** Porté par un autre, ou réservé (pas expiré) pour un autre ou pour personne : comme pseudoEstPris (comptes-profil.ts) */
+  const pseudoPris = (pseudo: string, saufCompteId?: number, maintenant = horloge()) => {
+    const porteur = pseudoPorte(pseudo);
+    return porteur ? porteur.id !== saufCompteId : pseudosReserves.reservePourUnAutre(pseudo, saufCompteId, maintenant);
+  };
   const derniereCandidature = (compteId: number) => candidatures.filter((candidature) => candidature.compteId === compteId).at(-1);
   const derniereCertification = (compteId: number) => candidaturesCertification.filter((candidature) => candidature.compteId === compteId).at(-1);
   /** Un jeton rendu une fois ; le compte n'en garde que l'empreinte et l'échéance */
@@ -171,7 +179,10 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const compte = comptes.get(id);
       if (compte) Object.assign(compte, { motDePasse: empreinte, reinitialisation: null });
     },
-    async effacerCompte(id) {
+    async effacerCompte(id, maintenant = new Date(horloge())) {
+      const pseudo = comptes.get(id)?.pseudo;
+      if (pseudo) pseudosReserves.reserver(pseudo, null, "suppression", maintenant.getTime());
+      pseudosReserves.oublierCompte(id);
       comptes.delete(id);
       await sessions.supprimerDuCompte(id);
       for (let i = candidatures.length - 1; i >= 0; i--) if (candidatures[i]?.compteId === id) candidatures.splice(i, 1);
@@ -263,10 +274,15 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const { prenom, nomChiffre, pseudo, dateNaissanceChiffree, villeApp, envies, avatar, prive } = compte;
       return { prenom, nomChiffre, pseudo, dateNaissanceChiffree, ville: villeApp, envies: structuredClone(envies), avatar, prive, emailVerifie: compte.emailVerifieLe !== null };
     },
-    async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive, dateNaissanceChiffree }) {
+    async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive, dateNaissanceChiffree }, maintenant = new Date(horloge())) {
       const compte = comptes.get(id);
       if (!compte) return "ok";
-      if (pseudo !== undefined && pseudoPris(pseudo, id)) return "pseudo-pris";
+      if (pseudo !== undefined && pseudo !== compte.pseudo) {
+        if (pseudoPris(pseudo, id, maintenant.getTime())) return "pseudo-pris";
+        // Repris par son ancien titulaire : la réservation part ; l'ancien pseudo est réservé 30 jours pour ce compte
+        pseudosReserves.retirer(pseudo);
+        if (compte.pseudo !== null) pseudosReserves.reserver(compte.pseudo, id, "changement", maintenant.getTime());
+      }
       if (prenom !== undefined) compte.prenom = prenom;
       if (nomChiffre !== undefined) compte.nomChiffre = nomChiffre;
       if (pseudo !== undefined) compte.pseudo = pseudo;
@@ -277,7 +293,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       if (dateNaissanceChiffree !== undefined && compte.dateNaissanceChiffree === null) compte.dateNaissanceChiffree = dateNaissanceChiffree;
       return "ok";
     },
-    pseudoEstPris: async (pseudo, saufCompteId) => pseudoPris(pseudo, saufCompteId),
+    pseudoEstPris: async (pseudo, saufCompteId, maintenant) => pseudoPris(pseudo, saufCompteId, maintenant?.getTime()),
   };
 
   return {
@@ -285,6 +301,8 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     sessions,
     /** Connexion avec Apple ou Google (comptes-externes-en-memoire.ts) */
     externes: creerComptesExternesEnMemoire(comptes),
+    /** Pseudos libérés, réservés 30 jours : estPseudoReserve (pour les routes de l'app), ménage (effacerExpires), réservations */
+    pseudosReserves,
     /** Zones des fondateurs (241 zones, 367 places), places prises d'après les candidatures ci-dessous */
     zones: zones.services,
     /** Les mails des liens : notés dans `envois` au lieu de partir */

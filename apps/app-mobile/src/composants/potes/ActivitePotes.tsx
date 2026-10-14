@@ -103,8 +103,8 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
       {
         cle: "retirer", emoji: "🧹", titre: "Retirer de « Quoi de neuf »", detail: `Pour toi seulement : ${pote.prenom} n'en saura rien`,
         agir: () => {
-          masquer(activite.id);
-          onRetire("Nouvelle retirée", () => demasquer(activite.id));
+          masquer("activite", activite.id);
+          onRetire("Nouvelle retirée", () => demasquer("activite", activite.id));
         },
       },
     ];

@@ -3,6 +3,7 @@
 // compte privé. Contrat des adresses : routes/comptes.ts ; lecture et vérifications : controleurs/comptes-profil.ts.
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { estDoublonPseudo } from "./comptes.ts";
+import { estReservePourUnAutre, reserverPseudoDans, tablePseudosReservesPresente } from "./pseudos-reserves.ts";
 
 /** Le profil tel que la base le garde : nom et date encore chiffrés (null : pas donnés, ou compte du site) */
 export type ProfilLu = {
@@ -45,19 +46,41 @@ export async function lireProfil(id: number): Promise<ProfilLu | null> {
   return { ...reste, emailVerifie: emailVerifieLe !== null };
 }
 
-/** Écrit le profil ; « pseudo-pris » si un autre compte a déjà ce pseudo (contrainte unique de la base). */
-export async function modifierProfil(id: number, modification: ModificationProfil): Promise<"ok" | "pseudo-pris"> {
+/**
+ * Écrit le profil ; « pseudo-pris » si un autre compte a déjà ce pseudo (contrainte unique de la base) ou s'il est réservé
+ * pour un autre (pseudos-reserves.ts). Changement de pseudo : l'ancien est réservé 30 jours pour ce compte, dans la même
+ * transaction ; reprendre un pseudo réservé pour soi retire la réservation.
+ */
+export async function modifierProfil(id: number, modification: ModificationProfil, maintenant = new Date()): Promise<"ok" | "pseudo-pris"> {
   try {
-    await baseDeDonnees.compte.updateMany({ where: { id }, data: modification });
-    return "ok";
+    if (modification.pseudo === undefined || !(await tablePseudosReservesPresente())) {
+      await baseDeDonnees.compte.updateMany({ where: { id }, data: modification });
+      return "ok";
+    }
+    const nouveau = modification.pseudo;
+    return await baseDeDonnees.$transaction(async (transaction) => {
+      const actuel = await transaction.compte.findUnique({ where: { id }, select: { pseudo: true } });
+      if (!actuel) return "ok";
+      if (actuel.pseudo !== nouveau) {
+        if (await estReservePourUnAutre(transaction, nouveau, id, maintenant)) return "pseudo-pris";
+        await transaction.pseudoReserve.deleteMany({ where: { pseudo: nouveau } });
+        if (actuel.pseudo !== null) await reserverPseudoDans(transaction, actuel.pseudo, id, "changement", maintenant);
+      }
+      await transaction.compte.updateMany({ where: { id }, data: modification });
+      return "ok" as const;
+    });
   } catch (erreur) {
     if (estDoublonPseudo(erreur)) return "pseudo-pris";
     throw erreur;
   }
 }
 
-/** Vrai si un AUTRE compte que `saufCompteId` a déjà ce pseudo. */
-export async function pseudoEstPris(pseudo: string, saufCompteId?: number): Promise<boolean> {
+/**
+ * Vrai si un AUTRE compte que `saufCompteId` a déjà ce pseudo, ou s'il est réservé (pas expiré) pour un autre compte ou
+ * pour personne (compte supprimé) : réservé pour soi, il est libre.
+ */
+export async function pseudoEstPris(pseudo: string, saufCompteId?: number, maintenant = new Date()): Promise<boolean> {
   const trouve = await baseDeDonnees.compte.findUnique({ where: { pseudo }, select: { id: true } });
-  return trouve !== null && trouve.id !== saufCompteId;
+  if (trouve !== null) return trouve.id !== saufCompteId;
+  return (await tablePseudosReservesPresente()) && (await estReservePourUnAutre(baseDeDonnees, pseudo, saufCompteId, maintenant));
 }

@@ -75,8 +75,8 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
       return [voir, {
         cle: "retirer", emoji: "🧹", titre: "Retirer de tes sorties", detail: "Elle disparaît d'ici, pour toi seulement : tes potes la gardent",
         agir: () => {
-          masquer(sortie.id);
-          onRetire("Sortie retirée", () => demasquer(sortie.id));
+          masquer("sortie", sortie.id);
+          onRetire("Sortie retirée", () => demasquer("sortie", sortie.id));
         },
       }];
     }

@@ -1,12 +1,11 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { AccessibilityInfo, ActivityIndicator, Platform, Share, Text, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, Alert, Platform, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
-import { creerLienInvitation } from "@sos-miam/commun/fonctions/potes/creer-lien-invitation";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserCodeInvitation } from "~/hooks/utiliser-code-invitation";
+import { utiliserLienInvitation } from "~/hooks/utiliser-lien-invitation";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -20,13 +19,15 @@ const TAILLE_QR = 196;
 const PARTAGE_IMPOSSIBLE = "Le partage n'a pas voulu s'ouvrir ici. Réessaie dans un instant, ou montre plutôt ton QR code !";
 
 /**
- * Ton QR code d'invitation (ton lien SOS Miam dedans, avec ton code secret), ton lien écrit en clair, et de quoi parler de SOS Miam à un pote.
- * Sans pseudo, l'invitation à en choisir un dans tes infos. On dit franchement ce que le lien ne fait pas encore (démo) :
- * le message partagé ne promet donc pas d'ajout, il donne rendez-vous et pointe vers sosmiam.fr (la page d'invitation n'existe pas encore sur le site).
+ * Ton QR code d'invitation (ton lien SOS Miam dedans, avec ton code secret), ton lien écrit en clair, et de quoi le partager.
+ * Compte connecté : le lien vient du serveur, sans date de fin, et « Changer mon lien » le remplace (l'ancien ne marche plus).
+ * Démo : le lien ne sert que dans l'app, on le dit, et le message partagé pointe seulement vers sosmiam.fr.
+ * Sans pseudo, l'invitation à en choisir un dans tes infos.
  */
 export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam à un pote" }: Props) {
   const router = useRouter();
-  const code = utiliserCodeInvitation();
+  const { lien, erreur, changer } = utiliserLienInvitation(pseudo);
+  const [changement, setChangement] = useState<"en-cours" | "fait" | "rate" | null>(null);
   // Partage impossible (aperçu web sans partage) : on le dit gentiment
   const [partageImpossible, setPartageImpossible] = useState(false);
 
@@ -45,14 +46,27 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
     );
   }
 
-  // Le temps de lire ton code secret sur le téléphone (un éclair)
-  const lien = code ? creerLienInvitation(pseudo, code) : null;
+  function demanderChangement(faire: () => Promise<unknown>) {
+    const lancer = async () => {
+      setChangement("en-cours");
+      const rate = await faire();
+      setChangement(rate ? "rate" : "fait");
+    };
+    if (Platform.OS === "web") return void lancer();
+    Alert.alert("Changer ton lien ?", "Ton ancien lien et ton ancien QR code ne marcheront plus. Ceux qui sont déjà dans ta bande y restent.", [
+      { text: "Annuler", style: "cancel" },
+      { text: "Changer", style: "destructive", onPress: () => void lancer() },
+    ]);
+  }
 
   async function partager() {
     try {
-      // Pas de lien d'invitation ici : il ne mène encore nulle part chez un pote qui n'a pas l'app
+      // Démo : pas de lien d'invitation, il ne mène nulle part chez un pote ; avec un compte, ton vrai lien
       await Share.share({
-        message: `SOS Miam arrive bientôt sur ton téléphone : l'app qui file un coup de main aux petits lieux du coin 🛟 Je la teste déjà, sous le pseudo @${pseudo}. Dès que les comptes ouvrent, ajoute-moi à ta bande et on sauve des lieux ensemble ! https://sosmiam.fr`,
+        message:
+          changer && lien
+            ? `Rejoins ma bande sur SOS Miam, l'app qui file un coup de main aux petits lieux du coin 🛟 Un clic et on est potes : ${lien}`
+            : `SOS Miam, l'app qui file un coup de main aux petits lieux du coin 🛟 Je suis dessus sous le pseudo @${pseudo} : rejoins-moi ! https://sosmiam.fr`,
       });
       setPartageImpossible(false);
     } catch {
@@ -92,9 +106,32 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
         </Text>
       ) : null}
 
-      <Text className="text-center font-texte text-xs leading-4 text-gris">
-        {lierPonctuation("Démo : ton lien et ton QR code ne servent encore que dans l'app, et tes potes ne peuvent pas encore t'ajouter. Ça viendra avec les comptes.")}
-      </Text>
+      {changer ? (
+        <>
+          <Bouton
+            libelle={changement === "en-cours" ? "Un instant…" : "Changer mon lien"}
+            variante="blanc"
+            petit
+            desactive={changement === "en-cours"}
+            indice="L'ancien lien et l'ancien QR code ne marcheront plus"
+            onPress={() => demanderChangement(changer)}
+          />
+          {changement === "fait" || changement === "rate" ? (
+            <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm leading-5 text-gris">
+              {lierPonctuation(changement === "fait" ? "C'est fait : ton ancien lien ne marche plus, voici le nouveau." : "Le lien n'a pas pu changer. Réessaie dans un instant.")}
+            </Text>
+          ) : null}
+        </>
+      ) : (
+        <Text className="text-center font-texte text-xs leading-4 text-gris">
+          {lierPonctuation("Démo : ton lien et ton QR code ne servent que dans l'app.")}
+        </Text>
+      )}
+      {erreur && !lien ? (
+        <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm leading-5 text-gris">
+          {lierPonctuation("Ton lien n'a pas pu se charger (le réseau, sûrement). Il reviendra tout seul à la prochaine ouverture.")}
+        </Text>
+      ) : null}
     </View>
   );
 }

@@ -7,6 +7,7 @@ import type { FournisseurExterne } from "../fonctions/comptes/lire-identite-exte
 import { decrireCertifie, type CertifieVue } from "./certification.ts";
 import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { PseudoDejaPris } from "./erreurs-comptes.ts";
+import { estReservePourUnAutre, reserverPseudoDans, tablePseudosReservesPresente } from "./pseudos-reserves.ts";
 import type { LieuDuPro, RoleRattachement, StatutRattachement } from "./pro-regles.ts";
 
 // Comptes SOS Miam (espace ambassadeur du site, puis l'app). Les fonctions ci-dessous servent aussi au logiciel de
@@ -169,6 +170,11 @@ export const estDoublonPseudo = (erreur: unknown) =>
  */
 export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe }: NouveauCompte): Promise<number | null> {
   try {
+    // Pseudo libéré depuis moins de 30 jours (pseudos-reserves.ts) : « pris », comme s'il était porté, sans rien dire de plus
+    const pseudo = espace === "app" ? profil?.pseudo ?? null : null;
+    if (pseudo !== null && (await tablePseudosReservesPresente()) && (await estReservePourUnAutre(baseDeDonnees, pseudo, undefined, new Date()))) {
+      throw new PseudoDejaPris();
+    }
     const compte = await baseDeDonnees.compte.create({
       data: {
         email, motDePasse, prenom, cguVersion,
@@ -183,7 +189,7 @@ export async function creerCompte({ email, motDePasse, prenom, ville, quartier, 
     return compte.id;
   } catch (erreur) {
     // La base refuse un second compte avec le même e-mail ou le même pseudo (contrainte unique : erreur P2002 de Prisma)
-    if (estDoublonPseudo(erreur)) throw new PseudoDejaPris();
+    if (erreur instanceof PseudoDejaPris || estDoublonPseudo(erreur)) throw new PseudoDejaPris();
     if (estDoublon(erreur)) return null;
     throw erreur;
   }
@@ -258,10 +264,19 @@ export async function changerMotDePasse(id: number, empreinte: string): Promise<
 
 /**
  * La personne efface son compte : tout ce qui lui est lié part avec lui (ambassadeur, sessions, badges, points,
- * candidatures, missions, messages), sauf ses propositions de lieux, qui restent sans lien vers lui.
+ * candidatures, missions, messages), sauf ses propositions de lieux, qui restent sans lien vers lui. Son pseudo est
+ * réservé 30 jours pour personne (raison « suppression »), dans la même transaction (pseudos-reserves.ts).
  */
-export async function effacerCompte(id: number): Promise<void> {
-  await baseDeDonnees.compte.deleteMany({ where: { id } });
+export async function effacerCompte(id: number, maintenant = new Date()): Promise<void> {
+  if (!(await tablePseudosReservesPresente())) {
+    await baseDeDonnees.compte.deleteMany({ where: { id } });
+    return;
+  }
+  await baseDeDonnees.$transaction(async (transaction) => {
+    const compte = await transaction.compte.findUnique({ where: { id }, select: { pseudo: true } });
+    if (compte?.pseudo) await reserverPseudoDans(transaction, compte.pseudo, null, "suppression", maintenant);
+    await transaction.compte.deleteMany({ where: { id } });
+  });
 }
 
 /** Le compte qui détient ce jeton de réinitialisation (par son empreinte), s'il n'a pas expiré. */

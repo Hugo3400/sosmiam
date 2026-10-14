@@ -124,10 +124,25 @@ export default function ProfilPote() {
   // Le bouton Suivre s'affiche si la règle le permet
   const suivreVisible = !!relation && relation.verdict.permis;
 
-  const ajouter = () => {
-    const resultat = communaute.ajouterPote(pote.id, "pseudo");
+  const demandeBandeRecue = communaute.demandesRecues.some((p) => p.id === id);
+  const demandeBandeEnvoyee = communaute.demandesEnvoyees.some((p) => p.id === id);
+  const accepterDemande = async () => {
+    const erreur = await communaute.accepterDemandeBande(pote.id);
+    annoncer(erreur ? "Ça n'a pas marché cette fois. Réessaie dans un instant ?" : `${prenom} a rejoint ta bande !`);
+  };
+  const retirerDemande = async (pourquoi: "refuse" | "annule") => {
+    const erreur = await communaute.retirerDemandeBande(pote.id);
+    annoncer(erreur ? "Ça n'a pas marché cette fois. Réessaie dans un instant ?" : pourquoi === "refuse" ? "C'est noté, en toute discrétion." : "Demande annulée.");
+  };
+  // Par le profil, c'est une demande (démo : ajouté tout de suite) ; s'il t'avait déjà demandé, vous voilà potes
+  const ajouter = async () => {
+    const resultat = await communaute.demanderAjout(pote.id);
     annoncer(
-      resultat === "ajoute" || resultat === "deja" ? `${prenom} fait partie de ta bande !` : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
+      resultat.type === "ajoute" || resultat.type === "deja"
+        ? `${prenom} fait partie de ta bande !`
+        : resultat.type === "demande"
+          ? `Demande envoyée à ${prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
+          : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
   };
 
@@ -183,8 +198,19 @@ export default function ProfilPote() {
             {lierPonctuation("Suivre, c'est voir passer ses listes et ses lieux. Ma bande, c'est pour sortir ensemble et discuter.")}
           </Text>
         ) : null,
-        ajoutable ? (
-          <Bouton key="ajouter" libelle={`Ajouter ${prenom} à ma bande`} variante="blanc" indice="Pour organiser des sorties et vous envoyer des lieux" onPress={ajouter} />
+        // Sa demande de bande : l'accepter ou la refuser (il n'est pas prévenu d'un refus)
+        ajoutable && demandeBandeRecue ? (
+          <View key="demande-bande" className="gap-3 rounded-2xl border-2 border-encre bg-jaune-clair p-4">
+            <Text className="font-texte-gras text-base text-encre">{lierPonctuation(`${prenom} veut rejoindre ta bande`)}</Text>
+            <Bouton libelle="Accepter" petit indice={`${prenom} rejoint ta bande`} onPress={() => void accepterDemande()} />
+            <Bouton libelle="Pas maintenant" variante="blanc" petit indice={`${prenom} n'est pas prévenu`} onPress={() => void retirerDemande("refuse")} />
+          </View>
+        ) : null,
+        ajoutable && demandeBandeEnvoyee ? (
+          <Bouton key="annuler-demande" libelle="Demande envoyée · l'annuler" variante="blanc" indice={`Retire ta demande à ${prenom}`} onPress={() => void retirerDemande("annule")} />
+        ) : null,
+        ajoutable && !demandeBandeRecue && !demandeBandeEnvoyee ? (
+          <Bouton key="ajouter" libelle={`Ajouter ${prenom} à ma bande`} variante="blanc" indice="Pour organiser des sorties et vous envoyer des lieux" onPress={() => void ajouter()} />
         ) : null,
         dansBande ? <Bouton key="ecrire" libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={ecrire} /> : null,
         message ? (

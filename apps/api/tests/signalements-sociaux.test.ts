@@ -40,14 +40,16 @@ async function preparerCommentaire(auteur: PersonneDeTest, texte = "Un commentai
   return { id: r.corps.commentaire.id as string, publicationId: numeroPublication, lieuId: 500 + numeroPublication };
 }
 
-/** Une conversation (privé ou groupe) avec ses membres, et un message chiffré de `auteur` */
-function preparerMessage(auteur: PersonneDeTest, membres: PersonneDeTest[], o: { type?: "prive" | "groupe"; titre?: string; texte?: string; photo?: boolean } = {}) {
-  const conversationId = prendreId(banc.tables, "conversations");
+/** Une conversation (privé ou groupe) avec ses membres, et un message chiffré de `auteur` ; `dans` : une conversation qui existe déjà */
+function preparerMessage(auteur: PersonneDeTest, membres: PersonneDeTest[], o: { type?: "prive" | "groupe"; titre?: string; texte?: string; photo?: boolean; dans?: number } = {}) {
+  const conversationId = o.dans ?? prendreId(banc.tables, "conversations");
   const type = o.type ?? "prive";
-  banc.tables.conversations.set(conversationId, {
-    id: conversationId, type, clePrive: null, titreChiffre: o.titre ? chiffrement().chiffrerTitre(o.titre, conversationId) : null, emoji: type === "groupe" ? "🍕" : null,
-    creeParId: auteur.compteId, version: 3, dernierMessageLe: maintenant(), modifieLe: maintenant(), creeLe: maintenant(),
-  });
+  if (o.dans === undefined) {
+    banc.tables.conversations.set(conversationId, {
+      id: conversationId, type, clePrive: null, titreChiffre: o.titre ? chiffrement().chiffrerTitre(o.titre, conversationId) : null, emoji: type === "groupe" ? "🍕" : null,
+      creeParId: auteur.compteId, version: 3, dernierMessageLe: maintenant(), modifieLe: maintenant(), creeLe: maintenant(),
+    });
+  }
   for (const m of [auteur, ...membres]) {
     banc.tables.membres.push({ conversationId, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant() });
   }
@@ -240,6 +242,29 @@ test("l'instantané reste quand le contenu change ou disparaît, et quand l'aute
   assert.equal(lireInstantane(sc!).texte, "La preuve");
   assert.equal(lireInstantane(sm!).texte, "Message signalé");
   assert.deepEqual([sc!.auteurContenuId, sm!.auteurContenuId, sc!.signaleParId], [null, null, moi.compteId]);
+});
+
+test("l'instantané reste après « annuler la sortie » et « supprimer la liste » par leurs routes, discussion de la sortie comprise", async () => {
+  const moi = await banc.creerPersonne({ pseudo: "moi.annule" });
+  const auteur = await banc.creerPersonne({ pseudo: "auteur.annule" });
+  banc.rendrePotes(moi, auteur);
+  const sortie = preparerSortie(auteur, [moi]);
+  const liste = preparerListe(auteur);
+  assert.equal((await moi.demander("POST", `/app/sorties/${sortie}/reponse`, { vient: true })).statut, 200);
+  const conversationId = banc.tables.sorties.get(Number(sortie))!.conversationId;
+  const message = preparerMessage(auteur, [], { texte: "Rendez-vous chez moi", dans: conversationId });
+  for (const [cible, cibleId] of [["sortie", sortie], ["liste", liste], ["message", message.id]] as const) {
+    assert.equal((await signaler(moi, { cible, cibleId, raison: "arnaque" })).statut, 201, cible);
+  }
+  assert.equal((await auteur.demander("DELETE", `/app/sorties/${sortie}`)).statut, 200);
+  assert.equal((await auteur.demander("DELETE", `/app/listes/${liste}`)).statut, 200);
+  assert.deepEqual([banc.tables.sorties.has(Number(sortie)), banc.tables.conversations.has(conversationId), banc.tables.listes.has(Number(liste))], [false, false, false]);
+  assert.equal(banc.tables.messages.has(Number(message.id)), false, "le message part avec la discussion");
+  const [ss, sl, sm] = [signalementsDe("sortie", sortie)[0]!, signalementsDe("liste", liste)[0]!, signalementsDe("message", message.id)[0]!];
+  assert.deepEqual([lireInstantane(ss).titre, lireInstantane(ss).lieux, lireInstantane(ss).organisateur.pseudo], ["Pizza du jeudi", [33], "auteur.annule"]);
+  assert.deepEqual([lireInstantane(sl).titre, lireInstantane(sl).lieux], ["Mes pizzas", [12]]);
+  assert.deepEqual([lireInstantane(sm).texte, lireInstantane(sm).conversation.type], ["Rendez-vous chez moi", "sortie"]);
+  assert.deepEqual([ss, sl, sm].map((s) => [s.statut, s.auteurContenuId]), [["a-traiter", auteur.compteId], ["a-traiter", auteur.compteId], ["a-traiter", auteur.compteId]]);
 });
 
 test("contenu invisible, ou le sien : 404 contenu-inconnu ; signalement mal formé : 400 signalement-invalide", async () => {

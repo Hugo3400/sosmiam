@@ -70,6 +70,7 @@ import { creerDependancesSociales } from "./services/dependances-sociales.ts";
 import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
+import { noterAction } from "./services/gestion/journal.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -120,6 +121,8 @@ const minuteurNotifications = process.env.SCHEMA_BASE ? undefined : setInterval(
 // sociales partent par prevenirCompte, hors anti-spam (réponse de Hugo du 14/10/2026)
 const socialApp = creerDependancesSociales({
   chiffrement, prevenirCompte, contesterSignalement, lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), tirer: (max) => randomInt(max),
+  // Disque des médias sous 15 % libres (B.12) : une ligne au journal du logiciel, une fois par heure au plus
+  quandDisquePresquePlein: (part) => void noterAction("serveur", "Disque presque plein : envois de médias suspendus", `${Math.round(part * 100)} % libres`).catch((erreur: unknown) => console.error("Journal :", resumerErreur(erreur))),
 });
 // Sorties : chaque minute, les votes échus reçoivent leur lieu retenu, et les participants sont prévenus (cloche et
 // téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma

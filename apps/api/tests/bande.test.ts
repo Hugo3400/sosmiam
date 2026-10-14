@@ -1,7 +1,8 @@
 // Tests de la bande de l'app (/app/bande) : lien et QR d'invitation (code sans date de fin, « Changer mon lien », lien qui
-// a trop tourné), demandes par pseudo (croisées, refus silencieux, expiration), retrait des deux côtés, 200 potes, « Quoi de
-// neuf » et classement du mois de Paris, client commun (les blocages : bande-blocages.test.ts). Tout en mémoire (aucune
-// base), avec une clé de test ; la version Prisma est essayée avec une fausse base (verrou, blocage relu dans la transaction).
+// a trop tourné, ancien lien après un changement de pseudo), demandes par pseudo (croisées, refus silencieux, expiration),
+// retrait des deux côtés, 200 potes, « Quoi de neuf » et classement du mois de Paris, client commun (les blocages :
+// bande-blocages.test.ts). Tout en mémoire (aucune base), avec une clé de test ; la version Prisma est essayée avec une
+// fausse base (verrou, blocage relu dans la transaction).
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, test } from "node:test";
@@ -101,6 +102,31 @@ test("code faux, pseudo inconnu et blocage (dans les deux sens) : la même 404 ;
   assert.equal((await curieux.demander("POST", "/app/bande/rejoindre", { pseudo: "lea.secrete", code: invitation.code })).corps.champ, "moyen");
   assert.equal((await curieux.demander("POST", "/app/bande/rejoindre", { pseudo: "lea.secrete", code: "x", moyen: "qr" })).corps.champ, "code");
   assert.equal((await curieux.demander("POST", "/app/bande/rejoindre", { pseudo: "L", code: invitation.code, moyen: "qr" })).corps.champ, "pseudo");
+});
+
+test("ancien lien après un changement de pseudo : invitation-inconnue avec son bon code seulement ; compte supprimé : invitation-invalide", async () => {
+  const lea = await banc.creerPersonne({ pseudo: "lea.avant" });
+  const [tom, bloque] = [await banc.creerPersonne(), await banc.creerPersonne()];
+  banc.bloquer(lea, bloque);
+  const ancien = await inviter(lea);
+  assert.equal(await banc.memoire.services.modifierProfil(lea.compteId, { pseudo: "lea.apres" }), "ok");
+  assert.deepEqual(await rejoindre(tom, ancien).then((r) => [r.statut, r.corps]), [404, { ok: false, erreur: "invitation-inconnue" }]);
+  // Sans son bon code, ou avec un blocage : rien ne dit que ce pseudo est réservé
+  assert.equal((await rejoindre(tom, { pseudo: "lea.avant", code: "abcdefghjkmn" })).corps.erreur, "invitation-invalide");
+  assert.equal((await rejoindre(bloque, ancien)).corps.erreur, "invitation-invalide");
+  assert.deepEqual([await potesDe(lea), banc.tables.profils.get(lea.compteId)!.arriveesParLien], [[], 0], "rien d'écrit, aucune arrivée comptée");
+  const nouveau = await inviter(lea);
+  assert.deepEqual([nouveau.pseudo, nouveau.code], ["lea.apres", ancien.code], "le même code, sous le nouveau pseudo");
+  assert.equal((await rejoindre(tom, nouveau)).statut, 201);
+  // Réservation expirée (30 jours) : un pseudo inconnu comme un autre
+  banc.memoire.pseudosReserves.reservations.get("lea.avant")!.reserveJusquLe = banc.horloge.maintenant - 1;
+  assert.equal((await rejoindre(await banc.creerPersonne(), ancien)).corps.erreur, "invitation-invalide");
+  // Compte supprimé : son pseudo est réservé pour personne, son lien ne dit rien de plus
+  const zoe = await banc.creerPersonne({ pseudo: "zoe.partie" });
+  const sien = await inviter(zoe);
+  await banc.supprimerCompte(zoe);
+  assert.equal(banc.memoire.pseudosReserves.reservations.get("zoe.partie")?.compteId, null);
+  assert.equal((await rejoindre(tom, sien)).corps.erreur, "invitation-invalide");
 });
 
 test("« Changer mon lien » tue l'ancien ; la 10e arrivée en 24 h passe, puis le code change tout seul (« lien-renouvele »)", async () => {
@@ -378,7 +404,8 @@ test("version Prisma : rejoindre verrouille les deux comptes avant de lire le co
     presenter: async () => new Map([[1, { id: "tomtomtom2", pseudo: "tom", prenom: "Tom", avatar: null }]]),
     lirePushSocial: async () => new Set([2]),
   };
-  const service = creerBande({ relations: relations as never, chiffrement, tirer: () => 0, base: base as never });
+  const lireAncienTitulaire = async () => assert.fail("un pseudo porté ne cherche pas de réservation");
+  const service = creerBande({ relations: relations as never, chiffrement, tirer: () => 0, base: base as never, lireAncienTitulaire });
   const r = await service.rejoindre(1, "lea", "abcdefghjkmn", maintenant);
   assert.ok(r.ok && !r.deja);
   assert.deepEqual(r.effets.map((e) => (e.quoi === "cloche" ? e.notification.type : `push:${e.sorte}`)), ["bande-ajout", "push:bande-ajout", "lien-renouvele"]);
@@ -388,12 +415,23 @@ test("version Prisma : rejoindre verrouille les deux comptes avant de lire le co
   assert.ok(miseAJour > appels.indexOf("tx.membreBande.createMany"));
   assert.equal((await service.rejoindre(1, "lea", "mauvaiscode1", maintenant)).ok, false);
 
-  // Pseudo inconnu : le même travail qu'un code faux (transaction, verrou, lecture d'un profil), puis la même réponse
-  const inconnu = fausseBase();
-  const r2 = await creerBande({ relations: { ...relations, verrouillerComptes: async (t: unknown, ids: readonly number[]) => void inconnu.appels.push(`verrou:${t === inconnu.tx}:${ids.join(",")}`) } as never, chiffrement, tirer: () => 0, base: inconnu.base as never })
-    .rejoindre(1, "personne.ici", "abcdefghjkmn", maintenant);
-  assert.deepEqual(r2, { ok: false, erreur: "invitation-invalide" });
-  assert.deepEqual(inconnu.appels, ["base.compte.findUnique", "verrou:true:1", "tx.profilSocial.findUnique"]);
+  // Pseudo inconnu : le même travail qu'un code faux (transaction, verrou, lecture d'un profil), puis la même réponse ; le
+  // pseudo d'avant d'un compte qui en a changé (2) : le même travail sous les deux verrous, et son bon code seulement dit
+  // « invitation-inconnue », sans rien écrire
+  const pseudosLus: string[] = [];
+  const essayer = async (ancien: number | null, code: string) => {
+    const f = fausseBase({ "tx.profilSocial.findUnique": { codeInvitationChiffre: chiffrement.chiffrerCode("abcdefghjkmn", 2), arriveesParLien: 0, arriveesDepuis: null } });
+    const verrouillerComptes = async (t: unknown, ids: readonly number[]) => void f.appels.push(`verrou:${t === f.tx}:${ids.join(",")}`);
+    const lireAncienTitulaire = async (pseudo: string) => (pseudosLus.push(pseudo), ancien);
+    const issue = await creerBande({ relations: { ...relations, verrouillerComptes } as never, chiffrement, tirer: () => 0, base: f.base as never, lireAncienTitulaire })
+      .rejoindre(1, "personne.ici", code, maintenant);
+    return [issue, f.appels] as const;
+  };
+  assert.deepEqual(await essayer(null, "abcdefghjkmn"), [{ ok: false, erreur: "invitation-invalide" }, ["base.compte.findUnique", "verrou:true:1", "tx.profilSocial.findUnique"]]);
+  const lu = ["base.compte.findUnique", "verrou:true:1,2", "tx.profilSocial.findUnique"];
+  assert.deepEqual(await essayer(2, "abcdefghjkmn"), [{ ok: false, erreur: "invitation-inconnue" }, lu]);
+  assert.deepEqual(await essayer(2, "mauvaiscode1"), [{ ok: false, erreur: "invitation-invalide" }, lu]);
+  assert.deepEqual(pseudosLus, ["personne.ici", "personne.ici", "personne.ici"]);
 });
 
 test("version Prisma : « Changer mon lien » prend le verrou de mon compte (celui de rejoindre) avant d'écrire le nouveau code", async () => {

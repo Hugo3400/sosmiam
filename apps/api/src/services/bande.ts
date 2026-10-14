@@ -9,15 +9,19 @@ import { comparerEnTempsConstant } from "../../../../packages/commun/src/fonctio
 import { MAX_ARRIVEES_PAR_LIEN_24H, MAX_BANDE, MAX_BLOCAGES, MAX_DEMANDES_BANDE_EN_ATTENTE } from "../../../../packages/commun/src/regles/potes.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { creerCodeInvitation } from "../fonctions/social/creer-code-invitation.ts";
+import { trouverOrganisateurEffectif } from "../fonctions/social/trouver-organisateur-effectif.ts";
 import { lireActiviteBande, lireClassementBande } from "./bande-activite.ts";
 import {
   compterArriveesParLien, construireBande, construireEffetsArrivee, debutDemandesValides, DEMANDES_BANDE_LUES,
-  type ResultatDemandeBande, type ResultatRejoindre, type ServicesBande,
+  type LireAncienTitulaire, type ResultatDemandeBande, type ResultatRejoindre, type ServicesBande,
 } from "./bande-regles.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
+import { lireReservationActive, tablePseudosReservesPresente } from "./pseudos-reserves.ts";
 import type { RelationsSociales, TransactionSociale } from "./relations-sociales-regles.ts";
 
 const INVALIDE = { ok: false, erreur: "invitation-invalide" } as const;
+/** Le bon code, mais le pseudo d'avant (son titulaire en a changé) : on partage le nouveau lien */
+const INCONNUE = { ok: false, erreur: "invitation-inconnue" } as const;
 /** Le contexte du chiffré factice de rejoindre : aucun compte n'a cet id */
 const COMPTE_FACTICE = Number.MAX_SAFE_INTEGER;
 
@@ -32,15 +36,23 @@ async function lier(tx: TransactionSociale, a: number, b: number, maintenant: Da
 }
 
 /**
- * Tout ce que coupe un blocage de `a` sur `b` (B.2), dans la transaction déjà verrouillée. D'abord, les conversations et les
- * sorties qu'ils partagent changent de version (l'app les relit : ce que l'un écrit y est désormais caché pour l'autre) ;
- * ensuite, b sort des sorties que a organise (invitation, discussion et votes) ; enfin, les liens entre eux, dans les deux sens.
+ * Tout ce que coupe un blocage de `a` sur `b` (B.2), dans la transaction déjà verrouillée. D'abord, les sorties puis les
+ * conversations qu'ils partagent changent de version (l'app les relit : ce que l'un écrit y est désormais caché pour
+ * l'autre ; même ordre des verrous que sorties.ts : les comptes, puis la sortie, puis sa discussion) ; ensuite, b sort des
+ * sorties où a a la main (invitation, discussion et votes) ; enfin, les liens entre eux, dans les deux sens.
  */
 async function couperEntre(tx: TransactionSociale, a: number, b: number, maintenant: Date): Promise<void> {
   const changement = { version: { increment: 1 }, modifieLe: maintenant };
+  const communes = { AND: [{ invitations: { some: { compteId: a } } }, { invitations: { some: { compteId: b } } }] };
+  await tx.sortie.updateMany({ where: communes, data: changement });
+  // Relues sous leur verrou : qui y a la main (trouverOrganisateurEffectif, la règle de sorties.ts), pas seulement la colonne
+  const partagees = await tx.sortie.findMany({
+    where: communes,
+    select: { id: true, conversationId: true, organisateurId: true, invitations: { where: { statut: "accepte" }, select: { compteId: true, creeLe: true, reponduLe: true } } },
+  });
+  const organiseesPar = (x: number) => partagees.filter((s) => trouverOrganisateurEffectif(s.organisateurId, s.invitations) === x);
+  const organisees = organiseesPar(a);
   await tx.conversation.updateMany({ where: { AND: [{ membres: { some: { compteId: a } } }, { membres: { some: { compteId: b } } }] }, data: changement });
-  await tx.sortie.updateMany({ where: { AND: [{ invitations: { some: { compteId: a } } }, { invitations: { some: { compteId: b } } }] }, data: changement });
-  const organisees = await tx.sortie.findMany({ where: { organisateurId: a, invitations: { some: { compteId: b } } }, select: { id: true, conversationId: true } });
   if (organisees.length > 0) {
     const sorties = organisees.map((s) => s.id);
     await tx.invitationSortie.deleteMany({ where: { compteId: b, sortieId: { in: sorties } } });
@@ -54,12 +66,14 @@ async function couperEntre(tx: TransactionSociale, a: number, b: number, mainten
   const listesDeLAutre = { OR: [{ compteId: b, liste: { auteurId: a } }, { compteId: a, liste: { auteurId: b } }] };
   await tx.coAuteurListe.deleteMany({ where: listesDeLAutre });
   await tx.abonnementListe.deleteMany({ where: listesDeLAutre });
+  // Les invitations en attente de l'un chez l'autre (invité par lui, ou dans une sortie où il a la main ; celles de b dans
+  // les sorties de a sont déjà parties)
   await tx.invitationSortie.deleteMany({
     where: {
       statut: "invite",
       OR: [
-        { compteId: b, OR: [{ inviteParId: a }, { sortie: { organisateurId: a } }] },
-        { compteId: a, OR: [{ inviteParId: b }, { sortie: { organisateurId: b } }] },
+        { compteId: b, inviteParId: a },
+        { compteId: a, OR: [{ inviteParId: b }, { sortieId: { in: organiseesPar(b).map((s) => s.id) } }] },
       ],
     },
   });
@@ -67,9 +81,15 @@ async function couperEntre(tx: TransactionSociale, a: number, b: number, mainten
   await tx.notificationCloche.deleteMany({ where: { OR: [{ compteId: a, acteurId: b }, { compteId: b, acteurId: a }] } });
 }
 
-export function creerBande(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null; tirer: (max: number) => number; base?: typeof baseDeDonnees }): ServicesBande {
+export function creerBande(o: {
+  relations: RelationsSociales; chiffrement: ChiffrementSocial | null; tirer: (max: number) => number; base?: typeof baseDeDonnees;
+  /** Par défaut, la table pseudos_reserves de la session Site (rien de réservé tant qu'elle n'existe pas) */
+  lireAncienTitulaire?: LireAncienTitulaire;
+}): ServicesBande {
   const { relations, tirer } = o;
   const base = o.base ?? baseDeDonnees;
+  const lireAncienTitulaire: LireAncienTitulaire = o.lireAncienTitulaire ?? (async (pseudo, maintenant) =>
+    (await tablePseudosReservesPresente()) ? ((await lireReservationActive(base, pseudo, maintenant))?.compteId ?? null) : null);
   /** Les routes de l'invitation passent par exigerChiffrementSocial : sans clé, on n'arrive jamais ici */
   const chiffrement = () => {
     if (!o.chiffrement) throw new Error("Chiffrement social indisponible");
@@ -148,9 +168,12 @@ export function creerBande(o: { relations: RelationsSociales; chiffrement: Chiff
 
     async rejoindre(compteId, pseudo, code, maintenant): Promise<ResultatRejoindre> {
       const proprietaire = await base.compte.findUnique({ where: { pseudo }, select: { id: true, profilSocial: { select: { compteId: true } } } });
+      // Personne ne le porte : peut-être le pseudo d'avant d'un compte qui en a changé (réservé 30 jours). Son code décide,
+      // comme pour un lien à jour : seul le bon code apprend que le lien a changé, et rien ne dit qu'un pseudo est réservé
+      const ancien = proprietaire ? null : await lireAncienTitulaire(pseudo, maintenant);
       // Pseudo inconnu ou sans profil social : le même travail qu'un code faux (transaction, verrou, lecture d'un profil,
       // déchiffrement), pour que le temps de réponse ne dise pas si ce pseudo utilise Potes
-      const autreId = proprietaire?.profilSocial ? proprietaire.id : null;
+      const autreId = proprietaire?.profilSocial ? proprietaire.id : ancien;
       if (autreId === compteId) return { ok: false, erreur: "soi-meme" };
       const issue = await base.$transaction(async (tx) => {
         await relations.verrouillerComptes(tx, autreId === null ? [compteId] : [compteId, autreId]);
@@ -163,6 +186,8 @@ export function creerBande(o: { relations: RelationsSociales; chiffrement: Chiff
         const egal = estLeCode(vrai ? chiffre : chiffreFactice(), vrai ? autreId : COMPTE_FACTICE, code);
         if (!vrai || !egal || autreId === null || !profil) return INVALIDE;
         if (await relations.bloqueEntre(compteId, autreId, tx)) return INVALIDE;
+        // L'ancien lien, avec le bon code : rien n'est écrit, aucune arrivée comptée
+        if (ancien !== null) return INCONNUE;
         const deja = await tx.membreBande.findUnique({ where: { compteId_poteId: { compteId, poteId: autreId } }, select: { creeLe: true } });
         if (deja) return { ok: true, deja: true, renouvele: false, autreId } as const;
         const arrivees = compterArriveesParLien(profil.arriveesParLien, profil.arriveesDepuis, maintenant);

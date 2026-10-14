@@ -1,0 +1,22 @@
+// Pseudos libérés, réservés 30 jours (décision de Hugo du 14 octobre 2026, docs/decisions.md) : après un changement de
+// pseudo ou la suppression du compte, personne d'autre ne peut prendre le pseudo pendant 30 jours (personne ne se fait
+// passer pour l'ancien titulaire). Le même compte peut le reprendre. Service : apps/api/src/services/pseudos-reserves.ts.
+
+/// Un pseudo libéré, réservé jusqu'à `reserveJusquLe` ; effacé par la tâche de nuit une fois expiré. Ne dit jamais à qui
+/// il appartenait au-dehors de l'API.
+model PseudoReserve {
+  id             Int      @id @default(autoincrement())
+  /// Le pseudo sous sa forme normalisée (sans « @ », en minuscules)
+  pseudo         String   @unique @db.VarChar(20)
+  /// Le compte qui peut le reprendre (changement de pseudo) ; null : compte supprimé, personne ne peut le prendre
+  compteId       Int?     @map("compte_id")
+  compte         Compte?  @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  reserveJusquLe DateTime @map("reserve_jusqu_le") @db.Timestamptz(3)
+  /// « changement » ou « suppression »
+  raison         String   @db.VarChar(12)
+  creeLe         DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  @@index([reserveJusquLe])
+  @@index([compteId])
+  @@map("pseudos_reserves")
+}

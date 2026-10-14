@@ -23,8 +23,9 @@ export interface ServiceBande {
   renouvelerInvitation(): Promise<ReponseApi<{ invitation: InvitationBandeApi }>>;
   /**
    * POST /app/bande/rejoindre, avec le pseudo et le code lus par lireLienInvitation : deja vrai si vous étiez déjà potes.
-   * « invitation-invalide » (lien changé, trop tourné, pseudo inconnu…), « bande-pleine », « champ-invalide » { champ:
-   * "pseudo" } pour ton propre lien
+   * « invitation-invalide » (lien changé, trop tourné, pseudo inconnu…), « invitation-inconnue » (l'ancien lien d'un pote
+   * qui a changé de pseudo depuis : demande-lui le nouveau), « bande-pleine », « champ-invalide » { champ: "pseudo" } pour
+   * ton propre lien
    */
   rejoindre(pseudo: string, code: string, moyen: MoyenInvitation): Promise<ReponseApi<{ personne: PersonneResume; deja: boolean }>>;
   /** POST /app/bande/demandes : personne n'est là qu'avec « ajoute ». « personne-inconnue », « bande-pleine », « trop-de-demandes-en-attente » */

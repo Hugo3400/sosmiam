@@ -56,7 +56,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
     (l) =>
       l.auteur !== monId &&
       // « Pas intéressé » : elle sort d'ici (et reste sur le profil de son auteur)
-      !estMasque(l.id) &&
+      !estMasque("liste", l.id) &&
       !l.abonnes.includes(monId) &&
       !!voitEnEntier?.(l.auteur) &&
       (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
@@ -93,8 +93,8 @@ export function SectionListes({ lieux, onRetire }: Props) {
               detail: `Elle disparaît de « À découvrir », pour toi seulement. Elle reste sur le profil de ${menuPour.pote.prenom}.`,
               agir: () => {
                 const id = menuPour.id;
-                masquer(id);
-                onRetire("Liste retirée", () => demasquer(id));
+                masquer("liste", id);
+                onRetire("Liste retirée", () => demasquer("liste", id));
               },
             },
       ]

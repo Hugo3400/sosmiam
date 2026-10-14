@@ -4,8 +4,16 @@ import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/tri
 import type { PlaceClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { ActivitePote, ListePartagee, Pote, Recommandation, Sortie } from "@sos-miam/commun/types/potes";
+import type { MoyenInvitation } from "@sos-miam/commun/client-api/contrat-bande";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
+import type { CibleMasque, PersonneResume } from "@sos-miam/commun/types/social";
 import type { SignalementContenu } from "@sos-miam/commun/types/signalement";
+import type { DetailsPote } from "~/fonctions/communaute/convertir-personne-en-pote";
 import type { ResultatRecherchePote } from "~/fonctions/communaute/chercher-par-pseudo";
+import type { ResultatAjoutBande } from "~/hooks/utiliser-bande-compte";
+import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
+
+export type { ResultatAjoutBande } from "~/hooks/utiliser-bande-compte";
 
 /** Résultat d'un envoi de texte (message, commentaire, mot à un pote) */
 export type ResultatTexte = "ok" | "vide" | "trop-long" | "mot-interdit";
@@ -24,7 +32,9 @@ export type NouvelleSortie = {
 };
 
 export type EtatCommunaute = {
-  /** Faux tant que la communauté n'est pas lue sur le téléphone */
+  /** D'où vient la bande : la démo, le serveur (compte connecté), ou rien encore (visite, attente) */
+  source: SourceSociale;
+  /** Faux tant que la communauté n'est pas lue (sur le téléphone, ou sur le serveur avec un compte) */
   pret: boolean;
   /** Mode démo : potes d'exemple qui votent et répondent tout seuls ; sinon, la communauté démarre vide */
   demo: boolean;
@@ -34,10 +44,30 @@ export type EtatCommunaute = {
   potes: Pote[];
   /** N'importe qui par son identifiant (toi, ta bande, les autres personnes connues), ou null */
   trouverPote: (id: string) => Pote | null;
-  /** Recherche par pseudo (sans les personnes bloquées) */
+  /** Recherche par pseudo dans les potes d'exemple (démo) ; avec un compte, c'est utiliserRecherchePseudo qui demande au serveur */
   chercherParPseudo: (texte: string) => ResultatRecherchePote[];
-  /** Ajoute à ta bande (par lien, QR code ou pseudo ; voir moyenAjout) */
-  ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "bloque" | "introuvable";
+  /**
+   * Rejoindre la bande de quelqu'un par son lien ou son QR code (pseudo et code secret lus par lireLienInvitation) : vous voilà
+   * potes tout de suite. Démo : le code n'est vérifié nulle part
+   */
+  rejoindreParInvitation: (pseudo: string, code: string, moyen: MoyenInvitation) => Promise<ResultatAjoutBande>;
+  /** Par son pseudo : une demande que l'autre accepte (ou, s'il t'avait déjà demandé, vous voilà potes). Démo : ajouté tout de suite */
+  demanderAjout: (id: string) => Promise<ResultatAjoutBande>;
+  /** Les demandes de bande qu'on t'a faites, et les tiennes en attente (vides en démo) */
+  demandesRecues: Pote[];
+  demandesEnvoyees: Pote[];
+  /** Accepter sa demande : vous voilà potes. Rend l'erreur, ou null */
+  accepterDemandeBande: (id: string) => Promise<ErreurService | null>;
+  /** Refuser sa demande (il n'est pas prévenu) ou annuler la tienne. Rend l'erreur, ou null */
+  retirerDemandeBande: (id: string) => Promise<ErreurService | null>;
+  /** À l'ouverture de Potes (compte connecté) : crée ton profil social s'il manque, une fois par lancement */
+  ouvrirProfilSocial: () => void;
+  /** Le serveur attend ton pseudo pour ouvrir ta partie sociale */
+  pseudoRequis: boolean;
+  /** Une personne croisée ailleurs (son profil lu, une recherche) : trouverPote la connaît ensuite (compte connecté) */
+  noterPersonne: (personne: PersonneResume, details?: DetailsPote) => void;
+  /** Relit la bande, les demandes, l'activité et ce que tu as masqué (compte connecté) */
+  relireBande: () => void;
   retirerPote: (id: string) => void;
   /**
    * Comment ce pote de ta bande a été ajouté : « pseudo », « exemple » (bande de la démo), ou undefined (pas ou plus dans ta bande).
@@ -85,12 +115,13 @@ export type EtatCommunaute = {
   /** « Annuler » : remet les lieux retirés */
   remettreRecommandations: (recommandations: Recommandation[]) => void;
   /** Retire de ta vue, pour toi seulement : une sortie passée (elle sort de tes sorties), une ligne de l'activité de ta bande (elle
-   * sort de « Quoi de neuf »), une liste de « À découvrir » (elle reste sur le profil de son auteur : voir estMasque) */
-  masquer: (id: string) => void;
+   * sort de « Quoi de neuf »), une liste de « À découvrir » (elle reste sur le profil de son auteur : voir estMasque). La cible
+   * dit de quoi il s'agit : la sortie « 42 » et la liste « 42 » ne se confondent pas */
+  masquer: (cible: CibleMasque, id: string) => void;
   /** Vrai si tu as retiré cet élément de ta vue */
-  estMasque: (id: string) => boolean;
+  estMasque: (cible: CibleMasque, id: string) => boolean;
   /** « Annuler » : remet ce qui avait été retiré de ta vue */
-  demasquer: (id: string) => void;
+  demasquer: (cible: CibleMasque, id: string) => void;
 
   /** Commentaires d'une publication, rangés (lieu en tête, plus aimés, récents) avec leurs réponses */
   commentairesDe: (publicationId: string) => FilCommentaire[];

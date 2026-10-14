@@ -8,11 +8,13 @@ import { comparerEnTempsConstant } from "../../../../packages/commun/src/fonctio
 import { MAX_ARRIVEES_PAR_LIEN_24H, MAX_BANDE, MAX_BLOCAGES, MAX_DEMANDES_BANDE_EN_ATTENTE } from "../../../../packages/commun/src/regles/potes.ts";
 import type { ProfilSocial } from "../base-de-donnees/client-genere/client.ts";
 import { creerCodeInvitation } from "../fonctions/social/creer-code-invitation.ts";
+import { trouverOrganisateurEffectif } from "../fonctions/social/trouver-organisateur-effectif.ts";
 import {
   compterArriveesParLien, construireBande, construireClassement, construireEffetsArrivee, debutActivite, debutDemandesValides,
-  DEMANDES_BANDE_LUES, ID_ACTIVITE, MAX_ACTIVITES, presenterActivites, type LigneActivite, type ServicesBande,
+  DEMANDES_BANDE_LUES, ID_ACTIVITE, MAX_ACTIVITES, presenterActivites, type LigneActivite, type LireAncienTitulaire, type ServicesBande,
 } from "./bande-regles.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
+import type { PseudosReservesEnMemoire } from "./pseudos-reserves-en-memoire.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { bloquesEnMemoire, type TablesSociales } from "./tables-sociales-en-memoire.ts";
 
@@ -30,7 +32,19 @@ function retirer<T>(lignes: T[], quoi: (ligne: T) => boolean): number {
 /** Plus récent d'abord ; à la même milliseconde, le dernier écrit d'abord */
 const plusRecentDAbord = <T extends { creeLe: Date }>(lignes: readonly T[]) => [...lignes].reverse().sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime());
 
-export function creerBandeEnMemoire(tables: TablesSociales, relations: RelationsSociales, chiffrement: ChiffrementSocial | null, tirer: (max: number) => number): ServicesBande {
+/** L'ancien titulaire d'un pseudo libéré, d'après les réservations des comptes en mémoire (comme lireReservationActive) */
+export function lireAncienTitulaireEnMemoire(pseudos: Pick<PseudosReservesEnMemoire, "reservations">): LireAncienTitulaire {
+  return async (pseudo, maintenant) => {
+    const reservation = pseudos.reservations.get(pseudo);
+    return reservation && reservation.reserveJusquLe > maintenant.getTime() ? reservation.compteId : null;
+  };
+}
+
+/** `lireAncienTitulaire` absent : aucun pseudo réservé */
+export function creerBandeEnMemoire(
+  tables: TablesSociales, relations: RelationsSociales, chiffrement: ChiffrementSocial | null, tirer: (max: number) => number,
+  lireAncienTitulaire: LireAncienTitulaire = async () => null,
+): ServicesBande {
   const coder = () => {
     if (!chiffrement) throw new Error("Chiffrement social indisponible");
     return chiffrement;
@@ -82,7 +96,11 @@ export function creerBandeEnMemoire(tables: TablesSociales, relations: Relations
   /** Tout ce que coupe un blocage de a sur b (même ordre que couperEntre de bande.ts) */
   function couperEntre(a: number, b: number, maintenant: Date) {
     changerVersionsCommunes(a, b, maintenant);
-    const organisees = [...tables.sorties.values()].filter((s) => s.organisateurId === a);
+    // Qui a la main sur chaque sortie (trouverOrganisateurEffectif, la règle des sorties), pas seulement la colonne
+    const aLaMain = (x: number) => [...tables.sorties.values()].filter((s) =>
+      trouverOrganisateurEffectif(s.organisateurId, tables.invitationsSorties.filter((i) => i.sortieId === s.id && i.statut === "accepte")) === x);
+    const organisees = aLaMain(a);
+    const organiseesParB = new Set(aLaMain(b).map((s) => s.id));
     const sortiesIds = new Set(organisees.map((s) => s.id));
     const conversationsIds = new Set(organisees.map((s) => s.conversationId));
     retirer(tables.invitationsSorties, (i) => i.compteId === b && sortiesIds.has(i.sortieId));
@@ -96,9 +114,8 @@ export function creerBandeEnMemoire(tables: TablesSociales, relations: Relations
     const auteur = (listeId: number) => tables.listes.get(listeId)?.auteurId;
     retirer(tables.coAuteurs, (c) => entre(c.compteId, auteur(c.listeId) ?? 0));
     retirer(tables.abonnementsListes, (l) => entre(l.compteId, auteur(l.listeId) ?? 0));
-    const organisateur = (sortieId: number) => tables.sorties.get(sortieId)?.organisateurId ?? null;
     retirer(tables.invitationsSorties, (i) => i.statut === "invite" && (
-      (i.compteId === b && (i.inviteParId === a || organisateur(i.sortieId) === a)) || (i.compteId === a && (i.inviteParId === b || organisateur(i.sortieId) === b))));
+      (i.compteId === b && i.inviteParId === a) || (i.compteId === a && (i.inviteParId === b || organiseesParB.has(i.sortieId)))));
     retirer(tables.invitationsGroupes, (i) => i.statut === "invite" && i.inviteParId !== null && entre(i.compteId, i.inviteParId));
     for (const [id, n] of tables.cloche) if (n.acteurId !== null && entre(n.compteId, n.acteurId)) tables.cloche.delete(id);
   }
@@ -128,13 +145,16 @@ export function creerBandeEnMemoire(tables: TablesSociales, relations: Relations
 
     async rejoindre(compteId, pseudo, code, maintenant) {
       const proprietaire = [...tables.comptes.values()].find((c) => c.pseudo === pseudo);
-      const p = proprietaire ? tables.profils.get(proprietaire.id) : undefined;
-      if (!proprietaire || !p) return { ok: false, erreur: "invitation-invalide" };
-      const autreId = proprietaire.id;
+      // Personne ne le porte : le pseudo d'avant d'un compte qui en a changé ? Son code décide (même règle que bande.ts)
+      const ancien = proprietaire ? null : await lireAncienTitulaire(pseudo, maintenant);
+      const autreId = proprietaire?.id ?? ancien;
+      const p = autreId === null ? undefined : tables.profils.get(autreId);
+      if (autreId === null || !p) return { ok: false, erreur: "invitation-invalide" };
       if (autreId === compteId) return { ok: false, erreur: "soi-meme" };
       if (!p.codeInvitationChiffre || !estLeCode(p.codeInvitationChiffre, autreId, code) || bloquesEnMemoire(tables, compteId, autreId)) {
         return { ok: false, erreur: "invitation-invalide" };
       }
+      if (ancien !== null) return { ok: false, erreur: "invitation-inconnue" };
       if (sontPotes(compteId, autreId)) return { ok: true, poteId: autreId, deja: true, effets: [] };
       const arrivees = compterArriveesParLien(p.arriveesParLien, p.arriveesDepuis, maintenant);
       if (arrivees >= MAX_ARRIVEES_PAR_LIEN_24H) return { ok: false, erreur: "invitation-invalide" };

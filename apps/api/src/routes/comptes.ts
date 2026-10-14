@@ -153,17 +153,19 @@ export type DependancesComptes = {
  *                                        (même forme que GET ; champ absent : inchangé) · 400 champ-invalide {champ} · 401
  *                                        · 409 pseudo-pris · 503 chiffrement-indisponible
  *                                        prenom 1 à 40 car., sans gros mot ; nom 60 car., null ou "" : effacé ; pseudo : comme à
- *                                        l'inscription (le sien : accepté) ; ville 2 à 80 car. ; envies : comme à
+ *                                        l'inscription (le sien : accepté ; l'ancien est réservé 30 jours pour ce compte, et un
+ *                                        pseudo réservé pour un autre répond 409 pseudo-pris) ; ville 2 à 80 car. ; envies : comme à
  *                                        l'inscription, REMPLACENT les précédentes ; avatar : un seul emoji (16 car. au
  *                                        plus), null ou "" : effacé ; prive : booléen. dateNaissance ("AAAA-MM-JJ") :
  *                                        acceptée UNE fois, seulement si le compte n'en a aucune (compte du site, ambassadeur
  *                                        ou pro, qui arrive dans l'app) ; elle doit donner 18 ans ou plus (le compte du site
  *                                        les a jurés), sinon 403 age-minimum ; mal écrite : 400 {champ: dateNaissance}. Un
  *                                        compte qui en a déjà une : 400 {champ: dateNaissance} (l'équipe la corrige sur demande)
- * GET    /comptes/pseudo-disponible?pseudo=… → 200 { ok, disponible } (le sien : disponible ; gros mot : jamais) · 400
+ * GET    /comptes/pseudo-disponible?pseudo=… → 200 { ok, disponible } (le sien, ou son ancien encore réservé pour lui :
+ *                                        disponible ; libéré par un autre depuis moins de 30 jours, ou gros mot : jamais) · 400
  *                                        champ-invalide {champ: pseudo} (forme de estPseudoValide, après « @ » retiré et
  *                                        minuscules) · 401 · 429 (60 par compte toutes les 10 minutes)
- * DELETE /comptes/moi                   { motDePasse } → 200 { ok } (tout effacé) · 403 mot-de-passe-incorrect · 401 · 429 {attente}
+ * DELETE /comptes/moi                   { motDePasse } → 200 { ok } (tout effacé ; le pseudo reste réservé 30 jours) · 403 mot-de-passe-incorrect · 401 · 429 {attente}
  *                                        Compte SANS vrai mot de passe (connexions.motDePasse faux : créé avec Apple ou
  *                                        Google) : confirmé par un NOUVEAU jeton du compte Apple ou Google lié, { identityToken,
  *                                        nonce } (Apple) ou { idToken, nonce? } (Google), même vérification qu'à la connexion

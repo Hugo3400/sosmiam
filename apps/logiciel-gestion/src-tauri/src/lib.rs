@@ -1,15 +1,20 @@
 // Partie native du logiciel de gestion de SOS Miam : la fenêtre, les notifications Windows, une seule instance,
-// et l'enregistrement de fichiers (export des inscrits). Tout le reste (clé, signatures, écrans) est dans l'interface.
+// et l'enregistrement de fichiers (exports, pièces jointes, Espace presse). Tout le reste (clé, signatures, écrans) est dans
+// l'interface.
 use std::path::Path;
 
 use base64::Engine;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 
-/// Formats texte que le logiciel peut enregistrer sur le disque
-const EXTENSIONS_TEXTE: [&str; 3] = ["csv", "html", "txt"];
-/// Formats binaires : seulement les sauvegardes chiffrées de la base
-const EXTENSIONS_BINAIRES: [&str; 1] = ["sauvegarde"];
+/// Formats texte que le logiciel peut enregistrer sur le disque (exports CSV et JSON, newsletter, QR de vitrine en SVG…)
+const EXTENSIONS_TEXTE: [&str; 6] = ["csv", "html", "txt", "json", "svg", "md"];
+/// Formats binaires : sauvegardes chiffrées, Espace presse (images, PDF, zips, vidéos, sons) et pièces jointes courantes des
+/// mails. Jamais un programme ni un script (exe, bat, ps1, js…) : l'interface ne peut pas en écrire sur le PC.
+const EXTENSIONS_BINAIRES: [&str; 27] = [
+    "sauvegarde", "png", "jpg", "jpeg", "webp", "gif", "svg", "heic", "pdf", "zip", "mp4", "mov", "mp3", "ogg", "wav", "m4a",
+    "md", "txt", "csv", "json", "docx", "xlsx", "pptx", "odt", "ods", "odp", "rtf",
+];
 
 /// Ouvre la fenêtre « Enregistrer sous » puis écrit le fichier à l'endroit choisi par Hugo.
 /// L'interface ne donne qu'un nom proposé : elle ne peut jamais choisir elle-même où écrire.
@@ -46,7 +51,7 @@ async fn enregistrer_fichier(app: tauri::AppHandle, nom: String, contenu: String
     demander_et_ecrire(&app, &nom, &EXTENSIONS_TEXTE, contenu.as_bytes()).await
 }
 
-/// Enregistre un fichier binaire reçu en base64 (copie d'une sauvegarde chiffrée de la base).
+/// Enregistre un fichier binaire reçu en base64 (sauvegarde chiffrée, visuel de l'Espace presse, pièce jointe d'un mail).
 #[tauri::command]
 async fn enregistrer_fichier_binaire(app: tauri::AppHandle, nom: String, contenu_base64: String) -> Result<bool, String> {
     let contenu = base64::engine::general_purpose::STANDARD.decode(contenu_base64).map_err(|e| e.to_string())?;

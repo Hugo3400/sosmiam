@@ -38,6 +38,9 @@ import type { ServicesBande } from "../services/bande-regles.ts";
 import type { ServicesSuivisPersonnes } from "../services/suivis-personnes-regles.ts";
 import { creerRoutesBande } from "./bande.ts";
 import { creerRoutesSuivisPersonnes } from "./suivis-personnes.ts";
+import type { ServicesMessagerie } from "../services/messagerie-regles.ts";
+import { creerRoutesConversations } from "./conversations.ts";
+import { creerRoutesLieuxEnvoyes } from "./lieux-envoyes.ts";
 import type { ServicesSorties } from "../services/sorties-regles.ts";
 import type { ServicesListes } from "../services/listes-regles.ts";
 import { creerRoutesSorties } from "./sorties.ts";
@@ -47,9 +50,6 @@ import type { ServicesDecisionsModeration, ServicesSignalementsSociaux } from ".
 import { creerRoutesCommentaires } from "./commentaires.ts";
 import { creerRoutesModerationApp } from "./moderation-app.ts";
 import { creerRoutesSignalementsSociaux } from "./signalements-sociaux.ts";
-import type { ServicesMessagerie } from "../services/messagerie-regles.ts";
-import { creerRoutesConversations } from "./conversations.ts";
-import { creerRoutesLieuxEnvoyes } from "./lieux-envoyes.ts";
 
 /** Toutes les lectures sociales (pouls, fils, profils, listes…), par compte : une seule limite pour tous les domaines */
 export const LIMITE_LECTURES_SOCIALES = { fenetre: 10 * 60_000, maximum: 900 };
@@ -75,6 +75,9 @@ export type DependancesSocialApp = {
   bande: ServicesBande;
   /** Suivis entre personnes (lot L3) */
   suivis: ServicesSuivisPersonnes;
+  /** Messagerie (privé, groupes sur invitation, discussions des sorties), médias du chat et lieux envoyés (lot L4) ;
+   *  lireMessageVisible : la règle d'accès de B.0, aussi pour les signalements de messages */
+  messagerie: ServicesMessagerie;
   /** Sorties entre potes : invitations, propositions, votes, lieu retenu (lot L5 ; la fin des votes : taches/terminer-votes-sorties.ts) */
   sorties: ServicesSorties;
   /** Listes de lieux : visibilité, co-auteurs, abonnements (lot L5) */
@@ -85,9 +88,6 @@ export type DependancesSocialApp = {
   signalements: ServicesSignalementsSociaux;
   /** Décisions de la modération vues dans l'app, et contestation (lot L6) */
   decisions: ServicesDecisionsModeration;
-  /** Messagerie (privé, groupes sur invitation, discussions des sorties), médias du chat et lieux envoyés (lot L4) ;
-   *  lireMessageVisible : la règle d'accès de B.0, aussi pour les signalements de messages */
-  messagerie: ServicesMessagerie;
 };
 
 /** Ce que chaque domaine reçoit pour construire ses routes */
@@ -138,13 +138,13 @@ export function creerRoutesSocialesApp(d: DependancesSocialApp, protection: Prot
   monter("/bande", bande.bande);
   monter("/blocages", bande.blocages);
   monter("/suivis-personnes", creerRoutesSuivisPersonnes(d, contexte));
+  monter("/conversations", creerRoutesConversations(d, contexte));
+  monter("/lieux-envoyes", creerRoutesLieuxEnvoyes(d, contexte));
   monter("/sorties", creerRoutesSorties(d, contexte));
   monter("/listes", creerRoutesListes(d, contexte));
-  // Lot L6 : les commentaires montent leur propre chaîne (la liste d'une publication se lit sans session)
+  // Les commentaires montent leur propre chaîne (la liste d'une publication se lit sans session)
   routes.use("/commentaires", creerRoutesCommentaires(d, contexte), gererRefusSociaux, gererErreursComptes);
   monter("/signalements", creerRoutesSignalementsSociaux(d, contexte));
   monter("/moderation", creerRoutesModerationApp(d, contexte));
-  monter("/conversations", creerRoutesConversations(d, contexte));
-  monter("/lieux-envoyes", creerRoutesLieuxEnvoyes(d, contexte));
   return routes;
 }

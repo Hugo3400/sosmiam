@@ -46,8 +46,10 @@ export function EcranPresse() {
       }
       const fait = await enregistrerFichierBinaire(nom, await lireFichierPresse(id));
       setMessage(fait ? `${nom} enregistré ✅` : null);
-    } catch {
-      setMessage(`${nom} n'a pas pu être téléchargé : réessaie dans un instant.`);
+    } catch (probleme) {
+      setMessage(String(probleme).includes("format refusé")
+        ? `${nom} : ce format ne peut pas être enregistré depuis le logiciel.`
+        : `${nom} n'a pas pu être téléchargé : réessaie dans un instant.`);
     }
   }
 

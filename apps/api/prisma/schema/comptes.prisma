@@ -131,6 +131,8 @@ model Compte {
   jaimesCommentaires         JaimeCommentaire[]
   /// Connexions par QR code scannées par ce compte (connexion-qr.prisma)
   demandesConnexionQr        DemandeConnexionQr[]
+  /// Anciens pseudos de ce compte, réservés 30 jours après un changement (pseudos-reserves.prisma)
+  pseudosReserves            PseudoReserve[]
   @@index([derniereConnexion])
   @@map("comptes")
 }

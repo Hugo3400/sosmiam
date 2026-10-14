@@ -21,7 +21,13 @@ export type InvitationLue = { pseudo: string; code: string; creeLe: Date };
 
 export type ResultatRejoindre =
   | { ok: true; poteId: number; deja: boolean; effets: EffetSocial[] }
-  | { ok: false; erreur: "invitation-invalide" | "bande-pleine" | "soi-meme" };
+  | { ok: false; erreur: "invitation-invalide" | "invitation-inconnue" | "bande-pleine" | "soi-meme" };
+
+/**
+ * Le compte qui a quitté ce pseudo en en changeant (pseudo réservé 30 jours pour lui, pseudos-reserves.ts), ou null : pas
+ * réservé, réservation expirée, ou compte supprimé (réservé pour personne). Ne sert qu'à rejoindre, jamais à une réponse
+ */
+export type LireAncienTitulaire = (pseudo: string, maintenant: Date) => Promise<number | null>;
 
 export type ResultatDemandeBande =
   | { ok: true; etat: "demande" | "ajoute" | "deja"; effets: EffetSocial[] }
@@ -46,7 +52,10 @@ export interface ServicesBande {
    * dans la transaction. Pseudo inconnu, code faux ou changé, lien qui a trop tourné, blocage : la même « invitation-invalide »,
    * avec le même travail (un pseudo inconnu ou sans profil social passe aussi par la transaction et un déchiffrement) : le
    * temps de réponse ne dit pas si ce pseudo utilise Potes. Compte les arrivées par ce lien (compterArriveesParLien) : la 10e
-   * passe, puis le code change tout seul (« lien-renouvele »)
+   * passe, puis le code change tout seul (« lien-renouvele »). Ancien lien d'un compte qui a changé de pseudo depuis (le
+   * pseudo d'avant, encore réservé pour lui) : « invitation-inconnue » (bloc « Pseudos libérés » de la spécification), mais
+   * seulement avec SON bon code et sans blocage, après le même travail ; sinon « invitation-invalide » : un pseudo réservé ne
+   * se devine pas. Rien n'est écrit, aucune arrivée comptée
    */
   rejoindre(compteId: number, pseudo: string, code: string, maintenant: Date): Promise<ResultatRejoindre>;
   /**
@@ -68,8 +77,8 @@ export interface ServicesBande {
   /**
    * Sous le verrou des deux comptes, dans une seule transaction, entre eux et dans les deux sens : bande, demandes, suivis,
    * co-auteurs et abonnements aux listes de l'autre, invitations en attente (groupes et sorties), cloche ; et l'autre sort
-   * des sorties que j'organise (invitation, discussion et votes, comme retirerParticipant des sorties : ses votes ne comptent
-   * plus pour le lieu retenu). Les conversations et sorties communes changent de version (ce
+   * des sorties où j'ai la main (trouverOrganisateurEffectif ; invitation, discussion et votes, comme retirerParticipant des
+   * sorties : ses votes ne comptent plus pour le lieu retenu). Les conversations et sorties communes changent de version (ce
    * que l'un écrit y est désormais caché pour l'autre). Déjà bloqué : ok
    */
   bloquer(compteId: number, autreId: number, maintenant: Date): Promise<{ ok: true } | { ok: false; erreur: "trop-de-blocages" | "soi-meme" }>;

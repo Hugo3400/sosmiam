@@ -1,5 +1,5 @@
 // Ton code secret d'invitation : tiré au hasard une seule fois, puis gardé dans le coffre-fort du téléphone (Trousseau iOS,
-// Keystore Android), comme le profil. Il va dans ton lien et ton QR code (« ?c=<code> ») : sans lui, un lien d'invitation
+// Keystore Android), comme le profil. Il va dans ton lien et ton QR code (« #c=<code> ») : sans lui, un lien d'invitation
 // se fabriquerait avec ton seul pseudo, qui est public. Démo : rien ne le vérifie encore. Quand les comptes arriveront, c'est
 // l'API qui le créera, le vérifiera et pourra le renouveler.
 // Sur le web (aperçu de développement seulement), pas de coffre-fort : AsyncStorage.
