@@ -96,7 +96,7 @@ export default function Compte() {
           accessibilityRole="button"
           accessibilityHint={demo.actif ? "L'app se relance avec les vraies données" : "L'app se relance avec les lieux, les potes et les visites d'exemple"}
           disabled={demo.enCours}
-          onPress={() => void (demo.actif ? demo.sortir() : demo.entrer())}
+          onPress={demo.actif ? demo.sortir : demo.entrer}
           className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-white p-4 active:opacity-70"
         >
           <Text className="text-xl">🧪</Text>
@@ -104,11 +104,11 @@ export default function Compte() {
             {demo.actif ? (
               <>
                 <Text className="font-texte-gras text-encre">Mode démo : </Text>tout est inventé, rien ne part sur le serveur.{" "}
-                <Text className="font-texte-gras text-encre underline">Quitter la démo</Text>
+                <Text className="font-texte-gras text-encre underline">{demo.compteDeCote ? `Quitter la démo et revenir sur ${demo.compteDeCote}` : "Quitter la démo"}</Text>
               </>
             ) : (
               <>
-                <Text className="font-texte-gras text-encre underline">Démo</Text> (développement seulement) : des lieux, des potes et des visites d'exemple, sans compte.
+                <Text className="font-texte-gras text-encre underline">Démo</Text> (développement seulement) : des lieux, des potes et des visites d'exemple, sans compte. Ton compte t'attend : tu le retrouves en quittant la démo.
               </>
             )}
           </Text>

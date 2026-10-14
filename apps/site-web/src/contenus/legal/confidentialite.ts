@@ -21,6 +21,7 @@ import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-
 import { sectionMiamSafe } from "~/contenus/legal/confidentialite-miam-safe";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
+import { sectionConnexionAppleGoogle } from "~/contenus/legal/confidentialite-connexion-externe";
 import { editeur, hebergeur, prestataires, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -191,6 +192,7 @@ export const documentConfidentialite: DocumentLegal = {
     },
     sectionCompteAmbassadeur,
     sectionComptePro,
+    sectionConnexionAppleGoogle,
     sectionApp,
     sectionAppComptes,
     sectionMiamSafe,

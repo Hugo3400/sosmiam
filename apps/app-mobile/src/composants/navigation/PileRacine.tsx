@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
 
 /**
  * Pile d'écrans de l'app. Pas encore inscrit : seulement l'inscription. Inscrit : les onglets et tout le reste.
@@ -13,12 +14,15 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
  * Les modes pro et ambassadeur sont des piles posées par-dessus les onglets perso (qui restent montés dessous), ouvertes
  * seulement à qui a le rôle : un rôle retiré ferme ses écrans et ramène au mode perso.
  * Toute nouvelle route doit être rangée sous une garde : une route oubliée ici serait ouverte à tout le monde.
- * L'écran de démarrage reste affiché tant que les polices, le profil et les modes ne sont pas prêts.
+ * L'écran de démarrage reste affiché tant que les polices, le profil et les modes ne sont pas prêts (et, après « Quitter la
+ * démo », tant que le compte mis de côté n'est pas rouvert).
  */
 export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const { profil, invite, chargement } = utiliserProfil();
   const modes = utiliserModes();
-  const pret = policesChargees && !chargement && modes.pret;
+  // Après « Quitter la démo » : le compte mis de côté se rouvre avant d'afficher quoi que ce soit
+  const reprise = utiliserRepriseCompte();
+  const pret = policesChargees && !chargement && modes.pret && !reprise;
   const inscrit = profil !== null;
 
   useEffect(() => {

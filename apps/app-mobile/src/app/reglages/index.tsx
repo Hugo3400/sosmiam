@@ -193,13 +193,15 @@ export default function Reglages() {
           ) : null}
           <LigneReglage
             emoji="🧪"
-            titre={demo.actif ? "Quitter la démo" : "Passer en mode démo"}
+            titre={demo.actif ? (demo.compteDeCote ? "Quitter la démo et revenir sur mon compte" : "Quitter la démo") : "Passer en mode démo"}
             detail={
               demo.actif
-                ? "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
-                : "Lieux, potes et visites d'exemple (développement seulement). Te déconnecte et efface ce téléphone"
+                ? demo.compteDeCote
+                  ? `Tu retrouves ${demo.compteDeCote} directement, sans te reconnecter (ce que la démo a gardé est effacé)`
+                  : "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
+                : "Lieux, potes et visites d'exemple (développement seulement). Ton compte est mis de côté : tu le retrouves en quittant la démo"
             }
-            onPress={() => void (demo.actif ? demo.sortir() : demo.entrer())}
+            onPress={demo.actif ? demo.sortir : demo.entrer}
           />
         </SectionReglages>
       ) : null}
