@@ -107,7 +107,7 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
         {premier.statut !== "a-traiter" && !conteste && <SuiteDecision signalement={premier} contenu={contenu} onChange={onDecide} />}
       </div>
       {aTraiter && (
-        <div className="flex flex-col gap-2 lg:w-52">
+        <div className="flex flex-col gap-2 lg:w-60">
           <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir le retrait" : cible.aLaMain ? "Retenir" : `Retirer ${cible.le}`}</Bouton>
           <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? "Remettre en ligne" : urgent ? "Remettre en ligne" : "Rien à redire"}</Bouton>
         </div>

@@ -5,14 +5,21 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   liste: ListePartagee;
   /** L'auteur de la liste (toi : identifiant « moi »), ou null s'il n'est plus connu */
   auteur: Pote | null;
-  /** Abonnés connus et pas bloqués (toi compris si tu la suis) */
-  abonnes: Pote[];
+  /** Tu en es l'auteur */
+  estAMoi: boolean;
+  /** Démo : abonnés connus et pas bloqués (toi compris si tu la suis). Compte connecté : null, le serveur ne donne que leur nombre */
+  abonnes: Pote[] | null;
+  /** Combien la suivent (compterAbonnesListe), quand on ne les connaît pas */
+  nombreAbonnes: number;
+  /** Ceux qui la remplissent avec l'auteur (acceptés, pas bloqués) */
+  coAuteurs: Pote[];
   /** Nombre d'adresses de la liste encore dans l'app */
   nombreLieux: number;
   /** Vrai si tu suis la liste ; null pour ta propre liste (on ne suit pas sa liste) */
@@ -32,14 +39,29 @@ function nommerAbonnes(abonnes: Pote[], monId: string): string {
   return `${noms.slice(0, 2).join(", ")} et ${noms.length - 2} autres`;
 }
 
-/** Le haut d'une liste partagée : son emoji, son titre, sa description, qui l'a faite, qui la suit, et le bouton pour la suivre. */
-export function EnTeteListe({ liste, auteur, abonnes, nombreLieux, suivie, onBasculerSuivi, onOuvrirAuteur }: Props) {
+/**
+ * Le haut d'une liste partagée : son emoji, son titre, sa description, qui l'a faite et qui la remplit avec lui, qui la suit
+ * (leurs têtes quand on les connaît, sinon leur nombre), si elle est réservée à la bande, et le bouton pour la suivre.
+ */
+/** Compte connecté, où l'on ne connaît que le nombre : « Suivie par 12 personnes », « Suivie par toi et 3 autres » */
+function compterAbonnes(nombre: number, suivie: boolean): string {
+  if (nombre === 0) return "Personne ne la suit encore";
+  if (suivie) return nombre === 1 ? "Suivie par toi" : `Suivie par toi et ${nombre - 1} autre${nombre > 2 ? "s" : ""}`;
+  return `Suivie par ${nombre} personne${nombre > 1 ? "s" : ""}`;
+}
+
+export function EnTeteListe({ liste, auteur, estAMoi, abonnes, nombreAbonnes, coAuteurs, nombreLieux, suivie, onBasculerSuivi, onOuvrirAuteur }: Props) {
   const monId = utiliserMonId();
-  const estAMoi = liste.auteur === monId;
   // Toi d'abord, puis les autres dans l'ordre de la liste
-  const abonnesRanges = [...abonnes].sort((a, b) => Number(b.id === monId) - Number(a.id === monId));
-  const phraseAbonnes = abonnesRanges.length === 0 ? "Personne ne la suit encore" : `Suivie par ${nommerAbonnes(abonnesRanges, monId)}`;
+  const abonnesRanges = abonnes ? [...abonnes].sort((a, b) => Number(b.id === monId) - Number(a.id === monId)) : [];
+  const phraseAbonnes = abonnes
+    ? abonnesRanges.length === 0
+      ? "Personne ne la suit encore"
+      : `Suivie par ${nommerAbonnes(abonnesRanges, monId)}`
+    : compterAbonnes(nombreAbonnes, suivie === true);
   const adresses = `${nombreLieux} adresse${nombreLieux > 1 ? "s" : ""}`;
+  const remplie = coAuteurs.length > 0 ? `Remplie avec ${listerPrenoms(coAuteurs.map((p) => (p.id === monId ? "toi" : p.prenom)))}` : null;
+  const pourLaBande = liste.visibilite === "bande";
 
   return (
     <View className="items-center gap-3">
@@ -79,7 +101,13 @@ export function EnTeteListe({ liste, auteur, abonnes, nombreLieux, suivie, onBas
         </Pressable>
       ) : null}
 
-      <View accessible accessibilityLabel={`${adresses}. ${phraseAbonnes}.`} className="flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1">
+      {remplie ? <Text className="text-center font-texte-moyen text-sm text-encre">{lierPonctuation(`✍️ ${remplie}`)}</Text> : null}
+
+      <View
+        accessible
+        accessibilityLabel={`${adresses}. ${phraseAbonnes}.${pourLaBande ? " Visible par la bande seulement." : ""}`}
+        className="flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1"
+      >
         <Text className="font-texte-moyen text-sm text-gris">📍 {adresses}</Text>
         <Text className="font-texte text-sm text-gris">·</Text>
         {abonnesRanges.length > 0 ? (
@@ -92,6 +120,12 @@ export function EnTeteListe({ liste, auteur, abonnes, nombreLieux, suivie, onBas
           </View>
         ) : null}
         <Text className="font-texte-moyen text-sm text-gris">{phraseAbonnes}</Text>
+        {pourLaBande ? (
+          <>
+            <Text className="font-texte text-sm text-gris">·</Text>
+            <Text className="font-texte-moyen text-sm text-gris">🫶 Pour la bande</Text>
+          </>
+        ) : null}
       </View>
 
       {suivie !== null ? (
@@ -99,7 +133,7 @@ export function EnTeteListe({ liste, auteur, abonnes, nombreLieux, suivie, onBas
           libelle={suivie ? "Ne plus suivre" : "Suivre la liste"}
           variante={suivie ? "blanc" : "jaune"}
           petit
-          indice={suivie ? "Tu arrêtes de suivre cette liste" : "Tu pourras aussi y ajouter tes adresses"}
+          indice={suivie ? "Tu arrêtes de suivre cette liste" : "Elle t'attendra dans « Celles que tu suis »"}
           onPress={onBasculerSuivi}
           className="mt-1"
         />

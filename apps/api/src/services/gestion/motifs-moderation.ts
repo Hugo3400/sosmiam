@@ -1,6 +1,3 @@
-// Les règles de la communauté (CGU, « Les règles de la communauté ») : le motif d'un signalement retenu. À part de
-// moderation.ts pour être lues sans ouvrir la base (contrôleurs, tests).
-export const MOTIFS_MODERATION = [
-  "fausse-info", "pub-cachee", "arnaque", "haine", "violence", "danger", "vie-privee", "droits", "triche", "usurpation", "illegal",
-] as const;
-export type MotifModeration = (typeof MOTIFS_MODERATION)[number];
+// Les règles de la communauté (CGU) : le motif d'un signalement retenu, lu dans packages/commun (une seule liste pour l'API,
+// le logiciel et l'app). À part de moderation.ts pour être lues sans ouvrir la base (contrôleurs, tests).
+export { MOTIFS_MODERATION, type MotifModeration } from "../../../../../packages/commun/src/contenus/motifs-moderation.ts";
