@@ -22,8 +22,8 @@ export type LieuParId = {
  */
 export function utiliserLieuParId(identifiant: number | string | null | undefined): LieuParId {
   const { trouverLieu, pret, chargerLieu } = utiliserLieux();
-  // L'identifiant d'une route est du texte (« 12 ») : autre chose qu'un entier positif ne cherche rien
-  const id = typeof identifiant === "number" ? (Number.isInteger(identifiant) && identifiant > 0 ? identifiant : null) : /^[1-9]\d{0,9}$/.test(identifiant ?? "") ? Number(identifiant) : null;
+  // L'identifiant d'une route est du texte (« 12 ») : autre chose qu'un entier (0 compris, le premier lieu d'exemple) ne cherche rien
+  const id = typeof identifiant === "number" ? (Number.isInteger(identifiant) && identifiant >= 0 ? identifiant : null) : /^(0|[1-9]\d{0,9})$/.test(identifiant ?? "") ? Number(identifiant) : null;
   const lieu = id === null ? undefined : trouverLieu(id);
   const demandes = useRef(new Set<number>());
   const [etats, setEtats] = useState<Record<number, EtatLecture>>({});
