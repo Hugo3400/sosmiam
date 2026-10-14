@@ -1,5 +1,6 @@
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { LIBELLES_MOTIFS_MODERATION } from "~/contenus/motifs-moderation";
 import type { Publication } from "~/contenus/type-publication";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -63,9 +64,13 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
         n.detail === "masque-par-le-lieu" ? "Le lieu a masqué ton commentaire le temps qu'on vérifie." : "Un de tes contenus est masqué le temps qu'on vérifie : quelqu'un l'a trouvé choquant.",
         null,
       );
-    case "contenu-retire":
-      return decrire("🧹", "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", null);
+    case "contenu-retire": {
+      const motif = n.detail ? LIBELLES_MOTIFS_MODERATION[n.detail] : undefined;
+      return decrire("🧹", motif ? `Un de tes contenus a été retiré par la modération (motif : ${motif}).` : "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", null);
+    }
     case "signalement-decide":
+      if (n.detail === "retenu") return decrire("🛡️", "On a examiné ton signalement : le contenu est retiré. Merci de veiller au grain !", null);
+      if (n.detail === "rejete") return decrire("🛡️", "On a examiné ton signalement : le contenu respecte nos règles, il reste en ligne. Merci quand même !", null);
       return decrire("🛡️", "On a examiné ton signalement : merci !", null);
     default:
       return null;

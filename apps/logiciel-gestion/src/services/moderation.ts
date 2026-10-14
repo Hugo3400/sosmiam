@@ -24,8 +24,17 @@ export type Signalement = {
   reexamineLe: string | null;
   creeLe: string;
   traiteLe: string | null;
-  /** Raison grave : la publication a été masquée pour tous dès ce signalement */
+  /** Raison grave : le contenu a été masqué pour tous dès ce signalement */
   urgent: boolean;
+  /** Qui a signalé et qui a écrit le contenu (comptes) ; null : inconnu ou compte supprimé */
+  signaleParId?: number | null;
+  auteurContenuId?: number | null;
+  /** Contenu social : son instantané au moment du signalement, déchiffré (jamais le contenu vivant) */
+  instantane?: { etat: "lu"; contenu: Record<string, unknown> } | { etat: "illisible" | "sans-cle" } | null;
+  /** Une photo ou une note vocale signalée, lisible tant que le signalement n'est pas jugé */
+  avecMedia?: boolean;
+  /** Signalements abusifs : son taux de rejet sur 12 mois (sur ceux jugés) et ses signalements du mois */
+  signaleur?: { juges: number; rejetes: number; partRejets: number | null; ceMois: number } | null;
   publication: {
     id: number;
     legende: string;
@@ -39,9 +48,13 @@ export type Signalement = {
   } | null;
 };
 
-export type FileModeration = { compteurs: Partial<Record<VueModeration, number>>; signalements: Signalement[] };
+export type LieuCite = { id: number; nom: string; emoji: string; ville: string };
+export type FileModeration = { compteurs: Partial<Record<VueModeration, number>>; signalements: Signalement[]; lieux?: Record<string, LieuCite> };
 
-export const listerSignalements = (statut: VueModeration | "") => appeler<FileModeration>("GET", `/moderation${parametres({ statut })}`);
+/** cible : « publication », « commentaire », « message », « liste », « profil », « sortie », « groupe », ou "" pour tout */
+export const listerSignalements = (statut: VueModeration | "", cible = "") => appeler<FileModeration>("GET", `/moderation${parametres({ statut, cible })}`);
+/** La photo ou la note vocale d'un message signalé (lu noté au journal) */
+export const lireMediaSignale = (id: number) => appeler<Blob>("GET", `/moderation/${id}/media`, { reponse: "blob" });
 /** Retenu : la règle enfreinte (motif) et l'explication pour l'auteur (motivation) sont obligatoires */
 export const deciderSignalement = (id: number, choix: { decision: "retenu" | "rejete"; note: string; motif: string | null; motivation: string | null }) =>
   appeler<{ ok: true; regles: number; reexamen: boolean }>("POST", `/moderation/${id}/decision`, { corps: choix });

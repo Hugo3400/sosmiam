@@ -7,11 +7,10 @@
 // - apps/api/src/services/signalements-sociaux*.ts, routes/signalements-sociaux.ts (20 signalements par 24 h, un par
 //   personne et par contenu), commentaires.ts (masquage par le gérant), routes/moderation-app.ts (mes-decisions, contester).
 // PAS ENCORE CONSTRUIT au 14 octobre 2026, donc écrit au futur (« bientôt ») :
-// - gestion/moderation.ts deciderSignalement n'applique la décision qu'à une PUBLICATION : pour un commentaire, un message
-//   ou une liste, « retenu » ne retire rien et « rejeté » ne remet rien en ligne ; le logiciel ne déchiffre pas encore
-//   l'instantané (dechiffrerInstantane jamais appelée) ;
-// - cloche « contenu-retire » et « signalement-decide » jamais écrites ; pas d'écran « décisions » dans l'app (la route
-//   GET /app/moderation/mes-decisions et la contestation existent dans l'API) ;
+// - (fait le 14 octobre 2026 au soir, session Logiciel, F.2 : décision appliquée aux publications, commentaires, messages
+//   et listes ; profil, groupe et sortie à la main ; cloche « contenu-retire » et « signalement-decide » ; instantané
+//   déchiffré ; ménage des signalements à 1 an)
+// - pas d'écran « décisions » dans l'app (la route GET /app/moderation/mes-decisions et la contestation existent dans l'API) ;
 // - aucune suspension de compte ni interdiction d'écrire dans le code (seulement la suppression d'un compte et
 //   « déconnecter partout » dans le logiciel) : les CGU gardent le droit de le faire, sans dire que c'est automatique.
 import { site } from "~/contenus/legal/informations-legales";
@@ -32,7 +31,7 @@ export const sectionModerationCgu: SectionLegale = {
         "pour les autres raisons, une publication, un commentaire, un message ou une liste sont masqués **pour la personne qui signale**, en attendant qu'on les regarde ; un profil, un groupe ou une sortie restent visibles jusqu'à la décision ;",
         "si ton commentaire, ton message ou ta liste est masqué pour tout le monde, **on te prévient** dans l'app, sans te dire qui l'a signalé ;",
         "un membre de l'équipe examine chaque signalement **à la main**, dans notre logiciel de gestion : aucun algorithme ne décide à notre place. Pour un message, il ne lit que la copie du message signalé, jamais le reste de la conversation ;",
-        "si le signalement est retenu, le contenu est retiré pour de bon, avec la règle en cause et une explication ; sinon, il est remis en ligne, et un nouveau signalement ne peut plus le masquer d'office. Pour les publications, c'est déjà le cas ; pour les commentaires, les messages et les listes, l'outil qui applique la décision arrive **bientôt** dans notre logiciel (d'ici là, un contenu masqué le reste).",
+        "si le signalement est retenu, le contenu est retiré pour de bon, avec la règle en cause et une explication ; sinon, il est remis en ligne, et un nouveau signalement ne peut plus le masquer d'office. C'est automatique pour une publication, un commentaire, un message ou une liste ; pour un profil, un groupe ou une sortie, l'équipe s'en charge à la main. L'auteur et la personne qui a signalé sont prévenus dans la cloche de l'app.",
       ],
     },
     "**Le gérant d'un lieu** peut aussi masquer un commentaire sous sa propre publication : le commentaire ne se voit plus que de son auteur, qui est prévenu dans l'app, et il part en modération comme s'il était signalé (voir « Les commentaires et les listes »).",
