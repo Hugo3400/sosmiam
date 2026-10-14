@@ -117,6 +117,15 @@ model Compte {
   departsGroupes             DepartGroupe[]
   invitationsGroupes         InvitationGroupe[]       @relation("InvitationsGroupesRecues")
   invitationsGroupesEnvoyees InvitationGroupe[]       @relation("InvitationsGroupesEnvoyees")
+  sortiesOrganisees          Sortie[]                 @relation("SortiesOrganisees")
+  invitationsSorties         InvitationSortie[]       @relation("InvitationsRecues")
+  invitationsSortiesEnvoyees InvitationSortie[]       @relation("InvitationsEnvoyees")
+  propositionsSorties        PropositionSortie[]
+  votesSorties               VoteSortie[]
+  listesEcrites              ListeLieux[]             @relation("ListesEcrites")
+  lieuxAjoutesListes         LieuDeListe[]
+  coAuteurListes             CoAuteurListe[]
+  abonnementsListes          AbonnementListe[]
   @@index([derniereConnexion])
   @@map("comptes")
 }

@@ -1,0 +1,73 @@
+// Listes de lieux (décidé le 14 octobre 2026) : l'auteur les remplit et choisit qui les voit (« tous » ou « bande ») ; il
+// peut inviter des potes de sa bande à les remplir avec lui ; les autres suivent la liste. Elle part avec son auteur.
+
+model ListeLieux {
+  id          Int               @id @default(autoincrement())
+  auteurId    Int               @map("auteur_id")
+  auteur      Compte            @relation("ListesEcrites", fields: [auteurId], references: [id], onDelete: Cascade)
+  titre       String            @db.VarChar(40)
+  emoji       String            @db.VarChar(16)
+  description String            @default("") @db.VarChar(140)
+  /// « tous » (qui voit le profil en public : tout le monde pour un compte public, abonnés et bande pour un compte privé) ou
+  /// « bande »
+  visibilite  String            @default("tous") @db.VarChar(6)
+  /// Masquée pour tous dès un signalement « choquant », en attendant la modération
+  suspendueLe DateTime?         @map("suspendue_le") @db.Timestamptz(0)
+  /// Retirée par la modération (signalement retenu)
+  retireeLe   DateTime?         @map("retiree_le") @db.Timestamptz(0)
+  creeLe      DateTime          @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe   DateTime          @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  lieux       LieuDeListe[]
+  coAuteurs   CoAuteurListe[]
+  abonnes     AbonnementListe[]
+
+  @@index([auteurId])
+  @@index([modifieLe])
+  @@map("listes_lieux")
+}
+
+model LieuDeListe {
+  listeId     Int        @map("liste_id")
+  liste       ListeLieux @relation(fields: [listeId], references: [id], onDelete: Cascade)
+  lieuId      Int        @map("lieu_id")
+  lieu        Lieu       @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  /// Qui l'a ajouté (l'auteur ou un co-auteur ; null s'il a supprimé son compte)
+  ajouteParId Int?       @map("ajoute_par_id")
+  ajoutePar   Compte?    @relation(fields: [ajouteParId], references: [id], onDelete: SetNull)
+  creeLe      DateTime   @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([listeId, lieuId])
+  @@index([lieuId])
+  @@index([ajouteParId])
+  @@map("lieux_listes")
+}
+
+/// Un pote de la bande de l'auteur invité à remplir la liste : « invite » puis « accepte » ou « refuse » (refus silencieux,
+/// gardé 30 jours : l'auteur ne peut pas réinviter en boucle). Quitter la bande de l'auteur retire le co-auteur (ses lieux
+/// restent). Invitation ou refus effacés 30 jours après l'invitation.
+model CoAuteurListe {
+  listeId   Int        @map("liste_id")
+  liste     ListeLieux @relation(fields: [listeId], references: [id], onDelete: Cascade)
+  compteId  Int        @map("compte_id")
+  compte    Compte     @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// « invite », « accepte » ou « refuse »
+  statut    String     @default("invite") @db.VarChar(8)
+  creeLe    DateTime   @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe DateTime?  @map("repondu_le") @db.Timestamptz(0)
+
+  @@id([listeId, compteId])
+  @@index([compteId])
+  @@map("co_auteurs_listes")
+}
+
+model AbonnementListe {
+  listeId  Int        @map("liste_id")
+  liste    ListeLieux @relation(fields: [listeId], references: [id], onDelete: Cascade)
+  compteId Int        @map("compte_id")
+  compte   Compte     @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe   DateTime   @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([listeId, compteId])
+  @@index([compteId])
+  @@map("abonnements_listes")
+}

@@ -69,6 +69,37 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Confirmation refusée",
     texte: "Pour effacer ton compte, reconnecte-toi avec le même compte Apple ou Google que d'habitude.",
   },
+  // « Mes façons de me connecter » (Mon compte) : relier ou délier Apple et Google, mêmes mots que sur le site
+  "deja-relie": {
+    emoji: "🔗",
+    titre: "Une clé est déjà là",
+    texte: "Ton compte SOS Miam a déjà un autre compte de ce genre relié. Délie-le d'abord, puis relie le nouveau.",
+  },
+  "identite-deja-reliee": {
+    emoji: "🔗",
+    titre: "Déjà relié à un autre compte",
+    texte: "Ce compte est déjà relié à un autre compte SOS Miam. On ne fusionne jamais deux comptes : délie-le depuis l'autre compte (ou supprime celui-là), puis reviens le relier ici.",
+  },
+  "derniere-connexion": {
+    emoji: "🚪",
+    titre: "C'est ta seule clé",
+    texte: "Sans elle, tu resterais à la porte ! Ajoute un mot de passe ou relie un autre compte d'abord.",
+  },
+  "apple-indisponible": {
+    emoji: "🍎",
+    titre: "Apple ne répond pas",
+    texte: "La connexion avec Apple n'est pas possible pour l'instant. Réessaie un peu plus tard.",
+  },
+  "google-indisponible": {
+    emoji: "🔍",
+    titre: "Google ne répond pas",
+    texte: "La connexion avec Google n'est pas possible pour l'instant. Réessaie un peu plus tard.",
+  },
+  "verification-indisponible": {
+    emoji: "⏳",
+    titre: "Vérification en pause",
+    texte: "On n'arrive pas à vérifier ta connexion en ce moment. Réessaie dans 30 secondes.",
+  },
   "email-manquant": {
     emoji: "📭",
     titre: "Il nous faut ton e-mail",

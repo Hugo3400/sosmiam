@@ -1,0 +1,83 @@
+// Sorties entre potes (décidé le 8 et le 14 octobre 2026) : chaque invité accepte (« Tu viens ? ») avant d'entrer dans le
+// vote et la discussion. La discussion est une Conversation de type « sortie », avec les mêmes règles que le chat. La sortie
+// part avec sa discussion, 1 an après sa date ou son dernier message (le plus tard des deux).
+
+model Sortie {
+  id             Int                 @id @default(autoincrement())
+  conversationId Int                 @unique @map("conversation_id")
+  conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// L'organisateur ; null s'il a supprimé son compte : le plus ancien participant prend la main (choisirOrganisateurSortie)
+  organisateurId Int?                @map("organisateur_id")
+  organisateur   Compte?             @relation("SortiesOrganisees", fields: [organisateurId], references: [id], onDelete: SetNull)
+  titre          String              @db.VarChar(40)
+  emoji          String              @db.VarChar(16)
+  quand          DateTime            @db.Timestamptz(0)
+  finVote        DateTime            @map("fin_vote") @db.Timestamptz(0)
+  /// Lieu retenu à la fin du vote (le plus de votes ; à égalité, le premier proposé) ; null tant que le vote court
+  lieuChoisiId   Int?                @map("lieu_choisi_id")
+  lieuChoisi     Lieu?               @relation("SortiesRetenues", fields: [lieuChoisiId], references: [id], onDelete: SetNull)
+  /// Vote fini : par l'organisateur, ou par la tâche de la minute à finVote (taches/terminer-votes-sorties.ts)
+  voteTermineLe  DateTime?           @map("vote_termine_le") @db.Timestamptz(0)
+  version        Int                 @default(0)
+  modifieLe      DateTime            @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  creeLe         DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
+  invitations    InvitationSortie[]
+  propositions   PropositionSortie[]
+
+  @@index([organisateurId])
+  @@index([lieuChoisiId])
+  @@index([voteTermineLe, finVote])
+  @@index([quand])
+  @@map("sorties")
+}
+
+/// Un invité et sa réponse : « invite » (Tu viens ?) puis « accepte » ou « refuse ». Un refus ne prévient personne ; il est
+/// gardé jusqu'à la date de la sortie pour qu'on ne puisse pas réinviter la personne en boucle (inviter la saute). 15
+/// personnes au plus par sortie, organisateur et invitations en attente compris (les refus ne comptent pas).
+model InvitationSortie {
+  sortieId    Int       @map("sortie_id")
+  sortie      Sortie    @relation(fields: [sortieId], references: [id], onDelete: Cascade)
+  compteId    Int       @map("compte_id")
+  compte      Compte    @relation("InvitationsRecues", fields: [compteId], references: [id], onDelete: Cascade)
+  inviteParId Int?      @map("invite_par_id")
+  invitePar   Compte?   @relation("InvitationsEnvoyees", fields: [inviteParId], references: [id], onDelete: SetNull)
+  /// « invite », « accepte » ou « refuse » (l'organisateur a sa ligne « accepte » dès la création)
+  statut      String    @default("invite") @db.VarChar(8)
+  creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe   DateTime? @map("repondu_le") @db.Timestamptz(0)
+
+  @@id([sortieId, compteId])
+  @@index([compteId, statut])
+  @@index([inviteParId])
+  @@map("invitations_sorties")
+}
+
+model PropositionSortie {
+  id           Int          @id @default(autoincrement())
+  sortieId     Int          @map("sortie_id")
+  sortie       Sortie       @relation(fields: [sortieId], references: [id], onDelete: Cascade)
+  lieuId       Int          @map("lieu_id")
+  lieu         Lieu         @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  proposeParId Int?         @map("propose_par_id")
+  proposePar   Compte?      @relation(fields: [proposeParId], references: [id], onDelete: SetNull)
+  creeLe       DateTime     @default(now()) @map("cree_le") @db.Timestamptz(0)
+  votes        VoteSortie[]
+
+  @@unique([sortieId, lieuId])
+  @@index([lieuId])
+  @@index([proposeParId])
+  @@map("propositions_sorties")
+}
+
+/// Un vote ; chacun peut voter pour plusieurs lieux
+model VoteSortie {
+  propositionId Int               @map("proposition_id")
+  proposition   PropositionSortie @relation(fields: [propositionId], references: [id], onDelete: Cascade)
+  compteId      Int               @map("compte_id")
+  compte        Compte            @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe        DateTime          @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([propositionId, compteId])
+  @@index([compteId])
+  @@map("votes_sorties")
+}

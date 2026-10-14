@@ -77,7 +77,7 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
         <p>
           {choisis.slice(0, 6).map((lieu) => lieu.nom).join(", ")}{nombre > 6 ? `… et ${nombre - 6} autre(s)` : ""} disparaissent
           {publications > 0 ? <>, avec <strong>{publications} publication{publications > 1 ? "s" : ""}</strong> et leurs fichiers</> : null}, et tout ce
-          qui leur est lié dans l'app (visites, rescousses, cartes de fidélité, SOS).
+          qui leur est lié dans l'app (visites, rescousses, cartes de fidélité, SOS, sorties proposées, places dans les listes).
         </p>
         <p className="mt-2 text-sm text-gris">Pour les cacher sans rien perdre, utilise plutôt « Masquer ».</p>
       </Modale>

@@ -89,6 +89,10 @@ model Lieu {
   vues                  VueLieu[]
   avis                  Avis[]
   reservations          Reservation[]
+  // Sorties, listes et commentaires (session de l'app, 14 octobre 2026). Le lieu d'un message est chiffré : pas de relation
+  propositionsSorties   PropositionSortie[]
+  sortiesRetenues       Sortie[]                 @relation("SortiesRetenues")
+  dansLesListes         LieuDeListe[]
 
   @@index([statut, ville])
   @@map("lieux")
