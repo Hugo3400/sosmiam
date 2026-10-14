@@ -1,0 +1,163 @@
+// Messagerie entre potes (décidé le 8 et le 14 octobre 2026) : privé, groupes et discussions des sorties. Textes CHIFFRÉS
+// par l'API (AES-256-GCM, sous-clé tirée de la clé des données, hors de la base) ; photos et notes vocales chiffrées sur le
+// disque (DOSSIER_MEDIAS_CHAT), jamais servies par /app/medias, effacées 90 jours après l'envoi. Une conversation sans nouveau
+// message depuis 1 an est effacée la nuit, sauf si un de ses messages attend la modération. Un message signalé est en plus
+// copié, chiffré, dans son signalement (instantané) : l'effacer ne fait pas disparaître la preuve. Compte supprimé : ses
+// messages restent, signés « Compte supprimé ». Entrer dans un groupe demande d'accepter une invitation (« Rejoindre le
+// groupe ? », décidé par Hugo le 14 octobre 2026, comme une sortie) : InvitationGroupe.
+
+model Conversation {
+  id               Int                   @id @default(autoincrement())
+  /// « prive » (deux potes), « groupe » (20 personnes au plus) ou « sortie » (la discussion d'une sortie). Membres, rôles et
+  /// titre ne se changent que pour un groupe ; une sortie ne change de membres que par /app/sorties
+  type             String                @db.VarChar(6)
+  /// Privé seulement : « <plus petit id de compte>-<plus grand> », une seule conversation par paire (gardée si l'un part)
+  clePrive         String?               @unique @map("cle_prive") @db.VarChar(24)
+  /// Groupe : nom (40 caractères, filtre de mots), CHIFFRÉ, « v<N>:iv:tag:données » (N : version de la clé ; sous-clé des
+  /// textes, contexte « conversation:<id>:titre ») ; null pour un privé et une sortie (la sortie a son titre dans Sortie).
+  /// 40 unités UTF-16 font 120 octets au plus, 160 caractères en base64url, plus 45 pour « v<N>: », l'iv et le tag : 256
+  titreChiffre     String?               @map("titre_chiffre") @db.VarChar(512)
+  emoji            String?               @db.VarChar(16)
+  creeParId        Int?                  @map("cree_par_id")
+  creePar          Compte?               @relation("ConversationsCreees", fields: [creeParId], references: [id], onDelete: SetNull)
+  /// Monte à chaque changement que voient les membres (message, réaction, suppression, membre, rôle, titre)
+  version          Int                   @default(0)
+  /// Dernier message (ou création) : tri des conversations et effacement après 1 an
+  dernierMessageLe DateTime              @default(now()) @map("dernier_message_le") @db.Timestamptz(3)
+  /// Dernier changement : signature du pouls
+  modifieLe        DateTime              @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  creeLe           DateTime              @default(now()) @map("cree_le") @db.Timestamptz(0)
+  membres          MembreConversation[]
+  messages         MessageConversation[]
+  departs          DepartGroupe[]
+  invitations      InvitationGroupe[]
+
+  @@index([dernierMessageLe])
+  @@index([creeParId])
+  @@map("conversations")
+}
+
+/// Un membre d'une conversation : lui seul en voit les messages et les membres. Dans un groupe, on n'y entre qu'en acceptant
+/// une invitation (InvitationGroupe) ; dans une sortie, qu'en répondant « Je viens » (InvitationSortie)
+model MembreConversation {
+  conversationId Int          @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  compteId       Int          @map("compte_id")
+  compte         Compte       @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// « admin » ou « membre » (privé et sortie : toujours « membre »)
+  role           String       @default("membre") @db.VarChar(6)
+  /// Messages cachés pour ce membre jusqu'à cet id compris : ceux d'avant son arrivée (pour un groupe, le moment où il a
+  /// accepté l'invitation), ou « Effacer la discussion pour moi »
+  visibleApres   Int          @default(0) @map("visible_apres")
+  /// Lu jusqu'à ce message (id) ; jamais montré aux autres (pas d'accusé de lecture)
+  luJusqua       Int          @default(0) @map("lu_jusqua")
+  /// « Couper les notifications » de cette conversation
+  coupee         Boolean      @default(false)
+  arriveLe       DateTime     @default(now()) @map("arrive_le") @db.Timestamptz(3)
+
+  @@id([conversationId, compteId])
+  @@index([compteId])
+  @@map("membres_conversations")
+}
+
+model MessageConversation {
+  id             Int               @id @default(autoincrement())
+  conversationId Int               @map("conversation_id")
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// null : compte supprimé (« Compte supprimé ») ; le message reste jusqu'à l'effacement de la conversation
+  auteurId       Int?              @map("auteur_id")
+  auteur         Compte?           @relation("MessagesEcrits", fields: [auteurId], references: [id], onDelete: SetNull)
+  /// « texte », « lieu », « photo » ou « vocal »
+  type           String            @db.VarChar(6)
+  /// UUID v4 tiré par l'app pour cet envoi : un même envoi rejoué ne crée pas de doublon (ni de notification). Sert aussi
+  /// au contexte authentifié du chiffré ; il ne change jamais
+  idClient       String            @map("id_client") @db.VarChar(36)
+  /// CHIFFRÉ, « v<N>:iv:tag:données » (N : version de la clé ; sous-clé « sos-miam/messagerie/textes/v1 », contexte
+  /// « conversation:<id>:message:<idClient> ») : le texte tel quel, pas en JSON (500 caractères, 1 500 octets au plus :
+  /// 2 045 caractères chiffrés) ; pour un message « lieu », le JSON { "l": <lieuId>, "m": <petit mot de 140 caractères ou
+  /// null> } (le lieu partagé ne reste jamais en clair). null : pas de texte, supprimé ou retiré
+  texteChiffre   String?           @map("texte_chiffre") @db.VarChar(2200)
+  /// Photo ou note vocale : nom du fichier CHIFFRÉ dans DOSSIER_MEDIAS_CHAT (« <uuid>.bin ») ; null : pas de média, ou
+  /// expiré, supprimé, retiré (un fichier signalé et pas encore jugé reste sur le disque, rattaché au signalement)
+  fichier        String?           @unique @db.VarChar(80)
+  /// « image/jpeg » ou « audio/mp4 »
+  typeMime       String?           @map("type_mime") @db.VarChar(16)
+  /// Taille du fichier en clair (octets)
+  taille         Int?
+  largeur        Int?              @db.SmallInt
+  hauteur        Int?              @db.SmallInt
+  /// Durée d'une note vocale, relue par le serveur dans le fichier (60 s au plus)
+  dureeSecondes  Int?              @map("duree_secondes") @db.SmallInt
+  /// Photo et vocal : effacés du serveur à cette date (envoi + 90 jours) : « Ce média a expiré »
+  mediaExpireLe  DateTime?         @map("media_expire_le") @db.Timestamptz(0)
+  creeLe         DateTime          @default(now()) @map("cree_le") @db.Timestamptz(3)
+  /// Supprimé pour tout le monde par son auteur (« Message supprimé »)
+  supprimeLe     DateTime?         @map("supprime_le") @db.Timestamptz(0)
+  /// Masqué pour tous dès un signalement « choquant », en attendant la modération
+  suspenduLe     DateTime?         @map("suspendu_le") @db.Timestamptz(0)
+  /// Retiré par la modération (signalement retenu)
+  retireLe       DateTime?         @map("retire_le") @db.Timestamptz(0)
+  reactions      ReactionMessage[]
+
+  @@unique([conversationId, idClient])
+  @@index([conversationId, id])
+  @@index([auteurId, creeLe])
+  @@index([mediaExpireLe])
+  @@map("messages_conversations")
+}
+
+/// Quelqu'un a quitté un groupe de lui-même : pendant 30 jours, un admin ne peut pas l'y réinviter (l'invitation est
+/// ignorée, sans rien dire). Effacé après 30 jours, ou quand il rejoint le groupe plus tard.
+model DepartGroupe {
+  conversationId Int          @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  compteId       Int          @map("compte_id")
+  compte         Compte       @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  partiLe        DateTime     @default(now()) @map("parti_le") @db.Timestamptz(0)
+
+  @@id([conversationId, compteId])
+  @@index([compteId])
+  @@index([partiLe])
+  @@map("departs_groupes")
+}
+
+model ReactionMessage {
+  messageId Int                 @map("message_id")
+  message   MessageConversation @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  compteId  Int                 @map("compte_id")
+  compte    Compte              @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// CODES_REACTIONS de packages/commun : « coeur », « rire », « miam », « pouce », « surprise »
+  reaction  String              @db.VarChar(8)
+  creeLe    DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([messageId, compteId, reaction])
+  @@index([compteId])
+  @@map("reactions_messages")
+}
+
+/// Une invitation à rejoindre un groupe (« Rejoindre le groupe ? », décidé par Hugo le 14 octobre 2026, comme une sortie). Un
+/// admin n'invite qu'un pote de SA bande. Tant qu'il n'a pas accepté, l'invité n'est pas membre (aucune ligne
+/// MembreConversation) : il ne voit ni les messages ni les membres, seulement le titre, l'emoji et qui l'invite. Accepter
+/// efface l'invitation et crée son MembreConversation dans la même transaction ; refuser passe à « refuse », en silence
+/// (celui qui invite voit toujours « invité » et ne peut pas réinviter en boucle). Les invitations en attente comptent dans
+/// les 20 places du groupe, pas les refus. Un blocage entre les deux efface l'invitation en attente. Invitation et refus
+/// sont effacés 30 jours après l'invitation (le ménage), ou avec le groupe.
+model InvitationGroupe {
+  conversationId Int          @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  compteId       Int          @map("compte_id")
+  compte         Compte       @relation("InvitationsGroupesRecues", fields: [compteId], references: [id], onDelete: Cascade)
+  /// L'admin qui a invité ; null s'il a supprimé son compte depuis (l'invitation reste valable)
+  inviteParId    Int?         @map("invite_par_id")
+  invitePar      Compte?      @relation("InvitationsGroupesEnvoyees", fields: [inviteParId], references: [id], onDelete: SetNull)
+  /// « invite » ou « refuse » (accepter efface la ligne : on devient membre)
+  statut         String       @default("invite") @db.VarChar(8)
+  creeLe         DateTime     @default(now()) @map("cree_le") @db.Timestamptz(0)
+  reponduLe      DateTime?    @map("repondu_le") @db.Timestamptz(0)
+
+  @@id([conversationId, compteId])
+  @@index([compteId, statut])
+  @@index([inviteParId])
+  @@index([creeLe])
+  @@map("invitations_groupes")
+}

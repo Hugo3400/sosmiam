@@ -110,6 +110,13 @@ model Compte {
   clocheDonnee               NotificationCloche[]     @relation("ClocheDonnee")
   signalementsFaits          Signalement[]            @relation("SignalementsFaits")
   contenusSignales           Signalement[]            @relation("ContenusSignales")
+  conversationsCreees        Conversation[]           @relation("ConversationsCreees")
+  conversations              MembreConversation[]
+  messagesEcrits             MessageConversation[]    @relation("MessagesEcrits")
+  reactionsMessages          ReactionMessage[]
+  departsGroupes             DepartGroupe[]
+  invitationsGroupes         InvitationGroupe[]       @relation("InvitationsGroupesRecues")
+  invitationsGroupesEnvoyees InvitationGroupe[]       @relation("InvitationsGroupesEnvoyees")
   @@index([derniereConnexion])
   @@map("comptes")
 }
