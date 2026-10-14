@@ -1,15 +1,17 @@
-// /config : choisir les salons du bot. Réservé à ceux qui peuvent gérer le serveur.
+// /config : choisir les salons du bot et le rôle donné à chaque arrivée. Réservé à ceux qui peuvent gérer le serveur.
 import {
   ChannelType,
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
   channelMention,
+  roleMention,
   type ChatInputCommandInteraction,
   type PermissionsString,
 } from "discord.js";
 import { intentMembres } from "../configuration.ts";
 import { creerBloc } from "../fonctions/discord/creer-bloc.ts";
+import { expliquerRefusRole } from "../fonctions/discord/expliquer-refus-role.ts";
 import { COULEURS } from "../interface/couleurs.ts";
 import { lireReglages, modifierReglages, type ReglagesServeur } from "../stockage/reglages-serveurs.ts";
 import type { Commande } from "./type-commande.ts";
@@ -41,12 +43,12 @@ const NOMS_DROITS: Partial<Record<PermissionsString, string>> = {
 };
 
 const AVERTISSEMENT_INTENT =
-  "⚠️ L'accueil ne marchera qu'une fois l'intent « Server Members » activé dans le portail Discord et `INTENT_MEMBRES=1` dans le .env du bot.";
+  "⚠️ L'accueil et le rôle d'arrivée ne marcheront qu'une fois l'intent « Server Members » activé dans le portail Discord et `INTENT_MEMBRES=1` dans le .env du bot.";
 
 export const config: Commande = {
   definition: new SlashCommandBuilder()
     .setName("config")
-    .setDescription("Régler le bot : salons d'accueil, de propositions et d'annonces")
+    .setDescription("Régler le bot : salons d'accueil, de propositions et d'annonces, rôle d'arrivée")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addSubcommand((sous) => sous.setName("voir").setDescription("Affiche les réglages actuels"))
     .addSubcommand((sous) =>
@@ -66,11 +68,18 @@ export const config: Commande = {
         .setName("annonces")
         .setDescription("Salon où je publie les annonces du logiciel de gestion (laisse vide pour désactiver)")
         .addChannelOption((o) => o.setName("salon").setDescription("Salon textuel ou d'annonces").addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)),
+    )
+    .addSubcommand((sous) =>
+      sous
+        .setName("role-arrivee")
+        .setDescription("Rôle que je donne à chaque personne qui arrive (laisse vide pour désactiver)")
+        .addRoleOption((o) => o.setName("role").setDescription("Un rôle sans droit de gestion")),
     ),
 
   async executer(interaction) {
     const sous = interaction.options.getSubcommand();
     if (sous === "voir") return afficherReglages(interaction);
+    if (sous === "role-arrivee") return reglerRoleArrivee(interaction);
     if (sous !== "bienvenue" && sous !== "propositions" && sous !== "annonces") return;
 
     const { cle, libelle, droits } = SALONS[sous];
@@ -97,13 +106,34 @@ export const config: Commande = {
   },
 };
 
+async function reglerRoleArrivee(interaction: ChatInputCommandInteraction<"cached">): Promise<void> {
+  const role = interaction.options.getRole("role");
+  if (!role) {
+    modifierReglages(interaction.guildId, { roleArrivee: undefined });
+    await interaction.reply({ content: "Rôle d'arrivée : désactivé.", flags: MessageFlags.Ephemeral });
+    return;
+  }
+  const refus = expliquerRefusRole(role);
+  if (refus) {
+    await interaction.reply({ content: `Je ne donnerai pas ${roleMention(role.id)} à chaque arrivée : ${refus}.`, flags: MessageFlags.Ephemeral });
+    return;
+  }
+  modifierReglages(interaction.guildId, { roleArrivee: role.id });
+  const avertissement = intentMembres ? "" : `\n${AVERTISSEMENT_INTENT}`;
+  await interaction.reply({
+    content: `Rôle d'arrivée : ${roleMention(role.id)} ✅ Les membres déjà là le recevront au prochain redémarrage du bot.${avertissement}`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 async function afficherReglages(interaction: ChatInputCommandInteraction<"cached">): Promise<void> {
   const reglages = lireReglages(interaction.guildId);
   const lignes = Object.values(SALONS).map(({ cle, libelle }) => {
     const id = reglages[cle];
     return `**${libelle}** · ${id ? channelMention(id) : "désactivé"}`;
   });
-  if (reglages.salonBienvenue && !intentMembres) lignes.push(`\n${AVERTISSEMENT_INTENT}`);
+  lignes.push(`**Rôle donné à chaque arrivée** · ${reglages.roleArrivee ? roleMention(reglages.roleArrivee) : "désactivé"}`);
+  if ((reglages.salonBienvenue || reglages.roleArrivee) && !intentMembres) lignes.push(`\n${AVERTISSEMENT_INTENT}`);
   await interaction.reply({
     components: [creerBloc({ couleur: COULEURS.jaune, parties: ["### ⚙️ Réglages du bot", lignes.join("\n")] })],
     flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,

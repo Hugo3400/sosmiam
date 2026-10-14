@@ -1,4 +1,4 @@
-// Réglages de chaque serveur Discord (salons choisis avec /config), gardés dans donnees/reglages.json.
+// Réglages de chaque serveur Discord (salons et rôle d'arrivée choisis avec /config), gardés dans donnees/reglages.json.
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
@@ -7,6 +7,8 @@ export type ReglagesServeur = {
   salonPropositions?: string;
   /** Salon où le bot publie les annonces écrites dans le logiciel de gestion */
   salonAnnonces?: string;
+  /** Rôle donné à chaque personne qui arrive sur le serveur */
+  roleArrivee?: string;
 };
 
 const fichier = join(import.meta.dirname, "..", "..", "donnees", "reglages.json");

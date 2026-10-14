@@ -6,14 +6,16 @@ import { intentMembres, lireJeton } from "./configuration.ts";
 import { accueillirMembre } from "./evenements/accueillir-membre.ts";
 import { repondreInteraction } from "./evenements/repondre-interaction.ts";
 import { demarrerPublicationAnnonces } from "./taches/publier-annonces.ts";
+import { rattraperRolesArrivee } from "./taches/rattraper-roles-arrivee.ts";
 
-/** Droits demandés par le lien d'invitation : lire et écrire, réagir aux propositions. */
+/** Droits demandés par le lien d'invitation : lire et écrire, réagir aux propositions, donner le rôle d'arrivée. */
 const DROITS_BOT = [
   PermissionFlagsBits.ViewChannel,
   PermissionFlagsBits.SendMessages,
   PermissionFlagsBits.EmbedLinks,
   PermissionFlagsBits.AddReactions,
   PermissionFlagsBits.ReadMessageHistory,
+  PermissionFlagsBits.ManageRoles,
 ];
 
 const intents = [GatewayIntentBits.Guilds];
@@ -39,6 +41,7 @@ client.once(Events.ClientReady, async (pret) => {
   for (const serveur of pret.guilds.cache.values()) await enregistrerCommandes(serveur).catch(console.error);
   if (!intentMembres) console.log("Accueil des nouveaux membres désactivé (INTENT_MEMBRES=0).");
   demarrerPublicationAnnonces(pret);
+  rattraperRolesArrivee(pret).catch((e) => console.error("Rattrapage du rôle d'arrivée impossible :", e));
 });
 
 client.on(Events.GuildCreate, (serveur) => void enregistrerCommandes(serveur).catch(console.error));

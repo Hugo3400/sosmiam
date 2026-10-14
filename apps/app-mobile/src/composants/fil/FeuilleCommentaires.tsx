@@ -1,28 +1,33 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { BlocCommentaire } from "~/composants/fil/BlocCommentaire";
+import { BoutonCommentairesAnciens } from "~/composants/fil/BoutonCommentairesAnciens";
 import { ChampCommentaire } from "~/composants/fil/ChampCommentaire";
 import { ChampCommentaireInvite } from "~/composants/fil/ChampCommentaireInvite";
+import { EnTeteCommentaires } from "~/composants/fil/EnTeteCommentaires";
+import { EtatListeCommentaires } from "~/composants/fil/EtatListeCommentaires";
 import { MenuCommentaire } from "~/composants/fil/MenuCommentaire";
 import { Annonce } from "~/composants/interface/Annonce";
-import { Bouton } from "~/composants/interface/Bouton";
+import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { FeuilleCreerComptePosee } from "~/composants/invite/FeuilleCreerComptePosee";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { trouverAuteurCommentaire } from "~/fonctions/commentaires/trouver-auteur-commentaire";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
-import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
+import { utiliserCommentairesPublication, type ResultatCommentaire } from "~/hooks/utiliser-commentaires-publication";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserOrdreCommentaires } from "~/hooks/utiliser-ordre-commentaires";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -35,25 +40,26 @@ type Props = {
 /** Le commentaire sous lequel ta réponse se range (toujours du premier niveau), la personne à qui tu réponds et son nom */
 type Reponse = { id: string; auteurs: string[]; nom: string };
 
-// Le bandeau honnête de la démo, affiché avec son éprouvette (🧪) mais lu sans
-const TEXTE_DEMO = "Potes d'exemple : tes vrais potes arriveront avec les comptes. D'ici là, tes commentaires restent sur ton téléphone";
-
 // « il y a 5 min » se met à jour tant que la feuille est ouverte
 const RAFRAICHISSEMENT = 30_000;
 // Le lecteur d'écran est replacé une fois la feuille redevenue lisible (le menu des options la cache pendant qu'il est ouvert)
 const DELAI_FOCUS = 150;
 // Après une suppression ou un blocage, le message part juste après le replacement : sinon, le titre relu le couperait
 const DELAI_ANNONCE_APRES_FOCUS = 400;
-// « Je m'inscris » : l'inscription s'ouvre une fois la feuille refermée. Seul iOS le dit ; ailleurs, on attend la fin de sa glissade
+// « Je m'inscris », une mention touchée : l'écran s'ouvre une fois la feuille refermée. Seul iOS le dit ; ailleurs, on attend la fin de sa glissade
 const DUREE_FERMETURE = 450;
-// Sur iOS, au cas où la fin de fermeture ne viendrait pas : on ouvre l'inscription quand même
+// Sur iOS, au cas où la fin de fermeture ne viendrait pas : on ouvre l'écran quand même
 const SECOURS_IOS = 1000;
+// Le bandeau « Masqué · Annuler » se pose au-dessus du champ (et de la pastille « au nom du lieu »)
+const HAUTEUR_CHAMP_GERANT = 112;
 
 /**
  * Les commentaires d'une publication, dans une feuille qui monte du bas comme sur TikTok (la vidéo reste visible au-dessus) :
  * la réponse du lieu en tête, puis les plus aimés ; réponses repliables ; champ en bas avec mentions ; options de chaque commentaire.
+ * Démo : les commentaires du téléphone ; visite et compte : ceux du serveur (utiliserCommentairesPublication).
  * En visite sans compte, on lit tout ; écrire, répondre, aimer et les options posent « Crée ton compte » par-dessus la liste
  * (sans la refermer : après « Plus tard », on reprend la lecture là où on en était). Pas d'appui long sur un commentaire.
+ * Le gérant du lieu peut répondre au nom du lieu, et masquer un commentaire (il part en modération, « Annuler » juste après).
  */
 export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: Props) {
   const marges = useSafeAreaInsets();
@@ -61,12 +67,17 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const animationsReduites = useReducedMotion();
   const communaute = utiliserCommunaute();
   const { trouverPote } = communaute;
+  const discussion = utiliserCommentairesPublication(publicationId);
+  const { fils, nombre, peutRepondreCommeLieu: gerant } = discussion;
+  // En démo, la liste attend aussi que la communauté soit lue sur le téléphone (comme avant)
+  const pret = discussion.pret && (discussion.source !== "demo" || communaute.pret);
   const monId = utiliserMonId();
   const { profil } = utiliserProfil();
   const avecCompte = profil !== null;
-  // « Je m'inscris » touché, feuille pas encore refermée
-  const inscription = useRef(false);
-  const minuterieInscription = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { bandeau, montrer: montrerBandeau, fermer: fermerBandeau } = utiliserBandeauAnnuler();
+  // L'écran à ouvrir une fois la feuille refermée (« Je m'inscris », une mention touchée)
+  const apresFermeture = useRef<Href | null>(null);
+  const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
   const champ = useRef<TextInput>(null);
   const liste = useRef<FlatList<FilCommentaire>>(null);
   const titreFeuille = useRef<Text>(null);
@@ -85,8 +96,10 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [maintenant, setMaintenant] = useState(() => Date.now());
+  // Gérant : le prochain commentaire part au nom du lieu
+  const [commeLieu, setCommeLieu] = useState(false);
   // Ordre des commentaires à l'ouverture : un J'aime ne fait pas sauter un commentaire sous ton doigt
-  const [rangs, setRangs] = useState<Map<string, number> | null>(null);
+  const { ordonnes, oublier: oublierOrdre } = utiliserOrdreCommentaires(fils, pret && !discussion.ratee);
 
   // À chaque ouverture, on repart de la liste (le brouillon reste, sauf une modification en cours)
   const [ouvert, setOuvert] = useState(visible);
@@ -101,7 +114,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       setReponse(null);
       if (edition) setTexte("");
       setEdition(null);
-      setRangs(null);
+      oublierOrdre();
+      fermerBandeau();
     }
   }
 
@@ -124,7 +138,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   useEffect(
     () => () => {
-      if (minuterieInscription.current) clearTimeout(minuterieInscription.current);
+      if (minuterieFermeture.current) clearTimeout(minuterieFermeture.current);
     },
     [],
   );
@@ -144,22 +158,26 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setTimeout(() => deplacerFocusLecteurEcran(declencheurInvitation.current ?? titreFeuille.current), DELAI_FOCUS);
   }
 
-  // « Je m'inscris » : la feuille se referme, puis l'inscription s'ouvre (plus tôt, VoiceOver, qui revient sur 💬 à la fermeture, la quitterait)
-  function inscrire() {
-    if (inscription.current) return;
-    inscription.current = true;
+  // La feuille se referme, puis l'écran s'ouvre (plus tôt, il passerait dessous ; et VoiceOver, qui revient sur 💬 à la fermeture, le quitterait)
+  function fermerPuisOuvrir(destination: Href) {
+    if (apresFermeture.current) return;
+    apresFermeture.current = destination;
     setInvitation(null);
     onFermer();
-    minuterieInscription.current = setTimeout(finirFermeture, Platform.OS === "ios" ? SECOURS_IOS : DUREE_FERMETURE);
+    minuterieFermeture.current = setTimeout(finirFermeture, Platform.OS === "ios" ? SECOURS_IOS : DUREE_FERMETURE);
   }
 
   function finirFermeture() {
-    if (minuterieInscription.current) clearTimeout(minuterieInscription.current);
-    minuterieInscription.current = null;
-    if (!inscription.current) return;
-    inscription.current = false;
-    router.push("/compte");
+    if (minuterieFermeture.current) clearTimeout(minuterieFermeture.current);
+    minuterieFermeture.current = null;
+    const destination = apresFermeture.current;
+    if (!destination) return;
+    apresFermeture.current = null;
+    router.push(destination);
   }
+
+  const inscrire = () => fermerPuisOuvrir("/compte");
+  const ouvrirProfil = (id: string) => fermerPuisOuvrir({ pathname: "/potes/profil/[id]", params: { id } });
 
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
   /** Replace le lecteur d'écran sur le titre de la feuille (ce qu'on vient de toucher a disparu), puis dit ce qui s'est passé */
@@ -168,25 +186,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     if (message) setTimeout(() => annoncer(message), DELAI_ANNONCE_APRES_FOCUS);
   };
   const finAnnonce = useCallback(() => setAnnonce(null), []);
-  const nomDe = (auteur: string) => (auteur === "lieu" ? lieu.nom : (trouverPote(auteur)?.prenom ?? "Quelqu'un"));
-
-  const nombre = communaute.nombreCommentaires(publicationId);
-  const fils = communaute.commentairesDe(publicationId);
-  if (rangs === null && communaute.pret) setRangs(new Map(fils.map((f, index) => [f.commentaire.id, index])));
-  // Le lieu reste en tête, puis ce qui est arrivé depuis l'ouverture (tes commentaires tout frais, en haut pour que tu les voies),
-  // puis les autres dans l'ordre de l'ouverture (plus aimés, plus récents)
-  const rang = (f: FilCommentaire) => rangs?.get(f.commentaire.id) ?? -1;
-  const connus = rangs ? fils.filter((f) => rang(f) >= 0).sort((a, b) => rang(a) - rang(b)) : fils;
-  const nouveaux = rangs ? fils.filter((f) => rang(f) < 0).sort((a, b) => b.commentaire.date.localeCompare(a.commentaire.date)) : [];
-  const ordonnes = [...connus.filter((f) => f.commentaire.auteur === "lieu"), ...nouveaux, ...connus.filter((f) => f.commentaire.auteur !== "lieu")];
+  // « Quelqu'un » : un compte supprimé
+  const nomDe = (c: Commentaire) => (c.auteur === "lieu" ? lieu.nom : (trouverAuteurCommentaire(c, trouverPote)?.prenom ?? "Quelqu'un"));
+  // Tous les commentaires déjà lus, réponses comprises : quand ce nombre bouge, la suite est arrivée
+  const charges = fils.reduce((total, f) => total + 1 + f.reponses.length, 0);
 
   function repondre(commentaire: Commentaire, fil: Commentaire, declencheur: View | null) {
     if (!exigerCompte("commenter", declencheur)) return;
     let brouillon = edition ? "" : texte;
     setEdition(null);
-    setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire.auteur) });
+    setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire) });
     // Réponse à une réponse : tout se range sous le même commentaire, alors on mentionne la personne
-    const pote = commentaire.id !== fil.id && commentaire.auteur !== monId ? trouverPote(commentaire.auteur) : null;
+    const pote = commentaire.id !== fil.id && commentaire.auteur !== monId ? trouverAuteurCommentaire(commentaire, trouverPote) : null;
     if (pote?.pseudo && !brouillon.includes(`@${pote.pseudo}`)) brouillon = `@${pote.pseudo} ${brouillon}`;
     setTexte(brouillon);
     champ.current?.focus();
@@ -200,30 +211,41 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     champ.current?.focus();
   }
 
-  function envoyer(): ResultatTexte {
+  // Attend la réponse du serveur ; si ça coince, le texte reste dans le champ (le champ dit pourquoi)
+  async function envoyer(): Promise<ResultatCommentaire> {
     if (edition) {
-      const verdict = communaute.modifierCommentaire(edition, texte);
+      const id = edition;
+      const verdict = await discussion.modifier(id, texte);
+      // Le commentaire n'est plus là : la liste se relit
+      if (verdict === "introuvable") discussion.relire();
       if (verdict !== "ok") return verdict;
-      setEdition(null);
+      setEdition((e) => (e === id ? null : e));
       setTexte("");
       Keyboard.dismiss();
       annoncer("C'est corrigé ✏️");
       return verdict;
     }
-    const verdict = communaute.commenter(publicationId, texte, reponse?.id);
+    const sous = reponse;
+    const auNomDuLieu = gerant && commeLieu;
+    const verdict = await discussion.commenter(texte, sous?.id, auNomDuLieu);
+    if (verdict === "introuvable" && sous) {
+      // Le commentaire auquel tu réponds est parti : le prochain envoi sera un commentaire tout court
+      setReponse(null);
+      discussion.relire();
+    }
     if (verdict !== "ok") return verdict;
-    if (reponse) setDeplies((d) => ({ ...d, [reponse.id]: true }));
+    if (sous) setDeplies((d) => ({ ...d, [sous.id]: true }));
     else liste.current?.scrollToOffset({ offset: 0, animated: true });
     setReponse(null);
     setTexte("");
     Keyboard.dismiss();
-    annoncer(reponse ? "Réponse envoyée 💬" : "Commentaire envoyé 💬");
+    annoncer(auNomDuLieu ? "Envoyé au nom du lieu 💬" : sous ? "Réponse envoyée 💬" : "Commentaire envoyé 💬");
     return verdict;
   }
 
   // Sans compte : « rejoindre la discussion » (aimer un commentaire en fait partie, la raison « jaime » parle de la publication)
   function aimer(commentaire: Commentaire, declencheur: View | null) {
-    if (exigerCompte("commenter", declencheur)) communaute.basculerJaimeCommentaire(commentaire.id);
+    if (exigerCompte("commenter", declencheur)) discussion.basculerJaime(commentaire.id);
   }
 
   // Le « Sois le premier » de la liste vide : le champ, ou (sans compte) la feuille « Crée ton compte »
@@ -247,7 +269,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   function supprimer(commentaire: Commentaire) {
     setOptions(null);
-    communaute.supprimerCommentaire(commentaire.id);
+    discussion.supprimer(commentaire.id);
     if (edition === commentaire.id) {
       setEdition(null);
       setTexte("");
@@ -256,8 +278,25 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     revenirAuTitre("Commentaire supprimé 🗑️");
   }
 
+  // Gérant : il disparaît tout de suite (et part en modération), « Annuler » le remet
+  function masquer(commentaire: Commentaire) {
+    setOptions(null);
+    if (reponse?.id === commentaire.id) setReponse(null);
+    revenirAuTitre();
+    montrerBandeau("Commentaire masqué, parti en modération 🙈", () => void changerMasque(commentaire.id, false));
+    void changerMasque(commentaire.id, true);
+  }
+
+  async function changerMasque(id: string, masque: boolean) {
+    const erreur = await discussion.masquerCommeLieu(id, masque);
+    if (!erreur) return;
+    if (masque) fermerBandeau();
+    const message = MESSAGES_SERVICE[erreur];
+    annoncer(`Oups, ${masque ? "pas masqué" : "pas remis"}. ${message.titre} ${message.emoji}`);
+  }
+
   function bloquer(commentaire: Commentaire) {
-    const nom = nomDe(commentaire.auteur);
+    const nom = nomDe(commentaire);
     setOptions(null);
     communaute.bloquer(commentaire.auteur);
     if (reponse?.auteurs.includes(commentaire.auteur)) setReponse(null);
@@ -286,8 +325,6 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     else onFermer();
   }
 
-  const titre = nombre === 0 ? "Commentaires" : `${formaterNombreCourt(nombre)} commentaire${nombre > 1 ? "s" : ""}`;
-
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer} onDismiss={finirFermeture}>
       {/* « padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre pour le clavier */}
@@ -313,27 +350,13 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
               <SignalerContenu
                 cible="commentaire"
                 cibleId={signale.id}
-                sujet={signale.auteur === "lieu" ? `le commentaire de ${lieu.nom}` : `le commentaire de ${nomDe(signale.auteur)}`}
+                sujet={`le commentaire de ${nomDe(signale)}`}
                 onTermine={finSignalement}
               />
             </ScrollView>
           ) : (
             <>
-              <View className="flex-row items-center px-3">
-                <View className="w-11" />
-                <Text ref={titreFeuille} accessibilityRole="header" className="flex-1 text-center font-texte-gras text-base text-encre">
-                  {titre}
-                </Text>
-                <Pressable accessibilityRole="button" accessibilityLabel="Fermer les commentaires" onPress={onFermer} className="h-11 w-11 items-center justify-center active:opacity-60">
-                  <Ionicons name="close" size={24} color={couleurs.encre} />
-                </Pressable>
-              </View>
-              <Text
-                accessibilityLabel={`${TEXTE_DEMO}.`}
-                className="mx-5 mb-1 text-center font-texte text-xs leading-4 text-gris"
-              >
-                🧪 {TEXTE_DEMO}.
-              </Text>
+              <EnTeteCommentaires nombre={nombre} demo={discussion.source === "demo"} onFermer={onFermer} refTitre={titreFeuille} />
 
               <FlatList
                 ref={liste}
@@ -344,19 +367,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                 contentContainerClassName="px-5 pb-4 pt-1"
                 contentContainerStyle={{ flexGrow: 1 }}
                 ListEmptyComponent={
-                  <View className="flex-1 items-center justify-center gap-2 px-4 py-8">
-                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
-                      💬
-                    </Text>
-                    <Text accessibilityRole="header" className="text-center font-titre text-xl text-encre">
-                      Sois le premier à commenter
-                    </Text>
-                    <Text className="text-center font-texte text-sm leading-5 text-gris">
-                      Un mot gentil, une question sur le plat, une envie d'y filer ce soir : lance la conversation !
-                    </Text>
-                    <Bouton ref={boutonEcrire} libelle="Écrire un commentaire" variante="blanc" petit onPress={ecrire} className="mt-2" />
-                  </View>
+                  <EtatListeCommentaires
+                    ref={boutonEcrire}
+                    etat={!pret ? "chargement" : discussion.ratee ? "ratee" : "vide"}
+                    onReessayer={discussion.relire}
+                    onEcrire={ecrire}
+                  />
                 }
+                // Une relecture ratée au-dessus d'une liste déjà là : on garde ce qu'on avait, et on peut réessayer
+                ListHeaderComponent={
+                  discussion.ratee && ordonnes.length > 0 ? <EtatListeCommentaires etat="ratee" compact onReessayer={discussion.relire} onEcrire={ecrire} /> : null
+                }
+                ListFooterComponent={discussion.suite ? <BoutonCommentairesAnciens onCharger={discussion.chargerSuite} charges={charges} /> : null}
                 renderItem={({ item }) => (
                   <BlocCommentaire
                     fil={item}
@@ -368,7 +390,9 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                     onRepondre={repondre}
                     onAimer={aimer}
                     onOptions={ouvrirOptions}
+                    onOuvrirProfil={ouvrirProfil}
                     appuiLong={avecCompte}
+                    gerant={gerant}
                   />
                 )}
               />
@@ -387,6 +411,9 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                   }}
                   onEnvoyer={envoyer}
                   margeBas={clavierOuvert ? 8 : marges.bottom + 8}
+                  lieuGere={gerant ? lieu : null}
+                  commeLieu={commeLieu}
+                  onCommeLieu={setCommeLieu}
                 />
               ) : (
                 <ChampCommentaireInvite onCreerCompte={(bouton) => exigerCompte("commenter", bouton)} margeBas={marges.bottom + 8} />
@@ -398,13 +425,16 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
       <MenuCommentaire
         commentaire={options}
-        nomAuteur={options ? nomDe(options.auteur) : ""}
+        nomAuteur={options ? nomDe(options) : ""}
         onModifier={modifier}
         onSupprimer={supprimer}
         onSignaler={signaler}
         onBloquer={bloquer}
+        onMasquer={masquer}
         onFermer={fermerOptions}
+        gerant={gerant}
       />
+      <BandeauAnnuler bandeau={bandeau} bas={marges.bottom + HAUTEUR_CHAMP_GERANT} onFermer={fermerBandeau} />
       <FeuilleCreerComptePosee raison={invitation} onInscrire={inscrire} onFermer={fermerInvitation} />
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={finAnnonce} />
     </Modal>
