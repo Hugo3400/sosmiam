@@ -57,10 +57,10 @@ export const sectionCommentairesCgu: SectionLegale = {
   blocs: [
     {
       liste: [
-        "**Les commentaires** sous les publications du fil sont **publics** : tout le monde peut les lire. Ils font 500 caractères au plus ; tu peux répondre à un commentaire, l'aimer, citer quelqu'un avec « @ » (10 personnes au plus), modifier les tiens (« modifié » s'affiche) ou les supprimer (s'ils ont déjà des réponses, « Commentaire supprimé » reste à leur place).",
-        "**Le filtre de mots** refuse les insultes et la haine les plus courantes dans les commentaires, les messages et les pseudos. C'est une première barrière, pas un juge : ce qui passe le filtre doit quand même respecter les règles.",
+        "**Les commentaires** sous les publications du fil sont **publics** : tout le monde peut les lire, même sans compte. Pour en écrire, il faut un pseudo ; ils font 500 caractères au plus (20 par heure). Tu peux répondre à un commentaire, l'aimer, citer quelqu'un avec « @ » (10 personnes au plus), modifier les tiens (« modifié » s'affiche) ou les supprimer (s'ils ont déjà des réponses, « Commentaire supprimé » reste à leur place).",
+        "**Le filtre de mots** refuse les insultes et la haine les plus courantes dans les commentaires, les messages, les titres des groupes, des sorties et des listes, les pseudos et les prénoms. C'est une première barrière, pas un juge : ce qui passe le filtre doit quand même respecter les règles.",
         "**La réponse du lieu** est mise en avant sous sa publication. Elle est écrite par quelqu'un de son équipe, au nom du lieu.",
-        "**Le gérant d'un lieu peut masquer un commentaire sous sa propre publication** : le commentaire ne se voit plus que de son auteur, qui est prévenu, et il part en modération. Si notre équipe ne trouve rien à redire, il revient en ligne, et le lieu ne peut plus le masquer. Masquer une critique honnête n'est pas le but : c'est fait pour les commentaires qui ne respectent pas les règles.",
+        "**Le gérant d'un lieu peut masquer un commentaire sous sa propre publication** (sauf la réponse du lieu) : le commentaire ne se voit plus que de son auteur, qui est prévenu dans l'app, et il part en modération. Si notre équipe ne trouve rien à redire, le lieu ne peut plus jamais le masquer, et le commentaire reviendra en ligne (l'outil qui le remet en ligne arrive **bientôt** dans notre logiciel). Masquer une critique honnête n'est pas le but : c'est fait pour les commentaires qui ne respectent pas les règles.",
         "**Les listes de lieux** : tu en crées 50 au plus (100 lieux chacune), tu choisis qui les voit (tout le monde, ou ta bande) et tu peux inviter jusqu'à 10 potes de ta bande à les remplir avec toi. Un co-auteur ne retire que les lieux qu'il a ajoutés.",
       ],
     },
@@ -87,7 +87,8 @@ export const sectionBloquerCgu: SectionLegale = {
   id: "bloquer",
   titre: "Bloquer quelqu'un",
   blocs: [
-    "Bloquer quelqu'un coupe tout, **dans les deux sens**, partout dans l'app : vous sortez de vos bandes, vos demandes, vos abonnements, vos invitations en attente et vos notifications entre vous sont effacés, et ses messages, réactions, votes, commentaires, listes et activité te sont cachés, comme les tiens à lui. Il ne peut plus te trouver par ton pseudo.",
-    "Tu retrouves les personnes bloquées dans les réglages de l'app (« Personnes bloquées »). Débloquer ne rétablit rien : il faudra vous ajouter à nouveau.",
+    "Bloquer quelqu'un coupe le lien **dans les deux sens** : vous sortez de vos bandes, et vos demandes, vos abonnements, vos invitations en attente, vos co-écritures de listes et vos notifications entre vous sont effacés. Il quitte les sorties que tu organises. Vous ne vous trouvez plus par vos pseudos, vous ne vous êtes plus proposés l'un à l'autre, et ses messages, ses listes et son activité te sont cachés, comme les tiens à lui. Il n'en est pas prévenu.",
+    "Deux limites, pour être clair : tes commentaires sont publics, donc lisibles par tout le monde, lui compris (l'app te cache les siens, et vous ne pouvez plus vous répondre, vous aimer ni vous citer) ; et dans une sortie organisée par quelqu'un d'autre, vous restez tous les deux participants. Si quelqu'un t'importune, tu peux aussi le signaler.",
+    "Tu retrouves les personnes bloquées dans les réglages de l'app (« Personnes bloquées »), 1 000 au plus. Débloquer ne rétablit rien : il faudra vous ajouter à nouveau.",
   ],
 };
