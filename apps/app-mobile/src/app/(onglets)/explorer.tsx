@@ -31,6 +31,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle, type ErreurPosition } from "~/hooks/utiliser-position-actuelle";
@@ -146,16 +147,13 @@ export default function Explorer() {
     return { portee };
   }, [filtres.ville, portee, position, pointDeDepart, rayon, region]);
   const cadre = useMemo(() => (zone ? calculerCadrePortee(zone) : null), [zone]);
-  const lieux = useMemo(
-    () =>
-      trierLieuxExplorer(
-        filtrerLieuxExplorer(zone ? lieuxActuels.filter((l) => estDansPortee(l, zone)) : lieuxActuels, filtres, maintenant),
-        profil,
-        position,
-        pointDeDepart,
-      ),
-    [lieuxActuels, zone, filtres, maintenant, profil, position, pointDeDepart],
-  );
+  // Filtre « Événements » : seulement les lieux qui en ont un sur la période (null tant que c'est coupé ou pas encore lu)
+  const evenementsParLieu = utiliserEvenementsExplorer(filtres.evenement, age);
+  const lieux = useMemo(() => {
+    const dansLaZone = zone ? lieuxActuels.filter((l) => estDansPortee(l, zone)) : lieuxActuels;
+    const avecEvenement = filtres.evenement ? dansLaZone.filter((l) => evenementsParLieu?.has(l.id) ?? false) : dansLaZone;
+    return trierLieuxExplorer(filtrerLieuxExplorer(avecEvenement, filtres, maintenant), profil, position, pointDeDepart);
+  }, [lieuxActuels, zone, filtres, evenementsParLieu, maintenant, profil, position, pointDeDepart]);
   const choixZone = useMemo(
     (): ChoixZone => (filtres.ville ? { portee: null, rayonKm: rayon, ville: filtres.ville } : { portee, rayonKm: rayon, ville: null }),
     [filtres.ville, portee, rayon],
@@ -358,6 +356,7 @@ export default function Explorer() {
             enTete={outils}
             vide={vide}
             onChangerHauteur={setHauteurFeuille}
+            evenements={evenementsParLieu}
           />
         </View>
       ) : null}

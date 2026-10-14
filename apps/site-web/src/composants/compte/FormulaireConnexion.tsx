@@ -14,12 +14,14 @@ type Props = {
    * site (« Mon compte » de sosmiam.fr → ambassadeur.sosmiam.fr), alors en lien classique
    */
   adresseOubli?: string;
+  /** Déjà dans un cadre (avec les boutons Apple et Google, dans « Mon compte ») : pas de cadre à lui */
+  sansCadre?: boolean;
 };
 
 /**
  * Formulaire de connexion (action de routes/compte/connexion.tsx, et de routes/compte/mon-compte.tsx sur sosmiam.fr).
  */
-export function FormulaireConnexion({ retour, adresseOubli = "/mot-de-passe-oublie" }: Props) {
+export function FormulaireConnexion({ retour, adresseOubli = "/mot-de-passe-oublie", sansCadre = false }: Props) {
   const texteOubli = lierPonctuation("Mot de passe oublié ?");
   const lienOubli = adresseOubli.startsWith("https://")
     ? <a href={adresseOubli} className={`text-sm ${classeLien}`}>{texteOubli}</a>
@@ -29,7 +31,7 @@ export function FormulaireConnexion({ retour, adresseOubli = "/mot-de-passe-oubl
       nom="connexion"
       bouton="Se connecter"
       boutonEnvoi="Connexion…"
-      className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10"
+      className={sansCadre ? "" : "rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10"}
       apres={lienOubli}
     >
       {retour && <input type="hidden" name="retour" value={retour} />}

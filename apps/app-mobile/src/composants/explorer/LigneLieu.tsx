@@ -2,12 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
+import { TYPES_EVENEMENT_ECRITS } from "@sos-miam/commun/contenus/types-evenement";
+import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
+import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -24,13 +28,15 @@ type Props = {
   /** Lieu touché sur la carte : la ligne est mise en avant */
   selectionne: boolean;
   onOuvrir: (id: number) => void;
+  /** Filtre « Événements » : l'événement de ce lieu sur la période */
+  evenement?: EvenementLieuPublic | null;
 };
 
 // « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
 const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
-export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir }: Props) {
+export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir, evenement = null }: Props) {
   const ouvert = estOuvertMaintenant(lieu);
   const distance = formaterDistance(km);
   // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)
@@ -48,6 +54,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
     lieu.alerte && !sos ? lieu.alerte : null,
     offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
+    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -89,6 +96,11 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
           <View className="mt-1">
             <MentionPrevention variante="courte" />
           </View>
+        ) : null}
+        {evenement ? (
+          <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-white px-2 py-0.5 font-texte-gras text-xs text-encre">
+            {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
+          </Text>
         ) : null}
         {verifie ? null : (
           <View className="mt-1">

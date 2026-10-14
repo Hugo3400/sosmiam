@@ -4,7 +4,7 @@ import { Keyboard, Platform, Pressable, ScrollView, Text, View } from "react-nat
 
 import type { Lieu, TypeLieu } from "@sos-miam/commun/types/lieu";
 import { FeuilleZoneExplorer, type ChoixZone } from "~/composants/explorer/FeuilleZoneExplorer";
-import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
+import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres, type PeriodeEvenements } from "~/contenus/type-filtres-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
@@ -41,6 +41,11 @@ const tousLesBudgets: { cle: Lieu["prix"]; lu: string }[] = [
   { cle: "€€€", lu: "Budget plaisir" },
 ];
 
+const PERIODES: { cle: PeriodeEvenements; libelle: string; lu: string }[] = [
+  { cle: "ce-soir", libelle: "Ce soir", lu: "Événements ce soir" },
+  { cle: "ce-week-end", libelle: "Ce week-end", lu: "Événements ce week-end" },
+];
+
 const classePastille = (choisi: boolean) =>
   `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-encre" : "bg-white"}`;
 const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ? "text-jaune" : "text-encre"}`;
@@ -55,7 +60,8 @@ function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): 
 
 /**
  * La rangée de filtres d'Explorer, qui défile de côté : d'abord la zone (à quelques km, ta région, toute la France ou une
- * ville, pour la carte comme pour la liste), puis type de lieu (un seul), « Ouvert maintenant » et budgets (plusieurs).
+ * ville, pour la carte comme pour la liste), puis type de lieu (un seul), « Ouvert maintenant », événements (ce soir ou ce
+ * week-end) et budgets (plusieurs).
  * « Effacer » apparaît dès qu'un filtre est actif ; il garde la recherche tapée (la barre a sa propre croix) et la zone.
  */
 export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, region, autourDe, onChangerZone }: Props) {
@@ -65,7 +71,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
   const zoneDecrite = decrireZone(zone, region, autourDe);
 
   const types = tousLesTypes.filter((t) => t.cle !== "bar" || barsPermis);
-  const nombreActifs = (filtres.type !== "tous" ? 1 : 0) + (filtres.ville ? 1 : 0) + filtres.budgets.length + (filtres.ouvertMaintenant ? 1 : 0);
+  const nombreActifs = (filtres.type !== "tous" ? 1 : 0) + (filtres.ville ? 1 : 0) + filtres.budgets.length + (filtres.ouvertMaintenant ? 1 : 0) + (filtres.evenement ? 1 : 0);
 
   function changer(modif: Partial<ChoixFiltres>) {
     vibrerLegerement();
@@ -174,6 +180,24 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           <Ionicons name={filtres.ouvertMaintenant ? "time" : "time-outline"} size={16} color={filtres.ouvertMaintenant ? couleurs.jaune : couleurs.encre} />
           <Text className={classeTexte(filtres.ouvertMaintenant)}>Ouvert maintenant</Text>
         </Pressable>
+
+        {/* Événements : un seul choix, qu'on retouche pour l'enlever */}
+        {PERIODES.map((p) => {
+          const choisi = filtres.evenement === p.cle;
+          return (
+            <Pressable
+              key={p.cle}
+              accessibilityRole="switch"
+              accessibilityLabel={p.lu}
+              accessibilityState={{ checked: choisi }}
+              onPress={() => changer({ evenement: choisi ? null : p.cle })}
+              className={classePastille(choisi)}
+            >
+              <Text className="text-[14px]">🎟️</Text>
+              <Text className={classeTexte(choisi)}>{p.libelle}</Text>
+            </Pressable>
+          );
+        })}
 
         <View className="h-6 w-0.5 rounded-full bg-encre/20" />
 

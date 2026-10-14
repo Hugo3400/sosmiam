@@ -12,6 +12,7 @@ import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
+import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -38,6 +39,8 @@ type Props = {
   vide: ReactNode;
   /** Hauteur visible actuelle (pour cadrer la carte) */
   onChangerHauteur?: (hauteur: number) => void;
+  /** Filtre « Événements » : l'événement de chaque lieu sur la période, montré dans sa ligne */
+  evenements?: Map<number, EvenementLieuPublic> | null;
 };
 
 type Cran = "carte" | "repliee" | "moitie" | "depliee";
@@ -65,7 +68,7 @@ const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", 
  * À poser par l'écran en bas (position absolue, au-dessus de la barre d'onglets) : elle gère elle-même sa hauteur.
  */
 export function FeuilleLieux(props: Props) {
-  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur } = props;
+  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements } = props;
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -344,6 +347,7 @@ export function FeuilleLieux(props: Props) {
                 image={vignettes.get(item.lieu.id) ?? null}
                 selectionne={item.lieu.id === selection}
                 onOuvrir={onOuvrir}
+                evenement={evenements?.get(item.lieu.id) ?? null}
               />
             )}
           />

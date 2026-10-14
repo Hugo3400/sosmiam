@@ -17,9 +17,13 @@ export const CHAPO_VISITEUR =
 /** Sous le titre, une fois connecté. */
 export const CHAPO_CONNECTE = "Tes infos, ton mot de passe, tes données, et la porte de sortie si tu en as besoin.";
 
-/** Comptes créés dans l'app avec Apple ou Google : pas de mot de passe, donc pas de connexion sur le site sans en créer un. */
+/** Comptes créés avec Apple ou Google : pas de mot de passe, le même bouton les connecte ici aussi. */
 export const AIDE_APPLE_GOOGLE =
-  "Tu t'es inscrit dans l'app avec Apple ou Google ? Tu n'as pas encore de mot de passe : touche « Mot de passe oublié ? » et donne l'adresse e-mail de ton compte (celle qu'Apple ou Google nous a transmise). Tu reçois un lien pour en choisir un, puis tu reviens ici te connecter.";
+  "Tu t'es inscrit avec Apple ou Google ? Touche le même bouton, juste au-dessus. Tu préfères un mot de passe ? Touche « Mot de passe oublié ? » et donne l'adresse e-mail de ton compte (celle qu'Apple ou Google nous a transmise) : tu reçois un lien pour en choisir un.";
+
+/** « Mon mot de passe » d'un compte sans mot de passe (créé avec Apple ou Google) */
+export const AIDE_SANS_MOT_DE_PASSE =
+  "Tu te connectes avec Apple ou Google : ton compte n'a pas de mot de passe chez nous. Envie d'en avoir un quand même ? Déconnecte-toi, puis touche « Mot de passe oublié ? » avec l'adresse e-mail de ton compte.";
 
 /** Le délai de réponse à une demande sur tes données (délai du RGPD, repris de la politique de confidentialité). */
 export const DELAI_REPONSE = "dans un délai d'un mois au plus";

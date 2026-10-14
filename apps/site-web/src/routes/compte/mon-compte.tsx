@@ -14,14 +14,21 @@ import { PartieSupprimerSansConnexion } from "~/composants/compte/PartieSupprime
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { site } from "~/contenus/legal/informations-legales";
-import { accueilsMonCompte, CHAPO_CONNECTE, CHAPO_VISITEUR } from "~/contenus/mon-compte";
+import { messagesConnexionExterne } from "~/contenus/connexion-externe";
+import { accueilsMonCompte, AIDE_SANS_MOT_DE_PASSE, CHAPO_CONNECTE, CHAPO_VISITEUR } from "~/contenus/mon-compte";
 import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
+import { choisirCodeConnexionExterne } from "~/fonctions/connexion-externe/choisir-code-connexion-externe";
+import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
 import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
 import { lireEspaceMonCompte } from "~/fonctions/hotes/lire-espace-mon-compte";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { changerMotDePasse, decrireAttente, MESSAGE_OCCUPE, modifierCompte, supprimerCompte } from "~/services/comptes.server";
+import {
+  changerMotDePasse, decrireAttente, lireConnexionsCompte, MESSAGE_OCCUPE, modifierCompte, supprimerCompte, supprimerCompteAvecFournisseur,
+} from "~/services/comptes.server";
+import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
+import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
 import {
   effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
@@ -83,9 +90,23 @@ export async function loader({ request }: Route.LoaderArgs) {
     const accueil = url.searchParams.has("au-revoir") ? accueilsMonCompte["au-revoir"] : url.searchParams.has("deconnecte") ? accueilsMonCompte.deconnecte : null;
     // Sur sosmiam.fr, « Mot de passe oublié » vit sur l'espace ambassadeur (le lien reçu par mail y mène aussi)
     const adresseOubli = url.hostname === site.adresse ? `https://${HOTE_AMBASSADEUR}/mot-de-passe-oublie` : "/mot-de-passe-oublie";
-    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli };
+    const messageExterne = lireMessageConnexionExterne(url.searchParams.get("externe"));
+    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli, fournisseurs: lireFournisseursActifs(), messageExterne };
   }
-  const { compte } = await exigerCompte(request);
+  const { jeton, compte } = await exigerCompte(request);
+  // Compte sans mot de passe (créé avec Apple ou Google) : la suppression se confirme en se reconnectant avec le compte lié
+  // (si l'API ne répond pas, la page reste celle d'un compte avec mot de passe : l'API tranche de toute façon)
+  const connexions = await lireConnexionsCompte(jeton, lireIpVisiteur(request));
+  const actifs = lireFournisseursActifs();
+  const attente = lireCookieAttente(request, Date.now());
+  const sansMotDePasse = connexions.ok && !connexions.connexions.motDePasse
+    ? {
+        lies: (["apple", "google"] as const).filter((fournisseur) => connexions.connexions[fournisseur] && actifs[fournisseur]),
+        pret: attente?.intention === "suppression" ? attente.fournisseur : null,
+        depart: espace === "ambassadeur" ? "/espace/mon-compte" as const : "/mon-compte" as const,
+        message: lireMessageConnexionExterne(url.searchParams.get("externe")),
+      }
+    : null;
   // La marque est l'heure du changement (Date.now() en base 36) : passé 2 minutes (rechargement, retour arrière, adresse
   // tapée à la main), plus de message
   const marque = url.searchParams.get(PARAMETRE_CHANGE);
@@ -101,6 +122,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     espace,
     retour,
     suppression,
+    sansMotDePasse,
   };
 }
 
@@ -178,6 +200,22 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     return { ok: false, formulaire: nom, message: expliquer(reponse) };
   }
 
+  if (nom === "suppression-externe") {
+    // Le jeton d'Apple ou de Google, gardé côté serveur après la reconnexion (10 minutes au plus)
+    const attente = lireCookieAttente(request, Date.now());
+    if (attente?.intention !== "suppression") return { ok: false, formulaire: nom, message: lierPonctuation(messagesConnexionExterne.expire) };
+    const reponse = await supprimerCompteAvecFournisseur(jeton, ip, attente.fournisseur, attente.jeton, attente.nonce);
+    const apres = page.espace === "site" ? "/mon-compte?au-revoir" : "/connexion?au-revoir";
+    if (reponse.ok) {
+      const entetes = new Headers();
+      entetes.append("Set-Cookie", await effacerCookieSession());
+      entetes.append("Set-Cookie", effacerCookieAttente());
+      throw redirect(apres, { headers: entetes });
+    }
+    await redirigerSiSessionFermee(request, reponse.erreur);
+    return { ok: false, formulaire: nom, message: lierPonctuation(messagesConnexionExterne[choisirCodeConnexionExterne(reponse.erreur)]) };
+  }
+
   throw data("Formulaire inconnu", { status: 400 });
 }
 
@@ -215,7 +253,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           </p>
         )}
         <div className="grid gap-8">
-          <ConnexionMonCompte adresseOubli={loaderData.adresseOubli} />
+          <ConnexionMonCompte adresseOubli={loaderData.adresseOubli} fournisseurs={loaderData.fournisseurs} messageExterne={loaderData.messageExterne} />
           <PartieSupprimerSansConnexion />
           <PartieMesDonnees connecte={false} />
         </div>
@@ -224,7 +262,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  const { prenom, email, lieu, suppression } = loaderData;
+  const { prenom, email, lieu, suppression, sansMotDePasse } = loaderData;
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation(surSite ? CHAPO_CONNECTE : "Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
@@ -235,14 +273,16 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>
         <PartieCompte id="mon-mot-de-passe" titre="Mon mot de passe">
-          <FormulaireChangerMotDePasse email={email} confirmation={confirmation} />
+          {sansMotDePasse
+            ? <p className="text-gris">{lierPonctuation(AIDE_SANS_MOT_DE_PASSE)}</p>
+            : <FormulaireChangerMotDePasse email={email} confirmation={confirmation} />}
         </PartieCompte>
         <PartieCompte id="me-deconnecter" titre="Me déconnecter">
-          <p className="mb-5 text-gris">Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.</p>
+          <p className="mb-5 text-gris">{lierPonctuation(sansMotDePasse ? "Sur cet appareil. Tu pourras te reconnecter quand tu veux avec Apple ou Google." : "Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.")}</p>
           <BoutonDeconnexion apres={surSite ? "/mon-compte" : undefined} />
         </PartieCompte>
         <PartieCompte id="supprimer-mon-compte" titre="Supprimer mon compte">
-          <FormulaireSupprimerCompte espace={suppression} />
+          <FormulaireSupprimerCompte espace={suppression} sansMotDePasse={sansMotDePasse ?? undefined} />
         </PartieCompte>
         {surSite && <PartieMesDonnees connecte />}
       </div>
