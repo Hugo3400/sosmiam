@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { calculerClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
 import { RondPote } from "~/composants/potes/RondPote";
-import { calculerClassement } from "~/fonctions/communaute/calculer-classement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
@@ -24,7 +24,7 @@ export function ClassementPotes() {
   const { potes, moi } = utiliserCommunaute();
   const voitEnEntier = utiliserVoitEnEntier();
   if (!voitEnEntier) return null;
-  const classement = calculerClassement(potes.filter((p) => voitEnEntier(p.id)), moi);
+  const classement = calculerClassement([...potes.filter((p) => voitEnEntier(p.id)), moi], moi.id);
   const mois = MOIS[new Date().getMonth()];
   // « d'octobre », « de mars »
   const titre = `Classement ${/^[aeiouyéè]/.test(mois) ? "d'" : "de "}${mois}`;
@@ -43,8 +43,8 @@ export function ClassementPotes() {
       </View>
 
       <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
-        {classement.map(({ pote, rang, estMoi }, i) => {
-          const exAequo = classement.some((autre) => autre.rang === rang && autre.pote.id !== pote.id);
+        {classement.map(({ personne: pote, rang, estMoi }, i) => {
+          const exAequo = classement.some((autre) => autre.rang === rang && autre.personne.id !== pote.id);
           const nom = estMoi ? "Toi" : pote.prenom;
           const lu = [
             `${ordinal(rang)}${exAequo ? " ex æquo" : ""}`,

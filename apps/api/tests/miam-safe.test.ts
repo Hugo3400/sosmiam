@@ -144,3 +144,29 @@ test("Miam Safe : le texte de la notification dit où, jamais qui en entier", ()
   assert.equal(ecrireTexteAlerte("terrasse", "table 12"), "En terrasse · table 12. Va la voir discrètement.");
   assert.equal(ecrireTexteAlerte("salle", ""), "En salle. Va la voir discrètement.");
 });
+
+test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de l'équipe", async () => {
+  // Le service se branche sur la base au chargement, sans s'y connecter : la table des téléphones est un double
+  process.env.DATABASE_URL ??= "postgresql://essai@127.0.0.1:1/essai";
+  const { prevenirEquipeMiamSafe } = await import("../src/services/notifications/prevenir-equipe-miam-safe.ts");
+  const telephones = [
+    { id: 1, jeton: "serveur-connecte", plateforme: "ios", sessionId: 31 as number | null },
+    { id: 2, jeton: "ancien-telephone-deconnecte", plateforme: "android", sessionId: null },
+  ];
+  const filtres: unknown[] = [];
+  const table = {
+    findMany: async ({ where }: { where: { sessionId?: { not: null } } }) => {
+      filtres.push(where);
+      return telephones.filter((t) => where.sessionId === undefined || t.sessionId !== null).map(({ id, jeton, plateforme }) => ({ id, jeton, plateforme }));
+    },
+    update: async () => {},
+  };
+  const recus: string[] = [];
+  await prevenirEquipeMiamSafe(
+    { lieuId: 18, prenom: "Léa", endroit: "salle", detail: "" },
+    async (appareil) => { recus.push(appareil.jeton); return "envoyee"; },
+    table as never,
+  );
+  assert.deepEqual(recus, ["serveur-connecte"]);
+  assert.deepEqual((filtres[0] as { sessionId: unknown }).sessionId, { not: null });
+});

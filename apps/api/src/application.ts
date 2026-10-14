@@ -52,6 +52,7 @@ import type { LieuDuPlan } from "./services/lieux-publics.ts";
 import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
 import type { ServicesZones } from "./services/zones-fondateurs.ts";
+import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/social-app.ts";
 
 type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
@@ -111,6 +112,10 @@ type Dependances = {
   /** Connexion par QR code, comme Discord (routes /comptes/qr sans session, /app/qr avec la session de l'app ; seulement
    * avec `comptes`) */
   connexionQr?: DependancesConnexionQr;
+  /** L'app, avec session : profil social, personnes, masques, pouls et cloche, puis bande, suivis entre personnes,
+   * messagerie, sorties, listes, commentaires et signalements sociaux (routes /app/social, /app/personnes, /app/masques,
+   * /app/cloche… ; seulement avec `comptes`). Les commentaires se liront sans session */
+  socialApp?: DependancesSocialApp;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -129,6 +134,7 @@ export function creerApplication({
   newsletter, appareilsApp,
   defisApp,
   connexionQr,
+  socialApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -200,6 +206,9 @@ export function creerApplication({
         limiteConnectee, protection.exigerAmbassadeurActif, creerRoutesEspaceAmbassadeur(espaceAmbassadeur), gererErreursComptes,
       );
     }
+    // La partie sociale de l'app (même compte, même session), avant les routeurs /app sans session ; ce qu'elle ne connaît pas
+    // passe au routeur suivant
+    if (socialApp) application.use("/app", creerRoutesSocialesApp(socialApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
   }
 
   // L'app, sans session : heure du serveur et version minimale

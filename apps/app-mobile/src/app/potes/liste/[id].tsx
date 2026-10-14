@@ -4,7 +4,6 @@ import { useCallback, useState, type ReactNode } from "react";
 import { Alert, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
@@ -19,6 +18,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
@@ -34,6 +34,7 @@ export default function EcranListePartagee() {
   const marges = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const { trouverLieu } = utiliserLieux();
@@ -85,8 +86,8 @@ export default function EcranListePartagee() {
     );
   }
 
-  const estAMoi = liste.auteur === ID_MOI;
-  const suivie = liste.abonnes.includes(ID_MOI);
+  const estAMoi = liste.auteur === monId;
+  const suivie = liste.abonnes.includes(monId);
   const peutAjouter = estAMoi || suivie;
   const auteur = communaute.trouverPote(liste.auteur);
   const abonnes = liste.abonnes

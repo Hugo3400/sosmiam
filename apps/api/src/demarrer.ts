@@ -66,6 +66,10 @@ import { desinscrireAppareil, inscrireAppareil } from "./services/appareils-push
 import { creerDefis } from "./services/defis.ts";
 import { brancherReevaluationDefis } from "./fonctions/defis/brancher-reevaluation-defis.ts";
 import { servicesConnexionQr } from "./services/connexion-qr.ts";
+import { creerDependancesSociales } from "./services/dependances-sociales.ts";
+import { contesterSignalement } from "./services/gestion/moderation.ts";
+import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
+import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -111,6 +115,18 @@ const minuteurCourriels = process.env.SCHEMA_BASE ? undefined : setInterval(pass
 // Notifications programmées (logiciel de gestion) : envoyées à Apple et Google dès leur heure, vérifié toutes les 30 secondes
 const envoyerLesNotifications = () => traiterNotifications().catch((erreur: unknown) => console.error("Notifications :", resumerErreur(erreur)));
 const minuteurNotifications = process.env.SCHEMA_BASE ? undefined : setInterval(envoyerLesNotifications, 30_000);
+// Partie sociale de l'app (profil social, personnes, masques, pouls, cloche ; puis bande, messagerie, sorties…) : textes,
+// médias, codes et instantanés chiffrés avec des sous-clés de la clé des données (503 sans elle) ; les notifications
+// sociales partent par prevenirCompte, hors anti-spam (réponse de Hugo du 14/10/2026)
+const socialApp = creerDependancesSociales({
+  chiffrement, prevenirCompte, contesterSignalement, lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), tirer: (max) => randomInt(max),
+});
+// Sorties : chaque minute, les votes échus reçoivent leur lieu retenu, et les participants sont prévenus (cloche et
+// téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma
+const arreterVotes = process.env.SCHEMA_BASE ? () => {} : planifierFinDesVotes({
+  sorties: socialApp.sorties,
+  appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
+});
 
 const serveur = creerApplication({
   enregistrerInscription,
@@ -189,6 +205,8 @@ const serveur = creerApplication({
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },
   newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
+  // Potes, profils, masques, pouls et cloche de l'app (routes /app/social, /app/personnes, /app/masques, /app/cloche…)
+  socialApp,
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });
@@ -200,6 +218,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     clearInterval(minuteurCourriels);
     clearInterval(minuteurNotifications);
     arreterSauvegardes();
+    arreterVotes();
     serveur.close(() => {
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus
       compteur.vider(new Date(), true).catch(() => {}).finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));

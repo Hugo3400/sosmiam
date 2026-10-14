@@ -8,12 +8,17 @@ export const DUREE_QR = 2 * 60_000;
 export const FENETRE_REPONSE_QR = 60_000;
 /** Une demande acceptée juste avant la fin du QR se récupère encore pendant ce temps (l'appareil interroge toutes les 2 s) */
 export const RATTRAPAGE_ACCEPTEE_QR = 30_000;
+/** La réponse « accepte » s'est perdue : le même secret qui revient dans les 30 s après la PREMIÈRE remise reçoit une
+ * nouvelle session (l'ancienne est révoquée) */
+export const FENETRE_RELANCE_QR = 30_000;
+/** Au plus 3 sessions remises pour une même demande (la première et deux relances) */
+export const REMISES_MAX_QR = 3;
 /** Le ménage de nuit efface les demandes expirées depuis plus d'un jour */
 export const GARDE_APRES_EXPIRATION_QR = 24 * 60 * 60_000;
 
 export type CibleQr = "site" | "app";
 export type OrigineQr = "sosmiam.fr" | "ambassadeur.sosmiam.fr" | "pro.sosmiam.fr" | "app";
-/** « utilisee » : la session a été donnée (une seule fois) */
+/** « utilisee » : la session a été donnée (relançable 30 s, 3 remises au plus : voir choisirRemiseQr) */
 export type StatutQr = "attente" | "scanne" | "accepte" | "refuse" | "utilisee";
 
 export type DemandeQr = {
@@ -44,6 +49,10 @@ export type ServicesConnexionQr = {
   noterScan: (id: number, compteId: number, maintenant: number) => Promise<boolean>;
   /** « scanne » par ce compte → « accepte » ou « refuse » */
   repondre: (id: number, compteId: number, accepte: boolean, maintenant: number) => Promise<boolean>;
-  /** « accepte » → « utilisee » : celui qui gagne ouvre LA session */
-  utiliser: (id: number) => Promise<boolean>;
+  /**
+   * Remet LA session (jeton déjà tiré, seule son empreinte arrive ici) : « accepte » → « utilisee », ou relance dans les 30 s
+   * après la première remise (3 au plus) : la session remise avant est révoquée. Tout d'un bloc, sous verrou : de deux appels
+   * simultanés, jamais deux sessions valables à la fin. Faux (rien n'est créé) si la demande ne permet pas de remise.
+   */
+  remettre: (id: number, empreinteSession: string, maintenant: number) => Promise<boolean>;
 };

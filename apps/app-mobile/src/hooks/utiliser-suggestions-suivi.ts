@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { bandesExemples } from "~/contenus/suivis-exemples";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
@@ -11,6 +10,7 @@ import { suggererPersonnes } from "~/fonctions/suivi/suggerer-personnes";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
@@ -27,6 +27,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
   const { profil, invite } = utiliserProfil();
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const suivis = utiliserSuivisPersonnes();
   const depart = utiliserPointDeDepart();
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -52,7 +53,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
       personne: () => {
         if (!suivis.pret) return [];
         const estCandidat = (id: string) => {
-          if (id === ID_MOI || !trouverPote(id) || bloques.some((b) => b.id === id) || estSignale(id) || masquees.has(`personne:${id}`)) return false;
+          if (id === monId || !trouverPote(id) || bloques.some((b) => b.id === id) || estSignale(id) || masquees.has(`personne:${id}`)) return false;
           const relation = relationAvec(id);
           return relation !== null && relation.jeSuis === "aucun" && relation.verdict.permis;
         };
@@ -60,7 +61,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
         // Celles qui te suivent déjà, en tête et avec « Te suit » : la carte n'a que le nom et la raison pour le dire
         // (son bouton compact affiche « Suivre », pas « Suivre en retour »)
         const teSuivent = abonnes.map((a) => a.pote.id).filter(estCandidat).map((id) => ({ id, raison: "Te suit" }));
-        const potesDePotes = suggererPersonnes({ bande: potes.map((p) => p.id), bandes: bandesExemples, estCandidat, prenomDe }).filter((s) => !teSuivent.some((t) => t.id === s.id));
+        const potesDePotes = suggererPersonnes({ monId, bande: potes.map((p) => p.id), bandes: bandesExemples, estCandidat, prenomDe }).filter((s) => !teSuivent.some((t) => t.id === s.id));
         return [...teSuivent, ...potesDePotes].flatMap(({ id, raison }) => {
           const pote = trouverPote(id);
           return pote
@@ -97,5 +98,5 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
     const demandes = cleTypes.split(",").filter((t): t is TypeSuggestion => t === "personne" || t === "createur" || t === "lieu");
     return [...new Set(demandes)].flatMap((type) => listes[type]()).slice(0, max);
-  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, relationAvec, suggestionsMasquees, abonnes]);
+  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, relationAvec, suggestionsMasquees, abonnes, monId]);
 }

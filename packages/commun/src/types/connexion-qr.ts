@@ -19,4 +19,10 @@ export type DemandeConnexionQr = {
   origine: OrigineConnexionQr;
   creeLe: string;
   expireLe: string;
+  /**
+   * Secondes qui restent pour accepter, comptées par le serveur (l'horloge du téléphone peut être fausse) :
+   * min(60 s après le PREMIER scan, expireLe) - maintenant, arrondi vers le bas, jamais négatif. Toujours envoyé par l'API
+   * (facultatif ici pour les démos écrites avant).
+   */
+  repondreDansS?: number;
 };

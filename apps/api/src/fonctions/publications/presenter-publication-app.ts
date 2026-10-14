@@ -14,6 +14,7 @@ export type LignePublicationApp = {
   publieeLe: Date;
   medias: { type: string; fichier: string; ordre: number }[];
   jaimes: number;
+  /** Commentaires visibles de tout le monde (COMMENTAIRE_VISIBLE_PUBLIC de services/commentaires-regles.ts) */
   commentaires: number;
 };
 

@@ -13,7 +13,9 @@ export interface ServiceCloche {
   lister(apres?: string): Promise<ReponseApi<{ cloche: PageClocheApi }>>;
   /**
    * POST /app/cloche/vu : la cloche est vue jusqu'à `jusqua` (date ISO), ou jusqu'à maintenant sans lui ; elle ne recule
-   * jamais. vuesLe : le même sur tous tes téléphones
+   * jamais. vuesLe : le même sur tous tes téléphones. Sans profil social (lireMoi rend moi: null), rien n'est gardé sur le
+   * serveur : lister rend vuesLe: null et le pouls cloche.nonVues: 0 ; l'app garde alors vuesLe sur le téléphone et compte
+   * elle-même les notifications plus récentes pour la pastille
    */
   marquerVu(jusqua?: string): Promise<ReponseApi<{ vuesLe: string }>>;
 }

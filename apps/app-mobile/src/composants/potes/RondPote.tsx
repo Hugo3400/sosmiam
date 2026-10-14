@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
@@ -14,7 +14,8 @@ type Props = {
 /** L'avatar d'un pote dans son rond (son emoji sur fond jaune clair) ; pour toi, ton avatar du profil (emoji ou photo). Décoratif : le prénom est lu à côté. */
 export function RondPote({ pote, taille }: Props) {
   const { avatar } = utiliserProfil();
-  if (pote.id === ID_MOI) return <ImageAvatar avatar={avatar} taille={taille} />;
+  const monId = utiliserMonId();
+  if (pote.id === monId) return <ImageAvatar avatar={avatar} taille={taille} />;
 
   return (
     <View

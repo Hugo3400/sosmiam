@@ -69,10 +69,12 @@ export function signalerVue(requete: Request, reponse: Response, duree: number):
   url.searchParams.delete("_routes");
   // Lien d'invitation entre potes : ni le pseudo ni l'ancien « ?c= » (code secret) ne partent vers l'API
   const invitation = /^\/invitation(\/|$)/i.test(chemin);
-  const parametres = invitation ? "" : url.searchParams.toString();
+  // QR de connexion (/q/<code>) : le code ne part jamais vers l'API, seulement « /q »
+  const connexionQr = /^\/q(\/|$)/i.test(chemin);
+  const parametres = invitation || connexionQr ? "" : url.searchParams.toString();
   const robot = !signature || isbot(signature);
   envoyer("/mesure/vue", ip, {
-    adressePage: invitation ? "/invitation" : `${chemin}${parametres ? `?${parametres}` : ""}`,
+    adressePage: invitation ? "/invitation" : connexionQr ? "/q" : `${chemin}${parametres ? `?${parametres}` : ""}`,
     signature: robot ? signature || "robot sans nom" : signature,
     statut: reponse.status,
     // Pour un robot, seul son nom compte : rien d'autre n'est envoyé

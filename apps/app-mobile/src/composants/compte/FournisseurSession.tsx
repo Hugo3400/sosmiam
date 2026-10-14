@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import { creerActiviteApi } from "@sos-miam/commun/client-api/api/api-activite";
 import { creerCompteApi } from "@sos-miam/commun/client-api/api/api-compte";
 import { creerContenuApi } from "@sos-miam/commun/client-api/api/api-contenu";
+import { creerServicesSociauxApi } from "@sos-miam/commun/client-api/api/creer-services-sociaux-api";
 import { creerClientHttp } from "@sos-miam/commun/client-api/client-http";
 import type { SessionOuverte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { CompteApp } from "@sos-miam/commun/types/compte-app";
@@ -37,7 +38,11 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
     () => creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true) }),
     [oublier],
   );
-  const services = useMemo(() => ({ comptes: creerCompteApi(client), contenu: creerContenuApi(client), activite: creerActiviteApi(client) }), [client]);
+  // Les services sociaux (potes, messages, cloche…) en version API : la démo garde son code local, une visite n'a rien
+  const services = useMemo(
+    () => ({ comptes: creerCompteApi(client), contenu: creerContenuApi(client), activite: creerActiviteApi(client), sociaux: creerServicesSociauxApi(client) }),
+    [client],
+  );
 
   const rafraichir = useCallback(async () => {
     if (!jetonActuel.current) return;

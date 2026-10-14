@@ -22,7 +22,7 @@ export function Onglets<T extends string>({ libelle, valeur, options, onChange }
           >
             {option.libelle}
             {option.compteur !== undefined && option.compteur > 0 && (
-              <span className={`chiffres rounded-full px-1.5 text-xs ${choisi ? "bg-jaune text-nuit" : "bg-ligne text-nuit"}`}>{option.compteur}</span>
+              <span className={`chiffres rounded-full px-1.5 text-xs ${choisi ? "bg-jaune text-nuit" : "bg-ligne text-encre"}`}>{option.compteur}</span>
             )}
           </button>
         );

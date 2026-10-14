@@ -2,11 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -18,6 +18,7 @@ type Props = {
 export function EnTetePotes({ moi }: Props) {
   const router = useRouter();
   const { nonLus } = utiliserConversations();
+  const monId = utiliserMonId();
 
   return (
     <View className="gap-3 pt-2">
@@ -65,7 +66,7 @@ export function EnTetePotes({ moi }: Props) {
         accessibilityHint="Ce que tes potes voient de toi"
         onPress={() => {
           vibrerLegerement();
-          router.push({ pathname: "/potes/profil/[id]", params: { id: ID_MOI } });
+          router.push({ pathname: "/potes/profil/[id]", params: { id: monId } });
         }}
         className="min-h-11 flex-row items-center gap-2.5 self-start rounded-full border-2 border-encre bg-white py-1 pl-1 pr-3 active:opacity-80"
       >

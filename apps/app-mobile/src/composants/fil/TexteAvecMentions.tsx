@@ -1,7 +1,7 @@
 import { Text } from "react-native";
 
+import { creerMotifMention } from "@sos-miam/commun/fonctions/commentaires/creer-motif-mention";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
-import { creerMotifMention } from "~/fonctions/communaute/creer-motif-mention";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {

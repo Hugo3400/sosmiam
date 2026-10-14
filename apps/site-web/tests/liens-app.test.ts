@@ -38,9 +38,9 @@ test("apple-app-site-association : 200 en application/json sur sosmiam.fr, forma
   assert.equal(json.applinks.details.length, 1);
   const [detail] = json.applinks.details;
   assert.deepEqual(detail.appIDs, ["4F7UVS2357.fr.sosmiam.app"]);
-  assert.deepEqual(detail.components, [{ "/": "/invitation/*" }, { "/": "/l/*" }, { "/": "/lieux/*" }]);
+  assert.deepEqual(detail.components, [{ "/": "/invitation/*" }, { "/": "/l/*" }, { "/": "/lieux/*" }, { "/": "/q/*" }]);
   assert.equal(detail.appID, "4F7UVS2357.fr.sosmiam.app");
-  assert.deepEqual(detail.paths, ["/invitation/*", "/l/*", "/lieux/*"]);
+  assert.deepEqual(detail.paths, ["/invitation/*", "/l/*", "/lieux/*", "/q/*"]);
 });
 
 test("apple-app-site-association : 404 sur les autres hôtes", () => {
@@ -114,5 +114,6 @@ test("page d'invitation : noindex (balise et en-tête), sans Referer, sans og:ur
   assert.match(lire("routes.ts"), /route\("invitation\/:pseudo", "routes\/public\/invitation\.tsx"\)/);
   const texte = await (await robots(demande("sosmiam.fr", "/robots.txt"))).text();
   assert.match(texte, /^Disallow: \/invitation\/$/m);
+  assert.match(texte, /^Disallow: \/q\/$/m);
   assert.equal(choisirRedirectionHote("sosmiam.fr", "/invitation/lea.croque"), null);
 });

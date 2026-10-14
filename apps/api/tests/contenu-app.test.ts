@@ -162,6 +162,9 @@ test("GET /app/publications : seulement les visibles, de la plus récente à la 
     type: "video", video: `https://api.exemple.fr/app/medias/${VIDEO}`, affiche: `https://api.exemple.fr/app/medias/${AFFICHE}`,
   });
   assert.equal(corps.publications[2].media, undefined);
+  // Seulement la FORME : le double du fil ne compte pas les commentaires. Le vrai comptage (_count filtré par
+  // COMMENTAIRE_VISIBLE_PUBLIC dans publications-app.ts) n'est vérifié que par l'essai hors ligne sur PGlite
+  assert.ok(corps.publications.every((p: { commentaires: unknown }) => p.commentaires === 0), "le nombre de commentaires est rendu");
   assert.equal(corps.suite, null);
 });
 

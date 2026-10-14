@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { RondPote } from "~/composants/potes/RondPote";
@@ -10,6 +9,7 @@ import { TexteAvecMentions } from "~/composants/fil/TexteAvecMentions";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -50,12 +50,13 @@ function formaterIlYa(dateIso: string, maintenant: number, long: boolean): strin
 /** Un commentaire sous une publication : avatar, prénom et @pseudo (ou le lieu, avec son badge), texte, date, « Répondre » et J'aime. */
 export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions, appuiLong }: Props) {
   const { trouverPote } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const estLieu = commentaire.auteur === "lieu";
   const pote = estLieu ? null : trouverPote(commentaire.auteur);
-  const estMoi = commentaire.auteur === ID_MOI;
+  const estMoi = commentaire.auteur === monId;
   const nom = estLieu ? lieu.nom : (pote?.prenom ?? "Quelqu'un");
   const pseudo = pote?.pseudo ? `@${pote.pseudo}` : null;
-  const aime = commentaire.jaimes.includes(ID_MOI);
+  const aime = commentaire.jaimes.includes(monId);
   const nombreJaimes = commentaire.jaimes.length;
   const modifie = !!commentaire.modifieLe;
   const masque = !!commentaire.masqueParLieu && estMoi;

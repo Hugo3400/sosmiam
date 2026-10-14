@@ -1,11 +1,11 @@
 import { createContext, useContext } from "react";
 
+import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
+import type { PlaceClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { ActivitePote, ListePartagee, Pote, Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 import type { SignalementContenu } from "@sos-miam/commun/types/signalement";
-import type { PlaceClassement } from "~/fonctions/communaute/calculer-classement";
 import type { ResultatRecherchePote } from "~/fonctions/communaute/chercher-par-pseudo";
-import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
 
 /** Résultat d'un envoi de texte (message, commentaire, mot à un pote) */
 export type ResultatTexte = "ok" | "vide" | "trop-long" | "mot-interdit";
@@ -28,7 +28,7 @@ export type EtatCommunaute = {
   pret: boolean;
   /** Mode démo : potes d'exemple qui votent et répondent tout seuls ; sinon, la communauté démarre vide */
   demo: boolean;
-  /** Ton profil communautaire (identifiant « moi ») */
+  /** Ton profil communautaire : son id est le tien dans les données affichées (« moi » sur le téléphone ; lu par utiliserMonId) */
   moi: Pote;
   /** Ta bande (sans les personnes bloquées) */
   potes: Pote[];
@@ -72,7 +72,8 @@ export type EtatCommunaute = {
 
   /** Ce que font tes potes, du plus récent au plus ancien (sans les lignes que tu as retirées) */
   activites: ActivitePote[];
-  classement: PlaceClassement[];
+  /** Le classement du mois, toi compris (estMoi) */
+  classement: PlaceClassement<Pote>[];
 
   /** Lieux reçus de tes potes (sans ceux des personnes bloquées ni ceux que tu as signalés) */
   recommandationsRecues: Recommandation[];

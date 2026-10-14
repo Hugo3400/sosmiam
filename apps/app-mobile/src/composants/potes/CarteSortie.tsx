@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
-import { choisirLieuGagnant } from "~/fonctions/communaute/choisir-lieu-gagnant";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -55,6 +55,7 @@ const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice
 /** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu, refPrincipal }: Props) {
   const { trouverPote, bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const bloquesIds = new Set(bloques.map((b) => b.id));
 
   const participants = sortie.participants
@@ -65,14 +66,14 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const enPlus = participants.length - visibles.length;
   // Une personne bloquée n'apparaît plus, même comme organisatrice
   const organisateur =
-    sortie.organisateur === ID_MOI ? "toi" : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
+    sortie.organisateur === monId ? "toi" : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
 
   // Comme l'écran de la sortie : fin du vote passée, le lieu le plus voté l'emporte (les propositions sont déjà filtrées)
   const voteFini = sortie.lieuChoisi !== null || new Date(sortie.finVote).getTime() <= maintenant.getTime();
-  const lieuId = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions) : null);
+  const lieuId = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length }))) : null);
   const lieu = lieuId !== null ? lieux.get(lieuId) : undefined;
   const voteEnCours = !voteFini;
-  const aVote = sortie.propositions.some((p) => p.votes.includes(ID_MOI));
+  const aVote = sortie.propositions.some((p) => p.votes.includes(monId));
   // « Chez Nonna Lia » → « On va chez Nonna Lia »
   const etat = lieu
     ? { emoji: "📍", texte: passee ? `Lieu retenu\u00a0: ${lieu.nom}` : `On va chez ${lieu.nom.replace(/^chez\s+/i, "")}`, fond: "bg-jaune" }
@@ -87,7 +88,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const lu = [
     sortie.titre,
     quand,
-    `${participants.length} participant${participants.length > 1 ? "s" : ""} : ${participants.map((p) => (p.id === ID_MOI ? "toi" : p.prenom)).join(", ")}`,
+    `${participants.length} participant${participants.length > 1 ? "s" : ""} : ${participants.map((p) => (p.id === monId ? "toi" : p.prenom)).join(", ")}`,
     organisateur ? `Organisée par ${organisateur}` : null,
     etat.texte,
     aToiDeVoter ? "À toi de voter" : null,

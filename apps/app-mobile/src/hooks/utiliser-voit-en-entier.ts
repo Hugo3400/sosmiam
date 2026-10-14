@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /**
@@ -11,6 +11,7 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
  */
 export function utiliserVoitEnEntier(): ((id: string) => boolean) | null {
   const { pret, relationAvec } = utiliserSuivisPersonnes();
-  const voitEnEntier = useCallback((id: string) => id === ID_MOI || relationAvec(id)?.visibilite === "complet", [relationAvec]);
+  const monId = utiliserMonId();
+  const voitEnEntier = useCallback((id: string) => id === monId || relationAvec(id)?.visibilite === "complet", [relationAvec, monId]);
   return pret ? voitEnEntier : null;
 }

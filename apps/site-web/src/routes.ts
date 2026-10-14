@@ -14,6 +14,9 @@ export default [
     // Lien d'invitation d'un pote (sosmiam.fr/invitation/<pseudo>#c=<code>) : « Ouvre SOS Miam… » (noindex, sans appel à
     // l'API ; le code reste dans le fragment, jamais envoyé au serveur). Quand l'app est installée, le lien universel l'ouvre.
     route("invitation/:pseudo", "routes/public/invitation.tsx"),
+    // QR de connexion (sosmiam.fr/q/<code>, connexion par QR code) : « Ouvre l'app SOS Miam pour te connecter » (noindex, sans
+    // appel à l'API ; les statistiques ne reçoivent que « /q »). Quand l'app est installée, le lien universel l'ouvre.
+    route("q/:code", "routes/public/qr-connexion.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [
@@ -72,6 +75,10 @@ export default [
   // « Continuer avec Apple / Google » (sur les trois hôtes) : départ vers le fournisseur, retour en POST depuis son site,
   // et « Finir ton inscription » quand le compte n'existe pas encore (services/connexion-externe.server.ts)
   route("connexion/finir-inscription", "routes/compte/finir-inscription.tsx"),
+  // « Me connecter avec l'app » (connexion par QR code, sur les trois hôtes) : le QR demandé au clic, puis l'attente que le
+  // navigateur interroge toutes les 2 s (services/connexion-qr.server.ts)
+  route("connexion/qr", "routes/ressources/connexion-qr-depart.ts"),
+  route("connexion/qr/attente", "routes/ressources/connexion-qr-attente.ts"),
   route("connexion/:fournisseur", "routes/ressources/connexion-externe-depart.ts"),
   route("connexion/:fournisseur/retour", "routes/ressources/connexion-externe-retour.ts"),
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),

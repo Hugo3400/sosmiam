@@ -64,3 +64,23 @@ test("gros fichier : un lien de 10 minutes, sans signature, pour le navigateur ;
   assert.equal((await fetch(`${banc.adresse}/presse/telecharger/${"x".repeat(32)}`)).status, 404);
   assert.equal((await banc.demander("POST", "/presse/fichiers/AAAAAAAAAAAAAAAA/lien", { session })).status, 404);
 });
+
+test("canaux : ceux de l'index d'abord, sinon déduits du nom, des dimensions et du format", async () => {
+  const { deduireCanauxPresse } = await import("../src/fonctions/presse/deduire-canaux-presse.ts");
+  const f = (nom: string, format: string, dimensions: string | null = null, description = "") => ({ nom, format, dimensions, description });
+  assert.deepEqual(deduireCanauxPresse(f("carrousel-1.png", "PNG", "1080 × 1350 px"), "reseaux"), ["instagram"]);
+  assert.deepEqual(deduireCanauxPresse(f("story.png", "PNG", "1080 × 1920 px"), "reseaux"), ["instagram", "tiktok"]);
+  assert.deepEqual(deduireCanauxPresse(f("clip.mp4", "MP4", "30 s"), "videos"), ["instagram", "tiktok"]);
+  assert.deepEqual(deduireCanauxPresse(f("ios-iphone-01.jpg", "JPG", "1290 × 2796 px"), "stores"), ["ios"]);
+  assert.deepEqual(deduireCanauxPresse(f("android-banniere.png", "PNG", null, "Play Store · Bannière"), "stores"), ["android"]);
+  assert.deepEqual(deduireCanauxPresse(f("affiche.pdf", "PDF"), "affiches"), ["impression"]);
+  assert.deepEqual(deduireCanauxPresse(f("communique.md", "MD"), "textes"), ["textes"]);
+  assert.deepEqual(deduireCanauxPresse({ ...f("logo.png", "PNG"), canaux: ["android", "inconnu", "ios"] }, "kit-de-marque"), ["ios", "android", "marque"]);
+  // Toujours déduits, même quand l'index donne ses canaux (y compris [])
+  assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_facebook_couverture_1640x624.png", "PNG", "1640 × 624 px"), canaux: [] }, "kit-de-marque"), ["facebook", "marque"]);
+  assert.deepEqual(deduireCanauxPresse({ ...f("banniere_1500x500.png", "PNG", "1500 × 500 px"), canaux: [] }, "kit-de-marque"), ["x", "marque"]);
+  assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_favicon_32.png", "PNG", "32 × 32 px"), canaux: [] }, "kit-de-marque"), ["web", "marque"]);
+  assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_jingle.mp3", "MP3"), canaux: [] }, "sons"), ["sons"]);
+  assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_ambassadeurs_apercu.png", "PNG", "2148 × 1150 px"), canaux: [] }, "campagne"), ["presentation"]);
+  assert.deepEqual(deduireCanauxPresse(f("mascotte-clin.svg", "SVG"), "kit-media"), ["instagram", "tiktok", "impression", "marque"]);
+});

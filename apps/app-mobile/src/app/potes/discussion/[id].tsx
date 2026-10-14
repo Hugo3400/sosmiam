@@ -3,7 +3,6 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { AccessibilityInfo, AppState, Keyboard, KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { ChampChat } from "~/composants/chat/ChampChat";
 import { EnTeteDiscussion } from "~/composants/chat/EnTeteDiscussion";
@@ -15,6 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { mettreEnPauseNoteQuiJoue } from "~/hooks/utiliser-audio-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 // Le temps que l'écran suivant s'affiche avant de parler : sinon VoiceOver coupe la phrase pour lire le nouvel écran
 const DELAI_ANNONCE_APRES_DEPART = 700;
@@ -29,6 +29,7 @@ export default function EcranDiscussion() {
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const conversations = utiliserConversations();
   const { pret: communautePrete, trouverPote, bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const liste = useRef<PoigneeListeMessages>(null);
   // Juste après avoir bloqué ou quitté : rien à montrer le temps de revenir à la liste
   const [partie, setPartie] = useState(false);
@@ -44,10 +45,10 @@ export default function EcranDiscussion() {
   const membres = useMemo(() => {
     const bloquesIds = new Set(bloques.map((b) => b.id));
     return (conversation?.participants ?? [])
-      .filter((p) => p !== ID_MOI && !bloquesIds.has(p))
+      .filter((p) => p !== monId && !bloquesIds.has(p))
       .map(trouverPote)
       .filter((p): p is Pote => p !== null);
-  }, [conversation?.participants, bloques, trouverPote]);
+  }, [conversation?.participants, bloques, trouverPote, monId]);
 
   // Messages lus : à l'ouverture, au retour dans l'app, et à chaque message qui arrive pendant que tu es là.
   // Écran quitté ou recouvert (profil, autre discussion) : la note vocale qui jouait se tait
@@ -102,7 +103,7 @@ export default function EcranDiscussion() {
   }
 
   const groupe = conversation.type === "groupe";
-  const poteId = groupe ? null : (conversation.participants.find((p) => p !== ID_MOI) ?? null);
+  const poteId = groupe ? null : (conversation.participants.find((p) => p !== monId) ?? null);
   const pote = poteId ? trouverPote(poteId) : null;
   const ecriturePermise = groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId));
   const voirProfil = (qui: string) => {

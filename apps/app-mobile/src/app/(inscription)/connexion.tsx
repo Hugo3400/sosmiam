@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, Text, View, type TextInput } from "react-native";
@@ -5,8 +6,9 @@ import { Pressable, Text, View, type TextInput } from "react-native";
 import { BoutonConnexion } from "~/composants/inscription/BoutonConnexion";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
-import { utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
+import couleurs from "~/theme/couleurs";
 
 /**
  * « Me connecter » : un compte qui existe déjà (créé dans l'app ou sur le site), par e-mail et mot de passe, Apple, Google, ou
@@ -17,7 +19,6 @@ import { utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-q
 export default function Connexion() {
   const router = useRouter();
   const { connecterAvec, connecterParEmail, enCours } = utiliserEntreeCompte();
-  const connexionQr = utiliserServiceConnexionQr().service !== null;
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const champMotDePasse = useRef<TextInput>(null);
@@ -32,20 +33,20 @@ export default function Connexion() {
       <View className="gap-4">
         <BoutonConnexion fournisseur="apple" onPress={() => void connecterAvec("apple")} enCours={enCours === "apple"} desactive={enCours !== null} />
         <BoutonConnexion fournisseur="google" onPress={() => void connecterAvec("google")} enCours={enCours === "google"} desactive={enCours !== null} />
-        {connexionQr ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint="Montre un QR code à scanner avec ton téléphone déjà connecté"
-            disabled={enCours !== null}
-            onPress={() => router.push("/connexion-qr")}
-            className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 active:opacity-80"
-          >
-            <Text accessibilityElementsHidden importantForAccessibility="no" className="text-xl">
-              📱
-            </Text>
-            <Text className="font-texte-gras text-base text-encre">Me connecter avec un QR code</Text>
-          </Pressable>
-        ) : null}
+        {/* Même allure que les boutons Apple et Google juste au-dessus (estompé pendant une autre connexion, petite vibration) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityHint="Montre un QR code à scanner avec ton téléphone déjà connecté"
+          disabled={enCours !== null}
+          onPress={() => {
+            vibrerLegerement();
+            router.push("/connexion-qr");
+          }}
+          className={`min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-5 active:opacity-80 ${enCours !== null ? "opacity-50" : ""}`}
+        >
+          <Ionicons name="qr-code-outline" size={22} color={couleurs.encre} />
+          <Text className="font-texte-gras text-[17px] text-encre">Me connecter avec un QR code</Text>
+        </Pressable>
       </View>
 
       <View className="my-6 flex-row items-center gap-3">

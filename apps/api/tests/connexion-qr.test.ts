@@ -1,5 +1,6 @@
 // Tests de la connexion par QR code (comme Discord) : création, attente, scan, acceptation, refus, expiration, 60 s après le
-// scan, un autre compte, usage unique (deux attentes en même temps), compte supprimé, limites, journaux propres.
+// scan, un autre compte, remise relancée si la réponse se perd (30 s, 3 fois au plus, attentes simultanées), secondes qui
+// restent, compte supprimé, limites, journaux propres.
 // Tout en mémoire : aucune base de données n'est touchée.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
@@ -7,6 +8,8 @@ import type { AddressInfo } from "node:net";
 import { after, test } from "node:test";
 
 import { creerApplication } from "../src/application.ts";
+import { calculerSecondesRestantesQr } from "../src/fonctions/comptes/calculer-secondes-restantes-qr.ts";
+import { choisirRemiseQr } from "../src/fonctions/comptes/choisir-remise-qr.ts";
 import { decrireAppareilQr } from "../src/fonctions/comptes/decrire-appareil-qr.ts";
 import { creerCodeConnexionQr } from "../src/fonctions/securite/creer-code-connexion-qr.ts";
 import { calculerEmpreinteJeton } from "../src/fonctions/securite/calculer-empreinte-jeton.ts";
@@ -17,9 +20,10 @@ import { creerConnexionQrEnMemoire } from "../src/services/connexion-qr-en-memoi
 const MOT_DE_PASSE = "mon chat adore les croissants";
 const banc = { horloge: Date.parse("2026-10-14T10:00:00Z") };
 const memoire = creerComptesEnMemoire(() => banc.horloge);
-const qr = creerConnexionQrEnMemoire((id) => memoire.comptes.has(id));
 /** Les sessions ouvertes, par compte (chaque ouverture est notée) */
 const ouvertes: number[] = [];
+const sessions = { ...memoire.sessions, creer: async (empreinte: string, session: Parameters<typeof memoire.sessions.creer>[1]) => (ouvertes.push(session.compteId), memoire.sessions.creer(empreinte, session)) };
+const qr = creerConnexionQrEnMemoire((id) => memoire.comptes.has(id), sessions);
 const compterSessions = async (compteId: number) => ouvertes.filter((id) => id === compteId).length;
 
 // Les journaux : tout ce qui est écrit pendant les tests, pour vérifier qu'aucun code, secret, jeton ni e-mail n'y passe
@@ -31,7 +35,7 @@ const serveur = creerApplication({
   enregistrerInscription: async () => {},
   comptes: {
     services: memoire.services, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro,
-    sessions: { ...memoire.sessions, creer: async (empreinte, session) => (ouvertes.push(session.compteId), memoire.sessions.creer(empreinte, session)) },
+    sessions,
     horloge: () => banc.horloge, chiffrement: creerChiffrementDonnees(randomBytes(32)),
   },
   connexionQr: { services: qr.services },
@@ -126,15 +130,15 @@ test("création : 201 { code, secret, expireLe } ; seules les empreintes sont ga
 test("attente → scan → acceptation : une session du site, une seule fois", async () => {
   const { id, jeton } = await inscrire();
   const { code, secret } = await demanderQrSite("ambassadeur.sosmiam.fr");
-  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "attente" });
+  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "attente", attenteDansS: 120 });
   const scan = await scanner(jeton, code);
   assert.equal(scan.statut, 200);
   assert.deepEqual(scan.corps.demande, {
     cible: "site", appareil: "Chrome sur Mac", origine: "ambassadeur.sosmiam.fr",
-    creeLe: new Date(banc.horloge).toISOString(), expireLe: new Date(banc.horloge + 120_000).toISOString(),
+    creeLe: new Date(banc.horloge).toISOString(), expireLe: new Date(banc.horloge + 120_000).toISOString(), repondreDansS: 60,
   });
   assert.equal(qr.demandes.at(-1)!.compteId, id);
-  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "scanne" });
+  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "scanne", attenteDansS: 60 });
   assert.equal((await scanner(jeton, code)).statut, 200, "le même compte peut rescanner");
   assert.deepEqual((await repondre(jeton, code, true)).corps, { ok: true });
   const fin = await attendre(secret);
@@ -144,7 +148,7 @@ test("attente → scan → acceptation : une session du site, une seule fois", a
   assert.equal(session.statut, 200);
   // Session du site : fermée après 30 jours sans visite
   await plusTard(31 * 86_400_000, async () => assert.equal((await demander("GET", "/comptes/session", { jeton: fin.corps.session, site: true })).statut, 401));
-  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "expire" }, "usage unique");
+  await plusTard(30_001, async () => assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "expire" }, "plus de relance"));
   assert.equal((await repondre(jeton, code, true)).statut, 410);
   assert.equal((await scanner(jeton, code)).statut, 410);
 });
@@ -206,7 +210,7 @@ test("un autre compte : ne peut ni rescanner (409) ni répondre (404) ; une sess
   assert.deepEqual([rescan.statut, rescan.corps.erreur], [409, "connexion-qr-deja-scannee"]);
   const reponse = await repondre(intrus.jeton, code, true);
   assert.deepEqual([reponse.statut, reponse.corps.erreur], [404, "connexion-qr-inconnue"]);
-  assert.deepEqual((await attendre(secret)).corps, { ok: true, etat: "scanne" });
+  assert.equal((await attendre(secret)).corps.etat, "scanne");
   // Une session du site (support « site ») ne scanne pas
   const site = await demander("POST", "/comptes/session", { corps: { email: intrus.email, motDePasse: MOT_DE_PASSE } });
   const autre = await demanderQrSite();
@@ -215,17 +219,93 @@ test("un autre compte : ne peut ni rescanner (409) ni répondre (404) ; une sess
   assert.equal((await repondre(zoe.jeton, code, "oui" as never)).corps.champ, "accepte");
 });
 
-test("usage unique : deux attentes en même temps → une seule session", async () => {
-  const { id, jeton } = await inscrire();
+/** Un QR du site scanné et accepté, prêt à remettre sa session */
+async function qrAccepte() {
+  const compte = await inscrire();
   const { code, secret } = await demanderQrSite();
-  await scanner(jeton, code);
-  await repondre(jeton, code, true);
+  await scanner(compte.jeton, code);
+  await repondre(compte.jeton, code, true);
+  return { ...compte, code, secret };
+}
+const estValable = async (session: string) => (await demander("GET", "/comptes/session", { jeton: session, site: true })).statut === 200;
+
+test("réponse perdue : le même secret dans les 30 s → nouvelle session, l'ancienne est révoquée", async () => {
+  const { secret } = await qrAccepte();
+  const premiere = (await attendre(secret)).corps;
+  assert.equal(premiere.etat, "accepte");
+  assert.equal(await estValable(premiere.session), true);
+  const relance = await plusTard(30_000, () => attendre(secret));
+  assert.equal(relance.corps.etat, "accepte");
+  assert.equal(relance.corps.compte.prenom, "Zoé");
+  assert.notEqual(relance.corps.session, premiere.session);
+  assert.deepEqual([await estValable(premiere.session), await estValable(relance.corps.session)], [false, true]);
+  const gardee = qr.demandes.at(-1)!;
+  assert.deepEqual([gardee.statut, gardee.nombreRemises, gardee.remisLe], ["utilisee", 2, banc.horloge], "les 30 s partent de la première remise");
+  assert.equal(gardee.sessionEmpreinte, calculerEmpreinteJeton(relance.corps.session), "seule l'empreinte est gardée");
+});
+
+test("relance au-delà de 30 s : « expire », la session remise reste valable", async () => {
+  const { secret } = await qrAccepte();
+  const { session } = (await attendre(secret)).corps;
+  assert.deepEqual((await plusTard(30_001, () => attendre(secret))).corps, { ok: true, etat: "expire" });
+  assert.equal(await estValable(session), true);
+});
+
+test("3 remises au plus, puis « expire » ; seule la dernière session est valable", async () => {
+  const { id, secret } = await qrAccepte();
+  const avant = await compterSessions(id);
+  const remises: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    const reponse = await plusTard(i * 1_000, () => attendre(secret));
+    assert.equal(reponse.corps.etat, "accepte", `remise ${i + 1}`);
+    remises.push(reponse.corps.session);
+  }
+  assert.deepEqual((await plusTard(3_000, () => attendre(secret))).corps, { ok: true, etat: "expire" });
+  assert.equal(await compterSessions(id), avant + 3);
+  assert.deepEqual(await Promise.all(remises.map(estValable)), [false, false, true]);
+});
+
+test("attentes simultanées (première remise ou relance) : jamais deux sessions valables", async () => {
+  const { id, secret } = await qrAccepte();
   const avant = await compterSessions(id);
   const reponses = await Promise.all(Array.from({ length: 6 }, () => attendre(secret)));
-  const acceptees = reponses.filter((r) => r.corps.etat === "accepte");
-  assert.equal(acceptees.length, 1);
-  assert.equal(reponses.filter((r) => r.corps.etat === "expire").length, 5);
-  assert.equal(await compterSessions(id), avant + 1);
+  const acceptees = reponses.filter((r) => r.corps.etat === "accepte").map((r) => r.corps.session as string);
+  assert.ok(acceptees.length >= 1 && acceptees.length <= 3, `${acceptees.length} remises`);
+  assert.equal(reponses.length - acceptees.length, reponses.filter((r) => r.corps.etat === "expire").length);
+  assert.equal(await compterSessions(id), avant + acceptees.length);
+  assert.equal((await Promise.all(acceptees.map(estValable))).filter(Boolean).length, 1);
+  // Deux relances en même temps, sur un autre QR : une seule session valable à la fin aussi
+  const autre = await qrAccepte();
+  const premiere = (await attendre(autre.secret)).corps.session as string;
+  const relances = await Promise.all([attendre(autre.secret), attendre(autre.secret)]);
+  const toutes = [premiere, ...relances.filter((r) => r.corps.etat === "accepte").map((r) => r.corps.session as string)];
+  assert.equal((await Promise.all(toutes.map(estValable))).filter(Boolean).length, 1);
+});
+
+test("choisirRemiseQr : première, relance (30 s depuis la première remise, moins de 3), sinon rien", () => {
+  const t0 = banc.horloge;
+  assert.equal(choisirRemiseQr({ statut: "accepte", remisLe: null, nombreRemises: null }, t0), "premiere");
+  assert.equal(choisirRemiseQr({ statut: "utilisee", remisLe: t0, nombreRemises: 1 }, t0 + 30_000), "relance");
+  assert.equal(choisirRemiseQr({ statut: "utilisee", remisLe: t0, nombreRemises: 2 }, t0 + 30_001), null);
+  assert.equal(choisirRemiseQr({ statut: "utilisee", remisLe: t0, nombreRemises: 3 }, t0), null);
+  assert.equal(choisirRemiseQr({ statut: "utilisee", remisLe: null, nombreRemises: null }, t0), null, "remise d'avant la migration");
+  for (const statut of ["attente", "scanne", "refuse"] as const) assert.equal(choisirRemiseQr({ statut, remisLe: null, nombreRemises: null }, t0), null);
+});
+
+test("repondreDansS : depuis le premier scan (le rescan ne relance rien), borné par la fin du QR, jamais négatif", async () => {
+  const { jeton } = await inscrire();
+  const premier = await demanderQrSite();
+  assert.equal((await scanner(jeton, premier.code)).corps.demande.repondreDansS, 60);
+  assert.equal((await plusTard(10_500, () => scanner(jeton, premier.code))).corps.demande.repondreDansS, 49, "rescan : arrondi vers le bas");
+  assert.equal((await plusTard(10_500, () => attendre(premier.secret))).corps.attenteDansS, 49);
+  // Scanné 100 s après sa création : il ne reste que 20 s de QR
+  const tardif = await demanderQrSite();
+  assert.equal((await plusTard(100_000, () => scanner(jeton, tardif.code))).corps.demande.repondreDansS, 20);
+  assert.equal((await plusTard(119_999, () => scanner(jeton, tardif.code))).corps.demande.repondreDansS, 0);
+  const t0 = banc.horloge;
+  assert.equal(calculerSecondesRestantesQr({ scanneLe: null, expireLe: t0 + 120_000 }, t0), 120);
+  assert.equal(calculerSecondesRestantesQr({ scanneLe: t0, expireLe: t0 + 120_000 }, t0 + 90_000), 0, "jamais négatif");
+  assert.equal(calculerSecondesRestantesQr({ scanneLe: null, expireLe: t0 }, t0 + 5_000), 0);
 });
 
 test("compte supprimé avant l'attente : pas de session, « expire »", async () => {

@@ -1,6 +1,6 @@
+import { lireLienInvitation } from "@sos-miam/commun/fonctions/potes/lire-lien-invitation";
 import { lireCodeScanne } from "@sos-miam/commun/fonctions/qr/lire-code-scanne";
 import type { CodeScanne } from "@sos-miam/commun/types/code-scanne";
-import { lireLienInvitation } from "~/fonctions/communaute/lire-lien-invitation";
 
 /**
  * Range un texte lu par le scanner du comptoir : jeton du comptoir, QR de vitrine d'un lieu, invitation d'un pote

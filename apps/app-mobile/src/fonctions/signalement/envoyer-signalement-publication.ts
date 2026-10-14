@@ -18,7 +18,8 @@ export async function envoyerSignalementPublication(signalement: Signalement): P
   const { date: _date, ...corps } = signalement;
   const r = await clientApiPublic.demander("POST", "/signalements", { corps, session: false });
   if (r.ok) return true;
-  if (r.erreur === "champ-invalide") return false;
+  // Refus définitif (mal formé) : l'API dit « signalement-invalide », un ancien serveur « champ-invalide »
+  if (r.erreur === "signalement-invalide" || r.erreur === "champ-invalide") return false;
   await remplacerSignalementsAEnvoyer([...(await lireSignalementsAEnvoyer()), signalement]);
   return true;
 }

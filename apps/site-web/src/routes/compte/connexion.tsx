@@ -2,6 +2,7 @@ import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/connexion";
 import { BoutonsConnexionExterne } from "~/composants/compte/BoutonsConnexionExterne";
+import { ConnexionParQr } from "~/composants/compte/ConnexionParQr";
 import { FormulaireConnexion } from "~/composants/compte/FormulaireConnexion";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
@@ -11,6 +12,7 @@ import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
+import { lireQrAffiche } from "~/services/connexion-qr.server";
 import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { lireCompteConnecte, lireRetourSur } from "~/services/session-compte.server";
 
@@ -55,7 +57,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   const accueil = url.searchParams.has("au-revoir") ? accueils["au-revoir"] : url.searchParams.has("deconnecte") ? accueils.deconnecte : null;
   // « Continuer avec Apple / Google » : les boutons réglés, et le message d'un essai raté (?externe=…)
   const fournisseurs = lireFournisseursActifs();
-  return { espace, retour, accueil: accueil && lierPonctuation(accueil), fournisseurs, messageExterne: lireMessageConnexionExterne(url.searchParams.get("externe")) };
+  return { espace, retour, accueil: accueil && lierPonctuation(accueil), fournisseurs, messageExterne: lireMessageConnexionExterne(url.searchParams.get("externe")),
+    // « Me connecter avec l'app » : le QR redessiné après un retour sans JavaScript (« ?qr=… »), sinon rien
+    qr: lireQrAffiche(request) };
 }
 
 /** Connexion (avec ou sans JavaScript) : un nouveau jeton, gardé dans le cookie de session. */
@@ -68,7 +72,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 
 /** Page /connexion : Apple, Google, ou e-mail et mot de passe ; « ?retour= » rouvre ensuite la page demandée. */
 export default function PageConnexion({ loaderData }: Route.ComponentProps) {
-  const { espace, retour, accueil, fournisseurs, messageExterne } = loaderData;
+  const { espace, retour, accueil, fournisseurs, messageExterne, qr } = loaderData;
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation(textes[espace].chapo)}>
@@ -82,6 +86,7 @@ export default function PageConnexion({ loaderData }: Route.ComponentProps) {
       <div className="mx-auto max-w-xl">
         <BoutonsConnexionExterne fournisseurs={fournisseurs} depart="/connexion" retour={retour} message={messageExterne} />
         <FormulaireConnexion retour={retour} />
+        <ConnexionParQr depart="/connexion" retour={retour} initial={qr} />
         <p className="mt-6 text-center text-gris">
           {lierPonctuation("Pas encore de compte ? ")}
           <Link to="/inscription" className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">

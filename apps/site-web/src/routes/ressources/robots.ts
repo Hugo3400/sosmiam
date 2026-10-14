@@ -6,7 +6,7 @@ import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirectio
 /**
  * GET /robots.txt : ce que les moteurs de recherche peuvent parcourir. Le vrai site est ouvert (fiches /lieux/ comprises),
  * avec son plan ; fermés : /localiser, /liens/aller/ et les QR de vitrine /l/, qui ne font que rediriger, /desinscription (lien
- * personnel des mails de la newsletter), /invitation/ (liens d'invitation entre potes), et /deconnexion, qui ne fait que rediriger. /mon-compte reste ouvert : sa balise et son
+ * personnel des mails de la newsletter), /invitation/ (liens d'invitation entre potes), /q/ (QR de connexion à l'app), et /deconnexion, qui ne fait que rediriger. /mon-compte reste ouvert : sa balise et son
  * en-tête « noindex » (routes/compte/mise-en-page-mon-compte.tsx) doivent pouvoir être lus pour qu'il ne soit jamais indexé. Sur
  * l'espace ambassadeur, seule la page du programme l'est, avec ce qu'elle charge, la racine qui y renvoie et le plan du
  * site (le reste est réservé aux comptes) ; sur l'espace pro, de même avec la page /bienvenue. L'aperçu (apercu.sosmiam.fr) et le serveur de développement restent fermés.
@@ -16,7 +16,7 @@ export function loader({ request }: Route.LoaderArgs) {
   const hote = new URL(request.url).hostname;
   let lignes = ["User-agent: *", "Disallow: /"];
   if (hote === site.adresse) {
-    lignes = ["User-agent: *", "Allow: /", "Disallow: /localiser", "Disallow: /liens/aller/", "Disallow: /l/", "Disallow: /desinscription", "Disallow: /invitation/", "Disallow: /deconnexion", "", `Sitemap: https://${site.adresse}/sitemap.xml`];
+    lignes = ["User-agent: *", "Allow: /", "Disallow: /localiser", "Disallow: /liens/aller/", "Disallow: /l/", "Disallow: /desinscription", "Disallow: /invitation/", "Disallow: /q/", "Disallow: /deconnexion", "", `Sitemap: https://${site.adresse}/sitemap.xml`];
   } else if (hote === HOTE_AMBASSADEUR) {
     // Google doit pouvoir lire ce que /programme charge (styles, scripts, polices, icônes), la racine (elle renvoie vers
     // /programme ; Google y cherche l'icône du site) et le plan du site déclaré plus bas. « /$ » : la racine exacte seule.

@@ -6,6 +6,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { extname, join, relative, resolve, sep } from "node:path";
 
+import { deduireCanauxPresse, type CanalPresse } from "../../fonctions/presse/deduire-canaux-presse.ts";
+
 const RACINE = resolve(import.meta.dirname, "..", "..", "..", "..", "..");
 const DOSSIER_PRESSE = resolve(process.env.DOSSIER_PRESSE || join(RACINE, "presse"));
 const KITS = [
@@ -23,10 +25,10 @@ export const TYPES_PRESSE: Record<string, string> = {
   ".mp4": "video/mp4", ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav",
 };
 
-export type FichierPresse = { id: string; nom: string; format: string; dimensions: string | null; octets: number; description: string; apercu: string | null };
+export type FichierPresse = { id: string; nom: string; format: string; dimensions: string | null; octets: number; description: string; apercu: string | null; canaux: CanalPresse[] };
 export type FamillePresse = { id: string; titre: string; source: "presse" | "site"; zip: { id: string; nom: string; octets: number } | null; fichiers: FichierPresse[] };
 
-type IndexPresse = { genere?: string; familles?: { id: string; titre: string; zip?: string | null; fichiers?: { nom: string; chemin: string; format?: string; taille?: string | null; description?: string; apercu?: string | null }[] }[] };
+type IndexPresse = { genere?: string; familles?: { id: string; titre: string; zip?: string | null; fichiers?: { nom: string; chemin: string; format?: string; taille?: string | null; description?: string; apercu?: string | null; canaux?: string[] }[] }[] };
 
 const identifiant = (chemin: string) => createHash("sha256").update(relative(RACINE, chemin)).digest("base64url").slice(0, 16);
 /** Le chemin, s'il reste bien dans son dossier (jamais « ../ ») */
@@ -59,9 +61,11 @@ async function lireTout() {
       const octets = chemin ? await taille(chemin) : null;
       if (!chemin || octets === null || !TYPES_PRESSE[extname(chemin).toLowerCase()]) continue;
       const apercu = f.apercu ? dans(DOSSIER_PRESSE, f.apercu) : null;
+      const format = f.format ?? extname(chemin).slice(1).toUpperCase();
       fichiers.push({
-        id: noter(chemin), nom: f.nom, format: f.format ?? extname(chemin).slice(1).toUpperCase(), dimensions: f.taille ?? null, octets,
+        id: noter(chemin), nom: f.nom, format, dimensions: f.taille ?? null, octets,
         description: f.description ?? "", apercu: apercu && (await taille(apercu)) !== null ? noter(apercu) : null,
+        canaux: deduireCanauxPresse({ nom: f.nom, description: f.description ?? "", format, dimensions: f.taille ?? null, canaux: f.canaux }, famille.id),
       });
     }
     const zip = famille.zip ? dans(DOSSIER_PRESSE, famille.zip) : null;
@@ -77,9 +81,12 @@ async function lireTout() {
       const octets = (await taille(chemin)) ?? 0;
       const id = noter(chemin);
       const extension = extname(chemin).toLowerCase();
+      const nom = chemin.split(sep).pop()!;
+      const description = relative(kit.dossier, chemin).split(sep).slice(0, -1).join(" · ");
+      const format = extension.slice(1).toUpperCase();
       fichiers.push({
-        id, nom: chemin.split(sep).pop()!, format: extension.slice(1).toUpperCase(), dimensions: null, octets,
-        description: relative(kit.dossier, chemin).split(sep).slice(0, -1).join(" · "), apercu: IMAGES.has(extension) && octets <= APERCU_MAX ? id : null,
+        id, nom, format, dimensions: null, octets, description, apercu: IMAGES.has(extension) && octets <= APERCU_MAX ? id : null,
+        canaux: deduireCanauxPresse({ nom, description, format, dimensions: null }, kit.id),
       });
     }
     familles.push({ id: kit.id, titre: kit.titre, source: "site", zip: zip ? { id: noter(zip), nom: zip.split(sep).pop()!, octets: (await taille(zip)) ?? 0 } : null, fichiers });

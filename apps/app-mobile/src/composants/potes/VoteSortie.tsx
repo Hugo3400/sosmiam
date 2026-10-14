@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { AccessibilityInfo, Linking, Platform, Pressable, Text, View } from "react-native";
 
-import { ID_MOI, MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
+import { MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -15,6 +15,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
@@ -49,6 +50,7 @@ function ouvrirItineraire(lieu: Lieu) {
 export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, onTerminer, onQuitter }: Props) {
   const router = useRouter();
   const { trouverPote, voter, proposerLieu, bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const { trouverLieu } = utiliserLieux();
@@ -57,7 +59,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const bloquesIds = new Set(bloques.map((b) => b.id));
-  const organisateur = sortie.organisateur === ID_MOI;
+  const organisateur = sortie.organisateur === monId;
   const complet = sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE;
 
   // Vote fini : le lieu retenu en tête, puis les autres du plus voté au moins voté
@@ -116,7 +118,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
           {propositions.map((p) => {
             const lieu = trouverLieu(p.lieuId);
             if (!lieu) return null;
-            const aVote = p.votes.includes(ID_MOI);
+            const aVote = p.votes.includes(monId);
             const votants = p.votes.filter((id) => !bloquesIds.has(id)).map(trouverPote).filter((v): v is Pote => v !== null);
             return (
               <PropositionVote

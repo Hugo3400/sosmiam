@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "@sos-miam/commun/regles/chat";
-import { ID_MOI, LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
+import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import { REACTIONS_CHAT, type Conversation, type MessageChat } from "@sos-miam/commun/types/conversations";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerConversationsExemples } from "~/contenus/conversations-exemples";
@@ -9,6 +9,7 @@ import { potesExemples, reponsesExemples } from "~/contenus/potes-exemples";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { ContexteConversations, type EtatConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import {
   effacerConversationsLocales,
@@ -31,6 +32,7 @@ const creerConversationsDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? cr
  */
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsDepart(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
@@ -63,7 +65,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   // Démo : un pote de la conversation répond ou réagit un peu plus tard
   const faireReagir = useCallback(
     (conversation: Conversation, messageId: string) => {
-      const autres = conversation.participants.filter((id) => id !== ID_MOI && !bloques.has(id) && trouverPote(id));
+      const autres = conversation.participants.filter((id) => id !== monId && !bloques.has(id) && trouverPote(id));
       if (autres.length === 0) return;
       const auteur = auHasard(autres);
       minuteries.current.push(
@@ -81,26 +83,26 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         }, 2500 + Math.random() * 3500),
       );
     },
-    [bloques, trouverPote],
+    [bloques, trouverPote, monId],
   );
 
   const valeur = useMemo((): EtatConversations => {
     // Visibles : celles où tu es, sans les conversations privées avec quelqu'un de bloqué, ni les messages bloqués ou signalés
     const visibles = conversations
-      .filter((c) => c.participants.includes(ID_MOI))
+      .filter((c) => c.participants.includes(monId))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
       .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id)) }))
       .sort((a, b) => dernierMessage(b).localeCompare(dernierMessage(a)));
     const nonLusDe = (id: string) => {
       const c = visibles.find((x) => x.id === id);
-      return c ? c.messages.filter((m) => m.auteur !== ID_MOI && (!c.luJusqua || m.date > c.luJusqua)).length : 0;
+      return c ? c.messages.filter((m) => m.auteur !== monId && (!c.luJusqua || m.date > c.luJusqua)).length : 0;
     };
     // En privé, seulement si vous pouvez encore discuter (dans ta bande, pas bloqué) ; sinon, la discussion est en pause
-    const ouverte = (c: Conversation | undefined): c is Conversation => !!c && (c.type === "groupe" || c.participants.every((p) => p === ID_MOI || peutDiscuterAvec(p)));
+    const ouverte = (c: Conversation | undefined): c is Conversation => !!c && (c.type === "groupe" || c.participants.every((p) => p === monId || peutDiscuterAvec(p)));
     const envoyer = (id: string, message: Omit<MessageChat, "id" | "auteur" | "date" | "reactions">): ResultatEnvoiChat => {
       const c = visibles.find((x) => x.id === id);
       if (!ouverte(c)) return "interdit";
-      const complet: MessageChat = { id: creerIdentifiant("chat"), auteur: ID_MOI, date: new Date().toISOString(), reactions: {}, ...message };
+      const complet: MessageChat = { id: creerIdentifiant("chat"), auteur: monId, date: new Date().toISOString(), reactions: {}, ...message };
       ajouterMessage(id, complet);
       faireReagir(c, complet.id);
       return "ok";
@@ -123,10 +125,10 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       peutDiscuterAvec,
       ouvrirPrive: (poteId) => {
         if (!peutDiscuterAvec(poteId)) return null;
-        const existante = conversations.find((c) => c.type === "prive" && c.participants.includes(poteId) && c.participants.includes(ID_MOI));
+        const existante = conversations.find((c) => c.type === "prive" && c.participants.includes(poteId) && c.participants.includes(monId));
         if (existante) return existante.id;
         const id = creerIdentifiant("prive");
-        setConversations((cs) => [...cs, { id, type: "prive", participants: [ID_MOI, poteId], creePar: ID_MOI, messages: [] }]);
+        setConversations((cs) => [...cs, { id, type: "prive", participants: [monId, poteId], creePar: monId, messages: [] }]);
         return id;
       },
       creerGroupe: (titre, emoji, potes) => {
@@ -135,7 +137,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         const membres = [...new Set(potes)].filter(peutDiscuterAvec);
         if (membres.length < 1 || membres.length + 1 > MAX_PARTICIPANTS_GROUPE) return { erreur: "participants" };
         const id = creerIdentifiant("groupe");
-        setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [ID_MOI, ...membres], creePar: ID_MOI, messages: [] }]);
+        setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [monId, ...membres], creePar: monId, messages: [] }]);
         return { id };
       },
       envoyerTexte: (id, texte) => {
@@ -158,7 +160,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
                   messages: c.messages.map((m) => {
                     if (m.id !== messageId) return m;
                     const qui = m.reactions[reaction] ?? [];
-                    return { ...m, reactions: { ...m.reactions, [reaction]: qui.includes(ID_MOI) ? qui.filter((x) => x !== ID_MOI) : [...qui, ID_MOI] } };
+                    return { ...m, reactions: { ...m.reactions, [reaction]: qui.includes(monId) ? qui.filter((x) => x !== monId) : [...qui, monId] } };
                   }),
                 },
           ),
@@ -178,7 +180,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsDepart(new Date()));
       },
     };
-  }, [conversations, bloques, estSignale, pret, peutDiscuterAvec, ajouterMessage, faireReagir]);
+  }, [conversations, bloques, estSignale, pret, peutDiscuterAvec, ajouterMessage, faireReagir, monId]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }

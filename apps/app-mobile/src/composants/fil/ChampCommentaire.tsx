@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState, type Ref } from "react";
 import { AccessibilityInfo, Platform, Pressable, Text, TextInput, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { LONGUEUR_MAX_COMMENTAIRE } from "@sos-miam/commun/regles/mots-interdits";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
@@ -11,6 +10,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -51,6 +51,7 @@ function annoncer(texte: string) {
 /** Le champ en bas de la feuille des commentaires : réponse ou modification en cours, mentions de tes potes avec « @ », compteur, envoi. */
 export function ChampCommentaire({ valeur, onChanger, reponseA, onAnnulerReponse, edition, onAnnulerEdition, onEnvoyer, margeBas, ref }: Props) {
   const { moi, potes } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const longueur = valeur.length;
@@ -63,9 +64,9 @@ export function ChampCommentaire({ valeur, onChanger, reponseA, onAnnulerReponse
   const suggestions = useMemo(() => {
     if (recherche === null) return [];
     return potes
-      .filter((p) => p.id !== ID_MOI && p.pseudo && (p.pseudo.startsWith(recherche) || normaliserRecherche(p.prenom).startsWith(recherche)))
+      .filter((p) => p.id !== monId && p.pseudo && (p.pseudo.startsWith(recherche) || normaliserRecherche(p.prenom).startsWith(recherche)))
       .slice(0, MAX_SUGGESTIONS);
-  }, [potes, recherche]);
+  }, [potes, recherche, monId]);
 
   // Les potes à mentionner s'affichent au-dessus du champ, donc avant lui pour le lecteur d'écran : on le dit quand ils apparaissent
   // (pas à chaque lettre tapée ensuite)

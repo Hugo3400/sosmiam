@@ -55,7 +55,11 @@ test("client HTTP : erreurs traduites pour l'app", async () => {
 test("client HTTP : en-têtes en plus (Idempotency-Key), sans jamais remplacer la session ni le format", async () => {
   const { appels, faux } = fauxServeur(() => json(201, { ok: true }));
   const client = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: faux });
-  const entetes = { "Idempotency-Key": "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f", authorization: "Bearer autre", "content-type": "text/plain", ACCEPT: "*/*" };
+  const entetes = {
+    "Idempotency-Key": "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f", authorization: "Bearer autre", "content-type": "text/plain", ACCEPT: "*/*",
+    // L'API lit X-Session-Compte avant Authorization : il ne passe jamais, ni un cookie
+    "X-Session-Compte": "ancien-jeton", "x-session-compte": "ancien-jeton", Cookie: "session=ancien-jeton",
+  };
   await client.demander("POST", "/app/conversations/groupes", { corps: { titre: "Les gourmands" }, entetes });
   assert.deepEqual(appels[0].entetes, {
     "Idempotency-Key": "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f",
@@ -141,4 +145,93 @@ test("écoute régulière : prévient tous les abonnés, s'arrête quand plus pe
   assert.ok(avantA >= 2 && avantB >= 2);
   await new Promise((fini) => setTimeout(fini, 30));
   assert.deepEqual([a, b], [avantA, avantB]);
+});
+
+test("envoyerOctets (photo, note vocale) : corps brut et son type, Idempotency-Key, session du client ; preparerTelechargement : jeton jamais dans l'adresse", async () => {
+  const appels: { url: string; methode: string; entetes: Record<string, string>; corps: unknown }[] = [];
+  const faux = (async (url: string, init: RequestInit) => {
+    appels.push({ url, methode: String(init.method), entetes: init.headers as Record<string, string>, corps: init.body });
+    return json(201, { ok: true, message: { id: "9" }, version: 3 });
+  }) as unknown as typeof fetch;
+  const client = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: faux });
+  const octets = new Uint8Array([0xff, 0xd8, 0xff, 0xe0]);
+  const r = await client.envoyerOctets<{ message: { id: string } }>("/app/conversations/3/medias", octets, "image/jpeg", { "Idempotency-Key": "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f", Authorization: "Bearer autre" });
+  assert.deepEqual(r, { ok: true, message: { id: "9" }, version: 3 });
+  assert.deepEqual([appels[0]!.methode, appels[0]!.corps], ["POST", octets]);
+  assert.deepEqual(appels[0]!.entetes, {
+    "Idempotency-Key": "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f", Accept: "application/json", "Content-Type": "image/jpeg", Authorization: "Bearer jeton-1",
+  });
+  assert.deepEqual(await client.preparerTelechargement("/app/conversations/3/messages/9/media"), {
+    url: "https://api.exemple.fr/app/conversations/3/messages/9/media", entetes: { Authorization: "Bearer jeton-1" },
+  });
+  const sansCompte = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => null, fetch: faux });
+  assert.deepEqual((await sansCompte.preparerTelechargement("/x")).entetes, {});
+  // Les erreurs se lisent comme celles de demander
+  const refus = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "j", fetch: (async () => json(413, { ok: false, erreur: "media-trop-lourd" })) as unknown as typeof fetch });
+  assert.deepEqual(await refus.envoyerOctets("/x", octets, "image/jpeg"), { ok: false, erreur: "media-trop-lourd" });
+});
+
+test("messagerie : les adresses et les corps des routes /app/conversations et /app/lieux-envoyes", async () => {
+  const appels: { url: string; methode: string; entetes: Record<string, string>; corps: unknown }[] = [];
+  const faux = (async (url: string, init: RequestInit) => {
+    appels.push({ url, methode: String(init.method), entetes: init.headers as Record<string, string>, corps: init.body });
+    return json(200, { ok: true });
+  }) as unknown as typeof fetch;
+  const { messagerie } = creerServicesSociauxApi(creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: faux }));
+  const cle = "8d0f3c2e-1b4a-4c6d-9e7f-0a1b2c3d4e5f";
+  await messagerie.listerConversations();
+  await messagerie.listerConversations("suite/1");
+  await messagerie.lireFil("3");
+  await messagerie.lireFil("3", { version: 4, avant: "120" });
+  await messagerie.ouvrirPrive("ab2cd3ef4g");
+  await messagerie.creerGroupe({ titre: "Les gourmands", emoji: "🍕", invites: ["ab2cd3ef4g"] }, cle);
+  await messagerie.modifierGroupe("3", { titre: "Les affamés" });
+  await messagerie.inviterAuGroupe("3", ["ab2cd3ef4g"]);
+  await messagerie.repondreInvitation("3", true);
+  await messagerie.retirerMembre("3", "moi");
+  await messagerie.changerRole("3", "ab2cd3ef4g", "admin");
+  await messagerie.couper("3", true);
+  await messagerie.marquerLu("3", "120");
+  await messagerie.effacerPourMoi("3");
+  await messagerie.envoyerTexte("3", cle, "Salut !");
+  await messagerie.envoyerLieu("3", cle, 12);
+  await messagerie.envoyerMedia("3", cle, new Uint8Array([1, 2]), "audio/mp4");
+  await messagerie.supprimerMessage("3", "120");
+  await messagerie.reagir("3", "120", "coeur", true);
+  await messagerie.reagir("3", "120", "coeur", false);
+  await messagerie.envoyerLieuAPotes(cle, 12, ["ab2cd3ef4g"], "Testé et approuvé");
+  await messagerie.listerLieuxRecus();
+  await messagerie.listerLieuxEnvoyes("suite/2");
+  await messagerie.marquerLieuxVus("120");
+  const vus = appels.map((a) => `${a.methode} ${a.url.replace("https://api.exemple.fr", "")}${typeof a.corps === "string" ? ` ${a.corps}` : ""}`);
+  assert.deepEqual(vus, [
+    "GET /app/conversations",
+    "GET /app/conversations?apres=suite%2F1",
+    "GET /app/conversations/3",
+    "GET /app/conversations/3?version=4&avant=120",
+    'POST /app/conversations/prive {"personne":"ab2cd3ef4g"}',
+    'POST /app/conversations/groupes {"titre":"Les gourmands","emoji":"🍕","invites":["ab2cd3ef4g"]}',
+    'PATCH /app/conversations/3 {"titre":"Les affamés"}',
+    'POST /app/conversations/3/invites {"invites":["ab2cd3ef4g"]}',
+    'POST /app/conversations/3/reponse {"rejoint":true}',
+    "DELETE /app/conversations/3/membres/moi",
+    'PUT /app/conversations/3/membres/ab2cd3ef4g/role {"role":"admin"}',
+    'PUT /app/conversations/3/notifications {"coupees":true}',
+    'PUT /app/conversations/3/lu {"jusqua":"120"}',
+    "POST /app/conversations/3/effacer",
+    `POST /app/conversations/3/messages {"idClient":"${cle}","type":"texte","texte":"Salut !"}`,
+    `POST /app/conversations/3/messages {"idClient":"${cle}","type":"lieu","lieuId":12,"texte":null}`,
+    "POST /app/conversations/3/medias",
+    "DELETE /app/conversations/3/messages/120",
+    "PUT /app/conversations/3/messages/120/reactions/coeur",
+    "DELETE /app/conversations/3/messages/120/reactions/coeur",
+    `POST /app/lieux-envoyes {"idClient":"${cle}","lieuId":12,"a":["ab2cd3ef4g"],"mot":"Testé et approuvé"}`,
+    "GET /app/lieux-envoyes/recus",
+    "GET /app/lieux-envoyes/envoyes?apres=suite%2F2",
+    'PUT /app/lieux-envoyes/vus {"jusqua":"120"}',
+  ]);
+  assert.equal(appels[5]!.entetes["Idempotency-Key"], cle, "création de groupe : clé dans l'en-tête");
+  assert.deepEqual([appels[16]!.entetes["Content-Type"], appels[16]!.entetes["Idempotency-Key"]], ["audio/mp4", cle]);
+  assert.ok(appels.every((a) => a.entetes.Authorization === "Bearer jeton-1"));
+  assert.deepEqual(await messagerie.preparerLectureMedia("3", "120"), { url: "https://api.exemple.fr/app/conversations/3/messages/120/media", entetes: { Authorization: "Bearer jeton-1" } });
 });

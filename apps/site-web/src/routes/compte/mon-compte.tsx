@@ -31,6 +31,7 @@ import {
 import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
 import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
+import { lireQrAffiche } from "~/services/connexion-qr.server";
 import { preparerMesConnexions, traiterMesConnexions } from "~/services/mes-connexions.server";
 import {
   effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
@@ -93,7 +94,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     // Sur sosmiam.fr, « Mot de passe oublié » vit sur l'espace ambassadeur (le lien reçu par mail y mène aussi)
     const adresseOubli = url.hostname === site.adresse ? `https://${HOTE_AMBASSADEUR}/mot-de-passe-oublie` : "/mot-de-passe-oublie";
     const messageExterne = lireMessageConnexionExterne(url.searchParams.get("externe"));
-    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli, fournisseurs: lireFournisseursActifs(), messageExterne };
+    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli, fournisseurs: lireFournisseursActifs(), messageExterne,
+      // « Me connecter avec l'app » : le QR redessiné après un retour sans JavaScript (« ?qr=… »), sinon rien
+      qr: lireQrAffiche(request) };
   }
   const { jeton, compte } = await exigerCompte(request);
   // Compte sans mot de passe (créé avec Apple ou Google) : la suppression se confirme en se reconnectant avec le compte lié
@@ -259,7 +262,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
           </p>
         )}
         <div className="grid gap-8">
-          <ConnexionMonCompte adresseOubli={loaderData.adresseOubli} fournisseurs={loaderData.fournisseurs} messageExterne={loaderData.messageExterne} />
+          <ConnexionMonCompte adresseOubli={loaderData.adresseOubli} fournisseurs={loaderData.fournisseurs} messageExterne={loaderData.messageExterne} qr={loaderData.qr} />
           <PartieSupprimerSansConnexion />
           <PartieMesDonnees connecte={false} />
         </div>

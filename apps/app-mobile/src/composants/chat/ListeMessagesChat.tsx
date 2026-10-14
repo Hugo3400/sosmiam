@@ -25,6 +25,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 /** Ce que l'écran peut demander à la liste */
@@ -60,6 +61,7 @@ const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
  */
 export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, ref }: Props) {
   const { trouverPote } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
@@ -80,7 +82,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
 
   const conversationId = conversation.id;
   const groupe = conversation.type === "groupe";
-  const lignes = useMemo(() => construireLignesDiscussion(conversation.messages, trouverPote, aujourdhui), [conversation.messages, trouverPote, aujourdhui]);
+  const lignes = useMemo(() => construireLignesDiscussion(conversation.messages, trouverPote, aujourdhui, monId), [conversation.messages, trouverPote, aujourdhui, monId]);
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
   const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
   const [lignesAuDepart] = useState(() => Math.min(LIGNES_AU_DEPART_MAX, Math.max(LIGNES_AU_DEPART_MIN, lignes.length)));

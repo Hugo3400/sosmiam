@@ -1,8 +1,10 @@
 import { BoutonsConnexionExterne } from "~/composants/compte/BoutonsConnexionExterne";
+import { ConnexionParQr } from "~/composants/compte/ConnexionParQr";
 import { FormulaireConnexion } from "~/composants/compte/FormulaireConnexion";
 import { AIDE_APPLE_GOOGLE } from "~/contenus/mon-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { FournisseurExterne } from "~/types/connexion-externe";
+import type { QrAffiche } from "~/types/connexion-qr";
 
 type Props = {
   /** Adresse de « Mot de passe oublié ? » (sur sosmiam.fr, celle de l'espace ambassadeur : le lien reçu y mène aussi) */
@@ -10,6 +12,8 @@ type Props = {
   /** « Continuer avec Apple / Google » : les boutons réglés, et le message d'un essai raté */
   fournisseurs: Record<FournisseurExterne, boolean>;
   messageExterne: string | null;
+  /** « Me connecter avec l'app » : le QR redessiné par la page (retour sans JavaScript), sinon null */
+  qr: QrAffiche | null;
 };
 
 /**
@@ -17,7 +21,7 @@ type Props = {
  * à chaque hôte : une connexion faite sur ambassadeur.sosmiam.fr ne servirait pas ici) : Apple, Google, ou e-mail et
  * mot de passe ; et l'aide pour un compte créé avec Apple ou Google, qui n'a pas de mot de passe.
  */
-export function ConnexionMonCompte({ adresseOubli, fournisseurs, messageExterne }: Props) {
+export function ConnexionMonCompte({ adresseOubli, fournisseurs, messageExterne, qr }: Props) {
   return (
     <section aria-labelledby="me-connecter">
       <h2 id="me-connecter" className="mb-5 text-2xl font-extrabold">Me connecter</h2>
@@ -25,6 +29,7 @@ export function ConnexionMonCompte({ adresseOubli, fournisseurs, messageExterne 
         <BoutonsConnexionExterne fournisseurs={fournisseurs} depart="/mon-compte" message={messageExterne} />
         <FormulaireConnexion retour={null} adresseOubli={adresseOubli} sansCadre />
       </div>
+      <ConnexionParQr depart="/mon-compte" initial={qr} />
       <p className="mt-5 rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4">
         <span aria-hidden="true">🍏 </span>{lierPonctuation(AIDE_APPLE_GOOGLE)}
       </p>

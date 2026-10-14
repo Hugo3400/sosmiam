@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Keyboard, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
 
-import { ID_MOI, LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
+import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import { EnregistreurVocal, type ProblemeEnregistrement } from "~/composants/chat/EnregistreurVocal";
 import { FeuilleAjoutChat } from "~/composants/chat/FeuilleAjoutChat";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
@@ -12,6 +12,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -44,6 +45,7 @@ const MICRO_INDISPONIBLE =
 export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Props) {
   const { trouverConversation, envoyerTexte } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const champ = useRef<TextInput>(null);
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<ProblemeEnregistrement | null>(null);
@@ -73,7 +75,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
   }, [enregistrement]);
 
   const conversation = trouverConversation(conversationId);
-  const pote = conversation?.type === "prive" ? trouverPote(conversation.participants.find((id) => id !== ID_MOI) ?? "") : null;
+  const pote = conversation?.type === "prive" ? trouverPote(conversation.participants.find((id) => id !== monId) ?? "") : null;
   const invitation = pote ? `Écris à ${pote.prenom}…` : "Écris au groupe…";
   const longueur = texte.trim().length;
   const micro = longueur === 0;

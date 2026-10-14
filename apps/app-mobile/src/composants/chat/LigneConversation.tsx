@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
@@ -12,6 +11,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   conversation: Conversation;
@@ -29,6 +29,7 @@ const TAILLE_MINI = 22;
 export function LigneConversation({ conversation, maintenant }: Props) {
   const router = useRouter();
   const { trouverPote, bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { nonLusDe } = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
 
@@ -36,16 +37,16 @@ export function LigneConversation({ conversation, maintenant }: Props) {
   const nonLus = nonLusDe(conversation.id);
   // Les autres membres, sans toi ni les personnes bloquées
   const autres = conversation.participants
-    .filter((id) => id !== ID_MOI && !bloques.some((b) => b.id === id))
+    .filter((id) => id !== monId && !bloques.some((b) => b.id === id))
     .map(trouverPote)
     .filter((p): p is Pote => p !== null);
   const pote = groupe ? null : (autres[0] ?? null);
   const nom = groupe ? conversation.titre || "Groupe sans nom" : (pote?.prenom ?? "Quelqu'un");
 
   const dernier = conversation.messages[conversation.messages.length - 1];
-  const prefixe = !dernier ? null : dernier.auteur === ID_MOI ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
+  const prefixe = !dernier ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
   const lieuNom = dernier?.lieuId !== undefined ? trouverLieu(dernier.lieuId)?.nom : undefined;
-  const vide = groupe ? (conversation.creePar === ID_MOI ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
+  const vide = groupe ? (conversation.creePar === monId ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
   const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
   const moment = dernier ? formaterMomentRelatif(dernier.date, maintenant) : null;
 

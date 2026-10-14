@@ -3,12 +3,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   /** Commentaire dont on ouvre les options (null : menu fermé) */
@@ -32,6 +32,7 @@ type Confirmation = "supprimer" | "bloquer" | null;
 export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprimer, onSignaler, onBloquer, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { potes } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const titre = useRef<Text>(null);
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   // Un autre commentaire : on repart des options
@@ -52,7 +53,7 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
 
   if (!commentaire) return null;
 
-  const estMoi = commentaire.auteur === ID_MOI;
+  const estMoi = commentaire.auteur === monId;
   const estLieu = commentaire.auteur === "lieu";
   // « Sort de ta bande » seulement pour quelqu'un qui en fait partie : on commente aussi chez des inconnus
   const dansBande = potes.some((p) => p.id === commentaire.auteur);

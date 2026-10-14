@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { AppState, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -14,6 +13,7 @@ import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-e
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 
 type Props = {
@@ -40,6 +40,7 @@ const NOM = { un: "sortie", des: "sorties" };
 export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
   const router = useRouter();
   const { sorties, potes, quitterSortie, masquer, demasquer } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [menuPour, setMenuPour] = useState<{ sortie: Sortie; passee: boolean } | null>(null);
 
@@ -84,7 +85,7 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
       // Mêmes mots que sur l'écran de la sortie
       confirmation: {
         titre: "Quitter la sortie ?",
-        detail: sortie.organisateur === ID_MOI
+        detail: sortie.organisateur === monId
           ? "Tu organises cette sortie : tes potes la garderont sans toi, et tu ne verras plus le vote ni la discussion."
           : "Tu ne verras plus le vote ni la discussion de cette sortie.",
         confirmer: "Quitter",

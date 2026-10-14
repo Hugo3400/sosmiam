@@ -8,7 +8,7 @@ import { redirect } from "react-router";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { LIEN_MOT_DE_PASSE_ENVOYE } from "~/contenus/mes-connexions";
 import { choisirCodeMesConnexions } from "~/fonctions/connexion-externe/choisir-code-mes-connexions";
-import { estAdresseRelaisApple } from "~/fonctions/connexion-externe/est-adresse-relais-apple";
+import { estAdresseRelaisApple } from "../../../../packages/commun/src/fonctions/compte/est-adresse-relais-apple.ts";
 import { lireMessageMesConnexions } from "~/fonctions/connexion-externe/lire-message-mes-connexions";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireAttente, delierConnexion, demanderNouveauMotDePasse, MESSAGE_OCCUPE, relierConnexion } from "~/services/comptes.server";

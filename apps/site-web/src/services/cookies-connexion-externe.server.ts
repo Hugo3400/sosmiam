@@ -7,6 +7,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 import type { AttenteConnexion, EtatConnexion } from "../types/connexion-externe.ts";
+import type { AttenteQr } from "../types/connexion-qr.ts";
 
 const enProduction = process.env.NODE_ENV === "production";
 const CLE = randomBytes(32);
@@ -74,4 +75,21 @@ export function lireCookieAttente(requete: Request, maintenant: number): Attente
   if (typeof lu !== "object" || lu === null) return null;
   const attente = lu as AttenteConnexion;
   return typeof attente.expire === "number" && maintenant <= attente.expire ? attente : null;
+}
+
+// ─── Connexion par QR code : le secret du QR affiché (2 minutes au plus, SameSite=Lax), même chiffrement ───
+export const NOM_COOKIE_QR = `${prefixe}sosmiam-connexion-qr`;
+
+/** Set-Cookie du QR en cours (au plus jusqu'à sa fin) */
+export function poserCookieQr(attente: AttenteQr, maintenant: number): string {
+  return ecrireCookie(NOM_COOKIE_QR, chiffrer(attente, "qr"), "Lax", Math.max(1, Math.min(120, Math.ceil((attente.expire - maintenant) / 1000))));
+}
+export const effacerCookieQr = () => ecrireCookie(NOM_COOKIE_QR, "", "Lax", 0);
+
+/** Le QR en cours (null : absent, illisible, ou fini depuis plus de 30 s : l'API garde 30 s pour une acceptation de dernière seconde) */
+export function lireCookieQr(requete: Request, maintenant: number): AttenteQr | null {
+  const lu = dechiffrer(lireCookie(requete, NOM_COOKIE_QR), "qr");
+  if (typeof lu !== "object" || lu === null) return null;
+  const attente = lu as AttenteQr;
+  return typeof attente.secret === "string" && typeof attente.expire === "number" && maintenant <= attente.expire + 30_000 ? attente : null;
 }

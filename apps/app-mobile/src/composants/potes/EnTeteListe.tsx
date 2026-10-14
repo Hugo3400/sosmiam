@@ -1,11 +1,11 @@
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { ListePartagee, Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   liste: ListePartagee;
@@ -25,19 +25,20 @@ const TAILLE_EMOJI = 88;
 // Avatars d'abonnés montrés en pile, le reste est compté dans la phrase
 const MAX_AVATARS = 4;
 
-/** « toi, Léa et Tom » ; au-delà de 3, « toi, Léa et 3 autres » */
-function nommerAbonnes(abonnes: Pote[]): string {
-  const noms = abonnes.map((p) => (p.id === ID_MOI ? "toi" : p.prenom));
+/** « toi, Léa et Tom » ; au-delà de 3, « toi, Léa et 3 autres » (monId : ton identifiant) */
+function nommerAbonnes(abonnes: Pote[], monId: string): string {
+  const noms = abonnes.map((p) => (p.id === monId ? "toi" : p.prenom));
   if (noms.length <= 3) return noms.length > 1 ? `${noms.slice(0, -1).join(", ")} et ${noms.at(-1)}` : noms[0];
   return `${noms.slice(0, 2).join(", ")} et ${noms.length - 2} autres`;
 }
 
 /** Le haut d'une liste partagée : son emoji, son titre, sa description, qui l'a faite, qui la suit, et le bouton pour la suivre. */
 export function EnTeteListe({ liste, auteur, abonnes, nombreLieux, suivie, onBasculerSuivi, onOuvrirAuteur }: Props) {
-  const estAMoi = liste.auteur === ID_MOI;
+  const monId = utiliserMonId();
+  const estAMoi = liste.auteur === monId;
   // Toi d'abord, puis les autres dans l'ordre de la liste
-  const abonnesRanges = [...abonnes].sort((a, b) => Number(b.id === ID_MOI) - Number(a.id === ID_MOI));
-  const phraseAbonnes = abonnesRanges.length === 0 ? "Personne ne la suit encore" : `Suivie par ${nommerAbonnes(abonnesRanges)}`;
+  const abonnesRanges = [...abonnes].sort((a, b) => Number(b.id === monId) - Number(a.id === monId));
+  const phraseAbonnes = abonnesRanges.length === 0 ? "Personne ne la suit encore" : `Suivie par ${nommerAbonnes(abonnesRanges, monId)}`;
   const adresses = `${nombreLieux} adresse${nombreLieux > 1 ? "s" : ""}`;
 
   return (

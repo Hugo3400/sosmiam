@@ -191,6 +191,15 @@ export default function Reglages() {
               onPress={() => router.push("/reglages/demo")}
             />
           ) : null}
+          {/* En démo, pas de compte (donc pas de « Mon compte ») : la connexion par QR se regarde d'ici */}
+          {demo.actif ? (
+            <LigneReglage
+              emoji="📷"
+              titre="Connecter un appareil"
+              detail="La connexion par QR code, en démo : rien ne part sur le serveur"
+              onPress={() => router.push("/reglages/connecter-appareil")}
+            />
+          ) : null}
           <LigneReglage
             emoji="🧪"
             titre={demo.actif ? (demo.compteDeCote ? "Quitter la démo et revenir sur mon compte" : "Quitter la démo") : "Passer en mode démo"}

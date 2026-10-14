@@ -33,16 +33,26 @@ export function utiliserEntreeCompte() {
   const [enCours, setEnCours] = useState<"apple" | "google" | "email" | null>(null);
   const occupe = useRef(false);
 
-  /** Après une connexion à un compte EXISTANT : la session est gardée et son profil installé (sinon, « Fais connaissance ») */
-  async function entrer(ouverte: SessionOuverte): Promise<void> {
+  /**
+   * Après une connexion à un compte EXISTANT : la session est gardée et son profil installé (sinon, « Fais connaissance »).
+   * Faux si le profil n'a pas pu être lu (l'erreur est montrée) : on peut réessayer avec la même session.
+   */
+  async function entrer(ouverte: SessionOuverte): Promise<boolean> {
     await session.ouvrir(ouverte);
     const lu = await session.comptes.lireProfil();
-    if (!lu.ok) return montrerErreurCompte(lu.erreur, lu.details);
+    if (!lu.ok) {
+      montrerErreurCompte(lu.erreur, lu.details);
+      return false;
+    }
     const local = convertirProfilServeur(lu.profil, profil?.envies.regimes);
     // Installé : la racine bascule toute seule vers les onglets
-    if (local) return enregistrer(local);
+    if (local) {
+      await enregistrer(local);
+      return true;
+    }
     modifier({ prenom: lu.profil.prenom, nom: lu.profil.nom ?? "", pseudo: lu.profil.pseudo ?? "", ville: lu.profil.ville, connexion: { type: "completer" } });
     router.push("/fais-connaissance");
+    return true;
   }
 
   /** Un geste à la fois (un double appui ne lance jamais deux connexions) */

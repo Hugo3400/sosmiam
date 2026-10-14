@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { CarteLieuChat } from "~/composants/chat/CarteLieuChat";
@@ -16,6 +15,7 @@ import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { retrouverFichierChat } from "~/stockage/conversations-locales";
 import couleurs from "~/theme/couleurs";
 
@@ -44,6 +44,7 @@ const DELAI_APPUI_LONG = 350;
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
   const { basculerReaction } = utiliserConversations();
+  const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   const dernierAppui = useRef(0);
   // Le cœur qui éclot sur la bulle au double appui (son numéro relance l'animation), puis s'efface
@@ -56,7 +57,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     [],
   );
 
-  const coeurMis = (message.reactions["❤️"] ?? []).includes(ID_MOI);
+  const coeurMis = (message.reactions["❤️"] ?? []).includes(monId);
   // Le message garde « chat/<nom> » : l'adresse complète se refait ici (le dossier de l'app change avec les mises à jour sur iPhone)
   const fichier = useMemo(() => (message.fichier ? retrouverFichierChat(message.fichier) : undefined), [message.fichier]);
 

@@ -8,7 +8,8 @@ export const unstable_settings = { initialRouteName: "bienvenue" };
 
 /**
  * Parcours d'inscription : bienvenue → compte (→ e-mail et mot de passe) → fais connaissance → envies → c'est prêt ; ou « Me
- * connecter » (→ mot de passe oublié) pour un compte qui existe. Le brouillon suit d'un écran à l'autre.
+ * connecter » (→ mot de passe oublié, ou un QR code scanné par un téléphone déjà connecté) pour un compte qui existe. Le
+ * brouillon suit d'un écran à l'autre.
  */
 export default function MiseEnPageInscription() {
   return (

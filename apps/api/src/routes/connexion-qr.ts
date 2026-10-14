@@ -32,21 +32,28 @@ export const LIMITE_QR_APP = { fenetre: 10 * 60_000, maximum: 30 };
  *                           « Safari sur iPhone », « l'app SOS Miam sur Android ») est tiré de l'en-tête
  *                           X-Appareil-Visiteur (le User-Agent du visiteur, transmis par le serveur du site), sinon du
  *                           User-Agent de la demande. 429 au-delà de 20 par visiteur toutes les 10 minutes.
- * POST /comptes/qr/attente  { secret } → 200 { ok, etat: "attente" | "scanne" | "refuse" | "expire" }, ou, une fois acceptée,
- *                           200 { ok, etat: "accepte", session, compte } (comme une connexion : `compte` de routes/comptes.ts).
- *                           La session n'est ouverte qu'à cet appel, une seule fois (la demande passe à « utilisee », de
- *                           façon atomique : un deuxième appel, même simultané, répond « expire ») ; cible « site » →
- *                           session du site (30 jours sans visite, 90 au plus) ; cible « app » → session de l'app (1 an,
- *                           prolongée à chaque usage). Compte effacé entre-temps : « expire ». Secret inconnu : « expire ».
- *                           Une demande acceptée se récupère jusqu'à 30 s après la fin du QR ; un scan resté 60 s sans
- *                           réponse : « expire ». 429 au-delà de 120 par visiteur et par minute (interroger toutes les 2 s).
+ * POST /comptes/qr/attente  { secret } → 200 { ok, etat: "attente" | "scanne", attenteDansS } (attenteDansS : secondes entières
+ *                           qui restent, comptées par le serveur : jusqu'à expireLe avant le scan, puis min(60 s après le
+ *                           premier scan, expireLe) ; jamais négatif), 200 { ok, etat: "refuse" | "expire" }, ou, une fois
+ *                           acceptée, 200 { ok, etat: "accepte", session, compte } (comme une connexion : `compte` de
+ *                           routes/comptes.ts). La session n'est ouverte qu'à cet appel (la demande passe à « utilisee ») ;
+ *                           cible « site » → session du site (30 jours sans visite, 90 au plus) ; cible « app » → session
+ *                           de l'app (1 an, prolongée à chaque usage). Réponse perdue : le même secret qui revient dans les
+ *                           30 s après la PREMIÈRE remise reçoit encore « accepte » avec une NOUVELLE session, et la session
+ *                           remise avant est révoquée (3 remises au plus) ; ensuite « expire ». Tout est atomique : même
+ *                           avec des appels simultanés, une seule session valable à la fin (garder la dernière reçue).
+ *                           Compte effacé entre-temps : « expire ». Secret inconnu : « expire ». Une demande acceptée se
+ *                           récupère jusqu'à 30 s après la fin du QR ; un scan resté 60 s sans réponse : « expire ». 429
+ *                           au-delà de 120 par visiteur et par minute (interroger toutes les 2 s).
  *
  * Avec la session de l'APP (Authorization: Bearer ; une session du site : 403 session-app-requise ; sans session valable :
  * 401 session-expiree ; 429 au-delà de 30 demandes par compte toutes les 10 minutes, les deux adresses ensemble) :
  * POST /app/qr/scanner      { code } (les 32 caractères après https://sosmiam.fr/q/) → 200 { ok, demande: { cible, appareil,
- *                           origine, creeLe, expireLe } } (dates ISO 8601) : la demande passe à « scanne » par ce compte ;
- *                           l'app montre la confirmation. Le même compte peut rescanner (même réponse, la fenêtre de 60 s ne
- *                           repart pas). 404 connexion-qr-inconnue · 410 connexion-qr-expiree (fini, déjà utilisé, ou scanné
+ *                           origine, creeLe, expireLe, repondreDansS } } (dates ISO 8601 ; repondreDansS : secondes entières
+ *                           qui restent pour accepter, min(60 s après le PREMIER scan, expireLe) - maintenant, jamais
+ *                           négatif : à préférer aux dates, l'horloge du téléphone peut être fausse) : la demande passe à
+ *                           « scanne » par ce compte ; l'app montre la confirmation. Le même compte peut rescanner (même
+ *                           réponse, la fenêtre de 60 s ne repart pas). 404 connexion-qr-inconnue · 410 connexion-qr-expiree (fini, déjà utilisé, ou scanné
  *                           depuis plus de 60 s sans réponse) · 409 connexion-qr-deja-scannee (scanné par un AUTRE compte)
  *                           · 409 deja-repondu (ce compte a déjà accepté ou refusé).
  * POST /app/qr/repondre     { code, accepte: boolean } → 200 { ok }. Seulement le compte qui a scanné (sinon 404

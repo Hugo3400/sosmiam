@@ -6,6 +6,7 @@ import { after, before, test } from "node:test";
 
 import { depasseAntiSpam } from "../src/fonctions/notifications/depasse-anti-spam.ts";
 import { signerJetonJwt } from "../src/fonctions/notifications/signer-jeton-jwt.ts";
+import { construireCorpsGoogle, construireEnvoiApple } from "../src/services/notifications/expedier-push.ts";
 import { creerBancGestion } from "./outils/creer-banc-gestion.ts";
 
 test("anti-spam : 1 par jour, 4 par semaine", () => {
@@ -30,6 +31,29 @@ test("jetons signés : ES256 (Apple, signature JOSE) et RS256 (Google) se vérif
   const jetonGoogle = signerJetonJwt("RS256", google.privateKey.export({ type: "pkcs8", format: "pem" }).toString(), {}, { iss: "compte@projet" });
   const [e, c, s] = jetonGoogle.split(".");
   assert.ok(createVerify("SHA256").update(`${e}.${c}`).verify(google.publicKey, Buffer.from(s!, "base64url")));
+});
+
+test("regroupement et son (messagerie, lot L4) : une notification par conversation, la suivante sans son ; rien de changé sans eux", () => {
+  const simple = { titre: "Ce soir, ça bouge 🛟", texte: "Trois lieux ont de la place.", lien: "/explorer" };
+  const apple = construireEnvoiApple(simple);
+  assert.deepEqual(apple.entetes, {});
+  assert.deepEqual(JSON.parse(apple.corps), { aps: { alert: { title: simple.titre, body: simple.texte }, sound: "default" }, lien: "/explorer" });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", simple).message.android, { priority: "high" });
+  const message = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3", regroupement: "conversation:3", sonore: false };
+  const groupe = construireEnvoiApple(message);
+  assert.deepEqual(groupe.entetes, { "apns-collapse-id": "conversation:3" });
+  assert.deepEqual(JSON.parse(groupe.corps).aps, { alert: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, "thread-id": "conversation:3" }, "sans son");
+  assert.equal(JSON.parse(construireEnvoiApple({ ...message, sonore: true }).corps).aps.sound, "default");
+  assert.deepEqual(construireCorpsGoogle("jeton-g", message), {
+    message: {
+      token: "jeton-g", notification: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, data: { lien: "/potes/discussion/3" },
+      android: { priority: "high", notification: { tag: "conversation:3" } },
+    },
+  });
+  // Au-delà de 64 octets, Apple refuserait l'en-tête : pas de regroupement, la notification part quand même
+  assert.deepEqual(construireEnvoiApple({ ...message, regroupement: "x".repeat(65) }).entetes, {});
+  const urgent = JSON.parse(construireEnvoiApple({ ...simple, urgent: true }).corps).aps;
+  assert.equal(urgent["interruption-level"], "time-sensitive");
 });
 
 // prevenirCompte se branche sur la base au chargement, sans s'y connecter : une adresse d'essai suffit, la table est un double

@@ -1,9 +1,10 @@
 // Connexion par QR code, comme Discord (décidé le 14 octobre 2026) : l'appareil qui veut une session (le site, ou un nouveau
 // téléphone) demande un QR et garde le secret ; l'app déjà connectée scanne le code et répond ; l'appareil reçoit sa
-// session en interrogeant avec son secret, une seule fois. Contrat : routes/connexion-qr.ts.
+// session en interrogeant avec son secret (une relance dans les 30 s si la réponse s'est perdue). Contrat : routes/connexion-qr.ts.
 // Jamais de code, de secret, de jeton ni d'e-mail dans un journal.
 import type { Request, Response } from "express";
 
+import { calculerSecondesRestantesQr } from "../fonctions/comptes/calculer-secondes-restantes-qr.ts";
 import { decrireAppareilQr } from "../fonctions/comptes/decrire-appareil-qr.ts";
 import { lireEtatDemandeQr } from "../fonctions/comptes/lire-etat-demande-qr.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
@@ -53,12 +54,13 @@ const inconnue = (reponse: Response) => reponse.status(404).json({ ok: false, er
 const expiree = (reponse: Response) => reponse.status(410).json({ ok: false, erreur: "connexion-qr-expiree" });
 const dejaRepondu = (reponse: Response) => reponse.status(409).json({ ok: false, erreur: "deja-repondu" });
 
-/** La demande telle que l'app la montre sur l'écran de confirmation */
-const presenter = (demande: DemandeQr) => ({
+/** La demande telle que l'app la montre sur l'écran de confirmation ; repondreDansS : les secondes qui restent pour accepter */
+const presenter = (demande: DemandeQr, maintenant: number) => ({
   cible: demande.cible, appareil: demande.appareil, origine: demande.origine, creeLe: iso(demande.creeLe), expireLe: iso(demande.expireLe),
+  repondreDansS: calculerSecondesRestantesQr({ scanneLe: demande.scanneLe ?? maintenant, expireLe: demande.expireLe }, maintenant),
 });
 
-export function creerControleursConnexionQr({ qr, protection, lireCompte, lireCompteVu, horloge }: ContexteConnexionQr) {
+export function creerControleursConnexionQr({ qr, lireCompte, lireCompteVu, horloge }: ContexteConnexionQr) {
   /** Les routes de l'app (scanner, répondre) : seulement avec une session de l'app (le site ne valide jamais un QR) */
   function exigerSessionApp(reponse: Response): boolean {
     if ((reponse.locals.compte as CompteSession).support === "app") return true;
@@ -85,17 +87,27 @@ export function creerControleursConnexionQr({ qr, protection, lireCompte, lireCo
       reponse.status(201).json({ ok: true, code, secret, expireLe: iso(expireLe) });
     },
 
-    /** POST /comptes/qr/attente { secret } : où en est le QR ; accepté → LA session, une seule fois */
+    /**
+     * POST /comptes/qr/attente { secret } : où en est le QR ; accepté → LA session. Si cette réponse se perd, le même secret
+     * qui revient dans les 30 s reçoit une nouvelle session et l'ancienne est révoquée (3 remises au plus, voir choisirRemiseQr)
+     */
     async attendre(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       if (typeof corps.secret !== "string" || !FORME_SECRET.test(corps.secret)) throw new ChampInvalide("secret");
       const demande = await qr.lireParSecret(calculerEmpreinteJeton(corps.secret));
-      const etat = lireEtatDemandeQr(demande, horloge());
-      if (etat !== "accepte" || !demande || demande.compteId === null) return reponse.json({ ok: true, etat: etat === "accepte" ? "expire" : etat });
-      // Atomique : de deux interrogations simultanées, une seule passe la demande à « utilisee » et ouvre la session
+      const maintenant = horloge();
+      const etat = lireEtatDemandeQr(demande, maintenant);
+      if (demande && (etat === "attente" || etat === "scanne")) {
+        return reponse.json({ ok: true, etat, attenteDansS: calculerSecondesRestantesQr(demande, maintenant) });
+      }
+      // « utilisee » se lit « expire », sauf relance permise : le service en décide, sous verrou
+      const remise = etat === "accepte" || demande?.statut === "utilisee";
+      if (!remise || !demande || demande.compteId === null) return reponse.json({ ok: true, etat: etat === "accepte" ? "expire" : etat });
       const compteId = demande.compteId;
-      if (!(await qr.utiliser(demande.id)) || !(await lireCompte(compteId))) return reponse.json({ ok: true, etat: "expire" });
-      const session = await protection.ouvrirSession(compteId, demande.cible === "app" ? "app" : "site");
+      if (!(await lireCompte(compteId))) return reponse.json({ ok: true, etat: "expire" });
+      // Atomique : de deux interrogations simultanées, jamais deux sessions valables à la fin
+      const session = creerJeton();
+      if (!(await qr.remettre(demande.id, calculerEmpreinteJeton(session), maintenant))) return reponse.json({ ok: true, etat: "expire" });
       reponse.json({ ok: true, etat: "accepte", session, compte: await lireCompteVu(compteId) });
     },
 
@@ -109,7 +121,7 @@ export function creerControleursConnexionQr({ qr, protection, lireCompte, lireCo
       if (!demande) return inconnue(reponse);
       if (demande.statut === "attente" && maintenant < demande.expireLe) {
         // Deux téléphones qui scannent au même moment : un seul gagne, l'autre relit
-        if (await qr.noterScan(demande.id, compteId, maintenant)) return reponse.json({ ok: true, demande: presenter(demande) });
+        if (await qr.noterScan(demande.id, compteId, maintenant)) return reponse.json({ ok: true, demande: presenter(demande, maintenant) });
         demande = await qr.lireParCode(calculerEmpreinteJeton(code));
         if (!demande) return inconnue(reponse);
       }
@@ -118,7 +130,7 @@ export function creerControleursConnexionQr({ qr, protection, lireCompte, lireCo
       if (demande.statut !== "scanne") return dejaRepondu(reponse);
       // Le même téléphone rescanne : même demande, la fenêtre de 60 s ne repart pas
       if (demande.scanneLe !== null && maintenant - demande.scanneLe > FENETRE_REPONSE_QR) return expiree(reponse);
-      reponse.json({ ok: true, demande: presenter(demande) });
+      reponse.json({ ok: true, demande: presenter(demande, maintenant) });
     },
 
     /** POST /app/qr/repondre { code, accepte } : seulement le compte qui a scanné, dans les 60 s */

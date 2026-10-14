@@ -3,7 +3,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { calculerVisibiliteProfil } from "@sos-miam/commun/regles/calculer-visibilite-profil";
 import { estComptePrive } from "@sos-miam/commun/regles/est-compte-prive";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { CONFIDENTIALITE_PAR_DEFAUT } from "@sos-miam/commun/regles/suivis";
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
 import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, reactionsExemples } from "~/contenus/suivis-exemples";
@@ -19,6 +18,7 @@ import { nettoyerSuivisPersonnes } from "~/fonctions/suivi/nettoyer-suivis-perso
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
@@ -49,6 +49,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { ajouter } = utiliserNotifications();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -111,10 +112,10 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const bloques = useMemo(() => new Set(communaute.bloques.map((p) => p.id)), [communaute.bloques]);
   const prive = etat?.confidentialite === "prive";
   const trouverCible = useCallback((id: string) => {
-    const pote = id === ID_MOI ? null : trouverPote(id);
+    const pote = id === monId ? null : trouverPote(id);
     return pote ? construireCibleSuivi(pote) : null;
-  }, [trouverPote]);
-  const contexte = useMemo<ContexteLiensSuivi>(() => ({ moi: { id: ID_MOI, prive }, trouverCible, bloques }), [prive, trouverCible, bloques]);
+  }, [trouverPote, monId]);
+  const contexte = useMemo<ContexteLiensSuivi>(() => ({ moi: { id: monId, prive }, trouverCible, bloques }), [monId, prive, trouverCible, bloques]);
   const contexteCourant = useRef(contexte);
   useLayoutEffect(() => {
     contexteCourant.current = contexte;
@@ -239,7 +240,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
     const relationAvec = (id: string): RelationPersonne | null => {
       const pote = propre ? trouverPote(id) : null;
       if (!propre || !pote) return null;
-      const estMoi = id === ID_MOI;
+      const estMoi = id === monId;
       const cible = estMoi ? contexte.moi : construireCibleSuivi(pote);
       const jeSuis = idsAbonnements.includes(id) ? "suivi" : contient(propre.demandesEnvoyees, id) ? "demande" : "aucun";
       return {
@@ -251,12 +252,12 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       };
     };
 
-    const lies = { mesAbonnes: idsAbonnes, mesAbonnements: idsAbonnements, bloques, trouverPote };
+    const lies = { monId, mesAbonnes: idsAbonnes, mesAbonnements: idsAbonnements, bloques, trouverPote };
     const potesLies = (id: string, sens: "abonnes" | "abonnements") => listerPotesLiesDe(id, sens, lies);
 
     const compteursDe = (id: string) => {
       if (!propre) return null;
-      if (id === ID_MOI) return { abonnes: abonnes.length, abonnements: abonnements.length + pagesSuivies };
+      if (id === monId) return { abonnes: abonnes.length, abonnements: abonnements.length + pagesSuivies };
       const relation = relationAvec(id);
       if (!relation || bloques.has(id)) return null;
       return { abonnes: potesLies(id, "abonnes").length, abonnements: potesLies(id, "abonnements").length };
@@ -264,7 +265,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
 
     const listeDe = (id: string, sens: "abonnes" | "abonnements"): ReturnType<EtatSuivisPersonnes["abonnesDe"]> => {
       if (compteursDe(id) === null) return "ferme";
-      if (id === ID_MOI) return (sens === "abonnes" ? abonnes : abonnements).map((p) => p.pote);
+      if (id === monId) return (sens === "abonnes" ? abonnes : abonnements).map((p) => p.pote);
       return relationAvec(id)?.visibilite === "complet" ? potesLies(id, sens) : "ferme";
     };
 
@@ -294,7 +295,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       },
       effacer,
     };
-  }, [pret, etat, propre, contexte, bloques, potes, trouverPote, moyenAjout, pagesSuivies, changerConfidentialite, suivre, accepterDemande, retirer, changer, effacer]);
+  }, [pret, etat, propre, contexte, bloques, potes, trouverPote, moyenAjout, pagesSuivies, changerConfidentialite, suivre, accepterDemande, retirer, changer, effacer, monId]);
 
   return <ContexteSuivisPersonnes.Provider value={valeur}>{children}</ContexteSuivisPersonnes.Provider>;
 }

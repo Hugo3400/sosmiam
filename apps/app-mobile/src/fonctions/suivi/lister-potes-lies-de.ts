@@ -6,14 +6,17 @@ import { listerAbonnesDe } from "~/fonctions/suivi/lister-abonnes-de";
 
 /**
  * Les abonnés ou les abonnements d'une autre personne de la démo (graphe d'exemple, et toi selon tes liens avec elle),
- * sans personne bloquée ni inconnue.
+ * sans personne bloquée ni inconnue. monId : ton identifiant (utiliserMonId).
  */
 export function listerPotesLiesDe(
   id: string,
   sens: "abonnes" | "abonnements",
-  contexte: { mesAbonnes: readonly string[]; mesAbonnements: readonly string[]; bloques: ReadonlySet<string>; trouverPote: (id: string) => Pote | null },
+  contexte: { monId: string; mesAbonnes: readonly string[]; mesAbonnements: readonly string[]; bloques: ReadonlySet<string>; trouverPote: (id: string) => Pote | null },
 ): Pote[] {
-  const ids = sens === "abonnes" ? listerAbonnesDe(id, grapheSuivisExemples, contexte.mesAbonnements) : listerAbonnementsDe(id, grapheSuivisExemples, contexte.mesAbonnes);
+  const ids =
+    sens === "abonnes"
+      ? listerAbonnesDe(id, grapheSuivisExemples, contexte.mesAbonnements, contexte.monId)
+      : listerAbonnementsDe(id, grapheSuivisExemples, contexte.mesAbonnes, contexte.monId);
   return ids.flatMap((autre) => {
     const pote = contexte.bloques.has(autre) ? null : contexte.trouverPote(autre);
     return pote ? [pote] : [];

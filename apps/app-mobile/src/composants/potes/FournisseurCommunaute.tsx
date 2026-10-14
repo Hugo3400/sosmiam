@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { extraireMentions } from "@sos-miam/commun/fonctions/commentaires/extraire-mentions";
+import { trierCommentaires } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
+import { calculerClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
+import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
+import { estVoteTermine } from "@sos-miam/commun/fonctions/sorties/est-vote-termine";
 import { LONGUEUR_MAX_COMMENTAIRE } from "@sos-miam/commun/regles/mots-interdits";
 import {
   ID_MOI,
@@ -9,7 +14,7 @@ import {
   MAX_PARTICIPANTS_SORTIE,
   MAX_PROPOSITIONS_SORTIE,
 } from "@sos-miam/commun/regles/potes";
-import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
+import type { Pote, PropositionSortie, Sortie } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerCommentairesExemples } from "~/contenus/commentaires-exemples";
 import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples, VERSION_EXEMPLES } from "~/contenus/potes-exemples";
@@ -17,14 +22,9 @@ import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-lo
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { ajouterNouveauxExemples } from "~/fonctions/communaute/ajouter-nouveaux-exemples";
 import { basculerVote } from "~/fonctions/communaute/basculer-vote";
-import { calculerClassement } from "~/fonctions/communaute/calculer-classement";
 import { chercherParPseudo } from "~/fonctions/communaute/chercher-par-pseudo";
-import { choisirLieuGagnant } from "~/fonctions/communaute/choisir-lieu-gagnant";
 import { construireMoi } from "~/fonctions/communaute/construire-moi";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
-import { estVoteTermine } from "~/fonctions/communaute/est-vote-termine";
-import { extraireMentions } from "~/fonctions/communaute/extraire-mentions";
-import { trierCommentaires } from "~/fonctions/communaute/trier-commentaires";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { ContexteCommunaute, type EtatCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -72,12 +72,15 @@ const verifierTexte = (texte: string, max: number): ResultatTexte => {
   return contientMotInterdit(propre) ? "mot-interdit" : "ok";
 };
 const auHasard = <T,>(liste: T[]): T => liste[Math.floor(Math.random() * liste.length)];
+/** Le lieu retenu d'après le nombre de votes de chaque proposition (à égalité, la première proposée) */
+const choisirGagnant = (propositions: PropositionSortie[]) => choisirLieuGagnant(propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length })));
 const entre = (min: number, max: number) => min + Math.random() * (max - min);
 
 /**
  * Potes, sorties, listes, activité, lieux envoyés entre potes et commentaires, gardés sur le téléphone. Mode démo : une
  * bande d'exemple qui vote et répond toute seule. Sinon : vide (tes vrais potes arriveront avec l'API), et ce qu'une
- * ancienne démo avait gardé sur le téléphone est oublié.
+ * ancienne démo avait gardé sur le téléphone est oublié. Ces données te désignent par ID_MOI (« moi ») : c'est la future
+ * communauté du téléphone (lot A2) ; les écrans, eux, lisent ton identifiant par utiliserMonId.
  */
 export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const { profil, avatar } = utiliserProfil();
@@ -115,6 +118,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const moi = useMemo(
     () =>
       construireMoi({
+        // Les données du téléphone (démo comprise) te désignent par « moi » : les écrans le lisent par utiliserMonId
+        id: ID_MOI,
         pseudo: profil?.pseudo ?? "",
         prenom: profil?.prenom ?? "Toi",
         avatar: avatar.type === "emoji" ? avatar.emoji : "📷",
@@ -147,7 +152,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       .map((s): Sortie => {
         const propositions = s.propositions.filter((p) => lieuExiste(p.lieuId));
         const messages = s.messages.filter((m) => !etat.bloques.includes(m.auteur) && !signales.has(m.id));
-        const lieuChoisi = s.lieuChoisi ?? (s.finVote < maintenant ? choisirLieuGagnant(propositions) : null);
+        const lieuChoisi = s.lieuChoisi ?? (s.finVote < maintenant ? choisirGagnant(propositions) : null);
         return { ...s, propositions, messages, lieuChoisi };
       })
       .sort((a, b) => a.quand.localeCompare(b.quand));
@@ -164,7 +169,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         plusTard(entre(3000, 9000), (e) => ({
           ...e,
           sorties: e.sorties.map((s) => {
-            if (s.id !== sortieId || e.bloques.includes(id) || estVoteTermine(s)) return s;
+            if (s.id !== sortieId || e.bloques.includes(id) || estVoteTermine(s, new Date())) return s;
             const choix = [...lieux].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.5 ? 1 : 2);
             return choix.reduce((sortie, lieuId) => (sortie.propositions.find((p) => p.lieuId === lieuId)?.votes.includes(id) ? sortie : basculerVote(sortie, lieuId, id)), s);
           }),
@@ -225,10 +230,10 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         fairerVoterLesPotes(id, participants, permis);
         return { id };
       },
-      voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => (estVoteTermine(s) ? s : basculerVote(s, lieuId, ID_MOI))),
+      voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => (estVoteTermine(s, new Date()) ? s : basculerVote(s, lieuId, ID_MOI))),
       proposerLieu: (sortieId, lieuId) => {
         const sortie = etat.sorties.find((s) => s.id === sortieId);
-        if (!sortie || estVoteTermine(sortie) || !lieuExiste(lieuId)) return "interdit";
+        if (!sortie || estVoteTermine(sortie, new Date()) || !lieuExiste(lieuId)) return "interdit";
         if (sortie.propositions.some((p) => p.lieuId === lieuId)) return "deja";
         if (sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE) return "max";
         changerSortie(sortieId, (s) => ({ ...s, propositions: [...s.propositions, { lieuId, proposePar: ID_MOI, votes: [ID_MOI] }] }));
@@ -252,7 +257,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return "ok";
       },
       terminerVote: (sortieId) =>
-        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuExiste(p.lieuId))) })),
+        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s, new Date()) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirGagnant(s.propositions.filter((p) => lieuExiste(p.lieuId))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
 
       // Une liste signalée disparaît pour toi (une liste écartée de « À découvrir » reste sur le profil de son auteur : estMasque)
@@ -271,7 +276,8 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       retirerLieuListe: (listeId, lieuId) => setEtat((e) => ({ ...e, listes: e.listes.map((l) => (l.id !== listeId ? l : { ...l, lieux: l.lieux.filter((x) => x !== lieuId) })) })),
 
       activites: etat.activites.filter((a) => !etat.bloques.includes(a.pote) && !masques.has(a.id)).sort((a, b) => b.date.localeCompare(a.date)),
-      classement: calculerClassement(potes, moi),
+      // Toi compris dans la liste (le classement de commun t'y attend)
+      classement: calculerClassement([...potes, moi], moi.id),
 
       recommandationsRecues: etat.recommandations.filter((r) => r.a === ID_MOI && !etat.bloques.includes(r.de) && !signales.has(r.id)).sort((a, b) => b.date.localeCompare(a.date)),
       recommandationsEnvoyees: etat.recommandations.filter((r) => r.de === ID_MOI).sort((a, b) => b.date.localeCompare(a.date)),

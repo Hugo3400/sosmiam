@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, Pressable, Text, View } from "react-native";
 
+import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { LigneCommentaire } from "~/composants/fil/LigneCommentaire";
-import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
 import couleurs from "~/theme/couleurs";
 
 type Props = {

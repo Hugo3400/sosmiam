@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -11,13 +11,13 @@ import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { DiscussionSortie, type LigneDiscussion } from "~/composants/potes/DiscussionSortie";
 import { EnTeteSortie } from "~/composants/potes/EnTeteSortie";
 import { VoteSortie } from "~/composants/potes/VoteSortie";
-import { choisirLieuGagnant } from "~/fonctions/communaute/choisir-lieu-gagnant";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Onglet = "vote" | "discussion";
 
@@ -54,6 +54,7 @@ export default function EcranSortie() {
   const marges = useSafeAreaInsets();
   const { id, onglet: ongletDemande } = useLocalSearchParams<{ id: string; onglet?: string }>();
   const { pret, trouverSortie, trouverPote, bloques, terminerVote, quitterSortie } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const [onglet, setOnglet] = useState<Onglet>(ongletDemande === "discussion" ? "discussion" : "vote");
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [quittee, setQuittee] = useState(false);
@@ -93,7 +94,7 @@ export default function EcranSortie() {
   const quand = new Date(sortie.quand);
   const fin = new Date(sortie.finVote);
   const voteFini = sortie.lieuChoisi !== null || fin <= maintenant;
-  const lieuChoisi = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions) : null);
+  const lieuChoisi = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length }))) : null);
   const minutesRestantes = Math.ceil((fin.getTime() - maintenant.getTime()) / 60_000);
   const finVote = minutesRestantes < 60 ? `dans ${Math.max(1, minutesRestantes)} min` : `${decrireJour(fin, maintenant)} à ${decrireHeure(fin)}`;
 
@@ -108,7 +109,7 @@ export default function EcranSortie() {
     const date = new Date(m.date);
     const precedente = sortie.messages[i - 1];
     const nouveauJour = !precedente || debutDuJour(new Date(precedente.date)) !== debutDuJour(date);
-    return { message: m, auteur: trouverPote(m.auteur), deMoi: m.auteur === ID_MOI, heure: decrireHeure(date), jour: nouveauJour ? capitaliser(decrireJour(date, maintenant)) : null };
+    return { message: m, auteur: trouverPote(m.auteur), deMoi: m.auteur === monId, heure: decrireHeure(date), jour: nouveauJour ? capitaliser(decrireJour(date, maintenant)) : null };
   });
 
   const onglets = [
@@ -125,7 +126,7 @@ export default function EcranSortie() {
   const demanderDepart = () =>
     confirmer(
       "Quitter la sortie ?",
-      sortie.organisateur === ID_MOI
+      sortie.organisateur === monId
         ? "Tu organises cette sortie : tes potes la garderont sans toi, et tu ne verras plus le vote ni la discussion."
         : "Tu ne verras plus le vote ni la discussion de cette sortie.",
       "Quitter",

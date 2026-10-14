@@ -1,10 +1,19 @@
-import { connexionQrDemo, type ServiceConnexionQr } from "~/services/demo/connexion-qr-demo";
+import type { ServiceCompte } from "@sos-miam/commun/client-api/contrat-compte";
+import { utiliserSession } from "~/hooks/utiliser-session";
+import { connexionQrDemo } from "~/services/demo/connexion-qr-demo";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+
+/** Les 4 gestes de la connexion par QR code (contrat de la session Site : /comptes/qr, /comptes/qr/attente, /app/qr/…) */
+export type ServiceConnexionQr = Pick<ServiceCompte, "demanderConnexionQr" | "attendreConnexionQr" | "scannerConnexionQr" | "repondreConnexionQr">;
 
 /**
- * Le service de la connexion par QR code : pour l'instant seulement dans l'aperçu de développement (démo, rien sur le
- * réseau), en attendant les routes de l'API de la session Site ; null ailleurs, et les entrées (Mon compte, Me connecter)
- * restent cachées. Quand l'API sera en ligne, c'est ici seulement qu'on passera au vrai client.
+ * Le service de la connexion par QR code : celui du compte (l'API), sauf en mode démo, où tout est simulé sur le téléphone
+ * (rien ne part sur le réseau, aucune vraie session n'est ouverte).
  */
-export function utiliserServiceConnexionQr(): { service: ServiceConnexionQr | null; demo: boolean } {
-  return __DEV__ ? { service: connexionQrDemo, demo: true } : { service: null, demo: false };
+export function utiliserServiceConnexionQr(): {
+  service: ServiceConnexionQr;
+  demo: boolean;
+} {
+  const { comptes } = utiliserSession();
+  return DEMO_VISITES_ACTIVE ? { service: connexionQrDemo, demo: true } : { service: comptes, demo: false };
 }

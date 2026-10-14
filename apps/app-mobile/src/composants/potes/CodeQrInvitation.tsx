@@ -3,8 +3,8 @@ import { useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Platform, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
+import { creerLienInvitation } from "@sos-miam/commun/fonctions/potes/creer-lien-invitation";
 import { Bouton } from "~/composants/interface/Bouton";
-import { creerLienInvitation } from "~/fonctions/communaute/creer-lien-invitation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCodeInvitation } from "~/hooks/utiliser-code-invitation";
 import couleurs from "~/theme/couleurs";

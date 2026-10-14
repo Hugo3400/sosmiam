@@ -2,12 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Profil } from "@sos-miam/commun/types/profil";
 import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import type { Avatar } from "~/stockage/avatar-local";
 import couleurs from "~/theme/couleurs";
@@ -27,6 +27,7 @@ const TAILLE_AVATAR = 88;
 export function EnTeteProfil({ profil, avatar, age }: Props) {
   const router = useRouter();
   const { pret, comptePrive } = utiliserSuivisPersonnes();
+  const monId = utiliserMonId();
   const nomComplet = profil.nom ? `${profil.prenom} ${profil.nom}` : profil.prenom;
   const prive = pret && comptePrive;
 
@@ -80,7 +81,7 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
       <Text accessibilityLabel={`${profil.ville}, ${age} ans`} className="text-center font-texte text-base text-gris">
         📍 {profil.ville} · {age} ans
       </Text>
-      <CompteursSuivi id={ID_MOI} />
+      <CompteursSuivi id={monId} />
     </View>
   );
 }

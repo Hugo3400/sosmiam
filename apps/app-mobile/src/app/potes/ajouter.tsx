@@ -2,6 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
+import { lireLienInvitation } from "@sos-miam/commun/fonctions/potes/lire-lien-invitation";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -11,7 +12,6 @@ import { RetourAjoutPote, type RetourAjout } from "~/composants/potes/RetourAjou
 import { ScannerQrCode } from "~/composants/potes/ScannerQrCode";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { lireLienInvitation } from "~/fonctions/communaute/lire-lien-invitation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 

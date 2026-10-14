@@ -1,5 +1,6 @@
 import { Platform, Text } from "react-native";
 
+import { estAdresseRelaisApple } from "@sos-miam/commun/fonctions/compte/est-adresse-relais-apple";
 import type { ConnexionsCompte } from "@sos-miam/commun/types/compte-app";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
@@ -10,11 +11,13 @@ import {
   type FournisseurConnexion,
   messagesMesConnexions,
 } from "~/contenus/mes-connexions";
-import { estAdresseRelaisApple } from "~/fonctions/compte/est-adresse-relais-apple";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
   connexions: ConnexionsCompte | null;
+  /** Les clés n'ont pas pu être lues : une ligne pour réessayer, plutôt que rien */
+  lectureRatee: boolean;
+  onRelire: () => void;
   email: string | null;
   enCours: FournisseurConnexion | "mot-de-passe" | null;
   lienEnvoye: boolean;
@@ -28,8 +31,15 @@ type Props = {
  * « Tes clés pour entrer » : le mot de passe (le changer, ou en ajouter un), Apple et Google (relier, délier). Apple ne se
  * relie que depuis un iPhone, Google depuis un téléphone (pas dans l'aperçu web) ; une clé déjà reliée se délie partout.
  */
-export function SectionMesConnexions({ connexions, email, enCours, lienEnvoye, onChangerMotDePasse, onAjouterMotDePasse, onRelier, onDelier }: Props) {
-  if (!connexions) return null;
+export function SectionMesConnexions({ connexions, lectureRatee, onRelire, email, enCours, lienEnvoye, onChangerMotDePasse, onAjouterMotDePasse, onRelier, onDelier }: Props) {
+  if (!connexions) {
+    if (!lectureRatee) return null;
+    return (
+      <SectionReglages titre="Tes clés pour entrer">
+        <LigneReglage emoji="🔌" titre={messagesMesConnexions.lectureRatee} detail="Touche pour réessayer" onPress={onRelire} />
+      </SectionReglages>
+    );
+  }
   const detailAjout = lienEnvoye
     ? messagesMesConnexions.lienEnvoye
     : email

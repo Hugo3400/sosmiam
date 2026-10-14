@@ -18,6 +18,7 @@ export type PublicationApi = {
   /** Média qui illustre le lieu sans y avoir été filmé (« Vidéo d'illustration ») */
   illustration: boolean;
   jaimes: number;
+  /** Commentaires visibles de tout le monde (ni supprimés, ni masqués par le lieu, ni suspendus, ni retirés) */
   commentaires: number;
   /** Date de mise en ligne (ISO 8601) */
   publieeLe: string;

@@ -24,8 +24,8 @@ export type OptionsClientHttp = {
 export type OptionsDemande = {
   corps?: unknown;
   session?: boolean;
-  /** En-têtes en plus (« Idempotency-Key » d'une création de groupe, de sortie ou de liste) ; Accept, Content-Type et
-   * Authorization restent toujours ceux du client */
+  /** En-têtes en plus (« Idempotency-Key » d'une création de groupe, de sortie ou de liste) ; Accept, Content-Type,
+   * Authorization, X-Session-Compte et Cookie restent toujours ceux du client (ENTETES_RESERVES) */
   entetes?: Readonly<Record<string, string>>;
 };
 
@@ -37,9 +37,24 @@ export type ClientHttp = {
    * d'Apple et Google) ; null : pas de réponse lisible (hors ligne, trop long, pas du JSON).
    */
   demanderBrut(methode: MethodeHttp, chemin: string, options?: OptionsDemande): Promise<{ statut: number; corps: Record<string, unknown> } | null>;
+  /**
+   * Un corps brut (photo, note vocale du chat) en POST, avec son type (« image/jpeg », « audio/mp4 ») ; délai de 60 s ; même
+   * lecture de la réponse que demander. entetes : « Idempotency-Key » (l'idClient de l'envoi), sans jamais remplacer la session
+   */
+  envoyerOctets<T extends object = Record<never, never>>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>): Promise<ReponseApi<T>>;
+  /**
+   * L'adresse complète et les en-têtes (session comprise) pour télécharger un fichier privé avec l'outil du téléphone
+   * (File.downloadFileAsync d'expo-file-system). Le jeton n'est JAMAIS mis dans l'adresse : les journaux la gardent
+   */
+  preparerTelechargement(chemin: string): Promise<{ url: string; entetes: Record<string, string> }>;
 };
 
 const DELAI_DEFAUT_MS = 15_000;
+/** Une photo de 5 Mo sur un réseau mobile moyen : plus long qu'une demande JSON */
+const DELAI_OCTETS_MS = 60_000;
+
+/** Ce que reçoit envoyer en plus d'une demande JSON : un corps brut et son type, un autre délai */
+type OptionsEnvoi = OptionsDemande & { brut?: { corps: Blob | ArrayBuffer | Uint8Array; type: string }; delaiMs?: number };
 
 /** Les codes de l'API que l'app sait dire tels quels (ceux qui ont un texte) */
 const CONNUS = new Set<string>(Object.keys(MESSAGES_SERVICE));
@@ -55,8 +70,11 @@ const EQUIVALENTS: Readonly<Record<string, ErreurService>> = {
   "compte-rendu-trop-court": "compte-rendu-invalide",
 };
 
-/** Les en-têtes que le client pose lui-même : ceux d'un appelant ne les remplacent jamais (en minuscules) */
-const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization"]);
+/**
+ * Les en-têtes que le client pose lui-même, ou qui porteraient une autre session : ceux d'un appelant ne passent jamais (en
+ * minuscules). L'API lit X-Session-Compte AVANT Authorization (proteger-comptes.ts) : il remplacerait la session sans bruit.
+ */
+const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization", "x-session-compte", "cookie"]);
 
 /** Ce qui peut servir au texte de l'erreur (distance arrondie, nom du lieu…), rien d'autre */
 function lireDetails(corps: Record<string, unknown>): DetailsErreur | undefined {
@@ -79,22 +97,23 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
   const adresse = o.adresse.replace(/\/+$/, "");
 
   /** Envoie la demande (session comprise) ; null : pas de réponse (pas de réseau, serveur injoignable, ou trop long) */
-  async function envoyer(methode: MethodeHttp, chemin: string, options: OptionsDemande): Promise<Response | null> {
+  async function envoyer(methode: MethodeHttp, chemin: string, options: OptionsEnvoi): Promise<Response | null> {
     const entetes: Record<string, string> = {};
     for (const [nom, valeur] of Object.entries(options.entetes ?? {})) if (!ENTETES_RESERVES.has(nom.toLowerCase())) entetes[nom] = valeur;
     entetes.Accept = "application/json";
-    if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
+    if (options.brut) entetes["Content-Type"] = options.brut.type;
+    else if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
     if (options.session !== false) {
       const jeton = await o.lireJeton();
       if (jeton) entetes.Authorization = `Bearer ${jeton}`;
     }
     const arret = new AbortController();
-    const minuterie = setTimeout(() => arret.abort(), o.delaiMs ?? DELAI_DEFAUT_MS);
+    const minuterie = setTimeout(() => arret.abort(), options.delaiMs ?? o.delaiMs ?? DELAI_DEFAUT_MS);
     try {
       return await chercher(`${adresse}${chemin}`, {
         method: methode,
         headers: entetes,
-        body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
+        body: options.brut ? (options.brut.corps as RequestInit["body"]) : options.corps === undefined ? undefined : JSON.stringify(options.corps),
         signal: arret.signal,
       });
     } catch {
@@ -114,26 +133,30 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
     }
   }
 
+  /** La réponse de l'API en ReponseApi : { ok, … } tel quel, ou l'erreur traduite pour l'app */
+  async function traduire<T extends object>(reponse: Response | null): Promise<ReponseApi<T>> {
+    if (!reponse) return { ok: false, erreur: "hors-ligne" };
+    if (reponse.status === 429) {
+      const attente = Number(reponse.headers.get("Retry-After"));
+      return { ok: false, erreur: "trop-de-demandes", ...(Number.isFinite(attente) && attente > 0 ? { details: { attenteS: Math.ceil(attente) } } : {}) };
+    }
+    const corps = await lire(reponse);
+    if (!corps) return { ok: false, erreur: "erreur-serveur" };
+    if (reponse.ok && corps.ok === true) return corps as ReponseApi<T>;
+
+    const code = typeof corps.erreur === "string" ? corps.erreur : "";
+    if (code === "session-expiree") o.surSessionExpiree?.();
+    // Un code que l'app ne connaît pas (serveur en panne…) : c'est de notre côté, jamais de la faute de la personne
+    const erreur: ErreurService = EQUIVALENTS[code] ?? (CONNUS.has(code) ? (code as ErreurService) : reponse.status === 401 ? "connexion-requise" : "erreur-serveur");
+    const details = lireDetails(corps);
+    // Le champ refusé d'un formulaire (« pseudo », « dateNaissance »…), pour le montrer à côté de la bonne case
+    const champ = typeof corps.champ === "string" ? corps.champ : undefined;
+    return { ok: false, erreur, ...(details ? { details } : {}), ...(champ ? { champ } : {}) };
+  }
+
   return {
     async demander<T extends object>(methode: MethodeHttp, chemin: string, options: OptionsDemande = {}): Promise<ReponseApi<T>> {
-      const reponse = await envoyer(methode, chemin, options);
-      if (!reponse) return { ok: false, erreur: "hors-ligne" };
-      if (reponse.status === 429) {
-        const attente = Number(reponse.headers.get("Retry-After"));
-        return { ok: false, erreur: "trop-de-demandes", ...(Number.isFinite(attente) && attente > 0 ? { details: { attenteS: Math.ceil(attente) } } : {}) };
-      }
-      const corps = await lire(reponse);
-      if (!corps) return { ok: false, erreur: "erreur-serveur" };
-      if (reponse.ok && corps.ok === true) return corps as ReponseApi<T>;
-
-      const code = typeof corps.erreur === "string" ? corps.erreur : "";
-      if (code === "session-expiree") o.surSessionExpiree?.();
-      // Un code que l'app ne connaît pas (serveur en panne…) : c'est de notre côté, jamais de la faute de la personne
-      const erreur: ErreurService = EQUIVALENTS[code] ?? (CONNUS.has(code) ? (code as ErreurService) : reponse.status === 401 ? "connexion-requise" : "erreur-serveur");
-      const details = lireDetails(corps);
-      // Le champ refusé d'un formulaire (« pseudo », « dateNaissance »…), pour le montrer à côté de la bonne case
-      const champ = typeof corps.champ === "string" ? corps.champ : undefined;
-      return { ok: false, erreur, ...(details ? { details } : {}), ...(champ ? { champ } : {}) };
+      return traduire<T>(await envoyer(methode, chemin, options));
     },
 
     async demanderBrut(methode: MethodeHttp, chemin: string, options: OptionsDemande = {}) {
@@ -142,6 +165,16 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
       if (!reponse || !corps) return null;
       if (corps.erreur === "session-expiree") o.surSessionExpiree?.();
       return { statut: reponse.status, corps };
+    },
+
+    async envoyerOctets<T extends object>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>): Promise<ReponseApi<T>> {
+      return traduire<T>(await envoyer("POST", chemin, { entetes, brut: { corps, type: typeMime }, delaiMs: DELAI_OCTETS_MS }));
+    },
+
+    async preparerTelechargement(chemin: string) {
+      const jeton = await o.lireJeton();
+      const entetes: Record<string, string> = jeton ? { Authorization: `Bearer ${jeton}` } : {};
+      return { url: `${adresse}${chemin}`, entetes };
     },
   };
 }

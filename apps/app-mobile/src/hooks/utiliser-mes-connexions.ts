@@ -30,17 +30,27 @@ async function demanderJeton(fournisseur: FournisseurConnexion): Promise<{ ok: t
 export function utiliserMesConnexions() {
   const { comptes, rafraichir } = utiliserSession();
   const [connexions, setConnexions] = useState<ConnexionsCompte | null>(null);
+  // Les clés n'ont pas pu être lues (pas de réseau, API en panne) : on le dit, et on peut relire
+  const [lectureRatee, setLectureRatee] = useState(false);
   const [enCours, setEnCours] = useState<FournisseurConnexion | "mot-de-passe" | null>(null);
   const occupe = useRef(false);
 
   useEffect(() => {
     let actif = true;
     void comptes.lireConnexions().then((r) => {
-      if (actif && r.ok) setConnexions(r.connexions);
+      if (!actif) return;
+      if (r.ok) setConnexions(r.connexions);
+      setLectureRatee(!r.ok);
     });
     return () => {
       actif = false;
     };
+  }, [comptes]);
+
+  const relire = useCallback(async () => {
+    const r = await comptes.lireConnexions();
+    if (r.ok) setConnexions(r.connexions);
+    setLectureRatee(!r.ok);
   }, [comptes]);
 
   /** Un seul geste à la fois (double appui, feuille d'Apple encore ouverte) */
@@ -107,5 +117,5 @@ export function utiliserMesConnexions() {
     [comptes, enUnSeulGeste],
   );
 
-  return { connexions, enCours, relier, delier, ajouterMotDePasse };
+  return { connexions, lectureRatee, relire, enCours, relier, delier, ajouterMotDePasse };
 }

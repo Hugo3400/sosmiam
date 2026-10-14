@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { RondPote } from "~/composants/potes/RondPote";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -32,10 +32,10 @@ type Props = {
 
 const AVATARS_MAX = 5;
 
-const prenomDe = (pote: Pote) => (pote.id === ID_MOI ? "toi" : pote.prenom);
-
 /** Un lieu proposé dans une sortie : vignette, nom, distance, qui l'a proposé, les votes et leurs avatars, et le bouton pour voter. */
 export function PropositionVote({ lieu, km, image, proposePar, votes, votants, aVote, termine, gagnant, onVoter, onOuvrir }: Props) {
+  const monId = utiliserMonId();
+  const prenomDe = (pote: Pote) => (pote.id === monId ? "toi" : pote.prenom);
   const distance = formaterDistance(km);
   const nombreVotes = votes === 0 ? "Pas encore de vote" : `${votes} vote${votes > 1 ? "s" : ""}`;
   const montres = votants.slice(0, AVATARS_MAX);

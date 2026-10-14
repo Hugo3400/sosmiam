@@ -34,7 +34,10 @@ export interface ServiceSocial {
   ouvrirProfil(): Promise<ReponseApi<{ moi: MoiSocial }>>;
   /** PATCH /app/social/moi : seuls les réglages donnés changent. « pseudo-requis », « champ-invalide » { champ } */
   modifierReglages(r: Partial<ReglagesSociaux>): Promise<ReponseApi<{ moi: MoiSocial }>>;
-  /** GET /app/social/pouls, toutes les 30 s app ouverte : sans profil social, tout vaut zéro sauf la cloche */
+  /**
+   * GET /app/social/pouls, toutes les 30 s app ouverte : sans profil social, tout vaut zéro et les signatures sont vides, sauf
+   * la signature de la cloche (cloche.nonVues vaut 0 : voir ServiceCloche.marquerVu)
+   */
   lirePouls(): Promise<ReponseApi<{ pouls: PoulsSocial }>>;
   /**
    * POST /app/personnes/recherche : le début cherché part dans le corps, jamais dans l'adresse (« @ » toléré, 2 à 20
@@ -45,14 +48,15 @@ export interface ServiceSocial {
   suggerer(): Promise<ReponseApi<{ suggestions: SuggestionPersonneApi[] }>>;
   /**
    * GET /app/social/export : tes données sociales et TES messages déchiffrés, jamais ceux des autres (2 par 24 h).
-   * « chiffrement-indisponible » sans la clé des données
+   * « chiffrement-indisponible » sans la clé des données. ROUTE LIVRÉE PAR LE LOT L7 : ne pas la brancher dans l'app avant
+   * (d'ici là, l'API répond 404 « introuvable »)
    */
   exporter(): Promise<ReponseApi<{ export: ExportSocialApi }>>;
   /** GET /app/personnes/:personne : ce que ton niveau permet. « personne-inconnue » (inconnue, sans profil, ou elle t'a bloqué) */
   lireProfil(id: string): Promise<ReponseApi<{ profil: ProfilCommunautaireApi }>>;
   /**
    * GET /app/personnes/:personne/abonnes (ou /abonnements)[?apres=] : 50 par page, les plus récents d'abord ; apres : la
-   * `suite` de la page d'avant. « personne-inconnue », « profil-prive » (hors de sa bande)
+   * `suite` de la page d'avant, opaque, renvoyée telle quelle. « personne-inconnue », « profil-prive » (hors de sa bande)
    */
   listerLiensDe(id: string, sens: SensLiensSuivi, apres?: string): Promise<ReponseApi<PageLiensSuiviApi>>;
   /** GET /app/personnes/:personne/listes : celles que tu peux voir, 50 au plus. « personne-inconnue » */

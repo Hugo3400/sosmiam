@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { REACTIONS_CHAT, type MessageChat } from "@sos-miam/commun/types/conversations";
 import { decrireReactionChat } from "~/fonctions/chat/decrire-reaction-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   conversationId: string;
@@ -22,11 +22,12 @@ type Props = {
 export function ReactionsMessage({ conversationId, message, deMoi }: Props) {
   const { basculerReaction } = utiliserConversations();
   const { bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const bloquesIds = useMemo(() => new Set(bloques.map((p) => p.id)), [bloques]);
 
   const puces = REACTIONS_CHAT.flatMap((reaction) => {
     const qui = (message.reactions[reaction] ?? []).filter((id) => !bloquesIds.has(id));
-    return qui.length > 0 ? [{ reaction, nombre: qui.length, dontMoi: qui.includes(ID_MOI) }] : [];
+    return qui.length > 0 ? [{ reaction, nombre: qui.length, dontMoi: qui.includes(monId) }] : [];
   });
   if (puces.length === 0) return null;
 

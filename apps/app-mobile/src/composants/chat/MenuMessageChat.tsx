@@ -4,7 +4,6 @@ import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, Sc
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { REACTIONS_CHAT, type MessageChat, type ReactionChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -18,6 +17,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -66,6 +66,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { bloquer, potes, estSignale } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { basculerReaction, trouverConversation } = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
   const defilement = useRef<ScrollView>(null);
@@ -187,7 +188,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                     <Text className="font-texte-semi text-sm text-gris">Ta réaction</Text>
                     <View className="flex-row flex-wrap justify-between gap-2">
                       {REACTIONS_CHAT.map((reaction, i) => {
-                        const choisie = (reactions[reaction] ?? []).includes(ID_MOI);
+                        const choisie = (reactions[reaction] ?? []).includes(monId);
                         return (
                           <Pressable
                             key={reaction}

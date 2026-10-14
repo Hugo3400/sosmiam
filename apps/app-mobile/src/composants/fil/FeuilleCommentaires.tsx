@@ -5,7 +5,7 @@ import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, S
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { BlocCommentaire } from "~/composants/fil/BlocCommentaire";
@@ -16,11 +16,11 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleCreerComptePosee } from "~/composants/invite/FeuilleCreerComptePosee";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
-import type { FilCommentaire } from "~/fonctions/communaute/trier-commentaires";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -61,6 +61,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const animationsReduites = useReducedMotion();
   const communaute = utiliserCommunaute();
   const { trouverPote } = communaute;
+  const monId = utiliserMonId();
   const { profil } = utiliserProfil();
   const avecCompte = profil !== null;
   // « Je m'inscris » touché, feuille pas encore refermée
@@ -185,7 +186,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setEdition(null);
     setReponse({ id: fil.id, auteurs: [fil.auteur, commentaire.auteur], nom: nomDe(commentaire.auteur) });
     // Réponse à une réponse : tout se range sous le même commentaire, alors on mentionne la personne
-    const pote = commentaire.id !== fil.id && commentaire.auteur !== ID_MOI ? trouverPote(commentaire.auteur) : null;
+    const pote = commentaire.id !== fil.id && commentaire.auteur !== monId ? trouverPote(commentaire.auteur) : null;
     if (pote?.pseudo && !brouillon.includes(`@${pote.pseudo}`)) brouillon = `@${pote.pseudo} ${brouillon}`;
     setTexte(brouillon);
     champ.current?.focus();
@@ -232,7 +233,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   function ouvrirOptions(commentaire: Commentaire, declencheur: View | null) {
     // Sans compte : signaler ou bloquer (un ancien commentaire à toi : le modifier) demande un compte
-    if (!exigerCompte(commentaire.auteur === ID_MOI ? "commenter" : "signaler", declencheur)) return;
+    if (!exigerCompte(commentaire.auteur === monId ? "commenter" : "signaler", declencheur)) return;
     Keyboard.dismiss();
     declencheurOptions.current = declencheur;
     setOptions(commentaire);

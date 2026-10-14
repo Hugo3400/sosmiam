@@ -16,7 +16,6 @@ const { lireMessageMesConnexions } = await import("../src/fonctions/connexion-ex
 // @ts-ignore
 const { choisirCodeMesConnexions } = await import("../src/fonctions/connexion-externe/choisir-code-mes-connexions.ts");
 // @ts-ignore
-const { estAdresseRelaisApple } = await import("../src/fonctions/connexion-externe/est-adresse-relais-apple.ts");
 // @ts-ignore
 const cookies = await import("../src/services/cookies-connexion-externe.server.ts");
 // @ts-ignore
@@ -59,13 +58,6 @@ test("codes des erreurs de l'API → messages aimables", () => {
     ["confirmation-incorrecte", "autre-compte"], ["google-indisponible", "indisponible"], ["verification-indisponible", "indisponible"], ["erreur", "indisponible"],
   ];
   for (const [erreur, code] of attendus) assert.equal(choisirCodeMesConnexions(erreur), code, erreur);
-});
-
-test("adresse masquée d'Apple reconnue (pour prévenir que le relais doit transmettre le lien)", () => {
-  assert.equal(estAdresseRelaisApple("abc123@privaterelay.appleid.com"), true);
-  assert.equal(estAdresseRelaisApple(" ABC@PrivateRelay.AppleID.com "), true);
-  assert.equal(estAdresseRelaisApple("zoe@exemple.fr"), false);
-  assert.equal(estAdresseRelaisApple("privaterelay.appleid.com@exemple.fr"), false);
 });
 
 /** Départ puis retour d'un fournisseur, avec l'intention donnée */

@@ -8,7 +8,7 @@ export const APP_ID_IOS = "4F7UVS2357.fr.sosmiam.app";
 /** Le paquet Android (apps/app-mobile/app.json) */
 export const PAQUET_ANDROID = "fr.sosmiam.app";
 /** Les adresses du site que l'app ouvre elle-même quand elle est installée */
-export const CHEMINS_LIENS_APP = ["/invitation/*", "/l/*", "/lieux/*"];
+export const CHEMINS_LIENS_APP = ["/invitation/*", "/l/*", "/lieux/*", "/q/*"];
 /** Le schéma de l'app (« scheme » d'app.json) : le bouton « Ouvrir l'app » en secours */
 export const SCHEMA_APP = "sosmiam";
 

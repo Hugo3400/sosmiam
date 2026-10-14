@@ -1,4 +1,3 @@
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { decrireJourDiscussion } from "~/fonctions/chat/decrire-jour-discussion";
@@ -19,8 +18,11 @@ export type LigneDiscussion = {
 
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
-/** Range les messages d'une conversation pour la liste : jour au-dessus du premier message de chaque jour, séries par auteur. */
-export function construireLignesDiscussion(messages: MessageChat[], trouverPote: (id: string) => Pote | null, maintenant: Date): LigneDiscussion[] {
+/**
+ * Range les messages d'une conversation pour la liste : jour au-dessus du premier message de chaque jour, séries par auteur.
+ * monId : ton identifiant (utiliserMonId), pour reconnaître tes messages.
+ */
+export function construireLignesDiscussion(messages: MessageChat[], trouverPote: (id: string) => Pote | null, maintenant: Date, monId: string): LigneDiscussion[] {
   return messages.map((message, i) => {
     const date = new Date(message.date);
     const precedent = messages[i - 1];
@@ -28,7 +30,7 @@ export function construireLignesDiscussion(messages: MessageChat[], trouverPote:
     return {
       message,
       auteur: trouverPote(message.auteur),
-      deMoi: message.auteur === ID_MOI,
+      deMoi: message.auteur === monId,
       heure: formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`),
       jour: nouveauJour ? decrireJourDiscussion(date, maintenant) : null,
       debutSerie: nouveauJour || precedent.auteur !== message.auteur,

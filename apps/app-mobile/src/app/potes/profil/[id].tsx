@@ -5,7 +5,6 @@ import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressa
 import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { CodeQrInvitation } from "~/composants/potes/CodeQrInvitation";
 import { ListesDuProfil } from "~/composants/potes/ListesDuProfil";
@@ -23,6 +22,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
@@ -50,13 +50,14 @@ export default function ProfilPote() {
   const animationsReduites = useReducedMotion();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const suivis = utiliserSuivisPersonnes();
   const { ouvrirPrive } = utiliserConversations();
   const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const pote = communaute.trouverPote(id);
-  const estMoi = id === ID_MOI;
+  const estMoi = id === monId;
   const bloque = communaute.bloques.some((p) => p.id === id);
   const dansBande = communaute.potes.some((p) => p.id === id);
   // Ce que tu vois de cette personne et ce que la règle permet (null : pas encore prêt, ou personne inconnue)

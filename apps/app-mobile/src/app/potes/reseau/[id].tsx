@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -22,6 +21,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -40,12 +40,13 @@ export default function ReseauPersonne() {
   const { id = "", onglet: ongletDemande } = useLocalSearchParams<{ id: string; onglet?: "abonnes" | "abonnements" }>();
   const { invite } = utiliserProfil();
   const communaute = utiliserCommunaute();
+  const monId = utiliserMonId();
   const suivis = utiliserSuivisPersonnes();
   const [onglet, setOnglet] = useState<OngletReseau>(ongletDemande === "abonnements" ? "abonnements" : "abonnes");
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
-  const estMoi = id === ID_MOI;
+  const estMoi = id === monId;
 
   // Tes abonnés au moment où l'écran s'ouvre : quelqu'un qu'on retire reste affiché (« Ne te suit plus »), rien ne bouge sous le doigt
   const [mesAbonnes, setMesAbonnes] = useState<PersonneLiee[] | null>(() => (suivis.pret ? suivis.abonnes : null));
@@ -82,14 +83,14 @@ export default function ReseauPersonne() {
       key={personne.id}
       cle={ecrireCleSuivi({ type: "personne", id: personne.id })}
       emoji={personne.avatar}
-      nom={personne.id === ID_MOI ? "Toi" : personne.prenom}
+      nom={personne.id === monId ? "Toi" : personne.prenom}
       sousTitre={sousTitre}
       rond={<RondPote pote={personne} taille={TAILLE_ROND} />}
-      indice={personne.id === ID_MOI ? "Ouvre ton profil" : "Ouvre son profil"}
+      indice={personne.id === monId ? "Ouvre ton profil" : "Ouvre son profil"}
       derniere={derniere}
       onOuvrir={() => router.push({ pathname: "/potes/profil/[id]", params: { id: personne.id } })}
       onAnnoncer={annoncer}
-      action={personne.id === ID_MOI ? null : action}
+      action={personne.id === monId ? null : action}
     />
   );
 

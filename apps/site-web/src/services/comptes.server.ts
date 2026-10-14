@@ -69,7 +69,11 @@ export type ReponseComptes<T extends object> =
       prefill?: { email?: string; prenom?: string; nom?: string };
     };
 
-type OptionsAppel = { methode?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; jeton?: string | null; ip?: string | null; corps?: unknown };
+type OptionsAppel = {
+  methode?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; jeton?: string | null; ip?: string | null; corps?: unknown;
+  /** En-têtes en plus (la signature du navigateur du visiteur pour la connexion par QR) */
+  entetes?: Record<string, string>;
+};
 
 /** Le pré-remplissage rendu avec « profil-a-completer » : seulement des textes courts */
 function lirePrefill(prefill: object): { email?: string; prenom?: string; nom?: string } {
@@ -82,7 +86,7 @@ function lirePrefill(prefill: object): { email?: string; prenom?: string; nom?: 
 }
 
 /** Appelle l'API des comptes et lit sa réponse JSON. */
-export async function appelerApiComptes<T extends object>(chemin: string, { methode = "GET", jeton, ip, corps }: OptionsAppel = {}): Promise<ReponseComptes<T>> {
+export async function appelerApiComptes<T extends object>(chemin: string, { methode = "GET", jeton, ip, corps, entetes }: OptionsAppel = {}): Promise<ReponseComptes<T>> {
   try {
     const reponse = await fetch(`${ADRESSE_API}${chemin}`, {
       method: methode,
@@ -90,6 +94,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
         ...(corps === undefined ? {} : { "Content-Type": "application/json" }),
         ...(jeton ? { "X-Session-Compte": jeton } : {}),
         ...(ip ? { "X-IP-Visiteur": ip } : {}),
+        ...entetes,
       },
       body: corps === undefined ? undefined : JSON.stringify(corps),
       signal: AbortSignal.timeout(8000),
@@ -288,4 +293,21 @@ export function listerPropositions(jeton: string, ip: string | null) {
 /** Propose un lieu (mêmes champs que « J'inscris mon lieu », sans la partie contact ; champs vides absents). */
 export function proposerLieu(jeton: string, ip: string | null, lieu: Record<string, string>) {
   return appelerApiComptes<object>("/comptes/moi/propositions", { methode: "POST", jeton, ip, corps: lieu });
+}
+
+// ─── Connexion par QR code (sans session) : le site affiche le QR, l'app connectée valide ───
+
+/**
+ * Un QR de connexion pour ce visiteur (cible « site », 2 minutes). L'origine est l'hôte de la page ; la signature du
+ * navigateur (User-Agent) part dans X-Appareil-Visiteur, pour que l'app dise « Chrome sur Mac ». Erreur : trop-de-demandes.
+ */
+export function demanderConnexionQr(origine: string, ip: string | null, signature: string | null) {
+  return appelerApiComptes<{ code: string; secret: string; expireLe: string }>("/comptes/qr", {
+    methode: "POST", ip, corps: { cible: "site", origine }, entetes: signature ? { "X-Appareil-Visiteur": signature.slice(0, 512) } : {},
+  });
+}
+
+/** Où en est le QR (secret gardé dans le cookie chiffré) ; « accepte » rend la session, une seule fois. */
+export function attendreConnexionQr(secret: string, ip: string | null) {
+  return appelerApiComptes<{ etat: string; session?: string }>("/comptes/qr/attente", { methode: "POST", ip, corps: { secret } });
 }

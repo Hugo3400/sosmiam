@@ -11,8 +11,9 @@ export async function renvoyerSignalementsEnAttente(): Promise<void> {
   for (const signalement of enAttente) {
     const { date: _date, ...corps } = signalement;
     const r = await clientApiPublic.demander("POST", "/signalements", { corps, session: false });
-    // Refus définitif (mal formé) : abandonné ; pas de réseau, serveur occupé : il attend encore
-    if (!r.ok && r.erreur !== "champ-invalide") restants.push(signalement);
+    // Refus définitif (mal formé : « signalement-invalide », ou « champ-invalide » d'un ancien serveur) : abandonné ; pas
+    // de réseau, serveur occupé : il attend encore
+    if (!r.ok && r.erreur !== "signalement-invalide" && r.erreur !== "champ-invalide") restants.push(signalement);
   }
   await remplacerSignalementsAEnvoyer(restants);
 }

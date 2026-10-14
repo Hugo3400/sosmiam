@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -13,6 +12,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
@@ -35,6 +35,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { trouverConversation } = utiliserConversations();
+  const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const largeur = Math.min(260, Math.round(width * 0.66));
@@ -63,13 +64,13 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   }
 
   const conversation = trouverConversation(conversationId);
-  const participants = conversation?.participants ?? [ID_MOI];
+  const participants = conversation?.participants ?? [monId];
   const sos = lieu.sos && estSosEnCours(lieu) ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
   const lu = [`${contexte} : un lieu partagé`, `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`, sos ? `SOS : ${sos}` : lieu.alerte].filter(Boolean).join(". ");
 
   function partir() {
     if (!lieu) return;
-    const invites = participants.filter((id) => id !== ID_MOI).join(",");
+    const invites = participants.filter((id) => id !== monId).join(",");
     router.push({ pathname: "/potes/nouvelle-sortie", params: { lieu: String(lieu.id), invites } });
   }
 

@@ -5,8 +5,14 @@ import { connect, type ClientHttp2Session } from "node:http2";
 import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.ts";
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
-/** `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive ») ; réservé aux alertes Miam Safe */
-export type MessagePush = { titre: string; texte: string; lien: string | null; urgent?: boolean };
+/**
+ * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive ») ; réservé aux alertes Miam Safe.
+ * `regroupement` (« conversation:<id> », 64 octets au plus) : une seule notification par conversation à l'écran, la suivante
+ * remplace la précédente (apns-collapse-id et thread-id sur iPhone, tag sur Android).
+ * `sonore` (vrai par défaut) : faux, l'iPhone la montre sans son (les messages d'une même rafale de 30 s). Sur Android, le son
+ * dépend du canal de notification choisi par l'app.
+ */
+export type MessagePush = { titre: string; texte: string; lien: string | null; urgent?: boolean; regroupement?: string; sonore?: boolean };
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
 export type ResultatPush = "envoyee" | "jeton-invalide" | { erreur: string };
 export type ExpedierPush = (appareil: { jeton: string; plateforme: string }, message: MessagePush) => Promise<ResultatPush>;
@@ -34,9 +40,40 @@ function lireConnexionApple(serveur: string): ClientHttp2Session {
   return session;
 }
 
+/** Apple limite apns-collapse-id à 64 octets : au-delà, pas de regroupement (la notification part quand même) */
+const lireRegroupement = (message: MessagePush) =>
+  message.regroupement && Buffer.byteLength(message.regroupement) <= 64 ? message.regroupement : null;
+
+/** Le corps JSON et les en-têtes propres à une notification Apple (sans le jeton ni l'autorisation) */
+export function construireEnvoiApple(message: MessagePush): { entetes: Record<string, string>; corps: string } {
+  const regroupement = lireRegroupement(message);
+  const aps = {
+    alert: { title: message.titre, body: message.texte },
+    ...(message.sonore === false ? {} : { sound: "default" }),
+    ...(regroupement ? { "thread-id": regroupement } : {}),
+    ...(message.urgent ? { "interruption-level": "time-sensitive" } : {}),
+  };
+  return {
+    entetes: regroupement ? { "apns-collapse-id": regroupement } : {},
+    corps: JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}) }),
+  };
+}
+
+/** Le corps d'une notification Google (FCM v1) pour ce téléphone */
+export function construireCorpsGoogle(jeton: string, message: MessagePush) {
+  const regroupement = lireRegroupement(message);
+  return {
+    message: {
+      token: jeton,
+      notification: { title: message.titre, body: message.texte },
+      data: message.lien ? { lien: message.lien } : {},
+      android: { priority: "high", ...(regroupement ? { notification: { tag: regroupement } } : {}) },
+    },
+  };
+}
+
 async function envoyerApple(r: ReglagesApple, jeton: string, message: MessagePush): Promise<ResultatPush> {
-  const aps = { alert: { title: message.titre, body: message.texte }, sound: "default", ...(message.urgent ? { "interruption-level": "time-sensitive" } : {}) };
-  const corps = JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}) });
+  const { entetes, corps } = construireEnvoiApple(message);
   return new Promise((resoudre) => {
     const flux = lireConnexionApple(r.serveur).request({
       ":method": "POST",
@@ -46,6 +83,7 @@ async function envoyerApple(r: ReglagesApple, jeton: string, message: MessagePus
       "apns-push-type": "alert",
       "apns-priority": "10",
       "content-type": "application/json",
+      ...entetes,
     });
     let statut = 0;
     let reponse = "";
@@ -91,9 +129,7 @@ async function envoyerGoogle(r: ReglagesGoogle, jeton: string, message: MessageP
     const reponse = await fetch(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(r.projet)}/messages:send`, {
       method: "POST",
       headers: { Authorization: `Bearer ${await lireJetonGoogle(r)}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: { token: jeton, notification: { title: message.titre, body: message.texte }, data: message.lien ? { lien: message.lien } : {}, android: { priority: "high" } },
-      }),
+      body: JSON.stringify(construireCorpsGoogle(jeton, message)),
       signal: AbortSignal.timeout(20_000),
     });
     if (reponse.ok) return "envoyee";

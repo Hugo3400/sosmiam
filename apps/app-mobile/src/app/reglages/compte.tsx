@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, Platform, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -10,20 +10,23 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionMesConnexions } from "~/composants/reglages/SectionMesConnexions";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { VueDelierConnexion } from "~/composants/reglages/VueDelierConnexion";
-import type { FournisseurConnexion } from "~/contenus/mes-connexions";
+import { type FournisseurConnexion, messagesMesConnexions } from "~/contenus/mes-connexions";
 import { lancerConnexionApple } from "~/fonctions/compte/lancer-connexion-apple";
 import { lancerConnexionGoogle } from "~/fonctions/compte/lancer-connexion-google";
+import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { type ResultatMesConnexions, utiliserMesConnexions } from "~/hooks/utiliser-mes-connexions";
-import { utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
 type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier";
 type Confirmation = "deconnecter" | "partout" | null;
 
 const MOT_DE_PASSE_MIN = 12;
+// Apple ne se lance que sur un iPhone, Google pas dans l'aperçu web : on ne propose pas une confirmation impossible
+const APPLE_ICI = Platform.OS === "ios";
+const GOOGLE_ICI = Platform.OS !== "web";
 
 /**
  * « Mon compte » (compte connecté) : l'e-mail et sa confirmation, tes clés pour entrer (mot de passe, Apple, Google : relier,
@@ -36,7 +39,6 @@ export default function MonCompte() {
   const { compte, comptes, ouvrir, fermer, rafraichir } = utiliserSession();
   const effacement = utiliserEffacementLocal();
   const mesConnexions = utiliserMesConnexions();
-  const connexionQr = utiliserServiceConnexionQr().service !== null;
   const { connexions } = mesConnexions;
   const [vue, setVue] = useState<Vue>("principal");
   const [aDelier, setADelier] = useState<FournisseurConnexion>("apple");
@@ -51,6 +53,11 @@ export default function MonCompte() {
   useEffect(() => {
     void rafraichir();
   }, [rafraichir]);
+
+  // Le mot de réussite s'affiche en haut de l'écran, souvent hors de vue : il se dit aussi à voix haute
+  useEffect(() => {
+    if (message) annoncerLecteurEcran(message);
+  }, [message]);
 
   /** Une réussite s'affiche en haut de l'écran ; une erreur, dans une alerte (rien si c'est annulé) */
   function montrerResultat(r: ResultatMesConnexions): boolean {
@@ -133,6 +140,12 @@ export default function MonCompte() {
         fournisseur={aDelier}
         avecMotDePasse={connexions.motDePasse}
         enCours={mesConnexions.enCours !== null}
+        lienEnvoye={lienMotDePasse}
+        onAjouterMotDePasse={() => {
+          // Le mot « C'est parti ! » s'affiche en haut de Mon compte
+          setVue("principal");
+          void ajouterMotDePasse();
+        }}
         onConfirmer={(motDePasse) => {
           void mesConnexions.delier(aDelier, motDePasse).then((r) => {
             if (montrerResultat(r)) setVue("principal");
@@ -169,6 +182,8 @@ export default function MonCompte() {
   }
 
   if (vue === "supprimer") {
+    // Sans mot de passe, et aucune clé qui se lance ici : on propose d'en ajouter un, plutôt qu'un bouton qui échouera
+    const confirmationImpossible = connexions !== null && !connexions.motDePasse && !(connexions.apple && APPLE_ICI) && !(connexions.google && GOOGLE_ICI);
     return (
       <EcranReglage titre="Supprimer mon compte" sousTitre="Tout part, pour de bon : ton profil, tes points, tes visites, tes cartes de fidélité, tes avis et tes messages.">
         <View className="gap-5">
@@ -186,8 +201,30 @@ export default function MonCompte() {
               />
             </>
           ) : null}
-          {connexions?.apple ? <Bouton libelle="Confirmer avec Apple" variante="encre" desactive={enCours} onPress={() => void supprimer("apple")} /> : null}
-          {connexions?.google ? <Bouton libelle="Confirmer avec Google" variante="encre" desactive={enCours} onPress={() => void supprimer("google")} /> : null}
+          {connexions?.apple && APPLE_ICI ? <Bouton libelle="Confirmer avec Apple" variante="encre" desactive={enCours} onPress={() => void supprimer("apple")} /> : null}
+          {connexions?.google && GOOGLE_ICI ? <Bouton libelle="Confirmer avec Google" variante="encre" desactive={enCours} onPress={() => void supprimer("google")} /> : null}
+          {confirmationImpossible ? (
+            <>
+              <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(messagesMesConnexions.suppressionImpossibleIci)}</Text>
+              <Bouton
+                libelle={lienMotDePasse ? "Lien envoyé !" : "Ajouter un mot de passe"}
+                variante="encre"
+                desactive={lienMotDePasse || mesConnexions.enCours !== null}
+                onPress={() => {
+                  setVue("principal");
+                  void ajouterMotDePasse();
+                }}
+              />
+            </>
+          ) : null}
+          {!connexions ? (
+            <>
+              <Text className="font-texte text-base leading-6 text-encre">
+                {lierPonctuation(mesConnexions.lectureRatee ? `${messagesMesConnexions.lectureRatee} : sans elles, pas moyen de confirmer.` : "On charge tes clés…")}
+              </Text>
+              {mesConnexions.lectureRatee ? <Bouton libelle="Réessayer" variante="encre" onPress={() => void mesConnexions.relire()} /> : null}
+            </>
+          ) : null}
           <Bouton libelle="Je reste" variante="blanc" onPress={() => setVue("principal")} />
         </View>
       </EcranReglage>
@@ -225,6 +262,8 @@ export default function MonCompte() {
 
       <SectionMesConnexions
         connexions={connexions}
+        lectureRatee={mesConnexions.lectureRatee}
+        onRelire={() => void mesConnexions.relire()}
         email={compte?.email ?? null}
         enCours={mesConnexions.enCours}
         lienEnvoye={lienMotDePasse}
@@ -235,14 +274,12 @@ export default function MonCompte() {
       />
 
       <SectionReglages titre="Connexion">
-        {connexionQr ? (
-          <LigneReglage
-            emoji="📷"
-            titre="Connecter un appareil"
-            detail="Ton ordinateur ou un nouveau téléphone, en scannant son QR code"
-            onPress={() => router.push("/reglages/connecter-appareil")}
-          />
-        ) : null}
+        <LigneReglage
+          emoji="📷"
+          titre="Connecter un appareil"
+          detail="Ton ordinateur ou un nouveau téléphone, en scannant son QR code"
+          onPress={() => router.push("/reglages/connecter-appareil")}
+        />
         <LigneReglage emoji="👋" titre="Me déconnecter" detail="Ton compte t'attend : reconnecte-toi quand tu veux" onPress={() => setConfirmation("deconnecter")} />
         <LigneReglage emoji="🧯" titre="Me déconnecter partout" detail="Sur tous tes appareils, celui-ci compris" onPress={() => setConfirmation("partout")} />
       </SectionReglages>

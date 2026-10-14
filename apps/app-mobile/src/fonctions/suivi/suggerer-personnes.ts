@@ -1,7 +1,8 @@
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 
 type Entree = {
+  /** Ton identifiant (utiliserMonId) : jamais proposé */
+  monId: string;
   /** Ta bande (identifiants, sans les personnes bloquées) */
   bande: readonly string[];
   /** La bande de chaque personne connue (démo : bandesExemples) */
@@ -15,13 +16,13 @@ type Entree = {
  * Personnes à suivre : les potes de tes potes, de celui qui a le plus de potes en commun avec toi au moins (« Pote de Léa »,
  * « Pote de Léa et Karim », « Pote de Léa et 2 autres »), puis les membres de ta bande que tu ne suis pas encore (« Dans ta bande »).
  */
-export function suggererPersonnes({ bande, bandes, estCandidat, prenomDe }: Entree): { id: string; raison: string }[] {
+export function suggererPersonnes({ monId, bande, bandes, estCandidat, prenomDe }: Entree): { id: string; raison: string }[] {
   const dansBande = new Set(bande);
   // Pour chaque pote de pote : les membres de ta bande qui l'ont dans la leur (dans l'ordre de ta bande)
   const enCommun = new Map<string, string[]>();
   for (const pote of bande) {
     for (const id of bandes[pote] ?? []) {
-      if (id === ID_MOI || dansBande.has(id)) continue;
+      if (id === monId || dansBande.has(id)) continue;
       const liste = enCommun.get(id) ?? [];
       if (!liste.includes(pote)) liste.push(pote);
       enCommun.set(id, liste);
@@ -38,6 +39,6 @@ export function suggererPersonnes({ bande, bandes, estCandidat, prenomDe }: Entr
         autres === 0 ? `Pote ${eliderDe(premier)}` : autres === 1 ? `Pote ${eliderDe(premier)} et ${prenomDe(communs[1])}` : `Pote ${eliderDe(premier)} et ${autres} autres`;
       return { id, raison };
     });
-  const deTaBande = bande.filter((id) => id !== ID_MOI && estCandidat(id)).map((id) => ({ id, raison: "Dans ta bande" }));
+  const deTaBande = bande.filter((id) => id !== monId && estCandidat(id)).map((id) => ({ id, raison: "Dans ta bande" }));
   return [...potesDePotes, ...deTaBande];
 }

@@ -4,6 +4,7 @@ import type { ClientHttp } from "@sos-miam/commun/client-api/client-http";
 import type { ServiceActivite } from "@sos-miam/commun/client-api/contrat-activite";
 import type { ServiceCompte, SessionOuverte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { ServiceContenu } from "@sos-miam/commun/client-api/contrat-contenu";
+import type { ServicesSociaux } from "@sos-miam/commun/client-api/services-sociaux";
 import type { CompteApp } from "@sos-miam/commun/types/compte-app";
 
 export type ValeurSession = {
@@ -20,6 +21,8 @@ export type ValeurSession = {
   comptes: ServiceCompte;
   contenu: ServiceContenu;
   activite: ServiceActivite;
+  /** La partie sociale du compte connecté (profil social, pouls, cloche, puis bande, messages, sorties…), version API */
+  sociaux: ServicesSociaux;
   /** Après une inscription ou une connexion réussie : garde le jeton et le compte */
   ouvrir: (session: SessionOuverte) => Promise<void>;
   /** Déconnexion (le serveur est prévenu s'il répond), session expirée ou compte supprimé : tout est oublié sur le téléphone */

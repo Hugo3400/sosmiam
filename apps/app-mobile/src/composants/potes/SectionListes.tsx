@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -14,6 +13,7 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -37,6 +37,7 @@ const NOM = { un: "liste", des: "listes" };
 export function SectionListes({ lieux, onRetire }: Props) {
   const router = useRouter();
   const { listes, potes, bloques, trouverPote, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Abonnements acceptés seulement (déjà sans les personnes bloquées) : leurs listes passent dans « À découvrir »
@@ -49,14 +50,14 @@ export function SectionListes({ lieux, onRetire }: Props) {
 
   // Rien de la part des personnes bloquées (les listes signalées, elles, sont déjà retirées par la communauté)
   const visibles = listes.filter((l) => !bloques.some((b) => b.id === l.auteur));
-  const miennes = visibles.filter((l) => l.auteur === ID_MOI);
-  const suivies = visibles.filter((l) => l.auteur !== ID_MOI && l.abonnes.includes(ID_MOI));
+  const miennes = visibles.filter((l) => l.auteur === monId);
+  const suivies = visibles.filter((l) => l.auteur !== monId && l.abonnes.includes(monId));
   const aDecouvrir = visibles.filter(
     (l) =>
-      l.auteur !== ID_MOI &&
+      l.auteur !== monId &&
       // « Pas intéressé » : elle sort d'ici (et reste sur le profil de son auteur)
       !estMasque(l.id) &&
-      !l.abonnes.includes(ID_MOI) &&
+      !l.abonnes.includes(monId) &&
       !!voitEnEntier?.(l.auteur) &&
       (potes.some((p) => p.id === l.auteur) || abonnements.some((a) => a.pote.id === l.auteur)),
   );
@@ -102,12 +103,12 @@ export function SectionListes({ lieux, onRetire }: Props) {
   const ouvrir = (id: string) => router.push({ pathname: "/potes/liste/[id]", params: { id } });
   // La carte d'une liste, dans sa section (sa pagination y pose la ref du lecteur d'écran)
   const carte = (pages: { refDe: (k: string) => (vue: View | null) => void }) => (liste: ListePartagee) => {
-    const auteur = liste.auteur === ID_MOI ? null : trouverPote(liste.auteur);
+    const auteur = liste.auteur === monId ? null : trouverPote(liste.auteur);
     return (
       <CarteListe
         key={liste.id}
         liste={liste}
-        auteur={liste.auteur === ID_MOI ? "toi" : (auteur?.prenom ?? "un pote")}
+        auteur={liste.auteur === monId ? "toi" : (auteur?.prenom ?? "un pote")}
         lieux={liste.lieux.flatMap((id) => {
           const lieu = lieux.get(id);
           return lieu ? [{ lieu, image: trouverVignetteLieu(id, publications) }] : [];

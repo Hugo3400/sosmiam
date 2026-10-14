@@ -175,6 +175,8 @@ model SessionCompte {
   compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
   /// Téléphones inscrits avec cette session (notifications.prisma) : ils ne reçoivent plus rien du compte quand elle se ferme
   appareils AppareilPush[]
+  /// Demandes de connexion par QR qui ont remis cette session (connexion-qr.prisma) : la demande la perd, rien d'autre
+  demandesConnexionQr DemandeConnexionQr[]
 
   @@index([compteId])
   @@map("sessions_comptes")
