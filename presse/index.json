@@ -28,6 +28,28 @@
      ]
     },
     {
+     "nom": "affiche-sauve-une-table-a3.pdf",
+     "chemin": "affiches/affiche-sauve-une-table-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Sauve une table, en A3",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-sauve-une-table-40x60.pdf",
+     "chemin": "affiches/affiche-sauve-une-table-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Sauve une table, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
      "nom": "affiche-pepite-a-2-rues.png",
      "chemin": "affiches/affiche-pepite-a-2-rues.png",
      "format": "PNG",
@@ -44,6 +66,28 @@
      "format": "PDF",
      "taille": "A4",
      "description": "Grand public · Ta prochaine pépite",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues-a3.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Ta prochaine pépite, en A3",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues-40x60.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Ta prochaine pépite, en 40 × 60 cm (rallongée, rien n’est déformé)",
      "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
      "canaux": [
       "impression"
@@ -72,6 +116,28 @@
      ]
     },
     {
+     "nom": "affiche-moins-de-chaines-a3.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Moins de chaînes, en A3",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-moins-de-chaines-40x60.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Moins de chaînes, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
      "nom": "affiche-salle-vide.png",
      "chemin": "affiches/affiche-salle-vide.png",
      "format": "PNG",
@@ -88,6 +154,28 @@
      "format": "PDF",
      "taille": "A4",
      "description": "Grand public · Une salle vide",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide-a3.pdf",
+     "chemin": "affiches/affiche-salle-vide-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Une salle vide, en A3",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide-40x60.pdf",
+     "chemin": "affiches/affiche-salle-vide-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Une salle vide, en 40 × 60 cm (rallongée, rien n’est déformé)",
      "apercu": "apercus/affiches-affiche-salle-vide.png",
      "canaux": [
       "impression"
@@ -116,6 +204,28 @@
      ]
     },
     {
+     "nom": "affiche-ambassadeurs-aventure-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · L'aventure, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · L'aventure, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
      "nom": "affiche-ambassadeurs-badges.png",
      "chemin": "affiches/affiche-ambassadeurs-badges.png",
      "format": "PNG",
@@ -138,6 +248,28 @@
      ]
     },
     {
+     "nom": "affiche-ambassadeurs-badges-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · Les badges, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · Les badges, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
      "nom": "affiche-ambassadeurs-fondateur.png",
      "chemin": "affiches/affiche-ambassadeurs-fondateur.png",
      "format": "PNG",
@@ -154,6 +286,28 @@
      "format": "PDF",
      "taille": "A4",
      "description": "Ambassadeurs · Fondateur de ta ville",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · Fondateur de ta ville, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · Fondateur de ta ville, en 40 × 60 cm (rallongée, rien n’est déformé)",
      "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
      "canaux": [
       "impression"
@@ -204,6 +358,28 @@
      ]
     },
     {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam-a3.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Vitrine · sans nom, en A3",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam-40x60.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Vitrine · sans nom, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
      "nom": "affiche-vitrine-miam-safe.png",
      "chemin": "affiches/affiche-vitrine-miam-safe.png",
      "format": "PNG",
@@ -220,6 +396,28 @@
      "format": "PDF",
      "taille": "A4",
      "description": "Vitrine · Ici, on est Miam Safe",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe-a3.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Vitrine · Ici, on est Miam Safe, en A3",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe-40x60.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Vitrine · Ici, on est Miam Safe, en 40 × 60 cm (rallongée, rien n’est déformé)",
      "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
      "canaux": [
       "impression"
