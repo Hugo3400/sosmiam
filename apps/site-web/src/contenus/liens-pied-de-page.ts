@@ -1,8 +1,8 @@
 // Tous les liens du pied de page, rangés par groupe : le site, l'espace ambassadeur, les réseaux et les pages légales.
 // « site » dit où vit la page : le pied de page en fait une adresse complète quand il est affiché sur un autre site
-// (sosmiam.fr, ambassadeur.sosmiam.fr, pro.sosmiam.fr). Les réseaux viennent de liens-publics.ts, les pages légales de liens-legaux.ts.
+// (sosmiam.fr, ambassadeur.sosmiam.fr, pro.sosmiam.fr). Les réseaux viennent de liens-publics.ts, les pages légales (et « Gérer mes cookies ») de liens-legaux.ts.
 import { site } from "~/contenus/legal/informations-legales";
-import { liensLegaux } from "~/contenus/legal/liens-legaux";
+import { lienGererCookies, pagesLegales } from "~/contenus/legal/liens-legaux";
 import { liensPublics, RESEAUX_SOCIAUX } from "~/contenus/liens-publics";
 
 export type SiteDuLien = "principal" | "ambassadeur" | "pro" | "externe";
@@ -44,10 +44,7 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
   {
     titre: "Infos légales",
     liens: [
-      ...liensLegaux.map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
-      { texte: "SOS Miam et l'âge", adresse: "/age", site: "principal" },
-      { texte: "Santé et prévention", adresse: "/prevention", site: "principal" },
-      { texte: "Statistiques de visite", adresse: "/statistiques", site: "principal" },
+      ...[...pagesLegales, lienGererCookies].map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
     ],
   },
 ];

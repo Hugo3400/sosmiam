@@ -25,7 +25,16 @@ export const documentCgu: DocumentLegal = {
   miseAJour: "14 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
-    "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Pour visiter le site, **pas besoin de compte** : seuls l'**espace ambassadeur** et l'**espace pro** en demandent un. L'app demande un **compte gratuit**. Dans tous les cas, un compte, c'est **dès 18 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
+  ],
+  enBref: [
+    {
+      liste: [
+        "Tout est **gratuit** et il n'y a **rien à acheter**.",
+        "Pour visiter le site, **pas besoin de compte** : seuls l'**espace ambassadeur** et l'**espace pro** en demandent un. L'app demande un **compte gratuit**.",
+        "Dans tous les cas, un compte, c'est **dès 18 ans**.",
+        "Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
+      ],
+    },
   ],
   sections: [
     {
@@ -262,7 +271,7 @@ export const documentCgu: DocumentLegal = {
         "On ne collecte que ce qui est utile pour faire tourner et protéger SOS Miam, te répondre, étudier tes demandes, faire vivre ton compte ambassadeur si tu en as un et, si tu l'as demandé, te prévenir du lancement. On ne vend jamais tes données, et on ne les loue pas non plus.",
         "Dans l'app, ta date de naissance et ton nom sont chiffrés, et ton régime particulier (végétarien, sans gluten, allergies…) reste sur ton téléphone tant que tu n'as pas donné ton accord pour l'envoyer.",
         "La [politique de confidentialité](/confidentialite) explique quelles données, pourquoi, combien de temps, et comment exercer tes droits. Elle sera complétée pour l'app avant sa sortie.",
-        "Sur le site, aucun **cookie de suivi** aujourd'hui : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Seules exceptions possibles, strictement nécessaires : des cookies de sécurité de notre prestataire Cloudflare, le cookie qui retient ton refus des statistiques, et celui qui te garde connecté à ton espace ambassadeur. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
+        "Sur le site, aucun **cookie de suivi** aujourd'hui : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Les seuls cookies posés sont strictement nécessaires : un cookie de sécurité de notre prestataire Cloudflare, le cookie qui retient ton refus des statistiques si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro) et, le temps d'une connexion avec Apple ou Google, deux cookies de 10 minutes. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
       ],
     },
     {
@@ -291,5 +300,15 @@ export const documentCgu: DocumentLegal = {
         `Une question sur ces conditions, un contenu à signaler, une idée ? Écris-nous à ${lienContact}. On lit tous les messages.`,
       ],
     },
+  ],
+  chapitres: [
+    { id: "le-cadre", titre: "Le cadre", sections: ["objet", "acceptation", "acces"] },
+    { id: "sos-miam-et-ton-compte", titre: "SOS Miam et ton compte", sections: ["contenu", "age", "compte", "rescousses"] },
+    { id: "ambassadeurs-et-pros", titre: "Ambassadeurs et pros", sections: ["ambassadeurs", "pro"] },
+    { id: "publier", titre: "Publier, et vivre ensemble", sections: ["publications", "regles-communaute", "moderation"] },
+    { id: "bon-usage-et-responsabilites", titre: "Bon usage et responsabilités", sections: ["propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite"] },
+    { id: "tes-donnees", titre: "Tes données et les cookies", sections: ["donnees-cookies"] },
+    { id: "changements-et-litiges", titre: "Changements et litiges", sections: ["modifications", "droit-applicable"] },
+    { id: "nous-ecrire", titre: "Nous contacter", sections: ["contact"] },
   ],
 };

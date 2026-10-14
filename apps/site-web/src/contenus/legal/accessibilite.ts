@@ -15,7 +15,9 @@ export const documentAccessibilite: DocumentLegal = {
   miseAJour: "8 octobre 2026",
   introduction: [
     "On veut que tout le monde puisse partir à la rescousse d'une table, quelle que soit sa façon d'utiliser un téléphone ou un ordinateur. Cette page dit franchement où on en est : ce qui marche déjà, ce qui est en cours et ce qui est prévu.",
-    `En bref : l'app suit déjà ton téléphone quand tu lui demandes de **réduire les animations** ou de **grossir le texte**, et **VoiceOver et TalkBack sont en cours**. Quelque chose te bloque ? Écris-nous à ${lienContact}.`,
+  ],
+  enBref: [
+    `L'app suit déjà ton téléphone quand tu lui demandes de **réduire les animations** ou de **grossir le texte**, et **VoiceOver et TalkBack sont en cours**. Le site a un lien « Aller au contenu » et coupe ses animations si tu le demandes. Aucun audit n'a encore été fait. Quelque chose te bloque ? Écris-nous à ${lienContact}.`,
   ],
   sections: [
     {
@@ -85,5 +87,11 @@ export const documentAccessibilite: DocumentLegal = {
         "Si tu peux, dis-nous sur quel écran ou quelle page, avec quel appareil et quel outil (VoiceOver, TalkBack, zoom, contraste élevé…) : ça nous aide à corriger plus vite.",
       ],
     },
+  ],
+  chapitres: [
+    { id: "l-app-ou-on-en-est", titre: "L'app : où on en est", sections: ["app", "prevu"] },
+    { id: "le-site-ou-on-en-est", titre: "Le site : où on en est", sections: ["site"] },
+    { id: "conformite", titre: "Pas encore d'audit", sections: ["audit"] },
+    { id: "signaler-un-probleme", titre: "Nous signaler un problème", sections: ["contact"] },
   ],
 };

@@ -17,7 +17,9 @@ export const documentAge: DocumentLegal = {
   miseAJour: "14 octobre 2026",
   introduction: [
     "SOS Miam, c'est l'app pour sortir découvrir les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde. Cette page explique à partir de quel âge on peut l'utiliser, ce qu'on y trouve et ce qu'on fait si quelqu'un de plus jeune passe par là. Elle sert aussi de repère aux parents.",
-    "En bref : pour créer un compte, il faut avoir **18 ans ou plus**, dans l'app comme sur le site. Sans compte, l'app se visite en mode **tout public**, sans bars ni alcool. Et il n'y a **rien à acheter**.",
+  ],
+  enBref: [
+    "Pour créer un compte, il faut avoir **18 ans ou plus**, dans l'app comme sur le site. Sans compte, l'app se visite en mode **tout public**, sans bars ni alcool. Et il n'y a **rien à acheter**.",
   ],
   sections: [
     {
@@ -93,5 +95,11 @@ export const documentAge: DocumentLegal = {
         `Une question, un doute, un contenu qui t'inquiète ? Écris-nous à ${lienContact}. On lit tous les messages.`,
       ],
     },
+  ],
+  chapitres: [
+    { id: "qui-peut-utiliser", titre: "Qui peut utiliser SOS Miam", sections: ["dix-huit-ans", "sans-compte"] },
+    { id: "dans-l-app", titre: "Ce qu'on trouve dans l'app", sections: ["contenus", "securite"] },
+    { id: "reperes-parents", titre: "Pour les parents", sections: ["parents"] },
+    { id: "nous-ecrire", titre: "Nous contacter", sections: ["contact"] },
   ],
 };

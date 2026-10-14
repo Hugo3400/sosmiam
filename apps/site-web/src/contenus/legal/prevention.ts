@@ -27,6 +27,16 @@ export const documentPrevention: DocumentLegal = {
     "SOS Miam te fait découvrir des restos, des pâtisseries, des bars et des sorties. Se régaler, oui ; se mettre en danger, non. Voici l'essentiel, et où trouver de l'aide si tu en as besoin.",
     `**${MESSAGE_SANITAIRE_ALCOOL}**`,
   ],
+  enBref: [
+    {
+      liste: [
+        `**L'alcool** : profite du moment, à ton rythme. Besoin d'en parler ? ${ALCOOL_INFO_SERVICE.nom} répond au [${ALCOOL_INFO_SERVICE.telephone}](${ALCOOL_INFO_SERVICE.lienTelephone}), anonymement.`,
+        "**La route** : quand on boit, on ne conduit pas.",
+        "**Manger et bouger** : se régaler sans excès, et bouger un peu chaque jour.",
+        "**Un lieu pousse à boire ?** Signale-le, on vérifie et on agit.",
+      ],
+    },
+  ],
   sections: [
     {
       id: "alcool",
@@ -60,5 +70,11 @@ export const documentPrevention: DocumentLegal = {
         `Un lieu ou une publication pousse à boire, ou vise des mineurs ? Signale-le dans l'app, ou écris-nous à ${lienContact}. On vérifie et on agit.`,
       ],
     },
+  ],
+  chapitres: [
+    { id: "boire", titre: "L'alcool", sections: ["alcool"] },
+    { id: "conduire", titre: "Quand on boit, on ne conduit pas", sections: ["route"] },
+    { id: "equilibre", titre: "Manger et bouger", sections: ["manger-bouger"] },
+    { id: "signaler-un-lieu", titre: "Un souci avec un lieu ?", sections: ["contact"] },
   ],
 };

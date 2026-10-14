@@ -11,10 +11,20 @@ export const documentMentionsLegales: DocumentLegal = {
   titre: "Mentions légales",
   description:
     "Qui édite SOS Miam, qui l'héberge, comment nous écrire ou signaler un contenu illicite : toutes les mentions légales du site sosmiam.fr.",
-  miseAJour: "9 octobre 2026",
+  miseAJour: "14 octobre 2026",
   introduction: [
     "Qui se cache derrière SOS Miam, qui héberge le site et comment nous joindre : c'est la page la plus sérieuse du site, mais on a fait en sorte qu'elle reste digeste.",
     `Ces mentions s'appliquent au site **${site.adresse}** et à ses sous-domaines.`,
+  ],
+  enBref: [
+    {
+      liste: [
+        `**Qui édite SOS Miam** : ${editeur.nom}, ${editeur.statut}. Pour lui écrire : ${lienEmail}.`,
+        `**Qui l'héberge** : ${hebergeur.nom}, en France. ${prestataires.reseau.nom} diffuse et protège le site.`,
+        "**Tout est gratuit**, rien n'est vendu, et il n'y a aucune publicité aujourd'hui.",
+        "**Un contenu te semble illicite ?** Signale-le par mail, [on t'explique comment](#signalement).",
+      ],
+    },
   ],
   sections: [
     {
@@ -126,7 +136,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "Données personnelles et cookies",
       blocs: [
         "SOS Miam ne vend ni ne loue jamais tes données. Ce qui est traité aujourd'hui, pourquoi, combien de temps et comment exercer tes droits : tout est expliqué dans la [politique de confidentialité](/confidentialite).",
-        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seules exceptions possibles : des cookies de sécurité que notre prestataire ${prestataires.reseau.nom} peut déposer pour protéger le site, le cookie qui retient ton refus des statistiques et celui qui te garde connecté à ton espace ambassadeur ou pro. Le détail est sur la page [cookies](/cookies).`,
+        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seuls cookies posés, tous strictement nécessaires : un cookie de sécurité que notre prestataire ${prestataires.reseau.nom} dépose pour protéger le site, le cookie qui retient ton refus des statistiques si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro) et, le temps d'une connexion avec Apple ou Google, deux cookies de 10 minutes. La liste complète, avec leurs durées, est sur la page [cookies](/cookies).`,
       ],
     },
     {
@@ -138,5 +148,12 @@ export const documentMentionsLegales: DocumentLegal = {
         "Ces mentions légales sont soumises au droit français.",
       ],
     },
+  ],
+  chapitres: [
+    { id: "qui-edite", titre: "Qui édite et héberge SOS Miam", sections: ["editeur", "directeur-publication", "hebergeur", "prestataires"] },
+    { id: "le-site", titre: "Le site, et à qui il appartient", sections: ["objet", "propriete-intellectuelle", "credits"] },
+    { id: "signalement", titre: "Signaler un contenu illicite", sections: ["signaler-contenu"] },
+    { id: "tes-donnees", titre: "Tes données et les cookies", sections: ["donnees-cookies"] },
+    { id: "a-l-avenir", titre: "Évolution de ces mentions", sections: ["evolution"] },
   ],
 };
