@@ -44,7 +44,7 @@ const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
   vide: "Écris quelque chose avant d'envoyer, même un petit emoji 😉",
   "trop-long": `Ton message dépasse ${LONGUEUR_MAX_MESSAGE} caractères : coupe un peu, la bande t'écoute quand même.`,
   "mot-interdit": "Oups, un mot de ton message ne passe pas chez nous. Tu reformules gentiment ?",
-  interdit: "Tu ne fais plus partie de cette sortie : ton message n'est pas parti. La bande continue sans toi, mais la prochaine, c'est toi qui l'organises ?",
+  interdit: "Tu ne fais plus partie de cette sortie : ton message n'est pas parti.",
 };
 const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "retire", "illisible"]);
 

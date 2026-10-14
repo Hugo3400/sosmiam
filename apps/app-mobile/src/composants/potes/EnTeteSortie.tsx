@@ -10,12 +10,14 @@ type Props = {
   /** Jour et heure, déjà écrits : « Vendredi 10 octobre à 20h30 » */
   quand: string;
   participants: Pote[];
+  /** Invités qui n'ont pas encore répondu (compte connecté) */
+  enAttente?: number;
   organisateur: Pote | null;
   onRetour: () => void;
 };
 
 /** Le haut d'une sortie : retour, emoji et titre, jour et heure, puis les participants et qui organise. */
-export function EnTeteSortie({ sortie, quand, participants, organisateur, onRetour }: Props) {
+export function EnTeteSortie({ sortie, quand, participants, enAttente, organisateur, onRetour }: Props) {
   return (
     <View className="flex-row items-start gap-3 px-5 pb-3 pt-2">
       <Pressable
@@ -36,7 +38,7 @@ export function EnTeteSortie({ sortie, quand, participants, organisateur, onReto
           <Ionicons name="calendar-outline" size={16} color={couleurs.gris} accessibilityElementsHidden importantForAccessibility="no" />
           <Text className="flex-1 font-texte-semi text-[15px] text-encre">{quand}</Text>
         </View>
-        <ParticipantsSortie participants={participants} organisateur={organisateur} />
+        <ParticipantsSortie participants={participants} organisateur={organisateur} enAttente={enAttente} />
       </View>
     </View>
   );
