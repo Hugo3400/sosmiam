@@ -75,7 +75,7 @@ test("aperçu : le bandeau, non modal, est un vrai formulaire (POST /cookies/cho
   assert.match(html, /<form [^>]*action="\/cookies\/choix\?apercu-cookies" method="post"/);
   assert.match(html, /<input type="hidden" name="retour" value="\/faq\?apercu-cookies"\/>/);
   assert.match(boutonGeste(html, "fermer"), /aria-label="Fermer et continuer sans accepter"/);
-  assert.match(html, /Aperçu : partenaire imaginaire/);
+  assert.match(html, /Aperçu\s:\spartenaire imaginaire/);
   assert.match(html, /Pour afficher de la pub qui nous aide à rester gratuits, un partenaire aimerait poser des cookies/);
   // Mêmes classes pour les trois ; sans JavaScript, « Choisir » mène à /cookies#mes-choix
   const boutons = [...html.matchAll(/<(?:button|a)[^>]*class="([^"]*)"[^>]*>(Tout accepter|Tout refuser|Choisir)</g)];
