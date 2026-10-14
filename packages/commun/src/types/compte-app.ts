@@ -49,12 +49,13 @@ export type ProfilInscription = {
   pseudo?: string | null;
 };
 
-export type InscriptionEmail = ProfilInscription & { email: string; motDePasse: string; cgu: true };
+/** newsletter : la case « newsletter » de l'inscription (soft opt-in : visible, cochée par défaut, décochable) */
+export type InscriptionEmail = ProfilInscription & { email: string; motDePasse: string; cgu: true; newsletter?: boolean };
 
 /** La réponse d'Apple ou de Google, et ce qu'on sait déjà du profil (Apple ne donne le nom qu'à la première connexion) */
 export type ConnexionExterne =
-  | { fournisseur: "apple"; identityToken: string; nonce: string; profil?: Partial<ProfilInscription> & { cgu?: true } }
-  | { fournisseur: "google"; idToken: string; nonce?: string; profil?: Partial<ProfilInscription> & { cgu?: true } };
+  | { fournisseur: "apple"; identityToken: string; nonce: string; profil?: Partial<ProfilInscription> & { cgu?: true; newsletter?: boolean } }
+  | { fournisseur: "google"; idToken: string; nonce?: string; profil?: Partial<ProfilInscription> & { cgu?: true; newsletter?: boolean } };
 
 /** Ce qu'il manque pour créer le compte après Apple ou Google, et ce qu'on peut déjà pré-remplir */
 export type ProfilACompleter = { manque: ("prenom" | "dateNaissance" | "ville" | "cgu")[]; prefill: { email: string; prenom?: string; nom?: string } };

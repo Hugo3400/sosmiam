@@ -87,6 +87,7 @@ export function BlocSosDuSoir({ moment, enCours, onLancer, onArreter }: Props) {
       <Text className="font-texte text-base leading-6 text-gris">
         {lierPonctuation("Des tables vides ce soir ? Lance un SOS : les gourmands du coin le voient tout de suite, avec ton offre si tu en fais une.")}
       </Text>
+      <Text className="-mb-3 font-texte-gras text-base text-encre">Places à remplir</Text>
       <CompteurPlusMoins libelle="Places à remplir" valeur={places} min={SOS_PLACES_MIN} max={SOS_PLACES_MAX} unite={(n) => `${n} place${n > 1 ? "s" : ""}`} onChanger={setPlaces} />
       {erreur === "places" ? <Text className="font-texte text-sm text-rouge-texte">{ERREURS.places}</Text> : null}
       <ChampTexte

@@ -5,7 +5,7 @@ import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 import { ContexteBrouillon, type BrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { leverVerrouAge, lireVerrouAge, poserVerrouAge } from "~/stockage/verrou-age";
 
-const brouillonVide: BrouillonInscription = { prenom: "", pseudo: "", nom: "", dateNaissance: null, ville: null, envies: {}, connexion: null };
+const brouillonVide: BrouillonInscription = { prenom: "", pseudo: "", nom: "", dateNaissance: null, ville: null, envies: {}, connexion: null, newsletter: true };
 
 /** Garde en mémoire ce que la personne remplit d'un écran d'inscription à l'autre, et le verrou d'âge de ce téléphone. */
 export function FournisseurBrouillon({ children }: { children: ReactNode }) {

@@ -196,10 +196,11 @@ export type DependancesComptes = {
  * Connexion avec Apple ou Google (décidé le 9 octobre 2026) : POST /comptes/apple et POST /comptes/google, sans session,
  * 20 essais par visiteur toutes les 10 minutes pour chacun (429 au-delà). Le serveur vérifie lui-même le jeton : signature
  * RS256 avec les clés publiques d'Apple ou de Google (gardées en mémoire), émetteur, audience (Apple : l'App ID,
- * SOS_MIAM_APPLE_AUDIENCES ; Google : les identifiants client OAuth iOS, Android et web, SOS_MIAM_GOOGLE_CLIENT_IDS),
+ * SOS_MIAM_APPLE_AUDIENCES, et pour le site le « Services ID », SOS_MIAM_APPLE_SERVICES_ID ; Google : les identifiants client OAuth iOS, Android et web, SOS_MIAM_GOOGLE_CLIENT_IDS),
  * exp et iat à 60 s près, et le nonce. Apple : `nonce` obligatoire, le nonce BRUT (8 à 256 caractères ASCII visibles) ;
  * l'app donne son SHA-256 en hexadécimal minuscule à Apple (option nonce de signInAsync), le jeton le porte, l'API
- * recalcule. Google : `nonce` facultatif, comparé tel quel au nonce du jeton s'il est envoyé ; email_verified exigé.
+ * recalcule (le site fait pareil : il envoie à Apple le SHA-256 du nonce qu'il garde, puis le nonce brut ici, avec
+ * support « site »). Google : `nonce` facultatif, comparé tel quel au nonce du jeton s'il est envoyé ; email_verified exigé.
  * support : « app » par défaut (session d'un an), ou « site ». Dans l'ordre :
  *   a) jeton refusé → 401 jeton-externe-invalide (identityToken|idToken absent ou vide, nonce mal formé : 400
  *      champ-invalide {champ}) ;

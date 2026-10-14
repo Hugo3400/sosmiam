@@ -25,6 +25,8 @@ export type BrouillonInscription = {
   envies: Partial<Record<CategorieEnvie, string[]>>;
   /** null : profil gardé sur le téléphone seulement (démo, ou avant les comptes) */
   connexion: ConnexionInscription | null;
+  /** La case « newsletter » de « C'est prêt » : cochée par défaut, décochable (lue seulement à la création du compte) */
+  newsletter: boolean;
 };
 
 export type EtatBrouillon = {

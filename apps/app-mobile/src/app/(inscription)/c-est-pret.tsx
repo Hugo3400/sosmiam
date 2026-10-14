@@ -2,6 +2,7 @@ import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Text, View } from "react-native";
 
+import { CaseNewsletter } from "~/composants/inscription/CaseNewsletter";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { preparerProfilEnvoi } from "~/fonctions/compte/preparer-profil-envoi";
@@ -18,7 +19,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
  */
 export default function CEstPret() {
   const router = useRouter();
-  const { brouillon, verrouAge } = utiliserBrouillonInscription();
+  const { brouillon, modifier, verrouAge } = utiliserBrouillonInscription();
   const { enregistrer } = utiliserProfil();
   const session = utiliserSession();
   const [envoi, setEnvoi] = useState(false);
@@ -72,11 +73,11 @@ export default function CEstPret() {
     }
     const r =
       connexion.type === "email"
-        ? await session.comptes.inscrire({ ...envoi, email: connexion.email, motDePasse: connexion.motDePasse, cgu: true })
+        ? await session.comptes.inscrire({ ...envoi, email: connexion.email, motDePasse: connexion.motDePasse, cgu: true, newsletter: brouillon.newsletter })
         : await session.comptes.connecterExterne(
             connexion.type === "apple"
-              ? { fournisseur: "apple", identityToken: connexion.identityToken, nonce: connexion.nonce, profil: { ...envoi, cgu: true } }
-              : { fournisseur: "google", idToken: connexion.idToken, profil: { ...envoi, cgu: true } },
+              ? { fournisseur: "apple", identityToken: connexion.identityToken, nonce: connexion.nonce, profil: { ...envoi, cgu: true, newsletter: brouillon.newsletter } }
+              : { fournisseur: "google", idToken: connexion.idToken, profil: { ...envoi, cgu: true, newsletter: brouillon.newsletter } },
           );
     if (!r.ok) {
       montrerErreurCompte(r.erreur, r.details);
@@ -115,6 +116,12 @@ export default function CEstPret() {
             : "🔒 Tes infos restent sur ton téléphone, dans son coffre-fort chiffré."}
         </Text>
       </View>
+      {/* La newsletter : seulement quand un compte est créé (pas pour compléter un compte du site, ni en démo) */}
+      {brouillon.connexion && brouillon.connexion.type !== "completer" ? (
+        <View className="mt-4">
+          <CaseNewsletter cochee={brouillon.newsletter} onChanger={(newsletter) => modifier({ newsletter })} />
+        </View>
+      ) : null}
     </EcranEtape>
   );
 }

@@ -2,6 +2,7 @@ import { createCookie, data, redirect } from "react-router";
 
 import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
 import { lireEspaceMonCompte } from "~/fonctions/hotes/lire-espace-mon-compte";
+import { lireRetourSur } from "~/fonctions/navigation/lire-retour-sur";
 import { lireSession, type ErreurCompte } from "~/services/comptes.server";
 import type { CompteConnecte } from "~/types/compte";
 
@@ -75,10 +76,8 @@ export async function lireCompteConnecte(requete: Request): Promise<{ jeton: str
   return session.etat === "connecte" ? { jeton: session.jeton, compte: session.compte } : null;
 }
 
-/** Adresse de retour sûre après la connexion : un chemin du site, jamais une autre adresse (« //exemple.fr »). */
-export function lireRetourSur(valeur: unknown): string | null {
-  return typeof valeur === "string" && /^\/(?!\/)[\w\-/]*$/.test(valeur) ? valeur : null;
-}
+/** Adresse de retour sûre après la connexion (fonctions/navigation/lire-retour-sur.ts) : un chemin du site seulement. */
+export { lireRetourSur };
 
 /**
  * Retour à /connexion (puis à la page demandée), en effaçant un cookie périmé. Le « Mon compte » du site principal a sa

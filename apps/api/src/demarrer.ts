@@ -55,6 +55,7 @@ import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
 import { lireListeVirgules } from "./fonctions/texte/lire-liste-virgules.ts";
 import { servicesComptesExternes } from "./services/comptes-externes.ts";
 import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle } from "./services/connexion-externe.ts";
+import { lireAudiencesAppleWeb } from "./services/connexion-externe.ts";
 import { brancherCleDesinscription } from "./services/liens-desinscription.ts";
 import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
@@ -82,6 +83,8 @@ const zones = { trouverZoneDeCommune, listerZones, lireZone };
 // défaut ; Google : les identifiants client OAuth (iOS, Android, web), aucun par défaut (POST /comptes/google : 503)
 const audiencesApple = lireListeVirgules(process.env.SOS_MIAM_APPLE_AUDIENCES, AUDIENCES_APPLE_DEFAUT);
 const audiencesGoogle = lireListeVirgules(process.env.SOS_MIAM_GOOGLE_CLIENT_IDS);
+// « Continuer avec Apple » sur le site : son « Services ID » (vide tant qu'il n'est pas créé chez Apple) est aussi accepté
+audiencesApple.push(...lireAudiencesAppleWeb(process.env.SOS_MIAM_APPLE_SERVICES_ID, audiencesApple));
 const vider = () => compteur.vider().catch((erreur: unknown) => console.error("Écriture des statistiques impossible :", erreur));
 const minuteur = setInterval(vider, 30_000);
 // Ménage et sauvegarde chiffrée de la base chaque nuit (pas pendant un essai sur un autre schéma)

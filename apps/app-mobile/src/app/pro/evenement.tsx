@@ -121,6 +121,7 @@ export default function EcranEvenementPro() {
       <SectionReglages titre="L'essentiel">
         <View className="gap-4">
           <ChampTexte libelle="Titre" valeur={b.titre} onChangeTexte={(titre) => changer({ titre })} maxLength={TITRE_EVENEMENT_MAX} placeholder="Jazz manouche au coin du feu" erreur={message("titre") ?? null} />
+          <Text className="-mb-2 font-texte-gras text-base text-encre">C'est quoi ?</Text>
           <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
             {TYPES_EVENEMENT.map((t, i) => (
               <Pastille key={t} emoji={TYPES_EVENEMENT_ECRITS[t].emoji} libelle={TYPES_EVENEMENT_ECRITS[t].nom} role="radio" choisi={b.type === t} onPress={() => changer({ type: t })} position={i + 1} total={TYPES_EVENEMENT.length} />

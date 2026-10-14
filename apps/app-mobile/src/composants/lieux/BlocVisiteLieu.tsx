@@ -23,8 +23,8 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Lecture = { etat: "attente" } | { etat: "lu"; infos: InfosVisiteLieu } | { etat: "erreur"; erreur: ErreurService };
 
-// Le lieu n'existe pas pour ce service, ou c'est un bar ouvert en visite sans compte (« mineur-bar », la fiche le dit déjà) : le bloc ne montre rien
-const ERREURS_SILENCIEUSES: readonly ErreurService[] = ["introuvable", "mineur-bar"];
+// Le lieu n'existe pas pour ce service (y compris un bar ouvert en visite sans compte : la fiche le dit déjà) : le bloc ne montre rien
+const ERREURS_SILENCIEUSES: readonly ErreurService[] = ["introuvable"];
 // Un raté passager pendant une relecture : on garde ce qu'on avait plutôt que d'effacer le bloc
 const ERREURS_PASSAGERES: readonly ErreurService[] = ["hors-ligne", "trop-de-demandes"];
 

@@ -177,7 +177,14 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
             }
           } else {
             erreur = r.erreur;
-            if (geste.quoi === "rescousse") finir(geste, { ok: false, erreur: r.erreur, details: r.details });
+            if (geste.quoi === "rescousse") {
+              finir(geste, { ok: false, erreur: r.erreur, details: r.details });
+              // Rescousse défaite : une reprise (ou un nouveau don) en attente sur ce lieu n'a plus rien à changer
+              const base = calculerBase(memoire, Date.now());
+              const inutiles = memoire.file.filter((g) => g.quoi === "rescousse" && g.lieuId === geste.lieuId && appliquerGesteActivite(base, g) === base);
+              memoire.file = memoire.file.filter((g) => !inutiles.includes(g));
+              for (const g of inutiles) finir(g, { ok: true, premierSauveteur: false });
+            }
             // Pépin passager : le geste (rejouable) reprend sa place en tête, fusionné avec ceux arrivés entre-temps
             else if (PASSAGERES.has(r.erreur)) {
               const base = calculerBase(memoire, Date.now());

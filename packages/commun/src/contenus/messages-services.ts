@@ -107,11 +107,6 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Événement envolé",
     texte: "Il a été annulé ou retiré entre-temps. Jette un œil aux autres événements du coin !",
   },
-  "mineur-alcool": {
-    emoji: "🧃",
-    titre: "Réservé aux 18 ans et plus",
-    texte: "Cet événement tourne autour de l'alcool, alors on te le garde pour plus tard. Plein d'autres sorties t'attendent !",
-  },
   "avis-ferme": {
     emoji: "⌛",
     titre: "Trop tard pour cet avis",
@@ -176,11 +171,6 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     emoji: "🌱",
     titre: "{lieu} ne valide pas encore les visites",
     texte: "Ça arrive bientôt. En attendant, une rescousse leur fait toujours plaisir.",
-  },
-  "mineur-bar": {
-    emoji: "🚫",
-    titre: "Ce lieu n'est pas disponible avec ton compte",
-    texte: "Il y en a plein d'autres qui t'attendent dans Explorer.",
   },
   "membre-du-lieu": {
     emoji: "🧑‍🍳",

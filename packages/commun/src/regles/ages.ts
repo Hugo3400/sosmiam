@@ -15,9 +15,3 @@ export const PAYS_PAR_DEFAUT = "FR";
 
 /** Âge minimum pour s'inscrire, partout (app, espace ambassadeur, espace pro) : la majorité en France. */
 export const AGE_MINIMUM_INSCRIPTION = MAJORITE_FRANCE;
-
-/**
- * Âge à partir duquel on parle d'alcool : la majorité. Depuis le 14 octobre 2026, tout compte est majeur ; reste utile pour
- * la visite sans compte (âge inconnu : tout public, ni bar ni alcool).
- */
-export const AGE_ALCOOL = MAJORITE_FRANCE;

@@ -1,9 +1,10 @@
 // « Se connecter avec Apple » et « Se connecter avec Google » (décidé le 9 octobre 2026) : vérification des jetons
 // d'identité envoyés par l'app, avec les clés publiques d'Apple et de Google (cles-jwks.ts) et les règles de
-// fonctions/comptes/lire-identite-externe.ts. Réglages lus au démarrage (demarrer.ts) : SOS_MIAM_APPLE_AUDIENCES et
-// SOS_MIAM_GOOGLE_CLIENT_IDS. Contrat des adresses : routes/comptes.ts.
+// fonctions/comptes/lire-identite-externe.ts. Réglages lus au démarrage (demarrer.ts) : SOS_MIAM_APPLE_AUDIENCES,
+// SOS_MIAM_APPLE_SERVICES_ID (le site) et SOS_MIAM_GOOGLE_CLIENT_IDS. Contrat des adresses : routes/comptes.ts.
 import { lireIdentiteExterne, type FournisseurExterne, type IdentiteExterne, type ReglesJetonExterne } from "../fonctions/comptes/lire-identite-externe.ts";
 import { decoderJwt } from "../fonctions/securite/decoder-jwt.ts";
+import { lireListeVirgules } from "../fonctions/texte/lire-liste-virgules.ts";
 import { creerCacheCles, type ChercherCles } from "./cles-jwks.ts";
 
 export const ADRESSE_CLES_APPLE = "https://appleid.apple.com/auth/keys";
@@ -12,6 +13,17 @@ export const EMETTEURS_APPLE = ["https://appleid.apple.com"];
 export const EMETTEURS_GOOGLE = ["accounts.google.com", "https://accounts.google.com"];
 /** L'App ID de l'app iOS : l'audience des jetons d'Apple par défaut */
 export const AUDIENCES_APPLE_DEFAUT = ["fr.sosmiam.app"];
+/** L'identifiant d'Expo Go : jamais une audience acceptée (n'importe quelle app lancée dans Expo Go aurait ses jetons) */
+const AUDIENCE_INTERDITE = "host.exp.Exponent";
+
+/**
+ * « Continuer avec Apple » sur le site (sosmiam.fr, ambassadeur. et pro.) : le « Services ID » d'Apple, réglé par
+ * SOS_MIAM_APPLE_SERVICES_ID (le même identifiant que dans apps/site-web/.env), est l'audience des jetons venus du web.
+ * Rend les audiences à AJOUTER à `dejaAcceptees` : vide sans réglage, sans doublon, jamais host.exp.Exponent.
+ */
+export function lireAudiencesAppleWeb(servicesId: unknown, dejaAcceptees: readonly string[]): string[] {
+  return lireListeVirgules(servicesId).filter((audience) => audience !== AUDIENCE_INTERDITE && !dejaAcceptees.includes(audience));
+}
 
 /**
  * Vérifie un jeton (et son nonce : brut, tel que l'app l'a gardé ; null pour Google sans nonce) : l'identité, ou null si

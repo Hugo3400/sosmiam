@@ -10,7 +10,7 @@ import { decoderJwt } from "../src/fonctions/securite/decoder-jwt.ts";
 import { verifierSignatureRs256 } from "../src/fonctions/securite/verifier-signature-rs256.ts";
 import { lireListeVirgules } from "../src/fonctions/texte/lire-liste-virgules.ts";
 import { ClesIndisponibles, creerCacheCles } from "../src/services/cles-jwks.ts";
-import { creerVerificateurApple, creerVerificateurGoogle } from "../src/services/connexion-externe.ts";
+import { creerVerificateurApple, creerVerificateurGoogle, lireAudiencesAppleWeb } from "../src/services/connexion-externe.ts";
 import { creerCleTest, creerFauxFournisseur, signerJeton } from "./outils/creer-faux-fournisseur.ts";
 
 const MAINTENANT = Date.parse("2026-10-09T10:00:00Z");
@@ -179,4 +179,19 @@ test("vérificateurs : Apple par défaut sur fr.sosmiam.app, nonce obligatoire ;
   assert.deepEqual(lireListeVirgules(" a.apps , b ,,a.apps "), ["a.apps", "b"]);
   assert.deepEqual(lireListeVirgules(undefined, ["fr.sosmiam.app"]), ["fr.sosmiam.app"]);
   assert.deepEqual(lireListeVirgules(""), []);
+});
+
+test("site : le « Services ID » d'Apple s'ajoute aux audiences (sans doublon, jamais host.exp.Exponent), et ses jetons passent", async () => {
+  assert.deepEqual(lireAudiencesAppleWeb(undefined, ["fr.sosmiam.app"]), []);
+  assert.deepEqual(lireAudiencesAppleWeb("", ["fr.sosmiam.app"]), []);
+  assert.deepEqual(lireAudiencesAppleWeb(" fr.sosmiam.web ", ["fr.sosmiam.app"]), ["fr.sosmiam.web"]);
+  assert.deepEqual(lireAudiencesAppleWeb("fr.sosmiam.app,host.exp.Exponent,fr.sosmiam.web", ["fr.sosmiam.app"]), ["fr.sosmiam.web"]);
+  // Jeton du web : audience = Services ID, nonce = le SHA-256 envoyé par le site à Apple ; l'API reçoit le nonce brut
+  const faux = creerFauxFournisseur("apple", () => MAINTENANT);
+  const audiences = ["fr.sosmiam.app", ...lireAudiencesAppleWeb("fr.sosmiam.web", ["fr.sosmiam.app"])];
+  const apple = creerVerificateurApple({ audiences, chercher: faux.chercher, horloge: () => MAINTENANT });
+  const web = faux.jeton("sub-web", "a@exemple.fr", NONCE, { aud: "fr.sosmiam.web" });
+  assert.equal((await apple?.(web, NONCE))?.sub, "sub-web");
+  const sansServicesId = creerVerificateurApple({ chercher: faux.chercher, horloge: () => MAINTENANT });
+  assert.equal(await sansServicesId?.(web, NONCE), null);
 });
