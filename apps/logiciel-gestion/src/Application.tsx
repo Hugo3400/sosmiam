@@ -5,6 +5,7 @@ import { BandeauNouveautes } from "~/composants/mise-en-page/BandeauNouveautes.t
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
+import { EcranDefis } from "~/ecrans/defis/EcranDefis.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
@@ -157,6 +158,7 @@ export function Application() {
           {ecran === "boite" && <EcranBoite allerA={allerA} onLu={actualiserAlertes} />}
           {ecran === "demandes" && <EcranDemandes onDecision={actualiserAlertes} />}
           {ecran === "annonces" && <EcranAnnonces />}
+          {ecran === "defis" && <EcranDefis />}
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
           {ecran === "moderation" && <EcranModeration />}

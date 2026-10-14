@@ -41,6 +41,7 @@ export type DefiApp = {
   objectif: number;
   /** Avancée, entre 0 et l'objectif (l'objectif une fois réussi) */
   fait: number;
+  /** Ce qu'il rapporte ; une fois réussi, les points crédités (figés à la réussite, même si le défi change ensuite) */
   points: number;
   /** Premier jour compté, « AAAA-MM-JJ » à l'heure de Paris */
   debut: string;
@@ -80,7 +81,7 @@ export type DefiGestion = BrouillonDefi & {
   modifieLe: string;
 };
 
-/** Une visite validée, telle que les mesures la comptent */
+/** Une visite validée, telle que les mesures la comptent (jamais une visite offerte par le lieu : elle ne rapporte rien) */
 export type VisiteDefi = { le: number; lieuId: number; typeLieu: string; ville: string; pendantSos: boolean };
 
 /** Les faits datés d'un compte que les mesures comptent (instants en millisecondes UTC) */
@@ -88,6 +89,7 @@ export type FaitsDefi = {
   rescousses: number[];
   premiersSauvetages: number[];
   visites: VisiteDefi[];
+  /** Avis vérifiés publiés (un avis non vérifié ne rapporte rien) ; avecPhoto : jamais pour un repas offert */
   avis: { le: number; avecPhoto: boolean }[];
 };
 

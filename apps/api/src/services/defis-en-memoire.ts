@@ -31,7 +31,8 @@ export function creerDefisEnMemoire({ ajouterPoints, donnerBadge }: DependancesS
     const e = evaluerDefisCompte({
       defis: publies, reussites: reussites.filter((r) => r.compteId === compteId), faits: faitsDe(compteId), badges: [...(badges.get(compteId) ?? [])], maintenant,
     });
-    // Comme sous le verrou de la base : tout est écrit d'un coup, avant la première attente, puis points et badges
+    // Comme sous le verrou de la base : réussites écrites d'un coup, avant la première attente, puis points et badges (la
+    // base, elle, pose aussi les points dans la même transaction que les réussites)
     for (const c of e.aCrediter) reussites.push({ compteId, defiId: c.defiId, points: c.points, reussiLe: maintenant });
     for (const r of e.aReprendre) reussites.splice(reussites.findIndex((x) => x.compteId === compteId && x.defiId === r.defiId), 1);
     if (!badges.has(compteId)) badges.set(compteId, new Set());

@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  Bell, CalendarDays, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
+  Bell, CalendarDays, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -38,6 +38,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
       { ecran: "boite", libelle: "Boîte mail", icone: MailOpen },
       { ecran: "utilisateurs", libelle: "Comptes", icone: Users },
       { ecran: "ambassadeurs", libelle: "Ambassadeurs", icone: HeartHandshake },
+      { ecran: "defis", libelle: "Défis", icone: Target },
       { ecran: "newsletter", libelle: "Newsletter", icone: Mail },
       { ecran: "notifications", libelle: "Notifications", icone: Bell },
       { ecran: "annonces", libelle: "Annonces Discord", icone: Megaphone },

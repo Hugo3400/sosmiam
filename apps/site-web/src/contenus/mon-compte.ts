@@ -23,7 +23,7 @@ export const AIDE_APPLE_GOOGLE =
 
 /** « Mon mot de passe » d'un compte sans mot de passe (créé avec Apple ou Google) */
 export const AIDE_SANS_MOT_DE_PASSE =
-  "Tu te connectes avec Apple ou Google : ton compte n'a pas de mot de passe chez nous. Envie d'en avoir un quand même ? Déconnecte-toi, puis touche « Mot de passe oublié ? » avec l'adresse e-mail de ton compte.";
+  "Tu te connectes avec Apple ou Google : ton compte n'a pas de mot de passe chez nous. Envie d'en avoir un quand même ? Touche « Ajouter un mot de passe », juste au-dessus : on t'envoie un lien pour le choisir.";
 
 /** Le délai de réponse à une demande sur tes données (délai du RGPD, repris de la politique de confidentialité). */
 export const DELAI_REPONSE = "dans un délai d'un mois au plus";

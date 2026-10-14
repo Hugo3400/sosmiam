@@ -1,11 +1,11 @@
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { defisExemples } from "~/contenus/defis-exemples";
 import type { MesuresActivite } from "~/contenus/type-mesure-activite";
-import { calculerAvanceeDefi } from "~/fonctions/ambassadeur/calculer-avancee-defi";
+import { calculerAvanceeDefi } from "~/fonctions/defis/calculer-avancee-defi";
 
 /**
- * Points du programme Ambassadeurs gagnés avec ce que le téléphone sait mesurer : rescousses, premiers sauvetages,
- * défis réussis. Les visites validées, avis et fiches corrigées s'y ajouteront avec l'API.
+ * Démo : points du programme Ambassadeurs gagnés avec ce que le téléphone sait mesurer (rescousses, premiers sauvetages,
+ * défis d'exemple réussis). Avec un compte, ce sont ceux du serveur (compte.points).
  */
 export function calculerPointsLocaux(mesures: MesuresActivite): number {
   const defisReussis = defisExemples.filter((d) => calculerAvanceeDefi(d, mesures) >= d.objectif);

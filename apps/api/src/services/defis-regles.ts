@@ -8,10 +8,13 @@
 import type { IdBadge } from "../../../../packages/commun/src/types/badge.ts";
 import type { ChampDefi, DefiApp, DefiGestion } from "../../../../packages/commun/src/types/defi.ts";
 
-/** ajouterPoints de services/comptes.ts, tel que les défis s'en servent (négatif : retire ; jamais emballé par la réévaluation) */
+/**
+ * ajouterPoints de services/comptes.ts, tel que le double en mémoire s'en sert (négatif : retire ; jamais emballé par la
+ * réévaluation). La base, elle, pose les points dans sa transaction (ajouterPointsDans : voir services/defis.ts).
+ */
 export type AjouterPointsDefi = (compteId: number, points: number, raison: "defi", detail: string) => Promise<unknown>;
 
-/** Ce dont les défis ont besoin des comptes : points (raison « defi ») et badges (donnerBadge, sans effet s'il est déjà là) */
+/** Ce dont le double en mémoire a besoin des comptes : points (raison « defi ») et badges (donnerBadge, sans effet s'il est déjà là) */
 export type DependancesServicesDefis = {
   ajouterPoints: AjouterPointsDefi;
   donnerBadge: (compteId: number, badge: string) => Promise<unknown>;

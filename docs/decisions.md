@@ -317,6 +317,7 @@
 - **Premier sauveteur** (choix de construction, 14 octobre 2026) : seul le serveur décide qui est le premier sauveteur d'un lieu ; un lieu « Déniché par » peut en avoir un ; après une reprise de la rescousse, les 20 points repartent mais le badge reste.
 - **Activité de l'app sur le serveur** (14 octobre 2026) : avec un compte connecté, rescousses, lieux gardés, J'aime, « Pas intéressé » et suivis passent par `/app/activite` (réponse immédiate à l'écran, gestes rejoués au retour du réseau ; une rescousse n'est jamais mise en attente). Points, palier et badges affichés sont ceux du compte. Rien n'est repris du téléphone.
 - **Défi « premiers » et badge « Premier sauveteur »** : Hugo a laissé choisir et a demandé d'ajouter des défis. Le badge récompense le premier sauvetage ; le défi en demande plusieurs avant sa date de fin, pour ne plus payer deux fois le même geste.
+- **Ce que comptent défis et badges** (choix de construction, 14 octobre 2026, à confirmer pour les badges) : comme le barème, une visite **offerte par le lieu** ne compte pas, un **avis non vérifié** non plus, et la photo d'un repas offert ne compte pas comme photo. Une réussite et ses points sont écrits ensemble ; une carte réussie montre les points crédités, même si le défi change ensuite.
 
 ## Espace ambassadeur dans l'app (construit le 14 octobre 2026)
 - Le mode ambassadeur de l'app a ses quatre onglets : **Espace** (où en est ton rôle, missions à faire, avis à relire, messages non lus), **Missions** (compte rendu de 5 caractères au moins), **Relectures** (« Ça me va », « Ça me paraît louche » avec un motif de la liste, « Je passe mon tour » si tu connais le lieu ou la personne ; consultatif, l'équipe tranche) et **Messages** de l'équipe. Fondateurs, propositions de lieux et ambassadeur certifié restent sur ambassadeur.sosmiam.fr.
@@ -330,6 +331,10 @@
 - **Profil vu hors de la bande (compte public)** : avatar, prénom, @pseudo, compteurs, badges et listes publiques. La ville, les lieux gardés et les lieux sauvés restent réservés à la bande.
 - **Sorties** : chaque invité reçoit une **invitation à accepter** (« Tu viens ? ») avant d'entrer dans le vote et la discussion.
 - **Listes partagées** (Hugo a laissé choisir) : l'auteur les remplit et choisit qui les voit (tout le monde ou sa bande) ; il peut inviter des potes de sa bande à les remplir avec lui ; les autres suivent la liste.
+- **Notifications sociales hors anti-spam** (comme les messages) : « X t'a ajouté à sa bande », « X a accepté ta demande », l'invitation à une sortie et le lieu retenu d'une sortie arrivent toujours.
+- **Lien d'invitation sans expiration** : il change tout seul s'il sert plus de 10 fois en 24 h (lien qui a fuité), et « Changer mon lien » existe.
+- **Groupes de discussion : invitation à accepter** (« Rejoindre le groupe ? »), comme les sorties, avant de voir les messages ; seul un pote de ta bande peut t'y inviter.
+- **Masquage immédiat d'un contenu « choquant » sous conditions** : la personne qui signale a un e-mail confirmé, un compte d'au moins 7 jours et aucun signalement rejeté sur ce contenu ; sinon, le contenu reste visible jusqu'à la décision du modérateur.
 - **Compte supprimé** : ses messages restent chez les autres, signés « Compte supprimé », jusqu'à l'effacement de la conversation (1 an sans message) ; ses photos et vocaux suivent la règle des 90 jours.
 
 ## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026)
@@ -337,7 +342,7 @@
 - **Rien d'inventé hors démo** : pas de potes, de conversations, d'abonnés, de notifications ni de visites d'exemple. Potes, messages et abonnés démarrent vides en attendant leur API ; ce qu'une ancienne démo avait gardé sur un téléphone est oublié.
 - **Un bouton « Démo »** (écran du compte et Réglages) allume tout le mode démo d'un coup : lieux, fil, potes, visites, rôles pro et ambassadeur d'exemple, faux serveur sur le téléphone, sans compte. Allumer ou quitter la démo efface le téléphone et relance l'app (jamais de mélange entre démo et vraies données). Ton compte n'est pas déconnecté pour autant (demandé par Hugo le 14 octobre 2026) : sa session est mise de côté dans le coffre-fort pendant la démo, et « Quitter la démo et revenir sur <ton e-mail> » le rouvre directement, sans retaper ton mot de passe.
 - **Le bouton n'existe qu'en développement** (ou dans une version de test compilée exprès) : jamais dans une version publiée.
-- Les défis (`defis-exemples.ts`) ne sont pas des données inventées mais la liste des défis : ils restent.
+- Les défis d'exemple (`defis-exemples.ts`) ne servent plus qu'à la démo ; avec un compte, la liste vient du serveur, gérée dans le logiciel (voir « Majorité, fidélité et défis »).
 
 ## Notifications push (décidé le 8 octobre 2026)
 - **Durées (décidé le 14 octobre 2026)** : un téléphone inscrit aux notifications est effacé du serveur après **90 jours sans signe de vie** (l'app le confirme à chaque lancement), dès qu'Apple ou Google disent que son jeton ne marche plus, quand tu coupes les notifications dans l'app ou quand tu supprimes ton compte. Les « Ça m'intéresse » sont effacés **30 jours après la dernière date** de l'événement.

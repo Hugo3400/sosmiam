@@ -9,6 +9,7 @@ import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { FormulaireProfil } from "~/composants/compte/FormulaireProfil";
 import { FormulaireSupprimerCompte } from "~/composants/compte/FormulaireSupprimerCompte";
 import { PartieCompte } from "~/composants/compte/PartieCompte";
+import { PartieMesConnexions } from "~/composants/compte/PartieMesConnexions";
 import { PartieMesDonnees } from "~/composants/compte/PartieMesDonnees";
 import { PartieSupprimerSansConnexion } from "~/composants/compte/PartieSupprimerSansConnexion";
 import { TitreSection } from "~/composants/interface/TitreSection";
@@ -30,6 +31,7 @@ import {
 import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
 import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
+import { preparerMesConnexions, traiterMesConnexions } from "~/services/mes-connexions.server";
 import {
   effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
 } from "~/services/session-compte.server";
@@ -123,6 +125,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     retour,
     suppression,
     sansMotDePasse,
+    mesConnexions: preparerMesConnexions(request, connexions, compte.email, espace === "ambassadeur" ? "/espace/mon-compte" : "/mon-compte", actifs),
   };
 }
 
@@ -134,8 +137,8 @@ function expliquer({ erreur, attente }: { erreur: string; attente?: number }): s
 }
 
 /**
- * Trois formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte ; et sur sosmiam.fr, la
- * connexion (dans la page même, puis retour ici).
+ * Les formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte, « Mes façons de me
+ * connecter » (services/mes-connexions.server.ts) ; et sur sosmiam.fr, la connexion (dans la page même, puis retour ici).
  */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseFormulaire> {
   const formulaire = await request.formData().catch(() => null);
@@ -146,6 +149,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\s+/g, " ").trim();
   const ip = lireIpVisiteur(request);
   const nom = formulaire.get("formulaire");
+  // « Mes façons de me connecter » : ajouter un mot de passe, relier ou délier Apple et Google
+  const mesConnexions = await traiterMesConnexions(request, formulaire, { jeton, email: compte.email, ip, chemin: page.chemin });
+  if (mesConnexions) return mesConnexions;
 
   if (nom === "infos") {
     const valeurs = { prenom: lire("prenom"), ville: lire("ville"), quartier: lire("quartier") };
@@ -262,7 +268,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  const { prenom, email, lieu, suppression, sansMotDePasse } = loaderData;
+  const { prenom, email, lieu, suppression, sansMotDePasse, mesConnexions } = loaderData;
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation(surSite ? CHAPO_CONNECTE : "Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
@@ -272,6 +278,7 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
         <PartieCompte id="mes-infos" titre="Mes infos">
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>
+        <PartieMesConnexions connexions={mesConnexions} />
         <PartieCompte id="mon-mot-de-passe" titre="Mon mot de passe">
           {sansMotDePasse
             ? <p className="text-gris">{lierPonctuation(AIDE_SANS_MOT_DE_PASSE)}</p>

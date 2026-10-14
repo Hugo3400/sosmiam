@@ -1,3 +1,4 @@
+import { BADGES } from "../../../../../packages/commun/src/contenus/badges.ts";
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
 import { paliersAmbassadeurs } from "~/contenus/ambassadeurs";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -12,11 +13,8 @@ const paliers: { cle: PalierCompte; seuil: number | null }[] = [
   { cle: "ambassadeur-ville", seuil: null },
 ];
 
-const badgesConnus: Record<string, { emoji: string; nom: string }> = {
-  "premier-sauveteur": { emoji: "🚀", nom: "Premier sauveteur" },
-  "deniche-par-toi": { emoji: "🔎", nom: "Déniché par toi" },
-  fondateur: { emoji: "🎖️", nom: "Fondateur" },
-};
+// Le catalogue commun des badges (packages/commun) : le même que l'app et le logiciel de gestion
+const badgesConnus = new Map(BADGES.map((badge) => [badge.id, badge]));
 
 type Props = {
   palier: PalierCompte;
@@ -65,7 +63,7 @@ export function CartePalier({ palier, points, badges, certifie = null }: Props) 
       {badges.length > 0 ? (
         <ul className="mt-2.5 flex flex-wrap gap-2">
           {badges.map((code) => {
-            const badge = badgesConnus[code] ?? { emoji: "🏅", nom: code.charAt(0).toUpperCase() + code.slice(1).replaceAll("-", " ") };
+            const badge = badgesConnus.get(code) ?? { emoji: "🏅", nom: code.charAt(0).toUpperCase() + code.slice(1).replaceAll("-", " ") };
             return (
               <li key={code} className="rounded-full border-2 border-encre bg-jaune-clair px-3.5 py-1.5 text-sm font-semibold">
                 <span aria-hidden="true">{badge.emoji} </span>{badge.nom}

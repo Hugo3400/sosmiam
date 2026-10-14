@@ -1,39 +1,54 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { badges } from "~/contenus/badges";
+import { BADGES } from "@sos-miam/commun/contenus/badges";
+import type { IdBadge } from "@sos-miam/commun/types/badge";
+import { MESURES_BADGES_DEMO } from "~/contenus/badges-demo";
+import { PRECISIONS_BADGES } from "~/contenus/precisions-badges";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
-  /** Identifiants des badges obtenus (listerBadgesObtenus) */
+  /** Identifiants des badges obtenus : ceux du compte, ou en démo ceux comptés sur le téléphone (listerBadgesObtenus) */
   obtenus: string[];
+  /** Démo : seuls les badges de MESURES_BADGES_DEMO se gagnent sur le téléphone */
+  demo: boolean;
 };
 
-// Badge verrouillé sans mesure suivie sur le téléphone : par défaut, il attend les visites validées (API), sinon son « attente »
-const ATTEND_VISITES = "Il arrivera avec les visites validées, bientôt dans l'app.";
+const POSSIBLE = "À débloquer, c'est possible dès maintenant !";
+const SOUS_CLE_DEMO = "Dans la démo, celui-ci reste sous clé : il se gagne pour de vrai avec un compte.";
 
-/** Tes badges en grille : les obtenus en couleur, les autres estompés avec 🔒. Touche un badge pour savoir comment l'obtenir. */
-export function GrilleBadges({ obtenus }: Props) {
-  const [choisi, setChoisi] = useState<string | null>(null);
-  const detail = badges.find((b) => b.id === choisi) ?? null;
+/**
+ * Tes badges en grille (le catalogue partagé, BADGES) : les obtenus en couleur, les autres estompés avec 🔒. Touche un
+ * badge pour savoir comment l'obtenir.
+ */
+export function GrilleBadges({ obtenus, demo }: Props) {
+  const [choisi, setChoisi] = useState<IdBadge | null>(null);
+  const detail = BADGES.find((b) => b.id === choisi) ?? null;
+  // Ce qui reste à faire pour un badge pas encore obtenu
+  const direCommentObtenir = (id: IdBadge) => {
+    const precision = PRECISIONS_BADGES[id];
+    if (precision && !precision.possible) return precision.texte;
+    if (demo) return MESURES_BADGES_DEMO[id] ? POSSIBLE : SOUS_CLE_DEMO;
+    return precision?.texte ?? POSSIBLE;
+  };
 
   return (
     <View className="gap-3">
       <View className="flex-row items-baseline justify-between">
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">Tes badges</Text>
-        <Text accessibilityLabel={`${obtenus.length} sur ${badges.length}`} className="font-texte-semi text-sm text-gris">{obtenus.length}/{badges.length}</Text>
+        <Text accessibilityLabel={`${obtenus.length} sur ${BADGES.length}`} className="font-texte-semi text-sm text-gris">{obtenus.length}/{BADGES.length}</Text>
       </View>
 
       <View className="-m-1 flex-row flex-wrap">
-        {badges.map((badge) => {
+        {BADGES.map((badge) => {
           const obtenu = obtenus.includes(badge.id);
           const selectionne = badge.id === choisi;
           return (
             <Pressable
               key={badge.id}
               accessibilityRole="button"
-              accessibilityLabel={`${badge.nom}, ${obtenu ? "obtenu" : "à débloquer"}. ${badge.texte}.${obtenu || badge.mesure ? "" : ` ${badge.attente ?? ATTEND_VISITES}`}`}
+              accessibilityLabel={`${badge.nom}, ${obtenu ? "obtenu" : "à débloquer"}. ${badge.texte}.${obtenu ? "" : ` ${direCommentObtenir(badge.id)}`}`}
               accessibilityState={{ selected: selectionne }}
               onPress={() => {
                 vibrerLegerement();
@@ -62,7 +77,7 @@ export function GrilleBadges({ obtenus }: Props) {
             <Text className="font-texte-gras text-base text-encre">{detail.emoji} {detail.nom}</Text>
             <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(detail.texte)}</Text>
             <Text className="mt-1 font-texte-semi text-sm text-encre">
-              {lierPonctuation(obtenus.includes(detail.id) ? "✅ Obtenu, bravo !" : detail.mesure ? "🔒 À débloquer, c'est possible dès maintenant !" : `🔒 ${detail.attente ?? ATTEND_VISITES}`)}
+              {lierPonctuation(obtenus.includes(detail.id) ? "✅ Obtenu, bravo !" : `🔒 ${direCommentObtenir(detail.id)}`)}
             </Text>
           </>
         ) : (

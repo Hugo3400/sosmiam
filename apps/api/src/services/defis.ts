@@ -1,8 +1,10 @@
-// Défis de l'app et badges automatiques dans la base. La réévaluation d'un compte lit ses faits et écrit ses réussites sous
-// verrou (SELECT … FROM comptes WHERE id = … FOR UPDATE) : deux réévaluations en même temps ne créditent jamais deux fois
-// (et la clé de DefiReussi, compte + défi, l'interdit de toute façon). Les points (ajouterPoints, raison « defi ») et les
-// badges (donnerBadge) sont posés juste après, hors du verrou : ajouterPoints écrit la ligne du compte dans sa propre
-// transaction, qui attendrait sinon la fin de celle-ci. Ce qui change est décidé par evaluerDefisCompte (fonctions/defis/).
+// Défis de l'app et badges automatiques dans la base. La réévaluation d'un compte lit ses faits, écrit ses réussites et
+// pose leurs points (ajouterPointsDans, raison « defi ») dans UNE transaction, sous verrou (SELECT … FROM comptes WHERE
+// id = … FOR UPDATE) : une réussite n'existe jamais sans ses points, ni une reprise sans son retrait, même si un crédit
+// échoue ou si l'API s'arrête en route (tout est annulé, la prochaine réévaluation recommence) ; deux réévaluations en
+// même temps ne créditent jamais deux fois (et la clé de DefiReussi, compte + défi, l'interdit de toute façon). Seuls les
+// badges (donnerBadge, sans points, sans effet s'il est déjà là) sont donnés après. Ce qui change est décidé par
+// evaluerDefisCompte (fonctions/defis/).
 import { calculerJourParis } from "../../../../packages/commun/src/fonctions/temps/calculer-jour-paris.ts";
 import { decalerJour } from "../../../../packages/commun/src/fonctions/temps/decaler-jour.ts";
 import { JOURS_RATTRAPAGE_DEFI } from "../../../../packages/commun/src/regles/defis.ts";
@@ -17,30 +19,49 @@ import type { DependancesServicesDefis, ServicesDefis } from "./defis-regles.ts"
 
 type Client = Prisma.TransactionClient;
 
+/** Ce dont la base a besoin des comptes : les points posés DANS la transaction de la réévaluation, et les badges */
+type DependancesDefisBase = Pick<DependancesServicesDefis, "donnerBadge"> & {
+  /** ajouterPointsDans de services/comptes.ts (négatif : retire ; jamais emballé par la réévaluation) */
+  ajouterPointsDans: (transaction: Client, compteId: number, points: number, raison: "defi", detail: string) => Promise<unknown>;
+};
+
+/** Seul le type de règlement compte : une visite « offerte par le lieu » ne rapporte rien, ni dans un défi ni pour un badge */
+const estOfferte = (reglement: Prisma.JsonValue | null) =>
+  typeof reglement === "object" && reglement !== null && !Array.isArray(reglement) && reglement.type === "offert";
+
 const ORDRE_DEFIS = [{ ordre: "asc" }, { debut: "asc" }, { id: "asc" }] as const satisfies Prisma.DefiOrderByWithRelationInput[];
 
 /** Le brouillon tel que Prisma l'écrit (filtres null : DbNull) */
 const versDonnees = (b: BrouillonDefi) => ({ ...b, filtres: b.filtres === null ? Prisma.DbNull : (b.filtres as Prisma.InputJsonValue) });
 
-/** Les faits datés du compte que comptent les mesures (quelques centaines de lignes au plus par compte) */
+/**
+ * Les faits datés du compte que comptent les mesures (quelques centaines de lignes au plus par compte), comme le barème
+ * (docs/decisions.md) : une visite offerte par le lieu ne compte pas (sans quoi un lieu complice gonflerait les défis) ;
+ * seuls les avis vérifiés (écrits grâce à une visite) comptent, et la photo d'un repas offert ne compte pas comme photo.
+ */
 async function lireFaits(client: Client, compteId: number): Promise<FaitsDefi> {
   const rescousses = await client.rescousse.findMany({ where: { compteId }, select: { creeLe: true } });
   const premiers = await client.premierSauveteur.findMany({ where: { compteId }, select: { creeLe: true } });
   const visites = await client.visite.findMany({
     where: { compteId, statut: "validee", valideLe: { not: null } },
-    select: { valideLe: true, lieuId: true, pendantSos: true, lieu: { select: { type: true, ville: true } } },
+    select: { valideLe: true, lieuId: true, pendantSos: true, reglement: true, lieu: { select: { type: true, ville: true } } },
   });
-  const avis = await client.avis.findMany({ where: { compteId, statut: "publie" }, select: { creeLe: true, photo: true } });
+  const avis = await client.avis.findMany({
+    where: { compteId, statut: "publie", visiteId: { not: null } },
+    select: { creeLe: true, photo: true, repasOffert: true },
+  });
   return {
     rescousses: rescousses.map((r) => r.creeLe.getTime()),
     premiersSauvetages: premiers.map((p) => p.creeLe.getTime()),
-    visites: visites.map((v) => ({ le: v.valideLe!.getTime(), lieuId: v.lieuId, typeLieu: v.lieu.type, ville: v.lieu.ville, pendantSos: v.pendantSos })),
-    avis: avis.map((a) => ({ le: a.creeLe.getTime(), avecPhoto: a.photo !== null })),
+    visites: visites
+      .filter((v) => !estOfferte(v.reglement))
+      .map((v) => ({ le: v.valideLe!.getTime(), lieuId: v.lieuId, typeLieu: v.lieu.type, ville: v.lieu.ville, pendantSos: v.pendantSos })),
+    avis: avis.map((a) => ({ le: a.creeLe.getTime(), avecPhoto: a.photo !== null && !a.repasOffert })),
   };
 }
 
-export function creerDefis({ ajouterPoints, donnerBadge }: DependancesServicesDefis): ServicesDefis {
-  /** Recompte, écrit les réussites sous verrou, puis pose points et badges ; null si le compte n'existe plus */
+export function creerDefis({ ajouterPointsDans, donnerBadge }: DependancesDefisBase): ServicesDefis {
+  /** Recompte, écrit réussites et points sous verrou, puis donne les badges ; null si le compte n'existe plus */
   async function evaluer(compteId: number, maintenant: Date): Promise<EvaluationDefis | null> {
     const jour = calculerJourParis(maintenant.getTime());
     const evaluation = await baseDeDonnees.$transaction(async (transaction) => {
@@ -55,30 +76,25 @@ export function creerDefis({ ajouterPoints, donnerBadge }: DependancesServicesDe
       const badges = await transaction.badgeCompte.findMany({ where: { compteId }, select: { badge: true } });
       const faits = await lireFaits(transaction, compteId);
       const e = evaluerDefisCompte({ defis, reussites, faits, badges: badges.map((b) => b.badge), maintenant });
+      // Réussite et points ensemble : si un crédit échoue, toute la réévaluation est annulée (aucune réussite sans points)
       const credites: EvaluationDefis["aCrediter"] = [];
       for (const c of e.aCrediter) {
         const { count } = await transaction.defiReussi.createMany({ data: [{ compteId, defiId: c.defiId, points: c.points, reussiLe: maintenant }], skipDuplicates: true });
-        if (count === 1) credites.push(c);
+        if (count !== 1) continue;
+        await ajouterPointsDans(transaction, compteId, c.points, "defi", `defi:${c.defiId}`);
+        credites.push(c);
       }
       const repris: EvaluationDefis["aReprendre"] = [];
       for (const r of e.aReprendre) {
         const { count } = await transaction.defiReussi.deleteMany({ where: { compteId, defiId: r.defiId } });
-        if (count === 1) repris.push(r);
+        if (count !== 1) continue;
+        await ajouterPointsDans(transaction, compteId, -r.points, "defi", `defi:${r.defiId} retiré`);
+        repris.push(r);
       }
       return { ...e, aCrediter: credites, aReprendre: repris };
     });
     if (!evaluation) return null;
 
-    for (const c of evaluation.aCrediter) {
-      try {
-        await ajouterPoints(compteId, c.points, "defi", `defi:${c.defiId}`);
-      } catch (erreur) {
-        // Points pas crédités : la réussite est effacée, la prochaine réévaluation recommencera
-        await baseDeDonnees.defiReussi.deleteMany({ where: { compteId, defiId: c.defiId } }).catch(() => {});
-        throw erreur;
-      }
-    }
-    for (const r of evaluation.aReprendre) await ajouterPoints(compteId, -r.points, "defi", `defi:${r.defiId} retiré`);
     for (const badge of evaluation.badges) await donnerBadge(compteId, badge);
     return evaluation;
   }

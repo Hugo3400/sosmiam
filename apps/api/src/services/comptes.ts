@@ -1,3 +1,4 @@
+import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-palier-aux-points.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
@@ -30,16 +31,24 @@ const DUREE_VERIFICATION_EMAIL = 7 * 24 * 3600_000;
  * sous 0. Le palier suit les points, sauf « ambassadeur-ville », qui ne se donne et ne se retire qu'à la main.
  */
 export async function ajouterPoints(compteId: number, points: number, raison: RaisonPoints, detail?: string): Promise<{ points: number; palier: PalierCompte }> {
-  return baseDeDonnees.$transaction(async (transaction) => {
-    await transaction.journalPoints.create({ data: { compteId, points, raison, detail: detail?.slice(0, 200) || null } });
-    const apres = await transaction.compte.update({ where: { id: compteId }, data: { points: { increment: points } } });
-    const total = Math.max(0, apres.points);
-    const palier: PalierCompte = apres.palier === "ambassadeur-ville" ? "ambassadeur-ville" : calculerPalierAuxPoints(total);
-    if (total !== apres.points || palier !== apres.palier) {
-      await transaction.compte.update({ where: { id: compteId }, data: { points: total, palier } });
-    }
-    return { points: total, palier };
-  });
+  return baseDeDonnees.$transaction((transaction) => ajouterPointsDans(transaction, compteId, points, raison, detail));
+}
+
+/**
+ * ajouterPoints, dans une transaction déjà ouverte : les points partent ou restent avec ce qu'elle écrit (les défis
+ * créditent ainsi dans la transaction qui écrit la réussite, sous le verrou du compte qu'elle a déjà pris).
+ */
+export async function ajouterPointsDans(
+  transaction: Prisma.TransactionClient, compteId: number, points: number, raison: RaisonPoints, detail?: string,
+): Promise<{ points: number; palier: PalierCompte }> {
+  await transaction.journalPoints.create({ data: { compteId, points, raison, detail: detail?.slice(0, 200) || null } });
+  const apres = await transaction.compte.update({ where: { id: compteId }, data: { points: { increment: points } } });
+  const total = Math.max(0, apres.points);
+  const palier: PalierCompte = apres.palier === "ambassadeur-ville" ? "ambassadeur-ville" : calculerPalierAuxPoints(total);
+  if (total !== apres.points || palier !== apres.palier) {
+    await transaction.compte.update({ where: { id: compteId }, data: { points: total, palier } });
+  }
+  return { points: total, palier };
 }
 
 /** Donne un badge (« premier-sauveteur », « deniche-par-toi », « fondateur »…). Renvoie true s'il est nouveau. */

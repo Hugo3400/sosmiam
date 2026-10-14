@@ -6,8 +6,8 @@ type AjouterPoints<R extends string, T> = (compteId: number, points: number, rai
  * Emballe ajouterPoints (services/comptes.ts) pour les autres domaines (rescousses, visites, avis, logiciel de gestion) :
  * après chaque ajout d'une autre raison que « defi », l'avancée des défis et des badges du compte est recomptée, SANS
  * l'attendre (la réponse part tout de suite) et sans jamais faire échouer l'ajout : une erreur est seulement journalisée,
- * résumée, sans donnée personnelle ni numéro de compte. Les points des défis eux-mêmes passent par l'ajouterPoints brut
- * (jamais celui-ci) : une réévaluation n'en relance pas une autre.
+ * résumée, sans donnée personnelle ni numéro de compte. Les points des défis eux-mêmes passent par ajouterPointsDans,
+ * dans la transaction de la réévaluation (jamais par celui-ci) : une réévaluation n'en relance pas une autre.
  */
 export function brancherReevaluationDefis<R extends string, T>(
   ajouterPoints: AjouterPoints<R, T>,

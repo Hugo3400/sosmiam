@@ -2,6 +2,7 @@ import { useBottomTabBarHeight } from "expo-router/tabs";
 import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { BoueesSemaine } from "~/composants/profil/BoueesSemaine";
@@ -13,7 +14,6 @@ import { EntreeFidelite } from "~/composants/profil/EntreeFidelite";
 import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
 import { GrilleBadges } from "~/composants/profil/GrilleBadges";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
-import { badges } from "~/contenus/badges";
 import type { MesuresActivite } from "~/contenus/type-mesure-activite";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
@@ -42,19 +42,14 @@ function ouvrirPageLegale(adresse: string) {
   });
 }
 
-/**
- * Les badges du compte (donnés par l'API) tels que le catalogue de l'app les nomme. « Première rescousse » n'est pas encore
- * donné par l'API : il se lit dans ton activité, telle que l'API la rend.
- */
-function listerBadgesDuCompte(badgesCompte: string[], rescoussesDonnees: number): string[] {
-  const ids = new Set(badgesCompte.map((id) => (id === "deniche-par-toi" ? "deniche" : id)));
-  if (rescoussesDonnees > 0) ids.add("premiere-rescousse");
-  return badges.filter((b) => ids.has(b.id)).map((b) => b.id);
+/** Les badges du compte, tous donnés par le serveur, dans l'ordre du catalogue partagé (un badge inconnu de l'app est laissé de côté). */
+function listerBadgesDuCompte(badgesCompte: string[]): string[] {
+  return BADGES.filter((b) => badgesCompte.includes(b.id)).map((b) => b.id);
 }
 
 /**
  * Onglet « Profil » : toi, qui tu suis, ton palier Ambassadeur, tes bouées de la semaine, tes défis, tes badges et tes adresses.
- * Avec un compte, points, palier et badges sont ceux du serveur ; en démo, ils sont comptés sur ce téléphone.
+ * Avec un compte, points, palier, défis et badges sont ceux du serveur ; en démo, ils sont comptés sur ce téléphone.
  * Sans compte, on montre ce qui t'attend, avec les pages légales (elles restent ouvertes à tout le monde).
  */
 export default function Profil() {
@@ -102,9 +97,9 @@ export default function Profil() {
   const ambassadeur = DEMO_VISITES_ACTIVE
     ? { points: calculerPointsLocaux(mesures), obtenus: listerBadgesObtenus(mesures) }
     : compte
-      ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges, activite.rescoussesDonnees) }
+      ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges) }
       : null;
-  // Bouées et défis se lisent dans l'activité : cachés tant qu'elle n'est pas connue (pas relue, ou session expirée)
+  // Bouées et défis attendent l'activité : cachés tant qu'elle n'est pas connue (pas relue, ou session expirée)
   const activiteConnue = DEMO_VISITES_ACTIVE || (connecte && activite.chargee);
 
   return (
@@ -135,11 +130,11 @@ export default function Profil() {
             lieuxSauves={activite.lieuxSauves.length}
             premiersSauvetages={activite.premiersSauvetages.length}
             badgesObtenus={ambassadeur.obtenus.length}
-            badgesTotal={badges.length}
+            badgesTotal={BADGES.length}
           />
         ) : null}
-        {activiteConnue ? <ListeDefis mesures={mesures} /> : null}
-        {ambassadeur ? <GrilleBadges obtenus={ambassadeur.obtenus} /> : null}
+        {activiteConnue ? <ListeDefis /> : null}
+        {ambassadeur ? <GrilleBadges obtenus={ambassadeur.obtenus} demo={DEMO_VISITES_ACTIVE} /> : null}
         <CollectionsProfil gardes={activite.gardes} jaimes={activite.jaimes} age={age} />
       </ScrollView>
     </SafeAreaView>

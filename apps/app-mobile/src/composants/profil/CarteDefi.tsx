@@ -1,37 +1,58 @@
 import { Text, View } from "react-native";
 
 import { Jauge } from "~/composants/interface/Jauge";
-import type { Defi } from "~/contenus/defis-exemples";
+import type { DefiAffiche } from "~/contenus/type-defi-affiche";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
-  defi: Defi;
-  /** Où en est la personne (calculerAvanceeDefi) */
-  fait: number;
+  /** Un défi du serveur, ou un défi d'exemple de la démo (utiliserDefis) */
+  defi: DefiAffiche;
 };
 
-const A_VENIR = "Il démarrera avec les visites validées, bientôt dans l'app.";
+/** Un défi à 0 point se joue pour la gloire */
+const POUR_LA_GLOIRE = "Pour la gloire";
 
-/** Un défi du moment : ce qu'il faut faire, où tu en es, ce qu'il rapporte et jusqu'à quand. Lu d'un seul bloc par le lecteur d'écran. */
-export function CarteDefi({ defi, fait }: Props) {
-  const reussi = fait >= defi.objectif;
-  // Sans mesure suivie sur le téléphone, le défi ne peut pas encore avancer : « à venir », sans jauge
-  const aVenir = !defi.mesure && !reussi;
-  const pourcentage = Math.round((Math.min(fait, defi.objectif) / defi.objectif) * 100);
+/**
+ * Un défi : ce qu'il faut faire, où tu en es, ce qu'il rapporte et jusqu'à quand. En cours : la jauge ; à venir : le jour où
+ * il commence ; réussi : en jaune, avec les points gagnés. Lu d'un seul bloc par le lecteur d'écran.
+ */
+export function CarteDefi({ defi }: Props) {
+  const reussi = defi.etat === "reussi";
+  // Sans jauge : pas encore commencé, ou défi d'exemple que la démo ne sait pas compter
+  const aVenir = !reussi && defi.etat === "a-venir";
+  const enAttente = !reussi && !aVenir && defi.attente !== null;
+  const fait = reussi ? defi.objectif : Math.min(defi.fait, defi.objectif);
+  const debut = formaterDateLongue(defi.debut);
   const fin = defi.fin ? formaterDateLongue(defi.fin) : null;
+  // « +1 pt », « +30 pts » ; à 0 point, ni « +0 » ni « gagnés » : juste la gloire
+  const un = defi.points === 1;
+  const gain = defi.points > 0 ? `+${defi.points} ${un ? "pt" : "pts"}` : POUR_LA_GLOIRE;
+  const gainLu =
+    defi.points === 0
+      ? `${POUR_LA_GLOIRE}, sans points`
+      : `${defi.points} ${un ? "point" : "points"} ${reussi ? (un ? "gagné" : "gagnés") : "à gagner"}`;
 
   const pastille = reussi
-    ? `+${defi.points} pts gagnés`
+    ? defi.points > 0
+      ? `${gain} ${un ? "gagné" : "gagnés"}`
+      : `${POUR_LA_GLOIRE} 🏆`
     : aVenir
-      ? `⏳ À venir · +${defi.points} pts`
-      : `+${defi.points} pts${fin ? ` · jusqu'au ${fin}` : ""}`;
+      ? `⏳ Dès le ${debut} · ${gain}`
+      : enAttente
+        ? `⏳ À venir · ${gain}`
+        : `${gain}${fin ? ` · jusqu'au ${fin}` : ""}`;
+  const note = aVenir
+    ? `Ça commence le ${debut}${fin ? ` et ça dure jusqu'au ${fin}` : ""}. Échauffe tes papilles !`
+    : enAttente
+      ? defi.attente
+      : null;
   const lu = [
     defi.titre,
     defi.texte,
-    reussi ? "Défi réussi" : aVenir ? "À venir" : `Avancée : ${fait} sur ${defi.objectif}`,
-    reussi ? `${defi.points} points gagnés` : `${defi.points} points à gagner${fin && !aVenir ? `, jusqu'au ${fin}` : ""}`,
-    aVenir ? A_VENIR : null,
+    reussi ? "Défi réussi" : aVenir || enAttente ? "À venir" : `Avancée : ${fait} sur ${defi.objectif}`,
+    `${gainLu}${!reussi && fin && !aVenir && !enAttente ? `, jusqu'au ${fin}` : ""}`,
+    note,
   ]
     .filter(Boolean)
     .join(". ");
@@ -46,9 +67,9 @@ export function CarteDefi({ defi, fait }: Props) {
         </View>
       </View>
 
-      {aVenir ? null : (
+      {aVenir || enAttente ? null : (
         <View className="flex-row items-center gap-3">
-          <Jauge avancee={pourcentage / 100} className="flex-1" />
+          <Jauge avancee={fait / defi.objectif} className="flex-1" />
           <Text className="font-texte-gras text-sm text-encre">{reussi ? "Réussi ✅" : `${fait}/${defi.objectif}`}</Text>
         </View>
       )}
@@ -56,7 +77,7 @@ export function CarteDefi({ defi, fait }: Props) {
       <View className="self-start rounded-full bg-jaune px-3 py-1">
         <Text className="font-texte-semi text-[13px] text-encre">{pastille}</Text>
       </View>
-      {aVenir ? <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(A_VENIR)}</Text> : null}
+      {note ? <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(note)}</Text> : null}
     </View>
   );
 }

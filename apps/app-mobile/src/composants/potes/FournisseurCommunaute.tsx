@@ -29,6 +29,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { ContexteCommunaute, type EtatCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
@@ -81,6 +82,7 @@ const entre = (min: number, max: number) => min + Math.random() * (max - min);
 export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const { profil, avatar } = utiliserProfil();
   const activite = utiliserActivite();
+  const { compte } = utiliserSession();
   const { trouverLieu } = utiliserLieux();
   const [etat, setEtat] = useState<CommunauteLocale>(() => creerEtatDepart(new Date()));
   const [pret, setPret] = useState(false);
@@ -117,14 +119,15 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         prenom: profil?.prenom ?? "Toi",
         avatar: avatar.type === "emoji" ? avatar.emoji : "📷",
         ville: profil?.ville ?? "",
-        points: calculerPointsLocaux(mesures),
+        // Avec un compte : points et badges du serveur ; en démo, comptés sur le téléphone
+        points: DEMO_VISITES_ACTIVE ? calculerPointsLocaux(mesures) : (compte?.points ?? 0),
         rescoussesDuMois: activite.rescoussesDuMois,
         lieuxSauves: activite.lieuxSauves,
         gardes: activite.gardes,
-        badges: listerBadgesObtenus(mesures),
+        badges: DEMO_VISITES_ACTIVE ? listerBadgesObtenus(mesures) : (compte?.badges ?? []),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profil, avatar, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
+    [profil, avatar, compte, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
   );
 
   const parId = useMemo(() => new Map<string, Pote>([...potesConnus.map((p) => [p.id, p] as const), [ID_MOI, moi]]), [moi]);

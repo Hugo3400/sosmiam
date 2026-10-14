@@ -14,6 +14,7 @@ export type ErreurCompte =
   | "invitation-inconnue" | "rattachement-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" | "membre-inconnu" | "carte-invalide"
   | "jeton-externe-invalide" | "profil-a-completer" | "compte-deja-rattache" | "email-manquant" | "apple-indisponible" | "google-indisponible"
   | "verification-indisponible" | "chiffrement-indisponible" | "confirmation-incorrecte"
+  | "identite-deja-reliee" | "deja-relie" | "derniere-connexion"
   | "erreur";
 
 const CODES = new Set<string>([
@@ -37,6 +38,8 @@ const CODES = new Set<string>([
   // « Continuer avec Apple / Google » (POST /comptes/apple et /comptes/google, DELETE /comptes/moi sans mot de passe)
   "jeton-externe-invalide", "profil-a-completer", "compte-deja-rattache", "email-manquant", "apple-indisponible", "google-indisponible",
   "verification-indisponible", "chiffrement-indisponible", "confirmation-incorrecte",
+  // « Mes façons de me connecter » (POST et DELETE /comptes/moi/connexions/…)
+  "identite-deja-reliee", "deja-relie", "derniere-connexion",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
@@ -221,6 +224,30 @@ export function lireConnexionsCompte(jeton: string, ip: string | null) {
 export function supprimerCompteAvecFournisseur(jeton: string, ip: string | null, fournisseur: "apple" | "google", jetonExterne: string, nonce: string) {
   const corps = fournisseur === "apple" ? { identityToken: jetonExterne, nonce } : { idToken: jetonExterne, nonce };
   return appelerApiComptes<object>("/comptes/moi", { methode: "DELETE", jeton, ip, corps });
+}
+
+type ConnexionsLues = { connexions: { motDePasse: boolean; apple: boolean; google: boolean } };
+const champJeton = (fournisseur: "apple" | "google", jetonExterne: string, nonce: string) =>
+  fournisseur === "apple" ? { identityToken: jetonExterne, nonce } : { idToken: jetonExterne, nonce };
+
+/**
+ * Relie au compte connecté le compte Apple ou Google qui vient de confirmer (jeton et nonce brut) : « identite-deja-reliee »
+ * s'il appartient à un autre compte SOS Miam, « deja-relie » si une autre identité de ce fournisseur est déjà là.
+ */
+export function relierConnexion(jeton: string, ip: string | null, fournisseur: "apple" | "google", jetonExterne: string, nonce: string) {
+  return appelerApiComptes<ConnexionsLues>(`/comptes/moi/connexions/${fournisseur}`, { methode: "POST", jeton, ip, corps: champJeton(fournisseur, jetonExterne, nonce) });
+}
+
+/**
+ * Délie Apple ou Google : confirmé par le mot de passe, ou (compte sans mot de passe) par un nouveau jeton de l'AUTRE
+ * fournisseur. « derniere-connexion » si ce serait la seule façon de se connecter.
+ */
+export function delierConnexion(
+  jeton: string, ip: string | null, fournisseur: "apple" | "google",
+  confirmation: { motDePasse: string } | { fournisseur: "apple" | "google"; jeton: string; nonce: string },
+) {
+  const corps = "motDePasse" in confirmation ? confirmation : champJeton(confirmation.fournisseur, confirmation.jeton, confirmation.nonce);
+  return appelerApiComptes<ConnexionsLues>(`/comptes/moi/connexions/${fournisseur}`, { methode: "DELETE", jeton, ip, corps });
 }
 
 /** Supprime le compte et tout ce qui va avec (mot de passe demandé). */

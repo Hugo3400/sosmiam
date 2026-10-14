@@ -37,6 +37,10 @@ export function creerCompteApi(client: ClientHttp): ServiceCompte {
     modifierProfil: (modifs) => client.demander<{ profil: ProfilServeur }>("PATCH", "/comptes/moi/profil", { corps: modifs }),
     pseudoDisponible: (pseudo) => client.demander<{ disponible: boolean }>("GET", `/comptes/pseudo-disponible?pseudo=${encodeURIComponent(pseudo)}`),
     lireConnexions: () => client.demander<{ connexions: ConnexionsCompte }>("GET", "/comptes/moi/connexions"),
+    relierConnexion: ({ fournisseur, ...jetons }) =>
+      client.demander<{ connexions: ConnexionsCompte }>("POST", `/comptes/moi/connexions/${fournisseur}`, { corps: jetons }),
+    delierConnexion: (fournisseur, confirmation) =>
+      client.demander<{ connexions: ConnexionsCompte }>("DELETE", `/comptes/moi/connexions/${fournisseur}`, { corps: confirmation }),
     changerMotDePasse: (actuel, nouveau) => client.demander<{ session: string }>("POST", "/comptes/moi/mot-de-passe", { corps: { actuel, nouveau } }),
     motDePasseOublie: (email) => client.demander("POST", "/comptes/mot-de-passe-oublie", { corps: { email }, session: false }),
     renvoyerVerification: () => client.demander<{ dejaVerifie: boolean }>("POST", "/comptes/moi/renvoyer-verification"),

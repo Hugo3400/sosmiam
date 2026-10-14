@@ -1,5 +1,5 @@
-// Ce que l'app sait mesurer sur le téléphone, pour les badges et les défis.
-// Les visites validées, avis et sorties entre potes arriveront avec l'API (badges et défis encore verrouillés).
+// Ce que la démo sait mesurer sur le téléphone, pour ses badges et ses défis d'exemple. Avec un compte, c'est le serveur
+// qui compte tout (défis : GET /app/defis ; badges : compte.badges).
 
 export type MesureActivite = "rescousses" | "premiers-sauvetages";
 

@@ -11,6 +11,7 @@ import { choisirEspaceConnexion } from "../fonctions/connexion-externe/choisir-e
 import { choisirPageApresConnexion } from "../fonctions/connexion-externe/choisir-page-apres-connexion.ts";
 import { construireAdresseFournisseur } from "../fonctions/connexion-externe/construire-adresse-fournisseur.ts";
 import { creerEtatConnexion, DUREE_ETAT_CONNEXION } from "../fonctions/connexion-externe/creer-etat-connexion.ts";
+import { lireIntentionConnexion } from "../fonctions/connexion-externe/lire-intention-connexion.ts";
 import { lirePageDepart } from "../fonctions/connexion-externe/lire-page-depart.ts";
 import { lireUtilisateurApple } from "../fonctions/connexion-externe/lire-utilisateur-apple.ts";
 import { verifierEtatConnexion } from "../fonctions/connexion-externe/verifier-etat-connexion.ts";
@@ -55,7 +56,7 @@ export function demarrerConnexionExterne(requete: Request, fournisseur: Fourniss
   const depart = lirePageDepart(url.searchParams.get("depart") ?? departParDefaut(url.hostname));
   const clientId = lireReglagesConnexionExterne()[fournisseur];
   if (!clientId) return versDepart(depart, "indisponible", []);
-  const intention = url.searchParams.get("intention") === "suppression" ? "suppression" : "connexion";
+  const intention = lireIntentionConnexion(url.searchParams.get("intention"));
   const espace = choisirEspaceConnexion(url.host, depart);
   const retour = lireRetourSur(url.searchParams.get("retour")) ?? choisirPageApresConnexion(espace, depart);
   const etat = creerEtatConnexion({ fournisseur, intention, depart, retour }, maintenant);
@@ -74,7 +75,8 @@ const lireTexte = (formulaire: FormData, nom: string, maximum: number) => {
 
 /**
  * POST /connexion/<fournisseur>/retour : vérifie le state (en temps constant) et efface le cookie de départ, puis
- * - suppression : garde le jeton dans le cookie d'attente, la page « Mon compte » demande la dernière confirmation ;
+ * - suppression, relier, delier : garde le jeton dans le cookie d'attente (sans appeler l'API : ce POST d'un autre site
+ *   n'a pas le cookie de session), et « Mon compte » demande la dernière confirmation par un bouton ;
  * - connexion : l'API vérifie le jeton → cookie de session et page demandée ; compte à créer → « Finir ton inscription »
  *   (jeton gardé dans le cookie d'attente) ; sinon retour à la page de départ avec un message.
  */
@@ -88,10 +90,14 @@ export async function terminerConnexionExterne(requete: Request, fournisseur: Fo
     return versDepart(etat?.depart ?? departParDefaut(url.hostname), "expire", cookies);
   }
   const { depart, retour, nonce, intention } = etat;
+  // Relier ou délier : le message va à « Mes façons de me connecter »
+  const mesConnexions = intention === "relier" || intention === "delier";
+  const echec = (code: "annule" | "refuse") =>
+    mesConnexions ? rediriger(`${depart}?connexions=${code}&avec=${fournisseur}#mes-connexions`, cookies) : versDepart(depart, code, cookies);
   // Annulé chez Apple (« user_cancelled_authorize ») ou chez Google (« access_denied ») : rien n'a changé
-  if (formulaire.get("error") !== null) return versDepart(depart, "annule", cookies);
+  if (formulaire.get("error") !== null) return echec("annule");
   const jeton = lireTexte(formulaire, "id_token", 8000);
-  if (!jeton) return versDepart(depart, "refuse", cookies);
+  if (!jeton) return echec("refuse");
   // Apple ne donne le prénom qu'à la toute première connexion, dans « user » (jamais vérifié : seulement pour pré-remplir)
   const utilisateur = fournisseur === "apple" ? lireUtilisateurApple(formulaire.get("user")) : { prenom: null, nom: null };
   const attente = (prefill: { email?: string; prenom?: string; nom?: string } = {}): AttenteConnexion => ({
@@ -100,8 +106,9 @@ export async function terminerConnexionExterne(requete: Request, fournisseur: Fo
     expire: maintenant + DUREE_ETAT_CONNEXION,
   });
 
-  if (intention === "suppression") {
-    return rediriger(`${depart}#supprimer-mon-compte`, [...cookies, poserCookieAttente(attente(), maintenant)]);
+  if (intention !== "connexion") {
+    const ancre = intention === "suppression" ? "supprimer-mon-compte" : "mes-connexions";
+    return rediriger(`${depart}#${ancre}`, [...cookies, poserCookieAttente(attente(), maintenant)]);
   }
   const corps = {
     [fournisseur === "apple" ? "identityToken" : "idToken"]: jeton, nonce, support: "site",

@@ -31,18 +31,18 @@ export type DependancesConnexionExterne = {
 };
 
 /** Champ du jeton dans la demande : celui que donnent les bibliothèques d'Apple (identityToken) et de Google (idToken) */
-const CHAMP_JETON = { apple: "identityToken", google: "idToken" } as const satisfies Record<FournisseurExterne, string>;
+export const CHAMP_JETON = { apple: "identityToken", google: "idToken" } as const satisfies Record<FournisseurExterne, string>;
 const estAbsent = (valeur: unknown) => valeur === undefined || valeur === null || valeur === "";
 
 /** Le jeton (texte non vide), sinon 400 {champ: identityToken|idToken} */
-function lireJeton(corps: Record<string, unknown>, fournisseur: FournisseurExterne): string {
+export function lireJeton(corps: Record<string, unknown>, fournisseur: FournisseurExterne): string {
   const jeton = corps[CHAMP_JETON[fournisseur]];
   if (typeof jeton !== "string" || jeton === "") throw new ChampInvalide(CHAMP_JETON[fournisseur]);
   return jeton;
 }
 
 /** Le nonce brut (8 à 256 caractères visibles) : obligatoire pour Apple, facultatif pour Google ; sinon 400 {champ: nonce} */
-function lireNonce(corps: Record<string, unknown>, obligatoire: boolean): string | null {
+export function lireNonce(corps: Record<string, unknown>, obligatoire: boolean): string | null {
   if (!obligatoire && estAbsent(corps.nonce)) return null;
   if (typeof corps.nonce !== "string" || !/^[\x21-\x7e]{8,256}$/.test(corps.nonce)) throw new ChampInvalide("nonce");
   return corps.nonce;
@@ -158,6 +158,8 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
   }
 
   return {
+    /** Pour relier ou délier depuis « Mon compte » (comptes-connexions.ts) : même vérification qu'à la connexion */
+    verifierJeton,
     /** POST /comptes/apple : { identityToken, nonce, prenom?, nom?, dateNaissance?, ville?, envies?, pseudo?, newsletter?, support? } */
     connecterApple: (requete: Request, reponse: Response) => connecterAvec("apple", requete, reponse),
     /** POST /comptes/google : { idToken, nonce?, mêmes champs } */

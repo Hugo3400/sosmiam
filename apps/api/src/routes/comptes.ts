@@ -13,6 +13,7 @@ import { creerControleursSuggestions } from "../controleurs/comptes-suggestions.
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
 import { creerControleursComptes, type ServicesComptes } from "../controleurs/comptes.ts";
 import { creerControleursComptesExternes, type DependancesConnexionExterne } from "../controleurs/comptes-externes.ts";
+import { creerControleursConnexionsCompte } from "../controleurs/comptes-connexions.ts";
 import type { InscriptionNewsletterComptes } from "../controleurs/comptes-newsletter.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleMajorite } from "../middlewares/exiger-majeur.ts";
@@ -50,6 +51,8 @@ export const LIMITE_PROPOSITIONS_LIEUX = { fenetre: 24 * 60 * 60_000, maximum: 1
 /** « Se connecter avec Apple » ou « avec Google » : 20 essais par visiteur toutes les 10 minutes pour chacun, comme la
  * connexion par mot de passe (« Fais connaissance » en coûte un de plus) */
 export const LIMITE_CONNEXION_EXTERNE = { fenetre: DIX_MINUTES, maximum: 20 };
+/** Relier ou délier Apple et Google depuis « Mon compte » : 10 demandes par COMPTE et par heure, les trois adresses ensemble */
+export const LIMITE_CONNEXIONS_COMPTE = { fenetre: 60 * 60_000, maximum: 10 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -172,6 +175,32 @@ export type DependancesComptes = {
  * GET    /comptes/moi/connexions        → 200 { ok, connexions: { motDePasse, apple, google } } (booléens : vrai mot de passe,
  *                                        compte Apple lié, compte Google lié ; jamais les identifiants) · 401. L'app s'en
  *                                        sert pour « Supprimer mon compte » : mot de passe, ou bouton Apple ou Google.
+ * POST   /comptes/moi/connexions/apple  { identityToken, nonce } (comme POST /comptes/apple) : relie un compte Apple au compte
+ * POST   /comptes/moi/connexions/google { idToken, nonce? } (comme POST /comptes/google) : relie un compte Google
+ *                                        → 200 { ok, connexions } (même forme que GET ; déjà relié à CETTE identité : 200
+ *                                        aussi, rien ne change) · 400 champ-invalide {champ: identityToken|idToken|nonce}
+ *                                        · 401 jeton-externe-invalide · 401 session-expiree · 409 deja-relie (le compte a
+ *                                        déjà une AUTRE identité chez ce fournisseur : la délier d'abord) · 409
+ *                                        identite-deja-reliee (cette identité appartient à un AUTRE compte SOS Miam : jamais
+ *                                        de fusion ; se connecter à l'autre compte, l'y délier ou supprimer ce compte, puis
+ *                                        revenir) · 429 trop-de-demandes · 503 apple-indisponible|google-indisponible|
+ *                                        verification-indisponible. L'e-mail du compte ne change JAMAIS (une adresse Google
+ *                                        différente est acceptée) ; il compte comme confirmé seulement si le jeton porte le
+ *                                        même, vérifié.
+ * DELETE /comptes/moi/connexions/:fournisseur (apple | google) → 200 { ok, connexions } · 400 champ-invalide {champ:
+ *                                        fournisseur} · 409 derniere-connexion (ni vrai mot de passe ni l'autre fournisseur :
+ *                                        refusé avant toute confirmation) · 401 · 429. Rien de relié chez ce fournisseur :
+ *                                        200, rien ne change. Confirmation : compte avec un vrai mot de passe → { motDePasse }
+ *                                        (403 mot-de-passe-incorrect, 429 {attente} : la même attente que « Mon compte ») ;
+ *                                        compte sans mot de passe → un NOUVEAU jeton de l'AUTRE fournisseur, celui qui reste
+ *                                        ({ identityToken, nonce } pour délier Google, { idToken, nonce? } pour délier Apple :
+ *                                        400 {champ: confirmation} s'il manque, 403 confirmation-incorrecte s'il est refusé
+ *                                        ou d'un autre compte). Ce jeton prouve que c'est bien toi ET que ta dernière façon
+ *                                        de te connecter marche. Limite : 10 demandes par compte et par heure pour relier et
+ *                                        délier ensemble (429 trop-de-demandes, Retry-After).
+ *                                        Ajouter un mot de passe à un compte qui n'en a pas : POST /comptes/mot-de-passe-oublie
+ *                                        avec l'e-mail du compte (lien de 24 h ; adresse relais d'Apple : le relais doit
+ *                                        transmettre les mails).
  * POST   /comptes/nouveau-mot-de-passe  { jeton, motDePasse } → 200 { ok } (jeton effacé, toutes les sessions fermées)
  *                                        400 champ-invalide · 410 jeton-invalide · 429
  * POST   /comptes/mot-de-passe-oublie   { email } → toujours 200 { ok } (lien de 24 h envoyé seulement si le compte existe,
@@ -308,6 +337,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const profil = creerControleursProfil(contexte);
   const propositionsLieux = creerControleursPropositionsLieux(contexte);
   const externes = creerControleursComptesExternes(contexte);
+  const connexions = creerControleursConnexionsCompte(contexte);
   const parCompte = (reglages: { fenetre: number; maximum: number }) => limiterRequetes({ ...reglages, cle: (_requete, reponse) => `compte-${lireCompteId(reponse)}` });
   const routes = Router();
 
@@ -331,6 +361,10 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
   routes.post("/moi/deconnecter-partout", protection.exigerCompte, moi.deconnecterPartout);
   routes.get("/moi/connexions", protection.exigerCompte, externes.lireConnexions);
+  const limiteConnexions = parCompte(LIMITE_CONNEXIONS_COMPTE);
+  routes.post("/moi/connexions/apple", protection.exigerCompte, limiteConnexions, connexions.relierApple);
+  routes.post("/moi/connexions/google", protection.exigerCompte, limiteConnexions, connexions.relierGoogle);
+  routes.delete("/moi/connexions/:fournisseur", protection.exigerCompte, limiteConnexions, connexions.delier);
   routes.get("/moi/profil", protection.exigerCompte, profil.lire);
   routes.patch("/moi/profil", protection.exigerCompte, profil.modifier);
   routes.get("/pseudo-disponible", protection.exigerCompte, parCompte(LIMITE_PSEUDO_DISPONIBLE), profil.pseudoDisponible);

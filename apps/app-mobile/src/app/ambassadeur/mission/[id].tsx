@@ -31,6 +31,12 @@ const COMPTE_RENDU_MAX = 2000;
 type EtapePresence = "repos" | "position" | "envoi";
 const TEXTES_PRESENCE: Record<Exclude<EtapePresence, "repos">, string> = { position: "On regarde où tu es…", envoi: "On prévient l'équipe…" };
 
+/** Les échecs de position qui parlaient de visite et de repas, redits pour une mission (rien d'autre n'est en jeu) */
+const TEXTES_ECHEC_MISSION: Partial<Record<ErreurService, string>> = {
+  "position-refusee": "… et l'équipe ne verra pas l'heure de ton passage. Pas de panique : ton compte rendu suffit aussi !",
+  "position-simulee": "Coupe-la pour montrer que tu es bien sur place.",
+};
+
 /** Ce qui vaut la peine d'être retenté tout de suite (position floue, réseau, un peu loin…), comme pour une addition */
 const A_REESSAYER: readonly ErreurService[] = [
   "position-refusee", "position-coupee", "position-introuvable", "position-imprecise", "position-perimee", "position-simulee", "hors-zone", "hors-ligne",
@@ -214,7 +220,7 @@ export default function EcranMission() {
         onFermer={() => setExplication(false)}
         onRefermee={() => void verifierPresence()}
       />
-      <FeuilleEchecVisite echec={echec} lieuNom={lieu?.nom} actions={actions} onFermer={() => setEchec(null)} />
+      <FeuilleEchecVisite echec={echec} lieuNom={lieu?.nom} textes={TEXTES_ECHEC_MISSION} actions={actions} onFermer={() => setEchec(null)} />
     </EcranReglage>
   );
 }

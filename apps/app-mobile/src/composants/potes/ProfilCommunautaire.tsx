@@ -2,12 +2,12 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
+import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
-import { badges } from "~/contenus/badges";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -88,7 +88,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
 
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans ta collection)
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
-  const obtenus = badges.filter((b) => pote.badges.includes(b.id));
+  const obtenus = BADGES.filter((b) => pote.badges.includes(b.id));
   const sauves = pote.lieuxSauves.flatMap((id) => lieux.filter((l) => l.id === id));
   const gardes = pote.gardes.flatMap((id) => lieux.filter((l) => l.id === id));
 

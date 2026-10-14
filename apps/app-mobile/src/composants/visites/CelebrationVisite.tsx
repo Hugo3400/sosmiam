@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform, ScrollView, Text, View } from "react-native";
 
 import { TEXTE_VISITE_OFFERTE } from "@sos-miam/commun/contenus/libelles-reglement";
@@ -20,6 +20,8 @@ import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
 import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
+import { utiliserSession } from "~/hooks/utiliser-session";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { estRecompenseVisiteAlcool } from "~/fonctions/visites/est-recompense-visite-alcool";
 
@@ -57,10 +59,16 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
   const pointsTotaux = utiliserPointsTotaux();
   const { visites } = utiliserVisites();
   const dejaComptee = visites.some((v) => v.id === visite.id && v.statut === "validee");
-  const avant = dejaComptee ? pointsTotaux - visite.points : pointsTotaux;
+  const avantCalcule = dejaComptee ? pointsTotaux - visite.points : pointsTotaux;
+  // Figés dès que tes points sont connus (le compte relu, hors démo) : les relectures qui suivent la fête ne changent plus le palier
+  const { compte } = utiliserSession();
+  const pointsConnus = DEMO_VISITES_ACTIVE || compte !== null;
+  const [avantFige, setAvantFige] = useState<number | null>(null);
+  if (avantFige === null && pointsConnus) setAvantFige(avantCalcule);
+  const avant = avantFige ?? avantCalcule;
   const palierAvant = calculerPalier(avant);
   const palierApres = calculerPalier(avant + visite.points);
-  const palier = fete && visite.points > 0 && palierApres.index > palierAvant.index ? palierApres.actuel : null;
+  const palier = fete && pointsConnus && visite.points > 0 && palierApres.index > palierAvant.index ? palierApres.actuel : null;
 
   const resume = resumerCelebration(resultat, palier);
   const bloc = useRef<View>(null);

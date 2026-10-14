@@ -31,9 +31,10 @@ function remplirLieu(modele: string, lieu: string | null): string {
 /**
  * Le texte d'un échec des visites (addition, QR du comptoir, position…), prêt à afficher : le message partagé avec le site
  * (MESSAGES_SERVICE), rempli avec la distance, l'imprécision, le lieu ou la date de fin de pause. Si un détail manque,
- * la phrase est tournée autrement plutôt que de laisser une accolade ou un trou.
+ * la phrase est tournée autrement plutôt que de laisser une accolade ou un trou. `texteRemplacant` : la phrase à dire à la
+ * place (un écran qui n'est pas une visite, comme « Je suis sur place » d'une mission), remplie de la même façon.
  */
-export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreur, lieuNom?: string): MessageService {
+export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreur, lieuNom?: string, texteRemplacant?: string): MessageService {
   const modele = MESSAGES_SERVICE[erreur];
   const lieu = details?.lieu ?? lieuNom ?? null;
   let { titre, texte } = modele;
@@ -44,6 +45,7 @@ export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreu
   if (erreur === "position-imprecise" && typeof details?.precisionM !== "number") {
     texte = "Il ne sait pas bien où tu es, c'est trop flou pour valider. Approche-toi d'une fenêtre, puis réessaie.";
   }
+  if (texteRemplacant) texte = texteRemplacant;
   const jour = lireJour(details?.jusqua);
   if (erreur === "compte-limite" && !jour) titre = "Validations en pause pour l'instant";
 

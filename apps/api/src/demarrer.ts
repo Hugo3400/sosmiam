@@ -7,9 +7,9 @@ import { creerApplication } from "./application.ts";
 import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/annonces-discord.ts";
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
 import {
-  ajouterPoints, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte, nommerAmbassadeurVille,
-  preparerReinitialisation, preparerVerificationEmail, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail, trouverCompteParJeton,
-  verifierEmail,
+  ajouterPoints, ajouterPointsDans, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte,
+  nommerAmbassadeurVille, preparerReinitialisation, preparerVerificationEmail, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail,
+  trouverCompteParJeton, verifierEmail,
 } from "./services/comptes.ts";
 import { creerCandidatureCertification, lireCandidatureCertification } from "./services/certification.ts";
 import { changerCommuneCandidature, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
@@ -77,8 +77,8 @@ const cleDesinscription = brancherCleDesinscription(chiffrement);
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
 // Défis et badges automatiques : recomptés après chaque ajout de points des autres domaines (sans les faire attendre ni
-// échouer) et à chaque lecture des défis ; leurs propres points passent par ajouterPoints tel quel
-const defis = creerDefis({ ajouterPoints, donnerBadge });
+// échouer) et à chaque lecture des défis ; leurs propres points sont posés avec la réussite, dans la même transaction
+const defis = creerDefis({ ajouterPointsDans, donnerBadge });
 const ajouterPointsEtDefis = brancherReevaluationDefis(ajouterPoints, defis.reevaluer);
 // Version minimale de l'app (écran « mets à jour ») : « 0.0.0 » si rien n'est réglé
 const versionMinimale = {

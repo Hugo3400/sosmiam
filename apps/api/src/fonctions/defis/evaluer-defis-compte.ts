@@ -49,14 +49,15 @@ export function evaluerDefisCompte({ defis, reussites, faits, badges, maintenant
   for (const defi of defis) {
     if (!(MESURES_DEFI as readonly string[]).includes(defi.mesure)) continue;
     const reussite = reussiteDe.get(defi.id);
-    const montrer = (fait: number, reussiLe: Date | null) =>
+    // Réussi : les points crédités (figés dans la réussite), même si le défi a changé de points depuis
+    const montrer = (fait: number, reussiLe: Date | null, points = defi.points) =>
       evaluation.defis.push({
-        id: defi.id, emoji: defi.emoji, titre: defi.titre, texte: defi.texte, objectif: defi.objectif, fait, points: defi.points,
+        id: defi.id, emoji: defi.emoji, titre: defi.titre, texte: defi.texte, objectif: defi.objectif, fait, points,
         debut: defi.debut, fin: defi.fin, etat: calculerEtatDefi(defi, reussiLe !== null, jour), reussiLe: reussiLe?.toISOString() ?? null,
       });
     const fini = defi.fin !== null && jour > defi.fin;
     if (reussite && (fini || jour < defi.debut)) {
-      montrer(defi.objectif, reussite.reussiLe);
+      montrer(defi.objectif, reussite.reussiLe, reussite.points);
       continue;
     }
     if (jour < defi.debut) {
@@ -71,7 +72,7 @@ export function evaluerDefisCompte({ defis, reussites, faits, badges, maintenant
       evaluation.aReprendre.push({ defiId: defi.id, points: reussite.points });
       montrer(fait, null);
     } else if (reussite) {
-      montrer(defi.objectif, reussite.reussiLe);
+      montrer(defi.objectif, reussite.reussiLe, reussite.points);
     } else if (fait >= defi.objectif) {
       evaluation.aCrediter.push({ defiId: defi.id, points: defi.points });
       montrer(defi.objectif, maintenant);

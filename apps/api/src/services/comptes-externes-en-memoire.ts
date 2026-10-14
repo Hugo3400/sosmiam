@@ -10,14 +10,24 @@ export function creerComptesExternesEnMemoire(comptes: Map<number, CompteEnMemoi
     async trouverCompteParSub(fournisseur, sub) {
       return trouver(CHAMP_SUB[fournisseur], sub)?.id ?? null;
     },
-    async rattacherSub(compteId, fournisseur, sub, maintenant) {
+    async rattacherSub(compteId, fournisseur, sub, maintenant, confirmerEmail = true) {
       const champ = CHAMP_SUB[fournisseur];
       const compte = comptes.get(compteId);
       if (!compte) return "introuvable";
       if (compte[champ]) return "deja-rattache";
       if (trouver(champ, sub)) return "sub-pris";
       compte[champ] = sub;
-      compte.emailVerifieLe ??= maintenant.getTime();
+      if (confirmerEmail) compte.emailVerifieLe ??= maintenant.getTime();
+      return "ok";
+    },
+    async delierSub(compteId, fournisseur) {
+      const compte = comptes.get(compteId);
+      if (!compte) return "introuvable";
+      const champ = CHAMP_SUB[fournisseur];
+      if (!compte[champ]) return "non-relie";
+      const autre = CHAMP_SUB[fournisseur === "apple" ? "google" : "apple"];
+      if (estSansMotDePasse(compte.motDePasse) && !compte[autre]) return "derniere-connexion";
+      compte[champ] = null;
       return "ok";
     },
     async lireConnexions(compteId) {

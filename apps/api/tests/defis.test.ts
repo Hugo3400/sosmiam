@@ -146,7 +146,7 @@ test("période et heure de Paris : premier et dernier jour compris, minuit à Pa
   assert.equal(points.length, 0);
 });
 
-test("crédit unique : réussi une fois, points crédités une seule fois, même relu ou recompté en même temps", async () => {
+test("crédit unique : réussi une fois, points crédités une seule fois (et montrés tels quels), même relu ou recompté en même temps", async () => {
   const { id, jeton } = await creerCompte();
   const defiId = await poserDefi({ fin: "2026-11-30" });
   defis.faitsDe(id).rescousses.push(MIDI_14, MIDI_14 + 60_000);
@@ -162,6 +162,9 @@ test("crédit unique : réussi une fois, points crédités une seule fois, même
   assert.deepEqual(await defis.services.reevaluer(id, new Date(banc.horloge)), { reussis: [], repris: [], badges: [] });
   assert.equal(points.length, 1);
   assert.deepEqual(badgesDonnes, [{ compteId: id, badge: "premiere-rescousse" }]);
+  // L'équipe passe ensuite le défi à 50 points : la carte montre toujours les 30 crédités
+  await defis.services.modifier(defiId, { points: 50 });
+  assert.equal((await lireDefis(jeton)).corps.defis[0].points, 30);
   // Un autre compte a son propre défi
   const autre = await creerCompte();
   assert.equal((await lireDefis(autre.jeton)).corps.defis[0].etat, "en-cours");

@@ -39,6 +39,8 @@ export function creerControleursMonCompte(contexte: ContexteComptes) {
   }
 
   return {
+    /** Pour délier Apple ou Google d'un compte qui a un vrai mot de passe (comptes-connexions.ts) : même attente qu'ici */
+    verifierMotDePasseActuel,
     /** PATCH /comptes/moi : { prenom?, ville?, quartier? } (quartier "" : effacé) → le compte à jour. */
     async modifier(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);

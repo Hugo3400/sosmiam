@@ -15,6 +15,8 @@ type Props = {
   details?: DetailsErreur;
   /** Le lieu concerné, si les détails ne le donnent pas */
   lieuNom?: string;
+  /** La phrase à dire à la place de celle des visites (un écran qui n'est pas une visite) */
+  texte?: string;
   /** Les boutons sous le texte (« Réessayer », « Ouvrir les réglages », « Voir ma demande »…), dans l'ordre */
   actions?: ActionEchecVisite[];
   /** Le titre, pour y placer le lecteur d'écran quand le message apparaît */
@@ -26,8 +28,8 @@ type Props = {
  * qui dit quoi faire, et les boutons qui vont avec. Juste le contenu, centré et sans fond : c'est l'écran qui le pose
  * (dans une feuille, sur la caméra, dans une carte).
  */
-export function MessageEchecVisite({ erreur, details, lieuNom, actions = [], refTitre }: Props) {
-  const message = decrireEchecVisite(erreur, details, lieuNom);
+export function MessageEchecVisite({ erreur, details, lieuNom, texte, actions = [], refTitre }: Props) {
+  const message = decrireEchecVisite(erreur, details, lieuNom, texte);
   return (
     <View className="items-center">
       <View

@@ -15,6 +15,8 @@ type Props = {
   /** L'échec à expliquer ; null : feuille fermée */
   echec: EchecVisite | null;
   lieuNom?: string;
+  /** Phrases à dire à la place de celles des visites, par erreur (un écran qui n'est pas une visite, comme une mission) */
+  textes?: Partial<Record<ErreurService, string>>;
   /** Boutons au-dessus de « Fermer » ; chacun ferme la feuille, puis agit une fois qu'elle est descendue */
   actions?: ActionEchecVisite[];
   /** Feuille refermée (« Fermer », fond assombri, retour Android, geste d'échappement, ou avant une action) */
@@ -29,7 +31,7 @@ const DUREE_FERMETURE = 450;
  * (« Réessayer », « Ouvrir les réglages », « Voir ma demande »…) et « Fermer ». Une action attend que la feuille soit
  * descendue avant d'agir (relire la position, ouvrir un autre écran). VoiceOver commence par le titre.
  */
-export function FeuilleEchecVisite({ echec, lieuNom, actions = [], onFermer }: Props) {
+export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -90,7 +92,9 @@ export function FeuilleEchecVisite({ echec, lieuNom, actions = [], onFermer }: P
         <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
         {/* Avec un très grand texte, le message défile et les boutons restent à l'écran */}
         <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
-          {affiche ? <MessageEchecVisite erreur={affiche.erreur} details={affiche.details} lieuNom={lieuNom} refTitre={refTitre} /> : null}
+          {affiche ? (
+            <MessageEchecVisite erreur={affiche.erreur} details={affiche.details} lieuNom={lieuNom} texte={textes?.[affiche.erreur]} refTitre={refTitre} />
+          ) : null}
         </ScrollView>
         <View className="mt-5 gap-3 px-5">
           {actions.map((action) => (
