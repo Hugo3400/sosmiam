@@ -30,7 +30,7 @@ export const documentCgu: DocumentLegal = {
     {
       liste: [
         "Tout est **gratuit** et il n'y a **rien à acheter**.",
-        "Pour visiter le site, **pas besoin de compte** : seuls l'**espace ambassadeur** et l'**espace pro** en demandent un. L'app demande un **compte gratuit**.",
+        "Pour visiter le site, **pas besoin de compte** : seuls l'**espace ambassadeur** et l'**espace pro** en demandent un. Dans l'app, tu peux jeter un œil sans compte (fil, Explorer, fiches des lieux, tout public) ; pour le reste, il faut un **compte gratuit**, dès 18 ans.",
         "Dans tous les cas, un compte, c'est **dès 18 ans**.",
         "Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
       ],
@@ -59,7 +59,7 @@ export const documentCgu: DocumentLegal = {
       id: "acces",
       titre: "Un accès gratuit, aussi souvent que possible",
       blocs: [
-        "Le site et l'app sont **gratuits**. Le site est ouvert à tous, sans inscription, sauf l'espace ambassadeur (dès 18 ans) ; l'app demande un compte (voir plus bas). Seuls ton matériel et ta connexion à internet (box, forfait mobile) restent à ta charge.",
+        "Le site et l'app sont **gratuits**. Le site est ouvert à tous, sans inscription, sauf l'espace ambassadeur et l'espace pro (dès 18 ans) ; dans l'app, on peut regarder sans compte, et le reste demande un compte gratuit (voir plus bas). Seuls ton matériel et ta connexion à internet (box, forfait mobile) restent à ta charge.",
         "On fait de notre mieux pour que SOS Miam soit accessible 24 h/24 et 7 j/7, sans pouvoir le garantir. Le site ou l'app peuvent être interrompus ou ralentis, notamment :",
         {
           liste: [
@@ -88,7 +88,7 @@ export const documentCgu: DocumentLegal = {
       titre: "À partir de 18 ans",
       blocs: [
         "Pour créer un compte SOS Miam (dans l'app, dans l'espace ambassadeur ou dans l'espace pro), il faut être **majeur** : **18 ans** en France, le seul pays où SOS Miam est ouvert pour l'instant. Le site, lui, se visite sans compte, à tout âge.",
-        "Sans compte, l'app reste tout public : les bars et tout ce qui touche à l'alcool n'y apparaissent pas.",
+        "Sans compte, l'app reste tout public : tu peux regarder le fil, Explorer, les fiches des lieux et leur carte, et les pages des créateurs, mais les bars et tout ce qui touche à l'alcool n'y apparaissent pas. Tout le reste (rescousse, J'aime, suivre, commenter, visites, réservations, avis, Potes, défis, Miam Safe…) demande un compte.",
         "Ta date de naissance doit être exacte : elle sert à vérifier que tu as 18 ans. Mentir sur ton âge est interdit. Si on apprend qu'un compte a été créé en mentant sur l'âge, on le supprime avec ses données.",
         "Tous les détails, pour toi comme pour les parents, sont sur la page [SOS Miam et l'âge](/age).",
       ],

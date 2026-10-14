@@ -11,11 +11,14 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/bricolage-grotesque";
 import "./styles/app.css";
 
-// Icônes tirées du kit de marque : SVG pour les navigateurs récents, .ico pour les autres, PNG pour l'écran d'accueil iOS
+// Icônes tirées du kit de marque : SVG pour les navigateurs récents, .ico pour les autres, PNG de 192 px (un multiple de 48,
+// comme le demande Google pour l'icône de ses résultats), PNG pour l'écran d'accueil iOS, et le manifeste du site
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
   { rel: "icon", href: "/icones/favicon.svg", type: "image/svg+xml" },
+  { rel: "icon", href: "/icones/favicon-192.png", type: "image/png", sizes: "192x192" },
   { rel: "apple-touch-icon", href: "/icones/apple-touch-icon.png" },
+  { rel: "manifest", href: "/site.webmanifest" },
 ];
 
 export const middleware: Route.MiddlewareFunction[] = [

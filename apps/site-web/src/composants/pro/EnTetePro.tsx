@@ -45,6 +45,7 @@ export function EnTetePro({ connecte, lieuMenu }: Props) {
                     {lieuMenu?.gerant && <li><NavLink to={`${lieu}/equipe`} className={classeLienMenu}>Mon équipe</NavLink></li>}
                     <li><NavLink to={`${lieu}/affichette`} className={classeLienMenu}>Affichette</NavLink></li>
                     <li><NavLink to={`${lieu}/miam-safe`} className={classeLienMenu}>Miam Safe</NavLink></li>
+                    <li><NavLink to={`${lieu}/kit`} className={classeLienMenu}>Kit média</NavLink></li>
                   </>
                 )}
                 <li><NavLink to="/mon-compte" className={classeLienMenu}>Mon compte</NavLink></li>

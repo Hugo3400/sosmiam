@@ -22,8 +22,9 @@ const PAGES_COMPTE = ["/inscription", "/connexion", "/mot-de-passe-oublie", "/no
 /** Pages de l'espace pro (« /recherche-lieux » : les suggestions de « Ton lieu », appelées par /rattacher ; « /mon-compte » :
  * la page « Mon compte » de l'espace pro, qui est /espace/mon-compte dans l'espace ambassadeur) */
 const PAGES_PRO = ["/bienvenue", "/tableau", "/rattacher", "/recherche-lieux", "/mon-compte"];
-/** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…), la demande pour un lieu */
-const DEBUTS_PRO = ["/lieu/", "/rattacher/"];
+/** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…), la demande pour un lieu, et
+ * les fichiers du kit média des lieux */
+const DEBUTS_PRO = ["/lieu/", "/rattacher/", "/kit-media-lieux/"];
 /**
  * Pages du compte servies aussi sur sosmiam.fr (avec le cookie de sosmiam.fr) : « Mon compte » du site principal, adresse
  * donnée aux stores pour demander la suppression d'un compte (connexion dans la page même), et la déconnexion qui va avec

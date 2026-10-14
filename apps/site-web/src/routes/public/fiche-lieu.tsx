@@ -8,7 +8,11 @@ import { BlocInfosPratiques } from "~/composants/lieux/BlocInfosPratiques";
 import { BlocPrevention } from "~/composants/lieux/BlocPrevention";
 import { EncartCeLieuEstAToi } from "~/composants/lieux/EncartCeLieuEstAToi";
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
+import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
 import { categoriesLieux } from "~/contenus/categories-lieux";
+import { site } from "~/contenus/legal/informations-legales";
+import { creerDonneesFilAriane } from "~/fonctions/seo/creer-donnees-fil-ariane";
+import { creerDonneesLieu } from "~/fonctions/seo/creer-donnees-lieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { lireFichePublique } from "~/services/pro.server";
@@ -54,8 +58,15 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
   const adresse = lieu.adresse && !lieu.adresse.toLowerCase().includes(lieu.ville.toLowerCase()) ? `${lieu.adresse}, ${lieu.ville}` : lieu.adresse;
   const lieuComplet = [lieu.nom, adresse ?? lieu.ville].join(", ");
   const itineraire = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lieuComplet)}`;
+  const accueil = `https://${site.adresse}/`;
+  const adresseFiche = `${accueil}lieux/${lieu.id}`;
+  const donnees = [
+    creerDonneesLieu(lieu, adresseFiche),
+    creerDonneesFilAriane([{ nom: "Accueil", adresse: accueil }, { nom: lieu.nom, adresse: adresseFiche }]),
+  ];
   return (
     <article className="bg-creme pb-16 md:pb-24">
+      <DonneesStructurees donnees={donnees} />
       <div className="grid h-40 place-items-center text-7xl md:h-56" style={{ background: `linear-gradient(135deg, ${debut}, ${fin})` }}>
         <span aria-hidden="true">{lieu.emoji}</span>
       </div>

@@ -8,6 +8,7 @@ import { GainsProgramme } from "~/composants/programme/GainsProgramme";
 import { GestesProgramme } from "~/composants/programme/GestesProgramme";
 import { HautProgramme } from "~/composants/programme/HautProgramme";
 import { NiveauxProgramme } from "~/composants/programme/NiveauxProgramme";
+import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
 import { QuestionsProgramme } from "~/composants/programme/QuestionsProgramme";
 import { descriptionProgramme, questionsProgramme } from "~/contenus/programme-ambassadeur";
 import { creerDonneesFaq } from "~/fonctions/seo/creer-donnees-faq";
@@ -17,15 +18,13 @@ import { resoudreRecherche } from "~/services/fondateurs.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
 export function meta(_: Route.MetaArgs) {
-  return [
-    ...creerMeta({ titre: "Programme Ambassadeurs", description: descriptionProgramme }),
-    {
-      "script:ld+json": creerDonneesFaq([
-        { cle: "programme", emoji: "🎖️", titre: "Programme Ambassadeurs", titreGroupe: "Programme Ambassadeurs", questions: questionsProgramme },
-      ]),
-    },
-  ];
+  return creerMeta({ titre: "Programme Ambassadeurs", description: descriptionProgramme });
 }
+
+/** Les questions du programme, aussi affichées dans la page (QuestionsProgramme) */
+const donneesFaq = creerDonneesFaq([
+  { cle: "programme", emoji: "🎖️", titre: "Programme Ambassadeurs", titreGroupe: "Programme Ambassadeurs", questions: questionsProgramme },
+]);
 
 /**
  * « Et dans ta ville ? » : la recherche de l'adresse (?ville=… tapée, ou ?commune=CODE choisie), faite ici pour que la
@@ -45,6 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function PageProgramme({ loaderData }: Route.ComponentProps) {
   return (
     <>
+      <DonneesStructurees donnees={donneesFaq} />
       <HautProgramme />
       <GestesProgramme />
       <GainsProgramme />

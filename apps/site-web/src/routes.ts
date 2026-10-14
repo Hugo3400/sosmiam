@@ -58,6 +58,7 @@ export default [
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
     route("lieu/:id/affichette", "routes/pro/affichette.tsx"),
     route("lieu/:id/miam-safe", "routes/pro/miam-safe.tsx"),
+    route("lieu/:id/kit", "routes/pro/kit.tsx"),
   ]),
   // « Mon compte » : la même page que /espace/mon-compte (son propre id). Une seule adresse, deux espaces : sur
   // pro.sosmiam.fr, celui de l'espace pro (cadre pro) ; sur sosmiam.fr, celui du site principal (cadre public, connexion
@@ -76,6 +77,8 @@ export default [
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
   // Fichiers du kit média pro, réservés aux ambassadeurs certifiés
   route("kit-media-pro/:fichier", "routes/ressources/telecharger-kit-pro.ts"),
+  // Fichiers du kit média des lieux, réservés aux comptes rattachés à un lieu (espace pro)
+  route("kit-media-lieux/:fichier", "routes/ressources/telecharger-kit-lieux.ts"),
   // Carte de fondateur numérique (SVG), réservée à son fondateur
   route("espace/fondateur/carte.svg", "routes/ressources/carte-fondateur.tsx"),
   // Visuels du kit média à leur taille exacte, pour les capturer (serveur de développement seulement)

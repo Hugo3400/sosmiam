@@ -40,7 +40,9 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   const { jaimesServeur } = utiliserActivite();
   const [lues, setLues] = useState<PublicationApi[] | null>(null);
   const [aimees, setAimees] = useState<AimeesALaLecture>({});
-  // Les J'aime du serveur à l'instant où une page arrive (lus dans les réponses, jamais pendant le rendu)
+  // Les J'aime du serveur à l'instant où une page arrive (lus dans les réponses, jamais pendant le rendu). Écart connu, borné
+  // à la relecture suivante (comme le cache de 30 s des compteurs) : une page relue juste avant ton activité (même retour dans
+  // l'app) note un J'aime fait sur un autre appareil comme absent, et son compteur affiche un J'aime de plus
   const jaimesConnus = useRef(jaimesServeur);
   const [suite, setSuite] = useState<string | null>(null);
   const [horsLigne, setHorsLigne] = useState(false);

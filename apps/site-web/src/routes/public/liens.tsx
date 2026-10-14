@@ -28,7 +28,8 @@ export default function PageLiens() {
       <main id="contenu" tabIndex={-1} className="mx-auto w-[min(520px,100%-32px)] flex-1 py-10">
         <header className="flex flex-col items-center text-center">
           <Mascotte expression="clin" className="size-24 animate-flotte" />
-          <h1 className="mt-4"><Logo className="h-12 w-auto" /></h1>
+          {/* Le nom en texte (lu par les moteurs et les lecteurs d'écran), le logo pour les yeux */}
+          <h1 className="mt-4"><span className="sr-only">SOS Miam</span><span aria-hidden="true"><Logo className="h-12 w-auto" /></span></h1>
           <p className="mt-4 font-titre text-2xl font-extrabold">Sauve une table, régale-toi.</p>
           <p className="mt-2 text-gris">
             Les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France.
