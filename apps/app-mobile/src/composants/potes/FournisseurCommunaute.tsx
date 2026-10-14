@@ -31,6 +31,7 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { ContexteCommunaute, type EtatCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
 /** La démo de départ : ta bande d'exemple, ses sorties, listes, activité, recommandations et commentaires */
@@ -46,6 +47,25 @@ const creerEtatDemo = (maintenant: Date): CommunauteLocale => ({
   exemples: VERSION_EXEMPLES,
 });
 
+/** Hors démo : personne pour l'instant (tes vrais potes arriveront avec l'API) ; « exemples: 0 » la distingue d'une démo */
+const creerEtatVide = (): CommunauteLocale => ({
+  version: 1,
+  bande: [],
+  bloques: [],
+  sorties: [],
+  listes: [],
+  activites: [],
+  recommandations: [],
+  commentaires: [],
+  signalements: [],
+  moyens: {},
+  masques: [],
+  exemples: 0,
+});
+const creerEtatDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? creerEtatDemo(maintenant) : creerEtatVide());
+// Les potes qu'on peut trouver : ceux de la démo, ou personne
+const potesConnus = DEMO_VISITES_ACTIVE ? potesExemples : [];
+
 const verifierTexte = (texte: string, max: number): ResultatTexte => {
   const propre = texte.trim();
   if (propre === "") return "vide";
@@ -56,14 +76,15 @@ const auHasard = <T,>(liste: T[]): T => liste[Math.floor(Math.random() * liste.l
 const entre = (min: number, max: number) => min + Math.random() * (max - min);
 
 /**
- * Potes, sorties, listes, activité, lieux envoyés entre potes et commentaires, gardés sur le téléphone (démo).
- * Les potes d'exemple votent et répondent tout seuls ; tes vrais potes arriveront avec les comptes.
+ * Potes, sorties, listes, activité, lieux envoyés entre potes et commentaires, gardés sur le téléphone. Mode démo : une
+ * bande d'exemple qui vote et répond toute seule. Sinon : vide (tes vrais potes arriveront avec l'API), et ce qu'une
+ * ancienne démo avait gardé sur le téléphone est oublié.
  */
 export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const { profil, avatar } = utiliserProfil();
   const activite = utiliserActivite();
   const { trouverLieu } = utiliserLieux();
-  const [etat, setEtat] = useState<CommunauteLocale>(() => creerEtatDemo(new Date()));
+  const [etat, setEtat] = useState<CommunauteLocale>(() => creerEtatDepart(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
   const minuteries = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -71,8 +92,10 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   useEffect(() => {
     lireCommunauteLocale().then((lue) => {
       charge.current = true;
-      // Une démo enregistrée avant les derniers exemples les reçoit une fois (sans rien perdre de ce que tu y as changé)
-      if (lue) setEtat(ajouterNouveauxExemples(lue, new Date()));
+      // Démo : enregistrée avant les derniers exemples, elle les reçoit une fois (sans rien perdre de ce que tu y as changé).
+      // Hors démo : un état gardé par une démo (exemples reçus) repart à vide
+      if (lue && DEMO_VISITES_ACTIVE) setEtat(ajouterNouveauxExemples(lue, new Date()));
+      else if (lue && lue.exemples === 0) setEtat(lue);
       setPret(true);
     });
     const enCours = minuteries.current;
@@ -109,7 +132,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
     [profil, avatar, moiMineur, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
   );
 
-  const parId = useMemo(() => new Map<string, Pote>([...potesExemples.map((p) => [p.id, p] as const), [ID_MOI, moi]]), [moi]);
+  const parId = useMemo(() => new Map<string, Pote>([...potesConnus.map((p) => [p.id, p] as const), [ID_MOI, moi]]), [moi]);
   const trouverPote = useCallback((id: string) => parId.get(id) ?? null, [parId]);
   const estMineur = useCallback((id: string) => parId.get(id)?.mineur ?? false, [parId]);
   const lieuPermisDansSortie = useCallback(
@@ -165,12 +188,12 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
     const visiblesDe = (publicationId: string) => etat.commentaires.filter((c) => c.publicationId === publicationId && !signales.has(c.id));
     return {
       pret,
-      demo: true,
+      demo: DEMO_VISITES_ACTIVE,
       moi,
       moiMineur,
       potes,
       trouverPote,
-      chercherParPseudo: (texte) => chercherParPseudo(potesExemples, texte, { moiMineur, bande: etat.bande, bloques: etat.bloques }),
+      chercherParPseudo: (texte) => chercherParPseudo(potesConnus, texte, { moiMineur, bande: etat.bande, bloques: etat.bloques }),
       ajouterPote: (id, moyen) => {
         const pote = parId.get(id);
         if (!pote || id === ID_MOI) return "introuvable";
@@ -317,7 +340,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         minuteries.current.forEach(clearTimeout);
         minuteries.current = [];
         await effacerCommunauteLocale();
-        setEtat(creerEtatDemo(new Date()));
+        setEtat(creerEtatDepart(new Date()));
       },
     };
   }, [pret, moi, moiMineur, potes, trouverPote, etat, parId, bloques, sorties, lieuPermisDansSortie, changerSortie, fairerVoterLesPotes, plusTard, signales, masques]);

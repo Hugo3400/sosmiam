@@ -14,6 +14,7 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { ContexteNotifications, type EtatNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import {
   effacerNotificationsLocales,
   enregistrerNotificationsLocales,
@@ -84,7 +85,9 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     minuteries.current.splice(0).forEach(clearTimeout);
     suivisNotesPour.current = null;
     const mineur = calculerAge(profil.dateNaissance) < AGE_ALCOOL;
-    setEtat({ version: 1, profilCreeLe: profil.creeLe, notifications: creerNotificationsDemo(mineur, new Date()), vuesLe: null, clesAnnoncees: [] });
+    // Hors démo, aucune notification inventée : seulement celles qui arrivent vraiment
+    const depart = DEMO_VISITES_ACTIVE ? creerNotificationsDemo(mineur, new Date()) : [];
+    setEtat({ version: 1, profilCreeLe: profil.creeLe, notifications: depart, vuesLe: null, clesAnnoncees: [] });
   }, [relu, profil, pourCeProfil]);
 
   // Enregistrée à chaque changement ; les notifications en attente rejoignent la liste dès qu'elle existe pour ce profil
@@ -110,9 +113,9 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   }, []);
 
   // Démo « a posté » : chaque lieu ou créateur que tu te mets à suivre publie 6 s plus tard (une seule fois par clé).
-  // Ceux déjà suivis à l'ouverture sont notés sans bruit.
+  // Ceux déjà suivis à l'ouverture sont notés sans bruit. Hors démo, jamais : une vraie publication arrivera avec l'API.
   useEffect(() => {
-    if (!pret || !etat) return;
+    if (!DEMO_VISITES_ACTIVE || !pret || !etat) return;
     const nouvelles = activite.suivis.filter((cle) => estClePage(cle) && !etat.clesAnnoncees.includes(cle));
     const silence = suivisNotesPour.current !== etat.profilCreeLe;
     suivisNotesPour.current = etat.profilCreeLe;

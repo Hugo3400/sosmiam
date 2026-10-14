@@ -26,8 +26,8 @@ export type NouvelleSortie = {
 export type EtatCommunaute = {
   /** Faux tant que la communauté n'est pas lue sur le téléphone */
   pret: boolean;
-  /** Démo : potes d'exemple qui votent et répondent tout seuls, en attendant les comptes */
-  demo: true;
+  /** Mode démo : potes d'exemple qui votent et répondent tout seuls ; sinon, la communauté démarre vide */
+  demo: boolean;
   /** Ton profil communautaire (identifiant « moi ») */
   moi: Pote;
   /** 15 à 17 ans (ou âge inconnu) : pas d'alcool. Un adulte, lui, ne trouve pas les mineurs par pseudo et ne peut pas les ajouter (démo). */

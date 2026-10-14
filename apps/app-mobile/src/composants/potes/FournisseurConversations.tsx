@@ -6,7 +6,7 @@ import { REACTIONS_CHAT, type Conversation, type MessageChat } from "@sos-miam/c
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerConversationsExemples } from "~/contenus/conversations-exemples";
-import { reponsesExemples } from "~/contenus/potes-exemples";
+import { potesExemples, reponsesExemples } from "~/contenus/potes-exemples";
 import { listerMembresRefusesGroupe } from "~/fonctions/chat/lister-membres-refuses-groupe";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { peutDiscuter } from "~/fonctions/communaute/peut-discuter";
@@ -14,6 +14,7 @@ import { peutEnvoyerMedias } from "~/fonctions/communaute/peut-envoyer-medias";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { ContexteConversations, type EtatConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import {
   effacerConversationsLocales,
   enregistrerConversationsLocales,
@@ -24,9 +25,13 @@ import {
 
 const dernierMessage = (c: Conversation) => c.messages[c.messages.length - 1]?.date ?? "";
 const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() * liste.length)];
+// Hors démo, on part de zéro : une conversation gardée par une ancienne démo (avec un pote d'exemple) est oubliée
+const idsPotesExemples = new Set(potesExemples.map((p) => p.id));
+const creerConversationsDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? creerConversationsExemples(maintenant) : []);
 
 /**
- * Chat entre potes (démo) : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales.
+ * Chat entre potes : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales (mode démo :
+ * des conversations d'exemple, et des potes qui répondent tout seuls ; sinon, rien tant que l'API des messages n'existe pas).
  * Protection des 15-17 ans : seulement avec des potes ajoutés en vrai (dans un groupe avec un mineur, tous les membres),
  * et ni photo ni vocal entre mineurs et adultes. En privé, on n'écrit qu'aux potes de sa bande.
  */
@@ -34,7 +39,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   const communaute = utiliserCommunaute();
   const { trouverLieu } = utiliserLieux();
   const estUnBar = useCallback((lieuId: number) => trouverLieu(lieuId)?.type === "bar", [trouverLieu]);
-  const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsExemples(new Date()));
+  const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsDepart(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
   const minuteries = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -42,7 +47,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   useEffect(() => {
     lireConversationsLocales().then((lues) => {
       charge.current = true;
-      if (lues) setConversations(lues);
+      if (lues) setConversations(DEMO_VISITES_ACTIVE ? lues : lues.filter((c) => !c.participants.some((id) => idsPotesExemples.has(id))));
       setPret(true);
     });
     const enCours = minuteries.current;
@@ -198,7 +203,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         minuteries.current.forEach(clearTimeout);
         minuteries.current = [];
         await effacerConversationsLocales();
-        setConversations(creerConversationsExemples(new Date()));
+        setConversations(creerConversationsDepart(new Date()));
       },
     };
   }, [conversations, bloques, estSignale, moi, moyenAjout, estUnBar, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);

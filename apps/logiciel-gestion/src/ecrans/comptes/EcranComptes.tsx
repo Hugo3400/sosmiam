@@ -21,6 +21,7 @@ import type { Alertes } from "~/services/alertes.ts";
 import { listerComptes, type FiltresComptes } from "~/services/comptes.ts";
 import { lireSurveillance } from "~/services/surveillance.ts";
 import { FicheCompte } from "./FicheCompte.tsx";
+import { PastillesConnexion } from "./PastillesConnexion.tsx";
 import { PanneauSurveillance } from "./PanneauSurveillance.tsx";
 
 type Props = { ouvrir?: { id: number } | null; surveillance?: Alertes["surveillance"]; onDecision: () => void };
@@ -32,6 +33,8 @@ type Props = { ouvrir?: { id: number } | null; surveillance?: Alertes["surveilla
 export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
   const [partie, setPartie] = useState<"comptes" | "signales" | "contestations">("comptes");
   const [role, setRole] = useState<FiltresComptes["role"]>("");
+  const [methode, setMethode] = useState<FiltresComptes["methode"]>("");
+  const [lieu, setLieu] = useState<FiltresComptes["lieu"]>("");
   const [saisie, setSaisie] = useState("");
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(1);
@@ -40,7 +43,7 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
   useEffect(() => {
     if (ouvrir) setOuvert(ouvrir.id);
   }, [ouvrir]);
-  const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerComptes({ recherche, role, page }), [recherche, role, page]);
+  const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerComptes({ recherche, role, page, methode, lieu }), [recherche, role, page, methode, lieu]);
   const surveille = partie !== "comptes";
   const suivi = utiliserChargement(() => (surveille ? lireSurveillance() : Promise.resolve(null)), [surveille]);
   // Après « vu », « relue » ou de nouveaux seuils : la liste se relit, et les pastilles du menu aussi
@@ -90,10 +93,11 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
         />
       )}
       {!surveille && donnees && (
-        <div className="mb-5 grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <div className="mb-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
           <TuileChiffre libelle="Comptes" valeur={donnees.total} accent />
+          <TuileChiffre libelle="Sur l'app" valeur={donnees.compteurs.surApp ?? 0} detail="connectés depuis l'app, téléphone enregistré, Google ou Apple" />
           <TuileChiffre libelle="Venus cette semaine" valeur={donnees.compteurs.actifsSemaine} detail="connectés au moins une fois en 7 jours" />
-          <TuileChiffre libelle="Avec le rôle d'ambassadeur" valeur={donnees.compteurs.ambassadeurs} />
+          <TuileChiffre libelle="Inscrits par mail" valeur={donnees.compteurs.parMail ?? 0} detail={`${donnees.compteurs.parGoogle ?? 0} avec Google · ${donnees.compteurs.parApple ?? 0} avec Apple · ${donnees.compteurs.ambassadeurs} ambassadeurs`} />
         </div>
       )}
       {!surveille && <Carte sansMarge titre={`Comptes${donnees ? ` (${formaterNombre(donnees.trouves)})` : ""}`}>
@@ -104,8 +108,19 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
             onChange={(valeur) => { setRole(valeur); setPage(1); }}
             options={[{ valeur: "", libelle: "Tous" }, { valeur: "ambassadeur", libelle: "Ambassadeurs" }, { valeur: "sans-role", libelle: "Sans rôle" }]}
           />
+          <Onglets
+            libelle="Connexion"
+            valeur={methode}
+            onChange={(valeur) => { setMethode(valeur); setPage(1); }}
+            options={[{ valeur: "", libelle: "Toutes" }, { valeur: "mail", libelle: "Mail" }, { valeur: "google", libelle: "Google" }, { valeur: "apple", libelle: "Apple" }]}
+          />
+          <Onglets
+            libelle="Où"
+            valeur={lieu}
+            onChange={(valeur) => { setLieu(valeur); setPage(1); }}
+            options={[{ valeur: "", libelle: "Partout" }, { valeur: "app", libelle: "App" }, { valeur: "site", libelle: "Site seulement" }]}
+          />
           <Champ libelle={<span className="inline-flex items-center gap-1"><Search className="size-3.5" aria-hidden /> Recherche</span>} valeur={saisie} onChange={setSaisie} placeholder="Prénom ou adresse" className="w-72" />
-          <p className="pb-2 text-[13px] text-gris">Les pros auront leur rôle ici quand l'espace pro ouvrira.</p>
         </div>
         <div className="px-5 pt-3"><MessageErreur erreur={erreur} reessayer={recharger} /></div>
         {!donnees && chargement && <Chargement />}
@@ -125,6 +140,7 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
                     <button type="button" onClick={() => setOuvert(compte.id)} className="min-w-0 flex-1 text-left">
                       <span className="block truncate font-semibold hover:underline">{compte.prenom} <span className="font-normal text-gris">{compte.pseudo ? `· @${compte.pseudo} ` : ""}· n° {compte.id}{compte.ville ? ` · ${compte.ville}` : ""}</span></span>
                       <span className="block truncate text-gris">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></span>
+                      <span className="mt-1 block"><PastillesConnexion connexions={compte.connexions} surApp={compte.surApp} /></span>
                     </button>
                     <span className="w-44">{role ? <Badge ton={role.ton}>Ambassadeur · {role.libelle}</Badge> : <Badge>Sans rôle</Badge>}</span>
                     <span className="w-44 truncate">{palier ? `${palier.emoji} ${palier.nom}` : compte.palier}</span>

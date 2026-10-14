@@ -24,12 +24,23 @@ import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { ContexteSuivisPersonnes, type EtatSuivisPersonnes, type RelationPersonne, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerSuivisPersonnesLocaux, enregistrerSuivisPersonnesLocaux, lireSuivisPersonnesLocaux, type SuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
 type NomListe = "abonnements" | "demandesEnvoyees" | "abonnes" | "demandesRecues";
 
 const AUCUNE_CLE: readonly string[] = [];
 const contient = (liens: LienSuivi[], id: string) => liens.some((l) => l.id === id);
+/** Hors démo, au départ : aucun lien (privé avant 18 ans, public ensuite, à changer dans tes réglages) */
+const creerSuivisVides = (moiMineur: boolean): Omit<SuivisPersonnesLocaux, "version" | "profilCreeLe"> => ({
+  confidentialite: moiMineur ? "prive" : "public",
+  abonnements: [],
+  demandesEnvoyees: [],
+  abonnes: [],
+  demandesRecues: [],
+  suggestionsMasquees: [],
+  ...(moiMineur ? { etaitMineur: true } : {}),
+});
 
 /**
  * Abonnés, abonnements et demandes entre personnes (démo gardée sur le téléphone en attendant l'API). Les règles s'appliquent
@@ -94,7 +105,9 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   useEffect(() => {
     if (!relu || !communaute.pret || creeLe === null || effacePour.current === creeLe) return;
     if (etatCourant.current?.profilCreeLe === creeLe) return;
-    const neuf: SuivisPersonnesLocaux = { version: 1, profilCreeLe: creeLe, ...creerSuivisDemo(moiMineur, new Date()) };
+    // Hors démo : personne ne te suit encore, et tu ne suis personne (privé avant 18 ans, comme toujours)
+    const depart = DEMO_VISITES_ACTIVE ? creerSuivisDemo(moiMineur, new Date()) : creerSuivisVides(moiMineur);
+    const neuf: SuivisPersonnesLocaux = { version: 1, profilCreeLe: creeLe, ...depart };
     etatCourant.current = neuf;
     setEtat(neuf);
   }, [relu, communaute.pret, creeLe, moiMineur, etat]);

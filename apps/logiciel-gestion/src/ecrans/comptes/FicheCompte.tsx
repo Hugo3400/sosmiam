@@ -1,4 +1,4 @@
-import { Download, KeyRound, LogOut, Trash2 } from "lucide-react";
+import { Download, KeyRound, LogOut, MailCheck, PenLine, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
@@ -7,6 +7,8 @@ import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { MailsRecusDe } from "~/ecrans/boite/MailsRecusDe.tsx";
 import { DateNaissanceCompte } from "./DateNaissanceCompte.tsx";
+import { ModaleIdentite } from "./ModaleIdentite.tsx";
+import { PastillesConnexion } from "./PastillesConnexion.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
@@ -18,7 +20,7 @@ import { formaterDateRelative } from "~/fonctions/texte/formater-date-relative.t
 import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
-import { deconnecterCompte, exporterDonneesCompte, lireCompte, reinitialiserMotDePasseCompte, supprimerCompte } from "~/services/comptes.ts";
+import { deconnecterCompte, exporterDonneesCompte, lireCompte, reinitialiserMotDePasseCompte, renvoyerVerificationCompte, supprimerCompte } from "~/services/comptes.ts";
 import { copier, enregistrerFichier } from "~/services/systeme.ts";
 
 const SUPPORTS: Record<string, string> = { site: "Site", app: "App" };
@@ -27,6 +29,7 @@ const SUPPORTS: Record<string, string> = { site: "Site", app: "App" };
 export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: () => void; onChange: () => void }) {
   const { donnees: compte, erreur, chargement, recharger } = utiliserChargement(() => lireCompte(id), [id]);
   const [etat, setEtat] = useState<{ enCours: boolean; texte: string | null; lien: string | null }>({ enCours: false, texte: null, lien: null });
+  const [identite, setIdentite] = useState(false);
 
   async function agir(action: () => Promise<string | void>) {
     setEtat({ enCours: true, texte: null, lien: null });
@@ -55,6 +58,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
           </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
             <dt className="text-gris">Adresse</dt><dd className="truncate">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></dd>
+            <dt className="text-gris">Se connecte avec</dt><dd><PastillesConnexion connexions={compte.connexions} /></dd>
             {compte.pseudo && <><dt className="text-gris">Pseudo</dt><dd>@{compte.pseudo}{compte.prive ? " · profil privé" : ""}</dd></>}
             {compte.ville && <><dt className="text-gris">Ville</dt><dd>{compte.ville}</dd></>}
             <DateNaissanceCompte compteId={compte.id} prenom={compte.prenom} renseignee={Boolean(compte.dateNaissanceRenseignee)} onChange={recharger} />
@@ -91,6 +95,15 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
               <BoutonEcrireMail destinataire={{ compteId: compte.id, adresse: compte.email, prenom: compte.prenom }} categorie="autre" />
               <BoutonReponseType categorie="autre" adresse={compte.email} compteId={compte.id} prenom={compte.prenom} />
               <MailsRecusDe adresse={compte.email} prenom={compte.prenom} />
+              <Bouton petit icone={PenLine} onClick={() => setIdentite(true)}>Modifier prénom et nom</Bouton>
+              {!compte.emailVerifieLe && (
+                <Bouton petit icone={MailCheck} desactive={etat.enCours} onClick={() => agir(async () => {
+                  const { expireLe } = await renvoyerVerificationCompte(compte.id);
+                  return `Mail de confirmation renvoyé à ${compte.email} ✅ (lien valable jusqu'au ${formaterDate(expireLe, true)}).`;
+                })}>
+                  Renvoyer la confirmation de l'adresse
+                </Bouton>
+              )}
               <Bouton
                 petit
                 icone={Download}
@@ -142,6 +155,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
               </Bouton>
             </div>
             {etat.texte && <p role="status" className="text-sm font-semibold">{etat.texte}</p>}
+            <ModaleIdentite compteId={compte.id} ouverte={identite} onFermer={() => setIdentite(false)} onCorrige={() => (recharger(), onChange(), setEtat({ enCours: false, texte: "Prénom et nom corrigés ✅", lien: null }))} />
             {etat.lien && (
               <div className="flex flex-wrap items-center gap-2 rounded-xl bg-creme p-3">
                 <code className="min-w-0 flex-1 overflow-x-auto text-xs whitespace-nowrap">{etat.lien}</code>
