@@ -7,12 +7,13 @@ export function preparerProfilEnvoi(profil: Profil): ProfilInscription {
   for (const [categorie, ids] of Object.entries(profil.envies)) {
     if (categorie !== "regimes" && ids && ids.length > 0) envies[categorie] = ids;
   }
+  // Nom et pseudo seulement s'ils sont donnés (l'API les laisse alors vides)
   return {
     prenom: profil.prenom,
-    nom: profil.nom ?? null,
+    ...(profil.nom ? { nom: profil.nom } : {}),
     dateNaissance: profil.dateNaissance,
     ville: profil.ville,
     envies,
-    pseudo: profil.pseudo ?? null,
+    ...(profil.pseudo ? { pseudo: profil.pseudo } : {}),
   };
 }

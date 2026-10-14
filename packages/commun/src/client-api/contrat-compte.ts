@@ -18,8 +18,11 @@ export interface ServiceCompte {
   deconnecter(): Promise<ReponseApi>;
   deconnecterPartout(): Promise<ReponseApi>;
   lireProfil(): Promise<ReponseApi<{ profil: ProfilServeur }>>;
-  /** Champ absent : inchangé ; la date de naissance ne change jamais ici */
-  modifierProfil(modifs: Partial<Omit<ProfilServeur, "dateNaissance" | "emailVerifie" | "age">>): Promise<ReponseApi<{ profil: ProfilServeur }>>;
+  /**
+   * Champ absent : inchangé. La date de naissance se donne UNE fois, seulement pour un compte du site qui n'en a pas (18 ans
+   * ou plus, sinon « age-minimum ») ; ensuite, seule l'équipe la corrige (« champ-invalide », champ dateNaissance).
+   */
+  modifierProfil(modifs: Partial<Omit<ProfilServeur, "emailVerifie" | "age">>): Promise<ReponseApi<{ profil: ProfilServeur }>>;
   pseudoDisponible(pseudo: string): Promise<ReponseApi<{ disponible: boolean }>>;
   lireConnexions(): Promise<ReponseApi<{ connexions: ConnexionsCompte }>>;
   /** Un nouveau jeton remplace celui en cours (toutes les autres sessions sont fermées) */

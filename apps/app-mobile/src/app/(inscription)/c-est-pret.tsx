@@ -4,15 +4,23 @@ import { Alert, Text, View } from "react-native";
 
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { preparerProfilEnvoi } from "~/fonctions/compte/preparer-profil-envoi";
 import { construireProfil } from "~/fonctions/inscription/construire-profil";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
+import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSession } from "~/hooks/utiliser-session";
 
-/** Étape 4 sur 4 : récapitulatif, puis enregistrement du profil (la racine bascule alors vers les onglets). */
+/**
+ * Étape 4 sur 4 : récapitulatif, puis le compte est créé sur le serveur (e-mail, Apple ou Google) ou complété (compte du
+ * site), et le profil enregistré sur le téléphone (la racine bascule alors vers les onglets). Les régimes restent sur le
+ * téléphone. En démo (sans connexion), seulement le profil du téléphone.
+ */
 export default function CEstPret() {
   const router = useRouter();
   const { brouillon, verrouAge } = utiliserBrouillonInscription();
   const { enregistrer } = utiliserProfil();
+  const session = utiliserSession();
   const [envoi, setEnvoi] = useState(false);
   const profil = construireProfil(brouillon);
 
@@ -38,12 +46,52 @@ export default function CEstPret() {
   async function decouvrir() {
     if (!profil || envoi || verrouAge) return;
     setEnvoi(true);
+    if (!(await creerLeCompte())) return setEnvoi(false);
     try {
       await enregistrer(profil);
     } catch {
       setEnvoi(false);
       Alert.alert("Oups", "Ton profil n'a pas pu être enregistré sur ce téléphone. Réessaie dans un instant.");
     }
+  }
+
+  /** Le compte sur le serveur (rien en démo) ; faux s'il n'a pas pu être créé (l'erreur est montrée, et on renvoie au bon écran) */
+  async function creerLeCompte(): Promise<boolean> {
+    const connexion = brouillon.connexion;
+    if (!connexion || !profil) return true;
+    const envoi = preparerProfilEnvoi(profil);
+    if (connexion.type === "completer") {
+      // Compte du site : la date de naissance se donne une seule fois ; déjà gardée, on n'insiste pas
+      let r = await session.comptes.modifierProfil(envoi);
+      if (!r.ok && r.erreur === "champ-invalide" && r.champ === "dateNaissance") {
+        const { dateNaissance: _date, ...sansDate } = envoi;
+        r = await session.comptes.modifierProfil(sansDate);
+      }
+      if (!r.ok) montrerErreurCompte(r.erreur, r.details);
+      return r.ok;
+    }
+    const r =
+      connexion.type === "email"
+        ? await session.comptes.inscrire({ ...envoi, email: connexion.email, motDePasse: connexion.motDePasse, cgu: true })
+        : await session.comptes.connecterExterne(
+            connexion.type === "apple"
+              ? { fournisseur: "apple", identityToken: connexion.identityToken, nonce: connexion.nonce, profil: { ...envoi, cgu: true } }
+              : { fournisseur: "google", idToken: connexion.idToken, profil: { ...envoi, cgu: true } },
+          );
+    if (!r.ok) {
+      montrerErreurCompte(r.erreur, r.details);
+      // Pseudo pris : on le change ; e-mail déjà utilisé ou jeton d'Apple/Google trop vieux : on recommence la connexion
+      if (r.erreur === "pseudo-pris" || (r.erreur === "champ-invalide" && r.champ !== "motDePasse" && r.champ !== "email")) router.replace("/fais-connaissance");
+      else if (r.erreur === "jeton-externe-invalide" || r.erreur === "email-deja-utilise" || r.champ === "motDePasse" || r.champ === "email") router.replace("/compte");
+      return false;
+    }
+    if ("aCompleter" in r) {
+      montrerErreurCompte("profil-a-completer");
+      router.replace("/fais-connaissance");
+      return false;
+    }
+    await session.ouvrir(r);
+    return true;
   }
 
   return (
@@ -61,7 +109,11 @@ export default function CEstPret() {
         <Text className="font-texte text-base text-encre">
           💛 {nombreEnvies > 0 ? `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} pour te proposer les bons lieux` : "Pas d'envie choisie : tu pourras en ajouter plus tard"}
         </Text>
-        <Text className="font-texte text-base text-encre">🔒 Tes infos restent sur ton téléphone, dans son coffre-fort chiffré.</Text>
+        <Text className="font-texte text-base text-encre">
+          {brouillon.connexion
+            ? "🔒 Ton compte est gardé sur notre serveur : ton nom et ta date de naissance y sont chiffrés. Tes régimes restent sur ton téléphone."
+            : "🔒 Tes infos restent sur ton téléphone, dans son coffre-fort chiffré."}
+        </Text>
       </View>
     </EcranEtape>
   );
