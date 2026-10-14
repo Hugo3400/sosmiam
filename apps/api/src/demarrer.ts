@@ -20,7 +20,7 @@ import { prevenirEquipeMiamSafe } from "./services/notifications/prevenir-equipe
 import { servicesMiamSafe } from "./services/miam-safe.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
-import { marquerMessageLu, messagesDuCompte, missionsDuCompte, terminerMission } from "./services/gestion/missions-messages.ts";
+import { marquerMessageLu, messagesDuCompte, missionsDuCompte, noterPresence, terminerMission } from "./services/gestion/missions-messages.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
@@ -138,7 +138,7 @@ const serveur = creerApplication({
     // Case « newsletter » cochée à la création d'un compte de l'app (inscription, Apple, Google) : soft opt-in de la CNIL
     newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app") },
   },
-  espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
+  espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu, noterPresence },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
   zones,
   // Miam Safe : l'alerte silencieuse part aussitôt vers les téléphones de l'équipe du lieu
