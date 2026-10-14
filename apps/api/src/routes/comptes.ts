@@ -72,8 +72,9 @@ export type DependancesComptes = {
   /** Connexion avec Apple et Google : données (services/comptes-externes.ts, ou la mémoire) et vérificateurs des jetons
    * (services/connexion-externe.ts) ; absent : POST /comptes/apple et /comptes/google répondent 503 */
   externes?: DependancesConnexionExterne;
-  /** Newsletter cochée à la création d'un compte de l'app (inscription « app », Apple, Google) : inscrireCompteNewsletter
-   * (services/gestion/newsletter.ts) en vrai ; absente : la case est lue et vérifiée, mais personne n'est inscrit */
+  /** Case « newsletter » à la création d'un compte : cochée dans l'app (inscription « app », Apple, Google),
+   * inscrireCompteNewsletter ; décochée (app, Apple, Google, espace ambassadeur), noterRefus : noterDesinscription
+   * (services/gestion/newsletter.ts) en vrai ; absente : la case est lue et vérifiée, mais rien n'est fait */
   newsletter?: InscriptionNewsletterComptes;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
@@ -128,12 +129,16 @@ export type DependancesComptes = {
  *                                        pseudo? (forme estPseudoValide, sans « @ », mis en minuscules, sans gros mot,
  *                                        sinon 400 {champ: pseudo}). La date de naissance est GARDÉE, chiffrée. Le lien de
  *                                        confirmation de l'e-mail part comme pour les autres (ambassadeur.sosmiam.fr).
- *                                        newsletter? (booléen ; « soft opt-in » de la CNIL : l'app montre à l'inscription
- *                                        une case claire, cochée, que la personne peut décocher) : true → après la création,
- *                                        l'e-mail (en minuscules) et la ville du profil sont inscrits à la newsletter, SANS
- *                                        attendre (une panne est journalisée sans l'e-mail et n'empêche jamais l'inscription) ;
- *                                        false, absent ou null (anciennes versions de l'app) → rien ; autre valeur → 400
- *                                        {champ: newsletter}. Ignoré pour les espaces « ambassadeur » et « pro ».
+ *                                        newsletter? (booléen ; « soft opt-in » de la CNIL : l'app, et le formulaire de
+ *                                        l'espace ambassadeur, montrent à l'inscription une case claire, cochée, que la
+ *                                        personne peut décocher) : true → espace « app » : après la création, l'e-mail (en
+ *                                        minuscules) et la ville du profil sont inscrits à la newsletter ; espace
+ *                                        « ambassadeur » : rien ici (l'inscription se fait à la validation, dans le logiciel
+ *                                        de gestion). false → après la création, le refus est retenu (noterRefus : l'e-mail
+ *                                        rejoint la liste des désinscrits, 3 ans), pour qu'aucune inscription automatique ne
+ *                                        le reprenne. Les deux SANS attendre (une panne est journalisée sans l'e-mail et
+ *                                        n'empêche jamais l'inscription). Absent ou null (anciennes versions) → rien ; autre
+ *                                        valeur → 400 {champ: newsletter}. Ignoré pour l'espace « pro ».
  * POST   /comptes/session               { email, motDePasse, support? } → 201 { ok, session, compte } · 400 · 401
  *                                        identifiants · 429 {attente} (support : « site » par défaut, ou « app »)
  * POST   /comptes/apple                 { identityToken, nonce, prenom?, nom?, dateNaissance?, ville?, envies?, pseudo?,
@@ -248,7 +253,7 @@ export type DependancesComptes = {
  *   d) sinon, création d'un compte de l'app, avec les mêmes champs et règles que l'inscription « app » : prenom,
  *      dateNaissance, ville et cgu: true obligatoires (comme l'inscription ; la version du jour est gardée) ; nom?,
  *      envies?, pseudo?, newsletter? (comme l'inscription « app » : true inscrit l'e-mail du jeton à la newsletter
- *      après la création, sans attendre ; autre valeur qu'un booléen → 400 {champ: newsletter} ; lu SEULEMENT à la
+ *      après la création, false retient le refus, sans attendre ; autre valeur qu'un booléen → 400 {champ: newsletter} ; lu SEULEMENT à la
  *      création : en b et c, il est ignoré). D'abord l'âge : dateNaissance sous 18 ans → 403 age-minimum, rien n'est gardé. Sans clé de
  *      chiffrement : 503 chiffrement-indisponible. cgu envoyé mais pas true : 400 champ-invalide {champ: cgu}. Si
  *      prenom, dateNaissance, ville ou cgu manquent → 409 { ok: false, erreur: "profil-a-completer", manque: [ces champs,

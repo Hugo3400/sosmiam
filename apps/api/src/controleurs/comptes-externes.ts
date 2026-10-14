@@ -18,7 +18,7 @@ import type { ServicesComptesExternes } from "../services/comptes-externes-regle
 import type { VerifierJetonExterne } from "../services/connexion-externe.ts";
 import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
 import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
-import { inscrireNewsletterSansAttendre, lireChoixNewsletter } from "./comptes-newsletter.ts";
+import { inscrireNewsletterSansAttendre, lireChoixNewsletter, noterRefusNewsletterSansAttendre } from "./comptes-newsletter.ts";
 import { lireProfilApp, lireSupport, repondreChiffrementIndisponible, VERSION_CGU, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -122,7 +122,9 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     });
     if (id === "pseudo-pris") return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
     if (id === null) return "recommencer" as const;
-    if (newsletter) inscrireNewsletterSansAttendre(contexte.newsletter, email, profil.ville);
+    if (newsletter === true) inscrireNewsletterSansAttendre(contexte.newsletter, email, profil.ville);
+    // Décochée : le « non » est retenu (liste des désinscrits), pour qu'on ne l'inscrive jamais par erreur
+    if (newsletter === false) noterRefusNewsletterSansAttendre(contexte.newsletter, email);
     await repondreSession(reponse, id, support, 201);
   }
 

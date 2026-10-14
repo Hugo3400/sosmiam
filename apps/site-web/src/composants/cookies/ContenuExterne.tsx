@@ -4,6 +4,7 @@ import { useLocation } from "react-router";
 import { Bouton } from "~/composants/interface/Bouton";
 import type { IdCategorieFacultative } from "~/contenus/cookies-consentement";
 import { choisirAffichageContenuExterne } from "~/fonctions/consentement/choisir-affichage-contenu-externe";
+import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour-consentement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConsentement } from "~/hooks/utiliser-consentement";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
@@ -63,7 +64,7 @@ export function ContenuExterne({ fournisseur, genre, titre, lienDirect, proporti
         {javascript && <Bouton petit onClick={() => setAfficheUneFois(true)}>Afficher quand même</Bouton>}
         {aChoisir.some((candidate) => candidate.id === categorie) && (
           <form method="post" action={actionFormulaire} onSubmit={envoyerFormulaire}>
-            <input type="hidden" name="retour" value={`${location.pathname}${location.search}`} />
+            <input type="hidden" name="retour" value={ecrireRetourConsentement(location.pathname, location.search)} />
             <input type="hidden" name="categorie" value={categorie} />
             <Bouton type="submit" name="geste" value="accepter-categorie" variante="blanc" petit>Toujours afficher {les}</Bouton>
           </form>

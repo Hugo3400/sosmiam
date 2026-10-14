@@ -2,6 +2,7 @@ import { useLocation } from "react-router";
 
 import { PanneauChoixCookies } from "~/composants/cookies/PanneauChoixCookies";
 import { calculerFinConsentement } from "~/fonctions/consentement/calculer-fin-consentement";
+import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour-consentement";
 import { formaterJourEnLettres } from "~/fonctions/dates/formater-jour-en-lettres";
 import { utiliserConsentement } from "~/hooks/utiliser-consentement";
 
@@ -32,7 +33,7 @@ export function ReglagesCookies() {
       onSubmit={envoyerFormulaire}
       className="rounded-carte border-2 border-encre bg-white p-5 text-encre shadow-brut sm:p-6"
     >
-      <input type="hidden" name="retour" value={`${location.pathname}${location.search}#mes-choix`} />
+      <input type="hidden" name="retour" value={ecrireRetourConsentement(location.pathname, location.search, "#mes-choix")} />
       {apercu && <p className="mb-3 rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">Aperçu : le partenaire est imaginaire.</p>}
       <p role="status" className="mb-4 font-semibold">{etat}</p>
       <PanneauChoixCookies prefixe="page" Titre="h4" />

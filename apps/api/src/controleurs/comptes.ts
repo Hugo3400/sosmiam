@@ -28,7 +28,7 @@ import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompt
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
-import { inscrireNewsletterSansAttendre, lireChoixNewsletter, type InscriptionNewsletterComptes } from "./comptes-newsletter.ts";
+import { inscrireNewsletterSansAttendre, lireChoixNewsletter, noterRefusNewsletterSansAttendre, type InscriptionNewsletterComptes } from "./comptes-newsletter.ts";
 import type { DependancesConnexionExterne } from "./comptes-externes.ts";
 import { lireEnvies, lireNomChiffre, lirePseudo } from "./comptes-profil-champs.ts";
 import type { LimiteEnvois } from "./comptes-limite-envois.ts";
@@ -107,7 +107,8 @@ export type ContexteComptes = {
   lireCompteVu: (id: number) => Promise<CompteConnecte | null>;
   /** Connexion avec Apple ou Google (controleurs/comptes-externes.ts) ; null : non branchée (routes /apple et /google : 503) */
   externes: DependancesConnexionExterne | null;
-  /** Newsletter cochée à la création d'un compte de l'app (controleurs/comptes-newsletter.ts) ; absente : on n'inscrit pas */
+  /** Case « newsletter » à la création d'un compte (app, Apple, Google, espace ambassadeur) : inscrire, ou retenir le refus
+   * (controleurs/comptes-newsletter.ts) ; absente : ni inscription ni refus retenu */
   newsletter?: InscriptionNewsletterComptes;
   /** Repasser en public par le profil accepte les demandes de suivi en attente (partie sociale) ; absente : rien de plus */
   apresPassageEnPublic?: (compteId: number) => Promise<void>;
@@ -194,8 +195,8 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       if (age === null || dateNaissance === null) throw new ChampInvalide("dateNaissance");
       const support = lireSupport(corps, espace === "app" ? "app" : "site");
       const profil = espace === "app" && chiffrement ? lireProfilApp(corps, dateNaissance, chiffrement) : undefined;
-      // La case « newsletter » de l'app (soft opt-in) : lue seulement pour l'espace « app », ignorée ailleurs
-      const newsletter = espace === "app" && lireChoixNewsletter(corps);
+      // La case « newsletter » (soft opt-in) de l'app et de l'espace ambassadeur ; l'espace pro n'en a pas : ignorée
+      const newsletter = espace === "pro" ? null : lireChoixNewsletter(corps);
       const ville = espace === "ambassadeur" ? lireLigne(corps, "ville", 2, 80) : "";
       const quartier = espace === "ambassadeur" ? lireLigneFacultative(corps, "quartier", 80) : null;
       if (corps.cgu !== true) throw new ChampInvalide("cgu");
@@ -208,7 +209,10 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       // Impossible à cacher sans envoyer de mail ; la limite d'essais par visiteur freine qui voudrait s'en servir
       if (id === null) return reponse.status(409).json({ ok: false, erreur: "email-deja-utilise" });
       if (id === "pseudo-pris") return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
-      if (newsletter) inscrireNewsletterSansAttendre(contexte.newsletter, email, profil?.ville ?? null);
+      // Cochée : un compte de l'app est inscrit tout de suite, un ambassadeur à la validation de sa candidature (logiciel).
+      // Décochée : le « non » est retenu (liste des désinscrits), pour qu'on ne l'inscrive jamais par erreur
+      if (newsletter === true && espace === "app") inscrireNewsletterSansAttendre(contexte.newsletter, email, profil?.ville ?? null);
+      if (newsletter === false) noterRefusNewsletterSansAttendre(contexte.newsletter, email);
       // Le lien de confirmation de l'e-mail : préparé ici, envoyé sans attendre ; un raté n'empêche pas l'inscription
       // (la personne peut le redemander depuis son espace)
       await envoyerVerification(id).catch((erreur: unknown) => console.error("Comptes : lien de confirmation impossible :", resumerErreur(erreur)));

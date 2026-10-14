@@ -29,6 +29,7 @@ const { aConsenti } = await import("../src/fonctions/consentement/a-consenti.ts"
 const { lireFormulaireConsentement } = await import("../src/fonctions/consentement/lire-formulaire-consentement.ts");
 const { creerEffacementsTraceurs } = await import("../src/fonctions/consentement/creer-effacements-traceurs.ts");
 const { lireRetourConsentement } = await import("../src/fonctions/consentement/lire-retour-consentement.ts");
+const { ecrireRetourConsentement } = await import("../src/fonctions/consentement/ecrire-retour-consentement.ts");
 const { estApercuCookies } = await import("../src/fonctions/consentement/est-apercu-cookies.ts");
 const { chargerScriptSiConsentement } = await import("../src/fonctions/consentement/charger-script-si-consentement.ts");
 const { enregistrerChoixConsentement, lireEtatConsentement } = await import("../src/services/consentement.server.ts");
@@ -186,6 +187,9 @@ test("retrait : les cookies connus de la catégorie sont effacés sur l'hôte et
 });
 
 test("retour après un envoi sans JavaScript : un chemin du site seulement", () => {
+  assert.equal(ecrireRetourConsentement("/faq", "?apercu-cookies="), "/faq?apercu-cookies");
+  assert.equal(ecrireRetourConsentement("/cookies", "?apercu-cookies=&q=prix", "#mes-choix"), "/cookies?apercu-cookies&q=prix#mes-choix");
+  assert.equal(ecrireRetourConsentement("/", ""), "/");
   for (const bon of ["/", "/faq", "/cookies?apercu-cookies#mes-choix", "/lieux/12?apercu-cookies"]) assert.equal(lireRetourConsentement(bon), bon);
   for (const mauvais of ["//exemple.fr", "/\\exemple.fr", "https://exemple.fr", "javascript:alert(1)", "faq", "/a b", null, 12]) {
     assert.equal(lireRetourConsentement(mauvais), null, String(mauvais));

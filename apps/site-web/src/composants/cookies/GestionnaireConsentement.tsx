@@ -16,6 +16,7 @@ import { choisirReglagesCookieConsentement } from "~/fonctions/consentement/choi
 import { creerEffacementsTraceurs } from "~/fonctions/consentement/creer-effacements-traceurs";
 import { doitAfficherBandeau } from "~/fonctions/consentement/doit-afficher-bandeau";
 import { ecrireCookieConsentement } from "~/fonctions/consentement/ecrire-cookie-consentement";
+import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour-consentement";
 import { lireChoixConsentement } from "~/fonctions/consentement/lire-choix-consentement";
 import { lireFormulaireConsentement } from "~/fonctions/consentement/lire-formulaire-consentement";
 import { listerCategoriesAChoisir } from "~/fonctions/consentement/lister-categories-a-choisir";
@@ -152,7 +153,7 @@ export function GestionnaireConsentement({ etat, children }: Props) {
         <BandeauCookies
           panneauOuvert={panneauOuvert}
           gestion={!bandeau}
-          retour={`${location.pathname}${location.search}`}
+          retour={ecrireRetourConsentement(location.pathname, location.search)}
           adresseReglages={ADRESSE_REGLAGES_COOKIES.replace("#", `${suffixeApercu}#`)}
           adressePage={`/cookies${suffixeApercu}`}
           onChoisir={() => setPanneauOuvert(true)}

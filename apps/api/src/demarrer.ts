@@ -172,7 +172,9 @@ const serveur = creerApplication({
       google: creerVerificateurGoogle({ audiences: audiencesGoogle }),
     },
     // Case « newsletter » cochée à la création d'un compte de l'app (inscription, Apple, Google) : soft opt-in de la CNIL
-    newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app") },
+    newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app"),
+      // Case décochée (app, Apple, Google ou espace ambassadeur) : le « non » rejoint la liste des désinscrits (3 ans)
+      noterRefus: (email) => noterDesinscription(email) },
     // Repasser en public par le profil accepte les demandes de suivi en attente, comme PUT /app/suivis-personnes/confidentialite
     apresPassageEnPublic: creerApresPassageEnPublic(socialApp, Date.now),
   },
