@@ -2,15 +2,19 @@ import type { Href } from "expo-router";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
-import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import type { Publication } from "~/contenus/type-publication";
+import { decrireNotificationCloche } from "~/fonctions/notifications/decrire-notification-cloche";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import type { NotificationApp } from "~/hooks/utiliser-notifications";
 
-/** Ce qu'une ligne de notification affiche : un emoji (avatar, 🎬, emoji du lieu), une phrase, et ce qu'elle ouvre */
-/** alcool : la notification cite une publication de bar ou qui parle d'alcool (le message sanitaire s'affiche dessous) */
-export type NotificationDecrite = { emoji: string; texte: string; ouvrir: Href | null; alcool?: boolean };
+/**
+ * Ce qu'une ligne de notification affiche : un emoji (avatar, 🎬, emoji du lieu), une phrase, et ce qu'elle ouvre. alcool :
+ * la notification cite une publication de bar ou qui parle d'alcool (le message sanitaire s'affiche dessous). indice : ce
+ * que la ligne ouvre, lu par VoiceOver (cloche du serveur ; sinon, d'après la clé)
+ */
+export type NotificationDecrite = { emoji: string; texte: string; ouvrir: Href | null; alcool?: boolean; indice?: string };
 
 type Sources = {
   trouverPote: (id: string) => Pote | null;
@@ -29,9 +33,12 @@ const couperLegende = (legende: string) => {
 
 /**
  * La phrase d'une notification, prête à afficher (ponctuation liée). Rend null si ce dont elle parle n'existe plus :
- * personne inconnue, publication ou lieu disparu. Le filtre des bloqués est fait avant, par le fournisseur.
+ * personne inconnue, publication ou lieu disparu. Le filtre des bloqués est fait avant, par le fournisseur. Les types de la
+ * cloche du serveur sont écrits par decrireNotificationCloche.
  */
-export function decrireNotificationSuivi(n: NotificationSuivi, { trouverPote, publications, lieux }: Sources): NotificationDecrite | null {
+export function decrireNotificationSuivi(n: NotificationApp, sources: Sources): NotificationDecrite | null {
+  if (n.type === "cloche") return decrireNotificationCloche(n, sources);
+  const { trouverPote, publications, lieux } = sources;
   const cible = lireCleSuivi(n.cle);
   if (!cible) return null;
 
