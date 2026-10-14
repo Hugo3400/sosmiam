@@ -96,10 +96,11 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
   useEffect(() => {
     lireCommunauteLocale().then((lue) => {
       charge.current = true;
-      // Démo : enregistrée avant les derniers exemples, elle les reçoit une fois (sans rien perdre de ce que tu y as changé).
+      // Démo : enregistrée avant les derniers exemples, elle les reçoit une fois (sans rien perdre de ce que tu y as changé) ;
+      // un état gardé hors démo (exemples: 0, bande vide) n'est pas une démo : elle repart de ses exemples, bande comprise.
       // Hors démo : un état gardé par une démo (exemples reçus) repart à vide
-      if (lue && DEMO_VISITES_ACTIVE) setEtat(ajouterNouveauxExemples(lue, new Date()));
-      else if (lue && lue.exemples === 0) setEtat(lue);
+      if (lue && DEMO_VISITES_ACTIVE && lue.exemples !== 0) setEtat(ajouterNouveauxExemples(lue, new Date()));
+      else if (lue && !DEMO_VISITES_ACTIVE && lue.exemples === 0) setEtat(lue);
       setPret(true);
     });
     const enCours = minuteries.current;

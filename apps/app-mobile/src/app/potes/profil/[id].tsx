@@ -23,6 +23,7 @@ import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
@@ -56,6 +57,8 @@ export default function ProfilPote() {
   const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Compte connecté : son profil est lu sur le serveur (la communauté le connaît ensuite)
+  const lecture = utiliserProfilCommunautaire(id);
   const pote = communaute.trouverPote(id);
   const estMoi = id === monId;
   const bloque = communaute.bloques.some((p) => p.id === id);
@@ -86,7 +89,7 @@ export default function ProfilPote() {
   if (relation?.demandeRecue && !bandeDemande) setBandeDemande(true);
 
   // Tant que les suivis (et la communauté) ne sont pas relus : un écran crème, comme l'onglet Potes, plutôt qu'un faux « introuvable »
-  if (!suivis.pret) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
+  if (!suivis.pret || (lecture.chargement && !pote)) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
 
   if (!pote || (!estMoi && !bloque && !relation)) {
     return (
