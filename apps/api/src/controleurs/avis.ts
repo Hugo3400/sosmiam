@@ -29,7 +29,7 @@ export type DependancesAvis = Omit<ContexteAvis, "horloge"> & {
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */
 const STATUTS: Partial<Record<ErreurAvis, number>> = {
   introuvable: 404, "lieu-inconnu": 404,
-  "role-requis": 403, "membre-du-lieu": 403, "mineur-bar": 403, "email-non-verifie": 403,
+  "role-requis": 403, "membre-du-lieu": 403, "email-non-verifie": 403,
   "avis-pas-ouvert": 409, "avis-ferme": 409, "avis-deja-donne": 409, "avis-visite-requise": 409, "avis-recent": 409, "deja-relu": 409,
   "reponse-deja-donnee": 409,
 };

@@ -42,7 +42,7 @@ const MICRO_INDISPONIBLE =
  * le texte, et le rond jaune qui envoie (ou, champ vide, qui enregistre une note vocale).
  */
 export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Props) {
-  const { trouverConversation, peutEnvoyerMedias, envoyerTexte } = utiliserConversations();
+  const { trouverConversation, envoyerTexte } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
   const champ = useRef<TextInput>(null);
   const [texte, setTexte] = useState("");
@@ -73,11 +73,10 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
   }, [enregistrement]);
 
   const conversation = trouverConversation(conversationId);
-  const medias = peutEnvoyerMedias(conversationId);
   const pote = conversation?.type === "prive" ? trouverPote(conversation.participants.find((id) => id !== ID_MOI) ?? "") : null;
   const invitation = pote ? `Écris à ${pote.prenom}…` : "Écris au groupe…";
   const longueur = texte.trim().length;
-  const micro = longueur === 0 && medias;
+  const micro = longueur === 0;
 
   function montrerErreur(probleme: ProblemeEnregistrement) {
     setErreur(probleme);
@@ -150,7 +149,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
         <View className="flex-row items-end gap-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={medias ? "Partager un lieu ou une photo" : "Partager un lieu"}
+            accessibilityLabel="Partager un lieu ou une photo"
             onPress={() => {
               vibrerLegerement();
               // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes

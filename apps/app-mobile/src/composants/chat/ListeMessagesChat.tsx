@@ -37,10 +37,6 @@ type Props = {
   conversation: Conversation;
   /** Les autres membres qu'on montre (sans toi ni les personnes bloquées) ; pour un message privé, le pote */
   membres: Pote[];
-  /** Photos et notes vocales permises (sinon, le haut de la liste explique pourquoi) */
-  mediasPermis: boolean;
-  /** Un ou une 15-17 ans dans la conversation : pas de bar proposé */
-  mineurPresent: boolean;
   /** L'écran est visible (ni quitté, ni recouvert par un profil ou une autre discussion) : seulement alors, les messages reçus sont lus */
   aLEcran: boolean;
   /** Quelqu'un bloqué depuis le menu d'un message (la feuille est déjà fermée) */
@@ -62,7 +58,7 @@ const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
  * Les messages d'une conversation : jour au-dessus de chaque nouvelle journée, séries par auteur, bulles BulleChat.
  * Reste collée en bas tant qu'on y est ; les messages des potes sont lus par le lecteur d'écran dès qu'ils arrivent.
  */
-export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurPresent, aLEcran, onBloque, ref }: Props) {
+export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, ref }: Props) {
   const { trouverPote } = utiliserCommunaute();
   const { trouverLieu } = utiliserLieux();
   const animationsReduites = useReducedMotion();
@@ -190,11 +186,6 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
 
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
   const confidentialite = prive ? `🔒 Rien qu'entre ${prive} et toi.` : "🔒 Seuls les membres de la conversation voient ces messages.";
-  const protection = !mediasPermis
-    ? "🛡️ Il y a des 15-17 ans dans la conversation : pas de photo, pas de vocal, pas de bar. Les emoji, eux, sont illimités."
-    : mineurPresent
-      ? "🛡️ Il y a des 15-17 ans dans la conversation : pas de bar proposé. Les emoji, eux, sont illimités."
-      : null;
 
   const enTete = useMemo(
     () => (
@@ -206,14 +197,9 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
         >
           {lierPonctuation(`${confidentialite} Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.`)}
         </Text>
-        {protection ? (
-          <Text accessibilityLabel={protection.replace("🛡️ ", "")} className="text-center font-texte text-[13px] leading-[18px] text-gris">
-            {lierPonctuation(protection)}
-          </Text>
-        ) : null}
       </View>
     ),
-    [confidentialite, protection],
+    [confidentialite],
   );
 
   const vide = useMemo(
@@ -226,15 +212,11 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
           Tout est encore à écrire
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation(
-            mediasPermis
-              ? "Dis bonjour, envoie un lieu, un vocal, une photo… Le premier message, c'est comme une entrée : ça ouvre l'appétit !"
-              : "Dis bonjour, envoie un lieu, un emoji… Le premier message, c'est comme une entrée : ça ouvre l'appétit !",
-          )}
+          {lierPonctuation("Dis bonjour, envoie un lieu, un vocal, une photo… Le premier message, c'est comme une entrée : ça ouvre l'appétit !")}
         </Text>
       </View>
     ),
-    [mediasPermis],
+    [],
   );
 
   return (

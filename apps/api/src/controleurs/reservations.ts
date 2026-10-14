@@ -13,7 +13,7 @@ import { champInvalide, poserPoints, type DependancesVisites } from "./visites.t
 /** Le statut HTTP de chaque refus des réservations (400 pour ce qui n'est pas listé : créneau, personnes, petit mot) */
 const STATUTS: Partial<Record<ErreurReservation, number>> = {
   introuvable: 404,
-  "mineur-bar": 403, "membre-du-lieu": 403, "compte-limite": 403, "email-non-verifie": 403, "role-requis": 403,
+  "membre-du-lieu": 403, "compte-limite": 403, "email-non-verifie": 403, "role-requis": 403,
   "lieu-non-reservable": 409, "reservation-en-cours": 409, "trop-de-reservations": 409, "transition-interdite": 409,
   "delai-depasse": 409, "hors-fenetre-presence": 409, "lieu-sans-validation": 409,
   "hors-zone": 422, "position-imprecise": 422, "position-perimee": 422, "position-simulee": 422,

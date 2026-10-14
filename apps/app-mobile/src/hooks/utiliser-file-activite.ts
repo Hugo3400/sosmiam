@@ -135,23 +135,21 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     }
   }, []);
 
-  const finir = (geste: GesteActiviteEnAttente, fin: FinRescousse) => {
-    const surFin = fins.current.get(geste);
-    fins.current.delete(geste);
-    surFin?.(fin);
-  };
-
-  const recevoir = (activite: ActiviteApi) => {
-    const maintenant = Date.now();
-    m.current.serveur = lireActiviteApi(activite, maintenant) ?? m.current.serveur;
-    m.current.luLe = maintenant;
-    m.current.essais = 0;
-  };
-
   // Le couloir unique : vide la file, puis relit si on le demande. Ne s'arrête que sur un pépin passager (nouvel essai plus tard).
   const pomper = useCallback(async () => {
     const memoire = m.current;
     if (!memoire.pret || memoire.occupe || !actifActuel.current) return;
+    const finir = (geste: GesteActiviteEnAttente, fin: FinRescousse) => {
+      const surFin = fins.current.get(geste);
+      fins.current.delete(geste);
+      surFin?.(fin);
+    };
+    const recevoir = (activite: ActiviteApi) => {
+      const maintenant = Date.now();
+      memoire.serveur = lireActiviteApi(activite, maintenant) ?? memoire.serveur;
+      memoire.luLe = maintenant;
+      memoire.essais = 0;
+    };
     const gen = generation.current;
     memoire.occupe = true;
     if (minuterie.current) clearTimeout(minuterie.current);
@@ -221,7 +219,7 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     } finally {
       if (gen === generation.current) memoire.occupe = false;
     }
-  }, [service, publier]);
+  }, [service, publier, prevenirOublies]);
 
   /** Ajoute un geste : affiché tout de suite, envoyé dès que le couloir est libre (et les gestes en attente avec lui) */
   const ajouter = useCallback(
@@ -297,9 +295,11 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
       if (etat !== "active") return;
       const { luLe, serveur } = m.current;
       const maintenant = Date.now();
-      if (maintenant - luLe > RELECTURE_MS || (serveur && maintenant >= Date.parse(serveur.rechargeLe))) m.current.relire = true;
+      const lundiPasse = serveur !== null && maintenant >= Date.parse(serveur.rechargeLe);
+      if (maintenant - luLe > RELECTURE_MS || lundiPasse) m.current.relire = true;
       m.current.essais = 0;
-      montrer();
+      // Les rescousses de la semaine passée disparaissent tout de suite, sans attendre l'API
+      if (lundiPasse) montrer();
       void pomper();
     });
     return () => abonnement.remove();
