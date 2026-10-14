@@ -60,11 +60,12 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
           const relation = relationAvec(id);
           return relation !== null && relation.jeSuis === "aucun" && relation.verdict.permis;
         };
-        if (duServeur !== null || suivis.source === "compte") {
+        if (suivis.source === "compte") {
           return (duServeur ?? []).flatMap(({ personne, raison }) => {
             const pote = trouverPote(personne.id);
             if (!pote || !estCandidat(personne.id)) return [];
-            return [{ cle: `personne:${personne.id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison: RAISONS_SUGGESTION[raison], ouvrir: { pathname: "/potes/profil/[id]" as const, params: { id: personne.id } } }];
+            const ouvrir = { pathname: "/potes/profil/[id]" as const, params: { id: personne.id } };
+            return [{ cle: `personne:${personne.id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison: RAISONS_SUGGESTION[raison], ouvrir }];
           });
         }
         const prenomDe = (id: string) => trouverPote(id)?.prenom ?? id;
