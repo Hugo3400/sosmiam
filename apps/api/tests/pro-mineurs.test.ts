@@ -1,6 +1,8 @@
 // Tests du rôle pro réservé aux 18 ans et plus, côté serveur : demander un rattachement, accepter une invitation, routes
 // /pro/… et /miam-safe/pro/… (403 reserve-aux-majeurs), inviter un compte mineur (409 compte-mineur), compte du site sans
-// date (passe), date illisible faute de clé (503). Tout en mémoire, avec une clé de TEST : aucune base.
+// date (passe), date illisible faute de clé (503). Depuis le 14 octobre 2026, on ne s'inscrit plus avant 18 ans : les
+// « mineurs » ici sont d'anciens comptes de l'app créés à 15-17 ans avant cette date (filet de sécurité). Tout en mémoire,
+// avec une clé de TEST : aucune base.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import type { AddressInfo } from "node:net";
@@ -51,6 +53,14 @@ async function creerBanc(cle: ChiffrementDonnees | null) {
     const id = [...memoire.comptes.values()].find((compte) => compte.email === email)?.id ?? 0;
     return { id, email, jeton: reponse.corps.session as string };
   }
+  /** Un ancien compte de l'app créé à 15-17 ans avant le 14 octobre 2026 : inscrit majeur, puis sa date gardée remplacée */
+  async function inscrireAncienMineur(dateNaissance: string) {
+    const compte = await inscrire("app");
+    const garde = memoire.comptes.get(compte.id);
+    assert.ok(garde && cle);
+    garde.dateNaissanceChiffree = cle.chiffrer(dateNaissance, "dateNaissance");
+    return compte;
+  }
   function ajouterLieu() {
     const id = ++prochainLieu;
     memoire.lieux.set(id, structuredClone(FICHE_TEST));
@@ -62,12 +72,12 @@ async function creerBanc(cle: ChiffrementDonnees | null) {
     memoire.rattachements.push({ id, lieuId, compteId, role, preuve: "Test.", siret: null, statut: "valide", reponse: null, creeLe: horloge, decideLe: horloge });
     return lieuId;
   }
-  return { memoire, demander, inscrire, ajouterLieu, poserValide, fermer: () => new Promise<void>((fini) => serveur.close(() => fini())) };
+  return { memoire, demander, inscrire, inscrireAncienMineur, ajouterLieu, poserValide, fermer: () => new Promise<void>((fini) => serveur.close(() => fini())) };
 }
 
 const banc = await creerBanc(chiffrement);
 after(banc.fermer);
-const { demander, inscrire, ajouterLieu, poserValide, memoire } = banc;
+const { demander, inscrire, inscrireAncienMineur, ajouterLieu, poserValide, memoire } = banc;
 const RESERVE = { ok: false, erreur: "reserve-aux-majeurs" };
 
 test("lireMajoriteCompte : sans date → majeur ; 17 ans → mineur ; 18 ans pile (jour de Paris) → majeur ; sans clé → illisible", () => {
@@ -80,8 +90,8 @@ test("lireMajoriteCompte : sans date → majeur ; 17 ans → mineur ; 18 ans pil
   assert.equal(lireMajoriteCompte(date("2008-10-09"), creerChiffrementDonnees(randomBytes(32)), maintenant), "illisible", "clé fausse");
 });
 
-test("15-17 ans : demander un rattachement → 403 reserve-aux-majeurs, rien n'est gardé ; lister et quitter restent ouverts", async () => {
-  const mineur = await inscrire("app", "2010-06-01");
+test("ancien compte de 15-17 ans : demander un rattachement → 403 reserve-aux-majeurs, rien n'est gardé ; lister et quitter restent ouverts", async () => {
+  const mineur = await inscrireAncienMineur("2010-06-01");
   const avant = memoire.rattachements.length;
   const demande = await demander("POST", "/comptes/moi/rattachements", mineur.jeton, { lieuId: ajouterLieu(), role: "gerant", preuve: "Je suis le gérant." });
   assert.deepEqual([demande.statut, demande.corps], [403, RESERVE]);
@@ -92,8 +102,8 @@ test("15-17 ans : demander un rattachement → 403 reserve-aux-majeurs, rien n'e
   assert.equal((await demander("DELETE", `/comptes/moi/rattachements/${garde?.id}`, mineur.jeton)).statut, 200, "quitter un lieu reste possible");
 });
 
-test("15-17 ans avec un rattachement validé quand même : /pro/… et /miam-safe/pro/… → 403 ; ses alertes restent ouvertes", async () => {
-  const mineur = await inscrire("app", "2009-12-31");
+test("ancien compte de 15-17 ans avec un rattachement validé quand même : /pro/… et /miam-safe/pro/… → 403 ; ses alertes restent ouvertes", async () => {
+  const mineur = await inscrireAncienMineur("2009-12-31");
   const lieuId = poserValide(mineur.id);
   for (const [methode, chemin] of [
     ["GET", `/pro/lieux/${lieuId}`], ["PATCH", `/pro/lieux/${lieuId}`], ["GET", `/pro/lieux/${lieuId}/equipe`],
@@ -111,10 +121,10 @@ test("15-17 ans avec un rattachement validé quand même : /pro/… et /miam-saf
   assert.equal(alerte.corps.erreur, "pas-miam-safe");
 });
 
-test("inviter un compte mineur → 409 compte-mineur (sans son âge) ; un mineur ne peut pas accepter une invitation", async () => {
+test("inviter un ancien compte mineur → 409 compte-mineur (sans son âge) ; un mineur ne peut pas accepter une invitation", async () => {
   const gerant = await inscrire("app", "1990-01-01");
   const lieuId = poserValide(gerant.id);
-  const mineur = await inscrire("app", "2010-01-01");
+  const mineur = await inscrireAncienMineur("2010-01-01");
   const invitation = await demander("POST", `/pro/lieux/${lieuId}/equipe`, gerant.jeton, { email: mineur.email });
   assert.deepEqual([invitation.statut, invitation.corps], [409, { ok: false, erreur: "compte-mineur", message: MESSAGE_COMPTE_MINEUR }]);
   assert.doesNotMatch(MESSAGE_COMPTE_MINEUR, /1[5-7]/, "jamais l'âge exact");

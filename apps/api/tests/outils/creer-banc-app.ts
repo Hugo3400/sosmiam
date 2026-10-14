@@ -54,7 +54,7 @@ export async function creerBancApp({ sansCle = false, versionMinimale }: Options
   }
 
   let numero = 0;
-  /** Le corps d'une inscription de l'app (dès 15 ans), retouchable */
+  /** Le corps d'une inscription de l'app (dès 18 ans), retouchable */
   const inscriptionApp = (retouches: Record<string, unknown> = {}) => ({
     email: `app${++numero}@exemple.fr`, motDePasse: MOT_DE_PASSE_TEST, prenom: "Zoé", dateNaissance: "2000-01-31", ville: "Nantes", cgu: true,
     espace: "app", ...retouches,
@@ -67,6 +67,17 @@ export async function creerBancApp({ sansCle = false, versionMinimale }: Options
     const garde = [...memoire.comptes.values()].find((compte) => compte.email === corps.email);
     if (!garde) throw new Error("compte de test introuvable");
     return { id: garde.id, email: corps.email, jeton: reponse.corps.session as string, compte: reponse.corps.compte };
+  }
+  /**
+   * Un ancien compte de l'app créé à 15-17 ans, avant le 14 octobre 2026 (l'API refuse désormais toute inscription avant
+   * 18 ans) : inscrit majeur, puis sa date de naissance gardée remplacée directement dans la mémoire.
+   */
+  async function inscrireAncienMineur(dateNaissance: string, retouches: Record<string, unknown> = {}) {
+    const inscrit = await inscrireApp(retouches);
+    const garde = memoire.comptes.get(inscrit.id);
+    if (!garde || !chiffrement) throw new Error("ancien compte mineur de test impossible (clé absente ?)");
+    garde.dateNaissanceChiffree = chiffrement.chiffrer(dateNaissance, "dateNaissance");
+    return inscrit;
   }
 
   let prochainLieu = 500;
@@ -95,7 +106,7 @@ export async function creerBancApp({ sansCle = false, versionMinimale }: Options
   }
 
   return {
-    banc, memoire, chiffrement, ecritures, demander, inscriptionApp, inscrireApp, rendrePro, poserRattachementValide,
+    banc, memoire, chiffrement, ecritures, demander, inscriptionApp, inscrireApp, inscrireAncienMineur, rendrePro, poserRattachementValide,
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),
   };
 }
