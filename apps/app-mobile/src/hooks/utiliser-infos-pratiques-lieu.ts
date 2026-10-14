@@ -6,16 +6,19 @@ import { utiliserServices } from "~/hooks/utiliser-services";
 
 /**
  * Les infos pratiques à afficher sur la fiche : celles que le lieu a remplies lui-même (mode pro, espace pro) si elles
- * existent, sinon celles de la fiche. Relues quand le lieu change, puis à chaque changement signalé par les services.
+ * existent, sinon celles de la fiche. Relues quand le lieu change, puis à chaque changement signalé par les services. Sans
+ * lieu (pas encore lu, ou absent), rien n'est lu.
  */
-export function utiliserInfosPratiquesLieu(lieu: Lieu): InfosPratiques | undefined {
+export function utiliserInfosPratiquesLieu(lieu: Lieu | undefined): InfosPratiques | undefined {
   const { visites } = utiliserServices();
   const [remplies, setRemplies] = useState<InfosPratiques | null>(null);
 
+  const lieuId = lieu?.id;
   useEffect(() => {
+    if (lieuId === undefined) return;
     let actif = true;
     const lire = () =>
-      visites.lireLieu(lieu.id).then((r) => {
+      visites.lireLieu(lieuId).then((r) => {
         if (actif) setRemplies(r.ok ? r.infos.pratique : null);
       });
     lire();
@@ -24,7 +27,7 @@ export function utiliserInfosPratiquesLieu(lieu: Lieu): InfosPratiques | undefin
       actif = false;
       desabonner();
     };
-  }, [visites, lieu.id]);
+  }, [visites, lieuId]);
 
-  return remplies ?? lieu.pratique;
+  return remplies ?? lieu?.pratique;
 }

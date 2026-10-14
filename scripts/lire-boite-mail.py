@@ -30,6 +30,9 @@ AUTOMATIQUES = re.compile(r"mailer-daemon|postmaster|no-?reply|ne-pas-repondre",
 # Les dossiers, retrouvés par leur rôle (RFC 6154) puis par leur nom courant
 DOSSIERS = {"recus": None, "envoyes": ("\\Sent", ["Sent", "INBOX.Sent", "Envoy&AOk-s"]), "indesirables": ("\\Junk", ["Junk", "Spam", "INBOX.Junk"])}
 PIECE_MAX = 20 * 1024 * 1024
+# La version mise en forme d'un mail : 3 Mo au plus, images intégrées (cid:) comprises jusqu'à 1 Mo chacune
+HTML_MAX = 3 * 1024 * 1024
+IMAGE_INTEGREE_MAX = 1024 * 1024
 OBJETS_AUTOMATIQUES = re.compile(r"^(inscription à la newsletter sos miam|undelivered|delivery status|mail delivery|non remis)", re.I)
 
 
@@ -156,6 +159,22 @@ def lister_pieces(message):
     return pieces
 
 
+def html_du_message(message):
+    """La version HTML du mail (sans script), ses images intégrées (cid:) mises dedans ; None s'il n'en a pas."""
+    corps = message.get_body(preferencelist=("html",))
+    if corps is None:
+        return None
+    contenu = re.sub(r"(?is)<script.*?</script>", "", corps.get_content())
+    for partie in message.walk():
+        cid = str(partie.get("Content-ID") or "").strip("<> ")
+        if not cid or partie.is_multipart() or not partie.get_content_type().startswith("image/"):
+            continue
+        donnees = partie.get_payload(decode=True) or b""
+        if len(donnees) <= IMAGE_INTEGREE_MAX:
+            contenu = contenu.replace(f"cid:{cid}", f"data:{partie.get_content_type()};base64,{base64.b64encode(donnees).decode()}")
+    return contenu if len(contenu) <= HTML_MAX else None
+
+
 def lire(uid, dossier="recus"):
     message = lire_brut(uid, dossier, dossier != "envoyes")
     if message is None:
@@ -171,6 +190,7 @@ def lire(uid, dossier="recus"):
         "messageId": str(message["Message-ID"] or "").strip() or None,
         "references": str(message["References"] or "").strip() or None,
         "texte": texte_du_message(message),
+        "html": html_du_message(message),
         "pieces": pieces,
     }
 

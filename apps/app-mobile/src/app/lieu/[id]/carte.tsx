@@ -10,12 +10,12 @@ import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte
 import { Bouton } from "~/composants/interface/Bouton";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ElementCarte } from "~/composants/lieux/ElementCarte";
+import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { PastillesSectionsCarte } from "~/composants/lieux/PastillesSectionsCarte";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { regimesCarte } from "~/contenus/regimes-carte";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -25,6 +25,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
+import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -52,14 +53,16 @@ export default function CarteDuLieu() {
   const [seulementCeQuiMeVa, setSeulementCeQuiMeVa] = useState(false);
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const lieu = filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id);
+  const recherche = utiliserLieuParId(id);
+  const lieu = recherche.lieu ? filtrerLieuxSelonAge([recherche.lieu], age)[0] : undefined;
   // Celle enregistrée par le lieu s'il l'a fait (sections vides retirées), sinon celle de la fiche
   const carteDuLieu = utiliserCarteDuLieu(lieu?.id ?? null);
   const carteAutorisee = carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null;
 
   if (!lieu) {
+    if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
     // Le lieu existe, mais c'est un bar : même mot gentil que sur la fiche
-    if (lieuxExemples.some((l) => String(l.id) === id)) return <LieuReserveAdultes />;
+    if (recherche.lieu) return <LieuReserveAdultes />;
     return (
       <EcranReglage titre="Ce lieu n'est pas disponible" sousTitre="Il s'est peut-être éclipsé. Plein d'autres adresses t'attendent dans Explorer !">
         <Bouton libelle="Retour" variante="blanc" onPress={() => router.back()} />

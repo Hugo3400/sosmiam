@@ -12,8 +12,8 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
+import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
@@ -21,6 +21,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
+import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -45,10 +46,10 @@ export default function ProposerModification() {
   const { profil } = utiliserProfil();
   const { suggestions: service } = utiliserServices();
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
-  // Celles remplies par le lieu s'il l'a fait, sinon celles de la fiche (comme ce que voient les gourmands). Lieu absent :
-  // lu pour rien (un hook passe toujours, dans le même ordre), l'écran dit juste que le lieu n'est pas disponible
-  const pratique = utiliserInfosPratiquesLieu(lieu ?? lieuxExemples[0]);
+  const recherche = utiliserLieuParId(id);
+  const lieu = useMemo(() => (recherche.lieu ? filtrerLieuxSelonAge([recherche.lieu], age)[0] : undefined), [recherche.lieu, age]);
+  // Celles remplies par le lieu s'il l'a fait, sinon celles de la fiche (comme ce que voient les gourmands)
+  const pratique = utiliserInfosPratiquesLieu(lieu);
 
   const actuel: FicheActuelle | null = lieu ? { nom: lieu.nom, adresse: "", horaires: lieu.horaires, texte: lieu.texte, pratique } : null;
   const [sujets, setSujets] = useState<SujetProposition[]>([]);
@@ -61,6 +62,7 @@ export default function ProposerModification() {
   const [refus, setRefus] = useState<ErreurService | null>(null);
 
   if (!lieu || !actuel) {
+    if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} className="items-center justify-center gap-4 px-8">
         <Text className="text-center font-titre text-2xl text-encre">Ce lieu n'est pas disponible</Text>

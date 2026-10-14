@@ -12,11 +12,11 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BlocVisiteLieu } from "~/composants/lieux/BlocVisiteLieu";
 import { EnTeteFicheLieu } from "~/composants/lieux/EnTeteFicheLieu";
+import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
@@ -24,6 +24,7 @@ import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
+import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -71,14 +72,17 @@ export default function FicheLieu() {
   }, []);
   const retour = useCallback(() => router.back(), [router]);
   const age = useMemo(() => (profil ? calculerAge(profil.dateNaissance) : null), [profil]);
-  const lieu = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age).find((l) => String(l.id) === id), [age, id]);
+  // Dans la liste des lieux, ou lu seul sur le serveur (lien partagé, lieu tout juste publié)
+  const recherche = utiliserLieuParId(id);
+  const lieu = useMemo(() => (recherche.lieu ? filtrerLieuxSelonAge([recherche.lieu], age)[0] : undefined), [recherche.lieu, age]);
   const contenuDefilant = useMemo(() => ({ paddingBottom: marges.bottom + 120 }), [marges.bottom]);
   const inviter = utiliserInviterLieu();
   const miamSafeLieu = utiliserMiamSafeLieu(Number(id));
 
   if (!lieu) {
+    if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
     // Le lieu existe, mais c'est un bar : réservé aux 18 ans et plus (et tout public tant qu'on ne connaît pas ton âge)
-    if (lieuxExemples.some((l) => String(l.id) === id)) return <LieuReserveAdultes />;
+    if (recherche.lieu) return <LieuReserveAdultes />;
     return (
       <View style={{ flex: 1, paddingTop: marges.top + 24 }} className="items-center gap-4 bg-creme px-8">
         <Text className="text-center font-titre text-2xl text-encre">Ce lieu n'est pas disponible</Text>

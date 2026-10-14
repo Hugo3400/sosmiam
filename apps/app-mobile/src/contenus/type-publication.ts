@@ -1,10 +1,11 @@
 // Une publication du fil « Pour toi » : une vidéo ou des photos d'un lieu, postées par le lieu ou par un créateur.
-// Pour l'instant des exemples (médias libres Mixkit dans assets/medias-demo) ; la forme rejoindra packages/commun avec l'API.
+// Mode démo : des exemples (médias libres Mixkit dans assets/medias-demo) ; sinon, celles du serveur (PublicationApi, converties
+// par fonctions/publications/convertir-publication-api.ts).
 import type { ImageSourcePropType } from "react-native";
 import type { VideoSource } from "expo-video";
 
 export type MediaPublication =
-  | { type: "video"; video: VideoSource; affiche: ImageSourcePropType }
+  | { type: "video"; video: VideoSource; affiche?: ImageSourcePropType }
   | { type: "photos"; photos: ImageSourcePropType[] };
 
 export type AuteurPublication =
@@ -27,4 +28,6 @@ export type Publication = {
   commentaires: number;
   /** Média libre qui illustre le lieu sans y avoir été filmé : étiquette « Vidéo / Photos d'illustration » */
   illustration?: boolean;
+  /** Date de mise en ligne (ISO 8601) : absente sur les exemples */
+  publieeLe?: string;
 };

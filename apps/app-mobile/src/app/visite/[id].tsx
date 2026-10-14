@@ -14,9 +14,9 @@ import { CelebrationVisite } from "~/composants/visites/CelebrationVisite";
 import { EtatVisiteTerminee } from "~/composants/visites/EtatVisiteTerminee";
 import { FeuilleContestation } from "~/composants/visites/FeuilleContestation";
 import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
@@ -88,7 +88,8 @@ export default function EcranVisite() {
   const miamSafe = utiliserMiamSafeLieu(lieuId ?? 0);
   // Dans le lieu : addition demandée, ou visite validée (on y est encore, souvent)
   const dansLeLieu = statut === "demandee" || statut === "validee";
-  const lieu = useMemo(() => (lieuId === null ? null : (filtrerLieuxSelonAge(lieuxExemples, age).find((l) => l.id === lieuId) ?? null)), [lieuId, age]);
+  const { lieu: lieuConnu } = utiliserLieuParId(lieuId);
+  const lieu = useMemo(() => (lieuConnu ? (filtrerLieuxSelonAge([lieuConnu], age)[0] ?? null) : null), [lieuConnu, age]);
 
   // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");

@@ -19,7 +19,7 @@ export type Expediteur = { nom: string; adresse: string };
 /** Une pièce jointe, ou une image du mail ; `numero` : sa place dans le mail, pour la demander */
 export type PieceMessage = { numero: number; nom: string; type: string; taille: number; enLigne: boolean };
 export type MessageListe = { uid: number; de: Expediteur; a: Expediteur[]; objet: string; date: string | null; lu: boolean; repondu: boolean; taille: number; automatique: boolean };
-export type MessageComplet = { uid: number; de: Expediteur; a: Expediteur[]; repondreA: Expediteur; objet: string; date: string | null; messageId: string | null; references: string | null; texte: string; pieces: PieceMessage[] };
+export type MessageComplet = { uid: number; de: Expediteur; a: Expediteur[]; repondreA: Expediteur; objet: string; date: string | null; messageId: string | null; references: string | null; texte: string; html: string | null; pieces: PieceMessage[] };
 
 /** Lance le script ; « boite-absente » ou « boite-injoignable » si la boîte n'est pas réglée ou ne répond pas. */
 async function lancer<T>(...arguments_: string[]): Promise<{ ok: true; donnees: T } | { ok: false; erreur: string }> {
