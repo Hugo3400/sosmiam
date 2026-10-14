@@ -123,3 +123,9 @@ test("QR de vitrine : un SVG carré, marge blanche comprise, sans service en lig
   assert.match(svg, /<path d="M4 4h1v1h-1z/);
   assert.equal(svg, dessinerQrSvg("https://sosmiam.fr/l/k7m2p9qa"), "toujours le même dessin pour le même lien");
 });
+
+test("défis : la règle en une ligne", async () => {
+  const { decrireRegleDefi } = await import("../src/fonctions/defis/decrire-regle-defi.ts");
+  assert.equal(decrireRegleDefi({ mesure: "visites", objectif: 3, filtres: { typesLieu: ["patisserie", "sortie"], apresHeure: 22, pendantSos: true } }), "3 visites validées · pâtisseries ou sorties · après 22 h · pendant un SOS");
+  assert.equal(decrireRegleDefi({ mesure: "avis", objectif: 1, filtres: null }), "1 avis publié");
+});

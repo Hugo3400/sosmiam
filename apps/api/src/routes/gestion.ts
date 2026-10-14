@@ -7,6 +7,7 @@ import { creerControleursCertification } from "../controleurs/gestion/controleur
 import { creerControleursComptesGestion } from "../controleurs/gestion/controleurs-comptes-gestion.ts";
 import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-fondateurs.ts";
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
+import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion/controleurs-defis.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
@@ -38,12 +39,14 @@ export type DependancesGestion = {
   chiffrement?: ChiffrementDonnees | null;
   /** Visites décidées par l'équipe (services/visites-gestion.ts de l'App) : « donner raison au client » ; absent → 503 */
   visites?: VisitesGestion;
+  /** Défis de l'app (services/defis.ts de la session App) ; absent → 503 */
+  defis?: DefisGestion;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
@@ -57,6 +60,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const k = creerControleursComptesGestion(services, comptes, chiffrement);
   const surveillance = creerControleursSurveillance(services, visites);
   const validationLieu = creerControleursValidationLieu(services);
+  const d = creerControleursDefis(services, defis);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services);
@@ -149,6 +153,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/comptes/:id/reinitialiser", k.reinitialiser);
   routes.delete("/comptes/:id", k.supprimer);
   // Surveillance des visites : comptes louches, lieux qui refusent beaucoup, contestations (rien n'est bloqué tout seul)
+  // Défis de l'app : liste (brouillons compris), création, modification, suppression
+  routes.get("/defis", d.liste);
+  routes.post("/defis", d.creer);
+  routes.put("/defis/:id", d.modifier);
+  routes.delete("/defis/:id", d.supprimer);
   routes.get("/surveillance", surveillance.lire);
   routes.put("/surveillance/seuils", surveillance.regler);
   routes.post("/surveillance/comptes/:id/vu", surveillance.vuCompte);

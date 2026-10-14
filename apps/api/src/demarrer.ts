@@ -118,6 +118,7 @@ const serveur = creerApplication({
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,
     comptes: { ajouterPoints: ajouterPointsEtDefis, donnerBadge, preparerReinitialisation, preparerVerificationEmail, nommerAmbassadeurVille, retirerAmbassadeurVille },
     // « Donner raison au client » sur une contestation de refus (logique des visites de la session App)
+    defis,
     visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }) },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
