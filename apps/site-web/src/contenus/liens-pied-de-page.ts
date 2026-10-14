@@ -19,6 +19,8 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
       { texte: "Questions fréquentes", adresse: "/faq", site: "principal" },
       { texte: "J'inscris mon lieu", adresse: "/inscrire-mon-lieu", site: "principal" },
       { texte: "Espace pro", adresse: "/bienvenue", site: "pro" },
+      // Un seul compte pour l'app et les espaces : infos, données, suppression (même sans se connecter)
+      { texte: "Mon compte", adresse: "/mon-compte", site: "principal" },
       { texte: "Contact", adresse: `mailto:${site.emailContact}`, site: "externe" },
     ],
   },

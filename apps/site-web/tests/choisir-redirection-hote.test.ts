@@ -65,7 +65,6 @@ test("sosmiam.fr : les pages de l'espace partent sur ambassadeur.sosmiam.fr (301
     ["/kit-media/logo-fond-clair.png", "https://ambassadeur.sosmiam.fr/kit-media/logo-fond-clair.png"],
     ["/kit-media-pro/flyer-a6.pdf", "https://ambassadeur.sosmiam.fr/kit-media-pro/flyer-a6.pdf"],
     ["/espace/certification", "https://ambassadeur.sosmiam.fr/espace/certification"],
-    ["/deconnexion", "https://ambassadeur.sosmiam.fr/deconnexion"],
     ["/esp%61ce", "https://ambassadeur.sosmiam.fr/esp%61ce"],
   ];
   for (const [chemin, adresse] of attendus) {
@@ -136,9 +135,9 @@ test("sosmiam.fr et ambassadeur.sosmiam.fr : l'espace pro part sur pro.sosmiam.f
     ];
     for (const [chemin, adresse] of attendus) assert.deepEqual(choisirRedirectionHote(hote, chemin), { adresse, statut: 301 }, `${hote}${chemin}`);
   }
-  // « Mon compte » : celui de l'espace pro depuis sosmiam.fr ; sur ambassadeur.sosmiam.fr, sa propre page (même compte,
-  // cookie de cet hôte)
-  assert.deepEqual(choisirRedirectionHote("sosmiam.fr", "/mon-compte"), { adresse: "https://pro.sosmiam.fr/mon-compte", statut: 301 });
+  // « Mon compte » : sosmiam.fr a le sien (voir tests/mon-compte.test.ts) ; sur ambassadeur.sosmiam.fr, sa propre page
+  // (même compte, cookie de cet hôte)
+  assert.equal(choisirRedirectionHote("sosmiam.fr", "/mon-compte"), null);
   assert.deepEqual(choisirRedirectionHote(AMBASSADEUR, "/mon-compte"), { adresse: "/espace/mon-compte", statut: 302 });
   assert.deepEqual(choisirRedirectionHote(AMBASSADEUR, "/Mon-Compte/.data?_routes=x"), { adresse: "/espace/mon-compte", statut: 302 });
   assert.equal(choisirRedirectionHote(AMBASSADEUR, "/espace/mon-compte"), null);

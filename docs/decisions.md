@@ -117,7 +117,7 @@
 
 ## Carte des lieux (décidé le 8 octobre 2026)
 - Chaque fiche de lieu montre sa **carte** (« 🍽️ La carte » ; « 🎟️ Les formules » pour une activité) : les plats phares sur la fiche, la carte complète sur un écran à part (sections, prix, repères végé / vegan / sans gluten / épicé / fait maison / local).
-- Les boissons alcoolisées de la carte sont masquées aux moins de 18 ans, comme le reste de l'alcool dans l'app. Prix indicatifs : le lieu a toujours le dernier mot.
+- Les boissons alcoolisées de la carte sont masquées pendant la visite sans compte (âge inconnu), comme le reste de l'alcool. Prix indicatifs : le lieu a toujours le dernier mot.
 - Pour l'instant, cartes d'exemple dans l'app (`contenus/cartes-exemples.ts`) ; plus tard, chaque lieu remplit la sienne (espace pro), et elle servira aussi aux avis par plat.
 
 ## Signalements et modération (décidé le 8 octobre 2026)
@@ -279,7 +279,7 @@
   - prix de 0 à 9 999 € ;
   - pas de gros mot.
 - **Alcool** :
-  - coché par le gérant, et caché aux moins de 18 ans et quand l'âge est inconnu (visite sans compte) ;
+  - coché par le gérant, et caché quand l'âge est inconnu (visite sans compte) ;
   - l'app prévient quand un nom fait penser à de l'alcool, sans rien imposer : un « coq au vin » reste un plat.
 - **Ce que voient les gourmands** : une section vide reste chez le gérant mais n'apparaît pas aux gourmands. Une carte enregistrée remplace celle de la fiche, même si elle est vide.
 - **Droits** : seul le gérant enregistre ; toute l'équipe peut lire.
@@ -308,6 +308,23 @@
 - **Tout le reste demande un compte** : rescousse, J'aime, commenter, suivre, garder, partager, envoyer à un pote, Pas intéressé, Signaler, Potes, chat, profil, défis, Scan. Une feuille « Crée ton compte » s'ouvre à la place.
 - **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou d'âge (moins de 18 ans) reste actif sur le téléphone.
 - Entrée par « Juste jeter un œil » (bienvenue et écran du compte). Après une inscription lancée depuis la visite, on revient sur l'écran d'où l'on est parti, avec le compte. Une fiche de bar ouverte sans compte propose de s'inscrire (« tu as 18 ans ou plus ? »).
+
+## Majorité, fidélité et défis (décidé le 14 octobre 2026)
+- **App réservée aux majeurs** : voir « Comptes et données de l'app » (18 ans en France, la majorité du pays ailleurs).
+- **Fidélité** : la version sans alcool d'une récompense avec alcool devient **facultative** (elle servait aux 15-17 ans). La récompense avec alcool s'affiche avec le message sanitaire.
+- **Défis** : la liste est **gérée dans le logiciel de gestion** (créer, modifier, dates de début et de fin, points), lue par l'app sur le serveur. Le serveur compte l'avancée de chacun (jours à l'heure de Paris), crédite les points une seule fois et les retire si l'avancée retombe avant la fin (rescousse reprise, visite retirée). Fini les défis et les points calculés seulement sur le téléphone.
+- **Badge « Noctambule »** : **3 visites validées après 22 h**, dans tous les lieux (plus « 3 bars »), pour ne pas pousser à boire (loi Évin). Jamais de points attachés.
+- **Défi « premiers » et badge « Premier sauveteur »** : Hugo a laissé choisir et a demandé d'ajouter des défis. Le badge récompense le premier sauvetage ; le défi en demande plusieurs avant sa date de fin, pour ne plus payer deux fois le même geste.
+
+## Potes, messagerie et profils sur le serveur (décidé le 14 octobre 2026)
+- **Ma bande** : un lien ou un QR code avec le code secret ajoute les deux personnes tout de suite, dans les deux bandes ; par pseudo, c'est une demande que l'autre accepte. Retirer quelqu'un vaut des deux côtés, sans prévenir.
+- **Messages chiffrés par l'API** (AES-256-GCM, clé hors de la base, comme la date de naissance) : l'équipe ne relit qu'un message signalé, pour la modération.
+- **Photos et notes vocales du chat** : effacées du serveur **90 jours** après l'envoi (« Ce média a expiré ») ; les textes suivent la règle de la conversation (effacée après 1 an sans message).
+- **Notification sur le téléphone pour chaque nouveau message** d'un pote, hors anti-spam (comptée comme demandée) ; on peut couper une conversation.
+- **Profil vu hors de la bande (compte public)** : avatar, prénom, @pseudo, compteurs, badges et listes publiques. La ville, les lieux gardés et les lieux sauvés restent réservés à la bande.
+- **Sorties** : chaque invité reçoit une **invitation à accepter** (« Tu viens ? ») avant d'entrer dans le vote et la discussion.
+- **Listes partagées** (Hugo a laissé choisir) : l'auteur les remplit et choisit qui les voit (tout le monde ou sa bande) ; il peut inviter des potes de sa bande à les remplir avec lui ; les autres suivent la liste.
+- **Compte supprimé** : ses messages restent chez les autres, signés « Compte supprimé », jusqu'à l'effacement de la conversation (1 an sans message) ; ses photos et vocaux suivent la règle des 90 jours.
 
 ## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026)
 - **Par défaut, l'app lit les vraies données** : les lieux publiés (`/app/lieux`, et un lieu seul par `/app/lieux/:id` s'il manque), le fil (`/app/publications`, page après page) et la carte d'un lieu (`/app/lieux/:id/carte`). La dernière liste des lieux et la première page du fil sont gardées sur le téléphone pour s'ouvrir tout de suite et hors ligne.

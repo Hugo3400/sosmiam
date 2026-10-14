@@ -68,6 +68,15 @@ export function EnTete() {
               ? <a key={lien.href} href={lien.href} onClick={fermer} className={classes}>{lien.texte}</a>
               : <Link key={lien.href} to={lien.href} onClick={fermer} className={classes}>{lien.texte}</Link>;
           })}
+          {/* Discret, juste avant le bouton : le compte (app, espaces), ses données et sa suppression. Dans le menu burger, et
+              dès 1280 px ; entre les deux, la ligne serait trop longue (il reste le lien du pied de page) */}
+          <Link
+            to="/mon-compte"
+            onClick={fermer}
+            className="whitespace-nowrap text-sm font-medium text-gris lg:hidden xl:block decoration-jaune decoration-[3px] underline-offset-4 hover:text-encre hover:underline"
+          >
+            Mon compte
+          </Link>
           <Bouton href="/#inscription" petit onClick={fermer} className="whitespace-nowrap">Je m'inscris</Bouton>
         </nav>
       </div>
