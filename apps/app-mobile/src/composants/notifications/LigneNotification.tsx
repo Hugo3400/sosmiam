@@ -1,18 +1,19 @@
 import { useRouter } from "expo-router";
+import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
-import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { RondPote } from "~/composants/potes/RondPote";
 import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import type { NotificationApp } from "~/hooks/utiliser-notifications";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
-  notification: NotificationSuivi;
+  notification: NotificationApp;
   /** Phrase, emoji et destination (decrireNotificationSuivi) */
   description: NotificationDecrite;
   /** La personne dont parle la notification (son avatar dans le rond), ou null (lieu, créateur) */
@@ -21,12 +22,16 @@ type Props = {
   nouvelle: boolean;
   /** Dernière ligne de la carte : pas de trait dessous */
   derniere: boolean;
+  /** Un bouton au bout de la ligne, à côté de ce qu'elle ouvre (« Retirer » quelqu'un arrivé dans ta bande) */
+  action?: ReactNode;
 };
 
 const TAILLE_ROND = 44;
 
 /** Ce que la ligne ouvre, lu par VoiceOver après la phrase */
-const indiceDe = (notification: NotificationSuivi) => {
+const indiceDe = (notification: NotificationApp, description: NotificationDecrite) => {
+  if (description.indice) return description.indice;
+  if (notification.type === "cloche") return undefined;
   if (notification.cle.startsWith("personne:")) return "Ouvre son profil";
   return notification.cle.startsWith("lieu:") ? "Ouvre la fiche du lieu" : "Ouvre sa page";
 };
@@ -35,12 +40,14 @@ const indiceDe = (notification: NotificationSuivi) => {
  * Une notification : le rond (avatar de la personne, 🎬 ou emoji du lieu), la phrase et le moment (« 14h32 », « Hier »).
  * Toucher la ligne ouvre le profil, la page du créateur ou la fiche du lieu. Une nouveauté se lit « Nouveau » en premier.
  */
-export function LigneNotification({ notification, description, pote, nouvelle, derniere }: Props) {
+export function LigneNotification({ notification, description, pote, nouvelle, derniere, action }: Props) {
   const router = useRouter();
   const moment = formaterMomentRelatif(notification.date);
   const { ouvrir } = description;
   const libelle = `${nouvelle ? "Nouveau. " : ""}${retirerEmoji(description.texte)}${description.alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}, ${moment.lu}`;
-  const classe = `min-h-16 flex-row items-center gap-3 px-3 py-3 ${nouvelle ? "bg-jaune-clair/50" : ""} ${derniere ? "" : "border-b border-ligne"}`;
+  const fond = `${nouvelle ? "bg-jaune-clair/50" : ""} ${derniere ? "" : "border-b border-ligne"}`;
+  // Avec un bouton au bout, la ligne et le bouton sont côte à côte (jamais un bouton dans un bouton)
+  const classe = `min-h-16 flex-row items-center gap-3 px-3 py-3 ${action ? "flex-1" : fond}`;
 
   const contenu = (
     <>
@@ -67,19 +74,15 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
     </>
   );
 
-  if (!ouvrir) {
-    return (
-      <View accessible accessibilityLabel={libelle} className={classe}>
-        {contenu}
-      </View>
-    );
-  }
-
-  return (
+  const ligne = !ouvrir ? (
+    <View accessible accessibilityLabel={libelle} className={classe}>
+      {contenu}
+    </View>
+  ) : (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint={indiceDe(notification)}
+      accessibilityHint={indiceDe(notification, description)}
       onPress={() => {
         vibrerLegerement();
         router.push(ouvrir);
@@ -88,5 +91,12 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
     >
       {contenu}
     </Pressable>
+  );
+  if (!action) return ligne;
+  return (
+    <View className={`flex-row items-center pr-3 ${fond}`}>
+      {ligne}
+      {action}
+    </View>
   );
 }
