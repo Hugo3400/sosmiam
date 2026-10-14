@@ -21,6 +21,8 @@ const cookies = await import("../src/services/cookies-connexion-externe.server.t
 const { demarrerConnexionQr, lireQrAffiche, suivreConnexionQr } = await import("../src/services/connexion-qr.server.ts");
 // @ts-ignore
 const { CHEMINS_LIENS_APP } = await import("../src/contenus/liens-app.ts");
+// @ts-ignore : idem
+const { preparerAdresseMesure } = await import("../src/fonctions/mesure/preparer-adresse-mesure.ts");
 
 const MAINTENANT = Date.parse("2026-10-14T10:00:00Z");
 const CODE = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -166,7 +168,14 @@ test("page /q, robots et liens universels : /q/* ouvert par l'app, fermé aux mo
   assert.ok(CHEMINS_LIENS_APP.includes("/q/*"));
   // robots.txt (Disallow: /q/) : vérifié par tests/liens-app.test.ts, qui sait résoudre les imports « ~/… »
   const source = (fichier: string) => readFileSync(`${import.meta.dirname}/../src/${fichier}`, "utf-8");
-  assert.match(source("services/mesure.server.ts"), /connexionQr \? "\/q"/);
+  // Statistiques : ni le code du QR, ni le pseudo d'une invitation, ni leurs paramètres ne partent vers l'API
+  for (const adresse of ["/q/Ab3dE5fG7h", "/q/Ab3dE5fG7h.data?_routes=x&utm_source=y", "/Q/code"]) {
+    assert.equal(preparerAdresseMesure(`https://sosmiam.fr${adresse}`), "/q", adresse);
+  }
+  for (const adresse of ["/invitation/lea.miam?c=SECRET", "/invitation/lea.miam.data"]) {
+    assert.equal(preparerAdresseMesure(`https://sosmiam.fr${adresse}`), "/invitation", adresse);
+  }
+  assert.match(source("services/mesure.server.ts"), /adressePage: preparerAdresseMesure\(requete\.url\)/);
   const page = source("routes/public/qr-connexion.tsx");
   assert.match(page, /"X-Robots-Tag": "noindex"/);
   assert.match(page, /"Referrer-Policy": "no-referrer"/);
