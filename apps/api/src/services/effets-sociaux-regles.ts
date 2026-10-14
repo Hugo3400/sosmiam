@@ -23,7 +23,7 @@ export type NouvelleNotificationCloche = {
 };
 
 /** Les notifications sociales sur le téléphone qui ne sont pas des messages (C.5) */
-export type SortePush = "bande-ajout" | "bande-acceptee" | "invitation-sortie" | "sortie-lieu-choisi";
+export type SortePush = "bande-ajout" | "bande-acceptee" | "invitation-sortie" | "invitation-groupe" | "sortie-lieu-choisi";
 
 /**
  * Une notification sur le téléphone. `regroupement` (« conversation:<id> ») : une par conversation, la suivante remplace la

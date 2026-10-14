@@ -12,11 +12,12 @@
 import { DUREE_DEPART_GROUPE_JOURS, MAX_PARTICIPANTS_GROUPE } from "../../../../packages/commun/src/regles/chat.ts";
 import type { RoleConversation } from "../../../../packages/commun/src/types/messagerie.ts";
 import { calculerClePrive } from "../fonctions/social/calculer-cle-prive.ts";
+import { ecrirePushGroupe } from "../fonctions/social/ecrire-push-groupe.ts";
 import { ecrireCurseurDate } from "../fonctions/social/ecrire-curseur-date.ts";
 import { lireCurseurDate } from "../fonctions/social/lire-curseur-date.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import { creerLieuxEnvoyes, type AssurerPrive } from "./lieux-envoyes.ts";
-import { creerLectureMessagerie, exigerChiffrement, type AccesConversation } from "./messagerie-lecture.ts";
+import { creerLectureMessagerie, exigerChiffrement, lireTitre, type AccesConversation } from "./messagerie-lecture.ts";
 import { creerMediasMessagerie } from "./messagerie-medias.ts";
 import { creerMessagesMessagerie } from "./messagerie-messages.ts";
 import {
@@ -30,12 +31,16 @@ const refus = <E extends string>(erreur: E) => ({ ok: false as const, erreur });
 /** Une clé d'idempotence prise par un autre envoi pendant la transaction : on annule, puis on relit la première création */
 class ClePrise extends Error {}
 
-/** Une invitation dans la cloche de chaque invité (sans le titre, chiffré : l'app le lit dans l'invitation) */
-const inviterDansLaCloche = (moi: number, conversationId: number, invites: readonly number[]): EffetSocial[] =>
-  invites.map((compteId) => ({
-    quoi: "cloche",
-    notification: { compteId, type: "invitation-groupe", acteurId: moi, cible: { type: "conversation", id: String(conversationId) } },
-  }));
+/**
+ * Une invitation dans la cloche de chaque invité (sans le titre, chiffré : l'app le lit dans l'invitation), et sur son
+ * téléphone (décidé par Hugo le 14/10/2026 : comme une invitation à une sortie, hors anti-spam ; l'applicateur ne la fait
+ * partir que si l'invité veut les notifications sociales)
+ */
+const inviterDansLaCloche = (moi: number, conversationId: number, invites: readonly number[], prenom: string, titre: string | null): EffetSocial[] =>
+  invites.flatMap((compteId): EffetSocial[] => [
+    { quoi: "cloche", notification: { compteId, type: "invitation-groupe", acteurId: moi, cible: { type: "conversation", id: String(conversationId) } } },
+    { quoi: "push", compteId, sorte: "invitation-groupe", message: ecrirePushGroupe({ prenom, titre }) },
+  ]);
 
 /** Le plus ancien membre (à égalité, le plus petit compte) */
 const plusAncien = (membres: readonly LigneMembre[]) =>
@@ -163,7 +168,8 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const conversation = await lecture.presenterUne(moi, issue.id, maintenant);
       if (!conversation) return refus("conversation-inconnue");
       const retenus = new Set(issue.invites);
-      return { ok: true, conversation, cree: true, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, issue.id, issue.invites) };
+      const prenom = (await c.relations.presenter([moi])).get(moi)?.prenom ?? "Un pote";
+      return { ok: true, conversation, cree: true, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, issue.id, issue.invites, prenom, g.titre) };
     },
 
     async modifierGroupe(moi, conversationId, m, maintenant) {
@@ -209,7 +215,9 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const conversation = await lecture.presenterUne(moi, conversationId, maintenant);
       if (!conversation) return refus("conversation-inconnue");
       const retenus = new Set(issue.nouveaux);
-      return { ok: true, conversation, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, conversationId, issue.nouveaux) };
+      const prenom = issue.nouveaux.length > 0 ? ((await c.relations.presenter([moi])).get(moi)?.prenom ?? "Un pote") : "";
+      const titre = issue.nouveaux.length > 0 ? lireTitre(exigerChiffrement(c), g.acces.conversation) : null;
+      return { ok: true, conversation, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, conversationId, issue.nouveaux, prenom, titre) };
     },
 
     async repondreInvitation(moi, conversationId, rejoint, maintenant) {
