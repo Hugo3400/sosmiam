@@ -42,9 +42,10 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
     const pote = bloquesIds.has(id) ? null : trouverPote(id);
     return pote ? [{ pote, enAttente }] : [];
   };
+  // L'organisateur en premier (s'il est encore de la sortie), puis les autres participants, puis les invitations en attente
+  const participants = [sortie.organisateur, ...sortie.participants.filter((id) => id !== sortie.organisateur)].filter((id) => sortie.participants.includes(id));
   const membres = [
-    ...versMembre(sortie.organisateur, false).filter(() => sortie.participants.includes(sortie.organisateur)),
-    ...sortie.participants.filter((id) => id !== sortie.organisateur).flatMap((id) => versMembre(id, false)),
+    ...participants.flatMap((id) => versMembre(id, false)),
     ...invites.filter((id) => !sortie.participants.includes(id)).flatMap((id) => versMembre(id, true)),
   ];
 
