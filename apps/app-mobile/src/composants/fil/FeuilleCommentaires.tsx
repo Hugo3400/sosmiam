@@ -160,6 +160,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   // La feuille se referme, puis l'écran s'ouvre (plus tôt, il passerait dessous ; et VoiceOver, qui revient sur 💬 à la fermeture, le quitterait)
   function fermerPuisOuvrir(destination: Href) {
+    console.warn("DEBUG-A6 fermerPuisOuvrir", JSON.stringify(destination), JSON.stringify(apresFermeture.current));
     if (apresFermeture.current) return;
     apresFermeture.current = destination;
     setInvitation(null);
@@ -171,6 +172,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     if (minuterieFermeture.current) clearTimeout(minuterieFermeture.current);
     minuterieFermeture.current = null;
     const destination = apresFermeture.current;
+    console.warn("DEBUG-A6 finirFermeture", JSON.stringify(destination));
     if (!destination) return;
     apresFermeture.current = null;
     router.push(destination);
