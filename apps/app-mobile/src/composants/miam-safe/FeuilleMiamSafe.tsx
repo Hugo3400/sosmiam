@@ -1,3 +1,4 @@
+import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -36,11 +37,13 @@ const TITRES: Record<Vue, string> = {
 };
 
 /**
- * La feuille Miam Safe, depuis la fiche d'un lieu : les secours d'abord (même sans compte), puis prévenir un pote, demander
+ * La feuille Miam Safe, depuis la fiche d'un lieu : les secours d'abord (même sans compte), puis prévenir un pote (notification
+ * et position pendant 1 h, sur l'écran /miam-safe/partage/:id), demander
  * au comptoir (phrase ou écran), l'alerte silencieuse (lieux Miam Safe seulement) et raconter après coup.
  * Ton doux et sérieux : pas de blague ici.
  */
 export function FeuilleMiamSafe({ visible, lieuId, nomLieu, engage, avecCompte, onFermer, onMontrerEcran, onCreerCompte }: Props) {
+  const router = useRouter();
   const [vue, setVue] = useState<Vue>("choix");
 
   // Chaque ouverture repart du début
@@ -79,7 +82,17 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, engage, avecCompte, 
       pied={vue === "choix" ? <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} /> : <Bouton libelle="Retour" variante="blanc" onPress={() => setVue("choix")} />}
     >
       {vue === "choix" ? <ChoixAideMiamSafe engage={engage} onChoisir={setVue} /> : null}
-      {vue === "pote" ? <PrevenirPoteMiamSafe nomLieu={nomLieu} /> : null}
+      {vue === "pote" ? (
+        <PrevenirPoteMiamSafe
+          lieuId={lieuId}
+          nomLieu={nomLieu}
+          onOuvrirPartage={(partageId, telephones) => {
+            // La feuille se referme : l'écran du partage envoie la position tant qu'il est ouvert
+            onFermer();
+            router.push((telephones === null ? `/miam-safe/partage/${partageId}` : `/miam-safe/partage/${partageId}?telephones=${telephones}`) as Href);
+          }}
+        />
+      ) : null}
       {vue === "alerte" ? <AlerteComptoirMiamSafe lieuId={lieuId} /> : null}
       {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" ? (

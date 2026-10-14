@@ -14,7 +14,7 @@ type Props = {
 type Choix = { vue: VueAideMiamSafe; emoji: string; titre: string; detail: string; seulementEngage?: boolean };
 
 const CHOIX: readonly Choix[] = [
-  { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Bientôt. Pour l'instant : appelle un proche." },
+  { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Une notification, et ta position pendant 1 h." },
   { vue: "comptoir", emoji: "🛎", titre: "Demander au comptoir", detail: "Une phrase à dire, ou un écran à montrer.", seulementEngage: true },
   { vue: "alerte", emoji: "🤫", titre: "Alerter le comptoir en silence", detail: "Si tu ne peux pas y aller.", seulementEngage: true },
   { vue: "raconter", emoji: "✏️", titre: "Raconter ce qui s'est passé", detail: "Reste entre toi et notre équipe." },

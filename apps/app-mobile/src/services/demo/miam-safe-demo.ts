@@ -82,5 +82,11 @@ export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "mainte
       chartes.set(lieuId, { signee: false, signeeLe: null, retireeParEquipe: false });
       return { ok: true, charte: charte(lieuId) };
     },
+    // « Prévenir un pote » : jamais joué en démo (on ne fait pas croire qu'un pote est prévenu) ; l'écran le dit
+    prevenirPote: async () => ({ ok: false, erreur: "service-indisponible" }),
+    envoyerPosition: async () => ({ ok: false, erreur: "partage-inconnu" }),
+    arreterPartage: async () => ({ ok: false, erreur: "partage-inconnu" }),
+    lirePartage: async () => ({ ok: false, erreur: "partage-inconnu" }),
+    listerPartages: async () => ({ ok: true, partages: [] }),
   };
 }

@@ -1,6 +1,7 @@
-// Tests de la case « newsletter » à la création d'un compte de l'app (« soft opt-in » de la CNIL) : POST /comptes avec
-// l'espace « app », et la création par Apple ou Google. On n'inscrit que sur `newsletter: true`, sans attendre la
-// réponse ; une panne ne fait jamais échouer la création ; une connexion n'inscrit jamais.
+// Tests de la case « newsletter » à la création d'un compte (« soft opt-in » de la CNIL) : POST /comptes avec l'espace
+// « app » ou « ambassadeur », et la création par Apple ou Google. Cochée : un compte de l'app est inscrit (un ambassadeur,
+// plus tard, à la validation) ; décochée : le refus est retenu (noterRefus). Toujours sans attendre la réponse ; une panne
+// ne fait jamais échouer la création ; une connexion n'inscrit jamais et ne retient rien.
 // Tout en mémoire, clé de chiffrement de TEST, faux Apple et faux Google, fausse newsletter : aucune base, aucun réseau.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
@@ -19,10 +20,11 @@ const memoire = creerComptesEnMemoire(horloge);
 const apple = creerFauxFournisseur("apple", horloge);
 const google = creerFauxFournisseur("google", horloge);
 
-/** La fausse newsletter : garde chaque appel ; `enPanne` la fait rejeter */
-const newsletter = { appels: [] as { email: string; ville: string | null }[], enPanne: false };
+/** La fausse newsletter : garde chaque appel (inscriptions et refus) ; `enPanne` la fait rejeter */
+const newsletter = { appels: [] as { email: string; ville: string | null }[], refus: [] as string[], enPanne: false };
 beforeEach(() => {
   newsletter.appels = [];
+  newsletter.refus = [];
   newsletter.enPanne = false;
 });
 
@@ -41,6 +43,10 @@ const serveur = creerApplication({
         newsletter.appels.push({ email, ville });
         if (newsletter.enPanne) throw new Error("boîte injoignable");
         return true;
+      },
+      async noterRefus(email) {
+        newsletter.refus.push(email);
+        if (newsletter.enPanne) throw new Error("disque plein");
       },
     },
   },
@@ -81,16 +87,77 @@ test("inscription « app » avec newsletter: true : inscrite une fois, e-mail en
   assert.deepEqual(newsletter.appels, [{ email: corps.email.toLowerCase(), ville: "Lille" }]);
 });
 
-test("newsletter: false, null ou absente : personne n'est inscrit ; ignorée pour les espaces du site", async () => {
-  for (const retouches of [{ newsletter: false }, { newsletter: null }, {}]) {
+test("inscription « app » : false retient le refus une fois (en minuscules) ; null ou absente : rien ; l'espace pro ignore la case", async () => {
+  const refuse = inscriptionApp({ newsletter: false });
+  assert.equal((await demander("/comptes", refuse)).statut, 201);
+  for (const retouches of [{ newsletter: null }, {}]) {
     assert.equal((await demander("/comptes", inscriptionApp(retouches))).statut, 201);
   }
-  // Espace ambassadeur ou pro : la case n'existe pas, le champ est ignoré (même mal formé)
-  for (const espace of ["ambassadeur", "pro"]) {
-    assert.equal((await demander("/comptes", inscriptionApp({ espace, newsletter: "oui" }))).statut, 201, espace);
+  // Espace pro : la case n'existe pas, le champ est ignoré (même mal formé, ou false)
+  for (const valeur of ["oui", false, true]) {
+    assert.equal((await demander("/comptes", inscriptionApp({ espace: "pro", newsletter: valeur }))).statut, 201, String(valeur));
   }
   await laisserPasser();
   assert.deepEqual(newsletter.appels, []);
+  assert.deepEqual(newsletter.refus, [refuse.email.toLowerCase()]);
+});
+
+test("espace ambassadeur : la case est lue ; cochée, rien ici (inscription à la validation) ; décochée, refus retenu une fois", async () => {
+  const coche = await demander("/comptes", inscriptionApp({ espace: "ambassadeur", newsletter: true }));
+  assert.equal(coche.statut, 201);
+  assert.equal(coche.corps.compte.ambassadeur?.statut, "en-attente");
+  const decoche = inscriptionApp({ espace: "ambassadeur", newsletter: false });
+  assert.equal((await demander("/comptes", decoche)).statut, 201);
+  // Sans le champ (ancien formulaire) : rien
+  assert.equal((await demander("/comptes", inscriptionApp({ espace: "ambassadeur" }))).statut, 201);
+  await laisserPasser();
+  assert.deepEqual(newsletter.appels, []);
+  assert.deepEqual(newsletter.refus, [decoche.email.toLowerCase()]);
+});
+
+test("espace ambassadeur : newsletter qui n'est pas un booléen → 400 champ-invalide, rien n'est créé ni retenu", async () => {
+  const avant = memoire.comptes.size;
+  for (const valeur of ["oui", "false", 0, []]) {
+    const { statut, corps } = await demander("/comptes", inscriptionApp({ espace: "ambassadeur", newsletter: valeur }));
+    assert.deepEqual([statut, corps.erreur, corps.champ], [400, "champ-invalide", "newsletter"]);
+  }
+  assert.equal(memoire.comptes.size, avant);
+  await laisserPasser();
+  assert.deepEqual([newsletter.appels, newsletter.refus], [[], []]);
+});
+
+test("un e-mail déjà pris (409) ou un âge refusé (403) : aucun refus retenu pour cette adresse", async () => {
+  const premier = inscriptionApp({ espace: "ambassadeur" });
+  assert.equal((await demander("/comptes", premier)).statut, 201);
+  const doublon = await demander("/comptes", { ...premier, newsletter: false });
+  assert.deepEqual([doublon.statut, doublon.corps.erreur], [409, "email-deja-utilise"]);
+  const jeune = await demander("/comptes", inscriptionApp({ espace: "ambassadeur", newsletter: false, dateNaissance: "2015-01-01" }));
+  assert.equal(jeune.statut, 403);
+  await laisserPasser();
+  assert.deepEqual(newsletter.refus, []);
+});
+
+test("refus en panne : l'inscription réussit quand même (session ouverte), journal sans l'e-mail", async () => {
+  newsletter.enPanne = true;
+  const erreurs: unknown[][] = [];
+  const journal = console.error;
+  console.error = (...morceaux: unknown[]) => void erreurs.push(morceaux);
+  try {
+    const ambassadeur = inscriptionApp({ espace: "ambassadeur", newsletter: false });
+    const app = inscriptionApp({ newsletter: false });
+    for (const corps of [ambassadeur, app]) {
+      const { statut, corps: reponse } = await demander("/comptes", corps);
+      assert.equal(statut, 201);
+      assert.ok(reponse.session);
+    }
+    await laisserPasser();
+    assert.equal(newsletter.refus.length, 2);
+    const texte = JSON.stringify(erreurs.map((morceaux) => morceaux.map(String)));
+    assert.match(texte, /refus de la newsletter/);
+    for (const corps of [ambassadeur, app]) assert.ok(!texte.toLowerCase().includes(corps.email.toLowerCase()), "jamais d'e-mail dans le journal");
+  } finally {
+    console.error = journal;
+  }
 });
 
 test("newsletter qui n'est pas un booléen : 400 champ-invalide, rien n'est créé", async () => {
@@ -143,11 +210,26 @@ test("Apple et Google : la création avec newsletter: true inscrit ; une connexi
   assert.equal((await demander("/comptes", site)).statut, 201);
   const rattache = await viaGoogle("google-rattache", site.email.toLowerCase(), { newsletter: true });
   assert.deepEqual([rattache.statut, rattache.corps.rattache], [200, true]);
-  // Création sans la case, ou avec false : rien ; mal formée : 400
+  // Création sans la case, ou avec false : pas d'inscription ; mal formée : 400
   assert.equal((await viaGoogle("google-sans", "sans@gmail.com", PROFIL)).statut, 201);
   assert.equal((await viaGoogle("google-faux", "faux@gmail.com", { ...PROFIL, newsletter: false })).statut, 201);
   const invalide = await viaApple("apple-invalide", "invalide@privaterelay.appleid.com", { ...PROFIL, newsletter: "oui" });
   assert.deepEqual([invalide.statut, invalide.corps.champ], [400, "newsletter"]);
   await laisserPasser();
+  assert.deepEqual(newsletter.appels, []);
+  // Seul le « non » à la création est retenu (ni connexion, ni rattachement)
+  assert.deepEqual(newsletter.refus, ["faux@gmail.com"]);
+});
+
+test("Apple et Google : décochée à la création, refus retenu une fois ; une connexion avec false ne retient rien", async () => {
+  const cree = await viaApple("apple-non", "Non.Merci@privaterelay.appleid.com", { ...PROFIL, newsletter: false });
+  assert.equal(cree.statut, 201);
+  // « Fais connaissance » : la première demande sans le profil ne crée rien, donc ne retient rien
+  const incomplet = await viaGoogle("google-non", "non@gmail.com", { newsletter: false });
+  assert.deepEqual([incomplet.statut, incomplet.corps.erreur], [409, "profil-a-completer"]);
+  const connexion = await viaApple("apple-non", "non.merci@privaterelay.appleid.com", { newsletter: false });
+  assert.deepEqual([connexion.statut, connexion.corps.nouveau], [200, false]);
+  await laisserPasser();
+  assert.deepEqual(newsletter.refus, ["non.merci@privaterelay.appleid.com"]);
   assert.deepEqual(newsletter.appels, []);
 });

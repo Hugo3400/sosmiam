@@ -94,6 +94,11 @@ export function creerServicesIndisponibles(): Services {
       lireCharte: indisponible,
       signerCharte: indisponible,
       quitterCharte: indisponible,
+      prevenirPote: indisponible,
+      envoyerPosition: indisponible,
+      arreterPartage: indisponible,
+      lirePartage: indisponible,
+      listerPartages: async () => ({ ok: true, partages: [] }),
     },
     defis: {
       listerDefis: async () => ({ ok: true, defis: [] }),
