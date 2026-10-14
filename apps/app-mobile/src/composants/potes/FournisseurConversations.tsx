@@ -25,11 +25,7 @@ const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() 
 const idsPotesExemples = new Set(potesExemples.map((p) => p.id));
 const creerConversationsDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? creerConversationsExemples(maintenant) : []);
 
-/**
- * Chat entre potes : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales (mode démo :
- * des conversations d'exemple, et des potes qui répondent tout seuls ; sinon, rien tant que l'API des messages n'existe pas).
- * On n'écrit qu'aux potes de sa bande (pas bloqués) : texte, lieu, photo ou note vocale.
- */
+
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -87,7 +83,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
   );
 
   const valeur = useMemo((): EtatConversations => {
-    // Visibles : celles où tu es, sans les conversations privées avec quelqu'un de bloqué, ni les messages bloqués ou signalés
+    
     const visibles = conversations
       .filter((c) => c.participants.includes(monId))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
@@ -97,7 +93,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       const c = visibles.find((x) => x.id === id);
       return c ? c.messages.filter((m) => m.auteur !== monId && (!c.luJusqua || m.date > c.luJusqua)).length : 0;
     };
-    // En privé, seulement si vous pouvez encore discuter (dans ta bande, pas bloqué) ; sinon, la discussion est en pause
+
     const ouverte = (c: Conversation | undefined): c is Conversation => !!c && (c.type === "groupe" || c.participants.every((p) => p === monId || peutDiscuterAvec(p)));
     const envoyer = (id: string, message: Omit<MessageChat, "id" | "auteur" | "date" | "reactions">): ResultatEnvoiChat => {
       const c = visibles.find((x) => x.id === id);
