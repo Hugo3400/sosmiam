@@ -46,7 +46,7 @@ export function BlocApercu({ bloc, numero, ecran }: Props) {
           ))}
         </div>
         <div className={pair ? "md:order-first" : ""}>
-          <TelephoneApercu alt={bloc.alt} penche={pair ? "gauche" : "droite"}>
+          <TelephoneApercu alt={lierPonctuation(bloc.alt)} penche={pair ? "gauche" : "droite"}>
             {ecran}
           </TelephoneApercu>
         </div>

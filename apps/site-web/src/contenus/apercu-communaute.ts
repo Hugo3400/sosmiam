@@ -82,7 +82,7 @@ export const BLOCS_COMMUNAUTE: BlocCommunaute[] = [
       "Fais-leur coucou : si c'est réciproque, vous pouvez vous ajouter à vos bandes.",
       "Sinon, rien ne se passe et personne n'est prévenu. Zéro malaise.",
     ],
-    alt: "Écran Qui est là ? : l'interrupteur Me montrer ici, un coucou réciproque avec deux envies en commun, et une liste de Miamis avec un bouton Coucou.",
+    alt: "Écran « Qui est là ? » : l'interrupteur « Me montrer ici », un coucou réciproque avec deux envies en commun, et une liste de Miamis avec un bouton Coucou.",
   },
   {
     id: "idees",
@@ -94,7 +94,7 @@ export const BLOCS_COMMUNAUTE: BlocCommunaute[] = [
       "Avant que tu envoies la tienne, l'app te montre celles qui lui ressemblent : un vote de plus vaut mieux qu'un doublon.",
     ],
     listes: [{ titre: "En bref", elements: ["Votes « Miam ! »", "Réponses de la Brigade", "Idée du mois", "Anti-doublons"] }],
-    alt: "Écran Boîte à idées : l'idée du mois, des idées classées par votes Miam !, une réponse de la Brigade et une idée qui ressemble à une autre.",
+    alt: "Écran Boîte à idées : l'idée du mois, des idées classées par votes « Miam ! », une réponse de la Brigade et une idée qui ressemble à une autre.",
   },
   {
     id: "etiquettes",

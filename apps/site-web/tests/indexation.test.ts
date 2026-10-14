@@ -70,7 +70,7 @@ test("chaque page privée est en noindex (mon compte, espaces, désinscription, 
     "/espace", "/espace/mon-compte", "/espace/kit-media", "/espace/kit-media-pro", "/espace/proposer-un-lieu", "/espace/fondateur",
     "/espace/certification", "/espace/missions", "/espace/messages",
     "/tableau", "/rattacher", "/rattacher/12", "/lieu/12", "/lieu/12/carte", "/lieu/12/suggestions", "/lieu/12/equipe",
-    "/lieu/12/affichette", "/lieu/12/miam-safe", "/invitation/lea.croque",
+    "/lieu/12/affichette", "/lieu/12/miam-safe", "/invitation/lea.croque", "/preview", "/preview/communaute",
   ];
   for (const chemin of privees) {
     const fichiers = fichiersDe(chemin);
