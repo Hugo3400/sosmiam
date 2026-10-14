@@ -70,5 +70,5 @@ export async function creerBancGestion(services: Partial<ServicesGestion>, compt
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));
-  return { demander, ouvrirSession, fermer };
+  return { demander, ouvrirSession, fermer, adresse: `${adresse}/api-gestion` };
 }

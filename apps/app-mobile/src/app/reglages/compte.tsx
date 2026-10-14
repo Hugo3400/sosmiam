@@ -1,36 +1,42 @@
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 
-import type { ConnexionsCompte } from "@sos-miam/commun/types/compte-app";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
+import { SectionMesConnexions } from "~/composants/reglages/SectionMesConnexions";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { VueDelierConnexion } from "~/composants/reglages/VueDelierConnexion";
+import type { FournisseurConnexion } from "~/contenus/mes-connexions";
 import { lancerConnexionApple } from "~/fonctions/compte/lancer-connexion-apple";
 import { lancerConnexionGoogle } from "~/fonctions/compte/lancer-connexion-google";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
+import { type ResultatMesConnexions, utiliserMesConnexions } from "~/hooks/utiliser-mes-connexions";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
-type Vue = "principal" | "mot-de-passe" | "supprimer";
+type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier";
 type Confirmation = "deconnecter" | "partout" | null;
 
 const MOT_DE_PASSE_MIN = 12;
 
 /**
- * « Mon compte » (compte connecté) : l'e-mail et sa confirmation, changer de mot de passe, se déconnecter (ici ou partout),
- * supprimer son compte. La suppression demande le mot de passe, ou une nouvelle connexion Apple ou Google : une session
+ * « Mon compte » (compte connecté) : l'e-mail et sa confirmation, tes clés pour entrer (mot de passe, Apple, Google : relier,
+ * délier, ajouter un mot de passe), se déconnecter (ici ou partout), supprimer son compte. La suppression demande le mot de passe, ou une nouvelle connexion Apple ou Google : une session
  * seule ne suffit jamais (un téléphone volé ne peut pas effacer le compte). Après une déconnexion ou une suppression, le
  * téléphone oublie tout et l'app repart à la bienvenue.
  */
 export default function MonCompte() {
   const { compte, comptes, ouvrir, fermer, rafraichir } = utiliserSession();
   const effacement = utiliserEffacementLocal();
-  const [connexions, setConnexions] = useState<ConnexionsCompte | null>(null);
+  const mesConnexions = utiliserMesConnexions();
+  const { connexions } = mesConnexions;
   const [vue, setVue] = useState<Vue>("principal");
+  const [aDelier, setADelier] = useState<FournisseurConnexion>("apple");
+  const [lienMotDePasse, setLienMotDePasse] = useState(false);
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   const [lienEnvoye, setLienEnvoye] = useState(false);
   const [actuel, setActuel] = useState("");
@@ -39,9 +45,33 @@ export default function MonCompte() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    comptes.lireConnexions().then((r) => r.ok && setConnexions(r.connexions));
     void rafraichir();
-  }, [comptes, rafraichir]);
+  }, [rafraichir]);
+
+  /** Une réussite s'affiche en haut de l'écran ; une erreur, dans une alerte (rien si c'est annulé) */
+  function montrerResultat(r: ResultatMesConnexions): boolean {
+    if (r.ok) {
+      setMessage(r.message);
+      return true;
+    }
+    if (r.texte) Alert.alert("🛑 Confirmation refusée", r.texte);
+    else if (r.erreur) montrerErreurCompte(r.erreur);
+    return false;
+  }
+
+  function demanderDelier(fournisseur: FournisseurConnexion) {
+    if (!connexions) return;
+    const autre = fournisseur === "apple" ? "google" : "apple";
+    // Sa seule clé : on le dit tout de suite, sans rien demander (l'API refuserait de toute façon)
+    if (!connexions.motDePasse && !connexions[autre]) return montrerErreurCompte("derniere-connexion");
+    setADelier(fournisseur);
+    setVue("delier");
+  }
+
+  async function ajouterMotDePasse() {
+    if (!compte || lienMotDePasse) return;
+    if (montrerResultat(await mesConnexions.ajouterMotDePasse(compte.email))) setLienMotDePasse(true);
+  }
 
   /** Le téléphone oublie le compte et tout le reste : l'app repart à la bienvenue */
   async function partir(prevenirServeur: boolean) {
@@ -91,6 +121,22 @@ export default function MonCompte() {
     } finally {
       setEnCours(false);
     }
+  }
+
+  if (vue === "delier" && connexions) {
+    return (
+      <VueDelierConnexion
+        fournisseur={aDelier}
+        avecMotDePasse={connexions.motDePasse}
+        enCours={mesConnexions.enCours !== null}
+        onConfirmer={(motDePasse) => {
+          void mesConnexions.delier(aDelier, motDePasse).then((r) => {
+            if (montrerResultat(r)) setVue("principal");
+          });
+        }}
+        onAnnuler={() => setVue("principal")}
+      />
+    );
   }
 
   if (vue === "mot-de-passe") {
@@ -173,21 +219,18 @@ export default function MonCompte() {
         )}
       </SectionReglages>
 
+      <SectionMesConnexions
+        connexions={connexions}
+        email={compte?.email ?? null}
+        enCours={mesConnexions.enCours}
+        lienEnvoye={lienMotDePasse}
+        onChangerMotDePasse={() => setVue("mot-de-passe")}
+        onAjouterMotDePasse={() => void ajouterMotDePasse()}
+        onRelier={(fournisseur) => void mesConnexions.relier(fournisseur).then(montrerResultat)}
+        onDelier={demanderDelier}
+      />
+
       <SectionReglages titre="Connexion">
-        {connexions ? (
-          <Text className="py-2 font-texte text-sm leading-5 text-gris">
-            {[connexions.motDePasse ? "e-mail et mot de passe" : null, connexions.apple ? "Apple" : null, connexions.google ? "Google" : null].filter(Boolean).join(", ") ||
-              "aucune connexion"}
-            {" : c'est comme ça que tu entres dans ton compte."}
-          </Text>
-        ) : null}
-        {connexions?.motDePasse ? (
-          <LigneReglage emoji="🔑" titre="Changer mon mot de passe" detail="Tes autres appareils seront déconnectés" onPress={() => setVue("mot-de-passe")} />
-        ) : connexions ? (
-          <Text className="py-2 font-texte text-sm leading-5 text-gris">
-            Pas de mot de passe : tu peux en choisir un avec « Mot de passe oublié », sur l'écran de connexion.
-          </Text>
-        ) : null}
         <LigneReglage emoji="👋" titre="Me déconnecter" detail="Ton compte t'attend : reconnecte-toi quand tu veux" onPress={() => setConfirmation("deconnecter")} />
         <LigneReglage emoji="🧯" titre="Me déconnecter partout" detail="Sur tous tes appareils, celui-ci compris" onPress={() => setConfirmation("partout")} />
       </SectionReglages>

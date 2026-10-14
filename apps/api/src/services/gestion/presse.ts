@@ -2,7 +2,7 @@
 // Deux sources : presse/ à la racine du dépôt (créations exportées de claude.ai, décrites par presse/index.json : affiches,
 // réseaux, imprimés, Miam Safe, textes) et les trois kits médias du site (apps/site-web/kit-media*, chacun avec son zip).
 // Chaque fichier a un identifiant tiré de son chemin : on ne télécharge que ce qui est listé, jamais un chemin libre.
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { extname, join, relative, resolve, sep } from "node:path";
 
@@ -19,7 +19,8 @@ const IMAGES = new Set([".png", ".jpg", ".jpeg", ".webp", ".svg"]);
 
 export const TYPES_PRESSE: Record<string, string> = {
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml",
-  ".pdf": "application/pdf", ".md": "text/markdown; charset=utf-8", ".zip": "application/zip", ".mp4": "video/mp4",
+  ".pdf": "application/pdf", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".zip": "application/zip",
+  ".mp4": "video/mp4", ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav",
 };
 
 export type FichierPresse = { id: string; nom: string; format: string; dimensions: string | null; octets: number; description: string; apercu: string | null };
@@ -84,6 +85,26 @@ async function lireTout() {
     familles.push({ id: kit.id, titre: kit.titre, source: "site", zip: zip ? { id: noter(zip), nom: zip.split(sep).pop()!, octets: (await taille(zip)) ?? 0 } : null, fichiers });
   }
   return { genere: index?.genere ?? null, familles, chemins };
+}
+
+/** Liens de téléchargement des gros fichiers (vidéos, zip des vidéos) : ouverts dans le navigateur, valables 10 minutes */
+const DUREE_LIEN = 10 * 60_000;
+const liens = new Map<string, { id: string; expire: number }>();
+
+/** Un lien temporaire pour un fichier listé, à ouvrir dans le navigateur (trop lourd pour passer par le logiciel) ; null sinon */
+export async function creerLienPresse(id: string, maintenant = Date.now()) {
+  if (!(await trouverFichierPresse(id))) return null;
+  for (const [jeton, lien] of liens) if (lien.expire < maintenant) liens.delete(jeton);
+  const jeton = randomBytes(24).toString("base64url");
+  liens.set(jeton, { id, expire: maintenant + DUREE_LIEN });
+  return { jeton, expireLe: new Date(maintenant + DUREE_LIEN) };
+}
+
+/** Le fichier d'un lien temporaire encore valable ; null sinon */
+export async function lireLienPresse(jeton: string, maintenant = Date.now()) {
+  const lien = liens.get(jeton);
+  if (!lien || lien.expire < maintenant) return null;
+  return trouverFichierPresse(lien.id);
 }
 
 /** GET /presse : les familles et leurs fichiers (sans les chemins) */

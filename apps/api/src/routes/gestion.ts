@@ -90,6 +90,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
     reponse.sendFile(chemin, { headers: { "Content-Type": "application/octet-stream" } });
   });
 
+  // Espace presse : téléchargement d'un gros fichier par un lien de 10 minutes, ouvert dans le navigateur (sans signature,
+  // seulement avec un jeton donné par une demande signée) ; avant les contrôles des demandes du logiciel
+  routes.get("/presse/telecharger/:jeton", presse.telecharger);
   routes.use(protection.controlerEnTetes);
   // Corps lu tel quel (la signature porte sur ses octets exacts), seulement une fois les en-têtes contrôlés
   routes.use(express.raw({ type: () => true, limit: TAILLE_MAX_VIDEO + 1024 }));
@@ -159,6 +162,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   // Espace presse : kits et visuels à télécharger
   routes.get("/presse", presse.liste);
   routes.get("/presse/fichiers/:id", presse.fichier);
+  routes.post("/presse/fichiers/:id/lien", presse.creerLien);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

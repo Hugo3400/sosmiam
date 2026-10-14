@@ -51,3 +51,16 @@ test("téléchargement : un identifiant listé donne le fichier en pièce jointe
   assert.equal((await banc.demander("GET", "/presse/fichiers/AAAAAAAAAAAAAAAA", { session })).status, 404);
   assert.equal((await banc.demander("GET", "/presse/fichiers/..%2Fsecret.txt", { session })).status, 404);
 });
+
+test("gros fichier : un lien de 10 minutes, sans signature, pour le navigateur ; jeton inconnu : 404", async () => {
+  const fichier = (await listerPresse()).familles[0]!.fichiers[0]!;
+  const reponse = await banc.demander("POST", `/presse/fichiers/${fichier.id}/lien`, { session });
+  const { lien } = (await reponse.json()) as { lien: string };
+  assert.match(lien, /^https:\/\/sosmiam\.fr\/api-gestion\/presse\/telecharger\/[\w-]{32}$/);
+  const chemin = new URL(lien).pathname.replace("/api-gestion", "");
+  const direct = await fetch(`${banc.adresse}${chemin}`);
+  assert.equal(direct.status, 200);
+  assert.equal(await direct.text(), "PNG");
+  assert.equal((await fetch(`${banc.adresse}/presse/telecharger/${"x".repeat(32)}`)).status, 404);
+  assert.equal((await banc.demander("POST", "/presse/fichiers/AAAAAAAAAAAAAAAA/lien", { session })).status, 404);
+});

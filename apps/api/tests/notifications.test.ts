@@ -1,4 +1,5 @@
-// Tests des notifications push : anti-spam, jetons signés pour Apple et Google, routes du logiciel de gestion.
+// Tests des notifications push : anti-spam, jetons signés pour Apple et Google, notifications d'un compte (seulement ses
+// téléphones encore connectés), routes du logiciel de gestion.
 import assert from "node:assert/strict";
 import { createVerify, generateKeyPairSync } from "node:crypto";
 import { after, before, test } from "node:test";
@@ -29,6 +30,65 @@ test("jetons signés : ES256 (Apple, signature JOSE) et RS256 (Google) se vérif
   const jetonGoogle = signerJetonJwt("RS256", google.privateKey.export({ type: "pkcs8", format: "pem" }).toString(), {}, { iss: "compte@projet" });
   const [e, c, s] = jetonGoogle.split(".");
   assert.ok(createVerify("SHA256").update(`${e}.${c}`).verify(google.publicKey, Buffer.from(s!, "base64url")));
+});
+
+// prevenirCompte se branche sur la base au chargement, sans s'y connecter : une adresse d'essai suffit, la table est un double
+process.env.DATABASE_URL ??= "postgresql://essai@127.0.0.1:1/essai";
+const { prevenirCompte } = await import("../src/services/notifications/prevenir-compte.ts");
+
+type Telephone = { id: number; jeton: string; plateforme: string; compteId: number | null; sessionId: number | null; actif: boolean };
+type FiltreTelephones = { actif: boolean; compteId: number; sessionId?: { not: null } };
+
+/** Double de la table appareils_push : filtre comme la base (actif, compte, session encore ouverte) et note les désactivations */
+function creerTableTelephones(telephones: Telephone[]) {
+  const filtres: FiltreTelephones[] = [];
+  const table = {
+    findMany: async ({ where }: { where: FiltreTelephones }) => {
+      filtres.push(where);
+      return telephones
+        .filter((t) => t.actif === where.actif && t.compteId === where.compteId && (where.sessionId === undefined || t.sessionId !== null))
+        .map(({ id, jeton, plateforme }) => ({ id, jeton, plateforme }));
+    },
+    update: async ({ where, data }: { where: { id: number }; data: { actif: boolean } }) => {
+      const telephone = telephones.find((t) => t.id === where.id);
+      if (telephone) telephone.actif = data.actif;
+    },
+  };
+  return { table: table as never, filtres };
+}
+
+const MESSAGE = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3" };
+
+test("prevenirCompte : seulement les téléphones actifs du compte inscrits avec une session encore ouverte", async () => {
+  const { table, filtres } = creerTableTelephones([
+    { id: 1, jeton: "connecte-ios", plateforme: "ios", compteId: 7, sessionId: 31, actif: true },
+    { id: 2, jeton: "session-fermee", plateforme: "android", compteId: 7, sessionId: null, actif: true },
+    { id: 3, jeton: "connecte-android", plateforme: "android", compteId: 7, sessionId: 32, actif: true },
+    { id: 4, jeton: "desactive", plateforme: "ios", compteId: 7, sessionId: 33, actif: false },
+    { id: 5, jeton: "autre-compte", plateforme: "ios", compteId: 8, sessionId: 34, actif: true },
+  ]);
+  const envois: string[] = [];
+  await prevenirCompte(7, MESSAGE, async (appareil, message) => (envois.push(`${appareil.jeton}:${message.titre}`), "envoyee"), table);
+  assert.deepEqual(envois.sort(), ["connecte-android:💬 Léa", "connecte-ios:💬 Léa"]);
+  assert.deepEqual(filtres, [{ actif: true, compteId: 7, sessionId: { not: null } }]);
+  // Un compte dont tous les téléphones sont déconnectés : rien ne part, sans erreur
+  const vide = creerTableTelephones([{ id: 9, jeton: "prete-puis-deconnecte", plateforme: "ios", compteId: 12, sessionId: null, actif: true }]);
+  await prevenirCompte(12, MESSAGE, async () => assert.fail("rien ne doit partir"), vide.table);
+});
+
+test("prevenirCompte : jeton mort désactivé ; erreur d'Apple ou de Google journalisée sans jeton ni texte", async (t) => {
+  const telephones: Telephone[] = [
+    { id: 1, jeton: "jeton-mort", plateforme: "ios", compteId: 7, sessionId: 31, actif: true },
+    { id: 2, jeton: "jeton-boude", plateforme: "android", compteId: 7, sessionId: 32, actif: true },
+  ];
+  const { table } = creerTableTelephones(telephones);
+  const journal = t.mock.method(console, "error", () => {});
+  await prevenirCompte(7, MESSAGE, async (appareil) => (appareil.jeton === "jeton-mort" ? "jeton-invalide" : { erreur: "FCM 503 UNAVAILABLE" }), table);
+  assert.deepEqual(telephones.map((tel) => tel.actif), [false, true]);
+  assert.equal(journal.mock.callCount(), 1);
+  const ecrit = JSON.stringify(journal.mock.calls[0]?.arguments);
+  assert.ok(ecrit.includes("FCM 503 UNAVAILABLE"));
+  for (const secret of ["jeton-mort", "jeton-boude", MESSAGE.texte, MESSAGE.titre]) assert.ok(!ecrit.includes(secret), `rien de « ${secret} » au journal`);
 });
 
 const appels: unknown[] = [];
