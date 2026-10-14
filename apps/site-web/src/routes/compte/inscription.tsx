@@ -83,7 +83,11 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     ville: lire("ville"),
     quartier: lire("quartier"),
     cgu: formulaire.get("cgu") === "oui" ? "oui" : "",
+    newsletter: formulaire.get("newsletter") === "oui" ? "oui" : "",
   };
+  // Case « newsletter » de l'espace ambassadeur (cochée d'avance) : décochée, l'API retient le « non ». Seulement si le
+  // formulaire avait la case (champ caché) : une page affichée avant elle n'envoie rien, et rien n'est retenu
+  const newsletter = espace === "ambassadeur" && formulaire.get("newsletterProposee") === "oui" ? valeurs.newsletter === "oui" : undefined;
 
   // Mêmes règles que l'API, vérifiées ici pour signaler d'un coup tous les champs à corriger (dans l'ordre du formulaire)
   const erreurs: Record<string, string> = {};
@@ -107,6 +111,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
       motDePasse,
       prenom: valeurs.prenom,
       ...(espace === "ambassadeur" ? { ville: valeurs.ville, ...(valeurs.quartier ? { quartier: valeurs.quartier } : {}) } : {}),
+      ...(newsletter === undefined ? {} : { newsletter }),
       dateNaissance: valeurs.dateNaissance,
       cgu: true,
       piege: lire("piege"),

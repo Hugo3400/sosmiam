@@ -8,12 +8,14 @@ type Props = {
   valeur?: string;
   /** Case qu'on peut laisser vide (« Partant pour une visio ») : pas « requise » */
   facultatif?: boolean;
+  /** Cochée au premier affichage (la newsletter, qu'on peut décocher) ; après un envoi refusé, elle reprend le choix envoyé */
+  cocheeParDefaut?: boolean;
   /** Le libellé de la case (peut contenir un lien) */
   children: ReactNode;
 };
 
 /** Case à cocher d'un FormulaireCompte (« J'accepte les conditions d'utilisation »), avec son erreur reliée. */
-export function CaseACocher({ nom, valeur = "oui", facultatif = false, children }: Props) {
+export function CaseACocher({ nom, valeur = "oui", facultatif = false, cocheeParDefaut = false, children }: Props) {
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-${nom}`;
   const erreur = erreurs[nom];
@@ -26,7 +28,7 @@ export function CaseACocher({ nom, valeur = "oui", facultatif = false, children 
           name={nom}
           value={valeur}
           required={!facultatif}
-          defaultChecked={valeurs[nom] === valeur}
+          defaultChecked={nom in valeurs ? valeurs[nom] === valeur : cocheeParDefaut}
           autoFocus={focusAuChargement === nom}
           aria-invalid={Boolean(erreur)}
           aria-describedby={erreur ? `${id}-erreur` : undefined}

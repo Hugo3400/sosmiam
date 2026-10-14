@@ -142,6 +142,9 @@ export type DemandeInscription = {
   /** AAAA-MM-JJ : l'API vérifie les 18 ans, puis l'oublie (jamais gardée) */
   dateNaissance: string;
   cgu: true;
+  /** Case « newsletter » de l'espace ambassadeur : false retient le « non » (liste des désinscrits) ; true ne fait rien de plus
+   * (l'inscription se fait à la validation, dans le logiciel) ; absente : rien */
+  newsletter?: boolean;
   /** Champ piège du formulaire : rempli seulement par les robots */
   piege?: string;
   /** « pro » : inscription depuis pro.sosmiam.fr. L'API crée alors le compte seul, sans demande d'ambassadeur, et ne

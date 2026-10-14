@@ -8,6 +8,9 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
+/** La case de la newsletter, avec les mots de l'app (apps/app-mobile/src/composants/inscription/CaseNewsletter.tsx) */
+const TEXTE_NEWSLETTER = "Oui, envoie-moi la newsletter de SOS Miam : nouveaux lieux, nouvelles villes et BIG SOS près de chez moi. Désinscription en un clic, sans rancune 🍟";
+
 /**
  * Ce qui change sur pro.sosmiam.fr : l'aide du prénom, les conditions (partie « L'espace pro »), le petit mot sous le
  * formulaire et la confidentialité (partie « Ton espace pro »). Ville et quartier ne sont demandés qu'aux ambassadeurs.
@@ -71,7 +74,7 @@ export function FormulaireInscription({ espace = "ambassadeur" }: { espace?: Esp
           </>
         )}
       </div>
-      <div className="mt-7">
+      <div className="mt-7 grid gap-4">
         <CaseACocher nom="cgu">
           {/* L'espace reste dans la chaîne : seule, Chrome la perdrait pour les lecteurs d'écran (« lesconditions ») */}
           {"J'accepte les "}
@@ -79,6 +82,13 @@ export function FormulaireInscription({ espace = "ambassadeur" }: { espace?: Esp
             conditions d'utilisation<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
           </a>
         </CaseACocher>
+        {espace === "ambassadeur" && (
+          <>
+            {/* Dit à l'action que la case était là : sans lui (page affichée avant la case), aucun « non » n'est retenu */}
+            <input type="hidden" name="newsletterProposee" value="oui" />
+            <CaseACocher nom="newsletter" facultatif cocheeParDefaut>{lierPonctuation(TEXTE_NEWSLETTER)}</CaseACocher>
+          </>
+        )}
       </div>
       <p className="mt-5 text-sm text-gris">
         {lierPonctuation(texte.apres)}
