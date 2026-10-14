@@ -5,15 +5,23 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { utiliserBandeCompte } from "~/hooks/utiliser-bande-compte";
 import type { EtatCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieuxEnvoyesCompte } from "~/hooks/utiliser-lieux-envoyes-compte";
+import { utiliserListesCompte } from "~/hooks/utiliser-listes-compte";
+import { utiliserSortiesCompte } from "~/hooks/utiliser-sorties-compte";
 
 /**
  * La communauté d'un compte connecté : la bande vient du serveur (toi, tes potes, les demandes, les blocages, « Quoi de
- * neuf », le classement, ce que tu as masqué), le reste vient encore du téléphone (sorties, listes, lieux envoyés,
- * commentaires : lots A3 et A6). Ton identifiant est l'identifiant public de ton profil social (« » tant qu'il n'existe pas).
- * Les données du téléphone te désignent toujours par « moi » : trouverPote le reconnaît encore.
+ * neuf », le classement, ce que tu as masqué), comme les sorties, les listes et les lieux envoyés ; les commentaires
+ * viennent encore du téléphone (lot A6). Ton identifiant est l'identifiant public de ton profil social (« » tant qu'il
+ * n'existe pas). Les données du téléphone te désignent toujours par « moi » : trouverPote le reconnaît encore.
  */
 export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute): EtatCommunaute {
   const bande = utiliserBandeCompte(actif);
+  const monId = bande.moiSocial?.personne.id ?? "";
+  const { noterPersonne, estMasque, masquer, demasquer, bloques } = bande;
+  const sorties = utiliserSortiesCompte(actif, { monId, noterPersonne, estMasque });
+  const listes = utiliserListesCompte(actif, { monId, noterPersonne });
+  const lieuxEnvoyes = utiliserLieuxEnvoyesCompte(actif, { monId, noterPersonne, bloques, estMasque, masquer, demasquer });
 
   return useMemo((): EtatCommunaute => {
     const personne = bande.moiSocial?.personne;
@@ -55,6 +63,11 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
       masquer: bande.masquer,
       estMasque: bande.estMasque,
       demasquer: bande.demasquer,
+      ...sorties,
+      // La discussion d'une sortie passe par la messagerie (utiliserDiscussionSortie) : rien à écrire ici
+      envoyerMessage: () => "vide",
+      ...listes,
+      ...lieuxEnvoyes,
     };
-  }, [locale, bande]);
+  }, [locale, bande, sorties, listes, lieuxEnvoyes]);
 }
