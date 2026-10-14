@@ -16,6 +16,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 // Mêmes limites qu'à l'inscription (et que estProfilValide pour le prénom)
 const LONGUEUR_MAX_PRENOM = 40;
@@ -74,7 +75,7 @@ export default function ReglagesInfos() {
         : null
       : !estPseudoValide(pseudoNettoye)
         ? REGLES_PSEUDO
-        : pseudoChange && potesExemples.some((p) => p.pseudo === pseudoNettoye)
+        : pseudoChange && DEMO_VISITES_ACTIVE && potesExemples.some((p) => p.pseudo === pseudoNettoye)
           ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
           : pseudoChange && nomPublicContientMotInterdit(pseudoNettoye)
             ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
