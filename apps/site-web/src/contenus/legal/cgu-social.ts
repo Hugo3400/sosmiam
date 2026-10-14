@@ -34,7 +34,7 @@ export const sectionMessagerieCgu: SectionLegale = {
         "**Les groupes** : seul un pote de ta bande peut t'inviter dans un groupe, et tu n'y entres qu'en **acceptant** l'invitation (refuser ne prévient personne). En arrivant, tu ne vois pas les messages écrits avant toi. Tu peux le quitter quand tu veux ; tu ne peux alors pas y être réinvité pendant 30 jours.",
         "**Les sorties** : l'organisateur invite des potes de sa bande (15 personnes au plus). Chacun répond à « Tu viens ? » avant d'entrer dans le vote et la discussion, qu'il lit alors depuis le début ; on vote pour un ou plusieurs lieux proposés (8 au plus), et à la fin du vote, le lieu qui a le plus de voix est retenu (à égalité, le premier proposé). Une sortie ne réserve rien dans le lieu : c'est une proposition entre potes.",
         "**Tes messages** : tu peux supprimer un de tes messages pour tout le monde (« Message supprimé » s'affiche), effacer une discussion pour toi seul, ou couper ses notifications. Il n'y a pas d'accusé de lecture : personne ne sait quand tu as lu.",
-        "**Les photos et les notes vocales** ne restent que **90 jours** : ensuite, elles ne s'ouvrent plus (« Ce média a expiré »). Garde de ton côté ce que tu tiens à garder.",
+        "**Les photos et les notes vocales** ne s'ouvrent que pendant **90 jours** : ensuite, « Ce média a expiré ». Garde de ton côté ce que tu tiens à garder.",
       ],
     },
     "Les [règles de la communauté](#regles-communaute) valent aussi dans les messages privés et les groupes. En particulier, il est interdit :",
