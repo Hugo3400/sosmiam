@@ -1,12 +1,15 @@
 import { createContext, useContext } from "react";
 
-import type { Conversation, ReactionChat } from "@sos-miam/commun/types/conversations";
+import type { Conversation, InvitationGroupeChat, ReactionChat } from "@sos-miam/commun/types/conversations";
 import type { ResultatTexte } from "~/hooks/utiliser-communaute";
+import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
 
 /** Refus d'envoi propres au chat */
 export type ResultatEnvoiChat = ResultatTexte | "interdit";
 
 export type EtatConversations = {
+  /** D'où vient le chat : la démo (le téléphone), le serveur (compte connecté), ou rien (visite, attente) */
+  source: SourceSociale;
   pret: boolean;
   /** Tes conversations (privées et groupes), la plus récente d'abord, sans les personnes bloquées */
   conversations: Conversation[];
@@ -16,10 +19,27 @@ export type EtatConversations = {
   nonLusDe: (id: string) => number;
   /** Vrai si tu peux discuter avec ce pote : il est dans ta bande, et pas bloqué */
   peutDiscuterAvec: (poteId: string) => boolean;
-  /** Ouvre (ou crée) la conversation privée avec ce pote ; null si c'est interdit */
-  ouvrirPrive: (poteId: string) => string | null;
-  /** Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés) */
-  creerGroupe: (titre: string, emoji: string, potes: string[]) => { id: string } | { erreur: "titre" | "participants" };
+  /** Ouvre (ou crée) la conversation privée avec ce pote ; null si c'est interdit (ou pas de réseau) */
+  ouvrirPrive: (poteId: string) => Promise<string | null>;
+  /**
+   * Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés). Compte connecté : chacun reçoit une
+   * invitation à accepter (décision de Hugo du 14/10/2026) ; « reseau » : pas parti, réessaie
+   */
+  creerGroupe: (titre: string, emoji: string, potes: string[]) => Promise<{ id: string } | { erreur: "titre" | "participants" | "reseau" }>;
+  /** Les invitations à rejoindre un groupe qui attendent ta réponse (compte connecté ; vides en démo) */
+  invitations: InvitationGroupeChat[];
+  /** « Rejoindre le groupe ? » : oui (tu vois la suite, pas l'historique) ou non (en silence). Faux si ça n'a pas marché */
+  repondreInvitation: (id: string, rejoint: boolean) => Promise<boolean>;
+  /** L'écran d'une discussion s'ouvre : ses messages sont lus puis relus régulièrement ; la fonction rendue arrête */
+  suivreFil: (id: string) => () => void;
+  /** Charge les messages plus anciens d'une discussion (compte connecté, s'il en reste : conversation.plusAnciens) */
+  chargerPlusAnciens: (id: string) => void;
+  /** Renvoie un message qui n'est pas parti (état « echec ») */
+  renvoyer: (conversationId: string, messageId: string) => void;
+  /** Coupe (ou remet) les notifications d'une discussion (compte connecté) */
+  couper: (conversationId: string, coupee: boolean) => void;
+  /** Supprime ton message pour tout le monde (compte connecté) : il reste « Message supprimé » */
+  supprimerMessage: (conversationId: string, messageId: string) => void;
   envoyerTexte: (conversationId: string, texte: string) => ResultatEnvoiChat;
   envoyerLieu: (conversationId: string, lieuId: number) => ResultatEnvoiChat;
   /** Photo choisie ou prise (fichier temporaire du sélecteur) */
