@@ -3,13 +3,11 @@ import { faireEvoluerVisite } from "@sos-miam/commun/fonctions/visites/faire-evo
 import type { EvenementVisite } from "@sos-miam/commun/types/visite";
 
 import { appliquerEffetsVisite } from "./appliquer-effets-demo";
-import { trouverClientDemo } from "./trouver-client-demo";
-import type { ClientDemo, MagasinDemo, VisiteDemo } from "./types-demo";
+import type { MagasinDemo, VisiteDemo } from "./types-demo";
 
 /**
  * Décide une visite du magasin (réglée, refusée, annulée, expirée, retirée) avec les règles de commun, puis applique
- * ses effets. `moi` (lireClient()) sert à figer la bonne récompense quand la carte de « moi » se remplit ; sans lui,
- * on reste prudent (récompense sans alcool).
+ * ses effets.
  */
 export function deciderVisiteDemo(
   m: MagasinDemo,
@@ -17,7 +15,6 @@ export function deciderVisiteDemo(
   evenement: EvenementVisite,
   maintenantMs: number,
   delaiAvisMs: number,
-  moi: ClientDemo | null = null,
 ): ReponseApi<{ visite: VisiteDemo }> {
   const v = m.visites.find((x) => x.id === visiteId);
   if (!v) return { ok: false, erreur: "introuvable" };
@@ -30,6 +27,6 @@ export function deciderVisiteDemo(
   v.annulableJusqua = transition.annulableJusqua;
   if (evenement.type === "refuser" || evenement.type === "annuler-lieu") v.motifRefus = evenement.motif;
   if (evenement.type === "regler") v.reglement = evenement.reglement ?? { type: "paye", reductionPourcent: null, avantages: [] };
-  appliquerEffetsVisite(m, v, transition.effets, maintenantMs, trouverClientDemo(m, v.client, moi));
+  appliquerEffetsVisite(m, v, transition.effets, maintenantMs);
   return { ok: true, visite: v };
 }

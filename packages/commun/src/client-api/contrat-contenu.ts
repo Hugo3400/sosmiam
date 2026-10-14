@@ -2,6 +2,7 @@
 // « Pour toi », et la vue d'une fiche (compteur anonyme pour les statistiques du lieu). Mêmes routes que l'API (/app/…).
 
 import type { CarteLieu } from "../types/carte.ts";
+import type { EvenementLieuPublic } from "../types/evenement.ts";
 import type { LieuApi } from "../types/lieu.ts";
 import type { PublicationApi } from "../types/publication.ts";
 import type { ReponseApi } from "./reponse-api.ts";
@@ -20,6 +21,10 @@ export interface ServiceContenu {
   trouverParCode(codePublic: string): Promise<ReponseApi<{ lieuId: number }>>;
   /** Le fil, du plus récent au plus ancien ; suite : le curseur de la page suivante (null : c'est tout) */
   listerPublications(apres?: string | null, limite?: number): Promise<ReponseApi<{ publications: PublicationApi[]; suite: string | null }>>;
+  /** Les dates d'événements qui touchent [du, au) (ISO, 14 jours au plus ; par défaut : maintenant + 14 jours), dans la zone si elle est donnée */
+  listerEvenements(o?: { zone?: ZoneCarte; du?: string; au?: string }): Promise<ReponseApi<{ evenements: EvenementLieuPublic[] }>>;
+  /** Les 20 prochaines dates des événements d'un lieu (« À venir » sur sa fiche) ; « lieu-inconnu » : absent, brouillon ou masqué */
+  listerEvenementsDuLieu(lieuId: number): Promise<ReponseApi<{ evenements: EvenementLieuPublic[] }>>;
   /** Une vue de la fiche (un compteur par jour et par lieu, sans savoir qui) ; un échec ne compte pas */
   compterVue(lieuId: number): Promise<void>;
 }

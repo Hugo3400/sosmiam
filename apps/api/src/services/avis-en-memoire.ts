@@ -64,7 +64,7 @@ export function creerAvisEnMemoire() {
 
     async creerAvis(nouvel: NouvelleLigneAvis) {
       if (nouvel.visiteId !== null && avis.some((a) => a.visiteId === nouvel.visiteId)) throw Object.assign(new Error("doublon"), { code: "P2002" });
-      const ligne: AvisEnMemoire = { ...nouvel, id: prochainId++, mineur: false, reponseTexte: null, reponseLe: null, reponseParId: null, reponseStatut: null };
+      const ligne: AvisEnMemoire = { ...nouvel, id: prochainId++, reponseTexte: null, reponseLe: null, reponseParId: null, reponseStatut: null };
       avis.push(ligne);
       return versLigne(ligne);
     },
@@ -103,7 +103,7 @@ export function creerAvisEnMemoire() {
 
     async listerARelire(ambassadeurId, lieuxExclus, verdictsMax, limite) {
       return avis
-        .filter((a) => a.statut === "en-relecture" && !a.mineur && a.compteId !== ambassadeurId && !lieuxExclus.includes(a.lieuId) && lieux.get(a.lieuId)?.publie
+        .filter((a) => a.statut === "en-relecture" && a.compteId !== ambassadeurId && !lieuxExclus.includes(a.lieuId) && lieux.get(a.lieuId)?.publie
           && !relectures.some((r) => r.avisId === a.id && r.ambassadeurId === ambassadeurId)
           && relectures.filter((r) => r.avisId === a.id && r.verdict !== "deporte").length < verdictsMax)
         .sort((a, b) => a.id - b.id)

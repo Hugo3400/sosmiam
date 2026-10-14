@@ -76,8 +76,6 @@ test("signature : « Prénom I. » avec un nom, prénom seul sinon, jamais l'âg
     assert.equal("mineur" in r.corps.avis || "age" in r.corps.avis, false);
   }
   assert.deepEqual(signatures, ["Inès D.", "Karim", "Zoé P."]);
-  // L'ancien marquage « mineur » n'est plus jamais posé
-  assert.deepEqual(b.donnees.avis.map((a) => a.mineur), [false, false, false]);
 });
 
 test("photo : +10 points (avis-photo) pour un avis vérifié, rien pour un repas offert ; photo inconnue refusée", async () => {

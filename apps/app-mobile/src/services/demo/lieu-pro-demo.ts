@@ -3,12 +3,13 @@
 // gros mot, événements vérifiés par validerEvenement) ; rien n'est gardé après la fermeture de l'app.
 import type { LancementSos, ReglageMessageMoment, ServiceLieuPro } from "@sos-miam/commun/client-api/contrat-lieu-pro";
 import { calculerProchaineOccurrence } from "@sos-miam/commun/fonctions/evenements/calculer-prochaine-occurrence";
+import { listerOccurrencesEvenement } from "@sos-miam/commun/fonctions/evenements/lister-occurrences-evenement";
 import { estEvenementAlcool } from "@sos-miam/commun/fonctions/evenements/est-evenement-alcool";
 import { calculerDecalageParis } from "@sos-miam/commun/fonctions/temps/calculer-decalage-paris";
 import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
 import { EVENEMENTS_A_VENIR_MAX } from "@sos-miam/commun/regles/evenements";
 import { MESSAGE_MOMENT_MAX, SOS_OFFRE_MAX, SOS_PLACES_MAX, SOS_PLACES_MIN } from "@sos-miam/commun/regles/sos-lieu";
-import type { EvenementLieuPro, ReglageEvenement } from "@sos-miam/commun/types/evenement";
+import type { EvenementLieuPro, EvenementLieuPublic, ReglageEvenement } from "@sos-miam/commun/types/evenement";
 import type { MomentLieu, SosDuJour } from "@sos-miam/commun/types/moment-lieu";
 import type { StatistiquesSemaine } from "@sos-miam/commun/types/statistiques-lieu";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
@@ -84,6 +85,50 @@ function presenterEvenement(e: EvenementLieuPro, ms: number): EvenementLieuPro {
   };
 }
 
+/** Quelques événements d'exemple, posés une fois (vendredi soir, mardi, samedi midi), pour que les fiches de la démo en montrent */
+function semerEvenementsExemple(ms: number): void {
+  if (prochainId > 1) return;
+  const jour = (dans: number, heure: number) => {
+    const d = new Date(ms + dans * JOUR_MS);
+    d.setHours(heure, 0, 0, 0);
+    return d.toISOString();
+  };
+  const exemples: [number, Partial<EvenementLieuPro> & Pick<EvenementLieuPro, "titre" | "type">][] = [
+    [18, { titre: "Quiz des pirates gourmands", type: "quiz", description: "Six manches, un trésor au bout : un dessert pour toute l'équipe gagnante.", debut: jour(2, 20), fin: jour(2, 22) }],
+    [0, { titre: "Atelier pâtes fraîches avec Lia", type: "atelier", description: "On pétrit, on coupe, on goûte. Tablier fourni.", debut: jour(4, 15), fin: jour(4, 17), tarif: "prix", prixCentimes: 2500, places: 8 }],
+    [1, { titre: "Marché des petits producteurs", type: "marche", description: "Miel, fromages et confitures du coin, devant la boutique.", debut: jour(5, 9), fin: jour(5, 13) }],
+  ];
+  for (const [lieuId, e] of exemples) {
+    const date = new Date(ms).toISOString();
+    etatDe(lieuId).evenements.push({
+      description: "", fin: null, hebdoJusqua: null, tarif: "gratuit", prixCentimes: null, places: null, alcool: false, debut: date, ...e,
+      id: prochainId++, photo: null, prochaine: null, statut: "a-venir", annuleLe: null, suspendu: false, interesses: 0, publiePar: null, creeLe: date, modifieLe: date,
+    });
+  }
+}
+
+/** Les dates à venir des événements d'un lieu (ou de tous), comme GET /app/evenements : une ligne par date, la plus proche d'abord */
+export function listerEvenementsPublicsDemo(lieuId: number | null, ms: number): EvenementLieuPublic[] {
+  semerEvenementsExemple(ms);
+  const lignes: EvenementLieuPublic[] = [];
+  for (const [id, etat] of etats) {
+    if (lieuId !== null && id !== lieuId) continue;
+    const lieu = lieuxExemples.find((l) => l.id === id);
+    if (!lieu) continue;
+    for (const e of etat.evenements) {
+      if (e.annuleLe || e.suspendu) continue;
+      for (const date of listerOccurrencesEvenement(e, new Date(ms), new Date(ms + 92 * JOUR_MS))) {
+        lignes.push({
+          id: e.id, lieu: { id, nom: lieu.nom, emoji: lieu.emoji, type: lieu.type, ville: lieu.ville }, titre: e.titre, type: e.type, description: e.description,
+          debut: date.debut.toISOString(), fin: date.fin?.toISOString() ?? null, hebdoJusqua: e.hebdoJusqua, tarif: e.tarif, prixCentimes: e.prixCentimes,
+          places: e.places, photo: null, alcool: e.alcool,
+        });
+      }
+    }
+  }
+  return lignes.sort((a, b) => a.debut.localeCompare(b.debut)).slice(0, 200);
+}
+
 /** Le service « lieu » de l'équipe en démo (le rôle a déjà été vérifié par l'écran : seuls les rôles de démo y mènent) */
 export function creerLieuProDemo(ctx: ContexteDemo): ServiceLieuPro {
   const maintenant = () => ctx.maintenant();
@@ -132,6 +177,7 @@ export function creerLieuProDemo(ctx: ContexteDemo): ServiceLieuPro {
 
   const trouver = (lieuId: number, id: number) => etatDe(lieuId).evenements.find((e) => e.id === id) ?? null;
 
+  semerEvenementsExemple(maintenant());
   return {
     lireMoment: async (lieuId) => ({ ok: true, moment: presenterMoment(lieuId, maintenant()) }),
     lancerSos,

@@ -130,8 +130,7 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
     async listerARelire(ambassadeurId, lieuxExclus, verdictsMax, limite) {
       const avis = await b.avis.findMany({
         where: {
-          // mineur : ancien marquage (plus écrit depuis le 14/10/2026), gardé à l'écart par prudence
-          statut: "en-relecture", mineur: false, compteId: { not: ambassadeurId }, lieuId: { notIn: lieuxExclus },
+          statut: "en-relecture", compteId: { not: ambassadeurId }, lieuId: { notIn: lieuxExclus },
           lieu: { statut: "publie" }, relectures: { none: { ambassadeurId } },
         },
         orderBy: { id: "asc" },

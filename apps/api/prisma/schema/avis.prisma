@@ -17,7 +17,7 @@ model Avis {
   photo           String?         @db.VarChar(120)
   /// La signature figée à l'écriture : « Léa M. », ou « Léa » sans nom donné
   signature       String          @db.VarChar(60)
-  /// Ancien marquage (l'auteur avait moins de 18 ans), plus écrit depuis le 14/10/2026 : un tel avis n'est jamais relu par un ambassadeur
+  /// Ancienne colonne d'avant le 14/10/2026 (plus aucune règle d'âge pour un compte) : ni écrite ni lue, gardée en base sans migration
   mineur          Boolean         @default(false)
   /// « publie », « en-relecture » ou « masque »
   statut          String          @default("publie") @db.VarChar(12)

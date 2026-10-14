@@ -1,6 +1,5 @@
 // Tests de la relecture des avis : pourquoi un avis part en relecture (sans jamais être masqué), et ce qu'un ambassadeur
-// relit (/app/avis/a-relire, /app/avis/:id/relecture) : jamais l'auteur, jamais un avis à l'ancien marquage « mineur »,
-// verdicts consultatifs.
+// relit (/app/avis/a-relire, /app/avis/:id/relecture) : jamais l'auteur, verdicts consultatifs.
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 
@@ -14,8 +13,8 @@ beforeEach(() => b.vider());
 const HEURE = 3600_000;
 
 /** Un compte qui donne son avis sur une visite validée au lieu 1, 2 h après */
-async function avisVerifie(o: { note?: number; neuf?: boolean; prenom?: string } = {}) {
-  const compte = await b.creerCompte({ prenom: o.prenom ?? "Léa", nom: "Martin", neuf: o.neuf });
+async function avisVerifie(o: { note?: number; neuf?: boolean } = {}) {
+  const compte = await b.creerCompte({ prenom: "Léa", nom: "Martin", neuf: o.neuf });
   const visite = b.creerVisite(compte.id, 1, { valideLe: b.banc.horloge - 2 * HEURE });
   const r = await b.demander("POST", "/app/avis", compte.jeton, { visiteId: visite, note: o.note ?? 4, texte: "Une belle table, des assiettes généreuses.", photo: null });
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
@@ -52,13 +51,10 @@ test("relecture : compte de moins de 7 jours, rafale de notes tranchées, tirage
   assert.equal("statut" in publics.avis[0] || "raison" in publics.avis[0], false);
 });
 
-test("ambassadeur : jamais l'auteur, jamais un ancien avis marqué « mineur », jamais le sien ni un lieu lié", async () => {
+test("ambassadeur : jamais l'auteur, jamais le sien ni un lieu lié", async () => {
   const ambassadeur = await b.creerCompte({ prenom: "Hugo", ambassadeur: true });
   const lie = await b.creerCompte({ prenom: "Sam", ambassadeur: true, lies: [2] });
   const adulte = await avisVerifie({ neuf: true });
-  // Un avis écrit avant le 14/10/2026 par un compte de moins de 18 ans : il garde son marquage et reste hors relecture
-  const ancien = await avisVerifie({ neuf: true, prenom: "Inès" });
-  ligne(ancien.avisId).mineur = true;
   const publie = await avisVerifie();
   // Son propre avis (non vérifié, au lieu 2), et un avis d'un lieu masqué
   b.banc.tirage = 0;
@@ -77,8 +73,8 @@ test("ambassadeur : jamais l'auteur, jamais un ancien avis marqué « mineur »,
   // Rattaché au lieu 2 (ou qui demande à l'être) : il ne relit rien de ce lieu
   const ids = (await b.demander("GET", "/app/avis/a-relire", lie.jeton)).corps.avis.map((a: { id: number }) => a.id);
   assert.deepEqual(ids, [adulte.avisId]);
-  // Jamais relus : un ancien avis marqué « mineur », un avis publié sans relecture, le sien, un lieu lié
-  for (const [jeton, id] of [[ambassadeur.jeton, ancien.avisId], [ambassadeur.jeton, publie.avisId], [ambassadeur.jeton, sien.corps.avis.id], [lie.jeton, autre.id]] as const) {
+  // Jamais relus : un avis publié sans relecture, le sien, un lieu lié
+  for (const [jeton, id] of [[ambassadeur.jeton, publie.avisId], [ambassadeur.jeton, sien.corps.avis.id], [lie.jeton, autre.id]] as const) {
     const r = await b.demander("POST", `/app/avis/${id}/relecture`, jeton, { verdict: { type: "ok" } });
     assert.deepEqual([r.statut, r.corps.erreur], [404, "introuvable"], String(id));
   }

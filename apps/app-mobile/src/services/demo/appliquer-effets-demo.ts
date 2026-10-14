@@ -4,7 +4,7 @@ import { appliquerTampon } from "@sos-miam/commun/fonctions/fidelite/appliquer-t
 import { estRecompenseAlcool } from "@sos-miam/commun/fonctions/fidelite/est-recompense-alcool";
 import type { EffetVisite } from "@sos-miam/commun/types/visite";
 
-import type { CarteDemo, ClientDemo, MagasinDemo, VisiteDemo } from "./types-demo";
+import type { CarteDemo, MagasinDemo, VisiteDemo } from "./types-demo";
 
 /** Pose ou retire le tampon de la visite ; vrai si la carte vient de se remplir (récompense principale figée) */
 function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantMs: number): boolean {
@@ -40,15 +40,13 @@ function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantM
 
 /**
  * Applique au magasin les effets d'une visite qui vient d'être décidée (validée, retirée…). Le journal des points ne
- * concerne que « moi » (les figurants n'ont pas de points sur ce téléphone). `_client` n'est plus lu : tout compte a
- * 18 ans ou plus, la récompense figée est la même pour tous (paramètre à retirer avec ses deux appelants).
+ * concerne que « moi » (les figurants n'ont pas de points sur ce téléphone). La récompense figée est la même pour tous.
  */
 export function appliquerEffetsVisite(
   m: MagasinDemo,
   v: VisiteDemo,
   effets: EffetVisite[],
   maintenantMs: number,
-  _client: ClientDemo,
 ): { recompenseGagnee: boolean } {
   let recompenseGagnee = false;
   const le = new Date(maintenantMs).toISOString();

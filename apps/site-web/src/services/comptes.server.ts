@@ -12,6 +12,8 @@ export type ErreurCompte =
   | "compte-rendu-trop-court" | "introuvable" | "aucune-candidature" | "deja-traitee" | "commune-inconnue" | "deja-certifie"
   | "deja-demande" | "lieu-inconnu" | "compte-inconnu" | "pas-pro" | "reserve-au-gerant" | "proposition-invalide" | "trop-de-suggestions"
   | "invitation-inconnue" | "rattachement-inconnu" | "deja-membre" | "trop-d-invitations" | "equipe-complete" | "membre-inconnu" | "carte-invalide"
+  | "jeton-externe-invalide" | "profil-a-completer" | "compte-deja-rattache" | "email-manquant" | "apple-indisponible" | "google-indisponible"
+  | "verification-indisponible" | "chiffrement-indisponible" | "confirmation-incorrecte"
   | "erreur";
 
 const CODES = new Set<string>([
@@ -32,6 +34,9 @@ const CODES = new Set<string>([
   "invitation-inconnue", "rattachement-inconnu", "deja-membre", "trop-d-invitations", "equipe-complete", "membre-inconnu",
   // « Ma carte » (routes/pro.ts) : 400 avec le champ, la section et l'élément en faute
   "carte-invalide",
+  // « Continuer avec Apple / Google » (POST /comptes/apple et /comptes/google, DELETE /comptes/moi sans mot de passe)
+  "jeton-externe-invalide", "profil-a-completer", "compte-deja-rattache", "email-manquant", "apple-indisponible", "google-indisponible",
+  "verification-indisponible", "chiffrement-indisponible", "confirmation-incorrecte",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
@@ -57,9 +62,21 @@ export type ReponseComptes<T extends object> =
       ok: false; erreur: ErreurCompte; champ?: string; attente?: number;
       /** « carte-invalide » : la section et l'élément en faute (à partir de 0), null quand c'est toute la carte */
       section?: number | null; element?: number | null;
+      /** « profil-a-completer » (Apple, Google) : de quoi pré-remplir « Finir ton inscription » */
+      prefill?: { email?: string; prenom?: string; nom?: string };
     };
 
 type OptionsAppel = { methode?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; jeton?: string | null; ip?: string | null; corps?: unknown };
+
+/** Le pré-remplissage rendu avec « profil-a-completer » : seulement des textes courts */
+function lirePrefill(prefill: object): { email?: string; prenom?: string; nom?: string } {
+  const lu: { email?: string; prenom?: string; nom?: string } = {};
+  for (const champ of ["email", "prenom", "nom"] as const) {
+    const valeur = (prefill as Record<string, unknown>)[champ];
+    if (typeof valeur === "string" && valeur.length <= 254) lu[champ] = valeur;
+  }
+  return lu;
+}
 
 /** Appelle l'API des comptes et lit sa réponse JSON. */
 export async function appelerApiComptes<T extends object>(chemin: string, { methode = "GET", jeton, ip, corps }: OptionsAppel = {}): Promise<ReponseComptes<T>> {
@@ -76,7 +93,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     });
     const lu: unknown = await reponse.json().catch(() => null);
     if (typeof lu !== "object" || lu === null) return { ok: false, erreur: "erreur" };
-    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown; section?: unknown; element?: unknown };
+    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown; section?: unknown; element?: unknown; prefill?: unknown };
     if (donnees.ok === true && reponse.ok) return lu as { ok: true } & T;
     // Le « message » que l'API joint parfois (invitation d'une adresse sans compte) n'est pas repris : chaque page a son
     // propre texte pour chaque code (routes/pro/equipe.tsx), au ton du site, et rien de ce que l'API écrit n'arrive tel quel
@@ -90,6 +107,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
       ...(attente !== undefined ? { attente } : {}),
       ...(typeof donnees.section === "number" || donnees.section === null ? { section: donnees.section } : {}),
       ...(typeof donnees.element === "number" || donnees.element === null ? { element: donnees.element } : {}),
+      ...(typeof donnees.prefill === "object" && donnees.prefill !== null ? { prefill: lirePrefill(donnees.prefill) } : {}),
     };
   } catch {
     return { ok: false, erreur: "erreur" };
@@ -154,6 +172,15 @@ export function confirmerEmail(jetonVerification: string, ip: string | null) {
   return appelerApiComptes<object>("/comptes/verifier-email", { methode: "POST", ip, corps: { jeton: jetonVerification } });
 }
 
+/**
+ * « Continuer avec Apple » ou « avec Google » (POST /comptes/apple ou /comptes/google) : le jeton d'identité et son nonce
+ * brut, support « site », et à la création les champs du profil (prenom, dateNaissance, ville, cgu). Connexion, compte
+ * rattaché par l'e-mail vérifié, ou création ; « profil-a-completer » avec prefill s'il manque le profil.
+ */
+export function connecterAvecFournisseur(fournisseur: "apple" | "google", corps: Record<string, unknown>, ip: string | null) {
+  return appelerApiComptes<SessionOuverte & { nouveau?: boolean }>(`/comptes/${fournisseur}`, { methode: "POST", ip, corps });
+}
+
 // ─── Avec session : le compte connecté ───
 
 /** Déconnexion : la session est effacée côté API. */
@@ -180,6 +207,20 @@ export function changerMotDePasse(jeton: string, ip: string | null, actuel: stri
  */
 export function renvoyerVerification(jeton: string, ip: string | null) {
   return appelerApiComptes<{ dejaVerifie?: boolean }>("/comptes/moi/renvoyer-verification", { methode: "POST", jeton, ip });
+}
+
+/** Comment le compte se connecte : vrai mot de passe, Apple lié, Google lié (jamais les identifiants eux-mêmes). */
+export function lireConnexionsCompte(jeton: string, ip: string | null) {
+  return appelerApiComptes<{ connexions: { motDePasse: boolean; apple: boolean; google: boolean } }>("/comptes/moi/connexions", { jeton, ip });
+}
+
+/**
+ * Supprime un compte SANS mot de passe, confirmé par un nouveau jeton du compte Apple ou Google lié (et son nonce brut) :
+ * « confirmation-incorrecte » si le jeton est refusé ou vient d'un autre compte.
+ */
+export function supprimerCompteAvecFournisseur(jeton: string, ip: string | null, fournisseur: "apple" | "google", jetonExterne: string, nonce: string) {
+  const corps = fournisseur === "apple" ? { identityToken: jetonExterne, nonce } : { idToken: jetonExterne, nonce };
+  return appelerApiComptes<object>("/comptes/moi", { methode: "DELETE", jeton, ip, corps });
 }
 
 /** Supprime le compte et tout ce qui va avec (mot de passe demandé). */

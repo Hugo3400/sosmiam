@@ -44,8 +44,7 @@ export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
  *
  * Ambassadeur actif seulement (sinon 403 ambassadeur-non-actif), jamais en cache :
  * GET  /app/avis/a-relire → 200 { ok, avis: AvisARelire[] } : 20 au plus, le plus ancien d'abord ; jamais l'auteur ni son
- *        âge, jamais un avis à l'ancien marquage « mineur » (plus écrit depuis le 14/10/2026), jamais le sien, jamais chez
- *        un lieu auquel il est rattaché (ou le demande),
+ *        âge, jamais le sien, jamais chez un lieu auquel il est rattaché (ou le demande),
  *        jamais un avis déjà relu par lui ni un avis qui a déjà 3 verdicts « ok » ou « louche »
  * POST /app/avis/:id/relecture { verdict: { type: "ok" } | { type: "louche", motif: MotifAvisLouche } | { type: "deporte" } }
  *        → 201 { ok } (consultatif : rien ne change pour l'avis) · 400 champ-invalide { champ: id | verdict }

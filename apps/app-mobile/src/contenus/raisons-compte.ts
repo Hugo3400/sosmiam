@@ -87,6 +87,11 @@ const raisons: Record<RaisonCompte, Omit<ChoixRaisonCompte, "titre">> = {
     action: "proposer une modification",
     phrase: "Un horaire qui a bougé, un nouveau numéro : grâce à toi, les fiches restent justes. Il ne manque plus que ton compte.",
   },
+  interesse: {
+    emoji: "🎟️",
+    action: "garder cet événement",
+    phrase: "Un concert, un quiz, une dégustation ? Avec un compte, on te le garde de côté, et on te le rappelle le jour J si tu veux.",
+  },
 };
 
 /** Pour chaque geste réservé aux inscrits : l'emoji, le titre « Crée ton compte pour … » et la phrase de la feuille. */

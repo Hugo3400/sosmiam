@@ -27,7 +27,7 @@ export function creerOutilsDemo(ctx: ContexteDemo): OutilsDemo {
       const evenement: EvenementVisite = reponse.regler ? { type: "regler" } : { type: "refuser", motif: reponse.motif };
       // Déjà décidée (expirée, annulée…) : l'écran se met à jour tout seul, rien d'autre à faire
       await ctx.magasin.modifier((m, maintenantMs) => {
-        deciderVisiteDemo(m, visiteId, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()), ctx.lireClient());
+        deciderVisiteDemo(m, visiteId, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()));
       });
     },
 

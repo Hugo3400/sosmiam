@@ -63,7 +63,7 @@ export function creerComptoirDemo(ctx: ContexteDemo): ComptoirDemo {
       if (!peutAgirAuComptoir(ctx.lireRoles(), visite.lieuId)) return { ok: false, erreur: "role-requis" };
       const refus = verifier?.(m, maintenantMs);
       if (refus) return refus;
-      const decision = deciderVisiteDemo(m, visiteId, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()), ctx.lireClient());
+      const decision = deciderVisiteDemo(m, visiteId, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()));
       if (!decision.ok) return { ok: false, erreur: decision.erreur };
       return etat(m, visite.lieuId, maintenantMs);
     });

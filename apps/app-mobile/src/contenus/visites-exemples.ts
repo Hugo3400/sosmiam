@@ -14,13 +14,13 @@ const JOUR = 24 * HEURE;
 
 /** Les autres clients de la démo, vus par l'équipe : prénom, initiale et emoji, jamais l'âge */
 export const figurantsExemples: readonly ClientDemo[] = [
-  { cle: "figurant:karim", prenom: "Karim", initialeNom: "B", avatar: "🦊", majeur: true },
-  { cle: "figurant:ines", prenom: "Inès", initialeNom: null, avatar: "🐙", majeur: true },
+  { cle: "figurant:karim", prenom: "Karim", initialeNom: "B", avatar: "🦊" },
+  { cle: "figurant:ines", prenom: "Inès", initialeNom: null, avatar: "🐙" },
 ];
 
 export type ProgrammeExemple = ReglageFidelite & { lieuId: number };
 
-/** Cartes de fidélité des lieux d'exemple ; une récompense avec alcool a toujours sa version sans alcool */
+/** Cartes de fidélité des lieux d'exemple ; ici, les deux récompenses avec alcool ont leur version sans alcool (facultative) */
 export const programmesExemples: readonly ProgrammeExemple[] = [
   { lieuId: LIEU_DEMO_PRO_ID, actif: true, visitesRequises: 5, recompense: "Une île flottante maison", alcool: false, recompenseSansAlcool: null },
   { lieuId: 0, actif: true, visitesRequises: 5, recompense: "Un tiramisu maison", alcool: false, recompenseSansAlcool: null },

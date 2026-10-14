@@ -61,6 +61,6 @@ export function creerVisiteValideeDemo(m: MagasinDemo, e: EntreeVisiteValideeDem
   m.visites.push(visite);
   // Offerte : ni points ni tampon, seulement l'avis (marqué « Repas offert »)
   const effets = calculerEffetsValidation(pendantSos, e.maintenantMs, e.delaiAvisMs, reglement);
-  const { recompenseGagnee } = appliquerEffetsVisite(m, visite, effets, e.maintenantMs, e.client);
+  const { recompenseGagnee } = appliquerEffetsVisite(m, visite, effets, e.maintenantMs);
   return { visite, recompenseGagnee };
 }

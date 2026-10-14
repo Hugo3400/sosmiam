@@ -51,7 +51,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
           const v = m.visites.find((x) => x.id === visite.id);
           // Même identifiant mais autre visite : la démo a été remise à zéro entre-temps
           if (!v || v.creeLe !== visite.creeLe || v.statut !== "demandee") return;
-          deciderVisiteDemo(m, v.id, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()), ctx.lireClient());
+          deciderVisiteDemo(m, v.id, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()));
         })
         .catch(() => {});
     }, delaiMs);
@@ -65,7 +65,7 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
       const v = m.visites.find((x) => x.id === id && x.client === "moi");
       const lieu = v ? trouverLieu(v.lieuId) : undefined;
       if (!v || !lieu) return { ok: false, erreur: "introuvable" };
-      const decision = deciderVisiteDemo(m, id, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()), client);
+      const decision = deciderVisiteDemo(m, id, evenement, maintenantMs, lireDelaiAvisDemo(ctx.lireReglages()));
       return decision.ok ? { ok: true, visite: convertirVisiteDemo(decision.visite, lieu) } : decision;
     });
   }

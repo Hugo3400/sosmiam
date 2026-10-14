@@ -1,7 +1,7 @@
 // La relecture des avis par les ambassadeurs (voir routes/avis.ts) : un verdict consultatif (ok, louche avec un motif de la
 // liste fermée, ou « je me déporte »), un par ambassadeur et par avis ; l'équipe SOS Miam tranche dans le logiciel. Un
 // ambassadeur ne voit jamais l'auteur, jamais le sien, jamais un avis d'un lieu auquel il est rattaché (ou demande à
-// l'être), ni un avis à l'ancien marquage `mineur` (plus écrit depuis le 14/10/2026, gardé à l'écart par prudence).
+// l'être).
 import type { AvisARelire, VerdictRelecture } from "../../../../packages/commun/src/types/avis.ts";
 import { presenterAvisARelire } from "../fonctions/avis/presenter-avis-a-relire.ts";
 import { echecAvis, lieuDisparu } from "./avis-client.ts";
@@ -13,7 +13,7 @@ export function creerAvisRelecture(c: ContexteAvis) {
 
   /** Cet avis peut-il être relu par cet ambassadeur (même règle que listerARelire) ? */
   async function estRelisable(t: TablesAvis, a: LigneAvis, ambassadeurId: number): Promise<boolean> {
-    if (a.statut !== "en-relecture" || a.mineur || a.compteId === ambassadeurId) return false;
+    if (a.statut !== "en-relecture" || a.compteId === ambassadeurId) return false;
     const [exclus, lieu] = await Promise.all([lieuxExclus(t, ambassadeurId), t.lireLieu(a.lieuId)]);
     return !exclus.includes(a.lieuId) && (lieu?.publie ?? false);
   }

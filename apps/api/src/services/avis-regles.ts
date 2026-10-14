@@ -67,8 +67,6 @@ export type LigneAvis = {
   texte: string;
   photo: string | null;
   signature: string;
-  /** Ancien marquage (l'auteur avait moins de 18 ans), plus écrit depuis le 14/10/2026 : un tel avis reste hors relecture */
-  mineur: boolean;
   statut: StatutAvis;
   raisonRelecture: RaisonRelecture | null;
   repasOffert: boolean;
@@ -82,7 +80,7 @@ export type LigneAvis = {
   avecReduction: boolean;
 };
 
-export type NouvelleLigneAvis = Omit<LigneAvis, "id" | "mineur" | "reponseTexte" | "reponseLe" | "reponseParId" | "reponseStatut" | "preuve" | "avecReduction">;
+export type NouvelleLigneAvis = Omit<LigneAvis, "id" | "reponseTexte" | "reponseLe" | "reponseParId" | "reponseStatut" | "preuve" | "avecReduction">;
 
 /** Ce qu'il faut d'une visite pour ouvrir son avis */
 export type VisiteAvis = Pick<LigneVisite, "id" | "compteId" | "lieuId" | "statut" | "mode" | "avisOuvertLe" | "avisFermeLe" | "avisDonne"> & {
@@ -136,7 +134,7 @@ export interface TablesAvis {
   lireDernierAvisNonVerifie(compteId: number, lieuId: number): Promise<Date | null>;
 
   /**
-   * Les avis en relecture qu'un ambassadeur peut relire, le plus ancien d'abord : jamais un avis à l'ancien marquage `mineur`, jamais le sien,
+   * Les avis en relecture qu'un ambassadeur peut relire, le plus ancien d'abord : jamais le sien,
    * jamais chez un lieu non publié ou de `lieuxExclus`, jamais un avis qu'il a déjà relu ni un avis qui a déjà `verdictsMax`
    * verdicts « ok » ou « louche »
    */

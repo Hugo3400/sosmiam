@@ -21,8 +21,6 @@ function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | n
     prenom: profil.prenom,
     initialeNom: nom ? nom.charAt(0).toLocaleUpperCase("fr-FR") : null,
     avatar: avatar.type === "emoji" ? avatar.emoji : "🙂",
-    // Tout compte a 18 ans ou plus : champ à retirer avec ClientDemo.majeur (services/demo/types-demo.ts)
-    majeur: true,
   };
 }
 

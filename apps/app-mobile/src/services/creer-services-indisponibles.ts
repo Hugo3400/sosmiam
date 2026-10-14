@@ -75,6 +75,11 @@ export function creerServicesIndisponibles(): Services {
       modifierEvenement: indisponible,
       annulerEvenement: indisponible,
     },
+    interetsEvenements: {
+      listerMesInterets: async () => ({ ok: true, interets: [] }),
+      poserInteret: indisponible,
+      retirerInteret: indisponible,
+    },
     suggestions: {
       proposer: indisponible,
     },

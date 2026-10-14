@@ -43,8 +43,7 @@ export function creerSuggestionsDemo(ctx: ContexteDemo): ServiceSuggestions {
       const client = ctx.lireClient();
       if (!client) return { ok: false, erreur: "connexion-requise" };
       const lieu = lieuxExemples.find((l) => l.id === lieuId);
-      // Un bar n'existe pas pour un 15-17 ans, comme partout dans l'app
-      if (!lieu || (lieu.type === "bar" && !client.majeur)) return { ok: false, erreur: "lieu-inconnu" };
+      if (!lieu) return { ok: false, erreur: "lieu-inconnu" };
       const valide = validerPropositionLieu(suggestion);
       if (!valide.ok) return { ok: false, erreur: valide.erreur };
 
