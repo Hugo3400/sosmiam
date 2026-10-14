@@ -6,6 +6,7 @@ import type { Route } from "./+types/kit-media-pro";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ReglesKit } from "~/composants/kit-media/ReglesKit";
 import { SectionKit } from "~/composants/kit-media/SectionKit";
+import { SectionsMaquettesKit } from "~/composants/kit-media/SectionsMaquettesKit";
 import { CarteFichiersKitPro } from "~/composants/kit-media-pro/CarteFichiersKitPro";
 import { TexteKitPro } from "~/composants/kit-media-pro/TexteKitPro";
 // Les textes et la liste des fichiers seulement : jamais les dessins de l'affiche et du flyer (composants/kit-media-pro/
@@ -15,6 +16,7 @@ import {
   usageKitMediaPro, visuelsKitMediaPro,
 } from "~/contenus/kit-media-pro";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { lirePoidsMaquettes } from "~/services/maquettes-kits.server";
 import { exigerAmbassadeurActif } from "~/services/session-compte.server";
 
 export function meta(_: Route.MetaArgs) {
@@ -36,13 +38,16 @@ function lirePoids(octets: number): string {
 export async function loader({ request }: Route.LoaderArgs) {
   const { compte } = await exigerAmbassadeurActif(request);
   if (!compte.ambassadeur?.certifie) throw redirect("/espace/certification");
-  const lus = await Promise.all(
-    fichiersKitMediaPro.map(async (fichier) => {
-      const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA_PRO, fichier.chemin)).catch(() => null);
-      return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
-    }),
-  );
-  return { poids: Object.fromEntries(lus) as Record<string, string | null> };
+  const [lus, maquettes] = await Promise.all([
+    Promise.all(
+      fichiersKitMediaPro.map(async (fichier) => {
+        const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA_PRO, fichier.chemin)).catch(() => null);
+        return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
+      }),
+    ),
+    lirePoidsMaquettes("pro", true),
+  ]);
+  return { poids: { ...maquettes, ...Object.fromEntries(lus) } as Record<string, string | null> };
 }
 
 const description = (id: string) => visuelsKitMediaPro.find((visuel) => visuel.id === id)?.description ?? "";
@@ -115,6 +120,9 @@ export default function PageKitMediaPro({ loaderData }: Route.ComponentProps) {
           {cartes.map((carte) => <CarteFichiersKitPro key={carte.titre} {...carte} poids={poids} />)}
         </ul>
       </SectionKit>
+
+      {/* Les maquettes validées à laisser aux lieux : l'affiche de vitrine (A4, A3, 40 × 60 cm) et le flyer grand public */}
+      <SectionsMaquettesKit kit="pro" prefixe="/kit-media-pro" poids={poids} />
 
       <SectionKit id="textes" titre="Les mots pour le dire" texte="Copie, adapte avec tes mots à toi, et c'est parti. Tout ce qui est entre crochets est à remplacer.">
         <ul className="grid gap-5 lg:grid-cols-2">

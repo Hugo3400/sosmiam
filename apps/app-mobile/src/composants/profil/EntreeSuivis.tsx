@@ -24,7 +24,7 @@ type Props = {
 export function EntreeSuivis({ suivis }: Props) {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
-  const nombrePersonnes = utiliserSuivisPersonnes().abonnements.length;
+  const nombrePersonnes = utiliserSuivisPersonnes().nombreAbonnements;
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore

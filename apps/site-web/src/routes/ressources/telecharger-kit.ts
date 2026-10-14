@@ -3,11 +3,14 @@ import { join } from "node:path";
 
 import type { Route } from "./+types/telecharger-kit";
 import { DOSSIER_KIT_MEDIA, fichiersKitMedia, type FichierKit } from "~/contenus/kit-media";
+import type { FichierMaquette } from "~/contenus/maquettes-kits";
+import { lireFichierMaquette } from "~/services/maquettes-kits.server";
 import { exigerAmbassadeurActif } from "~/services/session-compte.server";
 
-const typesFichiers: Record<FichierKit["format"], string> = {
+const typesFichiers: Record<FichierKit["format"] | FichierMaquette["format"], string> = {
   PNG: "image/png",
   SVG: "image/svg+xml",
+  PDF: "application/pdf",
   ZIP: "application/zip",
 };
 
@@ -26,9 +29,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     if (redirection instanceof Response) redirection.headers.set("Cache-Control", "private, no-store");
     throw redirection;
   }
-  const fichier = fichiersKitMedia.find((f) => f.nom === params.fichier);
-  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté
-  const contenu = fichier ? await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA, fichier.chemin)).catch(() => null) : null;
+  const duKit = fichiersKitMedia.find((f) => f.nom === params.fichier);
+  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté ; sinon, une
+  // maquette validée de ce kit, lue dans presse/ (contenus/maquettes-kits.ts)
+  const lu = duKit
+    ? { fichier: duKit, contenu: await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA, duKit.chemin)).catch(() => null) }
+    : await lireFichierMaquette("ambassadeurs", params.fichier ?? "");
+  const fichier = lu?.fichier;
+  const contenu = lu?.contenu ?? null;
   if (!fichier || !contenu) {
     return new Response("Ce fichier n'est pas dans le kit média.", {
       status: 404,

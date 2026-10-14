@@ -3,9 +3,11 @@ import { join } from "node:path";
 
 import type { Route } from "./+types/telecharger-kit-pro";
 import { DOSSIER_KIT_MEDIA_PRO, fichiersKitMediaPro, type FichierKitPro } from "~/contenus/kit-media-pro";
+import type { FichierMaquette } from "~/contenus/maquettes-kits";
+import { lireFichierMaquette } from "~/services/maquettes-kits.server";
 import { exigerAmbassadeurActif } from "~/services/session-compte.server";
 
-const typesFichiers: Record<FichierKitPro["format"], string> = {
+const typesFichiers: Record<FichierKitPro["format"] | FichierMaquette["format"], string> = {
   PNG: "image/png",
   PDF: "application/pdf",
   ZIP: "application/zip",
@@ -37,9 +39,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       headers: enTetesTexte,
     });
   }
-  const fichier = fichiersKitMediaPro.find((f) => f.nom === params.fichier);
-  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté
-  const contenu = fichier ? await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA_PRO, fichier.chemin)).catch(() => null) : null;
+  const duKit = fichiersKitMediaPro.find((f) => f.nom === params.fichier);
+  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté ; sinon, une
+  // maquette validée de ce kit, lue dans presse/ (contenus/maquettes-kits.ts)
+  const lu = duKit
+    ? { fichier: duKit, contenu: await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA_PRO, duKit.chemin)).catch(() => null) }
+    : await lireFichierMaquette("pro", params.fichier ?? "");
+  const fichier = lu?.fichier;
+  const contenu = lu?.contenu ?? null;
   if (!fichier || !contenu) return new Response("Ce fichier n'est pas dans le kit média pro.", { status: 404, headers: enTetesTexte });
   const apercu = new URL(request.url).searchParams.get("apercu") === "1";
   return new Response(new Uint8Array(contenu), {

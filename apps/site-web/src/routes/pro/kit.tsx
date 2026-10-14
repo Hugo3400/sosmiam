@@ -8,6 +8,7 @@ import { ReglesKit } from "~/composants/kit-media/ReglesKit";
 import { SectionKit } from "~/composants/kit-media/SectionKit";
 import { TexteAPoster } from "~/composants/kit-media/TexteAPoster";
 import { CarteFichiersKitLieux } from "~/composants/kit-media-lieux/CarteFichiersKitLieux";
+import { SectionsMaquettesKit } from "~/composants/kit-media/SectionsMaquettesKit";
 import { Section } from "~/composants/mise-en-page/Section";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
 // Les textes et la liste des fichiers seulement : jamais les dessins (composants/kit-media-lieux/), servis en PNG et en PDF
@@ -18,6 +19,7 @@ import {
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
+import { lirePoidsMaquettes } from "~/services/maquettes-kits.server";
 import { lireCharteMiamSafe } from "~/services/pro.server";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -34,8 +36,9 @@ function lirePoids(octets: number): string {
 /** Le lieu, s'il a signé la charte Miam Safe (null : pas pu être lu), et le poids de chaque fichier lu sur le disque. */
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { jeton, ip, lieu } = await exigerLieuPro(request, params.id);
-  const [charte, ...lus] = await Promise.all([
+  const [charte, maquettes, ...lus] = await Promise.all([
     lireCharteMiamSafe(jeton, ip, lieu.id),
+    lirePoidsMaquettes("lieux", true),
     ...fichiersKitMediaLieux.map(async (fichier) => {
       const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA_LIEUX, fichier.chemin)).catch(() => null);
       return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
@@ -44,7 +47,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return {
     lieu,
     miamSafe: charte.ok ? charte.charte.signee : false,
-    poids: Object.fromEntries(lus) as Record<string, string | null>,
+    poids: { ...maquettes, ...Object.fromEntries(lus) } as Record<string, string | null>,
   };
 }
 
@@ -118,6 +121,9 @@ export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
           </SectionKit>
         );
       })}
+
+      {/* Les maquettes validées : affiches pour ta vitrine et ta salle (A4, A3, 40 × 60 cm), stickers */}
+      <SectionsMaquettesKit kit="lieux" miamSafe={miamSafe} prefixe="/kit-media-lieux" poids={poids} />
 
       <SectionKit id="textes" titre="Des textes prêts à poster" texte="Copie, adapte avec tes mots, et poste avec un visuel. Le lien mène à la fiche de ton lieu sur sosmiam.fr.">
         <ul className="grid gap-5 lg:grid-cols-2">

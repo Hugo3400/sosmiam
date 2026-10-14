@@ -10,11 +10,13 @@ import { NuancierKit } from "~/composants/kit-media/NuancierKit";
 import { PolicesKit } from "~/composants/kit-media/PolicesKit";
 import { ReglesKit } from "~/composants/kit-media/ReglesKit";
 import { SectionKit } from "~/composants/kit-media/SectionKit";
+import { SectionsMaquettesKit } from "~/composants/kit-media/SectionsMaquettesKit";
 import { TexteAPoster } from "~/composants/kit-media/TexteAPoster";
 import {
   DOSSIER_KIT_MEDIA, NOM_ZIP_KIT_MEDIA, dossiersKitMedia, fichiersKitMedia, textesKitMedia, visuelsKitMedia, type DossierKit,
 } from "~/contenus/kit-media";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { lirePoidsMaquettes } from "~/services/maquettes-kits.server";
 import { exigerAmbassadeurActif } from "~/services/session-compte.server";
 
 export function meta(_: Route.MetaArgs) {
@@ -35,13 +37,16 @@ function lirePoids(octets: number): string {
 /** Réservée aux ambassadeurs validés. Le poids de chaque fichier est lu sur le disque (null s'il manque). */
 export async function loader({ request }: Route.LoaderArgs) {
   await exigerAmbassadeurActif(request);
-  const lus = await Promise.all(
-    fichiersKitMedia.map(async (fichier) => {
-      const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA, fichier.chemin)).catch(() => null);
-      return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
-    }),
-  );
-  return { poids: Object.fromEntries(lus) as Record<string, string | null> };
+  const [lus, maquettes] = await Promise.all([
+    Promise.all(
+      fichiersKitMedia.map(async (fichier) => {
+        const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA, fichier.chemin)).catch(() => null);
+        return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
+      }),
+    ),
+    lirePoidsMaquettes("ambassadeurs", true),
+  ]);
+  return { poids: { ...maquettes, ...Object.fromEntries(lus) } as Record<string, string | null> };
 }
 
 /** Page /espace/kit-media : le kit média des ambassadeurs (visuels, textes prêts à poster, logos, couleurs, règles). */
@@ -83,6 +88,9 @@ export default function PageKitMedia({ loaderData }: Route.ComponentProps) {
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{cartes(famille.dossier)}</ul>
         </SectionKit>
       ))}
+
+      {/* Les maquettes validées : affiches (A4, A3, 40 × 60 cm), imprimés, carrousels et stories */}
+      <SectionsMaquettesKit kit="ambassadeurs" prefixe="/kit-media" poids={poids} />
 
       <SectionKit id="textes" titre="Les textes prêts à poster" texte="Copie, colle, poste : le lien et #SOSMiam sont déjà dedans. Tu peux aussi les changer à ta sauce.">
         <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">

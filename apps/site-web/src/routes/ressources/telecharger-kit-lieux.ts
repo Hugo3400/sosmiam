@@ -3,10 +3,12 @@ import { join } from "node:path";
 
 import type { Route } from "./+types/telecharger-kit-lieux";
 import { DOSSIER_KIT_MEDIA_LIEUX, fichiersKitMediaLieux, type FichierKitLieux } from "~/contenus/kit-media-lieux";
+import type { FichierMaquette } from "~/contenus/maquettes-kits";
 import { listerRattachements } from "~/services/pro.server";
+import { lireFichierMaquette } from "~/services/maquettes-kits.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 
-const typesFichiers: Record<FichierKitLieux["format"], string> = {
+const typesFichiers: Record<FichierKitLieux["format"] | FichierMaquette["format"], string> = {
   PNG: "image/png",
   PDF: "application/pdf",
   ZIP: "application/zip",
@@ -39,9 +41,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       headers: enTetesTexte,
     });
   }
-  const fichier = fichiersKitMediaLieux.find((f) => f.nom === params.fichier);
-  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté
-  const contenu = fichier ? await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA_LIEUX, fichier.chemin)).catch(() => null) : null;
+  const duKit = fichiersKitMediaLieux.find((f) => f.nom === params.fichier);
+  // Le site est toujours lancé depuis apps/site-web (npm run dev, et npm run start pour pm2) : le kit est à côté ; sinon, une
+  // maquette validée de ce kit, lue dans presse/ (contenus/maquettes-kits.ts)
+  const lu = duKit
+    ? { fichier: duKit, contenu: await readFile(join(process.cwd(), DOSSIER_KIT_MEDIA_LIEUX, duKit.chemin)).catch(() => null) }
+    : await lireFichierMaquette("lieux", params.fichier ?? "");
+  const fichier = lu?.fichier;
+  const contenu = lu?.contenu ?? null;
   if (!fichier || !contenu) return new Response("Ce fichier n'est pas dans le kit média des lieux.", { status: 404, headers: enTetesTexte });
   const apercu = new URL(request.url).searchParams.get("apercu") === "1";
   return new Response(new Uint8Array(contenu), {

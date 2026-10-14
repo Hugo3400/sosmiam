@@ -2,12 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { RondPote } from "~/composants/potes/RondPote";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { BoutonRetirerAbonne } from "~/composants/suivi/BoutonRetirerAbonne";
@@ -21,6 +22,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLiensDe } from "~/hooks/utiliser-liens-de";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
@@ -28,6 +30,9 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
 const TAILLE_ROND = 48;
+/** Une page du serveur (compte connecté) */
+const PAR_PAGE = 50;
+const NOMS = { abonnes: { un: "abonné", des: "abonnés" }, abonnements: { un: "abonnement", des: "abonnements" } } as const;
 
 /**
  * Abonnés et abonnements d'une personne (ou les tiens, id « moi »), en deux onglets. Pour toi : tes abonnés (à retirer en
@@ -53,6 +58,17 @@ export default function ReseauPersonne() {
   useEffect(() => {
     if (mesAbonnes === null && suivis.pret) setMesAbonnes(suivis.abonnes);
   }, [mesAbonnes, suivis.pret, suivis.abonnes]);
+  // Compte connecté : la page suivante (« Voir plus ») s'ajoute au bout, sans bouger ce qui est déjà là
+  useEffect(() => {
+    setMesAbonnes((avant) => {
+      if (avant === null) return avant;
+      const deja = new Set(avant.map((a) => a.pote.id));
+      const nouveaux = suivis.abonnes.filter((a) => !deja.has(a.pote.id));
+      return nouveaux.length > 0 ? [...avant, ...nouveaux] : avant;
+    });
+  }, [suivis.abonnes]);
+  // Les listes de quelqu'un d'autre (compte connecté : lues sur le serveur, si tu es dans sa bande)
+  const liensDe = utiliserLiensDe(estMoi ? "" : id, onglet);
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
 
@@ -151,11 +167,27 @@ export default function ReseauPersonne() {
             })}
           </View>
         )}
+        {suivis.suites.abonnes ? (
+          <BoutonVoirPlus
+            restants={Math.max(1, (compteurs?.abonnes ?? 0) - suivis.abonnes.length)}
+            prochains={Math.min(PAR_PAGE, Math.max(1, (compteurs?.abonnes ?? 0) - suivis.abonnes.length))}
+            nom={NOMS.abonnes}
+            onVoirPlus={() => suivis.chargerSuite("abonnes")}
+          />
+        ) : null}
       </View>
     );
   } else {
-    const liste = onglet === "abonnes" ? suivis.abonnesDe(id) : suivis.abonnementsDe(id);
-    if (liste === "ferme") {
+    const { liste } = liensDe;
+    if (liste === null) {
+      contenu = liensDe.ratee ? (
+        videParDefaut("Le réseau fait des siennes : impossible de lire cette liste pour l'instant. Réessaie dans un instant !")
+      ) : (
+        <View className="mt-4 items-center">
+          <ActivityIndicator color={couleurs.encre} accessibilityLabel="Chargement de la liste" />
+        </View>
+      );
+    } else if (liste === "ferme") {
       contenu = (
         <View className="gap-4">
           {/* « Touche Suivre », dit l'encadré : le bouton est là aussi, juste au-dessus (rien s'il n'est pas permis) */}
@@ -164,6 +196,7 @@ export default function ReseauPersonne() {
             prenom={pote.prenom}
             demandeEnvoyee={relation?.jeSuis === "demande"}
             listesSeules={relation?.visibilite === "complet"}
+            bande={suivis.source === "compte"}
           />
         </View>
       );
@@ -171,8 +204,11 @@ export default function ReseauPersonne() {
       contenu = videParDefaut(onglet === "abonnes" ? `${pote.prenom} n'a pas encore d'abonnés. La première place est libre !` : `${pote.prenom} ne suit personne pour l'instant.`);
     } else {
       contenu = (
-        <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
-          {liste.map((p, i) => ligne(p, i === liste.length - 1, p.pseudo ? `@${p.pseudo}` : ""))}
+        <View className="gap-4">
+          <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+            {liste.map((p, i) => ligne(p, i === liste.length - 1, p.pseudo ? `@${p.pseudo}` : ""))}
+          </View>
+          <BoutonVoirPlus restants={liensDe.restants} prochains={Math.min(PAR_PAGE, liensDe.restants)} nom={NOMS[onglet]} onVoirPlus={liensDe.chargerSuite} />
         </View>
       );
     }
