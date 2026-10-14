@@ -1,5 +1,5 @@
 // Aperçus publics (sosmiam.fr/preview et /preview/communaute) : noindex (balise et en-tête), servis sur sosmiam.fr
-// seulement, fermés dans robots.txt, absents du menu, du pied de page et du plan du site ; et la page ne dit ni date
+// seulement, ouverts dans robots.txt (pour que Google lise leur noindex), absents du menu, du pied de page et du plan du site ; et la page ne dit ni date
 // ni promesse (règle de docs/decisions.md : ne rien inventer comme engagement).
 // Les pages sont des .tsx, que Node ne lance pas : ce test les fait traduire par TypeScript (déjà dans le dépôt).
 // Lancer : node --test tests/*.test.ts
@@ -103,10 +103,10 @@ test("hôtes : servis sur sosmiam.fr ; depuis les espaces ambassadeur et pro, re
   for (const hote of ["apercu.sosmiam.fr", "127.0.0.1"]) assert.equal(choisirRedirectionHote(hote, "/preview/communaute"), null, hote);
 });
 
-test("robots.txt : /preview est fermé sur sosmiam.fr (le reste du site reste ouvert)", async () => {
+test("robots.txt : /preview reste ouvert sur sosmiam.fr, pour que Google lise son noindex", async () => {
   const lireRobots = async (hote: string) => (await robots({ request: new Request(`https://${hote}/robots.txt`) } as never)).text();
   const texte = await lireRobots("sosmiam.fr");
-  assert.match(texte, /^Disallow: \/preview$/m);
+  assert.doesNotMatch(texte, /preview/);
   assert.match(texte, /^Allow: \/$/m);
   // Les espaces n'ouvrent que leur page d'accueil : /preview y est fermé avec tout le reste
   for (const hote of ["ambassadeur.sosmiam.fr", "pro.sosmiam.fr"]) {
