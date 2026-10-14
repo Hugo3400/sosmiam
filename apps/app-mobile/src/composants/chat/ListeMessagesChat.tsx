@@ -24,6 +24,7 @@ import { decrireMessageRecu } from "~/fonctions/chat/decrire-message-recu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import couleurs from "~/theme/couleurs";
@@ -189,10 +190,26 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
   const confidentialite = prive ? `🔒 Rien qu'entre ${prive} et toi.` : "🔒 Seuls les membres de la conversation voient ces messages.";
 
+  const { demo } = utiliserCommunaute();
+  const { chargerPlusAnciens } = utiliserConversations();
+  const plusAnciens = conversation.plusAnciens === true;
   const enTete = useMemo(
     () => (
       <View className="gap-2 pb-2">
-        <BandeauDemoPotes />
+        {/* Compte connecté : les 50 derniers messages d'abord, les plus anciens à la demande */}
+        {plusAnciens ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              vibrerLegerement();
+              chargerPlusAnciens(conversationId);
+            }}
+            className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+          >
+            <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
+          </Pressable>
+        ) : null}
+        {demo ? <BandeauDemoPotes /> : null}
         <Text
           accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler.`}
           className="text-center font-texte text-[13px] leading-[18px] text-gris"
@@ -201,7 +218,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
         </Text>
       </View>
     ),
-    [confidentialite],
+    [confidentialite, demo, plusAnciens, chargerPlusAnciens, conversationId],
   );
 
   const vide = useMemo(

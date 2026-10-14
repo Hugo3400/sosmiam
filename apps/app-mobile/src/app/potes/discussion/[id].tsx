@@ -14,6 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { mettreEnPauseNoteQuiJoue } from "~/hooks/utiliser-audio-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserFilDiscussion } from "~/hooks/utiliser-fil-discussion";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 // Le temps que l'écran suivant s'affiche avant de parler : sinon VoiceOver coupe la phrase pour lire le nouvel écran
@@ -28,6 +29,8 @@ export default function EcranDiscussion() {
   const marges = useSafeAreaInsets();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const conversations = utiliserConversations();
+  // Compte connecté : les messages sont lus puis relus tant que l'écran est au premier plan
+  utiliserFilDiscussion(id);
   const { pret: communautePrete, trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const liste = useRef<PoigneeListeMessages>(null);
@@ -105,7 +108,8 @@ export default function EcranDiscussion() {
   const groupe = conversation.type === "groupe";
   const poteId = groupe ? null : (conversation.participants.find((p) => p !== monId) ?? null);
   const pote = poteId ? trouverPote(poteId) : null;
-  const ecriturePermise = groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId));
+  // Compte connecté : le serveur dit si tu peux écrire ; démo : membre d'un groupe, ou pote de ta bande en privé
+  const ecriturePermise = conversation.ouverte ?? (groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId)));
   const voirProfil = (qui: string) => {
     setMenuOuvert(false);
     router.push({ pathname: "/potes/profil/[id]", params: { id: qui } });
