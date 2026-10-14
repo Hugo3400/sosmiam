@@ -58,7 +58,7 @@ function boutonGeste(html: string, valeur: string): string {
 
 /** Une page rendue par le serveur, à l'adresse donnée, avec le gestionnaire et son contenu */
 function rendre(adresse: string, etat: Etat, ...contenu: ReturnType<typeof h>[]): string {
-  return renderToStaticMarkup(h(MemoryRouter, { initialEntries: [adresse] }, h(GestionnaireConsentement, { etat }, h("main", { id: "contenu" }, ...contenu))));
+  return renderToStaticMarkup(h(MemoryRouter, { initialEntries: [adresse] }, h(GestionnaireConsentement, { etat, children: h("main", { id: "contenu" }, ...contenu) })));
 }
 
 test("production : sans catégorie active, ni bandeau, ni formulaire, même sans aucun choix", () => {
@@ -100,7 +100,7 @@ test("formulaire de /cookies#mes-choix : POST qui marche sans JavaScript, interr
   assert.match(formulaire, /name="retour" value="\/cookies\?apercu-cookies#mes-choix"/);
   assert.match(formulaire, /Tu n&#x27;as encore rien choisi/);
   const interrupteur = formulaire.match(/<input id="page-cookies-publicite"[^>]*>/)?.[0] ?? "";
-  assert.match(interrupteur, /type="checkbox" role="switch" name="accepter" value="publicite"/);
+  for (const attribut of ['type="checkbox"', 'role="switch"', 'name="accepter"', 'value="publicite"']) assert.ok(interrupteur.includes(attribut), attribut);
   assert.doesNotMatch(interrupteur, /checked/);
   for (const geste of ["enregistrer", "tout-refuser", "tout-accepter"]) boutonGeste(formulaire, geste);
 
@@ -111,13 +111,13 @@ test("formulaire de /cookies#mes-choix : POST qui marche sans JavaScript, interr
 });
 
 test("« Gérer mes cookies » : un vrai lien vers /cookies#mes-choix (sans JavaScript, ou sans rien à choisir)", () => {
-  const html = rendre("/", { apercu: false, choix: null }, h(LienGererCookies, { href: "https://sosmiam.fr/cookies#mes-choix" }, "Gérer mes cookies"));
+  const html = rendre("/", { apercu: false, choix: null }, h(LienGererCookies, { href: "https://sosmiam.fr/cookies#mes-choix", children: "Gérer mes cookies" }));
   assert.match(html, /<a href="https:\/\/sosmiam\.fr\/cookies#mes-choix">Gérer mes cookies<\/a>/);
 });
 
 test("ContenuExterne : sans accord, une vignette et aucune iframe ; même avec accord, jamais d'iframe dans le HTML du serveur", () => {
   const proprietes = { fournisseur: "YouTube", genre: "video" as const, titre: "Le BIG SOS de Chez Exemple", lienDirect: "https://www.youtube.com/watch?v=exemple" };
-  const sansAccord = rendre("/", { apercu: false, choix: null }, h(ContenuExterne, proprietes, IFRAME));
+  const sansAccord = rendre("/", { apercu: false, choix: null }, h(ContenuExterne, { ...proprietes, children: IFRAME }));
   assert.doesNotMatch(sansAccord, /<iframe|<script|youtube-nocookie/);
   assert.match(sansAccord, /Cette vidéo vient de YouTube, qui pose des cookies\./);
   assert.match(sansAccord, /<a href="https:\/\/www\.youtube\.com\/watch\?v=exemple"[^>]*>Voir sur YouTube<\/a>/);
@@ -137,7 +137,7 @@ test("ContenuExterne : sans accord, une vignette et aucune iframe ; même avec a
     actionFormulaire: "/cookies/choix",
   });
   const rendreAvec = (accepte: boolean) =>
-    renderToStaticMarkup(h(MemoryRouter, { initialEntries: ["/lieux/12"] }, h(ContexteConsentement, { value: valeur(accepte) }, h(ContenuExterne, proprietes, IFRAME))));
+    renderToStaticMarkup(h(MemoryRouter, { initialEntries: ["/lieux/12"] }, h(ContexteConsentement, { value: valeur(accepte) }, h(ContenuExterne, { ...proprietes, children: IFRAME }))));
   const nonAccepte = rendreAvec(false);
   assert.doesNotMatch(nonAccepte, /<iframe/);
   assert.match(nonAccepte, /<form action="\/cookies\/choix" method="post">.*name="categorie" value="contenus-externes".*value="accepter-categorie"[^>]*>Toujours afficher les vidéos</);

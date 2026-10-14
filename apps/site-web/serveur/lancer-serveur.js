@@ -12,14 +12,14 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 
-import { createRequestHandler } from "@react-router/express";
-import compression from "compression";
-import express from "express";
-import sourceMapSupport from "source-map-support";
-
-import { journaliserRequetes } from "./journaliser-requetes.js";
-
+// « production » par défaut AVANT de charger React (par @react-router/express) : son entrée choisit sa version de
+// développement ou de production à son chargement (comme bin.cjs de react-router-serve). D'où les imports dynamiques.
 process.env.NODE_ENV = process.env.NODE_ENV ?? "production";
+const { createRequestHandler } = await import("@react-router/express");
+const { default: compression } = await import("compression");
+const { default: express } = await import("express");
+const { default: sourceMapSupport } = await import("source-map-support");
+const { journaliserRequetes } = await import("./journaliser-requetes.js");
 
 // Les erreurs pointent vers le code source (fichiers .map du build), comme avec react-router-serve
 sourceMapSupport.install({
