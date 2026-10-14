@@ -10,8 +10,6 @@ export type Pote = {
   /** Emoji d'avatar */
   avatar: string;
   ville: string;
-  /** 15 à 17 ans : pas d'alcool, et un adulte ne peut l'ajouter que par lien ou QR code */
-  mineur: boolean;
   /** Points du programme Ambassadeurs */
   points: number;
   /** Points et rescousses du mois en cours (classement entre potes) */

@@ -15,7 +15,7 @@ type Props = {
   onChange: (filtres: ChoixFiltres) => void;
   /** Villes proposées dans le choix de la zone (« Ou une ville précise ») */
   villes: string[];
-  /** Faux : la pastille « Bars » n'est pas montrée (moins de 18 ans) */
+  /** Faux : la pastille « Bars » n'est pas montrée (visite sans compte : âge inconnu) */
   barsPermis: boolean;
   /** Où l'on regarde : à quelques km, ta région, toute la France, ou la ville des filtres */
   zone: ChoixZone;

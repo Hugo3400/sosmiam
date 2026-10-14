@@ -97,7 +97,7 @@ test("sans clé : GET et PATCH profil répondent 503 chiffrement-indisponible", 
 
 const PROPOSITION = { nom: "Le Petit Four", type: "patisserie", ville: "Nantes", description: "Des choux garnis à la minute, une équipe adorable." };
 
-test("proposer un nouveau lieu : 18 ans et plus (âge connu, ambassadeur actif ou pro validé) ; ancien compte de 15-17 ans : 403", async () => {
+test("proposer un nouveau lieu : tout compte (18 ans vérifiés à l'inscription) ; ancien compte de 15-17 ans : 403", async () => {
   const mineur = await inscrireAncienMineur("2010-06-01");
   const proposer = (jeton: string, corps: unknown = PROPOSITION) => demander("POST", "/comptes/moi/propositions-lieux", { jeton, corps });
   assert.deepEqual((await proposer(mineur.jeton)).corps, { ok: false, erreur: "reserve-aux-majeurs" });
@@ -114,17 +114,17 @@ test("proposer un nouveau lieu : 18 ans et plus (âge connu, ambassadeur actif o
   const liste = (await demander("GET", "/comptes/moi/propositions-lieux", { jeton: majeur.jeton })).corps;
   assert.deepEqual(liste.propositions.map(({ nom, statut }: { nom: string; statut: string }) => [nom, statut]), [["Le Petit Four", "a-traiter"]]);
 
-  // Comptes du site (âge inconnu) : seulement ambassadeur actif ou pro validé
+  // Comptes du site (date pas gardée) : oui aussi, avec ou sans rôle
   const site = await demander("POST", "/comptes", {
     corps: { email: "pro-site@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Léo", dateNaissance: "1990-01-01", cgu: true, espace: "pro" },
   });
-  assert.equal((await proposer(site.corps.session)).statut, 403);
+  assert.equal((await proposer(site.corps.session)).statut, 201, "sans rôle");
   await rendrePro(site.corps.session);
   assert.equal((await proposer(site.corps.session)).statut, 201);
   const ambassadeur = await demander("POST", "/comptes", {
     corps: { email: "amb@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Léa", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true },
   });
-  assert.equal((await proposer(ambassadeur.corps.session)).statut, 403, "en attente : pas encore");
+  assert.equal((await proposer(ambassadeur.corps.session)).statut, 201, "ambassadeur en attente : oui aussi");
   const ambassadeurId = [...memoire.comptes.values()].find((compte) => compte.email === "amb@exemple.fr")?.id ?? 0;
   await memoire.decider(ambassadeurId, "actif");
   assert.equal((await proposer(ambassadeur.corps.session)).statut, 201);

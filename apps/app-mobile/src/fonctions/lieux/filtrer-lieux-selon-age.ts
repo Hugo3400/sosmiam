@@ -1,8 +1,7 @@
-import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 
-/** Sous 18 ans (ou âge inconnu, par prudence), retire les bars : pas de lieu centré sur l'alcool. */
+/** Âge inconnu (null : visite sans compte, tout public) : retire les bars. Avec un compte (18 ans ou plus), tout reste. */
 export function filtrerLieuxSelonAge(lieux: Lieu[], age: number | null): Lieu[] {
-  if (age !== null && age >= AGE_ALCOOL) return lieux;
+  if (age !== null) return lieux;
   return lieux.filter((lieu) => lieu.type !== "bar");
 }

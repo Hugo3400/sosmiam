@@ -314,6 +314,8 @@
 - **Fidélité** : la version sans alcool d'une récompense avec alcool devient **facultative** (elle servait aux 15-17 ans). La récompense avec alcool s'affiche avec le message sanitaire.
 - **Défis** : la liste est **gérée dans le logiciel de gestion** (créer, modifier, dates de début et de fin, points), lue par l'app sur le serveur. Le serveur compte l'avancée de chacun (jours à l'heure de Paris), crédite les points une seule fois et les retire si l'avancée retombe avant la fin (rescousse reprise, visite retirée). Fini les défis et les points calculés seulement sur le téléphone.
 - **Badge « Noctambule »** : **3 visites validées après 22 h**, dans tous les lieux (plus « 3 bars »), pour ne pas pousser à boire (loi Évin). Jamais de points attachés.
+- **Premier sauveteur** (choix de construction, 14 octobre 2026) : seul le serveur décide qui est le premier sauveteur d'un lieu ; un lieu « Déniché par » peut en avoir un ; après une reprise de la rescousse, les 20 points repartent mais le badge reste.
+- **Activité de l'app sur le serveur** (14 octobre 2026) : avec un compte connecté, rescousses, lieux gardés, J'aime, « Pas intéressé » et suivis passent par `/app/activite` (réponse immédiate à l'écran, gestes rejoués au retour du réseau ; une rescousse n'est jamais mise en attente). Points, palier et badges affichés sont ceux du compte. Rien n'est repris du téléphone.
 - **Défi « premiers » et badge « Premier sauveteur »** : Hugo a laissé choisir et a demandé d'ajouter des défis. Le badge récompense le premier sauvetage ; le défi en demande plusieurs avant sa date de fin, pour ne plus payer deux fois le même geste.
 
 ## Potes, messagerie et profils sur le serveur (décidé le 14 octobre 2026)
