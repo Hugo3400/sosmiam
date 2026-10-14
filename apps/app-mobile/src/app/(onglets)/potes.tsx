@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
@@ -14,7 +13,6 @@ import { OngletsPotes, type OngletPotes } from "~/composants/potes/OngletsPotes"
 import { SectionBande } from "~/composants/potes/SectionBande";
 import { SectionListes } from "~/composants/potes/SectionListes";
 import { SectionSorties } from "~/composants/potes/SectionSorties";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -47,10 +45,9 @@ export default function Potes() {
     if (demande) setOnglet(demande);
   }, [ongletDemande]);
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
-  // Les lieux que tu peux voir : pas de bar sous 18 ans (en visite sans compte, l'onglet n'est pas montré : rien à calculer)
+  // Les lieux connus (en visite sans compte, l'onglet n'est pas montré : rien à calculer)
   const { lieux: tousLesLieux } = utiliserLieux();
-  const lieux = useMemo(() => new Map(filtrerLieuxSelonAge(invite ? [] : tousLesLieux, age).map((l) => [l.id, l] as const)), [tousLesLieux, age, invite]);
+  const lieux = useMemo(() => new Map((invite ? [] : tousLesLieux).map((l) => [l.id, l] as const)), [tousLesLieux, invite]);
   const recues = useMemo(() => recommandationsRecues.filter((r) => lieux.has(r.lieuId) && trouverPote(r.de) !== null), [recommandationsRecues, lieux, trouverPote]);
 
   // Visite sans compte : ni bande ni sorties, juste un aperçu de ce qui t'attend

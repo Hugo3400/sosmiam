@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { Annonce } from "~/composants/interface/Annonce";
@@ -19,10 +18,10 @@ import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
@@ -56,6 +55,8 @@ export default function FicheLieu() {
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   // Stable : l'en-tête mémorisé la reçoit pour « Suivre », sans se redessiner à chaque rescousse
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
+  // Mêmes règles et mêmes messages que dans le fil (onglet « Pour toi ») ; premier sauveteur confirmé par l'API avec un compte
+  const donnerOuReprendreRescousse = utiliserGesteRescousse(annoncer);
   const [envoi, setEnvoi] = useState<EtatEnvoi>("jamais");
   const ouvrirEnvoi = useCallback(() => {
     if (exiger("envoyer")) setEnvoi("ouvert");
@@ -98,20 +99,8 @@ export default function FicheLieu() {
   // Plus de rescousse cette semaine : le bouton est désactivé (pas de vibration pour rien) et dit pourquoi
   const epuisee = avecCompte && !sauve && activite.restantes <= 0;
 
-  // Mêmes règles et mêmes messages que dans le fil (onglet « Pour toi »)
   const basculerRescousse = () => {
-    if (!exiger("rescousse")) return;
-    // activite est l'état d'avant l'appui : un lieu déjà compté ne refait pas « Premier sauveteur »
-    const premierSauveteur = estPremierSauvetagePossible(lieu, activite.premiersSauvetages);
-    const resultat = activite.basculerRescousse(lieu);
-    if (resultat === "non-verifie") return annoncer("Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣");
-    if (resultat === "epuisee") return annoncer("Plus de rescousse cette semaine, reviens lundi ! 🛟");
-    if (resultat === "annulee") return annoncer("Rescousse reprise");
-    const reste = activite.restantes - 1;
-    if (premierSauveteur) {
-      activite.noterPremierSauvetage(lieu.id);
-      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} vient d'arriver et tu es déjà là : +${POINTS_AMBASSADEUR.premierSauveteur} points`);
-    } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
+    if (exiger("rescousse")) donnerOuReprendreRescousse(lieu);
   };
 
   return (

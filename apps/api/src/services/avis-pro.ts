@@ -9,7 +9,7 @@ import { echecAvis } from "./avis-client.ts";
 import type { ContexteAvis, EchecAvis } from "./avis-regles.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
 
-/** comptoir.roleDe : le rattachement VALIDÉ du compte à ce lieu, s'il a 18 ans ou plus (null sinon) */
+/** comptoir.roleDe : le rattachement VALIDÉ du compte à ce lieu (null sinon) */
 export type RoleDe = (compteId: number, lieuId: number) => Promise<RoleRattachement | null>;
 
 export function creerAvisPro(c: Pick<ContexteAvis, "depot" | "horloge">, roleDe: RoleDe) {

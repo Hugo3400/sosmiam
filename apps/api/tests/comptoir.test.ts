@@ -28,7 +28,7 @@ async function addition(jeton: string) {
 
 test("l'écran du comptoir : additions avec prénom, initiale et emoji, jamais plus ; lieux de l'équipe", async () => {
   const { gerant, serveur } = await equipe();
-  const lea = await b.creerCompte({ prenom: "Léa", nom: "Martin", avatar: "🐙", naissance: "1998-05-02" });
+  const lea = await b.creerCompte({ prenom: "Léa", nom: "Martin", avatar: "🐙" });
   const v = await addition(lea.jeton);
   const etat = (await b.demander("GET", "/pro/comptoir/lieux/1", serveur.jeton)).corps.etat;
   assert.deepEqual([etat.lieu.nom, etat.validationActive, etat.codePublic, etat.qr], ["Chez Léa", true, "chezlea2", null]);
@@ -37,16 +37,12 @@ test("l'écran du comptoir : additions avec prénom, initiale et emoji, jamais p
   assert.deepEqual((await b.demander("GET", "/pro/comptoir/lieux", lea.jeton)).corps.lieux, []);
 });
 
-test("rôles : pas de l'équipe, mineur, ou équipe qui règle le programme → role-requis", async () => {
+test("rôles : pas de l'équipe, ou équipe qui règle le programme → role-requis", async () => {
   const { serveur } = await equipe();
   const inconnu = await b.creerCompte();
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
-  b.rattacher(ado.id, 1, "equipe");
-  for (const jeton of [inconnu.jeton, ado.jeton]) {
-    const r = await b.demander("GET", "/pro/comptoir/lieux/1", jeton);
-    assert.deepEqual([r.statut, r.corps.erreur], [403, "role-requis"]);
-  }
-  assert.deepEqual((await b.demander("GET", "/pro/comptoir/lieux", ado.jeton)).corps.lieux, []);
+  const r = await b.demander("GET", "/pro/comptoir/lieux/1", inconnu.jeton);
+  assert.deepEqual([r.statut, r.corps.erreur], [403, "role-requis"]);
+  assert.deepEqual((await b.demander("GET", "/pro/comptoir/lieux", inconnu.jeton)).corps.lieux, []);
   const lea = await b.creerCompte();
   const v = await addition(lea.jeton);
   assert.equal((await b.demander("POST", `/pro/comptoir/visites/${v.id}/reglee`, inconnu.jeton, {})).corps.erreur, "role-requis");
@@ -98,17 +94,20 @@ test("refus et annulation par le lieu : motifs fermés, 15 minutes pour annuler,
   assert.deepEqual([tard.statut, tard.corps.erreur], [409, "delai-depasse"]);
 });
 
-test("programme et fidélité : 3 visites, récompense figée selon l'âge, demandée puis offerte au comptoir", async () => {
+test("programme et fidélité : 3 visites, récompense figée avec son alcool, demandée puis offerte au comptoir", async () => {
   const { gerant, serveur } = await equipe();
-  const programme = await b.demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, { ...PROGRAMME, recompenseSansAlcool: null });
-  assert.deepEqual([programme.statut, programme.corps.champ], [400, "recompenseSansAlcool"]);
+  // La version sans alcool est facultative, mais jamais avec de l'alcool dedans
+  const sansVersion = await b.demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, { ...PROGRAMME, recompenseSansAlcool: null });
+  assert.deepEqual([sansVersion.statut, sansVersion.corps.programme.alcool, sansVersion.corps.programme.recompenseSansAlcool], [200, true, null]);
+  const kir = await b.demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, { ...PROGRAMME, recompenseSansAlcool: "Un kir maison" });
+  assert.deepEqual([kir.statut, kir.corps.champ], [400, "recompenseSansAlcool"]);
   const ok = await b.demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, PROGRAMME);
   assert.deepEqual([ok.statut, ok.corps.programme.visitesRequises, ok.corps.programme.alcool], [200, 3, true]);
   assert.equal((await b.demander("GET", "/pro/comptoir/lieux/1/programme", serveur.jeton)).corps.programme.recompense, "Un verre de muscat");
 
   const lea = await b.creerCompte();
-  const ado = await b.creerCompte({ prenom: "Tom", naissance: "2010-03-01" });
-  for (const client of [lea, ado]) {
+  const tom = await b.creerCompte({ prenom: "Tom" });
+  for (const client of [lea, tom]) {
     for (let i = 0; i < 3; i++) {
       const v = await addition(client.jeton);
       assert.equal((await b.demander("POST", `/pro/comptoir/visites/${v.id}/reglee`, serveur.jeton, {})).statut, 200);
@@ -117,9 +116,9 @@ test("programme et fidélité : 3 visites, récompense figée selon l'âge, dema
   }
   const [carteLea] = (await b.demander("GET", "/app/fidelite/cartes", lea.jeton)).corps.cartes;
   assert.deepEqual([carteLea.tampons, carteLea.sur, carteLea.pretes.length, carteLea.pretes[0].libelle, carteLea.pretes[0].alcool], [0, 3, 1, "Un verre de muscat", true]);
-  const [carteAdo] = (await b.demander("GET", "/app/fidelite/cartes", ado.jeton)).corps.cartes;
-  // Un 15-17 ans ne voit jamais la version avec alcool, ni qu'elle existe
-  assert.deepEqual([carteAdo.recompense, carteAdo.recompenseAlcool, carteAdo.pretes[0].libelle, carteAdo.pretes[0].alcool], ["Une citronnade maison", false, "Une citronnade maison", undefined]);
+  const [carteTom] = (await b.demander("GET", "/app/fidelite/cartes", tom.jeton)).corps.cartes;
+  // Tout compte a 18 ans ou plus : la récompense principale, avec le message sanitaire
+  assert.deepEqual([carteTom.recompense, carteTom.recompenseAlcool, carteTom.pretes[0].libelle, carteTom.pretes[0].alcool], ["Un verre de muscat", true, "Un verre de muscat", true]);
 
   const demande = await b.demander("POST", "/app/fidelite/cartes/1/demande", lea.jeton);
   const { code, id, expireLe } = demande.corps.carte.demande;
@@ -134,14 +133,14 @@ test("programme et fidélité : 3 visites, récompense figée selon l'âge, dema
   assert.equal((await b.demander("POST", "/app/fidelite/cartes/1/demande", lea.jeton)).corps.erreur, "pas-de-recompense");
 
   // Une demande trop vieille ne s'offre plus
-  const tom = await b.demander("POST", "/app/fidelite/cartes/1/demande", ado.jeton);
+  const demandeTom = await b.demander("POST", "/app/fidelite/cartes/1/demande", tom.jeton);
   b.banc.horloge += 16 * 60_000;
-  const tard = await b.demander("POST", `/pro/comptoir/recompenses/${tom.corps.carte.demande.id}/offrir`, serveur.jeton);
+  const tard = await b.demander("POST", `/pro/comptoir/recompenses/${demandeTom.corps.carte.demande.id}/offrir`, serveur.jeton);
   assert.deepEqual([tard.statut, tard.corps.erreur], [409, "delai-depasse"]);
   // Annuler sa demande
-  const reprise = await b.demander("POST", "/app/fidelite/cartes/1/demande", ado.jeton);
+  const reprise = await b.demander("POST", "/app/fidelite/cartes/1/demande", tom.jeton);
   assert.ok(reprise.corps.carte.demande);
-  assert.equal((await b.demander("DELETE", "/app/fidelite/cartes/1/demande", ado.jeton)).corps.carte.demande, null);
+  assert.equal((await b.demander("DELETE", "/app/fidelite/cartes/1/demande", tom.jeton)).corps.carte.demande, null);
 });
 
 test("QR montré : 1 à 12 personnes, règlement de la liste fermée, lieu qui valide", async () => {

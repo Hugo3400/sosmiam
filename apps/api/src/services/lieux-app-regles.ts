@@ -14,7 +14,7 @@ export interface ServicesLieuxApp {
   /** Un lieu publié, ou null (absent, brouillon ou masqué) */
   lireLieu(id: number, maintenant: Date): Promise<LieuApi | null>;
   /**
-   * La carte d'un lieu publié (avec l'alcool : c'est l'app qui le retire pour les moins de 18 ans, comme le site), avec
+   * La carte d'un lieu publié (avec l'alcool : c'est l'app qui le retire pour la visite sans compte, âge inconnu), avec
    * le moment exact de sa mise à jour ; null : lieu inconnu (absent, brouillon ou masqué)
    */
   lireCarte(id: number): Promise<{ carte: CarteLieu | null; majLe: string | null } | null>;

@@ -10,7 +10,6 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -30,20 +29,17 @@ type Props = {
 
 /**
  * Un lieu partagé dans le chat : photo ou emoji, nom, ce que c'est, ville et SOS du moment. La toucher ouvre sa fiche ;
- * « On y va ? » prépare une sortie à ce lieu avec les potes de la conversation (pas de bar quand un mineur en fait partie).
+ * « On y va ? » prépare une sortie à ce lieu avec les potes de la conversation.
  */
 export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, actionsLecteur }: Props) {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { moiMineur, lieuPermisDansSortie } = utiliserCommunaute();
   const { trouverConversation } = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const largeur = Math.min(260, Math.round(width * 0.66));
 
-  const trouve = lieuId === undefined ? null : (trouverLieu(lieuId) ?? null);
-  // Par prudence : un bar n'existe pas pour toi avant 18 ans (le chat le retire déjà)
-  const lieu = trouve && !(moiMineur && trouve.type === "bar") ? trouve : null;
+  const lieu = lieuId === undefined ? null : (trouverLieu(lieuId) ?? null);
 
   if (!lieu) {
     return (
@@ -68,7 +64,6 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
 
   const conversation = trouverConversation(conversationId);
   const participants = conversation?.participants ?? [ID_MOI];
-  const permis = lieuPermisDansSortie(lieu.id, participants);
   const sos = lieu.sos && estSosEnCours(lieu) ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
   const lu = [`${contexte} : un lieu partagé`, `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`, sos ? `SOS : ${sos}` : lieu.alerte].filter(Boolean).join(". ");
 
@@ -120,13 +115,9 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
           ) : null}
         </View>
       </Pressable>
-      {permis ? (
-        <View className="px-3.5 pb-3.5 pt-2">
-          <Bouton petit libelle={lierPonctuation("On y va ?")} onPress={partir} indice="Prépare une sortie à ce lieu avec les potes de la conversation" />
-        </View>
-      ) : (
-        <View className="h-2.5" />
-      )}
+      <View className="px-3.5 pb-3.5 pt-2">
+        <Bouton petit libelle={lierPonctuation("On y va ?")} onPress={partir} indice="Prépare une sortie à ce lieu avec les potes de la conversation" />
+      </View>
     </View>
   );
 }

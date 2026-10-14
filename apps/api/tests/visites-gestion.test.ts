@@ -2,7 +2,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
 import { creerVisitesEnMemoire } from "../src/services/visites-en-memoire.ts";
 import { creerVisitesGestion } from "../src/services/visites-gestion.ts";
 import type { LigneVisite } from "../src/services/visites-regles.ts";
@@ -12,15 +11,13 @@ const T0 = new Date("2026-10-09T18:00:00Z");
 
 function creerBanc() {
   const memoire = creerVisitesEnMemoire();
-  const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
   const points: { compteId: number; valeur: number; raison: string }[] = [];
   const messages: { compteId: number; titre: string; texte: string; lien: string | null }[] = [];
   memoire.lieux.set(1, { ...LIEU_TEST });
-  memoire.comptes.set(7, { id: 7, prenom: "Léa", avatar: "🦊", nomChiffre: null, dateNaissanceChiffree: chiffrement.chiffrer("2010-03-01", "dateNaissance"), emailVerifie: true, rattachements: [] });
+  memoire.comptes.set(7, { id: 7, prenom: "Léa", avatar: "🦊", nomChiffre: null, emailVerifie: true, rattachements: [] });
   memoire.programmes.set(1, { lieuId: 1, actif: true, visitesRequises: 3, recompense: "Un verre de muscat", alcool: true, recompenseSansAlcool: "Une citronnade", modifieLe: T0 });
   const gestion = creerVisitesGestion({
     depot: memoire.depot,
-    chiffrement,
     ajouterPoints: async (compteId, valeur, raison) => void points.push({ compteId, valeur, raison }),
     prevenirCompte: async (compteId, m) => void messages.push({ compteId, ...m }),
   });
@@ -54,13 +51,13 @@ test("donner raison : refusée et contestée → validée, points, tampon, avis,
   assert.equal(b.points.length, 1);
 });
 
-test("donner raison : récompense figée selon l'âge, visite retirée gardant son règlement, refus parlants", async () => {
+test("donner raison : récompense figée avec son alcool, visite retirée gardant son règlement, refus parlants", async () => {
   const b = creerBanc();
-  // Deux tampons déjà là : la revalidation remplit la carte, avec la version sans alcool (Léa a 16 ans)
+  // Deux tampons déjà là : la revalidation remplit la carte, avec la récompense principale (message sanitaire)
   await b.memoire.depot.ecrire(async (t) => t.modifierTampons((await t.creerCarte(7, 1, T0)).id, 2));
   const retiree = await b.visite({ statut: "retiree", reglement: { type: "reduction", reductionPourcent: 20, avantages: [] }, motifRefus: "doublon" });
   assert.equal((await b.gestion.donnerRaisonAuClient(retiree, T0)).ok, true);
-  assert.deepEqual(b.memoire.recompenses.map((r) => [r.libelle, r.alcool]), [["Une citronnade", false]]);
+  assert.deepEqual(b.memoire.recompenses.map((r) => [r.libelle, r.alcool]), [["Un verre de muscat", true]]);
   assert.equal(b.memoire.visites.find((x) => x.id === retiree)?.reglement?.reductionPourcent, 20);
   assert.deepEqual(await b.gestion.donnerRaisonAuClient(9999, T0), { ok: false, erreur: "introuvable" });
   assert.deepEqual(await b.gestion.donnerRaisonAuClient(await b.visite({ contestee: false }), T0), { ok: false, erreur: "pas-contestee" });

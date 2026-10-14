@@ -11,7 +11,7 @@ type Props = {
   liste: ListePartagee;
   /** « toi », ou le prénom de la personne qui l'a créée */
   auteur: string;
-  /** Les lieux de la liste que tu peux voir (sans les bars sous 18 ans), avec leur image */
+  /** Les lieux de la liste encore dans l'app, avec leur image */
   lieux: { lieu: Lieu; image: ImageSourcePropType | null }[];
   onOuvrir: (id: string) => void;
   /** Le menu « ⋯ » (liste d'un pote : la retirer d'ici, son profil, signaler la liste, bloquer) ; sans lui, une simple flèche */

@@ -13,7 +13,7 @@ type Props = {
   auteur: Pote | null;
   /** Abonnés connus et pas bloqués (toi compris si tu la suis) */
   abonnes: Pote[];
-  /** Nombre d'adresses que tu vois (sans les bars avant 18 ans) */
+  /** Nombre d'adresses de la liste encore dans l'app */
   nombreLieux: number;
   /** Vrai si tu suis la liste ; null pour ta propre liste (on ne suit pas sa liste) */
   suivie: boolean | null;

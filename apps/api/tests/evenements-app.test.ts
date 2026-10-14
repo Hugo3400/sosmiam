@@ -1,5 +1,5 @@
 // Tests des événements dans l'app (/app/evenements) : dates visibles (Explorer, fiche du lieu), visibilité (suspendu, annulé,
-// lieu non publié ou non vérifié), « Ça m'intéresse », mineurs et alcool.
+// lieu non publié ou non vérifié), « Ça m'intéresse », alcool signalé.
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 
@@ -139,26 +139,21 @@ test("Ça m'intéresse : introuvable, annulé (montré « Annulé » jusqu'à sa
   assert.deepEqual([r.statut, r.corps.erreur], [409, "evenement-passe"]);
 });
 
-test("mineur et alcool : 403 mineur-alcool, jamais dans ses intérêts ; un bar compte comme alcool", async () => {
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
-  const majeure = await b.creerCompte({ naissance: "2000-03-01" });
-  const duSite = await b.creerCompte();
+test("alcool signalé (case, mot, bar) et « Ça m'intéresse » permis à tout compte", async () => {
+  const lea = await b.creerCompte();
   const quiz = await publier(1, 12);
   const degustation = await publier(1, 13, { type: "degustation", titre: "Dégustation de vins", alcool: true });
   const motAlcool = await publier(1, 14, { description: "Une pinte offerte au gagnant" });
   b.evenements.lieux.set(3, { ...LIEU_TEST, id: 3, nom: "Le Zinc", type: "bar" });
   const auBar = await publier(3, 15);
-  // Dans Explorer, l'alcool est signalé : l'app cache ces lignes aux 15-17 ans
+  // Dans Explorer, l'alcool est signalé : message sanitaire, et l'app cache ces lignes en visite sans compte
   const liste = (await b.demander("GET", "/app/evenements")).corps.evenements;
   assert.deepEqual(liste.map((e: { id: number; alcool: boolean }) => [e.id, e.alcool]), [[quiz, false], [degustation, true], [motAlcool, true], [auBar, true]]);
-  for (const id of [degustation, motAlcool, auBar]) {
-    const r = await b.demander("PUT", `/app/evenements/${id}/interet`, ado.jeton, {});
-    assert.deepEqual([r.statut, r.corps.erreur], [403, "mineur-alcool"], String(id));
+  for (const id of [quiz, degustation, motAlcool, auBar]) {
+    assert.equal((await b.demander("PUT", `/app/evenements/${id}/interet`, lea.jeton, {})).statut, 200, String(id));
   }
-  assert.equal((await b.demander("PUT", `/app/evenements/${quiz}/interet`, ado.jeton, {})).statut, 200);
-  for (const compte of [majeure, duSite]) assert.equal((await b.demander("PUT", `/app/evenements/${degustation}/interet`, compte.jeton, {})).statut, 200);
-  // L'alcool ajouté après coup : l'événement disparaît des intérêts de l'ado (sans qu'on efface son « Ça m'intéresse »)
+  // L'alcool ajouté après coup : l'événement reste dans ses intérêts, avec le drapeau pour le message sanitaire
   await b.evenements.services.modifier(quiz, { ...b.evenements.evenements.find((e) => e.id === quiz)!, alcool: true });
-  assert.deepEqual((await b.demander("GET", "/app/evenements/mes-interets", ado.jeton)).corps.interets, []);
-  assert.equal((await b.demander("GET", "/app/evenements/mes-interets", majeure.jeton)).corps.interets.length, 1);
+  const interets = (await b.demander("GET", "/app/evenements/mes-interets", lea.jeton)).corps.interets;
+  assert.deepEqual(interets.map((i: { evenement: { id: number; alcool: boolean } }) => [i.evenement.id, i.evenement.alcool]), [[quiz, true], [degustation, true], [motAlcool, true], [auBar, true]]);
 });

@@ -2,19 +2,16 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { badges } from "~/contenus/badges";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
@@ -22,7 +19,7 @@ type Props = {
   /** Ton propre profil (« moi ») : les textes te parlent directement */
   estMoi: boolean;
   /**
-   * Ce qu'on voit de lui (calculerVisibiliteProfil) : « complet » (par défaut) ; « prive » ou « reserve » : l'en-tête seul
+   * Ce qu'on voit de lui (calculerVisibiliteProfil) : « complet » (par défaut) ; « prive » : l'en-tête seul
    * (avatar, prénom, @pseudo et compteurs), sans la ville
    */
   visibilite?: VisibiliteProfil;
@@ -36,16 +33,14 @@ type Props = {
 
 /**
  * Le profil d'une personne tel que ses potes le voient : avatar, prénom, @pseudo et ville, compteurs d'abonnés, palier Ambassadeur
- * et points, badges obtenus, lieux sauvés et gardés (vignettes vers les fiches). Les lieux que ton âge ne permet pas (bars) ne
- * s'affichent pas. Compte privé (ou réservé à sa bande) : l'en-tête seul.
+ * et points, badges obtenus, lieux sauvés et gardés (vignettes vers les fiches). Les lieux disparus de l'app ne s'affichent pas.
+ * Compte privé : l'en-tête seul.
  */
 export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", compteurs, teSuit = false, actions }: Props) {
   const router = useRouter();
-  const { profil } = utiliserProfil();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
-  const { lieux: tousLesLieux } = utiliserLieux();
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
+  const { lieux } = utiliserLieux();
   const { actuel } = calculerPalier(pote.points);
   const complet = estMoi || visibilite === "complet";
 
@@ -91,7 +86,6 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
     );
   }
 
-  const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans ta collection)
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const obtenus = badges.filter((b) => pote.badges.includes(b.id));

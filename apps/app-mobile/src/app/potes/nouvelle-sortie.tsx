@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { LONGUEUR_MAX_TITRE_SORTIE, MAX_PARTICIPANTS_SORTIE, MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
-import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
@@ -23,7 +22,6 @@ import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
@@ -84,32 +82,27 @@ const lireInvites = (texte: string | undefined, potes: Pote[]) => {
 /** Organiser une sortie : un nom et un emoji, le jour et l'heure, les potes invités, les lieux proposés et la fin du vote. */
 export default function NouvelleSortie() {
   const router = useRouter();
-  const marges = useSafeAreaInsets();
   const { lieu: lieuDemande, invites: invitesDemandes } = useLocalSearchParams<{ lieu?: string; invites?: string }>();
-  const { potes, trouverPote, lieuPermisDansSortie, creerSortie } = utiliserCommunaute();
+  const { potes, creerSortie } = utiliserCommunaute();
   const { trouverLieu } = utiliserLieux();
   const [titre, setTitre] = useState("");
   const [emoji, setEmoji] = useState("🍽️");
   const [quand, setQuand] = useState(demainSoir);
   // Ouverte depuis une discussion (?invites=lea,karim) : ces potes de ta bande sont déjà invités
   const [invites, setInvites] = useState<string[]>(() => lireInvites(invitesDemandes, potes));
-  // Ouverte depuis un lieu (?lieu=3) : il est déjà proposé, s'il est permis avec ces invités (pas de bar avec un mineur)
+  // Ouverte depuis un lieu (?lieu=3) : il est déjà proposé, s'il existe
   const [lieux, setLieux] = useState<number[]>(() => {
     const id = Number(lieuDemande);
-    return lieuDemande && trouverLieu(id) && lieuPermisDansSortie(id, invites) ? [id] : [];
+    return lieuDemande && trouverLieu(id) ? [id] : [];
   });
   const [cleFinVote, setCleFinVote] = useState("avant");
   const [choixLieuOuvert, setChoixLieuOuvert] = useState(false);
   const [erreurs, setErreurs] = useState<Erreurs>({});
-  const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
-  const finAnnonce = useCallback(() => setAnnonce(null), []);
-  const permis = useCallback((lieu: Lieu) => lieuPermisDansSortie(lieu.id, invites), [lieuPermisDansSortie, invites]);
 
   const maintenant = new Date();
   const options = calculerOptionsFinVote(quand, maintenant);
   const option = options.find((o) => o.cle === cleFinVote) ?? options[options.length - 1];
   const lieuxChoisis = lieux.map(trouverLieu).filter((l): l is Lieu => l !== undefined);
-  const invitesMineurs = invites.map(trouverPote).filter((p): p is Pote => p?.mineur === true);
   const quandPasse = quand.getTime() < maintenant.getTime() + DELAI_MINIMUM;
   const erreurQuand = quandPasse ? "Ce moment est déjà passé ou presque : laisse à la bande au moins un quart d'heure pour voter." : null;
 
@@ -117,12 +110,6 @@ export default function NouvelleSortie() {
     const nouveaux = invites.includes(id) ? invites.filter((i) => i !== id) : [...invites, id];
     setInvites(nouveaux);
     setErreurs((e) => ({ ...e, invites: undefined }));
-    // Un mineur rejoint la sortie : les bars déjà proposés s'en vont
-    const gardes = lieux.filter((l) => lieuPermisDansSortie(l, nouveaux));
-    if (gardes.length < lieux.length) {
-      setLieux(gardes);
-      setAnnonce({ texte: "🧃 Bar retiré : tout le monde n'a pas encore 18 ans", numero: Date.now() });
-    }
   }
 
   function creer() {
@@ -150,7 +137,7 @@ export default function NouvelleSortie() {
       }
       if (resultat.erreur === "titre") trouvees.titre = "Ce titre ne passe pas : 40 caractères au plus, et des mots gentils.";
       if (resultat.erreur === "participants") trouvees.invites = `Invite entre 1 et ${MAX_PARTICIPANTS_SORTIE - 1} potes de ta bande.`;
-      if (resultat.erreur === "lieux") trouvees.lieux = "Aucun des lieux choisis n'est possible pour cette bande : propose-en un autre.";
+      if (resultat.erreur === "lieux") trouvees.lieux = "Les lieux choisis ne sont plus dans l'app : propose-en un autre.";
     }
 
     setErreurs(trouvees);
@@ -233,11 +220,6 @@ export default function NouvelleSortie() {
                 max={MAX_PROPOSITIONS_SORTIE}
                 onAjouter={() => setChoixLieuOuvert(true)}
                 onRetirer={(id) => setLieux((l) => l.filter((x) => x !== id))}
-                note={
-                  invitesMineurs.length > 0
-                    ? `🧃 ${listerPrenoms(invitesMineurs.map((p) => p.prenom))} ${invitesMineurs.length > 1 ? "n'ont" : "n'a"} pas encore 18 ans : pas de bar pour cette sortie, on trinque au sirop.`
-                    : null
-                }
                 erreur={erreurs.lieux}
               />
             </View>
@@ -261,7 +243,6 @@ export default function NouvelleSortie() {
         visible={choixLieuOuvert}
         titre="Proposer un lieu"
         dejaChoisis={lieux}
-        permis={permis}
         onChoisir={(id) => {
           setLieux((l) => (l.includes(id) || l.length >= MAX_PROPOSITIONS_SORTIE ? l : [...l, id]));
           setErreurs((e) => ({ ...e, lieux: undefined }));
@@ -269,7 +250,6 @@ export default function NouvelleSortie() {
         }}
         onFermer={() => setChoixLieuOuvert(false)}
       />
-      <Annonce annonce={annonce} haut={marges.top + 8} onFin={finAnnonce} />
     </SafeAreaView>
   );
 }

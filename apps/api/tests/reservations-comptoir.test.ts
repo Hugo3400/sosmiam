@@ -67,17 +67,15 @@ test("accepter, refuser, annuler : code d'arrivée, motifs fermés, et ce que vo
   assert.deepEqual([vueAnnulee.motifRefus, vueAnnulee.tardive], ["ferme", false]);
 });
 
-test("rôles : pas de l'équipe, mineur, ou équipe d'un autre lieu → role-requis ; le lieu est relu sur la réservation", async () => {
+test("rôles : pas de l'équipe, ou équipe d'un autre lieu → role-requis ; le lieu est relu sur la réservation", async () => {
   await equipe();
   b.visites.lieux.set(2, { ...b.visites.lieux.get(1)!, id: 2, nom: "Le Comptoir" });
   const ailleurs = await b.creerCompte({ prenom: "Paul" });
   b.rattacher(ailleurs.id, 2, "gerant");
   const inconnu = await b.creerCompte();
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
-  b.rattacher(ado.id, 1, "equipe");
   const lea = await b.creerCompte();
   const id = await reserver(lea.jeton);
-  for (const jeton of [inconnu.jeton, ado.jeton, ailleurs.jeton, lea.jeton]) {
+  for (const jeton of [inconnu.jeton, ailleurs.jeton, lea.jeton]) {
     for (const nom of ["accepter", "venu", "absent"]) {
       const r = await geste(id, nom, jeton, {});
       assert.deepEqual([r.statut, r.corps.erreur], [403, "role-requis"]);

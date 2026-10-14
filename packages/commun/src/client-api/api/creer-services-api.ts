@@ -9,6 +9,7 @@ import { creerAmbassadeurApi } from "./api-ambassadeur.ts";
 import { creerAvisApi } from "./api-avis.ts";
 import { creerComptoirApi } from "./api-comptoir.ts";
 import { creerFideliteApi } from "./api-fidelite.ts";
+import { creerLieuProApi } from "./api-lieu-pro.ts";
 import { creerMiamSafeApi } from "./api-miam-safe.ts";
 import { creerReservationsApi } from "./api-reservations.ts";
 import { creerSuggestionsApi } from "./api-suggestions.ts";
@@ -34,6 +35,7 @@ export function creerServicesApi(client: ClientHttp, o: { lireStatutAmbassadeur:
       listerAvis: (lieuId) => client.demander<{ resume: ResumeAvis; avis: AvisPublic[] }>("GET", `/pro/comptoir/lieux/${lieuId}/avis`),
       repondreAvis: (avisId, texte) => client.demander<{ avis: AvisPublic }>("POST", `/pro/comptoir/avis/${avisId}/reponse`, { corps: { texte } }),
     },
+    lieuPro: creerLieuProApi(client),
     ambassadeur: creerAmbassadeurApi(client, o.lireStatutAmbassadeur),
     suggestions: creerSuggestionsApi(client),
     miamSafe: creerMiamSafeApi(client),

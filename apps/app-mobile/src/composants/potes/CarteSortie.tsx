@@ -13,7 +13,7 @@ import couleurs from "~/theme/couleurs";
 
 type Props = {
   sortie: Sortie;
-  /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
+  /** Lieux connus de l'app, par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
   /** Sortie déjà passée : fond crème au lieu de blanc, « C'était… » */
   passee: boolean;

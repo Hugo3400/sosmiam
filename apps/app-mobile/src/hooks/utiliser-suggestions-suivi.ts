@@ -18,9 +18,9 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /**
  * Suggestions « Tu pourrais suivre », dans l'ordre de `types` (personnes : celles qui te suivent sans que tu les suives, potes de
- * potes puis ta bande ; créateurs : de ta ville puis populaires ; lieux : les plus proches), coupées à `max`. Jamais : toi, une personne bloquée ou signalée, un mineur quand tu es
- * adulte (ni rien que la règle peutSuivre refuse), ce que tu suis ou as déjà demandé, une suggestion masquée (✕), une publication
- * masquée, un lieu que ton âge écarte (bars sous 18 ans). Vide tant que l'activité et les suivis ne sont pas relus.
+ * potes puis ta bande ; créateurs : de ta ville puis populaires ; lieux : les plus proches), coupées à `max`. Jamais : toi, une personne bloquée ou signalée
+ * (ni rien que la règle peutSuivre refuse), ce que tu suis ou as déjà demandé, une suggestion masquée (✕), une publication
+ * masquée, un bar en visite sans compte (âge inconnu, filtrerLieuxSelonAge). Vide tant que l'activité et les suivis ne sont pas relus.
  * Visite sans compte : des créateurs (et des lieux si ta ville est connue), aucune personne.
  */
 export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max = 10): Suggestion[] {
@@ -38,7 +38,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
   const ville = profil?.ville ?? null;
 
   const { suivis: clesSuivies, estMasquee } = activite;
-  const { potes, bloques, trouverPote, estSignale, moiMineur } = communaute;
+  const { potes, bloques, trouverPote, estSignale } = communaute;
   const { relationAvec, suggestionsMasquees, abonnes } = suivis;
 
   return useMemo(() => {
@@ -52,10 +52,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
       personne: () => {
         if (!suivis.pret) return [];
         const estCandidat = (id: string) => {
-          const pote = trouverPote(id);
-          if (id === ID_MOI || !pote || bloques.some((b) => b.id === id) || estSignale(id) || masquees.has(`personne:${id}`)) return false;
-          // Un adulte ne voit jamais de mineur en suggestion (même là où la règle permettrait une demande)
-          if (pote.mineur && !moiMineur) return false;
+          if (id === ID_MOI || !trouverPote(id) || bloques.some((b) => b.id === id) || estSignale(id) || masquees.has(`personne:${id}`)) return false;
           const relation = relationAvec(id);
           return relation !== null && relation.jeSuis === "aucun" && relation.verdict.permis;
         };
@@ -100,5 +97,5 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
     const demandes = cleTypes.split(",").filter((t): t is TypeSuggestion => t === "personne" || t === "createur" || t === "lieu");
     return [...new Set(demandes)].flatMap((type) => listes[type]()).slice(0, max);
-  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, moiMineur, relationAvec, suggestionsMasquees, abonnes]);
+  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, toutesLesPublications, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, relationAvec, suggestionsMasquees, abonnes]);
 }

@@ -21,18 +21,17 @@ export const LIMITE_GESTES_VISITES = { fenetre: 10 * 60_000, maximum: 40 };
  * /app/visites et /app/fidelite : visites et cartes de fidélité du compte connecté (session obligatoire : Authorization:
  * Bearer ou X-Session-Compte), jamais en cache. Formes dans packages/commun (types/visite.ts, types/fidelite.ts).
  * Refus : { ok: false, erreur, details? } — details : { lieu?, lieuId?, distanceM? (arrondie à 100 m), precisionM? } ;
- * 401 session-expiree ; 429 trop-de-demandes. Âge : sans date de naissance gardée (compte du site), 18 ans ; date
- * illisible : traité comme un 15-17 ans. Un bar n'existe pas pour un 15-17 ans (son nom n'est jamais rendu).
+ * 401 session-expiree ; 429 trop-de-demandes. Tout compte a 18 ans ou plus : un bar se valide comme les autres lieux,
+ * et la récompense avec alcool est servie avec recompenseAlcool (message sanitaire).
  *
  * GET  /app/visites                      → 200 { ok, visites: Visite[] (200 au plus, plus récentes d'abord, sans
  *                                          l'addition en attente), enCours: Visite | null, points (des visites validées) }
- * GET  /app/visites/lieux-qui-valident   → 200 { ok, lieux: number[] } (sans les bars pour un 15-17 ans)
+ * GET  /app/visites/lieux-qui-valident   → 200 { ok, lieux: number[] }
  * GET  /app/visites/lieux/:lieuId        → 200 { ok, infos: InfosVisiteLieu } (pratique et carteDuLieu : null, la fiche
- *                                          /app/lieux/:id fait foi) · 404 introuvable · 403 mineur-bar
+ *                                          /app/lieux/:id fait foi) · 404 introuvable
  * POST /app/visites/addition { lieuId, position: LecturePosition } → 201 { ok, visite } (code à 4 chiffres, 30 min ;
  *                                          +25 au lieu de +15 si un SOS est en cours à la demande)
- *        · 400 champ-invalide { champ: lieuId | position } · 404 introuvable · 403 mineur-bar | membre-du-lieu |
- *          email-non-verifie · 409 lieu-sans-validation { details.lieu } | demande-en-cours { details: lieu, lieuId } (une
+ *        · 400 champ-invalide { champ: lieuId | position } · 404 introuvable · 403 membre-du-lieu | email-non-verifie · 409 lieu-sans-validation { details.lieu } | demande-en-cours { details: lieu, lieuId } (une
  *          addition en attente à la fois) · 422 hors-zone | position-imprecise | position-perimee | position-simulee
  * POST /app/visites/comptoir { texte (le QR scanné, 300 caractères au plus), position } → 201 ResultatValidation
  *          { ok, visite, carte, recompenseGagnee, dejaValidee: false } ; déjà validée avec ce QR : 200, dejaValidee: true
@@ -78,7 +77,7 @@ export function creerRoutesVisites(d: DependancesVisites, protection: Protection
   fidelite.delete("/cartes/:lieuId/demande", gestes, c.annulerDemandeRecompense);
   fidelite.use(gererErreursComptes);
 
-  // Les autres gestes de l'équipe, au même comptoir : le rôle est toujours relu (rattachement validé et 18 ans)
+  // Les autres gestes de l'équipe, au même comptoir : le rôle est toujours relu (rattachement validé)
   const roleDe = (compteId: number, lieuId: number) => c.comptoir.roleDe(compteId, lieuId);
   const enPlus = {
     moment: creerControleursMomentLieu(d.moment, roleDe, horloge),

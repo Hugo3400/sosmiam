@@ -6,7 +6,6 @@ import { FlatList, Share, View, type ViewToken } from "react-native";
 import { Easing, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
@@ -24,13 +23,13 @@ import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
-import { estPremierSauvetagePossible } from "~/fonctions/lieux/est-premier-sauvetage-possible";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -209,20 +208,12 @@ export default function PourToi() {
     setCoeurs((c) => ({ ...c, [p.id]: Date.now() }));
   }
 
+  // Mêmes règles et mêmes messages que sur la fiche d'un lieu (premier sauveteur confirmé par l'API avec un compte)
+  const donnerOuReprendreRescousse = utiliserGesteRescousse(annoncer);
   function rescousse(p: Publication) {
     const lieu = lieuParId.get(p.lieuId);
     if (!lieu) return;
-    const resultat = activite.basculerRescousse(lieu);
-    if (resultat === "non-verifie") return annoncer("Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣");
-    if (resultat === "epuisee") return annoncer("Plus de rescousse cette semaine, reviens lundi ! 🛟");
-    if (resultat === "annulee") return annoncer("Rescousse reprise");
-    setBouees((b) => ({ ...b, [p.id]: Date.now() }));
-    const reste = activite.restantes - 1;
-    // activite est l'état d'avant l'appui : un lieu déjà compté ne refait pas « Premier sauveteur » les semaines suivantes
-    if (estPremierSauvetagePossible(lieu, activite.premiersSauvetages)) {
-      activite.noterPremierSauvetage(lieu.id);
-      annoncer(`🚀 Premier sauveteur ! ${lieu.nom} vient d'arriver et tu es déjà là : +${POINTS_AMBASSADEUR.premierSauveteur} points`);
-    } else annoncer(reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸");
+    donnerOuReprendreRescousse(lieu, () => setBouees((b) => ({ ...b, [p.id]: Date.now() })));
   }
 
   /** Vrai avec un compte ; sinon, une fois le menu refermé, la feuille « Crée ton compte » */

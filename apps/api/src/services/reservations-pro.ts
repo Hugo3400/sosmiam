@@ -16,7 +16,7 @@ import type { TablesVisites } from "./visites-regles.ts";
 import { creerOutilsVisites, type ContexteVisites } from "./visites-outils.ts";
 
 export type ContexteReservationsPro = ContexteVisites & {
-  /** comptoir.roleDe : rattachement VALIDÉ au lieu et 18 ans (null sinon) */
+  /** comptoir.roleDe : rattachement VALIDÉ au lieu (null sinon) */
   roleDe: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>;
 };
 

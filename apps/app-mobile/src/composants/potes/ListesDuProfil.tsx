@@ -2,13 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -20,15 +17,14 @@ type Props = {
 };
 
 /**
- * Les listes partagées d'une personne, sur son profil : emoji, titre et nombre de lieux (seulement ceux que ton âge permet :
- * pas de bar avant 18 ans). Toucher une liste l'ouvre. Affiché seulement quand on peut voir son profil en entier.
+ * Les listes partagées d'une personne, sur son profil : emoji, titre et nombre de lieux (ceux encore dans l'app).
+ * Toucher une liste l'ouvre. Affiché seulement quand on peut voir son profil en entier.
  */
 export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
   const router = useRouter();
   const { listes } = utiliserCommunaute();
-  const { profil } = utiliserProfil();
   const { lieux: tousLesLieux } = utiliserLieux();
-  const permis = new Set(filtrerLieuxSelonAge(tousLesLieux, profil ? calculerAge(profil.dateNaissance) : null).map((l) => l.id));
+  const connus = new Set(tousLesLieux.map((l) => l.id));
   const siennes = listes.filter((l) => l.auteur === auteurId);
 
   return (
@@ -45,7 +41,7 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
       ) : (
         <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
           {siennes.map((liste, i) => {
-            const nombre = liste.lieux.filter((id) => permis.has(id)).length;
+            const nombre = liste.lieux.filter((id) => connus.has(id)).length;
             const lieux = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
             return (
               <Pressable

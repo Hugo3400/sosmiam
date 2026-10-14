@@ -20,7 +20,7 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
-  /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
+  /** Lieux connus de l'app, par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
   /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
   onRetire: (texte: string, annuler: () => void) => void;

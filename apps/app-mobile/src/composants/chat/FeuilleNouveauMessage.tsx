@@ -17,23 +17,14 @@ type Props = {
   onFermer: () => void;
 };
 
-const POURQUOI = "Ajoutez-vous en vrai, par lien ou QR code, pour discuter : règle des 15-17 ans.";
-
-/**
- * « Nouveau message » : une feuille qui monte du bas avec ta bande. Toucher un pote ouvre (ou crée) votre conversation privée.
- * Les potes avec qui tu ne peux pas encore discuter (protection des 15-17 ans) sont grisés, avec le pourquoi.
- */
+/** « Nouveau message » : une feuille qui monte du bas avec ta bande. Toucher un pote ouvre (ou crée) votre conversation privée. */
 export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { potes } = utiliserCommunaute();
-  const { peutDiscuterAvec, ouvrirPrive } = utiliserConversations();
-
-  // Ceux avec qui tu peux discuter d'abord, les autres ensuite
-  const tous = potes.map((p) => ({ pote: p, permis: peutDiscuterAvec(p.id) }));
-  const lignes = [...tous.filter((l) => l.permis), ...tous.filter((l) => !l.permis)];
+  const { ouvrirPrive } = utiliserConversations();
 
   function aller(chemin: "/potes/nouveau-groupe" | "/potes/ajouter") {
     vibrerLegerement();
@@ -67,8 +58,8 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
         </View>
 
         <FlatList
-          data={lignes}
-          keyExtractor={(l) => l.pote.id}
+          data={potes}
+          keyExtractor={(pote) => pote.id}
           contentContainerClassName="px-5"
           ListHeaderComponent={
             potes.length > 0 ? (
@@ -95,32 +86,24 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
               <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => aller("/potes/ajouter")} />
             </View>
           }
-          renderItem={({ item: { pote, permis } }) => (
+          renderItem={({ item: pote }) => (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={permis ? `${pote.prenom}, @${pote.pseudo}` : `${pote.prenom}. Pas encore possible. ${POURQUOI}`}
-              accessibilityHint={permis ? "Ouvre votre conversation privée" : undefined}
-              accessibilityState={{ disabled: !permis }}
-              disabled={!permis}
+              accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
+              accessibilityHint="Ouvre votre conversation privée"
               onPress={() => ecrire(pote.id)}
               className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
             >
-              <View className={permis ? "" : "opacity-40"}>
-                <RondPote pote={pote} taille={40} />
-              </View>
+              <RondPote pote={pote} taille={40} />
               <View className="flex-1">
-                <Text numberOfLines={1} className={`font-texte-gras text-base ${permis ? "text-encre" : "text-gris"}`}>
+                <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
                   {pote.prenom}
                 </Text>
-                {permis ? (
-                  <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                    @{pote.pseudo} · {pote.ville}
-                  </Text>
-                ) : (
-                  <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(`🔐 ${POURQUOI}`)}</Text>
-                )}
+                <Text numberOfLines={1} className="font-texte text-sm text-gris">
+                  @{pote.pseudo} · {pote.ville}
+                </Text>
               </View>
-              {permis ? <Ionicons name="chevron-forward" size={18} color={couleurs.gris} /> : null}
+              <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
             </Pressable>
           )}
           ListFooterComponent={

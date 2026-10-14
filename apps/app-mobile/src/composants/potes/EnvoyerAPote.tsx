@@ -4,19 +4,16 @@ import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, Sc
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { LONGUEUR_MAX_MOT_RECOMMANDATION } from "@sos-miam/commun/regles/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
@@ -36,14 +33,13 @@ const joindrePrenoms = (prenoms: string[]) => (prenoms.length <= 1 ? (prenoms[0]
 
 /**
  * Envoyer un lieu à des potes de ta bande, dans une feuille qui monte du bas : choisir un ou plusieurs potes,
- * un petit mot facultatif, « Envoyer », puis la confirmation. Un pote de moins de 18 ans ne reçoit pas un bar (il n'est pas proposé).
+ * un petit mot facultatif, « Envoyer », puis la confirmation.
  */
 export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
-  const { profil } = utiliserProfil();
   const { potes, envoyerLieu } = utiliserCommunaute();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -63,12 +59,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     }
   }
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
-  // Sous 18 ans, les bars n'existent pas pour toi : rien à envoyer
-  const lieu = filtrerLieuxSelonAge(tousLesLieux, age).find((l) => l.id === lieuId) ?? null;
-  const pourUnBar = lieu?.type === "bar";
-  const destinataires = potes.filter((p) => !(pourUnBar && p.mineur));
-  const mineursEcartes = destinataires.length < potes.length;
+  const lieu = tousLesLieux.find((l) => l.id === lieuId) ?? null;
 
   function basculer(id: string) {
     vibrerLegerement();
@@ -78,17 +69,17 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
 
   function envoyer() {
     if (!lieu || choisis.length === 0) return;
-    // Dernière vérification : seulement des potes de la bande, et pas de bar pour un mineur
-    const ids = choisis.filter((id) => destinataires.some((p) => p.id === id));
+    // Dernière vérification : seulement des potes de la bande
+    const ids = choisis.filter((id) => potes.some((p) => p.id === id));
     if (ids.length === 0) return;
     const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined);
     if (resultat !== "ok") return setErreur(ERREURS_MOT[resultat]);
-    const prenoms = destinataires.filter((p) => ids.includes(p.id)).map((p) => p.prenom);
+    const prenoms = potes.filter((p) => ids.includes(p.id)).map((p) => p.prenom);
     setEnvoyesA(prenoms);
     AccessibilityInfo.announceForAccessibility(`C'est envoyé à ${joindrePrenoms(prenoms)} !`);
   }
 
-  const nomsChoisis = joindrePrenoms(destinataires.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
+  const nomsChoisis = joindrePrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
 
   const contenu = !lieu ? (
     <View className="items-center gap-3 py-4">
@@ -150,7 +141,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       ) : (
         <View>
           <Text className="mb-1 font-texte-semi text-base text-encre">À qui ?</Text>
-          {destinataires.map((pote, i) => {
+          {potes.map((pote, i) => {
             const choisi = choisis.includes(pote.id);
             return (
               <Pressable
@@ -158,7 +149,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
                 // Plusieurs choix possibles : case à cocher sur Android ; sur iPhone, bouton « sélectionné » (l'état « coché » y est lu en anglais), avec la position dans le libellé
                 accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
                 accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}${Platform.OS === "ios" ? `, ${i + 1} sur ${destinataires.length}` : ""}`}
+                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}${Platform.OS === "ios" ? `, ${i + 1} sur ${potes.length}` : ""}`}
                 onPress={() => basculer(pote.id)}
                 className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
               >
@@ -177,13 +168,10 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
               </Pressable>
             );
           })}
-          {mineursEcartes ? (
-            <Text className="mt-2 font-texte text-sm leading-5 text-gris">{lierPonctuation("Pas de bar pour les moins de 18 ans : ces potes-là ne sont pas proposés ici.")}</Text>
-          ) : null}
         </View>
       )}
 
-      {destinataires.length > 0 ? (
+      {potes.length > 0 ? (
         <>
           <ChampTexte
             libelle="Un petit mot"

@@ -18,7 +18,7 @@ export const LIMITE_GESTES_INTERETS = { fenetre: 10 * 60_000, maximum: 120 };
  * 429 trop-de-demandes (Retry-After). Une ligne = un événement à UNE date : un événement de chaque semaine donne une ligne
  * par date (même jour, même heure de Paris). Visible : lieu publié et vérifié, ni suspendu par la modération, ni annulé, date
  * pas encore finie (sans heure de fin : 3 h après le début). alcool: true (case cochée, mot d'alcool, happy hour, ou lieu de
- * type bar) : l'app le cache aux 15-17 ans et à l'âge inconnu, et affiche le message sanitaire à côté.
+ * type bar) : l'app le cache en visite sans compte (âge inconnu), et affiche le message sanitaire à côté pour les comptes.
  *
  * Sans session (cache public 60 s) :
  * GET /app/evenements[?nord&sud&ouest&est][&du&au]
@@ -32,13 +32,10 @@ export const LIMITE_GESTES_INTERETS = { fenetre: 10 * 60_000, maximum: 120 };
  *
  * Avec session (Authorization: Bearer ou X-Session-Compte ; jamais en cache ; 401 session-expiree) :
  * GET    /app/evenements/mes-interets → 200 { ok, interets: MonInteretEvenement[] } : les événements pas encore finis, la
- *          prochaine date de chacun, le plus proche d'abord ; annulé : annule: true jusqu'à sa date, puis plus rien. Pour un
- *          15-17 ans, jamais un événement avec alcool
+ *          prochaine date de chacun, le plus proche d'abord ; annulé : annule: true jusqu'à sa date, puis plus rien
  * PUT    /app/evenements/:id/interet { rappel?: boolean (false par défaut : rappel le jour J, pas encore envoyé) }
  *          → 200 { ok, interets } (déjà posé : rappel mis à jour) · 400 champ-invalide { champ: "id" | "rappel" }
  *          · 404 evenement-inconnu (absent, suspendu, annulé, lieu non publié ou non vérifié) · 409 evenement-passe
- *          · 403 mineur-alcool (15-17 ans ou date illisible : l'app ne montre pas le bouton ; réponse claire plutôt qu'un
- *            faux 404, l'événement étant de toute façon lisible sans session)
  * DELETE /app/evenements/:id/interet → 200 { ok, interets } (rien à retirer : rien ne change) · 400 champ-invalide { champ: "id" }
  * L'équipe du lieu : routes/comptoir.ts (/pro/comptoir/lieux/:id/evenements).
  */

@@ -111,14 +111,11 @@ test("la semaine change le lundi à minuit, heure de Paris", async () => {
   ]);
 });
 
-test("rôles : pas de l'équipe, mineur, autre lieu, sans session", async () => {
+test("rôles : pas de l'équipe, autre lieu, sans session", async () => {
   const intrus = await b.creerCompte();
   const ailleurs = await b.creerCompte();
   b.rattacher(ailleurs.id, 2);
-  // 16 ans : jamais de rôle pro sous 18 ans, même rattaché
-  const mineur = await b.creerCompte({ naissance: "2010-05-01" });
-  b.rattacher(mineur.id, 1, "equipe");
-  for (const compte of [intrus, ailleurs, mineur]) {
+  for (const compte of [intrus, ailleurs]) {
     const r = await lire(compte.jeton, "?semaines=99");
     assert.deepEqual([r.statut, r.corps], [403, { ok: false, erreur: "role-requis" }]);
   }

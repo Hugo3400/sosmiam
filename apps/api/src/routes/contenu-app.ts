@@ -21,7 +21,7 @@ export const LIMITE_MEDIAS_APP = { fenetre: 60_000, maximum: 1200 };
  *     et 2-9) ; il ouvre la fiche, il ne valide jamais une visite. Cache public 5 min · 404 lieu-inconnu
  * GET /app/lieux/:id/carte
  *   → 200 { ok, carte: CarteLieu | null, majLe: ISO 8601 | null } : la carte complète, alcool compris (l'app le retire pour
- *     les moins de 18 ans et l'âge inconnu) · 404 lieu-inconnu
+ *     la visite sans compte, âge inconnu) · 404 lieu-inconnu
  * GET /app/publications[?apres=<curseur>&limite=1..30]
  *   → 200 { ok, publications: PublicationApi[] (packages/commun/src/types/publication.ts), suite: curseur | null } : le
  *     fil, de la plus récente à la plus ancienne, 20 par page ; seulement les publications visibles (publiées, pas

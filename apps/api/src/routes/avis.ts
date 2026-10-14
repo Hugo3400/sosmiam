@@ -17,8 +17,8 @@ export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
 /**
  * /app/avis : les avis des lieux (docs/decisions.md, « Scan et validation des visites » et « Lieux vérifiés et non
  * vérifiés »). Formes dans packages/commun (types/avis.ts, types/visite.ts). Refus : { ok: false, erreur, champ?, details? } ;
- * 401 session-expiree ; 429 trop-de-demandes (Retry-After). Un avis est signé « Prénom I. » (prénom seul pour un 15-17 ans,
- * ou sans nom donné), daté au mois (heure de Paris), jamais l'auteur ni son âge. On ne le masque jamais automatiquement :
+ * 401 session-expiree ; 429 trop-de-demandes (Retry-After). Un avis est signé « Prénom I. » (prénom seul sans nom donné),
+ * daté au mois (heure de Paris), jamais l'auteur ni son âge. On ne le masque jamais automatiquement :
  * certains partent en relecture (compte de moins de 7 jours, 3 notes tranchées ou plus sur le lieu en 24 h, 1 sur 20 au
  * hasard) et restent visibles ; un ambassadeur donne un verdict consultatif, l'équipe tranche dans le logiciel.
  *
@@ -39,12 +39,13 @@ export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
  *        · 409 avis-pas-ouvert (visite pas validée, retirée, ou moins d'1 h après) | avis-ferme (14 jours passés) | avis-deja-donne
  * POST /app/avis/non-verifie { lieuId, note, texte, photo? } → 201 { ok, pointsGagnes: 0, avis } : seulement chez un lieu
  *        NON vérifié (sans rattachement validé), sans visite ni points, un par compte et par lieu tous les 30 jours
- *        · 400 avis-invalide · 404 lieu-inconnu · 403 mineur-bar | email-non-verifie | membre-du-lieu
+ *        · 400 avis-invalide · 404 lieu-inconnu · 403 email-non-verifie | membre-du-lieu
  *        · 409 avis-visite-requise (lieu vérifié) | avis-recent { details.jusqua: ISO 8601, le prochain possible }
  *
  * Ambassadeur actif seulement (sinon 403 ambassadeur-non-actif), jamais en cache :
  * GET  /app/avis/a-relire → 200 { ok, avis: AvisARelire[] } : 20 au plus, le plus ancien d'abord ; jamais l'auteur ni son
- *        âge, jamais l'avis d'un 15-17 ans, jamais le sien, jamais chez un lieu auquel il est rattaché (ou le demande),
+ *        âge, jamais un avis à l'ancien marquage « mineur » (plus écrit depuis le 14/10/2026), jamais le sien, jamais chez
+ *        un lieu auquel il est rattaché (ou le demande),
  *        jamais un avis déjà relu par lui ni un avis qui a déjà 3 verdicts « ok » ou « louche »
  * POST /app/avis/:id/relecture { verdict: { type: "ok" } | { type: "louche", motif: MotifAvisLouche } | { type: "deporte" } }
  *        → 201 { ok } (consultatif : rien ne change pour l'avis) · 400 champ-invalide { champ: id | verdict }

@@ -4,6 +4,7 @@ import type { ServiceAvis } from "./contrat-avis.ts";
 import type { ServiceComptoir } from "./contrat-comptoir.ts";
 import type { ServiceEspaceAmbassadeur } from "./contrat-espace-ambassadeur.ts";
 import type { ServiceFidelite } from "./contrat-fidelite.ts";
+import type { ServiceLieuPro } from "./contrat-lieu-pro.ts";
 import type { ServiceMiamSafe } from "./contrat-miam-safe.ts";
 import type { ServiceReservations } from "./contrat-reservations.ts";
 import type { ServiceSuggestions } from "./contrat-suggestions.ts";
@@ -18,6 +19,8 @@ export type Services = {
   reservations: ServiceReservations;
   avis: ServiceAvis;
   comptoir: ServiceComptoir;
+  /** SOS du soir, message du moment, statistiques et événements du lieu (équipe) */
+  lieuPro: ServiceLieuPro;
   ambassadeur: ServiceEspaceAmbassadeur;
   suggestions: ServiceSuggestions;
   miamSafe: ServiceMiamSafe;

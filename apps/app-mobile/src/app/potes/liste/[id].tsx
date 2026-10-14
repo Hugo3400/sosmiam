@@ -27,7 +27,7 @@ import couleurs from "~/theme/couleurs";
 /**
  * Une liste partagée : qui l'a faite, qui la suit, et ses adresses (toucher → fiche du lieu).
  * Celle d'un pote se suit ou ne se suit plus ; ta liste ou une liste suivie peut recevoir des adresses ; seule la tienne peut en perdre.
- * Avant 18 ans, les bars n'apparaissent pas. Démo : les potes d'exemple attendent les vrais comptes.
+ * Démo : les potes d'exemple attendent les vrais comptes.
  */
 export default function EcranListePartagee() {
   const router = useRouter();
@@ -95,9 +95,6 @@ export default function EcranListePartagee() {
     .filter((p): p is Pote => p !== null);
 
   const lieux = liste.lieux.map(trouverLieu).filter((l): l is Lieu => l !== undefined);
-  // Avant 18 ans (ou âge inconnu), pas de lieu centré sur l'alcool
-  const visibles = communaute.moiMineur ? lieux.filter((l) => l.type !== "bar") : lieux;
-  const barsCaches = lieux.length - visibles.length;
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
@@ -127,14 +124,11 @@ export default function EcranListePartagee() {
   };
 
   // Rien à montrer : une invitation qui dépend de ce que tu peux faire
-  const texteVide =
-    barsCaches > 0
-      ? "Que des bars dans cette liste pour l'instant : ils t'attendront pour tes 18 ans."
-      : estAMoi
-        ? "Ta liste a encore le ventre vide. Ajoute ta première adresse !"
-        : suivie
-          ? "Pas encore d'adresse ici. Glisses-y la première !"
-          : "Pas encore d'adresse ici. Suis la liste pour y glisser les tiennes !";
+  const texteVide = estAMoi
+    ? "Ta liste a encore le ventre vide. Ajoute ta première adresse !"
+    : suivie
+      ? "Pas encore d'adresse ici. Glisses-y la première !"
+      : "Pas encore d'adresse ici. Suis la liste pour y glisser les tiennes !";
 
   return (
     <>
@@ -144,7 +138,7 @@ export default function EcranListePartagee() {
             liste={liste}
             auteur={auteur}
             abonnes={abonnes}
-            nombreLieux={visibles.length}
+            nombreLieux={lieux.length}
             suivie={estAMoi ? null : suivie}
             onBasculerSuivi={basculerSuivi}
             onOuvrirAuteur={(idPote) => router.push({ pathname: "/potes/profil/[id]", params: { id: idPote } })}
@@ -154,37 +148,28 @@ export default function EcranListePartagee() {
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
               Au menu
             </Text>
-            {visibles.length === 0 ? (
+            {lieux.length === 0 ? (
               <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
-                  {barsCaches > 0 ? "🧃" : "🍽️"}
+                  🍽️
                 </Text>
                 <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(texteVide)}</Text>
               </View>
             ) : (
               <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
-                {visibles.map((lieu, i) => (
+                {lieux.map((lieu, i) => (
                   <LigneLieuListe
                     key={lieu.id}
                     lieu={lieu}
                     km={calculerKmLieu(lieu, depart)}
                     image={trouverVignetteLieu(lieu.id, publications)}
-                    derniere={i === visibles.length - 1}
+                    derniere={i === lieux.length - 1}
                     onOuvrir={(idLieu) => router.push({ pathname: "/lieu/[id]", params: { id: String(idLieu) } })}
                     onRetirer={estAMoi ? retirer : undefined}
                   />
                 ))}
               </View>
             )}
-            {barsCaches > 0 && visibles.length > 0 ? (
-              <Text className="font-texte text-sm leading-5 text-gris">
-                {lierPonctuation(
-                  barsCaches > 1
-                    ? `${barsCaches} bars de cette liste restent cachés : ils t'attendront pour tes 18 ans.`
-                    : "Un bar de cette liste reste caché : il t'attendra pour tes 18 ans.",
-                )}
-              </Text>
-            ) : null}
             {peutAjouter ? <Bouton libelle="Ajouter un lieu" variante="blanc" indice="Choisis une adresse à ajouter à la liste" onPress={() => setChoixOuvert(true)} className="mt-1" /> : null}
           </View>
 

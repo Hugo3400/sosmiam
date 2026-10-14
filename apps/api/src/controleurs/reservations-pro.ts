@@ -17,7 +17,7 @@ import { champInvalide, poserPoints, type DependancesVisites } from "./visites.t
 const lireMotif = (brut: unknown): MotifRefusReservation | null =>
   typeof brut === "string" && (MOTIFS_REFUS_RESERVATION as readonly string[]).includes(brut) ? (brut as MotifRefusReservation) : null;
 
-/** `roleDe` : comptoir.roleDe (rattachement validé au lieu et 18 ans) */
+/** `roleDe` : comptoir.roleDe (rattachement validé au lieu) */
 export function creerControleursReservationsPro(
   d: DependancesVisites, roleDe: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>, horloge: () => number,
 ) {

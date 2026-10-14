@@ -5,7 +5,7 @@ import type { Conversation } from "@sos-miam/commun/types/conversations";
 
 const ilYa = (maintenant: Date, minutes: number) => new Date(maintenant.getTime() - minutes * 60_000).toISOString();
 
-/** Les conversations de la démo : un message privé avec Léa, un avec Inès (16 ans), et le groupe du jeudi. */
+/** Les conversations de la démo : un message privé avec Léa, un avec Inès, et le groupe du jeudi. */
 export function creerConversationsExemples(maintenant: Date): Conversation[] {
   return [
     {

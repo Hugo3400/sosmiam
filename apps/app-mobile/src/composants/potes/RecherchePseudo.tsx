@@ -16,11 +16,11 @@ const DELAI_ANNONCE = 700;
 
 /**
  * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom (à toucher pour ouvrir son profil), puis « Ajouter » ou « Déjà dans ta bande ».
- * Un adulte ne trouve pas les mineurs (sauf ceux déjà dans sa bande) : chercherParPseudo ne les lui montre pas.
+ * Les personnes bloquées n'apparaissent pas (chercherParPseudo).
  */
 export function RecherchePseudo() {
   const router = useRouter();
-  const { chercherParPseudo, ajouterPote, moiMineur } = utiliserCommunaute();
+  const { chercherParPseudo, ajouterPote } = utiliserCommunaute();
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const cherche = texte.trim().replace(/^@/, "");
@@ -47,11 +47,9 @@ export function RecherchePseudo() {
         ? `${pote.prenom} a rejoint ta bande !`
         : resultat === "deja"
           ? `${pote.prenom} est déjà dans ta bande.`
-          : resultat === "mineur"
-            ? "Cette personne ne s'ajoute pas par son pseudo."
-            : resultat === "bloque"
-              ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
-              : "Cette personne n'est plus là. Bizarre… réessaie ?";
+          : resultat === "bloque"
+            ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
+            : "Cette personne n'est plus là. Bizarre… réessaie ?";
     setErreur(resultat === "ajoute" || resultat === "deja" ? null : message);
     AccessibilityInfo.announceForAccessibility(message);
   }
@@ -72,7 +70,7 @@ export function RecherchePseudo() {
         spellCheck={false}
         returnKeyType="search"
         maxLength={LONGUEUR_MAX_SAISIE}
-        aide={moiMineur ? undefined : "Les moins de 18 ans ne se trouvent pas par leur pseudo : avec les comptes, ils s'ajouteront par lien ou QR code, donnés en main propre."}
+        aide="Avec ou sans « @ » : le début du pseudo suffit."
       />
 
       {cherche.length < 2 ? (

@@ -63,6 +63,18 @@ export function creerServicesIndisponibles(): Services {
       repondreAvis: indisponible,
       ecouter: rienAEcouter,
     },
+    lieuPro: {
+      lireMoment: indisponible,
+      lancerSos: indisponible,
+      arreterSos: indisponible,
+      reglerMessage: indisponible,
+      effacerMessage: indisponible,
+      lireStatistiques: async () => ({ ok: true, semaines: [] }),
+      listerEvenements: async () => ({ ok: true, evenements: [] }),
+      creerEvenement: indisponible,
+      modifierEvenement: indisponible,
+      annulerEvenement: indisponible,
+    },
     suggestions: {
       proposer: indisponible,
     },

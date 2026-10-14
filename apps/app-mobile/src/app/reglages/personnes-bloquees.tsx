@@ -26,8 +26,7 @@ export default function PersonnesBloquees() {
 
   function debloquer(pote: Pote) {
     communaute.debloquer(pote.id);
-    // Même texte pour tout le monde : ne pas promettre un nouvel ajout (impossible pour un adulte face à un mineur dans la démo),
-    // sans pour autant dire qui est mineur
+    // Débloquer ne remet personne dans ta bande : on le dit, sans promettre plus
     setMessage(`C'est fait, tu as débloqué ${pote.prenom}. Tu reverras ses messages et ses commentaires, mais pas dans ta bande pour autant.`);
     setTimeout(() => deplacerFocusLecteurEcran(zoneMessage.current), DELAI_FOCUS);
   }

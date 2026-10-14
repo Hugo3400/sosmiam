@@ -66,6 +66,7 @@ test("créneaux : dans les horaires, 30 min après maintenant ; lieu non réserv
   ajouterLieu(4, { type: "bar" });
   const tom = await b.creerCompte({ prenom: "Tom" });
   assert.equal((await b.demander("GET", "/app/reservations/creneaux?lieuId=4&jour=2026-10-09", tom.jeton)).statut, 200);
+  assert.equal((await reserver(tom.jeton, { lieuId: 4 })).statut, 201);
 });
 
 test("demande : en attente, créneau à l'heure de Paris, petit mot nettoyé ; le lieu ne voit que prénom, initiale et emoji", async () => {

@@ -19,7 +19,7 @@ import { utiliserPagination } from "~/hooks/utiliser-pagination";
 type Props = {
   /** Lieux reçus de tes potes, déjà limités à ceux que tu peux voir */
   recommandations: Recommandation[];
-  /** Lieux que tu peux voir (sans les bars sous 18 ans), par identifiant */
+  /** Lieux connus de l'app, par identifiant */
   lieux: ReadonlyMap<number, Lieu>;
   /** Après un retrait : le bandeau « Retiré · Annuler » de l'écran */
   onRetire: (texte: string, annuler: () => void) => void;

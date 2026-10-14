@@ -22,13 +22,11 @@ type Props = {
   max: number;
   onAjouter: () => void;
   onRetirer: (lieuId: number) => void;
-  /** Petite phrase au-dessus du bouton (ex. pas de bar avec un mineur) */
-  note?: string | null;
   erreur?: string | null;
 };
 
 /** Les lieux proposés au départ d'une nouvelle sortie : la liste (avec de quoi en retirer) et « Ajouter un lieu ». */
-export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, note, erreur }: Props) {
+export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, erreur }: Props) {
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const depart = utiliserPointDeDepart();
@@ -77,11 +75,6 @@ export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, note, er
         </View>
       )}
 
-      {note ? (
-        <Text accessibilityLabel={retirerEmoji(note)} className="font-texte text-sm leading-5 text-gris">
-          {lierPonctuation(note)}
-        </Text>
-      ) : null}
       {erreur ? (
         <Text accessibilityLabel={retirerEmoji(erreur)} className="font-texte text-sm leading-5 text-rouge-texte">
           {lierPonctuation(erreur)}

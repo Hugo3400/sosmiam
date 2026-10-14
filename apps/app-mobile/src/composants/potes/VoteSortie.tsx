@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { AccessibilityInfo, Linking, Platform, Pressable, Text, View } from "react-native";
 
 import { ID_MOI, MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
@@ -48,19 +48,16 @@ function ouvrirItineraire(lieu: Lieu) {
 /** La partie « Le vote » d'une sortie : les lieux proposés et leurs votes, proposer un lieu, terminer le vote, puis le lieu retenu. */
 export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, onTerminer, onQuitter }: Props) {
   const router = useRouter();
-  const { trouverPote, voter, proposerLieu, lieuPermisDansSortie, bloques } = utiliserCommunaute();
+  const { trouverPote, voter, proposerLieu, bloques } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const { trouverLieu } = utiliserLieux();
   const depart = utiliserPointDeDepart();
   const [choixOuvert, setChoixOuvert] = useState(false);
 
-  const participants = sortie.participants;
-  const permis = useCallback((lieu: Lieu) => lieuPermisDansSortie(lieu.id, participants), [lieuPermisDansSortie, participants]);
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
   const bloquesIds = new Set(bloques.map((b) => b.id));
   const organisateur = sortie.organisateur === ID_MOI;
-  const avecMineur = participants.some((id) => trouverPote(id)?.mineur);
   const complet = sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE;
 
   // Vote fini : le lieu retenu en tête, puis les autres du plus voté au moins voté
@@ -143,11 +140,6 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
       {voteFini ? null : (
         <View className="gap-3">
-          {avecMineur ? (
-            <Text accessibilityLabel="Pas de bar pour cette sortie : tout le monde n'a pas encore 18 ans." className="font-texte text-sm leading-5 text-gris">
-              {lierPonctuation("🧃 Pas de bar pour cette sortie : tout le monde n'a pas encore 18 ans.")}
-            </Text>
-          ) : null}
           <Bouton
             libelle={complet ? `${MAX_PROPOSITIONS_SORTIE} lieux en lice, c'est complet` : "Proposer un lieu"}
             variante="blanc"
@@ -167,7 +159,6 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
         visible={choixOuvert}
         titre="Proposer un lieu"
         dejaChoisis={sortie.propositions.map((p) => p.lieuId)}
-        permis={permis}
         onChoisir={proposer}
         onFermer={() => setChoixOuvert(false)}
       />
