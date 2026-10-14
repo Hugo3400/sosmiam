@@ -20,7 +20,7 @@ export function BlocApercu({ bloc, numero, ecran }: Props) {
   const pair = numero % 2 === 0;
   return (
     <Section id={bloc.id} fond={pair ? "creme" : "blanc"}>
-      <div className="grid items-center gap-12 md:grid-cols-[minmax(0,1fr)_310px] lg:gap-20">
+      <div className={`grid items-center gap-12 lg:gap-20 ${pair ? "md:grid-cols-[310px_minmax(0,1fr)]" : "md:grid-cols-[minmax(0,1fr)_310px]"}`}>
         <div className="min-w-0">
           <span
             className="mb-4 grid h-11 w-11 place-items-center rounded-full border-2 border-encre bg-jaune font-titre text-xl font-extrabold shadow-brut-petit"

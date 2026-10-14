@@ -57,6 +57,7 @@ export function EcranBoiteAIdees() {
         ))}
       </div>
       <div className="shrink-0 rounded-t-[24px] border-t-2 border-encre bg-white px-4 pt-3 pb-5 shadow-[0_-6px_0_var(--color-jaune)]">
+        <span className="mx-auto mb-2 block h-1 w-10 rounded-full bg-ligne" />
         <span className="block text-[10px] font-bold tracking-[.08em] text-gris uppercase">Ton idée</span>
         <span className="block text-[12.5px] font-bold">Un bouton petit budget</span>
         <span className="mt-1 block text-[11px]">

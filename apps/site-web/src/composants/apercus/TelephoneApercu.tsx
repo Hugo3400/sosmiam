@@ -13,7 +13,7 @@ type Props = {
  * pour les lecteurs d'écran (role="img" et son texte alternatif) ; son contenu leur est caché.
  */
 export function TelephoneApercu({ alt, children, penche }: Props) {
-  const rotation = penche === "gauche" ? "lg:-rotate-2" : penche === "droite" ? "lg:rotate-2" : "";
+  const rotation = penche === "gauche" ? "lg:-rotate-1" : penche === "droite" ? "lg:rotate-1" : "";
   return (
     <figure className="w-full max-w-[310px] justify-self-center">
       <div role="img" aria-label={alt} className={`rounded-[44px] border-2 border-encre bg-encre p-2.5 shadow-brut-jaune ${rotation}`}>

@@ -11,13 +11,12 @@ const MIAMIS: { pseudo: string; infos: string; fond: string; coucou: EtatCoucou 
   { pseudo: "@ines.gourmande", infos: "Ambassadrice · organise un pique-nique", fond: "#DDE5FF", coucou: "envoye" },
   { pseudo: "@malo.galette", infos: "Dans ta bande", fond: "#D9EEDF", coucou: "pote" },
   { pseudo: "@yanis.bao", infos: "Nouveau dans la ville", fond: "#FFE1DD", coucou: "coucou" },
-  { pseudo: "@alex.pasta", infos: "Calme en commun", fond: "#FFD60A", coucou: "coucou" },
 ];
 
 const BOUTONS: Record<EtatCoucou, { texte: string; style: string }> = {
-  coucou: { texte: "Coucou 👋", style: "bg-jaune font-bold" },
-  envoye: { texte: "Envoyé ✓", style: "border border-ligne bg-white text-gris" },
-  pote: { texte: "Pote", style: "bg-creme text-gris" },
+  coucou: { texte: "👋 Coucou", style: "border border-encre bg-white font-bold" },
+  envoye: { texte: "Envoyé ✓", style: "bg-creme text-gris" },
+  pote: { texte: "Pote", style: "bg-jaune-clair font-semibold" },
 };
 
 /** Écran « Qui est là ? » : se montrer ou pas, un coucou réciproque, et les Miamis de la ville. */
@@ -54,7 +53,7 @@ export function EcranQuiEstLa() {
               <AvatarMiami nom={miami.pseudo} fond={miami.fond} taille={30} />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[12px] font-semibold">{miami.pseudo}</span>
-                <span className="truncate text-[10.5px] text-gris">{miami.infos}</span>
+                <span className="text-[10.5px] leading-tight text-gris">{miami.infos}</span>
               </span>
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] ${BOUTONS[miami.coucou].style}`}>{BOUTONS[miami.coucou].texte}</span>
             </span>
