@@ -18,6 +18,7 @@ export default function MiseEnPageInscription() {
         <Stack.Screen name="compte" />
         <Stack.Screen name="inscription-email" />
         <Stack.Screen name="connexion" />
+        <Stack.Screen name="connexion-qr" />
         <Stack.Screen name="mot-de-passe-oublie" />
         <Stack.Screen name="fais-connaissance" />
         <Stack.Screen name="envies" />

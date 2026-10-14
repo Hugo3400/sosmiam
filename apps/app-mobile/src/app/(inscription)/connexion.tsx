@@ -6,15 +6,18 @@ import { BoutonConnexion } from "~/composants/inscription/BoutonConnexion";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
+import { utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
 
 /**
- * « Me connecter » : un compte qui existe déjà (créé dans l'app ou sur le site), par e-mail et mot de passe, Apple ou Google.
+ * « Me connecter » : un compte qui existe déjà (créé dans l'app ou sur le site), par e-mail et mot de passe, Apple, Google, ou
+ * un QR code scanné par un téléphone déjà connecté.
  * Son profil, gardé sur le serveur, s'installe sur le téléphone ; un compte du site sans date de naissance passe d'abord par
  * « Fais connaissance ».
  */
 export default function Connexion() {
   const router = useRouter();
   const { connecterAvec, connecterParEmail, enCours } = utiliserEntreeCompte();
+  const connexionQr = utiliserServiceConnexionQr().service !== null;
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const champMotDePasse = useRef<TextInput>(null);
@@ -29,6 +32,20 @@ export default function Connexion() {
       <View className="gap-4">
         <BoutonConnexion fournisseur="apple" onPress={() => void connecterAvec("apple")} enCours={enCours === "apple"} desactive={enCours !== null} />
         <BoutonConnexion fournisseur="google" onPress={() => void connecterAvec("google")} enCours={enCours === "google"} desactive={enCours !== null} />
+        {connexionQr ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Montre un QR code à scanner avec ton téléphone déjà connecté"
+            disabled={enCours !== null}
+            onPress={() => router.push("/connexion-qr")}
+            className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 active:opacity-80"
+          >
+            <Text accessibilityElementsHidden importantForAccessibility="no" className="text-xl">
+              📱
+            </Text>
+            <Text className="font-texte-gras text-base text-encre">Me connecter avec un QR code</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View className="my-6 flex-row items-center gap-3">

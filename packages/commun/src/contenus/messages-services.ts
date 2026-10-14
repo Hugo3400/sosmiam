@@ -5,6 +5,7 @@
 
 import type { ErreurService } from "../types/erreurs-service.ts";
 import { MESSAGES_SERVICES_SOCIAUX } from "./messages-services-sociaux.ts";
+import { MESSAGES_CONNEXION_QR } from "./messages-connexion-qr.ts";
 
 export type MessageService = { emoji: string; titre: string; texte: string };
 
@@ -453,4 +454,6 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     texte: "L'équipe SOS Miam a retiré la charte de ce lieu. Écris-nous à bonjour@sosmiam.fr pour en parler.",
   },
   ...MESSAGES_SERVICES_SOCIAUX,
+  // Connexion par QR code (messages-connexion-qr.ts)
+  ...MESSAGES_CONNEXION_QR,
 };

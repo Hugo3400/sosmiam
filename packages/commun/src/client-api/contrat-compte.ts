@@ -3,6 +3,7 @@
 
 import type { CompteApp, ConnexionExterne, ConnexionsCompte, InscriptionEmail, ProfilACompleter, ProfilServeur } from "../types/compte-app.ts";
 import type { ReponseApi } from "./reponse-api.ts";
+import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../types/connexion-qr.ts";
 
 /** Une connexion réussie : le jeton à garder dans le coffre-fort du téléphone, et le compte */
 export type SessionOuverte = { session: string; compte: CompteApp; nouveau: boolean };
@@ -49,4 +50,18 @@ export interface ServiceCompte {
   supprimerCompte(
     confirmation: { motDePasse: string } | { identityToken: string; nonce: string } | { idToken: string; nonce?: string },
   ): Promise<ReponseApi>;
+
+  // Connexion par QR code, comme Discord (apps/api/src/routes/connexion-qr.ts) : un QR vit 2 minutes et sert une fois
+  /** Nouveau téléphone, sans session : un QR à afficher (https://sosmiam.fr/q/<code>) ; garder le secret, jamais dans le QR.
+   * Erreur : « trop-de-demandes » (20 par 10 minutes) */
+  demanderConnexionQr(): Promise<ReponseApi<QrConnexion>>;
+  /** Interroger toutes les 2 s avec le secret : « accepte » arrive une seule fois, avec la session (1 an) et le compte ;
+   * ensuite, « expire » */
+  attendreConnexionQr(secret: string): Promise<ReponseApi<{ etat: Exclude<EtatConnexionQr, "accepte"> } | ({ etat: "accepte" } & SessionOuverte)>>;
+  /** L'app connectée scanne : la demande à confirmer. Erreurs : « connexion-qr-inconnue », « connexion-qr-expiree »,
+   * « connexion-qr-deja-scannee » (un autre compte), « deja-repondu », « session-app-requise », « trop-de-demandes » */
+  scannerConnexionQr(code: string): Promise<ReponseApi<{ demande: DemandeConnexionQr }>>;
+  /** Accepter (dans les 60 s après le scan, APRÈS la biométrie du téléphone) ou refuser. Erreurs : « connexion-qr-inconnue »
+   * (pas scanné par ce compte), « connexion-qr-expiree », « deja-repondu », « trop-de-demandes » */
+  repondreConnexionQr(code: string, accepte: boolean): Promise<ReponseApi>;
 }

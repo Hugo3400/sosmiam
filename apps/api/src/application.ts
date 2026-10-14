@@ -29,6 +29,8 @@ import type { DependancesApp } from "./controleurs/app.ts";
 import { creerRoutesBot } from "./routes/bot.ts";
 import { creerRoutesComptes, LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP, type DependancesComptes } from "./routes/comptes.ts";
 import { creerRoutesDemandesLieux } from "./routes/demandes-lieux.ts";
+import { creerRoutesConnexionQr } from "./routes/connexion-qr.ts";
+import type { DependancesConnexionQr } from "./controleurs/connexion-qr.ts";
 import { creerRoutesEspaceAmbassadeur, type DependancesEspaceAmbassadeur } from "./routes/espace-ambassadeur.ts";
 import { creerRoutesFondateurs } from "./routes/fondateurs.ts";
 import { creerRoutesInscriptions } from "./routes/inscriptions.ts";
@@ -106,6 +108,9 @@ type Dependances = {
   appareilsApp?: DependancesAppareils;
   /** L'app, avec session : défis du moment et avancée du compte (GET /app/defis ; seulement avec `comptes`) */
   defisApp?: DependancesDefisApp;
+  /** Connexion par QR code, comme Discord (routes /comptes/qr sans session, /app/qr avec la session de l'app ; seulement
+   * avec `comptes`) */
+  connexionQr?: DependancesConnexionQr;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -123,6 +128,7 @@ export function creerApplication({
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
   newsletter, appareilsApp,
   defisApp,
+  connexionQr,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -156,6 +162,13 @@ export function creerApplication({
     // Une seule protection (sessions) et une seule limite « connecté » pour /comptes et /espace-ambassadeur
     const protection = creerProtectionComptes(comptes.sessions, comptes.horloge);
     const limiteConnectee = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
+    // Connexion par QR code : avant le routeur /comptes (sa limite « connecté » ne doit pas compter l'attente) et avant les
+    // routeurs /app
+    if (connexionQr) {
+      const routesQr = creerRoutesConnexionQr(connexionQr, comptes, protection, limiteConnectee);
+      application.use("/comptes/qr", routesQr.publiques);
+      application.use("/app/qr", routesQr.app);
+    }
     application.use("/comptes", creerRoutesComptes(comptes, protection, limiteConnectee));
     // Visites, fidélité et comptoir (même compte, même session) : le comptoir avant le routeur /pro de l'espace pro
     // Rôle pro (espace pro, comptoir de l'app, comptoir de Miam Safe) : réservé aux 18 ans et plus, vérifié à chaque demande

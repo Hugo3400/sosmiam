@@ -65,6 +65,7 @@ import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
 import { desinscrireAppareil, inscrireAppareil } from "./services/appareils-push.ts";
 import { creerDefis } from "./services/defis.ts";
 import { brancherReevaluationDefis } from "./fonctions/defis/brancher-reevaluation-defis.ts";
+import { servicesConnexionQr } from "./services/connexion-qr.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -182,6 +183,8 @@ const serveur = creerApplication({
   avisApp: { depot: depotAvis, chiffrement, ajouterPoints: ajouterPointsEtDefis, tirer: (max) => randomInt(max) },
   // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
   defisApp: { services: defis },
+  // Connexion par QR code, comme Discord : le site ou un nouveau téléphone affiche le QR, l'app connectée valide
+  connexionQr: { services: servicesConnexionQr },
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },

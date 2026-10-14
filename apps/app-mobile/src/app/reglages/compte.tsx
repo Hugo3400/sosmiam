@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 
@@ -16,6 +17,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { type ResultatMesConnexions, utiliserMesConnexions } from "~/hooks/utiliser-mes-connexions";
+import { utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
 type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier";
@@ -30,9 +32,11 @@ const MOT_DE_PASSE_MIN = 12;
  * téléphone oublie tout et l'app repart à la bienvenue.
  */
 export default function MonCompte() {
+  const router = useRouter();
   const { compte, comptes, ouvrir, fermer, rafraichir } = utiliserSession();
   const effacement = utiliserEffacementLocal();
   const mesConnexions = utiliserMesConnexions();
+  const connexionQr = utiliserServiceConnexionQr().service !== null;
   const { connexions } = mesConnexions;
   const [vue, setVue] = useState<Vue>("principal");
   const [aDelier, setADelier] = useState<FournisseurConnexion>("apple");
@@ -231,6 +235,14 @@ export default function MonCompte() {
       />
 
       <SectionReglages titre="Connexion">
+        {connexionQr ? (
+          <LigneReglage
+            emoji="📷"
+            titre="Connecter un appareil"
+            detail="Ton ordinateur ou un nouveau téléphone, en scannant son QR code"
+            onPress={() => router.push("/reglages/connecter-appareil")}
+          />
+        ) : null}
         <LigneReglage emoji="👋" titre="Me déconnecter" detail="Ton compte t'attend : reconnecte-toi quand tu veux" onPress={() => setConfirmation("deconnecter")} />
         <LigneReglage emoji="🧯" titre="Me déconnecter partout" detail="Sur tous tes appareils, celui-ci compris" onPress={() => setConfirmation("partout")} />
       </SectionReglages>

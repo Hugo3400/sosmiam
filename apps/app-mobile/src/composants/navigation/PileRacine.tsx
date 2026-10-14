@@ -85,12 +85,13 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
         <Stack.Protected guard={!inscrit}>
           <Stack.Screen name="(inscription)" />
         </Stack.Protected>
-        {/* Liens ouverts depuis le site ou un QR (sosmiam.fr/invitation/…, /l/…, /lieux/…) : ouverts à tous, ils renvoient
+        {/* Liens ouverts depuis le site ou un QR (sosmiam.fr/invitation/…, /l/…, /lieux/…, /q/…) : ouverts à tous, ils renvoient
             aussitôt au bon écran (en entrant en visite si besoin) */}
         <Stack.Protected guard>
           <Stack.Screen name="invitation/[pseudo]" />
           <Stack.Screen name="l/[code]" />
           <Stack.Screen name="lieux/[id]" />
+          <Stack.Screen name="q/[code]" />
         </Stack.Protected>
       </Stack>
     </>

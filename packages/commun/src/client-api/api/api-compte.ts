@@ -5,6 +5,7 @@ import type { CompteApp, ConnexionsCompte, ProfilACompleter, ProfilServeur } fro
 import type { ClientHttp } from "../client-http.ts";
 import type { ServiceCompte, SessionOuverte } from "../contrat-compte.ts";
 import type { ReponseApi } from "../reponse-api.ts";
+import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../../types/connexion-qr.ts";
 
 export function creerCompteApi(client: ClientHttp): ServiceCompte {
   const ouvrir = async (chemin: string, corps: unknown): Promise<ReponseApi<SessionOuverte>> => {
@@ -45,5 +46,16 @@ export function creerCompteApi(client: ClientHttp): ServiceCompte {
     motDePasseOublie: (email) => client.demander("POST", "/comptes/mot-de-passe-oublie", { corps: { email }, session: false }),
     renvoyerVerification: () => client.demander<{ dejaVerifie: boolean }>("POST", "/comptes/moi/renvoyer-verification"),
     supprimerCompte: (confirmation) => client.demander("DELETE", "/comptes/moi", { corps: confirmation }),
+
+    // Connexion par QR code : le nouveau téléphone demande et attend (sans session) ; l'app connectée scanne et répond
+    demanderConnexionQr: () => client.demander<QrConnexion>("POST", "/comptes/qr", { corps: { cible: "app" }, session: false }),
+    async attendreConnexionQr(secret) {
+      const r = await client.demander<{ etat: EtatConnexionQr; session?: string; compte?: CompteApp }>("POST", "/comptes/qr/attente", { corps: { secret }, session: false });
+      if (!r.ok) return r;
+      if (r.etat === "accepte" && r.session && r.compte) return { ok: true, etat: "accepte", session: r.session, compte: r.compte, nouveau: false };
+      return { ok: true, etat: r.etat === "accepte" ? "expire" : r.etat };
+    },
+    scannerConnexionQr: (code) => client.demander<{ demande: DemandeConnexionQr }>("POST", "/app/qr/scanner", { corps: { code } }),
+    repondreConnexionQr: (code, accepte) => client.demander("POST", "/app/qr/repondre", { corps: { code, accepte } }),
   };
 }

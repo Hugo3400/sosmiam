@@ -47,6 +47,11 @@
               "scheme": "https",
               "host": "sosmiam.fr",
               "pathPrefix": "/lieux/"
+            },
+            {
+              "scheme": "https",
+              "host": "sosmiam.fr",
+              "pathPrefix": "/q/"
             }
           ],
           "category": [

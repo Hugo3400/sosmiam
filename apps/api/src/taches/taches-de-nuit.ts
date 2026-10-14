@@ -19,6 +19,7 @@ import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { formaterOctets } from "../fonctions/texte/formater-octets.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import { rechiffrerComptes } from "../services/rechiffrement-comptes.ts";
+import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -54,6 +55,9 @@ async function faireLeMenage() {
     if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés (90 jours sans signe de vie, ou jeton mort)", `${appareils} téléphone(s)`);
     const interets = await effacerInteretsPasses();
     if (interets > 0) await noterAction("serveur", "« Ça m'intéresse » effacés (30 jours après l'événement)", `${interets} intérêt(s)`);
+    // Connexion par QR code : les demandes expirées depuis plus d'un jour (un nombre seulement dans le journal)
+    const demandesQr = await effacerDemandesQrExpirees();
+    if (demandesQr > 0) await noterAction("serveur", "Demandes de connexion par QR effacées (expirées depuis plus d'un jour)", `${demandesQr} demande(s)`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }

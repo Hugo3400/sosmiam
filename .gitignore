@@ -27,3 +27,5 @@ __pycache__/
 
 # Archives des vidéos du kit (trop lourdes pour le dépôt, gardées sur le serveur)
 kits/*.zip
+# Vidéos de l'Espace presse, décompressées depuis ces archives (même raison)
+presse/videos/

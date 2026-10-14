@@ -100,5 +100,5 @@ export function utiliserEntreeCompte() {
       await entrer(r);
     });
 
-  return { connecterAvec, connecterParEmail, enCours };
+  return { connecterAvec, connecterParEmail, entrer, enCours };
 }

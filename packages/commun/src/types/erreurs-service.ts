@@ -2,9 +2,11 @@
 // du comptoir, de l'espace ambassadeur, des propositions de modification d'une fiche et de Miam Safe. Chaque code a son texte dans contenus/messages-services.ts.
 // Celles de la partie sociale sont à part (erreurs-service-sociales.ts, textes dans contenus/messages-services-sociaux.ts).
 import type { ErreurServiceSociale } from "./erreurs-service-sociales.ts";
+import type { ErreurConnexionQr } from "./erreurs-connexion-qr.ts";
 
 export type ErreurService =
   | ErreurServiceSociale
+  | ErreurConnexionQr
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"
