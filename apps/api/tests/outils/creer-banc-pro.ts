@@ -31,7 +31,7 @@ export async function creerBancPro() {
   // « Prévenir un pote » : partages en mémoire, une bande d'essai (paires de comptes) et des téléphones comptés à la main
   const partages = creerPartagesMiamSafeEnMemoire((lieuId) => {
     const lieu = memoire.lieux.get(lieuId);
-    return lieu?.statut === "publie" ? lieu.nom : null;
+    return lieu?.statut === "publie" ? String(lieu.nom) : null;
   });
   const bande = new Set<string>();
   const paire = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);

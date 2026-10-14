@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
