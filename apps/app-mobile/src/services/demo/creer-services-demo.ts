@@ -7,6 +7,7 @@ import type { Services } from "@sos-miam/commun/client-api/services";
 
 import { creerServicesIndisponibles } from "../creer-services-indisponibles";
 import { creerComptoirDemo } from "./comptoir-demo";
+import { creerEspaceAmbassadeurDemo } from "./espace-ambassadeur-demo";
 import { creerFideliteDemo } from "./fidelite-demo";
 import { creerInteretsEvenementsDemo } from "./interets-evenements-demo";
 import { creerLieuProDemo } from "./lieu-pro-demo";
@@ -28,7 +29,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ecouter },
     lieuPro: creerLieuProDemo(ctx),
     interetsEvenements: creerInteretsEvenementsDemo(ctx),
-    ambassadeur: { ...enAttente.ambassadeur, ecouter },
+    ambassadeur: creerEspaceAmbassadeurDemo(ctx),
     suggestions: creerSuggestionsDemo(ctx),
     miamSafe: creerMiamSafeDemo(ctx),
   };
