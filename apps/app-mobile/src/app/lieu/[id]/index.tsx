@@ -37,7 +37,7 @@ type EtatEnvoi = "jamais" | "ouvert" | "ferme";
  * (addition, QR du comptoir, fidélité, réserver), et de quoi y aller ou l'aider.
  * Pour une arrivée fluide, seul le haut est dessiné tout de suite ; la suite (horaires, carte, tags) vient juste après l'animation.
  * Sans compte, on regarde tout et « Y aller » marche ; rescousse, suivre et « Envoyer à un pote » proposent de créer un compte.
- * Un bar ouvert par un lien, sous 18 ans ou âge inconnu : un mot gentil à la place de la fiche.
+ * Un bar ouvert par un lien en visite sans compte (âge inconnu) : un mot gentil à la place de la fiche.
  */
 export default function FicheLieu() {
   const router = useRouter();
@@ -82,7 +82,7 @@ export default function FicheLieu() {
 
   if (!lieu) {
     if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
-    // Le lieu existe, mais c'est un bar : réservé aux 18 ans et plus (et tout public tant qu'on ne connaît pas ton âge)
+    // Le lieu existe, mais c'est un bar, et sans compte on ne connaît pas ton âge : tout public
     if (recherche.lieu) return <LieuReserveAdultes />;
     return (
       <View style={{ flex: 1, paddingTop: marges.top + 24 }} className="items-center gap-4 bg-creme px-8">

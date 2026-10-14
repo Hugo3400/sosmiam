@@ -37,6 +37,9 @@ export const FILTRES_PAR_MESURE: Readonly<Record<MesureDefi, readonly FiltreDefi
  */
 export const TYPES_LIEU_DEFI: readonly TypeLieu[] = ["resto", "patisserie", "sortie"];
 
+/** Emojis d'alcool, refusés pour un défi (même raison : un défi rapporte des points) */
+export const EMOJIS_ALCOOL_DEFI: readonly string[] = ["🍺", "🍻", "🍷", "🍸", "🍹", "🥂", "🥃", "🍾", "🍶"];
+
 /** `apresHeure` : de 12 h à 23 h (heure de Paris) ; une visite compte de cette heure-là jusqu'à 5 h du matin */
 export const APRES_HEURE_MIN = 12;
 export const APRES_HEURE_MAX = 23;

@@ -29,7 +29,7 @@ test("validerDefi : un défi complet passe, nettoyé ; publié, ordre, filtres e
 
 test("validerDefi : le premier champ à corriger, dans l'ordre du formulaire", () => {
   assert.deepEqual(validerDefi(null), { ok: false, erreur: "champ-invalide", champ: "emoji" });
-  for (const emoji of [undefined, "", "abc", "🚀 x", "🚀".repeat(9), 3]) assert.equal(champ({ emoji }), "emoji", String(emoji));
+  for (const emoji of [undefined, "", "abc", "🚀 x", "🚀".repeat(9), "🍺", "🥂✨", 3]) assert.equal(champ({ emoji }), "emoji", String(emoji));
   for (const emoji of ["🚀", "✍️", "🇫🇷", "1️⃣"]) assert.equal(champ({ emoji }), null, emoji);
   for (const titre of [undefined, "  ", "x".repeat(61), "Le défi des connards", "La tournée des bières", 12]) assert.equal(champ({ titre }), "titre", String(titre));
   for (const texte of [undefined, "", "x".repeat(301), "Bois 3 cocktails et c'est gagné"]) assert.equal(champ({ texte }), "texte", String(texte));

@@ -32,5 +32,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     ambassadeur: creerEspaceAmbassadeurDemo(ctx),
     suggestions: creerSuggestionsDemo(ctx),
     miamSafe: creerMiamSafeDemo(ctx),
+    // Défis de la démo : encore calculés sur le téléphone (defis-exemples.ts), pas par ce service
+    defis: { ...enAttente.defis },
   };
 }

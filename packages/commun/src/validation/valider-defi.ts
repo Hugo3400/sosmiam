@@ -1,5 +1,5 @@
 import {
-  APRES_HEURE_MAX, APRES_HEURE_MIN, EMOJI_DEFI_MAX, FILTRES_PAR_MESURE, MESURES_DEFI, OBJECTIF_DEFI_MAX, OBJECTIF_DEFI_MIN, ORDRE_DEFI_MAX,
+  APRES_HEURE_MAX, APRES_HEURE_MIN, EMOJI_DEFI_MAX, EMOJIS_ALCOOL_DEFI, FILTRES_PAR_MESURE, MESURES_DEFI, OBJECTIF_DEFI_MAX, OBJECTIF_DEFI_MIN, ORDRE_DEFI_MAX,
   POINTS_DEFI_MAX, POINTS_DEFI_MIN, TEXTE_DEFI_MAX, TITRE_DEFI_MAX, TYPES_LIEU_DEFI,
 } from "../regles/defis.ts";
 import { parleDAlcool } from "../fonctions/prevention/parle-d-alcool.ts";
@@ -24,11 +24,12 @@ function lireJour(brut: unknown): string | null {
   return date.getUTCMonth() === mois - 1 && date.getUTCDate() === jour && annee >= 2026 && annee <= 2100 ? brut : null;
 }
 
-/** Un emoji (ou quelques-uns) : au moins un pictogramme, un drapeau ou un chiffre encadré (« 3️⃣ »), ni lettre ni espace */
+/** Un emoji (ou quelques-uns) : au moins un pictogramme, un drapeau ou un chiffre encadré (« 3️⃣ »), ni lettre ni espace, ni alcool */
 function lireEmoji(brut: unknown): string | null {
   if (typeof brut !== "string") return null;
   const emoji = brut.trim();
   if (emoji.length === 0 || emoji.length > EMOJI_DEFI_MAX || /[\p{L}\s]/u.test(emoji)) return null;
+  if (EMOJIS_ALCOOL_DEFI.some((alcool) => emoji.includes(alcool))) return null;
   return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u.test(emoji) ? emoji : null;
 }
 
@@ -70,12 +71,12 @@ function lireFiltres(brut: unknown, mesure: MesureDefi): FiltresDefi | null | fa
 }
 
 /**
- * Vérifie un défi écrit dans le logiciel de gestion, dans l'ordre du formulaire : emoji, titre (1 à 60 caractères), texte
- * (1 à 300), tous deux sans gros mot ni alcool, mesure connue, filtres permis pour cette mesure (types de lieu sans « bar »,
- * heure de 12 à 23, « pendant un SOS » et « avec photo » à true), objectif (1 à 100), points (0 à 200), premier jour et
- * dernier jour « AAAA-MM-JJ » (dernier jour absent ou null : sans fin ; jamais avant le premier), publié (faux si absent),
- * ordre (0 à 999, 0 si absent). Rend le défi nettoyé (espaces en trop retirés, filtres vides à null) ou le premier champ à
- * corriger.
+ * Vérifie un défi écrit dans le logiciel de gestion, dans l'ordre du formulaire : emoji (sans alcool), titre (1 à 60
+ * caractères), texte (1 à 300), tous deux sans gros mot ni alcool, mesure connue, filtres permis pour cette mesure (types de
+ * lieu sans « bar », heure de 12 à 23, « pendant un SOS » et « avec photo » à true), objectif (1 à 100), points (0 à 200),
+ * premier jour et dernier jour « AAAA-MM-JJ » (dernier jour absent ou null : sans fin ; jamais avant le premier), publié
+ * (faux si absent), ordre (0 à 999, 0 si absent). Un défi rapporte des points : rien n'y pousse à boire (loi Évin). Rend le
+ * défi nettoyé (espaces en trop retirés, filtres dans un ordre fixe, filtres vides à null) ou le premier champ à corriger.
  */
 export function validerDefi(brut: unknown): ResultatValidationDefi {
   const refuser = (champ: ChampDefi): ResultatValidationDefi => ({ ok: false, erreur: "champ-invalide", champ });

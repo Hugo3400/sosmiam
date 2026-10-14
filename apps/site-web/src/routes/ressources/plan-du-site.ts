@@ -4,6 +4,7 @@ import { site } from "~/contenus/legal/informations-legales";
 import { pagesIndexees } from "~/contenus/plan-du-site";
 import { construirePlanDuSite, type AdressePlan } from "~/fonctions/seo/construire-plan-du-site";
 import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
+import { LIEUX_NON_INDEXES } from "~/contenus/lieux-non-indexes";
 import { listerLieuxDuPlan } from "~/services/lieux.server";
 
 /**
@@ -24,7 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     if (lieux === null) cache = "public, max-age=60";
     adresses = [
       ...pagesIndexees.map((chemin) => ({ adresse: `https://${site.adresse}${chemin}` })),
-      ...(lieux ?? []).map(({ id, modifieLe }) => ({ adresse: `https://${site.adresse}/lieux/${id}`, modifieLe })),
+      ...(lieux ?? []).filter(({ id }) => !LIEUX_NON_INDEXES.has(id)).map(({ id, modifieLe }) => ({ adresse: `https://${site.adresse}/lieux/${id}`, modifieLe })),
     ];
   }
   return new Response(construirePlanDuSite(adresses), {

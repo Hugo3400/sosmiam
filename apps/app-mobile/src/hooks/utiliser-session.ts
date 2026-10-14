@@ -9,6 +9,8 @@ import type { CompteApp } from "@sos-miam/commun/types/compte-app";
 export type ValeurSession = {
   /** Faux tant que le jeton n'est pas relu dans le coffre-fort */
   pret: boolean;
+  /** Vrai quand le serveur a dit la session expirée (déconnecté partout, mot de passe changé, compte supprimé ailleurs) */
+  perdue: boolean;
   /** Un vrai compte est connecté (jeton gardé) */
   connecte: boolean;
   /** Le compte relu sur le serveur ; null tant qu'il n'est pas lu (ou hors ligne) */

@@ -31,19 +31,14 @@ export function creerDefisEnMemoire({ ajouterPoints, donnerBadge }: DependancesS
     const e = evaluerDefisCompte({
       defis: publies, reussites: reussites.filter((r) => r.compteId === compteId), faits: faitsDe(compteId), badges: [...(badges.get(compteId) ?? [])], maintenant,
     });
-    for (const c of e.aCrediter) {
-      reussites.push({ compteId, defiId: c.defiId, points: c.points, reussiLe: maintenant });
-      await ajouterPoints(compteId, c.points, "defi", `defi:${c.defiId}`);
-    }
-    for (const r of e.aReprendre) {
-      reussites.splice(reussites.findIndex((x) => x.compteId === compteId && x.defiId === r.defiId), 1);
-      await ajouterPoints(compteId, -r.points, "defi", `defi:${r.defiId} retiré`);
-    }
-    for (const badge of e.badges) {
-      if (!badges.has(compteId)) badges.set(compteId, new Set());
-      badges.get(compteId)!.add(badge);
-      await donnerBadge(compteId, badge);
-    }
+    // Comme sous le verrou de la base : tout est écrit d'un coup, avant la première attente, puis points et badges
+    for (const c of e.aCrediter) reussites.push({ compteId, defiId: c.defiId, points: c.points, reussiLe: maintenant });
+    for (const r of e.aReprendre) reussites.splice(reussites.findIndex((x) => x.compteId === compteId && x.defiId === r.defiId), 1);
+    if (!badges.has(compteId)) badges.set(compteId, new Set());
+    for (const badge of e.badges) badges.get(compteId)!.add(badge);
+    for (const c of e.aCrediter) await ajouterPoints(compteId, c.points, "defi", `defi:${c.defiId}`);
+    for (const r of e.aReprendre) await ajouterPoints(compteId, -r.points, "defi", `defi:${r.defiId} retiré`);
+    for (const badge of e.badges) await donnerBadge(compteId, badge);
     return e;
   }
 
@@ -89,5 +84,5 @@ export function creerDefisEnMemoire({ ajouterPoints, donnerBadge }: DependancesS
     },
   };
 
-  return { services, defis, reussites, faitsDe, badges };
+  return { services, defis, reussites, faits, faitsDe, badges };
 }

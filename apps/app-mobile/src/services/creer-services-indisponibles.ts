@@ -95,6 +95,9 @@ export function creerServicesIndisponibles(): Services {
       signerCharte: indisponible,
       quitterCharte: indisponible,
     },
+    defis: {
+      listerDefis: async () => ({ ok: true, defis: [] }),
+    },
     ambassadeur: {
       lireEspace: indisponible,
       listerMissions: async () => ({ ok: true, missions: [] }),

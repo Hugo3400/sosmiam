@@ -26,6 +26,7 @@ import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
+import { envoyerSignalementPublication } from "~/fonctions/signalement/envoyer-signalement-publication";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
@@ -36,7 +37,6 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import { ajouterSignalementLocal } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
 // Une publication compte comme « à l'écran » dès qu'on en voit la moitié : pendant un glissé, il y en a toujours une
@@ -259,7 +259,8 @@ export default function PourToi() {
 
   function signaler(choix: ChoixSignalement) {
     if (!menu) return;
-    ajouterSignalementLocal({ publicationId: menu.id, lieuId: menu.lieuId, ...choix, date: new Date().toISOString() }).catch(() => {});
+    // À la modération (sans dire qui signale) ; sans réseau, il attend sur le téléphone ; en démo, il y reste
+    void envoyerSignalementPublication({ publicationId: menu.id, lieuId: menu.lieuId, ...choix, date: new Date().toISOString() });
     masquerPublication(menu.id);
   }
 

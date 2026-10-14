@@ -11,6 +11,7 @@ import { PictoCategorie } from "~/composants/marque/PictoCategorie";
 import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
 import { categoriesLieux } from "~/contenus/categories-lieux";
 import { site } from "~/contenus/legal/informations-legales";
+import { LIEUX_NON_INDEXES } from "~/contenus/lieux-non-indexes";
 import { creerDonneesFilAriane } from "~/fonctions/seo/creer-donnees-fil-ariane";
 import { creerDonneesLieu } from "~/fonctions/seo/creer-donnees-lieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
@@ -37,7 +38,8 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const { lieu } = loaderData;
   const resume = [lieu.info, lieu.quartier && `${lieu.quartier}, ${lieu.ville}`, lieu.texte].filter(Boolean).join(" · ");
   const description = resume.length > 155 ? `${resume.slice(0, 152).trimEnd()}…` : resume || `${lieu.nom}, à ${lieu.ville}, sur SOS Miam.`;
-  return creerMeta({ titre: `${lieu.nom} à ${lieu.ville}`, description });
+  const meta = creerMeta({ titre: `${lieu.nom} à ${lieu.ville}`, description });
+  return LIEUX_NON_INDEXES.has(lieu.id) ? [...meta, { name: "robots", content: "noindex" }] : meta;
 }
 
 /** Une fiche se met à jour vite (le gérant la modifie) : une minute en cache, comme l'API. */

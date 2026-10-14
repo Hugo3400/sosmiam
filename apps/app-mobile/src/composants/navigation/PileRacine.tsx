@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
+import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
@@ -26,6 +27,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const reprise = utiliserRepriseCompte();
   // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran
   utiliserInscriptionTelephone();
+  // Session expirée côté serveur (ou profil sans session) : retour à l'accueil, où « Me connecter » t'attend
+  utiliserFinDeSession();
   // Les signalements restés sur le téléphone faute de réseau repartent à la modération
   useEffect(() => {
     void renvoyerSignalementsEnAttente();

@@ -1,14 +1,16 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Linking, Pressable, Text, View } from "react-native";
 
 import { BoutonConnexion, type Fournisseur } from "~/composants/inscription/BoutonConnexion";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
+import { effacerSessionPerdue, lireSessionPerdue } from "~/stockage/session-perdue";
 
 const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
 
@@ -26,6 +28,15 @@ export default function Compte() {
   const { connecterAvec, enCours } = utiliserEntreeCompte();
   const demo = utiliserModeDemo();
   const [entreeEnCours, setEntreeEnCours] = useState(false);
+  // Ta session a pris fin sans que tu le demandes : on le dit, une fois, au-dessus des boutons
+  const [sessionPerdue, setSessionPerdue] = useState(false);
+  useEffect(() => {
+    lireSessionPerdue().then((perdue) => {
+      if (!perdue) return;
+      setSessionPerdue(true);
+      void effacerSessionPerdue();
+    });
+  }, []);
   const lienVisite = !invite && !verrouEnLecture && verrouAge === null;
   const choisir = (fournisseur: Fournisseur) => {
     // Mode démo : un profil gardé sur ce téléphone seulement, jamais de compte sur le serveur
@@ -56,6 +67,14 @@ export default function Compte() {
       etape={{ numero: 1, total: 4 }}
       onRetour={revenir}
     >
+      {sessionPerdue ? (
+        <View accessible accessibilityLiveRegion="polite" className="mb-4 flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
+          <Text className="text-xl">🔑</Text>
+          <Text className="flex-1 font-texte text-[15px] leading-[21px] text-encre">
+            {lierPonctuation("Ta session a pris fin (déconnecté partout, ou mot de passe changé). Ton compte t'attend : touche « Me connecter » juste en dessous.")}
+          </Text>
+        </View>
+      ) : null}
       <View className="gap-4">
         {fournisseurs.map((fournisseur) => (
           <BoutonConnexion

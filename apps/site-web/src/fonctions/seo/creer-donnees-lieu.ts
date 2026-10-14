@@ -21,6 +21,8 @@ export function creerDonneesLieu(lieu: FichePublique, adresseFiche: string) {
   const liens = [lieu.siteWeb, lieu.instagram && `https://www.instagram.com/${lieu.instagram}/`].filter(
     (lien): lien is string => typeof lien === "string" && /^https:\/\//.test(lien),
   );
+  // Une « adresse » qui n'est que le nom de la ville n'est pas une rue
+  const rue = lieu.adresse?.trim() && lieu.adresse.trim().toLowerCase() !== lieu.ville.trim().toLowerCase() ? lieu.adresse.trim() : null;
   return {
     "@context": "https://schema.org",
     "@type": TYPES_SCHEMA[lieu.type] ?? "LocalBusiness",
@@ -30,7 +32,7 @@ export function creerDonneesLieu(lieu: FichePublique, adresseFiche: string) {
     ...(lieu.texte ? { description: lieu.texte } : {}),
     address: {
       "@type": "PostalAddress",
-      ...(lieu.adresse ? { streetAddress: lieu.adresse } : {}),
+      ...(rue ? { streetAddress: rue } : {}),
       addressLocality: lieu.ville,
       addressCountry: "FR",
     },

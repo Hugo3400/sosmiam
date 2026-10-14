@@ -20,9 +20,12 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
   const [pret, setPret] = useState(false);
   const [jeton, setJeton] = useState<string | null>(null);
   const [compte, setCompte] = useState<CompteApp | null>(null);
+  // La session a pris fin sans que tu le demandes (le serveur l'a dite expirée) : l'app te le dira et te ramènera à « Me connecter »
+  const [perdue, setPerdue] = useState(false);
   const jetonActuel = useRef<string | null>(null);
 
-  const oublier = useCallback(async () => {
+  const oublier = useCallback(async (parLeServeur = false) => {
+    if (parLeServeur && jetonActuel.current) setPerdue(true);
     jetonActuel.current = null;
     setJeton(null);
     setCompte(null);
@@ -31,7 +34,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
 
   // Un seul client pour toute l'app : il relit le jeton à chaque demande
   const client = useMemo(
-    () => creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier() }),
+    () => creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true) }),
     [oublier],
   );
   const services = useMemo(() => ({ comptes: creerCompteApi(client), contenu: creerContenuApi(client), activite: creerActiviteApi(client) }), [client]);
@@ -64,6 +67,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
 
   const ouvrir = useCallback(async (session: SessionOuverte) => {
     await enregistrerJetonSession(session.session);
+    setPerdue(false);
     jetonActuel.current = session.session;
     setJeton(session.session);
     setCompte(session.compte);
@@ -79,8 +83,8 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
   );
 
   const valeur = useMemo<ValeurSession>(
-    () => ({ pret, connecte: jeton !== null, compte, client, ...services, ouvrir, fermer, rafraichir }),
-    [pret, jeton, compte, client, services, ouvrir, fermer, rafraichir],
+    () => ({ pret, connecte: jeton !== null, perdue, compte, client, ...services, ouvrir, fermer, rafraichir }),
+    [pret, jeton, perdue, compte, client, services, ouvrir, fermer, rafraichir],
   );
   return <ContexteSession.Provider value={valeur}>{children}</ContexteSession.Provider>;
 }

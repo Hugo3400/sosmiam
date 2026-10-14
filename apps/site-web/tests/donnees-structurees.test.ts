@@ -116,6 +116,8 @@ test("fiche d'un lieu : le bon type schema.org, l'adresse, et rien d'inventé", 
   const vide = creerDonneesLieu({ ...ficheExemple, adresse: null, prix: "pas cher", siteWeb: null, instagram: null, texte: null }, "https://sosmiam.fr/lieux/18") as Record<string, unknown>;
   assert.deepEqual(vide.address, { "@type": "PostalAddress", addressLocality: "Montpellier", addressCountry: "FR" });
   for (const cle of ["priceRange", "sameAs", "description"]) assert.ok(!(cle in vide), cle);
+  const villeSeule = creerDonneesLieu({ ...ficheExemple, adresse: "montpellier " }, "https://sosmiam.fr/lieux/18") as Record<string, unknown>;
+  assert.deepEqual(villeSeule.address, vide.address);
 });
 
 test("fil d'Ariane : Accueil › lieu, positions à partir de 1", () => {
