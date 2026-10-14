@@ -6,7 +6,7 @@ export const MAX_PARTICIPANTS_GROUPE = 20;
 export const LONGUEUR_MAX_TITRE_GROUPE = 40;
 
 /**
- * Protection des 15-17 ans : un mineur ne discute qu'avec des potes ajoutés « en vrai » (par lien ou QR code),
- * et une conversation qui mêle mineurs et adultes n'accepte ni photo ni note vocale.
+ * Les potes ajoutés « en vrai » (par lien, QR code, ou la bande d'exemple), pas par pseudo :
+ * ils voient en entier ton profil même s'il est privé (calculerVisibiliteProfil).
  */
 export const MOYENS_AJOUT_EN_VRAI: readonly string[] = ["lien", "qr", "exemple"];

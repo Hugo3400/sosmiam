@@ -218,7 +218,7 @@ export type DependancesComptes = {
  * mot de passe ne se connecte pas par e-mail et mot de passe (401 identifiants) ; POST /comptes/moi/mot-de-passe lui
  * répond 403 mot-de-passe-incorrect : il passe par « Mot de passe oublié ».
  *
- * Tout compte de 18 ans et plus (âge connu ≥ 18, ou ambassadeur actif, ou au moins un lieu pro « valide » ; sinon 403
+ * Tout compte (18 ans vérifiés à l'inscription depuis le 14/10/2026 ; âge connu sous 18 ans, ancien compte → 403
  * reserve-aux-majeurs ; 503 chiffrement-indisponible si sa date ne peut pas se lire) :
  * GET    /comptes/moi/propositions-lieux → 200 { ok, propositions: [{ id, nom, ville, statut, creeLe }] } (les siennes,
  *                                        site compris, les plus récentes d'abord ; statut : a-traiter, acceptee, refusee)

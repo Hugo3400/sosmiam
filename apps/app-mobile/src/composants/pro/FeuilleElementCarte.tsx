@@ -63,7 +63,7 @@ const versBrouillon = (e: ElementCarte | null, section: number): Brouillon => ({
 
 /**
  * Feuille « un plat, une boisson, une formule » du mode pro : nom, description, prix et ce qu'il couvre, spécialité,
- * alcool (caché aux moins de 18 ans, et l'app prévient quand le nom y fait penser), repères (végé, fait maison…) et section.
+ * alcool (caché à qui visite sans compte, et l'app prévient quand le nom y fait penser), repères (végé, fait maison…) et section.
  * Rien n'est enregistré ici : l'élément rejoint la carte en cours, enregistrée d'un coup depuis l'écran.
  */
 export function FeuilleElementCarte({ visible, element, sections, section, formules, onGarder, onRetirer, onFermer }: Props) {
@@ -87,7 +87,7 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
   const sembleAlcool = !b.alcool && contientMotAlcool(`${b.nom} ${b.description}`);
   // L'avertissement apparaît pendant qu'on écrit : VoiceOver le dit aussi (le rôle « live » ne marche que sur Android)
   useEffect(() => {
-    if (visible && sembleAlcool) annoncerLecteurEcran("On dirait de l'alcool. Un bouton juste en dessous permet de le cacher aux moins de 18 ans.");
+    if (visible && sembleAlcool) annoncerLecteurEcran("On dirait de l'alcool. Un bouton juste en dessous permet de le cacher à qui visite sans compte.");
   }, [visible, sembleAlcool]);
   const unites = formules ? UNITES_FORMULES : UNITES_CARTE;
 
@@ -118,14 +118,14 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
       {/* Juste sous ce qu'on vient d'écrire, pour ne pas passer à côté (la case est plus bas) */}
       {sembleAlcool ? (
         <View accessibilityLiveRegion="polite" className="gap-3 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
-          <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation("🍷 On dirait de l'alcool. Si c'est une boisson alcoolisée, on la cache aux moins de 18 ans.")}</Text>
+          <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation("🍷 On dirait de l'alcool. Si c'est une boisson alcoolisée, on la cache à qui visite sans compte.")}</Text>
           <Bouton
             libelle="Oui, ça contient de l'alcool"
             variante="blanc"
             petit
             onPress={() => {
               changer({ alcool: true });
-              annoncerLecteurEcran("Contient de l'alcool : activé. Caché aux moins de 18 ans.");
+              annoncerLecteurEcran("Contient de l'alcool : activé. Caché à qui visite sans compte.");
             }}
           />
         </View>
@@ -147,7 +147,7 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
 
       <View className="gap-3">
         <Interrupteur emoji="⭐" titre="Spécialité de la maison" detail="Mise en avant en haut de ta fiche" valeur={b.signature} onChanger={(signature) => changer({ signature })} />
-        <Interrupteur emoji="🍷" titre="Contient de l'alcool" detail="Caché aux moins de 18 ans, et quand on ne connaît pas l'âge" valeur={b.alcool} onChanger={(alcool) => changer({ alcool })} />
+        <Interrupteur emoji="🍷" titre="Contient de l'alcool" detail="Caché tant qu'on ne connaît pas l'âge (visite sans compte)" valeur={b.alcool} onChanger={(alcool) => changer({ alcool })} />
       </View>
 
       <View className="gap-2">

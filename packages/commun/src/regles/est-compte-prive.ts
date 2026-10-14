@@ -1,4 +1,4 @@
-/** Vrai si le compte est privé : un mineur l'est toujours, un adulte seulement s'il l'a choisi. */
-export function estComptePrive(compte: { mineur: boolean; prive?: boolean }): boolean {
-  return compte.mineur || compte.prive === true;
+/** Vrai si le compte est privé : seulement s'il l'a choisi (public par défaut). */
+export function estComptePrive(compte: { prive?: boolean }): boolean {
+  return compte.prive === true;
 }

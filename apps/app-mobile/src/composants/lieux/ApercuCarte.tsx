@@ -11,7 +11,7 @@ import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 type Props = {
   lieu: Lieu;
-  /** Âge de la personne (null s'il est inconnu) : sous 18 ans, l'alcool est retiré de la carte */
+  /** Âge de la personne, null en visite sans compte (âge inconnu) : l'alcool est alors retiré de la carte */
   age: number | null;
   /** La carte du lieu (utiliserCarteDuLieu : celle enregistrée par le lieu, sinon celle de la fiche) */
   carteDuLieu: CarteLieu | undefined;

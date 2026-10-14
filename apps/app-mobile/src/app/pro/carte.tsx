@@ -51,7 +51,7 @@ type FeuilleOuverte =
 /**
  * « Ta carte » (gérant) : les sections et leurs plats, boissons ou formules, à ajouter, modifier, retirer ou ranger.
  * Tout se prépare ici, puis part d'un coup avec « Enregistrer » (revérifié par le service, qui date la mise à jour) ;
- * partir avant redemande. L'alcool est caché aux moins de 18 ans sur la fiche, et l'app prévient quand un nom y fait penser.
+ * partir avant redemande. L'alcool est caché sur la fiche tant qu'on ne connaît pas l'âge (visite sans compte), et l'app prévient quand un nom y fait penser.
  */
 export default function EcranCartePro() {
   const router = useRouter();
@@ -232,7 +232,7 @@ export default function EcranCartePro() {
           {lierPonctuation(
             rangement
               ? "Monte et descends les sections et ce qu'elles contiennent, dans l'ordre où tu veux qu'on les lise."
-              : "Ce que les gourmands voient sur ta fiche. Touche un élément pour le modifier ; l'alcool est caché aux moins de 18 ans.",
+              : "Ce que les gourmands voient sur ta fiche. Touche un élément pour le modifier ; l'alcool est caché à qui visite sans compte.",
           )}
         </Text>
 

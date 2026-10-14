@@ -7,19 +7,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 /**
- * À la place de la fiche (ou de la carte) d'un bar, ouverte par un lien, quand ton âge ne le permet pas : moins de 18 ans,
- * ou âge inconnu (visite sans compte, contenu tout public). Un mot gentil, et de quoi trouver une autre adresse. En visite,
- * « Je m'inscris » d'abord : l'inscription s'ouvre par-dessus, et une fois le compte créé (18 ans ou plus), la fiche s'ouvre ici.
+ * À la place de la fiche (ou de la carte) d'un bar, ouverte par un lien en visite sans compte : on ne connaît pas encore ton âge,
+ * donc on reste tout public. Un mot gentil, « Je m'inscris » d'abord (l'inscription s'ouvre par-dessus, et une fois le compte
+ * créé, la fiche s'ouvre ici), et de quoi trouver une autre adresse. Avec un compte, cet écran ne s'affiche jamais.
  */
 export function LieuReserveAdultes() {
   const router = useRouter();
-  const { profil } = utiliserProfil();
-  // Sans compte, on ne connaît pas ton âge : on reste tout public (la date de naissance se donne à l'inscription)
-  const visite = profil === null;
   // Ouvert par un lien, sans écran derrière : le retour mène au fil
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
@@ -44,29 +40,21 @@ export function LieuReserveAdultes() {
           Réservé aux 18 ans et plus
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation(
-            visite
-              ? "Ici, on vient surtout trinquer. Sans compte, on ne connaît pas encore ton âge : en attendant, on reste tout public."
-              : "Ici, on vient surtout trinquer : ce lieu est gardé pour les grands. Plein d'autres adresses gourmandes t'attendent dans Explorer !",
-          )}
+          {lierPonctuation("Ici, on vient surtout trinquer. Sans compte, on ne connaît pas encore ton âge : en attendant, on reste tout public.")}
         </Text>
-        {visite ? (
-          <Text className="text-center font-texte-semi text-base leading-6 text-encre">
-            {lierPonctuation("Tu as 18 ans ou plus ? Crée ton compte, et ce lieu t'ouvre ses portes.")}
-          </Text>
-        ) : null}
+        <Text className="text-center font-texte-semi text-base leading-6 text-encre">
+          {lierPonctuation("Tu as 18 ans ou plus ? Crée ton compte, et ce lieu t'ouvre ses portes.")}
+        </Text>
         <View className="mt-2 w-full gap-3">
-          {visite ? (
-            <Bouton
-              libelle="Je m'inscris (1 min)"
-              variante="encre"
-              indice="Ouvre l'inscription : Apple, Google ou ton e-mail"
-              onPress={() => router.push("/compte")}
-            />
-          ) : null}
+          <Bouton
+            libelle="Je m'inscris (1 min)"
+            variante="encre"
+            indice="Ouvre l'inscription : Apple, Google ou ton e-mail"
+            onPress={() => router.push("/compte")}
+          />
           <Bouton
             libelle="Voir d'autres adresses"
-            variante={visite ? "blanc" : "jaune"}
+            variante="blanc"
             indice="Ouvre Explorer, la carte et la liste des lieux"
             onPress={() => router.navigate("/explorer")}
           />

@@ -30,7 +30,7 @@ export const LigneElementCartePro = memo(function LigneElementCartePro({ element
   const etiquettes = element.etiquettes ?? [];
   const prix = element.prix === 0 ? "Gratuit" : formaterPrix(element.prix);
   const prixLu = element.prix === 0 ? "gratuit" : formaterPrixLu(element.prix);
-  const reperes = [element.alcool ? "contient de l'alcool, caché aux moins de 18 ans" : null, ...etiquettes.map((e) => etiquettesCarte[e].lu)].filter(Boolean).join(", ");
+  const reperes = [element.alcool ? "contient de l'alcool, caché sans compte" : null, ...etiquettes.map((e) => etiquettesCarte[e].lu)].filter(Boolean).join(", ");
   const lu = [element.nom, element.signature ? "spécialité de la maison" : null, `${prixLu}${element.unite ? ` ${element.unite}` : ""}`, reperes || null].filter(Boolean).join(", ");
 
   const contenu = (
