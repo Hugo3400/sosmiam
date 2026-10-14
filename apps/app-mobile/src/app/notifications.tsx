@@ -6,8 +6,11 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Annonce } from "~/composants/interface/Annonce";
+import { DemandesBande } from "~/composants/potes/DemandesBande";
+import { BoutonRetirerArrivee } from "~/composants/notifications/BoutonRetirerArrivee";
 import { LigneNotification } from "~/composants/notifications/LigneNotification";
 import { SectionDemandesSuivi } from "~/composants/notifications/SectionDemandesSuivi";
+import { convertirPersonneEnPote } from "~/fonctions/communaute/convertir-personne-en-pote";
 import { decrireNotificationSuivi } from "~/fonctions/notifications/decrire-notification-suivi";
 import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
@@ -16,6 +19,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
@@ -27,7 +31,8 @@ import couleurs from "~/theme/couleurs";
 export default function Notifications() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
-  const { trouverPote } = utiliserCommunaute();
+  const { trouverPote, demandesRecues: demandesBande } = utiliserCommunaute();
+  const source = utiliserSourceSociale();
   const notifications = utiliserNotifications();
   const suivis = utiliserSuivisPersonnes();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -60,9 +65,16 @@ export default function Notifications() {
     const lignes = notifications.notifications.flatMap((notification) => {
       const description = decrireNotificationSuivi(notification, { trouverPote, publications: toutesLesPublications, lieux });
       if (!description) return [];
+      if (notification.type === "cloche") {
+        const { acteur } = notification;
+        const pote = acteur ? (trouverPote(acteur.id) ?? convertirPersonneEnPote(acteur)) : null;
+        // Arrivé(e) dans ta bande par ton lien : « Retirer » en un geste, si ce n'était pas prévu
+        const retirable = notification.sorte === "bande-ajout" && pote !== null;
+        return [{ date: notification.date, notification, description, pote, retirable }];
+      }
       const cible = lireCleSuivi(notification.cle);
       const pote = cible?.type === "personne" ? trouverPote(cible.id) : null;
-      return [{ date: notification.date, notification, description, pote }];
+      return [{ date: notification.date, notification, description, pote, retirable: false }];
     });
     return grouperParPeriode(lignes);
   }, [notifications.notifications, trouverPote, toutesLesPublications, lieux]);
@@ -90,17 +102,18 @@ export default function Notifications() {
           Notifications
         </Text>
 
-        <View accessible className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
-          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
-            🧪
-          </Text>
-          <Text className="flex-1 font-texte text-sm leading-5 text-encre">
-            {lierPonctuation("Notifications d'exemple : les vraies arriveront avec les comptes.")}
-          </Text>
-        </View>
+        {source === "demo" ? (
+          <View accessible className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
+            <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
+              🧪
+            </Text>
+            <Text className="flex-1 font-texte text-sm leading-5 text-encre">{lierPonctuation("Notifications d'exemple : rien ne part pour de vrai.")}</Text>
+          </View>
+        ) : null}
 
         {!pretAAfficher ? null : (
           <>
+            <DemandesBande />
             <SectionDemandesSuivi onAnnoncer={annoncer} onAffichee={setDemandesAffichees} />
 
             {groupes.map((groupe) => (
@@ -117,13 +130,14 @@ export default function Notifications() {
                       pote={ligne.pote}
                       nouvelle={vuesAvant !== undefined && (vuesAvant === null || ligne.date > vuesAvant)}
                       derniere={i === groupe.elements.length - 1}
+                      action={ligne.retirable && ligne.pote ? <BoutonRetirerArrivee id={ligne.pote.id} prenom={ligne.pote.prenom} onAnnoncer={annoncer} /> : undefined}
                     />
                   ))}
                 </View>
               </View>
             ))}
 
-            {groupes.length === 0 && !demandesAffichees && suivis.demandesRecues.length === 0 ? (
+            {groupes.length === 0 && !demandesAffichees && suivis.demandesRecues.length === 0 && demandesBande.length === 0 ? (
               <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
                   🦗
