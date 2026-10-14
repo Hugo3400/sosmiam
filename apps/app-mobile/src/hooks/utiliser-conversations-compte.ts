@@ -18,6 +18,7 @@ import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conv
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { effacerMediasChatCompte } from "~/stockage/medias-chat-compte";
 
 type Fil = { messages: MessageChat[]; suite: string | null; version: number };
 /** Un envoi en cours ou raté : son message à l'écran, et de quoi le renvoyer tel quel (même idClient : jamais deux fois) */
@@ -50,6 +51,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
   const envoisLus = useRef(envois);
   envoisLus.current = envois;
   const departs = useRef(new Map<string, () => Promise<ReponseMessage>>());
+  const etaitActif = useRef(false);
   const suivis = useRef(new Set<string>());
   const { noterPersonne } = communaute;
 
@@ -114,6 +116,9 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     generation.current += 1;
     departs.current.clear();
     if (!actif) {
+      // Déconnexion (ou entrée en démo) : les photos et notes vocales téléchargées partent avec le reste
+      if (etaitActif.current) effacerMediasChatCompte();
+      etaitActif.current = false;
       setListe([]);
       setInvitationsApi([]);
       setFils({});
@@ -121,6 +126,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       setPret(false);
       return;
     }
+    etaitActif.current = true;
     void chargerListe();
   }, [actif, chargerListe]);
 
@@ -352,6 +358,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         departs.current.clear();
         setFils({});
         setEnvois({});
+        effacerMediasChatCompte();
       },
     };
   }, [

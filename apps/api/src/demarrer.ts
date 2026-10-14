@@ -18,6 +18,7 @@ import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
 import { traiterNotifications } from "./services/notifications/file-push.ts";
 import { prevenirEquipeMiamSafe } from "./services/notifications/prevenir-equipe-miam-safe.ts";
 import { servicesMiamSafe } from "./services/miam-safe.ts";
+import { creerPartagesMiamSafe } from "./services/partages-miam-safe.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
 import { marquerMessageLu, messagesDuCompte, missionsDuCompte, noterPresence, terminerMission } from "./services/gestion/missions-messages.ts";
@@ -50,7 +51,7 @@ import { creerStatistiquesLieu } from "./services/statistiques-lieu.ts";
 import { creerEvenements } from "./services/evenements.ts";
 import { creerDepotAvis } from "./services/avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
-import { prevenirCompte } from "./services/notifications/prevenir-compte.ts";
+import { prevenirCompte, prevenirCompteEtCompter } from "./services/notifications/prevenir-compte.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
 import { lireListeVirgules } from "./fonctions/texte/lire-liste-virgules.ts";
 import { servicesComptesExternes } from "./services/comptes-externes.ts";
@@ -179,7 +180,20 @@ const serveur = creerApplication({
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)
   zones,
   // Miam Safe : l'alerte silencieuse part aussitôt vers les téléphones de l'équipe du lieu
-  miamSafe: { services: servicesMiamSafe, prevenirEquipe: prevenirEquipeMiamSafe },
+  miamSafe: {
+    services: servicesMiamSafe,
+    prevenirEquipe: prevenirEquipeMiamSafe,
+    // « Prévenir un pote » : la bande de la partie sociale (lot L3), la position chiffrée avec la clé des données
+    partages: {
+      services: creerPartagesMiamSafe(chiffrement),
+      potes: {
+        trouverCompte: (idPublic, pour) => socialApp.relations.trouverCompte(idPublic, pour),
+        estPote: (a, b) => socialApp.bande.estPote(a, b),
+        presenter: (compteIds) => socialApp.relations.presenter(compteIds),
+      },
+      prevenirCompte: prevenirCompteEtCompter,
+    },
+  },
   // L'app, sans session : heure du serveur et version minimale
   app: { versionMinimale: () => versionMinimale },
   // Adresse publique des médias du fil, telle que l'app la lit (SOS_MIAM_ADRESSE_MEDIAS, par défaut celle de api.sosmiam.fr)

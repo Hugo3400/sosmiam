@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -59,7 +59,8 @@ function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undef
 
 /**
  * Le menu d'un message du chat, dans une feuille qui monte du bas : une rangée de réactions, puis, pour le message
- * d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages : les réactions seulement.
+ * d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages : les réactions, et avec un compte,
+ * « Supprimer pour tout le monde ».
  */
 export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque }: Props) {
   const marges = useSafeAreaInsets();
@@ -67,7 +68,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const animationsReduites = useReducedMotion();
   const { bloquer, potes, estSignale } = utiliserCommunaute();
   const monId = utiliserMonId();
-  const { basculerReaction, trouverConversation } = utiliserConversations();
+  const { basculerReaction, trouverConversation, supprimerMessage, source } = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
@@ -104,6 +105,21 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   // Fin du signalement : « Fermer » après le merci ferme le menu ; « Retour » sans rien envoyer ramène aux options
   const terminerSignalement = () => (message && !dejaSignale && estSignale(message.id) ? onFermer() : aller("options"));
 
+  /** « Supprimer pour tout le monde », après confirmation (sur le web, Alert n'existe pas : on supprime directement) */
+  function demanderSuppression() {
+    if (!message) return;
+    const supprimer = () => {
+      supprimerMessage(conversationId, message.id);
+      onFermer();
+      AccessibilityInfo.announceForAccessibility("Message supprimé pour tout le monde.");
+    };
+    if (Platform.OS === "web") return supprimer();
+    Alert.alert("Supprimer ce message ?", "Il disparaît pour tout le monde. Il restera juste « Message supprimé » à sa place.", [
+      { text: "Annuler", style: "cancel" },
+      { text: "Supprimer", style: "destructive", onPress: supprimer },
+    ]);
+  }
+
   /** Met ou retire ta réaction, referme la feuille, et le lecteur d'écran confirme (comme le cœur de la bulle) */
   function reagir(reaction: ReactionChat, dejaChoisie: boolean) {
     if (!message) return;
@@ -124,8 +140,12 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
   const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
   const resume = message ? resumer(message, (id) => trouverLieu(id)?.nom) : null;
+  // Compte connecté : ton message déjà parti se supprime pour tout le monde (il reste « Message supprimé »)
+  const supprimable = deMoi && source === "compte" && !!message && !message.etat;
   const options = deMoi
-    ? []
+    ? supprimable
+      ? [{ cle: "supprimer" as const, emoji: "🗑️", titre: "Supprimer pour tout le monde", detail: "Il restera « Message supprimé » dans la discussion" }]
+      : []
     : [
         { cle: "signaler" as const, emoji: "🚩", titre: "Signaler ce message", detail: "Insulte, harcèlement, arnaque… dis-nous ce qui cloche" },
         ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Tu ne verras plus ses messages ni ses commentaires" }] : []),
@@ -218,6 +238,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                     accessibilityLabel={`${o.titre}, ${o.detail}`}
                     onPress={() => {
                       vibrerLegerement();
+                      if (o.cle === "supprimer") return demanderSuppression();
                       aller(o.cle);
                     }}
                     className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"

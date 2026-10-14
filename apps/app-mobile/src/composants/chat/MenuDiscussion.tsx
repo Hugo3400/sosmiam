@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -42,7 +42,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { moi, potes, bloquer, estSignale } = utiliserCommunaute();
-  const { quitterGroupe } = utiliserConversations();
+  const { quitterGroupe, couper } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreConfirmation = useRef<Text>(null);
@@ -84,11 +84,22 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   // Retiré de ta bande plus tôt : on ne lui annonce pas qu'il en sort
   const dansBande = !!pote && potes.some((p) => p.id === pote.id);
   const titreGroupe = conversation?.titre ?? "ce groupe";
+  // Compte connecté : couper (ou remettre) les notifications de cette discussion ; les messages arrivent toujours
+  const coupee = conversation?.coupee;
+  const optionCouper =
+    coupee === undefined
+      ? []
+      : [
+          coupee
+            ? { cle: "couper" as const, emoji: "🔔", titre: "Remettre les notifications", detail: "Ton téléphone sonnera de nouveau pour cette discussion" }
+            : { cle: "couper" as const, emoji: "🔕", titre: "Couper les notifications", detail: "Les messages arrivent, sans faire sonner ton téléphone" },
+        ];
   const options = groupe
-    ? [{ cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
+    ? [...optionCouper, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
     : pote
       ? [
           { cle: "profil" as const, emoji: "👤", titre: "Voir le profil", detail: "Sa ville, ses badges, ses lieux sauvés" },
+          ...optionCouper,
           { cle: "signaler" as const, emoji: "🚩", titre: `Signaler ${prenom}`, detail: "Faux profil, harcèlement, message gênant…" },
           { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Plus de messages ni de commentaires de sa part" },
         ]
@@ -199,7 +210,11 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                     onPress={() => {
                       vibrerLegerement();
                       if (o.cle === "profil" && pote) onVoirProfil(pote.id);
-                      else if (o.cle !== "profil") aller(o.cle);
+                      else if (o.cle === "couper" && conversation) {
+                        couper(conversation.id, !coupee);
+                        onFermer();
+                        AccessibilityInfo.announceForAccessibility(coupee ? "Notifications remises." : "Notifications coupées pour cette discussion.");
+                      } else if (o.cle !== "profil" && o.cle !== "couper") aller(o.cle);
                     }}
                     className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
                   >

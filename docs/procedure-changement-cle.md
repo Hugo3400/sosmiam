@@ -91,6 +91,9 @@ Au prochain changement, même chemin avec la version 3, et ainsi de suite.
   la date de naissance, porter la version de sa clé et se relire avec `deriverCleVersion(contexte, version)` ou
   `deriverClesAnciennes(contexte)` ; à elle de dire si ses données se rechiffrent la nuit ou s'effacent d'elles-mêmes avant
   l'étape 7. Tant qu'elle ne l'a pas confirmé ici, ne pas retirer l'ancienne clé.
+- Les partages de position de Miam Safe (« Prévenir un pote », sous-clé `miam-safe:position`) : **rien à rechiffrer**. Une
+  position est effacée au bout d'1 heure au plus (fin ou arrêt du partage), et une position illisible s'affiche comme
+  « pas de position », sans erreur.
 
 ## Si la clé fuit
 
