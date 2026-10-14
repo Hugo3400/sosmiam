@@ -1,6 +1,6 @@
 // Suivre entre personnes (démo) : abonnés, abonnements, demandes et ton choix public / privé, gardés sur le téléphone en attendant l'API.
 // Les lieux et créateurs suivis restent dans l'activité (sosmiam.activite) : ici, seulement les personnes.
-// Rien de sensible : AsyncStorage suffit.
+// Rien de sensible : AsyncStorage suffit. Les anciens champs « etaitMineur » et « surveillance » sont ignorés à la lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
@@ -9,7 +9,7 @@ export type SuivisPersonnesLocaux = {
   version: 1;
   /** Profil.creeLe du profil pour lequel la démo a été créée : un autre profil repart d'une démo neuve */
   profilCreeLe: string;
-  /** Ton choix (un mineur reste privé quoi qu'il arrive ; rien ne s'ouvre tout seul à 18 ans) */
+  /** Ton choix : public ou privé */
   confidentialite: Confidentialite;
   /** Ceux que tu suis (acceptés) */
   abonnements: LienSuivi[];
@@ -21,8 +21,6 @@ export type SuivisPersonnesLocaux = {
   demandesRecues: LienSuivi[];
   /** Clés de suivi des suggestions masquées (✕) */
   suggestionsMasquees: string[];
-  /** 15-17 ans la dernière fois : au passage à 18 ans, une seule notification 🎂 (les liens acceptés restent) */
-  etaitMineur?: boolean;
 };
 
 const CLE = "sosmiam.suivis-personnes";
@@ -36,7 +34,7 @@ function lireLiens(valeur: unknown): LienSuivi[] {
     const lien = brut as Partial<LienSuivi> | null;
     if (typeof lien?.id !== "string" || !lien.id || typeof lien.depuis !== "string" || vus.has(lien.id)) continue;
     vus.add(lien.id);
-    liens.push(lien.surveillance === true ? { id: lien.id, depuis: lien.depuis, surveillance: true } : { id: lien.id, depuis: lien.depuis });
+    liens.push({ id: lien.id, depuis: lien.depuis });
   }
   return liens;
 }
@@ -58,7 +56,6 @@ export async function lireSuivisPersonnesLocaux(): Promise<SuivisPersonnesLocaux
       abonnes: lireLiens(lu.abonnes),
       demandesRecues: lireLiens(lu.demandesRecues),
       suggestionsMasquees: [...new Set(masquees)],
-      etaitMineur: lu.etaitMineur === true,
     };
   } catch {
     return null;

@@ -12,8 +12,8 @@ export type ReglageFidelite = {
 
 export type ProgrammeFidelite = ReglageFidelite & { lieuId: number; modifieLe: string };
 
-/** Ce que voit le client : la récompense déjà choisie selon son âge */
-/** recompenseAlcool : la récompense montrée est la version avec alcool (le message sanitaire s'affiche à côté) */
+/** Ce que voit le client : la récompense déjà choisie (la principale ; en visite sans compte, jamais celle avec alcool) */
+/** recompenseAlcool : la récompense montrée contient de l'alcool (le message sanitaire s'affiche à côté) */
 export type ProgrammeFidelitePublic = { visitesRequises: number; recompense: string; recompenseAlcool: boolean };
 
 /** Récompense gagnée, figée au moment où la carte s'est remplie */

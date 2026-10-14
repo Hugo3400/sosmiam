@@ -9,7 +9,7 @@ export function convertirLiensEnPersonnes(liens: readonly LienSuivi[], trouverPo
     .flatMap((lien): PersonneLiee[] => {
       const pote = trouverPote(lien.id);
       if (!pote) return [];
-      return [lien.surveillance ? { pote, depuis: lien.depuis, surveillance: true } : { pote, depuis: lien.depuis }];
+      return [{ pote, depuis: lien.depuis }];
     })
     .sort((a, b) => b.depuis.localeCompare(a.depuis));
 }

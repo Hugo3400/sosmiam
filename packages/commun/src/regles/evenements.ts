@@ -2,7 +2,7 @@ import type { TarifEvenement, TypeEvenement } from "../types/evenement.ts";
 
 // Événements des lieux vérifiés (docs/decisions.md, « Décidé le 9 octobre 2026, au soir ») : publiés par le gérant ou
 // l'équipe, 10 à venir par lieu, 3 mois à l'avance au plus, filtre de mots, signalables et modérés après. Alcool : caché
-// aux 15-17 ans, avec le message sanitaire, jamais d'« open bar ».
+// en visite sans compte (âge inconnu), avec le message sanitaire, jamais d'« open bar ».
 
 const MINUTE_MS = 60_000;
 const HEURE_MS = 60 * MINUTE_MS;

@@ -19,7 +19,7 @@ export type StatutAvis = "publie" | "en-relecture" | "masque";
 export type StatutReponseAvis = "publiee" | "en-relecture" | "masquee";
 
 /**
- * Signature « Léa M. » (« Léa » pour un 15-17 ans) ; mois « AAAA-MM » (heure de Paris) : jamais le jour ni l'heure.
+ * Signature « Léa M. » (« Léa » sans nom donné) ; mois « AAAA-MM » (heure de Paris) : jamais le jour ni l'heure.
  * preuve : comment la visite a été validée, null pour un avis non vérifié (verifie: false). repasOffert : la visite était
  * offerte par le lieu (« Repas offert ») ; avecReduction : payée avec une réduction (« Avec réduction »).
  */

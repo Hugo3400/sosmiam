@@ -1,4 +1,4 @@
-// Libellés des motifs fermés de refus (jamais de texte libre du lieu vers le client, et encore moins vers un 15-17 ans).
+// Libellés des motifs fermés de refus (jamais de texte libre du lieu vers le client).
 // Côté lieu, le motif est dit franchement ; côté client, il est dit de façon neutre, sans accuser personne.
 
 import type { MotifRefusReservation } from "../types/reservation.ts";

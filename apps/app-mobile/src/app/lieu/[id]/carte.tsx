@@ -34,8 +34,8 @@ const DUREE_DEFILEMENT_GUIDE = 700;
 
 /**
  * La carte complète d'un lieu (« Les formules » pour une sortie) : pastilles pour sauter d'une section à l'autre,
- * sections et leurs éléments, filtre « Seulement ce qui me va » selon les régimes du profil. Sous 18 ans ou âge inconnu
- * (visite sans compte), pas d'alcool (et pas de bar du tout, comme sur la fiche).
+ * sections et leurs éléments, filtre « Seulement ce qui me va » selon les régimes du profil. En visite sans compte
+ * (âge inconnu) : pas d'alcool, et pas de bar du tout, comme sur la fiche.
  */
 export default function CarteDuLieu() {
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function CarteDuLieu() {
 
   if (!lieu) {
     if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
-    // Le lieu existe, mais c'est un bar : même mot gentil que sur la fiche
+    // Le lieu existe, mais c'est un bar ouvert en visite sans compte : même mot gentil que sur la fiche
     if (recherche.lieu) return <LieuReserveAdultes />;
     return (
       <EcranReglage titre="Ce lieu n'est pas disponible" sousTitre="Il s'est peut-être éclipsé. Plein d'autres adresses t'attendent dans Explorer !">

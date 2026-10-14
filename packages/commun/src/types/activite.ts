@@ -6,6 +6,8 @@ export type ActiviteApi = {
   semaine: string;
   /** Rescousses qu'il reste à donner cette semaine */
   restantes: number;
+  /** Prochaine recharge des rescousses : lundi 00:00 à l'heure de Paris (ISO 8601, ex. « 2026-10-25T23:00:00.000Z ») */
+  rechargeLe: string;
   /** Lieux qui ont reçu ta rescousse cette semaine */
   rescoussesSemaine: number[];
   /** Tous les lieux que tu as sauvés, du plus récent au plus ancien, une fois chacun */

@@ -38,9 +38,9 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     texte: "Connecte-toi avec, ou passe par « Mot de passe oublié » si tu ne t'en souviens plus.",
   },
   "age-minimum": {
-    emoji: "🧒",
+    emoji: "🎂",
     titre: "Encore un peu de patience",
-    texte: "SOS Miam, c'est à partir de 15 ans. On garde une table pour toi !",
+    texte: "SOS Miam, c'est dès ta majorité : 18 ans en France. On te garde une table au chaud pour ce jour-là !",
   },
   "pseudo-pris": {
     emoji: "🏷️",
@@ -331,7 +331,7 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   "programme-invalide": {
     emoji: "🎁",
     titre: "Il manque quelque chose",
-    texte: "Vérifie la récompense, le nombre de visites, et la version sans alcool s'il y en a.",
+    texte: "Vérifie la récompense et le nombre de visites. La version sans alcool est facultative, mais sans une goutte d'alcool !",
   },
   "proposition-invalide": {
     emoji: "✏️",

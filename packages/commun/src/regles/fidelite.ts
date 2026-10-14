@@ -1,5 +1,6 @@
 // Cartes de fidélité des lieux : réglages permis au lieu, demande de récompense, alcool (voir docs/decisions.md,
-// « Scan et validation des visites »). Le lieu choisit ce qu'il offre ; un 15-17 ans ne voit que la version sans alcool.
+// « Scan et validation des visites »). Le lieu choisit ce qu'il offre ; la récompense avec alcool s'affiche avec le
+// message sanitaire, et jamais en visite sans compte (seulement sa version sans alcool, facultative, si elle existe).
 
 /** Nombre de visites validées pour remplir la carte : 5 par défaut, de 3 à 10 */
 export const VISITES_FIDELITE_DEFAUT = 5;

@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { calculerVisibiliteProfil } from "@sos-miam/commun/regles/calculer-visibilite-profil";
 import { estComptePrive } from "@sos-miam/commun/regles/est-compte-prive";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
+import { CONFIDENTIALITE_PAR_DEFAUT } from "@sos-miam/commun/regles/suivis";
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
 import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, reactionsExemples } from "~/contenus/suivis-exemples";
 import { estAjouteEnVrai } from "~/fonctions/communaute/est-ajoute-en-vrai";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { appliquerReactionDemo, type ReactionDemo } from "~/fonctions/suivi/appliquer-reaction-demo";
 import { construireCibleSuivi } from "~/fonctions/suivi/construire-cible-suivi";
 import { convertirLiensEnPersonnes } from "~/fonctions/suivi/convertir-liens-en-personnes";
@@ -31,22 +30,20 @@ type NomListe = "abonnements" | "demandesEnvoyees" | "abonnes" | "demandesRecues
 
 const AUCUNE_CLE: readonly string[] = [];
 const contient = (liens: LienSuivi[], id: string) => liens.some((l) => l.id === id);
-/** Hors démo, au départ : aucun lien (privé avant 18 ans, public ensuite, à changer dans tes réglages) */
-const creerSuivisVides = (moiMineur: boolean): Omit<SuivisPersonnesLocaux, "version" | "profilCreeLe"> => ({
-  confidentialite: moiMineur ? "prive" : "public",
+/** Hors démo, au départ : aucun lien, compte public (à changer dans tes réglages) */
+const creerSuivisVides = (): Omit<SuivisPersonnesLocaux, "version" | "profilCreeLe"> => ({
+  confidentialite: CONFIDENTIALITE_PAR_DEFAUT,
   abonnements: [],
   demandesEnvoyees: [],
   abonnes: [],
   demandesRecues: [],
   suggestionsMasquees: [],
-  ...(moiMineur ? { etaitMineur: true } : {}),
 });
 
 /**
  * Abonnés, abonnements et demandes entre personnes (démo gardée sur le téléphone en attendant l'API). Les règles s'appliquent
  * ici, pas seulement à l'écran : peutSuivre au moment de suivre, de demander ou d'accepter ; listes filtrées à la lecture
- * (bloqués, inconnus, et l'âge pour les demandes en attente : un abonnement accepté reste à 18 ans) ; compte privé d'office
- * entre 15 et 17 ans. Pas de démo sans profil (âge inconnu, visite sans compte), ni après « Tout effacer » pour le même profil.
+ * (bloqués, inconnus, doublons). Pas de démo sans profil (visite sans compte), ni après « Tout effacer » pour le même profil.
  */
 export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }) {
   const { profil } = utiliserProfil();
@@ -55,7 +52,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const { ajouter } = utiliserNotifications();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
-  const { moiMineur, potes, trouverPote, moyenAjout } = communaute;
+  const { potes, trouverPote, moyenAjout } = communaute;
   const [etat, setEtat] = useState<SuivisPersonnesLocaux | null>(null);
   const [relu, setRelu] = useState(false);
   // L'état le plus récent, lu au moment d'un geste ou d'une minuterie (deux appuis rapides ne suivent pas deux fois)
@@ -65,7 +62,6 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
 
   const creeLe = profil?.creeLe ?? null;
   const pseudo = profil?.pseudo?.trim() ?? "";
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
   const pret = relu && communaute.pret && creeLe !== null && etat !== null && etat.profilCreeLe === creeLe;
 
   useEffect(() => {
@@ -101,16 +97,16 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
     setEtat(suivant);
   }, []);
 
-  // Démo créée à la première ouverture d'un profil (âge connu), jamais pour un profil qu'on vient d'effacer
+  // Démo créée à la première ouverture d'un profil, jamais pour un profil qu'on vient d'effacer
   useEffect(() => {
     if (!relu || !communaute.pret || creeLe === null || effacePour.current === creeLe) return;
     if (etatCourant.current?.profilCreeLe === creeLe) return;
-    // Hors démo : personne ne te suit encore, et tu ne suis personne (privé avant 18 ans, comme toujours)
-    const depart = DEMO_VISITES_ACTIVE ? creerSuivisDemo(moiMineur, new Date()) : creerSuivisVides(moiMineur);
+    // Hors démo : personne ne te suit encore, et tu ne suis personne
+    const depart = DEMO_VISITES_ACTIVE ? creerSuivisDemo(new Date()) : creerSuivisVides();
     const neuf: SuivisPersonnesLocaux = { version: 1, profilCreeLe: creeLe, ...depart };
     etatCourant.current = neuf;
     setEtat(neuf);
-  }, [relu, communaute.pret, creeLe, moiMineur, etat]);
+  }, [relu, communaute.pret, creeLe, etat]);
 
   const bloques = useMemo(() => new Set(communaute.bloques.map((p) => p.id)), [communaute.bloques]);
   const prive = etat?.confidentialite === "prive";
@@ -118,23 +114,18 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
     const pote = id === ID_MOI ? null : trouverPote(id);
     return pote ? construireCibleSuivi(pote) : null;
   }, [trouverPote]);
-  const contexte = useMemo<ContexteLiensSuivi>(() => ({ moi: { id: ID_MOI, mineur: moiMineur, prive, createur: false }, trouverCible, bloques }), [moiMineur, prive, trouverCible, bloques]);
+  const contexte = useMemo<ContexteLiensSuivi>(() => ({ moi: { id: ID_MOI, prive }, trouverCible, bloques }), [prive, trouverCible, bloques]);
   const contexteCourant = useRef(contexte);
   useLayoutEffect(() => {
     contexteCourant.current = contexte;
   }, [contexte]);
 
-  // Ménage : bloqués, disparus, demandes que l'âge ne permet plus ; privé d'office entre 15 et 17 ans ; 🎂 une fois à 18 ans
+  // Ménage : bloqués, disparus et doublons
   useEffect(() => {
     if (!pret || !etat) return;
-    let suivant = nettoyerSuivisPersonnes(etat, contexte);
-    if (moiMineur && suivant.confidentialite === "public") suivant = { ...suivant, confidentialite: "prive" };
-    const majorite = !moiMineur && suivant.etaitMineur === true;
-    if (moiMineur !== (suivant.etaitMineur === true)) suivant = { ...suivant, etaitMineur: moiMineur };
-    if (suivant === etat) return;
-    changer((e) => (e === etat ? suivant : e));
-    if (majorite && etatCourant.current === suivant) ajouter({ type: "majorite" });
-  }, [pret, etat, contexte, moiMineur, changer, ajouter]);
+    const suivant = nettoyerSuivisPersonnes(etat, contexte);
+    if (suivant !== etat) changer((e) => (e === etat ? suivant : e));
+  }, [pret, etat, contexte, changer]);
 
   // Démo : une réaction un peu plus tard, revérifiée quand elle arrive (bloqué, ne plus suivre, demande annulée entre-temps…)
   const plusTard = useCallback(
@@ -172,7 +163,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       const verdict = peutSuivre(ctx.moi, cible, { bloque: ctx.bloques.has(id) });
       if (!verdict.permis) return "interdit";
       if (contient(courant.abonnements, id) || contient(courant.demandesEnvoyees, id)) return "deja";
-      const lien = creerLienSuivi(id, new Date().toISOString(), verdict.surveillance);
+      const lien = creerLienSuivi(id, new Date().toISOString());
       const reaction = reactionsExemples[id];
       if (verdict.surDemande) {
         changer((e) => ({ ...e, demandesEnvoyees: [...e.demandesEnvoyees, lien] }));
@@ -199,7 +190,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
         retirer("demandesRecues", id);
         return false;
       }
-      const lien = creerLienSuivi(id, new Date().toISOString(), verdict.surveillance);
+      const lien = creerLienSuivi(id, new Date().toISOString());
       changer((e) => ({ ...e, demandesRecues: e.demandesRecues.filter((l) => l.id !== id), abonnes: contient(e.abonnes, id) ? e.abonnes : [...e.abonnes, lien] }));
       return true;
     },
@@ -207,23 +198,19 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   );
 
   const changerConfidentialite = useCallback(
-    (choix: Confidentialite): { resultat: "ok" | "verrouille"; acceptees: number } => {
+    (choix: Confidentialite): { acceptees: number } => {
       const courant = etatCourant.current;
-      const ctx = contexteCourant.current;
-      // Âge inconnu compris : verrouillé
-      if (ctx.moi.mineur) return { resultat: "verrouille", acceptees: 0 };
-      if (!pret || !courant || courant.confidentialite === choix) return { resultat: "ok", acceptees: 0 };
+      if (!pret || !courant || courant.confidentialite === choix) return { acceptees: 0 };
       if (choix === "prive") {
         changer((e) => ({ ...e, confidentialite: "prive" }));
         plusTard(DEMANDE_APRES_PASSAGE_PRIVE.apres, { type: "demande-a-te-suivre", id: DEMANDE_APRES_PASSAGE_PRIVE.id });
-        return { resultat: "ok", acceptees: 0 };
+        return { acceptees: 0 };
       }
-      // Compte rendu public : les demandes encore permises deviennent des abonnés (les autres partent sans bruit)
-      const enPublic = { ...ctx, moi: { ...ctx.moi, prive: false } };
-      const acceptees = filtrerLiensPermis(courant.demandesRecues, "vers-moi", "en-attente", enPublic).filter((d) => !contient(courant.abonnes, d.id));
+      // Compte rendu public : les demandes encore valables (ni bloqués ni disparus) deviennent des abonnés, les autres partent sans bruit
+      const acceptees = filtrerLiensPermis(courant.demandesRecues, contexteCourant.current).filter((d) => !contient(courant.abonnes, d.id));
       const maintenant = new Date().toISOString();
       changer((e) => ({ ...e, confidentialite: "public", demandesRecues: [], abonnes: [...e.abonnes, ...acceptees.filter((d) => !contient(e.abonnes, d.id)).map((d) => ({ ...d, depuis: maintenant }))] }));
-      return { resultat: "ok", acceptees: acceptees.length };
+      return { acceptees: acceptees.length };
     },
     [pret, changer, plusTard],
   );
@@ -240,7 +227,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   // Tes listes, déjà filtrées (le ménage les enregistrera ensuite)
   const propre = useMemo(() => (pret && etat ? nettoyerSuivisPersonnes(etat, contexte) : null), [pret, etat, contexte]);
   // Lieux et créateurs suivis encore affichables (comptés dans tes abonnements, comme dans « Tu suis »)
-  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(tousLesLieux, age), toutesLesPublications).length, [activite.suivis, tousLesLieux, toutesLesPublications, age]);
+  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, tousLesLieux, toutesLesPublications).length, [activite.suivis, tousLesLieux, toutesLesPublications]);
 
   const valeur = useMemo<EtatSuivisPersonnes>(() => {
     const abonnes = propre ? convertirLiensEnPersonnes(propre.abonnes, trouverPote) : [];
@@ -260,18 +247,18 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
         meSuit: idsAbonnes.includes(id),
         demandeRecue: contient(propre.demandesRecues, id),
         verdict: peutSuivre(contexte.moi, cible, { bloque: bloques.has(id) }),
-        visibilite: calculerVisibiliteProfil(contexte.moi, cible, { estMoi, bandeEnVrai: bandeEnVrai(id), abonne: jeSuis === "suivi" }),
+        visibilite: calculerVisibiliteProfil(cible, { estMoi, bandeEnVrai: bandeEnVrai(id), abonne: jeSuis === "suivi" }),
       };
     };
 
-    const lies = { mesAbonnes: idsAbonnes, mesAbonnements: idsAbonnements, bloques, moiMineur, trouverPote };
+    const lies = { mesAbonnes: idsAbonnes, mesAbonnements: idsAbonnements, bloques, trouverPote };
     const potesLies = (id: string, sens: "abonnes" | "abonnements") => listerPotesLiesDe(id, sens, lies);
 
     const compteursDe = (id: string) => {
       if (!propre) return null;
       if (id === ID_MOI) return { abonnes: abonnes.length, abonnements: abonnements.length + pagesSuivies };
       const relation = relationAvec(id);
-      if (!relation || relation.visibilite === "reserve" || bloques.has(id) || (trouverPote(id)?.mineur && !moiMineur)) return null;
+      if (!relation || bloques.has(id)) return null;
       return { abonnes: potesLies(id, "abonnes").length, abonnements: potesLies(id, "abonnements").length };
     };
 
@@ -285,8 +272,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
     return {
       pret,
       confidentialite,
-      comptePrive: estComptePrive({ mineur: moiMineur, prive: confidentialite === "prive" }),
-      confidentialiteVerrouillee: moiMineur,
+      comptePrive: estComptePrive({ prive: confidentialite === "prive" }),
       changerConfidentialite,
       abonnes,
       abonnements,
@@ -308,7 +294,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
       },
       effacer,
     };
-  }, [pret, etat, propre, contexte, bloques, moiMineur, potes, trouverPote, moyenAjout, pagesSuivies, changerConfidentialite, suivre, accepterDemande, retirer, changer, effacer]);
+  }, [pret, etat, propre, contexte, bloques, potes, trouverPote, moyenAjout, pagesSuivies, changerConfidentialite, suivre, accepterDemande, retirer, changer, effacer]);
 
   return <ContexteSuivisPersonnes.Provider value={valeur}>{children}</ContexteSuivisPersonnes.Provider>;
 }

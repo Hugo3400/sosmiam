@@ -2,18 +2,18 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { ActivitePote, ListePartagee, Pote, Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 
 // Potes d'exemple (démo, repris du prototype) : ils votent et répondent tout seuls, en attendant les vrais comptes.
-// Les identifiants de lieux renvoient à lieux-exemples.ts. Inès et Jade ont moins de 18 ans : pas de bar avec elles.
+// Les identifiants de lieux renvoient à lieux-exemples.ts.
 
 /** Toutes les personnes que l'app connaît en démo : ta bande, et quelques autres qu'on peut trouver par pseudo */
 export const potesExemples: Pote[] = [
-  { id: "lea", pseudo: "lea.croque", prenom: "Léa", avatar: "🦊", ville: "Montpellier", mineur: false, points: 342, pointsDuMois: 64, rescoussesDuMois: 9, lieuxSauves: [0, 1, 4, 11, 13], gardes: [8, 12, 16], badges: ["premiere-rescousse", "premier-sauveteur"] },
-  { id: "karim", pseudo: "karim.mtp", prenom: "Karim", avatar: "🐻", ville: "Montpellier", mineur: false, points: 315, pointsDuMois: 48, rescoussesDuMois: 7, lieuxSauves: [2, 5, 9, 13, 14], gardes: [6], badges: ["premiere-rescousse"] },
-  { id: "ines", pseudo: "ines.boutonnet", prenom: "Inès", avatar: "🐙", ville: "Montpellier", mineur: true, points: 128, pointsDuMois: 30, rescoussesDuMois: 5, lieuxSauves: [1, 3, 4], gardes: [11, 15], badges: ["premiere-rescousse"] },
-  { id: "tom", pseudo: "tom.portmarianne", prenom: "Tom", avatar: "🦁", ville: "Montpellier", mineur: false, points: 96, pointsDuMois: 22, rescoussesDuMois: 3, lieuxSauves: [6, 7], gardes: [12, 16], badges: ["premiere-rescousse"] },
-  { id: "sofia", pseudo: "sofia.antigone", prenom: "Sofia", avatar: "🐝", ville: "Montpellier", mineur: false, points: 210, pointsDuMois: 40, rescoussesDuMois: 6, lieuxSauves: [0, 8, 12], gardes: [4, 13], badges: ["premiere-rescousse", "premier-sauveteur"] },
-  { id: "max", pseudo: "max.sete", prenom: "Max", avatar: "🐢", ville: "Sète", mineur: false, points: 54, pointsDuMois: 12, rescoussesDuMois: 2, lieuxSauves: [9, 13], gardes: [11, 14], badges: [] },
-  { id: "camille", pseudo: "camille.ecusson", prenom: "Camille", avatar: "🦉", ville: "Montpellier", mineur: false, points: 418, pointsDuMois: 71, rescoussesDuMois: 11, lieuxSauves: [0, 2, 3, 5, 7], gardes: [1], badges: ["premiere-rescousse", "premier-sauveteur"] },
-  { id: "jade", pseudo: "jade.mtp", prenom: "Jade", avatar: "🦩", ville: "Montpellier", mineur: true, points: 121, pointsDuMois: 18, rescoussesDuMois: 3, lieuxSauves: [1, 4], gardes: [3], badges: ["premiere-rescousse"] },
+  { id: "lea", pseudo: "lea.croque", prenom: "Léa", avatar: "🦊", ville: "Montpellier", points: 342, pointsDuMois: 64, rescoussesDuMois: 9, lieuxSauves: [0, 1, 4, 11, 13], gardes: [8, 12, 16], badges: ["premiere-rescousse", "premier-sauveteur"] },
+  { id: "karim", pseudo: "karim.mtp", prenom: "Karim", avatar: "🐻", ville: "Montpellier", points: 315, pointsDuMois: 48, rescoussesDuMois: 7, lieuxSauves: [2, 5, 9, 13, 14], gardes: [6], badges: ["premiere-rescousse"] },
+  { id: "ines", pseudo: "ines.boutonnet", prenom: "Inès", avatar: "🐙", ville: "Montpellier", points: 128, pointsDuMois: 30, rescoussesDuMois: 5, lieuxSauves: [1, 3, 4], gardes: [11, 15], badges: ["premiere-rescousse"] },
+  { id: "tom", pseudo: "tom.portmarianne", prenom: "Tom", avatar: "🦁", ville: "Montpellier", points: 96, pointsDuMois: 22, rescoussesDuMois: 3, lieuxSauves: [6, 7], gardes: [12, 16], badges: ["premiere-rescousse"] },
+  { id: "sofia", pseudo: "sofia.antigone", prenom: "Sofia", avatar: "🐝", ville: "Montpellier", points: 210, pointsDuMois: 40, rescoussesDuMois: 6, lieuxSauves: [0, 8, 12], gardes: [4, 13], badges: ["premiere-rescousse", "premier-sauveteur"] },
+  { id: "max", pseudo: "max.sete", prenom: "Max", avatar: "🐢", ville: "Sète", points: 54, pointsDuMois: 12, rescoussesDuMois: 2, lieuxSauves: [9, 13], gardes: [11, 14], badges: [] },
+  { id: "camille", pseudo: "camille.ecusson", prenom: "Camille", avatar: "🦉", ville: "Montpellier", points: 418, pointsDuMois: 71, rescoussesDuMois: 11, lieuxSauves: [0, 2, 3, 5, 7], gardes: [1], badges: ["premiere-rescousse", "premier-sauveteur"] },
+  { id: "jade", pseudo: "jade.mtp", prenom: "Jade", avatar: "🦩", ville: "Montpellier", points: 121, pointsDuMois: 18, rescoussesDuMois: 3, lieuxSauves: [1, 4], gardes: [3], badges: ["premiere-rescousse"] },
 ];
 
 /** Les exemples ci-dessous en sont à cette version (2 : sorties passées, lieux reçus, nouvelles et listes en plus ; 3 : quelques
@@ -114,7 +114,7 @@ export function creerDonneesExemplePotes(maintenant: Date): {
         lieuChoisi: null,
         messages: [{ id: "d1", auteur: "tom", texte: "Kayak ou paddle ? Les deux me vont 🌊", date: ilYa(maintenant, 20) }],
       },
-      // Déjà vécues (pour voir « Voir plus » et « Retirer de tes sorties »). Pas de bar : Inès a moins de 18 ans
+      // Déjà vécues (pour voir « Voir plus » et « Retirer de tes sorties »)
       sortiePassee(maintenant, { id: "passee-pizza", titre: "Soirée pizza", emoji: "🍕", jours: 3, heure: 20, organisateur: "lea", invites: ["karim"], lieuChoisi: 0, autre: 3, mot: "On réserve pour 3 ?" }),
       sortiePassee(maintenant, { id: "passee-gouter", titre: "Goûter chez Inès", emoji: "🧁", jours: 8, heure: 16, organisateur: "ines", invites: ["tom"], lieuChoisi: 4, autre: 11, mot: "Choux à la pistache, je dis ça je dis rien" }),
       sortiePassee(maintenant, { id: "passee-sete", titre: "Virée à Sète", emoji: "⚓", jours: 13, heure: 12, organisateur: "karim", invites: ["lea", "tom"], lieuChoisi: 9, autre: 13, mot: "Train de 10 h, soyez à l'heure 😅" }),

@@ -11,7 +11,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
  * En visite sans compte : les onglets, les fiches des lieux (et leur carte) et les pages des créateurs, pour regarder ;
  * l'inscription reste ouverte par-dessus (« Je m'inscris »), et une fois le compte créé, on revient où l'on était.
  * Les modes pro et ambassadeur sont des piles posées par-dessus les onglets perso (qui restent montés dessous), ouvertes
- * seulement à qui a le rôle (18 ans et plus) : un rôle retiré ferme ses écrans et ramène au mode perso.
+ * seulement à qui a le rôle : un rôle retiré ferme ses écrans et ramène au mode perso.
  * Toute nouvelle route doit être rangée sous une garde : une route oubliée ici serait ouverte à tout le monde.
  * L'écran de démarrage reste affiché tant que les polices, le profil et les modes ne sont pas prêts.
  */
@@ -44,6 +44,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="notifications" />
           <Stack.Screen name="reglages" />
           <Stack.Screen name="potes" />
+          {/* Proposer une modification d'une fiche (en visite, le lien de la fiche demande d'abord un compte) */}
+          <Stack.Screen name="lieu/[id]/proposer" />
           {/* Visites : réserver, scanner le QR du comptoir, une visite, Mes visites, fidélité, réservations, avis */}
           <Stack.Screen name="lieu/[id]/reserver" />
           <Stack.Screen name="scan" options={{ presentation: "fullScreenModal" }} />

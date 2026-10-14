@@ -13,7 +13,7 @@ export type ElementCarte = {
   unite?: string;
   /** Spécialité de la maison, mise en avant */
   signature?: boolean;
-  /** Contient de l'alcool : masqué aux moins de 18 ans, comme partout dans l'app */
+  /** Contient de l'alcool : masqué en visite sans compte (âge inconnu) ; message sanitaire sinon, comme partout dans l'app */
   alcool?: boolean;
   etiquettes?: EtiquetteCarte[];
 };

@@ -33,7 +33,7 @@ export function appliquerReactionDemo(
   if (reaction.type === "accepte-ta-demande") {
     const verdict = peutSuivre(moi, cible, { bloque: false });
     if (!verdict.permis || !contient(etat.demandesEnvoyees)) return rien;
-    const abonnements = contient(etat.abonnements) ? etat.abonnements : [...etat.abonnements, creerLienSuivi(id, maintenant, verdict.surveillance)];
+    const abonnements = contient(etat.abonnements) ? etat.abonnements : [...etat.abonnements, creerLienSuivi(id, maintenant)];
     return { etat: { ...etat, demandesEnvoyees: etat.demandesEnvoyees.filter((l) => l.id !== id), abonnements }, notification: { type: "demande-acceptee", cle } };
   }
 
@@ -42,7 +42,7 @@ export function appliquerReactionDemo(
   if (!verdict.permis || contient(etat.abonnes) || contient(etat.demandesRecues)) return rien;
   if (reaction.type === "suit-en-retour" && !contient(etat.abonnements)) return rien;
   if (reaction.type === "demande-a-te-suivre" && etat.confidentialite !== "prive") return rien;
-  const lien = creerLienSuivi(id, maintenant, verdict.surveillance);
+  const lien = creerLienSuivi(id, maintenant);
   if (verdict.surDemande) return { etat: { ...etat, demandesRecues: [...etat.demandesRecues, lien] }, notification: null };
   return {
     etat: { ...etat, abonnes: [...etat.abonnes, lien] },

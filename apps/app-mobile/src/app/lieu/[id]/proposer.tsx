@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { validerPropositionLieu, type ChampPropositionLieu } from "@sos-miam/commun/validation/valider-proposition-lieu";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -17,12 +16,10 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
 
@@ -43,11 +40,10 @@ const ERREURS: Partial<Record<ChampPropositionLieu, string>> = {
 export default function ProposerModification() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profil } = utiliserProfil();
   const { suggestions: service } = utiliserServices();
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
+  // Écran réservé aux inscrits (PileRacine) : tout compte a 18 ans ou plus, donc aucun lieu n'est filtré ici
   const recherche = utiliserLieuParId(id);
-  const lieu = useMemo(() => (recherche.lieu ? filtrerLieuxSelonAge([recherche.lieu], age)[0] : undefined), [recherche.lieu, age]);
+  const lieu = recherche.lieu;
   // Celles remplies par le lieu s'il l'a fait, sinon celles de la fiche (comme ce que voient les gourmands)
   const pratique = utiliserInfosPratiquesLieu(lieu);
 

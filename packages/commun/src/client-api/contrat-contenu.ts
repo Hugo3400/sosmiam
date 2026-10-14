@@ -14,7 +14,7 @@ export interface ServiceContenu {
   listerLieux(zone?: ZoneCarte): Promise<ReponseApi<{ lieux: LieuApi[] }>>;
   /** « lieu-inconnu » : absent, brouillon ou masqué */
   lireLieu(id: number): Promise<ReponseApi<{ lieu: LieuApi }>>;
-  /** La carte complète, alcool compris (l'app le retire pour les moins de 18 ans) ; majLe : le moment exact */
+  /** La carte complète, alcool compris (l'app le retire pour la visite sans compte, âge inconnu) ; majLe : le moment exact */
   lireCarte(id: number): Promise<ReponseApi<{ carte: CarteLieu | null; majLe: string | null }>>;
   /** Le lieu d'un QR de vitrine (sosmiam.fr/l/<code>) */
   trouverParCode(codePublic: string): Promise<ReponseApi<{ lieuId: number }>>;

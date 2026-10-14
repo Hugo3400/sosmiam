@@ -432,7 +432,7 @@
 ## Engagements publics (FAQ)
 - ~~On peut passer faire la fiche avec le lieu (Montpellier et Hérault).~~ Retiré le 8 octobre 2026, avec le lancement partout en France.
 - On ne vend jamais les données des utilisateurs.
-- Newsletter : on prévient du lancement, puis on continue d'envoyer des nouvelles tant que la personne ne se désinscrit pas (un simple mail suffit). Après 3 ans sans aucun message de sa part, on lui demande si elle veut continuer, sinon on efface.
+- Newsletter : on prévient du lancement, puis on continue d'envoyer des nouvelles tant que la personne ne se désinscrit pas (un simple mail suffit). Après 3 ans sans aucun message de sa part, on lui demande si elle veut continuer, sinon on efface. Désinscription en un clic (lien signé « Me désinscrire » dans chaque newsletter, et bouton de la messagerie) ; l'adresse et la date d'une désinscription restent 3 ans dans la liste des désinscrits, pour ne jamais réinscrire par erreur (décidé par Hugo le 14 octobre 2026).
 - Contact : bonjour@sosmiam.fr.
 - Cookies : rien de facultatif sans accord, choix gardé 6 mois.
 
@@ -452,3 +452,9 @@
 - Pas comptés : robots, préchargements, aperçu, signaux « Global Privacy Control » et « Do Not Track », et les personnes qui le refusent sur la page `/statistiques` (cookie de refus, 13 mois).
 - Depuis le 8 octobre au soir, aussi : langue du navigateur, région et ville approximatives (si le réglage « en-têtes de localisation du visiteur » est actif dans Cloudflare), jours et heures, parcours des visites (arrivée, sortie, rebond, durée ; gardé en mémoire 30 min au plus), campagnes (`?utm_campaign=`), clics des boutons de /liens (via /liens/aller/…), temps de réponse, pages introuvables, passages de robots (par leur nom). Tout reste des totaux ; la politique de confidentialité le décrit.
 - Plus tard, l'app enverra ses statistiques de la même façon (source « app »).
+
+## Décisions du 14 octobre 2026 (Hugo)
+- CGU du 14 octobre 2026 (passage à 18 ans) : on **informe** les comptes existants, sans redemander leur accord.
+- « Proposer un lieu » est ouvert à **tous les comptes** (18 ans vérifiés à l'inscription) ; un âge connu sous 18 ans reste refusé.
+- Un compte qui appartient à quelqu'un de moins de 18 ans (découvert, ou signalé par un parent) est supprimé avec ses données. La newsletter et « Préviens-moi » restent ouverts à tout âge, avec l'accord des parents sous 15 ans.
+- Aucun compte de 15-17 ans n'existait au moment du passage à 18 ans.

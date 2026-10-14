@@ -58,7 +58,7 @@ export default function PageCreateur() {
   const nom = `@${pseudo}`;
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
-  // Comme dans le fil : rien de masqué (« Pas intéressé », signalé), et seulement les lieux que ton âge permet
+  // Comme dans le fil : rien de masqué (« Pas intéressé », signalé), et pas de bar en visite sans compte
   const publications = siennes.flatMap((publication) => {
     const lieu = lieux.find((l) => l.id === publication.lieuId);
     return lieu && !activite.estMasquee(publication.id) ? [{ publication, lieu }] : [];

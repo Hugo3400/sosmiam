@@ -19,9 +19,10 @@ const estTexteRecompense = (texte: string) =>
 /**
  * Vérifie le réglage de la carte de fidélité d'un lieu (mode pro, espace pro du site, API), dans l'ordre du formulaire :
  * récompense (3 à 60 caractères, sans insulte), version sans alcool, nombre de visites (3 à 10).
- * « Alcool » est coché d'office si la récompense contient un mot d'alcool ; la version pour les moins de 18 ans est
- * alors obligatoire et ne doit pas en contenir. Rend le réglage nettoyé (textes sans espaces autour, version sans
- * alcool à null quand il n'y a pas d'alcool), ou le premier champ à corriger.
+ * « Alcool » est coché d'office si la récompense contient un mot d'alcool. La version sans alcool est alors
+ * facultative (montrée seulement en visite sans compte) ; donnée, elle suit les mêmes règles que la récompense et ne
+ * doit pas contenir d'alcool. Rend le réglage nettoyé (textes sans espaces autour, version sans alcool à null quand
+ * elle est vide ou qu'il n'y a pas d'alcool), ou le premier champ à corriger.
  */
 export function validerReglageFidelite(r: ReglageFidelite): ResultatReglageFidelite {
   const refuser = (champ: ChampFidelite): ResultatReglageFidelite => ({ ok: false, erreur: "programme-invalide", champ });
@@ -32,10 +33,13 @@ export function validerReglageFidelite(r: ReglageFidelite): ResultatReglageFidel
 
   const alcool = r.alcool === true || contientMotAlcool(recompense);
   let recompenseSansAlcool: string | null = null;
-  if (alcool) {
+  if (alcool && r.recompenseSansAlcool !== null && r.recompenseSansAlcool !== undefined) {
     if (typeof r.recompenseSansAlcool !== "string") return refuser("recompenseSansAlcool");
-    recompenseSansAlcool = r.recompenseSansAlcool.trim();
-    if (!estTexteRecompense(recompenseSansAlcool) || contientMotAlcool(recompenseSansAlcool)) return refuser("recompenseSansAlcool");
+    const sansAlcool = r.recompenseSansAlcool.trim();
+    if (sansAlcool !== "") {
+      if (!estTexteRecompense(sansAlcool) || contientMotAlcool(sansAlcool)) return refuser("recompenseSansAlcool");
+      recompenseSansAlcool = sansAlcool;
+    }
   }
 
   const visites = r.visitesRequises;

@@ -8,7 +8,7 @@ export type SuiviAffichable = { cle: string; type: "lieu"; lieu: Lieu } | { cle:
 
 /**
  * Les suivis à montrer (liste « Tu suis » et son compte sur le profil), dans l'ordre reçu : les lieux encore là parmi `lieux`
- * (déjà filtrés selon ton âge) et les créateurs qui ont au moins une publication parmi `publications`. Une clé abîmée ou
+ * et les créateurs qui ont au moins une publication parmi `publications`. Une clé abîmée ou
  * inconnue est ignorée.
  */
 export function listerSuivisAffichables(cles: readonly string[], lieux: readonly Lieu[], publications: readonly Publication[]): SuiviAffichable[] {

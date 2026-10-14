@@ -18,9 +18,9 @@ export type CompteApp = {
   emailVerifie: boolean;
   /** Âge au jour de Paris (comptes de l'app) ; null pour un compte du site, qui a 18 ans ou plus */
   age: number | null;
-  /** null : pas d'ambassadeur (ou moins de 18 ans) */
+  /** null : pas d'ambassadeur (ni rôle d'un ancien compte que l'API ne peut pas dire majeur : filet de presenterCompte) */
   ambassadeur: { statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null; certifie: unknown | null } | null;
-  /** Vides sous 18 ans ; lieuxValides : les lieux qui sont à lui */
+  /** lieuxValides : les lieux qui sont à lui (vides pour un ancien compte que l'API ne peut pas dire majeur) */
   pro: { lieux: LieuDuCompte[]; lieuxValides: LieuDuCompte[] };
 };
 

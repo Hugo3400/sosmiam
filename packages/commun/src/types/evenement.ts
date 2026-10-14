@@ -38,7 +38,7 @@ export type OccurrenceEvenement = { debut: string; fin: string | null };
 
 /**
  * Ce que voit l'app : un événement à une de ses dates (sur la fiche et dans « Ça m'intéresse » : la prochaine). Avec
- * alcool, l'app le cache aux 15-17 ans (et à l'âge inconnu) et affiche le message sanitaire à côté.
+ * alcool, l'app le cache en visite sans compte (âge inconnu) et affiche le message sanitaire à côté pour les comptes.
  */
 export type EvenementLieuPublic = {
   id: number;
@@ -70,7 +70,7 @@ export type StatutEvenement = "a-venir" | "passe" | "annule";
 export type EvenementLieuPro = Omit<ReglageEvenement, "alcool"> & {
   id: number;
   photo: string | null;
-  /** Comme dans l'app : case cochée, mot d'alcool ou lieu de type bar (l'événement est caché aux 15-17 ans) */
+  /** Comme dans l'app : case cochée, mot d'alcool ou lieu de type bar (caché en visite sans compte, message sanitaire sinon) */
   alcool: boolean;
   /** La prochaine date pas encore finie (null : passé ou annulé) */
   prochaine: OccurrenceEvenement | null;

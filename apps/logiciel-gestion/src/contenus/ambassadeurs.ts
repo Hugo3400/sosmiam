@@ -19,6 +19,14 @@ export const BADGES: Record<string, string> = {
   "premier-sauveteur": "🚀 Premier sauveteur",
   "deniche-par-toi": "🔎 Déniché par toi",
   fondateur: "🏅 Fondateur",
+  // Donnés tout seuls par le serveur, sans points (session App, 14 octobre 2026) ; le catalogue passera dans packages/commun
+  "premiere-rescousse": "🛟 Première rescousse",
+  "bec-sucre": "🍬 Bec sucré",
+  noctambule: "🌙 Noctambule",
+  explorateur: "🧭 Explorateur",
+  "serie-4": "🔥 4 semaines d'affilée",
+  iode: "🦪 Iodé",
+  bande: "👯 Toute la bande",
 };
 
 export const RAISONS_POINTS: Record<string, string> = {
