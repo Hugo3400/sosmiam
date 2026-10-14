@@ -20,7 +20,7 @@ const banc = await creerBancGestion(
     exporterDonneesCompte: async (id: number, chiffre: unknown) => (existe(id) && chiffre ? { compte: { id, email: "lea@exemple.fr" } } : null),
     lireDateNaissance: async (id: number) => (existe(id) ? { dateNaissance: "2001-04-12" } : null),
     corrigerDateNaissance: async (id: number, date: string) => (appels.push({ corriger: id, date }),
-      !existe(id) ? { etat: "introuvable" } : date === "2020-01-01" ? { etat: "trop-jeune" } : date === "2010-01-01" ? { etat: "corrigee", age: 16, rolesRetires: ["ambassadeur", "pro"] } : { etat: "corrigee", age: 25, rolesRetires: [] }),
+      !existe(id) ? { etat: "introuvable" } : date === "2020-01-01" ? { etat: "trop-jeune" } : { etat: "corrigee", age: 25 }),
     envoyerLienMotDePasse: async (id: number, lien: string) => (appels.push({ lien, id }), { ok: true }),
     supprimerCompte: async (id: number) => (existe(id) ? { prenom: "Léa" } : null),
   } as never,
@@ -78,8 +78,8 @@ test("date de naissance : afficher (journal sans la date), corriger (trop jeune 
   assert.equal((await banc.demander("GET", "/comptes/9/date-naissance", { session })).status, 404);
   const tropJeune = await banc.demander("PUT", "/comptes/7/date-naissance", { session, corps: { date: "2020-01-01" } });
   assert.deepEqual([tropJeune.status, await tropJeune.json()], [400, { ok: false, erreur: "trop-jeune" }]);
-  const mineur = await banc.demander("PUT", "/comptes/7/date-naissance", { session, corps: { date: "2010-01-01" } });
-  assert.deepEqual(await mineur.json(), { ok: true, rolesRetires: ["ambassadeur", "pro"], majeur: false });
+  const corrigee = await banc.demander("PUT", "/comptes/7/date-naissance", { session, corps: { date: "2001-04-12" } });
+  assert.deepEqual(await corrigee.json(), { ok: true });
   assert.equal(actions.at(-1), "Date de naissance corrigée | compte n° 7 ; rôles retirés (moins de 18 ans) : ambassadeur, pro");
   assert.ok(actions.every((ligne) => !ligne.includes("2010") && !ligne.includes("2001")), "jamais de date au journal");
   assert.equal((await banc.demander("PUT", "/comptes/9/date-naissance", { session, corps: { date: "1990-05-05" } })).status, 404);

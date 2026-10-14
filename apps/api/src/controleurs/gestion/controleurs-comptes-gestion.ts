@@ -81,9 +81,8 @@ export function creerControleursComptesGestion(s: ServicesGestion, comptes?: Out
       const resultat = await s.corrigerDateNaissance(id(requete), date, chiffrement);
       if (resultat.etat === "introuvable") return introuvable(reponse);
       if (resultat.etat !== "corrigee") return reponse.status(400).json({ ok: false, erreur: resultat.etat });
-      const roles = resultat.rolesRetires.length ? ` ; rôles retirés (moins de 18 ans) : ${resultat.rolesRetires.join(", ")}` : "";
-      await noter(reponse, "Date de naissance corrigée", `compte n° ${id(requete)}${roles}`);
-      reponse.json({ ok: true, rolesRetires: resultat.rolesRetires, majeur: resultat.age >= 18 });
+      await noter(reponse, "Date de naissance corrigée", `compte n° ${id(requete)}`);
+      reponse.json({ ok: true });
     },
     /** « Modifier » : le prénom et le nom en clair (journal : sans les valeurs) */
     identite: async (requete: Request, reponse: Response) => {
