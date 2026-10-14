@@ -1,0 +1,13 @@
+SOS Miam : couleurs et typographies
+
+Jaune SOS            #FFD60A   RVB 255 214 10
+Tomate               #FF4D3D   RVB 255 77 61
+Encre                #1A1A1A   RVB 26 26 26
+Crème                #FFF8E7   RVB 255 248 231
+Jaune clair          #FFF1A8   RVB 255 241 168
+Ombre de la bouée    #F0B400   RVB 240 180 0
+Blanc                #FFFFFF   RVB 255 255 255
+
+Titres : Inter Display Black
+Textes : Inter (SemiBold et Bold)
+La tomate est réservée aux SOS et aux remerciements.

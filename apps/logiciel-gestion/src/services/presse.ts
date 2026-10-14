@@ -18,5 +18,8 @@ export type FamillePresse = {
 };
 
 export const listerPresse = () => appeler<{ genere: string | null; familles: FamillePresse[] }>("GET", "/presse");
+/** Au-delà, le fichier passe par le navigateur (lien de 10 minutes) : trop lourd pour transiter par le logiciel */
+export const OCTETS_MAX_LOGICIEL = 40 * 1024 * 1024;
+export const creerLienPresse = (id: string) => appeler<{ ok: true; lien: string; expireLe: string }>("POST", `/presse/fichiers/${id}/lien`, { corps: {} });
 /** Un fichier listé (ou un aperçu, ou un zip) */
 export const lireFichierPresse = (id: string) => appeler<Blob>("GET", `/presse/fichiers/${id}`, { reponse: "blob" });

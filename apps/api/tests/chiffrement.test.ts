@@ -1,5 +1,6 @@
 // Tests du chiffrement des données des comptes (AES-256-GCM, « v1:iv:tag:donnees » en base64url) et de la lecture de
-// la clé au démarrage. Clés de TEST seulement, dans un dossier temporaire : la vraie clé n'est jamais lue.
+// la clé au démarrage ; puis du chiffrement de la partie sociale (textes versionnés, fichiers, sous-clés, contextes,
+// anciennes versions de clé, 503 sans clé). Clés de TEST seulement, dans un dossier temporaire : la vraie clé n'est jamais lue.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -7,9 +8,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 
+import type { Request, Response } from "express";
+
 import { chiffrerDonnee } from "../src/fonctions/securite/chiffrer-donnee.ts";
+import { chiffrerOctets } from "../src/fonctions/securite/chiffrer-octets.ts";
+import { chiffrerTexteVersionne } from "../src/fonctions/securite/chiffrer-texte-versionne.ts";
 import { dechiffrerDonnee } from "../src/fonctions/securite/dechiffrer-donnee.ts";
+import { dechiffrerOctets } from "../src/fonctions/securite/dechiffrer-octets.ts";
+import { dechiffrerTexteVersionne } from "../src/fonctions/securite/dechiffrer-texte-versionne.ts";
+import { exigerChiffrementSocial } from "../src/middlewares/exiger-chiffrement-social.ts";
 import { chargerChiffrementDonnees, creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
+import { creerChiffrementSocial, SOUS_CLES_SOCIALES } from "../src/services/chiffrement-social.ts";
 
 const cle = randomBytes(32);
 const dossier = mkdtempSync(join(tmpdir(), "sos-miam-cle-test-"));

@@ -1,0 +1,31 @@
+// Connexion par QR code, comme Discord (décidé le 14 octobre 2026, docs/decisions.md) : le site ou un nouveau téléphone
+// affiche un QR, l'app déjà connectée le scanne et valide. Routes : apps/api/src/routes/connexion-qr.ts.
+
+/// Une demande de connexion par QR : valable 2 minutes, à usage unique. La base ne garde que les empreintes SHA-256 du code
+/// (dans le QR) et du secret (resté sur l'appareil qui affiche le QR) ; effacée par la tâche de nuit un jour après expiration.
+model DemandeConnexionQr {
+  id              Int       @id @default(autoincrement())
+  /// SHA-256 (hexadécimal) du code du QR (https://sosmiam.fr/q/<code>)
+  codeEmpreinte   String    @unique @map("code_empreinte") @db.VarChar(64)
+  /// SHA-256 (hexadécimal) du secret gardé par l'appareil qui attend sa session
+  secretEmpreinte String    @unique @map("secret_empreinte") @db.VarChar(64)
+  /// « site » (session du site) ou « app » (session d'un an de l'app)
+  cible           String    @db.VarChar(4)
+  /// « sosmiam.fr », « ambassadeur.sosmiam.fr », « pro.sosmiam.fr » ou « app » (jamais une IP)
+  origine         String    @db.VarChar(30)
+  /// Description lisible tirée du User-Agent (« Chrome sur Mac »), 60 caractères au plus
+  appareil        String    @db.VarChar(60)
+  /// « attente », « scanne », « accepte », « refuse » ou « utilisee » (session donnée)
+  statut          String    @default("attente") @db.VarChar(10)
+  /// Le compte qui a scanné (puis accepté) ; la demande part avec lui
+  compteId        Int?      @map("compte_id")
+  compte          Compte?   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe          DateTime  @default(now()) @map("cree_le") @db.Timestamptz(3)
+  expireLe        DateTime  @map("expire_le") @db.Timestamptz(3)
+  scanneLe        DateTime? @map("scanne_le") @db.Timestamptz(3)
+  reponduLe       DateTime? @map("repondu_le") @db.Timestamptz(3)
+
+  @@index([expireLe])
+  @@index([compteId])
+  @@map("demandes_connexion_qr")
+}

@@ -129,6 +129,8 @@ model Compte {
   commentairesEcrits         CommentairePublication[] @relation("CommentairesEcrits")
   commentairesPourLeLieu     CommentairePublication[] @relation("CommentairesDuLieu")
   jaimesCommentaires         JaimeCommentaire[]
+  /// Connexions par QR code scannées par ce compte (connexion-qr.prisma)
+  demandesConnexionQr        DemandeConnexionQr[]
   @@index([derniereConnexion])
   @@map("comptes")
 }

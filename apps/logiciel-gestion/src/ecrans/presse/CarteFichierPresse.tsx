@@ -1,4 +1,4 @@
-import { Download, FileText } from "lucide-react";
+import { Download, FileImage, FileText, Film, Music } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
@@ -6,11 +6,14 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { formaterOctets } from "~/fonctions/texte/formater-octets.ts";
 import { lireFichierPresse, type FichierPresse } from "~/services/presse.ts";
 
-type Props = { fichier: FichierPresse; onEnregistrer: (id: string, nom: string) => void; onAgrandir: (adresse: string) => void };
+type Props = { fichier: FichierPresse; onEnregistrer: (id: string, nom: string, octets: number) => void; onAgrandir: (adresse: string) => void };
+
+const ICONES: Record<string, typeof FileText> = { MP4: Film, MP3: Music, OGG: Music, WAV: Music, PNG: FileImage, JPG: FileImage, SVG: FileImage };
 
 /** Un visuel ou un document : son aperçu (chargé à l'affichage), son format, sa taille, et « Enregistrer ». */
 export function CarteFichierPresse({ fichier, onEnregistrer, onAgrandir }: Props) {
   const [apercu, setApercu] = useState<string | null>(null);
+  const Icone = ICONES[fichier.format] ?? FileText;
   useEffect(() => {
     if (!fichier.apercu) return;
     let adresse: string | null = null;
@@ -34,7 +37,7 @@ export function CarteFichierPresse({ fichier, onEnregistrer, onAgrandir }: Props
         className="grid aspect-[4/5] place-items-center overflow-hidden rounded-xl bg-creme"
         aria-label={`Agrandir ${fichier.nom}`}
       >
-        {apercu ? <img src={apercu} alt="" className="size-full object-contain" /> : <FileText className="size-10 text-gris" aria-hidden />}
+        {apercu ? <img src={apercu} alt="" className="size-full object-contain" /> : <Icone className="size-10 text-gris" aria-hidden />}
       </button>
       <p className="truncate text-sm font-semibold" title={fichier.nom}>{fichier.nom}</p>
       {fichier.description && <p className="line-clamp-2 text-[13px] text-gris" title={fichier.description}>{fichier.description}</p>}
@@ -43,7 +46,7 @@ export function CarteFichierPresse({ fichier, onEnregistrer, onAgrandir }: Props
         {fichier.dimensions && <Badge>{fichier.dimensions}</Badge>}
         <span className="text-xs text-gris">{formaterOctets(fichier.octets)}</span>
       </div>
-      <div className="mt-auto grid pt-1"><Bouton petit icone={Download} onClick={() => onEnregistrer(fichier.id, fichier.nom)}>Enregistrer</Bouton></div>
+      <div className="mt-auto grid pt-1"><Bouton petit icone={Download} onClick={() => onEnregistrer(fichier.id, fichier.nom, fichier.octets)}>Enregistrer</Bouton></div>
     </li>
   );
 }

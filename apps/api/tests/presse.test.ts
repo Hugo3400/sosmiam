@@ -27,8 +27,8 @@ writeFileSync(join(dossier, "index.json"), JSON.stringify({
   }],
 }));
 process.env.DOSSIER_PRESSE = dossier;
-const { listerPresse, trouverFichierPresse } = await import("../src/services/gestion/presse.ts");
-const banc = await creerBancGestion({ listerPresse, trouverFichierPresse } as never);
+const { creerLienPresse, lireLienPresse, listerPresse, trouverFichierPresse } = await import("../src/services/gestion/presse.ts");
+const banc = await creerBancGestion({ listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse } as never);
 let session = "";
 before(async () => void (session = await banc.ouvrirSession()));
 after(() => banc.fermer());

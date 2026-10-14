@@ -13,22 +13,42 @@ type Props = {
   onLu: (texte: string) => void;
   /** Le scan s'ouvre (pour effacer le résultat d'avant) */
   onOuvrir?: () => void;
+  /** Ce qu'on scanne : le QR code d'un pote (par défaut) ou celui d'un appareil à connecter au compte */
+  pour?: "pote" | "appareil";
 };
 
 type Souci = "refuse" | "bloque" | "panne";
 
-const MESSAGES: Record<Souci, string> = {
-  refuse: "Sans l'appareil photo, pas de scan. Pas de souci : retouche « Scanner » si tu changes d'avis, ou colle le lien de ton pote juste en dessous.",
-  bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone, ou coller le lien de ton pote juste en dessous.",
-  panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant, ou colle le lien de ton pote juste en dessous.",
+const TEXTES = {
+  pote: {
+    messages: {
+      refuse: "Sans l'appareil photo, pas de scan. Pas de souci : retouche « Scanner » si tu changes d'avis, ou colle le lien de ton pote juste en dessous.",
+      bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone, ou coller le lien de ton pote juste en dessous.",
+      panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant, ou colle le lien de ton pote juste en dessous.",
+    } satisfies Record<Souci, string>,
+    viseur: "Viseur de l'appareil photo : vise le QR code de ton pote, il sera lu tout seul",
+    aide: "Vise le QR code de ton pote, on s'occupe du reste.",
+    indice: "Allume l'appareil photo pour lire le QR code d'un pote",
+  },
+  appareil: {
+    messages: {
+      refuse: "Sans l'appareil photo, pas de scan. Pas de souci : retouche « Scanner » si tu changes d'avis.",
+      bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone.",
+      panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant.",
+    } satisfies Record<Souci, string>,
+    viseur: "Viseur de l'appareil photo : vise le QR code de l'appareil à connecter, il sera lu tout seul",
+    aide: "Vise le QR code affiché sur l'appareil à connecter.",
+    indice: "Allume l'appareil photo pour lire le QR code de l'appareil à connecter",
+  },
 };
 
 /**
- * Scanner le QR code d'un pote : l'autorisation de l'appareil photo est demandée seulement quand on touche « Scanner »,
+ * Scanner un QR code (celui d'un pote, ou d'un appareil à connecter au compte) : l'autorisation de l'appareil photo est demandée seulement quand on touche « Scanner »,
  * un refus est accueilli gentiment (avec le chemin des réglages s'il faut), et la caméra s'éteint dès qu'un code est lu
  * ou qu'un autre écran passe devant (profil d'un pote, tes infos…).
  */
-export function ScannerQrCode({ onLu, onOuvrir }: Props) {
+export function ScannerQrCode({ onLu, onOuvrir, pour = "pote" }: Props) {
+  const textes = TEXTES[pour];
   const [permission, demanderPermission] = useCameraPermissions();
   const [ouvert, setOuvert] = useState(false);
   const [souci, setSouci] = useState<Souci | null>(null);
@@ -40,7 +60,7 @@ export function ScannerQrCode({ onLu, onOuvrir }: Props) {
 
   function signaler(nouveau: Souci) {
     setSouci(nouveau);
-    AccessibilityInfo.announceForAccessibility(MESSAGES[nouveau]);
+    AccessibilityInfo.announceForAccessibility(textes.messages[nouveau]);
   }
 
   async function ouvrir() {
@@ -72,7 +92,7 @@ export function ScannerQrCode({ onLu, onOuvrir }: Props) {
         <View
           accessible
           accessibilityRole="image"
-          accessibilityLabel="Viseur de l'appareil photo : vise le QR code de ton pote, il sera lu tout seul"
+          accessibilityLabel={textes.viseur}
           className="overflow-hidden rounded-carte border-2 border-encre bg-encre"
         >
           {/* Pas de className sur CameraView (vue native) : sa taille passe par style */}
@@ -91,7 +111,7 @@ export function ScannerQrCode({ onLu, onOuvrir }: Props) {
             <View className="h-3/5 w-3/5 rounded-3xl border-4 border-jaune" />
           </View>
         </View>
-        <Text className="text-center font-texte text-sm text-gris">Vise le QR code de ton pote, on s'occupe du reste.</Text>
+        <Text className="text-center font-texte text-sm text-gris">{textes.aide}</Text>
         <Bouton libelle="Arrêter le scan" variante="blanc" petit onPress={() => setOuvert(false)} />
       </View>
     );
@@ -99,10 +119,10 @@ export function ScannerQrCode({ onLu, onOuvrir }: Props) {
 
   return (
     <View className="gap-3">
-      <Bouton libelle="Scanner un QR code" indice="Allume l'appareil photo pour lire le QR code d'un pote" onPress={() => void ouvrir()} />
+      <Bouton libelle="Scanner un QR code" indice={textes.indice} onPress={() => void ouvrir()} />
       {souci ? (
         <View className="gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
-          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(MESSAGES[souci])}</Text>
+          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(textes.messages[souci])}</Text>
           {souci === "bloque" ? (
             <Bouton libelle="Ouvrir les réglages" variante="blanc" petit onPress={() => Linking.openSettings().catch(() => signaler("panne"))} />
           ) : null}

@@ -11,8 +11,8 @@ import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { formaterOctets } from "~/fonctions/texte/formater-octets.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
-import { lireFichierPresse, listerPresse } from "~/services/presse.ts";
-import { enregistrerFichierBinaire } from "~/services/systeme.ts";
+import { creerLienPresse, lireFichierPresse, listerPresse, OCTETS_MAX_LOGICIEL } from "~/services/presse.ts";
+import { enregistrerFichierBinaire, ouvrirLien } from "~/services/systeme.ts";
 import { CarteFichierPresse } from "./CarteFichierPresse.tsx";
 
 /**
@@ -29,9 +29,15 @@ export function EcranPresse() {
   }, [donnees, famille]);
   const actuelle = donnees?.familles.find((f) => f.id === famille);
 
-  async function enregistrer(id: string, nom: string) {
+  async function enregistrer(id: string, nom: string, octets: number) {
     setMessage(`Téléchargement de ${nom}…`);
     try {
+      if (octets > OCTETS_MAX_LOGICIEL) {
+        // Trop lourd pour passer par le logiciel : le navigateur le télécharge avec un lien de 10 minutes
+        await ouvrirLien((await creerLienPresse(id)).lien);
+        setMessage(`${nom} se télécharge dans ton navigateur (lien valable 10 minutes).`);
+        return;
+      }
       const fait = await enregistrerFichierBinaire(nom, await lireFichierPresse(id));
       setMessage(fait ? `${nom} enregistré ✅` : null);
     } catch {
@@ -58,7 +64,7 @@ export function EcranPresse() {
             <Carte
               titre={actuelle.titre}
               actions={actuelle.zip && (
-                <Bouton variante="principal" icone={Archive} onClick={() => enregistrer(actuelle.zip!.id, actuelle.zip!.nom)}>
+                <Bouton variante="principal" icone={Archive} onClick={() => enregistrer(actuelle.zip!.id, actuelle.zip!.nom, actuelle.zip!.octets)}>
                   Tout télécharger ({formaterOctets(actuelle.zip.octets)})
                 </Bouton>
               )}
