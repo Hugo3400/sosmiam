@@ -104,6 +104,8 @@ export default function Profil() {
     : compte
       ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges, activite.rescoussesDonnees) }
       : null;
+  // Bouées et défis se lisent dans l'activité : cachés tant qu'elle n'est pas connue (pas relue, ou session expirée)
+  const activiteConnue = DEMO_VISITES_ACTIVE || (connecte && activite.chargee);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
@@ -127,7 +129,7 @@ export default function Profil() {
             </Text>
           </View>
         )}
-        <BoueesSemaine restantes={activite.restantes} />
+        {activiteConnue ? <BoueesSemaine restantes={activite.restantes} /> : null}
         {ambassadeur ? (
           <ChiffresProfil
             lieuxSauves={activite.lieuxSauves.length}
@@ -136,7 +138,7 @@ export default function Profil() {
             badgesTotal={badges.length}
           />
         ) : null}
-        <ListeDefis mesures={mesures} />
+        {activiteConnue ? <ListeDefis mesures={mesures} /> : null}
         {ambassadeur ? <GrilleBadges obtenus={ambassadeur.obtenus} /> : null}
         <CollectionsProfil gardes={activite.gardes} jaimes={activite.jaimes} age={age} />
       </ScrollView>

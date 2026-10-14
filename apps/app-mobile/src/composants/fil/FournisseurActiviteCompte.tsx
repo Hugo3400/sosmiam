@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
 
 import { creerActiviteApiVide } from "@sos-miam/commun/fonctions/activite/creer-activite-api-vide";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
@@ -22,11 +22,39 @@ const AUCUN_JAIME: readonly string[] = [];
  * ne remonte jamais l'app. Rien n'est repris du téléphone : un compte part de son activité sur le serveur.
  */
 export function FournisseurActiviteCompte({ children }: { children: ReactNode }) {
-  const { pret, connecte, activite: service, rafraichir } = utiliserSession();
+  const { pret, connecte, activite: service, rafraichir, compte: compteLu } = utiliserSession();
   const source = !pret ? "attente" : connecte ? "compte" : "vide";
   const compte = source === "compte";
+
+  // Une lecture du compte à la fois : une demande pendant une lecture en relance une juste après (la dernière réponse est
+  // toujours celle de la dernière lecture partie d'ici, jamais une plus ancienne arrivée en retard)
+  const lecture = useRef({ enCours: false, encore: false });
+  const relireCompte = useCallback(async () => {
+    const l = lecture.current;
+    if (l.enCours) {
+      l.encore = true;
+      return;
+    }
+    l.enCours = true;
+    try {
+      do {
+        l.encore = false;
+        await rafraichir();
+      } while (l.encore);
+    } finally {
+      l.enCours = false;
+    }
+  }, [rafraichir]);
+  // L'API répond alors que le compte n'a pas pu être lu (ouvert sans réseau) : on le relit, points et badges reviennent
+  const compteManquant = useRef(compteLu === null);
+  useEffect(() => {
+    compteManquant.current = compteLu === null;
+  }, [compteLu]);
+  const surReponse = useCallback(() => {
+    if (compteManquant.current) void relireCompte();
+  }, [relireCompte]);
   // Rescousse donnée ou reprise : points, palier et badges du compte ont changé, on relit le compte
-  const file = utiliserFileActivite({ actif: compte, service, surRescousseConfirmee: rafraichir });
+  const file = utiliserFileActivite({ actif: compte, service, surRescousseConfirmee: relireCompte, surReponse });
   const { ajouter, lireAffichee, effacer } = file;
 
   // L'activité gardée sur le téléphone avant l'API (sosmiam.activite) n'est jamais relue hors démo

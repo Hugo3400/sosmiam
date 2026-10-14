@@ -43,11 +43,14 @@ function lireTexte(brut: unknown, max: number): string | null {
 function lireFiltres(brut: unknown, mesure: MesureDefi): FiltresDefi | null | false {
   if (brut === undefined || brut === null) return null;
   if (typeof brut !== "object" || Array.isArray(brut)) return false;
-  const permis: readonly string[] = FILTRES_PAR_MESURE[mesure];
+  const permis: readonly FiltreDefi[] = FILTRES_PAR_MESURE[mesure];
+  const recus = brut as Record<string, unknown>;
+  if (!Object.keys(recus).every((cle) => (permis as readonly string[]).includes(cle))) return false;
   const filtres: FiltresDefi = {};
-  for (const [cle, valeur] of Object.entries(brut as Record<string, unknown>)) {
-    if (!permis.includes(cle)) return false;
-    const filtre = cle as FiltreDefi;
+  // Dans l'ordre de FILTRES_PAR_MESURE : deux défis aux mêmes filtres s'écrivent pareil
+  for (const filtre of permis) {
+    const valeur = recus[filtre];
+    if (valeur === undefined) continue;
     if (filtre === "typesLieu") {
       if (!Array.isArray(valeur) || valeur.length === 0) return false;
       if (!valeur.every((type) => typeof type === "string" && (TYPES_LIEU_DEFI as readonly string[]).includes(type))) return false;

@@ -1,36 +1,101 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Linking, Text, View } from "react-native";
 
+import { RAYON_VALIDATION_M } from "@sos-miam/commun/regles/visites";
 import type { MissionAmbassadeur } from "@sos-miam/commun/types/espace-ambassadeur";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { TYPES_MISSION } from "~/composants/ambassadeur/CarteMission";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { FeuilleEchecVisite, type EchecVisite } from "~/composants/visites/FeuilleEchecVisite";
+import type { ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
+import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserPositionValidation } from "~/hooks/utiliser-position-validation";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { enregistrerExplicationPositionVue, lireExplicationPositionVue } from "~/stockage/explication-position-vue";
 import couleurs from "~/theme/couleurs";
 
 const COMPTE_RENDU_MIN = 5;
 const COMPTE_RENDU_MAX = 2000;
 
-/** Une mission : ce qu'il faut faire, où et avant quand, puis « J'ai fini la mission » avec un petit compte rendu pour l'équipe. */
+/** « Je suis sur place » : on lit la position, puis on l'envoie (l'équipe ne garde que l'heure) */
+type EtapePresence = "repos" | "position" | "envoi";
+const TEXTES_PRESENCE: Record<Exclude<EtapePresence, "repos">, string> = { position: "On regarde où tu es…", envoi: "On prévient l'équipe…" };
+
+/** Ce qui vaut la peine d'être retenté tout de suite (position floue, réseau, un peu loin…), comme pour une addition */
+const A_REESSAYER: readonly ErreurService[] = [
+  "position-refusee", "position-coupee", "position-introuvable", "position-imprecise", "position-perimee", "position-simulee", "hors-zone", "hors-ligne",
+];
+
+/**
+ * Une mission : ce qu'il faut faire, où et avant quand, « 📍 Je suis sur place » (position vérifiée comme pour une visite, la
+ * première fois expliquée), puis « J'ai fini la mission » avec un petit compte rendu pour l'équipe.
+ */
 export default function EcranMission() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { ambassadeur } = utiliserServices();
+  const { lire: lirePosition } = utiliserPositionValidation();
   const [mission, setMission] = useState<MissionAmbassadeur | null | undefined>(undefined);
   const [compteRendu, setCompteRendu] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const [presence, setPresence] = useState<EtapePresence>("repos");
+  const [explication, setExplication] = useState(false);
+  const [echec, setEchec] = useState<EchecVisite | null>(null);
+  // Une seule vérification à la fois, même sur deux appuis rapides
+  const occupe = useRef(false);
+
+  const recharger = useCallback(async () => {
+    const r = await ambassadeur.listerMissions();
+    setMission(r.ok ? (r.missions.find((m) => String(m.id) === id) ?? null) : null);
+  }, [ambassadeur, id]);
 
   useEffect(() => {
-    ambassadeur.listerMissions().then((r) => setMission(r.ok ? (r.missions.find((m) => String(m.id) === id) ?? null) : null));
-  }, [ambassadeur, id]);
+    void recharger();
+  }, [recharger]);
+
+  /** Lit la position (en démo : à 30 m du lieu, sauf « Vérifier ma vraie position »), puis la fait vérifier */
+  const verifierPresence = useCallback(async () => {
+    const cible = mission?.lieu?.position;
+    if (!mission || !cible || occupe.current) return;
+    occupe.current = true;
+    try {
+      setPresence("position");
+      const lecture = await lirePosition(cible);
+      if (!lecture.ok) return setEchec({ erreur: lecture.erreur });
+      setPresence("envoi");
+      const r = await ambassadeur.signalerPresence(mission.id, lecture.position);
+      if (!r.ok) {
+        setEchec({ erreur: r.erreur, details: r.details });
+        // Déjà pointée, ou plus à faire : l'écran se remet à jour
+        if (r.erreur === "deja-sur-place" || r.erreur === "transition-interdite") void recharger();
+        return;
+      }
+      vibrerLegerement();
+      setMission(r.mission);
+      setAnnonce({ texte: "📍 C'est noté, tu es bien sur place. À toi le compte rendu !", numero: Date.now() });
+    } finally {
+      occupe.current = false;
+      setPresence("repos");
+    }
+  }, [mission, lirePosition, ambassadeur, recharger]);
+
+  /** La toute première fois, on dit pourquoi on lit la position (même mémoire que l'addition et le QR du comptoir) */
+  const demanderPresence = useCallback(async () => {
+    if (occupe.current) return;
+    if (await lireExplicationPositionVue()) void verifierPresence();
+    else setExplication(true);
+  }, [verifierPresence]);
 
   if (mission === undefined) {
     return (
@@ -49,6 +114,21 @@ export default function EcranMission() {
 
   const type = TYPES_MISSION[mission.type];
   const aFaire = mission.statut === "a-faire";
+  const lieu = mission.lieu;
+  // « ✓ Sur place à 15h42 », avec le jour si ce n'était pas aujourd'hui
+  const pointee = mission.presenceVerifieeLe ? new Date(mission.presenceVerifieeLe) : null;
+  const surPlace = pointee
+    ? `✓ Sur place${pointee.toDateString() === new Date().toDateString() ? "" : ` le ${ecrireJourLong(pointee).toLowerCase()}`} à ${ecrireHeure(pointee)}`
+    : null;
+
+  const actions: ActionEchecVisite[] = [];
+  if (echec?.erreur === "position-bloquee" || echec?.erreur === "position-approximative") {
+    actions.push({ libelle: "Ouvrir les réglages", onPress: () => void Linking.openSettings().catch(() => {}) });
+  }
+  if (echec && A_REESSAYER.includes(echec.erreur)) {
+    actions.push({ libelle: "Réessayer", variante: actions.length > 0 ? "blanc" : "jaune", onPress: () => void verifierPresence() });
+  }
+
   async function terminer() {
     if (!mission) return;
     setEnCours(true);
@@ -72,11 +152,36 @@ export default function EcranMission() {
     >
       <View className="gap-5">
         {mission.detail ? <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(mission.detail)}</Text> : null}
-        {mission.lieu ? (
+        {lieu ? (
           <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
-            <Text className="font-texte-gras text-base text-encre">{`${mission.lieu.emoji} ${mission.lieu.nom}`}</Text>
-            <Text className="font-texte text-sm text-gris">{mission.lieu.ville}</Text>
-            <Bouton libelle="Voir la fiche du lieu" variante="blanc" petit onPress={() => router.push({ pathname: "/lieu/[id]", params: { id: String(mission.lieu!.id) } })} />
+            <Text className="font-texte-gras text-base text-encre">{`${lieu.emoji} ${lieu.nom}`}</Text>
+            <Text className="font-texte text-sm text-gris">{lieu.ville}</Text>
+            {surPlace ? <Text className="font-texte-gras text-base text-encre">{surPlace}</Text> : null}
+            {aFaire && !surPlace && lieu.position ? (
+              <View className="gap-2">
+                {presence === "repos" ? (
+                  <Bouton
+                    libelle="📍 Je suis sur place"
+                    libelleLu="Je suis sur place"
+                    indice={`On vérifie que tu es bien ${direChezLieu(lieu.nom)}, puis l'équipe voit l'heure de ton passage`}
+                    onPress={() => void demanderPresence()}
+                  />
+                ) : (
+                  // Même place que le bouton : rien ne saute pendant qu'on cherche ta position
+                  <View
+                    accessible
+                    accessibilityLabel={TEXTES_PRESENCE[presence]}
+                    accessibilityLiveRegion="polite"
+                    className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 py-2"
+                  >
+                    <ActivityIndicator color={couleurs.encre} />
+                    <Text className="font-texte-gras text-base text-encre">{TEXTES_PRESENCE[presence]}</Text>
+                  </View>
+                )}
+                <Text className="font-texte text-sm text-gris">Ta position sert juste à vérifier, elle n'est pas gardée : l'équipe ne voit que l'heure.</Text>
+              </View>
+            ) : null}
+            <Bouton libelle="Voir la fiche du lieu" variante="blanc" petit onPress={() => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } })} />
           </View>
         ) : null}
         {aFaire ? (
@@ -97,6 +202,19 @@ export default function EcranMission() {
         )}
       </View>
       <Annonce annonce={annonce} haut={8} onFin={() => setAnnonce(null)} />
+      <FeuilleConfirmation
+        visible={explication}
+        emoji="📍"
+        titre="Petite vérif' de position"
+        detail={`On vérifie que tu es bien ${lieu ? direChezLieu(lieu.nom) : "sur place"} (à ${RAYON_VALIDATION_M} m près), une seule fois. Ta position n'est pas gardée : l'équipe voit juste l'heure de ton passage.`}
+        libelleConfirmer="OK, vérifie"
+        libelleRester="Pas maintenant"
+        indiceRester="Ta position n'est pas lue"
+        onConfirmer={() => void enregistrerExplicationPositionVue()}
+        onFermer={() => setExplication(false)}
+        onRefermee={() => void verifierPresence()}
+      />
+      <FeuilleEchecVisite echec={echec} lieuNom={lieu?.nom} actions={actions} onFermer={() => setEchec(null)} />
     </EcranReglage>
   );
 }

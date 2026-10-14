@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import type { FormatImpression } from "~/contenus/kit-media-pro";
 
 type Props = {
-  /** Format du papier ; chaque page est dessinée à sa taille en pixels (300 dpi) */
-  format: FormatImpression;
+  /** Format du papier ; chaque page est dessinée à sa taille en pixels (300 dpi). Sert aussi au kit des lieux. */
+  format: Pick<FormatImpression, "largeurMm" | "hauteurMm" | "largeur" | "hauteur">;
   /** Version PDF : chaque page est ramenée à la taille du papier, une page imprimée par page dessinée */
   impression: boolean;
   /** Adresses de la feuille de style du site et des deux polices (latin), servies par le serveur de développement */
