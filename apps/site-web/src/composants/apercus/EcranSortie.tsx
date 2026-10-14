@@ -27,7 +27,7 @@ export function EcranSortie() {
           <PictoCategorie type="resto" className="h-9 w-9 shrink-0" />
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-[12.5px] font-bold">Restaurant du Capitaine Bouiboui</span>
-            <span className="text-[11px] text-gris">Brunch · à 800 m</span>
+            <span className="text-[11px] text-gris">Bistrot · à 800 m</span>
           </span>
           <span className="shrink-0 rounded-full bg-jaune-clair px-2 py-0.5 text-[10.5px] font-bold">Vérifié ✓</span>
         </div>
