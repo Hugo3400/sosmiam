@@ -19,7 +19,8 @@
 // Cloudflare : sous-traitant d'après son contrat de traitement des données (cloudflare.com/cloudflare-customer-dpa), mais sa
 // politique de confidentialité indique qu'il tire du trafic des « Network Data » pour la sécurité de son réseau (usage propre).
 // Journaux nginx : logrotate « daily / rotate 14 » (par nombre de fichiers) : une ligne vit jusqu'à 15 jours. Format
-// « combined » : l'adresse complète, paramètres compris. Le programme du site (apps/site-web/serveur/, audit du 14 octobre
+// « sosmiam_sans_parametres » (/etc/nginx/conf.d/sosmiam-journal.conf, depuis le 14 octobre 2026) : le chemin sans ce qui
+// suit le « ? », et le referer coupé avant son « ? » ; les journaux d'avant ont été nettoyés le même soir. Le programme du site (apps/site-web/serveur/, audit du 14 octobre
 // 2026) n'écrit que méthode, chemin sans paramètres, statut et durée ; ses journaux pm2 : 14 rotations aussi
 // (/etc/logrotate.d/sos-miam-pm2). Connexion par QR : confidentialite-connexion-qr.ts.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
@@ -81,7 +82,7 @@ export const documentConfidentialite: DocumentLegal = {
         "Comme presque tous les sites, notre serveur note chaque page qu'il envoie dans un journal (les « logs »), dès sa porte d'entrée : le logiciel qui reçoit toutes les demandes avant de les passer au site. C'est automatique dès que tu ouvres une page.",
         {
           liste: [
-            "**Ce qui est enregistré** : ton adresse IP (transmise par Cloudflare, voir plus bas), la date et l'heure, la page demandée, le code de réponse du serveur, l'adresse de la page d'où tu arrives (le « referer ») et la signature de ton navigateur (le « user-agent » : type de navigateur, système, version). L'adresse de la page y est complète, avec ce qui suit le « ? » s'il y en a. En cas d'erreur, un journal d'erreurs garde aussi ton adresse IP et la page demandée, pour la même durée.",
+            "**Ce qui est enregistré** : ton adresse IP (transmise par Cloudflare, voir plus bas), la date et l'heure, la page demandée, le code de réponse du serveur, l'adresse de la page d'où tu arrives (le « referer ») et la signature de ton navigateur (le « user-agent » : type de navigateur, système, version). Pour la page demandée comme pour celle d'où tu arrives, seul le **chemin** est noté, **sans** ce qui suit le « ? » : ni un lien de désinscription, ni une recherche, ni un code. En cas d'erreur, un journal d'erreurs garde aussi ton adresse IP et la page demandée, pour la même durée.",
             "**Le journal du programme du site** : le programme qui fabrique les pages tient en plus son propre journal, bien plus court : le type de demande, le **chemin** de la page, **sans** ce qui suit le « ? » (ni le code d'un QR de connexion, ni le pseudo d'une invitation), le code de réponse et le temps de réponse. Ni ton adresse IP, ni ton navigateur, ni la page d'où tu arrives.",
             "**Pourquoi** : repérer et bloquer les attaques ou les abus, et comprendre une panne quand quelque chose casse. Ces journaux ne servent ni à te suivre, ni à faire des statistiques de visite (celles-ci sont comptées à part, sans garder ton adresse IP : voir la section suivante).",
             "**Base légale** : l'intérêt légitime (article 6.1.f du RGPD). L'intérêt poursuivi : assurer la sécurité et le bon fonctionnement du site.",

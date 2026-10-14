@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { ProfilCommunautaireApi } from "@sos-miam/commun/types/social";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 export type EtatProfilCommunautaire = {
   /** Ce que ton niveau permet de voir de cette personne (compte connecté), ou null */
@@ -14,12 +15,14 @@ export type EtatProfilCommunautaire = {
 /**
  * Le profil d'une personne, lu sur le serveur avec un compte connecté (GET /app/personnes/:id) : ce que ton niveau permet
  * (bande, public ou privé). Une fois lu, la communauté connaît la personne (trouverPote), avec ce que la bande voit en plus
- * (ville, points, lieux sauvés…). Démo, visite ou toi-même : rien à lire, la communauté du téléphone suffit. Une personne
- * inconnue, sans profil social, ou qui t'a bloqué : profil null (on ne dit jamais lequel des trois).
+ * (ville, points, lieux sauvés…), et les suivis connaissent sa relation avec toi (noterProfil). Démo, visite ou toi-même :
+ * rien à lire, la communauté du téléphone suffit. Une personne inconnue, sans profil social, ou qui t'a bloqué : profil null
+ * (on ne dit jamais lequel des trois).
  */
 export function utiliserProfilCommunautaire(id: string): EtatProfilCommunautaire {
   const { sociaux } = utiliserSession();
   const { source, moi, noterPersonne } = utiliserCommunaute();
+  const { noterProfil } = utiliserSuivisPersonnes();
   const aLire = source === "compte" && id !== "" && id !== moi.id;
   const [etat, setEtat] = useState<EtatProfilCommunautaire>({ profil: null, chargement: aLire });
 
@@ -47,12 +50,13 @@ export function utiliserProfilCommunautaire(id: string): EtatProfilCommunautaire
             : {}),
         },
       );
+      noterProfil(profil);
       setEtat({ profil, chargement: false });
     });
     return () => {
       actif = false;
     };
-    // noterPersonne change à chaque relecture de la bande : la lecture ne repart pas pour autant
+    // noterPersonne change à chaque relecture de la bande (noterProfil, lui, est stable) : la lecture ne repart pas pour autant
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aLire, id, sociaux]);
 
