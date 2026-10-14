@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -14,21 +13,22 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   /** Clés des lieux et créateurs suivis (calculerCleSuivi) */
   suivis: readonly string[];
-  age: number;
+  /** Plus lu : tout compte a 18 ans ou plus (à retirer de l'onglet Profil, qui le passe encore) */
+  age?: number;
 };
 
 /**
  * La rangée « 🔔 Tu suis » du profil, avec le compte des personnes, lieux et créateurs suivis (« 2 personnes, 3 lieux et 1 créateur ») ;
  * elle ouvre la liste pour les retrouver ou ne plus les suivre.
  */
-export function EntreeSuivis({ suivis, age }: Props) {
+export function EntreeSuivis({ suivis }: Props) {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
   const nombrePersonnes = utiliserSuivisPersonnes().abonnements.length;
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
-  // Comptés comme dans la liste « Tu suis » : ce qui existe encore et que ton âge autorise
-  const affichables = listerSuivisAffichables(suivis, filtrerLieuxSelonAge(tousLesLieux, age), toutesLesPublications);
+  // Comptés comme dans la liste « Tu suis » : ce qui existe encore
+  const affichables = listerSuivisAffichables(suivis, tousLesLieux, toutesLesPublications);
   const nombreLieux = affichables.filter((s) => s.type === "lieu").length;
   const nombreCreateurs = affichables.length - nombreLieux;
 

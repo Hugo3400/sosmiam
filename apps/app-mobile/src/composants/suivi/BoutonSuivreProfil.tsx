@@ -6,7 +6,6 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
-import { SANS_RETOUR_AGE } from "~/contenus/sans-retour-age";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
@@ -43,7 +42,7 @@ type Feuille = { type: "ne-plus-suivre" | "annuler-demande" | "pseudo"; visible:
  * « Suivre » (jaune) suit tout de suite, ou envoie une demande si le compte est privé (« Demandé ⏱ ») ; « Suivi ✓ » ouvre
  * une feuille « Ne plus suivre … ? » et « Demandé » une feuille « Annuler ta demande ? » : rien ne se défait sur un seul
  * toucher. Marche pour un lieu, un créateur ou une personne (utiliserEtatSuivi) ; rien du tout quand la règle ne permet
- * pas de suivre (toi, personne bloquée, âge…). Lit lui-même l'état du suivi : il se met à jour même dans un en-tête mémorisé.
+ * pas de suivre (toi, personne bloquée…). Lit lui-même l'état du suivi : il se met à jour même dans un en-tête mémorisé.
  * Sans compte (visite), il ouvre la feuille « Crée ton compte ».
  */
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
@@ -56,7 +55,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
   const bouton = useRef<View>(null);
   // « Annuler la demande » touché alors qu'elle venait d'être acceptée : on le dit, plutôt que d'annoncer une annulation qui n'a pas eu lieu
   const tropTard = useRef(false);
-  const { etat, surDemande, meSuit, sansRetour } = etatSuivi;
+  const { etat, surDemande, meSuit } = etatSuivi;
   const personne = etatSuivi.type === "personne";
   const suivi = etat === "suivi";
   const demande = etat === "demande";
@@ -137,11 +136,9 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         detail={
           !personne
             ? undefined
-            : sansRetour
-              ? `Ses listes ne remonteront plus chez toi. ${SANS_RETOUR_AGE}`
-              : surDemande
-                ? "Son compte est privé : pour revoir ses listes et ses lieux, il faudra refaire une demande."
-                : "Ses listes ne remonteront plus chez toi. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux."
+            : surDemande
+              ? "Son compte est privé : pour revoir ses listes et ses lieux, il faudra refaire une demande."
+              : "Ses listes ne remonteront plus chez toi. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux."
         }
         onConfirmer={arreterDeSuivre}
         onRefermee={annoncerArret}
@@ -205,9 +202,8 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     </View>
   );
 
-  // Rien à suivre (toi, personne bloquée, âge, pas encore prêt) : pas de bouton, et une feuille ouverte se referme. La feuille
-  // garde sa place (même rang dans le fragment) pour finir sa sortie et annoncer, par exemple après « Ne plus suivre » un lien
-  // que la règle ne permettrait plus de refaire (passage à 18 ans)
+  // Rien à suivre (toi, personne bloquée, pas encore prêt) : pas de bouton, et une feuille ouverte se referme. La feuille
+  // garde sa place (même rang dans le fragment) pour finir sa sortie et annoncer
   return (
     <>
       {etat === "interdit" ? null : dessin}

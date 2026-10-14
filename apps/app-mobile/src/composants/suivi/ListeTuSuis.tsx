@@ -3,17 +3,14 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { RondPote } from "~/composants/potes/RondPote";
 import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -51,7 +48,6 @@ function rangerPersonnes(abonnements: PersonneLiee[], demandes: PersonneLiee[]):
  */
 export function ListeTuSuis({ onAnnoncer }: Props) {
   const router = useRouter();
-  const { profil } = utiliserProfil();
   const activite = utiliserActivite();
   const suivis = utiliserSuivisPersonnes();
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -71,8 +67,8 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
 
   if (cles === null || personnes === null) return null;
 
-  // Seulement ce qui existe encore et que ton âge autorise (comme dans le fil)
-  const lieux = filtrerLieuxSelonAge(tousLesLieux, profil ? calculerAge(profil.dateNaissance) : null);
+  // Seulement ce qui existe encore (écran réservé aux inscrits : tous les lieux)
+  const lieux = tousLesLieux;
   const pages = listerSuivisAffichables(cles, lieux, toutesLesPublications);
 
   const lignesPersonnes: LigneAffichee[] = personnes.flatMap(({ pote }) => {
@@ -113,7 +109,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
   const lignesCreateurs: LigneAffichee[] = pages.flatMap((page) => {
     if (page.type !== "createur") return [];
     const { cle, pseudo } = page;
-    // Comme sur sa page : sans ce qui est masqué ni les lieux que ton âge écarte
+    // Comme sur sa page : sans ce qui est masqué ni les lieux disparus
     const visibles = page.publications.filter((p) => !activite.estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId)).length;
     return [
       {

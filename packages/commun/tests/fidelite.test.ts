@@ -4,14 +4,15 @@ import type { EtatCarteFidelite } from "../src/types/fidelite.ts";
 import { appliquerTampon } from "../src/fonctions/fidelite/appliquer-tampon.ts";
 import { choisirRecompenseAffichee } from "../src/fonctions/fidelite/choisir-recompense-affichee.ts";
 import { contientMotAlcool } from "../src/fonctions/fidelite/contient-mot-alcool.ts";
+import { validerReglageFidelite } from "../src/validation/valider-reglage-fidelite.ts";
 
 const T0 = Date.parse("2026-10-09T19:00:00.000Z");
 const actif = { actif: true, visitesRequises: 5 };
 const tiramisu = { id: 7, libelle: "Un tiramisu maison" };
-/** La Cabane d'Émile : un verre de picpoul, et un café gourmand pour les moins de 18 ans */
+/** La Cabane d'Émile : un verre de picpoul, et un café gourmand pour qui visite sans compte */
 const cabane = { recompense: "Un verre de picpoul", alcool: true, recompenseSansAlcool: "Un café gourmand" };
 
-test("récompense alcoolisée : la version avec alcool pour un majeur, sans alcool pour un 15-17 ans", () => {
+test("récompense alcoolisée : la version avec alcool avec un compte, sans alcool en visite sans compte", () => {
   assert.equal(choisirRecompenseAffichee(cabane, true), "Un verre de picpoul");
   assert.equal(choisirRecompenseAffichee(cabane, false), "Un café gourmand");
 });
@@ -22,7 +23,7 @@ test("récompense sans alcool : la même pour tout le monde", () => {
   assert.equal(choisirRecompenseAffichee(nonna, false), "Un tiramisu maison");
 });
 
-test("un 15-17 ans ne reçoit jamais d'alcool, même case décochée ou version sans alcool mal remplie", () => {
+test("visite sans compte : jamais d'alcool, même case décochée ou version sans alcool mal remplie", () => {
   // Case « alcool » décochée mais mot d'alcool : traité comme alcoolisé
   assert.equal(choisirRecompenseAffichee({ ...cabane, alcool: false }, false), "Un café gourmand");
   assert.equal(choisirRecompenseAffichee({ ...cabane, alcool: false }, true), "Un verre de picpoul");
@@ -34,6 +35,23 @@ test("un 15-17 ans ne reçoit jamais d'alcool, même case décochée ou version 
   // Le Verre Tordu : « Un verre offert » n'a pas de mot d'alcool, mais la case est cochée
   const verreTordu = { recompense: "Un verre offert", alcool: true, recompenseSansAlcool: "Un sirop maison" };
   assert.equal(choisirRecompenseAffichee(verreTordu, false), "Un sirop maison");
+});
+
+test("validerReglageFidelite : la version sans alcool est facultative, mais jamais avec de l'alcool", () => {
+  const picpoul = { actif: true, visitesRequises: 5, recompense: "Un verre de picpoul", alcool: false, recompenseSansAlcool: null };
+  // Sans version sans alcool : accepté, case « alcool » cochée d'office
+  assert.deepEqual(validerReglageFidelite(picpoul), { ok: true, reglage: { ...picpoul, alcool: true } });
+  // Vide ou faite d'espaces : comme absente
+  assert.deepEqual(validerReglageFidelite({ ...picpoul, recompenseSansAlcool: "   " }), { ok: true, reglage: { ...picpoul, alcool: true } });
+  // Donnée : nettoyée et gardée
+  const avecSirop = validerReglageFidelite({ ...picpoul, recompenseSansAlcool: "  Un sirop maison " });
+  assert.deepEqual(avecSirop, { ok: true, reglage: { ...picpoul, alcool: true, recompenseSansAlcool: "Un sirop maison" } });
+  // Donnée mais avec de l'alcool, ou trop courte : refusée
+  assert.deepEqual(validerReglageFidelite({ ...picpoul, recompenseSansAlcool: "Un kir maison" }), { ok: false, erreur: "programme-invalide", champ: "recompenseSansAlcool" });
+  assert.deepEqual(validerReglageFidelite({ ...picpoul, recompenseSansAlcool: "Ok" }), { ok: false, erreur: "programme-invalide", champ: "recompenseSansAlcool" });
+  // Sans alcool dans la récompense : la version sans alcool n'a pas lieu d'être
+  const tiramisu = { ...picpoul, recompense: "Un tiramisu maison", recompenseSansAlcool: "Un sirop maison" };
+  assert.deepEqual(validerReglageFidelite(tiramisu), { ok: true, reglage: { ...tiramisu, recompenseSansAlcool: null } });
 });
 
 test("« Un verre de picpoul » contient un mot d'alcool (et force la case)", () => {

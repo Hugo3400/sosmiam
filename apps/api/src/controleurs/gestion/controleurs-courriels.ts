@@ -27,6 +27,7 @@ function lirePublic(source: Record<string, unknown>): PublicEnvoi {
   const oui = (cle: string) => source[cle] === true || source[cle] === "1" || source[cle] === "true";
   const ville = texte("ville", 80) || null;
   if (source.public === "ambassadeurs") return { public: "ambassadeurs", statut: source.statut === "tous" ? "tous" : "actif", ville };
+  if (source.public === "comptes") return { public: "comptes", ville };
   if (source.public !== undefined && source.public !== "newsletter") throw new ChampInvalide("public");
   const telephone = texte("telephone", 10);
   return { public: "newsletter", ville, candidats: oui("candidats"), beta: oui("beta"), telephone: telephone === "iphone" || telephone === "android" ? telephone : "" };
@@ -97,7 +98,8 @@ export function creerControleursCourriels(s: ServicesGestion) {
         const statut = resultat.erreur === "envoi-en-cours" ? 409 : resultat.erreur === "aucun-destinataire" ? 400 : 503;
         return reponse.status(statut).json({ ok: false, erreur: resultat.erreur, message: "message" in resultat ? resultat.message : undefined });
       }
-      await noter(reponse, cible.public === "newsletter" ? "Newsletter lancée" : "Mail aux ambassadeurs lancé", `${resultat.campagne.total} destinataire(s)${description ? ` : ${description}` : ""}`);
+      const libelles = { newsletter: "Newsletter lancée", ambassadeurs: "Mail aux ambassadeurs lancé", comptes: "Mail d'information à tous les comptes lancé" };
+      await noter(reponse, libelles[cible.public], `${resultat.campagne.total} destinataire(s)${description ? ` : ${description}` : ""}`);
       reponse.status(201).json({ ok: true, ...resultat.campagne });
     }),
     campagnes: verifier(async (_requete, reponse) => reponse.json(await s.listerCampagnes())),

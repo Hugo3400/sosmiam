@@ -15,7 +15,8 @@ export const LIMITE_RESCOUSSES = { fenetre: 10 * 60_000, maximum: 30 };
  * Réponses { ok: true, activite: ActiviteApi } (packages/commun/src/types/activite.ts), jamais en cache ;
  * 401 session-expiree ; 429 trop-de-demandes (Retry-After).
  *
- * GET    /app/activite                         → 200 { ok, activite }
+ * GET    /app/activite                         → 200 { ok, activite } ; activite.rechargeLe : le prochain lundi 00:00 à
+ *          l'heure de Paris (ISO 8601), quand les rescousses reviennent (l'app relit à ce moment-là)
  * POST   /app/activite/rescousses { lieuId }   → 201 { ok, activite, premierSauveteur } : +2 points ; toute première rescousse
  *          d'un lieu nouveau (30 jours) : premier sauveteur, +20 et le badge · 200 si déjà donnée cette semaine (rien ne
  *          change) · 400 champ-invalide { champ: "lieuId" } · 404 lieu-inconnu · 409 lieu-non-verifie | plus-de-rescousse

@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { NotificationSuivi, NouvelleNotificationSuivi } from "@sos-miam/commun/types/suivis";
 import { creerNotificationsDemo, DELAI_PUBLICATION_EXEMPLE } from "~/contenus/notifications-exemples";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -39,7 +36,7 @@ const estClePage = (cle: string) => {
  * Les notifications de l'app (démo gardée sur le téléphone en attendant l'API) : « … te suit », demande acceptée (ajoutées par
  * les suivis entre personnes), et « a posté » quand tu viens de suivre un lieu ou un créateur. Rien ne part sur le téléphone :
  * tout s'affiche derrière la cloche. Filtrées à la lecture : personne inconnue ou bloquée, publication masquée ou dont le lieu
- * n'est pas pour ton âge. Bloquer quelqu'un efface aussi ses notifications du stockage (débloquer ne les rend pas). Pas de démo sans profil (âge inconnu), ni après « Tout effacer » tant que le profil reste le même.
+ * a disparu. Bloquer quelqu'un efface aussi ses notifications du stockage (débloquer ne les rend pas). Pas de démo sans profil (visite sans compte), ni après « Tout effacer » tant que le profil reste le même.
  */
 export function FournisseurNotifications({ children }: { children: ReactNode }) {
   const { profil } = utiliserProfil();
@@ -57,16 +54,15 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   // Profil dont les suivis déjà présents ont été notés sans bruit (premier passage après la lecture)
   const suivisNotesPour = useRef<string | null>(null);
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
   const pourCeProfil = profil !== null && etat !== null && etat.profilCreeLe === profil.creeLe;
   const pret = relu && activite.chargee && communaute.pret && pourCeProfil;
 
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Ce que la minuterie « a posté » revérifie au moment de se déclencher
-  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null });
+  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null });
   useEffect(() => {
-    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null };
+    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, tousLesLieux, toutesLesPublications, profilCreeLe: profil?.creeLe ?? null };
   });
 
   useEffect(() => {
@@ -78,15 +74,14 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     return () => enCours.forEach(clearTimeout);
   }, []);
 
-  // Démo de départ : rien de gardé, ou gardé pour un autre profil (jamais avec un âge inconnu)
+  // Démo de départ : rien de gardé, ou gardé pour un autre profil (jamais sans profil)
   useEffect(() => {
     if (!relu || !profil || pourCeProfil || effacePour.current === profil.creeLe) return;
     // Vidé sur place (pas remplacé) : le nettoyage du démontage garde le même tableau
     minuteries.current.splice(0).forEach(clearTimeout);
     suivisNotesPour.current = null;
-    const mineur = calculerAge(profil.dateNaissance) < AGE_ALCOOL;
     // Hors démo, aucune notification inventée : seulement celles qui arrivent vraiment
-    const depart = DEMO_VISITES_ACTIVE ? creerNotificationsDemo(mineur, new Date()) : [];
+    const depart = DEMO_VISITES_ACTIVE ? creerNotificationsDemo(new Date()) : [];
     setEtat({ version: 1, profilCreeLe: profil.creeLe, notifications: depart, vuesLe: null, clesAnnoncees: [] });
   }, [relu, profil, pourCeProfil]);
 
@@ -126,12 +121,11 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     for (const cle of nouvelles) {
       minuteries.current.push(
         setTimeout(() => {
-          const { suivis, estMasquee, age, tousLesLieux, toutesLesPublications, profilCreeLe: profilActuel } = courant.current;
+          const { suivis, estMasquee, tousLesLieux, toutesLesPublications, profilCreeLe: profilActuel } = courant.current;
           // Plus suivi entre-temps, ou plus le même profil : rien
           if (profilActuel !== profilCreeLe || !suivis.includes(cle)) return;
-          const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
           const publication = toutesLesPublications.find(
-            (p) => calculerCleSuivi(p.auteur, p.lieuId) === cle && !estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId),
+            (p) => calculerCleSuivi(p.auteur, p.lieuId) === cle && !estMasquee(p.id) && tousLesLieux.some((l) => l.id === p.lieuId),
           );
           if (publication) ajouter({ type: "nouvelle-publication", cle, publicationId: publication.id });
         }, DELAI_PUBLICATION_EXEMPLE),
@@ -152,7 +146,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     await effacerNotificationsLocales();
   }, [profil]);
 
-  const { bloques, trouverPote, moiMineur } = communaute;
+  const { bloques, trouverPote } = communaute;
   const { estMasquee } = activite;
 
   // Bloquer efface pour de bon ses notifications (« … te suit en retour », demande acceptée) : débloquer ne les fait pas revenir,
@@ -161,7 +155,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     if (!pret || !etat || bloques.length === 0) return;
     const idsBloques = new Set(bloques.map((p) => p.id));
     const deBloque = (n: NotificationSuivi) => {
-      const cible = n.type === "majorite" ? null : lireCleSuivi(n.cle);
+      const cible = lireCleSuivi(n.cle);
       return cible?.type === "personne" && idsBloques.has(cible.id);
     };
     if (!etat.notifications.some(deBloque)) return;
@@ -171,23 +165,21 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   const notifications = useMemo(() => {
     if (!pret || !etat) return [];
     const idsBloques = new Set(bloques.map((p) => p.id));
-    const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
     return etat.notifications.filter((n) => {
-      if (n.type === "majorite") return !moiMineur;
       if (n.type === "nouvelle-publication") {
         const publication = toutesLesPublications.find((p) => p.id === n.publicationId);
         return (
           !!publication &&
           !estMasquee(publication.id) &&
-          lieux.some((l) => l.id === publication.lieuId) &&
+          tousLesLieux.some((l) => l.id === publication.lieuId) &&
           calculerCleSuivi(publication.auteur, publication.lieuId) === n.cle
         );
       }
-      // Une personne : connue et pas bloquée. Pas de filtre d'âge : à 18 ans, tes liens déjà acceptés restent (et leur histoire aussi)
+      // Une personne : connue et pas bloquée
       const cible = lireCleSuivi(n.cle);
       return cible?.type === "personne" && trouverPote(cible.id) !== null && !idsBloques.has(cible.id);
     });
-  }, [pret, etat, bloques, trouverPote, moiMineur, estMasquee, tousLesLieux, toutesLesPublications, age]);
+  }, [pret, etat, bloques, trouverPote, estMasquee, tousLesLieux, toutesLesPublications]);
 
   const vuesLe = pret && etat ? etat.vuesLe : null;
   const valeur = useMemo<EtatNotifications>(

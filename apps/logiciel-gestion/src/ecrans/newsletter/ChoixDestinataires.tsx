@@ -21,6 +21,7 @@ type Props = {
 
 const NEWSLETTER: PublicEnvoi = { public: "newsletter", ville: "", candidats: false, beta: false, telephone: "" };
 const AMBASSADEURS: PublicEnvoi = { public: "ambassadeurs", statut: "actif", ville: "" };
+const COMPTES: PublicEnvoi = { public: "comptes", ville: "" };
 
 /** À qui envoyer : le public (inscrits ou ambassadeurs), ses filtres, puis la liste exacte, à cocher une par une. */
 export function ChoixDestinataires({ cible, onCible, destinataires, decoches, onDecoches, villes, synchronisee }: Props) {
@@ -40,8 +41,8 @@ export function ChoixDestinataires({ cible, onCible, destinataires, decoches, on
       <Onglets
         libelle="Public"
         valeur={cible.public}
-        onChange={(valeur) => onCible(valeur === "newsletter" ? NEWSLETTER : AMBASSADEURS)}
-        options={[{ valeur: "newsletter", libelle: "Inscrits à la newsletter" }, { valeur: "ambassadeurs", libelle: "Ambassadeurs" }]}
+        onChange={(valeur) => onCible(valeur === "newsletter" ? NEWSLETTER : valeur === "comptes" ? COMPTES : AMBASSADEURS)}
+        options={[{ valeur: "newsletter", libelle: "Inscrits à la newsletter" }, { valeur: "ambassadeurs", libelle: "Ambassadeurs" }, { valeur: "comptes", libelle: "Tous les comptes (information)" }]}
       />
       <div className="flex flex-wrap items-end gap-3">
         <Champ libelle="Ville" valeur={cible.ville} onChange={(ville) => onCible({ ...cible, ville })} placeholder="Toutes" list="villes-envoi" className="w-48" />
@@ -60,6 +61,8 @@ export function ChoixDestinataires({ cible, onCible, destinataires, decoches, on
               <CaseACocher libelle="Bêta-testeurs" coche={cible.beta} onChange={(beta) => onCible({ ...cible, beta })} />
             </div>
           </>
+        ) : cible.public === "comptes" ? (
+          <p className="pb-2 text-[13px] text-gris">Pour informer tout le monde d'un changement du service (CGU…), jamais pour de la pub : ça part même aux désinscrits de la newsletter.</p>
         ) : (
           <Selecteur
             libelle="Statut"

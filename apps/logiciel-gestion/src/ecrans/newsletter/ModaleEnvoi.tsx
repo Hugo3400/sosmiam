@@ -6,7 +6,7 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { rendreTexteBrut } from "~/fonctions/editeur/rendre-texte-brut.ts";
-import { creerHtmlNewsletter, PIED_AMBASSADEURS } from "~/fonctions/newsletter/creer-html-newsletter.ts";
+import { creerHtmlNewsletter, PIED_AMBASSADEURS, PIED_COMPTES } from "~/fonctions/newsletter/creer-html-newsletter.ts";
 import { creerTexteNewsletter } from "~/fonctions/newsletter/creer-texte-newsletter.ts";
 import { decrirePublic } from "~/fonctions/newsletter/decrire-public.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
@@ -35,11 +35,11 @@ export function ModaleEnvoi({ objet, document, brouillonId, onFermer, onLance }:
   const [essai, setEssai] = useState("bonjour@sosmiam.fr");
   const [etat, setEtat] = useState<{ enCours: "essai" | "envoi" | null; message: string | null; erreur: boolean }>({ enCours: null, message: null, erreur: false });
 
-  const pourAmbassadeurs = cible.public === "ambassadeurs";
+  const pieds = { newsletter: undefined, ambassadeurs: PIED_AMBASSADEURS, comptes: PIED_COMPTES };
   const contenu = {
     objet,
-    html: creerHtmlNewsletter(objet, document, pourAmbassadeurs ? PIED_AMBASSADEURS : undefined),
-    texte: creerTexteNewsletter(objet, rendreTexteBrut(document), pourAmbassadeurs),
+    html: creerHtmlNewsletter(objet, document, pieds[cible.public]),
+    texte: creerTexteNewsletter(objet, rendreTexteBrut(document), cible.public),
   };
   const destinataires = liste.donnees?.destinataires ?? [];
   const choisis = destinataires.filter((d) => !decoches.has(d.adresse)).map((d) => d.adresse);

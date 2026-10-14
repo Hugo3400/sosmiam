@@ -8,13 +8,12 @@ import { RAYON_VALIDATION_M } from "../../../../packages/commun/src/regles/visit
 import type { ErreurService } from "../../../../packages/commun/src/types/erreurs-service.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { LecturePosition } from "../../../../packages/commun/src/types/position.ts";
-import { estMajeurVisiteur } from "../fonctions/visites/est-majeur-visiteur.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import type { CompteVisiteur, DepotVisites, LieuVisite, NouvelleVisite, TablesVisites } from "./visites-regles.ts";
 
 export type ContexteVisites = {
   depot: DepotVisites;
-  /** Pour l'âge (bars, alcool, rôles) et l'initiale du nom montrée au comptoir ; null : clé absente (prudence) */
+  /** Pour l'initiale du nom montrée au comptoir ; null : clé absente (prénom seul) */
   chiffrement: ChiffrementDonnees | null;
   /** Signature des QR du comptoir (fonctions/securite/creer-signature-qr.ts) */
   signerQr: (message: string) => string;
@@ -24,7 +23,7 @@ export type ContexteVisites = {
 };
 
 export type EchecVisite = { ok: false; erreur: ErreurService; details?: DetailsErreur; champ?: string };
-export type Visiteur = CompteVisiteur & { majeur: boolean };
+export type Visiteur = CompteVisiteur;
 
 export function creerOutilsVisites(c: ContexteVisites) {
   const maintenant = () => new Date(c.horloge());
@@ -34,24 +33,21 @@ export function creerOutilsVisites(c: ContexteVisites) {
     maintenant,
     echec,
 
-    /** Le compte connecté et son âge ; un compte effacé entre-temps est traité avec prudence (mineur, rien de vérifié) */
+    /** Le compte connecté ; un compte effacé entre-temps est traité avec prudence (e-mail non vérifié, aucun rattachement) */
     async lireVisiteur(t: TablesVisites, compteId: number): Promise<Visiteur> {
       const compte = (await t.lireComptes([compteId])).get(compteId);
-      if (!compte) return { id: compteId, prenom: "", avatar: null, nomChiffre: null, dateNaissanceChiffree: null, emailVerifie: false, rattachements: [], majeur: false };
-      return { ...compte, majeur: estMajeurVisiteur(compte.dateNaissanceChiffree, c.chiffrement, maintenant()) };
+      return compte ?? { id: compteId, prenom: "", avatar: null, nomChiffre: null, emailVerifie: false, rattachements: [] };
     },
 
     /** Ce compte peut-il faire valider une visite ici (règles de packages/commun) ? null si oui */
     verifierDroits(lieu: LieuVisite, v: Visiteur): EchecVisite | null {
       const droit = verifierDroitValidation({
         lieu: { id: lieu.id, type: lieu.type, validationActive: lieu.validationActive },
-        compte: { majeur: v.majeur, limiteJusqua: null, lieuxMembre: v.rattachements.map((r) => r.lieuId) },
+        compte: { limiteJusqua: null, lieuxMembre: v.rattachements.map((r) => r.lieuId) },
         maintenantMs: c.horloge(),
       });
       if (droit.ok) return null;
-      // Le nom d'un bar n'est jamais rendu à un 15-17 ans, même si le bar ne valide pas
-      const nomVisible = !(lieu.type === "bar" && !v.majeur);
-      return droit.erreur === "lieu-sans-validation" && nomVisible ? echec(droit.erreur, { lieu: lieu.nom }) : echec(droit.erreur);
+      return droit.erreur === "lieu-sans-validation" ? echec(droit.erreur, { lieu: lieu.nom }) : echec(droit.erreur);
     },
 
     /** E-mail vérifié obligatoire pour valider (décidé le 9 octobre 2026) ; une connexion Apple ou Google compte */

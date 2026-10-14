@@ -1,5 +1,4 @@
 import { appliquerTampon } from "../../../../../packages/commun/src/fonctions/fidelite/appliquer-tampon.ts";
-import { choisirRecompenseAffichee } from "../../../../../packages/commun/src/fonctions/fidelite/choisir-recompense-affichee.ts";
 import { estRecompenseAlcool } from "../../../../../packages/commun/src/fonctions/fidelite/est-recompense-alcool.ts";
 import type { EffetVisite } from "../../../../../packages/commun/src/types/visite.ts";
 import type { ChampsVisite, LigneVisite, TablesVisites } from "../../services/visites-regles.ts";
@@ -11,10 +10,10 @@ export type EffetsAppliques = { champs: ChampsVisite; points: PointsVisite[]; re
 
 /**
  * Applique, dans la transaction, les effets d'une visite qui vient d'être décidée (faireEvoluerVisite, packages/commun) :
- * tampon sur la carte (récompense figée quand elle se remplit, selon l'âge du client), dates de l'avis. Rend ce qu'il
- * reste à écrire sur la visite, et les points et contrôles que l'appelant traite après. `majeur` : le client de la visite.
+ * tampon sur la carte (récompense figée quand elle se remplit, alcool compris), dates de l'avis. Rend ce qu'il reste à
+ * écrire sur la visite, et les points et contrôles que l'appelant traite après.
  */
-export async function appliquerEffetsVisite(t: TablesVisites, v: LigneVisite, effets: EffetVisite[], maintenant: Date, majeur: boolean): Promise<EffetsAppliques> {
+export async function appliquerEffetsVisite(t: TablesVisites, v: LigneVisite, effets: EffetVisite[], maintenant: Date): Promise<EffetsAppliques> {
   const resultat: EffetsAppliques = { champs: {}, points: [], recompenseGagnee: false, controles: [] };
   for (const effet of effets) {
     if (effet.type === "points") {
@@ -22,7 +21,7 @@ export async function appliquerEffetsVisite(t: TablesVisites, v: LigneVisite, ef
       const raison = effet.raison === "annulation-visite" ? (v.pendantSos ? "visite-sos" : "visite") : effet.raison;
       resultat.points.push({ valeur: effet.valeur, raison, detail: `${effet.raison === "annulation-visite" ? "visite retirée" : "visite"} ${v.id}, lieu ${v.lieuId}` });
     } else if (effet.type === "tampon") {
-      const tampon = await changerTampon(t, v, effet.delta, maintenant, majeur);
+      const tampon = await changerTampon(t, v, effet.delta, maintenant);
       resultat.champs.tampon = tampon.pose;
       if (tampon.recompenseGagnee) resultat.recompenseGagnee = true;
     } else if (effet.type === "ouvrir-avis") {
@@ -39,23 +38,23 @@ export async function appliquerEffetsVisite(t: TablesVisites, v: LigneVisite, ef
 }
 
 /** Pose ou retire le tampon de la visite ; `pose` : la visite porte un tampon après coup */
-async function changerTampon(t: TablesVisites, v: LigneVisite, delta: 1 | -1, maintenant: Date, majeur: boolean) {
+async function changerTampon(t: TablesVisites, v: LigneVisite, delta: 1 | -1, maintenant: Date) {
   const programme = await t.lireProgramme(v.lieuId);
-  const libelle = programme ? choisirRecompenseAffichee(programme, majeur) : null;
-  if (!programme || (delta === 1 && (!programme.actif || libelle === null))) return { pose: false, recompenseGagnee: false };
+  if (!programme || (delta === 1 && !programme.actif)) return { pose: false, recompenseGagnee: false };
   let carte = await t.lireCarte(v.compteId, v.lieuId, maintenant);
   if (!carte && delta === -1) return { pose: false, recompenseGagnee: false };
   carte ??= await t.creerCarte(v.compteId, v.lieuId, maintenant);
   // L'alcool est figé avec la récompense : si le lieu change ensuite son programme, le message sanitaire reste juste
-  const alcool = estRecompenseAlcool(programme, majeur);
+  const alcool = estRecompenseAlcool(programme);
+  const libelle = programme.recompense;
   const { carte: apres, recompenseGagnee } = appliquerTampon(
     { tampons: carte.tampons, pretes: [] },
     programme,
     delta,
-    { id: 0, libelle: libelle ?? programme.recompense, alcool },
+    { id: 0, libelle, alcool },
     maintenant.getTime(),
   );
   await t.modifierTampons(carte.id, apres.tampons);
-  if (recompenseGagnee) await t.ajouterRecompense(carte.id, { libelle: libelle ?? programme.recompense, alcool, gagneeLe: maintenant });
+  if (recompenseGagnee) await t.ajouterRecompense(carte.id, { libelle, alcool, gagneeLe: maintenant });
   return { pose: delta === 1, recompenseGagnee };
 }

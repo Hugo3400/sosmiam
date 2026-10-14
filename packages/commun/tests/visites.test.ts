@@ -192,27 +192,25 @@ test("choisirCodeAddition évite les codes pris et complète par des zéros", ()
   assert.throws(() => choisirCodeAddition(new Set(["0001"]), () => 1));
 });
 
-test("verifierDroitValidation : ordre des contrôles", () => {
+test("verifierDroitValidation : ordre des contrôles (un bar se valide comme les autres)", () => {
   const base = {
     lieu: { id: 5, type: "bar" as const, validationActive: true },
-    compte: { majeur: true, limiteJusqua: null, lieuxMembre: [] as number[] },
+    compte: { limiteJusqua: null, lieuxMembre: [] as number[] },
     maintenantMs: T0,
   };
   assert.deepEqual(verifierDroitValidation(base), { ok: true });
   const toutFaux = {
     lieu: { ...base.lieu, validationActive: false },
-    compte: { majeur: false, limiteJusqua: iso(T0 + JOUR), lieuxMembre: [5] },
+    compte: { limiteJusqua: iso(T0 + JOUR), lieuxMembre: [5] },
     maintenantMs: T0,
   };
   assert.deepEqual(verifierDroitValidation(toutFaux), { ok: false, erreur: "lieu-sans-validation" });
   const etape2 = { ...toutFaux, lieu: base.lieu };
-  assert.deepEqual(verifierDroitValidation(etape2), { ok: false, erreur: "mineur-bar" });
-  const etape3 = { ...etape2, compte: { ...toutFaux.compte, majeur: true } };
-  assert.deepEqual(verifierDroitValidation(etape3), { ok: false, erreur: "compte-limite" });
-  const etape4 = { ...etape3, compte: { ...etape3.compte, limiteJusqua: iso(T0 - 1) } };
-  assert.deepEqual(verifierDroitValidation(etape4), { ok: false, erreur: "membre-du-lieu" });
-  const restoMineur = { ...base, lieu: { ...base.lieu, type: "resto" as const }, compte: { ...base.compte, majeur: false } };
-  assert.deepEqual(verifierDroitValidation(restoMineur), { ok: true });
+  assert.deepEqual(verifierDroitValidation(etape2), { ok: false, erreur: "compte-limite" });
+  const etape3 = { ...etape2, compte: { ...etape2.compte, limiteJusqua: iso(T0 - 1) } };
+  assert.deepEqual(verifierDroitValidation(etape3), { ok: false, erreur: "membre-du-lieu" });
+  const resto = { ...base, lieu: { ...base.lieu, type: "resto" as const } };
+  assert.deepEqual(verifierDroitValidation(resto), { ok: true });
   const pauseIllisible = { ...base, compte: { ...base.compte, limiteJusqua: "un jour" } };
   assert.deepEqual(verifierDroitValidation(pauseIllisible), { ok: false, erreur: "compte-limite" });
 });

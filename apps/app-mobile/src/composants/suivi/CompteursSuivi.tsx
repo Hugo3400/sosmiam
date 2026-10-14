@@ -24,7 +24,7 @@ const preparer = (onglet: Onglet, nombre: number, mot: string): Compteur => ({
 /**
  * « 12 abonnés · 5 abonnements » sous l'en-tête d'un profil. Chaque compteur ouvre sa liste (Réseau) quand on peut la voir ;
  * sinon (compte privé), un seul texte qu'on ne peut pas toucher. Rien du tout quand l'écran ne doit pas montrer de compteurs
- * (un mineur vu par un adulte, ou suivis pas encore relus).
+ * (suivis pas encore relus, personne inconnue ou bloquée).
  */
 export function CompteursSuivi({ id }: Props) {
   const router = useRouter();

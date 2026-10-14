@@ -146,7 +146,7 @@ export function creerReservationsClient(c: ContexteVisites) {
         if (!decision.ok) return o.echec(decision.erreur);
         const nee = decision.creerVisite ? await outils.honorer(t, decision.reservation, maintenant) : null;
         const resume = o.resumer(lieu);
-        const validation = nee ? await construireResultatValidation(t, nee.visite, resume, nee.majeur, nee.recompenseGagnee, maintenant) : null;
+        const validation = nee ? await construireResultatValidation(t, nee.visite, resume, nee.recompenseGagnee, maintenant) : null;
         return {
           ok: true,
           reservation: presenterReservation(decision.reservation, resume, nee?.visite.id ?? null),

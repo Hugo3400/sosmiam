@@ -89,7 +89,6 @@ export type CompteVisiteur = {
   prenom: string;
   avatar: string | null;
   nomChiffre: string | null;
-  dateNaissanceChiffree: string | null;
   emailVerifie: boolean;
   /** Ses rattachements validés (gérant ou équipe) */
   rattachements: { lieuId: number; role: RoleRattachement }[];

@@ -1,5 +1,5 @@
 // Tâches de nuit, vers 3 h 30 (heure de Paris) : d'abord le ménage promis par la politique de confidentialité (contacts
-// des demandes de lieux de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
+// des demandes de lieux et désinscriptions de la newsletter de plus de 3 ans, journal des mails et détail des notifications de plus de 90 jours, puis les
 // comptes : sessions expirées, comptes refusés ou sans visite, candidatures refusées (fondateur et certifié), liens de
 // réinitialisation expirés), les signalements Miam Safe traités depuis plus d'un an et ses alertes de plus de 30 jours, les alertes par mail 30 jours avant le retrait du rôle d'ambassadeur (1 an sans visite) et
 // l'effacement d'un compte (2 ans), puis une sauvegarde chiffrée de la base, aussitôt relue en entier pour la tester. Au démarrage, le ménage et une sauvegarde
@@ -9,6 +9,7 @@ import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
 import { effacerReceptionsAnciennes } from "../services/notifications/file-push.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { effacerMiamSafeAncien } from "../services/gestion/miam-safe.ts";
+import { purgerDesinscritsAnciens } from "../services/gestion/newsletter.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
 import { testerSauvegarde } from "../services/gestion/test-sauvegarde.ts";
@@ -40,6 +41,8 @@ async function faireLeMenage() {
     if (envois > 0) await noterAction("serveur", "Journal des mails effacé (plus de 90 jours)", `${envois} mail(s)`);
     const receptions = await effacerReceptionsAnciennes();
     if (receptions > 0) await noterAction("serveur", "Détail des notifications effacé (plus de 90 jours)", `${receptions} réception(s)`);
+    const desinscrits = await purgerDesinscritsAnciens();
+    if (desinscrits > 0) await noterAction("serveur", "Liste des désinscrits allégée (plus de 3 ans, doublons)", `${desinscrits} ligne(s)`);
     const miamSafe = await effacerMiamSafeAncien();
     if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an)", `${miamSafe.signalements} signalement(s)`);
     if (miamSafe.alertes > 0) await noterAction("serveur", "Alertes Miam Safe effacées (plus de 30 jours)", `${miamSafe.alertes} alerte(s)`);

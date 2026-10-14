@@ -17,20 +17,18 @@ export type RelationPersonne = {
   visibilite: VisibiliteProfil;
 };
 
-/** Une personne liée à toi, et depuis quand (ISO). surveillance : lien adulte ↔ créateur de 15-17 ans (pour la future API) */
-export type PersonneLiee = { pote: Pote; depuis: string; surveillance?: boolean };
+/** Une personne liée à toi, et depuis quand (ISO) */
+export type PersonneLiee = { pote: Pote; depuis: string };
 
 export type EtatSuivisPersonnes = {
   /** Faux tant que le stockage, la communauté et le profil ne sont pas relus (et toujours pendant la visite sans compte) : rien à afficher (ni bouton ni compteur) */
   pret: boolean;
   confidentialite: Confidentialite;
-  /** Ce qui s'applique (estComptePrive) : toujours vrai entre 15 et 17 ans */
+  /** Ce qui s'applique (estComptePrive) */
   comptePrive: boolean;
-  /** 15-17 ans (ou âge inconnu) : l'interrupteur ne bouge pas */
-  confidentialiteVerrouillee: boolean;
-  /** « public » accepte les demandes en attente encore permises (le compte est rendu) ; « verrouille » entre 15 et 17 ans */
-  changerConfidentialite: (choix: Confidentialite) => { resultat: "ok" | "verrouille"; acceptees: number };
-  /** Déjà filtrés (bloqués, inconnus ; l'âge seulement pour les demandes en attente), du plus récent au plus ancien */
+  /** « public » accepte les demandes en attente encore valables (acceptees : combien) */
+  changerConfidentialite: (choix: Confidentialite) => { acceptees: number };
+  /** Déjà filtrés (bloqués, inconnus), du plus récent au plus ancien */
   abonnes: PersonneLiee[];
   abonnements: PersonneLiee[];
   demandesRecues: PersonneLiee[];
@@ -46,7 +44,7 @@ export type EtatSuivisPersonnes = {
   /** En silence : rien n'est envoyé à l'autre */
   refuserDemande: (id: string) => void;
   retirerAbonne: (id: string) => void;
-  /** null si l'écran ne doit pas montrer de compteurs (« reserve », ou mineur vu par un adulte). Pour « moi » : abonnements = personnes + lieux et créateurs suivis encore affichables */
+  /** null si l'écran ne doit pas montrer de compteurs (personne inconnue ou bloquée, pas encore prêt). Pour « moi » : abonnements = personnes + lieux et créateurs suivis encore affichables */
   compteursDe: (id: string) => { abonnes: number; abonnements: number } | null;
   /** « ferme » si la visibilité n'est pas « complet » ou si compteursDe vaut null. Pour « moi » : personnes seulement (les pages sont dans utiliserActivite) */
   abonnesDe: (id: string) => Pote[] | "ferme";

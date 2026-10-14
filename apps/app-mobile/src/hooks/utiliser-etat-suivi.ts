@@ -4,14 +4,12 @@ import { utiliserSuivisPersonnes, type ResultatSuivre } from "~/hooks/utiliser-s
 
 export type EtatBoutonSuivi = {
   type: "lieu" | "createur" | "personne" | null;
-  /** « interdit » : aucun bouton (clé abîmée, toi, bloqué, âge, personne inconnue, pas encore prêt, visite sans compte pour une personne) */
+  /** « interdit » : aucun bouton (clé abîmée, toi, bloqué, personne inconnue, pas encore prêt, visite sans compte pour une personne) */
   etat: "aucun" | "demande" | "suivi" | "interdit";
   /** Compte privé : « Suivre » envoie une demande (et « Ne plus suivre » obligera à redemander) */
   surDemande: boolean;
   /** Elle te suit : « Suivre en retour » */
   meSuit: boolean;
-  /** Le lien existe, mais la règle d'âge ne permettrait plus de le refaire (gardé au passage à 18 ans) : « Ne plus suivre » est sans retour */
-  sansRetour: boolean;
   /** Pour un lieu ou un créateur : basculerSuivi, puis « suivi » (ou « deja »). Ne demande pas de compte : le bouton appelle utiliserCompteRequis avant */
   suivre: () => ResultatSuivre;
   /** Sans effet si tu ne suis pas */
@@ -27,7 +25,6 @@ const interdit: EtatBoutonSuivi = {
   etat: "interdit",
   surDemande: false,
   meSuit: false,
-  sansRetour: false,
   suivre: () => "interdit",
   nePlusSuivre: rienAFaire,
   annulerDemande: rienAFaire,
@@ -35,9 +32,7 @@ const interdit: EtatBoutonSuivi = {
 
 /**
  * Façade du bouton « Suivre » : la même chose pour un lieu, un créateur (suivis de l'activité, toujours publics)
- * et une personne (abonnements, demandes et règles d'âge de utiliserSuivisPersonnes).
- * Un abonnement déjà accepté reste « suivi » même quand la règle ne permettrait plus de le refaire (passage à 18 ans) :
- * on peut toujours ne plus suivre.
+ * et une personne (abonnements, demandes et règles de utiliserSuivisPersonnes).
  */
 export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
   const activite = utiliserActivite();
@@ -50,16 +45,13 @@ export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
     const relation = suivis.relationAvec(id);
     if (!relation) return { ...interdit, type: "personne" };
     const { verdict, jeSuis } = relation;
-    // Toi, ou une personne bloquée : jamais de bouton. L'âge, lui, n'empêche pas de défaire un lien qui existe déjà
-    const refusDefinitif = !verdict.permis && verdict.raison !== "age";
-    const etat = refusDefinitif ? "interdit" : jeSuis !== "aucun" ? jeSuis : verdict.permis ? "aucun" : "interdit";
+    // Toi, ou une personne bloquée : jamais de bouton
+    if (!verdict.permis) return { ...interdit, type: "personne" };
     return {
       type: "personne",
-      etat,
-      // Refusé pour l'âge : c'est un compte de 15-17 ans, donc privé
-      surDemande: verdict.permis ? verdict.surDemande : true,
+      etat: jeSuis,
+      surDemande: verdict.surDemande,
       meSuit: relation.meSuit,
-      sansRetour: !verdict.permis && verdict.raison === "age",
       suivre: () => suivis.suivre(id),
       nePlusSuivre: () => suivis.nePlusSuivre(id),
       annulerDemande: () => suivis.annulerDemande(id),
@@ -72,7 +64,6 @@ export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
     etat: suivi ? "suivi" : "aucun",
     surDemande: false,
     meSuit: false,
-    sansRetour: false,
     suivre: () => (activite.estSuivi(cle) ? "deja" : activite.basculerSuivi(cle) ? "suivi" : "deja"),
     nePlusSuivre: () => {
       if (activite.estSuivi(cle)) activite.basculerSuivi(cle);

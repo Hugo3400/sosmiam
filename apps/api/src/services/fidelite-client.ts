@@ -20,24 +20,23 @@ export function creerFideliteClient(c: ContexteVisites) {
   const o = creerOutilsVisites(c);
 
   /** La carte du compte chez ce lieu, telle qu'il la voit (null : rien à lui montrer) */
-  async function presenter(t: TablesVisites, compteId: number, lieuId: number, majeur: boolean): Promise<CarteFidelite | null> {
+  async function presenter(t: TablesVisites, compteId: number, lieuId: number): Promise<CarteFidelite | null> {
     const [carte, programme, lieux] = await Promise.all([t.lireCarte(compteId, lieuId, o.maintenant()), t.lireProgramme(lieuId), t.resumerLieux([lieuId])]);
     const lieu = lieux.get(lieuId);
-    return carte && lieu ? presenterCarteFidelite(carte, programme, lieu, majeur) : null;
+    return carte && lieu ? presenterCarteFidelite(carte, programme, lieu) : null;
   }
 
   return {
     /** GET /app/fidelite/cartes : celles dont la récompense est prête d'abord, puis les plus remplies */
     listerCartes(compteId: number): Promise<{ ok: true; cartes: CarteFidelite[] }> {
       return c.depot.lire(async (t) => {
-        const { majeur } = await o.lireVisiteur(t, compteId);
         const lignes = await t.listerCartes({ compteId }, o.maintenant());
         const ids = lignes.map((l) => l.lieuId);
         const [lieux, programmes] = await Promise.all([t.resumerLieux(ids), Promise.all(ids.map((id) => t.lireProgramme(id)))]);
         const cartes = lignes
           .map((l, i) => {
             const lieu = lieux.get(l.lieuId);
-            return lieu ? presenterCarteFidelite(l, programmes[i] ?? null, lieu, majeur) : null;
+            return lieu ? presenterCarteFidelite(l, programmes[i] ?? null, lieu) : null;
           })
           .filter((carte): carte is CarteFidelite => carte !== null)
           .sort((a, b) => b.pretes.length - a.pretes.length || b.tampons / b.sur - a.tampons / a.sur);
@@ -50,7 +49,6 @@ export function creerFideliteClient(c: ContexteVisites) {
       return c.depot.ecrire(async (t) => {
         const maintenant = o.maintenant();
         await t.verrouillerCompte(compteId);
-        const { majeur } = await o.lireVisiteur(t, compteId);
         const [carte, programme] = await Promise.all([t.lireCarte(compteId, lieuId, maintenant), t.lireProgramme(lieuId)]);
         if (!carte || !programme || carte.pretes.length === 0 || !honoreLesRecompenses(programme, maintenant)) return o.echec("pas-de-recompense");
         if (!carte.demande) {
@@ -60,7 +58,7 @@ export function creerFideliteClient(c: ContexteVisites) {
           // La plus ancienne récompense d'abord
           await t.creerDemande(carte.id, { recompenseId: carte.pretes[0].id, code, creeLe: maintenant, expireLe: new Date(maintenant.getTime() + DUREE_DEMANDE_RECOMPENSE_MS) });
         }
-        const vue = await presenter(t, compteId, lieuId, majeur);
+        const vue = await presenter(t, compteId, lieuId);
         return vue ? { ok: true, carte: vue } : o.echec("pas-de-recompense");
       });
     },
@@ -72,8 +70,7 @@ export function creerFideliteClient(c: ContexteVisites) {
         const carte = await t.lireCarte(compteId, lieuId, o.maintenant());
         if (!carte) return o.echec("introuvable");
         await t.supprimerDemandes(carte.id);
-        const { majeur } = await o.lireVisiteur(t, compteId);
-        const vue = await presenter(t, compteId, lieuId, majeur);
+        const vue = await presenter(t, compteId, lieuId);
         return vue ? { ok: true, carte: vue } : o.echec("introuvable");
       });
     },

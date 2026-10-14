@@ -8,14 +8,14 @@ import type { Publication } from "~/contenus/type-publication";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-/** Ce qu'une ligne de notification affiche : un emoji (avatar, 🎬, emoji du lieu, 🎂), une phrase, et ce qu'elle ouvre */
+/** Ce qu'une ligne de notification affiche : un emoji (avatar, 🎬, emoji du lieu), une phrase, et ce qu'elle ouvre */
 /** alcool : la notification cite une publication de bar ou qui parle d'alcool (le message sanitaire s'affiche dessous) */
 export type NotificationDecrite = { emoji: string; texte: string; ouvrir: Href | null; alcool?: boolean };
 
 type Sources = {
   trouverPote: (id: string) => Pote | null;
   publications: readonly Publication[];
-  /** Lieux déjà filtrés selon ton âge : une publication d'un lieu absent n'est pas décrite */
+  /** Lieux connus : une publication d'un lieu absent n'est pas décrite */
   lieux: readonly Lieu[];
 };
 
@@ -29,20 +29,9 @@ const couperLegende = (legende: string) => {
 
 /**
  * La phrase d'une notification, prête à afficher (ponctuation liée). Rend null si ce dont elle parle n'existe plus :
- * personne inconnue, publication disparue, lieu écarté par l'âge. Le filtre des bloqués et de l'âge des personnes est
- * fait avant, par le fournisseur.
+ * personne inconnue, publication ou lieu disparu. Le filtre des bloqués est fait avant, par le fournisseur.
  */
 export function decrireNotificationSuivi(n: NotificationSuivi, { trouverPote, publications, lieux }: Sources): NotificationDecrite | null {
-  if (n.type === "majorite") {
-    return {
-      emoji: "🎂",
-      texte: lierPonctuation(
-        "Joyeux 18 ans ! Tes abonnés et abonnements restent. Par contre, plus de nouveaux abonnements avec des 15-17 ans, sauf les créateurs : c'est la règle qui protège tout le monde. Ta bande ne bouge pas.",
-      ),
-      ouvrir: null,
-    };
-  }
-
   const cible = lireCleSuivi(n.cle);
   if (!cible) return null;
 

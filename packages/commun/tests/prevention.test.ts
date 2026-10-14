@@ -40,15 +40,11 @@ test("carteContientAlcool : seulement les éléments marqués alcool", () => {
   assert.equal(carteContientAlcool({ sections: [{ titre: "À boire", elements: [{ nom: "Limonade", prix: 4 }, { nom: "Picpoul", prix: 5, alcool: true }] }] }), true);
 });
 
-test("estRecompenseAlcool : un majeur voit la version avec alcool, un 15-17 ans jamais", () => {
-  const cabane = { recompense: "Un verre de picpoul", alcool: true };
-  assert.equal(estRecompenseAlcool(cabane, true), true);
-  assert.equal(estRecompenseAlcool(cabane, false), false);
+test("estRecompenseAlcool : case cochée ou mot d'alcool (le message sanitaire va avec)", () => {
+  assert.equal(estRecompenseAlcool({ recompense: "Un verre de picpoul", alcool: true }), true);
   // Case non cochée mais mot d'alcool : compte quand même, par prudence
-  assert.equal(estRecompenseAlcool({ recompense: "Un kir offert", alcool: false }, true), true);
+  assert.equal(estRecompenseAlcool({ recompense: "Un kir offert", alcool: false }), true);
   // « Un verre offert » coché alcool, sans mot de la liste
-  assert.equal(estRecompenseAlcool({ recompense: "Un verre offert", alcool: true }, true), true);
-  // Même texte pour les deux versions (« Une boisson offerte ») : pour un 15-17 ans, c'est la version sans alcool
-  assert.equal(estRecompenseAlcool({ recompense: "Une boisson offerte", alcool: true }, false), false);
-  assert.equal(estRecompenseAlcool({ recompense: "Un tiramisu maison", alcool: false }, true), false);
+  assert.equal(estRecompenseAlcool({ recompense: "Un verre offert", alcool: true }), true);
+  assert.equal(estRecompenseAlcool({ recompense: "Un tiramisu maison", alcool: false }), false);
 });

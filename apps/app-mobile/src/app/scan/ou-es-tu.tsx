@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { RAYON_LIEUX_PROCHES_M } from "@sos-miam/commun/regles/visites";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
@@ -14,7 +13,6 @@ import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisit
 import { LigneLieuProche } from "~/composants/visites/LigneLieuProche";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
@@ -23,7 +21,6 @@ import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -45,18 +42,16 @@ function chercher(lieux: readonly Lieu[], recherche: string): Lieu[] {
 /**
  * « Tu es chez qui ? » (depuis l'onglet Scan ou le scanner) : choisir le lieu où l'on mange pour y demander l'addition.
  * Avec ta vraie position : les lieux qui valident à moins de 300 m (en grand s'il n'y en a qu'un tout près), et une recherche.
- * En démo : tous les lieux qui valident, par nom, et le téléphone est placé à 30 m de celui choisi. Jamais de bar pour un
- * 15-17 ans. Chaque lieu a son bouton « Demander l'addition ici ».
+ * En démo : tous les lieux qui valident, par nom, et le téléphone est placé à 30 m de celui choisi. Chaque lieu a son
+ * bouton « Demander l'addition ici ».
  */
 export default function TuEsChezQui() {
   const navigation = useNavigation();
   const services = utiliserServices();
   const { reglages } = utiliserReglagesDemo();
-  const { profil } = utiliserProfil();
   const position = utiliserPositionExpliquee();
   const indisponible = services.source === "indisponible";
   const demo = services.source === "demo" && !reglages.vraiePosition;
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
 
   const [ids, setIds] = useState<number[] | null>(null);
   const [lecture, setLecture] = useState<Lecture>({ etat: "attente" });
@@ -84,9 +79,9 @@ export default function TuEsChezQui() {
 
   const { lieux: tousLesLieux } = utiliserLieux();
   const validants = useMemo(() => {
-    const lieux = filtrerLieuxSelonAge(tousLesLieux, age).filter((l) => ids?.includes(l.id));
+    const lieux = tousLesLieux.filter((l) => ids?.includes(l.id));
     return lieux.sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-  }, [tousLesLieux, ids, age]);
+  }, [tousLesLieux, ids]);
 
   const { lire } = position;
   const lirePosition = useCallback(async () => {

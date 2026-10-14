@@ -1,5 +1,6 @@
 // Envois groupés depuis le logiciel de gestion, à un public choisi : les inscrits de la newsletter (filtrés par ville,
-// candidats ambassadeurs, bêta-testeurs, téléphone) ou les ambassadeurs (actifs, ou tous, d'une ville). Le logiciel
+// candidats ambassadeurs, bêta-testeurs, téléphone), les ambassadeurs (actifs, ou tous, d'une ville), ou tous les comptes
+// (information sur le service, comme un changement des CGU : jamais de pub). Le logiciel
 // montre la liste exacte et Hugo coche qui reçoit ; le serveur ne garde que des adresses qui font bien partie du public.
 // Pour la newsletter, la boîte est synchronisée juste avant (les désinscriptions partent « avant tout nouvel envoi »).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
@@ -12,7 +13,8 @@ import { lireListeInscrits, synchroniserBoite } from "./boite-mail.ts";
 
 export type PublicEnvoi =
   | ({ public: "newsletter" } & FiltresInscrits)
-  | { public: "ambassadeurs"; statut: "actif" | "tous"; ville: string | null };
+  | { public: "ambassadeurs"; statut: "actif" | "tous"; ville: string | null }
+  | { public: "comptes"; ville: string | null };
 export type Destinataire = { adresse: string; ville: string; detail: string };
 export type SaisieCampagne = {
   cible: PublicEnvoi;
@@ -27,9 +29,17 @@ export type SaisieCampagne = {
 
 const meme = (a: string, b: string) => a.trim().localeCompare(b.trim(), "fr", { sensitivity: "base" }) === 0;
 const TELEPHONES: Record<string, string> = { iphone: "iPhone", android: "Android" };
+/** Le type de chaque mail dans le journal des envois */
+const TYPES_ENVOI: Record<PublicEnvoi["public"], string> = { newsletter: "newsletter", ambassadeurs: "ambassadeurs", comptes: "information" };
 
 /** Le public choisi, adresse par adresse (null si la liste des inscrits n'a jamais été synchronisée). */
 export async function listerDestinataires(cible: PublicEnvoi): Promise<Destinataire[] | null> {
+  if (cible.public === "comptes") {
+    const comptes = await baseDeDonnees.compte.findMany({ orderBy: { prenom: "asc" }, select: { email: true, prenom: true, ville: true } });
+    return comptes
+      .filter((c) => !cible.ville || meme(c.ville ?? "", cible.ville))
+      .map((c) => ({ adresse: c.email, ville: c.ville ?? "", detail: c.prenom }));
+  }
   if (cible.public === "ambassadeurs") {
     const comptes = await baseDeDonnees.compte.findMany({
       where: { ambassadeur: { is: { ...(cible.statut === "actif" ? { statut: "actif" } : { statut: { not: "refuse" } }) } } },
@@ -73,12 +83,12 @@ export async function lancerCampagne({ cible, adresses, description, ...contenu 
       description,
       ville: cible.ville,
       total: destinataires.length,
-      envois: { createMany: { data: destinataires.map((destinataire) => ({ type: cible.public === "newsletter" ? "newsletter" : "ambassadeurs", destinataire })) } },
+      envois: { createMany: { data: destinataires.map((destinataire) => ({ type: TYPES_ENVOI[cible.public], destinataire })) } },
     },
     select: { id: true, total: true },
   });
   // Une seule copie dans « Envoyés » pour tout l'envoi (pas une par personne)
-  const groupe = cible.public === "newsletter" ? "Newsletter" : "Ambassadeurs";
+  const groupe = { newsletter: "Newsletter", ambassadeurs: "Ambassadeurs", comptes: "Information à tous les comptes" }[cible.public];
   void composerCourriel(reglages, { ...contenu, a: reglages.utilisateur, objet: `[${groupe} · ${campagne.total} destinataires] ${contenu.objet}` })
     .then(rangerDansEnvoyes)
     .catch(() => console.error("Boîte mail : copie de l'envoi groupé non rangée"));

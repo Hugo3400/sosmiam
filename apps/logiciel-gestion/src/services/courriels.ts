@@ -17,13 +17,15 @@ export type EtatEnvois = {
 /** À qui : les inscrits de la newsletter (filtrés), ou les ambassadeurs */
 export type PublicEnvoi =
   | { public: "newsletter"; ville: string; candidats: boolean; beta: boolean; telephone: "" | "iphone" | "android" }
-  | { public: "ambassadeurs"; statut: "actif" | "tous"; ville: string };
+  | { public: "ambassadeurs"; statut: "actif" | "tous"; ville: string }
+  /** Tous les comptes : une information sur le service (CGU…), jamais de pub */
+  | { public: "comptes"; ville: string };
 export type Destinataire = { adresse: string; ville: string; detail: string };
 export type Campagne = {
   id: number;
   brouillonId: number | null;
   objet: string;
-  public: "newsletter" | "ambassadeurs";
+  public: "newsletter" | "ambassadeurs" | "comptes";
   description: string;
   ville: string | null;
   total: number;

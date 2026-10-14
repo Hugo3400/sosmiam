@@ -1,12 +1,11 @@
 // Les envies demandées à l'inscription, une étape par catégorie (voir docs/decisions.md).
-// « alcool » : masqué si l'âge est inconnu (AGE_ALCOOL ; tout compte est majeur depuis le 14 octobre 2026). « sensible » : peut révéler une religion ou la santé (RGPD, article 9).
+// Seuls les comptes (18 ans ou plus) passent par les envies : tout est proposé, bars et boissons compris. « sensible » : peut révéler une religion ou la santé (RGPD, article 9).
 import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 
 export type ChoixEnvie = {
   id: string;
   libelle: string;
   emoji: string;
-  alcool?: boolean;
   sensible?: boolean;
 };
 
@@ -17,8 +16,6 @@ export type EtapeEnvies = {
   emoji: string;
   titre: string;
   sousTitre: string;
-  /** Toute l'étape est masquée aux moins de 18 ans */
-  alcool?: boolean;
   /** Mention affichée sous les choix */
   note?: string;
   choix: ChoixEnvie[];
@@ -35,12 +32,12 @@ export const etapesEnvies: EtapeEnvies[] = [
       { id: "restos", libelle: "Restos", emoji: "🍝" },
       { id: "patisseries", libelle: "Pâtisseries et boulangeries", emoji: "🥐" },
       { id: "cafes", libelle: "Cafés", emoji: "☕" },
-      { id: "bars", libelle: "Bars", emoji: "🍹", alcool: true },
+      { id: "bars", libelle: "Bars", emoji: "🍹" },
       { id: "glaciers", libelle: "Glaciers", emoji: "🍦" },
       { id: "food-trucks", libelle: "Food trucks", emoji: "🚚" },
       { id: "salons-de-the", libelle: "Salons de thé", emoji: "🫖" },
       { id: "halles", libelle: "Halles et marchés", emoji: "🧺" },
-      { id: "caves", libelle: "Caves à vin", emoji: "🍷", alcool: true },
+      { id: "caves", libelle: "Caves à vin", emoji: "🍷" },
       { id: "plages", libelle: "Plages et paillotes", emoji: "🏖️" },
       { id: "guinguettes", libelle: "Guinguettes", emoji: "🪗" },
       { id: "cinemas", libelle: "Cinémas", emoji: "🎬" },
@@ -53,7 +50,7 @@ export const etapesEnvies: EtapeEnvies[] = [
       { id: "loisirs-sportifs", libelle: "Escalade, padel et cie", emoji: "🧗" },
       { id: "nature", libelle: "Sorties nature", emoji: "🛶" },
       { id: "balades-mer", libelle: "Balades en mer", emoji: "⛵" },
-      { id: "domaines", libelle: "Dégustations au domaine", emoji: "🍇", alcool: true },
+      { id: "domaines", libelle: "Dégustations au domaine", emoji: "🍇" },
       { id: "cafes-librairies", libelle: "Cafés-librairies", emoji: "📚" },
     ],
   },
@@ -97,30 +94,30 @@ export const etapesEnvies: EtapeEnvies[] = [
     titre: "Et pour boire ?",
     sousTitre: "Avec ou sans alcool, tout se défend.",
     choix: [
-      { id: "cocktails", libelle: "Cocktails", emoji: "🍸", alcool: true },
-      { id: "vins", libelle: "Vins (nature aussi)", emoji: "🍷", alcool: true },
-      { id: "bieres", libelle: "Bières artisanales", emoji: "🍺", alcool: true },
-      { id: "apero", libelle: "Apéro et spritz", emoji: "🥂", alcool: true },
+      { id: "cocktails", libelle: "Cocktails", emoji: "🍸" },
+      { id: "vins", libelle: "Vins (nature aussi)", emoji: "🍷" },
+      { id: "bieres", libelle: "Bières artisanales", emoji: "🍺" },
+      { id: "apero", libelle: "Apéro et spritz", emoji: "🥂" },
       { id: "cafes-specialite", libelle: "Cafés de spécialité", emoji: "☕" },
       { id: "thes", libelle: "Thés et bubble tea", emoji: "🧋" },
       { id: "jus", libelle: "Jus et smoothies", emoji: "🥤" },
       { id: "sans-alcool", libelle: "Sans alcool et mocktails", emoji: "🍹" },
-      { id: "vin-rose", libelle: "Rosé bien frais", emoji: "🌸", alcool: true },
-      { id: "bulles", libelle: "Champagne et bulles", emoji: "🍾", alcool: true },
+      { id: "vin-rose", libelle: "Rosé bien frais", emoji: "🌸" },
+      { id: "bulles", libelle: "Champagne et bulles", emoji: "🍾" },
       { id: "chocolat-chaud", libelle: "Chocolat chaud", emoji: "🍫" },
       { id: "limonades", libelle: "Limonades artisanales", emoji: "🍋" },
       { id: "matcha", libelle: "Matcha et chaï latte", emoji: "🍵" },
       { id: "milkshakes", libelle: "Milkshakes", emoji: "🍦" },
-      { id: "pastis", libelle: "Pastis et anisés", emoji: "☀️", alcool: true },
-      { id: "vins-du-coin", libelle: "Vins du coin (Languedoc)", emoji: "📍", alcool: true },
-      { id: "whisky", libelle: "Whisky et spiritueux", emoji: "🥃", alcool: true },
-      { id: "rhum", libelle: "Rhum et ti-punch", emoji: "🏝️", alcool: true },
-      { id: "cidres", libelle: "Cidres et poirés", emoji: "🍎", alcool: true },
+      { id: "pastis", libelle: "Pastis et anisés", emoji: "☀️" },
+      { id: "vins-du-coin", libelle: "Vins du coin (Languedoc)", emoji: "📍" },
+      { id: "whisky", libelle: "Whisky et spiritueux", emoji: "🥃" },
+      { id: "rhum", libelle: "Rhum et ti-punch", emoji: "🏝️" },
+      { id: "cidres", libelle: "Cidres et poirés", emoji: "🍎" },
       { id: "diabolos", libelle: "Diabolos et sirops", emoji: "🍃" },
       { id: "kombucha", libelle: "Kombucha et kéfir", emoji: "🫙" },
-      { id: "bieres-sans-alcool", libelle: "Bières et vins sans alcool", emoji: "🍻", alcool: true },
-      { id: "digestifs", libelle: "Digestifs et liqueurs", emoji: "🍐", alcool: true },
-      { id: "muscats", libelle: "Muscats et vins doux", emoji: "🍇", alcool: true },
+      { id: "bieres-sans-alcool", libelle: "Bières et vins sans alcool", emoji: "🍻" },
+      { id: "digestifs", libelle: "Digestifs et liqueurs", emoji: "🍐" },
+      { id: "muscats", libelle: "Muscats et vins doux", emoji: "🍇" },
     ],
   },
   {
@@ -129,26 +126,25 @@ export const etapesEnvies: EtapeEnvies[] = [
     emoji: "🍻",
     titre: "Ton bar idéal ?",
     sousTitre: "Pour l'apéro, la soirée ou le dernier verre.",
-    alcool: true,
     choix: [
-      { id: "bar-cocktails", libelle: "Bar à cocktails", emoji: "🍸", alcool: true },
-      { id: "bar-vin", libelle: "Bar à vin", emoji: "🍷", alcool: true },
-      { id: "pub", libelle: "Pub", emoji: "🍺", alcool: true },
-      { id: "bar-bieres", libelle: "Bar à bières", emoji: "🍻", alcool: true },
-      { id: "rooftop", libelle: "Rooftop et terrasse", emoji: "🌇", alcool: true },
-      { id: "cafe-quartier", libelle: "Café de quartier", emoji: "🏘️", alcool: true },
-      { id: "bar-tapas", libelle: "Bar à tapas", emoji: "🫒", alcool: true },
-      { id: "bar-concert", libelle: "Bar concert", emoji: "🎸", alcool: true },
-      { id: "bar-match", libelle: "Bar à matchs (foot, rugby…)", emoji: "📺", alcool: true },
-      { id: "bar-dansant", libelle: "Bar dansant", emoji: "🪩", alcool: true },
-      { id: "bar-jeux", libelle: "Bar à jeux", emoji: "🎲", alcool: true },
-      { id: "bar-de-nuit", libelle: "Bar ouvert tard", emoji: "🦉", alcool: true },
-      { id: "bar-chic", libelle: "Bar chic et lounge", emoji: "🛋️", alcool: true },
-      { id: "bar-secret", libelle: "Bar caché (speakeasy)", emoji: "🕵️", alcool: true },
-      { id: "bar-associatif", libelle: "Bar associatif", emoji: "🤝", alcool: true },
-      { id: "bar-huitres", libelle: "Bar à huîtres et picpoul", emoji: "🦪", alcool: true },
-      { id: "bar-peniche", libelle: "Péniche et bar sur l'eau", emoji: "⚓", alcool: true },
-      { id: "bar-rhum", libelle: "Bar à rhums arrangés", emoji: "🍍", alcool: true },
+      { id: "bar-cocktails", libelle: "Bar à cocktails", emoji: "🍸" },
+      { id: "bar-vin", libelle: "Bar à vin", emoji: "🍷" },
+      { id: "pub", libelle: "Pub", emoji: "🍺" },
+      { id: "bar-bieres", libelle: "Bar à bières", emoji: "🍻" },
+      { id: "rooftop", libelle: "Rooftop et terrasse", emoji: "🌇" },
+      { id: "cafe-quartier", libelle: "Café de quartier", emoji: "🏘️" },
+      { id: "bar-tapas", libelle: "Bar à tapas", emoji: "🫒" },
+      { id: "bar-concert", libelle: "Bar concert", emoji: "🎸" },
+      { id: "bar-match", libelle: "Bar à matchs (foot, rugby…)", emoji: "📺" },
+      { id: "bar-dansant", libelle: "Bar dansant", emoji: "🪩" },
+      { id: "bar-jeux", libelle: "Bar à jeux", emoji: "🎲" },
+      { id: "bar-de-nuit", libelle: "Bar ouvert tard", emoji: "🦉" },
+      { id: "bar-chic", libelle: "Bar chic et lounge", emoji: "🛋️" },
+      { id: "bar-secret", libelle: "Bar caché (speakeasy)", emoji: "🕵️" },
+      { id: "bar-associatif", libelle: "Bar associatif", emoji: "🤝" },
+      { id: "bar-huitres", libelle: "Bar à huîtres et picpoul", emoji: "🦪" },
+      { id: "bar-peniche", libelle: "Péniche et bar sur l'eau", emoji: "⚓" },
+      { id: "bar-rhum", libelle: "Bar à rhums arrangés", emoji: "🍍" },
     ],
   },
   {
@@ -235,7 +231,7 @@ export const etapesEnvies: EtapeEnvies[] = [
       { id: "festif", libelle: "Festif", emoji: "🎉" },
       { id: "au-calme", libelle: "Au calme", emoji: "🌿" },
       { id: "solo", libelle: "En solo", emoji: "🎧" },
-      { id: "apres-le-boulot", libelle: "Afterwork", emoji: "🌆", alcool: true },
+      { id: "apres-le-boulot", libelle: "Afterwork", emoji: "🌆" },
       { id: "tard-le-soir", libelle: "Tard le soir", emoji: "🦉" },
       { id: "anniversaire", libelle: "Pour un anniversaire", emoji: "🎂" },
       { id: "gouter", libelle: "À l'heure du goûter", emoji: "🧁" },

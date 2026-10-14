@@ -161,7 +161,6 @@ export default function ReseauPersonne() {
           <BoutonSuivreProfil cle={ecrireCleSuivi({ type: "personne", id })} nom={pote.prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" />
           <EncadreComptePrive
             prenom={pote.prenom}
-            peutDemander={relation?.verdict.permis ?? false}
             demandeEnvoyee={relation?.jeSuis === "demande"}
             listesSeules={relation?.visibilite === "complet"}
           />

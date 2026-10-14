@@ -1,7 +1,7 @@
 // Le comptoir de l'équipe d'un lieu (voir routes/comptoir.ts) : additions et récompenses en attente, arrivées du jour
 // (réservations acceptées) et demandes de réservation à traiter, QR montré à la demande, addition réglée (code à saisir dès
 // 2 en attente), refus, validation annulée (15 min), récompense offerte, programme de fidélité. Le lieu est toujours relu sur la ressource (visite, demande), jamais pris dans la demande, et
-// le rôle est revérifié à chaque geste (rattachement validé, 18 ans et plus).
+// le rôle est revérifié à chaque geste (rattachement validé).
 import { DEMANDES_AVANT_SAISIE_CODE, DUREE_PRESENTATION_QR_MS, PERSONNES_PRESENTATION_MAX } from "../../../../packages/commun/src/regles/visites.ts";
 import type { DemandeComptoir, EtatComptoir, ValidationRecente } from "../../../../packages/commun/src/types/comptoir.ts";
 import type { ProgrammeFidelite, ReglageFidelite } from "../../../../packages/commun/src/types/fidelite.ts";
@@ -29,12 +29,6 @@ const presenterProgramme = (p: LigneProgramme): ProgrammeFidelite => ({ ...p, mo
 
 export function creerComptoir(c: ContexteComptoir) {
   const o = creerOutilsVisites(c);
-
-  /** Le rôle du compte chez ce lieu, s'il a 18 ans ou plus (null sinon : pas de rôle pro sous 18 ans) */
-  async function lireRoleComptoir(t: TablesVisites, compteId: number, lieuId: number): Promise<RoleRattachement | null> {
-    const role = await c.lireRole(compteId, lieuId);
-    return role && (await o.lireVisiteur(t, compteId)).majeur ? role : null;
-  }
 
   /** L'écran du comptoir à cet instant (lecture seule) */
   async function lireEtat(t: TablesVisites, lieuId: number): Promise<EtatComptoir> {
@@ -97,7 +91,7 @@ export function creerComptoir(c: ContexteComptoir) {
   /** Un geste sur le lieu :lieuId, réservé à son équipe ; rend l'écran du comptoir à jour */
   function surLeLieu(compteId: number, lieuId: number, geste?: (t: TablesVisites) => Promise<EchecVisite | null>): Promise<ReponseComptoir> {
     return c.depot.ecrire(async (t) => {
-      if (!(await lireRoleComptoir(t, compteId, lieuId))) return o.echec("role-requis");
+      if (!(await c.lireRole(compteId, lieuId))) return o.echec("role-requis");
       const refus = geste ? await geste(t) : null;
       return refus ?? { ok: true, etat: await lireEtat(t, lieuId) };
     });
@@ -108,30 +102,28 @@ export function creerComptoir(c: ContexteComptoir) {
     return c.depot.ecrire(async (t) => {
       const avant = await t.lireVisite(visiteId);
       if (!avant) return o.echec("introuvable");
-      if (!(await lireRoleComptoir(t, compteId, avant.lieuId))) return o.echec("role-requis");
+      if (!(await c.lireRole(compteId, avant.lieuId))) return o.echec("role-requis");
       await t.verrouillerCompte(avant.compteId);
       const v = await t.lireVisite(visiteId);
       if (!v) return o.echec("introuvable");
       const refus = verifier ? await verifier(t, v) : null;
       if (refus) return refus;
-      const { majeur } = await o.lireVisiteur(t, v.compteId);
-      const decision = await deciderVisite(t, v, evenement, o.maintenant(), majeur, compteId);
+      const decision = await deciderVisite(t, v, evenement, o.maintenant(), compteId);
       if (!decision.ok) return o.echec(decision.erreur);
       return { ok: true, etat: await lireEtat(t, v.lieuId), pointsAPoser: { compteId: v.compteId, points: decision.points } };
     });
   }
 
   return {
-    /** Le rôle du compte au comptoir de ce lieu (rattachement validé et 18 ans), pour les autres gestes de l'équipe (SOS du soir…) */
+    /** Le rôle du compte au comptoir de ce lieu (rattachement validé), pour les autres gestes de l'équipe (SOS du soir…) */
     roleDe(compteId: number, lieuId: number): Promise<RoleRattachement | null> {
-      return c.depot.lire((t) => lireRoleComptoir(t, compteId, lieuId));
+      return c.lireRole(compteId, lieuId);
     },
 
     /** GET /pro/comptoir/lieux : les lieux où le compte a un rattachement validé */
     listerLieux(compteId: number): Promise<{ ok: true; lieux: LieuGere[] }> {
       return c.depot.lire(async (t) => {
         const visiteur = await o.lireVisiteur(t, compteId);
-        if (!visiteur.majeur) return { ok: true, lieux: [] };
         const resumes = await t.resumerLieux(visiteur.rattachements.map((r) => r.lieuId));
         const lieux = visiteur.rattachements.flatMap((r): LieuGere[] => {
           const lieu = resumes.get(r.lieuId);
@@ -144,7 +136,7 @@ export function creerComptoir(c: ContexteComptoir) {
     /** GET /pro/comptoir/lieux/:id */
     lireComptoir(compteId: number, lieuId: number): Promise<ReponseComptoir> {
       return c.depot.lire(async (t) => {
-        if (!(await lireRoleComptoir(t, compteId, lieuId))) return o.echec("role-requis");
+        if (!(await c.lireRole(compteId, lieuId))) return o.echec("role-requis");
         return { ok: true, etat: await lireEtat(t, lieuId) };
       });
     },
@@ -201,7 +193,7 @@ export function creerComptoir(c: ContexteComptoir) {
         const maintenant = o.maintenant();
         const demande = await t.lireDemande(demandeId);
         if (!demande) return o.echec("introuvable");
-        if (!(await lireRoleComptoir(t, compteId, demande.lieuId))) return o.echec("role-requis");
+        if (!(await c.lireRole(compteId, demande.lieuId))) return o.echec("role-requis");
         if (demande.expireLe <= maintenant) return o.echec("delai-depasse");
         await t.verrouillerCompte(demande.compteId);
         if (!(await t.offrirRecompense(demande.recompenseId, compteId, maintenant))) return o.echec("introuvable");
@@ -213,7 +205,7 @@ export function creerComptoir(c: ContexteComptoir) {
     /** GET /pro/comptoir/lieux/:id/programme */
     lireProgramme(compteId: number, lieuId: number): Promise<{ ok: true; programme: ProgrammeFidelite | null } | EchecVisite> {
       return c.depot.lire(async (t) => {
-        if (!(await lireRoleComptoir(t, compteId, lieuId))) return o.echec("role-requis");
+        if (!(await c.lireRole(compteId, lieuId))) return o.echec("role-requis");
         const programme = await t.lireProgramme(lieuId);
         return { ok: true, programme: programme ? presenterProgramme(programme) : null };
       });
@@ -222,7 +214,7 @@ export function creerComptoir(c: ContexteComptoir) {
     /** PUT /pro/comptoir/lieux/:id/programme (gérant) : réglage revérifié par validerReglageFidelite */
     reglerProgramme(compteId: number, lieuId: number, reglage: ReglageFidelite): Promise<{ ok: true; programme: ProgrammeFidelite } | EchecVisite> {
       return c.depot.ecrire(async (t) => {
-        if ((await lireRoleComptoir(t, compteId, lieuId)) !== "gerant") return o.echec("role-requis");
+        if ((await c.lireRole(compteId, lieuId)) !== "gerant") return o.echec("role-requis");
         const valide = validerReglageFidelite(reglage);
         if (!valide.ok) return { ok: false, erreur: valide.erreur, champ: valide.champ };
         const programme: LigneProgramme = { ...valide.reglage, lieuId, modifieLe: o.maintenant() };

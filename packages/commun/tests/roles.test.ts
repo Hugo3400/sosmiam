@@ -10,22 +10,16 @@ const sansRole: RolesCompte = { ambassadeur: null, pro: [] };
 const gerantNonna: RolesCompte = { ambassadeur: "actif", pro: [{ id: 0, nom: "Chez Nonna Lia", emoji: "🍝", role: "gerant" }] };
 const equipeNonna: RolesCompte = { ambassadeur: null, pro: [{ id: 0, nom: "Chez Nonna Lia", emoji: "🍝", role: "equipe" }] };
 
-test("un 15-17 ans avec des rôles : « perso » seulement", () => {
-  assert.deepEqual(listerModesOuverts(gerantNonna, false), ["perso"]);
-  assert.deepEqual(listerModesOuverts(equipeNonna, false), ["perso"]);
-  assert.deepEqual(listerModesOuverts({ ambassadeur: "en-attente", pro: [] }, false), ["perso"]);
-});
-
-test("un adulte : perso, puis pro et ambassadeur selon ses rôles", () => {
-  assert.deepEqual(listerModesOuverts(sansRole, true), ["perso"]);
-  assert.deepEqual(listerModesOuverts(gerantNonna, true), ["perso", "pro", "ambassadeur"]);
-  assert.deepEqual(listerModesOuverts(equipeNonna, true), ["perso", "pro"]);
+test("un compte : perso, puis pro et ambassadeur selon ses rôles", () => {
+  assert.deepEqual(listerModesOuverts(sansRole), ["perso"]);
+  assert.deepEqual(listerModesOuverts(gerantNonna), ["perso", "pro", "ambassadeur"]);
+  assert.deepEqual(listerModesOuverts(equipeNonna), ["perso", "pro"]);
 });
 
 test("mode ambassadeur : ouvert en attente et suspendu (onglet Espace seul), jamais après un refus", () => {
-  assert.deepEqual(listerModesOuverts({ ambassadeur: "en-attente", pro: [] }, true), ["perso", "ambassadeur"]);
-  assert.deepEqual(listerModesOuverts({ ambassadeur: "suspendu", pro: [] }, true), ["perso", "ambassadeur"]);
-  assert.deepEqual(listerModesOuverts({ ambassadeur: "refuse", pro: [] }, true), ["perso"]);
+  assert.deepEqual(listerModesOuverts({ ambassadeur: "en-attente", pro: [] }), ["perso", "ambassadeur"]);
+  assert.deepEqual(listerModesOuverts({ ambassadeur: "suspendu", pro: [] }), ["perso", "ambassadeur"]);
+  assert.deepEqual(listerModesOuverts({ ambassadeur: "refuse", pro: [] }), ["perso"]);
 });
 
 test("comptoir : gérant et équipe du lieu, personne d'autre", () => {

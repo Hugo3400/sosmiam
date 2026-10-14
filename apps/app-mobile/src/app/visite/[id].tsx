@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { DELAI_ANNULATION_LIEU_MS } from "@sos-miam/commun/regles/visites";
 import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { QuestionSentiBien } from "~/composants/miam-safe/QuestionSentiBien";
@@ -15,7 +14,6 @@ import { EtatVisiteTerminee } from "~/composants/visites/EtatVisiteTerminee";
 import { FeuilleContestation } from "~/composants/visites/FeuilleContestation";
 import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -83,13 +81,13 @@ export default function EcranVisite() {
     return () => clearTimeout(minuterie);
   }, [etatAffiche]);
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
   const lieuId = visite?.lieu.id ?? null;
   const miamSafe = utiliserMiamSafeLieu(lieuId ?? 0);
   // Dans le lieu : addition demandée, ou visite validée (on y est encore, souvent)
   const dansLeLieu = statut === "demandee" || statut === "validee";
   const { lieu: lieuConnu } = utiliserLieuParId(lieuId);
-  const lieu = useMemo(() => (lieuConnu ? (filtrerLieuxSelonAge([lieuConnu], age)[0] ?? null) : null), [lieuConnu, age]);
+  // Écran réservé aux inscrits (PileRacine) : le lieu de la visite s'affiche tel quel, bar compris
+  const lieu = lieuConnu ?? null;
 
   // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");

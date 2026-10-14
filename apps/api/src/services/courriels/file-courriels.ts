@@ -60,11 +60,17 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
       ? new Set((await baseDeDonnees.compte.findMany({ where: { ambassadeur: { is: { statut: { not: "refuse" } } } }, select: { email: true } })).map((c) => c.email))
       : null;
 
+    const comptes = dus.some((envoi) => envoi.campagne?.public === "comptes")
+      ? new Set((await baseDeDonnees.compte.findMany({ select: { email: true } })).map((c) => c.email))
+      : null;
+
     let partis = 0;
     for (const envoi of dus) {
-      const toujoursLa = envoi.campagne?.public === "ambassadeurs" ? ambassadeurs?.has(envoi.destinataire) : liste?.has(envoi.destinataire);
+      const publicCampagne = envoi.campagne?.public;
+      const toujoursLa = publicCampagne === "ambassadeurs" ? ambassadeurs?.has(envoi.destinataire)
+        : publicCampagne === "comptes" ? comptes?.has(envoi.destinataire) : liste?.has(envoi.destinataire);
       if (envoi.campagne && !toujoursLa) {
-        const raison = envoi.campagne.public === "ambassadeurs" ? "N'est plus ambassadeur" : "Plus dans la liste (désinscription)";
+        const raison = publicCampagne === "ambassadeurs" ? "N'est plus ambassadeur" : publicCampagne === "comptes" ? "Compte supprimé entre-temps" : "Plus dans la liste (désinscription)";
         await baseDeDonnees.envoiCourriel.update({ where: { id: envoi.id }, data: { statut: "annule", erreur: raison } });
         continue;
       }

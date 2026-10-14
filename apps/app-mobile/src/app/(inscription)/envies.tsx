@@ -1,25 +1,21 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { GrilleChoix } from "~/composants/inscription/GrilleChoix";
 import { etapesEnvies } from "~/contenus/inscription/envies";
-import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envies";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 
-/** Étape 3 sur 4 : les envies, une catégorie à la fois (sans l'alcool sous 18 ans). Tout est facultatif. */
+/** Étape 3 sur 4 : les envies, une catégorie à la fois. Tout est facultatif. */
 export default function Envies() {
   const router = useRouter();
   const { brouillon, basculerEnvie } = utiliserBrouillonInscription();
-  const age = brouillon.dateNaissance ? calculerAge(brouillon.dateNaissance) : null;
-  const etapes = useMemo(() => filtrerEtapesEnvies(etapesEnvies, age), [age]);
   const [index, setIndex] = useState(0);
 
-  const etape = etapes[Math.min(index, etapes.length - 1)];
+  const etape = etapesEnvies[Math.min(index, etapesEnvies.length - 1)];
   const coches = brouillon.envies[etape.categorie] ?? [];
-  const derniere = index >= etapes.length - 1;
+  const derniere = index >= etapesEnvies.length - 1;
 
   const suivant = () => (derniere ? router.push("/c-est-pret") : setIndex(index + 1));
   const precedent = () => (index > 0 ? setIndex(index - 1) : router.back());
@@ -35,7 +31,7 @@ export default function Envies() {
       boutonPrincipal={{ libelle: coches.length === 0 ? "Passer" : derniere ? "Terminer" : "Continuer", onPress: suivant }}
     >
       <Text className="mb-4 font-texte-semi text-sm text-gris">
-        {index + 1} sur {etapes.length}
+        {index + 1} sur {etapesEnvies.length}
         {coches.length > 0 ? ` · ${coches.length} choisi${coches.length > 1 ? "s" : ""}` : ""}
       </Text>
       <GrilleChoix choix={etape.choix} coches={coches} onBasculer={(id) => basculerEnvie(etape.categorie, id)} />

@@ -39,7 +39,7 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
  * Le profil communautaire d'un pote, ou le tien (id « moi »), avec ses abonnés et abonnements. Pour toi : ses listes et
  * « Partager mon profil » (lien et QR code). Pour quelqu'un d'autre : le suivre (ou lui demander, compte privé), l'ajouter à ta bande,
  * lui écrire (pote de ta bande), le retirer de ta bande, le bloquer (avec confirmation) ou le signaler.
- * Compte privé (ou mineur vu par un adulte hors de sa bande « en vrai ») : l'en-tête et un encadré, rien d'autre.
+ * Compte privé (ni de ta bande « en vrai », ni suivi) : l'en-tête et un encadré, rien d'autre.
  * Personne bloquée ou inconnue : un message et le retour.
  */
 export default function ProfilPote() {
@@ -119,30 +119,22 @@ export default function ProfilPote() {
   const prenom = pote.prenom;
   const visibilite = relation?.visibilite ?? "complet";
   const complet = estMoi || visibilite === "complet";
-  // Un adulte n'ajoute jamais un mineur depuis un profil (et, tant que les comptes n'existent pas, d'aucune autre façon)
-  const ajoutable = !estMoi && !dansBande && !(pote.mineur && !communaute.moiMineur);
-  // Le bouton Suivre s'affiche si la règle le permet, ou pour défaire un lien qui existe déjà (gardé au passage à 18 ans)
-  const suivreVisible = !!relation && (relation.verdict.permis || (relation.verdict.raison === "age" && relation.jeSuis !== "aucun"));
-  const refusAgeAdo = communaute.moiMineur && !!relation && !relation.verdict.permis && relation.verdict.raison === "age" && relation.jeSuis === "aucun";
+  const ajoutable = !estMoi && !dansBande;
+  // Le bouton Suivre s'affiche si la règle le permet
+  const suivreVisible = !!relation && relation.verdict.permis;
 
   const ajouter = () => {
     const resultat = communaute.ajouterPote(pote.id, "pseudo");
     annoncer(
-      resultat === "ajoute" || resultat === "deja"
-        ? `${prenom} fait partie de ta bande !`
-        : resultat === "mineur"
-          ? "Cette personne ne s'ajoute pas par son pseudo."
-          : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
+      resultat === "ajoute" || resultat === "deja" ? `${prenom} fait partie de ta bande !` : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
   };
 
-  // Protection des 15-17 ans : avec un mineur, on ne discute qu'après s'être ajoutés en vrai
+  // On écrit seulement à un pote de ta bande (pas bloqué)
   const ecrire = () => {
     const conversation = ouvrirPrive(pote.id);
     if (!conversation) {
-      annoncer(
-        `Pour discuter avec ${prenom}, il faudra vous ajouter en vrai, avec un lien ou un QR code vérifié : ça arrive avec les comptes. C'est la règle des 15-17 ans, et elle protège tout le monde.`,
-      );
+      annoncer(`Pour écrire à ${prenom}, ajoute d'abord ${prenom} à ta bande.`);
       return;
     }
     const cible = { pathname: "/potes/discussion/[id]", params: { id: conversation } } as const;
@@ -157,7 +149,7 @@ export default function ProfilPote() {
   const retirer = () =>
     confirmer(
       `Retirer ${prenom} de ta bande ?`,
-      pote.mineur && !communaute.moiMineur ? "Tu ne pourras pas l'y remettre avant l'arrivée des comptes." : "Pas de drame : tu pourras l'y remettre quand tu veux.",
+      "Pas de drame : tu pourras l'y remettre quand tu veux.",
       "Retirer",
       () => {
         communaute.retirerPote(pote.id);
@@ -178,18 +170,13 @@ export default function ProfilPote() {
       },
     );
 
-  // Sous l'en-tête, dans cet ordre : sa demande à te suivre (s'il y en a une), Suivre, pourquoi pas de Suivre (ado), Suivre ou Ma bande,
-  // Ajouter, Écrire, et le dernier message
+  // Sous l'en-tête, dans cet ordre : sa demande à te suivre (s'il y en a une), Suivre, Suivre ou Ma bande, Ajouter, Écrire,
+  // et le dernier message
   const lignesActions = estMoi
     ? []
     : [
         bandeDemande ? <BandeDemandeRecue key="demande" pote={pote} /> : null,
         suivreVisible ? <BoutonSuivreProfil key="suivre" cle={`personne:${pote.id}`} nom={prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" /> : null,
-        refusAgeAdo ? (
-          <Text key="age" className="text-center font-texte text-sm leading-5 text-gris">
-            {lierPonctuation("Entre 15 et 17 ans, tu suis les lieux, les créateurs et les gens de ton âge.")}
-          </Text>
-        ) : null,
         suivreVisible && ajoutable ? (
           <Text key="difference" className="text-center font-texte text-sm leading-5 text-gris">
             {lierPonctuation("Suivre, c'est voir passer ses listes et ses lieux. Ma bande, c'est pour sortir ensemble et discuter.")}
@@ -243,7 +230,7 @@ export default function ProfilPote() {
           actions={actions}
         />
 
-        {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} peutDemander={!!relation?.verdict.permis} demandeEnvoyee={jeSuis === "demande"} />}
+        {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} demandeEnvoyee={jeSuis === "demande"} />}
 
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">

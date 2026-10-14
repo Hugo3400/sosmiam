@@ -11,7 +11,6 @@ import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 import { classerCodeScanne } from "~/fonctions/scan/classer-code-scanne";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserPositionValidation, type ResultatLecturePosition } from "~/hooks/utiliser-position-validation";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
@@ -46,9 +45,8 @@ function attendre(ms: number): Promise<void> {
   return new Promise((resoudre) => setTimeout(resoudre, ms));
 }
 
-/** QR de vitrine : « Voir la fiche » du lieu (jamais un bar pour un 15-17 ans), comme le ferait le serveur */
-function decrireVitrine(lieu: Lieu, majeur: boolean): EchecValidationComptoir {
-  if (lieu.type === "bar" && !majeur) return { erreur: "mineur-bar" };
+/** QR de vitrine : « Voir la fiche » du lieu, comme le ferait le serveur (le scanner est réservé aux inscrits, bars compris) */
+function decrireVitrine(lieu: Lieu): EchecValidationComptoir {
   return { erreur: "qr-vitrine", details: { lieuId: lieu.id, lieu: lieu.nom } };
 }
 
@@ -70,7 +68,6 @@ export function utiliserValidationComptoir(): {
   const { contenu } = utiliserSession();
   const { trouverLieu, chargerLieu } = utiliserLieux();
   const demanderCompte = utiliserDemandeCompte();
-  const { majeur } = utiliserModes();
   const { reglages } = utiliserReglagesDemo();
   const { lire: lirePosition } = utiliserPositionValidation();
   // La démo place le téléphone à 30 m du lieu du QR (qu'on ne connaît qu'au scan) ; sinon, on lit la vraie position
@@ -122,9 +119,9 @@ export function utiliserValidationComptoir(): {
       }
       const lieu = lieuId === undefined ? "inconnu" : await lireLieu(lieuId);
       if (lieu === "hors-ligne") return { erreur: "hors-ligne" };
-      return lieu === "inconnu" ? { erreur: "introuvable" } : decrireVitrine(lieu, majeur);
+      return lieu === "inconnu" ? { erreur: "introuvable" } : decrireVitrine(lieu);
     },
-    [services.source, contenu, lireLieu, majeur],
+    [services.source, contenu, lireLieu],
   );
 
   const repondreFeuille = useCallback((acceptee: boolean) => {

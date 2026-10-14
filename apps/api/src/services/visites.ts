@@ -117,7 +117,7 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
       const comptes = await b.compte.findMany({
         where: { id: { in: ids } },
         select: {
-          id: true, prenom: true, avatar: true, nomChiffre: true, dateNaissanceChiffree: true, emailVerifieLe: true,
+          id: true, prenom: true, avatar: true, nomChiffre: true, emailVerifieLe: true,
           rattachementsLieux: { where: { statut: "valide" }, select: { lieuId: true, role: true }, orderBy: { creeLe: "asc" } },
         },
       });

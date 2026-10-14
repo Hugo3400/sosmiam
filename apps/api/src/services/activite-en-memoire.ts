@@ -1,5 +1,6 @@
 // Double en mémoire de l'activité de l'app, pour les tests (aucune base de données).
 import { JOURS_LIEU_NOUVEAU } from "../../../../packages/commun/src/regles/lieux-nouveaux.ts";
+import { calculerProchainLundiParis } from "../../../../packages/commun/src/fonctions/temps/calculer-prochain-lundi-paris.ts";
 import { RESCOUSSES_PAR_SEMAINE } from "../../../../packages/commun/src/regles/rescousses.ts";
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
 import type { ServicesActivite } from "./activite-regles.ts";
@@ -29,6 +30,7 @@ export function creerActiviteEnMemoire() {
       return {
         semaine,
         restantes: Math.max(0, RESCOUSSES_PAR_SEMAINE - cetteSemaine.length),
+        rechargeLe: new Date(calculerProchainLundiParis(maintenant.getTime())).toISOString(),
         rescoussesSemaine: cetteSemaine,
         lieuxSauves: [...new Set(miennes.map((r) => r.lieuId))],
         rescoussesDonnees: miennes.length,

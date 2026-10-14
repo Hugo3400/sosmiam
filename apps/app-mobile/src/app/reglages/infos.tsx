@@ -31,11 +31,11 @@ const REGLES_PSEUDO =
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
 // Tant que le profil n'existe que sur le téléphone, personne ne peut corriger la date à ta place
 const EXPLICATION_DATE = lierPonctuation(
-  "Elle ne se change pas d'ici : c'est elle qui décide de ce que l'app peut te montrer. Une erreur ? Pour l'instant, tout est rangé sur ton téléphone et on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des réglages (le reste repart aussi à zéro).",
+  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Pour l'instant, tout est rangé sur ton téléphone et on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des réglages (le reste repart aussi à zéro).",
 );
 
 /**
- * Mes infos : prénom, pseudo, nom (facultatif) et ville. La date de naissance s'affiche sans se changer d'ici (elle décide de ce que l'app montre).
+ * Mes infos : prénom, pseudo, nom (facultatif) et ville. La date de naissance s'affiche sans se changer d'ici (elle confirme ton âge).
  * Pseudo : mêmes règles qu'à l'inscription. Un profil créé avant Potes n'en a pas : il peut en choisir un (ou s'en faire proposer un),
  * mais une fois choisi, il ne peut plus être vidé. L'unicité ne se vérifie pour l'instant qu'avec les potes d'exemple (les vrais comptes viendront avec l'API).
  */

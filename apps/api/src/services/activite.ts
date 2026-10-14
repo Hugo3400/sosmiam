@@ -1,6 +1,7 @@
 // L'activité de l'app dans la base. Les rescousses d'un compte sont comptées et écrites sous verrou (la ligne du compte) :
 // deux appuis en même temps ne donnent jamais une quatrième rescousse dans la semaine.
 import { JOURS_LIEU_NOUVEAU } from "../../../../packages/commun/src/regles/lieux-nouveaux.ts";
+import { calculerProchainLundiParis } from "../../../../packages/commun/src/fonctions/temps/calculer-prochain-lundi-paris.ts";
 import { RESCOUSSES_PAR_SEMAINE } from "../../../../packages/commun/src/regles/rescousses.ts";
 import type { ActiviteApi } from "../../../../packages/commun/src/types/activite.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
@@ -33,6 +34,7 @@ export function creerActivite(): ServicesActivite {
       return {
         semaine,
         restantes: Math.max(0, RESCOUSSES_PAR_SEMAINE - cetteSemaine.length),
+        rechargeLe: new Date(calculerProchainLundiParis(maintenant.getTime())).toISOString(),
         rescoussesSemaine: cetteSemaine,
         lieuxSauves: uniques(rescousses.map((r) => r.lieuId)),
         rescoussesDonnees: rescousses.length,

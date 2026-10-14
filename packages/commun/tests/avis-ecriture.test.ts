@@ -6,16 +6,15 @@ import { signerAvis } from "../src/fonctions/avis/signer-avis.ts";
 import { validerAvisNonVerifie } from "../src/validation/valider-avis-non-verifie.ts";
 import type { NouvelAvisNonVerifie } from "../src/types/avis.ts";
 
-test("signature : « Prénom I. » pour un adulte qui a donné son nom, prénom seul sinon", () => {
-  assert.equal(signerAvis("Léa", "m", true), "Léa M.");
-  assert.equal(signerAvis("  Jean   Pierre ", "é", true), "Jean Pierre É.");
-  // 15-17 ans : jamais l'initiale, même avec un nom
-  assert.equal(signerAvis("Inès", "D", false), "Inès");
+test("signature : « Prénom I. » pour qui a donné son nom, prénom seul sinon", () => {
+  assert.equal(signerAvis("Léa", "m"), "Léa M.");
+  assert.equal(signerAvis("  Jean   Pierre ", "é"), "Jean Pierre É.");
+  assert.equal(signerAvis("Inès", "D"), "Inès D.");
   // Sans nom, ou une initiale vide
-  assert.equal(signerAvis("Karim", null, true), "Karim");
-  assert.equal(signerAvis("Karim", " ", true), "Karim");
-  assert.equal(signerAvis("   ", "M", true), "Quelqu'un M.");
-  assert.equal(signerAvis("x".repeat(80), null, true).length, 40);
+  assert.equal(signerAvis("Karim", null), "Karim");
+  assert.equal(signerAvis("Karim", " "), "Karim");
+  assert.equal(signerAvis("   ", "M"), "Quelqu'un M.");
+  assert.equal(signerAvis("x".repeat(80), null).length, 40);
 });
 
 const AVIS: NouvelAvisNonVerifie = { lieuId: 12, note: 4, texte: "Crêpes dorées, cidre frais, accueil adorable.", photo: null };

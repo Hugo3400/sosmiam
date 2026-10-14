@@ -7,6 +7,8 @@ import { rendreHtmlCourriel } from "../editeur/rendre-html-courriel.ts";
  * simple « STOP » suffit). Pour un mail aux ambassadeurs, voir PIED_AMBASSADEURS. */
 export const PIED_NEWSLETTER = `Tu reçois ce mail parce que tu t'es inscrit à la newsletter de SOS Miam. Plus envie ? Réponds simplement « STOP » à ce mail, ou écris à <a href="mailto:bonjour@sosmiam.fr" style="color:#5C5A55">bonjour@sosmiam.fr</a> : on te retire de la liste, sans question.`;
 export const PIED_AMBASSADEURS = `Tu reçois ce mail parce que tu es ambassadeur SOS Miam. Une question ? Réponds simplement à ce mail, on lit tout.`;
+/** Mail d'information à tous les comptes (changement des CGU…) : jamais de pub, donc pas de désinscription */
+export const PIED_COMPTES = `Tu reçois ce mail parce que tu as un compte SOS Miam : c'est une information sur le service, pas de la pub. Une question ? Réponds simplement à ce mail.`;
 
 /** E-mail complet aux couleurs de SOS Miam : bandeau jaune, texte, pied de page (HTML écrit ici, jamais saisi). */
 export function creerHtmlNewsletter(objet: string, document: JSONContent, pied = PIED_NEWSLETTER): string {

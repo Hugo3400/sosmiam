@@ -13,7 +13,6 @@ import { ContexteServices, type ValeurServices } from "~/hooks/utiliser-services
 import { choisirServices } from "~/services/choisir-services";
 import type { ClientDemo } from "~/services/demo/types-demo";
 import type { Avatar } from "~/stockage/avatar-local";
-import { ROLES_VIDES } from "~/stockage/roles-demo";
 
 /** « Moi » vu par les services : prénom, initiale du nom, emoji (une photo n'est jamais montrée au lieu) et majorité. */
 function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | null {
@@ -31,29 +30,27 @@ function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | n
 /**
  * Crée les services une seule fois pour toute l'app et les fournit : ceux de l'API dès qu'un vrai compte est connecté, sinon la
  * démo en développement, et des services « indisponibles » dans une version publiée sans compte. Ils sont fournis
- * (voir utiliserServices). Les services relisent, à chaque appel, qui tu es (prénom, initiale, emoji, majorité) et tes rôles :
+ * (voir utiliserServices). Les services relisent, à chaque appel, qui tu es (prénom, initiale, emoji) et tes rôles :
  * ce que voit l'équipe d'un lieu, c'est seulement le prénom, l'initiale et l'emoji, jamais l'âge.
  */
 export function FournisseurServices({ children }: { children: ReactNode }) {
   const { profil, avatar } = utiliserProfil();
-  const { roles, majeur } = utiliserModes();
-  // Un 15-17 ans n'a aucun rôle, même si des rôles de démo traînent sur le téléphone : les services refusent alors tout geste pro
-  const rolesPermis = majeur ? roles : ROLES_VIDES;
+  const { roles } = utiliserModes();
 
   const client = useRef<ClientDemo | null>(construireClient(profil, avatar));
-  const rolesActuels = useRef<RolesCompte>(rolesPermis);
+  const rolesActuels = useRef<RolesCompte>(roles);
   // Avant les effets des écrans : un appel lancé juste après un changement de profil ou de rôle voit déjà le nouveau
   useLayoutEffect(() => {
     client.current = construireClient(profil, avatar);
-    rolesActuels.current = rolesPermis;
-  }, [profil, avatar, rolesPermis]);
+    rolesActuels.current = roles;
+  }, [profil, avatar, roles]);
 
   // Une seule fois : le magasin de la démo et ses écouteurs doivent rester les mêmes tant que l'app tourne
   const [sansCompte] = useState<ValeurServices>(() =>
     choisirServices({ lireClient: () => client.current, lireRoles: () => rolesActuels.current }),
   );
 
-  // Un vrai compte connecté : l'API (le serveur revérifie tout, rôles et âge compris) ; jamais d'outils de démo
+  // Un vrai compte connecté : l'API (le serveur revérifie tout, rôles compris) ; jamais d'outils de démo
   const { connecte, client: clientHttp, compte } = utiliserSession();
   const statutAmbassadeur = useRef(compte?.ambassadeur?.statut ?? null);
   useLayoutEffect(() => {

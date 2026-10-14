@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { SANS_RETOUR_AGE } from "~/contenus/sans-retour-age";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { construireCibleSuivi } from "~/fonctions/suivi/construire-cible-suivi";
-import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
@@ -35,11 +30,10 @@ type EtatFeuille = "jamais" | "ouverte" | "fermee";
 /**
  * « Retirer », à droite d'un de tes abonnés : une feuille demande confirmation, puis il ne te suit plus, sans que personne
  * ne le prévienne, et le bouton devient « Retiré ». Il pourra te suivre à nouveau (ou devra te refaire une demande si ton
- * compte est privé) ; sauf si la règle d'âge ne le permet plus (un abonné de 15-17 ans gardé à tes 18 ans) : c'est sans retour.
+ * compte est privé).
  */
 export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props) {
   const { retirerAbonne, comptePrive } = utiliserSuivisPersonnes();
-  const { trouverPote, moiMineur } = utiliserCommunaute();
   const exiger = utiliserCompteRequis();
   const [feuille, setFeuille] = useState<EtatFeuille>("jamais");
   const [retire, setRetire] = useState(false);
@@ -68,15 +62,7 @@ export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props)
     onAnnoncer(`${prenom} ne te suit plus. En toute discrétion 🤫`);
   }
 
-  // Pourrait-il te suivre de nouveau ? (lui → toi : la règle d'âge, revérifiée comme pour une nouvelle demande)
-  const pote = trouverPote(id);
-  const retour = pote ? peutSuivre(construireCibleSuivi(pote), { id: ID_MOI, mineur: moiMineur, prive: comptePrive, createur: false }, { bloque: false }) : null;
-  const suite =
-    retour && !retour.permis && retour.raison === "age"
-      ? SANS_RETOUR_AGE
-      : comptePrive
-        ? `${prenom} devra te refaire une demande pour te suivre.`
-        : `${prenom} pourra te suivre à nouveau.`;
+  const suite = comptePrive ? `${prenom} devra te refaire une demande pour te suivre.` : `${prenom} pourra te suivre à nouveau.`;
 
   return (
     <>

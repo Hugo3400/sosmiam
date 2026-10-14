@@ -1,9 +1,10 @@
 // Inscrits à la newsletter et newsletters en préparation, pour le logiciel de gestion.
-import { appendFile, mkdir, readFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
+import { garderDesinscritsRecents } from "../../fonctions/courriels/garder-desinscrits-recents.ts";
 
 /** Après 3 ans sans aucun message, on redemande à la personne si elle veut continuer (voir docs/decisions.md). */
 const DELAI_RELANCE = 3 * 365 * 86_400_000;
@@ -90,6 +91,23 @@ export async function noterDesinscription(email: string, maintenant = new Date()
   if (desinscrits.split("\n").some((ligne) => ligne.split(" ")[0]?.trim().toLowerCase() === adresse)) return;
   await mkdir(dirname(FICHIER_DESINSCRITS), { recursive: true, mode: 0o700 });
   await appendFile(FICHIER_DESINSCRITS, `${adresse} ${maintenant.toISOString().slice(0, 10)}\n`, { mode: 0o600 });
+}
+
+/**
+ * Efface de la liste des désinscrits ce qui a plus de 3 ans (une ligne par adresse, la plus récente). Fichier réécrit d'un
+ * coup (fichier temporaire puis renommage). Rend le nombre de lignes retirées.
+ */
+export async function purgerDesinscritsAnciens(maintenant = new Date()): Promise<number> {
+  const texte = await readFile(FICHIER_DESINSCRITS, "utf8").catch(() => null);
+  if (texte === null) return 0;
+  const limite = new Date(maintenant);
+  limite.setUTCFullYear(limite.getUTCFullYear() - 3);
+  const { texte: garde, retires } = garderDesinscritsRecents(texte, limite.toISOString().slice(0, 10));
+  if (retires === 0) return 0;
+  const provisoire = `${FICHIER_DESINSCRITS}.purge`;
+  await writeFile(provisoire, garde, { mode: 0o600 });
+  await rename(provisoire, FICHIER_DESINSCRITS);
+  return retires;
 }
 
 /**

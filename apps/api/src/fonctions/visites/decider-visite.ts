@@ -13,10 +13,9 @@ export type VisiteDecidee =
 /**
  * Décide une visite (réglée, refusée, annulée, expirée, retirée) avec la machine à états de packages/commun, l'écrit et
  * applique ses effets, dans la transaction. `parId` : le membre de l'équipe qui décide (null : le client ou l'heure).
- * `majeur` : le client de la visite (récompense figée selon son âge).
  */
 export async function deciderVisite(
-  t: TablesVisites, v: LigneVisite, evenement: EvenementVisite, maintenant: Date, majeur: boolean, parId: number | null,
+  t: TablesVisites, v: LigneVisite, evenement: EvenementVisite, maintenant: Date, parId: number | null,
 ): Promise<VisiteDecidee> {
   const transition = faireEvoluerVisite(
     { ...v, expireLe: v.expireLe?.toISOString() ?? null, valideLe: v.valideLe?.toISOString() ?? null },
@@ -24,7 +23,7 @@ export async function deciderVisite(
     maintenant.getTime(),
   );
   if (!transition.ok) return transition;
-  const { champs, ...reste } = await appliquerEffetsVisite(t, v, transition.effets, maintenant, majeur);
+  const { champs, ...reste } = await appliquerEffetsVisite(t, v, transition.effets, maintenant);
   const apres: LigneVisite = {
     ...v,
     statut: transition.statut,

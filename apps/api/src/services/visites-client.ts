@@ -1,7 +1,6 @@
 // Les visites côté client (voir routes/visites.ts) : infos de validation d'un lieu, addition demandée, QR du comptoir
 // scanné, suivi, annulation, contestation, « Mes visites ». Mêmes règles que la démo de l'app (packages/commun), mais
 // sur les vraies données : position comparée ici, jamais gardée ; QR signé par l'API ; e-mail vérifié obligatoire.
-import { choisirRecompenseAffichee } from "../../../../packages/commun/src/fonctions/fidelite/choisir-recompense-affichee.ts";
 import { estRecompenseAlcool } from "../../../../packages/commun/src/fonctions/fidelite/est-recompense-alcool.ts";
 import { lireCodeScanne } from "../../../../packages/commun/src/fonctions/qr/lire-code-scanne.ts";
 import { verifierJetonComptoir } from "../../../../packages/commun/src/fonctions/qr/verifier-jeton-comptoir.ts";
@@ -29,9 +28,9 @@ export function creerVisitesClient(c: ContexteVisites) {
   const o = creerOutilsVisites(c);
 
   /** Ce que reçoit le client pour une visite : la visite, sa carte chez ce lieu, et si la carte vient de se remplir */
-  async function construireResultat(t: TablesVisites, v: LigneVisite, majeur: boolean, recompenseGagnee: boolean | null, dejaValidee = false): Promise<ResultatValidation> {
+  async function construireResultat(t: TablesVisites, v: LigneVisite, recompenseGagnee: boolean | null, dejaValidee = false): Promise<ResultatValidation> {
     const lieu = (await t.resumerLieux([v.lieuId])).get(v.lieuId) ?? o.lieuDisparu(v.lieuId);
-    return construireResultatValidation(t, v, lieu, majeur, recompenseGagnee, o.maintenant(), dejaValidee);
+    return construireResultatValidation(t, v, lieu, recompenseGagnee, o.maintenant(), dejaValidee);
   }
 
   /** Une visite du client, relue sous le verrou de son compte (null : pas la sienne, ou introuvable) */
@@ -47,15 +46,12 @@ export function creerVisitesClient(c: ContexteVisites) {
         const maintenant = o.maintenant();
         const lieu = await t.lireLieu(lieuId, maintenant);
         if (!lieu) return o.echec("introuvable");
-        const { majeur } = await o.lireVisiteur(t, compteId);
-        if (lieu.type === "bar" && !majeur) return o.echec("mineur-bar");
         await t.expirerDemandes(maintenant);
         const [programme, ligneCarte, enCours] = await Promise.all([
           t.lireProgramme(lieuId),
           t.lireCarte(compteId, lieuId, maintenant),
           t.listerVisites({ compteId, lieuId, statuts: ["demandee"], limite: 1 }),
         ]);
-        const recompense = programme?.actif ? choisirRecompenseAffichee(programme, majeur) : null;
         const resume = o.resumer(lieu);
         return {
           ok: true,
@@ -63,8 +59,10 @@ export function creerVisitesClient(c: ContexteVisites) {
             lieuId,
             validationActive: lieu.validationActive,
             reservable: lieu.reservable,
-            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: estRecompenseAlcool(programme, majeur) } : null,
-            carte: ligneCarte ? presenterCarteFidelite(ligneCarte, programme, resume, majeur) : null,
+            programme: programme?.actif
+              ? { visitesRequises: programme.visitesRequises, recompense: programme.recompense, recompenseAlcool: estRecompenseAlcool(programme) }
+              : null,
+            carte: ligneCarte ? presenterCarteFidelite(ligneCarte, programme, resume) : null,
             enCoursIci: enCours[0] ? presenterVisite(enCours[0], resume) : null,
             // Le lieu remplit sa fiche et sa carte lui-même (espace pro) : celles de /app/lieux/:id font foi
             pratique: null,
@@ -75,11 +73,10 @@ export function creerVisitesClient(c: ContexteVisites) {
     },
 
     /** GET /app/visites/lieux-qui-valident */
-    listerLieuxQuiValident(compteId: number): Promise<Reponse<{ lieux: number[] }>> {
+    listerLieuxQuiValident(): Promise<Reponse<{ lieux: number[] }>> {
       return c.depot.lire(async (t) => {
-        const { majeur } = await o.lireVisiteur(t, compteId);
         const lieux = await t.listerLieuxQuiValident();
-        return { ok: true, lieux: lieux.filter((l) => majeur || l.type !== "bar").map((l) => l.id) };
+        return { ok: true, lieux: lieux.map((l) => l.id) };
       });
     },
 
@@ -121,12 +118,10 @@ export function creerVisitesClient(c: ContexteVisites) {
       const code = lireCodeScanne(texte);
       if (code.type === "autre") return o.echec("qr-illisible");
       if (code.type === "lieu") {
-        // QR de vitrine : il ouvre la fiche, il ne valide jamais (et jamais le nom d'un bar pour un 15-17 ans)
+        // QR de vitrine : il ouvre la fiche, il ne valide jamais
         return c.depot.lire(async (t) => {
           const lieu = await t.trouverLieuParCode(code.codePublic, o.maintenant());
           if (!lieu) return o.echec("introuvable");
-          const { majeur } = await o.lireVisiteur(t, compteId);
-          if (lieu.type === "bar" && !majeur) return o.echec("mineur-bar");
           return o.echec("qr-vitrine", { lieuId: lieu.id, lieu: lieu.nom });
         });
       }
@@ -146,7 +141,7 @@ export function creerVisitesClient(c: ContexteVisites) {
         const refus = o.verifierDroits(lieu, visiteur) ?? o.verifierEmail(visiteur) ?? o.verifierPosition(position, lieu);
         if (refus) return refus;
         const [deja] = await t.listerVisites({ compteId, presentationId: presentation.id, limite: 1 });
-        if (deja) return { ok: true, ...(await construireResultat(t, deja, visiteur.majeur, false, true)), pointsAPoser: { compteId, points: [] } };
+        if (deja) return { ok: true, ...(await construireResultat(t, deja, false, true)), pointsAPoser: { compteId, points: [] } };
         if (!(await t.consommerPresentation(presentation.id))) return o.echec("qr-epuise");
 
         const { visite, points, recompenseGagnee } = await creerVisiteValidee(t, {
@@ -154,8 +149,8 @@ export function creerVisitesClient(c: ContexteVisites) {
           // Le membre de l'équipe qui a montré le QR : on sait qui a validé quoi
           decideParId: presentation.montreParId,
           presentationId: presentation.id, reservationId: null, reglement: presentation.reglement ?? payee(),
-        }, maintenant, visiteur.majeur);
-        const resultat = await construireResultat(t, visite, visiteur.majeur, recompenseGagnee);
+        }, maintenant);
+        const resultat = await construireResultat(t, visite, recompenseGagnee);
         return { ok: true, ...resultat, pointsAPoser: { compteId, points } };
       });
     },
@@ -166,8 +161,7 @@ export function creerVisitesClient(c: ContexteVisites) {
         await t.expirerDemandes(o.maintenant());
         const v = await lireSaVisite(t, compteId, id);
         if (!v) return o.echec("introuvable");
-        const { majeur } = await o.lireVisiteur(t, compteId);
-        return { ok: true, ...(await construireResultat(t, v, majeur, null)) };
+        return { ok: true, ...(await construireResultat(t, v, null)) };
       });
     },
 
@@ -178,8 +172,7 @@ export function creerVisitesClient(c: ContexteVisites) {
         await t.verrouillerCompte(compteId);
         const v = await lireSaVisite(t, compteId, id);
         if (!v) return o.echec("introuvable");
-        const { majeur } = await o.lireVisiteur(t, compteId);
-        const decision = await deciderVisite(t, v, { type: "annuler-client" }, maintenant, majeur, null);
+        const decision = await deciderVisite(t, v, { type: "annuler-client" }, maintenant, null);
         if (!decision.ok) return o.echec(decision.erreur);
         return { ok: true, visite: presenterVisite(decision.visite, (await t.resumerLieux([v.lieuId])).get(v.lieuId) ?? o.lieuDisparu(v.lieuId)) };
       });

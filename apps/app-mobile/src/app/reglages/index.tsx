@@ -3,7 +3,6 @@ import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { Alert, Linking, Platform, Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -11,7 +10,6 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { avatarsEmoji } from "~/contenus/avatars-emoji";
 import { etapesEnvies } from "~/contenus/inscription/envies";
-import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envies";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
@@ -47,9 +45,8 @@ export default function Reglages() {
   const { connecte, compte, fermer } = utiliserSession();
   if (!profil) return null;
 
-  // Seules les envies que l'app peut montrer à cet âge sont comptées
-  const etapes = filtrerEtapesEnvies(etapesEnvies, calculerAge(profil.dateNaissance));
-  const nombreEnvies = etapes.reduce((total, etape) => {
+  // Seules les envies que l'app connaît encore sont comptées
+  const nombreEnvies = etapesEnvies.reduce((total, etape) => {
     const coches = profil.envies[etape.categorie] ?? [];
     return total + etape.choix.filter((choix) => coches.includes(choix.id)).length;
   }, 0);
@@ -70,11 +67,9 @@ export default function Reglages() {
 
   const detailConfidentialite = !suivisPersonnes.pret
     ? "Qui peut te suivre sans demander"
-    : suivisPersonnes.confidentialiteVerrouillee
-      ? "Privé d'office entre 15 et 17 ans"
-      : suivisPersonnes.comptePrive
-        ? "Activé : chaque abonné te demande d'abord"
-        : "Désactivé : tout le monde peut te suivre";
+    : suivisPersonnes.comptePrive
+      ? "Activé : chaque abonné te demande d'abord"
+      : "Désactivé : tout le monde peut te suivre";
 
   const version = Constants.expoConfig?.version;
 

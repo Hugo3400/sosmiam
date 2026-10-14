@@ -6,8 +6,6 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 type Props = {
   /** Son prénom, dans le texte */
   prenom: string;
-  /** Vrai si la règle te permet de lui demander à la suivre (le bouton « Suivre » est affiché juste au-dessus) */
-  peutDemander: boolean;
   /** Ta demande est partie et attend sa réponse (le bouton, au-dessus, affiche « Demandé ») */
   demandeEnvoyee?: boolean;
   /** Son profil t'est ouvert, mais pas ses abonnés ni ses abonnements (Réseau) : on ne t'invite pas à faire ce que tu as déjà fait */
@@ -15,12 +13,10 @@ type Props = {
 };
 
 /**
- * L'encadré d'un profil qu'on ne peut pas voir en entier (compte privé, ou réservé à sa bande). Le même texte pour les deux,
- * pour que rien ne révèle l'âge de la personne. Lu d'un seul tenant par VoiceOver.
- * Quand la règle ne permet pas de demander (entre un adulte et un 15-17 ans), une phrase neutre : jamais d'invitation à se
- * rencontrer ou à s'ajouter en vrai (lien, QR code), qui pousserait un adulte et un ado inconnus à se voir.
+ * L'encadré d'un profil qu'on ne peut pas voir en entier (compte privé) : il invite à toucher « Suivre » (le bouton est
+ * juste au-dessus), ou dit que la demande est partie. Lu d'un seul tenant par VoiceOver.
  */
-export function EncadreComptePrive({ prenom, peutDemander, demandeEnvoyee = false, listesSeules = false }: Props) {
+export function EncadreComptePrive({ prenom, demandeEnvoyee = false, listesSeules = false }: Props) {
   const titre = listesSeules ? "Listes privées" : "Compte privé";
   const texte = listesSeules
     ? `Qui suit ${prenom}, et qui ${prenom} suit : ça reste entre ${prenom} et ses abonnés.`
@@ -29,9 +25,7 @@ export function EncadreComptePrive({ prenom, peutDemander, demandeEnvoyee = fals
     ? "Son profil, lui, t'est grand ouvert."
     : demandeEnvoyee
       ? `Ta demande est partie : dès que ${prenom} dit oui, tout s'ouvre ici.`
-      : peutDemander
-        ? "Touche « Suivre » : ça lui envoie une demande."
-        : "Ça reste entre eux : plein d'autres bons plans t'attendent ailleurs !";
+      : "Touche « Suivre » : ça lui envoie une demande.";
 
   return (
     <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${texte} ${suite}`)} className="gap-1.5 rounded-carte border-2 border-encre bg-white p-4">

@@ -5,6 +5,8 @@ export function decrirePublic(cible: PublicEnvoi, coches: number, total: number)
   const morceaux =
     cible.public === "newsletter"
       ? ["Inscrits", cible.ville, cible.candidats && "candidats ambassadeurs", cible.beta && "bêta-testeurs", cible.telephone === "iphone" ? "iPhone" : cible.telephone === "android" ? "Android" : ""]
+      : cible.public === "comptes"
+      ? ["Tous les comptes", cible.ville]
       : [cible.statut === "actif" ? "Ambassadeurs actifs" : "Ambassadeurs (sauf refusés)", cible.ville];
   return [...morceaux.filter(Boolean), coches === total ? `${total} au total` : `${coches} sur ${total} cochés`].join(" · ");
 }

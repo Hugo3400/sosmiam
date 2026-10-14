@@ -23,10 +23,10 @@ export type VisiteValidee = { visite: LigneVisite; points: PointsVisite[]; recom
 
 /**
  * Crée une visite validée dans la transaction (position déjà vérifiée : « dans-rayon ») et applique ses effets comme une
- * addition réglée : +15 (+25 pendant un SOS), tampon selon l'âge du client (`majeur`), avis ouvert dans 1 h ; offerte par
- * le lieu : seulement l'avis. Annulable par le lieu pendant 15 min. Les points sont rendus, à poser après la transaction.
+ * addition réglée : +15 (+25 pendant un SOS), tampon, avis ouvert dans 1 h ; offerte par le lieu : seulement l'avis.
+ * Annulable par le lieu pendant 15 min. Les points sont rendus, à poser après la transaction.
  */
-export async function creerVisiteValidee(t: TablesVisites, a: VisiteAValider, maintenant: Date, majeur: boolean): Promise<VisiteValidee> {
+export async function creerVisiteValidee(t: TablesVisites, a: VisiteAValider, maintenant: Date): Promise<VisiteValidee> {
   const visite = await t.creerVisite({
     compteId: a.compteId, lieuId: a.lieuId, mode: a.mode, statut: "validee", code: null, creeLe: maintenant, expireLe: null,
     valideLe: maintenant, decideLe: maintenant, decideParId: a.decideParId, pendantSos: a.pendantSos,
@@ -35,7 +35,7 @@ export async function creerVisiteValidee(t: TablesVisites, a: VisiteAValider, ma
     reservationId: a.reservationId, annulableJusqua: new Date(maintenant.getTime() + DELAI_ANNULATION_LIEU_MS), reglement: a.reglement,
   });
   const effets = calculerEffetsValidation(a.pendantSos, maintenant.getTime(), undefined, a.reglement);
-  const { champs, points, recompenseGagnee } = await appliquerEffetsVisite(t, visite, effets, maintenant, majeur);
+  const { champs, points, recompenseGagnee } = await appliquerEffetsVisite(t, visite, effets, maintenant);
   await t.modifierVisite(visite.id, champs);
   return { visite: { ...visite, ...champs }, points, recompenseGagnee };
 }

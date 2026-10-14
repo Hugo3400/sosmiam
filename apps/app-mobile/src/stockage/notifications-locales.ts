@@ -1,5 +1,5 @@
 // Notifications de l'app (« … te suit », demande acceptée, nouveauté d'un compte suivi), gardées sur le téléphone
-// en attendant l'API (démo). Rien de sensible : AsyncStorage suffit.
+// en attendant l'API (démo). Rien de sensible : AsyncStorage suffit. Un type inconnu (comme l'ancienne « majorite ») est oublié à la lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
@@ -37,8 +37,6 @@ function lireNotification(brute: unknown): NotificationSuivi | null {
       return estTexte(n.cle) ? { ...base, type: "demande-acceptee", cle: n.cle } : null;
     case "nouvelle-publication":
       return estTexte(n.cle) && estTexte(n.publicationId) ? { ...base, type: "nouvelle-publication", cle: n.cle, publicationId: n.publicationId } : null;
-    case "majorite":
-      return { ...base, type: "majorite" };
     default:
       return null;
   }

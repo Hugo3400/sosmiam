@@ -27,13 +27,12 @@ const TAILLE_ROND = 44;
 
 /** Ce que la ligne ouvre, lu par VoiceOver après la phrase */
 const indiceDe = (notification: NotificationSuivi) => {
-  if (notification.type === "majorite") return undefined;
   if (notification.cle.startsWith("personne:")) return "Ouvre son profil";
   return notification.cle.startsWith("lieu:") ? "Ouvre la fiche du lieu" : "Ouvre sa page";
 };
 
 /**
- * Une notification : le rond (avatar de la personne, 🎬, emoji du lieu ou 🎂), la phrase et le moment (« 14h32 », « Hier »).
+ * Une notification : le rond (avatar de la personne, 🎬 ou emoji du lieu), la phrase et le moment (« 14h32 », « Hier »).
  * Toucher la ligne ouvre le profil, la page du créateur ou la fiche du lieu. Une nouveauté se lit « Nouveau » en premier.
  */
 export function LigneNotification({ notification, description, pote, nouvelle, derniere }: Props) {

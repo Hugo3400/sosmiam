@@ -23,7 +23,7 @@ export function ListeCampagnes({ campagnes, onChange }: { campagnes: Campagne[];
               <li key={campagne.id} className="grid gap-2 border-b border-ligne/70 px-5 py-3 text-sm last:border-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold">{campagne.objet}</span>
-                  <Badge ton={campagne.public === "newsletter" ? "jaune" : "encre"}>{campagne.public === "newsletter" ? "Newsletter" : "Ambassadeurs"}</Badge>
+                  <Badge ton={campagne.public === "newsletter" ? "jaune" : campagne.public === "comptes" ? "contour" : "encre"}>{campagne.public === "newsletter" ? "Newsletter" : campagne.public === "comptes" ? "Tous les comptes" : "Ambassadeurs"}</Badge>
                   {attente > 0 ? <Badge ton="jaune">En cours</Badge> : <Badge ton="vert">Terminé</Badge>}
                   <span className="ml-auto text-gris">{formaterDate(campagne.creeLe, true)}</span>
                   {attente > 0 && (

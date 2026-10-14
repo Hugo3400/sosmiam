@@ -230,7 +230,7 @@ export default function FaisConnaissance() {
           <ChoixDateNaissance
             valeur={brouillon.dateNaissance}
             onChangeDate={(dateNaissance) => modifier({ dateNaissance })}
-            aide="Elle sert juste à adapter l'app à ton âge, et elle reste sur ton téléphone."
+            aide="Elle sert juste à vérifier ton âge, et elle reste sur ton téléphone."
           />
         </View>
 

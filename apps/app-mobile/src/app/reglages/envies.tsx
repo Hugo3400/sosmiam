@@ -1,26 +1,19 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Alert, Platform, Text, View } from "react-native";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { CategorieEnvie, Profil } from "@sos-miam/commun/types/profil";
 import { GrilleChoix } from "~/composants/inscription/GrilleChoix";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { etapesEnvies } from "~/contenus/inscription/envies";
-import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envies";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
-/**
- * Mes envies : toutes les catégories permises à ton âge, l'une sous l'autre. On coche sur une copie, enregistrée d'un coup.
- * Les catégories et les choix masqués par l'âge (alcool sous 18 ans) gardent leurs valeurs.
- */
+/** Mes envies : toutes les catégories, l'une sous l'autre. On coche sur une copie, enregistrée d'un coup. */
 export default function ReglagesEnvies() {
   const router = useRouter();
   const { profil, enregistrer } = utiliserProfil();
   const [envies, setEnvies] = useState<Profil["envies"]>(() => profil?.envies ?? {});
   const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const etapes = useMemo(() => filtrerEtapesEnvies(etapesEnvies, age), [age]);
   if (!profil) return null;
 
   // Comparées comme des ensembles : décocher puis recocher ne compte pas comme un changement
@@ -61,7 +54,7 @@ export default function ReglagesEnvies() {
       }}
     >
       <View className="gap-10">
-        {etapes.map((etape) => {
+        {etapesEnvies.map((etape) => {
           const coches = envies[etape.categorie] ?? [];
           // Seuls les choix affichés sont comptés (pas ceux masqués par l'âge)
           const nombre = etape.choix.filter((choix) => coches.includes(choix.id)).length;

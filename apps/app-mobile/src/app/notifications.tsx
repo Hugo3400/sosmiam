@@ -5,11 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { LigneNotification } from "~/composants/notifications/LigneNotification";
 import { SectionDemandesSuivi } from "~/composants/notifications/SectionDemandesSuivi";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { decrireNotificationSuivi } from "~/fonctions/notifications/decrire-notification-suivi";
 import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
@@ -58,15 +56,13 @@ export default function Notifications() {
     [marquerToutVu],
   );
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const { lieux: tousLesLieux } = utiliserLieux();
+  const { lieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
-  const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const groupes = useMemo(() => {
     const lignes = notifications.notifications.flatMap((notification) => {
       const description = decrireNotificationSuivi(notification, { trouverPote, publications: toutesLesPublications, lieux });
       if (!description) return [];
-      const cible = notification.type === "majorite" ? null : lireCleSuivi(notification.cle);
+      const cible = lireCleSuivi(notification.cle);
       const pote = cible?.type === "personne" ? trouverPote(cible.id) : null;
       return [{ date: notification.date, notification, description, pote }];
     });

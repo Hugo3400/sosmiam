@@ -70,7 +70,7 @@ test("sans session : 401 ; avec session : l'activité vide, jamais en cache", as
   assert.equal(statut, 200);
   assert.equal(entetes.get("cache-control"), "private, no-store");
   assert.deepEqual(corps.activite, {
-    semaine: "2026-S41", restantes: 3, rescoussesSemaine: [], lieuxSauves: [], rescoussesDonnees: 0, rescoussesDuMois: 0,
+    semaine: "2026-S41", restantes: 3, rechargeLe: "2026-10-11T22:00:00.000Z", rescoussesSemaine: [], lieuxSauves: [], rescoussesDonnees: 0, rescoussesDuMois: 0,
     premiersSauvetages: [], gardes: [], jaimes: [], masques: [], suivis: [],
   });
 });
@@ -96,6 +96,22 @@ test("rescousses : 3 par semaine, +2 points chacune, rechargées le lundi à Par
   assert.deepEqual([lundi.statut, lundi.corps.activite.semaine, lundi.corps.activite.restantes], [201, "2026-S42", 2]);
   assert.deepEqual(lundi.corps.activite.lieuxSauves, [4, 3, 2, 1]);
   assert.equal(lundi.corps.activite.rescoussesDonnees, 4);
+});
+
+test("rechargeLe : le prochain lundi 0 h à Paris, pile quand la semaine change, même le soir du passage à l'heure d'hiver", async () => {
+  // Dimanche 25 octobre 2026, 23 h 59 à Paris (heure d'hiver depuis 3 h du matin : 22 h 59 UTC)
+  banc.horloge = Date.parse("2026-10-25T22:59:00Z");
+  const { jeton } = await creerCompte();
+  for (const lieuId of [1, 2, 3]) await demander("POST", "/app/activite/rescousses", jeton, { lieuId });
+  const dimanche = (await demander("GET", "/app/activite", jeton)).corps.activite;
+  assert.deepEqual([dimanche.semaine, dimanche.restantes, dimanche.rechargeLe], ["2026-S43", 0, "2026-10-25T23:00:00.000Z"]);
+  // Une milliseconde avant : toujours dimanche, plus de rescousse
+  banc.horloge = Date.parse(dimanche.rechargeLe) - 1;
+  assert.equal((await demander("POST", "/app/activite/rescousses", jeton, { lieuId: 4 })).corps.erreur, "plus-de-rescousse");
+  // Pile à rechargeLe : nouvelle semaine, rescousses rendues, recharge suivante une semaine plus tard
+  banc.horloge = Date.parse(dimanche.rechargeLe);
+  const lundi = (await demander("GET", "/app/activite", jeton)).corps.activite;
+  assert.deepEqual([lundi.semaine, lundi.restantes, lundi.rechargeLe], ["2026-S44", 3, "2026-11-01T23:00:00.000Z"]);
 });
 
 test("rescousses refusées : lieu inconnu, non publié, non vérifié, lieuId mal formé", async () => {
