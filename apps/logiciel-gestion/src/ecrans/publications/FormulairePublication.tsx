@@ -172,7 +172,7 @@ export function FormulairePublication({ id: idDepart, onFermer }: { id: number |
           </>
         }
       >
-        <p>La publication et ses fichiers disparaissent. Pour la retirer sans rien perdre, passe-la plutôt en « Masquée ».</p>
+        <p>La publication, ses fichiers et ses commentaires (avec leurs J'aime) disparaissent. Pour la retirer sans rien perdre, passe-la plutôt en « Masquée ».</p>
       </Modale>
     </>
   );

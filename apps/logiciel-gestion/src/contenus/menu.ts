@@ -1,19 +1,20 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  Bell, CalendarDays, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
+  Bell, CalendarDays, Newspaper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
+/** Les écrans rangés par métier (réorganisé le 14 octobre 2026) : chaque groupe se replie dans le menu */
 export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
   {
-    groupe: "Suivi",
+    groupe: "Pilotage",
     entrees: [
       { ecran: "tableau-de-bord", libelle: "Tableau de bord", icone: LayoutDashboard },
       { ecran: "statistiques", libelle: "Statistiques", icone: ChartColumn },
@@ -21,13 +22,25 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
     ],
   },
   {
-    groupe: "Contenus",
+    groupe: "Lieux",
     entrees: [
-      { ecran: "lieux", libelle: "Lieux", icone: Store },
-      { ecran: "villes", libelle: "Villes", icone: MapPinned },
+      { ecran: "lieux", libelle: "Fiches des lieux", icone: Store },
       { ecran: "demandes", libelle: "Demandes de lieux", icone: Inbox },
+      { ecran: "villes", libelle: "Villes", icone: MapPinned },
       { ecran: "big-sos", libelle: "BIG SOS", icone: LifeBuoy },
+    ],
+  },
+  {
+    groupe: "Dans l'app",
+    entrees: [
       { ecran: "publications", libelle: "Publications", icone: Clapperboard },
+      { ecran: "defis", libelle: "Défis", icone: Target },
+      { ecran: "notifications", libelle: "Notifications", icone: Bell },
+    ],
+  },
+  {
+    groupe: "Sécurité",
+    entrees: [
       { ecran: "moderation", libelle: "Modération", icone: ShieldAlert },
       { ecran: "miam-safe", libelle: "Miam Safe", icone: ShieldCheck },
     ],
@@ -35,13 +48,17 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
   {
     groupe: "Communauté",
     entrees: [
-      { ecran: "boite", libelle: "Boîte mail", icone: MailOpen },
       { ecran: "utilisateurs", libelle: "Comptes", icone: Users },
       { ecran: "ambassadeurs", libelle: "Ambassadeurs", icone: HeartHandshake },
-      { ecran: "defis", libelle: "Défis", icone: Target },
+    ],
+  },
+  {
+    groupe: "Communication",
+    entrees: [
+      { ecran: "boite", libelle: "Boîte mail", icone: MailOpen },
       { ecran: "newsletter", libelle: "Newsletter", icone: Mail },
-      { ecran: "notifications", libelle: "Notifications", icone: Bell },
       { ecran: "annonces", libelle: "Annonces Discord", icone: Megaphone },
+      { ecran: "presse", libelle: "Espace presse", icone: Newspaper },
     ],
   },
   {
