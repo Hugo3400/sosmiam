@@ -64,7 +64,7 @@ export function creerAvisEnMemoire() {
 
     async creerAvis(nouvel: NouvelleLigneAvis) {
       if (nouvel.visiteId !== null && avis.some((a) => a.visiteId === nouvel.visiteId)) throw Object.assign(new Error("doublon"), { code: "P2002" });
-      const ligne: AvisEnMemoire = { ...nouvel, id: prochainId++, reponseTexte: null, reponseLe: null, reponseParId: null, reponseStatut: null };
+      const ligne: AvisEnMemoire = { ...nouvel, id: prochainId++, mineur: false, reponseTexte: null, reponseLe: null, reponseParId: null, reponseStatut: null };
       avis.push(ligne);
       return versLigne(ligne);
     },

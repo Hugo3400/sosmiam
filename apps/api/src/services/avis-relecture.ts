@@ -1,7 +1,7 @@
 // La relecture des avis par les ambassadeurs (voir routes/avis.ts) : un verdict consultatif (ok, louche avec un motif de la
 // liste fermée, ou « je me déporte »), un par ambassadeur et par avis ; l'équipe SOS Miam tranche dans le logiciel. Un
-// ambassadeur ne voit jamais l'auteur ni son âge, jamais l'avis d'un 15-17 ans, jamais le sien, jamais un avis d'un lieu
-// auquel il est rattaché (ou demande à l'être).
+// ambassadeur ne voit jamais l'auteur, jamais le sien, jamais un avis d'un lieu auquel il est rattaché (ou demande à
+// l'être), ni un avis à l'ancien marquage `mineur` (plus écrit depuis le 14/10/2026, gardé à l'écart par prudence).
 import type { AvisARelire, VerdictRelecture } from "../../../../packages/commun/src/types/avis.ts";
 import { presenterAvisARelire } from "../fonctions/avis/presenter-avis-a-relire.ts";
 import { echecAvis, lieuDisparu } from "./avis-client.ts";

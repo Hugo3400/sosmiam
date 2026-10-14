@@ -1,6 +1,6 @@
 // Les avis côté client (voir routes/avis.ts) : avis à écrire, avis vérifié (une visite validée, ouvert 1 h après et pendant
 // 14 jours, un seul), avis non vérifié (lieu sans compte SOS Miam, un tous les 30 jours), lecture publique d'un lieu.
-// Signature figée à l'écriture (« Léa M. », prénom seul pour un 15-17 ans) ; jamais masqué automatiquement : certains
+// Signature figée à l'écriture (« Léa M. », prénom seul sans nom donné) ; jamais masqué automatiquement : certains
 // partent en relecture (compte neuf, rafale de notes, tirage au sort) et restent visibles, l'équipe tranche.
 import { signerAvis } from "../../../../packages/commun/src/fonctions/avis/signer-avis.ts";
 import type { AvisPublic, NouvelAvis, NouvelAvisNonVerifie, PageAvisLieu } from "../../../../packages/commun/src/types/avis.ts";
@@ -10,7 +10,6 @@ import type { Visite } from "../../../../packages/commun/src/types/visite.ts";
 import { choisirRaisonRelecture } from "../fonctions/avis/choisir-raison-relecture.ts";
 import { lirePageAvis } from "../fonctions/avis/lire-page-avis.ts";
 import { presenterAvisPublic } from "../fonctions/avis/presenter-avis-public.ts";
-import { estMajeurVisiteur } from "../fonctions/visites/est-majeur-visiteur.ts";
 import { lireInitialeNom } from "../fonctions/visites/lire-initiale-nom.ts";
 import { presenterVisite } from "../fonctions/visites/presenter-visite.ts";
 import {
@@ -29,16 +28,14 @@ export const lieuDisparu = (id: number): LieuResume => ({ id, nom: "Lieu disparu
 
 export function creerAvisClient(c: ContexteAvis) {
   const maintenant = () => new Date(c.horloge());
-  const majeur = (compte: CompteAuteur) => estMajeurVisiteur(compte.dateNaissanceChiffree, c.chiffrement, maintenant());
 
-  /** Écrit l'avis (signature, âge, relecture éventuelle) ; la visite a déjà été marquée « avis donné » */
+  /** Écrit l'avis (signature, relecture éventuelle) ; la visite a déjà été marquée « avis donné » */
   async function ecrire(
     t: TablesAvis,
     compte: CompteAuteur,
     avis: { lieuId: number; visiteId: number | null; note: number; texte: string; photo: string | null; repasOffert: boolean },
     le: Date,
   ): Promise<LigneAvis> {
-    const adulte = majeur(compte);
     const tranchesRecents = NOTES_TRANCHEES.includes(avis.note)
       ? await t.compterAvisRecents(avis.lieuId, new Date(le.getTime() - RAFALE_FENETRE_MS), NOTES_TRANCHEES)
       : 0;
@@ -47,8 +44,7 @@ export function creerAvisClient(c: ContexteAvis) {
       ...avis,
       compteId: compte.id,
       texte: avis.texte.trim(),
-      signature: signerAvis(compte.prenom, lireInitialeNom(compte.nomChiffre, c.chiffrement), adulte),
-      mineur: !adulte,
+      signature: signerAvis(compte.prenom, lireInitialeNom(compte.nomChiffre, c.chiffrement)),
       statut: raison ? "en-relecture" : "publie",
       raisonRelecture: raison,
       creeLe: le,
@@ -96,8 +92,6 @@ export function creerAvisClient(c: ContexteAvis) {
         await t.verrouillerCompte(compteId);
         const [lieu, compte] = await Promise.all([t.lireLieu(nouvel.lieuId), t.lireCompte(compteId)]);
         if (!lieu?.publie || !compte) return echecAvis("lieu-inconnu");
-        // Un bar n'existe pas pour un 15-17 ans : rien d'autre n'en est dit
-        if (lieu.type === "bar" && !majeur(compte)) return echecAvis("mineur-bar");
         if (lieu.verifie) return echecAvis("avis-visite-requise");
         if (!compte.emailVerifie) return echecAvis("email-non-verifie");
         if (compte.lieuxLies.includes(lieu.id)) return echecAvis("membre-du-lieu");

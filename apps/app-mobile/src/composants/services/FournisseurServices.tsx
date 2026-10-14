@@ -2,8 +2,6 @@ import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "reac
 
 import { creerServicesApi } from "@sos-miam/commun/client-api/api/creer-services-api";
 
-import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { Profil } from "@sos-miam/commun/types/profil";
 import type { RolesCompte } from "@sos-miam/commun/types/roles";
 import { utiliserModes } from "~/hooks/utiliser-modes";
@@ -14,7 +12,7 @@ import { choisirServices } from "~/services/choisir-services";
 import type { ClientDemo } from "~/services/demo/types-demo";
 import type { Avatar } from "~/stockage/avatar-local";
 
-/** « Moi » vu par les services : prénom, initiale du nom, emoji (une photo n'est jamais montrée au lieu) et majorité. */
+/** « Moi » vu par les services : prénom, initiale du nom et emoji (une photo n'est jamais montrée au lieu). */
 function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | null {
   if (!profil) return null;
   const nom = profil.nom?.trim();
@@ -23,7 +21,8 @@ function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | n
     prenom: profil.prenom,
     initialeNom: nom ? nom.charAt(0).toLocaleUpperCase("fr-FR") : null,
     avatar: avatar.type === "emoji" ? avatar.emoji : "🙂",
-    majeur: calculerAge(profil.dateNaissance) >= AGE_ALCOOL,
+    // Tout compte a 18 ans ou plus : champ à retirer avec ClientDemo.majeur (services/demo/types-demo.ts)
+    majeur: true,
   };
 }
 

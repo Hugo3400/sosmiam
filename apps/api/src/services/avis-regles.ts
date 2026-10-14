@@ -47,10 +47,10 @@ export const STATUTS_AVIS_VISIBLES: readonly StatutAvis[] = ["publie", "en-relec
 export type ErreurAvis = ErreurService;
 export type EchecAvis = { ok: false; erreur: ErreurAvis; details?: DetailsErreur; champ?: string };
 
-/** Ce que partagent les services des avis : données, chiffrement (âge et initiale du nom), tirage au sort, horloge */
+/** Ce que partagent les services des avis : données, chiffrement (initiale du nom), tirage au sort, horloge */
 export type ContexteAvis = {
   depot: DepotAvis;
-  /** null : clé absente (prudence : prénom seul ; un compte de l'app avec sa date compte comme un 15-17 ans) */
+  /** null : clé absente (prudence : prénom seul) */
   chiffrement: ChiffrementDonnees | null;
   /** Un entier de 0 à max − 1 (crypto.randomInt) : les avis relus au hasard */
   tirer: (max: number) => number;
@@ -67,6 +67,7 @@ export type LigneAvis = {
   texte: string;
   photo: string | null;
   signature: string;
+  /** Ancien marquage (l'auteur avait moins de 18 ans), plus écrit depuis le 14/10/2026 : un tel avis reste hors relecture */
   mineur: boolean;
   statut: StatutAvis;
   raisonRelecture: RaisonRelecture | null;
@@ -81,19 +82,18 @@ export type LigneAvis = {
   avecReduction: boolean;
 };
 
-export type NouvelleLigneAvis = Omit<LigneAvis, "id" | "reponseTexte" | "reponseLe" | "reponseParId" | "reponseStatut" | "preuve" | "avecReduction">;
+export type NouvelleLigneAvis = Omit<LigneAvis, "id" | "mineur" | "reponseTexte" | "reponseLe" | "reponseParId" | "reponseStatut" | "preuve" | "avecReduction">;
 
 /** Ce qu'il faut d'une visite pour ouvrir son avis */
 export type VisiteAvis = Pick<LigneVisite, "id" | "compteId" | "lieuId" | "statut" | "mode" | "avisOuvertLe" | "avisFermeLe" | "avisDonne"> & {
   reglement: ReglementVisite | null;
 };
 
-/** L'auteur d'un avis : signature (prénom, initiale chiffrée), âge, ancienneté, et les lieux auxquels il est lié */
+/** L'auteur d'un avis : signature (prénom, initiale chiffrée), ancienneté, et les lieux auxquels il est lié */
 export type CompteAuteur = {
   id: number;
   prenom: string;
   nomChiffre: string | null;
-  dateNaissanceChiffree: string | null;
   emailVerifie: boolean;
   creeLe: Date;
   /** Rattachements validés ou en attente : il n'écrit pas d'avis chez eux, et un ambassadeur n'y relit rien */
@@ -136,7 +136,7 @@ export interface TablesAvis {
   lireDernierAvisNonVerifie(compteId: number, lieuId: number): Promise<Date | null>;
 
   /**
-   * Les avis en relecture qu'un ambassadeur peut relire, le plus ancien d'abord : jamais l'avis d'un mineur, jamais le sien,
+   * Les avis en relecture qu'un ambassadeur peut relire, le plus ancien d'abord : jamais un avis à l'ancien marquage `mineur`, jamais le sien,
    * jamais chez un lieu non publié ou de `lieuxExclus`, jamais un avis qu'il a déjà relu ni un avis qui a déjà `verdictsMax`
    * verdicts « ok » ou « louche »
    */
