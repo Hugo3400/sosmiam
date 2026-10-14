@@ -14,7 +14,7 @@ export const sectionDonneesApp: SectionLegale = {
   id: "donnees-app",
   titre: "Tes données de l'app, d'un coup d'œil",
   blocs: [
-    "Le tableau ci-dessous reprend, une par une, les données que ton compte de l'app confie à notre serveur, dans l'ordre des stores (Google Play et App Store). Le détail est dans les sections juste au-dessus et juste en dessous. **Aucune n'est vendue ni partagée** avec un autre service pour son propre usage, et aucune ne sert à de la publicité.",
+    "Le tableau ci-dessous reprend, une par une, les données que ton compte de l'app confie à notre serveur, rangées comme dans la fiche « Sécurité des données » de Google Play. Le détail est dans les sections juste au-dessus et juste en dessous. **Aucune n'est vendue**, aucune ne sert à de la publicité, et aucune n'est transmise à une autre entreprise pour ses propres besoins : nos prestataires techniques (Cloudflare, et Apple ou Google pour livrer les notifications) les traitent pour faire marcher le service (voir [Qui voit tes données, et où elles sont](#destinataires)).",
     {
       tableau: {
         legende: "Les données de ton compte de l'app : ce qu'on garde (chiffré ou en clair), pourquoi et sur quelle base légale, qui la voit, et combien de temps.",

@@ -15,7 +15,7 @@ export const sectionPotesCgu: SectionLegale = {
     {
       liste: [
         "**Ta bande** (200 potes au plus) : tes potes y entrent par ton **lien ou ton QR code d'invitation** (vous êtes alors ajoutés tout de suite, chacun dans la bande de l'autre), ou par une **demande** envoyée depuis ton pseudo, que tu acceptes ou non. Refuser une demande ne prévient personne, et retirer quelqu'un de ta bande vaut des deux côtés, sans le prévenir.",
-        "**Ton lien d'invitation** fait entrer dans ta bande toute personne qui l'a : donne-le seulement aux gens que tu connais. S'il a circulé plus loin que prévu, « Changer mon lien » le remplace ; il change aussi tout seul s'il sert plus de 10 fois en 24 heures.",
+        "**Ton lien d'invitation** fait entrer dans ta bande toute personne qui l'a : donne-le seulement aux gens que tu connais. S'il a circulé plus loin que prévu, « Changer mon lien » le remplace ; il change aussi tout seul après 10 arrivées qui se suivent de près (moins de 24 heures entre deux).",
         "**« Qu'on me trouve par mon pseudo »** : si tu le coupes, personne ne te trouve dans la recherche, et une demande vers toi est refusée avec ce message : « Cette personne ne reçoit pas de demandes ». Ton lien d'invitation, lui, marche toujours.",
         "**Suivre quelqu'un** est à sens unique : tu vois passer ses listes et ses lieux. Ton compte est **public** par défaut ; en **privé**, chaque abonnement est une demande que tu acceptes ou non. Suivre quelqu'un n'ouvre **jamais** la messagerie : on ne s'écrit qu'entre potes de la même bande.",
         "**Ce que les autres voient de ton profil** dépend de ce lien (inconnu, abonné ou pote de ta bande) et de tes réglages : tout est détaillé dans la [politique de confidentialité](/confidentialite#potes).",
@@ -41,7 +41,7 @@ export const sectionMessagerieCgu: SectionLegale = {
     {
       liste: [
         "de **harceler** quelqu'un : insister après un refus, un départ d'un groupe ou un blocage, revenir par un autre groupe ou un autre compte ;",
-        "d'envoyer des photos, des vidéos ou des notes vocales **sexuelles ou violentes**, même entre adultes, même pour rire ;",
+        "d'envoyer des photos, des notes vocales ou des liens **sexuels ou violents**, même entre adultes, même pour rire ;",
         "de faire circuler ce qu'un pote t'a confié (messages, photos, notes vocales, captures d'écran) **pour lui nuire**, ou sans son accord quand c'est privé ;",
         "de publier les **infos personnelles** de quelqu'un (adresse, numéro, position) sans son accord ;",
         "d'envoyer du **spam**, des chaînes, de la **pub**, des **arnaques** ou des liens douteux, ou de te servir de la messagerie pour vendre quelque chose.",
@@ -59,7 +59,7 @@ export const sectionCommentairesCgu: SectionLegale = {
       liste: [
         "**Les commentaires** sous les publications du fil sont **publics** : tout le monde peut les lire, même sans compte. Pour en écrire, il faut un pseudo ; ils font 500 caractères au plus (20 par heure). Tu peux répondre à un commentaire, l'aimer, citer quelqu'un avec « @ » (10 personnes au plus), modifier les tiens (« modifié » s'affiche) ou les supprimer (s'ils ont déjà des réponses, « Commentaire supprimé » reste à leur place).",
         "**Le filtre de mots** refuse les insultes et la haine les plus courantes dans les commentaires, les messages, les titres des groupes, des sorties et des listes, les pseudos et les prénoms. C'est une première barrière, pas un juge : ce qui passe le filtre doit quand même respecter les règles.",
-        "**La réponse du lieu** est mise en avant sous sa publication. Elle est écrite par quelqu'un de son équipe, au nom du lieu.",
+        "**La réponse du lieu** est mise en avant sous sa publication : elle est écrite au nom du lieu, sans montrer qui, dans son équipe, l'a écrite.",
         "**Le gérant d'un lieu peut masquer un commentaire sous sa propre publication** (sauf la réponse du lieu) : le commentaire ne se voit plus que de son auteur, qui est prévenu dans l'app, et il part en modération. Si notre équipe ne trouve rien à redire, le lieu ne peut plus jamais le masquer, et le commentaire reviendra en ligne (l'outil qui le remet en ligne arrive **bientôt** dans notre logiciel). Masquer une critique honnête n'est pas le but : c'est fait pour les commentaires qui ne respectent pas les règles.",
         "**Les listes de lieux** : tu en crées 50 au plus (100 lieux chacune), tu choisis qui les voit (tout le monde, ou ta bande) et tu peux inviter jusqu'à 10 potes de ta bande à les remplir avec toi. Un co-auteur ne retire que les lieux qu'il a ajoutés.",
       ],
@@ -71,11 +71,11 @@ export const sectionPseudosCgu: SectionLegale = {
   id: "pseudos",
   titre: "Ton pseudo",
   blocs: [
-    "Ton pseudo (« @lea.mange ») fait de 3 à 20 caractères : des lettres minuscules sans accents, des chiffres, des points et des tirets bas, sans commencer ni finir par un point ou un tiret bas. Il est unique et se voit partout où tu participes.",
+    "Ton pseudo (« @lea.mange ») fait de 3 à 20 caractères : des lettres minuscules sans accents, des chiffres, des points et des tirets bas, sans commencer ni finir par un point ou un tiret bas, ni en mettre deux d'affilée. Il est unique et se voit partout où tu participes.",
     {
       liste: [
         "**Pas de pseudo trompeur ou blessant** : ne te fais pas passer pour quelqu'un d'autre, pour un lieu que tu ne représentes pas, pour une marque ou pour l'équipe SOS Miam, et pas d'insulte (le filtre de mots veille aussi).",
-        "**Changer de pseudo** : ton ancien pseudo est **réservé pendant 30 jours**. Personne d'autre ne peut le prendre (pour que personne ne se fasse passer pour toi), mais toi, tu peux le reprendre. Pendant ces 30 jours, un ancien lien d'invitation qui portait ton ancien pseudo affiche « **Ce lien a changé** » (demande son nouveau lien à ton pote) ; ensuite, c'est le message d'un lien qui n'est pas valable.",
+        "**Changer de pseudo** : ton ancien pseudo est **réservé pendant 30 jours**. Personne d'autre ne peut le prendre (pour que personne ne se fasse passer pour toi), mais toi, tu peux le reprendre. Pendant ces 30 jours, ton ancien lien d'invitation, qui portait ton ancien pseudo, affiche « **Ce lien a changé** » à qui l'ouvre, pour qu'il te demande ton nouveau lien ; ensuite, c'est le message d'un lien qui n'est pas valable.",
         "**Supprimer ton compte** : ton pseudo est réservé 30 jours, et personne ne peut le prendre pendant ce temps.",
         "**Les mentions suivent la personne, pas le pseudo** : quelqu'un qui reprend plus tard un pseudo libéré n'hérite jamais des anciennes mentions « @ ».",
       ],
@@ -87,7 +87,7 @@ export const sectionBloquerCgu: SectionLegale = {
   id: "bloquer",
   titre: "Bloquer quelqu'un",
   blocs: [
-    "Bloquer quelqu'un coupe le lien **dans les deux sens** : vous sortez de vos bandes, et vos demandes, vos abonnements, vos invitations en attente, vos co-écritures de listes et vos notifications entre vous sont effacés. Il quitte les sorties que tu organises. Vous ne vous trouvez plus par vos pseudos, vous ne vous êtes plus proposés l'un à l'autre, et ses messages, ses listes et son activité te sont cachés, comme les tiens à lui. Il n'en est pas prévenu.",
+    "Bloquer quelqu'un coupe le lien **dans les deux sens** : vous sortez de vos bandes, et vos demandes, vos abonnements, vos invitations en attente, vos co-écritures de listes et vos notifications entre vous sont effacés. Il quitte les sorties que tu organises. Vous ne vous trouvez plus par vos pseudos, l'app ne vous propose plus l'un à l'autre, et ses messages, ses listes et son activité te sont cachés, comme les tiens à lui. Il n'en est pas prévenu.",
     "Deux limites, pour être clair : tes commentaires sont publics, donc lisibles par tout le monde, lui compris (l'app te cache les siens, et vous ne pouvez plus vous répondre, vous aimer ni vous citer) ; et dans une sortie organisée par quelqu'un d'autre, vous restez tous les deux participants. Si quelqu'un t'importune, tu peux aussi le signaler.",
     "Tu retrouves les personnes bloquées dans les réglages de l'app (« Personnes bloquées »), 1 000 au plus. Débloquer ne rétablit rien : il faudra vous ajouter à nouveau.",
   ],

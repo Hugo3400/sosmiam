@@ -232,7 +232,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
 
       sorties,
       trouverSortie: (id) => sorties.find((s) => s.id === id) ?? null,
-      creerSortie: ({ titre, emoji, quand, invites, lieux, finVote }) => {
+      creerSortie: async ({ titre, emoji, quand, invites, lieux, finVote }) => {
         const propre = titre.trim();
         if (propre === "" || propre.length > LONGUEUR_MAX_TITRE_SORTIE || contientMotInterdit(propre)) return { erreur: "titre" };
         const participants = [ID_MOI, ...invites.filter((id) => parId.has(id) && id !== ID_MOI && !etat.bloques.includes(id))];
@@ -277,13 +277,66 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
       terminerVote: (sortieId) =>
         changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s, new Date()) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirGagnant(s.propositions.filter((p) => lieuExiste(p.lieuId))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
+      lireSortie: () => {},
+      // Démo : personne ne t'invite, et les potes d'exemple invités disent oui tout de suite
+      invitationsSorties: [],
+      repondreInvitationSortie: async () => false,
+      inviterASortie: async (sortieId, invites) => {
+        changerSortie(sortieId, (s) => {
+          if (s.organisateur !== ID_MOI) return s;
+          const nouveaux = invites.filter((id) => parId.has(id) && !s.participants.includes(id) && !etat.bloques.includes(id));
+          return { ...s, participants: [...s.participants, ...nouveaux].slice(0, MAX_PARTICIPANTS_SORTIE) };
+        });
+        return null;
+      },
+      retirerParticipant: async (sortieId, poteId) => {
+        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || poteId === ID_MOI ? s : { ...s, participants: s.participants.filter((id) => id !== poteId) }));
+        return null;
+      },
+      annulerSortie: async (sortieId) => {
+        setEtat((e) => ({ ...e, sorties: e.sorties.filter((s) => s.id !== sortieId || s.organisateur !== ID_MOI) }));
+        return null;
+      },
 
       // Une liste signalée disparaît pour toi (une liste écartée de « À découvrir » reste sur le profil de son auteur : estMasque)
       listes: etat.listes.filter((l) => !signales.has(l.id)),
-      creerListe: (titre, emoji, description) => {
+      creerListe: async ({ titre, emoji, description, visibilite = "tous" }) => {
         const id = creerIdentifiant("liste");
-        setEtat((e) => ({ ...e, listes: [...e.listes, { id, titre: titre.trim(), emoji, description: description.trim(), auteur: ID_MOI, lieux: [], abonnes: [] }] }));
-        return id;
+        setEtat((e) => ({ ...e, listes: [...e.listes, { id, titre: titre.trim(), emoji, description: description.trim(), auteur: ID_MOI, lieux: [], abonnes: [], visibilite }] }));
+        return { id };
+      },
+      modifierListe: async (listeId, changements) => {
+        const propres = {
+          ...changements,
+          ...(changements.titre !== undefined ? { titre: changements.titre.trim() } : {}),
+          ...(changements.description !== undefined ? { description: changements.description.trim() } : {}),
+        };
+        setEtat((e) => ({ ...e, listes: e.listes.map((l) => (l.id === listeId && l.auteur === ID_MOI ? { ...l, ...propres } : l)) }));
+        return null;
+      },
+      supprimerListe: async (listeId) => {
+        setEtat((e) => ({ ...e, listes: e.listes.filter((l) => l.id !== listeId || l.auteur !== ID_MOI) }));
+        return null;
+      },
+      lireListe: () => {},
+      noterListes: () => {},
+      // Démo : personne ne t'invite à remplir sa liste ; un pote d'exemple que tu invites accepte un peu plus tard
+      invitationsListes: [],
+      repondreCoAuteur: async () => false,
+      inviterCoAuteur: async (listeId, poteId) => {
+        const changerCoAuteurs = (e: CommunauteLocale, statut: "invite" | "accepte") => ({
+          ...e,
+          listes: e.listes.map((l) => (l.id !== listeId || l.auteur !== ID_MOI ? l : { ...l, coAuteurs: [...(l.coAuteurs ?? []).filter((c) => c.id !== poteId), { id: poteId, statut }] })),
+        });
+        if (!etat.bande.includes(poteId) || etat.bloques.includes(poteId)) return "pas-dans-la-bande";
+        setEtat((e) => changerCoAuteurs(e, "invite"));
+        plusTard(entre(2500, 5000), (e) => (e.listes.some((l) => l.id === listeId && l.coAuteurs?.some((c) => c.id === poteId)) ? changerCoAuteurs(e, "accepte") : e));
+        return null;
+      },
+      retirerCoAuteur: async (listeId, poteId) => {
+        const qui = poteId === "moi" ? ID_MOI : poteId;
+        setEtat((e) => ({ ...e, listes: e.listes.map((l) => (l.id !== listeId ? l : { ...l, coAuteurs: (l.coAuteurs ?? []).filter((c) => c.id !== qui) })) }));
+        return null;
       },
       basculerSuiviListe: (listeId) =>
         setEtat((e) => ({

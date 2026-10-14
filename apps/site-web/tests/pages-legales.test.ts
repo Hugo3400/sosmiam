@@ -32,19 +32,26 @@ const documents: Record<string, Document> = {
   "/statistiques": (await import("../src/contenus/legal/statistiques.ts")).documentStatistiques,
 };
 
-/** Ancres publiées avant le 14 octobre 2026 (section par section) : des liens y mènent, elles ne doivent jamais disparaître */
+/**
+ * Ancres publiées avant le 14 octobre 2026 (section par section), et celles de la partie sociale et de « Prévenir un pote »
+ * (15 octobre 2026 ; l'app et les textes y renvoient) : des liens y mènent, elles ne doivent jamais disparaître
+ */
 const ancresHistoriques: Record<string, string[]> = {
   "/mentions-legales": ["editeur", "directeur-publication", "hebergeur", "prestataires", "objet", "propriete-intellectuelle", "credits", "signaler-contenu", "donnees-cookies", "evolution"],
   "/confidentialite": [
     "en-bref", "responsable", "journaux", "statistiques", "cloudflare", "newsletter", "formulaire", "demande-lieu", "compte-ambassadeur",
     "compte-pro", "connexion-apple-google", "app", "app-comptes", "miam-safe", "messages", "ce-qu-on-ne-fait-pas", "destinataires",
     "securite", "droits", "exercer-tes-droits", "cnil", "mineurs", "a-venir", "mises-a-jour",
+    // Partie sociale et Miam Safe (15 octobre 2026)
+    "donnees-app", "potes", "messagerie", "signalements-sociaux", "prevenir-un-pote",
   ],
   "/cookies": ["definition", "aujourd-hui", "cloudflare", "plus-tard", "ton-choix", "navigateur", "contact"],
   "/cgu": [
     "objet", "acceptation", "acces", "contenu", "age", "compte", "rescousses", "ambassadeurs", "pro", "publications", "regles-communaute",
     "moderation", "propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite", "donnees-cookies", "modifications",
     "droit-applicable", "contact",
+    // Partie sociale (15 octobre 2026)
+    "potes", "messagerie", "commentaires", "pseudos", "bloquer",
   ],
   "/accessibilite": ["app", "prevu", "site", "audit", "contact"],
   "/age": ["dix-huit-ans", "sans-compte", "contenus", "securite", "parents", "contact"],

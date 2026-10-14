@@ -6,6 +6,7 @@ import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { ActivitePote, ListePartagee, Pote, Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 import type { MoyenInvitation } from "@sos-miam/commun/client-api/contrat-bande";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
+import type { ListeResumeApi, VisibiliteListe } from "@sos-miam/commun/types/listes";
 import type { CibleMasque, PersonneResume } from "@sos-miam/commun/types/social";
 import type { SignalementContenu } from "@sos-miam/commun/types/signalement";
 import type { DetailsPote } from "~/fonctions/communaute/convertir-personne-en-pote";
@@ -30,6 +31,30 @@ export type NouvelleSortie = {
   /** Fin du vote (ISO) */
   finVote: string;
 };
+
+/** Pourquoi une sortie n'est pas créée : un champ à revoir, trop de sorties à venir, ou pas de réseau (réessaie) */
+export type ErreurNouvelleSortie = "titre" | "participants" | "lieux" | "quand" | "trop" | "reseau";
+
+/** « Tu viens ? » : une sortie où l'on t'invite, vue avant de répondre (ni propositions, ni votes, ni discussion) */
+export type InvitationSortie = {
+  id: string;
+  titre: string;
+  emoji: string;
+  /** Jour et heure de la sortie (ISO) */
+  quand: string;
+  /** Identifiants (trouverPote les connaît) ; null : compte supprimé */
+  organisateur: string | null;
+  invitePar: string | null;
+  /** Combien ont déjà dit oui, organisateur compris */
+  participants: number;
+  /** Quand l'invitation est arrivée (ISO) */
+  date: string;
+};
+
+export type NouvelleListeCommunaute = { titre: string; emoji: string; description: string; visibilite?: VisibiliteListe };
+
+/** Pourquoi une liste n'est pas créée : un champ à revoir, trop de listes (50), ou pas de réseau (réessaie) */
+export type ErreurNouvelleListe = "titre" | "description" | "trop" | "reseau";
 
 export type EtatCommunaute = {
   /** D'où vient la bande : la démo, le serveur (compte connecté), ou rien encore (visite, attente) */
@@ -83,22 +108,57 @@ export type EtatCommunaute = {
   /** Tes sorties, à venir d'abord ; le lieu retenu est calculé à la fin du vote, et plus personne ne vote ensuite. Sans les lieux disparus de l'app. */
   sorties: Sortie[];
   trouverSortie: (id: string) => Sortie | null;
-  creerSortie: (sortie: NouvelleSortie) => { id: string } | { erreur: "titre" | "participants" | "lieux" };
+  /**
+   * Crée la sortie : chaque invité reçoit « Tu viens ? » (compte connecté) ou la rejoint tout de suite (démo). cle : tirée
+   * une fois à l'ouverture de l'écran, pour qu'un second appui ne crée pas deux sorties
+   */
+  creerSortie: (sortie: NouvelleSortie, cle?: string) => Promise<{ id: string } | { erreur: ErreurNouvelleSortie }>;
+  /** Compte connecté : relit cette sortie (à l'ouverture de son écran) ; démo : rien */
+  lireSortie: (id: string) => void;
   /** Vote (ou retire ton vote) pour un lieu ; sans effet une fois le vote fini */
   voter: (sortieId: string, lieuId: number) => void;
   /** « interdit » : lieu inconnu, ou vote déjà fini */
   proposerLieu: (sortieId: string, lieuId: number) => "ok" | "deja" | "max" | "interdit";
+  /** Démo seulement : avec un compte, la discussion passe par la messagerie (utiliserDiscussionSortie) */
   envoyerMessage: (sortieId: string, texte: string) => ResultatTexte;
   /** Termine le vote tout de suite (seulement l'organisateur) */
   terminerVote: (sortieId: string) => void;
+  /** Quitter la sortie (et sa discussion) ; l'organisateur qui part passe la main au plus ancien participant */
   quitterSortie: (sortieId: string) => void;
+  /** Les invitations à une sortie qui attendent ta réponse (compte connecté ; vides en démo) */
+  invitationsSorties: InvitationSortie[];
+  /** « Carrément ! » (vient : tu entres dans le vote et la discussion) ou « Pas cette fois » (en silence). Faux si ça n'a pas marché */
+  repondreInvitationSortie: (id: string, vient: boolean) => Promise<boolean>;
+  /** L'organisateur invite d'autres potes de sa bande. Rend l'erreur, ou null */
+  inviterASortie: (sortieId: string, potes: string[]) => Promise<ErreurService | null>;
+  /** L'organisateur retire un participant ou une invitation en attente, sans le prévenir */
+  retirerParticipant: (sortieId: string, poteId: string) => Promise<ErreurService | null>;
+  /** L'organisateur annule : la sortie et sa discussion disparaissent pour tout le monde */
+  annulerSortie: (sortieId: string) => Promise<ErreurService | null>;
 
-  /** Toutes les listes connues, sans celles que tu as signalées */
+  /** Toutes les listes connues (les tiennes, celles que tu remplis, suis, découvres ou as vues), sans celles que tu as signalées */
   listes: ListePartagee[];
-  creerListe: (titre: string, emoji: string, description: string) => string;
+  /** cle : tirée une fois à l'ouverture de la feuille, pour qu'un second appui ne crée pas deux listes */
+  creerListe: (liste: NouvelleListeCommunaute, cle?: string) => Promise<{ id: string } | { erreur: ErreurNouvelleListe }>;
+  /** L'auteur change le titre, l'emoji, la description ou qui la voit. Rend l'erreur, ou null */
+  modifierListe: (listeId: string, changements: Partial<NouvelleListeCommunaute>) => Promise<ErreurService | null>;
+  /** L'auteur supprime sa liste */
+  supprimerListe: (listeId: string) => Promise<ErreurService | null>;
+  /** Compte connecté : lit la liste en entier (ses lieux, ses co-auteurs), à l'ouverture de son écran ; démo : rien */
+  lireListe: (listeId: string) => void;
+  /** Compte connecté : des listes lues ailleurs (le profil d'une personne) ; trouvées ensuite dans listes */
+  noterListes: (listes: ListeResumeApi[]) => void;
   basculerSuiviListe: (listeId: string) => void;
   ajouterLieuListe: (listeId: string, lieuId: number) => void;
   retirerLieuListe: (listeId: string, lieuId: number) => void;
+  /** Les listes qu'on t'invite à remplir, en attente de ta réponse (compte connecté ; vides en démo) */
+  invitationsListes: ListePartagee[];
+  /** Accepter (tu peux y ajouter des lieux) ou refuser en silence. Faux si ça n'a pas marché */
+  repondreCoAuteur: (listeId: string, accepte: boolean) => Promise<boolean>;
+  /** L'auteur invite un pote de sa bande à remplir la liste avec lui */
+  inviterCoAuteur: (listeId: string, poteId: string) => Promise<ErreurService | null>;
+  /** L'auteur retire un co-auteur ; « moi » : tu ne remplis plus cette liste */
+  retirerCoAuteur: (listeId: string, poteId: string) => Promise<ErreurService | null>;
 
   /** Ce que font tes potes, du plus récent au plus ancien (sans les lignes que tu as retirées) */
   activites: ActivitePote[];
