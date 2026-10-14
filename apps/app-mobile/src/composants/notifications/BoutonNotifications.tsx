@@ -21,7 +21,8 @@ const MAX_AFFICHE = 9;
 
 /**
  * La cloche : ouvre l'écran Notifications. Sa pastille compte ce qui est arrivé depuis ta dernière visite, plus les demandes
- * d'abonnement et de bande qui t'attendent. Lit elle-même notifications et suivis : l'écran qui la pose ne se redessine pas pour elle.
+ * d'abonnement et de bande qui t'attendent. Lit elle-même notifications, suivis et bande : l'écran qui la pose ne se
+ * redessine pas pour elle.
  * En visite sans compte, elle ouvre la feuille « Crée ton compte ».
  */
 export function BoutonNotifications({ variante }: Props) {

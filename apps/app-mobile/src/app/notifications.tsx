@@ -5,23 +5,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { Pote } from "@sos-miam/commun/types/potes";
+
 import { Annonce } from "~/composants/interface/Annonce";
 import { DemandesBande } from "~/composants/potes/DemandesBande";
 import { BoutonRetirerArrivee } from "~/composants/notifications/BoutonRetirerArrivee";
 import { LigneNotification } from "~/composants/notifications/LigneNotification";
 import { SectionDemandesSuivi } from "~/composants/notifications/SectionDemandesSuivi";
 import { convertirPersonneEnPote } from "~/fonctions/communaute/convertir-personne-en-pote";
-import { decrireNotificationSuivi } from "~/fonctions/notifications/decrire-notification-suivi";
+import { decrireNotificationSuivi, type NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserNotifications } from "~/hooks/utiliser-notifications";
+import { utiliserNotifications, type NotificationApp } from "~/hooks/utiliser-notifications";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
+
+/** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » au bout (arrivée par ton lien) */
+type LigneAffichee = { date: string; notification: NotificationApp; description: NotificationDecrite; pote: Pote | null; retirable: boolean };
 
 /**
  * Notifications (la cloche du fil et du Profil) : les demandes pour rejoindre ta bande et les demandes d'abonnement, à
@@ -63,7 +68,7 @@ export default function Notifications() {
   const { lieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const groupes = useMemo(() => {
-    const lignes = notifications.notifications.flatMap((notification) => {
+    const lignes = notifications.notifications.flatMap((notification): LigneAffichee[] => {
       const description = decrireNotificationSuivi(notification, { trouverPote, publications: toutesLesPublications, lieux });
       if (!description) return [];
       if (notification.type === "cloche") {
