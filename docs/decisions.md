@@ -469,3 +469,5 @@
 - « Proposer un lieu » est ouvert à **tous les comptes** (18 ans vérifiés à l'inscription) ; un âge connu sous 18 ans reste refusé.
 - Un compte qui appartient à quelqu'un de moins de 18 ans (découvert, ou signalé par un parent) est supprimé avec ses données. La newsletter et « Préviens-moi » restent ouverts à tout âge, avec l'accord des parents sous 15 ans.
 - Aucun compte de 15-17 ans n'existait au moment du passage à 18 ans.
+- Un pseudo libéré (changement de pseudo ou compte supprimé) reste réservé **30 jours**, pour que personne ne le reprenne aussitôt pour se faire passer pour quelqu'un d'autre.
+- Désinscrits de la newsletter : adresse et date gardées **3 ans** (voir plus haut). Comptes de l'app : case newsletter visible à l'inscription, cochée par défaut et décochable ; les comptes déjà créés sont inscrits par l'action du logiciel lancée par Hugo.

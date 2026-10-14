@@ -1,0 +1,27 @@
+// La cloche de l'app : les notifications DANS l'app (décidé le 8 octobre 2026, docs/decisions.md « Suivre et abonnements »).
+// Le texte est écrit par l'app : ici, seulement le type, qui agit et sur quoi. 90 jours, 200 au plus par compte.
+
+model NotificationCloche {
+  id       Int      @id @default(autoincrement())
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation("ClocheRecue", fields: [compteId], references: [id], onDelete: Cascade)
+  /// TYPES_CLOCHE de packages/commun (regles/cloche.ts)
+  type     String   @db.VarChar(24)
+  /// Qui agit (null : l'équipe SOS Miam). Ses notifications partent avec son compte
+  acteurId Int?     @map("acteur_id")
+  acteur   Compte?  @relation("ClocheDonnee", fields: [acteurId], references: [id], onDelete: Cascade)
+  /// Sur quoi : « sortie », « conversation », « liste », « publication », « commentaire », « signalement »
+  cible    String?  @db.VarChar(12)
+  cibleId  String?  @map("cible_id") @db.VarChar(40)
+  /// Un petit détail à afficher : titre d'une sortie, nom du lieu retenu, motif d'une décision (120 caractères). Jamais le
+  /// titre d'un groupe (chiffré, A.3) : l'app le lit dans la conversation
+  detail   String?  @db.VarChar(120)
+  /// « … te suit en retour »
+  enRetour Boolean  @default(false) @map("en_retour")
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  @@index([compteId, id])
+  @@index([acteurId])
+  @@index([creeLe])
+  @@map("notifications_cloche")
+}

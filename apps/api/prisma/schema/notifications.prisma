@@ -19,8 +19,15 @@ model AppareilPush {
   /// Dernière fois que l'app a confirmé ce jeton
   vuLe       DateTime        @default(now()) @map("vu_le") @db.Timestamptz(0)
   receptions ReceptionPush[]
+  /// La session de l'app qui a inscrit ce téléphone (PUT /app/appareils avec session). Quand elle se ferme (déconnexion,
+  /// « Me déconnecter partout », mot de passe changé, session expirée, logiciel), la base remet ce champ à null : les
+  /// notifications d'un compte (prevenirCompte) ne partent plus vers ce téléphone
+  sessionId  Int?            @map("session_id")
+  session    SessionCompte?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
   @@index([actif, plateforme])
+  @@index([compteId, sessionId])
+  @@index([sessionId])
   @@map("appareils_push")
 }
 

@@ -94,6 +94,22 @@ model Compte {
 
   /// Défis réussis (defis.prisma)
   defisReussis DefiReussi[]
+  // Potes, suivis, messagerie, sorties, listes, commentaires et cloche (session de l'app, 14 octobre 2026)
+  profilSocial               ProfilSocial?
+  bande                      MembreBande[]            @relation("BandeDe")
+  dansLesBandes              MembreBande[]            @relation("BandeAvec")
+  demandesBandeEnvoyees      DemandeBande[]           @relation("DemandesBandeEnvoyees")
+  demandesBandeRecues        DemandeBande[]           @relation("DemandesBandeRecues")
+  blocagesFaits              Blocage[]                @relation("BlocagesFaits")
+  blocagesRecus              Blocage[]                @relation("BlocagesRecus")
+  suivisDonnes               SuiviPersonne[]          @relation("SuivisDonnes")
+  suivisRecus                SuiviPersonne[]          @relation("SuivisRecus")
+  elementsMasques            ElementMasque[]
+  clesIdempotence            CleIdempotence[]
+  clocheRecue                NotificationCloche[]     @relation("ClocheRecue")
+  clocheDonnee               NotificationCloche[]     @relation("ClocheDonnee")
+  signalementsFaits          Signalement[]            @relation("SignalementsFaits")
+  contenusSignales           Signalement[]            @relation("ContenusSignales")
   @@index([derniereConnexion])
   @@map("comptes")
 }
@@ -136,6 +152,8 @@ model SessionCompte {
   activite  DateTime @default(now()) @db.Timestamptz(3)
 
   compte Compte @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// Téléphones inscrits avec cette session (notifications.prisma) : ils ne reçoivent plus rien du compte quand elle se ferme
+  appareils AppareilPush[]
 
   @@index([compteId])
   @@map("sessions_comptes")

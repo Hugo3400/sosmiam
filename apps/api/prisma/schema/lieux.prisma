@@ -137,10 +137,11 @@ model MediaPublication {
   @@map("medias_publications")
 }
 
-/// Un contenu signalé depuis l'app (forme : packages/commun/src/types/signalement.ts). Le signalement ne garde pas qui l'a fait.
+/// Un contenu signalé depuis l'app (forme : packages/commun/src/types/signalement.ts). Une publication signalée sans compte ne
+/// garde pas qui l'a fait ; un contenu social garde qui l'a signalé, son auteur et un instantané chiffré.
 model Signalement {
   id          Int       @id @default(autoincrement())
-  /// « publication » pour l'instant (plus tard : commentaire, avis, profil)
+  /// « publication », « commentaire », « message », « liste », « profil », « sortie » ou « groupe » (12 caractères au plus)
   cible       String    @db.VarChar(12)
   cibleId     String    @map("cible_id") @db.VarChar(40)
   /// Lieu concerné, pour regrouper les signalements
@@ -151,7 +152,7 @@ model Signalement {
   precision   String?   @db.VarChar(80)
   /// Ce que la personne a expliqué avec ses mots
   explication String    @default("") @db.VarChar(500)
-  /// « app », « site » ou « discord »
+  /// « app », « site », « discord » ou « lieu » (commentaire masqué par le gérant du lieu)
   source      String    @db.VarChar(10)
   /// « a-traiter », « retenu » (contenu masqué) ou « rejete » (rien à redire)
   statut      String    @default("a-traiter") @db.VarChar(10)
@@ -167,7 +168,32 @@ model Signalement {
   reexamineLe DateTime? @map("reexamine_le") @db.Timestamptz(0)
   creeLe      DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   traiteLe    DateTime? @map("traite_le") @db.Timestamptz(0)
+  /// Contenus sociaux (commentaire, message, liste, profil, sortie, groupe) : le compte qui a signalé, pour lui dire ce qu'on
+  /// a décidé (règlement européen sur les services numériques) et ne compter qu'un signalement par personne ; null pour une
+  /// publication signalée sans compte (POST /signalements), ou si son compte a été supprimé depuis
+  signaleParId      Int?    @map("signale_par_id")
+  signalePar        Compte? @relation("SignalementsFaits", fields: [signaleParId], references: [id], onDelete: SetNull)
+  /// L'auteur du contenu signalé (message, commentaire ou réponse du lieu : qui l'a écrit ; liste : son auteur ; profil :
+  /// son compte ; sortie : l'organisateur ; groupe : son créateur), pour le prévenir dès le masquage et de la décision, et
+  /// le laisser contester (DSA, art. 17 et 20) ; null s'il a supprimé son compte depuis
+  auteurContenuId   Int?    @map("auteur_contenu_id")
+  auteurContenu     Compte? @relation("ContenusSignales", fields: [auteurContenuId], references: [id], onDelete: SetNull)
+  /// L'instantané : le contenu tel qu'il était au moment du signalement, en JSON CHIFFRÉ (sous-clé
+  /// « sos-miam/moderation/instantanes/v1 », contexte « signalement:<id> »). Message : type, texte, lieuId, type de
+  /// conversation, emoji et titre du groupe ; commentaire : texte, mentions, publication, réponse du lieu ou non ; liste :
+  /// titre, emoji, description, visibilité, lieux ; profil : pseudo, prénom, avatar ; sortie et groupe : titre, emoji, lieux
+  /// proposés. Écrit dans la même transaction que le signalement. La modération lit ceci, jamais le contenu vivant : effacer,
+  /// modifier ou annuler le contenu ne fait pas disparaître la preuve
+  instantaneChiffre String? @map("instantane_chiffre") @db.VarChar(6000)
+  /// Photo ou note vocale d'un message signalé : son fichier chiffré, gardé sur le disque tant que le signalement n'est pas
+  /// jugé, même si le message, la conversation ou le compte de l'auteur disparaissent (le nom est tiré au hasard : rien de
+  /// personnel)
+  fichierMedia      String? @map("fichier_media") @db.VarChar(80)
 
   @@index([statut, creeLe])
+  @@index([signaleParId, cible])
+  @@index([cible, cibleId])
+  @@index([auteurContenuId])
+  @@index([fichierMedia])
   @@map("signalements")
 }

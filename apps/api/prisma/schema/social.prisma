@@ -1,0 +1,139 @@
+// Potes, suivis entre personnes et blocages (décidé le 8 et le 14 octobre 2026, docs/decisions.md « Potes », « Suivre et
+// abonnements », « Potes, messagerie et profils sur le serveur »). Aucune règle d'âge : tout compte est majeur.
+// Tout part avec le compte (suppression en cascade).
+
+/// Le profil communautaire d'un compte : son identifiant public, son code d'invitation et ses réglages. Créé seulement par un
+/// geste volontaire (ouverture de Potes, ou première écriture sociale ; il faut un pseudo), jamais par une lecture ; tant
+/// qu'il n'existe pas, personne ne trouve le compte.
+model ProfilSocial {
+  compteId              Int       @id @map("compte_id")
+  compte                Compte    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// Identifiant public : 10 caractères tirés au hasard (minuscules, chiffres de 2 à 9). Le seul que les autres voient
+  idPublic              String    @unique @map("id_public") @db.VarChar(12)
+  /// Code secret des liens et QR d'invitation (12 caractères), CHIFFRÉ (AES-256-GCM, sous-clé des invitations, contexte
+  /// « compte:<id> ») ; null tant qu'il n'a jamais été demandé. Changé à la demande (« Changer mon lien »), ou tout seul
+  /// quand le lien a trop tourné (arriveesParLien)
+  codeInvitationChiffre String?   @map("code_invitation_chiffre") @db.VarChar(120)
+  codeInvitationLe      DateTime? @map("code_invitation_le") @db.Timestamptz(0)
+  /// Arrivées dans la bande par le lien ou le QR depuis arriveesDepuis (fenêtre de 24 h) : au-delà de 10, le code est changé
+  /// tout seul (cloche « lien-renouvele ») ; compté sous le verrou de rejoindre
+  arriveesParLien       Int       @default(0) @map("arrivees_par_lien")
+  arriveesDepuis        DateTime? @map("arrivees_depuis") @db.Timestamptz(0)
+  /// « Qu'on me trouve par mon pseudo » : faux, on n'apparaît jamais dans la recherche (on entre dans une bande par lien ou QR)
+  trouvable             Boolean   @default(true)
+  /// « Me proposer à d'autres » (suggestions « Tu pourrais suivre » par les potes de potes)
+  suggerable            Boolean   @default(true)
+  /// « Montrer mon activité à ma bande » : Quoi de neuf, classement du mois, lieux sauvés et gardés du profil
+  activitePartagee      Boolean   @default(true) @map("activite_partagee")
+  /// Notifications sur le téléphone pour la bande, les sorties et les messages (la cloche se remplit quand même)
+  pushSocial            Boolean   @default(true) @map("push_social")
+  /// La cloche est vue jusqu'à ce moment : le même sur tous les téléphones du compte
+  clocheVueLe           DateTime? @map("cloche_vue_le") @db.Timestamptz(3)
+  /// « Lieux reçus » vus jusqu'à ce message (id de MessageConversation)
+  lieuxRecusVusJusqua   Int       @default(0) @map("lieux_recus_vus_jusqua")
+  creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@map("profils_sociaux")
+}
+
+/// Un pote de la bande. Le lien vaut dans les deux sens : deux lignes (a → b et b → a), écrites et effacées dans la même
+/// transaction. 200 potes au plus (MAX_BANDE).
+model MembreBande {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation("BandeDe", fields: [compteId], references: [id], onDelete: Cascade)
+  poteId   Int      @map("pote_id")
+  pote     Compte   @relation("BandeAvec", fields: [poteId], references: [id], onDelete: Cascade)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, poteId])
+  @@index([poteId])
+  @@map("membres_bandes")
+}
+
+/// Une demande pour entrer dans la bande de quelqu'un, envoyée depuis son pseudo : acceptée (deux lignes MembreBande), ou
+/// refusée sans prévenir (refuseeLe : celui qui a demandé voit toujours « envoyée », et ne peut pas la renvoyer). Effacée
+/// 30 jours après sa création, refusée ou non.
+model DemandeBande {
+  deId      Int       @map("de_id")
+  de        Compte    @relation("DemandesBandeEnvoyees", fields: [deId], references: [id], onDelete: Cascade)
+  aId       Int       @map("a_id")
+  a         Compte    @relation("DemandesBandeRecues", fields: [aId], references: [id], onDelete: Cascade)
+  creeLe    DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  refuseeLe DateTime? @map("refusee_le") @db.Timestamptz(0)
+
+  @@id([deId, aId])
+  @@index([aId, creeLe])
+  @@index([creeLe])
+  @@map("demandes_bandes")
+}
+
+/// Une personne bloquée : bloquer coupe tout DANS LES DEUX SENS (décidé le 8 octobre 2026). Bande, demandes, suivis,
+/// co-auteurs, abonnements aux listes, invitations aux groupes et aux sorties en attente et notifications de la cloche
+/// entre les deux sont effacés ; messages, réactions, votes, commentaires, activité et lieux envoyés de l'un sont cachés
+/// pour l'autre, et inversement. Débloquer ne rétablit rien.
+model Blocage {
+  bloqueurId Int      @map("bloqueur_id")
+  bloqueur   Compte   @relation("BlocagesFaits", fields: [bloqueurId], references: [id], onDelete: Cascade)
+  bloqueId   Int      @map("bloque_id")
+  bloque     Compte   @relation("BlocagesRecus", fields: [bloqueId], references: [id], onDelete: Cascade)
+  creeLe     DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([bloqueurId, bloqueId])
+  @@index([bloqueId])
+  @@map("blocages")
+}
+
+/// Suivre une personne, à sens unique : « accepte » tout de suite pour un compte public, « demande » pour un compte privé.
+/// Une demande refusée passe à « refuse », en silence : celui qui suit voit toujours « demande envoyée » et ne peut pas la
+/// renvoyer. Demande et refus sont effacés 30 jours après la demande. Suivre ne donne jamais accès au chat.
+model SuiviPersonne {
+  suiveurId Int       @map("suiveur_id")
+  suiveur   Compte    @relation("SuivisDonnes", fields: [suiveurId], references: [id], onDelete: Cascade)
+  suiviId   Int       @map("suivi_id")
+  suivi     Compte    @relation("SuivisRecus", fields: [suiviId], references: [id], onDelete: Cascade)
+  /// « accepte », « demande » ou « refuse »
+  statut    String    @default("accepte") @db.VarChar(8)
+  creeLe    DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  accepteLe DateTime? @map("accepte_le") @db.Timestamptz(0)
+
+  @@id([suiveurId, suiviId])
+  @@index([suiviId, statut, creeLe])
+  @@index([suiveurId, statut, creeLe])
+  @@map("suivis_personnes")
+}
+
+/// Ce que j'ai retiré de MA vue, pour moi seulement (« Annuler » le remet) : une sortie passée, une ligne de « Quoi de
+/// neuf », une liste de « À découvrir » (elle reste sur le profil de son auteur), un lieu reçu, une suggestion. Un
+/// signalement n'écrit JAMAIS ici : « caché pour moi parce que je l'ai signalé » se lit dans Signalement (B.10). 2 000 au
+/// plus par compte ; effacé après 13 mois.
+model ElementMasque {
+  compteId Int      @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// « sortie », « activite », « liste », « lieu-recu », « suggestion »
+  cible    String   @db.VarChar(12)
+  /// « 42 », « rescousse:118 », « personne:k7mq2x9pa4 », « createur:lea.mange », « lieu:13 »…
+  cibleId  String   @map("cible_id") @db.VarChar(60)
+  creeLe   DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, cible, cibleId])
+  @@index([creeLe])
+  @@map("elements_masques")
+}
+
+/// Une création déjà faite (groupe, sortie, liste), retrouvée par la clé « Idempotency-Key » que l'app a envoyée : un
+/// deuxième envoi avec la même clé rend l'objet déjà créé, sans rien créer de plus ni prévenir personne. Effacée après 24 h.
+/// (Les messages, photos, vocaux et lieux envoyés ont leur propre idClient, dans MessageConversation.)
+model CleIdempotence {
+  compteId    Int      @map("compte_id")
+  compte      Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// UUID v4 tiré par l'app
+  cle         String   @db.VarChar(36)
+  /// « groupe », « sortie » ou « liste »
+  ressource   String   @db.VarChar(8)
+  ressourceId Int      @map("ressource_id")
+  creeLe      DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, cle])
+  @@index([creeLe])
+  @@map("cles_idempotence")
+}

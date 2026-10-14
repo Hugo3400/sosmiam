@@ -41,6 +41,14 @@
   .chiffres { font-variant-numeric: tabular-nums; }
 }
 
+/* Barre de défilement fine et discrète, sur fond sombre (menu de gauche) : rail invisible, pouce gris arrondi */
+.defilement-sombre { scrollbar-gutter: stable; margin-right: 2px; }
+.defilement-sombre::-webkit-scrollbar { width: 5px; }
+.defilement-sombre::-webkit-scrollbar-track { background: transparent; }
+.defilement-sombre::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.18); border-radius: 999px; }
+.defilement-sombre:hover::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.35); }
+.defilement-sombre::-webkit-scrollbar-button { display: none; height: 0; }
+
 /* Thème sombre (Réglages → Apparence) : les mêmes couleurs, inversées pour le soir. Le jaune et le tomate ne changent pas. */
 :root[data-theme="sombre"] {
   color-scheme: dark;
