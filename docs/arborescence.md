@@ -4,6 +4,7 @@
 sos-miam/
 ├── CLAUDE.md                  règles du projet
 ├── docs/                      arborescence (ce fichier), décisions produit, idées pour plus tard (idees.md) et procédure de changement de la clé des données des comptes (procedure-changement-cle.md)
+├── presse/                    Espace presse du logiciel de gestion : affiches, visuels réseaux, imprimés, Miam Safe et textes promo exportés des maquettes (PNG, PDF, Markdown), avec index.json, aperçus et un zip par famille (voir LISEZMOI.md)
 ├── kits/                      kit de marque (logos, mascotte Capitaine Bouiboui, pictos, bannières, couleurs ; voir LISEZMOI.txt) et archives des vidéos
 ├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, generer-kit-media-pro.sh, generer-kit-media-lieux.sh, recuperer-inscrits.py, lire-boite-mail.py, autoriser-poste-gestion.ts, regler-boite-mail.ts, preparer-communes.ts…)
 ├── apps/

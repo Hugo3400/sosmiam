@@ -1,0 +1,800 @@
+{
+ "genere": "2026-10-14",
+ "familles": [
+  {
+   "id": "affiches",
+   "titre": "Affiches A4",
+   "fichiers": [
+    {
+     "nom": "affiche-sauve-une-table.png",
+     "chemin": "affiches/affiche-sauve-une-table.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Sauve une table",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png"
+    },
+    {
+     "nom": "affiche-sauve-une-table.pdf",
+     "chemin": "affiches/affiche-sauve-une-table.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Sauve une table",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png"
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues.png",
+     "chemin": "affiches/affiche-pepite-a-2-rues.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Ta prochaine pépite",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png"
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Ta prochaine pépite",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png"
+    },
+    {
+     "nom": "affiche-moins-de-chaines.png",
+     "chemin": "affiches/affiche-moins-de-chaines.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Moins de chaînes",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png"
+    },
+    {
+     "nom": "affiche-moins-de-chaines.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Moins de chaînes",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png"
+    },
+    {
+     "nom": "affiche-salle-vide.png",
+     "chemin": "affiches/affiche-salle-vide.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Une salle vide",
+     "apercu": "apercus/affiches-affiche-salle-vide.png"
+    },
+    {
+     "nom": "affiche-salle-vide.pdf",
+     "chemin": "affiches/affiche-salle-vide.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Une salle vide",
+     "apercu": "apercus/affiches-affiche-salle-vide.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure.png",
+     "chemin": "affiches/affiche-ambassadeurs-aventure.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · L'aventure",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · L'aventure",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges.png",
+     "chemin": "affiches/affiche-ambassadeurs-badges.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · Les badges",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · Les badges",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur.png",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · Fondateur de ta ville",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png"
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · Fondateur de ta ville",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png"
+    },
+    {
+     "nom": "affiche-vitrine-lieu-exemple.png",
+     "chemin": "affiches/affiche-vitrine-lieu-exemple.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · au nom du lieu (exemple)",
+     "apercu": "apercus/affiches-affiche-vitrine-lieu-exemple.png"
+    },
+    {
+     "nom": "affiche-vitrine-lieu-exemple.pdf",
+     "chemin": "affiches/affiche-vitrine-lieu-exemple.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · au nom du lieu (exemple)",
+     "apercu": "apercus/affiches-affiche-vitrine-lieu-exemple.png"
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam.png",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · sans nom",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png"
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · sans nom",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png"
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe.png",
+     "chemin": "affiches/affiche-vitrine-miam-safe.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · Ici, on est Miam Safe",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png"
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · Ici, on est Miam Safe",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png"
+    }
+   ],
+   "zip": "affiches/sos-miam-affiches.zip"
+  },
+  {
+   "id": "reseaux",
+   "titre": "Réseaux sociaux",
+   "fichiers": [
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-1.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-1.png"
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-2.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-2.png"
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-3.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-3.png"
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-4.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-4.png"
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-5.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-5.png"
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-6.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-6.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-1.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-1.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-2.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-2.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-3.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-3.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-4.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-4.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-5.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-5.png"
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-6.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-6.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-1.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-1.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-2.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-2.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-3.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-3.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-4.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-4.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-5.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-5.png"
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-6.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-6.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-1.png",
+     "chemin": "reseaux/carrousel-miam-safe-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-1.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-2.png",
+     "chemin": "reseaux/carrousel-miam-safe-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-2.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-3.png",
+     "chemin": "reseaux/carrousel-miam-safe-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-3.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-4.png",
+     "chemin": "reseaux/carrousel-miam-safe-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-4.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-5.png",
+     "chemin": "reseaux/carrousel-miam-safe-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-5.png"
+    },
+    {
+     "nom": "carrousel-miam-safe-6.png",
+     "chemin": "reseaux/carrousel-miam-safe-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-6.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-1.png",
+     "chemin": "reseaux/carrousel-les-coulisses-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-1.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-2.png",
+     "chemin": "reseaux/carrousel-les-coulisses-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-2.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-3.png",
+     "chemin": "reseaux/carrousel-les-coulisses-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-3.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-4.png",
+     "chemin": "reseaux/carrousel-les-coulisses-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-4.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-5.png",
+     "chemin": "reseaux/carrousel-les-coulisses-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-5.png"
+    },
+    {
+     "nom": "carrousel-les-coulisses-6.png",
+     "chemin": "reseaux/carrousel-les-coulisses-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-6.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-1.png",
+     "chemin": "reseaux/carrousel-les-big-sos-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-1.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-2.png",
+     "chemin": "reseaux/carrousel-les-big-sos-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-2.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-3.png",
+     "chemin": "reseaux/carrousel-les-big-sos-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-3.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-4.png",
+     "chemin": "reseaux/carrousel-les-big-sos-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-4.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-5.png",
+     "chemin": "reseaux/carrousel-les-big-sos-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-5.png"
+    },
+    {
+     "nom": "carrousel-les-big-sos-6.png",
+     "chemin": "reseaux/carrousel-les-big-sos-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-6.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-1.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-1.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-2.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-2.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-3.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-3.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-4.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-4.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-5.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-5.png"
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-6.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-6.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-1.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-1.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-2.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-2.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-3.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-3.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-4.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-4.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-5.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-5.png"
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-6.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-6.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-1.png",
+     "chemin": "reseaux/stories-compte-a-rebours-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 1/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-1.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-2.png",
+     "chemin": "reseaux/stories-compte-a-rebours-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 2/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-2.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-3.png",
+     "chemin": "reseaux/stories-compte-a-rebours-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 3/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-3.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-4.png",
+     "chemin": "reseaux/stories-compte-a-rebours-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 4/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-4.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-5.png",
+     "chemin": "reseaux/stories-compte-a-rebours-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 5/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-5.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-6.png",
+     "chemin": "reseaux/stories-compte-a-rebours-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 6/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-6.png"
+    },
+    {
+     "nom": "stories-compte-a-rebours-7.png",
+     "chemin": "reseaux/stories-compte-a-rebours-7.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 7/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-7.png"
+    },
+    {
+     "nom": "stories-sondages-1.png",
+     "chemin": "reseaux/stories-sondages-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Sondages, image 1/2",
+     "apercu": "apercus/reseaux-stories-sondages-1.png"
+    },
+    {
+     "nom": "stories-sondages-2.png",
+     "chemin": "reseaux/stories-sondages-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Sondages, image 2/2",
+     "apercu": "apercus/reseaux-stories-sondages-2.png"
+    },
+    {
+     "nom": "stories-previens-moi-1.png",
+     "chemin": "reseaux/stories-previens-moi-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Préviens-moi, image 1/1",
+     "apercu": "apercus/reseaux-stories-previens-moi-1.png"
+    },
+    {
+     "nom": "stories-les-4-categories-1.png",
+     "chemin": "reseaux/stories-les-4-categories-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 1/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-1.png"
+    },
+    {
+     "nom": "stories-les-4-categories-2.png",
+     "chemin": "reseaux/stories-les-4-categories-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 2/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-2.png"
+    },
+    {
+     "nom": "stories-les-4-categories-3.png",
+     "chemin": "reseaux/stories-les-4-categories-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 3/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-3.png"
+    },
+    {
+     "nom": "stories-les-4-categories-4.png",
+     "chemin": "reseaux/stories-les-4-categories-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 4/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-4.png"
+    }
+   ],
+   "zip": "reseaux/sos-miam-reseaux.zip"
+  },
+  {
+   "id": "imprimes",
+   "titre": "Imprimés",
+   "fichiers": [
+    {
+     "nom": "flyer-a6-grand-public.png",
+     "chemin": "imprimes/flyer-a6-grand-public.png",
+     "format": "PNG",
+     "taille": "2640 × 1779 px",
+     "description": "Flyer A6 grand public (recto, verso)",
+     "apercu": "apercus/imprimes-flyer-a6-grand-public.png"
+    },
+    {
+     "nom": "flyer-a6-ambassadeurs.png",
+     "chemin": "imprimes/flyer-a6-ambassadeurs.png",
+     "format": "PNG",
+     "taille": "2640 × 1779 px",
+     "description": "Flyer A6 ambassadeurs (recto, verso)",
+     "apercu": "apercus/imprimes-flyer-a6-ambassadeurs.png"
+    },
+    {
+     "nom": "carte-visite-ambassadeur.png",
+     "chemin": "imprimes/carte-visite-ambassadeur.png",
+     "format": "PNG",
+     "taille": "3180 × 990 px",
+     "description": "Carte de visite d’ambassadeur 85 × 55 mm (recto, verso)",
+     "apercu": "apercus/imprimes-carte-visite-ambassadeur.png"
+    },
+    {
+     "nom": "chevalet-de-table.png",
+     "chemin": "imprimes/chevalet-de-table.png",
+     "format": "PNG",
+     "taille": "2940 × 1779 px",
+     "description": "Chevalet de table (2 faces A6, à plier)",
+     "apercu": "apercus/imprimes-chevalet-de-table.png"
+    },
+    {
+     "nom": "planche-stickers-a4.png",
+     "chemin": "imprimes/planche-stickers-a4.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Planche de stickers (A4)",
+     "apercu": "apercus/imprimes-planche-stickers-a4.png"
+    },
+    {
+     "nom": "planche-stickers-a4.pdf",
+     "chemin": "imprimes/planche-stickers-a4.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Planche de stickers (A4)",
+     "apercu": "apercus/imprimes-planche-stickers-a4.png"
+    },
+    {
+     "nom": "badges-epingle-38mm.png",
+     "chemin": "imprimes/badges-epingle-38mm.png",
+     "format": "PNG",
+     "taille": "4032 × 936 px",
+     "description": "Badges à épingle 38 mm (montrés agrandis)",
+     "apercu": "apercus/imprimes-badges-epingle-38mm.png"
+    }
+   ],
+   "zip": "imprimes/sos-miam-imprimes.zip"
+  },
+  {
+   "id": "miam-safe",
+   "titre": "Miam Safe",
+   "fichiers": [
+    {
+     "nom": "fiche-miam-safe-miamis.png",
+     "chemin": "miam-safe/fiche-miam-safe-miamis.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Fiche Miamis (4:5) : les façons d’avoir de l’aide, bientôt dans l’app",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-miamis.png"
+    },
+    {
+     "nom": "fiche-miam-safe-lieux.png",
+     "chemin": "miam-safe/fiche-miam-safe-lieux.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Fiche lieux (4:5) : le badge, les alertes, la charte",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-lieux.png"
+    },
+    {
+     "nom": "fiche-miam-safe-memo-equipe.png",
+     "chemin": "miam-safe/fiche-miam-safe-memo-equipe.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Mémo d’équipe pour l’arrière du comptoir",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-memo-equipe.png"
+    },
+    {
+     "nom": "story-miam-safe-bientot.png",
+     "chemin": "miam-safe/story-miam-safe-bientot.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Story « Bientôt » Miam Safe",
+     "apercu": "apercus/miam-safe-story-miam-safe-bientot.png"
+    },
+    {
+     "nom": "concept-miam-safe.pdf",
+     "chemin": "miam-safe/concept-miam-safe.pdf",
+     "format": "PDF",
+     "taille": null,
+     "description": "La page concept Miam Safe (décisions du 9 octobre 2026)",
+     "apercu": null
+    }
+   ],
+   "zip": "miam-safe/sos-miam-miam-safe.zip"
+  },
+  {
+   "id": "textes",
+   "titre": "Textes (presse, newsletters, Discord)",
+   "fichiers": [
+    {
+     "nom": "textes-promo-sos-miam.md",
+     "chemin": "textes/textes-promo-sos-miam.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Communiqué et dossier de presse, 4 newsletters, annonces Discord, légendes des carrousels, règles de ton",
+     "apercu": null
+    }
+   ],
+   "zip": "textes/sos-miam-textes.zip"
+  }
+ ]
+}
