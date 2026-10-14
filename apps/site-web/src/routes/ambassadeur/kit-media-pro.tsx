@@ -121,6 +121,12 @@ export default function PageKitMediaPro({ loaderData }: Route.ComponentProps) {
         </ul>
       </SectionKit>
 
+      <SectionKit id="carte-de-visite" titre="Ta carte de visite" texte="À ton prénom et ta ville, avec un QR vers « J'inscris mon lieu » : à laisser au comptoir.">
+        <Link to="/espace/carte-de-visite" className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-4 hover:decoration-encre">
+          Ouvrir ma carte de visite
+        </Link>
+      </SectionKit>
+
       {/* Les maquettes validées à laisser aux lieux : l'affiche de vitrine (A4, A3, 40 × 60 cm) et le flyer grand public */}
       <SectionsMaquettesKit kit="pro" prefixe="/kit-media-pro" poids={poids} />
 

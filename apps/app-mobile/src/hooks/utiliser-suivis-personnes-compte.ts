@@ -15,6 +15,7 @@ import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import type { EtatSuivisPersonnes, PersonneLiee, RelationPersonne, ResultatSuivre, SensSuivi } from "~/hooks/utiliser-suivis-personnes";
+import { effacerSuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
 type Page = { liens: LienSuiviApi[]; suite: string | null };
 /** Le profil d'une personne lu sur le serveur ; ordre : plus grand que celui des listes, il est plus récent qu'elles */
@@ -379,8 +380,8 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
         setMasquees((avant) => [...avant, cle]);
         void sociaux.social.masquer("suggestion", cle, true);
       },
-      // Rien sur le téléphone : tes suivis sont sur le serveur (« Tout effacer » ne touche pas à ton compte)
-      effacer: async () => {},
+      // Tes suivis restent sur le serveur : seul ce que le téléphone gardait d'avant (démo, visite) part
+      effacer: effacerSuivisPersonnesLocaux,
     };
   }, [pret, communaute, monId, resume, pages, ordreListes, profils, gestes, masquees, pagesSuivies, sociaux, faire, changerCompteurs, changerConfidentialite, chargerSuite, noterProfil]);
 }

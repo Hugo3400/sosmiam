@@ -25,6 +25,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLiensDe } from "~/hooks/utiliser-liens-de";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
@@ -67,7 +68,8 @@ export default function ReseauPersonne() {
       return nouveaux.length > 0 ? [...avant, ...nouveaux] : avant;
     });
   }, [suivis.abonnes]);
-  // Les listes de quelqu'un d'autre (compte connecté : lues sur le serveur, si tu es dans sa bande)
+  // Compte connecté : son profil (ses compteurs, votre lien) et ses listes, lues sur le serveur (si tu es dans sa bande)
+  const lecture = utiliserProfilCommunautaire(estMoi ? "" : id);
   const liensDe = utiliserLiensDe(estMoi ? "" : id, onglet);
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/potes"));
@@ -82,6 +84,8 @@ export default function ReseauPersonne() {
 
   const pote = communaute.trouverPote(id);
   const bloque = communaute.bloques.some((p) => p.id === id);
+  // Pendant la lecture de son profil : un écran crème plutôt qu'un faux « introuvable »
+  if (lecture.chargement && !pote) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
   if (!pote || bloque) {
     return (
       <EcranReglage titre="Personne à l'horizon" sousTitre="On ne trouve pas ce profil : la personne a peut-être quitté SOS Miam, ou le lien s'est emmêlé.">

@@ -11,6 +11,7 @@ import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { effacerClocheVue, enregistrerClocheVue, lireClocheVue } from "~/stockage/cloche-vue-compte";
+import { effacerNotificationsLocales } from "~/stockage/notifications-locales";
 
 const rienAFaire = () => {};
 /** La plus récente de deux dates ISO (null : aucune) */
@@ -104,10 +105,17 @@ export function utiliserNotificationsCompte(actif: boolean): EtatNotifications {
       });
   }, [actif, sociaux, tant, creeLe]);
 
+  // La cloche reste sur le serveur : seuls le « vu » de ce téléphone et ce qu'il gardait d'avant (démo, visite) partent
+  const effacer = useCallback(async () => {
+    setVuesTelephone(null);
+    await effacerClocheVue();
+    await effacerNotificationsLocales();
+  }, []);
+
   const { suivis, estMasquee } = activite;
   return useMemo((): EtatNotifications => {
     const pret = actif && lu && communautePrete && activite.chargee;
-    if (!pret) return { pret: false, notifications: [], nonVues: 0, vuesLe: null, ajouter: rienAFaire, marquerToutVu, effacer: async () => {} };
+    if (!pret) return { pret: false, notifications: [], nonVues: 0, vuesLe: null, ajouter: rienAFaire, marquerToutVu, effacer };
     const idsBloques = new Set(bloques.map((p) => p.id));
     const deLaCloche = brutes
       .filter((n) => !n.acteur || !idsBloques.has(n.acteur.id))
@@ -124,8 +132,7 @@ export function utiliserNotificationsCompte(actif: boolean): EtatNotifications {
       vuesLe,
       ajouter: rienAFaire,
       marquerToutVu,
-      // Rien à effacer sur le téléphone : la cloche est sur le serveur
-      effacer: async () => {},
+      effacer,
     };
-  }, [actif, lu, communautePrete, activite.chargee, bloques, brutes, suivis, publications, lieux, estMasquee, vuesServeur, vuesTelephone, marquerToutVu]);
+  }, [actif, lu, communautePrete, activite.chargee, bloques, brutes, suivis, publications, lieux, estMasquee, vuesServeur, vuesTelephone, marquerToutVu, effacer]);
 }

@@ -122,6 +122,24 @@ export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
         );
       })}
 
+      <SectionKit id="a-ton-nom" titre="À ton nom, à imprimer" texte="Avec le nom de ton lieu et un QR vers ta fiche : la page s'imprime telle quelle, ou s'enregistre en PDF pour l'imprimeur.">
+        <ul className="grid gap-5 md:grid-cols-3">
+          {[
+            { lien: "vitrine", titre: "L'affiche de vitrine", texte: "En A4, A3 ou 40 × 60 cm, avec la pastille Miam Safe si tu as signé la charte." },
+            { lien: "chevalet", titre: "Le chevalet de table", texte: "Deux faces A6 à plier, qui tiennent debout sur la table." },
+            { lien: "affichette", titre: "L'affichette de table", texte: "Une seule face A6, à poser sur le comptoir." },
+          ].map((page) => (
+            <li key={page.lien} className="flex flex-col gap-3 rounded-carte border-2 border-encre bg-white p-5 shadow-brut">
+              <h3 className="text-lg leading-tight font-extrabold">{lierPonctuation(page.titre)}</h3>
+              <p className="text-gris">{lierPonctuation(page.texte)}</p>
+              <Link to={`/lieu/${lieu.id}/${page.lien}`} className={`mt-auto ${classeLien}`}>
+                Ouvrir et imprimer<span className="sr-only">&nbsp;: {page.titre}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </SectionKit>
+
       {/* Les maquettes validées : affiches pour ta vitrine et ta salle (A4, A3, 40 × 60 cm), stickers */}
       <SectionsMaquettesKit kit="lieux" miamSafe={miamSafe} prefixe="/kit-media-lieux" poids={poids} />
 
