@@ -22,7 +22,7 @@ import { chercherLieuxSemblables, lireControleLieux } from "./controle-lieux.ts"
 import { importerLieux, verifierDoublonsImport } from "./import-lieux.ts";
 import { lireLancementVille, listerVilles } from "./villes.ts";
 import { lireDernierTestSauvegarde, testerSauvegarde } from "./test-sauvegarde.ts";
-import { listerMessagesRecus, lireMessageRecu, repondreMessageRecu } from "./boite-reception.ts";
+import { lirePieceMessage, listerMessagesRecus, lireMessageRecu, repondreMessageRecu } from "./boite-reception.ts";
 import { deciderRattachement, listerRattachements } from "./rattachements.ts";
 import { corrigerDateNaissance, lireDateNaissance } from "./profil-gestion.ts";
 import { ecrireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu } from "./surveillance-visites.ts";
@@ -85,7 +85,7 @@ export const servicesGestion = {
   listerCandidaturesCertification, listerCertifies, accepterCertification, refuserCertification, retirerCertification,
   listerSuggestions, lireSuggestion, deciderSuggestion,
   lireControleLieux, chercherLieuxSemblables, verifierDoublonsImport, importerLieux, listerVilles, lireLancementVille,
-  testerSauvegarde, lireDernierTestSauvegarde, listerMessagesRecus, lireMessageRecu, repondreMessageRecu,
+  testerSauvegarde, lireDernierTestSauvegarde, listerMessagesRecus, lireMessageRecu, lirePieceMessage, repondreMessageRecu,
   listerRattachements, deciderRattachement, lireDateNaissance, corrigerDateNaissance,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,

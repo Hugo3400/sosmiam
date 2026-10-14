@@ -156,6 +156,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/courriels/ecrire", m.ecrire);
   routes.get("/boite", boite.liste);
   routes.get("/boite/:uid", boite.message);
+  routes.get("/boite/:uid/pieces/:numero", boite.piece);
   routes.post("/boite/:uid/repondre", boite.repondre);
   routes.get("/newsletter/brouillons", c.brouillons);
   routes.post("/newsletter/brouillons", c.enregistrerBrouillon);

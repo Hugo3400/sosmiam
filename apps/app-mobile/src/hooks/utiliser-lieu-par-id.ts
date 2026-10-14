@@ -20,8 +20,10 @@ export type LieuParId = {
  * Un lieu par son identifiant (fiche, carte, proposition) : pris dans la liste, ou lu seul sur le serveur s'il n'y est pas
  * (lien partagé, lieu tout juste publié). Une seule lecture par identifiant, sauf « Réessayer ».
  */
-export function utiliserLieuParId(id: number | null): LieuParId {
+export function utiliserLieuParId(identifiant: number | string | null | undefined): LieuParId {
   const { trouverLieu, pret, chargerLieu } = utiliserLieux();
+  // L'identifiant d'une route est du texte (« 12 ») : autre chose qu'un entier positif ne cherche rien
+  const id = typeof identifiant === "number" ? (Number.isInteger(identifiant) && identifiant > 0 ? identifiant : null) : /^[1-9]\d{0,9}$/.test(identifiant ?? "") ? Number(identifiant) : null;
   const lieu = id === null ? undefined : trouverLieu(id);
   const demandes = useRef(new Set<number>());
   const [etats, setEtats] = useState<Record<number, EtatLecture>>({});
@@ -32,7 +34,7 @@ export function utiliserLieuParId(id: number | null): LieuParId {
     if (id === null || !pret || present || demandes.current.has(id)) return;
     demandes.current.add(id);
     setEtats((e) => ({ ...e, [id]: "en-cours" }));
-    chargerLieu(id).then((etat) => setEtats((e) => ({ ...e, [id]: etat })));
+    chargerLieu(id).then((r) => setEtats((e) => ({ ...e, [id]: r.ok ? "ok" : r.raison })));
   }, [id, pret, present, chargerLieu, relance]);
 
   const reessayer = useCallback(() => {

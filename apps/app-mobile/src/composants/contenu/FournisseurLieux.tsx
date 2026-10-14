@@ -4,7 +4,7 @@ import { AppState } from "react-native";
 import type { Lieu, LieuApi } from "@sos-miam/commun/types/lieu";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { convertirLieuApi } from "~/fonctions/lieux/convertir-lieu-api";
-import { ContexteLieux, type EtatLieux } from "~/hooks/utiliser-lieux";
+import { ContexteLieux, type EtatLieux, type LectureLieu } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
@@ -38,15 +38,18 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   }, [contenu]);
 
   const chargerLieu = useCallback(
-    async (id: number) => {
-      if (DEMO_VISITES_ACTIVE) return "inconnu" as const;
+    async (id: number): Promise<LectureLieu> => {
+      if (DEMO_VISITES_ACTIVE) {
+        const exemple = lieuxExemples.find((l) => l.id === id);
+        return exemple ? { ok: true, lieu: exemple } : { ok: false, raison: "inconnu" };
+      }
       const r = await contenu.lireLieu(id);
       // Seul un « lieu inconnu » dit que le lieu n'existe pas : le reste (réseau, serveur) se retente plus tard
-      if (!r.ok) return r.erreur === "lieu-inconnu" || r.erreur === "introuvable" ? ("inconnu" as const) : ("hors-ligne" as const);
+      if (!r.ok) return { ok: false, raison: r.erreur === "lieu-inconnu" || r.erreur === "introuvable" ? "inconnu" : "hors-ligne" };
       setEnPlus((deja) => [...deja.filter((l) => l.id !== id), r.lieu]);
-      return "ok" as const;
+      return { ok: true, lieu: convertirLieuApi(r.lieu, depart) };
     },
-    [contenu],
+    [contenu, depart],
   );
 
   useEffect(() => {

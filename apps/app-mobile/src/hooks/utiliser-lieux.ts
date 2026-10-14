@@ -2,6 +2,8 @@ import { createContext, useContext } from "react";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 
+export type LectureLieu = { ok: true; lieu: Lieu } | { ok: false; raison: "inconnu" | "hors-ligne" };
+
 export type EtatLieux = {
   /** Tous les lieux connus (démo : les exemples ; sinon : les lieux publiés lus sur le serveur), avant le filtre d'âge */
   lieux: Lieu[];
@@ -18,7 +20,7 @@ export type EtatLieux = {
    * Lit un seul lieu absent de la liste (lien partagé, lieu tout juste publié) et l'y ajoute. « inconnu » : absent,
    * brouillon ou masqué ; toujours « inconnu » en démo (la liste d'exemples est complète).
    */
-  chargerLieu: (id: number) => Promise<"ok" | "inconnu" | "hors-ligne">;
+  chargerLieu: (id: number) => Promise<LectureLieu>;
 };
 
 export const ContexteLieux = createContext<EtatLieux | null>(null);

@@ -7,14 +7,15 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 import type { LecturePosition } from "@sos-miam/commun/types/position";
 import type { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 import { classerCodeScanne } from "~/fonctions/scan/classer-code-scanne";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserPositionValidation, type ResultatLecturePosition } from "~/hooks/utiliser-position-validation";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserSession } from "~/hooks/utiliser-session";
 import { enregistrerExplicationPositionVue, lireExplicationPositionVue } from "~/stockage/explication-position-vue";
 
 /** repos, lecture de la position, envoi du QR, ou nouvel essai tout seul (pas de réseau) pendant une minute */
@@ -46,10 +47,7 @@ function attendre(ms: number): Promise<void> {
 }
 
 /** QR de vitrine : « Voir la fiche » du lieu (jamais un bar pour un 15-17 ans), comme le ferait le serveur */
-function decrireVitrine(codePublic: string, majeur: boolean): EchecValidationComptoir {
-  const validation = Object.values(validationLieuxExemples).find((v) => v.codePublic === codePublic);
-  const lieu = validation ? lieuxExemples.find((l) => l.id === validation.lieuId) : undefined;
-  if (!lieu) return { erreur: "introuvable" };
+function decrireVitrine(lieu: Lieu, majeur: boolean): EchecValidationComptoir {
   if (lieu.type === "bar" && !majeur) return { erreur: "mineur-bar" };
   return { erreur: "qr-vitrine", details: { lieuId: lieu.id, lieu: lieu.nom } };
 }
@@ -69,6 +67,8 @@ export function utiliserValidationComptoir(): {
   propsFeuille: ComponentProps<typeof FeuillePositionVisite>;
 } {
   const services = utiliserServices();
+  const { contenu } = utiliserSession();
+  const { trouverLieu, chargerLieu } = utiliserLieux();
   const demanderCompte = utiliserDemandeCompte();
   const { majeur } = utiliserModes();
   const { reglages } = utiliserReglagesDemo();
@@ -98,6 +98,34 @@ export function utiliserValidationComptoir(): {
       lectureAvance.current = null;
     };
   }, []);
+
+  /** Un lieu par son identifiant : dans la liste, sinon lu seul sur le serveur (« hors-ligne » s'il ne répond pas) */
+  const lireLieu = useCallback(
+    async (id: number): Promise<Lieu | "inconnu" | "hors-ligne"> => {
+      const connu = trouverLieu(id);
+      if (connu) return connu;
+      const r = await chargerLieu(id);
+      return r.ok ? r.lieu : r.raison;
+    },
+    [trouverLieu, chargerLieu],
+  );
+
+  /** Le lieu d'un QR de vitrine : la démo garde ses QR d'exemple, sinon le serveur le retrouve par son code */
+  const decrireCodeVitrine = useCallback(
+    async (codePublic: string): Promise<EchecValidationComptoir> => {
+      let lieuId: number | undefined;
+      if (services.source === "demo") lieuId = Object.values(validationLieuxExemples).find((v) => v.codePublic === codePublic)?.lieuId;
+      else {
+        const r = await contenu.trouverParCode(codePublic);
+        if (!r.ok && r.erreur !== "lieu-inconnu" && r.erreur !== "introuvable") return { erreur: r.erreur };
+        lieuId = r.ok ? r.lieuId : undefined;
+      }
+      const lieu = lieuId === undefined ? "inconnu" : await lireLieu(lieuId);
+      if (lieu === "hors-ligne") return { erreur: "hors-ligne" };
+      return lieu === "inconnu" ? { erreur: "introuvable" } : decrireVitrine(lieu, majeur);
+    },
+    [services.source, contenu, lireLieu, majeur],
+  );
 
   const repondreFeuille = useCallback((acceptee: boolean) => {
     const resoudre = reponseFeuille.current;
@@ -213,11 +241,12 @@ export function utiliserValidationComptoir(): {
         const code = classerCodeScanne(texte);
         if (code.type === "invitation") return setEchec({ erreur: "qr-invitation" });
         if (code.type === "autre") return setEchec({ erreur: "qr-illisible" });
-        if (code.type === "lieu") return setEchec(decrireVitrine(code.codePublic, majeur));
+        if (code.type === "lieu") return setEchec(await decrireCodeVitrine(code.codePublic));
         if (services.source === "indisponible") return setEchec({ erreur: "service-indisponible" });
 
-        const lieu = lieuxExemples.find((l) => l.id === code.jeton.lieuId);
-        if (!lieu) return setEchec({ erreur: "qr-invalide" });
+        const lieu = await lireLieu(code.jeton.lieuId);
+        if (lieu === "hors-ligne") return setEchec({ erreur: "hors-ligne" });
+        if (lieu === "inconnu") return setEchec({ erreur: "qr-invalide" });
         const details: DetailsErreur = { lieu: lieu.nom, lieuId: lieu.id };
         // « Pas maintenant » : on le dit, sinon le QR toujours visé relancerait aussitôt la même question
         if (!(await expliquer(lieu.nom))) return setEchec({ erreur: "position-refusee", details });
@@ -236,7 +265,7 @@ export function utiliserValidationComptoir(): {
         }
       }
     },
-    [majeur, services.source, expliquer, obtenirPosition, envoyer],
+    [services.source, decrireCodeVitrine, lireLieu, expliquer, obtenirPosition, envoyer],
   );
 
   const effacerEchec = useCallback(() => setEchec(null), []);
