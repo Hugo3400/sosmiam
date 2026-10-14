@@ -7,12 +7,13 @@ import { utiliserBandeCompte } from "~/hooks/utiliser-bande-compte";
 import type { EtatCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieuxEnvoyesCompte } from "~/hooks/utiliser-lieux-envoyes-compte";
 import { utiliserListesCompte } from "~/hooks/utiliser-listes-compte";
+import { utiliserSignalementsCompte } from "~/hooks/utiliser-signalements-compte";
 import { utiliserSortiesCompte } from "~/hooks/utiliser-sorties-compte";
 
 /**
  * La communauté d'un compte connecté : la bande vient du serveur (toi, tes potes, les demandes, les blocages, « Quoi de
- * neuf », le classement, ce que tu as masqué), comme les sorties, les listes et les lieux envoyés ; les commentaires
- * viennent encore du téléphone (lot A6). Ton identifiant est l'identifiant public de ton profil social (« » tant qu'il
+ * neuf », le classement, ce que tu as masqué), comme les sorties, les listes, les lieux envoyés et tes signalements ; les
+ * commentaires ont leur propre hook (utiliserCommentairesPublication). Ton identifiant est l'identifiant public de ton profil social (« » tant qu'il
  * n'existe pas). Les données du téléphone te désignent toujours par « moi » : trouverPote le reconnaît encore.
  */
 export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute): EtatCommunaute {
@@ -22,6 +23,7 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
   const sorties = utiliserSortiesCompte(actif, { monId, noterPersonne, estMasque });
   const listes = utiliserListesCompte(actif, { monId, noterPersonne });
   const lieuxEnvoyes = utiliserLieuxEnvoyesCompte(actif, { monId, noterPersonne, bloques, estMasque, masquer, demasquer });
+  const signalements = utiliserSignalementsCompte(actif);
 
   return useMemo((): EtatCommunaute => {
     const personne = bande.moiSocial?.personne;
@@ -69,6 +71,11 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
       envoyerMessage: () => "vide",
       ...listes,
       ...lieuxEnvoyes,
+      // Ce que tu as signalé disparaît de ton écran (une liste, un lieu envoyé ; les messages et commentaires lisent estSignale)
+      listes: listes.listes.filter((l) => !signalements.estSignale(l.id)),
+      recommandationsRecues: lieuxEnvoyes.recommandationsRecues.filter((r) => !signalements.estSignale(r.id)),
+      signaler: signalements.signaler,
+      estSignale: signalements.estSignale,
     };
-  }, [locale, bande, sorties, listes, lieuxEnvoyes]);
+  }, [locale, bande, sorties, listes, lieuxEnvoyes, signalements]);
 }

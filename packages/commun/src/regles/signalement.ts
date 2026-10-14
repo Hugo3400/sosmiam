@@ -35,5 +35,9 @@ export const ANCIENNETE_MIN_MASQUAGE_JOURS = 7;
 /** On peut contester une décision de la modération pendant 6 mois (DSA) */
 export const DUREE_CONTESTATION_JOURS = 183;
 
+/** Une contestation : 10 à 1 000 caractères, sans filtre de mots (on peut citer ce qu'on conteste ; elle ne va qu'à l'équipe) */
+export const LONGUEUR_MIN_CONTESTATION = 10;
+export const LONGUEUR_MAX_CONTESTATION = 1000;
+
 /** Un signalement, son instantané compris, part 1 an après sa décision */
 export const DUREE_GARDE_SIGNALEMENT_JOURS = 365;

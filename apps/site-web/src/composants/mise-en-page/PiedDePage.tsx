@@ -2,13 +2,12 @@ import { Link } from "react-router";
 
 import { LienGererCookies } from "~/composants/cookies/LienGererCookies";
 import { Logo } from "~/composants/interface/Logo";
-import { site } from "~/contenus/legal/informations-legales";
 import { MESSAGE_SANITAIRE_ALCOOL } from "~/contenus/legal/prevention";
 import { groupesPiedDePage, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
-import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
+import { creerAdresseLien, type EspaceDuLien } from "~/fonctions/hotes/creer-adresse-lien";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-type Espace = "principal" | "ambassadeur" | "pro";
+type Espace = EspaceDuLien;
 
 type Props = {
   /** Le site qui affiche le pied de page : les liens vers l'autre site deviennent des adresses complètes */
@@ -24,9 +23,7 @@ const classeLien = "opacity-80 underline-offset-4 hover:underline hover:opacity-
  * « Gérer mes cookies » rouvre le panneau des cookies sur l'hôte de la page (son adresse ne sert que sans JavaScript).
  */
 function LienDuPied({ lien, espace }: { lien: LienPiedDePage; espace: Espace }) {
-  const hotes = { principal: site.adresse, ambassadeur: HOTE_AMBASSADEUR, pro: HOTE_PRO, externe: null };
-  const hote = lien.site === espace ? null : hotes[lien.site];
-  const adresse = hote ? `https://${hote}${lien.adresse}` : lien.adresse;
+  const adresse = creerAdresseLien(lien.site, lien.adresse, espace);
   if (lien.reglagesCookies) return <LienGererCookies href={adresse} className={classeLien}>{lien.texte}</LienGererCookies>;
   if (lien.site === espace) return <Link to={lien.adresse} className={classeLien}>{lien.texte}</Link>;
   return <a href={adresse} className={classeLien}>{lien.texte}</a>;
