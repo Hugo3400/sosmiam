@@ -28,7 +28,7 @@ import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
 import { envoyerSignalementPublication } from "~/fonctions/signalement/envoyer-signalement-publication";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
-import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserNombresCommentaires } from "~/hooks/utiliser-nombres-commentaires";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
@@ -81,7 +81,7 @@ export default function PourToi() {
   // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
   const depart = utiliserPointDeDepart();
   const activite = utiliserActivite();
-  const communaute = utiliserCommunaute();
+  const nombreCommentaires = utiliserNombresCommentaires();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
   const [taille, setTaille] = useState({ largeur: 0, hauteur: 0 });
   const [visible, setVisible] = useState<string | null>(null);
@@ -402,7 +402,7 @@ export default function PourToi() {
                   garde={activite.estGarde(lieu.id)}
                   suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}
                   avecCompte={profil !== null}
-                  nombreCommentaires={communaute.nombreCommentaires(item.id)}
+                  nombreCommentaires={nombreCommentaires(item)}
                   actif={focusDiffere && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}
                   envolBouee={bouees[item.id] ?? 0}

@@ -25,6 +25,7 @@ export type ErreurServiceSociale =
   | "groupe-plein"
   | "reserve-aux-admins"
   | "reserve-a-l-auteur"
+  | "reserve-au-gerant"
   | "reserve-a-l-organisateur"
   | "message-inconnu"
   | "media-expire"

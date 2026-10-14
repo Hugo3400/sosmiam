@@ -87,6 +87,11 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
     titre: "Pas touche, c'est son œuvre",
     texte: "Seul son auteur peut faire ça (et ses co-auteurs, pour remplir une liste).",
   },
+  "reserve-au-gerant": {
+    emoji: "🧑‍🍳",
+    titre: "Réservé au gérant du lieu",
+    texte: "Seul le gérant du lieu peut répondre en son nom ou masquer un commentaire sous sa publication.",
+  },
   "reserve-a-l-organisateur": {
     emoji: "🧑‍✈️",
     titre: "L'organisateur décide",
