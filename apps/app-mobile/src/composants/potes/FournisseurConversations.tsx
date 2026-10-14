@@ -6,7 +6,6 @@ import { REACTIONS_CHAT, type Conversation, type MessageChat } from "@sos-miam/c
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerConversationsExemples } from "~/contenus/conversations-exemples";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { reponsesExemples } from "~/contenus/potes-exemples";
 import { listerMembresRefusesGroupe } from "~/fonctions/chat/lister-membres-refuses-groupe";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
@@ -14,6 +13,7 @@ import { peutDiscuter } from "~/fonctions/communaute/peut-discuter";
 import { peutEnvoyerMedias } from "~/fonctions/communaute/peut-envoyer-medias";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { ContexteConversations, type EtatConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import {
   effacerConversationsLocales,
   enregistrerConversationsLocales,
@@ -24,7 +24,6 @@ import {
 
 const dernierMessage = (c: Conversation) => c.messages[c.messages.length - 1]?.date ?? "";
 const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() * liste.length)];
-const lieuxBars = new Set(lieuxExemples.filter((l) => l.type === "bar").map((l) => l.id));
 
 /**
  * Chat entre potes (démo) : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales.
@@ -33,6 +32,8 @@ const lieuxBars = new Set(lieuxExemples.filter((l) => l.type === "bar").map((l) 
  */
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
+  const { trouverLieu } = utiliserLieux();
+  const estUnBar = (lieuId: number) => trouverLieu(lieuId)?.type === "bar";
   const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsExemples(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
@@ -99,7 +100,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
     const visibles = conversations
       .filter((c) => c.participants.includes(ID_MOI))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
-      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id) && !(m.lieuId !== undefined && moi.mineur && lieuxBars.has(m.lieuId))) }))
+      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id) && !(m.lieuId !== undefined && moi.mineur && estUnBar(m.lieuId))) }))
       .sort((a, b) => dernierMessage(b).localeCompare(dernierMessage(a)));
     const nonLusDe = (id: string) => {
       const c = visibles.find((x) => x.id === id);
@@ -165,7 +166,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       envoyerLieu: (id, lieuId) => {
         const c = visibles.find((x) => x.id === id);
         // Pas de bar dans une conversation où il y a un mineur
-        if (!c || (lieuxBars.has(lieuId) && participantsDe(c).some((p) => p.mineur))) return "interdit";
+        if (!c || (estUnBar(lieuId) && participantsDe(c).some((p) => p.mineur))) return "interdit";
         return envoyer(id, { type: "lieu", lieuId });
       },
       envoyerPhoto: (id, uri) => envoyerFichier(id, uri, "jpg", { type: "photo" }),
@@ -200,7 +201,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsExemples(new Date()));
       },
     };
-  }, [conversations, bloques, estSignale, moi, moyenAjout, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
+  }, [conversations, bloques, estSignale, moi, moyenAjout, trouverLieu, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }

@@ -5,13 +5,13 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { resumerDernierMessage } from "~/fonctions/chat/resumer-dernier-message";
 import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 
 type Props = {
   conversation: Conversation;
@@ -30,6 +30,7 @@ export function LigneConversation({ conversation, maintenant }: Props) {
   const router = useRouter();
   const { trouverPote, bloques } = utiliserCommunaute();
   const { nonLusDe } = utiliserConversations();
+  const { trouverLieu } = utiliserLieux();
 
   const groupe = conversation.type === "groupe";
   const nonLus = nonLusDe(conversation.id);
@@ -43,7 +44,7 @@ export function LigneConversation({ conversation, maintenant }: Props) {
 
   const dernier = conversation.messages[conversation.messages.length - 1];
   const prefixe = !dernier ? null : dernier.auteur === ID_MOI ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
-  const lieuNom = dernier?.lieuId !== undefined ? lieuxExemples.find((l) => l.id === dernier.lieuId)?.nom : undefined;
+  const lieuNom = dernier?.lieuId !== undefined ? trouverLieu(dernier.lieuId)?.nom : undefined;
   const vide = groupe ? (conversation.creePar === ID_MOI ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
   const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
   const moment = dernier ? formaterMomentRelatif(dernier.date, maintenant) : null;

@@ -6,7 +6,6 @@ import { estComptePrive } from "@sos-miam/commun/regles/est-compte-prive";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, reactionsExemples } from "~/contenus/suivis-exemples";
 import { estAjouteEnVrai } from "~/fonctions/communaute/est-ajoute-en-vrai";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
@@ -20,6 +19,7 @@ import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-afficha
 import { nettoyerSuivisPersonnes } from "~/fonctions/suivi/nettoyer-suivis-personnes";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { ContexteSuivisPersonnes, type EtatSuivisPersonnes, type RelationPersonne, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
@@ -41,6 +41,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
   const { ajouter } = utiliserNotifications();
+  const { lieux: tousLesLieux } = utiliserLieux();
   const { moiMineur, potes, trouverPote, moyenAjout } = communaute;
   const [etat, setEtat] = useState<SuivisPersonnesLocaux | null>(null);
   const [relu, setRelu] = useState(false);
@@ -224,7 +225,7 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   // Tes listes, déjà filtrées (le ménage les enregistrera ensuite)
   const propre = useMemo(() => (pret && etat ? nettoyerSuivisPersonnes(etat, contexte) : null), [pret, etat, contexte]);
   // Lieux et créateurs suivis encore affichables (comptés dans tes abonnements, comme dans « Tu suis »)
-  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(lieuxExemples, age)).length, [activite.suivis, age]);
+  const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, filtrerLieuxSelonAge(tousLesLieux, age)).length, [activite.suivis, tousLesLieux, age]);
 
   const valeur = useMemo<EtatSuivisPersonnes>(() => {
     const abonnes = propre ? convertirLiensEnPersonnes(propre.abonnes, trouverPote) : [];

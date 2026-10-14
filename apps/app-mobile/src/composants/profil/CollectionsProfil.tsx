@@ -4,7 +4,6 @@ import { Platform, Pressable, Text, View, type ImageSourcePropType } from "react
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
@@ -12,6 +11,7 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { trouverVignettePublication } from "~/fonctions/publications/trouver-vignette-publication";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 
 type Props = {
   /** Lieux gardés (🔖), du plus récent au plus ancien */
@@ -28,9 +28,10 @@ type Vignette = { cle: string; lieu: Lieu; image: ImageSourcePropType | null; li
 export function CollectionsProfil({ gardes, jaimes, age }: Props) {
   const router = useRouter();
   const { estMasquee } = utiliserActivite();
+  const { lieux: tousLesLieux } = utiliserLieux();
   const [onglet, setOnglet] = useState<Onglet>("gardes");
   // Seulement les lieux qui existent encore et que ton âge autorise
-  const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
+  const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Une publication signalée ou « Pas intéressé » ne revient ni dans J'aime ni en vignette
   const publications = publicationsExemples.filter((p) => !estMasquee(p.id));
 

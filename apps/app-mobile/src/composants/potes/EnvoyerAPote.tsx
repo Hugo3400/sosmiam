@@ -10,13 +10,13 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
@@ -45,6 +45,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const animationsReduites = useReducedMotion();
   const { profil } = utiliserProfil();
   const { potes, envoyerLieu } = utiliserCommunaute();
+  const { lieux: tousLesLieux } = utiliserLieux();
   const [choisis, setChoisis] = useState<string[]>([]);
   const [mot, setMot] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -63,7 +64,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   // Sous 18 ans, les bars n'existent pas pour toi : rien à envoyer
-  const lieu = filtrerLieuxSelonAge(lieuxExemples, age).find((l) => l.id === lieuId) ?? null;
+  const lieu = filtrerLieuxSelonAge(tousLesLieux, age).find((l) => l.id === lieuId) ?? null;
   const pourUnBar = lieu?.type === "bar";
   const destinataires = potes.filter((p) => !(pourUnBar && p.mineur));
   const mineursEcartes = destinataires.length < potes.length;

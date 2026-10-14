@@ -2,11 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
@@ -24,8 +24,9 @@ export function EntreeSuivis({ suivis, age }: Props) {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
   const nombrePersonnes = utiliserSuivisPersonnes().abonnements.length;
+  const { lieux: tousLesLieux } = utiliserLieux();
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore et que ton âge autorise
-  const affichables = listerSuivisAffichables(suivis, filtrerLieuxSelonAge(lieuxExemples, age));
+  const affichables = listerSuivisAffichables(suivis, filtrerLieuxSelonAge(tousLesLieux, age));
   const nombreLieux = affichables.filter((s) => s.type === "lieu").length;
   const nombreCreateurs = affichables.length - nombreLieux;
 

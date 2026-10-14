@@ -3,6 +3,7 @@
 // fondateurs.ts).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
+import { inscrireAmbassadeurNewsletter } from "./newsletter.ts";
 
 const UN_JOUR = 86_400_000;
 /** Sans visite connectée pendant 1 an : le rôle d'ambassadeur est retiré ; 2 ans : le compte est effacé. On prévient
@@ -75,9 +76,11 @@ export async function lireAmbassadeur(id: number) {
  * parce que le statut est relu à chaque demande (exigerAmbassadeurActif). Null si ce n'est pas un ambassadeur.
  */
 export async function deciderAmbassadeur(id: number, statut: StatutAmbassadeur, maintenant = new Date()) {
-  const ambassadeur = await baseDeDonnees.ambassadeur.findUnique({ where: { compteId: id }, select: { statut: true, compte: { select: { prenom: true } } } });
+  const ambassadeur = await baseDeDonnees.ambassadeur.findUnique({ where: { compteId: id }, select: { statut: true, ville: true, compte: { select: { prenom: true, email: true } } } });
   if (!ambassadeur) return null;
   await baseDeDonnees.ambassadeur.update({ where: { compteId: id }, data: { statut, decideLe: maintenant } });
+  // Validé : inscrit à la newsletter par défaut (sauf désinscription passée)
+  if (statut === "actif") await inscrireAmbassadeurNewsletter(ambassadeur.compte.email, ambassadeur.ville, maintenant);
   return { prenom: ambassadeur.compte.prenom, avant: ambassadeur.statut };
 }
 

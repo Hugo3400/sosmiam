@@ -9,7 +9,6 @@ import { REACTIONS_CHAT, type MessageChat, type ReactionChat } from "@sos-miam/c
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { nommerReactionChat } from "~/fonctions/chat/nommer-reaction-chat";
@@ -18,6 +17,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -44,9 +44,9 @@ const DELAI_ANNONCE_REACTION = 400;
 const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale" };
 
 /** Le message en petit, en haut de la feuille, pour savoir de quoi on parle : ce qu'on voit, et ce que lit le lecteur d'écran (sans emoji) */
-function resumer(message: MessageChat): { vu: string; lu: string } {
+function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undefined): { vu: string; lu: string } {
   if (message.type === "lieu") {
-    const nom = lieuxExemples.find((l) => l.id === message.lieuId)?.nom ?? "un lieu";
+    const nom = (message.lieuId === undefined ? undefined : nomDuLieu(message.lieuId)) ?? "un lieu";
     return { vu: `📍 ${nom}`, lu: `Un lieu partagé : ${nom}` };
   }
   if (message.type === "photo") return { vu: "📷 Une photo", lu: "Une photo" };
@@ -67,6 +67,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const animationsReduites = useReducedMotion();
   const { bloquer, potes, estSignale } = utiliserCommunaute();
   const { basculerReaction, trouverConversation } = utiliserConversations();
+  const { trouverLieu } = utiliserLieux();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreBlocage = useRef<Text>(null);
@@ -121,7 +122,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const sujet = message ? SUJETS[message.type] : "ce message";
   // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
   const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
-  const resume = message ? resumer(message) : null;
+  const resume = message ? resumer(message, (id) => trouverLieu(id)?.nom) : null;
   const options = deMoi
     ? []
     : [

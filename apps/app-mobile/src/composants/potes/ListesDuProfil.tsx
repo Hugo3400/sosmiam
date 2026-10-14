@@ -3,11 +3,11 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -27,7 +27,8 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
   const router = useRouter();
   const { listes } = utiliserCommunaute();
   const { profil } = utiliserProfil();
-  const permis = new Set(filtrerLieuxSelonAge(lieuxExemples, profil ? calculerAge(profil.dateNaissance) : null).map((l) => l.id));
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const permis = new Set(filtrerLieuxSelonAge(tousLesLieux, profil ? calculerAge(profil.dateNaissance) : null).map((l) => l.id));
   const siennes = listes.filter((l) => l.auteur === auteurId);
 
   return (

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { NotificationSuivi, NouvelleNotificationSuivi } from "@sos-miam/commun/types/suivis";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { creerNotificationsDemo, DELAI_PUBLICATION_EXEMPLE } from "~/contenus/notifications-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
@@ -12,6 +11,7 @@ import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { ContexteNotifications, type EtatNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import {
@@ -60,10 +60,11 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   const pourCeProfil = profil !== null && etat !== null && etat.profilCreeLe === profil.creeLe;
   const pret = relu && activite.chargee && communaute.pret && pourCeProfil;
 
+  const { lieux: tousLesLieux } = utiliserLieux();
   // Ce que la minuterie « a posté » revérifie au moment de se déclencher
-  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, age, profilCreeLe: profil?.creeLe ?? null });
+  const courant = useRef({ suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, profilCreeLe: profil?.creeLe ?? null });
   useEffect(() => {
-    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, age, profilCreeLe: profil?.creeLe ?? null };
+    courant.current = { suivis: activite.suivis, estMasquee: activite.estMasquee, age, tousLesLieux, profilCreeLe: profil?.creeLe ?? null };
   });
 
   useEffect(() => {
@@ -121,10 +122,10 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
     for (const cle of nouvelles) {
       minuteries.current.push(
         setTimeout(() => {
-          const { suivis, estMasquee, age, profilCreeLe: profilActuel } = courant.current;
+          const { suivis, estMasquee, age, tousLesLieux, profilCreeLe: profilActuel } = courant.current;
           // Plus suivi entre-temps, ou plus le même profil : rien
           if (profilActuel !== profilCreeLe || !suivis.includes(cle)) return;
-          const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
+          const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
           const publication = publicationsExemples.find(
             (p) => calculerCleSuivi(p.auteur, p.lieuId) === cle && !estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId),
           );
@@ -166,7 +167,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
   const notifications = useMemo(() => {
     if (!pret || !etat) return [];
     const idsBloques = new Set(bloques.map((p) => p.id));
-    const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
+    const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
     return etat.notifications.filter((n) => {
       if (n.type === "majorite") return !moiMineur;
       if (n.type === "nouvelle-publication") {
@@ -182,7 +183,7 @@ export function FournisseurNotifications({ children }: { children: ReactNode }) 
       const cible = lireCleSuivi(n.cle);
       return cible?.type === "personne" && trouverPote(cible.id) !== null && !idsBloques.has(cible.id);
     });
-  }, [pret, etat, bloques, trouverPote, moiMineur, estMasquee, age]);
+  }, [pret, etat, bloques, trouverPote, moiMineur, estMasquee, tousLesLieux, age]);
 
   const vuesLe = pret && etat ? etat.vuesLe : null;
   const valeur = useMemo<EtatNotifications>(

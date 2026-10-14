@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { ID_MOI } from "@sos-miam/commun/regles/potes";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { bandesExemples } from "~/contenus/suivis-exemples";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
@@ -12,6 +11,7 @@ import { suggererLieux } from "~/fonctions/suivi/suggerer-lieux";
 import { suggererPersonnes } from "~/fonctions/suivi/suggerer-personnes";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -29,6 +29,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
   const communaute = utiliserCommunaute();
   const suivis = utiliserSuivisPersonnes();
   const depart = utiliserPointDeDepart();
+  const { lieux: tousLesLieux } = utiliserLieux();
   const pret = activite.chargee && (suivis.pret || invite);
   // Les appelants passent souvent un tableau écrit sur place : on compare son contenu, pas son identité
   const cleTypes = types.join(",");
@@ -43,7 +44,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
     if (!pret) return [];
     const masquees = new Set(suggestionsMasquees);
     const suivies = new Set(clesSuivies);
-    const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
+    const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
     const publications = publicationsExemples.filter((p) => !estMasquee(p.id) && lieux.some((l) => l.id === p.lieuId));
 
     const listes: Record<TypeSuggestion, () => Suggestion[]> = {
@@ -98,5 +99,5 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
 
     const demandes = cleTypes.split(",").filter((t): t is TypeSuggestion => t === "personne" || t === "createur" || t === "lieu");
     return [...new Set(demandes)].flatMap((type) => listes[type]()).slice(0, max);
-  }, [pret, suivis.pret, cleTypes, max, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, moiMineur, relationAvec, suggestionsMasquees, abonnes]);
+  }, [pret, suivis.pret, cleTypes, max, tousLesLieux, age, ville, depart, clesSuivies, estMasquee, potes, bloques, trouverPote, estSignale, moiMineur, relationAvec, suggestionsMasquees, abonnes]);
 }

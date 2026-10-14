@@ -7,12 +7,12 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { RondPote } from "~/composants/potes/RondPote";
 import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -53,6 +53,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
   const suivis = utiliserSuivisPersonnes();
+  const { lieux: tousLesLieux } = utiliserLieux();
 
   // Les lieux et créateurs suivis au moment où la liste s'ouvre (ou dès que l'activité du téléphone est relue)
   const [cles, setCles] = useState<readonly string[] | null>(() => (activite.chargee ? activite.suivis : null));
@@ -69,7 +70,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
   if (cles === null || personnes === null) return null;
 
   // Seulement ce qui existe encore et que ton âge autorise (comme dans le fil)
-  const lieux = filtrerLieuxSelonAge(lieuxExemples, profil ? calculerAge(profil.dateNaissance) : null);
+  const lieux = filtrerLieuxSelonAge(tousLesLieux, profil ? calculerAge(profil.dateNaissance) : null);
   const pages = listerSuivisAffichables(cles, lieux);
 
   const lignesPersonnes: LigneAffichee[] = personnes.flatMap(({ pote }) => {

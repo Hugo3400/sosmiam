@@ -19,12 +19,12 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { BulleChat } from "~/composants/chat/BulleChat";
 import { MenuMessageChat } from "~/composants/chat/MenuMessageChat";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { construireLignesDiscussion, type LigneDiscussion } from "~/fonctions/chat/construire-lignes-discussion";
 import { decrireMessageRecu } from "~/fonctions/chat/decrire-message-recu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
 
 /** Ce que l'écran peut demander à la liste */
@@ -57,7 +57,6 @@ const LIGNES_AU_DEPART_MIN = 20;
 const LIGNES_AU_DEPART_MAX = 150;
 
 const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
-const nomDuLieu = (lieuId: number | undefined) => (lieuId === undefined ? undefined : lieuxExemples.find((l) => l.id === lieuId)?.nom);
 
 /**
  * Les messages d'une conversation : jour au-dessus de chaque nouvelle journée, séries par auteur, bulles BulleChat.
@@ -65,6 +64,7 @@ const nomDuLieu = (lieuId: number | undefined) => (lieuId === undefined ? undefi
  */
 export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurPresent, aLEcran, onBloque, ref }: Props) {
   const { trouverPote } = utiliserCommunaute();
+  const { trouverLieu } = utiliserLieux();
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
@@ -130,7 +130,7 @@ export function ListeMessagesChat({ conversation, membres, mediasPermis, mineurP
       return;
     }
     if (!collerEnBas.current) setNouveaux((n) => n + 1);
-    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", nomDuLieu(derniere.message.lieuId)));
+    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
   }, [derniere]);
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {

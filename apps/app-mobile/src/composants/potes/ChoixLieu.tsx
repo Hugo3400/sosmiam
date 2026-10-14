@@ -6,10 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -31,15 +31,16 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], permis, onChoisir,
   const animationsReduites = useReducedMotion();
   const { height } = useWindowDimensions();
   const { profil } = utiliserProfil();
+  const { lieux: tousLesLieux } = utiliserLieux();
   const [texte, setTexte] = useState("");
   const age = profil ? calculerAge(profil.dateNaissance) : null;
 
   const lieux = useMemo(() => {
     const mots = normaliserRecherche(texte).split(" ").filter(Boolean);
-    return filtrerLieuxSelonAge(lieuxExemples, age)
+    return filtrerLieuxSelonAge(tousLesLieux, age)
       .filter((l) => !permis || permis(l))
       .filter((l) => mots.every((mot) => normaliserRecherche([l.nom, l.info, l.plat, l.quartier, l.ville].join(" ")).includes(mot)));
-  }, [texte, age, permis]);
+  }, [tousLesLieux, texte, age, permis]);
 
   // Un clavier resté ouvert derrière (titre d'une sortie, message) cacherait le bas de la liste : on le range à l'ouverture
   useEffect(() => {
