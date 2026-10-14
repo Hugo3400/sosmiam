@@ -43,9 +43,8 @@ test("addition : demandée sur place, code à 4 chiffres, 30 min, une seule à l
   assert.equal((await b.demander("POST", "/app/visites/addition", lea.jeton, { lieuId: 2, position: SUR_PLACE })).statut, 201);
 });
 
-test("addition refusée : e-mail, âge, équipe du lieu, lieu sans validation, position, champs", async () => {
+test("addition refusée : e-mail, équipe du lieu, lieu sans validation, position, champs", async () => {
   const sansEmail = await b.creerCompte({ emailVerifie: false });
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
   const membre = await b.creerCompte();
   b.rattacher(membre.id, 1, "equipe");
   const lea = await b.creerCompte();
@@ -55,9 +54,6 @@ test("addition refusée : e-mail, âge, équipe du lieu, lieu sans validation, p
   };
   assert.deepEqual(await refus(sansEmail.jeton, { lieuId: 1, position: SUR_PLACE }), [403, "email-non-verifie", null]);
   assert.deepEqual(await refus(membre.jeton, { lieuId: 1, position: SUR_PLACE }), [403, "membre-du-lieu", null]);
-  b.visites.lieux.set(3, { ...b.visites.lieux.get(1)!, id: 3, nom: "Le Bar du Port", type: "bar" });
-  // Le nom d'un bar n'est jamais rendu à un 15-17 ans
-  assert.deepEqual(await refus(ado.jeton, { lieuId: 3, position: SUR_PLACE }), [403, "mineur-bar", null]);
   b.visites.lieux.set(4, { ...b.visites.lieux.get(1)!, id: 4, nom: "Sans QR", validationActive: false });
   assert.deepEqual(await refus(lea.jeton, { lieuId: 4, position: SUR_PLACE }), [409, "lieu-sans-validation", { lieu: "Sans QR" }]);
   assert.deepEqual(await refus(lea.jeton, { lieuId: 99, position: SUR_PLACE }), [404, "introuvable", null]);
@@ -154,14 +150,15 @@ test("suivi, annulation et contestation : seulement ses propres visites", async 
   assert.equal(b.visites.visites.find((v) => v.id === seconde.id)?.contestation, "J'ai payé en espèces.");
 });
 
-test("lieux qui valident et infos d'un lieu, selon l'âge", async () => {
+test("lieux qui valident et infos d'un lieu, y compris un bar (récompense avec alcool, message sanitaire)", async () => {
   b.visites.lieux.set(3, { ...b.visites.lieux.get(1)!, id: 3, nom: "Le Bar du Port", type: "bar" });
   b.visites.programmes.set(3, { lieuId: 3, actif: true, visitesRequises: 4, recompense: "Une pinte", alcool: true, recompenseSansAlcool: "Un sirop", modifieLe: new Date() });
+  b.visites.programmes.set(1, { lieuId: 1, actif: true, visitesRequises: 5, recompense: "Un verre de muscat", alcool: false, recompenseSansAlcool: null, modifieLe: new Date() });
   const lea = await b.creerCompte();
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
-  assert.deepEqual((await b.demander("GET", "/app/visites/lieux-qui-valident", lea.jeton)).corps.lieux, [1, 3]);
-  assert.deepEqual((await b.demander("GET", "/app/visites/lieux-qui-valident", ado.jeton)).corps.lieux, [1]);
-  const infos = (await b.demander("GET", "/app/visites/lieux/3", lea.jeton)).corps.infos;
+  const tom = await b.creerCompte({ prenom: "Tom" });
+  for (const compte of [lea, tom]) assert.deepEqual((await b.demander("GET", "/app/visites/lieux-qui-valident", compte.jeton)).corps.lieux, [1, 3]);
+  const infos = (await b.demander("GET", "/app/visites/lieux/3", tom.jeton)).corps.infos;
   assert.deepEqual([infos.validationActive, infos.programme, infos.carte, infos.enCoursIci], [true, { visitesRequises: 4, recompense: "Une pinte", recompenseAlcool: true }, null, null]);
-  assert.equal((await b.demander("GET", "/app/visites/lieux/3", ado.jeton)).corps.erreur, "mineur-bar");
+  // Case « alcool » décochée mais mot d'alcool : le message sanitaire suit quand même, sans version sans alcool exigée
+  assert.deepEqual((await b.demander("GET", "/app/visites/lieux/1", lea.jeton)).corps.infos.programme, { visitesRequises: 5, recompense: "Un verre de muscat", recompenseAlcool: true });
 });

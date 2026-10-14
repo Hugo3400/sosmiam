@@ -78,10 +78,10 @@ export async function creerBancAvis() {
   let numero = 0;
 
   /**
-   * Un compte avec session. naissance : date gardée chiffrée (sans : compte du site, 18 ans) ; neuf : créé à l'instant (sinon
+   * Un compte avec session. nom : gardé chiffré (l'initiale de la signature) ; neuf : créé à l'instant (sinon
    * il y a 30 jours) ; ambassadeur : ambassadeur actif ; lies : lieux de ses rattachements (validés ou en attente)
    */
-  async function creerCompte(o: { prenom?: string; nom?: string; naissance?: string; emailVerifie?: boolean; neuf?: boolean; ambassadeur?: boolean; lies?: number[] } = {}) {
+  async function creerCompte(o: { prenom?: string; nom?: string; emailVerifie?: boolean; neuf?: boolean; ambassadeur?: boolean; lies?: number[] } = {}) {
     const email = `avis${++numero}@exemple.fr`;
     const prenom = o.prenom ?? "Léa";
     const id = await memoire.services.creerCompte({ email, motDePasse: "empreinte", prenom, ville: "", quartier: null, cguVersion: "2026-10-08", espace: "pro" });
@@ -92,7 +92,6 @@ export async function creerBancAvis() {
     donnees.comptes.set(id, {
       id, prenom,
       nomChiffre: o.nom ? chiffrement.chiffrer(o.nom, "nom") : null,
-      dateNaissanceChiffree: o.naissance ? chiffrement.chiffrer(o.naissance, "dateNaissance") : null,
       emailVerifie: o.emailVerifie ?? true,
       creeLe: new Date(o.neuf ? banc.horloge : banc.horloge - 30 * JOUR),
       lieuxLies: o.lies ?? [],
@@ -127,7 +126,7 @@ export async function creerBancAvis() {
   /** Un avis écrit directement dans les données (sans passer par l'API) */
   async function ajouterAvis(o: Partial<NouvelleLigneAvis> & { lieuId: number }) {
     return donnees.depot.ecrire((t) => t.creerAvis({
-      compteId: 999, visiteId: null, note: 4, texte: "Très bonne adresse, on reviendra.", photo: null, signature: "Sam B.", mineur: false,
+      compteId: 999, visiteId: null, note: 4, texte: "Très bonne adresse, on reviendra.", photo: null, signature: "Sam B.",
       statut: "publie", raisonRelecture: null, repasOffert: false, creeLe: new Date(banc.horloge), ...o,
     }));
   }

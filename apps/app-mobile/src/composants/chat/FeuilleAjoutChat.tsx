@@ -1,17 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ID_MOI } from "@sos-miam/commun/regles/potes";
-import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
@@ -31,17 +28,13 @@ const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], 
 // Le temps que la liste des lieux redescende avant de fermer la feuille (deux fenêtres qui se ferment ensemble, l'iPhone n'aime pas)
 const APRES_CHOIX_LIEU = 350;
 
-const REGLE_MEDIAS = "Photos et vocaux, c'est entre potes du même âge : la règle qui protège les 15-17 ans. Les lieux et les emoji, eux, passent partout 😉";
 const CAMERA_REFUSEE: Message = {
   texte: "L'appareil photo est fermé pour SOS Miam. Pour prendre une photo ici, ouvre-le dans les réglages de ton téléphone 📸",
   reglages: true,
 };
 const PHOTO_PAS_PARTIE: Message = { texte: "Ta photo n'a pas pu partir. Réessaie, ou choisis-en une autre !" };
-const LIEU_INTERDIT: Message = {
-  texte: "Ce lieu ne peut pas être partagé ici : pas de bar quand des 15-17 ans sont dans la conversation. Un bon resto, ça marche aussi !",
-};
+const LIEU_PAS_PARTI: Message = { texte: "Ce lieu n'a pas pu partir. Réessaie dans un instant, ou choisis-en un autre !" };
 const surLeWeb = Platform.OS === "web";
-const AUCUN: string[] = [];
 
 /** Le « + » du chat, dans une feuille qui monte du bas : partager un lieu, une photo de ta galerie, ou en prendre une. */
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
@@ -49,7 +42,6 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const conversations = utiliserConversations();
-  const { trouverPote, lieuPermisDansSortie } = utiliserCommunaute();
   const [choixLieu, setChoixLieu] = useState(false);
   const [enCours, setEnCours] = useState<Option | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
@@ -77,13 +69,6 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
     [],
   );
 
-  const tous = conversations.trouverConversation(conversationId)?.participants ?? AUCUN;
-  const participants = useMemo(() => tous.filter((id) => id !== ID_MOI), [tous]);
-  const medias = conversations.peutEnvoyerMedias(conversationId);
-  const mineurDansLaConversation = participants.some((id) => trouverPote(id)?.mineur);
-  // Pas de bar proposé quand un mineur est dans la conversation (toi compris)
-  const permis = useCallback((lieu: Lieu) => lieuPermisDansSortie(lieu.id, participants), [lieuPermisDansSortie, participants]);
-
   function montrer(nouveau: Message) {
     setMessage(nouveau);
     AccessibilityInfo.announceForAccessibility(retirerEmojiAnnonce(nouveau.texte));
@@ -96,7 +81,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
 
   function choisirLieu(lieuId: number) {
     setChoixLieu(false);
-    if (conversations.envoyerLieu(conversationId, lieuId) !== "ok") return montrer(LIEU_INTERDIT);
+    if (conversations.envoyerLieu(conversationId, lieuId) !== "ok") return montrer(LIEU_PAS_PARTI);
     reussir();
     fermeture.current = setTimeout(onFermer, APRES_CHOIX_LIEU);
   }
@@ -119,7 +104,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       // Annulé : rien ne part, la feuille reste là
       if (resultat.canceled || resultat.assets.length === 0) return;
       const envoi = await dernieres.current.envoyerPhoto(conversationId, resultat.assets[0].uri);
-      if (envoi !== "ok") return montrer(dernieres.current.peutEnvoyerMedias(conversationId) ? PHOTO_PAS_PARTIE : { texte: REGLE_MEDIAS });
+      if (envoi !== "ok") return montrer(PHOTO_PAS_PARTIE);
       reussir();
       onFermer();
     } catch {
@@ -138,17 +123,11 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
     Linking.openSettings().catch(() => montrer({ texte: "Les réglages n'ont pas voulu s'ouvrir. Tu les trouveras dans l'appli Réglages de ton téléphone." }));
   }
 
-  const options: { cle: Option; emoji: string; titre: string; detail: string; permise: boolean }[] = [
-    {
-      cle: "lieu",
-      emoji: "📍",
-      titre: "Un lieu",
-      detail: mineurDansLaConversation ? "Sans les bars : il y a des 15-17 ans dans la conversation" : "Ta pépite du moment, avec un « On y va ? » pour tes potes",
-      permise: true,
-    },
-    { cle: "galerie", emoji: "🖼️", titre: "Une photo de ta galerie", detail: "Ton plat du jour, ta tête de gourmand…", permise: medias },
+  const options: { cle: Option; emoji: string; titre: string; detail: string }[] = [
+    { cle: "lieu", emoji: "📍", titre: "Un lieu", detail: "Ta pépite du moment, avec un « On y va ? » pour tes potes" },
+    { cle: "galerie", emoji: "🖼️", titre: "Une photo de ta galerie", detail: "Ton plat du jour, ta tête de gourmand…" },
     // Sur le web (aperçu), il n'y a pas toujours d'appareil photo
-    ...(surLeWeb ? [] : [{ cle: "camera" as const, emoji: "📸", titre: "Prendre une photo", detail: "Clic-clac, direct dans la conversation", permise: medias }]),
+    ...(surLeWeb ? [] : [{ cle: "camera" as const, emoji: "📸", titre: "Prendre une photo", detail: "Clic-clac, direct dans la conversation" }]),
   ];
 
   return (
@@ -178,13 +157,12 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
           ) : null}
 
           {options.map((o) => {
-            const desactivee = !o.permise || (enCours !== null && enCours !== o.cle);
+            const desactivee = enCours !== null && enCours !== o.cle;
             return (
               <Pressable
                 key={o.cle}
                 accessibilityRole="button"
-                accessibilityLabel={`${o.titre}, ${o.permise ? o.detail : "pas dans cette conversation"}`}
-                accessibilityHint={o.permise ? undefined : retirerEmojiAnnonce(REGLE_MEDIAS)}
+                accessibilityLabel={`${o.titre}, ${o.detail}`}
                 accessibilityState={{ disabled: desactivee }}
                 disabled={desactivee || enCours === o.cle}
                 onPress={() => {
@@ -199,16 +177,12 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
                 <Text className="text-2xl">{o.emoji}</Text>
                 <View className="flex-1">
                   <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                  <Text className="font-texte text-sm text-gris">{lierPonctuation(o.permise ? o.detail : "Pas dans cette conversation")}</Text>
+                  <Text className="font-texte text-sm text-gris">{lierPonctuation(o.detail)}</Text>
                 </View>
                 {enCours === o.cle ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />}
               </Pressable>
             );
           })}
-
-          {medias ? null : (
-            <Text className="mt-3 font-texte text-sm leading-5 text-gris">{lierPonctuation(`🔒 ${REGLE_MEDIAS}`)}</Text>
-          )}
 
           <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
             <Text className="font-texte-gras text-base text-encre">Annuler</Text>
@@ -217,7 +191,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       </View>
 
       {/* Dans la feuille : la liste des lieux s'ouvre par-dessus (deux fenêtres côte à côte se gênent sur iPhone) */}
-      <ChoixLieu visible={visible && choixLieu} titre="Quel lieu partager ?" permis={permis} onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />
+      <ChoixLieu visible={visible && choixLieu} titre="Quel lieu partager ?" onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />
     </Modal>
   );
 }

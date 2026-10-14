@@ -1,7 +1,7 @@
 // Banc d'essai des vues des fiches et des statistiques d'un lieu : un petit serveur Express qui monte les routes comme
 // application.ts le fera (POST /app/lieux/:id/vue sans session, GET /pro/comptoir/lieux/:id/statistiques avec session), avec
-// les comptes, les visites (pour l'âge et les rôles du comptoir), les vues et les statistiques EN MÉMOIRE (aucune base). Le
-// rôle passe par le vrai comptoir (comptoir.roleDe : rattachement validé ET 18 ans). Horloge réglable.
+// les comptes, les visites (pour les rôles du comptoir), les vues et les statistiques EN MÉMOIRE (aucune base). Le rôle
+// passe par le vrai comptoir (comptoir.roleDe : rattachement validé). Horloge réglable.
 import type { AddressInfo } from "node:net";
 
 import express, { Router } from "express";
@@ -66,8 +66,8 @@ export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
   let numero = 0;
   let appel = 0;
 
-  /** Un compte avec session ; `naissance` : date gardée chiffrée (sans : compte du site, 18 ans) */
-  async function creerCompte(o: { prenom?: string; naissance?: string } = {}) {
+  /** Un compte avec session */
+  async function creerCompte(o: { prenom?: string } = {}) {
     const id = await memoire.services.creerCompte({
       email: `stats${++numero}@exemple.fr`, motDePasse: "empreinte", prenom: o.prenom ?? "Léa", ville: "", quartier: null, cguVersion: "2026-10-08", espace: "pro",
     });
@@ -75,8 +75,7 @@ export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
     const jeton = creerJeton();
     await memoire.sessions.creer(calculerEmpreinteJeton(jeton), { compteId: id, creeLe: banc.horloge, activite: banc.horloge });
     visites.comptes.set(id, {
-      id, prenom: o.prenom ?? "Léa", avatar: "🦊", nomChiffre: null,
-      dateNaissanceChiffree: o.naissance ? chiffrement.chiffrer(o.naissance, "dateNaissance") : null, emailVerifie: true, rattachements: [],
+      id, prenom: o.prenom ?? "Léa", avatar: "🦊", nomChiffre: null, emailVerifie: true, rattachements: [],
     });
     return { id, jeton };
   }

@@ -4,13 +4,9 @@ import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, T
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -18,29 +14,23 @@ type Props = {
   titre: string;
   /** Lieux déjà choisis : affichés comme tels, et ne se choisissent pas deux fois */
   dejaChoisis?: number[];
-  /** Règle en plus (ex. pas de bar dans une sortie avec un mineur) ; les bars sont déjà retirés sous 18 ans */
-  permis?: (lieu: Lieu) => boolean;
   onChoisir: (lieuId: number) => void;
   onFermer: () => void;
 };
 
-/** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). */
-export function ChoixLieu({ visible, titre, dejaChoisis = [], permis, onChoisir, onFermer }: Props) {
+/** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). Réservé aux inscrits : tous les lieux. */
+export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height } = useWindowDimensions();
-  const { profil } = utiliserProfil();
   const { lieux: tousLesLieux } = utiliserLieux();
   const [texte, setTexte] = useState("");
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
 
   const lieux = useMemo(() => {
     const mots = normaliserRecherche(texte).split(" ").filter(Boolean);
-    return filtrerLieuxSelonAge(tousLesLieux, age)
-      .filter((l) => !permis || permis(l))
-      .filter((l) => mots.every((mot) => normaliserRecherche([l.nom, l.info, l.plat, l.quartier, l.ville].join(" ")).includes(mot)));
-  }, [tousLesLieux, texte, age, permis]);
+    return tousLesLieux.filter((l) => mots.every((mot) => normaliserRecherche([l.nom, l.info, l.plat, l.quartier, l.ville].join(" ")).includes(mot)));
+  }, [tousLesLieux, texte]);
 
   // Un clavier resté ouvert derrière (titre d'une sortie, message) cacherait le bas de la liste : on le range à l'ouverture
   useEffect(() => {

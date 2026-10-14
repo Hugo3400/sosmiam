@@ -1,5 +1,5 @@
 // Banc d'essai des événements des lieux : les comptes (sessions) et les événements EN MÉMOIRE (aucune base), une horloge
-// réglable, des rôles pro posés à la main et une clé de chiffrement de test (âge). Les routes sont montées comme le
+// réglable et des rôles pro posés à la main. Les routes sont montées comme le
 // coordinateur les branche : /app/evenements (routes/evenements.ts) et, dans /pro/comptoir, les lignes de routes/comptoir.ts
 // (même protection : session, limite « connecté », jamais en cache). Chaque appel a sa propre IP.
 import type { AddressInfo } from "node:net";
@@ -15,7 +15,6 @@ import { creerProtectionComptes, gererErreursComptes } from "../../src/middlewar
 import { LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP } from "../../src/routes/comptes.ts";
 import { LIMITE_GESTES_COMPTOIR, LIMITE_LECTURES_COMPTOIR } from "../../src/routes/comptoir.ts";
 import { creerRoutesEvenementsApp } from "../../src/routes/evenements.ts";
-import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
 import { creerEvenementsEnMemoire, type LieuEvenementEnMemoire } from "../../src/services/evenements-en-memoire.ts";
 import type { RoleRattachement } from "../../src/services/pro-regles.ts";
@@ -37,16 +36,15 @@ export async function creerBancEvenements() {
   const horloge = () => banc.horloge;
   const memoire = creerComptesEnMemoire(horloge);
   const evenements = creerEvenementsEnMemoire();
-  const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
   const roles = new Map<string, RoleRattachement>();
 
   const application = express();
   application.use(express.json({ limit: "16kb" }));
   const protection = creerProtectionComptes(memoire.sessions, horloge);
   const limiteConnectee = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
-  application.use("/app/evenements", creerRoutesEvenementsApp({ services: evenements.services, chiffrement }, protection, limiteConnectee, horloge));
+  application.use("/app/evenements", creerRoutesEvenementsApp({ services: evenements.services }, protection, limiteConnectee, horloge));
 
-  // Comme routes/visites.ts et routes/comptoir.ts : roleDe = comptoir.roleDe (rattachement validé ET 18 ans, posé ici à la main)
+  // Comme routes/visites.ts et routes/comptoir.ts : roleDe = comptoir.roleDe (rattachement validé, posé ici à la main)
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const avant: RequestHandler[] = [limiteConnectee, protection.exigerCompte, (_q, reponse, suite) => {
     reponse.set("Cache-Control", "private, no-store");
@@ -71,18 +69,18 @@ export async function creerBancEvenements() {
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
   let numero = 0;
 
-  /** Un compte avec session ; `naissance` : date gardée chiffrée (sans : compte du site, 18 ans) */
-  async function creerCompte(o: { prenom?: string; naissance?: string } = {}) {
+  /** Un compte avec session */
+  async function creerCompte(o: { prenom?: string } = {}) {
     const email = `evenement${++numero}@exemple.fr`;
     const id = await memoire.services.creerCompte({ email, motDePasse: "empreinte", prenom: o.prenom ?? "Léa", ville: "", quartier: null, cguVersion: "2026-10-08", espace: "pro" });
     if (typeof id !== "number") throw new Error("compte de test impossible");
     const jeton = creerJeton();
     await memoire.sessions.creer(calculerEmpreinteJeton(jeton), { compteId: id, creeLe: banc.horloge, activite: banc.horloge, support: "app" });
-    evenements.comptes.set(id, { prenom: o.prenom ?? "Léa", dateNaissanceChiffree: o.naissance ? chiffrement.chiffrer(o.naissance, "dateNaissance") : null });
+    evenements.comptes.set(id, { prenom: o.prenom ?? "Léa" });
     return { id, jeton };
   }
 
-  /** Rattache un compte à un lieu (rôle validé, 18 ans : c'est ce que rend comptoir.roleDe) */
+  /** Rattache un compte à un lieu (rôle validé : c'est ce que rend comptoir.roleDe) */
   function rattacher(compteId: number, lieuId: number, role: RoleRattachement = "gerant") {
     roles.set(`${compteId}:${lieuId}`, role);
   }

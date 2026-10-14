@@ -57,8 +57,8 @@ export async function creerBancVisites() {
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
   let numero = 0;
 
-  /** Un compte avec session ; `naissance` : date gardée chiffrée (sans : compte du site, 18 ans) */
-  async function creerCompte(o: { prenom?: string; nom?: string; naissance?: string; emailVerifie?: boolean; avatar?: string } = {}) {
+  /** Un compte avec session ; `nom` : gardé chiffré (l'initiale montrée au comptoir) */
+  async function creerCompte(o: { prenom?: string; nom?: string; emailVerifie?: boolean; avatar?: string } = {}) {
     const email = `visite${++numero}@exemple.fr`;
     const id = await memoire.services.creerCompte({ email, motDePasse: "empreinte", prenom: o.prenom ?? "Léa", ville: "", quartier: null, cguVersion: "2026-10-08", espace: "pro" });
     if (typeof id !== "number") throw new Error("compte de test impossible");
@@ -67,7 +67,6 @@ export async function creerBancVisites() {
     visites.comptes.set(id, {
       id, prenom: o.prenom ?? "Léa", avatar: o.avatar ?? "🦊",
       nomChiffre: o.nom ? chiffrement.chiffrer(o.nom, "nom") : null,
-      dateNaissanceChiffree: o.naissance ? chiffrement.chiffrer(o.naissance, "dateNaissance") : null,
       emailVerifie: o.emailVerifie ?? true, rattachements: [],
     });
     return { id, jeton };

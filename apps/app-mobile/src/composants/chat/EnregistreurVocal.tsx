@@ -43,9 +43,6 @@ const MICRO_REFUSE: ProblemeEnregistrement = {
 const SOUCI_MICRO: ProblemeEnregistrement = { texte: "Le micro fait sa timide et n'a pas démarré. Réessaie dans un instant !" };
 const TROP_COURT: ProblemeEnregistrement = { texte: "Note un peu trop express : parle au moins une seconde, tes potes veulent t'entendre 😄" };
 const PAS_PARTIE: ProblemeEnregistrement = { texte: "Ta note vocale n'a pas pu partir. Réessaie dans un instant !" };
-const MEDIAS_INTERDITS: ProblemeEnregistrement = {
-  texte: "Les notes vocales, c'est entre potes du même âge : la règle qui protège les 15-17 ans. Un message écrit passe partout 😉",
-};
 
 /** Remet le son comme avant : sans ça, l'iPhone continue de jouer les sons dans l'écouteur, tout bas. */
 function remettreModeAudio(): Promise<void> {
@@ -174,12 +171,12 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
       return;
     }
     // Tu as demandé l'envoi : la note part, même si tu quittes l'écran entre-temps
-    const { envoyerVocal, peutEnvoyerMedias } = rappels.current.conversations;
+    const { envoyerVocal } = rappels.current.conversations;
     const resultat = await envoyerVocal(conversationId, uri, duree / 1000);
     jeterFichierTemporaire(uri);
     if (!monte.current) return;
     if (resultat === "ok") rappels.current.onEnvoye();
-    else rappels.current.onAbandon(peutEnvoyerMedias(conversationId) ? PAS_PARTIE : MEDIAS_INTERDITS);
+    else rappels.current.onAbandon(PAS_PARTIE);
   }
 
   async function annuler() {
