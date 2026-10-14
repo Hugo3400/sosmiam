@@ -274,11 +274,13 @@ test("refus silencieux qui reste : renvoyer rend « deja », rien chez l'autre ;
   await noe.demander("DELETE", `/app/bande/demandes/${tom.idPublic}`);
   assert.deepEqual((await tom.demander("GET", "/app/bande")).corps.bande.demandesRecues, [], "annulée par elle");
 
-  // « Qu'on me trouve par mon pseudo » éteint : on n'entre dans sa bande que par son lien (la demande part refusée, en silence)
+  // « Qu'on me trouve par mon pseudo » éteint : on n'entre dans sa bande que par son lien ; la demande est refusée et on le dit
+  // (décidé par Hugo le 14/10/2026), sans rien écrire
   const discrete = await banc.creerPersonne();
   banc.tables.profils.get(discrete.compteId)!.trouvable = false;
-  assert.equal((await noe.demander("POST", "/app/bande/demandes", { personne: discrete.idPublic })).statut, 201);
-  assert.equal((await noe.demander("GET", "/app/bande")).corps.bande.demandesEnvoyees.length, 1);
+  const refusee = await noe.demander("POST", "/app/bande/demandes", { personne: discrete.idPublic });
+  assert.deepEqual([refusee.statut, refusee.corps.erreur], [409, "demandes-fermees"]);
+  assert.deepEqual((await noe.demander("GET", "/app/bande")).corps.bande.demandesEnvoyees, [], "rien n'est parti");
   assert.deepEqual((await discrete.demander("GET", "/app/bande")).corps.bande.demandesRecues, [], "elle ne voit rien");
   assert.equal((await rejoindre(noe, await inviter(discrete))).statut, 201, "son lien, lui, marche");
 });

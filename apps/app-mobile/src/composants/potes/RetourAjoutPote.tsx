@@ -29,6 +29,12 @@ const decrire = (retour: RetourAjout): { emoji: string; titre: string; detail: s
       return { emoji: "🚫", titre: `Tu as bloqué ${retour.pote.prenom}`, detail: "Tant que cette personne est bloquée, elle ne rejoint pas ta bande. Tu peux changer d'avis depuis son profil." };
     case "introuvable":
       return { emoji: "🔍", titre: `On ne trouve pas @${retour.pseudo}`, detail: "Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code (dans Potes, « Ajouter un pote »)." };
+    case "demandes-fermees":
+      return {
+        emoji: "🔒",
+        titre: retour.pote ? `${retour.pote.prenom} ne reçoit pas de demandes` : "Cette personne ne reçoit pas de demandes",
+        detail: "Elle a choisi qu'on ne la trouve pas par son pseudo. Pour rejoindre sa bande, demande-lui son lien ou son QR code !",
+      };
     case "lien-change":
       return { emoji: "🔄", titre: "Ce lien a changé", detail: "Ton pote a changé de pseudo depuis : demande-lui son nouveau lien, ou son QR code." };
     case "invitation-invalide":

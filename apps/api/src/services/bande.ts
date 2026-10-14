@@ -231,15 +231,17 @@ export function creerBande(o: {
         if ((await tx.demandeBande.count({ where: { deId: compteId, creeLe: { gte: depuis } } })) >= MAX_DEMANDES_BANDE_EN_ATTENTE) {
           return { ok: false, erreur: "trop-de-demandes-en-attente" } as const;
         }
+        // « Qu'on me trouve par mon pseudo » éteint : on n'entre dans sa bande que par son lien (I.1). Refus dit franchement
+        // (décidé par Hugo le 14/10/2026), sans rien écrire
+        if ((await tx.profilSocial.findUnique({ where: { compteId: cibleId }, select: { trouvable: true } }))?.trouvable === false) {
+          return { ok: false, erreur: "demandes-fermees" } as const;
+        }
         // Une demande expirée (pas encore effacée par le ménage de nuit) ne compte plus : la nouvelle la remplace
         if (sienne) await tx.demandeBande.delete({ where: { deId_aId: { deId: cibleId, aId: compteId } } });
-        // « Qu'on me trouve par mon pseudo » éteint : on n'entre dans sa bande que par son lien (I.1). La demande part
-        // refusée d'office, en silence, comme un refus : tu vois « envoyée », elle ne voit rien
-        const refuseeLe = (await tx.profilSocial.findUnique({ where: { compteId: cibleId }, select: { trouvable: true } }))?.trouvable === false ? maintenant : null;
         await tx.demandeBande.upsert({
           where: { deId_aId: { deId: compteId, aId: cibleId } },
-          create: { deId: compteId, aId: cibleId, creeLe: maintenant, refuseeLe },
-          update: { creeLe: maintenant, refuseeLe },
+          create: { deId: compteId, aId: cibleId, creeLe: maintenant, refuseeLe: null },
+          update: { creeLe: maintenant, refuseeLe: null },
         });
         return { ok: true, etat: "demande" } as const;
       });

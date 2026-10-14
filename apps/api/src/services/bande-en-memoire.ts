@@ -184,9 +184,10 @@ export function creerBandeEnMemoire(
       if (tables.demandes.filter((d) => d.deId === compteId && d.creeLe.getTime() >= depuis).length >= MAX_DEMANDES_BANDE_EN_ATTENTE) {
         return { ok: false, erreur: "trop-de-demandes-en-attente" };
       }
+      // « Qu'on me trouve par mon pseudo » éteint : refus dit franchement, rien n'est écrit (même règle que bande.ts)
+      if (tables.profils.get(cibleId)?.trouvable === false) return { ok: false, erreur: "demandes-fermees" };
       retirer(tables.demandes, (d) => (d.deId === cibleId && d.aId === compteId) || (d.deId === compteId && d.aId === cibleId));
-      // « Qu'on me trouve par mon pseudo » éteint : refusée d'office, en silence (même règle que bande.ts)
-      tables.demandes.push({ deId: compteId, aId: cibleId, creeLe: maintenant, refuseeLe: tables.profils.get(cibleId)?.trouvable === false ? maintenant : null });
+      tables.demandes.push({ deId: compteId, aId: cibleId, creeLe: maintenant, refuseeLe: null });
       return { ok: true, etat: "demande", effets: [] };
     },
 

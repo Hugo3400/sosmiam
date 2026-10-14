@@ -20,6 +20,8 @@ export type ResultatAjoutBande =
   | { type: "invitation-invalide" }
   /** Un ancien lien (avec le bon code) d'une personne qui a changé de pseudo depuis : décidé par Hugo le 14/10/2026 */
   | { type: "lien-change" }
+  /** Elle a coupé « Qu'on me trouve par mon pseudo » : on n'entre dans sa bande que par son lien (refus dit franchement) */
+  | { type: "demandes-fermees"; pote: Pote | null }
   | { type: "toi" }
   | { type: "erreur"; erreur: ErreurService };
 
@@ -217,7 +219,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
   const demander = useCallback(
     async (id: string): Promise<ResultatAjoutBande> => {
       const r = await sociaux.bande.demander(id);
-      if (!r.ok) return { type: "erreur", erreur: r.erreur };
+      if (!r.ok) return r.erreur === "demandes-fermees" ? { type: "demandes-fermees", pote: annuaire.get(id) ?? null } : { type: "erreur", erreur: r.erreur };
       if (r.personne) noterPersonne(r.personne);
       apresGeste();
       const pote = r.personne ? convertirPersonneEnPote(r.personne) : (annuaire.get(id) ?? null);

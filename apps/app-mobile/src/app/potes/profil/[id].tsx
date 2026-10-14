@@ -145,7 +145,9 @@ export default function ProfilPote() {
         ? `${prenom} fait partie de ta bande !`
         : resultat.type === "demande"
           ? `Demande envoyée à ${prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
-          : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
+          : resultat.type === "demandes-fermees"
+            ? `${prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
+            : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
   };
 

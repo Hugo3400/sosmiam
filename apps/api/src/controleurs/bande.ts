@@ -24,6 +24,7 @@ const ERREURS: Readonly<Record<string, number>> = {
   "demande-inconnue": 404,
   "bande-pleine": 409,
   "trop-de-demandes-en-attente": 409,
+  "demandes-fermees": 409,
   "trop-de-blocages": 409,
 };
 

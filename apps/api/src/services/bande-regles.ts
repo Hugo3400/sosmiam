@@ -31,7 +31,7 @@ export type LireAncienTitulaire = (pseudo: string, maintenant: Date) => Promise<
 
 export type ResultatDemandeBande =
   | { ok: true; etat: "demande" | "ajoute" | "deja"; effets: EffetSocial[] }
-  | { ok: false; erreur: "bande-pleine" | "trop-de-demandes-en-attente" | "personne-inconnue" | "soi-meme" };
+  | { ok: false; erreur: "bande-pleine" | "trop-de-demandes-en-attente" | "personne-inconnue" | "soi-meme" | "demandes-fermees" };
 
 export interface ServicesBande {
   /** Potes (du plus récent au plus ancien, tous : 200 au plus), demandes reçues (sans les refusées) et envoyées (refusées comprises), 50 chacune */
@@ -61,8 +61,9 @@ export interface ServicesBande {
   /**
    * Par le pseudo : une demande, ou l'ajout tout de suite si l'autre m'avait déjà demandé (même refusée : je change d'avis).
    * « deja » : déjà potes, ma demande déjà envoyée, ou déjà refusée par l'autre (en silence, jusqu'à l'expiration à 30 jours).
-   * Vers un compte « trouvable: false » (on n'entre dans sa bande que par son lien, I.1) : la demande part refusée d'office,
-   * en silence, comme un refus (choix de construction, à confirmer par Hugo)
+   * Vers un compte « trouvable: false » (on n'entre dans sa bande que par son lien, I.1) : « demandes-fermees », refus dit
+   * franchement (décidé par Hugo le 14/10/2026), rien n'est écrit ; son lien d'invitation, lui, marche toujours. Si elle
+   * m'avait déjà demandé, nous voilà potes quand même : c'est elle qui a commencé
    */
   demander(compteId: number, cibleId: number, maintenant: Date): Promise<ResultatDemandeBande>;
   /**

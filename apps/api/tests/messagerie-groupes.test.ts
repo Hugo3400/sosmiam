@@ -258,3 +258,24 @@ test("règle d'accès (B.0) : un message d'avant ton arrivée, ou de quelqu'un a
   assert.equal(await nonLus(c!), 1, "seulement le message de Léa (ni le sien, ni celui de B)");
   assert.equal(await nonLus(createur), 2, "Léa compte ceux de B et de C");
 });
+
+test("invitation à un groupe : elle sonne aussi sur le téléphone (décision de Hugo du 14/10), sans jamais un texte de message", async () => {
+  const { createur, potes: [b, c] } = await bande(2);
+  banc.pushs.length = 0;
+  const cree = await creerGroupe(createur, [b!.idPublic], "Brunch du dimanche");
+  assert.equal(cree.statut, 201, JSON.stringify(cree.corps));
+  await banc.attendreEnvois();
+  const pourB = banc.pushs.filter((p) => p.compteId === b!.compteId);
+  assert.equal(pourB.length, 1, "une notification pour l'invité");
+  assert.equal(pourB[0]!.message.titre, "💬 Léa t'invite dans un groupe");
+  assert.match(pourB[0]!.message.texte, /Brunch du dimanche/);
+  assert.equal(pourB[0]!.message.lien, "/potes/messages");
+  assert.ok(banc.pushs.every((p) => p.compteId !== createur.compteId), "jamais à soi-même");
+  // Inviter plus tard : le titre est relu (chiffré en base) ; un déjà-invité ne resonne pas
+  banc.pushs.length = 0;
+  const id = cree.corps.conversation.id as string;
+  assert.equal((await createur.demander("POST", `/app/conversations/${id}/invites`, { invites: [b!.idPublic, c!.idPublic] })).statut, 200);
+  await banc.attendreEnvois();
+  assert.deepEqual(banc.pushs.map((p) => p.compteId), [c!.compteId]);
+  assert.match(banc.pushs[0]!.message.texte, /Brunch du dimanche/);
+});

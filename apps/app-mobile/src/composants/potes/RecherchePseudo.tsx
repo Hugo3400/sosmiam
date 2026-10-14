@@ -54,7 +54,9 @@ export function RecherchePseudo() {
             ? `${pote.prenom} est déjà dans ta bande.`
             : resultat.type === "bloque"
               ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
-              : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
+              : resultat.type === "demandes-fermees"
+                ? `${pote.prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
+                : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
     setErreur(resultat.type === "ajoute" || resultat.type === "deja" || resultat.type === "demande" ? null : message);
     AccessibilityInfo.announceForAccessibility(message);
   }

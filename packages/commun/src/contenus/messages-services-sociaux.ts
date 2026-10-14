@@ -32,6 +32,11 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
     titre: "Plein de demandes en route",
     texte: "Attends que quelques potes répondent avant d'en envoyer d'autres.",
   },
+  "demandes-fermees": {
+    emoji: "🔒",
+    titre: "Cette personne ne reçoit pas de demandes",
+    texte: "Elle a choisi qu'on ne la trouve pas par son pseudo. Pour rejoindre sa bande, demande-lui son lien ou son QR code !",
+  },
   "demande-inconnue": {
     emoji: "🍃",
     titre: "Demande envolée",

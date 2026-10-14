@@ -14,6 +14,7 @@ export type ErreurServiceSociale =
   | "invitation-invalide"
   | "bande-pleine"
   | "trop-de-demandes-en-attente"
+  | "demandes-fermees"
   | "demande-inconnue"
   | "pas-dans-la-bande"
   | "profil-prive"
