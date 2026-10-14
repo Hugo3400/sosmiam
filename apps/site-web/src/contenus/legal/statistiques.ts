@@ -25,7 +25,8 @@ export const documentStatistiques: DocumentLegal = {
       id: "comment",
       titre: "Comment on compte",
       blocs: [
-        "Quand tu ouvres une page, notre serveur regarde la page demandée, le site d'où tu arrives, la grande famille de ton appareil et de ton navigateur, ta langue et ton pays, puis ajoute une unité à des **totaux** : pages vues, visites, visiteurs. Rien n'est gardé qui permette de te reconnaître.",
+        "Quand tu ouvres une page, notre serveur regarde la page demandée (sans ce qui suit le « ? », sauf le nom d'une campagne : « ?utm_… » ou « ?ref= »), le site d'où tu arrives, la grande famille de ton appareil et de ton navigateur, ta langue et ton pays, puis ajoute une unité à des **totaux** : pages vues, visites, visiteurs. Rien n'est gardé qui permette de te reconnaître.",
+        "Pour compter les visiteurs sans les reconnaître, ton adresse IP et ton navigateur sont brouillés avec un code secret qui change à chaque période (jour, semaine, mois, année) et qui est effacé à la fin de celle-ci. Une copie de ce code peut encore dormir **30 jours au plus** dans nos sauvegardes chiffrées, puis elle disparaît aussi.",
         "Les robots sont comptés à part, par leur nom seulement ; les pages préchargées par ton navigateur et la version du site en préparation ne sont pas comptées.",
         "Tous les détails (ce qui est regardé, ce qui est gardé, combien de temps, la base légale) sont dans la [politique de confidentialité](/confidentialite#statistiques).",
       ],

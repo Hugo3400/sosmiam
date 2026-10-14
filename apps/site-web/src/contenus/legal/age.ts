@@ -29,7 +29,7 @@ export const documentAge: DocumentLegal = {
         "Pour créer un compte SOS Miam, il faut être **majeur** : **18 ans** en France. Pour l'instant, SOS Miam n'est ouvert qu'en France ; s'il s'ouvre un jour ailleurs, ce sera l'âge de la majorité du pays.",
         "C'est la même règle partout : dans l'app, dans l'espace ambassadeur et dans l'espace pro. On y trouve des bars, on y sort, on y croise d'autres Miamis : on a préféré garder SOS Miam pour les grands.",
         "À l'inscription, l'app demande ta date de naissance. Si tu n'as pas encore 18 ans, elle te le dit gentiment et ne crée pas de compte. Elle retient seulement, sur ton téléphone, le jour de tes 18 ans, pour garder l'inscription fermée jusque-là : ta date de naissance, elle, n'est pas gardée. On t'attend avec une part de gâteau !",
-        `Sur le site, l'espace ambassadeur ([${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur})) et l'espace pro demandent aussi ta date de naissance : elle sert seulement à vérifier que tu as 18 ans, et n'est pas gardée.`,
+        `Sur le site, l'espace ambassadeur ([${adresseEspaceAmbassadeur.replace("https://", "")}](${adresseEspaceAmbassadeur})) et l'espace pro demandent aussi ta date de naissance : avec ton e-mail et un mot de passe, elle sert seulement à vérifier que tu as 18 ans, et n'est pas gardée ; avec Apple ou Google, elle est gardée chiffrée, comme dans l'app.`,
         "On ne demande pas de pièce d'identité : on te fait confiance. Mentir sur son âge est interdit par nos [conditions d'utilisation](/cgu), et si on apprend qu'un compte a été créé en mentant sur l'âge, on le supprime avec ses données.",
       ],
     },
