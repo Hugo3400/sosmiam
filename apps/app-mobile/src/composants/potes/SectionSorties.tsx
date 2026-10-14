@@ -7,6 +7,7 @@ import type { Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
+import { CarteInvitationSortie } from "~/composants/potes/CarteInvitationSortie";
 import { CarteSortie } from "~/composants/potes/CarteSortie";
 import { RecommandationsRecues } from "~/composants/potes/RecommandationsRecues";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
@@ -33,13 +34,13 @@ const RAFRAICHISSEMENT = 30_000;
 const NOM = { un: "sortie", des: "sorties" };
 
 /**
- * Onglet « Sorties » : les lieux reçus de tes potes, tes sorties à venir, « Nouvelle sortie », puis les sorties passées, par
+ * Onglet « Sorties » : les lieux reçus de tes potes, les invitations qui attendent ta réponse (« Tu viens ? »), tes sorties à venir, « Nouvelle sortie », puis les sorties passées, par
  * morceaux (« Voir plus »). Le « ⋯ » d'une sortie à venir la quitte (après confirmation) ; celui d'une sortie passée la retire de
  * tes sorties, pour toi seulement (« Annuler » la remet).
  */
 export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
   const router = useRouter();
-  const { sorties, potes, quitterSortie, masquer, demasquer } = utiliserCommunaute();
+  const { sorties, potes, invitationsSorties, quitterSortie, masquer, demasquer } = utiliserCommunaute();
   const monId = utiliserMonId();
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [menuPour, setMenuPour] = useState<{ sortie: Sortie; passee: boolean } | null>(null);
@@ -111,7 +112,11 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
           <Text className="font-texte text-sm text-gris">Chacun propose ses lieux, tout le monde vote, et c'est plié.</Text>
         </View>
 
-        {aVenir.length === 0 ? (
+        {invitationsSorties.map((invitation) => (
+          <CarteInvitationSortie key={invitation.id} invitation={invitation} />
+        ))}
+
+        {aVenir.length === 0 && invitationsSorties.length > 0 ? null : aVenir.length === 0 ? (
           <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
               🗓️

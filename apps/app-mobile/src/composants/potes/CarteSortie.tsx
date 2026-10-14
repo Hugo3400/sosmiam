@@ -69,8 +69,10 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
     sortie.organisateur === monId ? "toi" : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
 
   // Comme l'écran de la sortie : fin du vote passée, le lieu le plus voté l'emporte (les propositions sont déjà filtrées)
-  const voteFini = sortie.lieuChoisi !== null || new Date(sortie.finVote).getTime() <= maintenant.getTime();
-  const lieuId = sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length }))) : null);
+  const voteFini = sortie.lieuChoisi !== null || sortie.voteTermine === true || new Date(sortie.finVote).getTime() <= maintenant.getTime();
+  // Avec un compte, nombreVotes compte aussi les votes qu'on ne te nomme pas : c'est lui qui décide
+  const lieuId =
+    sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.nombreVotes ?? p.votes.length }))) : null);
   const lieu = lieuId !== null ? lieux.get(lieuId) : undefined;
   const voteEnCours = !voteFini;
   const aVote = sortie.propositions.some((p) => p.votes.includes(monId));
@@ -84,6 +86,8 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const moment = formaterMoment(sortie.quand, maintenant);
   const quand = passee ? `C'était ${moment}` : majuscule(moment);
   const messages = sortie.messages.length;
+  // Compte connecté : les messages pas encore lus de sa discussion
+  const nonLus = sortie.nonLus ?? 0;
 
   const lu = [
     sortie.titre,
@@ -93,6 +97,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
     etat.texte,
     aToiDeVoter ? "À toi de voter" : null,
     messages > 0 ? `${messages} message${messages > 1 ? "s" : ""}` : null,
+    nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} pas encore lu${nonLus > 1 ? "s" : ""}` : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -160,6 +165,12 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
         {aToiDeVoter ? (
           <View className="rounded-full bg-rose-alerte px-3 py-1.5">
             <Text className="font-texte-gras text-[13px] text-rouge-texte">{"À toi de voter\u00a0!"}</Text>
+          </View>
+        ) : null}
+        {nonLus > 0 ? (
+          <View className="flex-row items-center gap-1 rounded-full bg-encre px-3 py-1.5">
+            <Text className="text-sm">💬</Text>
+            <Text className="font-texte-gras text-[13px] text-jaune">{`${nonLus > 99 ? "99+" : nonLus} nouveau${nonLus > 1 ? "x" : ""}`}</Text>
           </View>
         ) : null}
       </View>
