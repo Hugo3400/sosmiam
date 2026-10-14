@@ -6,6 +6,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurSession } from "~/composants/compte/FournisseurSession";
+import { FournisseurLieux } from "~/composants/contenu/FournisseurLieux";
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
 import { FournisseurModes } from "~/composants/modes/FournisseurModes";
@@ -40,6 +41,8 @@ export default function RacineApp() {
     // La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert
     <FournisseurSession>
     <FournisseurProfil>
+      {/* Les lieux (exemples en démo, sinon le serveur) : sous le profil, pour les distances depuis ta ville */}
+      <FournisseurLieux>
       {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
       <FournisseurInvite>
         {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
@@ -63,6 +66,7 @@ export default function RacineApp() {
           </FournisseurModes>
         </FournisseurActivite>
       </FournisseurInvite>
+      </FournisseurLieux>
     </FournisseurProfil>
     </FournisseurSession>
   );
