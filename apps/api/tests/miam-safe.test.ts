@@ -170,3 +170,11 @@ test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de
   assert.deepEqual(recus, ["serveur-connecte"]);
   assert.deepEqual((filtres[0] as { sessionId: unknown }).sessionId, { not: null });
 });
+
+test("Miam Safe : une notification urgente passe par le canal Android « miam-safe », les autres non", async () => {
+  const { construireCorpsGoogle } = await import("../src/services/notifications/expedier-push.ts");
+  const urgent = construireCorpsGoogle("jeton", { titre: "🛡 Léa a besoin de toi", texte: "…", lien: "/miam-safe/partage/1", urgent: true });
+  assert.deepEqual(urgent.message.android, { priority: "high", notification: { channel_id: "miam-safe" } });
+  const simple = construireCorpsGoogle("jeton", { titre: "Coucou", texte: "…", lien: null });
+  assert.deepEqual(simple.message.android, { priority: "high" });
+});

@@ -213,7 +213,8 @@ export function utiliserSortiesCompte(actif: boolean, { monId, noterPersonne, es
         void faire(sortieId, null, () => sociaux.sorties.terminerVote(sortieId));
       },
       quitterSortie: (sortieId) => {
-        void faire(sortieId, () => oublier(sortieId), () => sociaux.sorties.quitter(sortieId));
+        // Partie : une relecture faite pendant le départ ne la fait pas revenir
+        void faire(sortieId, () => oublier(sortieId), () => sociaux.sorties.quitter(sortieId)).then((r) => r.ok && oublier(sortieId));
       },
       invitationsSorties: invitations
         .filter((i) => !estMasque("sortie", i.id))

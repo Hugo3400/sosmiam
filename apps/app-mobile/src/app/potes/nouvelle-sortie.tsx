@@ -1,10 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { LONGUEUR_MAX_TITRE_SORTIE, MAX_PARTICIPANTS_SORTIE, MAX_PROPOSITIONS_SORTIE } from "@sos-miam/commun/regles/potes";
+import {
+  DELAI_MIN_FIN_VOTE_MINUTES,
+  DELAI_MIN_SORTIE_MINUTES,
+  LONGUEUR_MAX_TITRE_SORTIE,
+  MAX_PARTICIPANTS_SORTIE,
+  MAX_PROPOSITIONS_SORTIE,
+  MAX_SORTIES_A_VENIR,
+} from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
@@ -26,7 +34,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
 
-type Erreurs = { titre?: string; quand?: string; invites?: string; lieux?: string };
+type Erreurs = { titre?: string; quand?: string; invites?: string; lieux?: string; envoi?: string };
 
 const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
@@ -52,7 +60,7 @@ const demainSoir = () => {
 };
 
 // Il faut laisser un peu de temps pour voter
-const DELAI_MINIMUM = 15 * 60_000;
+const DELAI_MINIMUM = DELAI_MIN_SORTIE_MINUTES * 60_000;
 
 /** Les fins de vote possibles pour une sortie : toujours après maintenant (avec un peu de marge) et avant la sortie. */
 function calculerOptionsFinVote(quand: Date, maintenant: Date): (OptionFinVote & { date: Date })[] {
@@ -68,7 +76,7 @@ function calculerOptionsFinVote(quand: Date, maintenant: Date): (OptionFinVote &
     { cle: "demain", libelle: "Demain, 18h", date: aDixHuitHeures(1) },
     { cle: "avant", libelle: "1 h avant la sortie", date: new Date(quand.getTime() - 3_600_000) },
   ];
-  const valables = candidates.filter((o) => o.date.getTime() >= maintenant.getTime() + 10 * 60_000 && o.date <= quand);
+  const valables = candidates.filter((o) => o.date.getTime() >= maintenant.getTime() + DELAI_MIN_FIN_VOTE_MINUTES * 60_000 && o.date <= quand);
   const options = valables.length > 0 ? valables : [{ cle: "avant", libelle: "Jusqu'à la sortie", date: quand }];
   return options.map((o) => ({ ...o, detail: `${capitaliser(decrireJour(o.date, maintenant))} à ${decrireHeure(o.date)}` }));
 }
@@ -98,6 +106,9 @@ export default function NouvelleSortie() {
   const [cleFinVote, setCleFinVote] = useState("avant");
   const [choixLieuOuvert, setChoixLieuOuvert] = useState(false);
   const [erreurs, setErreurs] = useState<Erreurs>({});
+  // Tirée une fois à l'ouverture : un second appui (ou un nouvel essai après une coupure) ne crée pas deux sorties
+  const [cle] = useState(() => Crypto.randomUUID());
+  const [envoi, setEnvoi] = useState(false);
 
   const maintenant = new Date();
   const options = calculerOptionsFinVote(quand, maintenant);
@@ -112,7 +123,8 @@ export default function NouvelleSortie() {
     setErreurs((e) => ({ ...e, invites: undefined }));
   }
 
-  function creer() {
+  async function creer() {
+    if (envoi) return;
     const propre = titre.trim();
     const trouvees: Erreurs = {};
     if (propre === "") trouvees.titre = "Donne un petit nom à ta sortie, même « Miam du vendredi » fait l'affaire.";
@@ -123,30 +135,40 @@ export default function NouvelleSortie() {
     if (lieuxChoisis.length === 0) trouvees.lieux = "Propose au moins un lieu pour lancer le vote.";
 
     if (Object.keys(trouvees).length === 0) {
-      const resultat = creerSortie({
-        titre: propre,
-        emoji,
-        quand: quand.toISOString(),
-        invites,
-        lieux,
-        finVote: (calculerOptionsFinVote(quand, new Date()).find((o) => o.cle === option.cle) ?? option).date.toISOString(),
-      });
+      setEnvoi(true);
+      setErreurs({});
+      const resultat = await creerSortie(
+        {
+          titre: propre,
+          emoji,
+          quand: quand.toISOString(),
+          invites,
+          lieux,
+          finVote: (calculerOptionsFinVote(quand, new Date()).find((o) => o.cle === option.cle) ?? option).date.toISOString(),
+        },
+        cle,
+      );
       if ("id" in resultat) {
         router.replace({ pathname: "/potes/sortie/[id]", params: { id: resultat.id } });
         return;
       }
-      if (resultat.erreur === "titre") trouvees.titre = "Ce titre ne passe pas : 40 caractères au plus, et des mots gentils.";
+      setEnvoi(false);
+      if (resultat.erreur === "titre") trouvees.titre = `Ce titre ne passe pas : ${LONGUEUR_MAX_TITRE_SORTIE} caractères au plus, et des mots gentils.`;
       if (resultat.erreur === "participants") trouvees.invites = `Invite entre 1 et ${MAX_PARTICIPANTS_SORTIE - 1} potes de ta bande.`;
       if (resultat.erreur === "lieux") trouvees.lieux = "Les lieux choisis ne sont plus dans l'app : propose-en un autre.";
+      if (resultat.erreur === "quand")
+        trouvees.quand = `L'horloge coince : la sortie doit commencer au moins ${DELAI_MIN_SORTIE_MINUTES} min plus tard, et le vote finir au moins ${DELAI_MIN_FIN_VOTE_MINUTES} min plus tard, avant la sortie. Ajuste l'heure ou la fin du vote.`;
+      if (resultat.erreur === "trop") trouvees.envoi = `${MAX_SORTIES_A_VENIR} sorties à venir, c'est le maximum. Profite d'abord de celles-là, la prochaine t'attendra !`;
+      if (resultat.erreur === "reseau") trouvees.envoi = "Le réseau a fait des siennes : ta sortie n'est pas partie. Réessaie dans un instant.";
     }
 
     setErreurs(trouvees);
     // Le champ du nom annonce déjà sa propre erreur ; sinon, on lit la première qui bloque
-    const premiere = trouvees.quand ?? trouvees.invites ?? trouvees.lieux;
+    const premiere = trouvees.quand ?? trouvees.invites ?? trouvees.lieux ?? trouvees.envoi;
     if (!trouvees.titre && premiere) AccessibilityInfo.announceForAccessibility(premiere);
   }
 
-  const erreurBas = erreurs.titre ?? erreurs.quand ?? erreurs.invites ?? erreurs.lieux;
+  const erreurBas = erreurs.titre ?? erreurs.quand ?? erreurs.invites ?? erreurs.lieux ?? erreurs.envoi;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -204,7 +226,7 @@ export default function NouvelleSortie() {
                 }}
                 jour={capitaliser(ecrireDate(quand))}
                 heure={decrireHeure(quand)}
-                erreur={erreurQuand}
+                erreur={erreurQuand ?? erreurs.quand ?? null}
               />
             </View>
           </SectionReglages>
@@ -227,7 +249,14 @@ export default function NouvelleSortie() {
 
           <SectionReglages titre="Fin du vote">
             <Text className="mb-1 font-texte text-sm leading-5 text-gris">{lierPonctuation("Passé ce moment, le lieu qui a le plus de votes l'emporte.")}</Text>
-            <ChoixFinVote options={options} choisie={option.cle} onChoisir={setCleFinVote} />
+            <ChoixFinVote
+              options={options}
+              choisie={option.cle}
+              onChoisir={(choisie) => {
+                setCleFinVote(choisie);
+                setErreurs((e) => ({ ...e, quand: undefined }));
+              }}
+            />
           </SectionReglages>
         </ScrollView>
 
@@ -235,7 +264,12 @@ export default function NouvelleSortie() {
           {erreurBas ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
-          <Bouton libelle="Créer la sortie" onPress={creer} indice="Tes potes invités pourront voter et discuter" />
+          <Bouton
+            libelle={envoi ? "Un instant…" : "Créer la sortie"}
+            desactive={envoi}
+            onPress={() => void creer()}
+            indice="Tes potes invités pourront voter et discuter"
+          />
         </View>
       </KeyboardAvoidingView>
 

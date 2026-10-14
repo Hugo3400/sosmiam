@@ -29,7 +29,7 @@ type Props = {
   onQuitte: (titre: string) => void;
 };
 
-type Vue = "options" | "signaler" | "bloquer" | "quitter";
+type Vue = "options" | "signaler" | "bloquer" | "quitter" | "effacer";
 
 const TAILLE_MEMBRE = 36;
 
@@ -42,7 +42,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { moi, potes, bloquer, estSignale } = utiliserCommunaute();
-  const { quitterGroupe, couper } = utiliserConversations();
+  const { quitterGroupe, couper, effacerPourMoi } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreConfirmation = useRef<Text>(null);
@@ -66,7 +66,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
     setVue(vers);
     // Le lecteur d'écran reprend sur le titre de la nouvelle vue (l'élément qu'il lisait vient de disparaître)
     if (vers === "options") setTimeout(() => deplacerFocusLecteurEcran(titreOptions.current), 150);
-    if (vers === "bloquer" || vers === "quitter") setTimeout(() => deplacerFocusLecteurEcran(titreConfirmation.current), 150);
+    if (vers === "bloquer" || vers === "quitter" || vers === "effacer") setTimeout(() => deplacerFocusLecteurEcran(titreConfirmation.current), 150);
   }
 
   // Retour Android et geste d'échappement de VoiceOver : une vue en arrière
@@ -94,12 +94,15 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
             ? { cle: "couper" as const, emoji: "🔔", titre: "Remettre les notifications", detail: "Ton téléphone sonnera de nouveau pour cette discussion" }
             : { cle: "couper" as const, emoji: "🔕", titre: "Couper les notifications", detail: "Les messages arrivent, sans faire sonner ton téléphone" },
         ];
+  // Effacer pour soi seul : les autres gardent leurs messages
+  const optionEffacer = conversation ? [{ cle: "effacer" as const, emoji: "🧽", titre: "Effacer la discussion pour moi", detail: "Tu ne verras plus les messages d'avant" }] : [];
   const options = groupe
-    ? [...optionCouper, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
+    ? [...optionCouper, ...optionEffacer, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
     : pote
       ? [
           { cle: "profil" as const, emoji: "👤", titre: "Voir le profil", detail: "Sa ville, ses badges, ses lieux sauvés" },
           ...optionCouper,
+          ...optionEffacer,
           { cle: "signaler" as const, emoji: "🚩", titre: `Signaler ${prenom}`, detail: "Faux profil, harcèlement, message gênant…" },
           { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Plus de messages ni de commentaires de sa part" },
         ]
@@ -144,6 +147,18 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                 () => {
                   bloquer(pote.id);
                   onBloque(prenom);
+                },
+              )
+            ) : vue === "effacer" && conversation ? (
+              confirmation(
+                "Effacer la discussion pour toi ?",
+                "Tu ne verras plus les messages d'avant, photos et notes vocales comprises. Les autres les gardent, et la discussion continue avec les prochains.",
+                "Effacer pour moi",
+                "Non, je garde tout",
+                () => {
+                  effacerPourMoi(conversation.id);
+                  onFermer();
+                  AccessibilityInfo.announceForAccessibility("Discussion effacée pour toi. Place aux prochains messages !");
                 },
               )
             ) : vue === "quitter" && conversation ? (
