@@ -41,6 +41,11 @@ const DEBUT_CONNEXION_EXTERNE = "/connexion/";
  * suit pas les redirections) ; la route répond elle-même, 200 sur sosmiam.fr et 404 ailleurs
  */
 const DEBUT_WELL_KNOWN = "/.well-known/";
+/**
+ * Choix des cookies envoyé par le bandeau (POST /cookies/choix, routes/ressources/choix-cookies.ts) : servi sur les trois
+ * hôtes, sans redirection (une redirection 301 ferait perdre le POST, donc le choix)
+ */
+const CHOIX_COOKIES = "/cookies/choix";
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 
@@ -59,6 +64,7 @@ export type RedirectionHote = { adresse: string; statut: 301 | 302 };
  * - partout : « /.well-known/… » est servi tel quel (la route choisit 200 ou 404) ;
  * - partout : « /connexion/… » (Apple et Google, et « Finir ton inscription ») est servi, sans redirection : Apple et
  *   Google reviennent sur l'hôte de départ, par un POST qu'une redirection perdrait.
+ * - partout : « /cookies/choix » (le choix des cookies du bandeau, en POST) est servi, sans redirection.
  * - autres hôtes (127.0.0.1, localhost, pro.localhost, apercu.sosmiam.fr) : rien n'est renvoyé, pour pouvoir tout essayer.
  * Les demandes de données de React Router (« /espace.data », « /_.data » pour « / ») suivent leur page, sans recopier
  * leurs paramètres techniques (« _routes », « index » vide).
@@ -96,6 +102,7 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
 
   if (cle.startsWith(DEBUT_CONNEXION_EXTERNE)) return null;
   if (cle.startsWith(DEBUT_WELL_KNOWN)) return null;
+  if (cle === CHOIX_COOKIES) return null;
   if (nomHote === HOTE_SITE && PAGES_COMPTE_SITE.includes(cle)) return null;
   if (cle === "/mon-compte" && nomHote === HOTE_AMBASSADEUR) return { adresse: `/espace/mon-compte${suite}`, statut: 302 };
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);

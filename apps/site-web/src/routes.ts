@@ -84,6 +84,9 @@ export default [
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
   // et les fichiers du kit média, réservés aux ambassadeurs validés
   route("deconnexion", "routes/compte/deconnexion.tsx"),
+  // Choix des cookies (bandeau, panneau « Choisir », /cookies#mes-choix), avec ou sans JavaScript : POST servi sur les trois
+  // hôtes (le cookie du choix vaut pour sosmiam.fr et ses espaces), GET renvoyé vers /cookies#mes-choix
+  route("cookies/choix", "routes/ressources/choix-cookies.ts"),
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
   // Fichiers du kit média pro, réservés aux ambassadeurs certifiés
   route("kit-media-pro/:fichier", "routes/ressources/telecharger-kit-pro.ts"),

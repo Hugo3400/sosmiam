@@ -12,7 +12,7 @@ test("plus de 3 ans : effacé ; doublons : la plus récente ; sans date : gardé
   assert.deepEqual(garderDesinscritsRecents("", "2023-10-14"), { texte: "", retires: 0 });
 });
 
-test("« Inscrire les comptes de l'app » : le résultat noté au journal, sans adresse", async () => {
+test("« Inscrire les comptes de l'app » : désactivé en attendant que le « non » de la case soit noté", async () => {
   const { creerBancGestion } = await import("./outils/creer-banc-gestion.ts");
   const journal: string[] = [];
   const banc = await creerBancGestion({
@@ -20,7 +20,8 @@ test("« Inscrire les comptes de l'app » : le résultat noté au journal, sans 
     inscrireComptesAppNewsletter: async () => ({ comptes: 5, inscrits: 4, desinscrits: 1 }),
   } as never);
   const session = await banc.ouvrirSession();
-  assert.deepEqual(await (await banc.demander("POST", "/newsletter/inscrire-comptes-app", { session })).json(), { ok: true, comptes: 5, inscrits: 4, desinscrits: 1 });
-  assert.equal(journal.at(-1), "Comptes de l'app inscrits à la newsletter · 4 sur 5 (1 désinscrit(s) laissé(s) de côté)");
+  // Désactivé depuis l'audit du 14 octobre 2026 : rien n'est inscrit, rien n'est noté
+  assert.deepEqual(await (await banc.demander("POST", "/newsletter/inscrire-comptes-app", { session })).json(), { ok: false, erreur: "desactive" });
+  assert.equal(journal.length, 0);
   await banc.fermer();
 });

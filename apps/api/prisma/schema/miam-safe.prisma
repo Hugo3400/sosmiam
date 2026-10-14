@@ -101,12 +101,14 @@ model PartagePositionMiamSafe {
   /// Le lieu d'où elle a prévenu (null s'il a été supprimé depuis)
   lieuId     Int?      @map("lieu_id")
   lieu       Lieu?     @relation(fields: [lieuId], references: [id], onDelete: SetNull)
-  /// Dernière position envoyée par son téléphone (null : pas de position, ou effacée)
+  /// Inutilisées, toujours null : remplacées par positionChiffree (à retirer plus tard, avec l'accord de Hugo)
   latitude   Float?
   longitude  Float?
-  /// Précision annoncée par le téléphone, en mètres
   precisionM Int?      @map("precision_m")
   positionLe DateTime? @map("position_le") @db.Timestamptz(0)
+  /// Dernière position envoyée par son téléphone, chiffrée avec la clé des données (sous-clé « miam-safe:position »,
+  /// contexte « partage:<id>:position ») : { lat, lng, precisionM, le }. Null : pas de position, ou effacée
+  positionChiffree String? @map("position_chiffree")
   creeLe     DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
   /// creeLe + 1 heure : après, plus rien ne se voit
   expireLe   DateTime  @map("expire_le") @db.Timestamptz(0)
