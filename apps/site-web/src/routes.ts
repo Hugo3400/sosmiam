@@ -17,6 +17,10 @@ export default [
     // QR de connexion (sosmiam.fr/q/<code>, connexion par QR code) : « Ouvre l'app SOS Miam pour te connecter » (noindex, sans
     // appel à l'API ; les statistiques ne reçoivent que « /q »). Quand l'app est installée, le lien universel l'ouvre.
     route("q/:code", "routes/public/qr-connexion.tsx"),
+    // Aperçus de ce qu'on prépare pour l'app (le salon « roadmap » du Discord y renvoie) : l'accueil des aperçus, puis un
+    // aperçu par page. Noindex (balise et en-tête), Disallow dans robots.txt, hors du menu, du pied de page et du plan du site.
+    route("preview", "routes/public/apercus.tsx"),
+    route("preview/communaute", "routes/public/apercu-communaute.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [
