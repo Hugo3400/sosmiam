@@ -20,12 +20,16 @@ type Props = {
   onAimer: (commentaire: Commentaire, declencheur: View | null) => void;
   /** Ouvre les options ; « declencheur » est ce qui les a ouvertes, où le lecteur d'écran revient ensuite */
   onOptions: (commentaire: Commentaire, declencheur: View | null) => void;
+  /** Une mention touchée : le profil de la personne */
+  onOuvrirProfil: (id: string) => void;
   /** Appui long sur un commentaire pour ses options (pas en visite sans compte) */
   appuiLong: boolean;
+  /** Tu gères le lieu de la publication (options en plus) */
+  gerant: boolean;
 };
 
 /** Un commentaire et ses réponses, repliables. */
-export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions, appuiLong }: Props) {
+export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions, onOuvrirProfil, appuiLong, gerant }: Props) {
   const { commentaire, reponses } = fil;
   const nombre = reponses.length;
   const dontLeLieu = reponses.some((r) => r.auteur === "lieu");
@@ -40,7 +44,9 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
         onRepondre={(c, d) => onRepondre(c, c, d)}
         onAimer={onAimer}
         onOptions={onOptions}
+        onOuvrirProfil={onOuvrirProfil}
         appuiLong={appuiLong}
+        gerant={gerant}
       />
       {deplie
         ? reponses.map((r) => (
@@ -53,7 +59,9 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
               onRepondre={(c, d) => onRepondre(c, commentaire, d)}
               onAimer={onAimer}
               onOptions={onOptions}
+              onOuvrirProfil={onOuvrirProfil}
               appuiLong={appuiLong}
+              gerant={gerant}
             />
           ))
         : null}
