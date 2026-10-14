@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 
+import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import type { InscriptionAppareil } from "../services/appareils-push.ts";
-import type { CompteSession } from "../middlewares/proteger-comptes.ts";
+import { lireJetonSession, type CompteSession } from "../middlewares/proteger-comptes.ts";
 
 /** Ce que les routes /app/appareils utilisent : le service des téléphones (services/appareils-push.ts) */
 export type DependancesAppareils = {
@@ -17,7 +18,8 @@ const refuser = (reponse: Response, champ: string) => reponse.status(400).json({
 
 /**
  * Inscription d'un téléphone aux notifications : le jeton natif (Apple ou Google), la plateforme et la ville choisie dans
- * l'app (jamais une position). Le compte vient de la session si elle est valable, jamais du corps. Rien n'est journalisé.
+ * l'app (jamais une position). Le compte vient de la session si elle est valable, jamais du corps, et le téléphone est lié à
+ * cette session (par l'empreinte de son jeton) : quand elle se ferme, il ne reçoit plus rien du compte. Rien n'est journalisé.
  */
 export function creerControleursAppareils(d: DependancesAppareils) {
   return {
@@ -30,7 +32,12 @@ export function creerControleursAppareils(d: DependancesAppareils) {
       const ville = typeof corps.ville === "string" ? corps.ville.replace(/\s+/g, " ").trim() : "";
       if (ville.length > VILLE_MAX) return refuser(reponse, "ville");
       const compte = reponse.locals.compte as CompteSession | undefined;
-      await d.inscrire({ jeton, plateforme: corps.plateforme, ville: ville || null, compteId: compte?.id ?? null });
+      // Session valable seulement (la protection l'a vérifiée) ; absente, invalide ou expirée : ni compte, ni session
+      const jetonSession = compte ? lireJetonSession(requete) : null;
+      await d.inscrire({
+        jeton, plateforme: corps.plateforme, ville: ville || null, compteId: compte?.id ?? null,
+        empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null,
+      });
       reponse.json({ ok: true });
     },
     async desinscrire(requete: Request, reponse: Response) {

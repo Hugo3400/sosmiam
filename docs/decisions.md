@@ -471,3 +471,9 @@
 - Aucun compte de 15-17 ans n'existait au moment du passage à 18 ans.
 - Un pseudo libéré (changement de pseudo ou compte supprimé) reste réservé **30 jours**, pour que personne ne le reprenne aussitôt pour se faire passer pour quelqu'un d'autre.
 - Désinscrits de la newsletter : adresse et date gardées **3 ans** (voir plus haut). Comptes de l'app : case newsletter visible à l'inscription, cochée par défaut et décochable ; les comptes déjà créés sont inscrits par l'action du logiciel lancée par Hugo.
+
+## Connexion par QR code, comme Discord (décidé le 14 octobre 2026)
+- **Les deux sens sûrs** : le site (sosmiam.fr, ambassadeur., pro.) affiche un QR sur sa page de connexion, et un **nouveau téléphone** en affiche un sur l'écran de connexion de l'app. Dans les deux cas, c'est l'**app déjà connectée** qui scanne et qui valide ; l'appareil qui affiche le QR ne reçoit sa session que s'il est bien celui qui l'a demandé.
+- **Validation** : toujours un écran de confirmation (« Tu te connectes sur Chrome sur Mac ? », avec « Non, ce n'est pas moi »), **puis Face ID, l'empreinte ou le code du téléphone** quand le téléphone a un verrouillage (sinon la confirmation seule).
+- Un QR vit 2 minutes, sert une seule fois et se renouvelle tout seul ; « Ne valide jamais un QR qu'on t'a envoyé » est écrit sur l'écran de confirmation.
+- Pas pour le logiciel de gestion (clé du PC, mot de passe et code à 6 chiffres restent obligatoires).

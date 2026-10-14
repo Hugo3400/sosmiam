@@ -3,10 +3,10 @@
 // dans contenus/messages-services-sociaux.ts. Le refus du filtre de mots garde le code commun « message-refuse ». Une
 // contestation hors délai a son propre code, « contestation-hors-delai » (409) : le « delai-depasse » commun parle des
 // réservations et des visites (« ce sera pour le prochain passage »), pas d'une décision de la modération.
-// « chiffrement-indisponible » (503, « Coffre-fort fermé ») n'est pas encore ici : tests/client-http.test.ts:37 attend
-// toujours qu'il devienne « erreur-serveur ». Le lot L2 l'ajoute, dans le même changement : ce fichier, son texte dans
-// contenus/messages-services-sociaux.ts (B.13), tests/client-http.test.ts:37 (attendu : « chiffrement-indisponible »), et
-// le retrait de « signalement-invalide » des EQUIVALENTS de client-api/client-http.ts.
+// « chiffrement-indisponible » (503, « Coffre-fort fermé ») : la clé des données n'a pas été lue au démarrage. Déjà rendu
+// par l'inscription, le profil et la majorité, il sert aussi à toutes les routes sociales chiffrées ; son texte reste
+// neutre, pour s'afficher juste partout. C'est une erreur passagère : on réessaie plus tard.
+// « signalement-invalide » arrive tel quel dans l'app (il n'est plus traduit en « champ-invalide » par client-http.ts).
 
 export type ErreurServiceSociale =
   | "pseudo-requis"
@@ -45,6 +45,7 @@ export type ErreurServiceSociale =
   | "commentaire-inconnu"
   | "contenu-inconnu"
   | "signalement-invalide"
+  | "chiffrement-indisponible"
   | "geree-par-la-sortie"
   | "trop-de-masques"
   | "deja-examine"

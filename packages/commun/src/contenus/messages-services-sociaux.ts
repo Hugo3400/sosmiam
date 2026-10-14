@@ -187,6 +187,12 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
     titre: "Il manque un détail",
     texte: "Choisis une raison, et explique avec tes mots si c'est « Autre chose » (10 caractères au moins).",
   },
+  // Clé des données absente : aussi rendu par l'inscription et le profil, donc un texte qui ne parle pas des messages
+  "chiffrement-indisponible": {
+    emoji: "🔐",
+    titre: "Coffre-fort fermé",
+    texte: "Notre coffre-fort est fermé pour un moment. Réessaie dans un instant : rien n'est perdu.",
+  },
   "geree-par-la-sortie": {
     emoji: "🎉",
     titre: "Ça se passe dans la sortie",

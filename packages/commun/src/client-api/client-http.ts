@@ -21,7 +21,13 @@ export type OptionsClientHttp = {
   fetch?: typeof fetch;
 };
 
-export type OptionsDemande = { corps?: unknown; session?: boolean };
+export type OptionsDemande = {
+  corps?: unknown;
+  session?: boolean;
+  /** En-têtes en plus (« Idempotency-Key » d'une création de groupe, de sortie ou de liste) ; Accept, Content-Type et
+   * Authorization restent toujours ceux du client */
+  entetes?: Readonly<Record<string, string>>;
+};
 
 export type ClientHttp = {
   /** `session: false` : la demande part sans jeton (lectures publiques) */
@@ -47,8 +53,10 @@ const EQUIVALENTS: Readonly<Record<string, ErreurService>> = {
   "alerte-inconnue": "introuvable",
   "compte-inconnu": "introuvable",
   "compte-rendu-trop-court": "compte-rendu-invalide",
-  "signalement-invalide": "champ-invalide",
 };
+
+/** Les en-têtes que le client pose lui-même : ceux d'un appelant ne les remplacent jamais (en minuscules) */
+const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization"]);
 
 /** Ce qui peut servir au texte de l'erreur (distance arrondie, nom du lieu…), rien d'autre */
 function lireDetails(corps: Record<string, unknown>): DetailsErreur | undefined {
@@ -72,7 +80,9 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
 
   /** Envoie la demande (session comprise) ; null : pas de réponse (pas de réseau, serveur injoignable, ou trop long) */
   async function envoyer(methode: MethodeHttp, chemin: string, options: OptionsDemande): Promise<Response | null> {
-    const entetes: Record<string, string> = { Accept: "application/json" };
+    const entetes: Record<string, string> = {};
+    for (const [nom, valeur] of Object.entries(options.entetes ?? {})) if (!ENTETES_RESERVES.has(nom.toLowerCase())) entetes[nom] = valeur;
+    entetes.Accept = "application/json";
     if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
     if (options.session !== false) {
       const jeton = await o.lireJeton();

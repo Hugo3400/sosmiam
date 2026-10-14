@@ -27,7 +27,7 @@ export function CarteFichierPresse({ fichier, onEnregistrer, onAgrandir }: Props
   }, [fichier.apercu]);
 
   return (
-    <li className="grid content-start gap-2 rounded-carte border border-ligne bg-white p-3">
+    <li className="flex flex-col gap-2 rounded-carte border border-ligne bg-white p-3">
       <button
         type="button"
         onClick={() => apercu && onAgrandir(apercu)}
@@ -43,7 +43,7 @@ export function CarteFichierPresse({ fichier, onEnregistrer, onAgrandir }: Props
         {fichier.dimensions && <Badge>{fichier.dimensions}</Badge>}
         <span className="text-xs text-gris">{formaterOctets(fichier.octets)}</span>
       </div>
-      <Bouton petit icone={Download} onClick={() => onEnregistrer(fichier.id, fichier.nom)}>Enregistrer</Bouton>
+      <div className="mt-auto grid pt-1"><Bouton petit icone={Download} onClick={() => onEnregistrer(fichier.id, fichier.nom)}>Enregistrer</Bouton></div>
     </li>
   );
 }
