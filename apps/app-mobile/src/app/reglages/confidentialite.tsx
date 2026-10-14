@@ -77,7 +77,9 @@ export default function ReglagesConfidentialite() {
             <View className="gap-3">
               <Text className="font-texte text-sm leading-5 text-gris">
                 {lierPonctuation(
-                  "En privé, ceux qui ne te suivent pas voient seulement ton avatar, ton prénom, ton @pseudo et tes compteurs. Tes abonnés voient tout, et ta bande aussi, si vous vous êtes ajoutés en vrai (lien ou QR code).",
+                  suivis.source === "compte"
+                    ? "En privé, ceux qui ne te suivent pas voient seulement ton avatar, ton prénom, ton @pseudo et tes compteurs. Tes abonnés voient tes listes et tes badges, et ta bande voit tout."
+                    : "En privé, ceux qui ne te suivent pas voient seulement ton avatar, ton prénom, ton @pseudo et tes compteurs. Tes abonnés voient tout, et ta bande aussi, si vous vous êtes ajoutés en vrai (lien ou QR code).",
                 )}
               </Text>
               <Text className="font-texte text-sm leading-5 text-gris">

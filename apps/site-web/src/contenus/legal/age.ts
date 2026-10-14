@@ -3,7 +3,7 @@
 // Décidé par Hugo le 14 octobre 2026 : SOS Miam n'est ouvert qu'à partir de la majorité, 18 ans en France (seul pays
 // ouvert ; ailleurs, ce sera l'âge de la majorité du pays). Plus aucune règle « 15-17 ans ».
 // La classification affichée par les stores reste à choisir par Hugo : cette page n'en cite aucune tant qu'elle n'est pas
-// décidée. À mettre à jour AVANT l'arrivée de la messagerie et de la pub.
+// décidée. À mettre à jour AVANT l'arrivée de la pub. Messagerie entre potes : décrite le 15 octobre 2026, avant son ouverture.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
@@ -14,7 +14,7 @@ export const documentAge: DocumentLegal = {
   titre: "SOS Miam et l'âge",
   description:
     "SOS Miam est réservé aux 18 ans et plus : pourquoi, ce qu'on vérifie à l'inscription, et ce que les parents doivent savoir.",
-  miseAJour: "14 octobre 2026",
+  miseAJour: "15 octobre 2026",
   introduction: [
     "SOS Miam, c'est l'app pour sortir découvrir les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde. Cette page explique à partir de quel âge on peut l'utiliser, ce qu'on y trouve et ce qu'on fait si quelqu'un de plus jeune passe par là. Elle sert aussi de repère aux parents.",
   ],
@@ -60,7 +60,8 @@ export const documentAge: DocumentLegal = {
           ],
         },
         "**Tout est gratuit** : il n'y a rien à acheter dans l'app, ni abonnement, ni achat intégré, ni coffre à surprises.",
-        "Il n'y a pas encore de messagerie ni de publicité. Elles arriveront plus tard : la pub sera toujours signalée comme telle, et cette page sera mise à jour **avant** leur arrivée.",
+        "Avec un compte, on peut s'écrire **entre potes de la même bande** : messages, photos, notes vocales, groupes et sorties. Suivre quelqu'un n'ouvre jamais la messagerie, et on peut signaler ou bloquer à tout moment (voir les [conditions d'utilisation](/cgu#messagerie)).",
+        "Il n'y a pas encore de publicité. Elle arrivera plus tard : elle sera toujours signalée comme telle, et cette page sera mise à jour **avant** son arrivée.",
       ],
     },
     {
@@ -68,7 +69,7 @@ export const documentAge: DocumentLegal = {
       titre: "Les publications et la sécurité",
       blocs: [
         "Ce que les gens publient doit respecter les règles de la communauté, détaillées dans nos [conditions d'utilisation](/cgu) : pas de haine, pas de harcèlement, pas de violence, pas de contenu sexuel, pas de danger. Là-dessus, c'est **tolérance zéro**.",
-        "Sous chaque publication, le menu « ⋯ » permet de la **signaler** en quelques secondes. Une publication signalée pour violence ou contenu sexuel est **masquée pour tout le monde dès le premier signalement**, en attendant qu'un membre de l'équipe la regarde. C'est toujours un humain qui décide, pas un algorithme.",
+        "Sous chaque publication, le menu « ⋯ » permet de la **signaler** en quelques secondes ; avec un compte, on peut aussi signaler un commentaire, un message, une liste, un profil, un groupe ou une sortie, et bloquer quelqu'un. Une publication signalée pour violence ou contenu sexuel est **masquée pour tout le monde dès le premier signalement**, en attendant qu'un membre de l'équipe la regarde (pour un commentaire, un message ou une liste, à quelques conditions détaillées dans les [conditions d'utilisation](/cgu#moderation)). C'est toujours un humain qui décide, pas un algorithme.",
         "Pour un contenu grave, l'app rappelle aussi les bons réflexes : le **17** ou le **112** en cas d'urgence, et [Pharos](https://www.internet-signalement.gouv.fr) pour signaler un contenu illégal aux autorités.",
       ],
     },

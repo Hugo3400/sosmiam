@@ -7,7 +7,11 @@
 // Espace ambassadeur (8 octobre 2026) : comptes dès 18 ans, section « Ton compte ambassadeur » dans
 // confidentialite-compte-ambassadeur.ts (apps/api/src/services/comptes.ts ; durées et sécurité : docs/decisions.md).
 // App mobile (14 octobre 2026) : comptes dès la v1 des stores (confirmé par Hugo) ; ce que l'app garde sur le téléphone et
-// sur le serveur : confidentialite-app.ts (relu contre le code par la session App).
+// sur le serveur : confidentialite-app.ts (relu contre le code par la session App) ; tableau des 13 types de données déclarés
+// sur Google Play : confidentialite-donnees-app.ts.
+// Partie sociale (15 octobre 2026, avant son ouverture) : confidentialite-social.ts (bande, suivis, profil, listes,
+// commentaires, cloche, blocages, pseudos), confidentialite-messagerie.ts, confidentialite-signalements-sociaux.ts ;
+// « Prévenir un pote » (Miam Safe) : confidentialite-miam-safe.ts. Relus contre le code par la session Site le 14 octobre.
 // Newsletter (Hugo, 14 octobre 2026) : une case cochée d'avance, décochable, à l'inscription (soft opt-in, apps/api
 // controleurs/comptes-newsletter.ts) : comptes de l'app inscrits tout de suite, ambassadeurs quand leur candidature est
 // validée (statut « actif ») ; une case décochée met l'adresse dans la liste des désinscrits (noterDesinscription, 3 ans).
@@ -24,7 +28,11 @@
 // 2026) n'écrit que méthode, chemin sans paramètres, statut et durée ; ses journaux pm2 : 14 rotations aussi
 // (/etc/logrotate.d/sos-miam-pm2). Connexion par QR : confidentialite-connexion-qr.ts.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
-import { sectionMiamSafe } from "~/contenus/legal/confidentialite-miam-safe";
+import { sectionDonneesApp } from "~/contenus/legal/confidentialite-donnees-app";
+import { sectionMessagerie } from "~/contenus/legal/confidentialite-messagerie";
+import { sectionMiamSafe, sectionPrevenirUnPote } from "~/contenus/legal/confidentialite-miam-safe";
+import { sectionSignalementsSociaux } from "~/contenus/legal/confidentialite-signalements-sociaux";
+import { sectionPotes } from "~/contenus/legal/confidentialite-social";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
 import { sectionConnexionAppleGoogle } from "~/contenus/legal/confidentialite-connexion-externe";
@@ -39,7 +47,7 @@ export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
     "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, comptes ambassadeur et pro, et app mobile. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
-  miseAJour: "14 octobre 2026",
+  miseAJour: "15 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
@@ -218,7 +226,12 @@ export const documentConfidentialite: DocumentLegal = {
     sectionConnexionQr,
     sectionApp,
     sectionAppComptes,
+    sectionDonneesApp,
+    sectionPotes,
+    sectionMessagerie,
+    sectionSignalementsSociaux,
     sectionMiamSafe,
+    sectionPrevenirUnPote,
     {
       id: "ce-qu-on-ne-fait-pas",
       titre: "Ce qu'on ne fait pas",
@@ -332,8 +345,12 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam va grandir. Voici ce qui est prévu, **mais ne fonctionne pas aujourd'hui** :",
         {
           liste: [
-            "**La messagerie et les potes** pour de vrai dans l'app (aujourd'hui, rien de ce que tu y fais ne part vers de vraies personnes) : cette page dira ce qu'ils gardent avant qu'ils ouvrent.",
+            "**« Télécharger mes données sociales »**, dans l'app : une copie de ta bande, de tes abonnements, de tes listes, de tes commentaires et de tes messages, à emporter où tu veux. D'ici là, la copie que l'équipe peut te faire sur demande ne contient pas tes données sociales ; et même ensuite, l'équipe ne t'enverra jamais le contenu d'une conversation, seulement ce qui l'entoure (avec qui, quand).",
+            "**Le ménage automatique de la partie sociale** : il effacera du serveur, au bout de leur durée, les photos et les notes vocales (90 jours), les conversations (1 an sans message), les sorties (1 an), les demandes (30 jours), la cloche (90 jours) et les signalements (1 an après la décision). Les durées sont dites dans chaque section.",
+            "**Un écran « Décisions de la modération »** dans l'app, pour voir les décisions qui te concernent et les contester (une fois, pendant 6 mois).",
             "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
+            "**Des SMS**, peut-être un jour : ceux qui font de la pub ne partiront qu'avec ton accord explicite (une case non cochée d'avance), et « STOP » suffira pour arrêter.",
+            "**Un suivi des plantages de l'app**, pour corriger les bugs plus vite : s'il arrive, cette page dira avant quel service le fait et ce qu'il reçoit.",
             "**Les bons solidaires**, pour payer à l'avance dans un lieu pendant son BIG SOS. La façon de payer n'est pas encore décidée.",
           ],
         },
@@ -356,8 +373,10 @@ export const documentConfidentialite: DocumentLegal = {
     {
       id: "ton-compte-et-l-app",
       titre: "Ton compte et l'app",
-      sections: ["compte-ambassadeur", "compte-pro", "connexion-apple-google", "connexion-qr", "app", "app-comptes", "miam-safe"],
+      sections: ["compte-ambassadeur", "compte-pro", "connexion-apple-google", "connexion-qr", "app", "app-comptes", "donnees-app"],
     },
+    { id: "ta-bande-et-tes-messages", titre: "Ta bande et tes messages", sections: ["potes", "messagerie", "signalements-sociaux"] },
+    { id: "en-securite", titre: "Miam Safe", sections: ["miam-safe", "prevenir-un-pote"] },
     { id: "jamais", titre: "Ce qu'on ne fait pas", sections: ["ce-qu-on-ne-fait-pas"] },
     { id: "avec-qui", titre: "Avec qui, où, et comment c'est protégé", sections: ["destinataires", "securite"] },
     { id: "tes-droits", titre: "Tes droits, et comment les exercer", sections: ["droits", "exercer-tes-droits", "cnil"] },
