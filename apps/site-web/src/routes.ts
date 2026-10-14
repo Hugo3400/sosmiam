@@ -65,6 +65,11 @@ export default [
   layout("routes/compte/mise-en-page-mon-compte.tsx", [
     route("mon-compte", "routes/compte/mon-compte.tsx", { id: "routes/compte/mon-compte-site-et-pro" }),
   ]),
+  // « Continuer avec Apple / Google » (sur les trois hôtes) : départ vers le fournisseur, retour en POST depuis son site,
+  // et « Finir ton inscription » quand le compte n'existe pas encore (services/connexion-externe.server.ts)
+  route("connexion/finir-inscription", "routes/compte/finir-inscription.tsx"),
+  route("connexion/:fournisseur", "routes/ressources/connexion-externe-depart.ts"),
+  route("connexion/:fournisseur/retour", "routes/ressources/connexion-externe-retour.ts"),
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
   // et les fichiers du kit média, réservés aux ambassadeurs validés
   route("deconnexion", "routes/compte/deconnexion.tsx"),

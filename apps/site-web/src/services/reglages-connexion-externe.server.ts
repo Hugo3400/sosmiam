@@ -43,3 +43,9 @@ export function lireReglagesConnexionExterne(): Record<FournisseurExterne, strin
     apple: nettoyer(process.env.SOS_MIAM_APPLE_SERVICES_ID),
   };
 }
+
+/** Pour les pages : quels boutons montrer (jamais les identifiants eux-mêmes, inutiles dans la page) */
+export function lireFournisseursActifs(): Record<FournisseurExterne, boolean> {
+  const reglages = lireReglagesConnexionExterne();
+  return { apple: reglages.apple !== null, google: reglages.google !== null };
+}

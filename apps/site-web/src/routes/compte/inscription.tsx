@@ -1,17 +1,20 @@
 import { data, redirect } from "react-router";
 
 import type { Route } from "./+types/inscription";
+import { BoutonsConnexionExterne } from "~/composants/compte/BoutonsConnexionExterne";
 import { FormulaireInscription } from "~/composants/compte/FormulaireInscription";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { RefusAge } from "~/composants/compte/RefusAge";
 import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
 import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { inscrireAmbassadeur, MESSAGE_OCCUPE } from "~/services/comptes.server";
+import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { lireCompteConnecte, lireIpVisiteur, poserCookieSession } from "~/services/session-compte.server";
 
 /** Réponse de l'action : celle d'un formulaire, ou le refus d'âge (moins de 18 ans), qui remplace le formulaire. */
@@ -53,9 +56,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
 
 /** Déjà connecté : direction l'espace. */
 export async function loader({ request }: Route.LoaderArgs) {
-  const espace = lireEspaceHote(new URL(request.url).host);
+  const url = new URL(request.url);
+  const espace = lireEspaceHote(url.host);
   if (await lireCompteConnecte(request)) throw redirect(textes[espace].accueil);
-  return { espace };
+  // Apple et Google seulement pour l'espace pro : la demande d'ambassadeur (ville, quartier) passe par le formulaire
+  const fournisseurs = espace === "pro" ? lireFournisseursActifs() : { apple: false, google: false };
+  return { espace, fournisseurs, messageExterne: lireMessageConnexionExterne(url.searchParams.get("externe")) };
 }
 
 /**
@@ -145,7 +151,17 @@ export default function PageInscription({ loaderData, actionData }: Route.Compon
       <TitreSection principal chapo={lierPonctuation(textes[espace].chapo)}>
         {textes[espace].titre}
       </TitreSection>
-      {actionData?.refusAge ? <RefusAge /> : <FormulaireInscription espace={espace} />}
+      {actionData?.refusAge ? <RefusAge /> : (
+        <>
+          <BoutonsConnexionExterne
+            fournisseurs={loaderData.fournisseurs}
+            depart="/inscription"
+            message={loaderData.messageExterne}
+            separateur="ou crée ton compte avec ton e-mail"
+          />
+          <FormulaireInscription espace={espace} />
+        </>
+      )}
     </Section>
   );
 }

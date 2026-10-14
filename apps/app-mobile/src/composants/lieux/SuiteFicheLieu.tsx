@@ -7,6 +7,7 @@ import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
+import { BlocEvenementsLieu } from "~/composants/lieux/BlocEvenementsLieu";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 import { LienProposerModification } from "~/composants/lieux/LienProposerModification";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
@@ -102,6 +103,8 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
           </View>
         ))}
       </View>
+
+      <BlocEvenementsLieu lieuId={lieu.id} age={age} />
 
       <InfosPratiquesLieu nom={lieu.nom} pratique={pratique} />
 

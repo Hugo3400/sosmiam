@@ -5,7 +5,6 @@ import { Platform, Pressable, Text, View, type ImageSourcePropType } from "react
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { trouverVignettePublication } from "~/fonctions/publications/trouver-vignette-publication";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -18,21 +17,21 @@ type Props = {
   gardes: number[];
   /** Publications aimées (❤️), de la plus récente à la plus ancienne */
   jaimes: string[];
-  age: number;
+  /** Plus lu : tout compte a 18 ans ou plus (à retirer de l'onglet Profil, qui le passe encore) */
+  age?: number;
 };
 
 type Onglet = "gardes" | "jaimes";
 type Vignette = { cle: string; lieu: Lieu; image: ImageSourcePropType | null; libelle: string };
 
 /** Tes adresses gardées et tes publications aimées, en deux onglets et en grille de 3 colonnes. */
-export function CollectionsProfil({ gardes, jaimes, age }: Props) {
+export function CollectionsProfil({ gardes, jaimes }: Props) {
   const router = useRouter();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
-  const { lieux: tousLesLieux } = utiliserLieux();
+  // Seulement les lieux qui existent encore (tout compte a 18 ans ou plus : aucun n'est filtré par l'âge)
+  const { lieux } = utiliserLieux();
   const [onglet, setOnglet] = useState<Onglet>("gardes");
-  // Seulement les lieux qui existent encore et que ton âge autorise
-  const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Une publication signalée ou « Pas intéressé » ne revient ni dans J'aime ni en vignette
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 

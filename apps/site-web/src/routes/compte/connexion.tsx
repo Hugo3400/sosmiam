@@ -1,14 +1,17 @@
 import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/connexion";
+import { BoutonsConnexionExterne } from "~/composants/compte/BoutonsConnexionExterne";
 import { FormulaireConnexion } from "~/composants/compte/FormulaireConnexion";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
 import { lireEspaceHote, type EspaceCompte } from "~/fonctions/hotes/lire-espace-hote";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
+import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { lireCompteConnecte, lireRetourSur } from "~/services/session-compte.server";
 
 /**
@@ -50,7 +53,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   const retour = lireRetourSur(url.searchParams.get("retour"));
   if (await lireCompteConnecte(request)) throw redirect(retour ?? textes[espace].accueil);
   const accueil = url.searchParams.has("au-revoir") ? accueils["au-revoir"] : url.searchParams.has("deconnecte") ? accueils.deconnecte : null;
-  return { espace, retour, accueil: accueil && lierPonctuation(accueil) };
+  // « Continuer avec Apple / Google » : les boutons réglés, et le message d'un essai raté (?externe=…)
+  const fournisseurs = lireFournisseursActifs();
+  return { espace, retour, accueil: accueil && lierPonctuation(accueil), fournisseurs, messageExterne: lireMessageConnexionExterne(url.searchParams.get("externe")) };
 }
 
 /** Connexion (avec ou sans JavaScript) : un nouveau jeton, gardé dans le cookie de session. */
@@ -61,9 +66,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   return connecterDepuisFormulaire(request, formulaire, retour ?? textes[lireEspaceHote(new URL(request.url).host)].accueil);
 }
 
-/** Page /connexion : e-mail et mot de passe ; « ?retour= » rouvre ensuite la page demandée. */
+/** Page /connexion : Apple, Google, ou e-mail et mot de passe ; « ?retour= » rouvre ensuite la page demandée. */
 export default function PageConnexion({ loaderData }: Route.ComponentProps) {
-  const { espace, retour, accueil } = loaderData;
+  const { espace, retour, accueil, fournisseurs, messageExterne } = loaderData;
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation(textes[espace].chapo)}>
@@ -75,6 +80,7 @@ export default function PageConnexion({ loaderData }: Route.ComponentProps) {
         </p>
       )}
       <div className="mx-auto max-w-xl">
+        <BoutonsConnexionExterne fournisseurs={fournisseurs} depart="/connexion" retour={retour} message={messageExterne} />
         <FormulaireConnexion retour={retour} />
         <p className="mt-6 text-center text-gris">
           {lierPonctuation("Pas encore de compte ? ")}

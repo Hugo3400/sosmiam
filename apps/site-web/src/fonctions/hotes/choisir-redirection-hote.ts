@@ -29,6 +29,12 @@ const DEBUTS_PRO = ["/lieu/", "/rattacher/"];
  * donnée aux stores pour demander la suppression d'un compte (connexion dans la page même), et la déconnexion qui va avec
  */
 const PAGES_COMPTE_SITE = ["/mon-compte", "/deconnexion"];
+/**
+ * « Continuer avec Apple / Google » : départ, retour (adresses exactes déclarées chez Apple et Google pour CHAQUE hôte :
+ * https://<hôte>/connexion/apple/retour et /connexion/google/retour) et « Finir ton inscription », servis sur les trois
+ * hôtes, chacun avec son cookie de session
+ */
+const DEBUT_CONNEXION_EXTERNE = "/connexion/";
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 
@@ -44,6 +50,8 @@ export type RedirectionHote = { adresse: string; statut: 301 | 302 };
  * - sosmiam.fr : « /mon-compte » et « /deconnexion » sont servis (le « Mon compte » du site, avec son propre cookie) ;
  *   les autres pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi, dont les QR de vitrine
  *   /l/<code> (ailleurs, ils suivent « tout le reste » : 301 vers sosmiam.fr, où le QR imprimé mène de toute façon).
+ * - partout : « /connexion/… » (Apple et Google, et « Finir ton inscription ») est servi, sans redirection : Apple et
+ *   Google reviennent sur l'hôte de départ, par un POST qu'une redirection perdrait.
  * - autres hôtes (127.0.0.1, localhost, pro.localhost, apercu.sosmiam.fr) : rien n'est renvoyé, pour pouvoir tout essayer.
  * Les demandes de données de React Router (« /espace.data », « /_.data » pour « / ») suivent leur page, sans recopier
  * leurs paramètres techniques (« _routes », « index » vide).
@@ -79,6 +87,7 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
   const pagePro = PAGES_PRO.includes(cle) || DEBUTS_PRO.some((debut) => cle.startsWith(debut));
   const vers = (hoteCible: string) => ({ adresse: `https://${hoteCible}${page}${suite}`, statut: 301 as const });
 
+  if (cle.startsWith(DEBUT_CONNEXION_EXTERNE)) return null;
   if (nomHote === HOTE_SITE && PAGES_COMPTE_SITE.includes(cle)) return null;
   if (cle === "/mon-compte" && nomHote === HOTE_AMBASSADEUR) return { adresse: `/espace/mon-compte${suite}`, statut: 302 };
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);
