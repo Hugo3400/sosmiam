@@ -18,7 +18,7 @@ let magasin: MagasinDemoVivant | null = null;
 const maintenant = () => Date.now();
 
 /**
- * Crée les services de l'app et, en démo, ses outils. `lireClient` (prénom, initiale, emoji, majorité de « moi ») et
+ * Crée les services de l'app et, en démo, ses outils. `lireClient` (prénom, initiale et emoji de « moi ») et
  * `lireRoles` sont relus à chaque appel : le faux serveur revérifie tout à chaque demande, comme le fera l'API.
  */
 export function choisirServices(o: { lireClient: () => ClientDemo | null; lireRoles: () => RolesCompte }): {

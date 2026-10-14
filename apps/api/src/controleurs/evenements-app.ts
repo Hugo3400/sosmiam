@@ -1,16 +1,15 @@
 // Ce que l'app lit et fait avec les événements des lieux (voir routes/evenements.ts) : les dates visibles (Explorer, fiche du
-// lieu), sans session, et « Ça m'intéresse », avec session. Un 15-17 ans ne voit ni ne suit un événement avec alcool.
+// lieu), sans session, et « Ça m'intéresse », avec session. Le drapeau `alcool` sert au message sanitaire, et à l'app pour
+// cacher ces événements en visite sans compte (âge inconnu).
 import type { Request, Response } from "express";
 
 import { calculerProchaineOccurrence } from "../../../../packages/commun/src/fonctions/evenements/calculer-prochaine-occurrence.ts";
-import { estEvenementAlcool } from "../../../../packages/commun/src/fonctions/evenements/est-evenement-alcool.ts";
 import {
   EVENEMENTS_PAR_LECTURE, EVENEMENTS_PAR_LIEU, HORIZON_EVENEMENT_MS, JOUR_MS, PERIODE_EVENEMENTS_MAX_MS,
 } from "../../../../packages/commun/src/regles/evenements.ts";
 import type { MonInteretEvenement } from "../../../../packages/commun/src/types/evenement.ts";
 import { listerDatesVisibles } from "../fonctions/evenements/lister-dates-visibles.ts";
 import { presenterEvenementPublic } from "../fonctions/evenements/presenter-evenement-public.ts";
-import { estMajeurVisiteur } from "../fonctions/visites/est-majeur-visiteur.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import type { EvenementAvecLieu, ServicesEvenements } from "../services/evenements-regles.ts";
@@ -20,8 +19,8 @@ import { champInvalide } from "./visites.ts";
 
 export type DependancesEvenementsApp = {
   services: ServicesEvenements;
-  /** Pour l'âge (événements avec alcool) ; null : clé absente, un compte avec une date gardée compte comme 15-17 ans */
-  chiffrement: ChiffrementDonnees | null;
+  /** Plus lu (l'âge ne compte plus pour les événements) : facultatif le temps que demarrer.ts arrête de le passer */
+  chiffrement?: ChiffrementDonnees | null;
 };
 
 const FORME_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
@@ -52,24 +51,17 @@ function lireInstant(brut: unknown): Date | null | undefined {
 /** Visible dans l'app : lieu publié et vérifié, pas suspendu par la modération (l'annulation se regarde à part) */
 const estVisible = (e: EvenementAvecLieu) => e.lieu.publie && e.lieu.verifie && !e.suspendu;
 
-export function creerControleursEvenementsApp({ services, chiffrement }: DependancesEvenementsApp, horloge: () => number) {
+export function creerControleursEvenementsApp({ services }: DependancesEvenementsApp, horloge: () => number) {
   const maintenant = () => new Date(horloge());
-
-  /** 18 ans et plus (sans date gardée : compte du site, 18 ans ; compte inconnu ou date illisible : non, par prudence) */
-  async function estMajeur(compteId: number, instant: Date): Promise<boolean> {
-    const naissance = await services.lireNaissanceChiffree(compteId);
-    return naissance !== undefined && estMajeurVisiteur(naissance, chiffrement, instant);
-  }
 
   /** « Ça m'intéresse » : les événements visibles pas encore finis (annulés compris, montrés « Annulé »), le plus proche d'abord */
   async function lireMesInterets(compteId: number, instant: Date): Promise<MonInteretEvenement[]> {
-    const [interets, majeur] = await Promise.all([services.listerInterets(compteId, instant), estMajeur(compteId, instant)]);
+    const interets = await services.listerInterets(compteId, instant);
     return interets
       .flatMap(({ evenement, rappel }): MonInteretEvenement[] => {
         const prochaine = estVisible(evenement) ? calculerProchaineOccurrence(evenement, instant) : null;
         if (!prochaine) return [];
-        const presente = presenterEvenementPublic(evenement, prochaine);
-        return presente.alcool && !majeur ? [] : [{ evenement: presente, rappel, annule: evenement.annuleLe !== null }];
+        return [{ evenement: presenterEvenementPublic(evenement, prochaine), rappel, annule: evenement.annuleLe !== null }];
       })
       .sort((a, b) => a.evenement.debut.localeCompare(b.evenement.debut) || a.evenement.id - b.evenement.id);
   }
@@ -119,9 +111,6 @@ export function creerControleursEvenementsApp({ services, chiffrement }: Dependa
       const instant = maintenant();
       const evenement = await services.lireAvecLieu(id);
       if (!evenement || !estVisible(evenement) || evenement.annuleLe !== null) return reponse.status(404).json({ ok: false, erreur: "evenement-inconnu" });
-      if (estEvenementAlcool(evenement, evenement.lieu.type) && !(await estMajeur(compteId, instant))) {
-        return reponse.status(403).json({ ok: false, erreur: "mineur-alcool" });
-      }
       if (!calculerProchaineOccurrence(evenement, instant)) return reponse.status(409).json({ ok: false, erreur: "evenement-passe" });
       await services.poserInteret(compteId, id, rappel === true);
       await repondreInterets(reponse, compteId);

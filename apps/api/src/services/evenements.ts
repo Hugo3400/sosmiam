@@ -128,10 +128,5 @@ export function creerEvenements(): ServicesEvenements {
     async retirerInteret(compteId, evenementId) {
       await baseDeDonnees.interetEvenement.deleteMany({ where: { compteId, evenementId } });
     },
-
-    async lireNaissanceChiffree(compteId) {
-      const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { dateNaissanceChiffree: true } });
-      return compte ? compte.dateNaissanceChiffree : undefined;
-    },
   };
 }

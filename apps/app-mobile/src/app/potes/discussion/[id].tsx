@@ -28,7 +28,7 @@ export default function EcranDiscussion() {
   const marges = useSafeAreaInsets();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const conversations = utiliserConversations();
-  const { pret: communautePrete, trouverPote, bloques, potes, moiMineur } = utiliserCommunaute();
+  const { pret: communautePrete, trouverPote, bloques } = utiliserCommunaute();
   const liste = useRef<PoigneeListeMessages>(null);
   // Juste après avoir bloqué ou quitté : rien à montrer le temps de revenir à la liste
   const [partie, setPartie] = useState(false);
@@ -104,12 +104,7 @@ export default function EcranDiscussion() {
   const groupe = conversation.type === "groupe";
   const poteId = groupe ? null : (conversation.participants.find((p) => p !== ID_MOI) ?? null);
   const pote = poteId ? trouverPote(poteId) : null;
-  const dansBande = pote !== null && potes.some((p) => p.id === pote.id);
-  // Avec un ou une 15-17 ans (toi compris), on se rajoute seulement en vrai, par lien ou QR code
-  const parLienSeulement = !!pote && (pote.mineur || moiMineur);
   const ecriturePermise = groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId));
-  const mediasPermis = conversations.peutEnvoyerMedias(conversation.id);
-  const mineurPresent = conversation.participants.some((p) => trouverPote(p)?.mineur);
   const voirProfil = (qui: string) => {
     setMenuOuvert(false);
     router.push({ pathname: "/potes/profil/[id]", params: { id: qui } });
@@ -141,8 +136,6 @@ export default function EcranDiscussion() {
             ref={liste}
             conversation={conversation}
             membres={membres}
-            mediasPermis={mediasPermis}
-            mineurPresent={mineurPresent}
             aLEcran={aLEcran}
             onBloque={apresBlocage}
           />
@@ -158,16 +151,10 @@ export default function EcranDiscussion() {
                 {lierPonctuation(
                   !pote
                     ? "Cette personne n'est plus sur SOS Miam : tu peux relire vos messages, mais plus lui en envoyer."
-                    : !dansBande
-                      ? `${pote.prenom} n'est plus dans ta bande : vos messages restent là, mais pour vous réécrire, il faut d'abord vous rajouter${parLienSeulement ? ", en vrai, par lien ou QR code (la règle des 15-17 ans)" : ""}.`
-                      : `Avec les 15-17 ans, on ne discute qu'entre potes ajoutés en vrai, par lien ou QR code. Ajoutez-vous comme ça, ${pote.prenom} et toi, et c'est reparti !`,
+                    : `${pote.prenom} n'est plus dans ta bande : vos messages restent là, mais pour vous réécrire, il faut d'abord vous rajouter.`,
                 )}
               </Text>
-              {!pote ? null : parLienSeulement ? (
-                <Bouton libelle="Ajouter par lien ou QR code" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} className="mt-1 self-start" />
-              ) : (
-                <Bouton libelle={`Voir le profil de ${pote.prenom}`} variante="blanc" petit onPress={() => voirProfil(pote.id)} className="mt-1 self-start" />
-              )}
+              {pote ? <Bouton libelle={`Voir le profil de ${pote.prenom}`} variante="blanc" petit onPress={() => voirProfil(pote.id)} className="mt-1 self-start" /> : null}
             </View>
           )}
         </View>

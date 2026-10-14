@@ -6,7 +6,7 @@ import {
 } from "./evenements-regles.ts";
 
 export type LieuEvenementEnMemoire = LieuEvenement & { latitude: number | null; longitude: number | null };
-export type CompteEvenementEnMemoire = { prenom: string; dateNaissanceChiffree: string | null };
+export type CompteEvenementEnMemoire = { prenom: string };
 type InteretEnMemoire = { compteId: number; evenementId: number; rappel: boolean; creeLe: number };
 
 export function creerEvenementsEnMemoire() {
@@ -92,10 +92,6 @@ export function creerEvenementsEnMemoire() {
     async retirerInteret(compteId, evenementId) {
       const index = interets.findIndex((i) => i.compteId === compteId && i.evenementId === evenementId);
       if (index >= 0) interets.splice(index, 1);
-    },
-    async lireNaissanceChiffree(compteId) {
-      const compte = comptes.get(compteId);
-      return compte ? compte.dateNaissanceChiffree : undefined;
     },
   };
 

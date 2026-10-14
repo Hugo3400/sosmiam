@@ -81,6 +81,4 @@ export interface ServicesEvenements {
   poserInteret(compteId: number, evenementId: number, rappel: boolean): Promise<void>;
   /** Le retire (rien à retirer : rien ne change) */
   retirerInteret(compteId: number, evenementId: number): Promise<void>;
-  /** La date de naissance chiffrée du compte (null : compte du site, 18 ans) ; undefined : compte inconnu */
-  lireNaissanceChiffree(compteId: number): Promise<string | null | undefined>;
 }

@@ -58,6 +58,7 @@ import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle
 import { brancherCleDesinscription } from "./services/liens-desinscription.ts";
 import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
+import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -130,6 +131,8 @@ const serveur = creerApplication({
       apple: creerVerificateurApple({ audiences: audiencesApple }),
       google: creerVerificateurGoogle({ audiences: audiencesGoogle }),
     },
+    // Case « newsletter » cochée à la création d'un compte de l'app (inscription, Apple, Google) : soft opt-in de la CNIL
+    newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app") },
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)

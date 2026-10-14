@@ -36,6 +36,13 @@ type Memoire = {
   essais: number;
 };
 
+/** Ce que l'écran affiche : copie de la mémoire, prise à chaque changement */
+type Vue = { actif: boolean; activite: ActiviteApi; serveur: ActiviteApi | null; chargee: boolean; horsLigne: boolean };
+
+/** Avant toute réponse : 3 rescousses, aucune liste (la date de recharge n'est pas affichée) */
+const ACTIVITE_VIDE = creerActiviteApiVide();
+const vueVide = (actif: boolean): Vue => ({ actif, activite: ACTIVITE_VIDE, serveur: null, chargee: false, horsLigne: false });
+
 const memoireVide = (): Memoire => ({ pret: false, serveur: null, luLe: 0, enVol: null, file: [], relire: false, occupe: false, essais: 0 });
 
 /** La dernière réponse de l'API, sans les rescousses de la semaine passée si le lundi est arrivé depuis */
@@ -84,21 +91,40 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
   const fins = useRef(new Map<GesteActiviteEnAttente, (fin: FinRescousse) => void>());
   const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
   const confirmer = useRef(surRescousseConfirmee);
-  const [version, setVersion] = useState(0);
-  const [chargee, setChargee] = useState(false);
-  const [horsLigne, setHorsLigne] = useState(false);
+  const [vue, setVue] = useState<Vue>(() => vueVide(actif));
+  // Compte connecté ou déconnecté : on repart d'une activité vide (la mémoire et la copie suivent, dans l'effet plus bas)
+  if (vue.actif !== actif) setVue(vueVide(actif));
 
   useEffect(() => {
     confirmer.current = surRescousseConfirmee;
   }, [surRescousseConfirmee]);
 
-  /** Redessine, et garde la copie sur le téléphone */
-  const publier = useCallback(() => {
-    setVersion((v) => v + 1);
-    const { pret, serveur, luLe, enVol, file } = m.current;
-    if (!pret || !actifActuel.current) return;
-    enregistrerActiviteCompte({ activite: serveur, luLe, enAttente: enVol ? [enVol, ...file] : file }).catch(() => {});
+  /** L'activité affichée à cet instant (lue en mémoire : à jour même entre deux rendus, pour deux appuis rapides) */
+  const lireAffichee = useCallback((): ActiviteApi => {
+    const memoire = m.current;
+    return memoire.file.reduce(appliquerGesteActivite, calculerBase(memoire, Date.now()));
   }, []);
+
+  /** Redessine avec la mémoire (et `enPlus` : chargée, hors ligne) */
+  const montrer = useCallback(
+    (enPlus: Partial<Pick<Vue, "chargee" | "horsLigne">> = {}) => {
+      const activite = lireAffichee();
+      const serveur = m.current.serveur;
+      setVue((v) => ({ ...v, ...enPlus, activite, serveur }));
+    },
+    [lireAffichee],
+  );
+
+  /** Redessine, et garde la copie sur le téléphone */
+  const publier = useCallback(
+    (enPlus: Partial<Pick<Vue, "chargee" | "horsLigne">> = {}) => {
+      montrer(enPlus);
+      const { pret, serveur, luLe, enVol, file } = m.current;
+      if (!pret || !actifActuel.current) return;
+      enregistrerActiviteCompte({ activite: serveur, luLe, enAttente: enVol ? [enVol, ...file] : file }).catch(() => {});
+    },
+    [montrer],
+  );
 
   /** Prévient (après le geste en cours) ceux qui attendaient un geste qui ne partira jamais */
   const prevenirOublies = useCallback((fin: FinRescousse) => {
@@ -120,7 +146,6 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     m.current.serveur = lireActiviteApi(activite, maintenant) ?? m.current.serveur;
     m.current.luLe = maintenant;
     m.current.essais = 0;
-    setHorsLigne(false);
   };
 
   // Le couloir unique : vide la file, puis relit si on le demande. Ne s'arrête que sur un pépin passager (nouvel essai plus tard).
@@ -137,6 +162,7 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
         const geste = memoire.file[0];
         if (!geste && !memoire.relire) break;
         let erreur: ErreurService | null = null;
+        let chargee: true | undefined;
         if (geste) {
           memoire.file = memoire.file.slice(1);
           memoire.enVol = geste;
@@ -160,7 +186,6 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
             }
             // Refus définitif (cible disparue…) : le geste part en silence ; l'erreur ne porte pas l'activité, on la relit
             if (r.erreur === "hors-ligne" || r.erreur === "erreur-serveur" || !PASSAGERES.has(r.erreur)) memoire.relire = true;
-            if (r.erreur === "hors-ligne") setHorsLigne(true);
             if (r.erreur === "trop-de-demandes" && r.details?.attenteS) attente = r.details.attenteS * 1000;
           }
         } else {
@@ -171,11 +196,11 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
           else {
             erreur = r.erreur;
             memoire.relire = true;
-            if (r.erreur === "hors-ligne") setHorsLigne(true);
           }
-          setChargee(true);
+          chargee = true;
         }
-        publier();
+        // Une réponse (même un refus) : le réseau est là ; pas de réponse du tout : hors ligne
+        publier({ horsLigne: erreur === "hors-ligne", ...(chargee ? { chargee } : {}) });
         // Session expirée : l'app oublie le compte (FournisseurSession), ce couloir s'arrête avec lui
         if (erreur === "connexion-requise") return;
         if (erreur && PASSAGERES.has(erreur)) {
@@ -216,12 +241,6 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     [pomper, publier, prevenirOublies],
   );
 
-  /** L'activité affichée à cet instant (lue en mémoire : à jour même entre deux rendus, pour deux appuis rapides) */
-  const lireAffichee = useCallback((): ActiviteApi => {
-    const memoire = m.current;
-    return memoire.file.reduce(appliquerGesteActivite, calculerBase(memoire, Date.now()));
-  }, []);
-
   const demanderRelecture = useCallback(() => {
     m.current.relire = true;
     void pomper();
@@ -235,9 +254,9 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     const pret = m.current.pret;
     m.current = { ...memoireVide(), pret };
     prevenirOublies({ ok: false, erreur: "connexion-requise" });
-    setVersion((v) => v + 1);
+    montrer();
     await Promise.all([effacerActiviteCompte(), effacerActiviteLocale()]);
-  }, [prevenirOublies]);
+  }, [prevenirOublies, montrer]);
 
   // Compte connecté : la copie du téléphone d'abord (l'app s'ouvre tout de suite, même hors ligne), puis la file et l'API
   useEffect(() => {
@@ -245,9 +264,6 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     generation.current += 1;
     const gen = generation.current;
     m.current = memoireVide();
-    setVersion((v) => v + 1);
-    setChargee(false);
-    setHorsLigne(false);
     if (!actif) {
       prevenirOublies({ ok: false, erreur: "connexion-requise" });
       return;
@@ -262,11 +278,10 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
         const base = mettreAJourSemaine(copie.activite, Date.now());
         memoire.file = rescoussesDabord(memoire.file.reduce((f, g) => ajouterGesteEnAttente(f, g, base), copie.enAttente));
         prevenirOublies({ ok: true, premierSauveteur: false });
-        setChargee(true);
       }
       memoire.pret = true;
       memoire.relire = true;
-      publier();
+      publier(copie ? { chargee: true } : {});
       void pomper();
     });
     return () => {
@@ -284,30 +299,26 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
       const maintenant = Date.now();
       if (maintenant - luLe > RELECTURE_MS || (serveur && maintenant >= Date.parse(serveur.rechargeLe))) m.current.relire = true;
       m.current.essais = 0;
-      setVersion((v) => v + 1);
+      montrer();
       void pomper();
     });
     return () => abonnement.remove();
-  }, [actif, pomper]);
+  }, [actif, pomper, montrer]);
 
   // L'app reste ouverte jusqu'au lundi, heure de Paris : les rescousses reviennent à l'écran, puis l'API confirme
-  const rechargeLe = m.current.serveur?.rechargeLe;
+  const rechargeLe = vue.serveur?.rechargeLe;
   useEffect(() => {
     if (!actif || !rechargeLe) return;
     const delai = Math.max(0, Date.parse(rechargeLe) - Date.now()) + 1000;
     const recharge = setTimeout(() => {
-      setVersion((v) => v + 1);
+      montrer();
       demanderRelecture();
     }, delai);
     return () => clearTimeout(recharge);
-  }, [actif, rechargeLe, demanderRelecture]);
+  }, [actif, rechargeLe, montrer, demanderRelecture]);
 
-  const activite = useMemo(
-    () => lireAffichee(),
-    // version : la mémoire a changé (geste, réponse, retour dans l'app, lundi)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lireAffichee, version],
+  return useMemo(
+    () => ({ activite: vue.activite, serveur: vue.serveur, chargee: vue.chargee, horsLigne: vue.horsLigne, ajouter, lireAffichee, effacer }),
+    [vue, ajouter, lireAffichee, effacer],
   );
-  const serveur = m.current.serveur;
-  return { activite, serveur, chargee, horsLigne, ajouter, lireAffichee, effacer };
 }
