@@ -41,7 +41,7 @@ const ficheExemple: FichePublique = {
   quartier: "Le Port",
   ville: "Montpellier",
   horaires: null,
-  texte: "Ligne séparée",
+  texte: "Ligne\u2028séparée",
   estVerifie: false,
   prix: "€€",
   couleurs: [],
@@ -62,7 +62,7 @@ const ficheExemple: FichePublique = {
 test("le JSON-LD est du JSON valide, sans « < », « > », « & » ni séparateur de ligne bruts", () => {
   const donnees = creerDonneesLieu(ficheExemple, "https://sosmiam.fr/lieux/18");
   const texte = serialiserDonneesStructurees(donnees);
-  assert.doesNotMatch(texte, /[<>&  ]/);
+  assert.doesNotMatch(texte, /[<>&\u2028\u2029]/);
   assert.ok(!texte.toLowerCase().includes("</script"));
   assert.deepEqual(JSON.parse(texte), donnees);
   assert.equal(serialiserDonneesStructurees({ a: "<b>&" }), '{"a":"\\u003cb\\u003e\\u0026"}');

@@ -18,7 +18,7 @@ test("calculerJourParis : le jour qu'il est à Paris, été comme hiver, changem
   assert.equal(calculerJourParis(ms("2026-10-14T22:00:00Z")), "2026-10-15"); // minuit à Paris
   assert.equal(calculerJourParis(ms("2026-12-31T22:59:00Z")), "2026-12-31"); // 23 h 59 en heure d'hiver
   assert.equal(calculerJourParis(ms("2026-12-31T23:00:00Z")), "2027-01-01");
-  // Nuit du 24 au 25 octobre 2026 : 2 h 59 (été) à 1 h UTC moins une minute, puis 2 h (hiver)
+  // Changement d'heure le 25 octobre 2026 à 1 h UTC : 2 h d'avance avant, 1 h après
   assert.equal(calculerJourParis(ms("2026-10-24T22:30:00Z")), "2026-10-25");
   assert.equal(calculerJourParis(ms("2026-10-25T22:30:00Z")), "2026-10-25");
   assert.equal(calculerJourParis(ms("2026-10-25T23:00:00Z")), "2026-10-26");

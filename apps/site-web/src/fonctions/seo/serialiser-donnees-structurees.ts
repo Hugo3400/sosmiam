@@ -5,8 +5,8 @@ const ECHAPPEMENTS: Record<string, string> = {
   "<": "\\u003c",
   ">": "\\u003e",
   "&": "\\u0026",
-  " ": "\\u2028",
-  " ": "\\u2029",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
 };
 
 /**
@@ -14,5 +14,5 @@ const ECHAPPEMENTS: Record<string, string> = {
  * Unicode sont échappés. Un nom de lieu comme « </script><script>… » reste du texte : impossible d'injecter du HTML.
  */
 export function serialiserDonneesStructurees(donnees: unknown): string {
-  return JSON.stringify(donnees).replace(/[<>&  ]/g, (caractere) => ECHAPPEMENTS[caractere] ?? caractere);
+  return JSON.stringify(donnees).replace(/[<>&\u2028\u2029]/g, (caractere) => ECHAPPEMENTS[caractere] ?? caractere);
 }

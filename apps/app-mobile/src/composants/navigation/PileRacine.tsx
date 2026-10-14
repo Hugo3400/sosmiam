@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
@@ -25,6 +26,10 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const reprise = utiliserRepriseCompte();
   // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran
   utiliserInscriptionTelephone();
+  // Les signalements restés sur le téléphone faute de réseau repartent à la modération
+  useEffect(() => {
+    void renvoyerSignalementsEnAttente();
+  }, []);
   const pret = policesChargees && !chargement && modes.pret && !reprise;
   const inscrit = profil !== null;
 

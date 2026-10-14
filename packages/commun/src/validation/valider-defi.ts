@@ -24,12 +24,12 @@ function lireJour(brut: unknown): string | null {
   return date.getUTCMonth() === mois - 1 && date.getUTCDate() === jour && annee >= 2026 && annee <= 2100 ? brut : null;
 }
 
-/** Un emoji (ou quelques-uns) : au moins un pictogramme ou un drapeau, ni lettre ni espace */
+/** Un emoji (ou quelques-uns) : au moins un pictogramme, un drapeau ou un chiffre encadré (« 3️⃣ »), ni lettre ni espace */
 function lireEmoji(brut: unknown): string | null {
   if (typeof brut !== "string") return null;
   const emoji = brut.trim();
   if (emoji.length === 0 || emoji.length > EMOJI_DEFI_MAX || /[\p{L}\s]/u.test(emoji)) return null;
-  return /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(emoji) ? emoji : null;
+  return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u.test(emoji) ? emoji : null;
 }
 
 /** Un titre ou un texte : une ligne de 1 à `max` caractères, sans gros mot ni alcool (un défi rapporte des points : loi Évin) */
