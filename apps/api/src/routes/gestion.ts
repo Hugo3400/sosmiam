@@ -118,6 +118,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/newsletter/inscrits", c.inscrits);
   routes.delete("/newsletter/inscrits/:id", c.desinscrire);
   routes.get("/newsletter/export", c.exporter);
+  routes.post("/newsletter/inscrire-comptes-app", c.inscrireComptesApp);
   routes.get("/newsletter/boite", c.boite);
   routes.post("/newsletter/boite/synchroniser", c.synchroniserBoite);
   routes.get("/newsletter/destinataires", m.destinataires);

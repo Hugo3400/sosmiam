@@ -25,7 +25,7 @@ export type EtatLieux = {
 
 export const ContexteLieux = createContext<EtatLieux | null>(null);
 
-/** Les lieux de l'app (FournisseurLieux) : la seule source, à filtrer ensuite selon l'âge (filtrerLieuxSelonAge). */
+/** Les lieux de l'app (FournisseurLieux) : la seule source, à filtrer en visite sans compte (filtrerLieuxSelonAge, âge inconnu). */
 export function utiliserLieux(): EtatLieux {
   const valeur = useContext(ContexteLieux);
   if (!valeur) throw new Error("utiliserLieux doit être appelé sous <FournisseurLieux>.");

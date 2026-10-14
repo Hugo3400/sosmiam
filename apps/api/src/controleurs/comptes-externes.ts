@@ -18,6 +18,7 @@ import type { ServicesComptesExternes } from "../services/comptes-externes-regle
 import type { VerifierJetonExterne } from "../services/connexion-externe.ts";
 import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
 import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
+import { inscrireNewsletterSansAttendre, lireChoixNewsletter } from "./comptes-newsletter.ts";
 import { lireProfilApp, lireSupport, repondreChiffrementIndisponible, VERSION_CGU, type ContexteComptes } from "./comptes.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 
@@ -98,6 +99,8 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     // Ce qui manque pour créer le compte (cgu : les conditions acceptées, comme à l'inscription ; une autre valeur que true
     // est une erreur, pas un manque)
     if (!estAbsent(corps.cgu) && corps.cgu !== true) throw new ChampInvalide("cgu");
+    // La case « newsletter » de l'app (soft opt-in), seulement à la création : une connexion ne la lit jamais
+    const newsletter = lireChoixNewsletter(corps);
     const manque = (["prenom", "dateNaissance", "ville", "cgu"] as const).filter((champ) => estAbsent(corps[champ]));
     if (manque.length > 0) {
       const prenom = lirePrefill(corps.prenom, 40) ?? identite.prenom;
@@ -119,6 +122,7 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     });
     if (id === "pseudo-pris") return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
     if (id === null) return "recommencer" as const;
+    if (newsletter) inscrireNewsletterSansAttendre(contexte.newsletter, email, profil.ville);
     await repondreSession(reponse, id, support, 201);
   }
 
@@ -154,7 +158,7 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
   }
 
   return {
-    /** POST /comptes/apple : { identityToken, nonce, prenom?, nom?, dateNaissance?, ville?, envies?, pseudo?, support? } */
+    /** POST /comptes/apple : { identityToken, nonce, prenom?, nom?, dateNaissance?, ville?, envies?, pseudo?, newsletter?, support? } */
     connecterApple: (requete: Request, reponse: Response) => connecterAvec("apple", requete, reponse),
     /** POST /comptes/google : { idToken, nonce?, mêmes champs } */
     connecterGoogle: (requete: Request, reponse: Response) => connecterAvec("google", requete, reponse),

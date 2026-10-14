@@ -14,17 +14,12 @@ export type EtatConversations = {
   /** Nombre de messages non lus, toutes conversations confondues (pastille sur Potes) */
   nonLus: number;
   nonLusDe: (id: string) => number;
-  /** Vrai si tu peux discuter avec ce pote : il est dans ta bande, et ajouté en vrai si l'un de vous a 15-17 ans */
+  /** Vrai si tu peux discuter avec ce pote : il est dans ta bande, et pas bloqué */
   peutDiscuterAvec: (poteId: string) => boolean;
-  /** Vrai si cette conversation accepte photos et notes vocales (pas de mélange mineurs / adultes) */
-  peutEnvoyerMedias: (conversationId: string) => boolean;
   /** Ouvre (ou crée) la conversation privée avec ce pote ; null si c'est interdit */
   ouvrirPrive: (poteId: string) => string | null;
-  /**
-   * Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés). « en-vrai » : un mineur serait du groupe
-   * (toi compris) avec quelqu'un ajouté seulement par son pseudo ; voir listerMembresRefusesGroupe.
-   */
-  creerGroupe: (titre: string, emoji: string, potes: string[]) => { id: string } | { erreur: "titre" | "participants" | "en-vrai" };
+  /** Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés) */
+  creerGroupe: (titre: string, emoji: string, potes: string[]) => { id: string } | { erreur: "titre" | "participants" };
   envoyerTexte: (conversationId: string, texte: string) => ResultatEnvoiChat;
   envoyerLieu: (conversationId: string, lieuId: number) => ResultatEnvoiChat;
   /** Photo choisie ou prise (fichier temporaire du sélecteur) */

@@ -15,7 +15,6 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
-import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
@@ -28,7 +27,6 @@ import couleurs from "~/theme/couleurs";
 export default function Notifications() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
-  const { profil } = utiliserProfil();
   const { trouverPote } = utiliserCommunaute();
   const notifications = utiliserNotifications();
   const suivis = utiliserSuivisPersonnes();

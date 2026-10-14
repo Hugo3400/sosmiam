@@ -109,6 +109,12 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
       await noter(reponse, "Inscrit désinscrit et effacé", `inscription n° ${id}`);
       reponse.json({ ok: true });
     }),
+    /** POST /newsletter/inscrire-comptes-app : les comptes vus sur l'app, sauf les désinscrits (lancé par Hugo) */
+    inscrireComptesApp: verifier(async (_requete, reponse) => {
+      const resultat = await s.inscrireComptesAppNewsletter();
+      await noter(reponse, "Comptes de l'app inscrits à la newsletter", `${resultat.inscrits} sur ${resultat.comptes} (${resultat.desinscrits} désinscrit(s) laissé(s) de côté)`);
+      reponse.json({ ok: true, ...resultat });
+    }),
     exporter: verifier(async (_requete, reponse) => {
       const csv = await s.exporterInscrits();
       await noter(reponse, "Export des inscrits (CSV)");

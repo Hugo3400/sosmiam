@@ -114,16 +114,37 @@ export async function purgerDesinscritsAnciens(maintenant = new Date()): Promise
  * Inscrit un ambassadeur validé à la newsletter (décidé par Hugo le 14 octobre 2026 : les ambassadeurs le sont par défaut),
  * sauf s'il s'en est désinscrit un jour. Rend true s'il est (ou était déjà) inscrit.
  */
-export async function inscrireAmbassadeurNewsletter(email: string, ville: string | null, maintenant = new Date()): Promise<boolean> {
+export function inscrireAmbassadeurNewsletter(email: string, ville: string | null, maintenant = new Date()): Promise<boolean> {
+  return inscrireCompteNewsletter(email, ville, "ambassadeur", maintenant);
+}
+
+/**
+ * Inscrit un compte à la newsletter : ambassadeur validé (par défaut), ou compte de l'app qui l'a demandé (décidé par Hugo
+ * le 14 octobre 2026). Jamais une adresse qui s'est désinscrite un jour. Une adresse déjà inscrite garde sa fiche : seule
+ * la date de dernière inscription change (et « ambassadeur » pour un ambassadeur). Rend true si elle est inscrite.
+ */
+export async function inscrireCompteNewsletter(email: string, ville: string | null, source: "app" | "ambassadeur", maintenant = new Date()): Promise<boolean> {
   const adresse = email.trim().toLowerCase();
   const desinscrits = await readFile(FICHIER_DESINSCRITS, "utf8").catch(() => "");
   if (desinscrits.split("\n").some((ligne) => ligne.split(" ")[0]?.trim().toLowerCase() === adresse)) return false;
+  const ambassadeur = source === "ambassadeur";
   await baseDeDonnees.inscriptionNewsletter.upsert({
     where: { email: adresse },
-    create: { email: adresse, ville, ambassadeur: true, source: "ambassadeur", premiereInscription: maintenant, derniereInscription: maintenant },
-    update: { ambassadeur: true },
+    create: { email: adresse, ville: ville || null, ambassadeur, source, premiereInscription: maintenant, derniereInscription: maintenant },
+    update: { derniereInscription: maintenant, ...(ambassadeur ? { ambassadeur: true } : {}) },
   });
   return true;
+}
+
+/** « Inscrire les comptes de l'app à la newsletter » (logiciel) : ceux qu'on a vus sur l'app, sauf les désinscrits */
+export async function inscrireComptesAppNewsletter(maintenant = new Date()) {
+  const comptes = await baseDeDonnees.compte.findMany({
+    where: { OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }, { googleSub: { not: null } }, { appleSub: { not: null } }] },
+    select: { email: true, ville: true },
+  });
+  let inscrits = 0;
+  for (const compte of comptes) if (await inscrireCompteNewsletter(compte.email, compte.ville, "app", maintenant)) inscrits++;
+  return { comptes: comptes.length, inscrits, desinscrits: comptes.length - inscrits };
 }
 
 /** Tous les inscrits de la base, au format CSV (séparateur « ; », s'ouvre tel quel dans un tableur). */

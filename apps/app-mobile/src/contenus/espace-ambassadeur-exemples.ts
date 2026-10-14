@@ -1,6 +1,6 @@
 // Espace ambassadeur INVENTÉ pour la démo (en développement seulement) : 3 avis à relire, 2 missions, 2 messages de
-// l'équipe. Les avis à relire ne portent jamais leur auteur ni son âge (jamais l'avis d'un 15-17 ans). Les dates sont
-// relatives au départ de la démo ; creerMagasinInitial y ajoute les lieux.
+// l'équipe. Les avis à relire ne portent jamais leur auteur ni son âge. Les dates sont relatives au départ de la démo ;
+// creerMagasinInitial y ajoute les lieux.
 import type { NoteAvis, RaisonRelecture } from "@sos-miam/commun/types/avis";
 import type { TypeMission } from "@sos-miam/commun/types/espace-ambassadeur";
 import type { ModeValidation } from "@sos-miam/commun/types/visite";

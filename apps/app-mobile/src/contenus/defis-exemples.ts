@@ -25,8 +25,8 @@ export const defisExemples: Defi[] = [
     id: "premiers",
     emoji: "🚀",
     titre: "Toujours le premier",
-    // 1 et pas 3 : des 3 lieux tout juste arrivés des exemples, un seul est vérifié et ouvert à tous (le 15 n'a pas de compte
-    // SOS Miam, donc pas de rescousse ; le 17 est un bar, caché avant 18 ans)
+    // 1, comme le dit le texte : un seul lieu suffit. Des 3 lieux tout juste arrivés des exemples, deux peuvent recevoir ta
+    // rescousse, le 16 et le bar 17 (le 15 n'a pas de compte SOS Miam, donc pas de rescousse)
     texte: "Sois le premier sauveteur d'un lieu tout juste arrivé",
     objectif: 1,
     points: 40,

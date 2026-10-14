@@ -47,7 +47,7 @@ import { ajouterMedia, retirerMedia, trouverFichierMedia } from "./medias.ts";
 import { contesterSignalement, deciderSignalement, listerSignalements } from "./moderation.ts";
 import { deciderSignalementMiamSafe, listerMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe } from "./miam-safe.ts";
 import {
-  creerBrouillon, desinscrire, exporterInscrits, lireBrouillon, listerBrouillons, listerInscrits, modifierBrouillon, supprimerBrouillon,
+  creerBrouillon, desinscrire, exporterInscrits, inscrireComptesAppNewsletter, lireBrouillon, listerBrouillons, listerInscrits, modifierBrouillon, supprimerBrouillon,
 } from "./newsletter.ts";
 import {
   changerStatutPublication, creerPublication, lirePublication, listerPublications, modifierPublication, supprimerPublication,
@@ -62,7 +62,7 @@ import { lireTableauDeBord } from "./tableau-de-bord.ts";
 export const servicesGestion = {
   noterAction, listerJournal,
   lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques, lireStatistiquesCommunaute, lireBilanMois,
-  listerInscrits, desinscrire, exporterInscrits,
+  listerInscrits, desinscrire, exporterInscrits, inscrireComptesAppNewsletter,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
   listerLieux, lireLieu, lireHistoriqueLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,
   listerPublications, lirePublication, creerPublication, modifierPublication, changerStatutPublication, supprimerPublication,

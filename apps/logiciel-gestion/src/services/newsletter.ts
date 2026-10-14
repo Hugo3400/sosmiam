@@ -52,6 +52,9 @@ export type Brouillon = ResumeBrouillon & { texte: string; contenu: JSONContent 
 
 export const listerInscrits = (filtres: FiltresInscrits) => appeler<ListeInscrits>("GET", `/newsletter/inscrits${parametres(filtres)}`);
 export const desinscrire = (id: number) => appeler<{ ok: true }>("DELETE", `/newsletter/inscrits/${id}`);
+/** Inscrit à la newsletter les comptes vus sur l'app, sauf ceux qui s'en sont désinscrits un jour */
+export const inscrireComptesApp = () =>
+  appeler<{ ok: true; comptes: number; inscrits: number; desinscrits: number }>("POST", "/newsletter/inscrire-comptes-app", { corps: {} });
 export const exporterInscrits = () => appeler<string>("GET", "/newsletter/export", { reponse: "texte" });
 
 export const listerBrouillons = () => appeler<ResumeBrouillon[]>("GET", "/newsletter/brouillons");

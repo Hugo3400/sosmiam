@@ -3,17 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "@sos-miam/commun/regles/chat";
 import { ID_MOI, LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import { REACTIONS_CHAT, type Conversation, type MessageChat } from "@sos-miam/commun/types/conversations";
-import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerConversationsExemples } from "~/contenus/conversations-exemples";
 import { potesExemples, reponsesExemples } from "~/contenus/potes-exemples";
-import { listerMembresRefusesGroupe } from "~/fonctions/chat/lister-membres-refuses-groupe";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
-import { peutDiscuter } from "~/fonctions/communaute/peut-discuter";
-import { peutEnvoyerMedias } from "~/fonctions/communaute/peut-envoyer-medias";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { ContexteConversations, type EtatConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
-import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import {
   effacerConversationsLocales,
@@ -32,13 +27,10 @@ const creerConversationsDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? cr
 /**
  * Chat entre potes : messages privés et groupes, gardés sur le téléphone avec leurs photos et notes vocales (mode démo :
  * des conversations d'exemple, et des potes qui répondent tout seuls ; sinon, rien tant que l'API des messages n'existe pas).
- * Protection des 15-17 ans : seulement avec des potes ajoutés en vrai (dans un groupe avec un mineur, tous les membres),
- * et ni photo ni vocal entre mineurs et adultes. En privé, on n'écrit qu'aux potes de sa bande.
+ * On n'écrit qu'aux potes de sa bande (pas bloqués) : texte, lieu, photo ou note vocale.
  */
 export function FournisseurConversations({ children }: { children: ReactNode }) {
   const communaute = utiliserCommunaute();
-  const { trouverLieu } = utiliserLieux();
-  const estUnBar = useCallback((lieuId: number) => trouverLieu(lieuId)?.type === "bar", [trouverLieu]);
   const [conversations, setConversations] = useState<Conversation[]>(() => creerConversationsDepart(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
@@ -58,19 +50,11 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
     if (charge.current) enregistrerConversationsLocales(conversations).catch(() => {});
   }, [conversations]);
 
-  const { moi, trouverPote, moyenAjout, estSignale } = communaute;
+  const { trouverPote, estSignale } = communaute;
   const bloques = useMemo(() => new Set(communaute.bloques.map((p) => p.id)), [communaute.bloques]);
   // Ta bande, sans les personnes bloquées : retirer quelqu'un de sa bande met aussi votre discussion en pause
   const bande = useMemo(() => new Set(communaute.potes.map((p) => p.id)), [communaute.potes]);
-  const trouverTous = useCallback((ids: string[]) => ids.map((id) => trouverPote(id)).filter((p): p is Pote => !!p), [trouverPote]);
-  const participantsDe = useCallback((c: Conversation) => trouverTous(c.participants), [trouverTous]);
-  const peutDiscuterAvec = useCallback(
-    (poteId: string) => {
-      const pote = trouverPote(poteId);
-      return !!pote && bande.has(poteId) && !bloques.has(poteId) && peutDiscuter(moi, pote, moyenAjout(poteId));
-    },
-    [trouverPote, bande, bloques, moi, moyenAjout],
-  );
+  const peutDiscuterAvec = useCallback((poteId: string) => !!trouverPote(poteId) && bande.has(poteId) && !bloques.has(poteId), [trouverPote, bande, bloques]);
 
   const ajouterMessage = useCallback((id: string, message: MessageChat) => {
     setConversations((cs) => cs.map((c) => (c.id === id ? { ...c, messages: [...c.messages, message] } : c)));
@@ -105,17 +89,13 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
     const visibles = conversations
       .filter((c) => c.participants.includes(ID_MOI))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
-      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id) && !(m.lieuId !== undefined && moi.mineur && estUnBar(m.lieuId))) }))
+      .map((c) => ({ ...c, messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id)) }))
       .sort((a, b) => dernierMessage(b).localeCompare(dernierMessage(a)));
     const nonLusDe = (id: string) => {
       const c = visibles.find((x) => x.id === id);
       return c ? c.messages.filter((m) => m.auteur !== ID_MOI && (!c.luJusqua || m.date > c.luJusqua)).length : 0;
     };
-    const mediasPermis = (id: string) => {
-      const c = visibles.find((x) => x.id === id);
-      return !!c && peutEnvoyerMedias(participantsDe(c));
-    };
-    // En privé, seulement si vous pouvez encore discuter (dans ta bande, ajoutés en vrai avec un mineur) ; sinon, la discussion est en pause
+    // En privé, seulement si vous pouvez encore discuter (dans ta bande, pas bloqué) ; sinon, la discussion est en pause
     const ouverte = (c: Conversation | undefined): c is Conversation => !!c && (c.type === "groupe" || c.participants.every((p) => p === ID_MOI || peutDiscuterAvec(p)));
     const envoyer = (id: string, message: Omit<MessageChat, "id" | "auteur" | "date" | "reactions">): ResultatEnvoiChat => {
       const c = visibles.find((x) => x.id === id);
@@ -126,7 +106,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       return "ok";
     };
     const envoyerFichier = async (id: string, uri: string, extension: string, autre: Partial<MessageChat> & { type: "photo" | "vocal" }) => {
-      if (!ouverte(visibles.find((x) => x.id === id)) || !mediasPermis(id)) return "interdit" as const;
+      if (!ouverte(visibles.find((x) => x.id === id))) return "interdit" as const;
       try {
         const fichier = await garderFichierChat(uri, extension);
         return envoyer(id, { ...autre, fichier });
@@ -141,7 +121,6 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
       nonLus: visibles.reduce((n, c) => n + nonLusDe(c.id), 0),
       nonLusDe,
       peutDiscuterAvec,
-      peutEnvoyerMedias: mediasPermis,
       ouvrirPrive: (poteId) => {
         if (!peutDiscuterAvec(poteId)) return null;
         const existante = conversations.find((c) => c.type === "prive" && c.participants.includes(poteId) && c.participants.includes(ID_MOI));
@@ -155,8 +134,6 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         if (propre === "" || propre.length > LONGUEUR_MAX_TITRE_GROUPE || contientMotInterdit(propre)) return { erreur: "titre" };
         const membres = [...new Set(potes)].filter(peutDiscuterAvec);
         if (membres.length < 1 || membres.length + 1 > MAX_PARTICIPANTS_GROUPE) return { erreur: "participants" };
-        // Un mineur dans le groupe (toi compris) : seulement des potes ajoutés en vrai, pas par leur seul pseudo
-        if (listerMembresRefusesGroupe(moi, trouverTous(membres), moyenAjout).length > 0) return { erreur: "en-vrai" };
         const id = creerIdentifiant("groupe");
         setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [ID_MOI, ...membres], creePar: ID_MOI, messages: [] }]);
         return { id };
@@ -168,12 +145,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         if (contientMotInterdit(propre)) return "mot-interdit";
         return envoyer(id, { type: "texte", texte: propre });
       },
-      envoyerLieu: (id, lieuId) => {
-        const c = visibles.find((x) => x.id === id);
-        // Pas de bar dans une conversation où il y a un mineur
-        if (!c || (estUnBar(lieuId) && participantsDe(c).some((p) => p.mineur))) return "interdit";
-        return envoyer(id, { type: "lieu", lieuId });
-      },
+      envoyerLieu: (id, lieuId) => envoyer(id, { type: "lieu", lieuId }),
       envoyerPhoto: (id, uri) => envoyerFichier(id, uri, "jpg", { type: "photo" }),
       envoyerVocal: (id, uri, duree) => envoyerFichier(id, uri, "m4a", { type: "vocal", dureeSecondes: Math.round(duree) }),
       basculerReaction: (id, messageId, reaction) =>
@@ -206,7 +178,7 @@ export function FournisseurConversations({ children }: { children: ReactNode }) 
         setConversations(creerConversationsDepart(new Date()));
       },
     };
-  }, [conversations, bloques, estSignale, moi, moyenAjout, estUnBar, pret, peutDiscuterAvec, participantsDe, trouverTous, ajouterMessage, faireReagir]);
+  }, [conversations, bloques, estSignale, pret, peutDiscuterAvec, ajouterMessage, faireReagir]);
 
   return <ContexteConversations.Provider value={valeur}>{children}</ContexteConversations.Provider>;
 }

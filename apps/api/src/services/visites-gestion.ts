@@ -5,13 +5,13 @@ import type { MessagePush } from "./notifications/expedier-push.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { deciderVisite } from "../fonctions/visites/decider-visite.ts";
-import { estMajeurVisiteur } from "../fonctions/visites/est-majeur-visiteur.ts";
 import type { PointsVisite } from "../fonctions/visites/appliquer-effets-visite.ts";
 import type { DepotVisites } from "./visites-regles.ts";
 
 export type DependancesVisitesGestion = {
   depot: DepotVisites;
-  chiffrement: ChiffrementDonnees | null;
+  /** Plus lu (l'âge ne compte plus pour la fidélité) : facultatif le temps que demarrer.ts arrête de le passer */
+  chiffrement?: ChiffrementDonnees | null;
   /** ajouterPoints de services/comptes.ts */
   ajouterPoints: (compteId: number, points: number, raison: "visite" | "visite-sos", detail?: string) => Promise<unknown>;
   /** prevenirCompte de services/notifications/prevenir-compte.ts (facultatif dans les tests) */
@@ -26,7 +26,7 @@ export function creerVisitesGestion(d: DependancesVisitesGestion) {
   return {
     /**
      * « Donner raison au client » : une visite contestée, refusée ou retirée, passe en validée avec les effets d'une validation
-     * (points, tampon de fidélité selon l'âge, avis ouvert dans 1 h). Décidée par l'équipe SOS Miam : decideParId vide, jamais
+     * (points, tampon de fidélité, avis ouvert dans 1 h). Décidée par l'équipe SOS Miam : decideParId vide, jamais
      * annulable par le lieu ; « contestee » reste vrai (le logiciel la montre « raison donnée »). Le client est prévenu ; le lieu,
      * lui, ne reçoit rien (et jamais le mot du client).
      */
@@ -38,9 +38,7 @@ export function creerVisitesGestion(d: DependancesVisitesGestion) {
         const v = await t.lireVisite(visiteId);
         if (!v) return { ok: false, erreur: "introuvable" } as const;
         if (!v.contestee) return { ok: false, erreur: "pas-contestee" } as const;
-        const compte = (await t.lireComptes([v.compteId])).get(v.compteId);
-        const majeur = estMajeurVisiteur(compte?.dateNaissanceChiffree ?? null, d.chiffrement, maintenant);
-        const decision = await deciderVisite(t, v, { type: "donner-raison", reglement: v.reglement ?? undefined }, maintenant, majeur, null);
+        const decision = await deciderVisite(t, v, { type: "donner-raison", reglement: v.reglement ?? undefined }, maintenant, null);
         if (!decision.ok) return { ok: false, erreur: "transition-interdite" } as const;
         const lieu = (await t.resumerLieux([v.lieuId])).get(v.lieuId);
         return { ok: true, visiteId, compteId: v.compteId, lieuId: v.lieuId, points: decision.points, nomLieu: lieu?.nom ?? "ce lieu" } as const;
