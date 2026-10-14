@@ -178,7 +178,9 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
 
   const inscrire = () => fermerPuisOuvrir("/compte");
   // Les profils sont réservés aux inscrits : en visite, « Crée ton compte » se pose sur la feuille
-  const ouvrirProfil = (id: string) => exigerCompte("potes") && fermerPuisOuvrir({ pathname: "/potes/profil/[id]", params: { id } });
+  function ouvrirProfil(id: string) {
+    if (exigerCompte("potes")) fermerPuisOuvrir({ pathname: "/potes/profil/[id]", params: { id } });
+  }
 
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
   /** Replace le lecteur d'écran sur le titre de la feuille (ce qu'on vient de toucher a disparu), puis dit ce qui s'est passé */
