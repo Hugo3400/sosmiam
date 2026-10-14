@@ -3,18 +3,29 @@ import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/mon-compte";
 import { BoutonDeconnexion } from "~/composants/compte/BoutonDeconnexion";
+import { ConnexionMonCompte } from "~/composants/compte/ConnexionMonCompte";
 import { FormulaireChangerMotDePasse } from "~/composants/compte/FormulaireChangerMotDePasse";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { FormulaireProfil } from "~/composants/compte/FormulaireProfil";
 import { FormulaireSupprimerCompte } from "~/composants/compte/FormulaireSupprimerCompte";
 import { PartieCompte } from "~/composants/compte/PartieCompte";
+import { PartieMesDonnees } from "~/composants/compte/PartieMesDonnees";
+import { PartieSupprimerSansConnexion } from "~/composants/compte/PartieSupprimerSansConnexion";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { site } from "~/contenus/legal/informations-legales";
+import { accueilsMonCompte, CHAPO_CONNECTE, CHAPO_VISITEUR } from "~/contenus/mon-compte";
 import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
+import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
+import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
+import { lireEspaceMonCompte } from "~/fonctions/hotes/lire-espace-mon-compte";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { changerMotDePasse, decrireAttente, MESSAGE_OCCUPE, modifierCompte, supprimerCompte } from "~/services/comptes.server";
-import { effacerCookieSession, exigerCompte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee } from "~/services/session-compte.server";
+import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
+import {
+  effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
+} from "~/services/session-compte.server";
 
 const messages = {
   prenom: "Donne ton prénom ou un surnom (40 caractères au plus).",
@@ -32,40 +43,64 @@ const messages = {
 /** Après un changement de mot de passe : « ?mot-de-passe-change=<marque> », une marque nouvelle à chaque changement. */
 const PARAMETRE_CHANGE = "mot-de-passe-change";
 
+/** Où mène le lien du bas de la page, selon l'espace. */
+const retours = {
+  ambassadeur: { vers: "/espace", texte: "Retour à mon espace" },
+  pro: { vers: "/tableau", texte: "Retour à mon tableau" },
+  site: { vers: "/", texte: "Retour à l'accueil" },
+};
+
 /**
- * La même page sert deux espaces, chacun avec son cookie : /espace/mon-compte (ambassadeur.sosmiam.fr) et /mon-compte
- * (pro.sosmiam.fr, cadre pro : voir routes.ts). L'adresse dit lequel ; « chemin » : celle de la page, pour y revenir.
+ * La même page sert trois espaces, chacun avec son cookie : /espace/mon-compte (ambassadeur.sosmiam.fr), /mon-compte sur
+ * pro.sosmiam.fr (cadre pro) et /mon-compte sur sosmiam.fr (cadre public : voir routes.ts). « chemin » : celui de la page,
+ * pour y revenir.
  */
 function lireEspacePage(request: Request) {
-  const chemin = new URL(request.url).pathname.replace(/\.data$/, "").replace(/\/+$/, "");
-  return chemin === "/mon-compte"
-    ? { espace: "pro" as const, chemin, retour: { vers: "/tableau", texte: "Retour à mon tableau" } }
-    : { espace: "ambassadeur" as const, chemin: "/espace/mon-compte", retour: { vers: "/espace", texte: "Retour à mon espace" } };
+  const url = new URL(request.url);
+  const espace = lireEspaceMonCompte(lireEspaceHote(url.host), url.pathname);
+  return { espace, chemin: espace === "ambassadeur" ? "/espace/mon-compte" : "/mon-compte", retour: retours[espace] };
 }
 
+const descriptions = {
+  ambassadeur: "Ton compte ambassadeur SOS Miam.",
+  pro: "Ton compte SOS Miam, dans l'espace pro.",
+  site: "Ton compte SOS Miam : tes infos, tes données, et la suppression de ton compte, même sans te connecter.",
+};
+
 export function meta({ loaderData }: Route.MetaArgs) {
-  const description = loaderData?.espace === "pro" ? "Ton compte SOS Miam, dans l'espace pro." : "Ton compte ambassadeur SOS Miam.";
-  return [...creerMeta({ titre: "Mon compte", description }), { name: "robots", content: "noindex" }];
+  return [...creerMeta({ titre: "Mon compte", description: descriptions[loaderData?.espace ?? "ambassadeur"] }), { name: "robots", content: "noindex" }];
 }
 
 /**
  * Ce que la page montre du compte : prénom, e-mail, ville et quartier (seulement avec une fiche d'ambassadeur) ; si le mot
- * de passe vient d'être changé ; l'espace qui sert la page et son lien de retour.
+ * de passe vient d'être changé ; l'espace qui sert la page, son lien de retour et l'avertissement de la suppression.
+ * Sur sosmiam.fr, sans connexion : la page elle-même (connexion, suppression par mail, « Mes données »), pas de renvoi.
  */
 export async function loader({ request }: Route.LoaderArgs) {
-  const { compte } = await exigerCompte(request);
+  const url = new URL(request.url);
   const { espace, retour } = lireEspacePage(request);
+  if (espace === "site" && !(await lireCompteConnecte(request))) {
+    const accueil = url.searchParams.has("au-revoir") ? accueilsMonCompte["au-revoir"] : url.searchParams.has("deconnecte") ? accueilsMonCompte.deconnecte : null;
+    // Sur sosmiam.fr, « Mot de passe oublié » vit sur l'espace ambassadeur (le lien reçu par mail y mène aussi)
+    const adresseOubli = url.hostname === site.adresse ? `https://${HOTE_AMBASSADEUR}/mot-de-passe-oublie` : "/mot-de-passe-oublie";
+    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli };
+  }
+  const { compte } = await exigerCompte(request);
   // La marque est l'heure du changement (Date.now() en base 36) : passé 2 minutes (rechargement, retour arrière, adresse
   // tapée à la main), plus de message
-  const marque = new URL(request.url).searchParams.get(PARAMETRE_CHANGE);
+  const marque = url.searchParams.get(PARAMETRE_CHANGE);
   const recente = marque !== null && Math.abs(Date.now() - Number.parseInt(marque, 36)) < 2 * 60_000;
+  // Sur sosmiam.fr, l'avertissement de la suppression suit le compte : ambassadeur, pro (au moins un lieu), ou ni l'un ni l'autre
+  const suppression: "ambassadeur" | "pro" | "compte" = espace !== "site" ? espace : compte.ambassadeur ? "ambassadeur" : compte.pro?.lieux?.length ? "pro" : "compte";
   return {
+    connecte: true as const,
     prenom: compte.prenom,
     email: compte.email,
     lieu: compte.ambassadeur ? { ville: compte.ambassadeur.ville, quartier: compte.ambassadeur.quartier } : null,
     motDePasseChange: recente ? marque : null,
     espace,
     retour,
+    suppression,
   };
 }
 
@@ -76,11 +111,16 @@ function expliquer({ erreur, attente }: { erreur: string; attente?: number }): s
   return lierPonctuation(`Trop d'essais : réessaie dans ${decrireAttente(attente)}.`);
 }
 
-/** Trois formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte. */
+/**
+ * Trois formulaires (champ caché « formulaire ») : infos, mot de passe, suppression du compte ; et sur sosmiam.fr, la
+ * connexion (dans la page même, puis retour ici).
+ */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseFormulaire> {
-  const { jeton, compte } = await exigerCompte(request);
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
+  const page = lireEspacePage(request);
+  if (formulaire.get("formulaire") === "connexion" && page.espace === "site") return connecterDepuisFormulaire(request, formulaire, "/mon-compte");
+  const { jeton, compte } = await exigerCompte(request);
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\s+/g, " ").trim();
   const ip = lireIpVisiteur(request);
   const nom = formulaire.get("formulaire");
@@ -119,7 +159,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
       // jeton part dans le cookie par une REDIRECTION. Avec data(), une page envoyée sans JavaScript relirait ses loaders
       // avec l'ancien jeton, déjà fermé, et renverrait à la connexion. L'ancre ramène à cette partie de la page.
       const cookie = reponse.session ? { "Set-Cookie": await poserCookieSession(reponse.session) } : undefined;
-      throw redirect(`${lireEspacePage(request).chemin}?${PARAMETRE_CHANGE}=${Date.now().toString(36)}#mon-mot-de-passe`, { headers: cookie });
+      throw redirect(`${page.chemin}?${PARAMETRE_CHANGE}=${Date.now().toString(36)}#mon-mot-de-passe`, { headers: cookie });
     }
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { actuel: messages.actuelIncorrect } };
@@ -131,7 +171,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     const motDePasse = String(formulaire.get("motDePasse") ?? "");
     if (!motDePasse) return { ok: false, formulaire: nom, erreurs: { motDePasse: messages.motDePasse } };
     const reponse = await supprimerCompte(jeton, ip, motDePasse);
-    if (reponse.ok) throw redirect("/connexion?au-revoir", { headers: { "Set-Cookie": await effacerCookieSession() } });
+    const apres = page.espace === "site" ? "/mon-compte?au-revoir" : "/connexion?au-revoir";
+    if (reponse.ok) throw redirect(apres, { headers: { "Set-Cookie": await effacerCookieSession() } });
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { motDePasse: messages.motDePasseIncorrect } };
     return { ok: false, formulaire: nom, message: expliquer(reponse) };
@@ -140,9 +181,12 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   throw data("Formulaire inconnu", { status: 400 });
 }
 
-/** Pages /espace/mon-compte et /mon-compte (espace pro) : infos, mot de passe, déconnexion et suppression du compte. */
+/**
+ * Pages /espace/mon-compte et /mon-compte (espace pro, et site principal) : infos, mot de passe, déconnexion et
+ * suppression du compte ; sur sosmiam.fr, en plus, « Mes données » et, sans connexion, la connexion et la suppression par mail.
+ */
 export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
-  const { prenom, email, lieu, motDePasseChange, espace, retour } = loaderData;
+  const motDePasseChange = loaderData.connecte ? loaderData.motDePasseChange : null;
   // Mot de passe changé (on revient ici par une redirection, sans réponse d'action) : le formulaire l'annonce comme une
   // réussite et se vide. Un nouvel objet seulement quand la marque change : chaque changement est annoncé une fois.
   const confirmation = useMemo<ReponseFormulaire | undefined>(
@@ -151,9 +195,39 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
       : undefined,
     [motDePasseChange],
   );
+  const { espace, retour } = loaderData;
+  const surSite = espace === "site";
+  const lienRetour = (
+    <p className="mt-8 text-center">
+      <Link to={retour.vers} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
+        <span aria-hidden="true">← </span>{retour.texte}
+      </Link>
+    </p>
+  );
+
+  if (!loaderData.connecte) {
+    return (
+      <Section fond="creme" etroit>
+        <TitreSection principal chapo={lierPonctuation(CHAPO_VISITEUR)}>Mon compte</TitreSection>
+        {loaderData.accueil && (
+          <p role="status" className="mx-auto -mt-4 mb-8 max-w-xl rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 text-center font-semibold">
+            {loaderData.accueil}
+          </p>
+        )}
+        <div className="grid gap-8">
+          <ConnexionMonCompte adresseOubli={loaderData.adresseOubli} />
+          <PartieSupprimerSansConnexion />
+          <PartieMesDonnees connecte={false} />
+        </div>
+        {lienRetour}
+      </Section>
+    );
+  }
+
+  const { prenom, email, lieu, suppression } = loaderData;
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation("Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
+      <TitreSection principal chapo={lierPonctuation(surSite ? CHAPO_CONNECTE : "Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
         Mon compte
       </TitreSection>
       <div className="grid gap-8">
@@ -165,17 +239,14 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
         </PartieCompte>
         <PartieCompte id="me-deconnecter" titre="Me déconnecter">
           <p className="mb-5 text-gris">Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.</p>
-          <BoutonDeconnexion />
+          <BoutonDeconnexion apres={surSite ? "/mon-compte" : undefined} />
         </PartieCompte>
         <PartieCompte id="supprimer-mon-compte" titre="Supprimer mon compte">
-          <FormulaireSupprimerCompte espace={espace} />
+          <FormulaireSupprimerCompte espace={suppression} />
         </PartieCompte>
+        {surSite && <PartieMesDonnees connecte />}
       </div>
-      <p className="mt-8 text-center">
-        <Link to={retour.vers} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-          <span aria-hidden="true">← </span>{retour.texte}
-        </Link>
-      </p>
+      {lienRetour}
     </Section>
   );
 }
