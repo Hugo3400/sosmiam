@@ -36,6 +36,8 @@ import { creerRoutesMiamSafe } from "./routes/miam-safe.ts";
 import type { DependancesMiamSafe } from "./controleurs/miam-safe.ts";
 import { creerRoutesPro } from "./routes/pro.ts";
 import { creerRoutesSignalements } from "./routes/signalements.ts";
+import { creerRoutesNewsletterPublic } from "./routes/newsletter-public.ts";
+import type { DependancesNewsletterPublic } from "./controleurs/newsletter-public.ts";
 import type { NouvelleDemandeLieu } from "./services/demandes-lieux.ts";
 import type { SignalementRecu } from "./services/gestion/moderation.ts";
 import type { NouvelleInscription } from "./services/inscriptions.ts";
@@ -94,6 +96,8 @@ type Dependances = {
   /** L'app : avis des lieux (routes /app/avis : avis d'un lieu sans session, le reste avec session, relecture pour un
    * ambassadeur actif) ; seulement avec `comptes`. Les avis du comptoir passent par `visitesApp.avis` */
   avisApp?: DependancesAvis;
+  /** Désinscription de la newsletter par le lien signé des mails (routes /newsletter, sans session ; absentes si non fourni) */
+  newsletter?: DependancesNewsletterPublic;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -109,6 +113,7 @@ export function creerApplication({
   listerLieuxDuPlan,
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
+  newsletter,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -134,6 +139,8 @@ export function creerApplication({
   if (bot) application.use("/bot", creerRoutesBot(bot));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
   if (enregistrerSignalement) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
+  // Désinscription de la newsletter (lien signé des mails ; « un clic » des messageries par api.sosmiam.fr)
+  if (newsletter) application.use("/newsletter", creerRoutesNewsletterPublic(newsletter));
   // Sans session : recherche de commune et places de fondateurs (GET /communes, /fondateurs/zone, /fondateurs/zones)
   if (zones) application.use(creerRoutesFondateurs(zones));
   if (comptes) {

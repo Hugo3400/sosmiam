@@ -13,6 +13,7 @@ import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil 
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
 import { FilVideAbonnements } from "~/composants/fil/FilVideAbonnements";
+import { FilVidePourToi } from "~/composants/fil/FilVidePourToi";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
 import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
@@ -130,7 +131,7 @@ export default function PourToi() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { lieux: tousLesLieux } = utiliserLieux();
-  const { publications: toutesLesPublications } = utiliserPublications();
+  const { publications: toutesLesPublications, horsLigne: filHorsLigne } = utiliserPublications();
   const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
   const publications = useMemo(() => ordonnerPublications(toutesLesPublications, lieux, profil, suivisDuTri), [toutesLesPublications, lieux, profil, suivisDuTri]);
@@ -430,6 +431,8 @@ export default function PourToi() {
             onVoirTout={() => setOnglet("tous")}
             onAnnoncer={annoncer}
           />
+        ) : onglet === "tous" ? (
+          <FilVidePourToi hauteur={taille.hauteur} horsLigne={filHorsLigne} onVoirAdresses={() => router.navigate("/explorer")} />
         ) : (
           <FilVide hauteur={taille.hauteur} onVoirTout={() => setOnglet("tous")} />
         )

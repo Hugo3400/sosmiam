@@ -317,6 +317,13 @@
 - **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou des moins de 15 ans reste actif sur le téléphone.
 - Entrée par « Juste jeter un œil » (bienvenue et écran du compte). Après une inscription lancée depuis la visite, on revient sur l'écran d'où l'on est parti, avec le compte. Une fiche de bar ouverte sans compte propose de s'inscrire (« tu as 18 ans ou plus ? »).
 
+## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026)
+- **Par défaut, l'app lit les vraies données** : les lieux publiés (`/app/lieux`, et un lieu seul par `/app/lieux/:id` s'il manque), le fil (`/app/publications`, page après page) et la carte d'un lieu (`/app/lieux/:id/carte`). La dernière liste des lieux et la première page du fil sont gardées sur le téléphone pour s'ouvrir tout de suite et hors ligne.
+- **Rien d'inventé hors démo** : pas de potes, de conversations, d'abonnés, de notifications ni de visites d'exemple. Potes, messages et abonnés démarrent vides en attendant leur API ; ce qu'une ancienne démo avait gardé sur un téléphone est oublié.
+- **Un bouton « Démo »** (écran du compte et Réglages) allume tout le mode démo d'un coup : lieux, fil, potes, visites, rôles pro et ambassadeur d'exemple, faux serveur sur le téléphone, sans compte. Allumer ou quitter la démo efface le téléphone et relance l'app (jamais de mélange entre démo et vraies données).
+- **Le bouton n'existe qu'en développement** (ou dans une version de test compilée exprès) : jamais dans une version publiée.
+- Les défis (`defis-exemples.ts`) ne sont pas des données inventées mais la liste des défis : ils restent.
+
 ## Notifications push (décidé le 8 octobre 2026)
 - **Envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire** (pas le service d'Expo). Il faut une clé APNs « .p8 » (developer.apple.com → Keys) et un compte de service d'un projet Firebase gratuit, déposés par Hugo dans /root/sos-miam-secrets.
 - **Anti-spam : au plus 1 notification par jour et 4 par semaine par téléphone**, hors notifications demandées par la personne (« un SOS près de chez toi »).

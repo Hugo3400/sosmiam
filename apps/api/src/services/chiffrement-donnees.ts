@@ -7,6 +7,7 @@ import { readFileSync, statSync } from "node:fs";
 
 import { chiffrerDonnee } from "../fonctions/securite/chiffrer-donnee.ts";
 import { dechiffrerDonnee } from "../fonctions/securite/dechiffrer-donnee.ts";
+import { deriverSousCle } from "../fonctions/securite/deriver-sous-cle.ts";
 
 export const FICHIER_CLE_DONNEES_DEFAUT = "/root/sos-miam-secrets/cle-donnees-comptes";
 
@@ -16,6 +17,8 @@ export type ChampChiffre = "nom" | "dateNaissance";
 export type ChiffrementDonnees = {
   chiffrer: (texte: string, champ: ChampChiffre) => string;
   dechiffrer: (chiffre: string, champ: ChampChiffre) => string;
+  /** Sous-clé de 32 octets propre à un usage (HKDF-SHA256, ce contexte) : la clé maître elle-même ne sort jamais d'ici */
+  deriverCle: (contexte: string) => Buffer;
 };
 
 /** Le chiffrement avec cette clé (32 octets) ; les tests passent une clé de test. */
@@ -25,6 +28,7 @@ export function creerChiffrementDonnees(cle: Uint8Array): ChiffrementDonnees {
   return {
     chiffrer: (texte, champ) => chiffrerDonnee(texte, copie, champ),
     dechiffrer: (chiffre, champ) => dechiffrerDonnee(chiffre, copie, champ),
+    deriverCle: (contexte) => deriverSousCle(copie, contexte),
   };
 }
 

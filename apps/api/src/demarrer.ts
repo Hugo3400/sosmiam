@@ -55,6 +55,9 @@ import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
 import { lireListeVirgules } from "./fonctions/texte/lire-liste-virgules.ts";
 import { servicesComptesExternes } from "./services/comptes-externes.ts";
 import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle } from "./services/connexion-externe.ts";
+import { brancherCleDesinscription } from "./services/liens-desinscription.ts";
+import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
+import { desinscrire } from "./services/gestion/newsletter.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -63,6 +66,8 @@ const port = Number(process.env.PORT) || 5192;
 const compteur = creerCompteurVisites(stockageStats);
 // Clé des données des comptes (nom, date de naissance) : lue une seule fois ici ; sans elle, l'API démarre quand même
 const chiffrement = chargerChiffrementDonnees();
+// Liens de désinscription de la newsletter : sous-clé tirée de la clé des données (HKDF), une fois ici
+const cleDesinscription = brancherCleDesinscription(chiffrement);
 // Événements des lieux et avis : un seul service pour l'app et pour le comptoir de l'équipe
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
@@ -154,6 +159,8 @@ const serveur = creerApplication({
   // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs. Pas encore
   // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
   avisApp: { depot: depotAvis, chiffrement, ajouterPoints, tirer: (max) => randomInt(max) },
+  // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
+  newsletter: { cle: cleDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id) },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });
