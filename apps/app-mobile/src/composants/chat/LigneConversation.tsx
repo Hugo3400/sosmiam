@@ -41,7 +41,8 @@ export function LigneConversation({ conversation, maintenant }: Props) {
     .map(trouverPote)
     .filter((p): p is Pote => p !== null);
   const pote = groupe ? null : (autres[0] ?? null);
-  const nom = groupe ? conversation.titre || "Groupe sans nom" : (pote?.prenom ?? "Quelqu'un");
+  // Privé dont l'autre a supprimé son compte : « Compte supprimé » (vos messages restent)
+  const nom = groupe ? conversation.titre || "Groupe sans nom" : (pote?.prenom ?? "Compte supprimé");
 
   const dernier = conversation.messages[conversation.messages.length - 1];
   const prefixe = !dernier ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;

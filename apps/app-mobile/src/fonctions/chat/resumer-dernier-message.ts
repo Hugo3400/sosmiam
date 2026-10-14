@@ -13,6 +13,11 @@ function couper(texte: string): string {
 
 /** Le contenu seul : à l'écran (avec emoji) ou pour le lecteur d'écran */
 function decrireContenu(message: MessageChat, lieuNom: string | undefined, pourLecteurEcran: boolean): string {
+  // Compte connecté : un message qui n'est plus visible se dit comme dans sa bulle
+  if (message.etat === "supprime") return "Message supprimé";
+  if (message.etat === "masque") return "Masqué en attendant la modération";
+  if (message.etat === "retire") return "Retiré par la modération";
+  if (message.etat === "illisible") return "Message illisible";
   // Même durée, même icône que la bulle et le menu du message
   const duree = message.dureeSecondes;
   switch (message.type) {

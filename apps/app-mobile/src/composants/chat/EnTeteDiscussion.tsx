@@ -25,7 +25,7 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
   const groupe = conversation.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
   const prenoms = listerPrenomsDiscussion(membres);
-  const titre = groupe ? (conversation.titre ?? "Groupe") : (pote?.prenom ?? "Quelqu'un");
+  const titre = groupe ? (conversation.titre ?? "Groupe") : (pote?.prenom ?? "Compte supprimé");
   const nombre = membres.length + 1;
 
   return (

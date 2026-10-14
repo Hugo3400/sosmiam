@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CarteInvitationGroupe } from "~/composants/chat/CarteInvitationGroupe";
 import { FeuilleNouveauMessage } from "~/composants/chat/FeuilleNouveauMessage";
 import { LigneConversation } from "~/composants/chat/LigneConversation";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -14,12 +15,15 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
-/** Messages : tes conversations privées et de groupe, la plus récente d'abord, et de quoi en lancer une nouvelle. */
+/**
+ * Messages : les invitations à rejoindre un groupe (compte connecté), tes conversations privées et de groupe, la plus récente
+ * d'abord, et de quoi en lancer une nouvelle.
+ */
 export default function Messages() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
-  const { pret, conversations, nonLus } = utiliserConversations();
-  const { pret: communautePrete, potes } = utiliserCommunaute();
+  const { pret, conversations, nonLus, invitations } = utiliserConversations();
+  const { pret: communautePrete, potes, demo } = utiliserCommunaute();
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
   const [maintenant, setMaintenant] = useState(() => new Date());
 
@@ -91,7 +95,10 @@ export default function Messages() {
                   </Pressable>
                 ))}
               </View>
-              <BandeauDemoPotes />
+              {demo ? <BandeauDemoPotes /> : null}
+              {invitations.map((invitation) => (
+                <CarteInvitationGroupe key={invitation.id} invitation={invitation} />
+              ))}
             </View>
           }
           ListEmptyComponent={
