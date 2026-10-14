@@ -17,7 +17,7 @@ export type CommunauteLocale = {
   recommandations: Recommandation[];
   commentaires: Commentaire[];
   signalements: SignalementContenu[];
-  /** Comment chaque pote a été ajouté (lien, QR code ou pseudo) : un mineur ne discute qu'avec des potes ajoutés en vrai */
+  /** Comment chaque pote a été ajouté (lien, QR code ou pseudo) : ajouté en vrai, son compte privé t'est ouvert en entier (moyenAjout) */
   moyens: Record<string, "lien" | "qr" | "pseudo">;
   /** Ce que tu as retiré de ta vue, pour toi seulement (sorties passées, listes à découvrir, activité de ta bande), par identifiant */
   masques: string[];

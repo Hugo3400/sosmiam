@@ -30,19 +30,14 @@ export type EtatCommunaute = {
   demo: boolean;
   /** Ton profil communautaire (identifiant « moi ») */
   moi: Pote;
-  /** 15 à 17 ans (ou âge inconnu) : pas d'alcool. Un adulte, lui, ne trouve pas les mineurs par pseudo et ne peut pas les ajouter (démo). */
-  moiMineur: boolean;
   /** Ta bande (sans les personnes bloquées) */
   potes: Pote[];
   /** N'importe qui par son identifiant (toi, ta bande, les autres personnes connues), ou null */
   trouverPote: (id: string) => Pote | null;
-  /** Recherche par pseudo ; un adulte n'y voit pas les mineurs, sauf ceux déjà dans sa bande */
+  /** Recherche par pseudo (sans les personnes bloquées) */
   chercherParPseudo: (texte: string) => ResultatRecherchePote[];
-  /**
-   * Ajoute à ta bande. Démo : le lien et le QR code se déduisent encore du pseudo, public, et leur code secret n'est pas vérifié ;
-   * tant que l'API ne vérifie pas les invitations, un adulte n'ajoute donc aucun mineur, quel que soit le moyen (« mineur »).
-   */
-  ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "mineur" | "bloque" | "introuvable";
+  /** Ajoute à ta bande (par lien, QR code ou pseudo ; voir moyenAjout) */
+  ajouterPote: (id: string, moyen: "lien" | "qr" | "pseudo") => "ajoute" | "deja" | "bloque" | "introuvable";
   retirerPote: (id: string) => void;
   /**
    * Comment ce pote de ta bande a été ajouté : « pseudo », « exemple » (bande de la démo), ou undefined (pas ou plus dans ta bande).
@@ -55,15 +50,13 @@ export type EtatCommunaute = {
   bloquer: (id: string) => void;
   debloquer: (id: string) => void;
 
-  /** Tes sorties, à venir d'abord ; le lieu retenu est calculé à la fin du vote, et plus personne ne vote ensuite. Pour un mineur, sans les bars. */
+  /** Tes sorties, à venir d'abord ; le lieu retenu est calculé à la fin du vote, et plus personne ne vote ensuite. Sans les lieux disparus de l'app. */
   sorties: Sortie[];
   trouverSortie: (id: string) => Sortie | null;
-  /** Vrai si ce lieu peut être proposé dans cette sortie (pas de bar avec un mineur) */
-  lieuPermisDansSortie: (lieuId: number, participants: string[]) => boolean;
   creerSortie: (sortie: NouvelleSortie) => { id: string } | { erreur: "titre" | "participants" | "lieux" };
   /** Vote (ou retire ton vote) pour un lieu ; sans effet une fois le vote fini */
   voter: (sortieId: string, lieuId: number) => void;
-  /** « interdit » : lieu pas permis dans cette sortie (bar avec un mineur), ou vote déjà fini */
+  /** « interdit » : lieu inconnu, ou vote déjà fini */
   proposerLieu: (sortieId: string, lieuId: number) => "ok" | "deja" | "max" | "interdit";
   envoyerMessage: (sortieId: string, texte: string) => ResultatTexte;
   /** Termine le vote tout de suite (seulement l'organisateur) */

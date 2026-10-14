@@ -46,9 +46,7 @@ export default function AjouterPote() {
       null;
     if (!pote) return setRetour({ type: "introuvable", pseudo });
     const resultat = communaute.ajouterPote(pote.id, moyen);
-    setRetour(
-      resultat === "introuvable" ? { type: "introuvable", pseudo } : resultat === "mineur" ? { type: "mineur", pote, moyen } : { type: resultat, pote },
-    );
+    setRetour(resultat === "introuvable" ? { type: "introuvable", pseudo } : { type: resultat, pote });
     if (source === "champ" && resultat === "ajoute") setLienColle("");
   }
 

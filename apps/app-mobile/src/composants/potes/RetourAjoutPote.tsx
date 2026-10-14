@@ -10,7 +10,6 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 /** Ce qui s'est passé après un scan ou un texte collé (lien d'invitation, ou pseudo seul) */
 export type RetourAjout =
   | { type: "ajoute" | "deja" | "bloque"; pote: Pote }
-  | { type: "mineur"; pote: Pote; moyen: "lien" | "qr" | "pseudo" }
   | { type: "introuvable"; pseudo: string }
   | { type: "pas-invitation" }
   | { type: "toi" };
@@ -27,11 +26,6 @@ const decrire = (retour: RetourAjout): { emoji: string; titre: string; detail: s
       return { emoji: "😄", titre: `${retour.pote.prenom} est déjà dans ta bande`, detail: "On ne peut pas l'ajouter deux fois, même un pote en or." };
     case "bloque":
       return { emoji: "🚫", titre: `Tu as bloqué ${retour.pote.prenom}`, detail: "Tant que cette personne est bloquée, elle ne rejoint pas ta bande. Tu peux changer d'avis depuis son profil." };
-    // Démo : un adulte n'ajoute aucun mineur, quel que soit le moyen, tant que l'API ne vérifie pas les invitations
-    case "mineur":
-      return retour.moyen === "pseudo"
-        ? { emoji: "🔐", titre: "Pas par le pseudo", detail: "Cette personne ne s'ajoute pas par son pseudo. Avec les comptes, ce sera par son lien ou son QR code, donnés en main propre." }
-        : { emoji: "🔐", titre: "Pas encore possible", detail: "Cette invitation devra d'abord être vérifiée par SOS Miam, et ça arrive avec les comptes. Patience, ça vaut le coup !" };
     case "introuvable":
       return { emoji: "🔍", titre: `On ne trouve pas @${retour.pseudo}`, detail: "La démo ne connaît que des potes d'exemple : tes vrais potes arriveront avec les comptes." };
     case "pas-invitation":
@@ -48,7 +42,7 @@ const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
 export function RetourAjoutPote({ retour }: Props) {
   const router = useRouter();
   const { emoji, titre, detail } = decrire(retour);
-  const pote = "pote" in retour && retour.type !== "mineur" ? retour.pote : null;
+  const pote = "pote" in retour ? retour.pote : null;
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(`${titre}. ${detail}`.replace(EMOJI, "").replace(/\s+/g, " ").trim());

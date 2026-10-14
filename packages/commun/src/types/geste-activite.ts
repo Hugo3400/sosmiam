@@ -5,7 +5,9 @@
 
 export type GesteActiviteEnAttente =
   | { quoi: "garde"; lieuId: number; oui: boolean }
-  | { quoi: "jaime" | "masque"; publicationId: string; oui: boolean }
+  | { quoi: "jaime"; publicationId: string; oui: boolean }
+  /** « Pas intéressé » : masquée pour soi seulement */
+  | { quoi: "masque"; publicationId: string; oui: boolean }
   /** cle : « lieu:<id> » ou « createur:<pseudo> » seulement (les personnes se suivent ailleurs) */
   | { quoi: "suivi"; cle: string; oui: boolean }
   /** oui : donner la rescousse ; non : la reprendre (jamais gardé sur le téléphone) */

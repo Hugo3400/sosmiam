@@ -8,7 +8,6 @@ export function construireMoi(donnees: {
   prenom: string;
   avatar: string;
   ville: string;
-  mineur: boolean;
   points: number;
   rescoussesDuMois: number;
   lieuxSauves: number[];

@@ -43,7 +43,7 @@ test("sans session : 401 partout", async () => {
   }
 });
 
-test("créneaux : dans les horaires, 30 min après maintenant ; lieu non réservable ou non vérifié ; bar pour un 15-17 ans", async () => {
+test("créneaux : dans les horaires, 30 min après maintenant ; lieu non réservable ou non vérifié ; un bar comme les autres", async () => {
   const lea = await b.creerCompte();
   const r = await b.demander("GET", "/app/reservations/creneaux?lieuId=1&jour=2026-10-09", lea.jeton);
   assert.equal(r.statut, 200, JSON.stringify(r.corps));
@@ -62,19 +62,16 @@ test("créneaux : dans les horaires, 30 min après maintenant ; lieu non réserv
     const non = await b.demander("GET", `/app/reservations/creneaux?lieuId=${lieuId}&jour=2026-10-09`, lea.jeton);
     assert.deepEqual([non.statut, non.corps.erreur, non.corps.details], [409, "lieu-non-reservable", { lieu: `Lieu ${lieuId}` }]);
   }
-  // Un bar n'existe pas pour un 15-17 ans : jamais son nom
+  // Un bar se réserve comme les autres lieux
   ajouterLieu(4, { type: "bar" });
-  const ado = await b.creerCompte({ naissance: "2010-03-01" });
-  const bar = await b.demander("GET", "/app/reservations/creneaux?lieuId=4&jour=2026-10-09", ado.jeton);
-  assert.deepEqual([bar.statut, bar.corps.erreur, bar.corps.details], [403, "mineur-bar", undefined]);
-  assert.equal((await b.demander("GET", "/app/reservations/creneaux?lieuId=4&jour=2026-10-09", lea.jeton)).statut, 200);
-  assert.equal((await reserver(ado.jeton, { lieuId: 4 })).corps.erreur, "mineur-bar");
+  const tom = await b.creerCompte({ prenom: "Tom" });
+  assert.equal((await b.demander("GET", "/app/reservations/creneaux?lieuId=4&jour=2026-10-09", tom.jeton)).statut, 200);
 });
 
 test("demande : en attente, créneau à l'heure de Paris, petit mot nettoyé ; le lieu ne voit que prénom, initiale et emoji", async () => {
   const gerant = await b.creerCompte({ prenom: "Max" });
   b.rattacher(gerant.id, 1);
-  const lea = await b.creerCompte({ prenom: "Léa", nom: "Martin", avatar: "🐙", naissance: "1998-05-02" });
+  const lea = await b.creerCompte({ prenom: "Léa", nom: "Martin", avatar: "🐙" });
   const r = await reserver(lea.jeton);
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   const v = r.corps.reservation;

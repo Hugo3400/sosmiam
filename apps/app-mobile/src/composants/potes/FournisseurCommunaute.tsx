@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { LONGUEUR_MAX_COMMENTAIRE } from "@sos-miam/commun/regles/mots-interdits";
 import {
   ID_MOI,
@@ -111,8 +109,6 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
     minuteries.current.push(setTimeout(() => setEtat(changer), delai));
   }, []);
 
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const moiMineur = age === null || age < AGE_ALCOOL;
   const mesures = { rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length };
   const moi = useMemo(
     () =>
@@ -121,7 +117,6 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         prenom: profil?.prenom ?? "Toi",
         avatar: avatar.type === "emoji" ? avatar.emoji : "📷",
         ville: profil?.ville ?? "",
-        mineur: moiMineur,
         points: calculerPointsLocaux(mesures),
         rescoussesDuMois: activite.rescoussesDuMois,
         lieuxSauves: activite.lieuxSauves,
@@ -129,21 +124,13 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         badges: listerBadgesObtenus(mesures),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profil, avatar, moiMineur, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
+    [profil, avatar, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
   );
 
   const parId = useMemo(() => new Map<string, Pote>([...potesConnus.map((p) => [p.id, p] as const), [ID_MOI, moi]]), [moi]);
   const trouverPote = useCallback((id: string) => parId.get(id) ?? null, [parId]);
-  const estMineur = useCallback((id: string) => parId.get(id)?.mineur ?? false, [parId]);
-  const lieuPermisDansSortie = useCallback(
-    (lieuId: number, participants: string[]) => {
-      const lieu = trouverLieu(lieuId);
-      if (!lieu) return false;
-      // Pas de bar quand un mineur est de la sortie (toi compris)
-      return lieu.type !== "bar" || ![ID_MOI, ...participants].some(estMineur);
-    },
-    [estMineur, trouverLieu],
-  );
+  // Un lieu disparu de l'app ne se propose plus (et sort des votes en cours)
+  const lieuExiste = useCallback((lieuId: number) => !!trouverLieu(lieuId), [trouverLieu]);
 
   const signales = useMemo(() => new Set(etat.signalements.map((s) => s.cibleId)), [etat.signalements]);
   const masques = useMemo(() => new Set(etat.masques), [etat.masques]);
@@ -155,13 +142,13 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
     return etat.sorties
       .filter((s) => s.participants.includes(ID_MOI) && !masques.has(s.id))
       .map((s): Sortie => {
-        const propositions = s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants));
+        const propositions = s.propositions.filter((p) => lieuExiste(p.lieuId));
         const messages = s.messages.filter((m) => !etat.bloques.includes(m.auteur) && !signales.has(m.id));
         const lieuChoisi = s.lieuChoisi ?? (s.finVote < maintenant ? choisirLieuGagnant(propositions) : null);
         return { ...s, propositions, messages, lieuChoisi };
       })
       .sort((a, b) => a.quand.localeCompare(b.quand));
-  }, [etat.sorties, etat.bloques, signales, masques, lieuPermisDansSortie]);
+  }, [etat.sorties, etat.bloques, signales, masques, lieuExiste]);
 
   const changerSortie = useCallback((id: string, changer: (s: Sortie) => Sortie) => {
     setEtat((e) => ({ ...e, sorties: e.sorties.map((s) => (s.id === id ? changer(s) : s)) }));
@@ -190,24 +177,20 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       pret,
       demo: DEMO_VISITES_ACTIVE,
       moi,
-      moiMineur,
       potes,
       trouverPote,
-      chercherParPseudo: (texte) => chercherParPseudo(potesConnus, texte, { moiMineur, bande: etat.bande, bloques: etat.bloques }),
+      chercherParPseudo: (texte) => chercherParPseudo(potesConnus, texte, { bande: etat.bande, bloques: etat.bloques }),
       ajouterPote: (id, moyen) => {
         const pote = parId.get(id);
         if (!pote || id === ID_MOI) return "introuvable";
         if (etat.bloques.includes(id)) return "bloque";
         if (etat.bande.includes(id)) return "deja";
-        // Démo : rien ne vérifie encore qu'un lien ou un QR code a été donné en main propre (le pseudo, public, suffit à les fabriquer).
-        // Tant que l'API ne vérifie pas les invitations, un adulte n'ajoute donc aucun mineur, quel que soit le moyen.
-        if (!moiMineur && pote.mineur) return "mineur";
         setEtat((e) => ({ ...e, bande: [...e.bande, id], moyens: { ...e.moyens, [id]: moyen } }));
         return "ajoute";
       },
       // Démo : le code secret d'un lien ou d'un QR code n'est vérifié nulle part, et les potes d'exemple n'ont pas de vrai QR code.
-      // Un ajout par lien ou QR code ne compte donc pas encore « en vrai » (peutDiscuter) : un mineur ne discute pas avec un adulte
-      // grâce à un lien fabriqué avec son pseudo public. Ça couvre aussi un ajout enregistré avant ce garde-fou.
+      // Un ajout par lien ou QR code ne compte donc pas encore « en vrai » (estAjouteEnVrai) : un lien fabriqué avec un pseudo public
+      // n'ouvre pas en entier un compte privé.
       moyenAjout: (id) => {
         // Retiré de ta bande (ou bloqué) : plus aucun lien entre vous, il faudra vous ajouter de nouveau
         if (!etat.bande.includes(id)) return undefined;
@@ -223,13 +206,12 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
 
       sorties,
       trouverSortie: (id) => sorties.find((s) => s.id === id) ?? null,
-      lieuPermisDansSortie,
       creerSortie: ({ titre, emoji, quand, invites, lieux, finVote }) => {
         const propre = titre.trim();
         if (propre === "" || propre.length > LONGUEUR_MAX_TITRE_SORTIE || contientMotInterdit(propre)) return { erreur: "titre" };
         const participants = [ID_MOI, ...invites.filter((id) => parId.has(id) && id !== ID_MOI && !etat.bloques.includes(id))];
         if (participants.length < 2 || participants.length > MAX_PARTICIPANTS_SORTIE) return { erreur: "participants" };
-        const permis = [...new Set(lieux)].filter((l) => lieuPermisDansSortie(l, participants)).slice(0, MAX_PROPOSITIONS_SORTIE);
+        const permis = [...new Set(lieux)].filter(lieuExiste).slice(0, MAX_PROPOSITIONS_SORTIE);
         if (permis.length === 0) return { erreur: "lieux" };
         const id = creerIdentifiant("sortie");
         const sortie: Sortie = {
@@ -243,7 +225,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
       voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => (estVoteTermine(s) ? s : basculerVote(s, lieuId, ID_MOI))),
       proposerLieu: (sortieId, lieuId) => {
         const sortie = etat.sorties.find((s) => s.id === sortieId);
-        if (!sortie || estVoteTermine(sortie) || !lieuPermisDansSortie(lieuId, sortie.participants)) return "interdit";
+        if (!sortie || estVoteTermine(sortie) || !lieuExiste(lieuId)) return "interdit";
         if (sortie.propositions.some((p) => p.lieuId === lieuId)) return "deja";
         if (sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE) return "max";
         changerSortie(sortieId, (s) => ({ ...s, propositions: [...s.propositions, { lieuId, proposePar: ID_MOI, votes: [ID_MOI] }] }));
@@ -267,7 +249,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         return "ok";
       },
       terminerVote: (sortieId) =>
-        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuPermisDansSortie(p.lieuId, s.participants))) })),
+        changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirLieuGagnant(s.propositions.filter((p) => lieuExiste(p.lieuId))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
 
       // Une liste signalée disparaît pour toi (une liste écartée de « À découvrir » reste sur le profil de son auteur : estMasque)
@@ -343,7 +325,7 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
         setEtat(creerEtatDepart(new Date()));
       },
     };
-  }, [pret, moi, moiMineur, potes, trouverPote, etat, parId, bloques, sorties, lieuPermisDansSortie, changerSortie, fairerVoterLesPotes, plusTard, signales, masques]);
+  }, [pret, moi, potes, trouverPote, etat, parId, bloques, sorties, lieuExiste, changerSortie, fairerVoterLesPotes, plusTard, signales, masques]);
 
   return <ContexteCommunaute.Provider value={valeur}>{children}</ContexteCommunaute.Provider>;
 }

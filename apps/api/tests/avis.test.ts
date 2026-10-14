@@ -41,7 +41,7 @@ test("fenêtre d'avis : 1 h après la validation, pendant 14 jours, seulement sa
 });
 
 test("un avis par visite, signé « Prénom I. », daté au mois, visible tout de suite", async () => {
-  const lea = await b.creerCompte({ prenom: "Léa", nom: "martin", naissance: "1998-05-02" });
+  const lea = await b.creerCompte({ prenom: "Léa", nom: "martin" });
   const visite = b.creerVisite(lea.id, 1);
   b.banc.horloge += 2 * HEURE;
   const r = await donner(lea.jeton, { visiteId: visite, texte: `  ${TEXTE}  ` });
@@ -62,23 +62,22 @@ test("un avis par visite, signé « Prénom I. », daté au mois, visible tout d
   assert.deepEqual(b.points, []);
 });
 
-test("signature : prénom seul pour un 15-17 ans ou sans nom, jamais l'âge ; date illisible : prudence", async () => {
-  const ado = await b.creerCompte({ prenom: "Inès", nom: "Durand", naissance: "2010-03-01" });
+test("signature : « Prénom I. » avec un nom, prénom seul sinon, jamais l'âge", async () => {
+  const ines = await b.creerCompte({ prenom: "Inès", nom: "Durand" });
   const sansNom = await b.creerCompte({ prenom: "  Karim  " });
-  const dateIllisible = await b.creerCompte({ prenom: "Zoé", nom: "Petit" });
-  b.donnees.comptes.get(dateIllisible.id)!.dateNaissanceChiffree = "illisible";
-  const visites = [ado, sansNom, dateIllisible].map((c) => b.creerVisite(c.id, 1));
+  const zoe = await b.creerCompte({ prenom: "Zoé", nom: "Petit" });
+  const visites = [ines, sansNom, zoe].map((c) => b.creerVisite(c.id, 1));
   b.banc.horloge += 2 * HEURE;
   const signatures: string[] = [];
-  for (const [i, c] of [ado, sansNom, dateIllisible].entries()) {
+  for (const [i, c] of [ines, sansNom, zoe].entries()) {
     const r = await donner(c.jeton, { visiteId: visites[i] });
     assert.equal(r.statut, 201, JSON.stringify(r.corps));
     signatures.push(r.corps.avis.signature);
     assert.equal("mineur" in r.corps.avis || "age" in r.corps.avis, false);
   }
-  assert.deepEqual(signatures, ["Inès", "Karim", "Zoé"]);
-  // Date illisible : traité comme un 15-17 ans, par prudence
-  assert.deepEqual(b.donnees.avis.map((a) => a.mineur), [true, false, true]);
+  assert.deepEqual(signatures, ["Inès D.", "Karim", "Zoé P."]);
+  // L'ancien marquage « mineur » n'est plus jamais posé
+  assert.deepEqual(b.donnees.avis.map((a) => a.mineur), [false, false, false]);
 });
 
 test("photo : +10 points (avis-photo) pour un avis vérifié, rien pour un repas offert ; photo inconnue refusée", async () => {
@@ -143,10 +142,10 @@ test("avis non vérifié : seulement chez un lieu non vérifié, sans points, un
   assert.equal((await nonVerifie(lea.jeton, { note: 2 })).statut, 201);
 });
 
-test("avis non vérifié refusé : bar pour un 15-17 ans, e-mail pas vérifié, lieu lié, contenu", async () => {
-  const ado = await b.creerCompte({ prenom: "Inès", naissance: "2010-03-01" });
-  assert.deepEqual([(await nonVerifie(ado.jeton, { lieuId: 3 })).statut, (await nonVerifie(ado.jeton, { lieuId: 3 })).corps.erreur], [403, "mineur-bar"]);
-  assert.equal((await nonVerifie(ado.jeton)).statut, 201);
+test("avis non vérifié : un bar se note comme les autres ; refusé sans e-mail vérifié, lieu lié, contenu", async () => {
+  const ines = await b.creerCompte({ prenom: "Inès" });
+  assert.equal((await nonVerifie(ines.jeton, { lieuId: 3 })).statut, 201);
+  assert.equal((await nonVerifie(ines.jeton)).statut, 201);
   const sansEmail = await b.creerCompte({ emailVerifie: false });
   assert.equal((await nonVerifie(sansEmail.jeton)).corps.erreur, "email-non-verifie");
   // Quelqu'un qui demande à gérer ce lieu (rattachement en attente) ne le note pas

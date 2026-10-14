@@ -46,7 +46,8 @@ function lireGeste(brut: unknown): GesteActiviteEnAttente | null {
   const g = brut as Record<string, unknown>;
   if (typeof g.oui !== "boolean") return null;
   if (g.quoi === "garde" && typeof g.lieuId === "number") return { quoi: "garde", lieuId: g.lieuId, oui: g.oui };
-  if ((g.quoi === "jaime" || g.quoi === "masque") && typeof g.publicationId === "string") return { quoi: g.quoi, publicationId: g.publicationId, oui: g.oui };
+  if (g.quoi === "jaime" && typeof g.publicationId === "string") return { quoi: "jaime", publicationId: g.publicationId, oui: g.oui };
+  if (g.quoi === "masque" && typeof g.publicationId === "string") return { quoi: "masque", publicationId: g.publicationId, oui: g.oui };
   if (g.quoi === "suivi" && typeof g.cle === "string" && /^(lieu|createur):/.test(g.cle)) return { quoi: "suivi", cle: g.cle, oui: g.oui };
   return null;
 }
