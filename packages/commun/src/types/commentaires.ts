@@ -20,6 +20,22 @@ export type Commentaire = {
   mentions: string[];
   /** Masqué par le lieu : il part à la modération et ne s'affiche plus, sauf à son auteur */
   masqueParLieu?: boolean;
+  /**
+   * Visite et compte connecté : ce que dit le serveur, quand la démo le calcule à partir des champs ci-dessus (jaimes y
+   * reste vide, mentions garde les pseudos)
+   */
+  serveur?: {
+    /** Qui l'a écrit (null : le lieu, ou un compte supprimé) : de quoi l'afficher sans le chercher dans la communauté */
+    personne: PersonneResume | null;
+    nombreJaimes: number;
+    aimeParMoi: boolean;
+    /** « Commentaire supprimé » : il a encore des réponses (texte vide) */
+    supprime: boolean;
+    /** Vu par son auteur seul : masqué par le lieu, ou suspendu en attendant la modération */
+    etat: "masque-par-le-lieu" | "suspendu" | null;
+    /** Les @ retrouvés à l'écriture : le pseudo tel qu'écrit, et le profil qu'ouvre le lien */
+    mentions: { pseudo: string; id: string }[];
+  };
 };
 
 export type CommentaireApi = {

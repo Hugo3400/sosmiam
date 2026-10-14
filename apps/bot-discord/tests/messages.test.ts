@@ -12,6 +12,7 @@ import { creerMessagePresentation } from "../src/messages/creer-message-presenta
 import { creerMessageProposition } from "../src/messages/creer-message-proposition.ts";
 import { creerMessageReglement } from "../src/messages/creer-message-reglement.ts";
 import { creerMessageReponseFaq } from "../src/messages/creer-message-reponse-faq.ts";
+import { creerMessagesRoadmap } from "../src/messages/creer-messages-roadmap.ts";
 
 const auteur = { toString: () => "<@1>" } as unknown as User;
 const membre = {
@@ -42,6 +43,7 @@ test("chaque message est valide et sous la limite de texte", () => {
       auteur,
     ),
     ...Object.fromEntries(QUESTIONS_FAQ.map((q) => [`faq ${q.id}`, creerMessageReponseFaq(q)])),
+    ...Object.fromEntries(creerMessagesRoadmap().map((bloc, i) => [`roadmap ${i + 1}`, bloc])),
   };
   for (const [nom, message] of Object.entries(messages)) {
     const json = message.toJSON();

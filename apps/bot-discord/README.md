@@ -11,7 +11,7 @@ Présente SOS Miam, répond à la FAQ, explique le BIG SOS, recueille les propos
 | `/proposer-lieu` | tout le monde | formulaire, puis la pépite est postée dans le salon des propositions (avec 😋 pour voter) |
 | `/contact` | tout le monde | comment écrire à l'équipe |
 | `/config` | gestion du serveur | salons d'accueil, de propositions et d'annonces (celles du logiciel de gestion) |
-| `/publier` | gestion du serveur | publie le règlement ou la présentation dans le salon courant |
+| `/publier` | gestion du serveur | publie le règlement, la présentation ou la roadmap (5 messages, `src/messages/creer-messages-roadmap.ts`) dans le salon courant |
 
 Les commandes sont enregistrées sur chaque serveur au démarrage du bot : elles apparaissent tout de suite.
 
