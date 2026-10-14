@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Alert, Linking, Platform, Text, View } from "react-native";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
@@ -14,18 +13,11 @@ import { avatarsEmoji } from "~/contenus/avatars-emoji";
 import { etapesEnvies } from "~/contenus/inscription/envies";
 import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envies";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
-import { utiliserConversations } from "~/hooks/utiliser-conversations";
-import { utiliserNotifications } from "~/hooks/utiliser-notifications";
+import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
+import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
-import { effacerModeApp } from "~/stockage/mode-app";
-import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
-import { effacerRolesDemo } from "~/stockage/roles-demo";
-import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 import couleurs from "~/theme/couleurs";
 
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
@@ -45,15 +37,12 @@ function ouvrirLien(adresse: string) {
  */
 export default function Reglages() {
   const router = useRouter();
-  const { profil, avatar, effacer } = utiliserProfil();
-  const activite = utiliserActivite();
+  const { profil, avatar } = utiliserProfil();
   const communaute = utiliserCommunaute();
-  const conversations = utiliserConversations();
   const suivisPersonnes = utiliserSuivisPersonnes();
-  const notifications = utiliserNotifications();
-  // Les outils de la démo des visites (en développement seulement) ; null dans une version publiée
-  const outilsDemo = utiliserOutilsDemo();
-  const [effacementEnCours, setEffacementEnCours] = useState(false);
+  const effacement = utiliserEffacementLocal();
+  const outilsDemo = effacement.avecDemo;
+  const { connecte, compte, fermer } = utiliserSession();
   if (!profil) return null;
 
   // Seules les envies que l'app peut montrer à cet âge sont comptées
@@ -88,31 +77,11 @@ export default function Reglages() {
   const version = Constants.expoConfig?.version;
 
   async function toutEffacer() {
-    if (effacementEnCours) return;
-    setEffacementEnCours(true);
-    try {
-      await activite.effacer();
-      await communaute.effacer();
-      await conversations.effacer();
-      // Avant le profil : sans lui, la démo des abonnés et des notifications ne se recrée pas
-      await suivisPersonnes.effacer();
-      await notifications.effacer();
-      await effacerSignalementsLocaux();
-      await effacerReglagesNotifications();
-      // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses, et le mode
-      if (outilsDemo) {
-        await outilsDemo.remettreAZero();
-        await oublierReglagesDemo();
-        await effacerRolesDemo();
-      }
-      await effacerModeApp();
-      // En dernier : sans profil, l'app repart toute seule à la bienvenue
-      await effacer();
-    } catch {
-      setEffacementEnCours(false);
-      if (Platform.OS !== "web") {
-        Alert.alert("Oups, ça a coincé", "Une partie de tes données n'a pas pu être effacée. Réessaie dans un instant.");
-      }
+    // Le téléphone oublie aussi le compte (il reste sur le serveur : on s'y reconnecte quand on veut)
+    if (connecte) await fermer();
+    // Sans profil, l'app repart toute seule à la bienvenue ; un échec est dit (Alert n'existe pas sur le web)
+    if (!(await effacement.toutEffacer()) && Platform.OS !== "web") {
+      Alert.alert("Oups, ça a coincé", "Une partie de tes données n'a pas pu être effacée. Réessaie dans un instant.");
     }
   }
 
@@ -131,6 +100,16 @@ export default function Reglages() {
 
   return (
     <EcranReglage titre="Réglages" sousTitre="Ton profil, tes alertes et tes données : ici, c'est toi qui décides.">
+      {connecte ? (
+        <SectionReglages titre="Ton compte">
+          <LigneReglage
+            emoji="🔑"
+            titre="Mon compte"
+            detail={compte ? `${compte.email}${compte.emailVerifie ? "" : " · e-mail à confirmer"}` : "E-mail, mot de passe, déconnexion"}
+            onPress={() => router.push("/reglages/compte")}
+          />
+        </SectionReglages>
+      ) : null}
       <SectionReglages titre="Ton profil">
         <LigneReglage
           emoji="🎭"
@@ -223,7 +202,9 @@ export default function Reglages() {
           </Text>
           <Text className="flex-1 font-texte text-sm leading-5 text-gris">
             {lierPonctuation(
-              "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
+              connecte
+                ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés). Ta photo et ton régime particulier restent sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."
+                : "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
             )}
           </Text>
         </View>
