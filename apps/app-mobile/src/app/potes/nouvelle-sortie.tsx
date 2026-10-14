@@ -19,13 +19,13 @@ import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { ChoixQuandSortie } from "~/composants/potes/ChoixQuandSortie";
 import { LieuxProposesSortie } from "~/composants/potes/LieuxProposesSortie";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
 
 type Erreurs = { titre?: string; quand?: string; invites?: string; lieux?: string };
@@ -87,6 +87,7 @@ export default function NouvelleSortie() {
   const marges = useSafeAreaInsets();
   const { lieu: lieuDemande, invites: invitesDemandes } = useLocalSearchParams<{ lieu?: string; invites?: string }>();
   const { potes, trouverPote, lieuPermisDansSortie, creerSortie } = utiliserCommunaute();
+  const { trouverLieu } = utiliserLieux();
   const [titre, setTitre] = useState("");
   const [emoji, setEmoji] = useState("🍽️");
   const [quand, setQuand] = useState(demainSoir);
@@ -95,7 +96,7 @@ export default function NouvelleSortie() {
   // Ouverte depuis un lieu (?lieu=3) : il est déjà proposé, s'il est permis avec ces invités (pas de bar avec un mineur)
   const [lieux, setLieux] = useState<number[]>(() => {
     const id = Number(lieuDemande);
-    return lieuDemande && lieuxExemples.some((l) => l.id === id) && lieuPermisDansSortie(id, invites) ? [id] : [];
+    return lieuDemande && trouverLieu(id) && lieuPermisDansSortie(id, invites) ? [id] : [];
   });
   const [cleFinVote, setCleFinVote] = useState("avant");
   const [choixLieuOuvert, setChoixLieuOuvert] = useState(false);
@@ -107,7 +108,7 @@ export default function NouvelleSortie() {
   const maintenant = new Date();
   const options = calculerOptionsFinVote(quand, maintenant);
   const option = options.find((o) => o.cle === cleFinVote) ?? options[options.length - 1];
-  const lieuxChoisis = lieux.map((id) => lieuxExemples.find((l) => l.id === id)).filter((l): l is Lieu => l !== undefined);
+  const lieuxChoisis = lieux.map(trouverLieu).filter((l): l is Lieu => l !== undefined);
   const invitesMineurs = invites.map(trouverPote).filter((p): p is Pote => p?.mineur === true);
   const quandPasse = quand.getTime() < maintenant.getTime() + DELAI_MINIMUM;
   const erreurQuand = quandPasse ? "Ce moment est déjà passé ou presque : laisse à la bande au moins un quart d'heure pour voter." : null;

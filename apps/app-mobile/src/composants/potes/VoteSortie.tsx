@@ -9,13 +9,13 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { LieuChoisiSortie } from "~/composants/potes/LieuChoisiSortie";
 import { PropositionVote } from "~/composants/potes/PropositionVote";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 
 type Props = {
@@ -34,7 +34,6 @@ type Props = {
   onQuitter: () => void;
 };
 
-const parLieu = new Map(lieuxExemples.map((l) => [l.id, l]));
 
 /** Ouvre l'itinéraire vers un lieu : Plans sur iPhone, Google Maps ailleurs (par sa position quand on la connaît). */
 function ouvrirItineraire(lieu: Lieu) {
@@ -51,6 +50,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
   const router = useRouter();
   const { trouverPote, voter, proposerLieu, lieuPermisDansSortie, bloques } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { trouverLieu } = utiliserLieux();
   const depart = utiliserPointDeDepart();
   const [choixOuvert, setChoixOuvert] = useState(false);
 
@@ -66,7 +66,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
   const propositions = voteFini
     ? [...sortie.propositions].sort((a, b) => Number(b.lieuId === lieuChoisi) - Number(a.lieuId === lieuChoisi) || b.votes.length - a.votes.length)
     : sortie.propositions;
-  const gagnant = lieuChoisi !== null ? parLieu.get(lieuChoisi) : undefined;
+  const gagnant = lieuChoisi !== null ? trouverLieu(lieuChoisi) : undefined;
   const ouvrirFiche = (id: number) => router.push({ pathname: "/lieu/[id]", params: { id: String(id) } });
 
   function basculerVote(lieu: Lieu, aVote: boolean) {
@@ -75,7 +75,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
   }
 
   function proposer(lieuId: number) {
-    const lieu = parLieu.get(lieuId);
+    const lieu = trouverLieu(lieuId);
     const resultat = proposerLieu(sortie.id, lieuId);
     if (resultat === "ok") {
       setChoixOuvert(false);
@@ -116,7 +116,7 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
       ) : (
         <View className="gap-3">
           {propositions.map((p) => {
-            const lieu = parLieu.get(p.lieuId);
+            const lieu = trouverLieu(p.lieuId);
             if (!lieu) return null;
             const aVote = p.votes.includes(ID_MOI);
             const votants = p.votes.filter((id) => !bloquesIds.has(id)).map(trouverPote).filter((v): v is Pote => v !== null);

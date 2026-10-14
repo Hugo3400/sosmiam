@@ -16,13 +16,13 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { FeuilleElementCarte } from "~/composants/pro/FeuilleElementCarte";
 import { FeuilleSectionCarte } from "~/composants/pro/FeuilleSectionCarte";
 import { SectionCartePro } from "~/composants/pro/SectionCartePro";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonCarte } from "~/hooks/utiliser-brouillon-carte";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -59,6 +59,7 @@ export default function EcranCartePro() {
   const marges = useSafeAreaInsets();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
+  const { trouverLieu } = utiliserLieux();
   const { comptoir } = utiliserServices();
   // La carte enregistrée (null tant qu'elle n'est pas relue) : « Annuler » y revient
   const [depart, setDepart] = useState<CarteLieu | null>(null);
@@ -100,7 +101,7 @@ export default function EcranCartePro() {
 
   if (!lieuPro) return null;
 
-  const formules = lieuxExemples.find((l) => l.id === lieuPro.id)?.type === "sortie";
+  const formules = trouverLieu(lieuPro.id)?.type === "sortie";
   const titres = carte.sections.map((s) => s.titre);
   const nombre = carte.sections.reduce((somme, s) => somme + s.elements.length, 0);
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });

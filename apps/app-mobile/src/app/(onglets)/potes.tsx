@@ -14,10 +14,10 @@ import { OngletsPotes, type OngletPotes } from "~/composants/potes/OngletsPotes"
 import { SectionBande } from "~/composants/potes/SectionBande";
 import { SectionListes } from "~/composants/potes/SectionListes";
 import { SectionSorties } from "~/composants/potes/SectionSorties";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -49,7 +49,8 @@ export default function Potes() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   // Les lieux que tu peux voir : pas de bar sous 18 ans (en visite sans compte, l'onglet n'est pas montré : rien à calculer)
-  const lieux = useMemo(() => new Map(filtrerLieuxSelonAge(invite ? [] : lieuxExemples, age).map((l) => [l.id, l] as const)), [age, invite]);
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const lieux = useMemo(() => new Map(filtrerLieuxSelonAge(invite ? [] : tousLesLieux, age).map((l) => [l.id, l] as const)), [tousLesLieux, age, invite]);
   const recues = useMemo(() => recommandationsRecues.filter((r) => lieux.has(r.lieuId) && trouverPote(r.de) !== null), [recommandationsRecues, lieux, trouverPote]);
 
   // Visite sans compte : ni bande ni sorties, juste un aperçu de ce qui t'attend

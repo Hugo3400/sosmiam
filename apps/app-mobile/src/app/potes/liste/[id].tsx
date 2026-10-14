@@ -13,17 +13,16 @@ import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { EnTeteListe } from "~/composants/potes/EnTeteListe";
 import { LigneLieuListe } from "~/composants/potes/LigneLieuListe";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import couleurs from "~/theme/couleurs";
 
-const parIdLieu = new Map(lieuxExemples.map((lieu) => [lieu.id, lieu]));
 
 /**
  * Une liste partagée : qui l'a faite, qui la suit, et ses adresses (toucher → fiche du lieu).
@@ -36,6 +35,7 @@ export default function EcranListePartagee() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const communaute = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
+  const { trouverLieu } = utiliserLieux();
   // Distance depuis le centre de ta ville (partout en France)
   const depart = utiliserPointDeDepart();
   const [choixOuvert, setChoixOuvert] = useState(false);
@@ -93,7 +93,7 @@ export default function EcranListePartagee() {
     .map((a) => communaute.trouverPote(a))
     .filter((p): p is Pote => p !== null);
 
-  const lieux = liste.lieux.map((l) => parIdLieu.get(l)).filter((l): l is Lieu => l !== undefined);
+  const lieux = liste.lieux.map(trouverLieu).filter((l): l is Lieu => l !== undefined);
   // Avant 18 ans (ou âge inconnu), pas de lieu centré sur l'alcool
   const visibles = communaute.moiMineur ? lieux.filter((l) => l.type !== "bar") : lieux;
   const barsCaches = lieux.length - visibles.length;
@@ -121,7 +121,7 @@ export default function EcranListePartagee() {
   const ajouter = (lieuId: number) => {
     communaute.ajouterLieuListe(liste.id, lieuId);
     setChoixOuvert(false);
-    const lieu = parIdLieu.get(lieuId);
+    const lieu = trouverLieu(lieuId);
     annoncer(lieu ? `😋 ${lieu.nom} rejoint la liste !` : "😋 Adresse ajoutée !");
   };
 

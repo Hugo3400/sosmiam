@@ -9,7 +9,6 @@ import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { LigneNotification } from "~/composants/notifications/LigneNotification";
 import { SectionDemandesSuivi } from "~/composants/notifications/SectionDemandesSuivi";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { decrireNotificationSuivi } from "~/fonctions/notifications/decrire-notification-suivi";
@@ -17,6 +16,7 @@ import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -59,7 +59,8 @@ export default function Notifications() {
   );
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const lieux = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age), [age]);
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const groupes = useMemo(() => {
     const lignes = notifications.notifications.flatMap((notification) => {
       const description = decrireNotificationSuivi(notification, { trouverPote, publications: publicationsExemples, lieux });

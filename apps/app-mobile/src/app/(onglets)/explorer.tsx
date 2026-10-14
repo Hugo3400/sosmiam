@@ -5,6 +5,7 @@ import { AccessibilityInfo, Alert, AppState, Keyboard, Linking, Platform, Pressa
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BarreRechercheExplorer } from "~/composants/explorer/BarreRechercheExplorer";
 import { BoutonAutourDeMoi } from "~/composants/explorer/BoutonAutourDeMoi";
@@ -16,7 +17,6 @@ import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import type { PorteeExplorer, ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
@@ -32,6 +32,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle, type ErreurPosition } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -123,8 +124,9 @@ export default function Explorer() {
 
   // Les bars disparaissent sous 18 ans (ou âge inconnu), comme partout dans l'app
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(lieuxExemples, age), [age]);
-  const barsPermis = lieuxPermis.length === lieuxExemples.length;
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
+  const barsPermis = age !== null && age >= AGE_ALCOOL;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
   const lieuxActuels = useMemo(() => lieuxDuMoment(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
   // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux

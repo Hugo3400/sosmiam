@@ -4,7 +4,9 @@
 // Pour la newsletter, la boîte est synchronisée juste avant (les désinscriptions partent « avant tout nouvel envoi »).
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { filtrerInscrits, type FiltresInscrits } from "../../fonctions/courriels/filtrer-inscrits.ts";
+import { composerCourriel } from "../courriels/expedier-courriel.ts";
 import { envoyerToutDeSuite } from "../courriels/file-courriels.ts";
+import { rangerDansEnvoyes } from "../courriels/ranger-envoye.ts";
 import { lireReglagesEnvoi } from "../courriels/reglages-envoi.ts";
 import { lireListeInscrits, synchroniserBoite } from "./boite-mail.ts";
 
@@ -52,8 +54,8 @@ export async function listerDestinataires(cible: PublicEnvoi): Promise<Destinata
 
 /** Lance un envoi groupé. Rend la campagne, ou la raison pour laquelle elle ne part pas. */
 export async function lancerCampagne({ cible, adresses, description, ...contenu }: SaisieCampagne) {
-  const { etat } = await lireReglagesEnvoi();
-  if (etat !== "pret") return { erreur: `envoi-${etat}` as const };
+  const { etat, reglages } = await lireReglagesEnvoi();
+  if (etat !== "pret" || !reglages) return { erreur: `envoi-${etat}` as const };
   // Un envoi groupé déjà en train de partir : on n'en lance pas un deuxième par erreur (double clic)
   if (await baseDeDonnees.envoiCourriel.count({ where: { campagneId: { not: null }, statut: "en-attente" } })) return { erreur: "envoi-en-cours" as const };
   if (cible.public === "newsletter") {
@@ -75,6 +77,11 @@ export async function lancerCampagne({ cible, adresses, description, ...contenu 
     },
     select: { id: true, total: true },
   });
+  // Une seule copie dans « Envoyés » pour tout l'envoi (pas une par personne)
+  const groupe = cible.public === "newsletter" ? "Newsletter" : "Ambassadeurs";
+  void composerCourriel(reglages, { ...contenu, a: reglages.utilisateur, objet: `[${groupe} · ${campagne.total} destinataires] ${contenu.objet}` })
+    .then(rangerDansEnvoyes)
+    .catch(() => console.error("Boîte mail : copie de l'envoi groupé non rangée"));
   return { campagne };
 }
 

@@ -70,7 +70,7 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
         ? { objet: envoi.campagne.objet, html: envoi.campagne.html, texte: envoi.campagne.texte }
         : { objet: envoi.objet ?? "", html: envoi.html ?? "", texte: envoi.texte ?? "" };
       try {
-        await expedier(reglages, { a: envoi.destinataire, ...contenu, newsletter: envoi.campagne?.public === "newsletter" });
+        await expedier(reglages, { a: envoi.destinataire, ...contenu, newsletter: envoi.campagne?.public === "newsletter", sansCopie: Boolean(envoi.campagne) });
         // Parti : le contenu n'a plus à être gardé (l'objet reste, pour le journal)
         await baseDeDonnees.envoiCourriel.update({
           where: { id: envoi.id },
@@ -105,7 +105,7 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
 export async function envoyerToutDeSuite(
   type: string,
   destinataire: string,
-  contenu: ContenuEnvoi & Pick<MessageCourriel, "ecritALaMain" | "enReponseA">,
+  contenu: ContenuEnvoi & Pick<MessageCourriel, "ecritALaMain" | "enReponseA" | "secrets">,
   expedier: ExpedierCourriel = expedierCourriel,
 ) {
   const { etat, reglages } = await lireReglagesEnvoi();

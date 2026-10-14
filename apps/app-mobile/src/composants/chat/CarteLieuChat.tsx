@@ -5,7 +5,6 @@ import { ID_MOI } from "@sos-miam/commun/regles/potes";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -15,6 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 
 type Props = {
   conversationId: string;
@@ -28,8 +28,6 @@ type Props = {
   actionsLecteur?: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction">;
 };
 
-const parId = new Map(lieuxExemples.map((l) => [l.id, l]));
-
 /**
  * Un lieu partagé dans le chat : photo ou emoji, nom, ce que c'est, ville et SOS du moment. La toucher ouvre sa fiche ;
  * « On y va ? » prépare une sortie à ce lieu avec les potes de la conversation (pas de bar quand un mineur en fait partie).
@@ -39,9 +37,10 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   const { width } = useWindowDimensions();
   const { moiMineur, lieuPermisDansSortie } = utiliserCommunaute();
   const { trouverConversation } = utiliserConversations();
+  const { trouverLieu } = utiliserLieux();
   const largeur = Math.min(260, Math.round(width * 0.66));
 
-  const trouve = lieuId === undefined ? null : (parId.get(lieuId) ?? null);
+  const trouve = lieuId === undefined ? null : (trouverLieu(lieuId) ?? null);
   // Par prudence : un bar n'existe pas pour toi avant 18 ans (le chat le retire déjà)
   const lieu = trouve && !(moiMineur && trouve.type === "bar") ? trouve : null;
 

@@ -13,7 +13,6 @@ import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddit
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { LigneLieuProche } from "~/composants/visites/LigneLieuProche";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -21,6 +20,7 @@ import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { trierLieuxProches } from "~/fonctions/visites/trier-lieux-proches";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -82,10 +82,11 @@ export default function TuEsChezQui() {
     };
   }, [services]);
 
+  const { lieux: tousLesLieux } = utiliserLieux();
   const validants = useMemo(() => {
-    const lieux = filtrerLieuxSelonAge(lieuxExemples, age).filter((l) => ids?.includes(l.id));
+    const lieux = filtrerLieuxSelonAge(tousLesLieux, age).filter((l) => ids?.includes(l.id));
     return lieux.sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-  }, [ids, age]);
+  }, [tousLesLieux, ids, age]);
 
   const { lire } = position;
   const lirePosition = useCallback(async () => {

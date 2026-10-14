@@ -11,7 +11,6 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { publicationsExemples } from "~/contenus/publications-exemples";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
@@ -20,6 +19,7 @@ import { trouverVignettePublication } from "~/fonctions/publications/trouver-vig
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -53,7 +53,8 @@ export default function PageCreateur() {
 
   const nom = `@${pseudo}`;
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const lieux = filtrerLieuxSelonAge(lieuxExemples, age);
+  const { lieux: tousLesLieux } = utiliserLieux();
+  const lieux = filtrerLieuxSelonAge(tousLesLieux, age);
   // Comme dans le fil : rien de masqué (« Pas intéressé », signalé), et seulement les lieux que ton âge permet
   const publications = siennes.flatMap((publication) => {
     const lieu = lieux.find((l) => l.id === publication.lieuId);

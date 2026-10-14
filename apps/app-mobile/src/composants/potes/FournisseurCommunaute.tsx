@@ -14,7 +14,6 @@ import {
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { creerCommentairesExemples } from "~/contenus/commentaires-exemples";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples, VERSION_EXEMPLES } from "~/contenus/potes-exemples";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
@@ -30,6 +29,7 @@ import { extraireMentions } from "~/fonctions/communaute/extraire-mentions";
 import { trierCommentaires } from "~/fonctions/communaute/trier-commentaires";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { ContexteCommunaute, type EtatCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
@@ -54,7 +54,6 @@ const verifierTexte = (texte: string, max: number): ResultatTexte => {
 };
 const auHasard = <T,>(liste: T[]): T => liste[Math.floor(Math.random() * liste.length)];
 const entre = (min: number, max: number) => min + Math.random() * (max - min);
-const parLieu = new Map(lieuxExemples.map((l) => [l.id, l]));
 
 /**
  * Potes, sorties, listes, activité, lieux envoyés entre potes et commentaires, gardés sur le téléphone (démo).
@@ -63,6 +62,7 @@ const parLieu = new Map(lieuxExemples.map((l) => [l.id, l]));
 export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const { profil, avatar } = utiliserProfil();
   const activite = utiliserActivite();
+  const { trouverLieu } = utiliserLieux();
   const [etat, setEtat] = useState<CommunauteLocale>(() => creerEtatDemo(new Date()));
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
@@ -114,12 +114,12 @@ export function FournisseurCommunaute({ children }: { children: ReactNode }) {
   const estMineur = useCallback((id: string) => parId.get(id)?.mineur ?? false, [parId]);
   const lieuPermisDansSortie = useCallback(
     (lieuId: number, participants: string[]) => {
-      const lieu = parLieu.get(lieuId);
+      const lieu = trouverLieu(lieuId);
       if (!lieu) return false;
       // Pas de bar quand un mineur est de la sortie (toi compris)
       return lieu.type !== "bar" || ![ID_MOI, ...participants].some(estMineur);
     },
-    [estMineur],
+    [estMineur, trouverLieu],
   );
 
   const signales = useMemo(() => new Set(etat.signalements.map((s) => s.cibleId)), [etat.signalements]);
