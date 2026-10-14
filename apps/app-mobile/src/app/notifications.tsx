@@ -24,8 +24,9 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
 /**
- * Notifications (la cloche du fil et du Profil) : les demandes d'abonnement à accepter ou refuser, puis « … te suit »,
- * les demandes acceptées et les nouveautés des comptes suivis, rangées par période. Ce qui est arrivé depuis ta visite
+ * Notifications (la cloche du fil et du Profil) : les demandes pour rejoindre ta bande et les demandes d'abonnement, à
+ * accepter ou refuser, puis « … te suit », les demandes acceptées, la bande, les sorties, les groupes, les listes, les
+ * commentaires, la modération et les nouveautés des comptes suivis, rangées par période. Ce qui est arrivé depuis ta visite
  * précédente est mis en avant ; ouvrir l'écran marque tout comme vu. Démo : rien ne part sur ton téléphone.
  */
 export default function Notifications() {
@@ -107,7 +108,7 @@ export default function Notifications() {
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
               🧪
             </Text>
-            <Text className="flex-1 font-texte text-sm leading-5 text-encre">{lierPonctuation("Notifications d'exemple : rien ne part pour de vrai.")}</Text>
+            <Text className="flex-1 font-texte text-sm leading-5 text-encre">{lierPonctuation("Notifications d'exemple, pour voir à quoi ça ressemble.")}</Text>
           </View>
         ) : null}
 

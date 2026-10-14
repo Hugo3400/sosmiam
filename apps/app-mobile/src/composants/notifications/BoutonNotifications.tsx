@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -20,7 +21,7 @@ const MAX_AFFICHE = 9;
 
 /**
  * La cloche : ouvre l'écran Notifications. Sa pastille compte ce qui est arrivé depuis ta dernière visite, plus les demandes
- * d'abonnement qui t'attendent. Lit elle-même notifications et suivis : l'écran qui la pose ne se redessine pas pour elle.
+ * d'abonnement et de bande qui t'attendent. Lit elle-même notifications et suivis : l'écran qui la pose ne se redessine pas pour elle.
  * En visite sans compte, elle ouvre la feuille « Crée ton compte ».
  */
 export function BoutonNotifications({ variante }: Props) {
@@ -29,7 +30,8 @@ export function BoutonNotifications({ variante }: Props) {
   const avecCompte = utiliserProfil().profil !== null;
   const notifications = utiliserNotifications();
   const suivis = utiliserSuivisPersonnes();
-  const nombre = (notifications.pret ? notifications.nonVues : 0) + (suivis.pret ? suivis.demandesRecues.length : 0);
+  const { demandesRecues: demandesBande } = utiliserCommunaute();
+  const nombre = (notifications.pret ? notifications.nonVues : 0) + (suivis.pret ? suivis.demandesRecues.length : 0) + demandesBande.length;
   const sombre = variante === "sombre";
 
   function toucher() {
