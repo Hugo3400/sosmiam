@@ -97,6 +97,7 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
       await baseDeDonnees.partagePositionMiamSafe.update({
         where: { id },
         data: { arreteLe: ligne.arreteLe ?? maintenant, positionChiffree: null },
+        select: { id: true },
       });
       return true;
     },
