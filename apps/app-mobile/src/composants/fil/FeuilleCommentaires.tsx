@@ -175,7 +175,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     console.warn("DEBUG-A6 finirFermeture", JSON.stringify(destination));
     if (!destination) return;
     apresFermeture.current = null;
-    router.push(destination);
+    setTimeout(() => { console.warn("DEBUG-A6 push differe", JSON.stringify(destination)); router.push(destination); console.warn("DEBUG-A6 apres push", window.location.pathname); }, 50);
   }
 
   const inscrire = () => fermerPuisOuvrir("/compte");
