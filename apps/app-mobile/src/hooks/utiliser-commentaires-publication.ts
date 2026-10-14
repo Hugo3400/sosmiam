@@ -35,9 +35,9 @@ export type CommentairesPublication = {
   fils: FilCommentaire[];
   /** Tous les commentaires visibles, réponses comprises */
   nombre: number;
-  /** Il reste des commentaires plus anciens à lire (100 par page) */
+  /** Il reste des commentaires plus anciens à lire (100 par page) ; chargerSuite rend faux si la lecture a raté */
   suite: boolean;
-  chargerSuite: () => void;
+  chargerSuite: () => Promise<boolean>;
   commenter: (texte: string, reponseA?: string, commeLieu?: boolean) => Promise<ResultatCommentaire>;
   modifier: (id: string, texte: string) => Promise<ResultatCommentaire>;
   supprimer: (id: string) => void;
@@ -46,7 +46,8 @@ export type CommentairesPublication = {
   masquerCommeLieu: (id: string, masque: boolean) => Promise<ErreurService | null>;
   /** Tu peux répondre au nom du lieu (gérant) */
   peutRepondreCommeLieu: boolean;
-  relire: () => void;
+  /** Relit la liste (et tes J'aime) ; rend faux si la lecture a raté */
+  relire: () => Promise<boolean>;
 };
 
 type Page = { commentaires: CommentaireApi[]; total: number; suite: string | null };
@@ -91,20 +92,21 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
   const { noterPersonne } = communaute;
   const relu = () => setTic((n) => n + 1);
 
-  const charger = useCallback(async () => {
-    if (!duServeur || !publicationId) return;
+  const charger = useCallback(async (): Promise<boolean> => {
+    if (!duServeur || !publicationId) return true;
     const g = ++generation.current;
     const [p, m] = await Promise.all([
       sociaux.commentaires.lister(publicationId),
       avecCompte ? sociaux.commentaires.lireMiens(publicationId) : Promise.resolve(null),
     ]);
-    if (g !== generation.current) return;
+    if (g !== generation.current) return p.ok;
     if (p.ok) {
       p.commentaires.forEach((c) => c.auteur.type === "personne" && noterPersonne(c.auteur.personne));
       setPage({ commentaires: p.commentaires, total: p.total, suite: p.suite });
     }
     if (m?.ok) setMoi(m.moi);
     setRatee(!p.ok);
+    return p.ok;
     // noterPersonne change à chaque relecture de la bande : la lecture ne repart pas pour autant
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duServeur, publicationId, avecCompte, sociaux]);
@@ -117,18 +119,18 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
     void charger();
   }, [charger]);
 
-  const chargerSuite = useCallback(() => {
+  const chargerSuite = useCallback(async (): Promise<boolean> => {
     const suite = page?.suite;
-    if (!duServeur || !publicationId || !suite) return;
+    if (!duServeur || !publicationId || !suite) return true;
     const g = generation.current;
-    void sociaux.commentaires.lister(publicationId, suite).then((r: { ok: false } | ({ ok: true } & PageCommentairesApi)) => {
-      if (g !== generation.current || !r.ok) return;
-      setPage((avant) => {
-        if (!avant || avant.suite !== suite) return avant;
-        const deja = new Set(avant.commentaires.map((c) => c.id));
-        return { commentaires: [...avant.commentaires, ...r.commentaires.filter((c) => !deja.has(c.id))], total: r.total, suite: r.suite };
-      });
+    const r: { ok: false } | ({ ok: true } & PageCommentairesApi) = await sociaux.commentaires.lister(publicationId, suite);
+    if (g !== generation.current || !r.ok) return r.ok;
+    setPage((avant) => {
+      if (!avant || avant.suite !== suite) return avant;
+      const deja = new Set(avant.commentaires.map((c) => c.id));
+      return { commentaires: [...avant.commentaires, ...r.commentaires.filter((c) => !deja.has(c.id))], total: r.total, suite: r.suite };
     });
+    return true;
   }, [duServeur, publicationId, page?.suite, sociaux]);
 
   // La liste publique corrigée de tes gestes récents, avec tes commentaires que toi seul vois
@@ -153,19 +155,20 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
       const demo = source === "demo" && !!publicationId;
       return {
         source,
-        pret: source !== "attente",
+        // Démo : la communauté du téléphone doit être lue
+        pret: demo ? communaute.pret : source !== "attente",
         ratee: false,
         fils: demo ? communaute.commentairesDe(id) : [],
         nombre: demo ? communaute.nombreCommentaires(id) : 0,
         suite: false,
-        chargerSuite: () => {},
+        chargerSuite: async () => true,
         commenter: async (texte, reponseA) => (demo ? communaute.commenter(id, texte, reponseA) : "reseau"),
         modifier: async (cid, texte) => (demo ? communaute.modifierCommentaire(cid, texte) : "reseau"),
         supprimer: (cid) => demo && communaute.supprimerCommentaire(cid),
         basculerJaime: (cid) => demo && communaute.basculerJaimeCommentaire(cid),
         masquerCommeLieu: async () => "session-app-requise",
         peutRepondreCommeLieu: false,
-        relire: () => {},
+        relire: async () => true,
       };
     }
 
@@ -252,7 +255,7 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
         return null;
       },
       peutRepondreCommeLieu: moi?.peutRepondreCommeLieu === true,
-      relire: () => void charger(),
+      relire: charger,
     };
   }, [publicationId, duServeur, source, communaute, moi, masquesParMoi, corrige, monId, page, ratee, avecCompte, sociaux, chargerSuite, charger]);
 }

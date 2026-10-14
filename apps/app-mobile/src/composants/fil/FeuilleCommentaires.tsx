@@ -119,6 +119,17 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     }
   }
 
+  // Rouverte sur la même publication : les commentaires sont relus (à la première ouverture, le hook vient de les lire)
+  const dejaOuverte = useRef(false);
+  const { relire } = discussion;
+  useEffect(() => {
+    if (!visible) return;
+    if (dejaOuverte.current) void relire();
+    dejaOuverte.current = true;
+    // relire change à chaque relecture : seulement à l'ouverture
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
   useEffect(() => {
     if (!visible) return;
     setMaintenant(Date.now());
