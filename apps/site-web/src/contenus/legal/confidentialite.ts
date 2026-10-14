@@ -6,7 +6,8 @@
 // (apps/api/src/services/mesure.ts, apps/site-web/src/services/mesure.server.ts, page /statistiques pour s'y opposer).
 // Espace ambassadeur (8 octobre 2026) : comptes dès 18 ans, section « Ton compte ambassadeur » dans
 // confidentialite-compte-ambassadeur.ts (apps/api/src/services/comptes.ts ; durées et sécurité : docs/decisions.md).
-// App mobile (8 octobre 2026) : tout reste sur le téléphone ; comptes de l'app annoncés au futur ; voir confidentialite-app.ts.
+// App mobile (14 octobre 2026) : comptes dès la v1 des stores (confirmé par Hugo) ; ce que l'app garde sur le téléphone et
+// sur le serveur : confidentialite-app.ts (relu contre le code par la session App).
 // Newsletter (Hugo, 14 octobre 2026) : comptes de l'app sur une case décochable à l'inscription (soft opt-in, apps/api
 // controleurs/comptes-newsletter.ts) ; ambassadeurs inscrits par défaut quand leur candidature est validée (statut « actif »).
 // Messagerie (vérifié le 8 octobre 2026) : le MX de sosmiam.fr est mail.yubox.io (159.100.240.189), chez Exoscale à Genève
@@ -36,7 +37,7 @@ export const documentConfidentialite: DocumentLegal = {
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
-    "SOS Miam est encore en préparation : l'app n'est pas encore sur les stores, et tout ce que tu y fais reste sur ton téléphone ; il n'y a pas de pub pour l'instant. Les seuls comptes qui existent aujourd'hui sont ceux de l'espace ambassadeur et de l'espace pro (pour gérer la fiche d'un lieu), dès 18 ans. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
+    "Un seul compte SOS Miam, dès 18 ans, sert dans l'app, dans l'espace ambassadeur et dans l'espace pro (pour gérer la fiche d'un lieu). Il n'y a pas de pub pour l'instant. Cette page décrit ce qui se passe **aujourd'hui**, et elle sera mise à jour **avant** chaque nouveauté.",
   ],
   enBref: [
     {
@@ -51,7 +52,7 @@ export const documentConfidentialite: DocumentLegal = {
         "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact.",
         "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel, et ta date de naissance sert seulement à vérifier ton âge : on ne la garde pas. Après 1 an sans visite dans ton espace, ton rôle d'ambassadeur est retiré ; après 2 ans sans connexion, ton compte est effacé (on te prévient par mail un mois avant) ; et tu peux le supprimer toi-même à tout moment.",
         "**Ton espace pro** (dès 18 ans, pour gérer la fiche d'un lieu) : avec le même compte, ta demande pour gérer un lieu et ce qui prouve qu'il est à toi ne sont vus que par l'équipe de SOS Miam ; ce que tu changes sur la fiche est public, mais sans ton nom. Une demande refusée ou un rattachement retiré est effacé 1 an après.",
-        "**L'app SOS Miam** (pas encore sur les stores) : tout ce que tu y fais reste sur ton téléphone, rien n'est envoyé à notre serveur. Ta position, seulement quand tu le demandes, sert à trouver ta ville (par le service d'Apple ou de Google) ou les lieux autour de toi, et n'est jamais gardée. Les comptes de l'app arriveront bientôt : on t'explique déjà ce qu'ils garderont.",
+        "**L'app SOS Miam** : sans compte, tu regardes, et rien de toi n'est gardé. Avec un compte, notre serveur garde ton profil (sans tes régimes, qui restent sur ton téléphone), ton activité, tes visites, ta fidélité, tes réservations, tes avis et, si tu les acceptes, de quoi t'envoyer des notifications. Ta position, seulement quand tu le demandes, sert à trouver ta ville, les lieux autour de toi ou à vérifier que tu es dans le lieu quand tu valides une visite, et n'est jamais gardée.",
         "**On ne vend jamais tes données**, et on ne les loue pas.",
         `**Tu gardes la main** : un mail à ${lienEmail} suffit pour consulter, corriger ou effacer tes données, ou t'opposer à leur utilisation. Ton compte ambassadeur, lui, se corrige et se supprime aussi directement dans ton espace.`,
       ],
@@ -240,7 +241,7 @@ export const documentConfidentialite: DocumentLegal = {
         },
         "Ces prestataires peuvent eux-mêmes faire appel à d'autres prestataires techniques (des « sous-traitants ultérieurs »), qui doivent respecter les mêmes obligations de protection de tes données.",
         "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien. Enfin, si un lieu que tu as proposé depuis ton espace ambassadeur rejoint SOS Miam, ton prénom peut s'afficher sur sa fiche, visible par tous (« Déniché par ») ; et si tu deviens ambassadeur certifié, le badge « Ambassadeur certifié ✓ » s'affiche avec ton prénom et, si tu en as indiqué une, le nom de ta structure, sur les fiches des lieux que tu as aidés. Il n'y a pas de liste publique des ambassadeurs certifiés.",
-        "Dans l'app, et seulement quand tu le demandes, ta position est envoyée au service de ton téléphone (celui d'**Apple** sur iPhone, celui de **Google** sur Android) pour trouver le nom de ta ville ; sur iPhone, la carte d'Explorer est dessinée par **Plans d'Apple**, qui reçoit la zone que tu regardes. Ce sont alors leurs propres règles de confidentialité qui s'appliquent (voir « L'app SOS Miam, aujourd'hui »).",
+        "Dans l'app, et seulement quand tu le demandes, ta position est envoyée au service de ton téléphone (celui d'**Apple** sur iPhone, celui de **Google** sur Android) pour trouver le nom de ta ville ; sur iPhone, la carte d'Explorer est dessinée par **Plans d'Apple**, qui reçoit la zone que tu regardes. Ce sont alors leurs propres règles de confidentialité qui s'appliquent (voir « L'app SOS Miam : sur ton téléphone »).",
         "Si la loi l'impose, certaines données peuvent être communiquées à une autorité qui les demande dans un cadre légal, par exemple sur décision d'un juge. Personne d'autre ne les reçoit.",
         `**Transferts hors de l'Union européenne** : le serveur du site est en France. Les e-mails envoyés à ${site.emailContact} sont reçus par un serveur situé en Suisse : la Suisse bénéficie d'une décision d'adéquation de la Commission européenne (décision 2000/518/CE du 26 juillet 2000), qui reconnaît que tes données y sont aussi bien protégées que dans l'Union européenne. Cloudflare peut traiter des données hors de l'Union européenne, notamment aux États-Unis, avec les garanties décrites dans la partie « Cloudflare, qui protège le site ». Enfin, si tu demandes la bêta, Google ou Apple peuvent traiter ton adresse aux États-Unis : pour Google, le transfert est encadré par le **Data Privacy Framework UE–États-Unis**, auquel Google LLC a adhéré (certification vérifiable sur [dataprivacyframework.gov](https://www.dataprivacyframework.gov/)) ; pour Apple, par les **clauses contractuelles types** de la Commission européenne, comme l'indique sa [politique de confidentialité](https://www.apple.com/fr/legal/privacy/fr-ww/).`,
       ],
@@ -312,7 +313,7 @@ export const documentConfidentialite: DocumentLegal = {
         "Un compte SOS Miam (dans l'app, l'espace ambassadeur ou l'espace pro) est réservé aux personnes majeures : **18 ans** en France. Sans compte, le site se visite à tout âge.",
         "La newsletter et le formulaire « Préviens-moi » restent ouverts à tous. En France, la loi Informatique et Libertés permet de consentir seul au traitement de ses données à partir de **15 ans** : si tu as moins de 15 ans, il faut l'accord de tes parents (ou de la personne qui a l'autorité parentale), en plus du tien, avant de t'y inscrire.",
         `Si on apprend qu'un enfant de moins de 15 ans s'est inscrit sans cet accord, on efface ses données. Un parent peut nous le signaler à ${lienEmail}.`,
-        "Ta date de naissance sert à vérifier que tu as 18 ans : dans l'espace ambassadeur et l'espace pro, elle n'est pas gardée (pour l'app, voir « L'app SOS Miam, aujourd'hui »). Si on apprend qu'un compte appartient à quelqu'un de moins de 18 ans, ou si un parent nous le signale, on le supprime avec ses données.",
+        "Ta date de naissance sert à vérifier que tu as 18 ans : dans l'espace ambassadeur et l'espace pro, elle n'est pas gardée ; dans l'app, elle est gardée chiffrée (voir « L'app SOS Miam : ton compte »). Si on apprend qu'un compte appartient à quelqu'un de moins de 18 ans, ou si un parent nous le signale, on le supprime avec ses données.",
       ],
     },
     {
@@ -322,7 +323,7 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam va grandir. Voici ce qui est prévu, **mais ne fonctionne pas aujourd'hui** :",
         {
           liste: [
-            "**Les comptes de l'app**, puis la messagerie et les potes pour de vrai (aujourd'hui, ce sont des démos sur ton téléphone) : ce que les comptes garderont est déjà détaillé dans « L'app, bientôt avec un compte ».",
+            "**La messagerie et les potes** pour de vrai dans l'app (aujourd'hui, rien de ce que tu y fais ne part vers de vraies personnes) : cette page dira ce qu'ils gardent avant qu'ils ouvrent.",
             "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
             "**Les bons solidaires**, pour payer à l'avance dans un lieu pendant son BIG SOS. La façon de payer n'est pas encore décidée.",
           ],

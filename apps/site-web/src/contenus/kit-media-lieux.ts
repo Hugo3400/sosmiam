@@ -140,14 +140,14 @@ export const texteMemoEquipe = {
   siOnTeDit: "Si on te dit",
   ouEcran: "ou si on te montre cet écran, la personne a besoin d'aide, sans que ça se voie.",
   gestes: [
-    { titre: "Réponds calmement", texte: "« Oui, viens, je t'emmène le voir. »" },
+    { titre: "Réponds calmement :", texte: "« Oui, viens, je t'emmène le voir. »" },
     { titre: "Mets la personne à l'abri", texte: "hors de la salle, dans un endroit calme." },
     { titre: "Écoute et demande", texte: "ce qu'il lui faut : un taxi, appeler un proche, les secours." },
     { titre: "Pas d'annonce, pas d'esclandre.", texte: "Ne confronte pas seul la personne qui pose problème." },
   ],
   alerte: "Alerte sur ton téléphone pro ? Appuie sur « On arrive », puis va voir à l'endroit indiqué.",
   danger: "Danger réel : n'attends pas.",
-  numeros: "17 · 18 · 15 · 112",
+  numeros: "17 · 18 · 15 · 112 · 114",
 };
 
 /** Textes prêts à poster par le lieu. `lien` : l'adresse de sa fiche sur sosmiam.fr. */

@@ -82,6 +82,8 @@ export default [
   route("rendu-kit/:visuel", "routes/ressources/rendu-kit.tsx"),
   // Affiche et flyer du kit média pro à leur taille exacte, en PNG et en PDF (serveur de développement seulement)
   route("rendu-kit-pro/:visuel", "routes/ressources/rendu-kit-pro.tsx"),
+  // Visuels du kit média des lieux à leur taille exacte, en PNG et en PDF (serveur de développement seulement)
+  route("rendu-kit-lieux/:visuel", "routes/ressources/rendu-kit-lieux.tsx"),
   // Mini-site des liens (bio TikTok et Instagram) : son propre cadre, servi aussi derrière la page « Bientôt »
   route("liens", "routes/public/liens.tsx"),
   // Boutons de /liens : compte le clic (statistiques, sans cookie), puis redirige vers le réseau

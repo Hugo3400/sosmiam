@@ -8,7 +8,8 @@ const ADRESSE_SITE = "https://sosmiam.fr";
 
 /** Construit les balises meta d'une page (titre, description, aperçu pour les réseaux sociaux). */
 export function creerMeta({ titre, description }: InfosPage) {
-  const titreComplet = titre === "SOS Miam" ? titre : `${titre} — SOS Miam`;
+  // Un titre qui commence déjà par la marque (celui de l'accueil) n'est pas suivi d'un second « SOS Miam »
+  const titreComplet = titre.startsWith("SOS Miam") ? titre : `${titre} — SOS Miam`;
   return [
     { title: titreComplet },
     { name: "description", content: description },
@@ -23,5 +24,7 @@ export function creerMeta({ titre, description }: InfosPage) {
     { property: "og:image:height", content: "630" },
     { property: "og:image:alt", content: "SOS Miam : sauve une table, régale-toi. La bouée mascotte sourit sur fond jaune." },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: titreComplet },
+    { name: "twitter:description", content: description },
   ];
 }

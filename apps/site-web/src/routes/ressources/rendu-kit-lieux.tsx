@@ -35,7 +35,14 @@ async function rendreKitLieux(demande: string, impression: boolean): Promise<Res
     import("~/composants/kit-media-pro/PageRenduKitPro"),
   ]);
   const page = renderToStaticMarkup(
-    <PageRenduKitPro format={visuel.format} impression={impression} feuilleStyle={feuilleStyle} policeTitre={policeTitre} policeTexte={policeTexte}>
+    <PageRenduKitPro
+      format={visuel.format}
+      impression={impression}
+      feuilleStyle={feuilleStyle}
+      policeTitre={policeTitre}
+      policeTexte={policeTexte}
+      transparent={visuel.groupe === "logos"}
+    >
       {[pagesKitLieux[visuel.id]]}
     </PageRenduKitPro>,
   );

@@ -13,6 +13,8 @@ import { creerRoutesAppareils } from "./routes/appareils.ts";
 import type { DependancesAppareils } from "./controleurs/appareils.ts";
 import { creerRoutesActivite } from "./routes/activite.ts";
 import type { DependancesActivite } from "./controleurs/activite.ts";
+import { creerRoutesDefis } from "./routes/defis.ts";
+import type { DependancesDefisApp } from "./controleurs/defis.ts";
 import { creerRoutesVisites } from "./routes/visites.ts";
 import { creerRoutesReservationsApp } from "./routes/reservations.ts";
 import { creerRoutesVuesLieux } from "./routes/vues-lieux.ts";
@@ -102,6 +104,8 @@ type Dependances = {
   newsletter?: DependancesNewsletterPublic;
   /** Téléphones inscrits aux notifications push (routes /app/appareils ; seulement avec `comptes`) */
   appareilsApp?: DependancesAppareils;
+  /** L'app, avec session : défis du moment et avancée du compte (GET /app/defis ; seulement avec `comptes`) */
+  defisApp?: DependancesDefisApp;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -118,6 +122,7 @@ export function creerApplication({
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
   newsletter, appareilsApp,
+  defisApp,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -168,6 +173,8 @@ export function creerApplication({
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));
     // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version
     if (activiteApp) application.use("/app/activite", creerRoutesActivite(activiteApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+    // Les défis (même compte, même session), avant le routeur /app de l'heure et de la version
+    if (defisApp) application.use("/app/defis", creerRoutesDefis(defisApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     // Événements des lieux (dates publiques, « Ça m'intéresse » avec la même session) et avis (l'avis d'un lieu se lit sans
     // session), avant le routeur /app de l'heure et de la version
     if (evenementsApp) application.use("/app/evenements", creerRoutesEvenementsApp(evenementsApp, protection, limiteConnectee, comptes.horloge ?? Date.now));

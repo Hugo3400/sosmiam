@@ -16,6 +16,7 @@
     "site:deployer": "bash scripts/deployer-site.sh",
     "site:kit-media": "bash scripts/generer-kit-media.sh",
     "site:kit-media-pro": "bash scripts/generer-kit-media-pro.sh",
+    "site:kit-media-lieux": "bash scripts/generer-kit-media-lieux.sh",
     "inscrits:recuperer": "python3 scripts/recuperer-inscrits.py",
     "bot:dev": "npm run dev --prefix apps/bot-discord",
     "bot:verifier": "npm run typecheck --prefix apps/bot-discord && npm test --prefix apps/bot-discord && npm run verifier:lignes",

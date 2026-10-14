@@ -9,6 +9,8 @@ import { IlsOntBesoinDeToi } from "~/composants/accueil/IlsOntBesoinDeToi";
 import { Inscription, type ReponseInscription } from "~/composants/accueil/Inscription";
 import { PourLesPros } from "~/composants/accueil/PourLesPros";
 import { BigSosEnBref } from "~/composants/big-sos/BigSosEnBref";
+import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
+import { creerDonneesOrganisation } from "~/fonctions/seo/creer-donnees-organisation";
 import { creerDonneesSite } from "~/fonctions/seo/creer-donnees-site";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -24,14 +26,12 @@ const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
 };
 
 export function meta(_: Route.MetaArgs) {
-  return [
-    ...creerMeta({
-      titre: "SOS Miam",
-      description:
-        "Découvre les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France, et viens à leur rescousse.",
-    }),
-    { "script:ld+json": creerDonneesSite() },
-  ];
+  // Le titre dit ce qu'est SOS Miam dès le résultat de recherche (un livre jeunesse porte un nom proche) : 60 et 155 caractères au plus
+  return creerMeta({
+    titre: "SOS Miam : restos, bars et pâtisseries de ton quartier",
+    description:
+      "Trouve les restos, bars, pâtisseries et sorties indépendants près de chez toi, et donne un coup de main aux lieux en SOS. Gratuit, partout en France.",
+  });
 }
 
 /** Les vrais lieux publiés, lus à chaque affichage de l'accueil : aucun lieu inventé sur le site. */
@@ -96,6 +96,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
 export default function Accueil({ loaderData }: Route.ComponentProps) {
   return (
     <>
+      <DonneesStructurees donnees={[creerDonneesSite(), creerDonneesOrganisation()]} />
       <Hero />
       <CommentCaMarche />
       <IlsOntBesoinDeToi lieux={loaderData.lieux} />

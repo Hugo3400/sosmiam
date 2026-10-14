@@ -14,7 +14,7 @@ const INSCRIRE_MON_LIEU = "https://sosmiam.fr/inscrire-mon-lieu";
 export function meta(_: Route.MetaArgs) {
   return creerMeta({
     titre: "L'espace pro",
-    description: "SOS Miam pro : ta fiche à jour, tes infos pratiques, les suggestions des clients, ton équipe et ton affichette de table. Gratuit, sans abonnement ni commission.",
+    description: "SOS Miam pro : ta fiche à jour, tes infos pratiques, les suggestions des clients, ton équipe et ton affichette. Gratuit, sans abonnement ni commission.",
   });
 }
 

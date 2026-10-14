@@ -11,6 +11,8 @@ type Props = {
   feuilleStyle: string;
   policeTitre: string;
   policeTexte: string;
+  /** Fond transparent (les logos du kit des lieux) : la feuille du site ne peint plus le fond de la page */
+  transparent?: boolean;
   children: ReactNode[];
 };
 
@@ -19,7 +21,7 @@ type Props = {
  * (la première page, à sa taille exacte en pixels) ou en PDF (toutes les pages, au format du papier, sans marge, fonds
  * imprimés). Aucun script. Polices du site en « font-display: block » : le texte attend la vraie police.
  */
-export function PageRenduKitPro({ format, impression, feuilleStyle, policeTitre, policeTexte, children }: Props) {
+export function PageRenduKitPro({ format, impression, feuilleStyle, policeTitre, policeTexte, transparent = false, children }: Props) {
   // 1 mm = 96 / 25,4 px CSS : le dessin à 300 dpi est réduit d'autant pour remplir exactement la feuille
   const reduction = (format.largeurMm * 96) / 25.4 / format.largeur;
   const taillePage = impression
@@ -35,6 +37,7 @@ html, body { margin: 0; }
 :root { color-scheme: normal; }
 * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 ${taillePage}
+${transparent ? "html, body { background: transparent !important; }" : ""}
 `;
   const pages = impression ? children : children.slice(0, 1);
   return (

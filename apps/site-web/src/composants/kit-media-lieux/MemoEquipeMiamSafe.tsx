@@ -48,7 +48,7 @@ export function MemoEquipeMiamSafe() {
 
       <div className="mt-[60px] flex items-center justify-between bg-encre px-[120px] py-[60px] text-creme">
         <p className="text-[42px] font-semibold">{lierPonctuation(t.danger)}</p>
-        <p className="font-titre text-[72px] font-extrabold text-tomate">{t.numeros}</p>
+        <p className="font-titre text-[64px] font-extrabold text-tomate">{t.numeros}</p>
       </div>
     </div>
   );

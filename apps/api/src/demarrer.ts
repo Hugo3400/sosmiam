@@ -61,6 +61,8 @@ import { trouverInscritNewsletter } from "./services/desinscription-newsletter.t
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
 import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
 import { desinscrireAppareil, inscrireAppareil } from "./services/appareils-push.ts";
+import { creerDefis } from "./services/defis.ts";
+import { brancherReevaluationDefis } from "./fonctions/defis/brancher-reevaluation-defis.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -74,6 +76,10 @@ const cleDesinscription = brancherCleDesinscription(chiffrement);
 // Événements des lieux et avis : un seul service pour l'app et pour le comptoir de l'équipe
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
+// Défis et badges automatiques : recomptés après chaque ajout de points des autres domaines (sans les faire attendre ni
+// échouer) et à chaque lecture des défis ; leurs propres points passent par ajouterPoints tel quel
+const defis = creerDefis({ ajouterPoints, donnerBadge });
+const ajouterPointsEtDefis = brancherReevaluationDefis(ajouterPoints, defis.reevaluer);
 // Version minimale de l'app (écran « mets à jour ») : « 0.0.0 » si rien n'est réglé
 const versionMinimale = {
   ios: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_IOS),
@@ -110,9 +116,9 @@ const serveur = creerApplication({
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
   gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,
-    comptes: { ajouterPoints, donnerBadge, preparerReinitialisation, preparerVerificationEmail, nommerAmbassadeurVille, retirerAmbassadeurVille },
+    comptes: { ajouterPoints: ajouterPointsEtDefis, donnerBadge, preparerReinitialisation, preparerVerificationEmail, nommerAmbassadeurVille, retirerAmbassadeurVille },
     // « Donner raison au client » sur une contestation de refus (logique des visites de la session App)
-    visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints, prevenirCompte }) },
+    visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }) },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
     services: {
@@ -152,11 +158,11 @@ const serveur = creerApplication({
     dossierMedias: DOSSIER_MEDIAS,
   },
   // Rescousses, lieux gardés, J'aime, masques et suivis de l'app (points et badge donnés par le contrôleur)
-  activiteApp: { services: creerActivite(), ajouterPoints, donnerBadge },
+  activiteApp: { services: creerActivite(), ajouterPoints: ajouterPointsEtDefis, donnerBadge },
   // La clé des QR du comptoir est tirée à chaque démarrage, jamais écrite (un QR vit 60 s au plus)
   visitesApp: {
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
-    lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints, moment: creerMomentLieu(),
+    lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints: ajouterPointsEtDefis, moment: creerMomentLieu(),
     statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis },
   },
   // Vues des fiches dans l'app : un compteur par lieu et par jour ; les visiteurs ne sont reconnus qu'en mémoire, jusqu'à minuit
@@ -165,7 +171,9 @@ const serveur = creerApplication({
   evenementsApp: { services: evenements, chiffrement },
   // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs. Pas encore
   // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
-  avisApp: { depot: depotAvis, chiffrement, ajouterPoints, tirer: (max) => randomInt(max) },
+  avisApp: { depot: depotAvis, chiffrement, ajouterPoints: ajouterPointsEtDefis, tirer: (max) => randomInt(max) },
+  // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
+  defisApp: { services: defis },
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },
