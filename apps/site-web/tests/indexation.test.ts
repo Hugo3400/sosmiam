@@ -70,7 +70,7 @@ test("chaque page privée est en noindex (mon compte, espaces, désinscription, 
     "/espace", "/espace/mon-compte", "/espace/kit-media", "/espace/kit-media-pro", "/espace/proposer-un-lieu", "/espace/fondateur",
     "/espace/certification", "/espace/missions", "/espace/messages",
     "/tableau", "/rattacher", "/rattacher/12", "/lieu/12", "/lieu/12/carte", "/lieu/12/suggestions", "/lieu/12/equipe",
-    "/lieu/12/affichette", "/lieu/12/miam-safe",
+    "/lieu/12/affichette", "/lieu/12/miam-safe", "/invitation/lea.croque",
   ];
   for (const chemin of privees) {
     const fichiers = fichiersDe(chemin);
@@ -78,6 +78,7 @@ test("chaque page privée est en noindex (mon compte, espaces, désinscription, 
   }
   // En plus de la balise, l'en-tête HTTP pour les pages aux liens personnels
   assert.match(lire("routes/public/desinscription.tsx"), /"X-Robots-Tag": "noindex"/);
+  assert.match(lire("routes/public/invitation.tsx"), /"X-Robots-Tag": "noindex"/);
   assert.match(lire("routes/compte/mise-en-page-mon-compte.tsx"), /"X-Robots-Tag", "noindex"/);
 });
 

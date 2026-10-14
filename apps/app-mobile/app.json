@@ -13,7 +13,10 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:sosmiam.fr"
+      ]
     },
     "android": {
       "package": "fr.sosmiam.app",
@@ -24,7 +27,34 @@
         "monochromeImage": "./assets/icones/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "sosmiam.fr",
+              "pathPrefix": "/invitation/"
+            },
+            {
+              "scheme": "https",
+              "host": "sosmiam.fr",
+              "pathPrefix": "/l/"
+            },
+            {
+              "scheme": "https",
+              "host": "sosmiam.fr",
+              "pathPrefix": "/lieux/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

@@ -7,6 +7,9 @@ import { masquerEmail } from "../fonctions/texte/masquer-email.ts";
 export type DependancesNewsletterPublic = {
   /** Sous-clé des liens (brancherCleDesinscription) ; null : clé des données absente, les routes répondent 503 */
   cle: Uint8Array | null;
+  /** Sous-clés tirées des anciennes clés des données (lireClesAnciennesDesinscription) : les liens signés avant un
+   * changement de clé restent bons tant que l'ancienne clé est là. Absent ou vide : la clé courante seule */
+  clesAnciennes?: Uint8Array[];
   /** L'id de l'inscrit qui a cette adresse, ou null */
   trouverInscrit: (email: string) => Promise<number | null>;
   /** desinscrire() du logiciel de gestion : efface l'inscrit et note son adresse comme désinscrite ; faux si introuvable */
@@ -29,7 +32,9 @@ function lireAdresse(dependances: DependancesNewsletterPublic, requete: Request,
     reponse.status(503).json({ ok: false, erreur: "indisponible" });
     return null;
   }
-  const email = lireJetonDesinscription(lireJeton(requete), dependances.cle);
+  const jeton = lireJeton(requete);
+  let email = lireJetonDesinscription(jeton, dependances.cle);
+  for (const ancienne of dependances.clesAnciennes ?? []) email ??= lireJetonDesinscription(jeton, ancienne);
   if (!email) reponse.status(400).json({ ok: false, erreur: "jeton-invalide" });
   return email;
 }

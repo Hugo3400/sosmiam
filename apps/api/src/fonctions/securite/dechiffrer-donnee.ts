@@ -1,16 +1,19 @@
 import { createDecipheriv } from "node:crypto";
 
+import { lireVersionChiffre } from "./lire-version-chiffre.ts";
+
 const BASE64URL = /^[A-Za-z0-9_-]*$/;
 
 /**
- * Déchiffre une valeur écrite par chiffrerDonnee (« v1:iv:tag:donnees », base64url) avec la même clé et le même contexte.
+ * Déchiffre une valeur écrite par chiffrerDonnee (« v<version>:iv:tag:donnees », base64url) avec la même clé et le même
+ * contexte (la version dit seulement quelle clé essayer d'abord : services/chiffrement-donnees.ts).
  * Lève une erreur (sans jamais citer la valeur) si le format est inconnu, la clé fausse ou la donnée retouchée.
  */
 export function dechiffrerDonnee(chiffre: string, cle: Uint8Array, contexte = ""): string {
   if (cle.length !== 32) throw new Error("La clé de chiffrement doit faire 32 octets");
   const morceaux = chiffre.split(":");
   const [version, iv, tag, donnees] = morceaux;
-  if (morceaux.length !== 4 || version !== "v1" || !iv || !tag || donnees === undefined || ![iv, tag, donnees].every((m) => BASE64URL.test(m))) {
+  if (morceaux.length !== 4 || lireVersionChiffre(chiffre) === null || !iv || !tag || donnees === undefined || ![iv, tag, donnees].every((m) => BASE64URL.test(m))) {
     throw new Error("Donnée chiffrée illisible (format inconnu)");
   }
   const ivOctets = Buffer.from(iv, "base64url");

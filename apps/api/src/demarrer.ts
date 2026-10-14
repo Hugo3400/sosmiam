@@ -57,6 +57,8 @@ import { servicesComptesExternes } from "./services/comptes-externes.ts";
 import { AUDIENCES_APPLE_DEFAUT, creerVerificateurApple, creerVerificateurGoogle } from "./services/connexion-externe.ts";
 import { lireAudiencesAppleWeb } from "./services/connexion-externe.ts";
 import { brancherCleDesinscription } from "./services/liens-desinscription.ts";
+import { lireClesAnciennesDesinscription } from "./services/liens-desinscription.ts";
+import { brancherRechiffrementDeNuit } from "./taches/taches-de-nuit.ts";
 import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
 import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
@@ -73,6 +75,11 @@ const compteur = creerCompteurVisites(stockageStats);
 const chiffrement = chargerChiffrementDonnees();
 // Liens de désinscription de la newsletter : sous-clé tirée de la clé des données (HKDF), une fois ici
 const cleDesinscription = brancherCleDesinscription(chiffrement);
+// Changement de la clé des données (docs/procedure-changement-cle.md) : les liens signés avec l'ancienne clé restent bons,
+// et la tâche de nuit rechiffre les comptes. Pour les autres usages, chiffrement.versionCle, versionsAnciennes,
+// deriverClesAnciennes(contexte) et deriverCleVersion(contexte, version) (services/chiffrement-donnees.ts)
+const clesAnciennesDesinscription = lireClesAnciennesDesinscription();
+brancherRechiffrementDeNuit(chiffrement);
 // Événements des lieux et avis : un seul service pour l'app et pour le comptoir de l'équipe
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
@@ -178,7 +185,7 @@ const serveur = creerApplication({
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },
-  newsletter: { cle: cleDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
+  newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

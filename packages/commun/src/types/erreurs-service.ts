@@ -1,7 +1,10 @@
 // Toutes les erreurs que peuvent rendre les services des visites, de la fidélité, des réservations, des avis,
 // du comptoir, de l'espace ambassadeur, des propositions de modification d'une fiche et de Miam Safe. Chaque code a son texte dans contenus/messages-services.ts.
+// Celles de la partie sociale sont à part (erreurs-service-sociales.ts, textes dans contenus/messages-services-sociaux.ts).
+import type { ErreurServiceSociale } from "./erreurs-service-sociales.ts";
 
 export type ErreurService =
+  | ErreurServiceSociale
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"

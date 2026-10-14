@@ -1,9 +1,7 @@
 // Réglages de « Continuer avec Apple » et « Continuer avec Google » sur le site. Lus dans l'environnement, complété une
 // fois par le fichier apps/site-web/.env s'il existe (jamais commité ; les variables déjà posées gardent leur valeur).
 // Aucun import « ~/… » ici : les tests (tests/connexion-externe.test.ts) lancent ce fichier directement avec Node.
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-
+import { chargerFichierEnv } from "../fonctions/env/charger-fichier-env.ts";
 import type { FournisseurExterne } from "../types/connexion-externe.ts";
 
 /** L'identifiant client OAuth « Web » de Google (public, comme tout client_id) ; SOS_MIAM_GOOGLE_CLIENT_ID_WEB le remplace,
@@ -11,20 +9,6 @@ import type { FournisseurExterne } from "../types/connexion-externe.ts";
 export const CLIENT_GOOGLE_WEB = "186162767871-47rgkc0b9bfrtc5jhc9csuee2kvu649e.apps.googleusercontent.com";
 /** L'identifiant d'Expo Go : jamais utilisé comme client */
 const CLIENT_INTERDIT = "host.exp.Exponent";
-
-let fichierLu = false;
-
-function lireFichierEnv() {
-  if (fichierLu) return;
-  fichierLu = true;
-  const fichier = join(process.cwd(), ".env");
-  if (!existsSync(fichier)) return;
-  try {
-    process.loadEnvFile(fichier);
-  } catch {
-    console.error("Site : le fichier .env n'a pas pu être lu");
-  }
-}
 
 const nettoyer = (valeur: string | undefined) => {
   const propre = (valeur ?? "").trim();
@@ -37,7 +21,7 @@ const nettoyer = (valeur: string | undefined) => {
  * - Apple : SOS_MIAM_APPLE_SERVICES_ID (le « Services ID », le même que dans apps/api/.env), sinon pas de bouton.
  */
 export function lireReglagesConnexionExterne(): Record<FournisseurExterne, string | null> {
-  lireFichierEnv();
+  chargerFichierEnv();
   return {
     google: nettoyer(process.env.SOS_MIAM_GOOGLE_CLIENT_ID_WEB ?? CLIENT_GOOGLE_WEB),
     apple: nettoyer(process.env.SOS_MIAM_APPLE_SERVICES_ID),

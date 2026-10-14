@@ -14,7 +14,7 @@ const paliers: { cle: PalierCompte; seuil: number | null }[] = [
 ];
 
 // Le catalogue commun des badges (packages/commun) : le même que l'app et le logiciel de gestion
-const badgesConnus = new Map(BADGES.map((badge) => [badge.id, badge]));
+const badgesConnus = new Map<string, { emoji: string; nom: string }>(BADGES.map((badge) => [badge.id, badge]));
 
 type Props = {
   palier: PalierCompte;

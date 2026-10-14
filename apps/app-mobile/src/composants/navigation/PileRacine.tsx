@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
 import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
+import { utiliserInvitationEnAttente } from "~/hooks/utiliser-invitation-en-attente";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
@@ -29,6 +30,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   utiliserInscriptionTelephone();
   // Session expirée côté serveur (ou profil sans session) : retour à l'accueil, où « Me connecter » t'attend
   utiliserFinDeSession();
+  // Un lien d'invitation ouvert avant d'avoir un compte : rouvert une fois le compte créé
+  utiliserInvitationEnAttente();
   // Les signalements restés sur le téléphone faute de réseau repartent à la modération
   useEffect(() => {
     void renvoyerSignalementsEnAttente();
@@ -81,6 +84,13 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
         </Stack.Protected>
         <Stack.Protected guard={!inscrit}>
           <Stack.Screen name="(inscription)" />
+        </Stack.Protected>
+        {/* Liens ouverts depuis le site ou un QR (sosmiam.fr/invitation/…, /l/…, /lieux/…) : ouverts à tous, ils renvoient
+            aussitôt au bon écran (en entrant en visite si besoin) */}
+        <Stack.Protected guard>
+          <Stack.Screen name="invitation/[pseudo]" />
+          <Stack.Screen name="l/[code]" />
+          <Stack.Screen name="lieux/[id]" />
         </Stack.Protected>
       </Stack>
     </>

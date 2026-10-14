@@ -67,10 +67,12 @@ export function signalerVue(requete: Request, reponse: Response, duree: number):
   // Même lecture que React Router : « /_.data » est l'accueil, « /faq.data » la FAQ
   const chemin = (url.pathname.endsWith("/_.data") ? url.pathname.slice(0, -"_.data".length) : url.pathname.replace(/\.data$/, "")) || "/";
   url.searchParams.delete("_routes");
-  const parametres = url.searchParams.toString();
+  // Lien d'invitation entre potes : ni le pseudo ni l'ancien « ?c= » (code secret) ne partent vers l'API
+  const invitation = /^\/invitation(\/|$)/i.test(chemin);
+  const parametres = invitation ? "" : url.searchParams.toString();
   const robot = !signature || isbot(signature);
   envoyer("/mesure/vue", ip, {
-    adressePage: `${chemin}${parametres ? `?${parametres}` : ""}`,
+    adressePage: invitation ? "/invitation" : `${chemin}${parametres ? `?${parametres}` : ""}`,
     signature: robot ? signature || "robot sans nom" : signature,
     statut: reponse.status,
     // Pour un robot, seul son nom compte : rien d'autre n'est envoyé

@@ -11,6 +11,9 @@ export default [
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)
     route("l/:code", "routes/public/qr-vitrine.tsx"),
+    // Lien d'invitation d'un pote (sosmiam.fr/invitation/<pseudo>#c=<code>) : « Ouvre SOS Miam… » (noindex, sans appel à
+    // l'API ; le code reste dans le fragment, jamais envoyé au serveur). Quand l'app est installée, le lien universel l'ouvre.
+    route("invitation/:pseudo", "routes/public/invitation.tsx"),
   ]),
   // Pages légales : cadre simple, servi aussi derrière la page « Bientôt » de sosmiam.fr
   layout("routes/public/mise-en-page-legale.tsx", [
@@ -98,6 +101,9 @@ export default [
   // Pour les moteurs de recherche (texte et XML générés à chaque demande)
   route("robots.txt", "routes/ressources/robots.ts"),
   route("sitemap.xml", "routes/ressources/plan-du-site.ts"),
+  // Liens universels de l'app (sosmiam.fr seulement, 404 ailleurs) : iOS, et Android dès que son empreinte est réglée
+  route(".well-known/apple-app-site-association", "routes/ressources/association-apple.ts"),
+  route(".well-known/assetlinks.json", "routes/ressources/liens-android.ts"),
   // Toute autre adresse : « Page introuvable » (404). Sans cette route, une adresse inconnue ne passe par aucun
   // middleware de root.tsx (ni le partage des hôtes, ni les statistiques) : React Router répond 404 avant eux.
   // Elle reste la DERNIÈRE de la liste (tests/route-introuvable.test.ts).

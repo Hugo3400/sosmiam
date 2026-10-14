@@ -17,6 +17,8 @@ import { effacerAppareilsSilencieux, effacerInteretsPasses } from "../services/m
 import { faireLeMenageDesComptes } from "../services/menage-comptes.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { formaterOctets } from "../fonctions/texte/formater-octets.ts";
+import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
+import { rechiffrerComptes } from "../services/rechiffrement-comptes.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -91,11 +93,36 @@ async function nettoyerComptes() {
   }
 }
 
+/** Clé des données (brancherRechiffrementDeNuit, appelé par demarrer.ts) : pendant un changement de clé, la nuit rechiffre */
+let chiffrementDeNuit: ChiffrementDonnees | null = null;
+
+/** Donne aux tâches de nuit la clé des données, pour le rechiffrement des comptes après un changement de clé. */
+export function brancherRechiffrementDeNuit(chiffrement: ChiffrementDonnees | null): void {
+  chiffrementDeNuit = chiffrement;
+}
+
+/**
+ * Changement de la clé des données (docs/procedure-changement-cle.md) : réécrit avec la clé courante les comptes encore
+ * chiffrés avec l'ancienne. Rien sans ancienne clé ; sinon une ligne au journal, des nombres seulement (« 0 restant(s) » :
+ * l'ancienne clé peut partir). Avant la sauvegarde, pour qu'elle ait déjà les comptes rechiffrés.
+ */
+async function rechiffrerLesComptes() {
+  if (!chiffrementDeNuit || chiffrementDeNuit.versionsAnciennes.length === 0) return;
+  try {
+    const bilan = await rechiffrerComptes(chiffrementDeNuit);
+    await noterAction("serveur", "Rechiffrement des comptes (changement de clé des données)",
+      `${bilan.rechiffres} compte(s) rechiffré(s), ${bilan.illisibles} illisible(s), ${bilan.restants} restant(s)`);
+  } catch (erreur) {
+    console.error("Rechiffrement des comptes impossible :", resumerErreur(erreur));
+  }
+}
+
 /** D'abord le ménage (contacts, puis comptes), ensuite la sauvegarde : ce qui a passé sa durée de conservation n'y part pas. */
 async function nettoyerPuisSauvegarder() {
   await faireLeMenage();
   await nettoyerComptes();
   await prevenirLesComptesInactifs();
+  await rechiffrerLesComptes();
   await sauvegarder();
 }
 

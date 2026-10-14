@@ -32,7 +32,7 @@ test("mauvaise clé, autre contexte, donnée retouchée ou format inconnu : erre
   const [v, iv, tag, donnees] = chiffre.split(":") as [string, string, string, string];
   const retouchee = [v, iv, tag, `${donnees.slice(0, -1)}${donnees.endsWith("A") ? "B" : "A"}`].join(":");
   assert.throws(() => dechiffrerDonnee(retouchee, cle, "nom"));
-  for (const mauvais of ["", "Martin", `v2:${iv}:${tag}:${donnees}`, `v1:${iv}:${tag}`, `v1:${iv}:${tag}:${donnees}:x`, `v1:${iv}=:${tag}:${donnees}`]) {
+  for (const mauvais of ["", "Martin", `v0:${iv}:${tag}:${donnees}`, `w1:${iv}:${tag}:${donnees}`, `v1:${iv}:${tag}`, `v1:${iv}:${tag}:${donnees}:x`, `v1:${iv}=:${tag}:${donnees}`]) {
     assert.throws(() => dechiffrerDonnee(mauvais, cle, "nom"), (erreur: Error) => !erreur.message.includes("Martin"), mauvais);
   }
   assert.throws(() => chiffrerDonnee("x", randomBytes(16)), /32 octets/);

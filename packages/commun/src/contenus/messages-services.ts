@@ -1,8 +1,10 @@
 // Le texte de chaque erreur des services (visites, fidélité, réservations, avis, comptoir, espace ambassadeur),
 // identique dans l'app et sur le site. Les valeurs entre accolades ({lieu}, {distance}, {precision}, {date})
 // sont remplacées par remplirModele. Pas d'emoji dans titre ni texte : l'emoji est à part, caché aux lecteurs d'écran.
+// Les textes de la partie sociale sont dans messages-services-sociaux.ts, repris à la fin de MESSAGES_SERVICE.
 
 import type { ErreurService } from "../types/erreurs-service.ts";
+import { MESSAGES_SERVICES_SOCIAUX } from "./messages-services-sociaux.ts";
 
 export type MessageService = { emoji: string; titre: string; texte: string };
 
@@ -419,4 +421,5 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Charte retirée par l'équipe",
     texte: "L'équipe SOS Miam a retiré la charte de ce lieu. Écris-nous à bonjour@sosmiam.fr pour en parler.",
   },
+  ...MESSAGES_SERVICES_SOCIAUX,
 };

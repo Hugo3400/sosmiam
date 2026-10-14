@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
@@ -28,6 +29,15 @@ export default function AjouterPote() {
   const communaute = utiliserCommunaute();
   const [lienColle, setLienColle] = useState("");
   const [retour, setRetour] = useState<RetourAjout | null>(null);
+  // Ouvert par un lien d'invitation (sosmiam.fr/invitation/…) : on l'ajoute tout de suite, comme un lien collé
+  const { lien } = useLocalSearchParams<{ lien?: string }>();
+  const lienTraite = useRef(false);
+  useEffect(() => {
+    if (!lien || lienTraite.current || !communaute.pret) return;
+    lienTraite.current = true;
+    ajouterDepuis(lien, "champ");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lien, communaute.pret]);
 
   // Après un scan ou un texte collé : on retrouve la personne par son pseudo dans l'annuaire de la démo, puis on l'ajoute.
   // Seul un lien d'invitation complet (sosmiam.fr/invitation/…) compte comme un ajout par lien ou QR code ;

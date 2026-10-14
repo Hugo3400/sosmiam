@@ -1,5 +1,7 @@
 // Suivre entre personnes : abonnés, abonnements, demandes et notifications. Formes partagées par l'app et, plus tard, l'API.
 // Dans le code on dit « suivi » ; à l'écran, « abonnés » et « abonnements » (voir docs/decisions.md, « Suivre et abonnements »).
+// Les types de la démo restent ; ceux qui finissent par « Api » sont les formes rendues par l'API.
+import type { PersonneResume } from "./social.ts";
 
 /** Ton choix : public (on te suit sans demander) ou privé (chaque abonnement est une demande). */
 export type Confidentialite = "public" | "prive";
@@ -30,3 +32,17 @@ export type NouvelleNotificationSuivi =
   | { type: "nouvelle-publication"; cle: string; publicationId: string };
 
 export type NotificationSuivi = NouvelleNotificationSuivi & { id: string; date: string };
+
+/** Un abonné ou un abonnement tel que l'API le rend : la personne, et depuis quand (ISO) */
+export type LienSuiviApi = { personne: PersonneResume; depuis: string };
+
+/** Une page d'abonnés ou d'abonnements ; suite : curseur opaque de la page suivante (null : c'était la dernière) */
+export type PageLiensSuiviApi = { liens: LienSuiviApi[]; suite: string | null };
+
+export type ResumeSuivisApi = {
+  prive: boolean;
+  abonnes: number;
+  abonnements: number;
+  demandesRecues: LienSuiviApi[];
+  demandesEnvoyees: LienSuiviApi[];
+};

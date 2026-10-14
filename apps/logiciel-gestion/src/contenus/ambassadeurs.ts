@@ -1,5 +1,6 @@
 // Libellés du programme Ambassadeurs (règles : packages/commun/src/regles/ambassadeurs.ts, docs/decisions.md).
 import type { Mission, Palier, StatutAmbassadeur, TypeMission } from "~/services/ambassadeurs.ts";
+import { BADGES as CATALOGUE_BADGES } from "../../../../packages/commun/src/contenus/badges.ts";
 
 export const PALIERS: Record<Palier, { nom: string; emoji: string }> = {
   curieux: { nom: "Curieux", emoji: "👀" },
@@ -15,19 +16,8 @@ export const STATUTS_AMBASSADEUR: Record<StatutAmbassadeur, { libelle: string; t
   refuse: { libelle: "Refusé", ton: "neutre" },
 };
 
-export const BADGES: Record<string, string> = {
-  "premier-sauveteur": "🚀 Premier sauveteur",
-  "deniche-par-toi": "🔎 Déniché par toi",
-  fondateur: "🏅 Fondateur",
-  // Donnés tout seuls par le serveur, sans points (session App, 14 octobre 2026) ; le catalogue passera dans packages/commun
-  "premiere-rescousse": "🛟 Première rescousse",
-  "bec-sucre": "🍬 Bec sucré",
-  noctambule: "🌙 Noctambule",
-  explorateur: "🧭 Explorateur",
-  "serie-4": "🔥 4 semaines d'affilée",
-  iode: "🦪 Iodé",
-  bande: "👯 Toute la bande",
-};
+/** « emoji nom » de chaque badge, lu dans le catalogue partagé (packages/commun/src/contenus/badges.ts), jamais recopié */
+export const BADGES: Record<string, string> = Object.fromEntries(CATALOGUE_BADGES.map((badge) => [badge.id, `${badge.emoji} ${badge.nom}`]));
 
 export const RAISONS_POINTS: Record<string, string> = {
   visite: "Visite validée",

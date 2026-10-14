@@ -14,11 +14,23 @@ export const PAGE_DESINSCRIPTION = "https://sosmiam.fr/desinscription";
 export const ADRESSE_UN_CLIC = "https://api.sosmiam.fr/newsletter/desinscription";
 
 let cle: Buffer | null = null;
+/** Pendant un changement de la clé des données : les sous-clés tirées des anciennes clés (les liens déjà envoyés restent bons) */
+let clesAnciennes: Buffer[] = [];
 
 /** Tire la sous-clé des liens depuis la clé des données (null : pas de clé, pas de lien). Rend la sous-clé, pour les routes. */
 export function brancherCleDesinscription(chiffrement: ChiffrementDonnees | null): Buffer | null {
   cle = chiffrement ? chiffrement.deriverCle(CONTEXTE_DESINSCRIPTION) : null;
+  clesAnciennes = chiffrement ? chiffrement.deriverClesAnciennes(CONTEXTE_DESINSCRIPTION) : [];
   return cle;
+}
+
+/**
+ * Les sous-clés des liens tirées des anciennes clés des données (après brancherCleDesinscription) : un lien signé avant
+ * le changement de clé reste valable tant que l'ancienne clé est là. Vide hors changement de clé. Les nouveaux liens
+ * sont toujours signés avec la clé courante.
+ */
+export function lireClesAnciennesDesinscription(): Buffer[] {
+  return [...clesAnciennes];
 }
 
 /** « https://sosmiam.fr/desinscription?jeton=… » pour cette adresse : le lien à mettre dans le mail. Null sans clé. */
