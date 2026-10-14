@@ -33,17 +33,14 @@ export async function refuserDemande(id: number, reponse: string | null) {
 }
 
 /**
- * Efface les coordonnées des contacts des demandes vieilles de plus de 3 ans (décidées depuis 3 ans, ou jamais traitées
- * depuis 3 ans), comme le promet la politique de confidentialité. Rend le nombre de demandes concernées.
+ * Efface les demandes de lieu entières (contact compris) au bout de 3 ans : décidées depuis 3 ans, ou jamais traitées depuis
+ * 3 ans, comme le promet la politique de confidentialité (audit du 14 octobre 2026 : avant, seul le contact partait). Le lieu
+ * créé à partir d'une demande acceptée reste. Rend le nombre de demandes effacées.
  */
 export async function effacerContactsAnciens(maintenant = new Date()): Promise<number> {
   const limite = new Date(maintenant.getTime() - 3 * 365 * 86_400_000);
-  const { count } = await baseDeDonnees.demandeLieu.updateMany({
-    where: {
-      OR: [{ contactNom: { not: null } }, { contactEmail: { not: null } }, { contactTelephone: { not: null } }],
-      AND: [{ OR: [{ traiteLe: { lt: limite } }, { traiteLe: null, creeLe: { lt: limite } }] }],
-    },
-    data: { contactNom: null, contactEmail: null, contactTelephone: null },
+  const { count } = await baseDeDonnees.demandeLieu.deleteMany({
+    where: { OR: [{ traiteLe: { lt: limite } }, { traiteLe: null, creeLe: { lt: limite } }] },
   });
   return count;
 }

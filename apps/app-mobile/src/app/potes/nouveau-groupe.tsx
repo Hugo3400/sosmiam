@@ -28,6 +28,8 @@ export default function NouveauGroupe() {
   const [emoji, setEmoji] = useState("🍽️");
   const [membres, setMembres] = useState<string[]>([]);
   const [erreurs, setErreurs] = useState<Erreurs>({});
+  // Un seul groupe par toucher (le serveur répond en un instant, mais un double appui ne doit pas en créer deux)
+  const [enCours, setEnCours] = useState(false);
 
   const choisis = potes.filter((p) => membres.includes(p.id));
 
@@ -36,7 +38,8 @@ export default function NouveauGroupe() {
     setErreurs((e) => ({ ...e, membres: undefined }));
   }
 
-  function creer() {
+  async function creer() {
+    if (enCours) return;
     const propre = titre.trim();
     const trouvees: Erreurs = {};
     if (propre === "") trouvees.titre = "Donne un nom à ton groupe, même « Les affamés » fait l'affaire.";
@@ -45,13 +48,16 @@ export default function NouveauGroupe() {
     if (choisis.length === 0) trouvees.membres = "Ajoute au moins un pote : un groupe tout seul, c'est un journal intime.";
 
     if (Object.keys(trouvees).length === 0) {
-      const resultat = creerGroupe(propre, emoji, choisis.map((p) => p.id));
+      setEnCours(true);
+      const resultat = await creerGroupe(propre, emoji, choisis.map((p) => p.id));
+      setEnCours(false);
       if ("id" in resultat) {
         router.replace({ pathname: "/potes/discussion/[id]", params: { id: resultat.id } });
         return;
       }
       if (resultat.erreur === "titre") trouvees.titre = `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_GROUPE} caractères au plus, et des mots gentils.`;
-      else trouvees.membres = `Choisis entre 1 et ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande.`;
+      else if (resultat.erreur === "participants") trouvees.membres = `Choisis entre 1 et ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande.`;
+      else trouvees.membres = "Le groupe n'a pas pu être créé (le réseau, sûrement). Réessaie dans un instant !";
     }
 
     setErreurs(trouvees);
@@ -119,7 +125,7 @@ export default function NouveauGroupe() {
           {erreurBas ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
-          <Bouton libelle="Créer le groupe" onPress={creer} indice="Tes potes choisis pourront discuter tous ensemble" />
+          <Bouton libelle={enCours ? "Un instant…" : "Créer le groupe"} desactive={enCours} onPress={() => void creer()} indice="Chaque pote choisi reçoit une invitation à rejoindre le groupe" />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

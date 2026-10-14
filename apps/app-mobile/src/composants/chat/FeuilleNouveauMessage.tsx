@@ -32,8 +32,8 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
     router.push(chemin);
   }
 
-  function ecrire(poteId: string) {
-    const id = ouvrirPrive(poteId);
+  async function ecrire(poteId: string) {
+    const id = await ouvrirPrive(poteId);
     if (!id) return;
     vibrerLegerement();
     onFermer();
@@ -91,7 +91,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
               accessibilityRole="button"
               accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
               accessibilityHint="Ouvre votre conversation privée"
-              onPress={() => ecrire(pote.id)}
+              onPress={() => void ecrire(pote.id)}
               className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
             >
               <RondPote pote={pote} taille={40} />

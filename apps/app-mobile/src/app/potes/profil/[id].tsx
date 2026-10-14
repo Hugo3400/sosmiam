@@ -152,8 +152,8 @@ export default function ProfilPote() {
   };
 
   // On écrit seulement à un pote de ta bande (pas bloqué)
-  const ecrire = () => {
-    const conversation = ouvrirPrive(pote.id);
+  const ecrire = async () => {
+    const conversation = await ouvrirPrive(pote.id);
     if (!conversation) {
       annoncer(`${prenom} n'est pas dans ta bande : ajoutez-vous d'abord, et la discussion s'ouvre !`);
       return;

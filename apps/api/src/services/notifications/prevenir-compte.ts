@@ -2,7 +2,7 @@
 // d'anti-spam : c'est une réponse à ce qu'elle a fait elle-même ou un message qu'elle attend, jamais une annonce. Seulement les
 // téléphones encore connectés : inscrits avec une session qui existe toujours (la base remet sessionId à null quand elle se ferme :
 // déconnexion, « Me déconnecter partout », mot de passe changé, session expirée). Un téléphone prêté, vendu ou volé ne reçoit plus
-// rien du compte. Les téléphones dont le jeton ne marche plus sont désactivés. Rend le nombre de téléphones atteints.
+// rien du compte. Les téléphones dont le jeton ne marche plus sont désactivés.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { expedierPush, type ExpedierPush, type MessagePush } from "./expedier-push.ts";
 
@@ -10,6 +10,16 @@ import { expedierPush, type ExpedierPush, type MessagePush } from "./expedier-pu
 export type TableAppareilsPush = Pick<typeof baseDeDonnees.appareilPush, "findMany" | "update">;
 
 export async function prevenirCompte(
+  compteId: number,
+  message: MessagePush,
+  envoyer: ExpedierPush = expedierPush,
+  appareilsPush: TableAppareilsPush = baseDeDonnees.appareilPush,
+): Promise<void> {
+  await prevenirCompteEtCompter(compteId, message, envoyer, appareilsPush);
+}
+
+/** Pareil, et rend sur combien de téléphones la notification est partie (Miam Safe : 0, la personne n'est pas prévenue) */
+export async function prevenirCompteEtCompter(
   compteId: number,
   message: MessagePush,
   envoyer: ExpedierPush = expedierPush,
@@ -28,6 +38,5 @@ export async function prevenirCompte(
       return resultat === "envoyee";
     }),
   );
-  // Sur combien de téléphones la notification est partie (Miam Safe s'en sert : 0, la personne n'est pas prévenue)
   return envoyees.filter(Boolean).length;
 }

@@ -115,9 +115,11 @@ export async function rendreCharteMiamSafe(lieuId: number): Promise<boolean> {
 export async function effacerMiamSafeAncien(maintenant = new Date()) {
   const unAn = new Date(maintenant);
   unAn.setFullYear(unAn.getFullYear() - 1);
-  const [signalements, alertes] = await Promise.all([
+  const [signalements, alertes, partages] = await Promise.all([
     baseDeDonnees.signalementMiamSafe.deleteMany({ where: { statut: "traite", traiteLe: { lt: unAn } } }),
     baseDeDonnees.alerteMiamSafe.deleteMany({ where: { creeLe: { lt: new Date(maintenant.getTime() - DUREE_GARDE_ALERTES_MS) } } }),
+    // « Prévenir un pote » : les partages finis (arrêtés, ou l'heure passée) disparaissent entièrement
+    baseDeDonnees.partagePositionMiamSafe.deleteMany({ where: { OR: [{ arreteLe: { not: null } }, { expireLe: { lte: maintenant } }] } }),
   ]);
-  return { signalements: signalements.count, alertes: alertes.count };
+  return { signalements: signalements.count, alertes: alertes.count, partages: partages.count };
 }

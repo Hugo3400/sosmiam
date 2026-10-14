@@ -9,6 +9,9 @@ facultatif : recus (par défaut), envoyes ou indesirables :
     repondu <uid>                       marque le message reçu comme « répondu »
     non-lus                             le nombre de messages reçus pas encore lus
     ranger-envoye                       range dans « Envoyés » le mail brut lu sur l'entrée (copie d'un mail parti)
+    purger-envoyes <jours>              efface de « Envoyés » les copies rangées par l'API (en-tête X-SOS-Miam-Copie, ou
+                                        mail automatique) plus vieilles que <jours> ; jamais un mail écrit dans le webmail
+    compter-anciens <jours>             le nombre de mails reçus plus vieux que <jours> (ménage à faire à la main)
 Connexion : le fichier de la boîte (FICHIER_BOITE_MAIL, par défaut /root/sos-miam-secrets/boite-bonjour.env), lignes
 IMAP_SERVEUR, IMAP_UTILISATEUR, IMAP_MOT_DE_PASSE (les mêmes que pour l'envoi et les désinscriptions).
 """
@@ -215,6 +218,36 @@ def ranger_envoye(brut):
     return {"ok": True}
 
 
+MOIS_IMAP = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def date_imap(jours):
+    """La date d'il y a <jours> jours, au format des recherches IMAP (« 14-Oct-2026 », mois en anglais)."""
+    jour = time.gmtime(time.time() - jours * 86400)
+    return f"{jour.tm_mday:02d}-{MOIS_IMAP[jour.tm_mon - 1]}-{jour.tm_year}"
+
+
+def purger_envoyes(jours):
+    boite = connecter(False, "envoyes")
+    avant = date_imap(jours)
+    uids = set()
+    for critere in (("HEADER", "X-SOS-Miam-Copie", "oui"), ("HEADER", "Auto-Submitted", "auto-generated")):
+        _, donnees = boite.uid("search", None, "BEFORE", avant, *critere)
+        uids.update((donnees[0] or b"").split())
+    if uids:
+        boite.uid("store", b",".join(sorted(uids)), "+FLAGS", "(\\Deleted)")
+        boite.expunge()
+    boite.logout()
+    return {"effaces": len(uids)}
+
+
+def compter_anciens(jours):
+    boite = connecter(True)
+    _, donnees = boite.uid("search", None, "BEFORE", date_imap(jours))
+    boite.logout()
+    return {"anciens": len((donnees[0] or b"").split())}
+
+
 def marquer_repondu(uid):
     boite = connecter(False)
     boite.uid("store", str(uid), "+FLAGS", "(\\Answered)")
@@ -240,13 +273,17 @@ def principal(arguments):
         return lire(int(reste[0]), dossier)
     if commande == "piece" and len(reste) > 1 and reste[0].isdigit() and reste[1].isdigit():
         return piece(int(reste[0]), int(reste[1]), dossier)
+    if commande == "purger-envoyes" and reste and reste[0].isdigit():
+        return purger_envoyes(int(reste[0]))
+    if commande == "compter-anciens" and reste and reste[0].isdigit():
+        return compter_anciens(int(reste[0]))
     if commande == "ranger-envoye":
         return ranger_envoye(sys.stdin.buffer.read())
     if commande == "repondu" and len(arguments) > 1 and arguments[1].isdigit():
         return marquer_repondu(int(arguments[1]))
     if commande == "non-lus":
         return non_lus()
-    raise SystemExit("Usage : lire-boite-mail.py liste [dossier] <nombre> [adresse] | message [dossier] <uid> | piece [dossier] <uid> <numero> | repondu <uid> | non-lus | ranger-envoye")
+    raise SystemExit("Usage : lire-boite-mail.py liste [dossier] <nombre> [adresse] | message [dossier] <uid> | piece [dossier] <uid> <numero> | repondu <uid> | non-lus | ranger-envoye | purger-envoyes <jours> | compter-anciens <jours>")
 
 
 if __name__ == "__main__":

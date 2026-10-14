@@ -10,6 +10,7 @@ import {
 } from "../services/miam-safe-regles.ts";
 import { lireCorps } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
+import type { DependancesPartagesMiamSafe } from "./partages-miam-safe.ts";
 
 const DETAIL_MAX = 80;
 const EXPLICATION_MAX = 500;
@@ -19,6 +20,8 @@ export type DependancesMiamSafe = {
   services: ServicesMiamSafe;
   /** Prévient l'équipe du lieu (notification push) ; appelé sans attendre, une erreur n'empêche pas l'alerte */
   prevenirEquipe: (alerte: NouvelleAlerte & { id: number }) => Promise<void>;
+  /** « Prévenir un pote » (partage de position) ; absent : ces adresses n'existent pas (anciens bancs d'essai) */
+  partages?: DependancesPartagesMiamSafe;
 };
 
 function lireLieuId(corps: Record<string, unknown>): number {

@@ -6,6 +6,7 @@
 // tout de suite si la dernière date de plus de 26 heures (serveur arrêté pendant la nuit, première mise en route).
 import { prevenirAvantEcheances } from "../services/courriels/courriels-comptes.ts";
 import { effacerEnvoisAnciens } from "../services/courriels/file-courriels.ts";
+import { purgerCopiesEnvoyees } from "../services/courriels/ranger-envoye.ts";
 import { effacerReceptionsAnciennes } from "../services/notifications/file-push.ts";
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { effacerMiamSafeAncien } from "../services/gestion/miam-safe.ts";
@@ -41,7 +42,9 @@ async function sauvegarder() {
 async function faireLeMenage() {
   try {
     const effaces = await effacerContactsAnciens();
-    if (effaces > 0) await noterAction("serveur", "Contacts de demandes effacés (plus de 3 ans)", `${effaces} demande(s)`);
+    if (effaces > 0) await noterAction("serveur", "Demandes de lieu effacées (plus de 3 ans)", `${effaces} demande(s)`);
+    const copies = await purgerCopiesEnvoyees();
+    if (copies) await noterAction("serveur", "Copies de mails effacées de « Envoyés » (plus de 90 jours)", `${copies} mail(s)`);
     const envois = await effacerEnvoisAnciens();
     if (envois > 0) await noterAction("serveur", "Journal des mails effacé (plus de 90 jours)", `${envois} mail(s)`);
     const receptions = await effacerReceptionsAnciennes();
@@ -51,6 +54,7 @@ async function faireLeMenage() {
     const miamSafe = await effacerMiamSafeAncien();
     if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an)", `${miamSafe.signalements} signalement(s)`);
     if (miamSafe.alertes > 0) await noterAction("serveur", "Alertes Miam Safe effacées (plus de 30 jours)", `${miamSafe.alertes} alerte(s)`);
+    if (miamSafe.partages > 0) await noterAction("serveur", "Partages de position Miam Safe effacés (finis)", `${miamSafe.partages} partage(s)`);
     // L'app : téléphones des notifications silencieux depuis 90 jours, « Ça m'intéresse » 30 jours après l'événement
     const appareils = await effacerAppareilsSilencieux();
     if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés (90 jours sans signe de vie, ou jeton mort)", `${appareils} téléphone(s)`);
