@@ -142,6 +142,9 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/comptes/:id/date-naissance", k.dateNaissance);
   routes.put("/comptes/:id/date-naissance", k.corrigerDateNaissance);
   routes.post("/comptes/:id/deconnecter", k.deconnecter);
+  routes.get("/comptes/:id/identite", k.identite);
+  routes.put("/comptes/:id/identite", k.corrigerIdentite);
+  routes.post("/comptes/:id/verification", k.verification);
   routes.post("/comptes/:id/reinitialiser", k.reinitialiser);
   routes.delete("/comptes/:id", k.supprimer);
   // Surveillance des visites : comptes louches, lieux qui refusent beaucoup, contestations (rien n'est bloqué tout seul)

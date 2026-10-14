@@ -13,7 +13,7 @@ import { lireHistoriqueLieu } from "./historique-lieu.ts";
 import { lireCalendrier } from "./calendrier.ts";
 import { creerReponseType, listerReponsesTypes, modifierReponseType, supprimerReponseType } from "./reponses-types.ts";
 import { creerAnnonce, listerAnnonces, retirerAnnonce } from "./annonces.ts";
-import { envoyerLienMotDePasse, prevenirAmbassadeurValide, prevenirCertifie } from "../courriels/courriels-comptes.ts";
+import { envoyerLienMotDePasse, envoyerLienVerificationEmail, prevenirAmbassadeurValide, prevenirCertifie } from "../courriels/courriels-comptes.ts";
 import {
   accepterCertification, listerCandidaturesCertification, listerCertifies, refuserCertification, retirerCertification,
 } from "./certification.ts";
@@ -24,7 +24,7 @@ import { lireLancementVille, listerVilles } from "./villes.ts";
 import { lireDernierTestSauvegarde, testerSauvegarde } from "./test-sauvegarde.ts";
 import { lirePieceMessage, listerMessagesRecus, lireMessageRecu, repondreMessageRecu } from "./boite-reception.ts";
 import { deciderRattachement, listerRattachements } from "./rattachements.ts";
-import { corrigerDateNaissance, lireDateNaissance } from "./profil-gestion.ts";
+import { corrigerDateNaissance, corrigerIdentite, lireDateNaissance, lireIdentite } from "./profil-gestion.ts";
 import { ecrireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu } from "./surveillance-visites.ts";
 import { changerCodePublic, lireValidationLieu, reglerValidationLieu } from "./validation-lieu.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
@@ -81,12 +81,12 @@ export const servicesGestion = {
   listerDemandes, accepterDemande, refuserDemande, effacerContactDemande,
   listerAnnonces, creerAnnonce, retirerAnnonce,
   lireEtatEnvois, listerDerniersEnvois, envoyerEssaiNewsletter, listerDestinataires, lancerCampagne, listerCampagnes, annulerCampagne,
-  prevenirAmbassadeurValide, envoyerLienMotDePasse, envoyerCourrielEcrit, prevenirCertifie,
+  prevenirAmbassadeurValide, envoyerLienMotDePasse, envoyerLienVerificationEmail, envoyerCourrielEcrit, prevenirCertifie,
   listerCandidaturesCertification, listerCertifies, accepterCertification, refuserCertification, retirerCertification,
   listerSuggestions, lireSuggestion, deciderSuggestion,
   lireControleLieux, chercherLieuxSemblables, verifierDoublonsImport, importerLieux, listerVilles, lireLancementVille,
   testerSauvegarde, lireDernierTestSauvegarde, listerMessagesRecus, lireMessageRecu, lirePieceMessage, repondreMessageRecu,
-  listerRattachements, deciderRattachement, lireDateNaissance, corrigerDateNaissance,
+  listerRattachements, deciderRattachement, lireDateNaissance, corrigerDateNaissance, lireIdentite, corrigerIdentite,
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,

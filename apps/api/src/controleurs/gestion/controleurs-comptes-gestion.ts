@@ -6,8 +6,10 @@ import type { Request, Response } from "express";
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { ChiffrementDonnees } from "../../services/chiffrement-donnees.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
-import { creerLienReinitialisation, type OutilsComptes } from "./controleurs-ambassadeurs.ts";
-import { lireId, lireParametre } from "./lire-champs.ts";
+import { lirePrenom } from "../comptes-champs.ts";
+import { lireNomChiffre } from "../comptes-profil-champs.ts";
+import { creerLienReinitialisation, creerLienVerification, type OutilsComptes } from "./controleurs-ambassadeurs.ts";
+import { ChampInvalide, lireId, lireParametre } from "./lire-champs.ts";
 
 const introuvable = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "introuvable" });
 /** Sans la clé des données des comptes, ni export ni date de naissance (rien ne plante) */
@@ -82,6 +84,43 @@ export function creerControleursComptesGestion(s: ServicesGestion, comptes?: Out
       const roles = resultat.rolesRetires.length ? ` ; rôles retirés (moins de 18 ans) : ${resultat.rolesRetires.join(", ")}` : "";
       await noter(reponse, "Date de naissance corrigée", `compte n° ${id(requete)}${roles}`);
       reponse.json({ ok: true, rolesRetires: resultat.rolesRetires, majeur: resultat.age >= 18 });
+    },
+    /** « Modifier » : le prénom et le nom en clair (journal : sans les valeurs) */
+    identite: async (requete: Request, reponse: Response) => {
+      if (!(await s.lireCompteGestion(id(requete)))) return introuvable(reponse);
+      if (!chiffrement) return sansChiffrement(reponse);
+      const identite = await s.lireIdentite(id(requete), chiffrement);
+      if (!identite) return introuvable(reponse);
+      await noter(reponse, "Prénom et nom affichés (correction)", `compte n° ${id(requete)}`);
+      reponse.json(identite);
+    },
+    /** Correction sur demande de la personne : { prenom, nom } (nom vide ou null : effacé), mêmes règles que dans l'app */
+    corrigerIdentite: async (requete: Request, reponse: Response) => {
+      const fiche = await s.lireCompteGestion(id(requete));
+      if (!fiche) return introuvable(reponse);
+      if (!chiffrement) return sansChiffrement(reponse);
+      const corps = typeof requete.body === "object" && requete.body !== null ? (requete.body as Record<string, unknown>) : {};
+      try {
+        const prenom = lirePrenom(corps, (fiche as { prenom?: string }).prenom);
+        await s.corrigerIdentite(id(requete), { prenom, nomChiffre: lireNomChiffre(corps, chiffrement) });
+      } catch (erreur) {
+        if (erreur instanceof ChampInvalide) return reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: erreur.champ });
+        throw erreur;
+      }
+      await noter(reponse, "Prénom et nom corrigés", `compte n° ${id(requete)}`);
+      reponse.json({ ok: true });
+    },
+    /** Renvoie le mail de confirmation de l'adresse (nouveau lien, 7 jours) ; 409 si l'adresse est déjà confirmée */
+    verification: async (requete: Request, reponse: Response) => {
+      if (!comptes?.preparerVerificationEmail) return reponse.status(503).json({ ok: false, erreur: "bientot-disponible" });
+      const fiche = await s.lireCompteGestion(id(requete));
+      if (!fiche) return introuvable(reponse);
+      if ((fiche as { emailVerifieLe?: Date | null }).emailVerifieLe) return reponse.status(409).json({ ok: false, erreur: "deja-verifie" });
+      const { jeton, expireLe } = await comptes.preparerVerificationEmail(id(requete));
+      const envoi = await s.envoyerLienVerificationEmail(id(requete), creerLienVerification(jeton), expireLe);
+      if (!envoi.ok) return reponse.status(502).json(envoi);
+      await noter(reponse, "Mail de confirmation de l'adresse renvoyé", `compte n° ${id(requete)}`);
+      reponse.json({ ok: true, expireLe });
     },
     supprimer: async (requete: Request, reponse: Response) => {
       if (!(await s.supprimerCompte(id(requete)))) return introuvable(reponse);

@@ -12,6 +12,8 @@ export type OutilsComptes = {
   ajouterPoints: (compteId: number, points: number, raison: "equipe" | "proposer-lieu", detail?: string) => Promise<{ points: number; palier: string }>;
   donnerBadge: (compteId: number, badge: string) => Promise<boolean>;
   preparerReinitialisation: (compteId: number) => Promise<{ jeton: string; expireLe: Date }>;
+  /** Nouveau lien de confirmation de l'adresse (il remplace le précédent) ; absent : « bientot-disponible » */
+  preparerVerificationEmail?: (compteId: number) => Promise<{ jeton: string; expireLe: Date }>;
   nommerAmbassadeurVille: (compteId: number) => Promise<void>;
   retirerAmbassadeurVille: (compteId: number) => Promise<string>;
 };
@@ -19,6 +21,7 @@ export type OutilsComptes = {
 /** Adresse écrite en dur (jamais tirée d'un en-tête de la demande) */
 const ESPACE_AMBASSADEUR = "https://ambassadeur.sosmiam.fr";
 /** Lien pour choisir un nouveau mot de passe : le jeton après « # » reste dans le navigateur, jamais dans les journaux */
+export const creerLienVerification = (jeton: string) => `${ESPACE_AMBASSADEUR}/verifier-email#jeton=${encodeURIComponent(jeton)}`;
 export const creerLienReinitialisation = (jeton: string) => `${ESPACE_AMBASSADEUR}/nouveau-mot-de-passe#jeton=${encodeURIComponent(jeton)}`;
 const corpsDe = (requete: Request): Record<string, unknown> =>
   typeof requete.body === "object" && requete.body !== null && !Buffer.isBuffer(requete.body) ? requete.body : {};

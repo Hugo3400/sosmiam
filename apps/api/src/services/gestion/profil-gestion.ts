@@ -32,6 +32,19 @@ export async function lireDateNaissance(id: number, chiffrement: ChiffrementDonn
   return { dateNaissance: dechiffrerOuIllisible(chiffrement, compte.dateNaissanceChiffree, "dateNaissance") };
 }
 
+/** Le prénom et le nom en clair, pour les corriger à la demande de la personne ; null si le compte n'existe pas */
+export async function lireIdentite(id: number, chiffrement: ChiffrementDonnees) {
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id }, select: { prenom: true, nomChiffre: true } });
+  if (!compte) return null;
+  return { prenom: compte.prenom, nom: compte.nomChiffre ? dechiffrerOuIllisible(chiffrement, compte.nomChiffre, "nom") : null };
+}
+
+/** Corrige le prénom et le nom (déjà chiffré, ou null pour l'effacer) ; false si le compte n'existe pas */
+export async function corrigerIdentite(id: number, identite: { prenom: string; nomChiffre: string | null }) {
+  const { count } = await baseDeDonnees.compte.updateMany({ where: { id }, data: identite });
+  return count > 0;
+}
+
 export type CorrectionDate =
   | { etat: "introuvable" | "date-invalide" | "trop-jeune" }
   | { etat: "corrigee"; age: number; rolesRetires: ("ambassadeur" | "pro")[] };

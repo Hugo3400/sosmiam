@@ -12,7 +12,10 @@ const banc = await creerBancGestion(
   {
     noterAction: async (_poste: string, action: string, detail?: string) => void actions.push(`${action} | ${detail ?? ""}`),
     listerComptes: async (filtres: unknown) => (appels.push({ liste: filtres }), { total: 1, trouves: 1, parPage: 50, compteurs: {}, comptes: [] }),
-    lireCompteGestion: async (id: number) => (existe(id) ? { id, prenom: "Léa" } : null),
+    lireCompteGestion: async (id: number) => (existe(id) ? { id, prenom: "Léa", emailVerifieLe: null } : id === 8 ? { id, prenom: "Tom", emailVerifieLe: new Date() } : null),
+    lireIdentite: async (id: number) => (existe(id) ? { prenom: "Léa", nom: "Martin" } : null),
+    corrigerIdentite: async (id: number, identite: { prenom: string; nomChiffre: string | null }) => (appels.push({ identite: id, prenom: identite.prenom, nom: identite.nomChiffre === null ? null : "chiffré" }), true),
+    envoyerLienVerificationEmail: async (id: number, lien: string) => (appels.push({ verification: id, lien }), { ok: true }),
     deconnecterPartout: async () => 3,
     exporterDonneesCompte: async (id: number, chiffre: unknown) => (existe(id) && chiffre ? { compte: { id, email: "lea@exemple.fr" } } : null),
     lireDateNaissance: async (id: number) => (existe(id) ? { dateNaissance: "2001-04-12" } : null),
@@ -25,6 +28,7 @@ const banc = await creerBancGestion(
     ajouterPoints: async () => ({ points: 0, palier: "curieux" }),
     donnerBadge: async () => true,
     preparerReinitialisation: async () => ({ jeton: "jeton-secret", expireLe: new Date("2026-10-10T12:00:00Z") }),
+    preparerVerificationEmail: async () => ({ jeton: "jeton-verif", expireLe: new Date("2026-10-17T12:00:00Z") }),
     nommerAmbassadeurVille: async () => {},
     retirerAmbassadeurVille: async () => "curieux",
   },
@@ -38,9 +42,11 @@ after(() => (banc.fermer(), sansCle.fermer()));
 
 test("liste : recherche, rôle et page lus (un rôle inconnu est ignoré)", async () => {
   await banc.demander("GET", "/comptes?recherche=lea&role=ambassadeur&page=2", { session });
-  assert.deepEqual(appels.at(-1), { liste: { recherche: "lea", role: "ambassadeur", page: 2 } });
-  await banc.demander("GET", "/comptes?role=roi&page=-4", { session });
-  assert.deepEqual(appels.at(-1), { liste: { recherche: "", role: "", page: 1 } });
+  assert.deepEqual(appels.at(-1), { liste: { recherche: "lea", role: "ambassadeur", page: 2, methode: "", lieu: "" } });
+  await banc.demander("GET", "/comptes?role=roi&page=-4&methode=google&lieu=app", { session });
+  assert.deepEqual(appels.at(-1), { liste: { recherche: "", role: "", page: 1, methode: "google", lieu: "app" } });
+  await banc.demander("GET", "/comptes?methode=fax&lieu=lune", { session });
+  assert.deepEqual(appels.at(-1), { liste: { recherche: "", role: "", page: 1, methode: "", lieu: "" } });
 });
 
 test("fiche, déconnexion et export : introuvable si le compte n'existe pas ; le journal n'a qu'un numéro", async () => {
@@ -87,4 +93,25 @@ test("sans la clé des données : export et date de naissance répondent 503, sa
   }
   // Un compte qui n'existe pas reste « introuvable », clé ou pas
   assert.equal((await sansCle.demander("GET", "/comptes/9/donnees", { session: session2 })).status, 404);
+});
+
+test("prénom et nom : lus en clair, corrigés avec les règles de l'app, jamais au journal", async () => {
+  assert.deepEqual(await (await banc.demander("GET", "/comptes/7/identite", { session })).json(), { prenom: "Léa", nom: "Martin" });
+  assert.equal(actions.at(-1), "Prénom et nom affichés (correction) | compte n° 7");
+  assert.deepEqual(await (await banc.demander("PUT", "/comptes/7/identite", { session, corps: { prenom: " Léa-Rose ", nom: "Dupont" } })).json(), { ok: true });
+  assert.deepEqual(appels.at(-1), { identite: 7, prenom: "Léa-Rose", nom: "chiffré" });
+  await banc.demander("PUT", "/comptes/7/identite", { session, corps: { prenom: "Léa", nom: "" } });
+  assert.deepEqual(appels.at(-1), { identite: 7, prenom: "Léa", nom: null });
+  assert.equal((await banc.demander("PUT", "/comptes/7/identite", { session, corps: { prenom: "" } })).status, 400);
+  assert.equal((await banc.demander("PUT", "/comptes/9/identite", { session, corps: { prenom: "Zoé" } })).status, 404);
+  assert.ok(!actions.some((ligne) => /Martin|Dupont|Rose/.test(ligne)));
+});
+
+test("renvoyer la confirmation de l'adresse : nouveau lien ; 409 si déjà confirmée", async () => {
+  const reponse = await banc.demander("POST", "/comptes/7/verification", { session });
+  assert.equal(((await reponse.json()) as { ok: boolean }).ok, true);
+  assert.deepEqual(appels.at(-1), { verification: 7, lien: "https://ambassadeur.sosmiam.fr/verifier-email#jeton=jeton-verif" });
+  assert.equal(actions.at(-1), "Mail de confirmation de l'adresse renvoyé | compte n° 7");
+  assert.deepEqual(await (await banc.demander("POST", "/comptes/8/verification", { session })).json(), { ok: false, erreur: "deja-verifie" });
+  assert.equal((await banc.demander("POST", "/comptes/9/verification", { session })).status, 404);
 });
