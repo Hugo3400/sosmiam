@@ -3,7 +3,11 @@
 // Aucun cookie de mesure, aucun script dans le navigateur. Les robots sont comptés à part (leur nom seulement). Pas comptés : les préchargements de pages, l'aperçu
 // (apercu.sosmiam.fr), les navigateurs qui demandent à ne pas être suivis (signaux GPC et DNT), et les personnes qui
 // l'ont demandé sur la page /statistiques (un cookie de refus, posé seulement dans ce cas).
+// Aucun import « ~/… » ici : les tests (tests/mesure.test.ts) lancent ce fichier directement avec Node.
 import { isbot } from "isbot";
+
+import { preparerAdresseMesure } from "../fonctions/mesure/preparer-adresse-mesure.ts";
+import { reduireReferent } from "../fonctions/mesure/reduire-referent.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 /** Seul le vrai site est compté (le serveur de l'aperçu est le même programme) */
@@ -63,25 +67,18 @@ export function signalerVue(requete: Request, reponse: Response, duree: number):
   const html = typeReponse.startsWith("text/html");
   if (!html && !(typeReponse.startsWith("text/x-script") && reponse.status === 200)) return;
 
-  const url = new URL(requete.url);
-  // Même lecture que React Router : « /_.data » est l'accueil, « /faq.data » la FAQ
-  const chemin = (url.pathname.endsWith("/_.data") ? url.pathname.slice(0, -"_.data".length) : url.pathname.replace(/\.data$/, "")) || "/";
-  url.searchParams.delete("_routes");
-  // Lien d'invitation entre potes : ni le pseudo ni l'ancien « ?c= » (code secret) ne partent vers l'API
-  const invitation = /^\/invitation(\/|$)/i.test(chemin);
-  // QR de connexion (/q/<code>) : le code ne part jamais vers l'API, seulement « /q »
-  const connexionQr = /^\/q(\/|$)/i.test(chemin);
-  const parametres = invitation || connexionQr ? "" : url.searchParams.toString();
   const robot = !signature || isbot(signature);
   envoyer("/mesure/vue", ip, {
-    adressePage: invitation ? "/invitation" : connexionQr ? "/q" : `${chemin}${parametres ? `?${parametres}` : ""}`,
+    // Le chemin, avec seulement « ref » et les « utm_… » : jamais un jeton, une recherche, un code ni un pseudo
+    adressePage: preparerAdresseMesure(requete.url),
     signature: robot ? signature || "robot sans nom" : signature,
     statut: reponse.status,
     // Pour un robot, seul son nom compte : rien d'autre n'est envoyé
     ...(robot
       ? {}
       : {
-          referent: entetes.get("referer"),
+          // Le site d'où l'on arrive, sans le reste de son adresse (l'API n'en garde que le nom)
+          referent: reduireReferent(entetes.get("referer")),
           pays: entetes.get("cf-ipcountry"),
           langues: entetes.get("accept-language"),
           region: entetes.get("cf-region"),

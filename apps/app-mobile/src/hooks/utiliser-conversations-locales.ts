@@ -42,7 +42,10 @@ export function utiliserConversationsLocales(): EtatConversations {
   useEffect(() => {
     lireConversationsLocales().then((lues) => {
       charge.current = true;
-      if (lues) setConversations(DEMO_VISITES_ACTIVE ? lues : lues.filter((c) => !c.participants.some((id) => idsPotesExemples.has(id))));
+      // Démo : une liste vide gardée hors démo (ou effacée juste avant d'y entrer) n'est pas une démo : on garde les exemples.
+      // Hors démo : une conversation gardée par une ancienne démo (avec un pote d'exemple) est oubliée
+      if (lues && DEMO_VISITES_ACTIVE && lues.length > 0) setConversations(lues);
+      else if (lues && !DEMO_VISITES_ACTIVE) setConversations(lues.filter((c) => !c.participants.some((id) => idsPotesExemples.has(id))));
       setPret(true);
     });
     const enCours = minuteries.current;
