@@ -4,4 +4,5 @@ export const LIENS = {
   email: "bonjour@sosmiam.fr",
   logo: "https://sosmiam.fr/icones/apple-touch-icon.png",
   imagePartage: "https://sosmiam.fr/images/partage-reseaux.png",
+  apercuCommunaute: "https://sosmiam.fr/preview",
 } as const;

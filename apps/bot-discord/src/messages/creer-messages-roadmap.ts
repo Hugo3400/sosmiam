@@ -89,7 +89,15 @@ function creerAuMenuBientot(): ContainerBuilder {
         "**Le BIG SOS dans l'app** : 7 jours à la une pour un lieu en vraie galère, et le vote de la Brigade pour décider qui on soutient",
         "**L'ouverture de la messagerie** à tous les Miamis",
       ]),
+      "### 🫶 L'Espace communauté\nL'onglet Potes devient **Communauté**. On le peaufine encore, donc rien n'est figé, mais voilà l'idée :\n" +
+        lister([
+          "**Des sorties ouvertes à tous les Miamis**, ou réservées à un public (entre filles, entre garçons, entre personnes d'autres genres, par tranche d'âge…), avec des étiquettes : vegan, LGBT+ friendly, petit budget, sans alcool…",
+          "**« Qui est là ? »** et ses petits coucous",
+          "**Une boîte à idées** : les Miamis votent, la Brigade répond, et l'idée du mois est annoncée dans 📝・patch-notes",
+          "**Des étiquettes sur les lieux**, pour trouver ton bonheur encore plus vite",
+        ]),
     ],
+    liens: [{ libelle: "Jette un œil à l'aperçu", url: LIENS.apercuCommunaute, emoji: "👀" }],
     pied: "Pour être prévenu de la sortie : bonjour@sosmiam.fr, ou garde un œil sur 📣・annonces.",
   });
 }
