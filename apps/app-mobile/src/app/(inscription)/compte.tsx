@@ -8,7 +8,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 
 const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
 
@@ -24,13 +24,15 @@ export default function Compte() {
   const { invite, entrerEnInvite } = utiliserProfil();
   const { verrouAge, verrouEnLecture, modifier } = utiliserBrouillonInscription();
   const { connecterAvec, enCours } = utiliserEntreeCompte();
+  const demo = utiliserModeDemo();
   const [entreeEnCours, setEntreeEnCours] = useState(false);
   const lienVisite = !invite && !verrouEnLecture && verrouAge === null;
   const choisir = (fournisseur: Fournisseur) => {
+    // Mode démo : un profil gardé sur ce téléphone seulement, jamais de compte sur le serveur
+    if (demo.actif) return continuerEnDemo();
     if (fournisseur === "email") return router.push("/inscription-email");
     void connecterAvec(fournisseur);
   };
-  // Démo (développement) : un profil gardé sur le téléphone seulement, sans compte sur le serveur
   const continuerEnDemo = () => {
     modifier({ connexion: null });
     router.push("/fais-connaissance");
@@ -66,12 +68,14 @@ export default function Compte() {
         ))}
       </View>
 
-      <View className="mt-4 flex-row flex-wrap items-center justify-center gap-x-1">
-        <Text className="font-texte text-base text-gris">Déjà un compte ?</Text>
-        <Pressable accessibilityRole="button" onPress={() => router.push("/connexion")} hitSlop={6} className="min-h-11 justify-center px-1 active:opacity-70">
-          <Text className="font-texte-gras text-base text-encre underline">Me connecter</Text>
-        </Pressable>
-      </View>
+      {demo.actif ? null : (
+        <View className="mt-4 flex-row flex-wrap items-center justify-center gap-x-1">
+          <Text className="font-texte text-base text-gris">Déjà un compte ?</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.push("/connexion")} hitSlop={6} className="min-h-11 justify-center px-1 active:opacity-70">
+            <Text className="font-texte-gras text-base text-encre underline">Me connecter</Text>
+          </Pressable>
+        </View>
+      )}
 
       {lienVisite ? (
         <Pressable
@@ -87,16 +91,26 @@ export default function Compte() {
         </Pressable>
       ) : null}
 
-      {DEMO_VISITES_ACTIVE ? (
+      {demo.possible ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityHint="Seulement en développement : un profil gardé sur ce téléphone, sans compte sur le serveur"
-          onPress={continuerEnDemo}
+          accessibilityHint={demo.actif ? "L'app se relance avec les vraies données" : "L'app se relance avec les lieux, les potes et les visites d'exemple"}
+          disabled={demo.enCours}
+          onPress={() => void (demo.actif ? demo.sortir() : demo.entrer())}
           className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-white p-4 active:opacity-70"
         >
           <Text className="text-xl">🧪</Text>
           <Text className="flex-1 font-texte text-[15px] leading-[22px] text-gris">
-            <Text className="font-texte-gras text-encre underline">Démo : continuer sans compte</Text> (développement seulement). Ton profil reste sur ce téléphone.
+            {demo.actif ? (
+              <>
+                <Text className="font-texte-gras text-encre">Mode démo : </Text>tout est inventé, rien ne part sur le serveur.{" "}
+                <Text className="font-texte-gras text-encre underline">Quitter la démo</Text>
+              </>
+            ) : (
+              <>
+                <Text className="font-texte-gras text-encre underline">Démo</Text> (développement seulement) : des lieux, des potes et des visites d'exemple, sans compte.
+              </>
+            )}
           </Text>
         </Pressable>
       ) : null}

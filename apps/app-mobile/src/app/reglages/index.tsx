@@ -15,6 +15,7 @@ import { filtrerEtapesEnvies } from "~/fonctions/inscription/filtrer-etapes-envi
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
+import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -42,6 +43,7 @@ export default function Reglages() {
   const suivisPersonnes = utiliserSuivisPersonnes();
   const effacement = utiliserEffacementLocal();
   const outilsDemo = effacement.avecDemo;
+  const demo = utiliserModeDemo();
   const { connecte, compte, fermer } = utiliserSession();
   if (!profil) return null;
 
@@ -184,13 +186,25 @@ export default function Reglages() {
         />
       </SectionReglages>
 
-      {outilsDemo ? (
+      {demo.possible ? (
         <SectionReglages titre="Démo">
+          {outilsDemo ? (
+            <LigneReglage
+              emoji="🎬"
+              titre="Coulisses de la démo"
+              detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
+              onPress={() => router.push("/reglages/demo")}
+            />
+          ) : null}
           <LigneReglage
-            emoji="🎬"
-            titre="Coulisses de la démo"
-            detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
-            onPress={() => router.push("/reglages/demo")}
+            emoji="🧪"
+            titre={demo.actif ? "Quitter la démo" : "Passer en mode démo"}
+            detail={
+              demo.actif
+                ? "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
+                : "Lieux, potes et visites d'exemple (développement seulement). Te déconnecte et efface ce téléphone"
+            }
+            onPress={() => void (demo.actif ? demo.sortir() : demo.entrer())}
           />
         </SectionReglages>
       ) : null}
