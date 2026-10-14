@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+
 import type { Route } from "./+types/chevalet";
 import { BoutonImprimer } from "~/composants/pro/BoutonImprimer";
 import { FaceChevaletTable } from "~/composants/pro/FaceChevaletTable";
