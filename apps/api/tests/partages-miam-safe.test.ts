@@ -122,6 +122,9 @@ test("Prévenir un pote : plus potes (retiré ou bloqué), plus rien ne se voit 
     const partage = (await b.demander("POST", "/miam-safe/prevenir", { jeton: lea.jeton, corps: { pote: b.idPublic(sam.id), lieuId, position: POSITION } })).corps.partage;
     b.retirerPotes(lea.id, sam.id);
     assert.equal((await b.demander("GET", `/miam-safe/partages/${partage.id}`, { jeton: sam.jeton })).corps.erreur, "partage-inconnu");
+    // La lecture suffit : le partage est déjà arrêté et sa position effacée, sans attendre une nouvelle position
+    assert.ok(b.partages.lignes[0].arreteLe !== null && b.partages.lignes[0].position === null);
+    assert.equal((await b.demander("GET", `/miam-safe/partages/${partage.id}`, { jeton: lea.jeton })).corps.partage.actif, false);
     assert.deepEqual((await b.demander("GET", "/miam-safe/partages", { jeton: sam.jeton })).corps.partages, []);
     const maj = await b.demander("PUT", `/miam-safe/partages/${partage.id}/position`, { jeton: lea.jeton, corps: POSITION });
     assert.equal(maj.statut, 410);

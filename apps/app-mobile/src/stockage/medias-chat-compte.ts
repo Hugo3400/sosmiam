@@ -1,5 +1,5 @@
 // Les photos et notes vocales du chat d'un compte, téléchargées depuis le serveur : gardées dans le cache du téléphone
-// (« cache/chat/<ton identifiant public>/<message>.jpg|m4a »), jamais ailleurs. Le système peut vider ce cache : elles se
+// (« cache/chat/<ton identifiant public>/<message>.jpg|m4a », et tes notes en cours d'envoi dans « cache/chat/envois »), jamais ailleurs. Le système peut vider ce cache : elles se
 // retéléchargent alors. Un message supprimé, retiré ou dont le média a expiré (90 jours) voit son fichier effacé ; la
 // déconnexion efface tout le dossier. Rien sur le web (aperçu de développement).
 import { Directory, File, Paths } from "expo-file-system";
@@ -24,6 +24,25 @@ export function oublierMediaChat(monId: string, messageId: string, type: "photo"
   } catch {
     // Déjà parti : rien à faire
   }
+}
+
+/**
+ * Range dans le cache du chat un fichier à envoyer (la note vocale de l'enregistreur) : l'enregistreur peut jeter le sien
+ * dès l'appel, l'envoi et ses nouveaux essais gardent celui-ci. Déplacé plutôt que copié (copié si ça échoue). Sur le web,
+ * l'adresse du navigateur telle quelle.
+ */
+export async function garderEnvoiChat(uriTemporaire: string, extension: "m4a" | "jpg"): Promise<string> {
+  if (surLeWeb) return uriTemporaire;
+  const dossier = new Directory(Paths.cache, DOSSIER, "envois");
+  if (!dossier.exists) dossier.create({ intermediates: true, idempotent: true });
+  const destination = new File(dossier, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`);
+  const source = new File(uriTemporaire);
+  try {
+    await source.move(destination);
+  } catch {
+    await source.copy(destination);
+  }
+  return destination.uri;
 }
 
 /** Efface tout le cache des médias du chat (déconnexion, suppression du compte, entrée ou sortie de la démo) */

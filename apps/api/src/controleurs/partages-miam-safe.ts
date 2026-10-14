@@ -75,13 +75,23 @@ export function creerControleursPartagesMiamSafe({ services, potes, prevenirComp
   const compte = (reponse: Response) => reponse.locals.compte as CompteSession;
   const introuvable = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "partage-inconnu" });
 
-  /** Le partage, s'il concerne ce compte : le sien, ou un partage reçu d'une personne toujours dans sa bande */
+  /**
+   * Plus potes (l'un a retiré ou bloqué l'autre) : le partage s'arrête tout de suite, sa position est effacée. Vérifié à
+   * chaque lecture, par l'un ou par l'autre (l'écran relit toutes les 10 s), et à chaque position envoyée.
+   */
+  async function verifierBande(ligne: LignePartage, quand: Date): Promise<{ ligne: LignePartage; potes: boolean }> {
+    if (await potes.estPote(ligne.compteId, ligne.poteId)) return { ligne, potes: true };
+    if (!estPartageActif(ligne, quand)) return { ligne, potes: false };
+    await services.arreter(ligne.id, ligne.compteId, quand);
+    return { ligne: { ...ligne, arreteLe: quand, position: null }, potes: false };
+  }
+
+  /** Le partage, s'il concerne ce compte : le sien (arrêté s'ils ne sont plus potes), ou un partage reçu d'un pote */
   async function lireSiVisible(id: number | null, moi: number, quand: Date): Promise<LignePartage | null> {
     const ligne = id === null ? null : await services.lire(id, quand);
-    if (!ligne) return null;
-    if (ligne.compteId === moi) return ligne;
-    if (ligne.poteId === moi && (await potes.estPote(moi, ligne.compteId))) return ligne;
-    return null;
+    if (!ligne || (ligne.compteId !== moi && ligne.poteId !== moi)) return null;
+    const verifie = await verifierBande(ligne, quand);
+    return verifie.potes || ligne.compteId === moi ? verifie.ligne : null;
   }
 
   return {
@@ -154,10 +164,9 @@ export function creerControleursPartagesMiamSafe({ services, potes, prevenirComp
       const moi = compte(reponse).id;
       const quand = maintenant();
       const lignes = await services.listerActifs(moi, quand);
+      // Seulement ceux entre potes : les autres s'arrêtent au passage
       const visibles: LignePartage[] = [];
-      for (const ligne of lignes) {
-        if (ligne.compteId === moi || (await potes.estPote(moi, ligne.compteId))) visibles.push(ligne);
-      }
+      for (const ligne of lignes) if ((await verifierBande(ligne, quand)).potes) visibles.push(ligne);
       const autres = visibles.map((l) => (l.compteId === moi ? l.poteId : l.compteId));
       const personnes = await potes.presenter([...new Set(autres)]);
       const partages = visibles.flatMap((l, i) => {

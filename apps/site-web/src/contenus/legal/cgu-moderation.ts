@@ -23,7 +23,7 @@ export const sectionModerationCgu: SectionLegale = {
   id: "moderation",
   titre: "Signalements et modération",
   blocs: [
-    `**Tout le monde peut signaler un contenu** : dans l'app, avec le menu « ⋯ » d'une publication, puis « Signaler » ; avec un compte, aussi un commentaire, un message, une liste, un profil, un groupe ou une sortie (20 signalements par jour au plus, un seul par contenu). Sans l'app, écris-nous à ${lienContact}, avec le lien ou la description du contenu et ce qui ne va pas.`,
+    `**Tout le monde peut signaler un contenu** : dans l'app, avec le menu « ⋯ » d'une publication, puis « Signaler » ; bientôt, avec un compte, aussi un commentaire, un message, une liste, un profil, un groupe ou une sortie (20 signalements par jour au plus, un seul par contenu ; d'ici là, écris-nous). Sans l'app, écris-nous à ${lienContact}, avec le lien ou la description du contenu et ce qui ne va pas.`,
     "Ce qui se passe ensuite :",
     {
       liste: [

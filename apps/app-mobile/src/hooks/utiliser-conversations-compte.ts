@@ -18,7 +18,7 @@ import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conv
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { effacerMediasChatCompte } from "~/stockage/medias-chat-compte";
+import { effacerMediasChatCompte, garderEnvoiChat } from "~/stockage/medias-chat-compte";
 
 type Fil = { messages: MessageChat[]; suite: string | null; version: number };
 /** Un envoi en cours ou raté : son message à l'écran, et de quoi le renvoyer tel quel (même idClient : jamais deux fois) */
@@ -41,6 +41,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
   const communaute = utiliserCommunaute();
   const monId = utiliserMonId();
   const [liste, setListe] = useState<ConversationApi[]>([]);
+  // Les discussions des sorties : hors de la liste des messages, mais lues, écrites et relues ici (utiliserDiscussionSortie)
+  const [sorties, setSorties] = useState<Record<string, ConversationApi>>({});
   const [invitationsApi, setInvitationsApi] = useState<InvitationGroupeApi[]>([]);
   const [fils, setFils] = useState<Record<string, Fil>>({});
   const [envois, setEnvois] = useState<Record<string, Envoi>>({});
@@ -64,7 +66,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     [noterPersonne],
   );
   const garderConversation = useCallback((c: ConversationApi) => {
-    if (c.type === "sortie") return;
+    if (c.type === "sortie") return setSorties((avant) => ({ ...avant, [c.id]: c }));
     setListe((avant) => [c, ...avant.filter((x) => x.id !== c.id)]);
   }, []);
 
@@ -74,7 +76,9 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     if (!tant(g)) return;
     if (r.ok) {
       const gardees = r.conversations.filter((c) => c.type !== "sortie");
+      const deSorties = r.conversations.filter((c) => c.type === "sortie");
       gardees.forEach(noterPersonnes);
+      if (deSorties.length > 0) setSorties((avant) => ({ ...avant, ...Object.fromEntries(deSorties.map((c) => [c.id, c])) }));
       r.invitations.forEach((i) => i.invitePar && noterPersonne(i.invitePar));
       setListe(gardees);
       setInvitationsApi(r.invitations);
@@ -93,6 +97,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         // Plus membre (quitté, retiré, bloqué) : la discussion disparaît
         if (r.erreur === "conversation-inconnue") {
           setListe((avant) => avant.filter((c) => c.id !== id));
+          setSorties(({ [id]: _partie, ...reste }) => reste);
           setFils(({ [id]: _parti, ...reste }) => reste);
         }
         return;
@@ -120,6 +125,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       if (etaitActif.current) effacerMediasChatCompte();
       etaitActif.current = false;
       setListe([]);
+      setSorties({});
       setInvitationsApi([]);
       setFils({});
       setEnvois({});
@@ -141,6 +147,17 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     }
     derniere.current = signature;
   }, [actif, signature, chargerListe, lireFil]);
+
+  // Le pouls dit qu'une discussion de sortie a bougé : celles ouvertes à l'écran sont relues
+  const signatureSorties = pouls?.sorties.signature ?? null;
+  const derniereSorties = useRef<string | null>(null);
+  useEffect(() => {
+    if (!actif || signatureSorties === null) return;
+    if (derniereSorties.current !== null && derniereSorties.current !== signatureSorties) suivis.current.forEach((id) => sorties[id] && void lireFil(id));
+    derniereSorties.current = signatureSorties;
+    // sorties : lu au moment où la signature change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actif, signatureSorties, lireFil]);
 
   const suivreFil = useCallback(
     (id: string) => {
@@ -220,15 +237,26 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         return { ...base, messages };
       })
       .sort((a, b) => (b.messages[b.messages.length - 1]?.date ?? "").localeCompare(a.messages[a.messages.length - 1]?.date ?? ""));
-    const trouver = (id: string) => conversations.find((c) => c.id === id) ?? null;
-    const ouverte = (id: string) => liste.find((c) => c.id === id)?.ouverte === true;
+    const discussionDeSortie = (id: string) => {
+      const c = sorties[id];
+      if (!c) return null;
+      const fil = fils[id];
+      const base = convertirConversationApi(c, fil ? { messages: fil.messages, plusAnciens: fil.suite !== null } : undefined);
+      const enAttente = enCours.filter((e) => e.conversationId === id).map((e) => e.message);
+      return { ...base, messages: [...base.messages, ...enAttente].filter((m) => !communaute.estSignale(m.id)) };
+    };
+    const trouver = (id: string) => conversations.find((c) => c.id === id) ?? discussionDeSortie(id);
+    const ouverte = (id: string) => (liste.find((c) => c.id === id) ?? sorties[id])?.ouverte === true;
     const verifierTexte = (texte: string): ResultatEnvoiChat => {
       const propre = texte.trim();
       if (propre === "") return "vide";
       if (propre.length > LONGUEUR_MAX_MESSAGE) return "trop-long";
       return contientMotInterdit(propre) ? "mot-interdit" : "ok";
     };
-    const changerConversation = (id: string, changer: (c: ConversationApi) => ConversationApi) => setListe((avant) => avant.map((c) => (c.id === id ? changer(c) : c)));
+    const changerConversation = (id: string, changer: (c: ConversationApi) => ConversationApi) => {
+      setListe((avant) => avant.map((c) => (c.id === id ? changer(c) : c)));
+      setSorties((avant) => (avant[id] ? { ...avant, [id]: changer(avant[id]) } : avant));
+    };
 
     return {
       source: "compte",
@@ -305,8 +333,15 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       envoyerVocal: async (id, uri, duree) => {
         if (!ouverte(id)) return "interdit";
         const dureeSecondes = Math.round(duree);
-        lancer(id, { type: "vocal", fichier: uri, dureeSecondes, media: { etat: "disponible", largeur: null, hauteur: null, dureeSecondes } }, (idClient) =>
-          sociaux.messagerie.envoyerMedia(id, idClient, new File(uri), "audio/mp4"),
+        // L'enregistreur jette son fichier dès le retour : l'envoi (et ses nouveaux essais) garde sa propre copie
+        let fichier: string;
+        try {
+          fichier = await garderEnvoiChat(uri, "m4a");
+        } catch {
+          return "interdit";
+        }
+        lancer(id, { type: "vocal", fichier, dureeSecondes, media: { etat: "disponible", largeur: null, hauteur: null, dureeSecondes } }, (idClient) =>
+          sociaux.messagerie.envoyerMedia(id, idClient, new File(fichier), "audio/mp4"),
         );
         return "ok";
       },
@@ -335,7 +370,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         });
       },
       marquerLu: (id) => {
-        const derniereLue = [...(fils[id]?.messages ?? [])].reverse().find((m) => !m.id.startsWith("envoi:"))?.id ?? liste.find((c) => c.id === id)?.dernierMessage?.id;
+        const derniereLue = [...(fils[id]?.messages ?? [])].reverse().find((m) => !m.id.startsWith("envoi:"))?.id ?? (liste.find((c) => c.id === id) ?? sorties[id])?.dernierMessage?.id;
         if (!derniereLue) return;
         changerConversation(id, (c) => ({ ...c, nonLus: 0 }));
         void sociaux.messagerie.marquerLu(id, derniereLue).then(() => relirePouls());
@@ -362,6 +397,6 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       },
     };
   }, [
-    pret, liste, invitationsApi, fils, envois, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe,
+    pret, liste, sorties, invitationsApi, fils, envois, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe,
   ]);
 }
