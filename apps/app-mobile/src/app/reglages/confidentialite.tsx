@@ -13,6 +13,7 @@ import couleurs from "~/theme/couleurs";
 
 const ANNONCE_PRIVE = "🔒 Ton compte est privé. Tes abonnés restent ; les prochains devront frapper à la porte.";
 const ANNONCE_PUBLIC = "🔓 Ton compte est public : tout le monde peut te suivre sans demander.";
+const ANNONCE_RATEE = "Ça n'a pas marché cette fois : ton compte n'a pas changé. Réessaie dans un instant.";
 
 /** « 1 demande en attente sera acceptée », « 3 demandes en attente seront acceptées » */
 const decrireDemandes = (nombre: number) =>
@@ -30,13 +31,17 @@ export default function ReglagesConfidentialite() {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   // Le message à dire une fois la feuille refermée (plus tôt, VoiceOver le couperait en revenant sur l'interrupteur)
   const annonceEnAttente = useRef<string | null>(null);
+  // La feuille est déjà refermée quand la réponse arrive (compte connecté) : on l'annonce tout de suite
+  const feuilleRefermee = useRef(true);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
 
   const nombreDemandes = suivis.demandesRecues.length;
 
-  function passerEnPublic(): string {
-    const { acceptees } = suivis.changerConfidentialite("public");
+  async function passerEnPublic(): Promise<string> {
+    const fait = await suivis.changerConfidentialite("public");
+    if (!fait) return ANNONCE_RATEE;
+    const { acceptees } = fait;
     if (acceptees === 0) return ANNONCE_PUBLIC;
     return `🔓 Ton compte est public. ${acceptees > 1 ? `${acceptees} demandes acceptées` : "1 demande acceptée"} : bienvenue à tes nouveaux abonnés !`;
   }
@@ -44,13 +49,12 @@ export default function ReglagesConfidentialite() {
   function changer(prive: boolean) {
     if (!exigerCompte("suivre")) return;
     if (prive) {
-      suivis.changerConfidentialite("prive");
-      annoncer(ANNONCE_PRIVE);
+      void suivis.changerConfidentialite("prive").then((fait) => annoncer(fait ? ANNONCE_PRIVE : ANNONCE_RATEE));
       return;
     }
     // Des gens attendent à la porte : on confirme avant de tous les faire entrer
     if (nombreDemandes > 0) return setFeuillePublic(true);
-    annoncer(passerEnPublic());
+    void passerEnPublic().then(annoncer);
   }
 
   return (
@@ -94,9 +98,14 @@ export default function ReglagesConfidentialite() {
         indiceRester="Ton compte reste privé, les demandes attendent"
         onConfirmer={() => {
           if (!exigerCompte("suivre")) return;
-          annonceEnAttente.current = passerEnPublic();
+          feuilleRefermee.current = false;
+          void passerEnPublic().then((texte) => {
+            if (feuilleRefermee.current) annoncer(texte);
+            else annonceEnAttente.current = texte;
+          });
         }}
         onRefermee={() => {
+          feuilleRefermee.current = true;
           if (annonceEnAttente.current) annoncer(annonceEnAttente.current);
           annonceEnAttente.current = null;
         }}

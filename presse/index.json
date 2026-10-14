@@ -1,0 +1,3916 @@
+{
+ "genere": "2026-10-14",
+ "familles": [
+  {
+   "id": "affiches",
+   "titre": "Affiches A4",
+   "fichiers": [
+    {
+     "nom": "affiche-sauve-une-table.png",
+     "chemin": "affiches/affiche-sauve-une-table.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Sauve une table",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-sauve-une-table.pdf",
+     "chemin": "affiches/affiche-sauve-une-table.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Sauve une table",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-sauve-une-table-a3.pdf",
+     "chemin": "affiches/affiche-sauve-une-table-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Sauve une table, en A3",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-sauve-une-table-40x60.pdf",
+     "chemin": "affiches/affiche-sauve-une-table-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Sauve une table, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-sauve-une-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues.png",
+     "chemin": "affiches/affiche-pepite-a-2-rues.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Ta prochaine pépite",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Ta prochaine pépite",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues-a3.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Ta prochaine pépite, en A3",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-pepite-a-2-rues-40x60.pdf",
+     "chemin": "affiches/affiche-pepite-a-2-rues-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Ta prochaine pépite, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-pepite-a-2-rues.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-moins-de-chaines.png",
+     "chemin": "affiches/affiche-moins-de-chaines.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Moins de chaînes",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-moins-de-chaines.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Moins de chaînes",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-moins-de-chaines-a3.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Moins de chaînes, en A3",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-moins-de-chaines-40x60.pdf",
+     "chemin": "affiches/affiche-moins-de-chaines-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Moins de chaînes, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-moins-de-chaines.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide.png",
+     "chemin": "affiches/affiche-salle-vide.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Grand public · Une salle vide",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide.pdf",
+     "chemin": "affiches/affiche-salle-vide.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Grand public · Une salle vide",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide-a3.pdf",
+     "chemin": "affiches/affiche-salle-vide-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Grand public · Une salle vide, en A3",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-salle-vide-40x60.pdf",
+     "chemin": "affiches/affiche-salle-vide-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Grand public · Une salle vide, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-salle-vide.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure.png",
+     "chemin": "affiches/affiche-ambassadeurs-aventure.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · L'aventure",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · L'aventure",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · L'aventure, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-aventure-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-aventure-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · L'aventure, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-aventure.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges.png",
+     "chemin": "affiches/affiche-ambassadeurs-badges.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · Les badges",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · Les badges",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · Les badges, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-badges-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-badges-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · Les badges, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-badges.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur.png",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Ambassadeurs · Fondateur de ta ville",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Ambassadeurs · Fondateur de ta ville",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur-a3.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Ambassadeurs · Fondateur de ta ville, en A3",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-ambassadeurs-fondateur-40x60.pdf",
+     "chemin": "affiches/affiche-ambassadeurs-fondateur-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Ambassadeurs · Fondateur de ta ville, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-ambassadeurs-fondateur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-lieu-exemple.png",
+     "chemin": "affiches/affiche-vitrine-lieu-exemple.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · au nom du lieu (exemple)",
+     "apercu": "apercus/affiches-affiche-vitrine-lieu-exemple.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-lieu-exemple.pdf",
+     "chemin": "affiches/affiche-vitrine-lieu-exemple.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · au nom du lieu (exemple)",
+     "apercu": "apercus/affiches-affiche-vitrine-lieu-exemple.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam.png",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · sans nom",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · sans nom",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam-a3.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Vitrine · sans nom, en A3",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-on-est-sur-sos-miam-40x60.pdf",
+     "chemin": "affiches/affiche-vitrine-on-est-sur-sos-miam-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Vitrine · sans nom, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-vitrine-on-est-sur-sos-miam.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe.png",
+     "chemin": "affiches/affiche-vitrine-miam-safe.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Vitrine · Ici, on est Miam Safe",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Vitrine · Ici, on est Miam Safe",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe-a3.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe-a3.pdf",
+     "format": "PDF",
+     "taille": "A3 (297 × 420 mm)",
+     "description": "Vitrine · Ici, on est Miam Safe, en A3",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "affiche-vitrine-miam-safe-40x60.pdf",
+     "chemin": "affiches/affiche-vitrine-miam-safe-40x60.pdf",
+     "format": "PDF",
+     "taille": "40 × 60 cm",
+     "description": "Vitrine · Ici, on est Miam Safe, en 40 × 60 cm (rallongée, rien n’est déformé)",
+     "apercu": "apercus/affiches-affiche-vitrine-miam-safe.png",
+     "canaux": [
+      "impression"
+     ]
+    }
+   ],
+   "zip": "affiches/sos-miam-affiches.zip"
+  },
+  {
+   "id": "reseaux",
+   "titre": "Réseaux sociaux",
+   "fichiers": [
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-1.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-2.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-3.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-4.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-5.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-cest-quoi-sos-miam-6.png",
+     "chemin": "reseaux/carrousel-cest-quoi-sos-miam-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · C'est quoi SOS Miam ?, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-cest-quoi-sos-miam-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-1.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-2.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-3.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-4.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-5.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-tu-as-un-lieu-6.png",
+     "chemin": "reseaux/carrousel-tu-as-un-lieu-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Tu as un lieu ?, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-tu-as-un-lieu-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-1.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-2.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-3.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-4.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-5.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-ambassadeur-6.png",
+     "chemin": "reseaux/carrousel-deviens-ambassadeur-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens ambassadeur, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-deviens-ambassadeur-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-1.png",
+     "chemin": "reseaux/carrousel-miam-safe-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-2.png",
+     "chemin": "reseaux/carrousel-miam-safe-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-3.png",
+     "chemin": "reseaux/carrousel-miam-safe-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-4.png",
+     "chemin": "reseaux/carrousel-miam-safe-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-5.png",
+     "chemin": "reseaux/carrousel-miam-safe-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-miam-safe-6.png",
+     "chemin": "reseaux/carrousel-miam-safe-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Miam Safe, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-miam-safe-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-1.png",
+     "chemin": "reseaux/carrousel-les-coulisses-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-2.png",
+     "chemin": "reseaux/carrousel-les-coulisses-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-3.png",
+     "chemin": "reseaux/carrousel-les-coulisses-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-4.png",
+     "chemin": "reseaux/carrousel-les-coulisses-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-5.png",
+     "chemin": "reseaux/carrousel-les-coulisses-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-coulisses-6.png",
+     "chemin": "reseaux/carrousel-les-coulisses-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les coulisses, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-les-coulisses-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-1.png",
+     "chemin": "reseaux/carrousel-les-big-sos-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-2.png",
+     "chemin": "reseaux/carrousel-les-big-sos-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-3.png",
+     "chemin": "reseaux/carrousel-les-big-sos-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-4.png",
+     "chemin": "reseaux/carrousel-les-big-sos-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-5.png",
+     "chemin": "reseaux/carrousel-les-big-sos-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-les-big-sos-6.png",
+     "chemin": "reseaux/carrousel-les-big-sos-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Les BIG SOS, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-les-big-sos-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-1.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-2.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-3.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-4.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-5.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-mythes-et-verites-6.png",
+     "chemin": "reseaux/carrousel-mythes-et-verites-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Mythes et vérités, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-mythes-et-verites-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-1.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 1/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-2.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 2/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-3.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 3/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-4.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 4/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-5.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 5/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-le-jeu-de-la-pepite-6.png",
+     "chemin": "reseaux/carrousel-le-jeu-de-la-pepite-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Le jeu de la pépite, image 6/6",
+     "apercu": "apercus/reseaux-carrousel-le-jeu-de-la-pepite-6.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-1.png",
+     "chemin": "reseaux/stories-compte-a-rebours-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 1/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-1.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-2.png",
+     "chemin": "reseaux/stories-compte-a-rebours-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 2/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-2.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-3.png",
+     "chemin": "reseaux/stories-compte-a-rebours-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 3/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-3.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-4.png",
+     "chemin": "reseaux/stories-compte-a-rebours-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 4/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-4.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-5.png",
+     "chemin": "reseaux/stories-compte-a-rebours-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 5/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-5.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-6.png",
+     "chemin": "reseaux/stories-compte-a-rebours-6.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 6/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-6.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-compte-a-rebours-7.png",
+     "chemin": "reseaux/stories-compte-a-rebours-7.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Compte à rebours, image 7/7",
+     "apercu": "apercus/reseaux-stories-compte-a-rebours-7.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-sondages-1.png",
+     "chemin": "reseaux/stories-sondages-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Sondages, image 1/2",
+     "apercu": "apercus/reseaux-stories-sondages-1.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-sondages-2.png",
+     "chemin": "reseaux/stories-sondages-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Sondages, image 2/2",
+     "apercu": "apercus/reseaux-stories-sondages-2.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-previens-moi-1.png",
+     "chemin": "reseaux/stories-previens-moi-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Préviens-moi, image 1/1",
+     "apercu": "apercus/reseaux-stories-previens-moi-1.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-les-4-categories-1.png",
+     "chemin": "reseaux/stories-les-4-categories-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 1/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-1.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-les-4-categories-2.png",
+     "chemin": "reseaux/stories-les-4-categories-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 2/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-2.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-les-4-categories-3.png",
+     "chemin": "reseaux/stories-les-4-categories-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 3/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-3.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-les-4-categories-4.png",
+     "chemin": "reseaux/stories-les-4-categories-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Les 4 catégories, image 4/4",
+     "apercu": "apercus/reseaux-stories-les-4-categories-4.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    }
+   ],
+   "zip": "reseaux/sos-miam-reseaux.zip"
+  },
+  {
+   "id": "imprimes",
+   "titre": "Imprimés",
+   "fichiers": [
+    {
+     "nom": "flyer-a6-grand-public.png",
+     "chemin": "imprimes/flyer-a6-grand-public.png",
+     "format": "PNG",
+     "taille": "2640 × 1779 px",
+     "description": "Flyer A6 grand public (recto, verso)",
+     "apercu": "apercus/imprimes-flyer-a6-grand-public.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "flyer-a6-ambassadeurs.png",
+     "chemin": "imprimes/flyer-a6-ambassadeurs.png",
+     "format": "PNG",
+     "taille": "2640 × 1779 px",
+     "description": "Flyer A6 ambassadeurs (recto, verso)",
+     "apercu": "apercus/imprimes-flyer-a6-ambassadeurs.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "carte-visite-ambassadeur.png",
+     "chemin": "imprimes/carte-visite-ambassadeur.png",
+     "format": "PNG",
+     "taille": "3180 × 990 px",
+     "description": "Carte de visite d’ambassadeur 85 × 55 mm (recto, verso)",
+     "apercu": "apercus/imprimes-carte-visite-ambassadeur.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "chevalet-de-table.png",
+     "chemin": "imprimes/chevalet-de-table.png",
+     "format": "PNG",
+     "taille": "2940 × 1779 px",
+     "description": "Chevalet de table (2 faces A6, à plier)",
+     "apercu": "apercus/imprimes-chevalet-de-table.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "planche-stickers-a4.png",
+     "chemin": "imprimes/planche-stickers-a4.png",
+     "format": "PNG",
+     "taille": "2382 × 3369 px",
+     "description": "Planche de stickers (A4)",
+     "apercu": "apercus/imprimes-planche-stickers-a4.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "planche-stickers-a4.pdf",
+     "chemin": "imprimes/planche-stickers-a4.pdf",
+     "format": "PDF",
+     "taille": "A4",
+     "description": "Planche de stickers (A4)",
+     "apercu": "apercus/imprimes-planche-stickers-a4.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "badges-epingle-38mm.png",
+     "chemin": "imprimes/badges-epingle-38mm.png",
+     "format": "PNG",
+     "taille": "4032 × 936 px",
+     "description": "Badges à épingle 38 mm (montrés agrandis)",
+     "apercu": "apercus/imprimes-badges-epingle-38mm.png",
+     "canaux": [
+      "impression"
+     ]
+    }
+   ],
+   "zip": "imprimes/sos-miam-imprimes.zip"
+  },
+  {
+   "id": "miam-safe",
+   "titre": "Miam Safe",
+   "fichiers": [
+    {
+     "nom": "fiche-miam-safe-miamis.png",
+     "chemin": "miam-safe/fiche-miam-safe-miamis.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Fiche Miamis (4:5) : les façons d’avoir de l’aide, bientôt dans l’app",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-miamis.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "fiche-miam-safe-lieux.png",
+     "chemin": "miam-safe/fiche-miam-safe-lieux.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Fiche lieux (4:5) : le badge, les alertes, la charte",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-lieux.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "fiche-miam-safe-memo-equipe.png",
+     "chemin": "miam-safe/fiche-miam-safe-memo-equipe.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Mémo d’équipe pour l’arrière du comptoir",
+     "apercu": "apercus/miam-safe-fiche-miam-safe-memo-equipe.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "story-miam-safe-bientot.png",
+     "chemin": "miam-safe/story-miam-safe-bientot.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Story « Bientôt » Miam Safe",
+     "apercu": "apercus/miam-safe-story-miam-safe-bientot.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "concept-miam-safe.pdf",
+     "chemin": "miam-safe/concept-miam-safe.pdf",
+     "format": "PDF",
+     "taille": null,
+     "description": "La page concept Miam Safe (décisions du 9 octobre 2026)",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    }
+   ],
+   "zip": "miam-safe/sos-miam-miam-safe.zip"
+  },
+  {
+   "id": "textes",
+   "titre": "Textes (presse, newsletters, Discord)",
+   "fichiers": [
+    {
+     "nom": "textes-promo-sos-miam.md",
+     "chemin": "textes/textes-promo-sos-miam.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Communiqué et dossier de presse, 4 newsletters, annonces Discord, légendes des carrousels, règles de ton",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    }
+   ],
+   "zip": "textes/sos-miam-textes.zip"
+  },
+  {
+   "id": "capitaine",
+   "titre": "Capitaine Bouiboui (réseaux)",
+   "fichiers": [
+    {
+     "nom": "carrousel-capitaine-1-presentation.png",
+     "chemin": "capitaine/carrousel-capitaine-1-presentation.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel Capitaine Bouiboui, image 1/3 : « Voici Capitaine Bouiboui »",
+     "apercu": "apercus/capitaine-carrousel-capitaine-1-presentation.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-capitaine-2-fiche-identite.png",
+     "chemin": "capitaine/carrousel-capitaine-2-fiche-identite.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel Capitaine Bouiboui, image 2/3 : sa fiche d’identité",
+     "apercu": "apercus/capitaine-carrousel-capitaine-2-fiche-identite.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-capitaine-3-six-humeurs.png",
+     "chemin": "capitaine/carrousel-capitaine-3-six-humeurs.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel Capitaine Bouiboui, image 3/3 : ses six humeurs",
+     "apercu": "apercus/capitaine-carrousel-capitaine-3-six-humeurs.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "story-capitaine-au-rapport.png",
+     "chemin": "capitaine/story-capitaine-au-rapport.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Story « Capitaine Bouiboui au rapport ! »",
+     "apercu": "apercus/capitaine-story-capitaine-au-rapport.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    }
+   ],
+   "zip": "capitaine/sos-miam-capitaine.zip"
+  },
+  {
+   "id": "flyer",
+   "titre": "Flyer A5 recto verso",
+   "fichiers": [
+    {
+     "nom": "flyer-a5-recto.png",
+     "chemin": "flyer/flyer-a5-recto.png",
+     "format": "PNG",
+     "taille": "1677 × 2382 px",
+     "description": "Flyer A5, recto : « Les pépites de ton quartier »",
+     "apercu": "apercus/flyer-flyer-a5-recto.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "flyer-a5-recto.pdf",
+     "chemin": "flyer/flyer-a5-recto.pdf",
+     "format": "PDF",
+     "taille": "A5",
+     "description": "Flyer A5, recto : « Les pépites de ton quartier »",
+     "apercu": "apercus/flyer-flyer-a5-recto.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "flyer-a5-verso.png",
+     "chemin": "flyer/flyer-a5-verso.png",
+     "format": "PNG",
+     "taille": "1677 × 2382 px",
+     "description": "Flyer A5, verso : comment ça marche, QR Instagram",
+     "apercu": "apercus/flyer-flyer-a5-verso.png",
+     "canaux": [
+      "impression"
+     ]
+    },
+    {
+     "nom": "flyer-a5-verso.pdf",
+     "chemin": "flyer/flyer-a5-verso.pdf",
+     "format": "PDF",
+     "taille": "A5",
+     "description": "Flyer A5, verso : comment ça marche, QR Instagram",
+     "apercu": "apercus/flyer-flyer-a5-verso.png",
+     "canaux": [
+      "impression"
+     ]
+    }
+   ],
+   "zip": "flyer/sos-miam-flyer.zip"
+  },
+  {
+   "id": "documents",
+   "titre": "Documents (mail, fiche lieu, recrutement, réseaux)",
+   "fichiers": [
+    {
+     "nom": "mail-de-presentation.md",
+     "chemin": "documents/mail-de-presentation.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Mail de présentation de SOS Miam (partenaires, commerçants, futurs ambassadeurs), version du 5 octobre",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    },
+    {
+     "nom": "fiche-de-presentation-du-lieu.md",
+     "chemin": "documents/fiche-de-presentation-du-lieu.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Fiche à remplir par un lieu pour créer sa page (version du 8 octobre)",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    },
+    {
+     "nom": "recrutement-ambassadeurs-fondateurs.md",
+     "chemin": "documents/recrutement-ambassadeurs-fondateurs.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Campagne de recrutement des ambassadeurs fondateurs : calendrier, messages, formulaire, FAQ",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    },
+    {
+     "nom": "kit-reseaux-sociaux.md",
+     "chemin": "documents/kit-reseaux-sociaux.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Kit réseaux sociaux : bios, formats, ton et hashtags",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    },
+    {
+     "nom": "kit-de-marque-explications.md",
+     "chemin": "documents/kit-de-marque-explications.md",
+     "format": "MD",
+     "taille": null,
+     "description": "Le kit de marque expliqué : couleurs, typos, rôle de chaque logo",
+     "apercu": null,
+     "canaux": [
+      "textes"
+     ]
+    }
+   ],
+   "zip": "documents/sos-miam-documents.zip"
+  },
+  {
+   "id": "stores",
+   "titre": "Visuels App Store et Play Store",
+   "fichiers": [
+    {
+     "nom": "icone-app-1024.png",
+     "chemin": "stores/icone-app-1024.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Icône de l’app · Icône app 1024",
+     "apercu": "apercus/stores-icone-app-1024.png",
+     "canaux": [
+      "ios",
+      "android"
+     ]
+    },
+    {
+     "nom": "android-banniere-1024x500.png",
+     "chemin": "stores/android/banniere-1024x500.png",
+     "format": "PNG",
+     "taille": "1024 × 500 px",
+     "description": "Play Store · Bannière 1024x500",
+     "apercu": "apercus/stores-android-banniere-1024x500.png",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-icone-512.png",
+     "chemin": "stores/android/icone-512.png",
+     "format": "PNG",
+     "taille": "512 × 512 px",
+     "description": "Play Store · Icône 512",
+     "apercu": "apercus/stores-android-icone-512.png",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-01-sauve-une-table.jpg",
+     "chemin": "stores/android/tablette/01-sauve-une-table.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 01 sauve une table",
+     "apercu": "apercus/stores-android-tablette-01-sauve-une-table.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-02-sos-ce-soir.jpg",
+     "chemin": "stores/android/tablette/02-sos-ce-soir.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 02 SOS ce soir",
+     "apercu": "apercus/stores-android-tablette-02-sos-ce-soir.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-03-rescousses.jpg",
+     "chemin": "stores/android/tablette/03-rescousses.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 03 rescousses",
+     "apercu": "apercus/stores-android-tablette-03-rescousses.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-04-tes-gouts.jpg",
+     "chemin": "stores/android/tablette/04-tes-gouts.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 04 tes goûts",
+     "apercu": "apercus/stores-android-tablette-04-tes-gouts.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-05-tes-envies.jpg",
+     "chemin": "stores/android/tablette/05-tes-envies.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 05 tes envies",
+     "apercu": "apercus/stores-android-tablette-05-tes-envies.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-tablette-06-big-sos.jpg",
+     "chemin": "stores/android/tablette/06-big-sos.jpg",
+     "format": "JPG",
+     "taille": "1600 × 2560 px",
+     "description": "Android tablette · 06 BIG SOS",
+     "apercu": "apercus/stores-android-tablette-06-big-sos.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-01-sauve-une-table.jpg",
+     "chemin": "stores/android/telephone/01-sauve-une-table.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 01 sauve une table",
+     "apercu": "apercus/stores-android-telephone-01-sauve-une-table.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-02-sos-ce-soir.jpg",
+     "chemin": "stores/android/telephone/02-sos-ce-soir.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 02 SOS ce soir",
+     "apercu": "apercus/stores-android-telephone-02-sos-ce-soir.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-03-rescousses.jpg",
+     "chemin": "stores/android/telephone/03-rescousses.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 03 rescousses",
+     "apercu": "apercus/stores-android-telephone-03-rescousses.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-04-tes-gouts.jpg",
+     "chemin": "stores/android/telephone/04-tes-gouts.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 04 tes goûts",
+     "apercu": "apercus/stores-android-telephone-04-tes-gouts.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-05-tes-envies.jpg",
+     "chemin": "stores/android/telephone/05-tes-envies.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 05 tes envies",
+     "apercu": "apercus/stores-android-telephone-05-tes-envies.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "android-telephone-06-big-sos.jpg",
+     "chemin": "stores/android/telephone/06-big-sos.jpg",
+     "format": "JPG",
+     "taille": "1080 × 1920 px",
+     "description": "Android téléphone · 06 BIG SOS",
+     "apercu": "apercus/stores-android-telephone-06-big-sos.jpg",
+     "canaux": [
+      "android"
+     ]
+    },
+    {
+     "nom": "ios-en-tete-en-tete-3840x1646.png",
+     "chemin": "stores/ios/en-tete/en-tete-3840x1646.png",
+     "format": "PNG",
+     "taille": "3840 × 1646 px",
+     "description": "En-tête App Store · En tête 3840x1646",
+     "apercu": "apercus/stores-ios-en-tete-en-tete-3840x1646.png",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-en-tete-en-tete-5244x2950.png",
+     "chemin": "stores/ios/en-tete/en-tete-5244x2950.png",
+     "format": "PNG",
+     "taille": "5244 × 2950 px",
+     "description": "En-tête App Store · En tête 5244x2950",
+     "apercu": "apercus/stores-ios-en-tete-en-tete-5244x2950.png",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-01-sauve-une-table.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/01-sauve-une-table.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 01 sauve une table",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-01-sauve-une-table.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-02-sos-ce-soir.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/02-sos-ce-soir.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 02 SOS ce soir",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-02-sos-ce-soir.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-03-rescousses.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/03-rescousses.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 03 rescousses",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-03-rescousses.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-04-tes-gouts.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/04-tes-gouts.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 04 tes goûts",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-04-tes-gouts.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-05-tes-envies.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/05-tes-envies.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 05 tes envies",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-05-tes-envies.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-ipad-13-pouces-06-big-sos.jpg",
+     "chemin": "stores/ios/ipad-13-pouces/06-big-sos.jpg",
+     "format": "JPG",
+     "taille": "2064 × 2752 px",
+     "description": "iPad 13 pouces · 06 BIG SOS",
+     "apercu": "apercus/stores-ios-ipad-13-pouces-06-big-sos.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-01-sauve-une-table.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/01-sauve-une-table.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 01 sauve une table",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-01-sauve-une-table.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-02-sos-ce-soir.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/02-sos-ce-soir.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 02 SOS ce soir",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-02-sos-ce-soir.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-03-rescousses.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/03-rescousses.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 03 rescousses",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-03-rescousses.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-04-tes-gouts.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/04-tes-gouts.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 04 tes goûts",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-04-tes-gouts.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-05-tes-envies.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/05-tes-envies.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 05 tes envies",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-05-tes-envies.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-3-pouces-06-big-sos.jpg",
+     "chemin": "stores/ios/iphone-6-3-pouces/06-big-sos.jpg",
+     "format": "JPG",
+     "taille": "1206 × 2622 px",
+     "description": "iPhone 6,3 pouces · 06 BIG SOS",
+     "apercu": "apercus/stores-ios-iphone-6-3-pouces-06-big-sos.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-01-sauve-une-table.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/01-sauve-une-table.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 01 sauve une table",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-01-sauve-une-table.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-02-sos-ce-soir.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/02-sos-ce-soir.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 02 SOS ce soir",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-02-sos-ce-soir.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-03-rescousses.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/03-rescousses.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 03 rescousses",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-03-rescousses.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-04-tes-gouts.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/04-tes-gouts.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 04 tes goûts",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-04-tes-gouts.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-05-tes-envies.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/05-tes-envies.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 05 tes envies",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-05-tes-envies.jpg",
+     "canaux": [
+      "ios"
+     ]
+    },
+    {
+     "nom": "ios-iphone-6-9-pouces-06-big-sos.jpg",
+     "chemin": "stores/ios/iphone-6-9-pouces/06-big-sos.jpg",
+     "format": "JPG",
+     "taille": "1320 × 2868 px",
+     "description": "iPhone 6,9 pouces · 06 BIG SOS",
+     "apercu": "apercus/stores-ios-iphone-6-9-pouces-06-big-sos.jpg",
+     "canaux": [
+      "ios"
+     ]
+    }
+   ],
+   "zip": "stores/sos-miam-stores.zip"
+  },
+  {
+   "id": "kit-de-marque",
+   "titre": "Kit de marque (logos, mascotte, pictos, bannières)",
+   "fichiers": [
+    {
+     "nom": "LISEZMOI.txt",
+     "chemin": "kit-de-marque/LISEZMOI.txt",
+     "format": "TXT",
+     "taille": null,
+     "description": "Mode d’emploi du kit de marque (vocabulaire : les Miamis, la Brigade)",
+     "apercu": null,
+     "canaux": [
+      "textes",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_blanc_fond_sombre.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_blanc_fond_sombre.png",
+     "format": "PNG",
+     "taille": "2000 × 591 px",
+     "description": "Logos · Logo blanc fond sombre",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_blanc_fond_sombre.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_blanc_fond_sombre.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_blanc_fond_sombre.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo blanc fond sombre",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_blanc_fond_sombre.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_couleur_fond_clair.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_couleur_fond_clair.png",
+     "format": "PNG",
+     "taille": "2000 × 591 px",
+     "description": "Logos · Logo couleur fond clair",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_couleur_fond_clair.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_couleur_fond_clair.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_couleur_fond_clair.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo couleur fond clair",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_couleur_fond_clair.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_couleur_fond_jaune.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_couleur_fond_jaune.png",
+     "format": "PNG",
+     "taille": "2000 × 591 px",
+     "description": "Logos · Logo couleur fond jaune",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_couleur_fond_jaune.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_couleur_fond_jaune.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_couleur_fond_jaune.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo couleur fond jaune",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_couleur_fond_jaune.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_empile_couleur.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_empile_couleur.png",
+     "format": "PNG",
+     "taille": "1400 × 1131 px",
+     "description": "Logos · Logo empilé couleur",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_empile_couleur.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_empile_couleur.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_empile_couleur.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo empilé couleur",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_empile_couleur.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_noir.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_noir.png",
+     "format": "PNG",
+     "taille": "2000 × 591 px",
+     "description": "Logos · Logo noir",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_noir.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_noir.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_noir.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo noir",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_noir.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_une_couleur_tomate.png",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_une_couleur_tomate.png",
+     "format": "PNG",
+     "taille": "2000 × 591 px",
+     "description": "Logos · Logo une couleur tomate",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_une_couleur_tomate.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_logo_une_couleur_tomate.svg",
+     "chemin": "kit-de-marque/01_Logos/SOSMiam_logo_une_couleur_tomate.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Logo une couleur tomate",
+     "apercu": "apercus/kit-de-marque-01_Logos-SOSMiam_logo_une_couleur_tomate.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_autocollant_detoure.png",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_autocollant_detoure.png",
+     "format": "PNG",
+     "taille": "1200 × 1200 px",
+     "description": "Logos · Autocollant détouré",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_autocollant_detoure.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_autocollant_detoure.svg",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_autocollant_detoure.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Autocollant détouré",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_autocollant_detoure.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_bouee_gourmande.png",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_bouee_gourmande.png",
+     "format": "PNG",
+     "taille": "1200 × 1200 px",
+     "description": "Logos · Bouée gourmande",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_bouee_gourmande.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_bouee_gourmande.svg",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_bouee_gourmande.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Bouée gourmande",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_bouee_gourmande.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ecusson.png",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_ecusson.png",
+     "format": "PNG",
+     "taille": "1200 × 1200 px",
+     "description": "Logos · Écusson",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_ecusson.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ecusson.svg",
+     "chemin": "kit-de-marque/01_Logos/Emblemes/SOSMiam_ecusson.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Écusson",
+     "apercu": "apercus/kit-de-marque-01_Logos-Emblemes-SOSMiam_ecusson.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_avatar_rond_reseaux.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_avatar_rond_reseaux.png",
+     "format": "PNG",
+     "taille": "1080 × 1080 px",
+     "description": "Logos · Avatar rond réseaux",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_avatar_rond_reseaux.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_avatar_rond_reseaux.svg",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_avatar_rond_reseaux.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Avatar rond réseaux",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_avatar_rond_reseaux.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_favicon_180.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_favicon_180.png",
+     "format": "PNG",
+     "taille": "180 × 180 px",
+     "description": "Logos · Favicon 180",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_favicon_180.png",
+     "canaux": [
+      "web",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_favicon_32.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_favicon_32.png",
+     "format": "PNG",
+     "taille": "32 × 32 px",
+     "description": "Logos · Favicon 32",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_favicon_32.png",
+     "canaux": [
+      "web",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_favicon_512.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_favicon_512.png",
+     "format": "PNG",
+     "taille": "512 × 512 px",
+     "description": "Logos · Favicon 512",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_favicon_512.png",
+     "canaux": [
+      "web",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_icone_app_1024.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_icone_app_1024.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Logos · Icône app 1024",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_icone_app_1024.png",
+     "canaux": [
+      "ios",
+      "android",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_icone_app_1024.svg",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_icone_app_1024.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Icône app 1024",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_icone_app_1024.png",
+     "canaux": [
+      "ios",
+      "android",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_icone_arrondie_1024.png",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_icone_arrondie_1024.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Logos · Icône arrondie 1024",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_icone_arrondie_1024.png",
+     "canaux": [
+      "ios",
+      "android",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_icone_arrondie_1024.svg",
+     "chemin": "kit-de-marque/01_Logos/Icones/SOSMiam_icone_arrondie_1024.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Logos · Icône arrondie 1024",
+     "apercu": "apercus/kit-de-marque-01_Logos-Icones-SOSMiam_icone_arrondie_1024.png",
+     "canaux": [
+      "ios",
+      "android",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_cest_la_fete.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_cest_la_fete.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui c’est la fête",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_cest_la_fete.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_cest_la_fete.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_cest_la_fete.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui c’est la fête",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_cest_la_fete.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_clin_doeil.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_clin_doeil.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui clin d’œil",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_clin_doeil.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_clin_doeil.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_clin_doeil.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui clin d’œil",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_clin_doeil.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_coup_de_coeur.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_coup_de_coeur.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui coup de cœur",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_coup_de_coeur.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_coup_de_coeur.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_coup_de_coeur.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui coup de cœur",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_coup_de_coeur.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_fait_dodo.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_fait_dodo.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui fait dodo",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_fait_dodo.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_fait_dodo.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_fait_dodo.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui fait dodo",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_fait_dodo.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_miam.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_miam.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui miam",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_miam.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_miam.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_miam.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui miam",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_miam.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_place_ce_soir.png",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_place_ce_soir.png",
+     "format": "PNG",
+     "taille": "1000 × 1212 px",
+     "description": "Mascotte · Capitaine Bouiboui place ce soir",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_place_ce_soir.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_place_ce_soir.svg",
+     "chemin": "kit-de-marque/02_Mascotte/SOSMiam_Capitaine_Bouiboui_place_ce_soir.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Mascotte · Capitaine Bouiboui place ce soir",
+     "apercu": "apercus/kit-de-marque-02_Mascotte-SOSMiam_Capitaine_Bouiboui_place_ce_soir.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_bars.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_bars.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle bars",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_bars.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_bars.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_bars.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle bars",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_bars.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_bars_SOS.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_bars_SOS.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle bars SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_bars_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_bars_SOS.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_bars_SOS.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle bars SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_bars_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_patisseries.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_patisseries.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle pâtisseries",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_patisseries.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_patisseries.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_patisseries.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle pâtisseries",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_patisseries.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_patisseries_SOS.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_patisseries_SOS.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle pâtisseries SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_patisseries_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_patisseries_SOS.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_patisseries_SOS.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle pâtisseries SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_patisseries_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_restos.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_restos.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle restos",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_restos.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_restos.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_restos.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle restos",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_restos.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_restos_SOS.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_restos_SOS.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle restos SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_restos_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_restos_SOS.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_restos_SOS.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle restos SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_restos_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_sorties.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_sorties.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle sorties",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_sorties.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_sorties.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_sorties.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle sorties",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_sorties.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_sorties_SOS.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_sorties_SOS.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Épingle sorties SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_sorties_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_epingle_sorties_SOS.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_epingle_sorties_SOS.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Épingle sorties SOS",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_epingle_sorties_SOS.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_bars.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_bars.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Picto bars",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_bars.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_bars.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_bars.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Picto bars",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_bars.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_patisseries.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_patisseries.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Picto pâtisseries",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_patisseries.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_patisseries.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_patisseries.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Picto pâtisseries",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_patisseries.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_restos.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_restos.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Picto restos",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_restos.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_restos.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_restos.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Picto restos",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_restos.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_sorties.png",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_sorties.png",
+     "format": "PNG",
+     "taille": "600 × 600 px",
+     "description": "Pictos et épingles · Picto sorties",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_sorties.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_picto_sorties.svg",
+     "chemin": "kit-de-marque/03_Pictos_et_epingles/SOSMiam_picto_sorties.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Pictos et épingles · Picto sorties",
+     "apercu": "apercus/kit-de-marque-03_Pictos_et_epingles-SOSMiam_picto_sorties.png",
+     "canaux": [
+      "instagram",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_banniere_ambassadeurs_1500x500.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Bannieres_3x1/SOSMiam_banniere_ambassadeurs_1500x500.png",
+     "format": "PNG",
+     "taille": "1500 × 500 px",
+     "description": "Bannières réseaux · Bannière ambassadeurs 1500x500",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Bannieres_3x1-SOSMiam_banniere_ambassadeurs_1500x500.png",
+     "canaux": [
+      "x",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_banniere_ambassadeurs_1500x500.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Bannieres_3x1/SOSMiam_banniere_ambassadeurs_1500x500.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · Bannière ambassadeurs 1500x500",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Bannieres_3x1-SOSMiam_banniere_ambassadeurs_1500x500.png",
+     "canaux": [
+      "x",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_banniere_grand_public_1500x500.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Bannieres_3x1/SOSMiam_banniere_grand_public_1500x500.png",
+     "format": "PNG",
+     "taille": "1500 × 500 px",
+     "description": "Bannières réseaux · Bannière grand public 1500x500",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Bannieres_3x1-SOSMiam_banniere_grand_public_1500x500.png",
+     "canaux": [
+      "x",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_banniere_grand_public_1500x500.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Bannieres_3x1/SOSMiam_banniere_grand_public_1500x500.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · Bannière grand public 1500x500",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Bannieres_3x1-SOSMiam_banniere_grand_public_1500x500.png",
+     "canaux": [
+      "x",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_facebook_couverture_1640x624.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Facebook/SOSMiam_facebook_couverture_1640x624.png",
+     "format": "PNG",
+     "taille": "1640 × 624 px",
+     "description": "Bannières réseaux · Facebook couverture 1640x624",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Facebook-SOSMiam_facebook_couverture_1640x624.png",
+     "canaux": [
+      "facebook",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_facebook_couverture_1640x624.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Facebook/SOSMiam_facebook_couverture_1640x624.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · Facebook couverture 1640x624",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Facebook-SOSMiam_facebook_couverture_1640x624.png",
+     "canaux": [
+      "facebook",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_facebook_couverture_evenement_1920x1005.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Facebook/SOSMiam_facebook_couverture_evenement_1920x1005.png",
+     "format": "PNG",
+     "taille": "1920 × 1005 px",
+     "description": "Bannières réseaux · Facebook couverture événement 1920x1005",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Facebook-SOSMiam_facebook_couverture_evenement_1920x1005.png",
+     "canaux": [
+      "facebook",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_facebook_couverture_evenement_1920x1005.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Facebook/SOSMiam_facebook_couverture_evenement_1920x1005.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · Facebook couverture événement 1920x1005",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Facebook-SOSMiam_facebook_couverture_evenement_1920x1005.png",
+     "canaux": [
+      "facebook",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_1_Pepites.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_1_Pepites.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Bannières réseaux · À la une 1 Pépites",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_1_Pepites.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_1_Pepites.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_1_Pepites.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · À la une 1 Pépites",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_1_Pepites.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_2_SOS.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_2_SOS.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Bannières réseaux · À la une 2 SOS",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_2_SOS.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_2_SOS.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_2_SOS.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · À la une 2 SOS",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_2_SOS.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_3_Nouveaux.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_3_Nouveaux.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Bannières réseaux · À la une 3 Nouveaux",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_3_Nouveaux.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_3_Nouveaux.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_3_Nouveaux.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · À la une 3 Nouveaux",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_3_Nouveaux.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_4_Ambassadeurs.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_4_Ambassadeurs.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Bannières réseaux · À la une 4 Ambassadeurs",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_4_Ambassadeurs.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_4_Ambassadeurs.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_4_Ambassadeurs.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · À la une 4 Ambassadeurs",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_4_Ambassadeurs.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_5_FAQ.png",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_5_FAQ.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Bannières réseaux · À la une 5 FAQ",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_5_FAQ.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_a_la_une_5_FAQ.svg",
+     "chemin": "kit-de-marque/04_Bannieres_reseaux/Instagram_stories_a_la_une/SOSMiam_a_la_une_5_FAQ.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Bannières réseaux · À la une 5 FAQ",
+     "apercu": "apercus/kit-de-marque-04_Bannieres_reseaux-Instagram_stories_a_la_une-SOSMiam_a_la_une_5_FAQ.png",
+     "canaux": [
+      "instagram",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_couleurs_et_typos.txt",
+     "chemin": "kit-de-marque/05_Couleurs/SOSMiam_couleurs_et_typos.txt",
+     "format": "TXT",
+     "taille": null,
+     "description": "Couleurs · Couleurs et typos",
+     "apercu": null,
+     "canaux": [
+      "textes",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_palette.png",
+     "chemin": "kit-de-marque/05_Couleurs/SOSMiam_palette.png",
+     "format": "PNG",
+     "taille": "1750 × 520 px",
+     "description": "Couleurs · Palette",
+     "apercu": "apercus/kit-de-marque-05_Couleurs-SOSMiam_palette.png",
+     "canaux": [
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_palette.svg",
+     "chemin": "kit-de-marque/05_Couleurs/SOSMiam_palette.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Couleurs · Palette",
+     "apercu": "apercus/kit-de-marque-05_Couleurs-SOSMiam_palette.png",
+     "canaux": [
+      "marque"
+     ]
+    }
+   ],
+   "zip": "kit-de-marque/sos-miam-kit-de-marque.zip"
+  },
+  {
+   "id": "campagne",
+   "titre": "Images de campagne (ambassadeurs, présentation, profil)",
+   "fichiers": [
+    {
+     "nom": "SOSMiam_ambassadeurs_apercu.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_apercu.png",
+     "format": "PNG",
+     "taille": "2148 × 1150 px",
+     "description": "Ambassadeurs · Ambassadeurs aperçu",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_apercu.png",
+     "canaux": [
+      "presentation"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_carrousel_1_couverture.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_1_couverture.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 1 couverture",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_1_couverture.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 2 ton rôle",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_carrousel_3_avantages.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_3_avantages.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 3 avantages",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_3_avantages.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_carrousel_4_profil.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_4_profil.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 4 profil",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_4_profil.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_carrousel_5_candidater.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_5_candidater.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 5 candidater",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_5_candidater.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_post_ce_numero.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_post_ce_numero.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Ambassadeurs · Ambassadeurs post ce numero",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_post_ce_numero.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_story_1_teaser.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_story_1_teaser.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Ambassadeurs · Ambassadeurs story 1 teaser",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_1_teaser.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_story_2_annonce.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_story_2_annonce.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Ambassadeurs · Ambassadeurs story 2 annonce",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_2_annonce.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_story_3_avantages.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_story_3_avantages.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Ambassadeurs · Ambassadeurs story 3 avantages",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_3_avantages.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_ambassadeurs_story_4_dernier_appel.png",
+     "chemin": "campagne/SOSMiam_ambassadeurs_story_4_dernier_appel.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Ambassadeurs · Ambassadeurs story 4 dernier appel",
+     "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_4_dernier_appel.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_apercu.png",
+     "chemin": "campagne/SOSMiam_15_compte_a_rebours_apercu.png",
+     "format": "PNG",
+     "taille": "1848 × 1608 px",
+     "description": "Compte à rebours · 15 compte à rebours aperçu",
+     "apercu": "apercus/campagne-SOSMiam_15_compte_a_rebours_apercu.png",
+     "canaux": [
+      "presentation"
+     ]
+    },
+    {
+     "nom": "SOSMiam_photo_de_profil_Instagram_1080.png",
+     "chemin": "campagne/SOSMiam_photo_de_profil_Instagram_1080.png",
+     "format": "PNG",
+     "taille": "1080 × 1080 px",
+     "description": "Photo de profil · Photo de profil Instagram 1080",
+     "apercu": "apercus/campagne-SOSMiam_photo_de_profil_Instagram_1080.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_presentation_post_1080x1350.png",
+     "chemin": "campagne/SOSMiam_presentation_post_1080x1350.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Présentation app · Présentation post 1080x1350",
+     "apercu": "apercus/campagne-SOSMiam_presentation_post_1080x1350.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "SOSMiam_presentation_story_1080x1920.png",
+     "chemin": "campagne/SOSMiam_presentation_story_1080x1920.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Présentation app · Présentation story 1080x1920",
+     "apercu": "apercus/campagne-SOSMiam_presentation_story_1080x1920.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    }
+   ],
+   "zip": "campagne/sos-miam-campagne.zip"
+  },
+  {
+   "id": "videos",
+   "titre": "Vidéos",
+   "fichiers": [
+    {
+     "nom": "SOSMiam_00_jingle_logo_6s.mp4",
+     "chemin": "videos/SOSMiam_00_jingle_logo_6s.mp4",
+     "format": "MP4",
+     "taille": "6 s",
+     "description": "Vidéo 00 · Jingle du logo",
+     "apercu": "apercus/videos-SOSMiam_00_jingle_logo_6s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_01_presentation_30s.mp4",
+     "chemin": "videos/SOSMiam_01_presentation_30s.mp4",
+     "format": "MP4",
+     "taille": "30 s",
+     "description": "Vidéo 01 · Présentation en 30 s",
+     "apercu": "apercus/videos-SOSMiam_01_presentation_30s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_02_alerte_SOS_10s.mp4",
+     "chemin": "videos/SOSMiam_02_alerte_SOS_10s.mp4",
+     "format": "MP4",
+     "taille": "10 s",
+     "description": "Vidéo 02 · Alerte SOS",
+     "apercu": "apercus/videos-SOSMiam_02_alerte_SOS_10s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_03_commercants_20s.mp4",
+     "chemin": "videos/SOSMiam_03_commercants_20s.mp4",
+     "format": "MP4",
+     "taille": "20 s",
+     "description": "Vidéo 03 · Pour les commerçants",
+     "apercu": "apercus/videos-SOSMiam_03_commercants_20s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_04_comment_ca_marche_15s.mp4",
+     "chemin": "videos/SOSMiam_04_comment_ca_marche_15s.mp4",
+     "format": "MP4",
+     "taille": "15 s",
+     "description": "Vidéo 04 · Comment ça marche",
+     "apercu": "apercus/videos-SOSMiam_04_comment_ca_marche_15s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_05_pepite_de_la_semaine_10s.mp4",
+     "chemin": "videos/SOSMiam_05_pepite_de_la_semaine_10s.mp4",
+     "format": "MP4",
+     "taille": "10 s",
+     "description": "Vidéo 05 · Pépite de la semaine",
+     "apercu": "apercus/videos-SOSMiam_05_pepite_de_la_semaine_10s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_06_intro_logo_3s.mp4",
+     "chemin": "videos/SOSMiam_06_intro_logo_3s.mp4",
+     "format": "MP4",
+     "taille": "3 s",
+     "description": "Vidéo 06 · Intro du logo",
+     "apercu": "apercus/videos-SOSMiam_06_intro_logo_3s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_07_presentation_dynamique_48s.mp4",
+     "chemin": "videos/SOSMiam_07_presentation_dynamique_48s.mp4",
+     "format": "MP4",
+     "taille": "48 s",
+     "description": "Vidéo 07 · Présentation dynamique",
+     "apercu": "apercus/videos-SOSMiam_07_presentation_dynamique_48s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_07_presentation_dynamique_48s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_07_presentation_dynamique_48s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "48 s",
+     "description": "Vidéo 07 · Présentation dynamique · sans musique",
+     "apercu": "apercus/videos-SOSMiam_07_presentation_dynamique_48s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_08_jeu_video_retro_25s.mp4",
+     "chemin": "videos/SOSMiam_08_jeu_video_retro_25s.mp4",
+     "format": "MP4",
+     "taille": "25 s",
+     "description": "Vidéo 08 · Jeu vidéo rétro",
+     "apercu": "apercus/videos-SOSMiam_08_jeu_video_retro_25s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_08_jeu_video_retro_25s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_08_jeu_video_retro_25s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "25 s",
+     "description": "Vidéo 08 · Jeu vidéo rétro · sans musique",
+     "apercu": "apercus/videos-SOSMiam_08_jeu_video_retro_25s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_09_avant_apres_13s.mp4",
+     "chemin": "videos/SOSMiam_09_avant_apres_13s.mp4",
+     "format": "MP4",
+     "taille": "13 s",
+     "description": "Vidéo 09 · Avant / après",
+     "apercu": "apercus/videos-SOSMiam_09_avant_apres_13s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_09_avant_apres_13s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_09_avant_apres_13s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "13 s",
+     "description": "Vidéo 09 · Avant / après · sans musique",
+     "apercu": "apercus/videos-SOSMiam_09_avant_apres_13s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_10_canape_contre_pepite_16s.mp4",
+     "chemin": "videos/SOSMiam_10_canape_contre_pepite_16s.mp4",
+     "format": "MP4",
+     "taille": "16 s",
+     "description": "Vidéo 10 · Canapé contre pépite",
+     "apercu": "apercus/videos-SOSMiam_10_canape_contre_pepite_16s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_10_canape_contre_pepite_16s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_10_canape_contre_pepite_16s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "16 s",
+     "description": "Vidéo 10 · Canapé contre pépite · sans musique",
+     "apercu": "apercus/videos-SOSMiam_10_canape_contre_pepite_16s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_11_mascotte_a_la_rescousse_21s.mp4",
+     "chemin": "videos/SOSMiam_11_mascotte_a_la_rescousse_21s.mp4",
+     "format": "MP4",
+     "taille": "21 s",
+     "description": "Vidéo 11 · La mascotte à la rescousse",
+     "apercu": "apercus/videos-SOSMiam_11_mascotte_a_la_rescousse_21s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_11_mascotte_a_la_rescousse_21s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_11_mascotte_a_la_rescousse_21s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "21 s",
+     "description": "Vidéo 11 · La mascotte à la rescousse · sans musique",
+     "apercu": "apercus/videos-SOSMiam_11_mascotte_a_la_rescousse_21s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_12_la_ville_qui_joue_23s.mp4",
+     "chemin": "videos/SOSMiam_12_la_ville_qui_joue_23s.mp4",
+     "format": "MP4",
+     "taille": "23 s",
+     "description": "Vidéo 12 · La ville qui joue",
+     "apercu": "apercus/videos-SOSMiam_12_la_ville_qui_joue_23s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_12_la_ville_qui_joue_23s_melodie_seule.mp4",
+     "chemin": "videos/SOSMiam_12_la_ville_qui_joue_23s_melodie_seule.mp4",
+     "format": "MP4",
+     "taille": "23 s",
+     "description": "Vidéo 12 · La ville qui joue · mélodie seule",
+     "apercu": "apercus/videos-SOSMiam_12_la_ville_qui_joue_23s_melodie_seule.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_13_soiree_en_accelere_23s.mp4",
+     "chemin": "videos/SOSMiam_13_soiree_en_accelere_23s.mp4",
+     "format": "MP4",
+     "taille": "23 s",
+     "description": "Vidéo 13 · Soirée en accéléré",
+     "apercu": "apercus/videos-SOSMiam_13_soiree_en_accelere_23s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_13_soiree_en_accelere_23s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_13_soiree_en_accelere_23s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "23 s",
+     "description": "Vidéo 13 · Soirée en accéléré · sans musique",
+     "apercu": "apercus/videos-SOSMiam_13_soiree_en_accelere_23s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_14_unboxing_kit_18s.mp4",
+     "chemin": "videos/SOSMiam_14_unboxing_kit_18s.mp4",
+     "format": "MP4",
+     "taille": "18 s",
+     "description": "Vidéo 14 · Unboxing du kit",
+     "apercu": "apercus/videos-SOSMiam_14_unboxing_kit_18s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_14_unboxing_kit_18s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_14_unboxing_kit_18s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "18 s",
+     "description": "Vidéo 14 · Unboxing du kit · sans musique",
+     "apercu": "apercus/videos-SOSMiam_14_unboxing_kit_18s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-1_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-1_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-1",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-1_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-1_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-1_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-1 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-1_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-2_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-2_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-2",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-2_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-2_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-2_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-2 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-2_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-3_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-3_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-3",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-3_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-3_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-3_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-3 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-3_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-4_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-4_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-4",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-4_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-4_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-4_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-4 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-4_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-5_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-5_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-5",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-5_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-5_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-5_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-5 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-5_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-6_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-6_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-6",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-6_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-6_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-6_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-6 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-6_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-7_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-7_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-7",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-7_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_J-7_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_J-7_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · J-7 · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_J-7_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_Jour_J_9s.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_Jour_J_9s.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · Jour J",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_Jour_J_9s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_15_compte_a_rebours_Jour_J_9s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_15_compte_a_rebours_Jour_J_9s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "9 s",
+     "description": "Vidéo 15 · Compte à rebours · Jour J · sans musique",
+     "apercu": "apercus/videos-SOSMiam_15_compte_a_rebours_Jour_J_9s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_16_prevention_alcool_retour_sur_24s.mp4",
+     "chemin": "videos/SOSMiam_16_prevention_alcool_retour_sur_24s.mp4",
+     "format": "MP4",
+     "taille": "24 s",
+     "description": "Vidéo 16 · Prévention alcool : « retour sûr »",
+     "apercu": "apercus/videos-SOSMiam_16_prevention_alcool_retour_sur_24s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_16_prevention_alcool_retour_sur_24s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_16_prevention_alcool_retour_sur_24s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "24 s",
+     "description": "Vidéo 16 · Prévention alcool : « retour sûr » · sans musique",
+     "apercu": "apercus/videos-SOSMiam_16_prevention_alcool_retour_sur_24s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_17_prevention_securite_soiree_24s.mp4",
+     "chemin": "videos/SOSMiam_17_prevention_securite_soiree_24s.mp4",
+     "format": "MP4",
+     "taille": "24 s",
+     "description": "Vidéo 17 · Prévention sécurité en soirée",
+     "apercu": "apercus/videos-SOSMiam_17_prevention_securite_soiree_24s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_17_prevention_securite_soiree_24s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_17_prevention_securite_soiree_24s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "24 s",
+     "description": "Vidéo 17 · Prévention sécurité en soirée · sans musique",
+     "apercu": "apercus/videos-SOSMiam_17_prevention_securite_soiree_24s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_18_concept_1min.mp4",
+     "chemin": "videos/SOSMiam_18_concept_1min.mp4",
+     "format": "MP4",
+     "taille": "1 min",
+     "description": "Vidéo 18 · Le concept en 1 minute",
+     "apercu": "apercus/videos-SOSMiam_18_concept_1min.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_18_concept_1min_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_18_concept_1min_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "1 min",
+     "description": "Vidéo 18 · Le concept en 1 minute · sans musique",
+     "apercu": "apercus/videos-SOSMiam_18_concept_1min_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_19_recrutement_ambassadeurs_27s.mp4",
+     "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s.mp4",
+     "format": "MP4",
+     "taille": "27 s",
+     "description": "Vidéo 19 · Recrutement ambassadeurs",
+     "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "27 s",
+     "description": "Vidéo 19 · Recrutement ambassadeurs · sans musique",
+     "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_20_ouverture_bientot_15s.mp4",
+     "chemin": "videos/SOSMiam_20_ouverture_bientot_15s.mp4",
+     "format": "MP4",
+     "taille": "15 s",
+     "description": "Vidéo 20 · Ouverture bientôt",
+     "apercu": "apercus/videos-SOSMiam_20_ouverture_bientot_15s.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "SOSMiam_20_ouverture_bientot_15s_sans_musique.mp4",
+     "chemin": "videos/SOSMiam_20_ouverture_bientot_15s_sans_musique.mp4",
+     "format": "MP4",
+     "taille": "15 s",
+     "description": "Vidéo 20 · Ouverture bientôt · sans musique",
+     "apercu": "apercus/videos-SOSMiam_20_ouverture_bientot_15s_sans_musique.jpg",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    }
+   ],
+   "zip": "videos/sos-miam-videos.zip"
+  },
+  {
+   "id": "sons",
+   "titre": "Sons (jingle et notifications)",
+   "fichiers": [
+    {
+     "nom": "SOSMiam_jingle.mp3",
+     "chemin": "sons/SOSMiam_jingle.mp3",
+     "format": "MP3",
+     "taille": null,
+     "description": "Jingle",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_jingle.ogg",
+     "chemin": "sons/SOSMiam_jingle.ogg",
+     "format": "OGG",
+     "taille": null,
+     "description": "Jingle",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_jingle.wav",
+     "chemin": "sons/SOSMiam_jingle.wav",
+     "format": "WAV",
+     "taille": null,
+     "description": "Jingle",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_BIG_SOS.mp3",
+     "chemin": "sons/SOSMiam_notification_BIG_SOS.mp3",
+     "format": "MP3",
+     "taille": null,
+     "description": "Notification BIG SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_BIG_SOS.ogg",
+     "chemin": "sons/SOSMiam_notification_BIG_SOS.ogg",
+     "format": "OGG",
+     "taille": null,
+     "description": "Notification BIG SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_BIG_SOS.wav",
+     "chemin": "sons/SOSMiam_notification_BIG_SOS.wav",
+     "format": "WAV",
+     "taille": null,
+     "description": "Notification BIG SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_SOS.mp3",
+     "chemin": "sons/SOSMiam_notification_SOS.mp3",
+     "format": "MP3",
+     "taille": null,
+     "description": "Notification SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_SOS.ogg",
+     "chemin": "sons/SOSMiam_notification_SOS.ogg",
+     "format": "OGG",
+     "taille": null,
+     "description": "Notification SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_notification_SOS.wav",
+     "chemin": "sons/SOSMiam_notification_SOS.wav",
+     "format": "WAV",
+     "taille": null,
+     "description": "Notification SOS",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_rescousse_envoyee.mp3",
+     "chemin": "sons/SOSMiam_rescousse_envoyee.mp3",
+     "format": "MP3",
+     "taille": null,
+     "description": "Rescousse envoyée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_rescousse_envoyee.ogg",
+     "chemin": "sons/SOSMiam_rescousse_envoyee.ogg",
+     "format": "OGG",
+     "taille": null,
+     "description": "Rescousse envoyée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_rescousse_envoyee.wav",
+     "chemin": "sons/SOSMiam_rescousse_envoyee.wav",
+     "format": "WAV",
+     "taille": null,
+     "description": "Rescousse envoyée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_visite_validee.mp3",
+     "chemin": "sons/SOSMiam_visite_validee.mp3",
+     "format": "MP3",
+     "taille": null,
+     "description": "Visite validée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_visite_validee.ogg",
+     "chemin": "sons/SOSMiam_visite_validee.ogg",
+     "format": "OGG",
+     "taille": null,
+     "description": "Visite validée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    },
+    {
+     "nom": "SOSMiam_visite_validee.wav",
+     "chemin": "sons/SOSMiam_visite_validee.wav",
+     "format": "WAV",
+     "taille": null,
+     "description": "Visite validée",
+     "apercu": null,
+     "canaux": [
+      "sons"
+     ]
+    }
+   ],
+   "zip": "sons/sos-miam-sons.zip"
+  }
+ ]
+}
