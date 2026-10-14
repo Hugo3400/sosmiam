@@ -27,7 +27,7 @@ export function TableauTexte({ tableau }: { tableau: Tableau }) {
                     key={tableau.colonnes[i]}
                     scope={i === 0 ? "row" : undefined}
                     data-colonne={tableau.colonnes[i]}
-                    className={`p-3 align-top max-md:block max-md:px-0 max-md:py-1 ${i === 0 ? "font-semibold text-encre [overflow-wrap:anywhere]" : ""} max-md:before:block max-md:before:text-xs max-md:before:font-bold max-md:before:uppercase max-md:before:tracking-wide max-md:before:text-gris max-md:before:content-[attr(data-colonne)]`}
+                    className={`p-3 align-top max-md:block max-md:px-0 max-md:py-1 ${i === 0 ? "font-semibold text-encre max-md:[overflow-wrap:anywhere] md:w-44" : ""} max-md:before:block max-md:before:text-xs max-md:before:font-bold max-md:before:uppercase max-md:before:tracking-wide max-md:before:text-gris max-md:before:content-[attr(data-colonne)]`}
                   >
                     <TexteRiche texte={cellule} />
                   </Case>

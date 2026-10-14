@@ -14,6 +14,7 @@ import {
   type TypeNotification,
 } from "~/stockage/reglages-notifications";
 import couleurs from "~/theme/couleurs";
+import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 
 /** Heures proposées pour le mode nuit (au format HH:MM du stockage) */
 const HEURES_DEBUT = ["21:00", "22:00", "23:00", "00:00"];
@@ -30,6 +31,7 @@ export default function ReglagesNotifications() {
   // Dernière version connue, pour enchaîner deux changements rapides sans en perdre un
   const derniers = useRef<ChoixNotifications | null>(null);
   const [echecEnregistrement, setEchecEnregistrement] = useState(false);
+  const telephone = utiliserAppareilPush();
 
   useEffect(() => {
     let monte = true;
@@ -64,13 +66,13 @@ export default function ReglagesNotifications() {
     <EcranReglage titre="Notifications" sousTitre="Choisis ce qui mérite de faire vibrer ta poche.">
       <View
         accessible
-        accessibilityLabel="Les notifications sur ton téléphone arrivent avec une prochaine version : tes choix sont déjà gardés. En attendant, tes abonnés et tes demandes t'attendent derrière la cloche du fil."
+        accessibilityLabel="Les SOS, les offres et les événements arrivent sur ton téléphone. Tes abonnés et tes demandes t'attendent aussi derrière la cloche du fil."
         className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4"
       >
-        <Text className="text-xl">🚧</Text>
+        <Text className="text-xl">🔔</Text>
         <Text className="flex-1 font-texte text-sm leading-5 text-encre">
           {lierPonctuation(
-            "Les notifications sur ton téléphone arrivent avec une prochaine version : tes choix sont déjà gardés. En attendant, tes abonnés et tes demandes t'attendent derrière la cloche du fil.",
+            "Les SOS, les offres et les événements arrivent sur ton téléphone. Tes abonnés et tes demandes t'attendent aussi derrière la cloche du fil.",
           )}
         </Text>
       </View>
@@ -87,7 +89,11 @@ export default function ReglagesNotifications() {
               titre="Recevoir des notifications"
               detail="Tu peux tout couper d'un coup, sans rancune"
               valeur={reglages.actives}
-              onChanger={(actives) => modifier((r) => ({ ...r, actives }))}
+              onChanger={(actives) => {
+                modifier((r) => ({ ...r, actives }));
+                // Allumé : on inscrit le téléphone (la question du système si besoin) ; coupé : le serveur l'oublie
+                void (actives ? telephone.inscrire(true) : telephone.couper());
+              }}
             />
           </View>
 

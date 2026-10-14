@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
 
@@ -22,6 +23,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const modes = utiliserModes();
   // Après « Quitter la démo » : le compte mis de côté se rouvre avant d'afficher quoi que ce soit
   const reprise = utiliserRepriseCompte();
+  // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran
+  utiliserInscriptionTelephone();
   const pret = policesChargees && !chargement && modes.pret && !reprise;
   const inscrit = profil !== null;
 

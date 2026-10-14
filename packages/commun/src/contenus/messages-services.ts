@@ -398,6 +398,16 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Déjà relu",
     texte: "Cet avis a déjà ton verdict, merci !",
   },
+  "deja-sur-place": {
+    emoji: "📍",
+    titre: "Ta présence est déjà notée",
+    texte: "Pas besoin de le redire : l'équipe a déjà l'heure de ton passage. Il ne reste que ton compte rendu.",
+  },
+  "lieu-sans-position": {
+    emoji: "🧭",
+    titre: "Ce lieu n'a pas encore son épingle",
+    texte: "Sans elle, impossible de vérifier que tu y es. Raconte ton passage dans le compte rendu : ça suffit à l'équipe.",
+  },
   // Miam Safe : ton doux et sérieux, pas de blague
   "pas-miam-safe": {
     emoji: "🛟",

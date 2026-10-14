@@ -80,5 +80,7 @@ export type ErreurService =
   | "avis-invalide"
   | "compte-rendu-invalide"
   | "deja-relu"
+  | "deja-sur-place"
+  | "lieu-sans-position"
   | "pas-miam-safe"
   | "charte-retiree";

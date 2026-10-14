@@ -23,7 +23,8 @@
         "backgroundImage": "./assets/icones/android-icon-background.png",
         "monochromeImage": "./assets/icones/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -79,6 +80,12 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.186162767871-8r0s3pr05lgii94qg26trichbahb38vg"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#FFD60A"
         }
       ]
     ],
