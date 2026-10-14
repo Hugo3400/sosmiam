@@ -2,6 +2,7 @@
 
 import type { ServiceAvis } from "./contrat-avis.ts";
 import type { ServiceComptoir } from "./contrat-comptoir.ts";
+import type { ServiceDefis } from "./contrat-defis.ts";
 import type { ServiceEspaceAmbassadeur } from "./contrat-espace-ambassadeur.ts";
 import type { ServiceFidelite } from "./contrat-fidelite.ts";
 import type { ServiceInteretsEvenements } from "./contrat-interets-evenements.ts";
@@ -27,4 +28,6 @@ export type Services = {
   ambassadeur: ServiceEspaceAmbassadeur;
   suggestions: ServiceSuggestions;
   miamSafe: ServiceMiamSafe;
+  /** Défis du moment et avancée du compte connecté (GET /app/defis) */
+  defis: ServiceDefis;
 };

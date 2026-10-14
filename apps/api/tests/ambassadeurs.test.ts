@@ -190,6 +190,8 @@ test("espace ambassadeur : missions et messages du compte connecté", async () =
     terminerMission: (async (compteId: number, id: number, texte: string) => (faits.push({ compteId, id, texte }), id === 1)) as never,
     messagesDuCompte: (async () => []) as never,
     marquerMessageLu: (async (_c: number, id: number) => id === 3) as never,
+    // « Je suis sur place » : espace-ambassadeur-presence.test.ts
+    noterPresence: (async () => ({ ok: false, erreur: "introuvable" })) as never,
   }));
   const serveurEspace = espace.listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveurEspace.once("listening", () => pret()));

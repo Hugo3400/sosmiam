@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Logo } from "~/composants/interface/Logo";
 import { VisuelJeSuisAmbassadeur } from "~/composants/kit-media/VisuelJeSuisAmbassadeur";
+import { VisuelMiamSafe } from "~/composants/kit-media/VisuelMiamSafe";
 import { VisuelSauveUneTable } from "~/composants/kit-media/VisuelSauveUneTable";
 import { VisuelTuAsUnLieu } from "~/composants/kit-media/VisuelTuAsUnLieu";
 import { BadgePalier } from "~/composants/marque/BadgePalier";
@@ -26,6 +27,8 @@ export const dessinsKit: Record<IdVisuelKit, DessinKit> = {
   "post-sauve-une-table": { dessin: <VisuelSauveUneTable format="post" /> },
   "story-tu-as-un-lieu": { dessin: <VisuelTuAsUnLieu format="story" /> },
   "post-tu-as-un-lieu": { dessin: <VisuelTuAsUnLieu format="post" /> },
+  "story-miam-safe": { dessin: <VisuelMiamSafe format="story" /> },
+  "post-miam-safe": { dessin: <VisuelMiamSafe format="post" /> },
   "logo-fond-clair": { dessin: <Logo className="size-full" />, marge: 40 },
   "logo-fond-sombre": { dessin: <Logo clair className="size-full" />, marge: 40 },
   "bouee-seule": { dessin: <Logo avecTexte={false} className="size-full" />, marge: 32 },

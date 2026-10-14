@@ -20,6 +20,7 @@ export type IdVisuelKit =
   | "story-je-suis-ambassadeur" | "post-je-suis-ambassadeur"
   | "story-sauve-une-table" | "post-sauve-une-table"
   | "story-tu-as-un-lieu" | "post-tu-as-un-lieu"
+  | "story-miam-safe" | "post-miam-safe"
   | "logo-fond-clair" | "logo-fond-sombre" | "bouee-seule"
   | "mascotte-miam" | "mascotte-clin" | "mascotte-surprise"
   | "badge-curieux" | "badge-denicheur" | "badge-ambassadeur-de-quartier" | "badge-ambassadeur-de-ville"
@@ -73,6 +74,14 @@ export const visuelsKitMedia: VisuelKit[] = [
   {
     id: "post-tu-as-un-lieu", dossier: "visuels", titre: "Post « Tu as un lieu ? »", ...POST,
     description: "Post noir : les pictos resto, pâtisserie, bar et sortie, et le titre « Tu as un lieu ? C'est gratuit. »",
+  },
+  {
+    id: "story-miam-safe", dossier: "visuels", titre: "Story « Miam Safe »", ...STORY,
+    description: "Story noire : « Bientôt dans l'app », le Capitaine qui fait un clin d'œil, « Miam Safe » et la phrase « Le Capitaine est là ? ».",
+  },
+  {
+    id: "post-miam-safe", dossier: "visuels", titre: "Post « Miam Safe »", ...POST,
+    description: "Post noir : « Bientôt dans l'app », le Capitaine qui fait un clin d'œil, « Miam Safe » et la phrase « Le Capitaine est là ? ».",
   },
   {
     id: "logo-fond-clair", dossier: "logos", titre: "Logo pour fond clair", largeur: 2000, hauteur: 520, svg: true,
@@ -194,6 +203,13 @@ ${LIEN_KIT_MEDIA}
     titre: "Tu as un lieu ?",
     texte: `Tu as un resto, une pâtisserie, un bar ou un lieu de sortie indépendant ? 🍽️
 Inscris-le sur SOS Miam : c'est gratuit, sans abonnement et sans commission.
+${LIEN_KIT_MEDIA}
+#SOSMiam`,
+  },
+  {
+    titre: "Miam Safe",
+    texte: `Bientôt dans l'app SOS Miam : Miam Safe. 🛟
+Pas à l'aise dans un lieu ? Un coup de main pour alerter l'équipe, discrètement. Dans les lieux qui ont signé la charte, une phrase suffit au comptoir : « Le Capitaine est là ? »
 ${LIEN_KIT_MEDIA}
 #SOSMiam`,
   },

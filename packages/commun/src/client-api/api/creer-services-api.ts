@@ -8,6 +8,7 @@ import type { Services } from "../services.ts";
 import { creerAmbassadeurApi } from "./api-ambassadeur.ts";
 import { creerAvisApi } from "./api-avis.ts";
 import { creerComptoirApi } from "./api-comptoir.ts";
+import { creerDefisApi } from "./api-defis.ts";
 import { creerFideliteApi } from "./api-fidelite.ts";
 import { creerInteretsEvenementsApi } from "./api-interets-evenements.ts";
 import { creerLieuProApi } from "./api-lieu-pro.ts";
@@ -41,5 +42,6 @@ export function creerServicesApi(client: ClientHttp, o: { lireStatutAmbassadeur:
     ambassadeur: creerAmbassadeurApi(client, o.lireStatutAmbassadeur),
     suggestions: creerSuggestionsApi(client),
     miamSafe: creerMiamSafeApi(client),
+    defis: creerDefisApi(client),
   };
 }
