@@ -73,6 +73,7 @@ model Lieu {
   alertesMiamSafe       AlerteMiamSafe[]
   signalementsMiamSafe  SignalementMiamSafe[]
   reponsesSentiBien     ReponseSentiBien[]
+  partagesPositionMiamSafe PartagePositionMiamSafe[]
   // Activité de l'app, visites, fidélité et SOS du soir (session de l'app, 9 octobre 2026)
   rescousses            Rescousse[]
   premierSauveteur      PremierSauveteur?

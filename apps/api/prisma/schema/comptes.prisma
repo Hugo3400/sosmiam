@@ -69,6 +69,8 @@ model Compte {
   alertesMiamSafeRepondues  AlerteMiamSafe[]           @relation("AlertesRepondues")
   signalementsMiamSafe      SignalementMiamSafe[]
   reponsesSentiBien         ReponseSentiBien[]
+  partagesPositionEnvoyes   PartagePositionMiamSafe[]  @relation("PartagesPositionEnvoyes")
+  partagesPositionRecus     PartagePositionMiamSafe[]  @relation("PartagesPositionRecus")
   // Activité de l'app, visites, fidélité et SOS du soir (session de l'app, 9 octobre 2026)
   rescousses                Rescousse[]
   premiersSauvetages        PremierSauveteur[]
