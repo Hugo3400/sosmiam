@@ -10,6 +10,7 @@ import type { DemandeComptoir, ValidationRecente } from "@sos-miam/commun/types/
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
+import { CarteCeSoir } from "~/composants/pro/CarteCeSoir";
 import { AlertesMiamSafeComptoir } from "~/composants/pro/AlertesMiamSafeComptoir";
 import { BoutonMontrerQr } from "~/composants/pro/BoutonMontrerQr";
 import { CarteDemandeComptoir } from "~/composants/pro/CarteDemandeComptoir";
@@ -87,6 +88,8 @@ export default function EcranComptoir() {
         {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
         {/* Miam Safe : les alertes silencieuses en tête du comptoir (lieux qui ont signé la charte) */}
         {miamSafe.engage ? <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} /> : null}
+        {/* Ce soir : SOS du soir et message du moment, pour toute l'équipe (« Mon lieu » n'est qu'au gérant) */}
+        <CarteCeSoir lieuId={lieuPro.id} />
 
         {etat === null ? (
           comptoir.erreur ? (

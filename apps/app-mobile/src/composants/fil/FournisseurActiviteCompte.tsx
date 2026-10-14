@@ -25,9 +25,8 @@ export function FournisseurActiviteCompte({ children }: { children: ReactNode })
   const { pret, connecte, activite: service, rafraichir } = utiliserSession();
   const source = !pret ? "attente" : connecte ? "compte" : "vide";
   const compte = source === "compte";
-  // Rescousse donnée ou reprise : points, palier et badges du compte ont changé
-  const surRescousseConfirmee = useCallback(() => void rafraichir(), [rafraichir]);
-  const file = utiliserFileActivite({ actif: compte, service, surRescousseConfirmee });
+  // Rescousse donnée ou reprise : points, palier et badges du compte ont changé, on relit le compte
+  const file = utiliserFileActivite({ actif: compte, service, surRescousseConfirmee: rafraichir });
   const { ajouter, lireAffichee, effacer } = file;
 
   // L'activité gardée sur le téléphone avant l'API (sosmiam.activite) n'est jamais relue hors démo

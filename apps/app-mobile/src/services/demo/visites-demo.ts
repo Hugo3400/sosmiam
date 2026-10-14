@@ -38,8 +38,8 @@ const MOT_CONTESTATION_MAX = 500;
 type ReponseVisite = ReponseApi<{ visite: Visite }>;
 
 const trouverLieu = (id: number) => lieuxExemples.find((l) => l.id === id);
-/** Un bar n'existe pas pour un 15-17 ans, ni pour une personne dont on ignore l'âge */
-const estCache = (lieu: Lieu, majeur: boolean) => lieu.type === "bar" && !majeur;
+/** En visite sans compte (âge inconnu), un bar n'existe pas : tout le reste est tout public */
+const estCacheSansCompte = (lieu: Lieu, avecCompte: boolean) => lieu.type === "bar" && !avecCompte;
 
 /** Le service des visites de la démo. */
 export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
@@ -75,10 +75,12 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
       const lieu = trouverLieu(lieuId);
       if (!lieu) return { ok: false, erreur: "introuvable" };
       const client = ctx.lireClient();
-      if (estCache(lieu, client?.majeur ?? false)) return { ok: false, erreur: "mineur-bar" };
+      const avecCompte = client !== null;
+      if (estCacheSansCompte(lieu, avecCompte)) return { ok: false, erreur: "introuvable" };
       return ctx.magasin.lire((m) => {
         const programme = m.programmes.find((p) => p.lieuId === lieuId && p.actif);
-        const recompense = programme ? choisirRecompenseAffichee(programme, client?.majeur ?? false) : null;
+        // Sans compte, jamais la version avec alcool : sa version sans alcool (facultative), ou pas de programme montré
+        const recompense = programme ? choisirRecompenseAffichee(programme, avecCompte) : null;
         const enCours = client ? m.visites.find((v) => v.client === "moi" && v.statut === "demandee" && v.lieuId === lieuId) : undefined;
         return {
           ok: true,
@@ -86,7 +88,10 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
             lieuId,
             validationActive: validationLieuxExemples[lieuId]?.validationActive ?? false,
             reservable: lieu.reservable,
-            programme: programme && recompense !== null ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: estRecompenseAlcool(programme, client?.majeur ?? false) } : null,
+            programme:
+              programme && recompense !== null
+                ? { visitesRequises: programme.visitesRequises, recompense, recompenseAlcool: avecCompte && estRecompenseAlcool(programme) }
+                : null,
             carte: client ? convertirCarteDemo(m, lieuId, client) : null,
             enCoursIci: enCours ? convertirVisiteDemo(enCours, lieu) : null,
             pratique: m.infosPratiques?.[lieuId] ?? null,
@@ -97,8 +102,8 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
     },
 
     async listerLieuxQuiValident() {
-      const majeur = ctx.lireClient()?.majeur ?? false;
-      const lieux = lieuxExemples.filter((l) => validationLieuxExemples[l.id]?.validationActive && !estCache(l, majeur)).map((l) => l.id);
+      const avecCompte = ctx.lireClient() !== null;
+      const lieux = lieuxExemples.filter((l) => validationLieuxExemples[l.id]?.validationActive && !estCacheSansCompte(l, avecCompte)).map((l) => l.id);
       return { ok: true, lieux };
     },
 
@@ -107,14 +112,12 @@ export function creerVisitesDemo(ctx: ContexteDemo): ServiceVisites {
       if (!client) return { ok: false, erreur: "connexion-requise" };
       const lieu = trouverLieu(lieuId);
       if (!lieu) return { ok: false, erreur: "introuvable" };
-      // Avant le pépin : un bar n'existe pas pour un 15-17 ans (le pépin « hors zone » donnerait son nom)
-      if (estCache(lieu, client.majeur)) return { ok: false, erreur: "mineur-bar" };
       const pepin = consommerPepin(["hors-zone", "position-imprecise", "hors-ligne", "refus-lieu"]);
       const echecPepin = traduirePepinDemo(pepin, lieu.nom);
       if (echecPepin) return echecPepin;
 
       const reponse = await ctx.magasin.modifier((m, maintenantMs): ReponseVisite => {
-        const refus = verifierDroitsDemo(lieu, client, maintenantMs);
+        const refus = verifierDroitsDemo(lieu, maintenantMs);
         if (refus) return refus;
         const enCours = m.visites.find((v) => v.client === "moi" && v.statut === "demandee");
         if (enCours) return { ok: false, erreur: "demande-en-cours", details: { lieu: trouverLieu(enCours.lieuId)?.nom, lieuId: enCours.lieuId } };

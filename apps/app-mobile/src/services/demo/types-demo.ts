@@ -14,7 +14,7 @@ import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } 
 
 /** « moi » : la personne qui tient le téléphone ; les figurants jouent les autres clients (Karim, Inès) */
 export type CleClientDemo = "moi" | `figurant:${string}`;
-export type ClientDemo = { cle: CleClientDemo; prenom: string; initialeNom: string | null; avatar: string; majeur: boolean };
+export type ClientDemo = { cle: CleClientDemo; prenom: string; initialeNom: string | null; avatar: string };
 
 export type VisiteDemo = {
   id: number;

@@ -122,7 +122,7 @@ export default function Profil() {
               {lierPonctuation(
                 connecte
                   ? "Tes points, ton palier et tes badges arrivent dès que le réseau revient. Ils t'attendent bien au chaud !"
-                  : "Reconnecte-toi à ton compte pour retrouver tes points, ton palier et tes badges.",
+                  : "Connecte-toi à ton compte pour retrouver tes points, ton palier et tes badges.",
               )}
             </Text>
           </View>

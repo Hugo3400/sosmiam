@@ -1,18 +1,16 @@
 // Ce que le faux serveur fait des effets d'une visite décidée (fonctions de commun) : points au journal, tampon sur la
 // carte, dates de l'avis. Les effets « controle » (alertes anti-triche) sont ignorés en démo.
 import { appliquerTampon } from "@sos-miam/commun/fonctions/fidelite/appliquer-tampon";
-import { choisirRecompenseAffichee } from "@sos-miam/commun/fonctions/fidelite/choisir-recompense-affichee";
 import { estRecompenseAlcool } from "@sos-miam/commun/fonctions/fidelite/est-recompense-alcool";
 import type { EffetVisite } from "@sos-miam/commun/types/visite";
 
 import type { CarteDemo, ClientDemo, MagasinDemo, VisiteDemo } from "./types-demo";
 
-/** Pose ou retire le tampon de la visite ; vrai si la carte vient de se remplir (récompense figée, selon l'âge) */
-function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantMs: number, client: ClientDemo): boolean {
+/** Pose ou retire le tampon de la visite ; vrai si la carte vient de se remplir (récompense principale figée) */
+function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantMs: number): boolean {
   const programme = m.programmes.find((p) => p.lieuId === v.lieuId);
-  const libelle = programme ? choisirRecompenseAffichee(programme, client.majeur) : null;
   let carte = m.cartes.find((c) => c.lieuId === v.lieuId && c.client === v.client);
-  if (delta === 1 && (!programme || !programme.actif || libelle === null)) {
+  if (delta === 1 && (!programme || !programme.actif)) {
     v.tampon = false;
     return false;
   }
@@ -30,7 +28,7 @@ function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantM
     programme,
     delta,
     // L'alcool est figé avec la récompense : si le lieu change ensuite de programme, le message sanitaire reste juste
-    { id: m.prochainId, libelle: libelle ?? programme.recompense, alcool: estRecompenseAlcool(programme, client.majeur) },
+    { id: m.prochainId, libelle: programme.recompense, alcool: estRecompenseAlcool(programme) },
     maintenantMs,
   );
   if (resultat.recompenseGagnee) m.prochainId += 1;
@@ -42,14 +40,15 @@ function changerTampon(m: MagasinDemo, v: VisiteDemo, delta: 1 | -1, maintenantM
 
 /**
  * Applique au magasin les effets d'une visite qui vient d'être décidée (validée, retirée…). Le journal des points ne
- * concerne que « moi » (les figurants n'ont pas de points sur ce téléphone). `client` choisit la récompense figée.
+ * concerne que « moi » (les figurants n'ont pas de points sur ce téléphone). `_client` n'est plus lu : tout compte a
+ * 18 ans ou plus, la récompense figée est la même pour tous (paramètre à retirer avec ses deux appelants).
  */
 export function appliquerEffetsVisite(
   m: MagasinDemo,
   v: VisiteDemo,
   effets: EffetVisite[],
   maintenantMs: number,
-  client: ClientDemo,
+  _client: ClientDemo,
 ): { recompenseGagnee: boolean } {
   let recompenseGagnee = false;
   const le = new Date(maintenantMs).toISOString();
@@ -62,7 +61,7 @@ export function appliquerEffetsVisite(
         }
         break;
       case "tampon":
-        if (changerTampon(m, v, effet.delta, maintenantMs, client)) recompenseGagnee = true;
+        if (changerTampon(m, v, effet.delta, maintenantMs)) recompenseGagnee = true;
         break;
       case "ouvrir-avis":
         v.avisOuvertLe = effet.ouvertLe;

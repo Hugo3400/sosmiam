@@ -74,7 +74,7 @@ type Options = {
   actif: boolean;
   service: ServiceActivite;
   /** Une rescousse confirmée (donnée ou reprise) : les points et les badges du compte ont changé */
-  surRescousseConfirmee: () => void;
+  surRescousseConfirmee: () => unknown;
 };
 
 /**
@@ -155,6 +155,8 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
     if (minuterie.current) clearTimeout(minuterie.current);
     minuterie.current = null;
     let attente: number | null = null;
+    // Le pépin passager qui a arrêté le couloir (dit aux rescousses qui n'ont pas pu partir)
+    let arret: ErreurService = "hors-ligne";
     try {
       while (gen === generation.current) {
         const geste = memoire.file[0];
@@ -171,7 +173,7 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
             recevoir(r.activite);
             if (geste.quoi === "rescousse") {
               finir(geste, { ok: true, premierSauveteur: geste.oui && r.premierSauveteur === true });
-              confirmer.current();
+              void confirmer.current();
             }
           } else {
             erreur = r.erreur;
@@ -193,7 +195,8 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
           if (r.ok) recevoir(r.activite);
           else {
             erreur = r.erreur;
-            memoire.relire = true;
+            // Pépin passager : on relira au prochain essai ; un autre refus ne se répète pas en boucle
+            memoire.relire = PASSAGERES.has(r.erreur);
           }
           chargee = true;
         }
@@ -201,7 +204,9 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
         publier({ horsLigne: erreur === "hors-ligne", ...(chargee ? { chargee } : {}) });
         // Session expirée : l'app oublie le compte (FournisseurSession), ce couloir s'arrête avec lui
         if (erreur === "connexion-requise") return;
+        if (erreur && !geste && !PASSAGERES.has(erreur)) break;
         if (erreur && PASSAGERES.has(erreur)) {
+          arret = erreur;
           attente ??= ATTENTES_MS[Math.min(memoire.essais, ATTENTES_MS.length - 1)];
           memoire.essais += 1;
           break;
@@ -212,7 +217,7 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee }: 
       if (attente !== null) {
         const rescousses = memoire.file.filter((g) => g.quoi === "rescousse");
         memoire.file = memoire.file.filter((g) => g.quoi !== "rescousse");
-        for (const g of rescousses) finir(g, { ok: false, erreur: "hors-ligne" });
+        for (const g of rescousses) finir(g, { ok: false, erreur: arret });
         if (rescousses.length > 0) publier();
         minuterie.current = setTimeout(() => void pomper(), attente);
       }

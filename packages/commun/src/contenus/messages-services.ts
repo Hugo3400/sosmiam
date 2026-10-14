@@ -80,7 +80,7 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   "reserve-aux-majeurs": {
     emoji: "🔞",
     titre: "C'est pour les 18 ans et plus",
-    texte: "Ce coin-là de SOS Miam ouvre à tes 18 ans. En attendant, tout le reste est à toi !",
+    texte: "Ce coin-là de SOS Miam est réservé aux 18 ans et plus. Une erreur sur ta date de naissance ? Écris-nous à bonjour@sosmiam.fr, on regarde ça ensemble.",
   },
   "compte-mineur": {
     emoji: "🧑‍🍳",

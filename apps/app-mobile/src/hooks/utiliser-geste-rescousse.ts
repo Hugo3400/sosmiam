@@ -10,7 +10,7 @@ const ATTENTE_CONFIRMATION_MS = 3000;
 
 const NON_VERIFIE = "Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣";
 const EPUISEE = "Plus de rescousse cette semaine, reviens lundi ! 🛟";
-const SANS_SESSION = "🔑 Reconnecte-toi à ton compte pour donner tes rescousses";
+const SANS_SESSION = "🔑 Connecte-toi à ton compte pour donner tes rescousses";
 
 /** Ce qu'on dit quand la rescousse n'a pas pu partir (ou être reprise) : elle est défaite, rien n'est compté */
 function decrireEchec(fin: Extract<FinRescousse, { ok: false }>, donnee: boolean): string {

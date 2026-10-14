@@ -134,7 +134,7 @@ export default function ProfilPote() {
   const ecrire = () => {
     const conversation = ouvrirPrive(pote.id);
     if (!conversation) {
-      annoncer(`Pour écrire à ${prenom}, ajoute d'abord ${prenom} à ta bande.`);
+      annoncer(`${prenom} n'est pas dans ta bande : ajoutez-vous d'abord, et la discussion s'ouvre !`);
       return;
     }
     const cible = { pathname: "/potes/discussion/[id]", params: { id: conversation } } as const;

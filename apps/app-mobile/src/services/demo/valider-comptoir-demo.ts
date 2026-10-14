@@ -21,12 +21,11 @@ import { verifierPositionDemo } from "./verifier-position-demo";
 
 type Reponse = ReponseApi<ResultatValidation>;
 
-/** QR de vitrine : « Voir la fiche » (jamais le nom d'un bar pour un 15-17 ans) */
-function repondreVitrine(codePublic: string, majeur: boolean): Reponse {
+/** QR de vitrine : « Voir la fiche » (le scan demande un compte : le client est connu) */
+function repondreVitrine(codePublic: string): Reponse {
   const validation = Object.values(validationLieuxExemples).find((v) => v.codePublic === codePublic);
   const lieu = validation ? lieuxExemples.find((l) => l.id === validation.lieuId) : undefined;
   if (!lieu) return { ok: false, erreur: "introuvable" };
-  if (lieu.type === "bar" && !majeur) return { ok: false, erreur: "mineur-bar" };
   return { ok: false, erreur: "qr-vitrine", details: { lieuId: lieu.id, lieu: lieu.nom } };
 }
 
@@ -39,7 +38,7 @@ export async function validerComptoirDemo(ctx: ContexteDemo, texte: string, posi
 
   const code = lireCodeScanne(texte);
   if (code.type === "autre") return { ok: false, erreur: "qr-illisible" };
-  if (code.type === "lieu") return repondreVitrine(code.codePublic, client.majeur);
+  if (code.type === "lieu") return repondreVitrine(code.codePublic);
   const { jeton } = code;
   // La démo n'a pas le secret de l'API : un vrai QR (version 1) ne peut pas y être vérifié
   if (jeton.version !== "d") return { ok: false, erreur: "qr-invalide" };
@@ -56,7 +55,7 @@ export async function validerComptoirDemo(ctx: ContexteDemo, texte: string, posi
       return { ok: false, erreur: "qr-expire" };
     }
     if (presentation.restantes <= 0) return { ok: false, erreur: "qr-epuise" };
-    const refus = verifierDroitsDemo(lieu, client, maintenantMs) ?? traduirePepinDemo(pepinPosition, lieu.nom) ?? verifierPositionDemo(position, lieu);
+    const refus = verifierDroitsDemo(lieu, maintenantMs) ?? traduirePepinDemo(pepinPosition, lieu.nom) ?? verifierPositionDemo(position, lieu);
     if (refus) return refus;
 
     const deja = m.visites.find((v) => v.client === "moi" && v.presentationId === presentation.id);

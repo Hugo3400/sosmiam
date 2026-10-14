@@ -29,7 +29,8 @@ function decrireCarte(carte: CarteLieu | null): string {
 
 /**
  * « Mon lieu » (gérant) : ce qui se règle une fois pour toutes. La carte (plats, boissons, formules), la carte de fidélité,
- * les infos pratiques affichées sur la fiche, le kit (QR de vitrine), puis plus tard l'équipe, le SOS du soir et les statistiques.
+ * les infos pratiques affichées sur la fiche, le kit (QR de vitrine), ce soir (SOS et message du moment), les événements et
+ * les statistiques ; l'équipe et ses appareils arrivent ensuite.
  */
 export default function EcranMonLieu() {
   const router = useRouter();
@@ -74,8 +75,9 @@ export default function EcranMonLieu() {
           <LigneMonLieu emoji="📋" titre="Infos pratiques" detail="Téléphone, animaux, accès, terrasse, paiements… ce qu'on voit sur ta fiche" onPress={() => router.push("/pro/infos")} />
           <LigneMonLieu emoji="🪧" titre="Mon kit" detail="Le QR de ta vitrine, qui ouvre ta fiche" onPress={() => router.push("/pro/kit")} />
           <LigneMonLieu emoji="👥" titre="Équipe et appareils" detail="Invite tes serveurs : chacun son compte, on sait qui a validé quoi" />
-          <LigneMonLieu emoji="🛟" titre="SOS du soir" detail="Des places à remplir ce soir ? Préviens les gourmands du coin" />
-          <LigneMonLieu emoji="📈" titre="Statistiques de la semaine" detail="Visites validées, nouveaux clients, avis" />
+          <LigneMonLieu emoji="🛟" titre="Ce soir" detail="SOS du soir et message du moment : préviens les gourmands du coin" onPress={() => router.push("/pro/ce-soir")} />
+          <LigneMonLieu emoji="🎸" titre="Événements" detail="Concert, quiz, atelier : sur ta fiche et chez qui te suit" onPress={() => router.push("/pro/evenements")} />
+          <LigneMonLieu emoji="📈" titre="Statistiques de la semaine" detail="Vues de ta fiche, rescousses, visites validées, nouveaux clients" onPress={() => router.push("/pro/statistiques")} />
         </View>
       </ScrollView>
     </SafeAreaView>
