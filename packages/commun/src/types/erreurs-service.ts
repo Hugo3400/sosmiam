@@ -94,4 +94,7 @@ export type ErreurService =
   | "deja-sur-place"
   | "lieu-sans-position"
   | "pas-miam-safe"
-  | "charte-retiree";
+  | "charte-retiree"
+  | "pote-inconnu"
+  | "partage-inconnu"
+  | "partage-termine";

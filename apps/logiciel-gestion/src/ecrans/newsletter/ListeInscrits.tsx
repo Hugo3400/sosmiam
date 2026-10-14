@@ -1,4 +1,4 @@
-import { Download, Search, Smartphone, UserMinus } from "lucide-react";
+import { Download, Search, UserMinus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
@@ -18,7 +18,7 @@ import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
-import { desinscrire, exporterInscrits, inscrireComptesApp, listerInscrits, type FiltresInscrits, type Inscrit } from "~/services/newsletter.ts";
+import { desinscrire, exporterInscrits, listerInscrits, type FiltresInscrits, type Inscrit } from "~/services/newsletter.ts";
 import { enregistrerFichier } from "~/services/systeme.ts";
 import { CarteBoiteMail } from "./CarteBoiteMail.tsx";
 
@@ -63,18 +63,6 @@ export function ListeInscrits() {
     }
   }
 
-  async function inscrireApp() {
-    if (!window.confirm("Inscrire à la newsletter tous les comptes vus sur l'app ? Ceux qui s'en sont désinscrits un jour sont laissés de côté.")) return;
-    setAction({ enCours: true, erreur: null, message: null });
-    try {
-      const { comptes, inscrits, desinscrits } = await inscrireComptesApp();
-      setAction({ enCours: false, erreur: null, message: `${inscrits} compte(s) de l'app inscrit(s) sur ${comptes}${desinscrits ? ` (${desinscrits} désinscrit(s) laissé(s) de côté)` : ""} ✅` });
-      recharger();
-    } catch (probleme) {
-      setAction({ enCours: false, erreur: expliquerErreur(probleme instanceof ErreurApi ? probleme : null), message: null });
-    }
-  }
-
   const compteurs = donnees?.compteurs;
   return (
     <div className="grid gap-5">
@@ -91,7 +79,6 @@ export function ListeInscrits() {
         titre="Inscrits"
         actions={
           <div className="flex flex-wrap gap-2">
-            <Bouton petit icone={Smartphone} desactive={action.enCours} onClick={inscrireApp}>Inscrire les comptes de l'app</Bouton>
             <Bouton petit icone={Download} chargement={action.enCours && !aDesinscrire} onClick={exporter}>Exporter en CSV</Bouton>
           </div>
         }

@@ -11,6 +11,9 @@ import { lireIds, lireLieuSaisi, lireModificationLot } from "./lire-lieu.ts";
 import { lirePublicationSaisie } from "./lire-publication.ts";
 import type { OutilsComptes } from "./controleurs-ambassadeurs.ts";
 
+/** Le bouton « Inscrire les comptes de l'app » attend son correctif (voir inscrireComptesApp) */
+const INSCRIPTION_COMPTES_APP_DESACTIVEE = true;
+
 const ECHELLES: Record<Echelle, { defaut: number; max: number }> = {
   jour: { defaut: 30, max: 400 },
   semaine: { defaut: 12, max: 110 },
@@ -109,8 +112,13 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
       await noter(reponse, "Inscrit désinscrit et effacé", `inscription n° ${id}`);
       reponse.json({ ok: true });
     }),
-    /** POST /newsletter/inscrire-comptes-app : les comptes vus sur l'app, sauf les désinscrits (lancé par Hugo) */
+    /**
+     * POST /newsletter/inscrire-comptes-app : DÉSACTIVÉ (audit du 14 octobre 2026). Il inscrirait aussi les comptes qui ont
+     * décoché la case (leur « non » n'est pas encore noté) et ceux créés sur le site avec Google ou Apple. Il reviendra quand
+     * le « non » sera noté (noterDesinscription) et que seuls les comptes vus sur l'app (session app ou appareil) compteront.
+     */
     inscrireComptesApp: verifier(async (_requete, reponse) => {
+      if (INSCRIPTION_COMPTES_APP_DESACTIVEE) return reponse.status(409).json({ ok: false, erreur: "desactive" });
       const resultat = await s.inscrireComptesAppNewsletter();
       await noter(reponse, "Comptes de l'app inscrits à la newsletter", `${resultat.inscrits} sur ${resultat.comptes} (${resultat.desinscrits} désinscrit(s) laissé(s) de côté)`);
       reponse.json({ ok: true, ...resultat });

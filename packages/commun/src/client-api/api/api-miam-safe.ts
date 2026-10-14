@@ -1,6 +1,6 @@
 // Le service Miam Safe, version API (routes /miam-safe, contrat dans apps/api/src/routes/miam-safe.ts).
 
-import type { AlerteComptoir, AlerteSuivie, CharteMiamSafe, MiamSafeLieu } from "../../types/miam-safe.ts";
+import type { AlerteComptoir, AlerteSuivie, CharteMiamSafe, MiamSafeLieu, PartagePositionMiamSafe } from "../../types/miam-safe.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { ServiceMiamSafe } from "../contrat-miam-safe.ts";
 
@@ -16,5 +16,10 @@ export function creerMiamSafeApi(client: ClientHttp): ServiceMiamSafe {
     lireCharte: (lieuId) => client.demander<{ charte: CharteMiamSafe }>("GET", `/miam-safe/pro/lieux/${lieuId}/charte`),
     signerCharte: (lieuId) => client.demander<{ charte: CharteMiamSafe }>("PUT", `/miam-safe/pro/lieux/${lieuId}/charte`, { corps: { accepte: true } }),
     quitterCharte: (lieuId) => client.demander<{ charte: CharteMiamSafe }>("DELETE", `/miam-safe/pro/lieux/${lieuId}/charte`),
+    prevenirPote: (demande) => client.demander<{ partage: PartagePositionMiamSafe; telephones: number }>("POST", "/miam-safe/prevenir", { corps: demande }),
+    envoyerPosition: (partageId, position) => client.demander<{ expireLe: string }>("PUT", `/miam-safe/partages/${partageId}/position`, { corps: position }),
+    arreterPartage: (partageId) => client.demander("DELETE", `/miam-safe/partages/${partageId}`),
+    lirePartage: (partageId) => client.demander<{ partage: PartagePositionMiamSafe }>("GET", `/miam-safe/partages/${partageId}`),
+    listerPartages: () => client.demander<{ partages: PartagePositionMiamSafe[] }>("GET", "/miam-safe/partages"),
   };
 }

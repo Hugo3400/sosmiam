@@ -85,12 +85,13 @@ export const categoriesConsentement: CategorieConsentement[] = [
     partenaires: [
       {
         nom: "SOS Miam",
-        role: "Ta connexion, ton refus des statistiques et tes choix de cookies.",
+        role: "Ta connexion, ton refus des statistiques, tes choix de cookies et ta position dans la page.",
         domaines: [],
         traceurs: [
           { nom: "__Host-sosmiam-session", finalite: "Te garder connecté.", duree: "90 jours au plus" },
           { nom: "__Host-sosmiam-connexion-externe", finalite: "Vérifier la réponse d'Apple ou de Google.", duree: "10 minutes au plus" },
           { nom: "__Host-sosmiam-inscription-externe", finalite: "Finir une inscription avec Apple ou Google.", duree: "10 minutes au plus" },
+          { nom: "__Host-sosmiam-connexion-qr", finalite: "Attendre que l'app valide « Me connecter avec l'app ».", duree: "2 minutes au plus" },
           { nom: "sosmiam-sans-statistiques", finalite: "Retenir ton refus d'être compté.", duree: "13 mois" },
           { nom: NOM_COOKIE_CONSENTEMENT, finalite: "Retenir tes choix de cookies.", duree: "6 mois" },
           { nom: "react-router-scroll-positions", finalite: "Te ramener où tu étais sur une page (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },

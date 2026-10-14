@@ -453,6 +453,21 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Charte retirée par l'équipe",
     texte: "L'équipe SOS Miam a retiré la charte de ce lieu. Écris-nous à bonjour@sosmiam.fr pour en parler.",
   },
+  "pote-inconnu": {
+    emoji: "👋",
+    titre: "Cette personne n'est plus dans ta bande",
+    texte: "On ne peut prévenir qu'un pote de ta bande. Appelle-la directement, ou appelle les secours si tu es en danger.",
+  },
+  "partage-inconnu": {
+    emoji: "📍",
+    titre: "Partage introuvable",
+    texte: "Ce partage de position n'existe plus, ou il ne t'est pas destiné.",
+  },
+  "partage-termine": {
+    emoji: "📍",
+    titre: "Le partage est terminé",
+    texte: "La position n'est plus partagée : l'heure est passée, ou le partage a été arrêté.",
+  },
   ...MESSAGES_SERVICES_SOCIAUX,
   // Connexion par QR code (messages-connexion-qr.ts)
   ...MESSAGES_CONNEXION_QR,
