@@ -66,7 +66,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
             hitSlop={{ top: 4, bottom: 4 }}
             className="mt-0.5 min-h-8 flex-row items-center gap-1 active:opacity-70"
           >
-            <Ionicons name="refresh" size={14} color={couleurs.rougeTexte} />
+            <Ionicons name="refresh" size={14} color={couleurs["rouge-texte"]} />
             <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
           </Pressable>
         ) : null}

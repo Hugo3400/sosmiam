@@ -11,7 +11,7 @@ import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
-import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import type { ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
 /** Un message prêt à afficher : son auteur, son heure, et le jour à écrire au-dessus quand il change */
@@ -26,26 +26,33 @@ export type LigneDiscussion = {
 };
 
 type Props = {
-  sortieId: string;
   lignes: LigneDiscussion[];
+  /** Envoie un message (utiliserDiscussionSortie) : « interdit » si tu n'es plus dans la sortie */
+  envoyer: (texte: string) => ResultatEnvoiChat;
+  /** Renvoie un de tes messages qui n'est pas parti */
+  renvoyer: (messageId: string) => void;
+  /** Compte connecté : il reste des messages plus anciens à lire */
+  plusAnciens: boolean;
+  onChargerPlusAnciens: () => void;
   /** Place à laisser sous le champ quand le clavier est fermé (barre du bas du téléphone) */
   margeBas: number;
   /** Petit message en haut de l'écran (aussi lu par le lecteur d'écran) */
   onAnnoncer: (texte: string) => void;
 };
 
-const REFUS: Record<Exclude<ResultatTexte, "ok">, string> = {
+const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
   vide: "Écris quelque chose avant d'envoyer, même un petit emoji 😉",
   "trop-long": `Ton message dépasse ${LONGUEUR_MAX_MESSAGE} caractères : coupe un peu, la bande t'écoute quand même.`,
   "mot-interdit": "Oups, un mot de ton message ne passe pas chez nous. Tu reformules gentiment ?",
+  interdit: "Tu ne fais plus partie de cette sortie : ton message n'est pas parti. La bande continue sans toi, mais la prochaine, c'est toi qui l'organises ?",
 };
+const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "retire", "illisible"]);
 
 // Distance au bas de la liste sous laquelle on suit les nouveaux messages
 const PRES_DU_BAS = 120;
 
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
-export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Props) {
-  const { envoyerMessage } = utiliserCommunaute();
+export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer }: Props) {
   const animationsReduites = useReducedMotion();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
@@ -87,7 +94,7 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
   }
 
   function envoyer() {
-    const resultat = envoyerMessage(sortieId, texte);
+    const resultat = envoyerTexte(texte);
     if (resultat === "ok") {
       vibrerLegerement();
       setTexte("");
@@ -121,6 +128,20 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
         }}
         ListHeaderComponent={
           <View className="gap-2 pb-2">
+            {/* Compte connecté : les derniers messages d'abord, les plus anciens à la demande */}
+            {plusAnciens ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  vibrerLegerement();
+                  collerEnBas.current = false;
+                  onChargerPlusAnciens();
+                }}
+                className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+              >
+                <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
+              </Pressable>
+            ) : null}
             <BandeauDemoPotes />
             <Text
               accessibilityLabel="Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler."
@@ -156,8 +177,10 @@ export function DiscussionSortie({ sortieId, lignes, margeBas, onAnnoncer }: Pro
                 deMoi={item.deMoi}
                 heure={item.heure}
                 debutSerie={debutSerie}
+                etat={item.message.etat}
+                onRenvoyer={() => renvoyer(item.message.id)}
                 onOptions={
-                  item.deMoi
+                  item.deMoi || ETATS_CACHES.has(item.message.etat)
                     ? undefined
                     : () => {
                         // Clavier ouvert, il cacherait le bas de la feuille (« Signaler », « Bloquer », « Annuler ») : on le range d'abord
