@@ -340,6 +340,7 @@
 - Les défis (`defis-exemples.ts`) ne sont pas des données inventées mais la liste des défis : ils restent.
 
 ## Notifications push (décidé le 8 octobre 2026)
+- **Dans l'app (construit le 14 octobre 2026)** : le téléphone s'inscrit avec son jeton natif (APNs ou FCM, jamais celui d'Expo) et ta ville (`PUT /app/appareils`), lié à ton compte s'il est connecté, délié à la déconnexion. La question du système est posée au premier lancement avec un profil, si « Recevoir des notifications » est allumé ; couper l'interrupteur désinscrit le téléphone (`DELETE /app/appareils`). Toucher une notification ouvre son écran (lien connu seulement). Les choix par sorte (SOS, offres, événements…) restent sur le téléphone pour l'instant.
 - **Envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire** (pas le service d'Expo). Il faut une clé APNs « .p8 » (developer.apple.com → Keys) et un compte de service d'un projet Firebase gratuit, déposés par Hugo dans /root/sos-miam-secrets.
 - **Anti-spam : au plus 1 notification par jour et 4 par semaine par téléphone**, hors notifications demandées par la personne (« un SOS près de chez toi »).
 - Une notification n'ouvre qu'un écran de l'app (jamais une adresse extérieure) ; détail des réceptions effacé après 90 jours.

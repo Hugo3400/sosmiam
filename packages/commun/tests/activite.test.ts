@@ -151,3 +151,31 @@ test("file d'attente rejouée sur la réponse de l'API : l'état affiché ne dé
   const serveur = { ...activite, gardes: [3, 12] };
   assert.deepEqual(file.reduce(appliquerGesteActivite, serveur).gardes, [3, 12]);
 });
+
+test("file d'attente : une rescousse donnée grâce à une reprise qui attend encore n'est jamais jetée", () => {
+  // Le serveur : plus de rescousse, lieux 1, 2 et 3 sauvés cette semaine
+  const serveur: ActiviteApi = { ...activite, restantes: 0, rescoussesSemaine: [1, 2, 3] };
+  const reprise: GesteActiviteEnAttente = { quoi: "rescousse", lieuId: 1, oui: false };
+  const don: GesteActiviteEnAttente = { quoi: "rescousse", lieuId: 4, oui: true };
+  let file = ajouterGesteEnAttente([], reprise, serveur);
+  assert.equal(file.reduce(appliquerGesteActivite, serveur).restantes, 1);
+  file = ajouterGesteEnAttente(file, don, serveur);
+  assert.deepEqual(file, [reprise, don]);
+  assert.deepEqual(file.reduce(appliquerGesteActivite, serveur).rescoussesSemaine, [4, 2, 3]);
+  // Sans la reprise, le don ne change rien : il ne part pas
+  assert.deepEqual(ajouterGesteEnAttente([], don, serveur), []);
+  // Le lieu 4 repris avant de partir : il ne reste que la reprise du lieu 1
+  assert.deepEqual(ajouterGesteEnAttente(file, { quoi: "rescousse", lieuId: 4, oui: false }, serveur), [reprise]);
+  // Re-donner au lieu 1 avant que la reprise parte : les deux disparaissent
+  assert.deepEqual(ajouterGesteEnAttente([reprise], { quoi: "rescousse", lieuId: 1, oui: true }, serveur), []);
+});
+
+test("file d'attente refusionnée geste après geste : le même résultat que dans l'ordre d'origine", () => {
+  const serveur: ActiviteApi = { ...activite, restantes: 0, rescoussesSemaine: [1, 2, 3] };
+  const gestes: GesteActiviteEnAttente[] = [
+    { quoi: "rescousse", lieuId: 2, oui: false },
+    { quoi: "garde", lieuId: 3, oui: true },
+    { quoi: "rescousse", lieuId: 5, oui: true },
+  ];
+  assert.deepEqual(gestes.reduce<GesteActiviteEnAttente[]>((f, g) => ajouterGesteEnAttente(f, g, serveur), []), gestes);
+});

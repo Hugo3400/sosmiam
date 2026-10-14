@@ -63,6 +63,12 @@ const cartes = [
     ],
     fichiers: fichiersKitMediaPro.filter((fichier) => fichier.visuel?.startsWith("flyer-a6")),
   },
+  {
+    titre: "La fiche Miam Safe",
+    texte: "Pour un lieu déjà sur SOS Miam : les engagements de la charte Miam Safe, et où son gérant la signe. Bientôt dans l'app.",
+    apercus: [{ nom: "affiche-miam-safe-a4.png", description: description("affiche-miam-safe-a4"), largeur: A4.largeur, hauteur: A4.hauteur }],
+    fichiers: fichiersKitMediaPro.filter((fichier) => fichier.visuel === "affiche-miam-safe-a4"),
+  },
 ];
 
 const classeLien = "font-semibold underline decoration-jaune decoration-[3px] underline-offset-4 hover:decoration-encre";
@@ -104,7 +110,7 @@ export default function PageKitMediaPro({ loaderData }: Route.ComponentProps) {
         </div>
       </SectionKit>
 
-      <SectionKit id="affiche-et-flyer" titre="L'affiche et le flyer" texte="En PDF pour imprimer, en PNG pour les montrer à l'écran.">
+      <SectionKit id="affiche-et-flyer" titre="L'affiche, le flyer et la fiche Miam Safe" texte="En PDF pour imprimer, en PNG pour les montrer à l'écran.">
         <ul className="grid gap-5 md:grid-cols-2">
           {cartes.map((carte) => <CarteFichiersKitPro key={carte.titre} {...carte} poids={poids} />)}
         </ul>

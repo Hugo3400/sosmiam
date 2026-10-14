@@ -1,6 +1,6 @@
 // L'espace ambassadeur, version API : missions et messages (routes /espace-ambassadeur de la session du site, compte
-// d'ambassadeur actif), relectures d'avis (routes /app/avis). Les missions de l'API n'ont pas encore leur type ni la position
-// de leur lieu : on complète prudemment (« autre », pas de position), en attendant qu'elles les portent.
+// d'ambassadeur actif), relectures d'avis (routes /app/avis), « Je suis sur place ». Le type d'une mission et la position
+// de son lieu sont lus quand l'API les donne ; sinon on complète prudemment (« autre », pas de position).
 
 import type { AvisARelire } from "../../types/avis.ts";
 import type { EspaceAmbassadeur, MessageAmbassadeur, MissionAmbassadeur, TypeMission } from "../../types/espace-ambassadeur.ts";
@@ -16,7 +16,7 @@ const TYPES: readonly TypeMission[] = ["verifier-lieu", "verifier-big-sos", "con
 const INTERVALLE_MS = 60_000;
 
 type MissionLue = Omit<MissionAmbassadeur, "type" | "presenceVerifieeLe" | "lieu"> & {
-  type?: string;
+  type?: string | null;
   presenceVerifieeLe?: string | null;
   lieu: { id: number; nom: string; ville: string; emoji?: string; position?: PositionLieu | null } | null;
 };
@@ -55,8 +55,11 @@ export function creerAmbassadeurApi(client: ClientHttp, lireStatut: () => Statut
       };
     },
     listerMissions,
-    // « Je suis sur place » pour les missions : pas encore décidé ni construit côté serveur
-    signalerPresence: async () => ({ ok: false, erreur: "service-indisponible" }),
+    // « Je suis sur place » : le serveur compare la lecture au lieu (comme une visite), ne garde que l'heure et rend la mission relue
+    async signalerPresence(missionId, position) {
+      const r = await client.demander<{ mission: MissionLue }>("POST", `/espace-ambassadeur/missions/${missionId}/presence`, { corps: { position } });
+      return r.ok ? { ok: true, mission: completer(r.mission) } : r;
+    },
     async terminerMission(missionId, compteRendu) {
       const r = await client.demander("POST", `/espace-ambassadeur/missions/${missionId}/compte-rendu`, { corps: { compteRendu } });
       if (!r.ok) return r;

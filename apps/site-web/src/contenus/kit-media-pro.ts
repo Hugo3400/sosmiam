@@ -19,7 +19,11 @@ export const LIEN_INSCRIRE_LIEU_COURT = "sosmiam.fr/inscrire-mon-lieu";
 
 export const EMAIL_CONTACT_KIT_PRO = "bonjour@sosmiam.fr";
 
-export type IdVisuelKitPro = "affiche-a4" | "flyer-a6-recto" | "flyer-a6-verso" | "flyer-a6" | "flyer-a6-planche-a4";
+/** Là où mène le QR de la fiche Miam Safe : l'espace pro, où le gérant signe la charte */
+export const LIEN_ESPACE_PRO = "https://pro.sosmiam.fr";
+export const LIEN_ESPACE_PRO_COURT = "pro.sosmiam.fr";
+
+export type IdVisuelKitPro = "affiche-a4" | "flyer-a6-recto" | "flyer-a6-verso" | "flyer-a6" | "flyer-a6-planche-a4" | "affiche-miam-safe-a4";
 
 /** Un format d'impression : sa taille en millimètres (pour le PDF) et en pixels à 300 dpi (pour le PNG) */
 export type FormatImpression = { nom: "A4" | "A6"; largeurMm: number; hauteurMm: number; largeur: number; hauteur: number };
@@ -67,6 +71,10 @@ export const visuelsKitMediaPro: VisuelKitPro[] = [
     id: "flyer-a6-planche-a4", titre: "Flyer A6, planche de 4 sur A4", page: formatsImpression.A4, pages: 2, png: false, pdf: true,
     description: "Quatre flyers sur une feuille A4, avec des traits de coupe : page 1 les rectos, page 2 les versos. À imprimer chez toi en recto verso, puis à couper en quatre.",
   },
+  {
+    id: "affiche-miam-safe-a4", titre: "Fiche A4 « Miam Safe »", page: formatsImpression.A4, pages: 1, png: true, pdf: true,
+    description: "Fiche crème : « Miam Safe », bientôt dans l'app, les quatre engagements de la charte pour l'équipe d'un lieu, et un QR code vers l'espace pro pour la signer.",
+  },
 ];
 
 export type FichierKitPro = {
@@ -112,6 +120,16 @@ export const texteAffiche = {
   bandeau: "Sans abonnement, sans commission, sans engagement.",
   appelQr: "Scanne pour inscrire ton lieu",
   piedDePage: "SOS Miam vit de la publicité, toujours signalée, sans effet sur le classement.",
+};
+
+/** La fiche Miam Safe, à montrer au gérant d'un lieu déjà inscrit (ou qui s'inscrit). Aucune promesse de sécurité. */
+export const texteAfficheMiamSafe = {
+  surtitre: "Bientôt dans l'app · pour les lieux",
+  sousTitre: "Un coup de main pour que chacun se sente bien chez toi : quand un client n'est pas à l'aise, il peut alerter ton équipe, discrètement.",
+  titreEngagements: "Ce que ton équipe s'engage à faire",
+  bandeau: "Gratuit. Le badge Miam Safe sur ta fiche.",
+  appelQr: "Signe la charte dans ton espace pro",
+  piedDePage: "Miam Safe ne remplace pas les secours : en cas de danger, le 17, le 15 ou le 112.",
 };
 
 /** Le recto du flyer : ce que SOS Miam apporte à un lieu */
@@ -198,6 +216,7 @@ export const reglesKitMediaPro = {
     "Insister : un lieu qui dit non a le droit de dire non.",
     "Parler d'un lieu en difficulté pour faire pitié : on en parle avec dignité.",
     "Modifier l'affiche, le flyer, le logo ou la mascotte, ou t'en servir pour autre chose que présenter SOS Miam.",
+    "Présenter Miam Safe comme une protection ou une garantie de sécurité : c'est un coup de main pour alerter l'équipe du lieu, rien de plus.",
   ],
 };
 
@@ -206,5 +225,6 @@ export const usageKitMediaPro = [
   "Imprime l'affiche (affiche-a4.pdf) et quelques flyers (flyer-a6-planche-a4.pdf : 4 flyers par feuille A4, en recto verso, à couper en suivant les traits).",
   "Passe dans un lieu à un moment calme, dis le mot du comptoir et laisse un flyer, ou l'affiche si le lieu veut l'afficher.",
   "Pas le temps de passer ? Envoie le mail type.",
+  "Le lieu est déjà sur SOS Miam ? Montre-lui la fiche Miam Safe (affiche-miam-safe-a4.pdf) : son gérant signe la charte dans son espace pro.",
   "Pour un imprimeur : flyer-a6.pdf (A6, recto en page 1, verso en page 2). Les PNG servent à partager l'affiche et le flyer à l'écran.",
 ];

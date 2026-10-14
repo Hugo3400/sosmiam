@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AfficheA4 } from "~/composants/kit-media-pro/AfficheA4";
+import { AfficheMiamSafeA4 } from "~/composants/kit-media-pro/AfficheMiamSafeA4";
 import { FlyerRecto } from "~/composants/kit-media-pro/FlyerRecto";
 import { FlyerVerso } from "~/composants/kit-media-pro/FlyerVerso";
 import { PlancheFlyersA4 } from "~/composants/kit-media-pro/PlancheFlyersA4";
@@ -20,4 +21,5 @@ export const pagesKitPro: Record<IdVisuelKitPro, ReactNode[]> = {
     <PlancheFlyersA4 key="rectos"><FlyerRecto /></PlancheFlyersA4>,
     <PlancheFlyersA4 key="versos"><FlyerVerso /></PlancheFlyersA4>,
   ],
+  "affiche-miam-safe-a4": [<AfficheMiamSafeA4 key="miam-safe" />],
 };
