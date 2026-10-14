@@ -14,7 +14,7 @@ export function RefusAge() {
       <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24" />
       <h2 ref={titre} tabIndex={-1} className="text-3xl font-extrabold">{lierPonctuation("Encore un peu de patience !")}</h2>
       <p className="mx-auto mt-3 max-w-lg text-lg">
-        {lierPonctuation("Le programme Ambassadeurs, c'est dès 18 ans. On n'a rien gardé : ni ton e-mail, ni ta date de naissance.")}
+        {lierPonctuation("SOS Miam, c'est dès 18 ans : l'app, le programme Ambassadeurs et l'espace pro. On n'a rien gardé : ni ton e-mail, ni ta date de naissance.")}
       </p>
       <p className="mx-auto mt-3 max-w-lg text-lg">
         {lierPonctuation("En attendant, tu peux suivre l'aventure SOS Miam avec la newsletter. Et pour tes 18 ans, on t'attend !")}

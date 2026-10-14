@@ -7,6 +7,7 @@
 // Modération : règlement européen sur les services numériques (DSA, art. 14, 16 et 17) : règles claires, signalement
 // ouvert à tous, décision expliquée. Apple (règle 1.2) : « tolérance zéro » écrite noir sur blanc.
 // Âge et règles de modération : docs/decisions.md ; page dédiée à l'âge : src/contenus/legal/age.ts.
+// Âge : un compte dès 18 ans partout, app comprise (décidé par Hugo le 14 octobre 2026).
 // Espace ambassadeur (8 octobre 2026, dès 18 ans) : section « ambassadeurs » dans cgu-ambassadeurs.ts.
 // Espace pro (9 octobre 2026, pro.sosmiam.fr) : section « pro » dans cgu-pro.ts.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
@@ -20,11 +21,11 @@ const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
 export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
-    "Les règles du site et de l'app SOS Miam : gratuits, l'app à partir de 15 ans, l'espace ambassadeur dès 18 ans, ce que tu peux publier, comment on modère, et comment nous joindre.",
-  miseAJour: "9 octobre 2026",
+    "Les règles du site et de l'app SOS Miam : gratuits, un compte dès 18 ans, ce que tu peux publier, comment on modère, et comment nous joindre.",
+  miseAJour: "14 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
-    "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Pour visiter le site, **pas besoin de compte** : seul l'**espace ambassadeur** en demande un, **dès 18 ans**. L'app demande un **compte gratuit, à partir de 15 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
+    "En bref : tout est **gratuit** et il n'y a **rien à acheter**. Pour visiter le site, **pas besoin de compte** : seuls l'**espace ambassadeur** et l'**espace pro** en demandent un. L'app demande un **compte gratuit**. Dans tous les cas, un compte, c'est **dès 18 ans**. Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
   ],
   sections: [
     {
@@ -75,12 +76,12 @@ export const documentCgu: DocumentLegal = {
     },
     {
       id: "age",
-      titre: "À partir de 15 ans",
+      titre: "À partir de 18 ans",
       blocs: [
-        "Pour créer un compte dans l'app, il faut avoir **au moins 15 ans** : c'est l'âge à partir duquel la loi française permet d'accepter seul l'utilisation de ses données. Le site, lui, reste ouvert à tous, sauf l'espace ambassadeur, réservé aux **18 ans et plus** (voir « Le programme Ambassadeurs »).",
-        "Ta date de naissance doit être exacte : elle sert à vérifier ton âge et à adapter l'app. **Entre 15 et 17 ans**, les bars et tout ce qui touche à l'alcool sont masqués.",
-        "Mentir sur ton âge est interdit. Si on apprend qu'un compte appartient à quelqu'un de moins de 15 ans, on le supprime avec ses données.",
-        "Tous les détails, pour les ados comme pour les parents, sont sur la page [SOS Miam et l'âge](/age).",
+        "Pour créer un compte SOS Miam (dans l'app, dans l'espace ambassadeur ou dans l'espace pro), il faut être **majeur** : **18 ans** en France, le seul pays où SOS Miam est ouvert pour l'instant. Le site, lui, se visite sans compte, à tout âge.",
+        "Sans compte, l'app reste tout public : les bars et tout ce qui touche à l'alcool n'y apparaissent pas.",
+        "Ta date de naissance doit être exacte : elle sert à vérifier que tu as 18 ans. Mentir sur ton âge est interdit. Si on apprend qu'un compte a été créé en mentant sur l'âge, on le supprime avec ses données.",
+        "Tous les détails, pour toi comme pour les parents, sont sur la page [SOS Miam et l'âge](/age).",
       ],
     },
     {

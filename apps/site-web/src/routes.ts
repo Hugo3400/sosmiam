@@ -58,8 +58,12 @@ export default [
     route("lieu/:id/equipe", "routes/pro/equipe.tsx"),
     route("lieu/:id/affichette", "routes/pro/affichette.tsx"),
     route("lieu/:id/miam-safe", "routes/pro/miam-safe.tsx"),
-    // « Mon compte » de l'espace pro : la même page que /espace/mon-compte (son propre id, son cadre pro)
-    route("mon-compte", "routes/compte/mon-compte.tsx", { id: "routes/pro/mon-compte" }),
+  ]),
+  // « Mon compte » : la même page que /espace/mon-compte (son propre id). Une seule adresse, deux espaces : sur
+  // pro.sosmiam.fr, celui de l'espace pro (cadre pro) ; sur sosmiam.fr, celui du site principal (cadre public, connexion
+  // dans la page, « Mes données », suppression sans se connecter : l'adresse donnée aux stores). Le cadre suit l'hôte.
+  layout("routes/compte/mise-en-page-mon-compte.tsx", [
+    route("mon-compte", "routes/compte/mon-compte.tsx", { id: "routes/compte/mon-compte-site-et-pro" }),
   ]),
   // Déconnexion : une page à part entière (formulaire POST vérifié par React Router, l'adresse seule redirige vers /espace),
   // et les fichiers du kit média, réservés aux ambassadeurs validés

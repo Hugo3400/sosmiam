@@ -1,5 +1,7 @@
 import { createCookie, data, redirect } from "react-router";
 
+import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
+import { lireEspaceMonCompte } from "~/fonctions/hotes/lire-espace-mon-compte";
 import { lireSession, type ErreurCompte } from "~/services/comptes.server";
 import type { CompteConnecte } from "~/types/compte";
 
@@ -78,9 +80,15 @@ export function lireRetourSur(valeur: unknown): string | null {
   return typeof valeur === "string" && /^\/(?!\/)[\w\-/]*$/.test(valeur) ? valeur : null;
 }
 
-/** Retour à /connexion (puis à la page demandée), en effaçant un cookie périmé. */
+/**
+ * Retour à /connexion (puis à la page demandée), en effaçant un cookie périmé. Le « Mon compte » du site principal a sa
+ * connexion dans la page même (sosmiam.fr n'a pas de /connexion) : retour à /mon-compte.
+ */
 async function renvoyerVersConnexion(requete: Request): Promise<never> {
-  const { pathname } = new URL(requete.url);
+  const { pathname, host } = new URL(requete.url);
+  if (lireEspaceMonCompte(lireEspaceHote(host), pathname) === "site") {
+    throw redirect("/mon-compte", { headers: { "Set-Cookie": await effacerCookieSession() } });
+  }
   const retour = lireRetourSur(pathname.replace(/\.data$/, ""));
   const cible = retour && retour !== "/espace" ? `/connexion?retour=${encodeURIComponent(retour)}` : "/connexion";
   throw redirect(cible, { headers: { "Set-Cookie": await effacerCookieSession() } });

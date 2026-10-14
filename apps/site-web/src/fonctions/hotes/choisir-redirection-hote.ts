@@ -24,6 +24,11 @@ const PAGES_COMPTE = ["/inscription", "/connexion", "/mot-de-passe-oublie", "/no
 const PAGES_PRO = ["/bienvenue", "/tableau", "/rattacher", "/recherche-lieux", "/mon-compte"];
 /** Débuts d'adresses de l'espace pro : la fiche d'un lieu et ses pages (« /lieu/12/equipe »…), la demande pour un lieu */
 const DEBUTS_PRO = ["/lieu/", "/rattacher/"];
+/**
+ * Pages du compte servies aussi sur sosmiam.fr (avec le cookie de sosmiam.fr) : « Mon compte » du site principal, adresse
+ * donnée aux stores pour demander la suppression d'un compte (connexion dans la page même), et la déconnexion qui va avec
+ */
+const PAGES_COMPTE_SITE = ["/mon-compte", "/deconnexion"];
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 
@@ -36,7 +41,8 @@ export type RedirectionHote = { adresse: string; statut: 301 | 302 };
  *   reste → 301 vers sosmiam.fr.
  * - pro.sosmiam.fr : « / » → 302 vers /bienvenue ; l'espace pro et les pages du compte sont servis ; les pages propres à
  *   l'espace ambassadeur → 301 vers lui ; tout le reste → 301 vers sosmiam.fr.
- * - sosmiam.fr : les pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi, dont les QR de vitrine
+ * - sosmiam.fr : « /mon-compte » et « /deconnexion » sont servis (le « Mon compte » du site, avec son propre cookie) ;
+ *   les autres pages des espaces → 301 vers leur sous-domaine ; tout le reste est servi, dont les QR de vitrine
  *   /l/<code> (ailleurs, ils suivent « tout le reste » : 301 vers sosmiam.fr, où le QR imprimé mène de toute façon).
  * - autres hôtes (127.0.0.1, localhost, pro.localhost, apercu.sosmiam.fr) : rien n'est renvoyé, pour pouvoir tout essayer.
  * Les demandes de données de React Router (« /espace.data », « /_.data » pour « / ») suivent leur page, sans recopier
@@ -73,6 +79,7 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
   const pagePro = PAGES_PRO.includes(cle) || DEBUTS_PRO.some((debut) => cle.startsWith(debut));
   const vers = (hoteCible: string) => ({ adresse: `https://${hoteCible}${page}${suite}`, statut: 301 as const });
 
+  if (nomHote === HOTE_SITE && PAGES_COMPTE_SITE.includes(cle)) return null;
   if (cle === "/mon-compte" && nomHote === HOTE_AMBASSADEUR) return { adresse: `/espace/mon-compte${suite}`, statut: 302 };
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);
   if (nomHote === HOTE_SITE) return pageEspace ? vers(HOTE_AMBASSADEUR) : null;

@@ -105,7 +105,7 @@ export default function PageMaCarte({ loaderData }: Route.ComponentProps) {
         <>
           <div className="mb-6 grid gap-2 rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 text-sm">
             <p className="font-semibold">{lierPonctuation("Ajoute, range, supprime : rien ne part tant que tu n'appuies pas sur « Enregistrer ma carte ».")}</p>
-            <p>{lierPonctuation("Un plat qui contient de l'alcool est montré avec le message sanitaire sur ta fiche, et caché aux moins de 18 ans dans l'app.")}</p>
+            <p>{lierPonctuation("Un plat qui contient de l'alcool est montré avec le message sanitaire sur ta fiche, et caché dans l'app aux personnes qui la visitent sans compte (on ne connaît pas leur âge).")}</p>
           </div>
           <EditeurCarte depart={creerBrouillonCarte(carte)} />
           <section aria-labelledby="carte-apercu" className="mt-14">

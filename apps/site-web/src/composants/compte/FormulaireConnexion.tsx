@@ -6,15 +6,31 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
-/** Formulaire de connexion (action de routes/compte/connexion.tsx). « retour » : la page à rouvrir ensuite. */
-export function FormulaireConnexion({ retour }: { retour: string | null }) {
+type Props = {
+  /** La page à rouvrir ensuite */
+  retour: string | null;
+  /**
+   * Adresse de « Mot de passe oublié ? » : /mot-de-passe-oublie (lien du routeur), ou une adresse complète vers un autre
+   * site (« Mon compte » de sosmiam.fr → ambassadeur.sosmiam.fr), alors en lien classique
+   */
+  adresseOubli?: string;
+};
+
+/**
+ * Formulaire de connexion (action de routes/compte/connexion.tsx, et de routes/compte/mon-compte.tsx sur sosmiam.fr).
+ */
+export function FormulaireConnexion({ retour, adresseOubli = "/mot-de-passe-oublie" }: Props) {
+  const texteOubli = lierPonctuation("Mot de passe oublié ?");
+  const lienOubli = adresseOubli.startsWith("https://")
+    ? <a href={adresseOubli} className={`text-sm ${classeLien}`}>{texteOubli}</a>
+    : <Link to={adresseOubli} className={`text-sm ${classeLien}`}>{texteOubli}</Link>;
   return (
     <FormulaireCompte
       nom="connexion"
       bouton="Se connecter"
       boutonEnvoi="Connexion…"
       className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10"
-      apres={<Link to="/mot-de-passe-oublie" className={`text-sm ${classeLien}`}>{lierPonctuation("Mot de passe oublié ?")}</Link>}
+      apres={lienOubli}
     >
       {retour && <input type="hidden" name="retour" value={retour} />}
       <div className="grid gap-5">

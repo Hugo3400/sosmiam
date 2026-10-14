@@ -41,8 +41,8 @@ const textes: Record<EspaceCompte, { accueil: string; titre: string; description
   pro: {
     accueil: "/tableau",
     titre: "Crée ton compte pro",
-    description: "Crée ton compte SOS Miam pour gérer la fiche de ton lieu : gratuit, sans abonnement ni commission.",
-    chapo: "C'est gratuit, sans abonnement ni commission. Ensuite, tu cherches ton lieu et l'équipe vérifie qu'il est bien à toi.",
+    description: "Crée ton compte SOS Miam pour gérer la fiche de ton lieu, dès 18 ans : gratuit, sans abonnement ni commission.",
+    chapo: "C'est gratuit, dès 18 ans, sans abonnement ni commission. Ensuite, tu cherches ton lieu et l'équipe vérifie qu'il est bien à toi.",
   },
 };
 

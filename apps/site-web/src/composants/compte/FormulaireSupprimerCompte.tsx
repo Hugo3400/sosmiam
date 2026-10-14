@@ -11,14 +11,20 @@ const avertissementAmbassadeur = `Ton compte est effacé tout de suite, avec tes
 // n'est plus « Vérifié ✓ » s'il n'a plus aucun rattachement validé
 const avertissementPro = `Ton compte est effacé tout de suite, avec tes rattachements aux lieux (ta place dans leur équipe comprise), tes demandes en cours, tes points et tes badges. Ce que tu as mis sur la fiche d'un lieu y reste, sans ton nom. Si tu étais le seul à tenir un lieu, il perd son « Vérifié ✓ » jusqu'à ce que quelqu'un d'autre le reprenne. Une copie peut encore dormir 30 jours au plus dans nos sauvegardes chiffrées, puis elle disparaît.`;
 
+// Compte sans rôle d'ambassadeur ni lieu (créé dans l'app, par exemple), dans le « Mon compte » de sosmiam.fr
+const avertissementCompte = "Ton compte est effacé tout de suite, avec tout ce qui y est rattaché : ton profil, tes points, tes badges et tes connexions, dans l'app comme sur le site. Une copie peut encore dormir 30 jours au plus dans nos sauvegardes chiffrées, puis elle disparaît.";
+
 type Props = {
-  /** L'espace qui sert « Mon compte » : l'avertissement parle de ce qui y compte (par défaut, l'espace ambassadeur) */
-  espace?: "ambassadeur" | "pro";
+  /**
+   * Ce que l'avertissement met en avant : l'espace ambassadeur (par défaut), l'espace pro, ou un compte sans l'un ni l'autre
+   * (« compte »)
+   */
+  espace?: "ambassadeur" | "pro" | "compte";
 };
 
 /** « Supprimer mon compte » dans « Mon compte » : un avertissement clair, puis le mot de passe pour confirmer. */
 export function FormulaireSupprimerCompte({ espace = "ambassadeur" }: Props) {
-  const avertissement = espace === "pro" ? avertissementPro : avertissementAmbassadeur;
+  const avertissement = { ambassadeur: avertissementAmbassadeur, pro: avertissementPro, compte: avertissementCompte }[espace];
   return (
     <FormulaireCompte nom="suppression" bouton="Supprimer mon compte" boutonEnvoi="Suppression…" danger>
       <div className="mb-5 rounded-2xl border-2 border-rouge-texte bg-rose-alerte px-4 py-3 text-encre">

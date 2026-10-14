@@ -13,7 +13,7 @@ export function FournisseurBrouillon({ children }: { children: ReactNode }) {
   const [verrouAge, setVerrouAge] = useState<string | null>(null);
   const [verrouEnLecture, setVerrouEnLecture] = useState(true);
 
-  // Lu au lancement, puis relu à chaque retour au premier plan : l'app peut dormir en arrière-plan jusqu'au jour des 15 ans
+  // Lu au lancement, puis relu à chaque retour au premier plan : l'app peut dormir en arrière-plan jusqu'au jour des 18 ans
   useEffect(() => {
     const relire = () =>
       lireVerrouAge().then((jusqua) => {

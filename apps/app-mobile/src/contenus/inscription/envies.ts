@@ -1,5 +1,5 @@
 // Les envies demandées à l'inscription, une étape par catégorie (voir docs/decisions.md).
-// « alcool » : masqué entre 15 et 17 ans (AGE_ALCOOL). « sensible » : peut révéler une religion ou la santé (RGPD, article 9).
+// « alcool » : masqué si l'âge est inconnu (AGE_ALCOOL ; tout compte est majeur depuis le 14 octobre 2026). « sensible » : peut révéler une religion ou la santé (RGPD, article 9).
 import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
 
 export type ChoixEnvie = {

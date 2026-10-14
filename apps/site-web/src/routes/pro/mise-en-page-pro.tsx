@@ -2,6 +2,7 @@ import { Outlet } from "react-router";
 
 import type { Route } from "./+types/mise-en-page-pro";
 import { CadrePro } from "~/composants/pro/CadrePro";
+import { choisirLieuMenu } from "~/fonctions/pro/choisir-lieu-menu";
 import { lireCompteConnecte } from "~/services/session-compte.server";
 
 /** Pages propres à chaque personne : jamais gardées par un cache (Cloudflare, navigateur), redirections comprises. */
@@ -20,10 +21,7 @@ export const middleware: Route.MiddlewareFunction[] = [
 export async function loader({ request, params }: Route.LoaderArgs) {
   const connecte = await lireCompteConnecte(request);
   if (!connecte) return { connecte: false, lieuMenu: null };
-  const valides = (connecte.compte.pro?.lieux ?? []).filter((lieu) => lieu.statut === "valide");
-  const idAdresse = Number("id" in params ? params.id : NaN);
-  const choisi = valides.find((lieu) => lieu.lieuId === idAdresse) ?? valides[0];
-  return { connecte: true, lieuMenu: choisi ? { id: choisi.lieuId, gerant: choisi.role === "gerant" } : null };
+  return { connecte: true, lieuMenu: choisirLieuMenu(connecte.compte, Number("id" in params ? params.id : NaN)) };
 }
 
 /** Cadre de l'espace pro (https://pro.sosmiam.fr) : voir composants/pro/CadrePro.tsx. */

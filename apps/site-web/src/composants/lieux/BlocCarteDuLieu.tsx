@@ -17,7 +17,7 @@ type Props = {
  * La carte d'un lieu, telle que le lieu l'a remplie (fiche publique, aperçu et lecture de l'espace pro) : ses sections
  * (une section vide n'est pas montrée), puis « Carte mise à jour par le lieu le … ». Si un plat contient de l'alcool,
  * le message sanitaire de la loi Évin, mot pour mot, et l'aide (BlocPrevention) suivent. Rien à montrer : rien du tout.
- * Le site ne connaît pas l'âge du visiteur : il montre l'alcool, toujours avec le message (l'app le cache aux moins de 18 ans).
+ * Le site ne connaît pas l'âge du visiteur : il montre l'alcool, toujours avec le message (l'app le cache tant que l'âge n'est pas connu : visite sans compte).
  */
 export function BlocCarteDuLieu({ carte, type, id = "fiche-carte", niveau = 2 }: Props) {
   const sections = carte.sections.filter((section) => section.elements.length > 0);

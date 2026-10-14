@@ -23,7 +23,7 @@
 - Le vote de la communauté arrivera avec l'app : d'ici là, un BIG SOS peut être validé sans vote.
 
 ## Comptes et données de l'app (décidé le 8 octobre 2026)
-- **Inscription à partir de 15 ans** (sous 15 ans, le RGPD exigerait l'accord des parents). **Anti-contournement (décidé le 8 octobre 2026)** : le choix de la date reste neutre (toutes les dates, pas d'annonce de l'âge minimum à côté du champ) ; continuer avec une date qui donne moins de 15 ans (écrite en toutes lettres dans le champ, donc on a pu corriger une faute de frappe) bloque l'inscription sur le téléphone jusqu'aux 15 ans (verrou dans le Trousseau ou le Keystore, qui garde le jour des 15 ans, ce qui revient à garder la date de naissance, uniquement sur le téléphone et jamais envoyé), même si on revient changer la date. Sur iPhone, le verrou survit à une désinstallation. Limite connue : le verrou suit l'horloge du téléphone, donc avancer la date le lève ; il sera vérifié avec l'heure du serveur quand l'API sera branchée. Aucune vérification d'identité : c'est une barrière, pas une preuve. Un bouton « Débloquer » existe seulement en mode développement (Expo Go), jamais dans l'app publiée. Entre 15 et 17 ans, tout ce qui touche à l'alcool (boissons alcoolisées, types de bar) est masqué. Règles dans `packages/commun/src/regles/ages.ts`.
+- **L'app est réservée aux personnes majeures (décidé par Hugo le 14 octobre 2026, remplace l'inscription dès 15 ans)** : 18 ans en France, l'âge de la majorité du pays ailleurs (la France est le seul pays ouvert ; un pays s'ajoute avec son âge vérifié dans `AGES_MAJORITE`). Il n'existe plus aucune règle « 15-17 ans ». Sans compte (visite), l'âge est inconnu : le contenu reste tout public, sans bar ni alcool. **Anti-contournement (décidé le 8 octobre 2026)** : le choix de la date reste neutre (toutes les dates, pas d'annonce de l'âge minimum à côté du champ) ; continuer avec une date qui donne moins de 18 ans (écrite en toutes lettres dans le champ, donc on a pu corriger une faute de frappe) bloque l'inscription sur le téléphone jusqu'aux 18 ans (verrou dans le Trousseau ou le Keystore, qui garde le jour des 18 ans, ce qui revient à garder la date de naissance, uniquement sur le téléphone et jamais envoyé), même si on revient changer la date. Sur iPhone, le verrou survit à une désinstallation. Limite connue : le verrou suit l'horloge du téléphone, donc avancer la date le lève ; il sera vérifié avec l'heure du serveur quand l'API sera branchée. Aucune vérification d'identité : c'est une barrière, pas une preuve. Un bouton « Débloquer » existe seulement en mode développement (Expo Go), jamais dans l'app publiée. Règles dans `packages/commun/src/regles/ages.ts` (`AGE_MINIMUM_INSCRIPTION`, `AGES_MAJORITE`) et `regles/lire-age-majorite.ts`.
 - Première ouverture : carrousel de bienvenue qui explique le concept avec la mascotte, puis création du compte, « Fais connaissance » (prénom obligatoire, nom facultatif, date de naissance, ville : avec la position du téléphone, lue une seule fois et jamais gardée, ou tapée à la main avec nos villes de lancement en suggestion), puis les envies (lieux, cuisines, boissons, types de bar, ambiance musicale, jeux, moments, régime particulier), puis « C'est prêt ».
 - **Un seul compte pour tout (décidé le 8 octobre 2026)** : le compte de l'app sert aussi à se connecter à l'espace ambassadeur (ambassadeur.sosmiam.fr) et à l'espace pro. Ambassadeur et pro sont des rôles ajoutés à ce compte : suspendre ou retirer un rôle ne touche ni au compte ni à l'app. **Les modes ambassadeur et pro seront sur le site ET dans l'app** (précisé par Hugo le 8 octobre 2026) : même compte, même rôles, écrans équivalents des deux côtés.
 - **Connexion : Apple, Google ou e-mail.** Il faudra un compte Apple Developer, qu'on prendra de toute façon pour l'App Store. Apple impose son bouton dès qu'on propose Google.
@@ -38,7 +38,7 @@
 - **Comptes louches** : des seuils prudents signalent le compte dans le logiciel, sans rien bloquer tout seuls. L'équipe décide. Par exemple : plus de 4 visites validées par jour, ou plus d'un tiers refusées. Les seuils se règlent dans le logiciel.
 - **Visites validées gardées tant que le compte existe** (historique, fidélité, points) ; tout part avec le compte.
 - **Rien n'est repris du téléphone** au branchement : personne n'a encore la version publiée, chacun part de zéro avec son compte. La démo n'est jamais reprise.
-- **Proposer un nouveau lieu** : ouvert à tous les comptes de **18 ans et plus**, relu par l'équipe (+30 et « Déniché par toi » s'il est accepté). Les 15-17 ans peuvent proposer une modification, pas un nouveau lieu.
+- **Proposer un nouveau lieu** : ouvert à tous les comptes (tous majeurs), relu par l'équipe (+30 et « Déniché par toi » s'il est accepté).
 - **Un ambassadeur refusé** ne perd que son rôle : son compte de l'app reste.
 - **Réponse publique d'un lieu à un avis** : permise, relue (voir les règles des visites).
 - **Lieu « nouveau »** : 30 jours après son arrivée (badge « Nouveau », « Premier sauveteur » possible).
@@ -51,17 +51,17 @@
   - le **gérant et l'équipe** peuvent le lancer ; on garde qui l'a lancé ;
   - **un par jour**, valable **jusqu'à la fermeture** du lieu ce jour-là ;
   - des places à remplir et une offre facultative, arrêtable à tout moment.
-- **Message du moment** (« Happy hour jusqu'à 20 h ») : 120 caractères, gérant et équipe, filtre de mots, effacé tout seul à l'heure choisie (24 h au plus). Pas d'alcool montré aux 15-17 ans.
+- **Message du moment** (« Happy hour jusqu'à 20 h ») : 120 caractères, gérant et équipe, filtre de mots, effacé tout seul à l'heure choisie (24 h au plus). Pas d'alcool montré sans compte (âge inconnu).
 - **Statistiques d'un lieu** : les **vues de sa fiche** dans l'app sont comptées, sans pister personne (un compteur par jour et par lieu), avec les rescousses, les visites validées et les nouveaux clients.
 - **Badge « Iodé »** : rendu valable partout. Il ne dépend plus d'une région, mais d'un type de plat que tous les lieux peuvent proposer.
 - **Messagerie** : une conversation sans nouveau message depuis **1 an** est effacée la nuit ; un message signalé reste le temps de la modération.
-- **Créateurs** : **tout compte de 18 ans et plus** peut publier depuis l'app. La vérification se fait **après** la mise en ligne (signalements, modération dans le logiciel). Les 15-17 ans ne publient pas en v1.
+- **Créateurs** : **tout compte** (tous majeurs) peut publier depuis l'app. La vérification se fait **après** la mise en ligne (signalements, modération dans le logiciel).
 - **Signalements** : on garde la règle telle quelle. Violence ou contenu sexuel : masqué pour tout le monde dès le 1er signalement, puis un modérateur décide.
 - **Événements des lieux** (format validé par Hugo) : dès la v1, pour les lieux vérifiés.
   - Publiés par le **gérant ou l'équipe** : titre (60 caractères), type (concert, soirée à thème, dégustation, atelier, quiz, match, marché, autre), date et heure, fin facultative, « chaque semaine » possible (jusqu'à 3 mois), description (500 caractères), photo facultative, prix (gratuit, prix indicatif ou sur réservation), places limitées facultatives.
   - Visibles sur la **fiche du lieu** (« À venir »), dans **Explorer** (filtre « Événements » : ce soir, ce week-end) et en **notification** aux personnes qui suivent le lieu (anti-spam respecté).
   - **« Ça m'intéresse »** : un compteur pour le lieu, et un rappel le jour J si la personne le veut.
-  - Règles : 10 événements à venir par lieu, 3 mois à l'avance au plus ; filtre de mots ; signalable ; modéré après. Alcool (dégustation…) : caché aux 15-17 ans, avec le message sanitaire, jamais d'« open bar ».
+  - Règles : 10 événements à venir par lieu, 3 mois à l'avance au plus ; filtre de mots ; signalable ; modéré après. Alcool (dégustation…) : caché sans compte (âge inconnu), avec le message sanitaire, jamais d'« open bar ».
 - **Nouvelles tables en base** : la session de l'app peut, comme la session du site, appliquer elle-même les migrations qui ne font qu'ajouter, testées hors ligne avant ; elle le dit à Hugo à chaque fois.
 - **Fond de carte sur Android** : **Google Maps** (clé gratuite à créer par Hugo dans Google Cloud, dans le même projet que la connexion Google).
 - **Comptoir** : seulement **le téléphone de chaque membre** de l'équipe, chacun avec son compte (on sait qui a validé quoi). Pas de tablette partagée.
@@ -91,10 +91,10 @@
 ## L'app parle au serveur (décidé le 9 octobre 2026 ; socle de l'API construit le 9 octobre)
 - **Adresse : `api.sosmiam.fr`**, un sous-domaine à part, derrière Cloudflare comme le site. On n'y ouvre que ce dont l'app a besoin (comptes, Miam Safe, puis visites, potes…), jamais `/api-gestion` ni `/bot`.
 - **Connexion dès la sortie : e-mail, Apple et Google.** Le compte reste unique (le même que l'espace ambassadeur et l'espace pro). Le serveur vérifie lui-même les jetons d'Apple et de Google. Rappel d'Apple : proposer Google oblige à proposer « Se connecter avec Apple ».
-- **Apple et Google côté API (construit le 9 octobre 2026)** : `POST /comptes/apple` et `POST /comptes/google` (contrat dans `apps/api/src/routes/comptes.ts`). Le jeton est vérifié par l'API (clés publiques d'Apple et de Google gardées en mémoire, sans bibliothèque en plus). Compte Apple ou Google déjà lié : connexion ; sinon, même e-mail vérifié : il est lié au compte existant (le compte reste unique) ; sinon, création d'un compte de l'app avec « Fais connaissance » (dès 15 ans, mêmes champs que l'inscription de l'app). Un compte créé ainsi n'a pas de vrai mot de passe (« Mot de passe oublié » permet d'en choisir un) ; pour l'effacer, il faut un nouveau jeton du même compte Apple ou Google, jamais la session seule. Réglages : `SOS_MIAM_APPLE_AUDIENCES` (par défaut `fr.sosmiam.app`) et `SOS_MIAM_GOOGLE_CLIENT_IDS` (vide : Google répond « indisponible »).
+- **Apple et Google côté API (construit le 9 octobre 2026)** : `POST /comptes/apple` et `POST /comptes/google` (contrat dans `apps/api/src/routes/comptes.ts`). Le jeton est vérifié par l'API (clés publiques d'Apple et de Google gardées en mémoire, sans bibliothèque en plus). Compte Apple ou Google déjà lié : connexion ; sinon, même e-mail vérifié : il est lié au compte existant (le compte reste unique) ; sinon, création d'un compte de l'app avec « Fais connaissance » (à partir de 18 ans, mêmes champs que l'inscription de l'app). Un compte créé ainsi n'a pas de vrai mot de passe (« Mot de passe oublié » permet d'en choisir un) ; pour l'effacer, il faut un nouveau jeton du même compte Apple ou Google, jamais la session seule. Réglages : `SOS_MIAM_APPLE_AUDIENCES` (par défaut `fr.sosmiam.app`) et `SOS_MIAM_GOOGLE_CLIENT_IDS` (vide : Google répond « indisponible »).
 - **Session : 1 an, prolongée à chaque usage.** Le jeton est gardé dans le coffre-fort chiffré du téléphone (Trousseau ou Keystore), jamais dans les fichiers de l'app. « Me déconnecter partout » le coupe aussitôt. Le site garde ses durées (30 jours sans visite, 90 jours au plus).
 - Proposition de la session de l'app : adresse figée à la compilation (`EXPO_PUBLIC_API_URL`), jeton envoyé en `Authorization: Bearer` (construit côté API le 9 octobre 2026 : sessions « app » d'un an prolongées à chaque usage, `POST /comptes/moi/deconnecter-partout`, contrat dans `apps/api/src/routes/comptes.ts`).
-- **Profil de l'app gardé sur le serveur** (construit le 9 octobre 2026) : inscription « app » dès 15 ans, sans rôle d'ambassadeur ; nom et date de naissance **chiffrés** par l'API (AES-256-GCM, clé lue au démarrage dans un fichier hors de la base) ; envies **sans les régimes** ; pseudo unique sans gros mot ; avatar emoji ; compte privé. Sans clé, l'API démarre mais ces adresses répondent « chiffrement-indisponible ». Aucun rôle ambassadeur ou pro n'est montré sous 18 ans.
+- **Profil de l'app gardé sur le serveur** (construit le 9 octobre 2026) : inscription « app » à partir de 18 ans, sans rôle d'ambassadeur ; nom et date de naissance **chiffrés** par l'API (AES-256-GCM, clé lue au démarrage dans un fichier hors de la base) ; envies **sans les régimes** ; pseudo unique sans gros mot ; avatar emoji ; compte privé. Sans clé, l'API démarre mais ces adresses répondent « chiffrement-indisponible ».
 - **Heure du serveur et version minimale** : `GET /app/temps` (jour de Paris, pour le verrou d'âge) et `GET /app/version` (versions minimales iOS et Android, « 0.0.0 » par défaut), sans session ; l'app compare elle-même.
 - **Miam Safe, « Prévenir un pote »** : la position passera par le serveur, en direct pendant 1 h, visible dans l'app du pote. Ça attend les vrais potes côté serveur (avec la messagerie). Pas de partage par SMS en attendant.
 - **Construit côté API le 9 octobre 2026** (pas encore branché dans l'app) :
@@ -103,7 +103,7 @@
   - visites et fidélité (`/app/visites`, `/app/fidelite`) et comptoir de l'équipe (`/pro/comptoir`), avec les mêmes règles que la démo.
 - **Visites dans l'API** :
   - le QR du comptoir est signé par l'API, avec une clé tirée à chaque démarrage et jamais écrite (un redémarrage éteint seulement les QR affichés à ce moment-là) ;
-  - un compte sans date de naissance gardée vient du site, où 18 ans sont demandés : il compte comme majeur ; une date illisible compte comme 15-17 ans, par prudence ;
+  - un compte sans date de naissance gardée vient du site, où 18 ans sont demandés : il compte comme majeur (depuis le 14 octobre 2026, tout compte est majeur) ;
   - les seuils anti-triche (visites par jour, part de refus) restent à calculer dans le logiciel, à partir des visites (statut, qui a décidé) ;
   - réservations et avis ne sont pas encore côté serveur.
 
@@ -131,7 +131,7 @@
 ## Miam Safe : se sentir en sécurité dans un lieu (concept posé le 9 octobre 2026, rien de construit)
 - **Compte obligatoire** pour tout Miam Safe. **En cas de danger réel, l'app renvoie d'abord vers le 17 (police), le 18 (pompiers), le 15 (Samu), le 112 ou le 114 (urgences par SMS, pour les personnes sourdes ou qui ne peuvent pas parler)**, accessibles en un appui. Sur ces écrans, le ton reste doux et sérieux : pas de blague ni d'easter egg.
 - **Aide sur le moment** (bouton Miam Safe sur la fiche du lieu et pendant une visite) :
-  - **prévenir un pote de Ma bande** : il reçoit « Léa ne se sent pas en sécurité au [lieu] », la **position en direct pendant 1 h** (seulement si la personne le déclenche, arrêtable à tout moment ; pareil pour les 15-17 ans, décidé le 9 octobre) et un bouton pour l'appeler ;
+  - **prévenir un pote de Ma bande** : il reçoit « Léa ne se sent pas en sécurité au [lieu] », la **position en direct pendant 1 h** (seulement si la personne le déclenche, arrêtable à tout moment) et un bouton pour l'appeler ;
   - **demander de l'aide au comptoir** : une phrase à dire, sur le principe de « Demande Angela » : **« Le Capitaine est là ? »** (décidée le 9 octobre), **et** un écran à montrer au personnel. L'écran est discret : sombre, le Capitaine Bouiboui qui fait un clin d'œil, la phrase en gros et la vraie consigne en petit, pour l'équipe seulement ;
   - **alerter le comptoir en silence**, quand on ne peut pas y aller (lieux Miam Safe seulement) : l'alerte arrive **en notification push sur les appareils pro du lieu, même app en arrière-plan ou fermée**, avec le prénom, l'endroit (salle, terrasse, toilettes, table si on la connaît) et un détail facultatif (« pull vert »), jamais le nom ni la photo. L'équipe appuie sur « On arrive », et la personne le voit. **Sans réponse au bout de 2 min**, l'app propose d'appeler les secours ou de prévenir un pote, et l'alerte remonte au logiciel de gestion. Sous le bouton : « Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours. » **Qui la reçoit (décidé le 9 octobre 2026) : toute l'équipe du lieu**, gérants et membres validés, sur tous leurs téléphones.
 - **Signaler après coup** (harcèlement, agression, discrimination, personnel déplacé…) : ça part en alerte de modération dans le logiciel de gestion. **Jamais public sur la fiche.** L'équipe peut contacter le lieu, lui retirer son badge, le suspendre ou le retirer.
@@ -147,7 +147,7 @@
 ## Publications et compte (CGU du 8 octobre 2026)
 - Les publications restent à leur auteur : SOS Miam peut seulement les héberger, les adapter au format et les montrer dans l'app et sur le site. **Pour les reprendre ailleurs (nos réseaux TikTok, Instagram…), on demande d'abord l'accord de l'auteur.**
 - Un compte par personne ; suppression possible **depuis l'app** (exigé par Apple, à coder) ou par e-mail.
-- Âge : page publique https://sosmiam.fr/age (« URL d'adéquation à l'âge » de l'App Store, classification 16+). À mettre à jour avec les CGU **avant** l'arrivée de la messagerie et de la pub.
+- Âge : page publique https://sosmiam.fr/age (« URL d'adéquation à l'âge » de l'App Store). **Classification 18+ depuis le 14 octobre 2026** (app réservée aux majeurs), dans App Store Connect et la Play Console ; CGU à mettre à jour **avant** l'arrivée de la messagerie et de la pub.
 
 ## Fil « Pour toi » de l'app (décidé le 8 octobre 2026)
 - Un mélange de Reels, Shorts et TikTok :
@@ -168,12 +168,10 @@
 - **Entre personnes** (démo sur le téléphone depuis le 8 octobre 2026 ; l'API viendra ensuite) :
   - suivre est à sens unique et **coexiste avec « Ma bande »** : suivre, c'est voir passer ses listes et ses lieux (ses vidéos et avis arriveront avec les comptes) ; Ma bande, ce sont les vrais potes, pour les sorties et le chat. Suivre n'ouvre jamais le chat ;
   - comptes **publics par défaut, privé possible** (Réglages > Compte privé) : en privé, chaque abonnement est une demande à accepter ;
-  - **15-17 ans : compte privé d'office**. Un adulte ne peut ni les suivre, ni leur envoyer de demande, ni voir leurs compteurs et leurs abonnés (sauf un créateur de 15-17 ans, voir plus bas). Eux suivent les lieux, les créateurs et les ados de leur âge (sur demande) ;
   - abonnés / abonnements sur les profils (retirer un abonné), onglet « Abonnements » dans le fil (seulement ce que publient les lieux et créateurs suivis), notifications dans l'app derrière une cloche (« … te suit », demandes, nouvelle vidéo), suggestions « Tu pourrais suivre » (potes de potes, créateurs de ta ville, lieux proches). Pas de notification sur le téléphone avant l'API ;
   - tous les gestes de suivi demandent un compte (pendant la visite sans compte, ils ouvrent « Crée ton compte »), et suivre une personne demande d'avoir choisi son pseudo ;
   - choix par défaut, à confirmer par Hugo : passer en privé garde les abonnés, repasser en public accepte les demandes en attente (après confirmation) ; un compte privé montre à un non-abonné son avatar, son prénom, son @pseudo et ses compteurs, rien d'autre ; la bande voit tout si vous vous êtes ajoutés en vrai (lien ou QR code vérifié) ; refuser, retirer un abonné ou ne plus suivre ne prévient jamais l'autre ; bloquer coupe tout dans les deux sens et débloquer ne rétablit rien ;
-  - **à 18 ans, les abonnements déjà acceptés avec des 15-17 ans restent** : seuls les nouveaux liens adulte → mineur sont interdits, et les demandes encore en attente qui le deviennent sont retirées sans bruit. Le compte reste privé tant que la personne ne choisit pas « public », et sa bande ne bouge pas ;
-  - **plus tard (pas en v1, décidé le 9 octobre au soir : seuls les 18 ans et plus publient), un 15-17 ans pourra être créateur** (publier dans le fil public) **avec des abonnés adultes, sous surveillance accrue** : son compte reste privé (chaque abonnement est une demande qu'il accepte ou refuse), et ces liens remontent au logiciel de gestion. La surveillance sera détaillée avec la publication de vidéos (pistes : modération renforcée des commentaires d'adultes, signalements traités en priorité, pas de message privé d'un adulte, position jamais affichée).
+  - les règles des 15-17 ans (compte privé d'office, liens adulte-mineur interdits, créateurs mineurs sous surveillance) ont disparu le 14 octobre 2026 : l'app est réservée aux majeurs.
 
 ## Potes (décidé le 8 octobre 2026)
 - **Ma bande** :
@@ -182,10 +180,7 @@
   - listes partagées, envoyer un lieu à un pote ;
   - activité de la bande et classement du mois ;
   - profil communautaire partageable.
-- **Protection des 15-17 ans** :
-  - pas de bar dans une sortie où il y a un mineur ;
-  - un adulte ne voit pas les mineurs dans la recherche par pseudo et ne peut pas les ajouter par pseudo ;
-  - tant que les comptes n'existent pas, un adulte ne peut ajouter aucun mineur.
+- La protection des 15-17 ans (pas de bar avec un mineur, mineurs invisibles dans la recherche par pseudo) a disparu le 14 octobre 2026 : l'app est réservée aux majeurs.
 - **Liens et QR codes d'invitation** :
   - ils portent un code secret personnel ;
   - tant que l'API ne vérifie pas ce code, un ajout par lien ou QR ne compte pas comme « ajouté en vrai ».
@@ -210,10 +205,7 @@
   - un lieu, avec « On y va ? » qui ouvre une sortie déjà remplie ;
   - des photos ;
   - des notes vocales (1 minute au plus ; micro demandé seulement au moment d'enregistrer).
-- **15-17 ans** :
-  - ils ne discutent qu'avec des potes ajoutés en vrai (lien ou QR code vérifié, donc pas avant l'API) ;
-  - pas de photo ni de note vocale dans une conversation qui mélange mineurs et adultes ;
-  - pas de bar proposé.
+- Les règles des 15-17 ans (potes ajoutés en vrai seulement, ni photo ni vocal avec des adultes, pas de bar) ont disparu le 14 octobre 2026 : l'app est réservée aux majeurs.
 - Pour l'instant, démo locale : rien ne part du téléphone, les interlocuteurs sont des potes d'exemple.
 
 ## Lieux vérifiés et non vérifiés (décidé le 9 octobre 2026)
@@ -248,7 +240,7 @@
   - **délais** : 30 minutes pour valider une addition demandée, 15 minutes pour qu'un lieu annule une validation faite par erreur, 14 jours pour donner son avis ;
   - une addition de table : chaque personne fait sa propre demande (une visite chacun) ;
   - « Venu » (réservation) ne compte que si le client a aussi fait « Je suis là » sur place ;
-  - les avis sont signés « Léa M. » (« Léa » seulement pour un 15-17 ans), datés au mois, jamais à l'heure ; un ambassadeur donne un avis consultatif sur un avis louche, l'équipe tranche dans le logiciel ;
+  - les avis sont signés « Léa M. », datés au mois, jamais à l'heure ; un ambassadeur donne un avis consultatif sur un avis louche, l'équipe tranche dans le logiciel ;
   - aucun texte libre d'un lieu vers un client en v1 (motifs de refus fermés), **sauf la réponse publique à un avis** (décidé le 9 octobre 2026 : sous l'avis, en public, passée au filtre de mots, signalable et relue ; jamais de message privé du lieu au client) ;
   - la démo du mode pro et du mode ambassadeur n'existe qu'en développement (jamais dans une version publiée).
 - **Règles détaillées (plan du 8 octobre 2026)** :
@@ -256,9 +248,9 @@
   - **réservation honorée** : la visite compte quand le lieu touche « Venu » **et** que le client a confirmé « Je suis là » (position vérifiée, d'une heure avant le créneau à 4 h après) ;
   - **position** : comparée par le serveur (sur le téléphone dans la démo) ; refusée si l'imprécision dépasse 500 m, si la lecture a plus de 60 s ou si elle est simulée ; rayon de 200 m, tolérance plafonnée à 150 m. Jamais gardée ni écrite dans un journal ; seul le résultat est gardé ;
   - **au comptoir** : dès 2 additions en attente, l'équipe tape le code à 4 chiffres ; jamais de « tout valider ». Une addition en attente à la fois par compte (30 min). Le lieu peut annuler une validation pendant 15 min. Motifs de refus fermés ; le client peut contester, l'équipe relit sa contestation dans le logiciel et peut lui donner raison (la visite est alors validée, décidé le 9 octobre 2026). Un compte n'est signalé que par des refus venant d'au moins 2 gérants, c'est-à-dire **2 lieux différents** (précisé par Hugo le 9 octobre 2026 : un seul lieu ne suffit jamais) ; le taux de refus des lieux est surveillé ;
-  - **rôles** : même compte ; modes pro (gérant ou équipe) et ambassadeur dans l'app et sur le site ; 18 ans et plus ; un 15-17 ans n'a qu'un mode. L'équipe d'un lieu ne valide ni ne note chez elle. Le lieu voit seulement le prénom, l'initiale, l'emoji, le code et les tampons chez lui. Aucun texte libre du lieu vers le client en v1 ;
-  - **avis vérifiés** : liés à une visite, ouverts 1 h après, pendant 14 jours ; signés « Prénom I. » (prénom seul avant 18 ans), datés au mois ; moyenne prudente ; part de clients qui reviennent à partir de 20 clients (jours distincts). Un ambassadeur relit sans voir l'auteur, jamais un avis de mineur ; son verdict est consultatif, l'équipe tranche. On ne masque jamais un avis automatiquement ;
-  - **fidélité** : un tampon par visite validée ; 3 à 10 visites (5 par défaut) ; récompense figée quand la carte se remplit, remise depuis « Récompenses à donner » ; une récompense avec alcool exige une version sans alcool, la seule montrée aux 15-17 ans ;
+  - **rôles** : même compte ; modes pro (gérant ou équipe) et ambassadeur dans l'app et sur le site (tout compte est majeur). L'équipe d'un lieu ne valide ni ne note chez elle. Le lieu voit seulement le prénom, l'initiale, l'emoji, le code et les tampons chez lui. Aucun texte libre du lieu vers le client en v1 ;
+  - **avis vérifiés** : liés à une visite, ouverts 1 h après, pendant 14 jours ; signés « Prénom I. », datés au mois ; moyenne prudente ; part de clients qui reviennent à partir de 20 clients (jours distincts). Un ambassadeur relit sans voir l'auteur ; son verdict est consultatif, l'équipe tranche. On ne masque jamais un avis automatiquement ;
+  - **fidélité** : un tampon par visite validée ; 3 à 10 visites (5 par défaut) ; récompense figée quand la carte se remplit, remise depuis « Récompenses à donner » ; une récompense avec alcool exige une version sans alcool, la seule montrée sans compte (âge inconnu) ;
     - **dans l'app (construit le 9 octobre 2026)**, « Mes cartes de fidélité » s'ouvre depuis le profil, l'onglet Scan et la fiche du lieu. On y trouve :
       - la liste des cartes, celles dont la récompense est prête en premier ;
       - la carte en grand, avec les tampons et tes visites dans ce lieu ;
@@ -314,7 +306,7 @@
 ## Visite sans compte (décidé le 8 octobre 2026, construite le 9 octobre)
 - **Sans compte, on regarde seulement** : fil, Explorer, fiches des lieux et leur carte, pages des créateurs, lecture des commentaires, « Y aller ».
 - **Tout le reste demande un compte** : rescousse, J'aime, commenter, suivre, garder, partager, envoyer à un pote, Pas intéressé, Signaler, Potes, chat, profil, défis, Scan. Une feuille « Crée ton compte » s'ouvre à la place.
-- **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou des moins de 15 ans reste actif sur le téléphone.
+- **Pas de question d'âge** : contenu tout public (ni bars ni alcool) jusqu'à l'inscription. Le verrou d'âge (moins de 18 ans) reste actif sur le téléphone.
 - Entrée par « Juste jeter un œil » (bienvenue et écran du compte). Après une inscription lancée depuis la visite, on revient sur l'écran d'où l'on est parti, avec le compte. Une fiche de bar ouverte sans compte propose de s'inscrire (« tu as 18 ans ou plus ? »).
 
 ## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026)
@@ -391,7 +383,7 @@
   - sur l'image d'une publication de bar ou qui parle d'alcool ;
   - en bas de la liste d'Explorer ;
   - à côté d'une récompense de fidélité avec alcool (fiche, accueil du scan, célébration).
-  - Un 15-17 ans ne voit rien de tout ça (ni l'alcool, ni le message).
+  - Sans compte (âge inconnu), rien de tout ça n'apparaît (ni l'alcool, ni le message).
   - Lien « Santé et prévention » dans les réglages.
   - Textes et détection dans packages/commun : `contenus/prevention-alcool.ts`, `fonctions/prevention/`.
 
