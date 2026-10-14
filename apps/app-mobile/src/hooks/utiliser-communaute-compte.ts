@@ -33,7 +33,8 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
       ...(bande.maPlace ?? {}),
     };
     const potes = bande.potes;
-    const trouverPote = (id: string) => (id === moi.id || id === ID_MOI ? moi : (bande.trouverPote(id) ?? locale.trouverPote(id)));
+    // « » : un compte supprimé (ou ton profil social pas encore créé) n'est jamais toi
+    const trouverPote = (id: string) => (id === "" ? null : id === moi.id || id === ID_MOI ? moi : (bande.trouverPote(id) ?? locale.trouverPote(id)));
     return {
       ...locale,
       source: "compte",
