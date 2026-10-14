@@ -2,6 +2,7 @@ import { BarreOngletsApp } from "~/composants/apercus/BarreOngletsApp";
 import { CarteSortieEcran, type SortieEcran } from "~/composants/apercus/CarteSortieEcran";
 import { EnTeteEcran } from "~/composants/apercus/EnTeteEcran";
 import { EtiquetteEcran } from "~/composants/apercus/EtiquetteEcran";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const FILTRES = ["Tout", "Vegan", "Petit budget", "Sans alcool", "Calme"];
 
@@ -50,7 +51,8 @@ export function EcranSorties() {
           ))}
         </span>
         <span className="shrink-0 text-[11px] text-gris">
-          Tes envies : <b className="font-semibold text-encre">Sans alcool, Calme</b>
+          {lierPonctuation("Tes envies : ")}
+          <b className="font-semibold text-encre">Sans alcool, Calme</b>
         </span>
         {SORTIES.map((sortie) => <CarteSortieEcran key={sortie.titre} sortie={sortie} />)}
       </div>
