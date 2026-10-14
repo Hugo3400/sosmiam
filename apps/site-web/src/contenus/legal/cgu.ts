@@ -254,6 +254,7 @@ export const documentCgu: DocumentLegal = {
             "de ton propre matériel ou de ta connexion à internet (virus présent sur ton appareil, réseau défaillant…).",
           ],
         },
+        "**Miam Safe** (« Prévenir un pote », l'alerte silencieuse au comptoir) est un coup de main pour prévenir quelqu'un, **pas un service de secours** : une notification peut arriver en retard, ne pas être vue, ou ne pas partir si le téléphone de ton pote n'est pas connecté (l'app te le dit). En cas de danger, appelle d'abord le **17** ou le **112** (le **114** par SMS).",
         "Ces limites ne s'appliquent jamais en cas de manquement ou de faute de notre part, et ne te privent d'aucun des droits que la loi te reconnaît.",
         "**De ton côté**, tu es responsable de l'usage que tu fais de SOS Miam, de ce que tu publies, de ce que tu écris ou envoies dans la messagerie (à deux, en groupe ou dans une sortie) et de ce que tu nous envoies. Chacun répond de ses propres messages : l'admin d'un groupe ou l'organisateur d'une sortie ne répond pas de ce qu'écrivent les autres.",
       ],
