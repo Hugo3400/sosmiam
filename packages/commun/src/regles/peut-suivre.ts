@@ -1,5 +1,5 @@
-import type { CompteSuivable, VerdictSuivi } from "../types/suivis";
-import { estComptePrive } from "./est-compte-prive";
+import type { CompteSuivable, VerdictSuivi } from "../types/suivis.ts";
+import { estComptePrive } from "./est-compte-prive.ts";
 
 /**
  * Peut-on suivre ce compte ? Dans l'ordre : pas soi-même, pas une personne bloquée (dans un sens ou dans l'autre).

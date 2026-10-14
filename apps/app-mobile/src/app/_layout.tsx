@@ -42,6 +42,9 @@ export default function RacineApp() {
     // La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert
     <FournisseurSession>
     <FournisseurProfil>
+      {/* L'activité (rescousses, lieux gardés, J'aime, suivis) : celle de la démo sur le téléphone, sinon celle du compte sur
+          l'API. Au-dessus du fil, qui ne compte pas ton J'aime deux fois (le compteur de l'API le compte déjà) */}
+      <FournisseurActivite>
       {/* Les lieux (exemples en démo, sinon le serveur) : sous le profil, pour les distances depuis ta ville */}
       <FournisseurLieux>
       {/* Le fil (exemples en démo, sinon le serveur) : vignettes, profils et notifications s'en servent aussi */}
@@ -49,28 +52,27 @@ export default function RacineApp() {
       {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
       <FournisseurInvite>
         {/* En cas d'échec des polices, on démarre quand même avec celles du système */}
-        <FournisseurActivite>
-          {/* Modes (perso, pro, ambassadeur), puis les services des visites, qui relisent tes rôles, puis tes visites */}
-          <FournisseurModes>
-            <FournisseurServices>
-              <FournisseurVisites>
-                <FournisseurCommunaute>
-                  {/* Notifications de l'app (cloche), puis abonnés et abonnements entre personnes, qui en ajoutent */}
-                  <FournisseurNotifications>
-                    <FournisseurSuivisPersonnes>
-                      <FournisseurConversations>
-                        <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
-                      </FournisseurConversations>
-                    </FournisseurSuivisPersonnes>
-                  </FournisseurNotifications>
-                </FournisseurCommunaute>
-              </FournisseurVisites>
-            </FournisseurServices>
-          </FournisseurModes>
-        </FournisseurActivite>
+        {/* Modes (perso, pro, ambassadeur), puis les services des visites, qui relisent tes rôles, puis tes visites */}
+        <FournisseurModes>
+          <FournisseurServices>
+            <FournisseurVisites>
+              <FournisseurCommunaute>
+                {/* Notifications de l'app (cloche), puis abonnés et abonnements entre personnes, qui en ajoutent */}
+                <FournisseurNotifications>
+                  <FournisseurSuivisPersonnes>
+                    <FournisseurConversations>
+                      <PileRacine policesChargees={policesChargees || erreurPolices !== null} />
+                    </FournisseurConversations>
+                  </FournisseurSuivisPersonnes>
+                </FournisseurNotifications>
+              </FournisseurCommunaute>
+            </FournisseurVisites>
+          </FournisseurServices>
+        </FournisseurModes>
       </FournisseurInvite>
       </FournisseurPublications>
       </FournisseurLieux>
+      </FournisseurActivite>
     </FournisseurProfil>
     </FournisseurSession>
   );

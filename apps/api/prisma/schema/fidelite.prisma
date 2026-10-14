@@ -2,7 +2,7 @@
 // validée, récompense figée quand la carte se remplit, remise par l'équipe au comptoir après une demande (code de 15 min).
 // Règles dans packages/commun (regles/fidelite.ts, fonctions/fidelite/).
 
-/// Le programme d'un lieu, réglé par son gérant : 3 à 10 visites, une récompense, sa version sans alcool pour les 15-17 ans
+/// Le programme d'un lieu, réglé par son gérant : 3 à 10 visites, une récompense, et sa version sans alcool (facultative, montrée sans compte)
 model ProgrammeFidelite {
   lieuId               Int      @id @map("lieu_id")
   lieu                 Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)

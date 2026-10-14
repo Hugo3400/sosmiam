@@ -1,6 +1,6 @@
 // Statistiques d'un lieu pour son équipe (voir routes/comptoir.ts) : par semaine de Paris, les vues de sa fiche dans l'app,
 // les rescousses reçues, les visites validées et les nouveaux clients. Le gérant et l'équipe les voient (roleDe : rattachement
-// validé ET 18 ans, comme le reste du comptoir).
+// validé, comme le reste du comptoir).
 import type { Request, Response } from "express";
 
 import { calculerInstantParis } from "../../../../packages/commun/src/fonctions/temps/calculer-instant-paris.ts";

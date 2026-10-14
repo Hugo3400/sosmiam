@@ -1,7 +1,7 @@
 // Les réservations côté équipe du lieu (routes /pro/comptoir/…, voir routes/comptoir.ts) : la liste du jour et à venir,
 // accepter (code d'arrivée à 4 chiffres), refuser ou annuler (motifs fermés), « Venu » et « Pas venu ». Le lieu est
-// toujours relu sur la réservation, jamais pris dans la demande ; le rôle (gérant ou équipe, 18 ans) est revérifié à
-// chaque geste. L'équipe ne voit que le prénom, l'initiale et l'emoji du client.
+// toujours relu sur la réservation, jamais pris dans la demande ; le rôle (gérant ou équipe) est revérifié à chaque
+// geste. L'équipe ne voit que le prénom, l'initiale et l'emoji du client.
 import { choisirCodeAddition } from "../../../../packages/commun/src/fonctions/visites/choisir-code-addition.ts";
 import type { EvenementReservation, MotifRefusReservation, ReservationPro } from "../../../../packages/commun/src/types/reservation.ts";
 import { calculerFenetreArrivees } from "../fonctions/reservations/calculer-fenetre-arrivees.ts";

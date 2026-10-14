@@ -1,5 +1,5 @@
-import type { VisibiliteProfil } from "../types/suivis";
-import { estComptePrive } from "./est-compte-prive";
+import type { VisibiliteProfil } from "../types/suivis.ts";
+import { estComptePrive } from "./est-compte-prive.ts";
 
 /**
  * Ce qu'on voit du profil de quelqu'un. Toi : tout. Ta bande en vrai (lien, QR code vérifié, bande d'exemple),

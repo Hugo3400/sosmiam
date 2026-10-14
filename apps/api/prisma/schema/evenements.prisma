@@ -23,7 +23,7 @@ model EvenementLieu {
   places       Int?               @db.SmallInt
   /// Photo facultative : nom du fichier dans le dossier des médias
   photo        String?            @db.VarChar(120)
-  /// Il y a de l'alcool (dégustation…) : caché aux 15-17 ans, avec le message sanitaire
+  /// Il y a de l'alcool (dégustation…) : caché en visite sans compte, avec le message sanitaire
   alcool       Boolean            @default(false)
   creeLe       DateTime           @default(now()) @map("cree_le") @db.Timestamptz(0)
   modifieLe    DateTime           @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)

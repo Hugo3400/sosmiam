@@ -1,6 +1,6 @@
 // Les avis au comptoir (voir routes/comptoir.ts) : la liste des avis du lieu pour son équipe, et la réponse publique du
-// gérant (une par avis, 600 caractères, filtre de mots). Le rôle est revérifié à chaque geste (roleDe : rattachement validé
-// et 18 ans), sur le lieu de l'avis.
+// gérant (une par avis, 600 caractères, filtre de mots). Le rôle est revérifié à chaque geste (roleDe : rattachement
+// validé), sur le lieu de l'avis.
 import type { Request, Response } from "express";
 
 import { validerReponseAvis } from "../../../../packages/commun/src/validation/valider-reponse-avis.ts";

@@ -7,7 +7,7 @@ import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 type Entree = {
   /** Publications qu'on peut montrer (sans celles masquées, seulement sur des lieux de `lieux`) */
   publications: readonly Publication[];
-  /** Lieux que ton âge permet */
+  /** Lieux qu'on peut montrer (sans bar en visite sans compte : filtrerLieuxSelonAge) */
   lieux: readonly Lieu[];
   /** Ta ville (profil), ou null si on ne la connaît pas */
   ville: string | null;

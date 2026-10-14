@@ -1,5 +1,5 @@
 // Événements d'un lieu, publiés par son équipe (voir routes/comptoir.ts, /pro/comptoir/lieux/:id/evenements) : le gérant et
-// l'équipe (rattachement validé, 18 ans) publient, modifient et annulent ; 10 à venir par lieu, 3 mois à l'avance au plus.
+// l'équipe (rattachement validé) publient, modifient et annulent ; 10 à venir par lieu, 3 mois à l'avance au plus.
 // Le lieu d'un événement est relu sur l'événement, jamais pris dans la demande : un événement d'un autre lieu → 404.
 import type { Request, Response } from "express";
 

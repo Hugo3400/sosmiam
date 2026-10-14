@@ -7,9 +7,7 @@ export type EtatModes = {
   pret: boolean;
   /** Rôles du compte (démo : ceux des Coulisses ; sans démo, aucun en attendant le compte unique) */
   roles: RolesCompte;
-  /** 18 ans et plus (âge du profil) ; faux sans profil */
-  majeur: boolean;
-  /** Toujours « perso » en premier ; un 15-17 ans ou une visite sans compte n'a que « perso » */
+  /** Toujours « perso » en premier ; une visite sans compte n'a que « perso » */
   modesOuverts: ModeApp[];
   /** Lieu du mode pro (le dernier choisi, sinon le premier géré) ; null si le mode pro n'est pas ouvert */
   lieuPro: LieuGere | null;

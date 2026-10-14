@@ -24,13 +24,14 @@ const VIERGE: ReglageFidelite = { actif: true, visitesRequises: VISITES_FIDELITE
 
 const ERREURS = {
   recompense: "Entre 3 et 60 caractères, sans gros mot : un café, un dessert maison…",
-  recompenseSansAlcool: "Pour les moins de 18 ans, une récompense sans alcool est obligatoire.",
+  recompenseSansAlcool: "Entre 3 et 60 caractères, sans gros mot et sans une goutte d'alcool : un jus pressé, un sirop maison…",
   visitesRequises: "Entre 3 et 10 visites.",
 } as const;
 
 /**
  * La carte de fidélité du lieu (gérant) : ce qu'il offre, au bout de combien de visites, avec l'aperçu de ce que verront
- * ses clients. Une récompense avec de l'alcool demande sa version pour les moins de 18 ans.
+ * ses clients. Une récompense avec de l'alcool s'affiche avec le message de prévention ; sa version sans alcool est
+ * facultative (seule montrée à qui visite sans compte).
  */
 export default function EcranFidelitePro() {
   const marges = useSafeAreaInsets();
@@ -106,16 +107,17 @@ export default function EcranFidelitePro() {
             maxLength={60}
           />
           {alcoolDetecte ? (
-            <Text className="font-texte text-sm leading-5 text-gris">🍷 Il y a de l'alcool dedans : on demande aussi une version pour les moins de 18 ans.</Text>
+            <Text className="font-texte text-sm leading-5 text-gris">🍷 Il y a de l'alcool dedans : tes clients verront le petit message de prévention à côté.</Text>
           ) : (
             <Interrupteur titre="Il y a de l'alcool dedans" valeur={reglage.alcool} onChanger={(a) => changer({ alcool: a, recompenseSansAlcool: a ? reglage.recompenseSansAlcool : null })} />
           )}
           {alcool ? (
             <ChampTexte
-              libelle="Et pour les moins de 18 ans ?"
+              libelle="Et une version sans alcool ?"
+              mention="facultatif"
               valeur={reglage.recompenseSansAlcool ?? ""}
               onChangeTexte={(t) => changer({ recompenseSansAlcool: t })}
-              aide="Un jus pressé, un sirop maison…"
+              aide="Montrée à qui visite sans compte. Un jus pressé, un sirop maison…"
               erreur={erreur === "recompenseSansAlcool" ? ERREURS.recompenseSansAlcool : null}
               maxLength={60}
             />

@@ -2,8 +2,6 @@ import { router, useNavigationContainerRef } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { listerModesOuverts } from "@sos-miam/commun/fonctions/roles/lister-modes-ouverts";
-import { AGE_ALCOOL } from "@sos-miam/commun/regles/ages";
-import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import type { ModeApp, RolesCompte } from "@sos-miam/commun/types/roles";
 import { ContexteModes, type EtatModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -27,7 +25,8 @@ function contientOnglets(etat: EtatNavigation): boolean {
 }
 
 /**
- * Modes de l'app : perso pour tout le monde ; pro (équipe d'un lieu) et ambassadeur pour les 18 ans et plus qui ont le rôle.
+ * Modes de l'app : perso pour tout le monde ; pro (équipe d'un lieu) et ambassadeur pour les comptes qui ont le rôle (une
+ * visite sans compte n'a que perso).
  * Avec un vrai compte connecté, les rôles sont les siens (relus par le serveur) ; sinon, en démo, ceux joués dans les
  * Coulisses, et aucun hors démo.
  * Le dernier mode est gardé sur le téléphone : au lancement, s'il est encore ouvert, on y revient une fois la navigation prête.
@@ -60,9 +59,7 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
         : rolesDemo,
     [compte, rolesDemo],
   );
-  // L'âge du compte (null : compte du site, 18 ans demandés à l'inscription), sinon celui du profil du téléphone
-  const majeur = compte ? compte.age === null || compte.age >= AGE_ALCOOL : profil !== null && calculerAge(profil.dateNaissance) >= AGE_ALCOOL;
-  const modesOuverts = useMemo(() => (profil ? listerModesOuverts(roles, majeur) : SEUL_MODE_PERSO), [profil, roles, majeur]);
+  const modesOuverts = useMemo(() => (profil ? listerModesOuverts(roles) : SEUL_MODE_PERSO), [profil, roles]);
   const proOuvert = modesOuverts.includes("pro");
   const lieuPro = useMemo(
     () => (proOuvert ? (roles.pro.find((l) => l.id === garde.lieuProId) ?? roles.pro[0] ?? null) : null),
@@ -87,7 +84,7 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
     avaitUnProfil.current = profil !== null;
   }, [profil, chargement]);
 
-  // Le dernier mode n'est plus ouvert (rôle retiré, anniversaire pas encore passé…) : retour au mode perso
+  // Le dernier mode n'est plus ouvert (rôle retiré, profil effacé…) : retour au mode perso
   useEffect(() => {
     if (pret && profil && garde.dernierMode !== "perso" && !modesOuverts.includes(garde.dernierMode)) {
       memoriser({ ...garde, dernierMode: "perso" });
@@ -171,7 +168,6 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
     () => ({
       pret,
       roles,
-      majeur,
       modesOuverts,
       lieuPro,
       choisirLieuPro,
@@ -180,7 +176,7 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
       revenirAuModePerso,
       changerRolesDemo,
     }),
-    [pret, roles, majeur, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, changerRolesDemo],
+    [pret, roles, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, changerRolesDemo],
   );
 
   return <ContexteModes.Provider value={valeur}>{children}</ContexteModes.Provider>;

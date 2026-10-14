@@ -4,7 +4,7 @@ import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 
 type Entree = {
-  /** Lieux que ton âge permet */
+  /** Lieux qu'on peut montrer (sans bar en visite sans compte : filtrerLieuxSelonAge) */
   lieux: readonly Lieu[];
   /** Ta position, ou le centre de ta ville ; null : on ne sait pas où tu es, donc aucun lieu « proche » */
   depart: PositionLieu | null;

@@ -211,6 +211,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
   const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
+  // Ton J'aime n'est compté qu'une fois : ceux des autres (le compteur de l'API compte déjà le tien), plus le tien
+  const jaimesAutres = Math.max(0, publication.jaimesAutres ?? publication.jaimes);
   const actionsVideo = video
     ? [
         { name: "pause", label: enPause ? "Reprendre la vidéo" : "Mettre la vidéo en pause" },
@@ -382,8 +384,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <ActionPost
             actif={aime}
             icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
-            libelle={formaterNombreCourt(publication.jaimes + (aime ? 1 : 0))}
-            description={aime ? "Retirer ton J'aime" : `J'aime, ${publication.jaimes} personnes aiment`}
+            libelle={formaterNombreCourt(jaimesAutres + (aime ? 1 : 0))}
+            description={aime ? "Retirer ton J'aime" : `J'aime, ${jaimesAutres} personnes aiment`}
             indice={indiceCompte}
             onPress={() => gestes.jaime(publication)}
             style="transparent"

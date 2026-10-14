@@ -1,6 +1,6 @@
 // Avis des lieux (docs/decisions.md, « Scan et validation des visites ») : vérifiés (liés à une visite validée, ouverts 1 h
-// après et pendant 14 jours) ou non vérifiés (lieu sans compte SOS Miam). Signés « Prénom I. » (prénom seul avant 18 ans),
-// datés au mois. Un ambassadeur relit sans voir l'auteur (jamais l'avis d'un mineur) ; l'équipe tranche dans le logiciel.
+// après et pendant 14 jours) ou non vérifiés (lieu sans compte SOS Miam). Signés « Prénom I. » (prénom seul sans nom donné),
+// datés au mois. Un ambassadeur relit sans voir l'auteur ; l'équipe tranche dans le logiciel.
 
 model Avis {
   id              Int             @id @default(autoincrement())
@@ -15,9 +15,9 @@ model Avis {
   texte           String          @db.VarChar(1000)
   /// Photo facultative : nom du fichier dans le dossier des médias (+10 points pour un avis vérifié)
   photo           String?         @db.VarChar(120)
-  /// La signature figée à l'écriture : « Léa M. », ou « Léa » pour un 15-17 ans
+  /// La signature figée à l'écriture : « Léa M. », ou « Léa » sans nom donné
   signature       String          @db.VarChar(60)
-  /// L'auteur avait moins de 18 ans en l'écrivant : jamais relu par un ambassadeur
+  /// Ancien marquage (l'auteur avait moins de 18 ans), plus écrit depuis le 14/10/2026 : un tel avis n'est jamais relu par un ambassadeur
   mineur          Boolean         @default(false)
   /// « publie », « en-relecture » ou « masque »
   statut          String          @default("publie") @db.VarChar(12)
