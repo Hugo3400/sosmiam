@@ -14,6 +14,11 @@ export type EtatLieux = {
   horsLigne: boolean;
   /** Relit la liste sur le serveur (tirer pour rafraîchir, retour dans l'app) */
   recharger: () => Promise<void>;
+  /**
+   * Lit un seul lieu absent de la liste (lien partagé, lieu tout juste publié) et l'y ajoute. « inconnu » : absent,
+   * brouillon ou masqué ; toujours « inconnu » en démo (la liste d'exemples est complète).
+   */
+  chargerLieu: (id: number) => Promise<"ok" | "inconnu" | "hors-ligne">;
 };
 
 export const ContexteLieux = createContext<EtatLieux | null>(null);
