@@ -111,7 +111,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
                 onClick={() => agir(async () => {
                   const donnees = await exporterDonneesCompte(compte.id);
                   const ok = await enregistrerFichier(`donnees-compte-${compte.id}-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(donnees, null, 2), "application/json");
-                  return ok ? "Données enregistrées : envoie ce fichier à la personne, à son adresse." : undefined;
+                  return ok ? "Données enregistrées : envoie ce fichier à la personne, à son adresse, puis supprime-le de ce PC." : undefined;
                 })}
               >
                 Exporter ses données

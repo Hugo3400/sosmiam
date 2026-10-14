@@ -110,7 +110,8 @@ export async function rendreCharteMiamSafe(lieuId: number): Promise<boolean> {
 
 /**
  * Ménage de nuit (taches-de-nuit.ts), promis par la politique de confidentialité : les signalements Miam Safe traités depuis
- * plus d'un an, et les alertes silencieuses de plus de 30 jours (aussi effacées à chaque nouvelle alerte).
+ * plus d'un an, les alertes silencieuses de plus de 30 jours (aussi effacées à chaque nouvelle alerte) et les partages de
+ * position finis (leur position est déjà effacée à la fin du partage).
  */
 export async function effacerMiamSafeAncien(maintenant = new Date()) {
   const unAn = new Date(maintenant);

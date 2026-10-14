@@ -16,6 +16,7 @@ import { ErreurApi } from "~/services/client-gestion.ts";
 import { lireEtatServeur, relancerProcessus, type EtatServeur } from "~/services/maintenance.ts";
 import { trouverProblemes } from "~/fonctions/maintenance/trouver-problemes.ts";
 import { CarteSauvegardes } from "./CarteSauvegardes.tsx";
+import { CarteMenageManuel } from "./CarteMenageManuel.tsx";
 import { CarteTestSauvegarde } from "./CarteTestSauvegarde.tsx";
 import { JournalGestion } from "./JournalGestion.tsx";
 
@@ -117,6 +118,7 @@ export function EcranMaintenance({ surEtat }: { surEtat: (etat: EtatServeur) => 
 
           <CarteSauvegardes apresSauvegarde={recharger} />
           <CarteTestSauvegarde />
+          <CarteMenageManuel />
 
           <Carte titre="Base de données">
             <ul className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm md:grid-cols-3">

@@ -25,3 +25,11 @@ test("« Inscrire les comptes de l'app » : désactivé en attendant que le « n
   assert.equal(journal.length, 0);
   await banc.fermer();
 });
+
+test("ménage à faire à la main : la route rend les trois rappels", async () => {
+  const { creerBancGestion } = await import("./outils/creer-banc-gestion.ts");
+  const banc = await creerBancGestion({ lireMenageManuel: async () => ({ mailsAnciens: 2, aRelancer: 5, desinscritsSansDate: 1 }) } as never);
+  const session = await banc.ouvrirSession();
+  assert.deepEqual(await (await banc.demander("GET", "/maintenance/menage-manuel", { session })).json(), { mailsAnciens: 2, aRelancer: 5, desinscritsSansDate: 1 });
+  await banc.fermer();
+});

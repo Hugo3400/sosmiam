@@ -56,11 +56,6 @@ export function creerPartagesMiamSafeEnMemoire(lireLieu: (lieuId: number) => str
         .sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime() || b.id - a.id)
         .map(copier);
     },
-    async effacerFinis(maintenant) {
-      const avant = lignes.length;
-      for (let i = lignes.length - 1; i >= 0; i--) if (!estPartageActif(lignes[i], maintenant)) lignes.splice(i, 1);
-      return avant - lignes.length;
-    },
   };
   return { services, lignes };
 }

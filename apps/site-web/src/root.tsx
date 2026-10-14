@@ -3,8 +3,10 @@ import type { ReactNode } from "react";
 
 import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
+import { GestionnaireConsentement } from "~/composants/cookies/GestionnaireConsentement";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
+import { lireEtatConsentement } from "~/services/consentement.server";
 import { signalerVue } from "~/services/mesure.server";
 // Polices hébergées par le site lui-même (pas d'appel à Google Fonts)
 import "@fontsource-variable/inter";
@@ -38,6 +40,14 @@ export const middleware: Route.MiddlewareFunction[] = [
   },
 ];
 
+/**
+ * Consentement aux cookies, lu à chaque page par le serveur (premier affichage sans clignotement du bandeau) : aperçu ou
+ * pas, et le choix du cookie « sosmiam-consentement » (services/consentement.server.ts).
+ */
+export function loader({ request }: Route.LoaderArgs) {
+  return { consentement: lireEtatConsentement(request) };
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
@@ -57,10 +67,15 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
-export default function App() {
+export default function App({ loaderData }: Route.ComponentProps) {
   // Changement de page sans rechargement : le focus va au titre de la nouvelle page
   utiliserFocusApresNavigation();
-  return <Outlet />;
+  // Bandeau et réglages des cookies sur toutes les pages, des trois hôtes (caché tant qu'aucune catégorie n'est active)
+  return (
+    <GestionnaireConsentement etat={loaderData.consentement}>
+      <Outlet />
+    </GestionnaireConsentement>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

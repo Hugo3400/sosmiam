@@ -7,7 +7,13 @@ import { liensPublics, RESEAUX_SOCIAUX } from "~/contenus/liens-publics";
 
 export type SiteDuLien = "principal" | "ambassadeur" | "pro" | "externe";
 
-export type LienPiedDePage = { texte: string; adresse: string; site: SiteDuLien };
+export type LienPiedDePage = {
+  texte: string;
+  adresse: string;
+  site: SiteDuLien;
+  /** « Gérer mes cookies » : rouvre le panneau des cookies (composants/cookies/LienGererCookies), sinon suit l'adresse */
+  reglagesCookies?: boolean;
+};
 
 export type GroupePiedDePage = { titre: string; liens: LienPiedDePage[] };
 
@@ -44,7 +50,8 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
   {
     titre: "Infos légales",
     liens: [
-      ...[...pagesLegales, lienGererCookies].map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
+      ...pagesLegales.map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
+      { texte: lienGererCookies.texte, adresse: lienGererCookies.href, site: "principal", reglagesCookies: true },
     ],
   },
 ];

@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 
+import { LienGererCookies } from "~/composants/cookies/LienGererCookies";
 import { Logo } from "~/composants/interface/Logo";
 import { site } from "~/contenus/legal/informations-legales";
 import { MESSAGE_SANITAIRE_ALCOOL } from "~/contenus/legal/prevention";
@@ -18,12 +19,16 @@ type Props = {
 
 const classeLien = "opacity-80 underline-offset-4 hover:underline hover:opacity-100";
 
-/** Un lien du pied de page : <Link> sur le même site, <a> avec l'adresse complète vers l'autre site ou un réseau. */
+/**
+ * Un lien du pied de page : <Link> sur le même site, <a> avec l'adresse complète vers l'autre site ou un réseau.
+ * « Gérer mes cookies » rouvre le panneau des cookies sur l'hôte de la page (son adresse ne sert que sans JavaScript).
+ */
 function LienDuPied({ lien, espace }: { lien: LienPiedDePage; espace: Espace }) {
-  if (lien.site === espace) return <Link to={lien.adresse} className={classeLien}>{lien.texte}</Link>;
   const hotes = { principal: site.adresse, ambassadeur: HOTE_AMBASSADEUR, pro: HOTE_PRO, externe: null };
-  const hote = hotes[lien.site];
+  const hote = lien.site === espace ? null : hotes[lien.site];
   const adresse = hote ? `https://${hote}${lien.adresse}` : lien.adresse;
+  if (lien.reglagesCookies) return <LienGererCookies href={adresse} className={classeLien}>{lien.texte}</LienGererCookies>;
+  if (lien.site === espace) return <Link to={lien.adresse} className={classeLien}>{lien.texte}</Link>;
   return <a href={adresse} className={classeLien}>{lien.texte}</a>;
 }
 

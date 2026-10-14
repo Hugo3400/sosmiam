@@ -15,8 +15,8 @@ import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import { retrouverFichierChat } from "~/stockage/conversations-locales";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -35,6 +35,14 @@ type Props = {
 };
 
 const TAILLE_AVATAR = 32;
+
+/** Ce qu'on montre à la place d'un message qui n'est plus visible (compte connecté) */
+const ETATS_CACHES: Record<"supprime" | "masque" | "retire" | "illisible", string> = {
+  supprime: "Message supprimé",
+  masque: "🛡️ Masqué en attendant la modération",
+  retire: "🛡️ Retiré par la modération",
+  illisible: "Message illisible",
+};
 const DELAI_DOUBLE_APPUI = 300;
 const DELAI_APPUI_LONG = 350;
 
@@ -43,7 +51,7 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
-  const { basculerReaction } = utiliserConversations();
+  const { basculerReaction, renvoyer } = utiliserConversations();
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   const dernierAppui = useRef(0);
@@ -58,11 +66,16 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   );
 
   const coeurMis = (message.reactions["❤️"] ?? []).includes(monId);
-  // Le message garde « chat/<nom> » : l'adresse complète se refait ici (le dossier de l'app change avec les mises à jour sur iPhone)
-  const fichier = useMemo(() => (message.fichier ? retrouverFichierChat(message.fichier) : undefined), [message.fichier]);
+  // Le fichier de la photo ou de la note : sur le téléphone (démo, ton envoi en cours), ou téléchargé depuis le serveur
+  const media = utiliserMediaChat(conversationId, message);
+  const fichier = media.fichier;
+  // Un message caché (supprimé, modération…) ou pas encore parti ne reçoit pas de réaction
+  const cache = message.etat === "supprime" || message.etat === "masque" || message.etat === "retire" || message.etat === "illisible" ? message.etat : null;
+  const reactionsPossibles = !message.etat;
 
   /** Met ou retire ton cœur ; vrai s'il vient d'être mis */
   function basculerCoeur(): boolean {
+    if (!reactionsPossibles) return false;
     basculerReaction(conversationId, message.id, "❤️");
     return !coeurMis;
   }
@@ -91,7 +104,8 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     onOptions();
   }
 
-  const prenom = deMoi ? "Toi" : (auteur?.prenom ?? "Quelqu'un");
+  // Un auteur qui a supprimé son compte : « Compte supprimé » (ses messages restent)
+  const prenom = deMoi ? "Toi" : (auteur?.prenom ?? (message.auteur === "" ? "Compte supprimé" : "Quelqu'un"));
   const avecPrenom = !deMoi && groupe && debutSerie;
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
   const fond = deMoi ? "bg-jaune" : "bg-white";
@@ -113,7 +127,19 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   };
 
   let contenu: ReactNode;
-  if (message.type === "lieu") {
+  if (cache || ((message.type === "photo" || message.type === "vocal") && media.etat === "expire")) {
+    const texte = cache ? ETATS_CACHES[cache] : "Ce média a expiré";
+    contenu = (
+      <Pressable
+        accessibilityLabel={`${prenom}, ${heure} : ${texte}`}
+        onLongPress={ouvrirOptions}
+        delayLongPress={DELAI_APPUI_LONG}
+        className={`border-2 border-dashed border-gris/50 px-3.5 py-2.5 ${coins} bg-white/60`}
+      >
+        <Text className="font-texte text-sm italic text-gris">{lierPonctuation(texte)}</Text>
+      </Pressable>
+    );
+  } else if (message.type === "lieu") {
     contenu = <CarteLieuChat conversationId={conversationId} lieuId={message.lieuId} contexte={`${prenom}, ${heure}`} onAppuiLong={onOptions} actionsLecteur={actionsLecteur} />;
   } else if (message.type === "photo") {
     contenu = (
@@ -196,7 +222,25 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
       <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
         {bulle}
         <ReactionsMessage conversationId={conversationId} message={message} deMoi />
-        {heureEcrite}
+        {message.etat === "echec" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Pas parti. Touche pour réessayer."
+            onPress={() => {
+              vibrerLegerement();
+              renvoyer(conversationId, message.id);
+            }}
+            className="mt-0.5 min-h-8 justify-center active:opacity-70"
+          >
+            <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
+          </Pressable>
+        ) : message.etat === "envoi" ? (
+          <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
+            Envoi…
+          </Text>
+        ) : (
+          heureEcrite
+        )}
       </View>
     );
   }

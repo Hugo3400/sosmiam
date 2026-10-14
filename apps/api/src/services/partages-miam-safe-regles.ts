@@ -1,7 +1,8 @@
 // « Prévenir un pote » (Miam Safe) côté serveur : formes et contrat des services (Prisma : partages-miam-safe.ts ; double en
 // mémoire : partages-miam-safe-en-memoire.ts). Une personne qui ne se sent pas en sécurité dans un lieu prévient un pote de
 // sa bande et lui montre sa position pendant 1 heure, arrêtable à tout moment. La position est chiffrée dans la base,
-// effacée dès l'arrêt ou la fin de l'heure, et jamais écrite dans un journal ; la ligne entière disparaît la nuit suivante.
+// effacée dès l'arrêt ou la fin de l'heure, et jamais écrite dans un journal ; la ligne entière disparaît la nuit suivante
+// (effacerMiamSafeAncien, services/gestion/miam-safe.ts).
 import { DUREE_PARTAGE_POSITION_MINUTES } from "../../../../packages/commun/src/regles/miam-safe.ts";
 import type { PositionMiamSafe } from "../../../../packages/commun/src/types/miam-safe.ts";
 
@@ -50,6 +51,4 @@ export interface ServicesPartagesMiamSafe {
   lire(id: number, maintenant: Date): Promise<LignePartage | null>;
   /** Les partages en cours de ce compte, envoyés et reçus, les plus récents d'abord */
   listerActifs(compteId: number, maintenant: Date): Promise<LignePartage[]>;
-  /** Ménage de nuit : supprime les partages finis ; rend leur nombre (jamais rien d'autre dans le journal) */
-  effacerFinis(maintenant: Date): Promise<number>;
 }

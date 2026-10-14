@@ -8,6 +8,8 @@ import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
 import { creerMiamSafeEnMemoire } from "../../src/services/miam-safe-en-memoire.ts";
 import type { NouvelleAlerte } from "../../src/services/miam-safe-regles.ts";
+import type { MessagePush } from "../../src/services/notifications/expedier-push.ts";
+import { creerPartagesMiamSafeEnMemoire } from "../../src/services/partages-miam-safe-en-memoire.ts";
 import type { LieuEnMemoire } from "../../src/services/suggestions-comptes-en-memoire.ts";
 
 /** Une fiche de test complète (numéros de la tranche réservée à la fiction, site en example.com) */
@@ -26,6 +28,18 @@ export async function creerBancPro() {
   // Miam Safe en mémoire : les lieux publiés du banc ; les alertes « envoyées » à l'équipe sont notées ici, sans push
   const miamSafe = creerMiamSafeEnMemoire((lieuId) => memoire.lieux.get(lieuId)?.statut === "publie");
   const equipesPrevenues: (NouvelleAlerte & { id: number })[] = [];
+  // « Prévenir un pote » : partages en mémoire, une bande d'essai (paires de comptes) et des téléphones comptés à la main
+  const partages = creerPartagesMiamSafeEnMemoire((lieuId) => {
+    const lieu = memoire.lieux.get(lieuId);
+    return lieu?.statut === "publie" ? lieu.nom : null;
+  });
+  const bande = new Set<string>();
+  const paire = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
+  /** L'identifiant public d'essai d'un compte (10 caractères) */
+  const idPublic = (compteId: number) => `p${String(compteId).padStart(9, "0")}`;
+  const potesPrevenus: { compteId: number; message: MessagePush }[] = [];
+  /** Téléphones connectés par compte (1 par défaut) */
+  const telephones = new Map<number, number>();
   const serveur = creerApplication({
     enregistrerInscription: async () => {},
     lireFichePublique: memoire.lireFichePublique,
@@ -33,7 +47,23 @@ export async function creerBancPro() {
       services: memoire.services, sessions: memoire.sessions, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro,
       horloge: () => banc.horloge,
     },
-    miamSafe: { services: miamSafe.services, prevenirEquipe: async (alerte) => void equipesPrevenues.push(alerte) },
+    miamSafe: {
+      services: miamSafe.services,
+      prevenirEquipe: async (alerte) => void equipesPrevenues.push(alerte),
+      partages: {
+        services: partages.services,
+        potes: {
+          trouverCompte: async (id) => (/^p\d{9}$/.test(id) ? Number(id.slice(1)) : null),
+          estPote: async (a, b) => bande.has(paire(a, b)),
+          presenter: async (ids) => new Map(ids.map((id) => [id, { id: idPublic(id), pseudo: `pseudo${id}`, prenom: `Prénom${id}`, avatar: null }])),
+        },
+        prevenirCompte: async (compteId, message) => {
+          const n = telephones.get(compteId) ?? 1;
+          if (n > 0) potesPrevenus.push({ compteId, message });
+          return n;
+        },
+      },
+    },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
@@ -80,6 +110,9 @@ export async function creerBancPro() {
 
   return {
     banc, memoire, miamSafe, equipesPrevenues, demander, creerCompte, ajouterLieu, creerGerant,
+    partages, potesPrevenus, telephones, idPublic,
+    rendrePotes: (a: number, b: number) => void bande.add(paire(a, b)),
+    retirerPotes: (a: number, b: number) => void bande.delete(paire(a, b)),
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),
   };
 }

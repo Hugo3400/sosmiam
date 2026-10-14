@@ -17,6 +17,7 @@ export function PiecesMessage({ uid, dossier, pieces }: Props) {
   const [apercus, setApercus] = useState<Record<number, string>>({});
   const [grande, setGrande] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [enregistre, setEnregistre] = useState<string | null>(null);
   useEffect(() => {
     let annule = false;
     const adresses: string[] = [];
@@ -36,8 +37,11 @@ export function PiecesMessage({ uid, dossier, pieces }: Props) {
 
   async function enregistrer(piece: PieceMessage) {
     setErreur(null);
+    setEnregistre(null);
     try {
-      await enregistrerFichierBinaire(piece.nom, await lirePieceMessage(uid, piece.numero, dossier));
+      if (await enregistrerFichierBinaire(piece.nom, await lirePieceMessage(uid, piece.numero, dossier))) {
+        setEnregistre(`« ${piece.nom} » enregistré ✅ Supprime-le de ce PC dès que tu n'en as plus besoin (il peut contenir des données personnelles).`);
+      }
     } catch (probleme) {
       setErreur(String(probleme).includes("format refusé")
         ? `« ${piece.nom} » : ce format ne s'enregistre pas depuis le logiciel (programme ou script, par prudence). Ouvre-le depuis le webmail si tu en as vraiment besoin.`
@@ -76,6 +80,7 @@ export function PiecesMessage({ uid, dossier, pieces }: Props) {
         </ul>
       )}
       {erreur && <p role="alert" className="text-sm font-semibold text-tomate">{erreur}</p>}
+      {enregistre && <p role="status" className="text-sm font-semibold">{enregistre}</p>}
       {grande && (
         <button type="button" onClick={() => setGrande(null)} className="fixed inset-0 z-50 grid place-items-center bg-nuit/80 p-8" aria-label="Fermer l'image">
           <img src={grande} alt="" className="max-h-full max-w-full rounded-xl" />

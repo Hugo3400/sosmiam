@@ -44,7 +44,7 @@ export function ListeInscrits() {
     try {
       const csv = await exporterInscrits();
       const enregistre = await enregistrerFichier(`inscrits-sos-miam-${new Date().toISOString().slice(0, 10)}.csv`, csv);
-      setAction({ enCours: false, erreur: null, message: enregistre ? "Export enregistré. Garde-le à l'abri : il contient des adresses e-mail." : null });
+      setAction({ enCours: false, erreur: null, message: enregistre ? "Export enregistré. Il contient des adresses e-mail : garde-le à l'abri, et supprime-le de ce PC dès que tu n'en as plus besoin." : null });
     } catch (probleme) {
       setAction({ enCours: false, erreur: expliquerErreur(probleme instanceof ErreurApi ? probleme : null) || "Export impossible.", message: null });
     }

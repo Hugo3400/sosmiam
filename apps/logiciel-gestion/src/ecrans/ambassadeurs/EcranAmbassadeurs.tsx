@@ -47,7 +47,7 @@ export function EcranAmbassadeurs({ onDecision, cible }: { onDecision: () => voi
 
   async function exporter() {
     const csv = await exporterAmbassadeurs();
-    if (await enregistrerFichier(`ambassadeurs-sos-miam-${new Date().toISOString().slice(0, 10)}.csv`, csv)) setMessage("Ambassadeurs exportés ✅");
+    if (await enregistrerFichier(`ambassadeurs-sos-miam-${new Date().toISOString().slice(0, 10)}.csv`, csv)) setMessage("Ambassadeurs exportés ✅ Le fichier contient des adresses : supprime-le de ce PC dès que tu n'en as plus besoin.");
   }
 
   return (

@@ -117,10 +117,5 @@ export function creerPartagesMiamSafe(chiffrement: ChiffrementDonnees | null): S
       });
       return lignes.map(versLigne);
     },
-
-    async effacerFinis(maintenant) {
-      const { count } = await baseDeDonnees.partagePositionMiamSafe.deleteMany({ where: fini(maintenant) });
-      return count;
-    },
   };
 }
