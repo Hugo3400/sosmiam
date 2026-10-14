@@ -179,7 +179,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   }
 
   const inscrire = () => fermerPuisOuvrir("/compte");
-  const ouvrirProfil = (id: string) => fermerPuisOuvrir({ pathname: "/potes/profil/[id]", params: { id } });
+  const ouvrirProfil = (id: string) => fermerPuisOuvrir(`/potes/profil/${id}` as Href);
 
   const annoncer = (message: string) => setAnnonce({ texte: message, numero: Date.now() });
   /** Replace le lecteur d'écran sur le titre de la feuille (ce qu'on vient de toucher a disparu), puis dit ce qui s'est passé */
