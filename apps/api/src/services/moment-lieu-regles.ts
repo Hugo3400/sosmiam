@@ -13,7 +13,8 @@ export interface ServicesMomentLieu {
   lancerSos(lieuId: number, compteId: number, sos: { places: number; offre: string | null; jusqua: Date }, maintenant: Date, depuis: Date): Promise<"ok" | "deja">;
   /**
    * Qui a lancé les SOS qu'arreterSos arrêterait à `maintenant` (pas arrêtés, pas finis) : le compte de chacun, null s'il a
-   * supprimé son compte depuis ; [] sans SOS en cours. Pour un compte limité, qui n'arrête que le sien
+   * supprimé son compte depuis ; [] sans SOS en cours. Sans SOS d'un autre, l'arrêt n'arrête que ceux du compte, limité ou
+   * non ; avec, un compte limité est refusé (voir controleurs/moment-lieu.ts)
    */
   lireAuteursSosEnCours(lieuId: number, maintenant: Date): Promise<(number | null)[]>;
   /**

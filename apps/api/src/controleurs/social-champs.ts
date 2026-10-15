@@ -7,6 +7,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { estIdClient } from "../../../../packages/commun/src/validation/est-id-client.ts";
+import { nettoyerTexteSocial } from "../../../../packages/commun/src/validation/nettoyer-texte-social.ts";
 import { verifierTexteSocial } from "../../../../packages/commun/src/validation/verifier-texte-social.ts";
 import { lireCurseurDate } from "../fonctions/social/lire-curseur-date.ts";
 import { lireIdentifiantPublic } from "../fonctions/social/lire-identifiant-public.ts";
@@ -56,9 +57,10 @@ export async function lirePersonne(requete: Request, relations: Pick<RelationsSo
 }
 
 /**
- * Un texte social du corps, nettoyé avec trim et vérifié par verifierTexteSocial de commun (même règle que l'app) : vide ou
- * trop long, ChampInvalide ; un mot interdit, 400 message-refuse { champ } (le code du filtre de mots, « On reformule ? »).
- * Facultatif : null s'il est absent, null ou vide.
+ * Un texte social du corps, nettoyé par nettoyerTexteSocial (fins de ligne \r\n et \r changées en \n, puis trim : rendu
+ * ainsi) et vérifié par verifierTexteSocial de commun (même règle que l'app) : vide ou trop long, ChampInvalide ; un mot
+ * interdit, 400 message-refuse { champ } (le code du filtre de mots, « On reformule ? »). Facultatif : null s'il est
+ * absent, null ou vide.
  */
 export function lireTexteSocial(corps: Record<string, unknown>, champ: string, max: number, obligatoire: true): string;
 export function lireTexteSocial(corps: Record<string, unknown>, champ: string, max: number, obligatoire: false): string | null;
@@ -69,7 +71,7 @@ export function lireTexteSocial(corps: Record<string, unknown>, champ: string, m
     return null;
   }
   if (typeof brut !== "string") throw new ChampInvalide(champ);
-  const propre = brut.trim();
+  const propre = nettoyerTexteSocial(brut);
   if (propre === "" && !obligatoire) return null;
   const verdict = verifierTexteSocial(propre, max);
   if (verdict === "mot-interdit") throw new RefusSocial("message-refuse", 400, champ);

@@ -65,7 +65,10 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * POST   /pro/comptoir/lieux/:id/sos { places (1 à 30), offre? (80 caractères, sans gros mot), jusqua? (ISO) } → 201 : jusqu'à la
  *          fermeture de ce soir (jusqua permet de finir plus tôt ; sans horaires connus, jusqua est obligatoire, 4 h du matin au
  *          plus) · 400 champ-invalide { champ: places | offre | jusqua } · 409 sos-deja-lance (un SOS par jour de Paris, même arrêté)
- * DELETE /pro/comptoir/lieux/:id/sos             → 200 : arrête le SOS en cours (il ne se relance pas le même jour)
+ * DELETE /pro/comptoir/lieux/:id/sos             → 200 : arrête le SOS en cours (il ne se relance pas le même jour). La
+ *          course, pour TOUS, limités ou non (c'est plus sûr) : quand aucun SOS d'un autre n'est vu, le geste n'arrête que
+ *          les SOS du compte (« il n'arrête que ce qu'il a vu ») ; un SOS qu'un collègue lance pendant ce temps reste en
+ *          cours. Un SOS d'un autre vu : non limité, tout s'arrête ; limité, 403 compte-limite (voir plus haut)
  * PUT    /pro/comptoir/lieux/:id/message { texte (80 caractères, sans gros mot), jusqua? } → 200 : sans jusqua, jusqu'à la
  *          fermeture de ce soir, sinon 24 h ; 24 h au plus · 400 champ-invalide { champ: texte | jusqua }
  * DELETE /pro/comptoir/lieux/:id/message         → 200

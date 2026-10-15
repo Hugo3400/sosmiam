@@ -2,6 +2,7 @@ import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "../regles/ch
 import { FORME_ID_PUBLIC } from "../regles/potes.ts";
 import type { NouveauGroupeApi } from "../types/messagerie.ts";
 import { estEmojiSeul } from "./est-emoji-seul.ts";
+import { nettoyerTexteSocial } from "./nettoyer-texte-social.ts";
 import { verifierTexteSocial } from "./verifier-texte-social.ts";
 
 export type ChampNouveauGroupe = "titre" | "emoji" | "invites";
@@ -34,5 +35,5 @@ export function validerNouveauGroupe(g: { [Champ in keyof NouveauGroupeApi]?: un
     return { ok: false, champ: "invites" };
   }
 
-  return { ok: true, groupe: { titre: g.titre.trim(), emoji, invites: invites as string[] } };
+  return { ok: true, groupe: { titre: nettoyerTexteSocial(g.titre), emoji, invites: invites as string[] } };
 }

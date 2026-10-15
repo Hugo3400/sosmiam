@@ -1,6 +1,7 @@
 import { LONGUEUR_MAX_DESCRIPTION_LISTE, LONGUEUR_MAX_TITRE_LISTE, VISIBILITES_LISTE } from "../regles/listes.ts";
 import type { NouvelleListe, VisibiliteListe } from "../types/listes.ts";
 import { estEmojiSeul } from "./est-emoji-seul.ts";
+import { nettoyerTexteSocial } from "./nettoyer-texte-social.ts";
 import { verifierTexteSocial } from "./verifier-texte-social.ts";
 
 export type ChampNouvelleListe = "titre" | "emoji" | "description" | "visibilite";
@@ -22,7 +23,7 @@ export function validerNouvelleListe(l: { [Champ in keyof NouvelleListe]?: unkno
   if (!estEmojiSeul(emoji)) return { ok: false, champ: "emoji" };
 
   if (l.description !== undefined && l.description !== null && typeof l.description !== "string") return { ok: false, champ: "description" };
-  const description = typeof l.description === "string" ? l.description.trim() : "";
+  const description = typeof l.description === "string" ? nettoyerTexteSocial(l.description) : "";
   if (description !== "") {
     const verdict = verifierTexteSocial(description, LONGUEUR_MAX_DESCRIPTION_LISTE);
     if (verdict === "mot-interdit") return { ok: false, champ: "description", raison: "mot-interdit" };
@@ -33,5 +34,5 @@ export function validerNouvelleListe(l: { [Champ in keyof NouvelleListe]?: unkno
     return { ok: false, champ: "visibilite" };
   }
 
-  return { ok: true, liste: { titre: l.titre.trim(), emoji, description, visibilite: l.visibilite as VisibiliteListe } };
+  return { ok: true, liste: { titre: nettoyerTexteSocial(l.titre), emoji, description, visibilite: l.visibilite as VisibiliteListe } };
 }

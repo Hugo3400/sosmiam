@@ -4,8 +4,9 @@
 // moment, événements, réponse à un avis, récompense de fidélité), et rien n'est écrit ; le comptoir (valider une visite),
 // ses propres visites, une réservation sans mot, les lectures, éteindre le programme et retirer ce qui est À LUI passent ;
 // ce qui est aux autres (SOS ou événement d'un collègue ou d'un compte supprimé depuis, même lancé pendant qu'il arrête le
-// sien, message du moment du lieu) reste ; les autres membres de l'équipe publient et retirent toujours. Monté par creerApplication, comme en vrai (les branchements de application.ts sont
-// testés) : tout en mémoire, aucune base.
+// sien, message du moment du lieu) reste ; les autres membres de l'équipe publient et retirent toujours (mais l'arrêt du
+// SOS, pour tous, n'arrête que ce qu'il a vu). Monté par creerApplication, comme en vrai (les branchements de
+// application.ts sont testés) : tout en mémoire, aucune base.
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { after, beforeEach, test } from "node:test";

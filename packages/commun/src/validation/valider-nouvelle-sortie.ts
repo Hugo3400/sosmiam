@@ -9,6 +9,7 @@ import {
 } from "../regles/potes.ts";
 import type { NouvelleSortieApi } from "../types/sorties.ts";
 import { estEmojiSeul } from "./est-emoji-seul.ts";
+import { nettoyerTexteSocial } from "./nettoyer-texte-social.ts";
 import { verifierTexteSocial } from "./verifier-texte-social.ts";
 
 const MINUTE_MS = 60_000;
@@ -79,7 +80,7 @@ export function validerNouvelleSortie(s: { [Champ in keyof NouvelleSortieApi]?: 
   return {
     ok: true,
     sortie: {
-      titre: s.titre.trim(),
+      titre: nettoyerTexteSocial(s.titre),
       emoji,
       quand: new Date(quand).toISOString(),
       finVote: new Date(finVote).toISOString(),

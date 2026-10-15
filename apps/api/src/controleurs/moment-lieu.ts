@@ -116,9 +116,10 @@ export function creerControleursMomentLieu(
       const maintenant = new Date(horloge());
       const moi = lireCompteId(reponse);
       // Le SOS d'un collègue (ou d'un compte supprimé depuis) est aux autres : un compte limité ne l'arrête pas (403
-      // compte-limite, même si le sien est en cours aussi : rien n'est arrêté) ; non limité, tout s'arrête. Sans SOS d'un
-      // autre (le sien, ou rien : ça passe), le compte n'est pas relu et seuls les siens s'arrêtent : un SOS qu'un collègue
-      // lance entre cette lecture et l'arrêt reste en cours, même si c'est un compte limité qui arrête
+      // compte-limite, même si le sien est en cours aussi : rien n'est arrêté) ; non limité, tout s'arrête. Quand aucun SOS
+      // d'un autre n'est vu (le sien, ou rien : ça passe, le compte n'est pas relu), le geste n'arrête que les SOS du
+      // compte : « il n'arrête que ce qu'il a vu ». Cette règle de la course vaut pour TOUS, même pour un compte non limité,
+      // c'est plus sûr : un SOS qu'un collègue lance entre cette lecture et l'arrêt reste en cours
       const auteurs = await services.lireAuteursSosEnCours(lieuId, maintenant);
       const unAutre = auteurs.some((auteur) => auteur !== moi);
       if (unAutre && (await refuserSiLimiteIci(refuserSiLimite, requete, reponse))) return;
