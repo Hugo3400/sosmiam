@@ -59,6 +59,6 @@ export type Lieu = {
 
 /**
  * Un lieu tel que l'API le rend à l'app (GET /app/lieux) : tout sauf la distance, que l'app calcule elle-même depuis ta
- * position ou ta ville (la position du téléphone n'est jamais envoyée au serveur), et un prix moyen parfois inconnu.
+ * position ou ta ville, et un prix moyen parfois inconnu.
  */
 export type LieuApi = Omit<Lieu, "km" | "prixMoyen"> & { prixMoyen?: number };
