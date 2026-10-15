@@ -43,15 +43,18 @@ egal(toujoursSignale.risques, [
   "index avis.avis_etiquette_key : ajouté : UNIQUE (etiquette)",
 ], "CHECK, NULLS NOT DISTINCT, et une colonne remplie à l'ajout (défaut, même retiré ensuite) restent signalés");
 
-const rempliesParLeFichier = await comparer(`ALTER TABLE "avis" ADD COLUMN "code" VARCHAR(20), ADD COLUMN "copie" TEXT;
-  UPDATE "avis" SET "code" = 'miam';
+const parDefautVolatil = await comparer(`ALTER TABLE "avis" ADD COLUMN "tirage" INTEGER DEFAULT floor(random() * 3);
+  CREATE UNIQUE INDEX "avis_tirage_key" ON "avis"("tirage")`);
+egal(parDefautVolatil.risques, ["index avis.avis_tirage_key : ajouté : UNIQUE (tirage)"], "un défaut volatil remplit les lignes à l'ajout : signalé");
+const parUnUpdate = await comparer(`ALTER TABLE "avis" ADD COLUMN "code" VARCHAR(20);
+  update avis set code = 'miam';
+  CREATE UNIQUE INDEX "avis_code_key" ON "avis"("code")`);
+egal(parUnUpdate.risques, ["index avis.avis_code_key : ajouté : UNIQUE (code)"], "une colonne nouvelle que le fichier remplit par UPDATE : signalée");
+const parUneConversion = await comparer(`ALTER TABLE "avis" ADD COLUMN "copie" TEXT;
   ALTER TABLE ONLY public."avis" ALTER COLUMN "copie" TYPE INTEGER USING "id";
-  CREATE UNIQUE INDEX "avis_code_key" ON "avis"("code");
   ALTER TABLE "avis" ADD CONSTRAINT "avis_copie_fkey" FOREIGN KEY ("copie") REFERENCES "comptes"("id")`);
-egal(rempliesParLeFichier.risques, [
-  "contrainte avis.avis_copie_fkey : ajoutée : FOREIGN KEY (copie) REFERENCES comptes(id)",
-  "index avis.avis_code_key : ajouté : UNIQUE (code)",
-], "une colonne nouvelle que le fichier remplit (UPDATE, ALTER … USING) reste signalée");
+egal(parUneConversion.risques, ["contrainte avis.avis_copie_fkey : ajoutée : FOREIGN KEY (copie) REFERENCES comptes(id)"],
+  "une colonne nouvelle que le fichier remplit par ALTER … USING : signalée");
 
 await db.exec(`CREATE TABLE "essais_recree" ("id" INTEGER NOT NULL, "nom" TEXT, CONSTRAINT "essais_recree_pkey" PRIMARY KEY ("id"))`);
 const tableRecreee = await comparer(`DROP TABLE "essais_recree";

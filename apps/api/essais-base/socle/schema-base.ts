@@ -99,7 +99,7 @@ const elargit = (avant: string, apres: string) => {
 const VERIFIE_LES_LIGNES = /^(CHECK|UNIQUE|FOREIGN KEY|PRIMARY KEY|EXCLUDE) (?!.* NOT VALID$)/s;
 
 const NOM_DE_TABLE = String.raw`(?:ONLY\s+)?(?:(?:"[^"]+"|[A-Za-z_][\w$]*)\s*\.\s*)?(?:"([^"]+)"|([A-Za-z_][\w$]*))`;
-const ECRITURE = new RegExp(String.raw`(?<!\b(?:ON|DO)\s+)\b(?:UPDATE|INSERT\s+INTO|MERGE\s+INTO|COPY)\s+${NOM_DE_TABLE}`, "gi");
+const ECRITURE = new RegExp(String.raw`\b(?:UPDATE|INSERT\s+INTO|MERGE\s+INTO|COPY)\s+${NOM_DE_TABLE}`, "gi");
 const CONVERSION = new RegExp(String.raw`^ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?${NOM_DE_TABLE}[\s\S]*\bUSING\b`, "i");
 
 const nomLu = (entre: string | undefined, nu: string | undefined) => entre ?? nu!.toLowerCase();
