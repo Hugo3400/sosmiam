@@ -45,7 +45,7 @@ export async function estimerPush(cible: CiblePush, demandee: boolean, maintenan
 /** Un passage : envoie la plus ancienne notification due, s'il y en a une. Rend son numéro, ou null. */
 export async function traiterNotifications(expedier: ExpedierPush = expedierPush, maintenant = new Date()) {
   // Prise en main atomique : une seule API envoie une notification donnée
-  const due = await baseDeDonnees.notificationPush.findFirst({ where: { statut: "programmee", programmeeLe: { lte: maintenant } }, orderBy: { programmeeLe: "asc" } });
+  const due = await baseDeDonnees.notificationPush.findFirst({ where: { statut: "programmee", programmeeLe: { lte: new Date(maintenant.getTime() + ARRONDI_SECONDE_MS) } }, orderBy: { programmeeLe: "asc" } });
   if (!due) return null;
   const { count } = await baseDeDonnees.notificationPush.updateMany({ where: { id: due.id, statut: "programmee" }, data: { statut: "envoi" } });
   if (count === 0) return null;
@@ -80,10 +80,10 @@ export async function traiterNotifications(expedier: ExpedierPush = expedierPush
   return due.id;
 }
 
+const ARRONDI_SECONDE_MS = 1000;
 let passage: Promise<void> | null = null;
 let aRelancer = false;
 
-/** Vide la file tout de suite : toutes les notifications dues, une à une ; un seul passage à la fois, relancé s'il en arrive pendant. */
 export function reveillerNotifications(expedier: ExpedierPush = expedierPush): Promise<void> {
   if (passage) {
     aRelancer = true;

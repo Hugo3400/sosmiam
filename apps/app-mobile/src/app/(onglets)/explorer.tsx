@@ -1,30 +1,28 @@
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Alert, AppState, Keyboard, Linking, Platform, Pressable, Text, View } from "react-native";
+import { AccessibilityInfo, AppState, Keyboard, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BarreRechercheExplorer } from "~/composants/explorer/BarreRechercheExplorer";
-import { BoutonAutourDeMoi } from "~/composants/explorer/BoutonAutourDeMoi";
 import { CarteLieux } from "~/composants/explorer/CarteLieux";
 import { FeuilleLieux } from "~/composants/explorer/FeuilleLieux";
 import type { ChoixZone } from "~/composants/explorer/FeuilleZoneExplorer";
 import { FiltresExplorer } from "~/composants/explorer/FiltresExplorer";
+import { OutilsListeExplorer } from "~/composants/explorer/OutilsListeExplorer";
 import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
+import { VideExplorer } from "~/composants/explorer/VideExplorer";
 import { Annonce } from "~/composants/interface/Annonce";
-import { Bouton } from "~/composants/interface/Bouton";
-import { Mascotte } from "~/composants/marque/Mascotte";
 import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
-import { direDansRegion } from "~/fonctions/geo/dire-dans-region";
+import { decrireZoneRegardee } from "~/fonctions/geo/decrire-zone-regardee";
 import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
-import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
@@ -32,28 +30,16 @@ import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserAutourDeMoi } from "~/hooks/utiliser-autour-de-moi";
+import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
-import { utiliserPositionActuelle, type ErreurPosition } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
 import couleurs from "~/theme/couleurs";
 
 // Sur l'aperçu web, pas de carte : la liste prend toute la place
 const avecCarte = Platform.OS !== "web";
-
-const messagesPosition: Record<ErreurPosition, string> = {
-  refus: "Pas de souci : la liste suit tes envies 💛",
-  "refus-definitif": "SOS Miam n'a pas accès à ta position : tu peux l'autoriser dans les réglages du téléphone.",
-  // Aucun lien ne mène à cet interrupteur-là : on donne le chemin
-  coupee:
-    Platform.OS === "ios"
-      ? "Ta localisation est éteinte : allume-la dans Réglages > Confidentialité et sécurité > Service de localisation."
-      : "Ta localisation est éteinte : allume-la dans les réglages du téléphone (Localisation).",
-  introuvable: "On ne te trouve pas pour l'instant : réessaie dans un instant.",
-};
 
 /** Après un filtre ou une recherche, le lecteur d'écran dit combien de lieux restent, une fois la frappe calmée (ms) */
 const DELAI_ANNONCE_NOMBRE = 700;
@@ -78,14 +64,21 @@ export default function Explorer() {
   const marges = useSafeAreaInsets();
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { profil } = utiliserProfil();
-  const pointDeDepart = utiliserPointDeDepart();
-  const { position, recherche, chercher, oublier } = utiliserPositionActuelle();
+  const { depart: pointDeDepart, depuis: depuisVille } = utiliserDepartVille();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
+  const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
+  const finAnnonce = useCallback(() => setAnnonce(null), []);
+  const regarderAutourDeToi = useCallback(() => {
+    setPorteeChoisie("proche");
+    setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
+  }, []);
+  const { position, approximative, recherche, toucher, arreter } = utiliserAutourDeMoi({ depuisVille, annoncer, onActive: regarderAutourDeToi });
+  const [avisApproximativeVu, setAvisApproximativeVu] = useState(false);
   const [rayon, changerRayon] = utiliserRayonExplorer();
   const [selection, setSelection] = useState<number | null>(null);
   const [roulette, setRoulette] = useState(false);
-  const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [hauteurEcran, setHauteurEcran] = useState(0);
   const [hauteurEnTete, setHauteurEnTete] = useState(0);
   const [hauteurFeuille, setHauteurFeuille] = useState(0);
@@ -179,10 +172,7 @@ export default function Explorer() {
   // SOS d'abord, puis les alertes du soir
   const sos = useMemo(() => lieux.filter(({ lieu }) => lieu.sos || lieu.alerte).sort((a, b) => Number(!!b.lieu.sos) - Number(!!a.lieu.sos)), [lieux]);
 
-  // Un lieu sélectionné que les filtres ont retiré n'est plus sélectionné
-  useEffect(() => {
-    if (selection !== null && !lieux.some(({ lieu }) => lieu.id === selection)) setSelection(null);
-  }, [lieux, selection]);
+  if (selection !== null && !lieux.some(({ lieu }) => lieu.id === selection)) setSelection(null);
 
   const motRecherche = filtres.texte.trim();
   const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;
@@ -222,31 +212,7 @@ export default function Explorer() {
     return () => clearTimeout(minuterie);
   }, [choixAnnonces]);
 
-  const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
-  const finAnnonce = useCallback(() => setAnnonce(null), []);
   const ouvrir = useCallback((id: number) => router.push({ pathname: "/lieu/[id]", params: { id: String(id) } }), [router]);
-
-  async function basculerAutourDeMoi() {
-    if (position) return oublier();
-    const resultat = await chercher();
-    if (!("erreur" in resultat)) {
-      setPorteeChoisie("proche");
-      setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
-      return;
-    }
-    const message = messagesPosition[resultat.erreur];
-    if (Platform.OS === "web") return annoncer(message);
-    // Un accès refusé pour de bon se règle dans les réglages de l'app : on y emmène
-    if (resultat.erreur === "refus-definitif") {
-      Alert.alert("Autour de moi", message, [
-        { text: "Plus tard", style: "cancel" },
-        { text: "Ouvrir les réglages", onPress: () => Linking.openSettings().catch(() => {}) },
-      ]);
-    } else if (resultat.erreur === "coupee") {
-      // La localisation se rallume ailleurs que dans les réglages de l'app : on donne seulement le chemin
-      Alert.alert("Autour de moi", message, [{ text: "Compris" }]);
-    } else annoncer(message);
-  }
 
   /** Remet les filtres à zéro depuis la liste vide (la recherche aussi si demandé) ; le lecteur d'écran passe sur le compteur */
   function effacer(aussiLaRecherche: boolean) {
@@ -258,20 +224,12 @@ export default function Explorer() {
   // Ce qui est sous la feuille : la barre d'onglets, ou le clavier quand il est ouvert (il la recouvre)
   const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
   const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
-  const ouOnRegarde = !zone ? null : zone.portee === "proche" ? `à moins de ${rayon} km` : zone.portee === "region" && region ? direDansRegion(region) : "dans toute la France";
-  const resume = [ouOnRegarde, position ? "les plus proches d'abord" : profil ? "selon tes envies" : null].filter(Boolean).join(" · ");
-  const autourDe = position ? "de toi" : profil?.ville ? eliderDe(profil.ville) : "de ta ville";
-  // Liste vide alors qu'on regarde près : on propose de regarder plus loin
-  const elargir: { portee: PorteeExplorer; libelle: string } | null = !zone
-    ? null
-    : zone.portee === "proche"
-      ? region
-        ? { portee: "region", libelle: "Voir toute ta région" }
-        : { portee: "france", libelle: "Voir toute la France" }
-      : zone.portee === "region"
-        ? { portee: "france", libelle: "Voir toute la France" }
-        : null;
-
+  const depuis = position ? "de toi" : depuisVille;
+  const autourDe = depuis ?? (profil?.ville ? eliderDe(profil.ville) : "de ta ville");
+  const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe);
+  const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
+  const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
+  const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");
   function changerZone(choix: ChoixZone) {
     changerRayon(choix.rayonKm);
     if (choix.ville !== null) {
@@ -283,76 +241,31 @@ export default function Explorer() {
   }
 
   const outils = (
-    <View className="flex-row items-center gap-2 px-4 pb-2">
-      <View className="flex-1">
-        <Text ref={refCompteur} accessibilityRole="header" className="font-titre text-xl text-encre">
-          {lieux.length} lieu{lieux.length > 1 ? "x" : ""}
-        </Text>
-        {resume ? <Text className="font-texte text-xs text-gris">{resume}</Text> : null}
-      </View>
-      <BoutonAutourDeMoi actif={position !== null} recherche={recherche} onPress={basculerAutourDeMoi} />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Roulette"
-        accessibilityHint="Tire un lieu au hasard parmi ceux qui correspondent à tes filtres"
-        onPress={() => {
-          vibrerLegerement();
-          setRoulette(true);
-        }}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
-      >
-        <Text className="text-xl">🎲</Text>
-      </Pressable>
-    </View>
+    <OutilsListeExplorer
+      nombre={lieux.length}
+      resume={resume}
+      refCompteur={refCompteur}
+      autourDeMoiActif={position !== null}
+      recherche={recherche}
+      avisApproximative={position !== null && approximative && !avisApproximativeVu}
+      onToucherAutourDeMoi={() => void toucher()}
+      onArreterAutourDeMoi={arreter}
+      onFermerAvisApproximative={() => setAvisApproximativeVu(true)}
+      onRoulette={() => setRoulette(true)}
+    />
   );
-
-  // Liste vide : on dit si c'est la recherche ou les filtres qui bloquent. « Effacer les filtres » garde toujours la recherche (comme la pastille).
-  // Faute de point de départ, ce ne sont ni l'une ni les autres : on le dit, et on propose « Autour de moi » ou toute la France.
-  const conseilSansFiltre =
-    zone?.portee === "proche"
-      ? `Personne dans ce rayon pour l'instant : pousse le curseur ou regarde ${region ? "ta région" : "toute la France"}, la bonne table n'est sûrement pas loin !`
-      : zone?.portee === "region"
-        ? "Personne dans ta région pour l'instant : jette un œil à toute la France, la bonne table t'attend peut-être ailleurs !"
-        : "Aucun lieu à te montrer pour l'instant : repasse un peu plus tard, le Capitaine Bouiboui est sur le pont !";
-  const conseil = motRecherche
-    ? avecFiltres
-      ? `Rien pour « ${motRecherche} » avec ces filtres : essaie un autre mot ou élargis un peu !`
-      : `Rien pour « ${motRecherche} » : essaie un autre mot, la bonne table n'est sûrement pas loin !`
-    : avecFiltres
-      ? "Aucun lieu avec ces filtres : élargis un peu, la bonne table n'est sûrement pas loin !"
-      : conseilSansFiltre;
-  const effacement = motRecherche ? (
-    avecFiltres ? (
-      <Bouton libelle="Tout effacer" indice="Efface la recherche et les filtres" variante="blanc" petit onPress={() => effacer(true)} />
-    ) : (
-      <Bouton libelle="Effacer la recherche" variante="blanc" petit onPress={() => effacer(true)} />
-    )
-  ) : avecFiltres ? (
-    <Bouton libelle="Effacer les filtres" variante="blanc" petit onPress={() => effacer(false)} />
-  ) : null;
-  const vide = fauteDeDepart ? (
-    <View className="items-center gap-3 px-6 py-6">
-      <Mascotte expression="surprise" taille={96} />
-      <Text className="text-center font-titre text-xl text-encre">{lierPonctuation("Tu es où ?")}</Text>
-      <Text className="text-center font-texte text-base leading-6 text-gris">
-        {lierPonctuation("On ne sait pas où tu es : touche « Autour de moi » ou choisis une ville en haut, et on te trouve de bonnes tables à côté !")}
-      </Text>
-      <Bouton libelle="Autour de moi" indice="Demande ta position pour voir les lieux autour de toi" petit onPress={() => void basculerAutourDeMoi()} />
-      <Bouton libelle="Voir toute la France" variante="blanc" petit onPress={() => setPorteeChoisie("france")} />
-    </View>
-  ) : (
-    <View className="items-center gap-3 px-6 py-6">
-      <Mascotte expression="surprise" taille={96} />
-      <Text className="text-center font-titre text-xl text-encre">Rien par ici…</Text>
-      {elargir ? (
-        <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation(zone?.portee === "proche" ? `Tu regardes à moins de ${rayon} km ${autourDe}.` : `Tu regardes ${ouOnRegarde}.`)}
-        </Text>
-      ) : null}
-      {elargir ? <Bouton libelle={elargir.libelle} petit onPress={() => setPorteeChoisie(elargir.portee)} /> : null}
-      <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(conseil)}</Text>
-      {effacement}
-    </View>
+  const vide = (
+    <VideExplorer
+      fauteDeDepart={fauteDeDepart}
+      portee={zone?.portee ?? null}
+      region={region}
+      ouOnRegarde={ouOnRegarde}
+      motRecherche={motRecherche}
+      avecFiltres={avecFiltres}
+      onAutourDeMoi={() => void toucher()}
+      onChoisirPortee={setPorteeChoisie}
+      onEffacer={effacer}
+    />
   );
 
   return (
@@ -406,6 +319,7 @@ export default function Explorer() {
             vide={vide}
             onChangerHauteur={setHauteurFeuille}
             evenements={evenementsParLieu}
+            depuis={depuis}
           />
         </View>
       ) : null}
@@ -413,6 +327,7 @@ export default function Explorer() {
       <RouletteLieux
         visible={roulette}
         lieux={lieux}
+        depuis={depuis}
         onFermer={() => setRoulette(false)}
         onOuvrir={(id) => {
           setRoulette(false);
