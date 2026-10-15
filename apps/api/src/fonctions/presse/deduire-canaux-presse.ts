@@ -13,12 +13,13 @@ const SONS = new Set(["MP3", "OGG", "WAV"]);
  * `canaux`), sinon déduits ; Facebook, X, site web, logos et marque, sons et présentations : ceux de l'index s'il en donne,
  * plus ceux déduits du nom, de la description, des dimensions et du format. Carrousel ou post en 1080 × 1350 : Instagram ; story en 1080 × 1920
  * et vidéos : Instagram et TikTok ; App Store, iPhone, iPad : iOS ; Play Store : Android ; PDF et imprimés : impression.
- * `canaux: []` dans l'index : AUCUN canal, rien n'est déduit (un visuel retiré, « à refaire avant de poster »).
+ * Un visuel « à refaire avant de poster » (ancienne campagne, marqué ainsi dans la description par la session Miam Safe et
+ * contenus) : AUCUN canal, rien n'est déduit, pour qu'aucun filtre ne le propose.
  */
 export function deduireCanauxPresse(fichier: { nom: string; description: string; format: string; dimensions: string | null; canaux?: unknown }, familleId: string): CanalPresse[] {
+  if (/à refaire avant de poster/i.test(fichier.description)) return [];
   const texte = `${fichier.nom} ${fichier.description}`.toLowerCase();
   const dimensions = (fichier.dimensions ?? "").replace(/\s/g, "");
-  if (Array.isArray(fichier.canaux) && fichier.canaux.length === 0) return [];
   const canaux = new Set<CanalPresse>();
   const image = ["PNG", "JPG", "SVG", "WEBP"].includes(fichier.format);
   if (Array.isArray(fichier.canaux)) {

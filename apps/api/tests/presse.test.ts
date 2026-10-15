@@ -82,5 +82,9 @@ test("canaux : ceux de l'index d'abord, sinon déduits du nom, des dimensions et
   assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_favicon_32.png", "PNG", "32 × 32 px"), canaux: [] }, "kit-de-marque"), ["web", "marque"]);
   assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_jingle.mp3", "MP3"), canaux: [] }, "sons"), ["sons"]);
   assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_ambassadeurs_apercu.png", "PNG", "2148 × 1150 px"), canaux: [] }, "campagne"), ["presentation"]);
+  // Ancienne campagne « à refaire avant de poster » : aucun canal, même déduit
+  const aRefaire = "Ambassadeurs carrousel — ancienne campagne : à refaire avant de poster";
+  assert.deepEqual(deduireCanauxPresse({ ...f("SOSMiam_ambassadeurs_apercu.png", "PNG", "2148 × 1150 px", aRefaire), canaux: [] }, "campagne"), []);
+  assert.deepEqual(deduireCanauxPresse(f("SOSMiam_ambassadeurs_carrousel_1.png", "PNG", "1080 × 1350 px", aRefaire), "campagne"), []);
   assert.deepEqual(deduireCanauxPresse(f("mascotte-clin.svg", "SVG"), "kit-media"), ["instagram", "tiktok", "impression", "marque"]);
 });
