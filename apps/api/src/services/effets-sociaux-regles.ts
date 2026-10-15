@@ -27,8 +27,9 @@ export type SortePush = "bande-ajout" | "bande-acceptee" | "invitation-sortie" |
 
 /**
  * Une notification sur le téléphone. `regroupement` (« conversation:<id> ») : une par conversation, la suivante remplace la
- * précédente ; `sonore` (vrai par défaut) est posé par l'applicateur. Les deux sont des champs de MessagePush, lus par
- * expedierPush (apns-collapse-id et thread-id chez Apple, tag chez Google ; sur Android 8 et plus, le son dépend du canal).
+ * précédente ; `sonore` (vrai par défaut) et `social` (canal « messages » sur Android) sont posés par l'applicateur. Tous
+ * sont des champs de MessagePush, lus par expedierPush (apns-collapse-id et thread-id chez Apple, tag chez Google ; sur
+ * Android 8 et plus, le son dépend du canal).
  * Jamais le texte d'un message : seulement le prénom et la sorte de message (il passerait en clair par Apple et Google).
  */
 export type MessagePushSocial = MessagePush;
@@ -40,5 +41,8 @@ export type EffetSocial =
 /** Applique des effets : la cloche est écrite quand la promesse se résout ; le téléphone part après, sans être attendu */
 export type AppliquerEffetsSociaux = (effets: readonly EffetSocial[]) => Promise<void>;
 
-/** Dans une même conversation, le premier message sonne ; les suivants, dans les 30 s, arrivent sans son (choix de construction) */
+/**
+ * Dans une même conversation, un message sonne ; ceux qui arrivent moins de 30 s après le dernier qui a sonné arrivent sans
+ * son (choix de construction)
+ */
 export const DELAI_SANS_SON_MS = 30_000;

@@ -82,9 +82,9 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     if (ids.length === 0) return;
     const numero = ++envoiCourant.current;
     // Compte connecté : « C'est envoyé ! » s'affiche tout de suite ; si le serveur refuse, on revient au choix des potes et on dit pourquoi
-    const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined, (erreur) => {
+    const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined, (refus) => {
       if (numero !== envoiCourant.current) return;
-      const texte = erreur === "compte-limite" ? REFUS_LIMITATION.lieuEnvoye : "Ton lieu n'est pas parti : réessaie dans un instant.";
+      const texte = refus === "compte-limite" ? REFUS_LIMITATION.lieuEnvoye : "Ton lieu n'est pas parti : réessaie dans un instant.";
       setEnvoyesA(null);
       setErreur(texte);
       AccessibilityInfo.announceForAccessibility(texte);

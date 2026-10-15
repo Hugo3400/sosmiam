@@ -1,13 +1,23 @@
-// Tests des notifications push : anti-spam, jetons signés pour Apple et Google, notifications d'un compte (seulement ses
-// téléphones encore connectés), routes du logiciel de gestion.
+// Tests des notifications push : anti-spam, jetons signés pour Apple et Google, corps envoyés (regroupement, son, repère
+// urgent, canal Android de chaque sorte de notification), notifications d'un compte (seulement ses téléphones encore
+// connectés), routes du logiciel de gestion.
 import assert from "node:assert/strict";
 import { createVerify, generateKeyPairSync } from "node:crypto";
 import { after, before, test } from "node:test";
 
 import { depasseAntiSpam } from "../src/fonctions/notifications/depasse-anti-spam.ts";
 import { signerJetonJwt } from "../src/fonctions/notifications/signer-jeton-jwt.ts";
-import { construireCorpsGoogle, construireEnvoiApple } from "../src/services/notifications/expedier-push.ts";
+import { creerAppliquerEffetsSociaux } from "../src/controleurs/effets-sociaux.ts";
+import { ecrirePushBande } from "../src/fonctions/social/ecrire-push-bande.ts";
+import { ecrirePushGroupe } from "../src/fonctions/social/ecrire-push-groupe.ts";
+import { ecrirePushMessage } from "../src/fonctions/social/ecrire-push-message.ts";
+import { ecrirePushSortie } from "../src/fonctions/social/ecrire-push-sortie.ts";
+import type { EffetSocial } from "../src/services/effets-sociaux-regles.ts";
+import { construireCorpsGoogle, construireEnvoiApple, type MessagePush } from "../src/services/notifications/expedier-push.ts";
+import { creerVisitesEnMemoire } from "../src/services/visites-en-memoire.ts";
+import { creerVisitesGestion } from "../src/services/visites-gestion.ts";
 import { creerBancGestion } from "./outils/creer-banc-gestion.ts";
+import { LIEU_TEST } from "./outils/creer-banc-visites.ts";
 
 test("anti-spam : 1 par jour, 4 par semaine", () => {
   const maintenant = new Date("2026-10-08T20:00:00Z");
@@ -38,26 +48,99 @@ test("regroupement et son (messagerie, lot L4) : une notification par conversati
   const apple = construireEnvoiApple(simple);
   assert.deepEqual(apple.entetes, {});
   assert.deepEqual(JSON.parse(apple.corps), { aps: { alert: { title: simple.titre, body: simple.texte }, sound: "default" }, lien: "/explorer" });
-  assert.deepEqual(construireCorpsGoogle("jeton-g", simple).message.android, { priority: "high" });
-  const message = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3", regroupement: "conversation:3", sonore: false };
+  // Android : toujours un canal ; « notifications » pour ce qui n'est ni urgent, ni social
+  assert.deepEqual(construireCorpsGoogle("jeton-g", simple).message.android, { priority: "high", notification: { channel_id: "notifications" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, lien: null }).message.data, {}, "sans lien, data vide");
+  const message = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3", regroupement: "conversation:3", sonore: false, social: true };
   const groupe = construireEnvoiApple(message);
   assert.deepEqual(groupe.entetes, { "apns-collapse-id": "conversation:3" });
-  assert.deepEqual(JSON.parse(groupe.corps).aps, { alert: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, "thread-id": "conversation:3" }, "sans son");
+  assert.deepEqual(JSON.parse(groupe.corps), { aps: { alert: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, "thread-id": "conversation:3" }, lien: "/potes/discussion/3" }, "sans son, sans repère urgent");
   assert.equal(JSON.parse(construireEnvoiApple({ ...message, sonore: true }).corps).aps.sound, "default");
+  // tag aussi dans data : app ouverte, expo en fait l'identifiant de la notification (le message suivant remplace le précédent)
   assert.deepEqual(construireCorpsGoogle("jeton-g", message), {
     message: {
-      token: "jeton-g", notification: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, data: { lien: "/potes/discussion/3" },
+      token: "jeton-g", notification: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, data: { lien: "/potes/discussion/3", tag: "conversation:3" },
       android: { priority: "high", notification: { tag: "conversation:3", channel_id: "messages-discrets" } },
     },
   });
-  // Android : le premier message d'une rafale sonne (canal par défaut), la suite part sur le canal muet ; Miam Safe passe avant
-  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, sonore: true }).message.android, { priority: "high", notification: { tag: "conversation:3" } });
+  // Android : le message qui sonne part sur « messages », la suite d'une rafale sur le canal muet ; Miam Safe passe avant tout
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, sonore: true }).message.android, { priority: "high", notification: { tag: "conversation:3", channel_id: "messages" } });
   assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, sonore: false }).message.android, { priority: "high", notification: { channel_id: "messages-discrets" } });
-  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, urgent: true, sonore: false }).message.android, { priority: "high", notification: { channel_id: "miam-safe" } });
-  // Au-delà de 64 octets, Apple refuserait l'en-tête : pas de regroupement, la notification part quand même
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, urgent: true, sonore: false, social: true }).message.android, { priority: "high", notification: { channel_id: "miam-safe" } });
+  // Au-delà de 64 octets, Apple refuserait l'en-tête : pas de regroupement, la notification part quand même (ni tag chez Google)
   assert.deepEqual(construireEnvoiApple({ ...message, regroupement: "x".repeat(65) }).entetes, {});
-  const urgent = JSON.parse(construireEnvoiApple({ ...simple, urgent: true }).corps).aps;
-  assert.equal(urgent["interruption-level"], "time-sensitive");
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, regroupement: "x".repeat(65) }).message.data, { lien: "/potes/discussion/3" });
+});
+
+test("repère urgent : urgent: \"1\" à la racine du message APNs et dans data chez Google, seulement pour une alerte urgente", () => {
+  const alerte = { titre: "🛡 Léa a besoin d'aide", texte: "Au bar.", lien: "/pro/comptoir", urgent: true };
+  assert.deepEqual(JSON.parse(construireEnvoiApple(alerte).corps), {
+    aps: { alert: { title: alerte.titre, body: alerte.texte }, sound: "default", "interruption-level": "time-sensitive" },
+    lien: "/pro/comptoir", urgent: "1",
+  });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", alerte), {
+    message: {
+      token: "jeton-g", notification: { title: alerte.titre, body: alerte.texte }, data: { lien: "/pro/comptoir", urgent: "1" },
+      android: { priority: "high", notification: { channel_id: "miam-safe" } },
+    },
+  });
+  // Même lien, sans urgent (une future notification pro vers le comptoir) : aucun repère, canal « notifications »
+  const pro = { titre: "Ton comptoir", texte: "Trois visites à valider.", lien: "/pro/comptoir" };
+  assert.equal(JSON.parse(construireEnvoiApple(pro).corps).urgent, undefined);
+  assert.deepEqual(construireCorpsGoogle("jeton-g", pro).message.data, { lien: "/pro/comptoir" });
+  assert.equal(construireCorpsGoogle("jeton-g", pro).message.android.notification.channel_id, "notifications");
+});
+
+test("canaux Android : chaque push sociale passe par l'applicateur et part sur « messages » ; une campagne ou une visite revue sur « notifications »", async () => {
+  const envois: MessagePush[] = [];
+  const appliquer = creerAppliquerEffetsSociaux({
+    cloche: { noter: async () => {} },
+    prevenirCompte: async (_compteId, message) => void envois.push(message),
+    horloge: () => Date.parse("2026-10-15T20:00:00Z"),
+  });
+  const conversation = { id: 4, type: "prive" as const, titre: null };
+  const sociales: EffetSocial[] = [
+    { quoi: "push", compteId: 1, sorte: "message", message: ecrirePushMessage({ prenom: "Léa", type: "texte", conversation }) },
+    { quoi: "push", compteId: 1, sorte: "message", message: ecrirePushMessage({ prenom: "Léa", type: "photo", conversation }) },
+    { quoi: "push", compteId: 2, sorte: "bande-ajout", message: ecrirePushBande({ sorte: "bande-ajout", prenom: "Léa", idPublic: "abcdefghjk" }) },
+    { quoi: "push", compteId: 3, sorte: "bande-acceptee", message: ecrirePushBande({ sorte: "bande-acceptee", prenom: "Léa", idPublic: "abcdefghjk" }) },
+    { quoi: "push", compteId: 4, sorte: "invitation-sortie", message: ecrirePushSortie({ quoi: "invitation", prenom: "Léa", titre: "Pizza du jeudi", sortieId: 7 }) },
+    { quoi: "push", compteId: 5, sorte: "sortie-lieu-choisi", message: ecrirePushSortie({ quoi: "lieu-choisi", titre: "Pizza du jeudi", lieu: "Chez Mo", sortieId: 7 }) },
+    { quoi: "push", compteId: 6, sorte: "invitation-groupe", message: ecrirePushGroupe({ prenom: "Léa", titre: "Les Miamis" }) },
+  ];
+  await appliquer(sociales);
+  await new Promise<void>((fini) => setImmediate(() => setImmediate(fini)));
+  const canal = (m: MessagePush) => construireCorpsGoogle("jeton-g", m).message.android.notification.channel_id;
+  assert.ok(envois.every((m) => m.social === true), "toutes marquées social par l'applicateur");
+  assert.deepEqual(envois.map((m) => [m.titre, canal(m)]), [
+    ["💬 Léa", "messages"],
+    ["💬 Léa", "messages-discrets"],
+    ["🤝 Léa a rejoint ta bande", "messages"],
+    ["🤝 Léa a dit oui", "messages"],
+    ["🎉 Léa t'invite : Pizza du jeudi", "messages"],
+    ["🗳️ C'est voté !", "messages"],
+    ["💬 Léa t'invite dans un groupe", "messages"],
+  ]);
+  // Les rédacteurs eux-mêmes ne posent jamais social : seul l'applicateur le fait
+  assert.ok(sociales.every((e) => e.quoi === "push" && e.message.social === undefined));
+
+  // Une campagne du logiciel : le message que file-push.ts envoie (titre, texte, lien de la notification programmée)
+  assert.equal(canal({ titre: "Ce soir, ça bouge 🛟", texte: "Trois lieux ont de la place.", lien: "/explorer" }), "notifications");
+  // Une visite revue par l'équipe (« Donner raison au client ») : prévenue par visites-gestion.ts
+  const memoire = creerVisitesEnMemoire();
+  memoire.lieux.set(1, { ...LIEU_TEST });
+  memoire.comptes.set(7, { id: 7, prenom: "Léa", avatar: "🦊", nomChiffre: null, emailVerifie: true, rattachements: [] });
+  const prevenus: MessagePush[] = [];
+  const gestion = creerVisitesGestion({ depot: memoire.depot, ajouterPoints: async () => {}, prevenirCompte: async (_compteId, m) => void prevenus.push(m) });
+  const T0 = new Date("2026-10-09T18:00:00Z");
+  const { id } = await memoire.depot.ecrire((t) => t.creerVisite({
+    compteId: 7, lieuId: 1, mode: "addition", statut: "refusee", code: "1234", creeLe: T0, expireLe: new Date(T0.getTime() + 1_800_000), valideLe: null,
+    decideLe: T0, decideParId: 42, pendantSos: false, points: 0, tampon: false, resultatPosition: "dans-rayon", motifRefus: "pas-venu", contestee: true,
+    contestation: null, avisOuvertLe: null, avisFermeLe: null, avisDonne: false, presentationId: null, reservationId: null, annulableJusqua: null, reglement: null,
+  }));
+  assert.equal((await gestion.donnerRaisonAuClient(id, new Date("2026-10-11T10:00:00Z"))).ok, true);
+  assert.equal(prevenus.length, 1);
+  assert.equal(canal(prevenus[0]!), "notifications");
 });
 
 // prevenirCompte se branche sur la base au chargement, sans s'y connecter : une adresse d'essai suffit, la table est un double

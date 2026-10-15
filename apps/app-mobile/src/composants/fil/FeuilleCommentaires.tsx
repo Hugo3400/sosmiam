@@ -188,12 +188,18 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     router.push(destination);
   }
 
-  // Ouverte : « Voir pourquoi » de l'annonce d'un compte limité (posée au-dessus de tout) referme d'abord la feuille
+  // Ouverte : « Voir pourquoi » de l'annonce d'un compte limité (posée au-dessus de tout) referme d'abord la feuille ; si un
+  // menu ouvert depuis elle est au premier plan, c'est lui qui ouvre la page, et la feuille se referme simplement
   const ouvrirApresFermeture = useRef(fermerPuisOuvrir);
+  const fermerSeulement = useRef(onFermer);
   useEffect(() => {
     ouvrirApresFermeture.current = fermerPuisOuvrir;
+    fermerSeulement.current = onFermer;
   });
-  useEffect(() => (visible ? poserFeuilleOuverte((destination) => ouvrirApresFermeture.current(destination)) : undefined), [visible]);
+  useEffect(
+    () => (visible ? poserFeuilleOuverte((destination) => ouvrirApresFermeture.current(destination), () => fermerSeulement.current()) : undefined),
+    [visible],
+  );
 
   const inscrire = () => fermerPuisOuvrir("/compte");
   // Les profils sont réservés aux inscrits : en visite, « Crée ton compte » se pose sur la feuille
