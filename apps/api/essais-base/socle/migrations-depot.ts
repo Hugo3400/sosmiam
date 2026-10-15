@@ -69,10 +69,9 @@ async function trouverInstructionFautive(db: PGlite, texte: string, erreur: Erre
   }
 }
 
-/** Applique un fichier SQL comme Prisma : d'un bloc (une erreur défait tout le fichier) ; lève avec le message de PostgreSQL
- *  et l'endroit du fichier (sa position, sinon la ligne de l'instruction fautive, trouvée au rejeu) */
-export async function appliquerFichierSql(db: PGlite, fichier: string, nom: string): Promise<void> {
-  const texte = readFileSync(fichier, "utf8");
+/** Applique du SQL comme Prisma applique un fichier : d'un bloc (une erreur défait tout le fichier) ; lève avec le message de
+ *  PostgreSQL et l'endroit du fichier (sa position, sinon la ligne de l'instruction fautive, trouvée au rejeu) */
+export async function appliquerSql(db: PGlite, texte: string, nom: string): Promise<void> {
   try {
     await db.exec(texte);
   } catch (erreur) {
@@ -82,6 +81,10 @@ export async function appliquerFichierSql(db: PGlite, fichier: string, nom: stri
     const endroit = situer(e, texte) ? undefined : await trouverInstructionFautive(db, texte, e).catch(() => undefined);
     throw new Error(`${nom} : ${decrireErreurPostgres(erreur, texte, endroit)}`, { cause: erreur });
   }
+}
+
+export async function appliquerFichierSql(db: PGlite, fichier: string, nom: string): Promise<void> {
+  await appliquerSql(db, readFileSync(fichier, "utf8"), nom);
 }
 
 export async function appliquerMigrations(db: PGlite, migrations: Migration[]): Promise<void> {
