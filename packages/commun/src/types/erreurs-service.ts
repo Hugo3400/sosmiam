@@ -3,10 +3,12 @@
 // Celles de la partie sociale sont à part (erreurs-service-sociales.ts, textes dans contenus/messages-services-sociaux.ts).
 import type { ErreurServiceSociale } from "./erreurs-service-sociales.ts";
 import type { ErreurConnexionQr } from "./erreurs-connexion-qr.ts";
+import type { ErreurServiceReservations } from "./erreurs-reservations.ts";
 
 export type ErreurService =
   | ErreurServiceSociale
   | ErreurConnexionQr
+  | ErreurServiceReservations
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"
@@ -37,7 +39,6 @@ export type ErreurService =
   | "avis-visite-requise"
   | "avis-recent"
   | "reponse-deja-donnee"
-  | "trop-de-reservations"
   | "hors-ligne"
   | "trop-de-demandes"
   | "compte-limite"
@@ -71,12 +72,7 @@ export type ErreurService =
   | "deja-validee"
   | "demande-en-cours"
   | "code-faux"
-  | "lieu-non-reservable"
-  | "creneau-invalide"
-  | "personnes-invalides"
   | "message-refuse"
-  | "reservation-en-cours"
-  | "hors-fenetre-presence"
   | "pas-de-recompense"
   | "programme-invalide"
   | "reglement-invalide"
