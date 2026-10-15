@@ -8,5 +8,8 @@ import type { MesureActivite } from "~/contenus/type-mesure-activite";
  */
 export const MESURES_BADGES_DEMO: Partial<Record<IdBadge, { type: MesureActivite; objectif: number }>> = {
   "premiere-rescousse": { type: "rescousses", objectif: 1 },
+  "sauveteur-en-serie": { type: "rescousses", objectif: 10 },
+  "second-du-capitaine": { type: "rescousses", objectif: 25 },
+  "heros-de-la-brigade": { type: "rescousses", objectif: 50 },
   "premier-sauveteur": { type: "premiers-sauvetages", objectif: 1 },
 };

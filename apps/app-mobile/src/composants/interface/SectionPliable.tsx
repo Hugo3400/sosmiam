@@ -71,7 +71,7 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
         accessibilityRole="button"
         accessibilityLabel={lu}
         accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
-        accessibilityState={surIphone ? undefined : { expanded: deplie }}
+        aria-expanded={surIphone ? undefined : deplie}
         onPress={toucher}
         className="min-h-11 flex-row items-center gap-3 active:opacity-70"
       >

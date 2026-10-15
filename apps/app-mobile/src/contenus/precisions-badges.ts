@@ -7,6 +7,9 @@ import type { IdBadge } from "@sos-miam/commun/types/badge";
  * Emoji, nom et texte : le catalogue partagé, BADGES (packages/commun/src/contenus/badges.ts).
  */
 export const PRECISIONS_BADGES: Partial<Record<IdBadge, { possible: boolean; texte: string }>> = {
+  "coeur-sur-la-main": { possible: true, texte: "Un lieu en SOS a des tables à remplir : fais valider ta visite pendant son SOS, la Brigade te dit merci !" },
+  "bonne-etoile": { possible: true, texte: "Un SOS par-ci, un SOS par-là : passe dans 3 lieux différents pendant leur SOS. Ils s'en souviendront !" },
+  vigie: { possible: true, texte: "Un lieu reste tout neuf 30 jours après son arrivée : à toi d'être le premier à lui donner une rescousse !" },
   "deniche-par-toi": { possible: true, texte: "Ça se passe sur ambassadeur.sosmiam.fr : propose ton lieu chouchou !" },
   fondateur: { possible: true, texte: "Les places de fondateur se prennent sur ambassadeur.sosmiam.fr." },
   iode: { possible: false, texte: "Il arrivera quand l'app saura ce qu'il y a dans ton assiette. Les huîtres peuvent patienter !" },
