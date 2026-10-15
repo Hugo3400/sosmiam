@@ -12,6 +12,7 @@ import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-e
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
+import { trouverFeuilleOuverte } from "~/services/feuilles-ouvertes";
 import { ecouterCompteLimite } from "~/services/refus-compte-limite";
 
 const CHEMIN_DECISIONS = "/reglages/decisions-moderation";
@@ -92,7 +93,10 @@ export function AnnonceCompteLimite() {
                 onPress={() => {
                   vibrerLegerement();
                   setAnnonce(null);
-                  router.push(CHEMIN_DECISIONS);
+                  // Une feuille ouverte (les commentaires) se referme d'abord : sinon la page s'ouvrirait dessous
+                  const feuille = trouverFeuilleOuverte();
+                  if (feuille) feuille(CHEMIN_DECISIONS);
+                  else router.push(CHEMIN_DECISIONS);
                 }}
                 className="min-h-9 justify-center active:opacity-60"
               >

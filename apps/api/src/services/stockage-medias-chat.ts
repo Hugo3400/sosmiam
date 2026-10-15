@@ -3,9 +3,11 @@
 // ne sortent que par GET /app/conversations/:id/messages/:messageId/media (spécification sociale A.0, D.1). Le nom d'un
 // fichier est TIRÉ AU HASARD par l'API (« <uuid v4>.bin ») ; tout autre nom est refusé ou ignoré : jamais un chemin, ni un
 // nom venu de l'app, et on ne sert que les noms écrits en base. Le disque est celui de PostgreSQL : quotas de B.12
-// (verifierQuotasMediasChat, nombres de packages/commun/src/regles/chat.ts) et part libre relue avant chaque écriture.
+// (verifierQuotasMediasChat, nombres de packages/commun/src/regles/chat.ts) et part libre relue avant chaque écriture. Un
+// fichier écrit est forcé sur le disque (fsync du fichier, puis du dossier) avant que la base ne cite son nom : une coupure
+// de courant ne laisse jamais un message, un signalement ou un rechiffrement pointer vers un fichier vide ou absent.
 import { randomUUID } from "node:crypto";
-import { chmod, mkdir, readdir, readFile, stat, statfs, unlink, writeFile } from "node:fs/promises";
+import { chmod, mkdir, open, readdir, readFile, stat, statfs, unlink } from "node:fs/promises";
 import { join } from "node:path";
 
 import {
@@ -28,7 +30,8 @@ export type FichierMediaChat = { fichier: string; modifieLe: Date };
 export type StockageMediasChat = {
   /** Un nom neuf, tiré au hasard : le seul genre de nom qu'on écrit (le contexte du chiffré, « fichier:<nom> », en dépend) */
   tirerNom: () => string;
-  /** Écrit un fichier déjà chiffré, en 0600 ; erreur si le nom n'a pas la forme ou si ce fichier existe déjà */
+  /** Écrit un fichier déjà chiffré, en 0600, forcé sur le disque (fichier et dossier) avant de rendre la main ; erreur si le
+   *  nom n'a pas la forme ou si ce fichier existe déjà */
   ecrire: (fichier: string, octets: Uint8Array) => Promise<void>;
   /** null : nom sans la forme, ou fichier absent (effacé par le ménage) */
   lire: (fichier: string) => Promise<Buffer | null>;
@@ -69,6 +72,20 @@ const exigerNom = (fichier: string) => {
   return fichier;
 };
 const codeErreur = (erreur: unknown) => (erreur as NodeJS.ErrnoException | null)?.code;
+/** Un système de fichiers qui ne sait pas forcer un dossier sur le disque (fsync refusé) : le fichier, lui, l'est déjà */
+const SYNC_DOSSIER_IMPOSSIBLE = new Set(["EINVAL", "ENOTSUP", "EOPNOTSUPP"]);
+
+/** Force sur le disque l'entrée d'un nouveau fichier dans `dossier` (sans quoi une coupure peut perdre le nom) */
+async function forcerDossier(dossier: string): Promise<void> {
+  const poignee = await open(dossier, "r");
+  try {
+    await poignee.sync();
+  } catch (erreur) {
+    if (!SYNC_DOSSIER_IMPOSSIBLE.has(codeErreur(erreur) ?? "")) throw erreur;
+  } finally {
+    await poignee.close();
+  }
+}
 
 export type OptionsStockageMediasChat = {
   /** Appelé quand la part libre passe sous PART_LIBRE_MIN_DISQUE, une fois par heure au plus (ligne du journal du logiciel) */
@@ -98,11 +115,20 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
     ecrire: async (fichier, octets) => {
       const cible = chemin(fichier);
       await preparer();
+      // « wx » : un fichier qui existait n'est jamais écrasé (EEXIST : rien n'est touché)
+      const poignee = await open(cible, "wx", 0o600);
       try {
-        await writeFile(cible, octets, { mode: 0o600, flag: "wx" });
+        try {
+          await poignee.writeFile(octets);
+          // Le contenu sur le disque (une photo de 5 Mo : quelques dizaines de millisecondes), puis le nom dans le dossier
+          await poignee.sync();
+        } finally {
+          await poignee.close();
+        }
+        await forcerDossier(dossier);
       } catch (erreur) {
-        // « wx » : un fichier qui existait n'est jamais écrasé ; un fichier commencé puis interrompu (disque plein) part
-        if (codeErreur(erreur) !== "EEXIST") await unlink(cible).catch(() => undefined);
+        // Un fichier commencé puis interrompu (disque plein, erreur d'écriture) part : rien n'est cité en base
+        await unlink(cible).catch(() => undefined);
         throw erreur;
       }
     },
