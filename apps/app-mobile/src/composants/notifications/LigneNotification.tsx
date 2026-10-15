@@ -25,13 +25,14 @@ type Props = {
   nouvelle: boolean;
   /** Dernière ligne de la carte : pas de trait dessous */
   derniere: boolean;
-  /** Un bouton au bout de la ligne, à côté de ce qu'elle ouvre (« Retirer » quelqu'un arrivé dans ta bande) */
+  /** Un bouton sous la phrase, à côté de ce qu'elle ouvre (« Retirer » quelqu'un arrivé dans ta bande) */
   action?: ReactNode;
   onOptions?: () => void;
   onEffacer?: () => void;
 };
 
 const TAILLE_ROND = 44;
+const DEBUT_TEXTE = 12 + TAILLE_ROND + 12;
 const ACTIONS_LECTEUR = [{ name: "effacer", label: "Effacer" }];
 
 /** Ce que la ligne ouvre, lu par VoiceOver après la phrase */
@@ -53,8 +54,8 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
   const libelle = `${nouvelle ? "Nouveau. " : ""}${retirerEmoji(description.texte)}${description.alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}, ${moment.lu}`;
   const fond = `${nouvelle ? "bg-jaune-clair/50" : ""} ${derniere ? "" : "border-b border-ligne"}`;
   const auBout = action !== undefined || onOptions !== undefined;
-  // Avec un bouton au bout, la ligne et le bouton sont côte à côte (jamais un bouton dans un bouton)
-  const classe = `min-h-16 flex-row items-center gap-3 px-3 py-3 ${auBout ? "flex-1" : fond}`;
+  // Jamais un bouton dans un bouton
+  const classe = `min-h-16 flex-row items-center gap-3 px-3 ${action !== undefined ? "pb-2 pt-3" : "py-3"} ${auBout ? "" : fond}`;
   const lecteur = onEffacer
     ? {
         accessibilityActions: ACTIONS_LECTEUR,
@@ -119,8 +120,14 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
   if (!auBout) return ligne;
   return (
     <View className={`flex-row items-center gap-1 ${onOptions ? "pr-1" : "pr-3"} ${fond}`}>
-      {ligne}
-      {action}
+      <View className="flex-1">
+        {ligne}
+        {action !== undefined ? (
+          <View className="flex-row" style={{ paddingLeft: DEBUT_TEXTE }}>
+            {action}
+          </View>
+        ) : null}
+      </View>
       {onOptions ? (
         <Pressable
           accessibilityRole="button"

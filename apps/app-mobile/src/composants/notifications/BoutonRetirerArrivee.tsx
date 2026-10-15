@@ -16,7 +16,7 @@ type Props = {
 const DELAI_FOCUS = 250;
 
 /**
- * « Retirer », au bout de la notification « … a rejoint ta bande » : si ton lien est arrivé chez quelqu'un que tu n'attendais
+ * « Retirer », sous la notification « … a rejoint ta bande » : si ton lien est arrivé chez quelqu'un que tu n'attendais
  * pas, un seul geste la fait sortir de ta bande (sans la prévenir). Le bouton devient « Retiré » et garde sa place. Rien
  * quand la personne n'est plus dans ta bande.
  */
@@ -34,7 +34,7 @@ export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
 
   if (retire) {
     return (
-      <View ref={texteRetire} accessible accessibilityLabel={`${prenom} n'est plus dans ta bande`} className="h-9 min-w-24 items-center justify-center px-3">
+      <View ref={texteRetire} accessible accessibilityLabel={`${prenom} n'est plus dans ta bande`} className="mb-3 h-9 min-w-24 items-center justify-center px-3">
         <Text className="font-texte-semi text-[13px] text-gris">Retiré</Text>
       </View>
     );
@@ -54,7 +54,7 @@ export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
         setRetire(true);
         onAnnoncer(`${prenom} n'est plus dans ta bande. En toute discrétion 🤫`);
       }}
-      className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+      className="mb-3 h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
     >
       <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
     </Pressable>

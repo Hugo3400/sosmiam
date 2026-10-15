@@ -29,7 +29,7 @@ import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import couleurs from "~/theme/couleurs";
 
-/** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » au bout (arrivée par ton lien) */
+/** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » (arrivée par ton lien) */
 type LigneAffichee = { date: string; notification: NotificationApp; description: NotificationDecrite; pote: Pote | null; retirable: boolean };
 
 const DELAI_APRES_MENU = 500;
@@ -52,7 +52,7 @@ export default function Notifications() {
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
   const titreEcran = useRef<Text>(null);
   const [menuPour, setMenuPour] = useState<LigneAffichee | null>(null);
-  const effacementLues = useRef<Promise<ResultatEffacementCloche> | null>(null);
+  const effacementLues = useRef<{ promesse: Promise<ResultatEffacementCloche>; nombre: number } | null>(null);
   // La section des demandes montre au moins une ligne (en attente, ou traitée pendant la visite) : pas de « Calme plat » dessous
   const [demandesAffichees, setDemandesAffichees] = useState(false);
 
@@ -94,7 +94,10 @@ export default function Notifications() {
     return grouperParPeriode(lignes);
   }, [notifications.notifications, trouverPote, toutesLesPublications, lieux]);
 
-  const nombreLues = typeof vuesAvant === "string" ? groupes.reduce((total, groupe) => total + groupe.elements.filter((ligne) => ligne.date <= vuesAvant).length, 0) : 0;
+  const lues = useMemo(() => {
+    const dates = typeof vuesAvant === "string" ? groupes.flatMap((groupe) => groupe.elements.flatMap((ligne) => (ligne.date <= vuesAvant ? [ligne.date] : []))) : [];
+    return { nombre: dates.length, jusqua: dates.reduce<string | null>((plus, d) => (plus === null || d > plus ? d : plus), null) };
+  }, [groupes, vuesAvant]);
 
   const conclure = useCallback(
     (texte: string) => {
@@ -115,17 +118,21 @@ export default function Notifications() {
   );
 
   const lancerEffacementLues = () => {
-    if (typeof vuesAvant === "string") effacementLues.current = effacerLues(vuesAvant);
+    if (lues.jusqua !== null) effacementLues.current = { promesse: effacerLues(lues.jusqua), nombre: lues.nombre };
   };
   const annoncerEffacementLues = () => {
     const enCours = effacementLues.current;
     effacementLues.current = null;
-    if (enCours) void enCours.then((resultat) => conclure(decrireEffacementCloche(resultat, "lues")));
+    if (!enCours) return;
+    void enCours.promesse.then((resultat) => {
+      const vu = resultat.ok ? { ...resultat, effacees: Math.min(resultat.effacees, enCours.nombre) } : resultat;
+      conclure(decrireEffacementCloche(vu, "lues"));
+    });
   };
 
   const optionsDe = (ligne: LigneAffichee | null): OptionMenu[] =>
     ligne
-      ? [{ cle: "effacer", emoji: "🧹", titre: "Effacer cette notification", detail: "Hop, elle quitte ta cloche pour de bon", agir: () => void effacerUne(ligne) }]
+      ? [{ cle: "effacer", emoji: "🧹", titre: "Effacer cette notification", detail: "Hop, un coup de chiffon et elle quitte ta cloche", agir: () => void effacerUne(ligne) }]
       : [];
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
@@ -144,7 +151,7 @@ export default function Notifications() {
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
-        <BoutonEffacerLues nombre={pretAAfficher ? nombreLues : 0} onEffacer={lancerEffacementLues} onRefermee={annoncerEffacementLues} />
+        <BoutonEffacerLues nombre={pretAAfficher ? lues.nombre : 0} onEffacer={lancerEffacementLues} onRefermee={annoncerEffacementLues} />
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">

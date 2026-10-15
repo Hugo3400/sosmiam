@@ -12,8 +12,8 @@ type Props = {
 
 const decrire = (nombre: number) =>
   nombre > 1
-    ? `Les ${nombre} notifications que tu as déjà lues s'envolent pour de bon. Les nouvelles, elles, restent bien au chaud.`
-    : "La notification que tu as déjà lue s'envole pour de bon. Les nouvelles, elles, restent bien au chaud.";
+    ? `Les ${nombre} notifications que tu as déjà lues s'envolent. Les nouvelles, elles, restent bien au chaud.`
+    : "La notification que tu as déjà lue s'envole. Les nouvelles, elles, restent bien au chaud.";
 
 export function BoutonEffacerLues({ nombre, onEffacer, onRefermee }: Props) {
   const [ouverte, setOuverte] = useState(false);

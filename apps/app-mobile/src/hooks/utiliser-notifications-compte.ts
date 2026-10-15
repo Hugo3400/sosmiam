@@ -24,6 +24,8 @@ import { effacerNotificationsLocales } from "~/stockage/notifications-locales";
 
 const rienAFaire = () => {};
 const PREFIXE_CLOCHE = "cloche:";
+const DELAI_AVANT_RETRAIT = 200;
+const DELAI_MAX_RETRAIT = 4000;
 const pasPret = async (): Promise<ResultatEffacementCloche> => ({ ok: false, erreur: "connexion-requise" });
 /** La plus récente de deux dates ISO (null : aucune) */
 const plusRecente = (a: string | null, b: string | null) => (a === null ? b : b === null ? a : a > b ? a : b);
@@ -166,16 +168,20 @@ export function utiliserNotificationsCompte(actif: boolean): EtatNotifications {
       }
       const g = generation.current;
       const idServeur = id.slice(PREFIXE_CLOCHE.length);
-      setEnCours((e) => ({ ...e, ids: [...e.ids, id] }));
+      const remettre = () => setEnCours((e) => ({ ...e, ids: e.ids.filter((x) => x !== id) }));
+      const cacher = setTimeout(() => setEnCours((e) => ({ ...e, ids: [...e.ids, id] })), DELAI_AVANT_RETRAIT);
+      const rendre = setTimeout(remettre, DELAI_MAX_RETRAIT);
       const r = await sociaux.cloche.effacer(idServeur).catch(() => null);
+      clearTimeout(cacher);
+      clearTimeout(rendre);
+      remettre();
       if (!tant(g)) return { ok: false, erreur: "connexion-requise" };
       const reussi = r !== null && (r.ok || r.erreur === "notification-inconnue");
       if (reussi) {
         effaceesServeur.current.add(idServeur);
         setBrutes((b) => b.filter((n) => n.id !== idServeur));
+        return { ok: true, effacees: 1 };
       }
-      setEnCours((e) => ({ ...e, ids: e.ids.filter((x) => x !== id) }));
-      if (reussi) return { ok: true, effacees: 1 };
       return { ok: false, erreur: r && !r.ok ? r.erreur : "hors-ligne" };
     },
     [sociaux, tant, garderEffaceesLocales],
@@ -185,17 +191,18 @@ export function utiliserNotificationsCompte(actif: boolean): EtatNotifications {
     async (jusqua: string): Promise<ResultatEffacementCloche> => {
       const g = generation.current;
       const locales = affichees.current.filter((n) => !n.id.startsWith(PREFIXE_CLOCHE) && n.date <= jusqua).length;
-      setEnCours((e) => ({ ...e, jusqua: plusRecente(e.jusqua, jusqua) }));
+      const remettre = () => setEnCours((e) => ({ ...e, jusqua: null }));
+      const cacher = setTimeout(() => setEnCours((e) => ({ ...e, jusqua: plusRecente(e.jusqua, jusqua) })), DELAI_AVANT_RETRAIT);
+      const rendre = setTimeout(remettre, DELAI_MAX_RETRAIT);
       const r = await sociaux.cloche.effacerLues(jusqua).catch(() => null);
+      clearTimeout(cacher);
+      clearTimeout(rendre);
+      remettre();
       if (!tant(g)) return { ok: false, erreur: "connexion-requise" };
-      if (!r?.ok) {
-        setEnCours((e) => ({ ...e, jusqua: null }));
-        return { ok: false, erreur: r ? r.erreur : "hors-ligne" };
-      }
+      if (!r?.ok) return { ok: false, erreur: r ? r.erreur : "hors-ligne" };
       const avant = effaceesLocalesActuelles.current;
       garderEffaceesLocales({ ...avant, jusqua: plusRecente(avant.jusqua, jusqua) });
       setBrutes((b) => b.filter((n) => n.date > jusqua));
-      setEnCours((e) => ({ ...e, jusqua: null }));
       lecturesPerimees.current = derniereLecture.current;
       void charger();
       return { ok: true, effacees: r.effacees + locales };
