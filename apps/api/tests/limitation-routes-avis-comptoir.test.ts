@@ -271,35 +271,56 @@ test("compte limité, au comptoir : ce qui est à un compte supprimé, ou à une
   assert.deepEqual([annule.statut, annule.corps, evenements.evenements.find((e) => e.id === evenementId)?.annuleLe], [403, refus(fin), null]);
 });
 
-test("compte limité, au comptoir : le SOS qu'une collègue lance pendant qu'il arrête (rien à lui en cours) reste en cours", async () => {
-  const gerant = await creerMembre("Max", "gerant");
-  const serveuse = await creerMembre("Nina", "equipe");
-  await limiter(gerant.id);
-  // Une base lente : les auteurs sont lus (aucun SOS en cours), puis Nina lance le sien avant que l'arrêt ne parte
-  const lire = moment.services.lireAuteursSosEnCours;
-  let signalerLus = () => {};
-  const lus = new Promise<void>((fini) => (signalerLus = fini));
-  let reprendre = () => {};
-  const nina = new Promise<void>((fini) => (reprendre = fini));
-  moment.services.lireAuteursSosEnCours = async (lieuId, maintenant) => {
-    const auteurs = await lire(lieuId, maintenant);
-    signalerLus();
-    await nina;
-    return auteurs;
-  };
+/** Attend `promesse`, ou échoue proprement au bout de `ms` (avec `pourquoi`) : le test ne reste jamais pendu */
+async function attendreAuPlus<T>(promesse: Promise<T>, ms: number, pourquoi: string): Promise<T> {
+  let minuterie: ReturnType<typeof setTimeout> | undefined;
+  const delai = new Promise<never>((_, echouer) => (minuterie = setTimeout(() => echouer(new Error(pourquoi)), ms)));
   try {
-    const arret = demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton);
-    await lus;
-    assert.equal((await demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 })).statut, 201);
-    reprendre();
-    // Rien d'à lui à arrêter : 200, et seuls ses SOS auraient été arrêtés ; celui de Nina reste en cours
-    const r = await arret;
-    assert.deepEqual([r.statut, r.corps.moment?.sos?.enCours], [200, true], JSON.stringify(r.corps));
-    assert.deepEqual(moment.sos.map((s) => [s.compteId, s.arreteLe]), [[serveuse.id, null]]);
+    return await Promise.race([promesse, delai]);
   } finally {
-    moment.services.lireAuteursSosEnCours = lire;
+    clearTimeout(minuterie);
   }
-});
+}
+
+// La course de l'arrêt du SOS vaut pour TOUS, limités ou non (c'est plus sûr) : quand aucun SOS d'un autre n'est vu, le
+// geste n'arrête que les SOS du compte (« il n'arrête que ce qu'il a vu »)
+for (const limite of [true, false]) {
+  const qui = limite ? "compte limité" : "compte NON limité (même règle, pour tous)";
+  test(`${qui}, au comptoir : le SOS qu'une collègue lance pendant qu'il arrête (rien à lui en cours) reste en cours`, { timeout: 5_000 }, async () => {
+    const gerant = await creerMembre("Max", "gerant");
+    const serveuse = await creerMembre("Nina", "equipe");
+    if (limite) await limiter(gerant.id);
+    // Une base lente : les auteurs sont lus (aucun SOS en cours), puis Nina lance le sien avant que l'arrêt ne parte
+    const lire = moment.services.lireAuteursSosEnCours;
+    let signalerLus = () => {};
+    const lus = new Promise<void>((fini) => (signalerLus = fini));
+    let reprendre = () => {};
+    const nina = new Promise<void>((fini) => (reprendre = fini));
+    moment.services.lireAuteursSosEnCours = async (lieuId, maintenant) => {
+      const auteurs = await lire(lieuId, maintenant);
+      signalerLus();
+      await nina;
+      return auteurs;
+    };
+    let arret: ReturnType<typeof demander> | undefined;
+    try {
+      arret = demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton);
+      // Des auteurs jamais lus (le contrôleur ne les lit plus ?) : un échec net, pas un test pendu
+      await attendreAuPlus(lus, 2_000, "les auteurs des SOS en cours ne sont jamais lus : la course n'est plus essayée");
+      assert.equal((await demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 })).statut, 201);
+      reprendre();
+      // Rien d'à lui à arrêter : 200, et seuls ses SOS auraient été arrêtés ; celui de Nina reste en cours
+      const r = await arret;
+      assert.deepEqual([r.statut, r.corps.moment?.sos?.enCours], [200, true], JSON.stringify(r.corps));
+      assert.deepEqual(moment.sos.map((s) => [s.compteId, s.arreteLe]), [[serveuse.id, null]]);
+    } finally {
+      // Même en échec : le vrai double revient, et l'arrêt repart et finit ici (pas pendant le test suivant)
+      moment.services.lireAuteursSosEnCours = lire;
+      reprendre();
+      await arret?.catch(() => {});
+    }
+  });
+}
 
 test("compte limité, programme de fidélité : l'éteindre passe, le créer, le rallumer ou le changer est refusé", async () => {
   const gerant = await creerMembre("Max", "gerant");
@@ -338,7 +359,7 @@ test("compte limité, programme de fidélité : l'éteindre passe, le créer, le
   assert.deepEqual([cree.statut, cree.corps, visites.programmes.size], [403, refus(fin), 0]);
 });
 
-test("compte limité, programme avec alcool : changer ou retirer sa version sans alcool, même en l'éteignant, est refusé", async () => {
+test("compte limité, programme avec alcool : changer ou retirer sa version sans alcool, ou décocher l'alcool, même en l'éteignant, est refusé", async () => {
   const gerant = await creerMembre("Max", "gerant");
   const AVEC_ALCOOL = { ...PROGRAMME, recompense: "Un verre de vin du coin", alcool: true, recompenseSansAlcool: "Un jus de fruits" };
   assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, AVEC_ALCOOL)).statut, 200);
@@ -357,6 +378,20 @@ test("compte limité, programme avec alcool : changer ou retirer sa version sans
   // Tel qu'enregistré, version sans alcool comprise : l'éteindre passe
   const eteint = await regler({ ...AVEC_ALCOOL, actif: false });
   assert.deepEqual([eteint.statut, eteint.corps.programme?.actif, eteint.corps.programme?.recompenseSansAlcool], [200, false, "Un jus de fruits"]);
+
+  // Changer SEULEMENT l'alcool en l'éteignant : il faut l'alcool coché à la main (« Un verre de vin » le recoche d'office)
+  // et pas de version sans alcool (décocher l'effacerait aussi). Zoé, non limitée, l'enregistre ; Max le décoche : 403
+  const gerante = await creerMembre("Zoé", "gerant");
+  const COCHE = { ...PROGRAMME, recompense: "La surprise du chef", alcool: true };
+  assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/programme", gerante.jeton, COCHE)).statut, 200);
+  const coche = structuredClone(visites.programmes.get(1));
+  assert.deepEqual([coche?.alcool, coche?.recompenseSansAlcool], [true, null]);
+  banc.horloge += 3600_000;
+  const decoche = await regler({ ...COCHE, actif: false, alcool: false });
+  assert.deepEqual([decoche.statut, decoche.corps], [403, refus(fin)]);
+  assert.deepEqual(visites.programmes.get(1), coche, "alcool décoché : rien n'est écrit, pas même l'heure");
+  // Le témoin : tel qu'enregistré, alcool compris, l'éteindre passe
+  assert.equal((await regler({ ...COCHE, actif: false })).statut, 200);
 });
 
 test("compte limité, réservation : sans petit mot, elle passe ; avec un mot, 403 et rien n'est écrit", async () => {
