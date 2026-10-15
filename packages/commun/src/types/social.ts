@@ -9,7 +9,7 @@ export type PersonneResume = {
   id: string;
   pseudo: string;
   prenom: string;
-  /** Emoji d'avatar ; null : pas choisi (l'app met son avatar par défaut). Une photo reste sur le téléphone */
+  /** Avatar public : un emoji, « miami:<id> » ou « photo:<nom> » ; null : pas choisi (l'app met son avatar par défaut) */
   avatar: string | null;
 };
 

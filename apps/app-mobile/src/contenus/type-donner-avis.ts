@@ -4,6 +4,8 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
 export type PhotoAvis = { uri: string; largeur: number; hauteur: number };
 
+export type SourcePhotoAvis = { uri: string } | number;
+
 export type SaisieAvis = { note: NoteAvis | null; texte: string; photo: PhotoAvis | null };
 
 export type RefusEnvoiAvis =

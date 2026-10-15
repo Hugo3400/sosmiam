@@ -28,6 +28,8 @@ export function ChoixNoteAvis({ note, onChoisir }: Props) {
               key={valeur}
               accessibilityRole={ios ? "button" : "radio"}
               accessibilityState={ios ? { selected: choisie } : { checked: choisie }}
+              aria-checked={ios ? undefined : choisie}
+              aria-selected={ios ? choisie : undefined}
               accessibilityLabel={`${ecrireEtoiles(valeur)} : ${LIBELLES_NOTES_AVIS[valeur]}`}
               hitSlop={2}
               onPress={() => {

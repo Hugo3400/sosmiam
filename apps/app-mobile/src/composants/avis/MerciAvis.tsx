@@ -9,6 +9,7 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { CompteurPoints } from "~/composants/visites/CompteurPoints";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import type { SourcePhotoAvis } from "~/contenus/type-donner-avis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 
@@ -16,7 +17,7 @@ type Props = {
   prenom: string;
   nomLieu: string;
   avis: AvisPublic | null;
-  sourcePhoto: { uri: string } | null;
+  sourcePhoto: SourcePhotoAvis | null;
   pointsGagnes: number;
   repasOffert: boolean;
   alcool: boolean;

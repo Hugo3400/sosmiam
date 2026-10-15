@@ -69,7 +69,6 @@ export const TEXTES_DONNER_AVIS = {
   retourVisite: "Retour à ma visite",
   reessayer: "Réessayer",
   reessaiEnCours: "On réessaie…",
-  reessayerIndice: "Relit ta visite, sans rien perdre",
   ouvertureAttente: "À {heure}, dans {attente}. Pas devant le patron.",
   aucunTitre: "Pas d'avis pour cette visite",
   aucunTexte: "Un avis s'ouvre une heure après une visite validée par le lieu. Ta prochaine visite t'en ouvrira un tout neuf !",

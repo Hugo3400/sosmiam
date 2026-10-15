@@ -1,10 +1,8 @@
 import type { ServiceAvis } from "@sos-miam/commun/client-api/contrat-avis";
 import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import { calculerPointsPhotoAvis } from "@sos-miam/commun/fonctions/avis/calculer-points-photo-avis";
-import { resumerAvis } from "@sos-miam/commun/fonctions/avis/resumer-avis";
 import { signerAvis } from "@sos-miam/commun/fonctions/avis/signer-avis";
-import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
-import type { AvisPublic, NouvelAvis, PageAvisLieu } from "@sos-miam/commun/types/avis";
+import type { AvisPublic, NouvelAvis } from "@sos-miam/commun/types/avis";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { validerAvis } from "@sos-miam/commun/validation/valider-avis";
@@ -13,9 +11,10 @@ import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { convertirAvisDemo } from "~/fonctions/demo/convertir-avis-demo";
 import { convertirVisiteDemo } from "~/fonctions/demo/convertir-visite-demo";
 
+import { lirePageAvisDemo } from "./lire-page-avis-demo";
+import { retenirPhotoAvisDemo } from "./photos-avis-demo";
 import type { ClientDemo, ContexteDemo, MagasinDemo, VisiteDemo } from "./types-demo";
 
-const AVIS_PAR_PAGE = 30;
 const VISITES_A_NOTER_MAX = 50;
 const FORME_PHOTO_DEMO = /^demo-[a-z0-9]+\.jpg$/;
 
@@ -38,22 +37,6 @@ function listerVisitesANoter(m: Readonly<MagasinDemo>, maintenantMs: number): Vi
     if (lieu && refuserOuverture(v, maintenantMs) === null) visites.push(convertirVisiteDemo(v, lieu));
   }
   return visites.slice(0, VISITES_A_NOTER_MAX);
-}
-
-function lirePageAvis(m: Readonly<MagasinDemo>, lieuId: number, apres: string | null | undefined): PageAvisLieu {
-  const reglementDe = (visiteId: number | null) => m.visites.find((v) => v.id === visiteId)?.reglement ?? null;
-  const visibles = m.avis.filter((a) => a.lieuId === lieuId && a.statut !== "masque").sort(plusRecentDabord);
-  const clients = m.visites
-    .filter((v) => v.lieuId === lieuId && v.statut === "validee" && v.valideLe)
-    .map((v) => ({ client: v.client, jour: calculerJourParis(Date.parse(v.valideLe ?? "")) }));
-  const debut = apres ? visibles.findIndex((a) => String(a.id) === apres) + 1 : 0;
-  const page = visibles.slice(debut, debut + AVIS_PAR_PAGE);
-  const suite = debut + AVIS_PAR_PAGE < visibles.length && page.length > 0 ? String(page[page.length - 1].id) : null;
-  return {
-    resume: resumerAvis(visibles.map((a) => a.note), clients),
-    avis: page.map((a) => convertirAvisDemo(a, reglementDe(a.visiteId))),
-    suite,
-  };
 }
 
 function ecrireAvis(m: MagasinDemo, nouvel: NouvelAvis, client: ClientDemo, maintenantMs: number): ReponseEnvoi {
@@ -91,10 +74,12 @@ export function creerAvisDemo(ctx: ContexteDemo): ServiceAvis {
       return ctx.magasin.lire((m, maintenantMs) => ({ ok: true, visites: listerVisitesANoter(m, maintenantMs) }));
     },
 
-    async envoyerPhotoAvis() {
+    async envoyerPhotoAvis(jpeg) {
       if (!ctx.lireClient()) return { ok: false, erreur: "connexion-requise" };
       photosDeposees += 1;
-      return { ok: true, photo: `demo-${ctx.maintenant().toString(36)}${photosDeposees}.jpg` };
+      const photo = `demo-${ctx.maintenant().toString(36)}${photosDeposees}.jpg`;
+      retenirPhotoAvisDemo(photo, jpeg);
+      return { ok: true, photo };
     },
 
     async envoyerAvis(nouvel) {
@@ -106,7 +91,7 @@ export function creerAvisDemo(ctx: ContexteDemo): ServiceAvis {
     },
 
     async listerAvisLieu(lieuId, apres) {
-      return ctx.magasin.lire((m) => ({ ok: true, ...lirePageAvis(m, lieuId, apres) }));
+      return ctx.magasin.lire((m) => ({ ok: true, ...lirePageAvisDemo(m, lieuId, apres) }));
     },
   };
 }

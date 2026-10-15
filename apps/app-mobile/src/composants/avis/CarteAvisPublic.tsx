@@ -6,6 +6,7 @@ import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { AvisPublic } from "@sos-miam/commun/types/avis";
 import { EtoilesAvis } from "~/composants/avis/EtoilesAvis";
 import { TEXTES_CARTE_AVIS } from "~/contenus/textes-carte-avis";
+import type { SourcePhotoAvis } from "~/contenus/type-donner-avis";
 import { ecrirePreuveAvis } from "~/fonctions/avis/ecrire-preuve-avis";
 import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -13,7 +14,7 @@ import couleurs from "~/theme/couleurs";
 
 type Props = {
   avis: AvisPublic;
-  sourcePhoto: { uri: string } | null;
+  sourcePhoto: SourcePhotoAvis | null;
   nomLieu: string;
 };
 
