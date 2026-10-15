@@ -30,12 +30,42 @@ const presenter = (notification: Notifications.Notification): { afficher: boolea
   }
 };
 
+/**
+ * App ouverte, expo laisse 3 s au gestionnaire : au-delà (fil occupé), la notification n'est jamais montrée, sur iPhone
+ * comme sur Android. Pour une alerte Miam Safe, c'est inacceptable : on la repose aussitôt, en local, sur le canal
+ * « miam-safe » et avec son repère urgent (elle repasse alors par le gestionnaire, qui la fait sonner). Une seule fois :
+ * une alerte reposée (relance: "1") ne l'est jamais de nouveau.
+ */
+function reposerAlertePerdue(notification: Notifications.Notification) {
+  try {
+    const { content } = notification.request;
+    const lien = lireLienNotification(notification);
+    const dejaReposee = typeof content.data === "object" && content.data !== null && (content.data as Record<string, unknown>).relance === "1";
+    if (dejaReposee || !lien || !estNotificationUrgente(notification) || !estAlerteMiamSafe(lien)) return;
+    void Notifications.scheduleNotificationAsync({
+      content: {
+        title: content.title ?? undefined,
+        body: content.body ?? undefined,
+        data: { lien, urgent: "1", relance: "1" },
+        sound: "default",
+        interruptionLevel: "timeSensitive",
+      },
+      trigger: Platform.OS === "android" ? { channelId: "miam-safe" } : null,
+    }).catch(() => undefined);
+  } catch {
+    // Rien de plus à tenter
+  }
+}
+
 if (Platform.OS !== "web") {
   // Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sauf si son écran est déjà ouvert
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
       const { afficher, sonner } = presenter(notification);
       return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: sonner, shouldSetBadge: false };
+    },
+    handleError: (_id, erreur) => {
+      if (erreur instanceof Notifications.NotificationTimeoutError) reposerAlertePerdue(erreur.info.notification);
     },
   });
   // Android : les canaux de l'app (Miam Safe, messages, messages à la suite, nouvelles), avant toute demande d'autorisation
