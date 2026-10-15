@@ -1,3 +1,4 @@
+import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { lireAvatarPublic } from "~/fonctions/compte/lire-avatar-public";
 import { AVATAR_PAR_DEFAUT, type Avatar } from "~/stockage/avatar-local";
@@ -7,16 +8,28 @@ export type ChoixAvatar = { faire: "rien" } | { faire: "envoyer" } | { faire: "a
 
 const RIEN: ChoixAvatar = { faire: "rien" };
 
+function adopterServeur(serveur: string | null): ChoixAvatar {
+  if (!serveur) return { faire: "adopter", avatar: AVATAR_PAR_DEFAUT };
+  const lu = lireAvatarPublic(serveur);
+  return lu ? { faire: "adopter", avatar: lu } : RIEN;
+}
+
+function fusionnerPhoto(local: Extract<Avatar, { type: "photo" }>, serveur: string | null, rattrapage: boolean): ChoixAvatar {
+  if (local.partage === undefined) return lireAvatarPhoto(serveur) ? adopterServeur(serveur) : RIEN;
+  if (local.partage === "a-envoyer") return rattrapage ? { faire: "envoyer" } : adopterServeur(serveur);
+  return serveur === local.partage ? RIEN : adopterServeur(serveur);
+}
+
 /**
  * L'avatar lu sur le serveur, face à celui du téléphone (pas marqué « à envoyer » : sinon le téléphone gagne). Le serveur
- * fait foi, avec trois exceptions. Une photo ne quitte jamais le téléphone : il la garde, les autres voient ton dernier
- * emoji ou Miami. Rien sur le serveur et l'avatar par défaut ici : c'est pareil. Un Miami que cette version ne connaît pas
+ * fait foi, avec trois exceptions. Rien sur le serveur et l'avatar par défaut ici : c'est pareil. Un Miami que cette version ne connaît pas
  * (ou le Capitaine) : on garde le tien, sans rien renvoyer. Rien sur le serveur et un autre avatar ici : au `rattrapage`
  * (avatar jamais lu sur ce téléphone : première synchro, version d'avant l'avatar, ou choisi pendant la visite avant
  * l'inscription), le tien part ; sinon, l'équipe l'a retiré et le téléphone revient à l'avatar par défaut, sans renvoi.
  */
 export function fusionnerAvatarServeur(local: Avatar, serveur: string | null, rattrapage: boolean): ChoixAvatar {
-  if (local.type === "photo") return RIEN;
+  if (local.type === "photo") return fusionnerPhoto(local, serveur, rattrapage);
+  if (lireAvatarPhoto(serveur)) return adopterServeur(serveur);
   if (!serveur) {
     if (local.type === "emoji" && local.emoji === AVATAR_PAR_DEFAUT.emoji) return RIEN;
     return rattrapage ? { faire: "envoyer" } : { faire: "adopter", avatar: AVATAR_PAR_DEFAUT };

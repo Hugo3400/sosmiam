@@ -1,6 +1,5 @@
 // Avatar de la personne : un emoji, un Miami (dessins de la marque), ou une photo gardée dans les fichiers de l'app.
-// Avec un compte, l'emoji ou le Miami part au serveur par la synchro du profil (services/synchro-profil.ts) ; la photo ne quitte
-// jamais le téléphone. Sur le web (aperçu de développement), on garde l'adresse donnée par le navigateur.
+// Sur le web (aperçu de développement), on garde l'adresse donnée par le navigateur.
 // Sur le téléphone, on ne garde que le nom du fichier : iOS peut changer le dossier de l'app (mise à jour), on refait l'adresse à chaque lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory, File, Paths } from "expo-file-system";
@@ -9,9 +8,13 @@ import { Platform } from "react-native";
 
 import { EMOJI_AVATAR_PAR_DEFAUT } from "@sos-miam/commun/regles/avatar-par-defaut";
 import { AVATARS_MIAMIS, type IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
+import type { AvatarPhoto } from "@sos-miam/commun/types/photo-profil";
+import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
+
+export type PartagePhoto = "a-envoyer" | AvatarPhoto;
 
 /** Un Miami au choix seulement : le Capitaine, réservé au compte officiel, ne se choisit pas */
-export type Avatar = { type: "emoji"; emoji: string } | { type: "miami"; id: IdMiamiAuChoix } | { type: "photo"; uri: string };
+export type Avatar = { type: "emoji"; emoji: string } | { type: "miami"; id: IdMiamiAuChoix } | { type: "photo"; uri: string | null; partage?: PartagePhoto };
 
 export const AVATAR_PAR_DEFAUT: Extract<Avatar, { type: "emoji" }> = { type: "emoji", emoji: EMOJI_AVATAR_PAR_DEFAUT };
 
@@ -36,6 +39,22 @@ function viderCacheSelecteur(): void {
   }
 }
 
+function lirePartage(valeur: unknown): PartagePhoto | undefined {
+  if (valeur === "a-envoyer") return valeur;
+  return lireAvatarPhoto(valeur) ? (valeur as AvatarPhoto) : undefined;
+}
+
+function lirePhoto(a: Record<string, unknown>): Avatar {
+  const partage = lirePartage(a.partage);
+  const avecPartage = (uri: string): Avatar => (partage ? { type: "photo", uri, partage } : { type: "photo", uri });
+  if (typeof a.uri === "string" && a.uri !== "") {
+    if (surLeWeb) return avecPartage(a.uri);
+    const photo = retrouverPhoto(a.uri);
+    if (photo?.exists) return avecPartage(photo.uri);
+  }
+  return partage && partage !== "a-envoyer" ? { type: "photo", uri: null, partage } : AVATAR_PAR_DEFAUT;
+}
+
 /** Lit l'avatar gardé sur le téléphone (l'avatar par défaut si rien, illisible, ou si la photo a disparu). */
 export async function lireAvatarLocal(): Promise<Avatar> {
   try {
@@ -49,11 +68,7 @@ export async function lireAvatarLocal(): Promise<Avatar> {
       const miami = AVATARS_MIAMIS.find((m) => m.id === a.id);
       return miami ? { type: "miami", id: miami.id } : AVATAR_PAR_DEFAUT;
     }
-    if (a.type === "photo" && typeof a.uri === "string" && a.uri !== "") {
-      if (surLeWeb) return { type: "photo", uri: a.uri };
-      const photo = retrouverPhoto(a.uri);
-      return photo?.exists ? { type: "photo", uri: photo.uri } : AVATAR_PAR_DEFAUT;
-    }
+    if (a.type === "photo") return lirePhoto(a);
     return AVATAR_PAR_DEFAUT;
   } catch {
     return AVATAR_PAR_DEFAUT;
@@ -62,8 +77,15 @@ export async function lireAvatarLocal(): Promise<Avatar> {
 
 /** Enregistre l'avatar sur le téléphone (pour une photo : seulement le nom de son fichier). */
 export async function enregistrerAvatarLocal(avatar: Avatar): Promise<void> {
-  const aGarder = avatar.type === "photo" && !surLeWeb ? { type: "photo", uri: avatar.uri.split("/").pop() ?? "" } : avatar;
+  const aGarder = avatar.type === "photo" && !surLeWeb ? { ...avatar, uri: avatar.uri ? (avatar.uri.split("/").pop() ?? "") : null } : avatar;
   await AsyncStorage.setItem(CLE, JSON.stringify(aGarder));
+}
+
+export async function lireOctetsPhotoAvatar(uri: string): Promise<Blob> {
+  if (surLeWeb) return (await fetch(uri)).blob();
+  const fichier = retrouverPhoto(uri) ?? new File(uri);
+  if (!fichier.exists) throw new Error("photo-absente");
+  return fichier;
 }
 
 /** Range la photo choisie (fichier temporaire du sélecteur) dans les fichiers de l'app et renvoie sa nouvelle adresse. */
@@ -89,13 +111,15 @@ function viderCacheImages(): void {
 }
 
 /** Supprime une photo d'avatar gardée dans les fichiers de l'app (remplacée, retirée, ou tout effacer). */
-export function supprimerPhotoAvatar(uri: string): void {
+export function supprimerPhotoAvatar(uri: string | null): void {
   if (surLeWeb) return;
-  try {
-    const fichier = retrouverPhoto(uri) ?? new File(uri);
-    if (fichier.exists) fichier.delete();
-  } catch {
-    // Déjà partie : rien à faire
+  if (uri) {
+    try {
+      const fichier = retrouverPhoto(uri) ?? new File(uri);
+      if (fichier.exists) fichier.delete();
+    } catch {
+      // Déjà partie : rien à faire
+    }
   }
   viderCacheSelecteur();
   viderCacheImages();

@@ -33,6 +33,7 @@ export type SynchroProfil = {
    * version d'avant l'avatar : le rattrapage de l'avatar reste à faire)
    */
   avatarServeur?: string | null;
+  retraitPhoto?: boolean;
   /** Ton ancien pseudo, retiré par l'équipe : réservé pour personne jusqu'à `jusqua` (ISO) */
   pseudoMisDeCote: { pseudo: string; jusqua: string } | null;
   annonce: AnnonceSynchro | null;
@@ -90,6 +91,7 @@ export async function lireSynchroProfil(): Promise<SynchroProfil> {
     };
     if (lu.pseudoServeur === null || texte(lu.pseudoServeur)) etat.pseudoServeur = lu.pseudoServeur;
     if (lu.avatarServeur === null || texte(lu.avatarServeur)) etat.avatarServeur = lu.avatarServeur;
+    if (lu.retraitPhoto === true) etat.retraitPhoto = true;
     return etat;
   } catch {
     return creerSynchroProfil(false);

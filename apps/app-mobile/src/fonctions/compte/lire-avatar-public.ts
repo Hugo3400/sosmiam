@@ -1,5 +1,8 @@
 import { AVATARS_MIAMIS, PREFIXE_AVATAR_MIAMI } from "@sos-miam/commun/regles/avatars-miamis";
+import { PREFIXE_AVATAR_PHOTO } from "@sos-miam/commun/regles/photo-profil";
+import type { AvatarPhoto } from "@sos-miam/commun/types/photo-profil";
 import { lireAvatarMiami } from "@sos-miam/commun/validation/lire-avatar-miami";
+import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
 import type { Avatar } from "~/stockage/avatar-local";
 
 /**
@@ -8,6 +11,7 @@ import type { Avatar } from "~/stockage/avatar-local";
  * officiel. Les Miamis au choix ont tous leur image (IMAGES_MIAMIS couvre chaque id, son type y veille).
  */
 export function lireAvatarPublic(valeur: string): Avatar | null {
+  if (valeur.startsWith(PREFIXE_AVATAR_PHOTO)) return lireAvatarPhoto(valeur) ? { type: "photo", uri: null, partage: valeur as AvatarPhoto } : null;
   if (!valeur.startsWith(PREFIXE_AVATAR_MIAMI)) return valeur ? { type: "emoji", emoji: valeur } : null;
   const miami = lireAvatarMiami(valeur);
   const auChoix = miami && !miami.reserve ? AVATARS_MIAMIS.find((m) => m.id === miami.id) : undefined;
