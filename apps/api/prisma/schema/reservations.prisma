@@ -28,9 +28,23 @@ model Reservation {
   presenceLe   DateTime? @map("presence_le") @db.Timestamptz(0)
   /// Code de rapprochement à 4 chiffres, montré à l'arrivée
   code         String?   @db.VarChar(4)
+  creneauxProposes DateTime[] @default([]) @map("creneaux_proposes") @db.Timestamptz(0)
+  automatique  Boolean   @default(false)
 
   @@index([compteId, creneau])
   @@index([lieuId, statut, creneau])
   @@index([statut, creneau])
   @@map("reservations")
+}
+
+model ReglagesReservations {
+  lieuId      Int      @id @map("lieu_id")
+  lieu        Lieu     @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  services    Json     @default("[]")
+  acceptation String   @default("manuelle") @db.VarChar(12)
+  delai       String   @default("1-h") @db.VarChar(6)
+  joursFermes String[] @default([]) @map("jours_fermes") @db.VarChar(10)
+  modifieLe   DateTime @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("reglages_reservations")
 }

@@ -109,12 +109,20 @@ export function regrouperLieuxParGrille(points: PointCarte[], region: RegionCart
 function preparer(points: PointCarte[]): Preparation {
   const deja = preparations.get(points);
   if (deja) return deja;
-  const projetes = points
-    .filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))
-    .map((point) => ({ point, x: (point.longitude + 180) / 360, y: projeterLatitude(point.latitude) }));
+  const projetes = trierParId(points.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))).map((point) => ({
+    point,
+    x: (point.longitude + 180) / 360,
+    y: projeterLatitude(point.latitude),
+  }));
   const preparation = { projetes, parNiveau: new Map<number, Etage>() };
   preparations.set(points, preparation);
   return preparation;
+}
+
+function trierParId(points: PointCarte[]): PointCarte[] {
+  const nombre = points.length;
+  const cles = Float64Array.from(points, (point, rang) => point.id * nombre + rang).sort();
+  return Array.from(cles, (cle) => points[cle - Math.floor(cle / nombre) * nombre]);
 }
 
 function projeterLatitude(latitude: number): number {
@@ -145,10 +153,7 @@ function lireAmas(preparation: Preparation, niveau: number, fenetre: Rectangle):
     }
     manquantes.forEach((projetes, rang) => {
       if (!projetes) return;
-      const formes = formerAmasCarte(
-        projetes.sort((a, b) => a.point.id - b.point.id),
-        niveau,
-      );
+      const formes = formerAmasCarte(projetes, niveau);
       parZone.set(cles[rang], formes);
       for (const un of formes) for (const { point } of un.membres) parId.set(point.id, un);
     });
