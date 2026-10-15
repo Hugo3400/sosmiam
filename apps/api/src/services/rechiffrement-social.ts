@@ -19,8 +19,9 @@ export type BilanRechiffrementSocial = {
   rechiffres: number;
   /** Ceux qu'aucune clé ne relit (laissés tels quels, à regarder) */
   illisibles: number;
-  /** Encore écrits avec une ancienne clé et cités par la base après ce passage, illisibles compris (égal à `illisibles`
-   *  deux nuits de suite : l'ancienne clé ne sert plus à rien) */
+  /** Encore écrits avec une ancienne clé après ce passage, illisibles compris ; l'ancien fichier d'un média rechiffré n'y est
+   *  plus (il ne sert plus : l'étape 8 le retire la nuit suivante). Égal à `illisibles` deux nuits de suite : l'ancienne
+   *  clé ne sert plus à rien */
   restants: number;
 };
 
@@ -53,6 +54,7 @@ function creerJournalIllisibles() {
   };
 }
 type JournalIllisibles = ReturnType<typeof creerJournalIllisibles>;
+
 type TableChiffree = { table: string; cle: string; colonne: string; plus: string; usage: UsageTexteSocial; contexte: (l: LigneChiffree) => string };
 
 /** Les colonnes chiffrées de la partie sociale (A.0), avec le contexte authentifié de chaque chiffré */

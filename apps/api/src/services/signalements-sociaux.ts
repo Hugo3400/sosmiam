@@ -1,11 +1,15 @@
 // Les signalements des contenus sociaux, dans la base (contrat dans signalements-sociaux-regles.ts). Tout se fait dans une
-// transaction, sous le verrou du compte qui signale (deux envois en même temps ne font jamais deux signalements) : lecture
-// du contenu tel qu'il le voit, signalement, instantané chiffré, et masquage pour tous d'un « choquant » sous conditions.
+// transaction, sous le verrou du compte qui signale (deux envois en même temps ne font jamais deux signalements), puis, pour
+// un message, sous celui de sa conversation (comme la messagerie : le compte, puis la conversation ; le ménage de nuit ne
+// peut plus effacer une conversation dont un message est en train d'être signalé) : lecture du contenu tel qu'il le voit,
+// signalement, instantané chiffré, et masquage pour tous d'un « choquant » sous conditions.
 import { CIBLES_AVEC_MASQUAGE_IMMEDIAT, RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "../../../../packages/commun/src/regles/signalement.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { peutMasquerToutDeSuite } from "../fonctions/social/peut-masquer-tout-de-suite.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
-import { compterRejets, ecrireSignalementSocial, lireContenuSignale, masquerPourTous } from "./instantanes-signalements.ts";
+import {
+  compterRejets, ecrireSignalementSocial, lireContenuSignale, masquerPourTous, verrouillerConversationDuMessage,
+} from "./instantanes-signalements.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { ecrireEffetMasque, MAX_SIGNALES_LUS, type ServicesSignalementsSociaux } from "./signalements-sociaux-regles.ts";
 
@@ -20,6 +24,7 @@ export function creerSignalementsSociaux(o: { relations: RelationsSociales; chif
         await relations.verrouillerComptes(tx, [compteId]);
         const deja = await tx.signalement.findFirst({ where: { signaleParId: compteId, cible: s.cible, cibleId: s.cibleId, source: "app" }, select: { id: true } });
         if (deja) return { ok: true as const, deja: true, masquePourTous: false, effets: [] };
+        if (s.cible === "message") await verrouillerConversationDuMessage(tx, s.cibleId);
         const lu = await lireContenuSignale(tx, { chiffrement, relations }, compteId, s.cible, s.cibleId, maintenant);
         // Son propre contenu ne se signale pas (on le supprime) : même réponse qu'un contenu invisible
         if (!lu || lu.auteurContenuId === compteId) return { ok: false as const, erreur: "contenu-inconnu" as const };

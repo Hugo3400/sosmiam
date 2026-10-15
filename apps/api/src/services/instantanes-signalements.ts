@@ -2,7 +2,9 @@
 // du signalement : le contenu tel qu'il est maintenant, s'il est VISIBLE pour celui qui signale (même règle que les lectures
 // de chaque domaine : un 404 ne dit rien de plus qu'une lecture), puis le signalement et son INSTANTANÉ chiffré (sous-clé de
 // la modération, contexte « signalement:<id> »), et le masquage pour tous d'un contenu « choquant ». Servi aussi au
-// masquage d'un commentaire par le gérant du lieu (commentaires.ts). Jamais un texte de message ni un pseudo au journal.
+// masquage d'un commentaire par le gérant du lieu (commentaires.ts). Un message se signale sous le verrou de sa conversation
+// (verrouillerConversationDuMessage, contre la course avec le ménage de nuit). Jamais un texte de message ni un pseudo au
+// journal.
 import { peutVoirListe } from "../../../../packages/commun/src/fonctions/social/peut-voir-liste.ts";
 import { calculerNiveauProfil } from "../../../../packages/commun/src/regles/calculer-niveau-profil.ts";
 import type { CibleSignalementSocial, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
@@ -62,6 +64,20 @@ async function lireCommentaire(tx: TransactionSociale, id: number, maintenant: D
     lieuId: c.publication.lieuId,
     fichierMedia: null,
   };
+}
+
+/**
+ * Le signalement d'un message verrouille sa conversation (SELECT … FOR UPDATE) AVANT de lire le message, après le verrou du
+ * compte qui signale : même ordre que la messagerie (le compte, puis la conversation). Le ménage de nuit verrouille la
+ * conversation, puis relit « aucun message au signalement ouvert » : les deux ne se croisent plus. Ou bien le signalement
+ * est validé d'abord, et le ménage le voit et garde la conversation ; ou bien le ménage passe d'abord, et le signalement
+ * trouve ensuite le message parti (contenu-inconnu). Rien à faire pour un message inconnu (la lecture rendra null).
+ */
+export async function verrouillerConversationDuMessage(tx: TransactionSociale, cibleId: string): Promise<void> {
+  const id = Number(cibleId);
+  if (!Number.isSafeInteger(id) || id < 1) return;
+  const message = await tx.messageConversation.findUnique({ where: { id }, select: { conversationId: true } });
+  if (message) await tx.$queryRaw`SELECT id FROM conversations WHERE id = ${message.conversationId} FOR UPDATE`;
 }
 
 /** La règle d'accès des messages (B.0) : membre, après ton arrivée, auteur sans blocage ; ni supprimé, ni masqué, ni retiré */
