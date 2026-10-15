@@ -293,6 +293,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       await ecrireProfil(appliquerChangementsInfos(local, changements));
       if (!aEnvoyer) return;
       marquer(memoire, champsDe(changements));
+      // Un changement à toi : nouvel essai tout de suite, puis 30 s (pas les 10 min d'une longue panne)
+      Object.assign(memoire, { essais: 0, echecsServeur: 0 });
       garder();
     });
   }
@@ -430,6 +432,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
         await ecrireProfil({ ...local, envies });
         if (DEMO_VISITES_ACTIVE) return;
         marquer(memoire, ["envies"]);
+        Object.assign(memoire, { essais: 0, echecsServeur: 0 });
         garder();
       });
       lancer();

@@ -52,7 +52,7 @@ test("disque : dossier 0700, fichiers 0600, noms tirés, jamais un chemin, pas d
   assert.equal(alertes.length, part < 0.15 ? 1 : 0);
 });
 
-test("disque : une photo de 5 Mo écrite entière et forcée sur le disque ; une écriture refusée ne laisse rien", async () => {
+test("disque : une photo de 5 Mo écrite entière et forcée sur le disque ; un nom déjà pris n'est jamais écrasé", async () => {
   const dossier = join(racine, "cinq-mo");
   const s = creerStockageMediasChat(dossier);
   const nom = s.tirerNom();
