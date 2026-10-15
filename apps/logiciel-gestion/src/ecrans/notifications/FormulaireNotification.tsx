@@ -6,6 +6,7 @@ import { Carte } from "~/composants/interface/Carte.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { Selecteur } from "~/composants/interface/Selecteur.tsx";
+import { ECRANS_APP } from "~/contenus/ecrans-app.ts";
 import { saisieVersIso } from "~/fonctions/dates/saisie-vers-iso.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
@@ -14,14 +15,6 @@ import { ErreurApi } from "~/services/client-gestion.ts";
 import { creerNotification, estimerNotification, type CiblePush } from "~/services/notifications.ts";
 import { ApercuNotification } from "./ApercuNotification.tsx";
 
-/** Les écrans de l'app qu'une notification peut ouvrir */
-const ECRANS = [
-  { valeur: "/", libelle: "Accueil (le fil « Pour toi »)" },
-  { valeur: "/explorer", libelle: "Explorer (la carte des lieux)" },
-  { valeur: "/potes", libelle: "Potes" },
-  { valeur: "/profil", libelle: "Profil" },
-  { valeur: "lieu", libelle: "Un lieu précis…" },
-];
 
 /** Écrire une notification : texte, écran ouvert, à qui, quand ; l'estimation dit combien la recevront vraiment. */
 export function FormulaireNotification({ onEnvoyee }: { onEnvoyee: (bilan: string) => void }) {
@@ -53,7 +46,7 @@ export function FormulaireNotification({ onEnvoyee }: { onEnvoyee: (bilan: strin
       setTitre("");
       setTexte("");
       setEtat({ enCours: false, erreur: null });
-      onEnvoyee(quand === "maintenant" ? "Notification en route : elle part dans les 30 secondes ✅" : "Notification programmée ✅");
+      onEnvoyee(quand === "maintenant" ? "Notification en route ✅" : "Notification programmée ✅");
     } catch (probleme) {
       setEtat({ enCours: false, erreur: expliquerErreur(probleme instanceof ErreurApi ? probleme : null) });
     }
@@ -66,7 +59,7 @@ export function FormulaireNotification({ onEnvoyee }: { onEnvoyee: (bilan: strin
           <Champ libelle="Titre" valeur={titre} onChange={setTitre} maxLength={60} placeholder="Ce soir, ça bouge 🛟" aide={`${titre.length} / 60`} className="w-full min-w-0" />
           <Champ libelle="Texte" valeur={texte} onChange={setTexte} maxLength={180} placeholder="Trois lieux ont de la place près de chez toi : viens les sauver !" aide={`${texte.length} / 180`} className="w-full min-w-0" />
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_9rem]">
-            <Selecteur libelle="Ouvre dans l'app" valeur={ecran} onChange={setEcran} options={ECRANS} className="w-full" />
+            <Selecteur libelle="Ouvre dans l'app" valeur={ecran} onChange={setEcran} options={ECRANS_APP} className="w-full" />
             {ecran === "lieu" && <Champ libelle="N° du lieu" type="number" min={1} valeur={lieuId} onChange={setLieuId} className="w-full min-w-0" />}
           </div>
           <div className="grid gap-3 md:grid-cols-2">

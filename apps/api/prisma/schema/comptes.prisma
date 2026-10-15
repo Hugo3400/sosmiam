@@ -41,6 +41,7 @@ model Compte {
   envies                Json?
   /// Avatar : un emoji (une photo reste sur le téléphone)
   avatar                String?   @db.VarChar(16)
+  photoProfil           String?   @unique @map("photo_profil") @db.VarChar(64)
   /// Compte privé : les abonnements passent par une demande
   prive                 Boolean   @default(false)
   /// Connexion avec Apple ou Google (décidé le 9 octobre 2026) : l'identifiant stable (« sub ») du compte chez eux, vérifié
