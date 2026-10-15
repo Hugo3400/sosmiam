@@ -2,8 +2,10 @@
 // transaction, sous le verrou du compte qui signale (deux envois en même temps ne font jamais deux signalements), puis, pour
 // un message, sous celui de sa conversation (comme la messagerie : le compte, puis la conversation ; le ménage de nuit ne
 // peut plus effacer une conversation dont un message est en train d'être signalé) : lecture du contenu tel qu'il le voit,
-// signalement, instantané chiffré, et masquage pour tous d'un « choquant » sous conditions.
+// signalement, instantané chiffré, et masquage pour tous d'un « choquant » sous conditions. Le verrou du compte est un FOR
+// NO KEY UPDATE, comme messagerie-tables.ts et sorties.ts (verrouillerCompteQuiSignale).
 import { CIBLES_AVEC_MASQUAGE_IMMEDIAT, RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "../../../../packages/commun/src/regles/signalement.ts";
+import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { peutMasquerToutDeSuite } from "../fonctions/social/peut-masquer-tout-de-suite.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
@@ -13,6 +15,17 @@ import {
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { ecrireEffetMasque, MAX_SIGNALES_LUS, type ServicesSignalementsSociaux } from "./signalements-sociaux-regles.ts";
 
+/**
+ * Le compte qui signale, verrouillé FOR NO KEY UPDATE (et non FOR UPDATE, relations.verrouillerComptes) : deux signalements
+ * du même compte s'attendent toujours, un geste de la bande ou un blocage (FOR UPDATE) aussi ; mais un message ou une
+ * réaction que ce compte écrit au même moment dans la conversation du message signalé (sous le verrou de la conversation,
+ * sa clé étrangère auteur_id ou compte_id prend FOR KEY SHARE sur le compte) passe. Avec FOR UPDATE, chacun attendait le
+ * verrou de l'autre : interblocage.
+ */
+async function verrouillerCompteQuiSignale(tx: Pick<Prisma.TransactionClient, "$queryRaw">, compteId: number): Promise<void> {
+  await tx.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR NO KEY UPDATE`;
+}
+
 export function creerSignalementsSociaux(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null }, base = baseDeDonnees): ServicesSignalementsSociaux {
   const { relations } = o;
   return {
@@ -21,7 +34,7 @@ export function creerSignalementsSociaux(o: { relations: RelationsSociales; chif
       const chiffrement = o.chiffrement;
       if (!chiffrement) throw new Error("Signalement social sans clé des données");
       return base.$transaction(async (tx) => {
-        await relations.verrouillerComptes(tx, [compteId]);
+        await verrouillerCompteQuiSignale(tx, compteId);
         const deja = await tx.signalement.findFirst({ where: { signaleParId: compteId, cible: s.cible, cibleId: s.cibleId, source: "app" }, select: { id: true } });
         if (deja) return { ok: true as const, deja: true, masquePourTous: false, effets: [] };
         if (s.cible === "message") await verrouillerConversationDuMessage(tx, s.cibleId);

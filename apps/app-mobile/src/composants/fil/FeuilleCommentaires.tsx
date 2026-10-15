@@ -28,6 +28,7 @@ import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserOrdreCommentaires } from "~/hooks/utiliser-ordre-commentaires";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { poserFeuilleOuverte } from "~/services/feuilles-ouvertes";
 
 type Props = {
   visible: boolean;
@@ -186,6 +187,13 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     apresFermeture.current = null;
     router.push(destination);
   }
+
+  // Ouverte : « Voir pourquoi » de l'annonce d'un compte limité (posée au-dessus de tout) referme d'abord la feuille
+  const ouvrirApresFermeture = useRef(fermerPuisOuvrir);
+  useEffect(() => {
+    ouvrirApresFermeture.current = fermerPuisOuvrir;
+  });
+  useEffect(() => (visible ? poserFeuilleOuverte((destination) => ouvrirApresFermeture.current(destination)) : undefined), [visible]);
 
   const inscrire = () => fermerPuisOuvrir("/compte");
   // Les profils sont réservés aux inscrits : en visite, « Crée ton compte » se pose sur la feuille
