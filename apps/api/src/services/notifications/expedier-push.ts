@@ -78,7 +78,7 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
 
 /**
  * Le canal Android de l'app (creer-canaux-android.ts) : « miam-safe » (importance maximale), « messages-discrets » (la suite
- * d'une rafale, muette), « messages » (son et bannière) ou « notifications » (son, sans bannière)
+ * d'une rafale, muette), « messages » (son, vibration et bannière) ou « notifications » (son, sans bannière)
  */
 const lireCanalAndroid = (message: MessagePush) =>
   message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : message.social ? "messages" : "notifications";
@@ -90,7 +90,7 @@ export function construireCorpsGoogle(jeton: string, message: MessagePush) {
     message: {
       token: jeton,
       notification: { title: message.titre, body: message.texte },
-      // Aucune clé réservée par FCM (from, message_type, google.…, gcm.…) ; l'app lit lien, tag et urgent app ouverte
+      // Aucune clé réservée par FCM (from, message_type, google.…, gcm.…) ; app ouverte, expo lit tag, l'app lit lien et urgent
       data: {
         ...(message.lien ? { lien: message.lien } : {}),
         ...(regroupement ? { tag: regroupement } : {}),
