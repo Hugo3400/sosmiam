@@ -84,11 +84,11 @@ test("les textes disent la décision : ce qui attend, ce qui reste, une contesta
   const confidentialite = JSON.stringify(sectionSignalementsSociaux.blocs);
   assert.equal(sectionModerationCgu.id, "moderation");
   assert.equal(sectionSignalementsSociaux.id, "signalements-sociaux");
-  for (const texte of [cgu, JSON.stringify(textesLimitation)]) {
-    for (const morceau of ["se voi", "Miam Safe", "valider tes visites", "proposer un lieu", "demander à gérer un lieu", "export", "suppression de ton compte", "une autre personne de l'équipe", "une fois"]) {
-      assert.ok(texte.toLowerCase().includes(morceau.toLowerCase()) || (morceau === "se voi" && texte.includes("verraient")), morceau);
-    }
-  }
+  const attendus = [
+    /les autres verraient/, /Miam Safe/, /valider tes visites/, /proposer un lieu/, /demander à gérer un lieu/, /export/, /suppression de ton compte/,
+    /une autre personne de l'équipe/, /une (seule )?fois/, /un nouveau prénom, pseudo ou avatar/,
+  ];
+  for (const texte of [cgu, JSON.stringify(textesLimitation)]) for (const attendu of attendus) assert.match(texte, attendu);
   assert.match(cgu, /dans l'app et par e-mail/);
   for (const morceau of ["Si ton compte est limité", "6.1.c", "6.1.f", "**1 an** après sa fin ou sa levée", "effacée automatiquement", "effacée avec lui"]) {
     assert.ok(confidentialite.includes(morceau), morceau);

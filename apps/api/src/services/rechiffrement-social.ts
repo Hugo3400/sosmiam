@@ -3,7 +3,9 @@
 // d'ancienne clé (chiffrement.versionsAnciennes vide). Sinon, ce qui porte une ancienne version (« v<N>: ») est relu puis
 // réécrit avec la clé courante : codes d'invitation, titres de groupes, textes des messages, instantanés des signalements,
 // puis les photos et notes vocales. Un chiffré modifié entre la lecture et l'écriture est laissé tel quel (déjà réécrit avec
-// la clé courante, ou repris la nuit suivante). Seulement des nombres en sortie : jamais un texte, un fichier ni une clé.
+// la clé courante, ou repris la nuit suivante). Seulement des nombres en sortie : jamais un texte, un fichier ni une clé. Un
+// chiffré illisible va au journal du serveur par sa table et son id (ou le nom tiré au hasard de son fichier), jamais par son
+// contenu : c'est là qu'on les retrouve (docs/procedure-changement-cle.md, « La partie sociale »).
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { rechiffrerMediaSocial } from "../fonctions/social/rechiffrer-media-social.ts";
 import { rechiffrerTexteSocial } from "../fonctions/social/rechiffrer-texte-social.ts";
@@ -17,7 +19,8 @@ export type BilanRechiffrementSocial = {
   rechiffres: number;
   /** Ceux qu'aucune clé ne relit (laissés tels quels, à regarder) */
   illisibles: number;
-  /** Encore écrits avec une ancienne clé après ce passage, illisibles compris (0 : l'ancienne clé peut partir) */
+  /** Encore écrits avec une ancienne clé et cités par la base après ce passage, illisibles compris (égal à `illisibles`
+   *  deux nuits de suite : l'ancienne clé ne sert plus à rien) */
   restants: number;
 };
 
@@ -31,6 +34,25 @@ export type OptionsRechiffrementSocial = {
 };
 
 type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string };
+
+/** Les illisibles détaillés au journal du serveur, par nuit au plus (au-delà, leur nombre seulement : une mauvaise ancienne
+ *  clé les rendrait tous illisibles, le journal ne doit pas déborder) */
+const MAX_ILLISIBLES_AU_JOURNAL = 100;
+
+/** Le journal des illisibles d'une nuit : où ils sont (table et id, ou fichier), jamais ce qu'ils contiennent */
+function creerJournalIllisibles() {
+  let notes = 0;
+  return {
+    noter(ou: string) {
+      notes += 1;
+      if (notes <= MAX_ILLISIBLES_AU_JOURNAL) console.error(`Rechiffrement social : illisible, ${ou} (laissé tel quel)`);
+    },
+    finir() {
+      if (notes > MAX_ILLISIBLES_AU_JOURNAL) console.error(`Rechiffrement social : ${notes - MAX_ILLISIBLES_AU_JOURNAL} autre(s) illisible(s) cette nuit, non détaillé(s)`);
+    },
+  };
+}
+type JournalIllisibles = ReturnType<typeof creerJournalIllisibles>;
 type TableChiffree = { table: string; cle: string; colonne: string; plus: string; usage: UsageTexteSocial; contexte: (l: LigneChiffree) => string };
 
 /** Les colonnes chiffrées de la partie sociale (A.0), avec le contexte authentifié de chaque chiffré */
@@ -45,7 +67,9 @@ const TABLES: readonly TableChiffree[] = [
 ];
 
 /** Les chiffrés d'une table écrits avec une ancienne clé : réécrits par paquets, dans l'ordre des clés */
-async function rechiffrerTable(base: BaseMenage, social: ChiffrementSocial, t: TableChiffree, taille: number, paquets: number): Promise<BilanRechiffrementSocial> {
+async function rechiffrerTable(
+  base: BaseMenage, social: ChiffrementSocial, t: TableChiffree, taille: number, paquets: number, journal: JournalIllisibles,
+): Promise<BilanRechiffrementSocial> {
   const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0 };
   const [table, cle, colonne] = [Prisma.raw(t.table), Prisma.raw(t.cle), Prisma.raw(t.colonne)];
   // « v12: » ne commence pas par « v1: » : le motif ne prend jamais la clé courante pour une autre
@@ -61,6 +85,7 @@ async function rechiffrerTable(base: BaseMenage, social: ChiffrementSocial, t: T
         nouveau = rechiffrerTexteSocial(social, t.usage, t.contexte({ ...l, id: Number(l.id) }), l.chiffre);
       } catch {
         bilan.illisibles += 1;
+        journal.noter(`table ${t.table}, ${t.cle} ${Number(l.id)}`);
         continue;
       }
       if (nouveau === null) continue;
@@ -73,13 +98,17 @@ async function rechiffrerTable(base: BaseMenage, social: ChiffrementSocial, t: T
   return bilan;
 }
 
-/** Tous les fichiers du dossier des médias, du plus ancien au plus récent (date de modification) */
+/**
+ * Tous les fichiers du dossier des médias, du plus ancien au plus récent (date de modification). Seule une page VIDE dit la
+ * fin : lister saute un fichier disparu entre readdir et stat, une page plus courte n'est donc pas forcément la dernière (s'y
+ * arrêter oublierait la suite du dossier, et annoncerait un faux « 0 restant(s) »).
+ */
 async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaChat[]> {
   const tous: FichierMediaChat[] = [];
   for (let apres: string | null = null; ;) {
     const page = await medias.lister(apres, 1000);
+    if (page.length === 0) break;
     tous.push(...page);
-    if (page.length < 1000) break;
     apres = page.at(-1)!.fichier;
   }
   return tous.sort((a, b) => a.modifieLe.getTime() - b.modifieLe.getTime() || (a.fichier < b.fichier ? -1 : 1));
@@ -90,10 +119,16 @@ async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaCha
  * fichier. Mais tout ce qui s'écrit depuis le changement l'est avec la clé courante, et un fichier réécrit est neuf : rangés
  * par date de modification, les fichiers anciens viennent tous EN TÊTE. On les reprend dans cet ordre, et on s'arrête après
  * 20 fichiers courants de suite ; si le plafond de la nuit est atteint avant, ce qui reste d'anciens se compte par dichotomie.
- * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), la base passe au
- * nouveau nom (message et signalement), puis l'ancien part. Un fichier que la base ne connaît plus est laissé à l'étape 8.
+ * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), et la base passe au
+ * nouveau nom (message et signalement). L'ancien fichier n'est PAS supprimé ici : un signalement en cours a pu le lire avant
+ * la transaction et l'écrire après (il le garde alors, étape 8), un « Message supprimé » peut le viser au même moment, et le
+ * nouveau n'a pas encore été forcé sur le disque (pas de fsync). Plus cité par aucun message ni signalement ouvert, il part
+ * avec les orphelins de plus de 24 h (étape 8) la nuit suivante ; d'ici là il n'est pas compté dans les restants (cette
+ * nuit, il compte comme rechiffré). Un fichier que la base ne connaît plus du tout est compté restant, et laissé à l'étape 8.
  */
-async function rechiffrerFichiers(base: BaseMenage, social: ChiffrementSocial, medias: StockageMediasChat, plafond: number): Promise<BilanRechiffrementSocial> {
+async function rechiffrerFichiers(
+  base: BaseMenage, social: ChiffrementSocial, medias: StockageMediasChat, plafond: number, journal: JournalIllisibles,
+): Promise<BilanRechiffrementSocial> {
   const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0 };
   const fichiers = await listerParAge(medias);
   const estAncien = async (fichier: string) => {
@@ -112,6 +147,7 @@ async function rechiffrerFichiers(base: BaseMenage, social: ChiffrementSocial, m
     } catch {
       bilan.illisibles += 1;
       bilan.restants += 1;
+      journal.noter(`fichier ${ancien}`);
       continue;
     }
     if (chiffre === null) {
@@ -125,12 +161,13 @@ async function rechiffrerFichiers(base: BaseMenage, social: ChiffrementSocial, m
       base.signalement.updateMany({ where: { fichierMedia: ancien }, data: { fichierMedia: nouveau } }),
     ]);
     if (messages.count + signalements.count === 0) {
-      // Plus connu de la base (média expiré, conversation effacée entre-temps) : l'étape 8 retirera l'ancien
+      // Plus connu de la base (média expiré, conversation effacée entre-temps) : le nouveau, que personne ne cite, part ;
+      // l'ancien reste compté jusqu'à ce que l'étape 8 le retire (la nuit suivante)
       await medias.supprimer([nouveau]);
       bilan.restants += 1;
       continue;
     }
-    await medias.supprimer([ancien]);
+    // L'ancien reste sur le disque : l'étape 8 d'une nuit suivante l'efface, s'il n'est plus cité (voir plus haut)
     bilan.rechiffres += 1;
   }
   if (bilan.rechiffres >= plafond && i < fichiers.length) {
@@ -148,8 +185,9 @@ async function rechiffrerFichiers(base: BaseMenage, social: ChiffrementSocial, m
 
 /**
  * Étape 9 du ménage social : rechiffre avec la clé courante ce qui porte une ancienne version. null : pas de changement de
- * clé en cours (aucune ancienne clé, ou pas de clé du tout) ; rien n'est lu. `restants` à 0 (et aucun illisible) : la partie
- * sociale n'a plus besoin de l'ancienne clé.
+ * clé en cours (aucune ancienne clé, ou pas de clé du tout) ; rien n'est lu. Fin du changement de clé, pour la partie
+ * sociale : `restants` égal à `illisibles` deux nuits de suite (la nuit d'après, l'étape 8 a retiré les anciens fichiers
+ * rechiffrés, et un fichier qu'un signalement aurait cité entre-temps a été repris).
  */
 export async function rechiffrerSocial(
   chiffrement: ChiffrementDonnees | null, medias: StockageMediasChat, base: BaseMenage, o: OptionsRechiffrementSocial = {},
@@ -163,7 +201,12 @@ export async function rechiffrerSocial(
     total.illisibles += b.illisibles;
     total.restants += b.restants;
   };
-  for (const t of TABLES) ajouter(await rechiffrerTable(base, social, t, o.taille ?? 500, o.paquetsParTable ?? 200));
-  ajouter(await rechiffrerFichiers(base, social, medias, o.fichiersParNuit ?? 500));
+  const journal = creerJournalIllisibles();
+  try {
+    for (const t of TABLES) ajouter(await rechiffrerTable(base, social, t, o.taille ?? 500, o.paquetsParTable ?? 200, journal));
+    ajouter(await rechiffrerFichiers(base, social, medias, o.fichiersParNuit ?? 500, journal));
+  } finally {
+    journal.finir();
+  }
   return total;
 }
