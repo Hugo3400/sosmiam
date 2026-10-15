@@ -10,6 +10,7 @@ import { MAX_ARRIVEES_PAR_LIEN_24H, MAX_BANDE, MAX_BLOCAGES, MAX_DEMANDES_BANDE_
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { creerCodeInvitation } from "../fonctions/social/creer-code-invitation.ts";
 import { trouverOrganisateurEffectif } from "../fonctions/social/trouver-organisateur-effectif.ts";
+import { masquerPhotoAvatar } from "../fonctions/comptes/masquer-photo-avatar.ts";
 import { lireActiviteBande, lireClassementBande } from "./bande-activite.ts";
 import {
   compterArriveesParLien, construireBande, construireEffetsArrivee, debutDemandesValides, DEMANDES_BANDE_LUES,
@@ -311,7 +312,7 @@ export function creerBande(o: {
         where: { bloqueurId: compteId }, select: { bloqueId: true }, orderBy: [{ creeLe: "desc" }, { bloqueId: "desc" }], take: MAX_BLOCAGES,
       });
       const personnes = await relations.presenter(lignes.map((l) => l.bloqueId));
-      return lignes.flatMap((l) => personnes.get(l.bloqueId) ?? []);
+      return lignes.flatMap((l) => personnes.get(l.bloqueId) ?? []).map(masquerPhotoAvatar);
     },
 
     async listerPotes(compteId) {

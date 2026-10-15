@@ -14,7 +14,9 @@ const lireHeureParis = (instantMs: number) => new Date(instantMs + calculerDecal
  * validées de 22 h à 5 h du matin (heure de Paris). Rend le nombre brut, sans le limiter à l'objectif.
  */
 export function compterMesureDefi(faits: FaitsDefi, mesure: MesureDefi, filtres: FiltresDefi | null, periode: PeriodeDefi): number {
+  const sansBornes = periode.debut === null && periode.fin === null;
   const dansPeriode = (instantMs: number) => {
+    if (sansBornes) return true;
     const jour = calculerJourParis(instantMs);
     return (periode.debut === null || jour >= periode.debut) && (periode.fin === null || jour <= periode.fin);
   };

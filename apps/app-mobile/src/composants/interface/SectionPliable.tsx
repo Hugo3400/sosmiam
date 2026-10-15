@@ -67,21 +67,23 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
 
   return (
     <View className="gap-3">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={lu}
-        accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
-        aria-expanded={surIphone ? undefined : deplie}
-        onPress={toucher}
-        className="min-h-11 flex-row items-center gap-3 active:opacity-70"
-      >
-        <View className="flex-1">
-          <Text className="font-titre-gras text-xl text-encre">{titre}</Text>
-          {textesLignes}
-        </View>
-        {valeurCompteur}
-        <ChevronPliable deplie={deplie} />
-      </Pressable>
+      <View accessibilityRole="header">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={lu}
+          accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
+          aria-expanded={surIphone ? undefined : deplie}
+          onPress={toucher}
+          className="min-h-11 flex-row items-center gap-3 active:opacity-70"
+        >
+          <View className="flex-1">
+            <Text className="font-titre-gras text-xl text-encre">{titre}</Text>
+            {textesLignes}
+          </View>
+          {valeurCompteur}
+          <ChevronPliable deplie={deplie} />
+        </Pressable>
+      </View>
       {deplie ? children : apercu}
     </View>
   );

@@ -10,6 +10,7 @@ import { estNotificationUrgente } from "~/fonctions/notifications/est-notificati
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
@@ -92,6 +93,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
   const { profil } = utiliserProfil();
   const { inscrire } = utiliserAppareilPush();
   const avecProfil = profil !== null;
+  utiliserRenvoiChoixOffres(pret);
 
   useEffect(() => {
     if (!pret || !avecProfil) return;

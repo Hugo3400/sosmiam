@@ -1,11 +1,15 @@
 import { useCallback, useMemo } from "react";
+import { Platform } from "react-native";
 
 import { creerAppareilsApi } from "@sos-miam/commun/client-api/api/api-appareils";
+import { envoyerOffresTelephone } from "~/fonctions/notifications/envoyer-offres-telephone";
 import { lireJetonTelephone, type LectureJetonTelephone } from "~/fonctions/notifications/lire-jeton-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+import { renvoiChoixOffres, type IssueEnvoiOffres } from "~/services/renvoi-choix-offres";
 import { effacerJetonPush, enregistrerJetonPush, lireJetonPush } from "~/stockage/jeton-push";
+import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
 const ATTENTE_MAX_MS = 20_000;
 
@@ -19,7 +23,7 @@ function envoyerALaSuite<T>(tache: () => Promise<T>): Promise<T> {
 
 /**
  * Le téléphone et les notifications : l'inscrire sur le serveur (jeton natif, plateforme, ta ville ; lié à ton compte si tu
- * es connecté) ou l'en retirer. Rien en démo (pas de serveur). `inscrire(demander)` : poser la question au système si besoin.
+ * es connecté) ou l'en retirer. Rien en démo (pas de serveur).
  */
 export function utiliserAppareilPush() {
   const { client } = utiliserSession();
@@ -39,6 +43,23 @@ export function utiliserAppareilPush() {
     [appareils, ville],
   );
 
+  const envoyerOffres = useCallback(
+    (offres: boolean): Promise<IssueEnvoiOffres> => envoyerALaSuite(() => envoyerOffresTelephone(offres, {
+      demo: DEMO_VISITES_ACTIVE,
+      ville,
+      plateforme: Platform.OS,
+      lireActives: async () => (await lireReglagesNotifications()).actives,
+      lireJeton: lireJetonTelephone,
+      lireJetonGarde: lireJetonPush,
+      inscrire: (inscription) => appareils.inscrire(inscription),
+      enregistrerJeton: enregistrerJetonPush,
+    })),
+    [appareils, ville],
+  );
+
+  const choisirOffres = useCallback((offres: boolean) => renvoiChoixOffres.choisir(offres, envoyerOffres), [envoyerOffres]);
+  const renvoyerOffres = useCallback(() => renvoiChoixOffres.renvoyer(envoyerOffres), [envoyerOffres]);
+
   const couper = useCallback(() => envoyerALaSuite(async () => {
     const jeton = await lireJetonPush();
     if (!jeton || DEMO_VISITES_ACTIVE) return;
@@ -46,5 +67,5 @@ export function utiliserAppareilPush() {
     if (r.ok) await effacerJetonPush();
   }), [appareils]);
 
-  return { inscrire, couper };
+  return { inscrire, couper, choisirOffres, renvoyerOffres };
 }

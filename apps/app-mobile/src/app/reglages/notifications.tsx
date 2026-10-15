@@ -15,6 +15,7 @@ import {
 } from "~/stockage/reglages-notifications";
 import couleurs from "~/theme/couleurs";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
+import { utiliserChoixOffresEnAttente } from "~/hooks/utiliser-choix-offres-en-attente";
 
 /** Heures proposées pour le mode nuit (au format HH:MM du stockage) */
 const HEURES_DEBUT = ["21:00", "22:00", "23:00", "00:00"];
@@ -28,6 +29,8 @@ const INTRODUCTION =
 
 const MESSAGE_ECHEC = "Oups, ce choix n'a pas pu être gardé sur ton téléphone. Réessaie un peu plus tard.";
 
+const MESSAGE_OFFRES_EN_ATTENTE = "📮 Ton choix pour les offres part dès que le réseau revient.";
+
 /** Réglages > Notifications : tout couper, choisir les sortes d'alertes et le mode nuit. Chaque choix est gardé tout de suite. */
 export default function ReglagesNotifications() {
   const [reglages, setReglages] = useState<ChoixNotifications | null>(null);
@@ -35,6 +38,7 @@ export default function ReglagesNotifications() {
   const derniers = useRef<ChoixNotifications | null>(null);
   const [echecEnregistrement, setEchecEnregistrement] = useState(false);
   const telephone = utiliserAppareilPush();
+  const choixOffresEnAttente = utiliserChoixOffresEnAttente();
 
   useEffect(() => {
     let monte = true;
@@ -64,7 +68,7 @@ export default function ReglagesNotifications() {
 
   const changerType = (type: TypeNotification, valeur: boolean) => {
     modifier((r) => ({ ...r, types: { ...r.types, [type]: valeur } }));
-    if (type === "offre" && derniers.current?.actives) void telephone.inscrire(false, valeur);
+    if (type === "offre" && derniers.current?.actives) void telephone.choisirOffres(valeur);
   };
   const changerSilence = (silence: Partial<ChoixNotifications["silence"]>) => modifier((r) => ({ ...r, silence: { ...r.silence, ...silence } }));
 
@@ -124,6 +128,11 @@ export default function ReglagesNotifications() {
                 />
               ))}
           </View>
+          {reglages.actives && choixOffresEnAttente ? (
+            <Text accessibilityLiveRegion="polite" className="mt-2 font-texte text-sm leading-5 text-gris">
+              {lierPonctuation(MESSAGE_OFFRES_EN_ATTENTE)}
+            </Text>
+          ) : null}
 
           <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
             Tes abonnements

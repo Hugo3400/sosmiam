@@ -118,8 +118,7 @@ export default function Explorer() {
     };
   }, []);
 
-  // En visite sans compte (âge inconnu), pas de bar, comme partout dans l'app
-  const age = profil ? calculerAge(profil.dateNaissance) : null;
+  const age = useMemo(() => (profil ? calculerAge(profil.dateNaissance) : null), [profil]);
   const depuisVille = useMemo(() => (pointDeDepart ? ecrireDepuisVille(profil?.ville ?? "") : null), [pointDeDepart, profil?.ville]);
   const { lieux: tousLesLieux, chargerZone } = utiliserLieux();
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
@@ -178,8 +177,7 @@ export default function Explorer() {
   if (selectionRetiree) setSelection(null);
   if (focus && oublisDits !== oublisApresAbsence) {
     setOublisDits(oublisApresAbsence);
-    const repli = ecrireRepliDistances(depuisVille);
-    setAnnonce({ texte: `Plus de 5 minutes d'absence : ta position est oubliée${repli ? `, ${repli}` : ""} 📍`, numero: oublisApresAbsence });
+    setAnnonce({ texte: "Plus de 5 min hors de l'app : ta position est oubliée 📍", numero: oublisApresAbsence });
   }
 
   const motRecherche = filtres.texte.trim();
@@ -233,7 +231,7 @@ export default function Explorer() {
       if (!alerterErreurPosition(resultat.erreur, message)) annoncer(message);
       return;
     }
-    if (actualisation) return annoncer("Position à jour : les distances partent de toi 📍");
+    if (actualisation) return annoncer("Ta position est à jour 📍");
     setPorteeChoisie("proche");
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
   }

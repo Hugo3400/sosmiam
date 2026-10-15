@@ -23,19 +23,21 @@ export const REGLAGES_NOTIFICATIONS_PAR_DEFAUT: ReglagesNotifications = {
 };
 
 const CLE = "sosmiam.reglages-notifications";
+const VERSION = 2;
 const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /** Lit les préférences (celles par défaut si rien, ou illisible). */
 export async function lireReglagesNotifications(): Promise<ReglagesNotifications> {
   try {
     const brut = await AsyncStorage.getItem(CLE);
-    const lu = brut ? (JSON.parse(brut) as Partial<ReglagesNotifications>) : null;
+    const lu = brut ? (JSON.parse(brut) as Partial<ReglagesNotifications> & { version?: unknown }) : null;
     if (!lu || typeof lu !== "object") return REGLAGES_NOTIFICATIONS_PAR_DEFAUT;
     const defaut = REGLAGES_NOTIFICATIONS_PAR_DEFAUT;
     const types = { ...defaut.types };
     for (const cle of Object.keys(types) as TypeNotification[]) {
       if (typeof lu.types?.[cle] === "boolean") types[cle] = lu.types[cle];
     }
+    if (lu.version !== VERSION) types.offre = false;
     return {
       actives: typeof lu.actives === "boolean" ? lu.actives : defaut.actives,
       types,
@@ -52,7 +54,7 @@ export async function lireReglagesNotifications(): Promise<ReglagesNotifications
 
 /** Enregistre les préférences sur le téléphone. */
 export async function enregistrerReglagesNotifications(reglages: ReglagesNotifications): Promise<void> {
-  await AsyncStorage.setItem(CLE, JSON.stringify(reglages));
+  await AsyncStorage.setItem(CLE, JSON.stringify({ ...reglages, version: VERSION }));
 }
 
 /** Efface les préférences du téléphone. */

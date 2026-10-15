@@ -55,6 +55,7 @@ import type { Commune } from "./services/localisation.ts";
 import type { Vue } from "./services/mesure.ts";
 import type { ServicesZones } from "./services/zones-fondateurs.ts";
 import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/social-app.ts";
+import { creerRoutesPhotosProfil } from "./routes/photos-profil.ts";
 
 type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
@@ -204,6 +205,7 @@ export function creerApplication({
     // Téléphones inscrits aux notifications (session facultative : le compte vient d'elle si elle est valable)
     if (appareilsApp) application.use("/app/appareils", creerRoutesAppareils(appareilsApp, protection));
     if (annoncesApp) application.use("/app/annonces", creerRoutesAnnoncesApp(annoncesApp, protection));
+    if (comptes.photos) application.use("/app/medias/profils", creerRoutesPhotosProfil(comptes.photos, protection));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",

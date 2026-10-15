@@ -62,7 +62,7 @@ export function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
               <View className="gap-0.5 px-3 pb-3 pt-2">
                 <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">{lieu.nom}</Text>
                 <Text numberOfLines={1} className={`font-texte-semi text-[13px] ${lieu.sos ? "text-encre" : "text-rouge-texte"}`}>{ligne}</Text>
-                <Text numberOfLines={1} className="font-texte text-[13px] text-gris">📍 {distance ?? lieu.ville}</Text>
+                <Text numberOfLines={2} className="font-texte text-[13px] text-gris">📍 {distance ?? lieu.ville}</Text>
                 {parleDAlcool(ligne) ? <MentionPrevention variante="courte" /> : null}
               </View>
             </Pressable>

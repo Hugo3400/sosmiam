@@ -11,7 +11,7 @@ export const BADGES: readonly BadgeCatalogue[] = [
   { id: "sauveteur-en-serie", emoji: "⛑️", nom: "Sauveteur en série", texte: "Donne 10 rescousses : la Brigade commence à compter sur toi" },
   { id: "second-du-capitaine", emoji: "⚓", nom: "Second du Capitaine", texte: "Donne 25 rescousses : le Capitaine Bouiboui te confie la barre" },
   { id: "heros-de-la-brigade", emoji: "🏆", nom: "Héros de la Brigade", texte: "Donne 50 rescousses : toute la Brigade te porte en triomphe" },
-  { id: "coeur-sur-la-main", emoji: "💛", nom: "Cœur sur la main", texte: "Fais valider 3 visites dans des lieux en SOS : ils ont des tables à remplir, toi un bon appétit" },
+  { id: "coeur-sur-la-main", emoji: "💛", nom: "Cœur sur la main", texte: "Fais valider 3 visites pendant un SOS : le lieu a des tables à remplir, toi un bon appétit" },
   { id: "bonne-etoile", emoji: "🌟", nom: "Bonne étoile", texte: "Fais valider une visite dans 3 lieux différents, pendant leur SOS" },
   // Décidé le 8 octobre 2026 : la première rescousse donnée à un lieu tout juste arrivé (proposer un lieu, c'est « Déniché par toi »)
   { id: "premier-sauveteur", emoji: "🚀", nom: "Premier sauveteur", texte: "Donne la toute première rescousse à un lieu qui vient d'arriver" },

@@ -10,12 +10,13 @@ const SEMAINE = 7 * 86_400_000;
 /** Téléphones contactés en même temps */
 const EN_PARALLELE = 10;
 
-export type CiblePush = { ville: string | null; plateforme: "ios" | "android" | null };
+export type CiblePush = { ville: string | null; plateforme: "ios" | "android" | null; offres?: boolean };
 
 const ouCible = (cible: CiblePush): Prisma.AppareilPushWhereInput => ({
   actif: true,
   ...(cible.plateforme ? { plateforme: cible.plateforme } : {}),
   ...(cible.ville ? { ville: { equals: cible.ville, mode: "insensitive" } } : {}),
+  ...(cible.offres ? { offresAcceptees: true } : {}),
 });
 
 /** Les dates des notifications non demandées reçues ces 7 jours, téléphone par téléphone. */

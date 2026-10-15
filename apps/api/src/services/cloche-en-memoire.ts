@@ -1,4 +1,5 @@
 // Double en mémoire de la cloche (contrat dans cloche-regles.ts), posé sur les tables partagées.
+import { calculerBorneClocheLue } from "../fonctions/social/calculer-borne-cloche-lue.ts";
 import { ecrireCurseurDate } from "../fonctions/social/ecrire-curseur-date.ts";
 import { lireCurseurDate } from "../fonctions/social/lire-curseur-date.ts";
 import { presenterNotificationCloche } from "../fonctions/social/presenter-notification-cloche.ts";
@@ -8,6 +9,8 @@ import { bloquesEnMemoire, prendreId, type TablesSociales } from "./tables-socia
 
 /** Plus récente d'abord ; à la même milliseconde, la plus grande id d'abord */
 const parDate = (a: { creeLe: Date; id: number }, b: { creeLe: Date; id: number }) => b.creeLe.getTime() - a.creeLe.getTime() || b.id - a.id;
+const estVisible = (l: { compteId: number; acteurId: number | null }, compteId: number, caches: ReadonlySet<number>) =>
+  l.compteId === compteId && (l.acteurId === null || !caches.has(l.acteurId));
 
 export function creerClocheEnMemoire(tables: TablesSociales, relations: RelationsSociales): ServicesCloche {
   return {
@@ -35,7 +38,7 @@ export function creerClocheEnMemoire(tables: TablesSociales, relations: Relation
       const curseur = lireCurseurDate(apres) ?? null;
       const { caches } = await relations.listerBlocages(compteId);
       const lignes = [...tables.cloche.values()]
-        .filter((l) => l.compteId === compteId && (l.acteurId === null || !caches.has(l.acteurId)))
+        .filter((l) => estVisible(l, compteId, caches))
         .filter((l) => !curseur || parDate(l, { creeLe: curseur.date, id: curseur.id }) > 0)
         .sort(parDate);
       const page = lignes.slice(0, NOTIFICATIONS_PAR_PAGE);
@@ -59,6 +62,24 @@ export function creerClocheEnMemoire(tables: TablesSociales, relations: Relation
       if (!profil) return borne;
       if (!profil.clocheVueLe || profil.clocheVueLe.getTime() < borne.getTime()) profil.clocheVueLe = new Date(borne.getTime());
       return profil.clocheVueLe;
+    },
+
+    async effacer(compteId, id) {
+      const { caches } = await relations.listerBlocages(compteId);
+      const ligne = tables.cloche.get(id);
+      if (!ligne || !estVisible(ligne, compteId, caches)) return false;
+      tables.cloche.delete(id);
+      return true;
+    },
+
+    async effacerLues(compteId, jusqua, maintenant) {
+      const profil = tables.profils.get(compteId);
+      const borne = calculerBorneClocheLue({ aProfil: profil !== undefined, vuesLe: profil?.clocheVueLe ?? null, jusqua, maintenant });
+      if (!borne) return 0;
+      const { caches } = await relations.listerBlocages(compteId);
+      const lues = [...tables.cloche.values()].filter((l) => estVisible(l, compteId, caches) && l.creeLe.getTime() <= borne.getTime());
+      for (const l of lues) tables.cloche.delete(l.id);
+      return lues.length;
     },
   };
 }

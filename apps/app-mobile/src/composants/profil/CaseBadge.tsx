@@ -1,0 +1,40 @@
+import { Pressable, Text, View } from "react-native";
+
+import type { BadgeCatalogue } from "@sos-miam/commun/types/badge";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+
+type Props = {
+  badge: BadgeCatalogue;
+  obtenu: boolean;
+  selectionne: boolean;
+  commentObtenir: string | null;
+  onToucher: () => void;
+};
+
+export function CaseBadge({ badge, obtenu, selectionne, commentObtenir, onToucher }: Props) {
+  const etat = obtenu ? "obtenu" : "à débloquer";
+  const aide = commentObtenir ? ` ${commentObtenir}` : "";
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${badge.nom}, ${etat}. ${badge.texte}.${aide}`}
+      accessibilityState={{ selected: selectionne }}
+      onPress={() => {
+        vibrerLegerement();
+        onToucher();
+      }}
+      style={{ width: "25%" }}
+      className="p-1 active:opacity-70"
+    >
+      <View className={`min-h-24 flex-1 items-center justify-center gap-1 rounded-2xl border-2 p-1.5 ${selectionne ? "border-tomate" : "border-encre"} ${obtenu ? "bg-jaune-clair" : "bg-white"}`}>
+        <View className="items-center gap-1">
+          <Text className={`text-3xl ${obtenu ? "" : "opacity-40"}`}>{badge.emoji}</Text>
+          <Text numberOfLines={3} className={`text-center font-texte-semi text-xs leading-4 ${obtenu ? "text-encre" : "text-gris"}`}>
+            {badge.nom}
+          </Text>
+        </View>
+        {obtenu ? null : <Text className="absolute right-1 top-1 text-xs">🔒</Text>}
+      </View>
+    </Pressable>
+  );
+}

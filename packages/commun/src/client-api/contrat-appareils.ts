@@ -7,7 +7,7 @@ import type { ReponseApi } from "./reponse-api.ts";
 export type InscriptionTelephone = { jeton: string; plateforme: "ios" | "android"; /** La ville choisie dans l'app, jamais une position */ ville: string | null; offres: boolean };
 
 export interface ServiceAppareils {
-  /** Erreurs : « champ-invalide » (jeton, plateforme, ville) */
+  /** Erreurs : « champ-invalide » */
   inscrire(inscription: InscriptionTelephone): Promise<ReponseApi>;
   /** Oublié tout de suite ; déjà oublié : réussi quand même */
   desinscrire(jeton: string): Promise<ReponseApi>;

@@ -66,6 +66,8 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["PUT /app/masques/:cible/:cibleId", "masquer pour soi"],
   ["DELETE /app/masques/:cible/:cibleId", "annuler un masque"],
   ["POST /app/cloche/vu", "marquer lu"],
+  ["POST /app/cloche/effacer-lues", "effacer ses notifications lues (sa cloche, que personne d'autre ne voit)"],
+  ["DELETE /app/cloche/:id", "effacer une de ses notifications"],
   ["POST /app/bande/invitation/renouveler", "changer son propre code d'invitation"],
   ["POST /app/bande/demandes/:personne/accepter", "accepter une demande"],
   ["DELETE /app/bande/demandes/:personne", "refuser une demande reçue, ou annuler la sienne"],

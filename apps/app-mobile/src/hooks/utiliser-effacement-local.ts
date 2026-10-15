@@ -46,7 +46,7 @@ export function utiliserEffacementLocal() {
       await effacerSignalementsLocaux();
       const reglagesAvant = await lireReglagesNotifications();
       await effacerReglagesNotifications();
-      if (reglagesAvant.actives && reglagesAvant.types.offre) void telephone.inscrire(false, false).catch(() => undefined);
+      if (reglagesAvant.actives && reglagesAvant.types.offre) void telephone.choisirOffres(false).catch(() => undefined);
       // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses
       if (outilsDemo) {
         await outilsDemo.remettreAZero();

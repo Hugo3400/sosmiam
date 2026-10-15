@@ -1,5 +1,5 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
 import type { DefiApp } from "@sos-miam/commun/types/defi";
@@ -21,17 +21,10 @@ export type DefisDuProfil = {
   erreur: ErreurService | null;
 };
 
-/** Les défis réussis d'une réponse, en une clé (« 1,4 ») */
-const lireReussis = (defis: DefiApp[]) =>
-  defis
-    .filter((d) => d.etat === "reussi")
-    .map((d) => d.id)
-    .join(",");
-
 /**
  * Les défis du profil. Avec un compte : ceux du serveur (GET /app/defis), relus chaque fois que le profil revient à l'écran
  * ou que l'app revient au premier plan. Le serveur recompte l'avancée à chaque lecture et peut créditer un défi ou donner un
- * badge : à la première lecture, puis dès que les défis réussis changent, le compte est relu (points, palier, badges). En
+ * badge : le compte est relu après chaque lecture réussie (points, palier, badges). En
  * démo : les défis d'exemple, comptés sur le téléphone. Sans compte : rien (les défis demandent un compte).
  */
 export function utiliserDefis(): DefisDuProfil {
@@ -42,8 +35,6 @@ export function utiliserDefis(): DefisDuProfil {
   const avecCompte = !DEMO_VISITES_ACTIVE && connecte;
   const [lus, setLus] = useState<DefiApp[] | null>(null);
   const [erreur, setErreur] = useState<ErreurService | null>(null);
-  // Les défis réussis de la dernière lecture ; null : pas encore lus
-  const reussisVus = useRef<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,9 +48,6 @@ export function utiliserDefis(): DefisDuProfil {
         }
         setLus(r.defis);
         setErreur(null);
-        const reussis = lireReussis(r.defis);
-        if (reussisVus.current === reussis) return;
-        reussisVus.current = reussis;
         void rafraichir();
       });
       return () => {

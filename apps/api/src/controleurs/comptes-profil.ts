@@ -4,6 +4,8 @@ import type { Request, Response } from "express";
 
 import { estPseudoValide } from "../../../../packages/commun/src/validation/est-pseudo-valide.ts";
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
+import { lireAvatarPhoto } from "../../../../packages/commun/src/validation/lire-avatar-photo.ts";
+import { choisirAvatarPublic } from "../fonctions/comptes/choisir-avatar-public.ts";
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
 import { detecterChangementVisible } from "../fonctions/comptes/detecter-changement-visible.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
@@ -44,7 +46,7 @@ export function creerControleursProfil({ services, chiffrement, horloge, apresPa
     const dateNaissance = profil.dateNaissanceChiffree === null ? null : chiffrement.dechiffrer(profil.dateNaissanceChiffree, "dateNaissance");
     return {
       prenom: profil.prenom, nom, pseudo: profil.pseudo, dateNaissance, ville: profil.ville, envies: relireEnvies(profil.envies),
-      avatar: profil.avatar, prive: profil.prive, emailVerifie: profil.emailVerifie,
+      avatar: choisirAvatarPublic(profil), prive: profil.prive, emailVerifie: profil.emailVerifie,
       age: dateNaissance === null ? null : calculerAgeProfil(dateNaissance, new Date(horloge())),
     };
   }
@@ -60,7 +62,7 @@ export function creerControleursProfil({ services, chiffrement, horloge, apresPa
     if (corps.pseudo !== undefined) modification.pseudo = lirePseudo(corps.pseudo);
     if (corps.ville !== undefined) modification.ville = lireLigne(corps, "ville", 2, 80);
     if (corps.envies !== undefined) modification.envies = lireEnvies(corps.envies);
-    if (corps.avatar !== undefined) modification.avatar = lireAvatar(corps.avatar);
+    if (corps.avatar !== undefined && lireAvatarPhoto(corps.avatar) === null) modification.avatar = lireAvatar(corps.avatar);
     if (corps.prive !== undefined) {
       if (typeof corps.prive !== "boolean") throw new ChampInvalide("prive");
       modification.prive = corps.prive;

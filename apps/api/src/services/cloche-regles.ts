@@ -24,6 +24,8 @@ export interface ServicesCloche {
    * cloche_vue_le sur comptes).
    */
   marquerVu(compteId: number, jusqua: Date, maintenant: Date): Promise<Date>;
+  effacer(compteId: number, id: number): Promise<boolean>;
+  effacerLues(compteId: number, jusqua: Date | null, maintenant: Date): Promise<number>;
 }
 
 /** Notifications par page de GET /app/cloche */

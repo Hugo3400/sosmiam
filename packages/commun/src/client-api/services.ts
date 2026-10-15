@@ -1,5 +1,6 @@
 // L'ensemble des services utilisés par l'app (et plus tard le site) : démo locale, API, ou indisponibles.
 
+import type { ServiceAnnoncesApp } from "./contrat-annonces-app.ts";
 import type { ServiceAvis } from "./contrat-avis.ts";
 import type { ServiceComptoir } from "./contrat-comptoir.ts";
 import type { ServiceDefis } from "./contrat-defis.ts";
@@ -30,4 +31,5 @@ export type Services = {
   miamSafe: ServiceMiamSafe;
   /** Défis du moment et avancée du compte connecté (GET /app/defis) */
   defis: ServiceDefis;
+  annoncesApp: ServiceAnnoncesApp;
 };

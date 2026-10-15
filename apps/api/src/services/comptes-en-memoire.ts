@@ -14,6 +14,7 @@ import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import { creerComptesExternesEnMemoire } from "./comptes-externes-en-memoire.ts";
 import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { creerProEnMemoire } from "./pro-en-memoire.ts";
+import { retirerPhotoProfil } from "./photos-profil.ts";
 import { creerPseudosReservesEnMemoire } from "./pseudos-reserves-en-memoire.ts";
 import { creerSuggestionsEnMemoire } from "./suggestions-comptes-en-memoire.ts";
 import { creerZonesEnMemoire } from "./zones-fondateurs-en-memoire.ts";
@@ -51,6 +52,7 @@ export type CompteEnMemoire = {
   villeApp: string | null;
   envies: Record<string, string[]> | null;
   avatar: string | null;
+  photoProfil?: string | null;
   prive: boolean;
   /** Identifiants Apple et Google (« sub ») liés au compte (absents ou null : jamais liés) */
   appleSub?: string | null;
@@ -180,6 +182,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       if (compte) Object.assign(compte, { motDePasse: empreinte, reinitialisation: null });
     },
     async effacerCompte(id, maintenant = new Date(horloge())) {
+      await retirerPhotoProfil(id, "compte-supprime");
       const pseudo = comptes.get(id)?.pseudo;
       if (pseudo) pseudosReserves.reserver(pseudo, null, "suppression", maintenant.getTime());
       pseudosReserves.oublierCompte(id);
@@ -272,7 +275,10 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const compte = comptes.get(id);
       if (!compte) return null;
       const { prenom, nomChiffre, pseudo, dateNaissanceChiffree, villeApp, envies, avatar, prive } = compte;
-      return { prenom, nomChiffre, pseudo, dateNaissanceChiffree, ville: villeApp, envies: structuredClone(envies), avatar, prive, emailVerifie: compte.emailVerifieLe !== null };
+      return {
+        prenom, nomChiffre, pseudo, dateNaissanceChiffree, ville: villeApp, envies: structuredClone(envies), avatar, prive, emailVerifie: compte.emailVerifieLe !== null,
+        photoProfil: compte.photoProfil ?? null,
+      };
     },
     async modifierProfil(id, { prenom, nomChiffre, pseudo, ville, envies, avatar, prive, dateNaissanceChiffree }, maintenant = new Date(horloge())) {
       const compte = comptes.get(id);

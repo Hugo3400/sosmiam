@@ -16,6 +16,7 @@ export type ProfilLu = {
   /** Tel que gardé (un objet { categorie: [ids] }, ou null) : relu et filtré par le contrôleur */
   envies: unknown;
   avatar: string | null;
+  photoProfil?: string | null;
   prive: boolean;
   emailVerifie: boolean;
 };
@@ -38,7 +39,7 @@ export async function lireProfil(id: number): Promise<ProfilLu | null> {
     where: { id },
     select: {
       prenom: true, nomChiffre: true, pseudo: true, dateNaissanceChiffree: true, ville: true, envies: true, avatar: true, prive: true,
-      emailVerifieLe: true,
+      emailVerifieLe: true, photoProfil: true,
     },
   });
   if (!compte) return null;

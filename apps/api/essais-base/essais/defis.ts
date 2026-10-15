@@ -52,7 +52,7 @@ const bilan = await defis.reevaluer(compte, maintenant);
 const ids = Object.fromEntries((await baseDeDonnees.defi.findMany({ select: { id: true, titre: true } })).map((d: { id: number; titre: string }) => [d.titre, d.id]));
 // Pompier de service (2 visites pendant un SOS) et Sors de ta cuisine ? (1 sortie seulement) ; Fidèle au poste : semaines 12, 19, 26 → 3 !
 egal(bilan.reussis.sort(), [ids["Pompier de service"], ids["Fidèle au poste"]].sort());
-egal(bilan.badges, ["premiere-rescousse", "noctambule"]);
+egal(bilan.badges, ["premiere-rescousse", "noctambule", "premiere-plume"]);
 const liste = await defis.listerPourCompte(compte, maintenant);
 const fait = Object.fromEntries(liste.map((d: { titre: string; fait: number; etat: string }) => [d.titre, `${d.fait}/${d.etat}`]));
 egal(fait, {
@@ -63,7 +63,7 @@ const journal = await baseDeDonnees.journalPoints.findMany({ where: { compteId: 
 egal(journal.map((j: { detail: string }) => j.detail).sort(), [`defi:${ids["Fidèle au poste"]}`, `defi:${ids["Pompier de service"]}`].sort());
 vrai(journal.every((j: { points: number; raison: string }) => j.points === 40 && j.raison === "defi"));
 egal((await baseDeDonnees.compte.findUniqueOrThrow({ where: { id: compte } })).points, 80);
-egal((await baseDeDonnees.badgeCompte.findMany({ where: { compteId: compte }, orderBy: { id: "asc" } })).map((b: { badge: string }) => b.badge), ["premiere-rescousse", "noctambule"]);
+egal((await baseDeDonnees.badgeCompte.findMany({ where: { compteId: compte }, orderBy: { id: "asc" } })).map((b: { badge: string }) => b.badge), ["premiere-rescousse", "noctambule", "premiere-plume"]);
 
 // Relu : rien ne change (crédit unique)
 await defis.reevaluer(compte, maintenant);
@@ -86,7 +86,7 @@ await base.query(`UPDATE visites SET statut = 'validee' WHERE lieu_id = $1`, [pa
 egal((await defis.reevaluer(compte, maintenant)).reussis.length, 2);
 egal((await baseDeDonnees.compte.findUniqueOrThrow({ where: { id: compte } })).points, 80);
 // Les badges restent
-egal(await baseDeDonnees.badgeCompte.count({ where: { compteId: compte } }), 2);
+egal(await baseDeDonnees.badgeCompte.count({ where: { compteId: compte } }), 3);
 
 // Gestion : la liste (brouillons compris), les réussites comptées
 const gestion = await defis.listerGestion();

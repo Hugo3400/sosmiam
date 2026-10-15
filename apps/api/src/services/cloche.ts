@@ -1,5 +1,6 @@
 // La cloche dans la base (contrat dans cloche-regles.ts). Aussi pour la session Logiciel : creerCloche().noter(…) écrit les
 // décisions de la modération (acteur null). Jamais de texte de message ni de titre de groupe ici.
+import { calculerBorneClocheLue } from "../fonctions/social/calculer-borne-cloche-lue.ts";
 import { lireCurseurDate } from "../fonctions/social/lire-curseur-date.ts";
 import { ecrireCurseurDate } from "../fonctions/social/ecrire-curseur-date.ts";
 import { presenterNotificationCloche } from "../fonctions/social/presenter-notification-cloche.ts";
@@ -8,6 +9,9 @@ import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { FENETRE_DOUBLON_CLOCHE_MS, LONGUEUR_MAX_DETAIL_CLOCHE, NOTIFICATIONS_PAR_PAGE, type ServicesCloche } from "./cloche-regles.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { creerRelationsSociales } from "./relations-sociales.ts";
+
+const visibles = (compteId: number, caches: ReadonlySet<number>): Prisma.NotificationClocheWhereInput[] =>
+  caches.size > 0 ? [{ compteId }, { OR: [{ acteurId: null }, { acteurId: { notIn: [...caches] } }] }] : [{ compteId }];
 
 export function creerCloche(relations: RelationsSociales = creerRelationsSociales(), base = baseDeDonnees): ServicesCloche {
   return {
@@ -41,8 +45,7 @@ export function creerCloche(relations: RelationsSociales = creerRelationsSociale
         relations.listerBlocages(compteId),
         base.profilSocial.findUnique({ where: { compteId }, select: { clocheVueLe: true } }),
       ]);
-      const filtres: Prisma.NotificationClocheWhereInput[] = [{ compteId }];
-      if (caches.size > 0) filtres.push({ OR: [{ acteurId: null }, { acteurId: { notIn: [...caches] } }] });
+      const filtres = visibles(compteId, caches);
       if (curseur) filtres.push({ OR: [{ creeLe: { lt: curseur.date } }, { creeLe: curseur.date, id: { lt: curseur.id } }] });
       const lignes = await base.notificationCloche.findMany({
         where: { AND: filtres },
@@ -73,6 +76,23 @@ export function creerCloche(relations: RelationsSociales = creerRelationsSociale
         UPDATE profils_sociaux SET cloche_vue_le = GREATEST(COALESCE(cloche_vue_le, ${borne}::timestamptz), ${borne}::timestamptz)
         WHERE compte_id = ${compteId} RETURNING cloche_vue_le AS vue`;
       return lignes[0]?.vue ?? borne;
+    },
+
+    async effacer(compteId, id) {
+      const { caches } = await relations.listerBlocages(compteId);
+      const { count } = await base.notificationCloche.deleteMany({ where: { AND: [{ id }, ...visibles(compteId, caches)] } });
+      return count > 0;
+    },
+
+    async effacerLues(compteId, jusqua, maintenant) {
+      const [{ caches }, profil] = await Promise.all([
+        relations.listerBlocages(compteId),
+        base.profilSocial.findUnique({ where: { compteId }, select: { clocheVueLe: true } }),
+      ]);
+      const borne = calculerBorneClocheLue({ aProfil: profil !== null, vuesLe: profil?.clocheVueLe ?? null, jusqua, maintenant });
+      if (!borne) return 0;
+      const { count } = await base.notificationCloche.deleteMany({ where: { AND: [{ creeLe: { lte: borne } }, ...visibles(compteId, caches)] } });
+      return count;
     },
   };
 }

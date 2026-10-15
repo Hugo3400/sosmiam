@@ -3,6 +3,8 @@
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { presenterPersonne } from "../fonctions/social/presenter-personne.ts";
+import { choisirAvatarPublic } from "../fonctions/comptes/choisir-avatar-public.ts";
+import { selectionnerAvatarPublic } from "../fonctions/comptes/selectionner-avatar-public.ts";
 import { AUCUN_LIEN, type LienEntre, type RelationsSociales } from "./relations-sociales-regles.ts";
 
 const uniques = (ids: readonly number[]) => [...new Set(ids)].filter((id) => Number.isSafeInteger(id) && id > 0);
@@ -37,11 +39,11 @@ export function creerRelationsSociales(base = baseDeDonnees): RelationsSociales 
       if (ids.length === 0) return new Map();
       const profils = await base.profilSocial.findMany({
         where: { compteId: { in: ids } },
-        select: { compteId: true, idPublic: true, compte: { select: { pseudo: true, prenom: true, avatar: true } } },
+        select: { compteId: true, idPublic: true, compte: { select: { pseudo: true, prenom: true, ...selectionnerAvatarPublic(new Date()) } } },
       });
       const carte = new Map<number, ReturnType<typeof presenterPersonne>>();
       for (const p of profils) {
-        if (p.compte.pseudo) carte.set(p.compteId, presenterPersonne({ idPublic: p.idPublic, pseudo: p.compte.pseudo, prenom: p.compte.prenom, avatar: p.compte.avatar }));
+        if (p.compte.pseudo) carte.set(p.compteId, presenterPersonne({ idPublic: p.idPublic, pseudo: p.compte.pseudo, prenom: p.compte.prenom, avatar: choisirAvatarPublic(p.compte) }));
       }
       return carte;
     },

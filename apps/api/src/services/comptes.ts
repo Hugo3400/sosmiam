@@ -4,10 +4,12 @@ import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-pali
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
 import type { FournisseurExterne } from "../fonctions/comptes/lire-identite-externe.ts";
+import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { decrireCertifie, type CertifieVue } from "./certification.ts";
 import { CHAMP_SUB } from "./comptes-externes-regles.ts";
 import { PseudoDejaPris } from "./erreurs-comptes.ts";
 import { estReservePourUnAutre, reserverPseudoDans, tablePseudosReservesPresente } from "./pseudos-reserves.ts";
+import { retirerPhotoProfil } from "./photos-profil.ts";
 import type { LieuDuPro, RoleRattachement, StatutRattachement } from "./pro-regles.ts";
 
 // Comptes SOS Miam (espace ambassadeur du site, puis l'app). Les fonctions ci-dessous servent aussi au logiciel de
@@ -268,6 +270,7 @@ export async function changerMotDePasse(id: number, empreinte: string): Promise<
  * réservé 30 jours pour personne (raison « suppression »), dans la même transaction (pseudos-reserves.ts).
  */
 export async function effacerCompte(id: number, maintenant = new Date()): Promise<void> {
+  await retirerPhotoProfil(id, "compte-supprime").catch((erreur: unknown) => console.error("Photo de profil non retirée avant l'effacement du compte :", resumerErreur(erreur)));
   if (!(await tablePseudosReservesPresente())) {
     await baseDeDonnees.compte.deleteMany({ where: { id } });
     return;

@@ -8,6 +8,8 @@
 // Le 15 octobre 2026 : interrupteurs des réglages sociaux dans l'app (Réglages › Confidentialité, bloc « Ta bande »,
 // apps/app-mobile/src/composants/reglages/BlocTaBande.tsx) et ménage de nuit en ligne (médias effacés après 90 jours,
 // conversations après 1 an sans message : apps/api/src/services/menage-social*.ts), passés au présent.
+// Le 15 octobre 2026 (soir) : section « Ta photo de profil » (ancre « photo-profil »), décision de Hugo : visible comme
+// l'avatar, signalable, retirée par l'équipe (apps/api/src/services/photos-profil.ts).
 import type { SectionLegale } from "~/contenus/legal/type-legal";
 
 export const sectionPotesCgu: SectionLegale = {
@@ -81,6 +83,22 @@ export const sectionPseudosCgu: SectionLegale = {
         "**Changer de pseudo** : ton ancien pseudo est **réservé pendant 30 jours**. Personne d'autre ne peut le prendre (pour que personne ne se fasse passer pour toi), mais toi, tu peux le reprendre. Pendant ces 30 jours, ton ancien lien d'invitation, qui portait ton ancien pseudo, affiche « **Ce lien a changé** » à qui l'ouvre, pour qu'il te demande ton nouveau lien ; ensuite, c'est le message d'un lien qui n'est pas valable.",
         "**Supprimer ton compte** : ton pseudo est réservé 30 jours, et personne ne peut le prendre pendant ce temps.",
         "**Les mentions suivent la personne, pas le pseudo** : quelqu'un qui reprend plus tard un pseudo libéré n'hérite jamais des anciennes mentions « @ ».",
+      ],
+    },
+  ],
+};
+
+export const sectionPhotoProfilCgu: SectionLegale = {
+  id: "photo-profil",
+  titre: "Ta photo de profil",
+  blocs: [
+    "Tu peux mettre une photo sur ton profil, à la place de ton emoji ou de ton Miami : toi, ton plat fétiche ou ton chat déguisé en Capitaine, c'est toi qui vois. Elle est **visible par les autres Miamis** comme ton avatar, partout où tu participes, même si ton compte est privé : choisis-la en le sachant.",
+    {
+      liste: [
+        "**Pas la photo de quelqu'un d'autre sans son accord**, et **jamais le visage d'un mineur**, même celui de ta petite sœur ou le tien quand tu étais enfant.",
+        "**Rien d'explicite, de violent ou de haineux** : ni nudité ni contenu sexuel, ni violence, ni symbole, geste ou texte haineux, ni photo qui te fait passer pour quelqu'un d'autre, pour un lieu que tu ne représentes pas ou pour l'équipe SOS Miam.",
+        "**Elle se signale comme le reste de ton profil** : si elle ne respecte pas ces règles, l'équipe peut la retirer, avec la règle en cause et une explication, et tu peux contester (voir [Signalements et modération](#moderation)). Tant que ton compte est limité, les autres ne la voient plus.",
+        "**La changer ou la retirer** : quand tu veux, dans l'app. L'ancienne est effacée de notre serveur tout de suite, sauf si elle fait l'objet d'un signalement : une copie est alors gardée pour la modération (voir la [politique de confidentialité](/confidentialite#app-comptes)).",
       ],
     },
   ],

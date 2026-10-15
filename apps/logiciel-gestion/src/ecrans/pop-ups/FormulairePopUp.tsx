@@ -40,7 +40,7 @@ export function FormulairePopUp({ popUp, onFermer, onEnregistree }: Props) {
 
   const lien = ecran === "lieu" ? (lieuId ? `/lieu/${lieuId}` : null) : ecran;
   const toutPublic = cible === "tous" || cible === "ville";
-  const alcool = toutPublic && parleDAlcool(`${titre} ${texte} ${boutonLibelle}`);
+  const alcool = parleDAlcool(`${titre} ${texte} ${boutonLibelle}`);
   const pret = titre.trim() && texte.trim() && (cible !== "ville" || ville.trim()) && (!avecBouton || (boutonLibelle.trim() && lien));
 
   async function enregistrer() {
@@ -101,7 +101,9 @@ export function FormulairePopUp({ popUp, onFermer, onEnregistree }: Props) {
           </div>
           {alcool && (
             <p role="alert" className="rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">
-              Cette pop-up parle de bar ou d'alcool, et elle sera vue sans compte (visite tout public, sans alcool). Choisis plutôt une cible avec compte, ou change le texte.
+              {toutPublic
+                ? "Cette pop-up parle de bar ou d'alcool, et elle sera vue sans compte (visite tout public, sans alcool). Choisis plutôt une cible avec compte, ou change le texte."
+                : "Cette pop-up parle d'alcool : c'est de la publicité pour l'alcool (loi Évin). Pas de publication sans l'avis d'un juriste et le message sanitaire."}
             </p>
           )}
           {etat.erreur && <p role="alert" className="text-sm font-semibold text-rouge-texte">{etat.erreur}</p>}

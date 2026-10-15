@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 import type { CibleCloche, TypeCloche } from "@sos-miam/commun/types/cloche";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { PersonneResume } from "@sos-miam/commun/types/social";
 import type { NotificationSuivi, NouvelleNotificationSuivi } from "@sos-miam/commun/types/suivis";
 
@@ -23,6 +24,8 @@ export type NotificationCloche = {
 /** Ce que montre l'écran Notifications : la démo, plus les types de la cloche du serveur */
 export type NotificationApp = NotificationSuivi | NotificationCloche;
 
+export type ResultatEffacementCloche = { ok: true; effacees: number } | { ok: false; erreur: ErreurService };
+
 export type EtatNotifications = {
   /** Faux tant que le stockage, l'activité et la communauté ne sont pas relus (ou sans profil : visite sans compte) */
   pret: boolean;
@@ -36,6 +39,8 @@ export type EtatNotifications = {
   ajouter: (notification: NouvelleNotificationSuivi) => void;
   marquerToutVu: () => void;
   effacer: () => Promise<void>;
+  effacerNotification: (id: string) => Promise<ResultatEffacementCloche>;
+  effacerLues: (jusqua: string) => Promise<ResultatEffacementCloche>;
 };
 
 export const ContexteNotifications = createContext<EtatNotifications | null>(null);

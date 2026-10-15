@@ -96,6 +96,9 @@ test("services sociaux : les adresses et les corps des routes du profil social, 
   await cloche.lister("suite/1");
   await cloche.marquerVu("2026-10-14T10:00:00.000Z");
   await cloche.marquerVu();
+  await cloche.effacer("42");
+  await cloche.effacerLues("2026-10-14T10:00:00.000Z");
+  await cloche.effacerLues();
   const vus = appels.map((a) => `${a.methode} ${a.url.replace("https://api.exemple.fr", "")}${a.corps === undefined ? "" : ` ${JSON.stringify(a.corps)}`}`);
   assert.deepEqual(vus, [
     "GET /app/social/moi",
@@ -117,6 +120,9 @@ test("services sociaux : les adresses et les corps des routes du profil social, 
     "GET /app/cloche?apres=suite%2F1",
     'POST /app/cloche/vu {"jusqua":"2026-10-14T10:00:00.000Z"}',
     "POST /app/cloche/vu {}",
+    "DELETE /app/cloche/42",
+    'POST /app/cloche/effacer-lues {"jusqua":"2026-10-14T10:00:00.000Z"}',
+    "POST /app/cloche/effacer-lues {}",
   ]);
   // Toutes avec la session : aucune route sociale n'est publique
   assert.ok(appels.every((a) => a.entetes.Authorization === "Bearer jeton-1"));

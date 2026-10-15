@@ -1,7 +1,7 @@
 // Conditions d'utilisation du site sosmiam.fr et de l'app SOS Miam (l'app y renvoie à la création du compte).
 // Tout est gratuit, rien n'est vendu : pas de CGV. À mettre à jour AVANT l'arrivée de la pub.
 // Partie sociale (15 octobre 2026, avant l'ouverture de la messagerie) : sections dans cgu-social.ts (bande, messagerie,
-// commentaires et listes, pseudos, bloquer) et cgu-moderation.ts (« Signalements et modération »), relues contre le code.
+// commentaires et listes, pseudos, photo de profil, bloquer) et cgu-moderation.ts (« Signalements et modération »), relues contre le code.
 // Pas de clause abusive (Code de la consommation, L212-1 et R212-1 ; Code civil, 1171) : pas d'exclusion totale de
 // responsabilité, pas de modification sans information, pas de démarche amiable obligatoire, pas de tribunal imposé.
 // Propriété intellectuelle : le nom « SOS Miam » n'est pas revendiqué tant qu'aucune marque n'est déposée à l'INPI.
@@ -16,7 +16,9 @@ import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { sectionAmbassadeursCgu } from "~/contenus/legal/cgu-ambassadeurs";
 import { sectionModerationCgu } from "~/contenus/legal/cgu-moderation";
 import { sectionProCgu } from "~/contenus/legal/cgu-pro";
-import { sectionBloquerCgu, sectionCommentairesCgu, sectionMessagerieCgu, sectionPotesCgu, sectionPseudosCgu } from "~/contenus/legal/cgu-social";
+import {
+  sectionBloquerCgu, sectionCommentairesCgu, sectionMessagerieCgu, sectionPhotoProfilCgu, sectionPotesCgu, sectionPseudosCgu,
+} from "~/contenus/legal/cgu-social";
 import { editeur, site } from "~/contenus/legal/informations-legales";
 import type { DocumentLegal } from "~/contenus/legal/type-legal";
 
@@ -123,6 +125,7 @@ export const documentCgu: DocumentLegal = {
     sectionMessagerieCgu,
     sectionCommentairesCgu,
     sectionPseudosCgu,
+    sectionPhotoProfilCgu,
     sectionBloquerCgu,
     {
       id: "publications",
@@ -300,7 +303,7 @@ export const documentCgu: DocumentLegal = {
     { id: "le-cadre", titre: "Le cadre", sections: ["objet", "acceptation", "acces"] },
     { id: "sos-miam-et-ton-compte", titre: "SOS Miam et ton compte", sections: ["contenu", "age", "compte", "rescousses"] },
     { id: "ambassadeurs-et-pros", titre: "Ambassadeurs et pros", sections: ["ambassadeurs", "pro"] },
-    { id: "ta-bande-et-tes-messages", titre: "Ta bande et la messagerie", sections: ["potes", "messagerie", "commentaires", "pseudos", "bloquer"] },
+    { id: "ta-bande-et-tes-messages", titre: "Ta bande et la messagerie", sections: ["potes", "messagerie", "commentaires", "pseudos", "photo-profil", "bloquer"] },
     { id: "publier", titre: "Publier, et vivre ensemble", sections: ["publications", "regles-communaute", "moderation"] },
     { id: "bon-usage-et-responsabilites", titre: "Bon usage et responsabilités", sections: ["propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite"] },
     { id: "tes-donnees", titre: "Tes données et les cookies", sections: ["donnees-cookies"] },

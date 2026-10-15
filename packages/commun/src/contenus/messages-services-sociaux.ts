@@ -238,4 +238,9 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
     titre: "Trop tard pour contester",
     texte: "On peut contester une décision pendant 6 mois. Écris-nous si c'est vraiment important.",
   },
+  "notification-inconnue": {
+    emoji: "🍃",
+    titre: "Déjà envolée",
+    texte: "Cette notification a déjà quitté ta cloche, peut-être depuis ton autre téléphone.",
+  },
 };

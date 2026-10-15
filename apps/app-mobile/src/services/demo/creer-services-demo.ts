@@ -6,6 +6,7 @@
 import type { Services } from "@sos-miam/commun/client-api/services";
 
 import { creerServicesIndisponibles } from "../creer-services-indisponibles";
+import { creerAnnoncesAppDemo } from "./annonces-app-demo";
 import { creerAvisDemo } from "./avis-demo";
 import { creerComptoirDemo } from "./comptoir-demo";
 import { creerEspaceAmbassadeurDemo } from "./espace-ambassadeur-demo";
@@ -36,5 +37,6 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     miamSafe: creerMiamSafeDemo(ctx),
     // Défis de la démo : encore calculés sur le téléphone (defis-exemples.ts), pas par ce service
     defis: { ...enAttente.defis },
+    annoncesApp: creerAnnoncesAppDemo(),
   };
 }

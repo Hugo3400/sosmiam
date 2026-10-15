@@ -76,6 +76,9 @@ import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 import { noterAction } from "./services/gestion/journal.ts";
 import { servicesLimitations } from "./services/limitations-comptes.ts";
+import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profil.ts";
+import { creerDepotPhotosProfil } from "./services/photos-profil-base.ts";
+import { creerStockagePhotosProfil } from "./services/stockage-photos-profil.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -141,6 +144,10 @@ const arreterVotes = process.env.SCHEMA_BASE ? () => {} : planifierFinDesVotes({
   sorties: socialApp.sorties,
   appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
 });
+const photosProfil = creerPhotosProfil({
+  stockage: creerStockagePhotosProfil(), depot: creerDepotPhotosProfil(), preuves: { chiffrement: socialApp.chiffrement, medias: socialApp.medias },
+});
+brancherPhotosProfil(photosProfil);
 
 const serveur = creerApplication({
   enregistrerInscription,
@@ -194,6 +201,7 @@ const serveur = creerApplication({
     apresPassageEnPublic: creerApresPassageEnPublic(socialApp, Date.now),
     // Compte limité par l'équipe : « Ton compte est limité », sa contestation, et les refus 403 « compte-limite »
     limitations,
+    photos: photosProfil,
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu, noterPresence },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)

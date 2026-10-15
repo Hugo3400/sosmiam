@@ -115,5 +115,8 @@ export function creerServicesIndisponibles(): Services {
       marquerLu: indisponible,
       ecouter: rienAEcouter,
     },
+    annoncesApp: {
+      lister: async () => ({ ok: true, annonces: [] }),
+    },
   };
 }

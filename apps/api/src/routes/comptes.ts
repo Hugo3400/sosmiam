@@ -7,6 +7,7 @@ import { creerControleursLimitation } from "../controleurs/comptes-limitation.ts
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
 import { creerControleursProfil } from "../controleurs/comptes-profil.ts";
 import { creerControleursPropositionsLieux } from "../controleurs/comptes-propositions-lieux.ts";
+import { creerControleursPhotoProfil } from "../controleurs/comptes-photo.ts";
 import { creerLecteurCompteVu } from "../controleurs/comptes-vu.ts";
 import { ADRESSE_ESPACE, creerControleursLiens, type CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import { creerLimiteEnvois } from "../controleurs/comptes-limite-envois.ts";
@@ -21,8 +22,10 @@ import { creerControleMajorite } from "../middlewares/exiger-majeur.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { creerRefuserSiLimite } from "../middlewares/refuser-si-limite.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
+import { lireCorpsPhotoProfil } from "./photos-profil.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
+import type { PhotosProfil } from "../services/photos-profil.ts";
 import type { ServicesPro } from "../services/pro-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
@@ -58,6 +61,7 @@ export const LIMITE_CONNEXION_EXTERNE = { fenetre: DIX_MINUTES, maximum: 20 };
 export const LIMITE_CONNEXIONS_COMPTE = { fenetre: 60 * 60_000, maximum: 10 };
 /** Contester sa limitation : 10 envois par COMPTE et par 24 heures, essais trop courts compris (une seule contestation est gardée) */
 export const LIMITE_CONTESTATION_LIMITATION = { fenetre: 24 * 60 * 60_000, maximum: 10 };
+export const LIMITE_PHOTOS_PROFIL = { fenetre: 24 * 60 * 60_000, maximum: 20 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -90,6 +94,7 @@ export type DependancesComptes = {
    * /comptes/moi/limitation, sa contestation, et les refus 403 « compte-limite » (ici et dans l'espace pro) ; absentes :
    * personne n'est limité (limitation: null, contestation 404) */
   limitations?: ServicesLimitations;
+  photos?: PhotosProfil;
 };
 
 /**
@@ -240,9 +245,34 @@ export type DependancesComptes = {
  *                                        personne de l'équipe la réexamine dans le logiciel de gestion · 400 champ-invalide
  *                                        {champ: texte} · 404 aucune-limitation (aucune en cours, même à venir) · 409
  *                                        deja-conteste · 429 (10 envois par compte et par 24 h)
+ * POST   /comptes/moi/photo             corps brut, Content-Type: image/jpeg, 5 Mo au plus (décision de Hugo du 15/10/2026) :
+ *                                        la photo de profil → 201 { ok, avatar: "photo:<uuid v4>.jpg" } (la nouvelle valeur
+ *                                        publique de l'avatar ; le nom change à chaque photo). L'app envoie un JPEG CARRÉ de
+ *                                        512 × 512 px, déjà recadré, redressé et réencodé (COTE_PHOTO_PROFIL, packages/commun) ;
+ *                                        l'API reconnaît le JPEG à sa signature, relit ses dimensions dans le fichier, retire
+ *                                        EXIF (position comprise), XMP, ICC, IPTC, commentaires et tout ce qui suit l'image,
+ *                                        puis la range sous un nom tiré au hasard. L'emoji ou le Miami choisi reste gardé, en
+ *                                        repli. L'ancienne photo est effacée du disque tout de suite, sauf si un signalement de
+ *                                        ce profil, fait pendant qu'elle était affichée, est ouvert ou jugé depuis moins de 183
+ *                                        jours : une copie CHIFFRÉE part alors avec lui (fichierMedia), pour la modération.
+ *                                        · 415 format-refuse (pas un JPEG, ou autre Content-Type) · 413 media-trop-lourd · 400
+ *                                        media-invalide {champ: format|dimensions} · 401 · 403 compte-limite · 429 (20 envois
+ *                                        par compte et par 24 h) · 503 stockage-plein (Retry-After) | chiffrement-indisponible
+ * DELETE /comptes/moi/photo             → 200 { ok, avatar } : la photo retirée (même effacement) ; avatar : l'emoji ou le
+ *                                        Miami d'avant, ou null. Permis à un compte limité · 401 · 503 chiffrement-indisponible
+ * Avatar public (GET /comptes/moi/profil, PersonneResume de la partie sociale, recherche, commentaires…) : « photo:<uuid
+ * v4>.jpg » si le compte a une photo, sinon l'emoji ou « miami:<id> », ou null. Compte limité : les autres voient son emoji
+ * (ou null), lui voit toujours sa photo. PATCH /comptes/moi/profil accepte « photo:… » renvoyé tel quel (rien ne change) ;
+ * un emoji, un Miami ou null y changent le repli, jamais la photo (DELETE /comptes/moi/photo la retire).
+ * GET    /app/medias/profils/<uuid v4>.jpg (sans session ; adresse : construireAdressePhotoProfil(avatar, adresse des
+ *                                        médias), packages/commun) → 200 image/jpeg, Cache-Control « public, max-age=31536000,
+ *                                        immutable », nosniff : seulement la photo ACTUELLE d'un compte non limité. Avec une
+ *                                        session et un blocage entre les deux : 404. Sinon 404 photo-inconnue (no-store) ; jamais
+ *                                        la liste du dossier. Sans session, aucun blocage ne peut être vu : l'app ne montre pas
+ *                                        la photo d'une personne bloquée. 1 200 lectures par minute et par visiteur.
  * Compte LIMITÉ (décision de Hugo du 15 octobre 2026, docs/decisions.md) : ce que les AUTRES utilisateurs verraient est
  * refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (jusqua : ISO 8601, ou null : jusqu'à nouvel
- * ordre), rien n'est fait. Ici : POST /comptes/moi/suggestions (le gérant les lit) ; POST /comptes/moi/rattachements/:id/
+ * ordre), rien n'est fait. Ici : POST /comptes/moi/photo ; POST /comptes/moi/suggestions (le gérant les lit) ; POST /comptes/moi/rattachements/:id/
  * accepter (le gérant voit son équipe) ; PATCH /comptes/moi et PATCH /comptes/moi/profil seulement si le prénom, le
  * pseudo ou l'avatar CHANGENT (une valeur renvoyée telle quelle passe ; retirer son avatar aussi ; ville, envies, prive,
  * nom… restent permis). Espace pro : routes/pro.ts. Restent permis ce que seule l'équipe lit (proposer un lieu,
@@ -420,6 +450,11 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, refuserSiLimite, suggestions.proposer);
   routes.get("/moi/limitation", protection.exigerCompte, limitation.lire);
   routes.post("/moi/limitation/contestation", protection.exigerCompte, parCompte(LIMITE_CONTESTATION_LIMITATION), limitation.contester);
+  if (dependances.photos) {
+    const photo = creerControleursPhotoProfil(dependances.photos);
+    routes.post("/moi/photo", protection.exigerCompte, refuserSiLimite, parCompte(LIMITE_PHOTOS_PROFIL), lireCorpsPhotoProfil, photo.envoyer);
+    routes.delete("/moi/photo", protection.exigerCompte, photo.retirer);
+  }
   if (dependances.pro) {
     const rattachements = creerControleursRattachements(dependances.pro, horloge);
     // Demander à gérer un lieu ou rejoindre une équipe : 18 ans et plus (la liste et « quitter » restent ouvertes)

@@ -5,7 +5,7 @@ import { decalerJour } from "../../../../../packages/commun/src/fonctions/temps/
 import { BADGES_AUTOMATIQUES } from "../../../../../packages/commun/src/regles/badges-automatiques.ts";
 import { JOURS_RATTRAPAGE_DEFI, MESURES_DEFI } from "../../../../../packages/commun/src/regles/defis.ts";
 import type { IdBadge } from "../../../../../packages/commun/src/types/badge.ts";
-import type { DefiApp, FaitsDefi, MesureDefi } from "../../../../../packages/commun/src/types/defi.ts";
+import type { DefiApp, FaitsDefi, FiltresDefi, MesureDefi } from "../../../../../packages/commun/src/types/defi.ts";
 import type { DefiEnBase, ReussiteEnBase } from "../../services/defis-regles.ts";
 import { lireFiltresEnBase } from "./lire-filtres-en-base.ts";
 
@@ -81,9 +81,18 @@ export function evaluerDefisCompte({ defis, reussites, faits, badges, maintenant
     }
   }
 
+  const mesuresDejaComptees = new Map<string, number>();
+  const compterSansDates = (mesure: MesureDefi, filtres: FiltresDefi | null) => {
+    const cle = `${mesure}|${JSON.stringify(filtres)}`;
+    const dejaCompte = mesuresDejaComptees.get(cle);
+    if (dejaCompte !== undefined) return dejaCompte;
+    const compte = compterMesureDefi(faits, mesure, filtres, { debut: null, fin: null });
+    mesuresDejaComptees.set(cle, compte);
+    return compte;
+  };
   for (const badge of BADGES_AUTOMATIQUES) {
     if (badges.includes(badge.id)) continue;
-    if (compterMesureDefi(faits, badge.mesure, badge.filtres, { debut: null, fin: null }) >= badge.objectif) evaluation.badges.push(badge.id);
+    if (compterSansDates(badge.mesure, badge.filtres) >= badge.objectif) evaluation.badges.push(badge.id);
   }
   return evaluation;
 }

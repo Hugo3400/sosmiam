@@ -28,6 +28,7 @@ import { rechiffrerComptes } from "../services/rechiffrement-comptes.ts";
 import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
 import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
+import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -157,11 +158,21 @@ async function nettoyerSocial() {
   }
 }
 
+async function nettoyerPhotosProfil() {
+  try {
+    const effacees = await menagerPhotosProfil();
+    if (effacees > 0) await noterAction("serveur", "Photos de profil orphelines effacées (plus de 24 h)", `${effacees} photo(s)`);
+  } catch (erreur) {
+    console.error("Ménage des photos de profil impossible :", resumerErreur(erreur));
+  }
+}
+
 /** D'abord le ménage (contacts, puis comptes, puis la partie sociale), ensuite la sauvegarde : ce qui a passé sa durée de conservation n'y part pas. */
 async function nettoyerPuisSauvegarder() {
   await faireLeMenage();
   await nettoyerComptes();
   await nettoyerSocial();
+  await nettoyerPhotosProfil();
   await prevenirLesComptesInactifs();
   await rechiffrerLesComptes();
   await sauvegarder();

@@ -54,4 +54,5 @@ export type ErreurServiceSociale =
   | "stockage-plein"
   | "decision-inconnue"
   | "deja-contestee"
-  | "contestation-hors-delai";
+  | "contestation-hors-delai"
+  | "notification-inconnue";

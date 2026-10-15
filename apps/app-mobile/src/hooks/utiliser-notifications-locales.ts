@@ -8,7 +8,7 @@ import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import type { EtatNotifications } from "~/hooks/utiliser-notifications";
+import type { EtatNotifications, ResultatEffacementCloche } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
@@ -183,6 +183,22 @@ export function utiliserNotificationsLocales(): EtatNotifications {
     });
   }, [pret, etat, bloques, trouverPote, estMasquee, tousLesLieux, toutesLesPublications]);
 
+  const effacerNotification = useCallback(
+    async (id: string): Promise<ResultatEffacementCloche> => {
+      setEtat((e) => (e ? { ...e, notifications: e.notifications.filter((n) => n.id !== id) } : e));
+      return { ok: true, effacees: notifications.some((n) => n.id === id) ? 1 : 0 };
+    },
+    [notifications],
+  );
+
+  const effacerLues = useCallback(
+    async (jusqua: string): Promise<ResultatEffacementCloche> => {
+      setEtat((e) => (e ? { ...e, notifications: e.notifications.filter((n) => n.date > jusqua) } : e));
+      return { ok: true, effacees: notifications.filter((n) => n.date <= jusqua).length };
+    },
+    [notifications],
+  );
+
   const vuesLe = pret && etat ? etat.vuesLe : null;
   const valeur = useMemo<EtatNotifications>(
     () => ({
@@ -193,8 +209,10 @@ export function utiliserNotificationsLocales(): EtatNotifications {
       ajouter,
       marquerToutVu,
       effacer,
+      effacerNotification,
+      effacerLues,
     }),
-    [pret, notifications, vuesLe, ajouter, marquerToutVu, effacer],
+    [pret, notifications, vuesLe, ajouter, marquerToutVu, effacer, effacerNotification, effacerLues],
   );
 
   return valeur;

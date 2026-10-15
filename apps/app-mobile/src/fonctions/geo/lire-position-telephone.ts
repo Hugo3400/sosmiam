@@ -13,7 +13,7 @@ function estApproximative(acces: Location.LocationPermissionResponse): boolean {
   return acces.ios?.accuracy === "reduced" || acces.android?.accuracy === "coarse";
 }
 
-export async function lirePositionTelephone(): Promise<LecturePosition> {
+export async function lirePositionTelephone(fraiche: boolean): Promise<LecturePosition> {
   let minuterie: ReturnType<typeof setTimeout> | undefined;
   try {
     if (!(await Location.hasServicesEnabledAsync())) return { erreur: "coupee" };
@@ -22,7 +22,7 @@ export async function lirePositionTelephone(): Promise<LecturePosition> {
     const acces = await Location.requestForegroundPermissionsAsync();
     if (!acces.granted) return { erreur: "refus" };
     const lue =
-      (await Location.getLastKnownPositionAsync({ maxAge: AGE_MAX_POSITION })) ??
+      (fraiche ? null : await Location.getLastKnownPositionAsync({ maxAge: AGE_MAX_POSITION })) ??
       (await Promise.race([
         Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
         new Promise<null>((resoudre) => {

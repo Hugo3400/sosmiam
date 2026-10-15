@@ -13,13 +13,18 @@ const corpsDe = (requete: Request): Record<string, unknown> =>
 const HORIZON = 60 * 86_400_000;
 
 /** La cible (paramètres de l'adresse ou corps) : une ville ou toutes, iPhone, Android ou les deux. */
-function lireCible(source: Record<string, unknown>): CiblePush {
+function lireCible(source: Record<string, unknown>, offresObligatoire = false): CiblePush {
   const ville = typeof source.ville === "string" ? source.ville.trim().slice(0, 80) : "";
   const plateforme = source.plateforme === "ios" || source.plateforme === "android" ? source.plateforme : null;
-  return { ville: ville || null, plateforme };
+  if (offresObligatoire && typeof source.offres !== "boolean") throw new ChampInvalide("offres");
+  return { ville: ville || null, plateforme, offres: source.offres === true || source.offres === "true" };
 }
 const decrireCible = (cible: CiblePush) =>
-  [cible.ville ? `À ${cible.ville}` : "Tout le monde", cible.plateforme === "ios" ? "iPhone" : cible.plateforme === "android" ? "Android" : ""].filter(Boolean).join(" · ");
+  [
+    cible.ville ? `À ${cible.ville}` : "Tout le monde",
+    cible.plateforme === "ios" ? "iPhone" : cible.plateforme === "android" ? "Android" : "",
+    cible.offres ? "promotionnelle (offres acceptées)" : "",
+  ].filter(Boolean).join(" · ");
 
 function verifier(controleur: (requete: Request, reponse: Response) => Promise<unknown>) {
   return async (requete: Request, reponse: Response) => {
@@ -52,7 +57,7 @@ export function creerControleursNotifications(s: ServicesGestion) {
         if (Number.isNaN(date.getTime()) || date.getTime() > Date.now() + HORIZON) throw new ChampInvalide("programmeeLe");
         if (date > programmeeLe) programmeeLe = date;
       }
-      const cible = lireCible(corps);
+      const cible = lireCible(corps, true);
       const cree = await s.creerNotification({
         titre: lireTexte(corps, "titre", 60, true), texte: lireTexte(corps, "texte", 180, true), lien, cible, description: decrireCible(cible), programmeeLe,
       });

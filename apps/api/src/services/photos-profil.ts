@@ -31,11 +31,11 @@ export function creerPhotosProfil({ stockage, depot, preuves, horloge = Date.now
     return true;
   }
 
-  async function changerPhoto(compteId: number, nouvelle: string | null, quand: Date, sansPreuve = false): Promise<IssueChangement> {
+  async function changerPhoto(compteId: number, nouvelle: string | null, quand: Date, memeSansPreuve = false): Promise<IssueChangement> {
     const issue = await depot.ecrire(async (t): Promise<IssueChangement> => {
       const avant = await t.verrouillerCompte(compteId);
       if (!avant) return { refus: "compte-inconnu" };
-      if (avant.photo && !(await garderPreuve(t, compteId, avant.photo, quand)) && !sansPreuve) return { refus: "chiffrement-indisponible" };
+      if (avant.photo && !(await garderPreuve(t, compteId, avant.photo, quand)) && !memeSansPreuve) return { refus: "chiffrement-indisponible" };
       if (avant.photo !== nouvelle) await t.ecrirePhoto(compteId, nouvelle);
       return { avant };
     });

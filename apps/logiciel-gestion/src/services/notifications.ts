@@ -2,7 +2,7 @@ import { appeler, parametres } from "./client-gestion.ts";
 
 export type EtatReglagePush = "pret" | "absent" | "mal-protege" | "incomplet";
 export type EtatPush = { apple: EtatReglagePush; google: EtatReglagePush; iphone: number; android: number; programmees: number };
-export type CiblePush = { ville: string; plateforme: "" | "ios" | "android" };
+export type CiblePush = { ville: string; plateforme: "" | "ios" | "android"; offres: boolean };
 export type NotificationPush = {
   id: number;
   titre: string;

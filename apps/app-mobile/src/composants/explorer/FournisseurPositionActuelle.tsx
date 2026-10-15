@@ -47,7 +47,7 @@ export function FournisseurPositionActuelle({ children }: { children: ReactNode 
   const chercher = useCallback(async () => {
     const numero = ++demande.current;
     setRecherche(true);
-    const lecture = await lirePositionTelephone();
+    const lecture = await lirePositionTelephone(aUnePosition.current);
     if (numero !== demande.current) return null;
     setRecherche(false);
     if ("position" in lecture) garder(lecture);

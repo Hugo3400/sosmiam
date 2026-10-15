@@ -12,6 +12,9 @@ import { ecrireCurseurPersonne } from "../fonctions/social/ecrire-curseur-person
 import { lireCurseurPersonne } from "../fonctions/social/lire-curseur-personne.ts";
 import { presenterListeResume } from "../fonctions/social/presenter-liste-resume.ts";
 import { presenterPersonne } from "../fonctions/social/presenter-personne.ts";
+import { choisirAvatarPublic } from "../fonctions/comptes/choisir-avatar-public.ts";
+import { selectionnerAvatarPublic } from "../fonctions/comptes/selectionner-avatar-public.ts";
+import { masquerPhotoAvatar } from "../fonctions/comptes/masquer-photo-avatar.ts";
 import { presenterProfil, type ProfilBande } from "../fonctions/social/presenter-profil.ts";
 import { AUCUN_LIEN, type RelationsSociales } from "./relations-sociales-regles.ts";
 import { lirePoulsSocial } from "./social-pouls.ts";
@@ -29,6 +32,10 @@ export function construireRequeteRecherche(compteId: number, debut: string): Pri
   const motif = `${debut.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   return Prisma.sql`
     SELECT c.id, c.pseudo, c.prenom, c.avatar, c.prive, p.id_public AS "idPublic",
+      CASE WHEN NOT EXISTS (
+        SELECT 1 FROM limitations_comptes l
+        WHERE l.compte_id = c.id AND l.levee_le IS NULL AND l.debut <= now() AND (l.fin IS NULL OR l.fin > now())
+      ) THEN c.photo_profil END AS "photoProfil",
       EXISTS (SELECT 1 FROM membres_bandes b WHERE b.compte_id = ${compteId} AND b.pote_id = c.id) AS pote
     FROM comptes c JOIN profils_sociaux p ON p.compte_id = c.id
     WHERE c.pseudo LIKE ${motif} ESCAPE '\\' AND p.trouvable AND c.id <> ${compteId}
@@ -52,7 +59,7 @@ export function construireRequetePotesDePotes(compteId: number): Prisma.Sql {
     LIMIT 100`;
 }
 
-type LigneRecherche = { id: number; pseudo: string; prenom: string; avatar: string | null; prive: boolean; idPublic: string; pote: boolean };
+type LigneRecherche = { id: number; pseudo: string; prenom: string; avatar: string | null; photoProfil: string | null; prive: boolean; idPublic: string; pote: boolean };
 
 export function creerSocial(o: { relations: RelationsSociales; tirer: (max: number) => number; base?: typeof baseDeDonnees }): ServicesSocial {
   const { relations, tirer } = o;
@@ -91,12 +98,12 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
         where: { compteId },
         select: {
           idPublic: true, trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true,
-          compte: { select: { pseudo: true, prenom: true, avatar: true, prive: true } },
+          compte: { select: { pseudo: true, prenom: true, avatar: true, photoProfil: true, prive: true } },
         },
       });
       if (!profil?.compte.pseudo) return null;
       const { compte, idPublic, ...reglages } = profil;
-      return { personne: presenterPersonne({ idPublic, pseudo: compte.pseudo!, prenom: compte.prenom, avatar: compte.avatar }), prive: compte.prive, reglages };
+      return { personne: presenterPersonne({ idPublic, pseudo: compte.pseudo!, prenom: compte.prenom, avatar: choisirAvatarPublic(compte) }), prive: compte.prive, reglages };
     },
 
     async modifierReglages(compteId, reglages) {
@@ -108,7 +115,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
 
     async chercher(compteId, debut) {
       const lignes = await base.$queryRaw<LigneRecherche[]>(construireRequeteRecherche(compteId, debut));
-      return lignes.map((l) => ({ personne: presenterPersonne(l), pote: l.pote, prive: l.prive }));
+      return lignes.map((l) => ({ personne: presenterPersonne({ ...l, avatar: choisirAvatarPublic(l) }), pote: l.pote, prive: l.prive }));
     },
 
     async suggerer(compteId) {
@@ -130,7 +137,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
       for (const p of potesDePotes) proposer(p.id, "potes-en-commun");
       const profils = await base.profilSocial.findMany({
         where: { compteId: { in: [...candidats.keys()] } },
-        select: { compteId: true, idPublic: true, suggerable: true, compte: { select: { pseudo: true, prenom: true, avatar: true, prive: true } } },
+        select: { compteId: true, idPublic: true, suggerable: true, compte: { select: { pseudo: true, prenom: true, prive: true, ...selectionnerAvatarPublic(new Date()) } } },
       });
       const parCompte = new Map(profils.map((p) => [p.compteId, p]));
       const masquees = new Set(masques.map((m) => m.cibleId));
@@ -140,7 +147,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
         if (!p?.compte.pseudo || masquees.has(cibleIdSuggestion(p.idPublic))) continue;
         // Par les potes de potes : seulement un compte public qui veut être proposé (jamais un compte privé)
         if (raison === "potes-en-commun" && (!p.suggerable || p.compte.prive)) continue;
-        suggestions.push({ personne: presenterPersonne({ idPublic: p.idPublic, pseudo: p.compte.pseudo, prenom: p.compte.prenom, avatar: p.compte.avatar }), raison });
+        suggestions.push({ personne: presenterPersonne({ idPublic: p.idPublic, pseudo: p.compte.pseudo, prenom: p.compte.prenom, avatar: choisirAvatarPublic(p.compte) }), raison });
         if (suggestions.length >= MAX_SUGGESTIONS) break;
       }
       return suggestions;
@@ -184,7 +191,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
         ? null
         : { pote: lien.pote, demandeBande: lien.demandeBande, jeSuis: lien.jeSuis, meSuit: lien.meSuit, meDemande: lien.meDemande, bloque: lien.bloqueParMoi };
       const vide = { personne, prive: compte.prive, niveau, relation, compteurs: { abonnes: 0, abonnements: 0 }, badges: [], listes: [], bande: null, activitePartagee: false };
-      if (relation?.bloque) return presenterProfil(vide);
+      if (relation?.bloque) return presenterProfil({ ...vide, personne: masquerPhotoAvatar(personne) });
       const [abonnes, abonnements] = await Promise.all([
         base.suiviPersonne.count({ where: { suiviId: cibleId, statut: "accepte" } }),
         base.suiviPersonne.count({ where: { suiveurId: cibleId, statut: "accepte" } }),

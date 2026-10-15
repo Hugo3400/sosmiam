@@ -230,7 +230,6 @@ test("badges automatiques : donnés une fois, jamais retirés, jamais de points 
   assert.deepEqual(badgesDonnes, [{ compteId: id, badge: "noctambule" }]);
   assert.equal(points.length, 0);
 
-  // Les autres : première rescousse, bec sucré (5 visites en pâtisserie), explorateur (5 villes), 4 semaines d'affilée
   const autre = await creerCompte();
   const g = defis.faitsDe(autre.id);
   g.rescousses.push(MIDI_14);

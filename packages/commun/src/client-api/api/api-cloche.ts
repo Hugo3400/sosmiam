@@ -9,5 +9,7 @@ export function creerClocheApi(client: ClientHttp): ServiceCloche {
     lister: (apres) => client.demander<{ cloche: PageClocheApi }>("GET", apres ? `/app/cloche?apres=${encodeURIComponent(apres)}` : "/app/cloche"),
     // Sans jusqua, le corps part vide ({}) : le serveur prend maintenant
     marquerVu: (jusqua) => client.demander<{ vuesLe: string }>("POST", "/app/cloche/vu", { corps: jusqua ? { jusqua } : {} }),
+    effacer: (id) => client.demander("DELETE", `/app/cloche/${encodeURIComponent(id)}`),
+    effacerLues: (jusqua) => client.demander<{ effacees: number }>("POST", "/app/cloche/effacer-lues", { corps: jusqua ? { jusqua } : {} }),
   };
 }

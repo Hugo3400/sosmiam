@@ -16,14 +16,15 @@ const estCleEtrangereManquante = (erreur: unknown) => typeof erreur === "object"
  * Inscrit (ou rafraîchit) un téléphone : un même jeton n'existe qu'une fois, et redevient actif s'il revient. Avec une session,
  * il y est lié (sessionId) ; sans session, il est détaché (compteId et sessionId à null).
  */
-export async function inscrireAppareil({ jeton, plateforme, ville, compteId, empreinteSession }: InscriptionAppareil) {
+export async function inscrireAppareil({ jeton, plateforme, ville, offres, compteId, empreinteSession }: InscriptionAppareil, maintenant = new Date()) {
   const session = compteId !== null && empreinteSession
     ? await baseDeDonnees.sessionCompte.findFirst({ where: { empreinte: empreinteSession, compteId }, select: { id: true } })
     : null;
+  const accord = offres ? { offresAcceptees: true } : { offresAcceptees: false, offresAccepteesLe: null };
   const ecrire = (sessionId: number | null) => baseDeDonnees.appareilPush.upsert({
     where: { jeton },
-    create: { jeton, plateforme, ville, compteId, sessionId },
-    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: new Date() },
+    create: { jeton, plateforme, ville, compteId, sessionId, offresAcceptees: offres, offresAccepteesLe: offres ? maintenant : null },
+    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: maintenant, ...accord },
   });
   try {
     await ecrire(session?.id ?? null);
@@ -31,6 +32,9 @@ export async function inscrireAppareil({ jeton, plateforme, ville, compteId, emp
     // La session vient de se fermer : le téléphone reste inscrit au compte, mais détaché, comme si elle s'était fermée après
     if (!session || !estCleEtrangereManquante(erreur)) throw erreur;
     await ecrire(null);
+  }
+  if (offres) {
+    await baseDeDonnees.appareilPush.updateMany({ where: { jeton, offresAcceptees: true, offresAccepteesLe: null }, data: { offresAccepteesLe: maintenant } });
   }
 }
 

@@ -220,13 +220,14 @@ after(() => banc.fermer());
 
 test("estimation : ville et plateforme lues (une plateforme inconnue = les deux)", async () => {
   await banc.demander("GET", "/notifications/estimation?ville=Lyon&plateforme=ios", { session });
-  assert.deepEqual(appels.at(-1), { estimer: { ville: "Lyon", plateforme: "ios" } });
-  await banc.demander("GET", "/notifications/estimation?plateforme=windows", { session });
-  assert.deepEqual(appels.at(-1), { estimer: { ville: null, plateforme: null } });
+  assert.deepEqual(appels.at(-1), { estimer: { ville: "Lyon", plateforme: "ios", offres: false } });
+  await banc.demander("GET", "/notifications/estimation?plateforme=windows&offres=true", { session });
+  assert.deepEqual(appels.at(-1), { estimer: { ville: null, plateforme: null, offres: true } });
 });
 
 test("création : titre et texte obligatoires, lien vers un écran de l'app seulement, programmation bornée", async () => {
-  const base = { titre: "Ce soir, ça bouge 🛟", texte: "Trois lieux ont de la place : viens les sauver !" };
+  const base = { titre: "Ce soir, ça bouge 🛟", texte: "Trois lieux ont de la place : viens les sauver !", offres: false };
+  assert.equal((await banc.demander("POST", "/notifications", { session, corps: { titre: base.titre, texte: base.texte } })).status, 400);
   assert.equal((await banc.demander("POST", "/notifications", { session, corps: { titre: "Sans texte" } })).status, 400);
   assert.equal((await banc.demander("POST", "/notifications", { session, corps: { ...base, lien: "https://mechant.example" } })).status, 400);
   assert.equal((await banc.demander("POST", "/notifications", { session, corps: { ...base, programmeeLe: "2099-01-01T00:00:00Z" } })).status, 400);
@@ -234,8 +235,12 @@ test("création : titre et texte obligatoires, lien vers un écran de l'app seul
   assert.equal(reponse.status, 201);
   const { creer } = appels.at(-1) as { creer: { lien: string; cible: unknown; description: string; programmeeLe: Date } };
   assert.equal(creer.lien, "/lieu/12");
-  assert.deepEqual(creer.cible, { ville: "Lyon", plateforme: "android" });
+  assert.deepEqual(creer.cible, { ville: "Lyon", plateforme: "android", offres: false });
   assert.equal(creer.description, "À Lyon · Android");
+  assert.equal((await banc.demander("POST", "/notifications", { session, corps: { ...base, offres: true } })).status, 201);
+  const promo = (appels.at(-1) as { creer: { cible: unknown; description: string } }).creer;
+  assert.deepEqual(promo.cible, { ville: null, plateforme: null, offres: true });
+  assert.equal(promo.description, "Tout le monde · promotionnelle (offres acceptées)");
 });
 
 test("annulation : seulement avant le départ", async () => {

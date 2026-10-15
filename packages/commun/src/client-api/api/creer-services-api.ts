@@ -6,6 +6,7 @@ import type { StatutAmbassadeur } from "../../types/roles.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { Services } from "../services.ts";
 import { creerAmbassadeurApi } from "./api-ambassadeur.ts";
+import { creerAnnoncesAppApi } from "./api-annonces-app.ts";
 import { creerAvisApi } from "./api-avis.ts";
 import { creerComptoirApi } from "./api-comptoir.ts";
 import { creerDefisApi } from "./api-defis.ts";
@@ -43,5 +44,6 @@ export function creerServicesApi(client: ClientHttp, o: { lireStatutAmbassadeur:
     suggestions: creerSuggestionsApi(client),
     miamSafe: creerMiamSafeApi(client),
     defis: creerDefisApi(client),
+    annoncesApp: creerAnnoncesAppApi(client),
   };
 }

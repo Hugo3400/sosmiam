@@ -18,4 +18,16 @@ export interface ServiceCloche {
    * elle-même les notifications plus récentes pour la pastille
    */
   marquerVu(jusqua?: string): Promise<ReponseApi<{ vuesLe: string }>>;
+  /**
+   * DELETE /app/cloche/:id : efface une de tes notifications, lue ou pas, sur tous tes téléphones ; « notification-inconnue »
+   * si elle n'est pas (ou plus) là : déjà effacée ailleurs, rien à refaire
+   */
+  effacer(id: string): Promise<ReponseApi>;
+  /**
+   * POST /app/cloche/effacer-lues : efface tes notifications lues, celles pas plus récentes que vuesLe ; jusqua (date ISO) :
+   * rien après elle, à donner avec la date « vu » que l'app affiche. Sans profil social (lister rend vuesLe: null), c'est
+   * jusqua qui dit ce qui est lu : sans lui, rien n'est effacé. Une même notification qui revient dans les 24 h serait de
+   * toute façon remontée « pas vue » : effacer ne fait rien sonner de plus
+   */
+  effacerLues(jusqua?: string): Promise<ReponseApi<{ effacees: number }>>;
 }

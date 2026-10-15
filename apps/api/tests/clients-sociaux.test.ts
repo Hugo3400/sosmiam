@@ -21,7 +21,7 @@ const demain = () => new Date(banc.horloge.maintenant + 24 * 60 * 60_000).toISOS
 const ARGUMENTS: Record<string, () => unknown[]> = {
   "social.modifierReglages": () => [{}], "social.lireProfil": () => [ID], "social.listerLiensDe": () => [ID, "abonnes"], "social.listerListesDe": () => [ID],
   "social.masquer": () => ["activite", "liste:1", true], "social.listerMasques": () => [],
-  "cloche.lister": () => [], "cloche.marquerVu": () => [],
+  "cloche.lister": () => [], "cloche.marquerVu": () => [], "cloche.effacerLues": () => [],
   "bande.rejoindre": () => ["lea.gourmande", "abcdefghjkmn", "qr"], "bande.bloquer": () => [ID, true],
   "suivis.suivre": () => [ID, true], "suivis.repondreDemande": () => [ID, true], "suivis.changerConfidentialite": () => [false],
   "suivis.listerAbonnes": () => [], "suivis.listerAbonnements": () => [],
