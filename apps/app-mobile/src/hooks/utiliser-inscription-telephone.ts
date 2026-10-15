@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 
 import { creerCanauxAndroid } from "~/fonctions/notifications/creer-canaux-android";
+import { estAlerteMiamSafe } from "~/fonctions/notifications/est-alerte-miam-safe";
 import { estDejaSousTesYeux } from "~/fonctions/notifications/est-deja-sous-tes-yeux";
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
@@ -12,22 +13,27 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
-/** Une notification reçue app ouverte s'affiche, sauf si son message est déjà sous tes yeux (son écran est ouvert, et à jour) */
-const estAffichable = (notification: Notifications.Notification): boolean => {
+/**
+ * Une notification reçue app ouverte s'affiche, sauf si son message est déjà sous tes yeux (son écran est ouvert, et à
+ * jour) ; elle reste muette, sauf une alerte Miam Safe, qui doit s'entendre même si tu regardes un autre écran
+ */
+const presenter = (notification: Notifications.Notification): { afficher: boolean; sonner: boolean } => {
   try {
-    return !estDejaSousTesYeux(lireLienNotification(notification), lireEcranOuvert());
+    const lien = lireLienNotification(notification);
+    const sonner = estAlerteMiamSafe(lien);
+    return { afficher: sonner || !estDejaSousTesYeux(lien, lireEcranOuvert()), sonner };
   } catch {
-    // Dans le doute, la notification s'affiche
-    return true;
+    // Dans le doute, la notification s'affiche, sans son
+    return { afficher: true, sonner: false };
   }
 };
 
 if (Platform.OS !== "web") {
-  // Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sans son, sauf si son écran est déjà ouvert
+  // Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sauf si son écran est déjà ouvert
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
-      const afficher = estAffichable(notification);
-      return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: false, shouldSetBadge: false };
+      const { afficher, sonner } = presenter(notification);
+      return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: sonner, shouldSetBadge: false };
     },
   });
   // Android : le canal « Miam Safe » des alertes urgentes, avant toute demande d'autorisation
