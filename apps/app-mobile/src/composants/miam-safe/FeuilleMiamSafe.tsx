@@ -11,8 +11,8 @@ import { FeuilleSecoursMiamSafe } from "~/composants/miam-safe/FeuilleSecoursMia
 import { PrevenirPoteMiamSafe } from "~/composants/miam-safe/PrevenirPoteMiamSafe";
 import { RaconterMiamSafe } from "~/composants/miam-safe/RaconterMiamSafe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserAlerteGardeeMiamSafe } from "~/hooks/utiliser-alerte-gardee-miam-safe";
 import { utiliserEtatMiamSafeLieu, type EtatLectureMiamSafeLieu } from "~/hooks/utiliser-etat-miam-safe-lieu";
+import { utiliserSuiviAlerteMiamSafe } from "~/hooks/utiliser-suivi-alerte-miam-safe";
 
 type Props = {
   visible: boolean;
@@ -54,16 +54,22 @@ function lireCharte({ lecture, engage }: EtatLectureMiamSafeLieu): CharteLueMiam
 
 export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer, onCreerCompte }: Props) {
   const router = useRouter();
-  const { alerte } = utiliserAlerteGardeeMiamSafe(lieuId);
+  const { cle, alerte, aRelire } = utiliserSuiviAlerteMiamSafe(lieuId, visible && avecCompte);
   const etatLieu = utiliserEtatMiamSafeLieu(lieuId);
   const charte = lireCharte(etatLieu);
   const { lecture, relire } = etatLieu;
   const [vue, setVue] = useState<Vue>("choix");
   const [ouverte, setOuverte] = useState(false);
+  const [avecAlerte, setAvecAlerte] = useState(alerte !== null);
 
   if (visible !== ouverte) {
     setOuverte(visible);
     if (visible) setVue("choix");
+  }
+
+  if ((alerte !== null) !== avecAlerte) {
+    setAvecAlerte(alerte !== null);
+    if (alerte === null && vue === "alerte") setVue("choix");
   }
 
   useEffect(() => {
@@ -85,7 +91,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
       onFermer={onFermer}
       pied={vue === "choix" ? <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} /> : <Bouton libelle="Retour" variante="blanc" onPress={() => setVue("choix")} />}
     >
-      {vue === "choix" ? <ChoixAideMiamSafe charte={charte} alerte={alerte} onChoisir={setVue} /> : null}
+      {vue === "choix" ? <ChoixAideMiamSafe charte={charte} alerte={alerte} aRelire={aRelire} onChoisir={setVue} /> : null}
       {vue === "pote" ? (
         <PrevenirPoteMiamSafe
           lieuId={lieuId}
@@ -96,7 +102,9 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
           }}
         />
       ) : null}
-      {vue === "alerte" ? <AlerteComptoirMiamSafe lieuId={lieuId} onPrevenirPote={() => setVue("pote")} /> : null}
+      {vue === "alerte" ? (
+        <AlerteComptoirMiamSafe lieuId={lieuId} cle={cle} alerte={alerte} aRelire={aRelire} onPrevenirPote={() => setVue("pote")} />
+      ) : null}
       {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" && charte === "signee" ? (
         <View className="gap-4">
