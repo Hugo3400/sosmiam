@@ -11,8 +11,14 @@
 //   et listes ; profil, groupe et sortie à la main ; cloche « contenu-retire » et « signalement-decide » ; instantané
 //   déchiffré ; ménage des signalements à 1 an)
 // - pas d'écran « décisions » dans l'app (la route GET /app/moderation/mes-decisions et la contestation existent dans l'API) ;
-// - aucune suspension de compte ni interdiction d'écrire dans le code (seulement la suppression d'un compte et
-//   « déconnecter partout » dans le logiciel) : les CGU gardent le droit de le faire, sans dire que c'est automatique.
+// - aucune suspension de compte dans le code (seulement la suppression d'un compte et « déconnecter partout » dans le
+//   logiciel) : les CGU gardent le droit de le faire, sans dire que c'est automatique.
+// Limitation d'un compte (décision de Hugo du 15 octobre 2026, docs/decisions.md, « Modération des avis et limitation d'un
+// compte ») : table limitations_comptes et refus 403 « compte-limite » de l'API (services/limitations-comptes*.ts,
+// middlewares/refuser-si-limite.ts), « Ton compte est limité » et « Contester » dans « Mon compte » du site (session Site,
+// 15 octobre) ; décision, levée, réexamen, cloche, mail et ménage à 1 an : logiciel de gestion (session Logiciel) ; refus
+// de la partie sociale : session App. La liste de ce qui reste permis vient de la décision : à garder en phase avec
+// apps/site-web/src/contenus/limitation-compte.ts.
 import { site } from "~/contenus/legal/informations-legales";
 import type { SectionLegale } from "~/contenus/legal/type-legal";
 
@@ -36,7 +42,16 @@ export const sectionModerationCgu: SectionLegale = {
     },
     "**Le gérant d'un lieu** peut aussi masquer un commentaire sous sa propre publication : le commentaire ne se voit plus que de son auteur, qui est prévenu dans l'app, et il part en modération comme s'il était signalé (voir « Les commentaires et les listes »).",
     `**Pas d'accord avec une décision ?** Que tu sois l'auteur du contenu ou la personne qui l'a signalé, réponds-nous ou écris à ${lienContact} : une autre personne de l'équipe réexamine la décision, à la main. **Bientôt**, un écran de l'app te montrera les décisions qui te concernent, avec leur explication, et te laissera les contester directement, **une fois par décision, pendant 6 mois**. Tu gardes aussi, toujours, la possibilité de saisir la justice.`,
-    "**Selon la gravité**, et surtout si les règles ne sont pas respectées à plusieurs reprises, on peut aussi supprimer ton compte, ou limiter ou suspendre son utilisation ; on te dit toujours pourquoi. **Signaler exprès** des contenus qui respectent les règles (pour nuire à quelqu'un, ou à un concurrent) est aussi un manquement.",
+    "**Selon la gravité**, et surtout si les règles ne sont pas respectées à plusieurs reprises, on peut aussi **limiter** ton compte, suspendre son utilisation ou le supprimer ; on te dit toujours pourquoi. **Signaler exprès** des contenus qui respectent les règles (pour nuire à quelqu'un, ou à un concurrent) est aussi un manquement.",
+    "**Un compte limité**, c'est un compte qui ne peut plus rien faire **qui se voie des autres utilisateurs**, pendant un temps donné ou jusqu'à nouvel ordre. C'est une décision de l'équipe, prise à la main, jamais par un algorithme. Pendant la limitation :",
+    {
+      liste: [
+        "**ce qui attend la fin** : tout ce que les autres verraient, c'est-à-dire les messages, les réactions et les groupes, les commentaires, les avis, les sorties, les listes, les lieux envoyés à tes potes, les invitations et les demandes, les suggestions sur la fiche d'un lieu, les changements de la fiche ou de la carte de ton lieu, l'arrivée dans l'équipe d'un lieu, et un nouveau prénom, pseudo ou avatar ;",
+        "**ce qui reste permis** : lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, changer tes réglages, ce que seule notre équipe lit (proposer un lieu, candidater pour être fondateur ou ambassadeur certifié, demander à gérer un lieu, envoyer tes missions d'ambassadeur), « Mon compte », l'export de tes données, la contestation et la suppression de ton compte ;",
+        "**tu es prévenu**, dans l'app et par e-mail, avec la règle en cause, l'explication écrite par l'équipe et la date de fin (ou « jusqu'à nouvel ordre ») ; tout est aussi dans « Mon compte », sur le site ;",
+        "**pas d'accord ?** Tu peux contester **une fois**, tant que la limitation dure, depuis « Mon compte » : une autre personne de l'équipe que celle qui a décidé réexamine, à la main, et te répond. La limitation s'arrête à sa date de fin, ou plus tôt si on la lève.",
+      ],
+    },
     "Pour un contenu grave, préviens aussi les autorités : le **17** ou le **112** en cas d'urgence, et [Pharos](https://www.internet-signalement.gouv.fr) pour signaler un contenu illégal. De notre côté, on retire rapidement un contenu illégal qui nous est signalé, et on le transmet aux autorités quand la loi le demande.",
   ],
 };

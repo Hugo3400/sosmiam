@@ -2,8 +2,10 @@
 // sauvegarde : ce qui a passé sa durée de garde ne part pas dans la copie de la nuit. Dans l'ordre : médias du chat (90 jours
 // après l'envoi), conversations d'un an sans message, conversations vides, demandes et invitations en attente, cloche,
 // éléments masqués, contenus retirés depuis plus d'un an, fichiers orphelins, puis le rechiffrement pendant un changement de
-// clé. Chaque étape a sa propre protection : une étape qui échoue n'empêche pas les suivantes (son nom va dans le bilan, le
-// journal du serveur ne garde que le nom et le code de l'erreur). Le bilan ne contient que des nombres, jamais un contenu.
+// clé. Chaque étape a sa propre protection, et dans une étape chaque paquet et chaque sous-étape (SuiviEtape,
+// menage-social-etapes.ts) : ce qui échoue n'empêche pas la suite (le nom de l'étape va dans le bilan, le journal du serveur
+// ne garde que le nom et le code de l'erreur), et ce qui est fait reste compté, au bilan au fil des paquets. Le bilan ne
+// contient que des nombres, jamais un contenu.
 // Les signalements jugés depuis plus d'un an (étape 7 bis de la spécification) sont effacés par la session Logiciel
 // (effacerSignalementsAnciens, services/gestion/moderation-sociale.ts), pas ici.
 import { calculerSeuilsMenageSocial } from "../fonctions/social/calculer-seuils-menage-social.ts";
@@ -11,32 +13,17 @@ import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import {
   effacerClocheAncienne, effacerContenusRetires, effacerConversationsAnciennes, effacerConversationsVides, effacerDemandesExpirees,
-  effacerFichiersOrphelins, effacerMasquesAnciens, effacerMediasExpires, type BaseMenage, type BilanDemandesSociales,
+  effacerFichiersOrphelins, effacerMasquesAnciens, effacerMediasExpires, type BaseMenage, type CompteursMenageSocial, type SuiviEtape,
 } from "./menage-social-etapes.ts";
 import { rechiffrerSocial, type BilanRechiffrementSocial, type OptionsRechiffrementSocial } from "./rechiffrement-social.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 
-export type BilanMenageSocial = BilanDemandesSociales & {
-  /** Photos et notes vocales effacées (90 jours après l'envoi) */
-  medias: number;
-  /** Conversations effacées (1 an sans message), discussions des sorties comprises, et sorties parties avec */
-  conversations: number;
-  sorties: number;
-  /** Conversations sans plus aucun membre */
-  conversationsVides: number;
-  /** Notifications de la cloche (90 jours, ou au-delà de 200 par compte ; 6 mois pour celles de la modération) */
-  cloche: number;
-  /** Éléments retirés de sa vue depuis plus de 13 mois */
-  masques: number;
-  /** Contenus retirés par la modération depuis plus d'un an (message vidé, commentaire effacé ou vidé, liste effacée) */
-  contenusRetires: number;
-  /** Commentaires « supprimés » qui n'ont plus ni réponse ni signalement ouvert */
-  commentairesSupprimes: number;
-  /** Fichiers du dossier des médias que la base ne connaît plus (plus de 24 h) */
-  fichiersOrphelins: number;
-  /** Changement de clé des données : chiffrés réécrits, illisibles, restants ; null hors changement de clé */
+/** Les nombres des étapes 1 à 8 (CompteursMenageSocial, menage-social-etapes.ts), puis le rechiffrement et les échecs */
+export type BilanMenageSocial = CompteursMenageSocial & {
+  /** Changement de clé des données : chiffrés réécrits, illisibles, restants ; null hors changement de clé, ou si l'étape a
+   *  échoué (jamais un décompte partiel, qui pourrait annoncer un faux « 0 restant(s) ») */
   rechiffrement: BilanRechiffrementSocial | null;
-  /** Les étapes qui ont échoué (leur nom seulement) ; les autres ont été faites */
+  /** Les étapes dont quelque chose a échoué (leur nom seulement, une fois) ; le reste a été fait */
   etapesRatees: string[];
 };
 
@@ -62,27 +49,32 @@ export async function faireLeMenageSocial(o: OptionsMenageSocial): Promise<Bilan
     invitationsGroupes: 0, invitationsCoAuteurs: 0, departsGroupes: 0, clesIdempotence: 0, cloche: 0, masques: 0, contenusRetires: 0,
     commentairesSupprimes: 0, fichiersOrphelins: 0, rechiffrement: null, etapesRatees: [],
   };
-  const etape = async (nom: string, faire: () => Promise<void>) => {
+  /** `ou` : la table ou la sous-étape (un nom constant) ; jamais le message de l'erreur, qui peut citer un contenu */
+  const noterEchec = (nom: string, ou: string | null, erreur: unknown) => {
+    if (!bilan.etapesRatees.includes(nom)) bilan.etapesRatees.push(nom);
+    console.error(`Ménage social, étape « ${nom} »${ou ? ` (${ou})` : ""} impossible :`, resumerErreur(erreur));
+  };
+  /** Une étape : ses nombres vont au bilan au fil des paquets (le total qu'elle rend n'est pas relu : déjà compté) */
+  const etape = async (nom: string, faire: (suivi: SuiviEtape) => Promise<unknown>) => {
+    const suivi: SuiviEtape = {
+      ajouter: (compteur, nombre) => void (bilan[compteur] += nombre),
+      noterEchec: (ou, erreur) => noterEchec(nom, ou, erreur),
+    };
     try {
-      await faire();
+      await faire(suivi);
     } catch (erreur) {
-      bilan.etapesRatees.push(nom);
-      console.error(`Ménage social, étape « ${nom} » impossible :`, resumerErreur(erreur));
+      noterEchec(nom, null, erreur);
     }
   };
 
-  await etape("médias", async () => void (bilan.medias = await effacerMediasExpires(base, seuils, medias)));
-  await etape("conversations", async () => {
-    const r = await effacerConversationsAnciennes(base, seuils, medias);
-    bilan.conversations = r.conversations;
-    bilan.sorties = r.sorties;
-  });
-  await etape("conversations vides", async () => void (bilan.conversationsVides = await effacerConversationsVides(base, medias)));
-  await etape("demandes", async () => void Object.assign(bilan, await effacerDemandesExpirees(base, seuils)));
-  await etape("cloche", async () => void (bilan.cloche = await effacerClocheAncienne(base, seuils)));
-  await etape("masques", async () => void (bilan.masques = await effacerMasquesAnciens(base, seuils)));
-  await etape("contenus retirés", async () => void Object.assign(bilan, await effacerContenusRetires(base, seuils, medias, maintenant)));
-  await etape("fichiers orphelins", async () => void (bilan.fichiersOrphelins = await effacerFichiersOrphelins(base, seuils, medias)));
+  await etape("médias", (suivi) => effacerMediasExpires(base, seuils, medias, suivi));
+  await etape("conversations", (suivi) => effacerConversationsAnciennes(base, seuils, medias, suivi));
+  await etape("conversations vides", (suivi) => effacerConversationsVides(base, medias, suivi));
+  await etape("demandes", (suivi) => effacerDemandesExpirees(base, seuils, suivi));
+  await etape("cloche", (suivi) => effacerClocheAncienne(base, seuils, suivi));
+  await etape("masques", (suivi) => effacerMasquesAnciens(base, seuils, suivi));
+  await etape("contenus retirés", (suivi) => effacerContenusRetires(base, seuils, medias, maintenant, suivi));
+  await etape("fichiers orphelins", (suivi) => effacerFichiersOrphelins(base, seuils, medias, suivi));
   await etape("rechiffrement", async () => void (bilan.rechiffrement = await rechiffrerSocial(o.chiffrement, medias, base, o.rechiffrement)));
   return bilan;
 }

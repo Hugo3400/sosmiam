@@ -216,7 +216,7 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
   t.jaimesCommentaires.push({ commentaireId: 9502, compteId: moi.compteId, creeLe: date() });
   t.cloche.set(9601, { id: 9601, compteId: moi.compteId, type: "mention", acteurId: autre.compteId, cible: "commentaire", cibleId: "9501", detail: null, enRetour: false, creeLe: date() });
   const signalement = (id: number, cible: string) =>
-    t.signalements.set(id, { id, cible, cibleId: "1", raison: "haine", statut: "a-traiter", creeLe: date(), signaleParId: moi.compteId } as never);
+    t.signalements.set(id, { id, cible, cibleId: "1", raison: "haine", precision: null, explication: "", statut: "a-traiter", creeLe: date(), signaleParId: moi.compteId } as never);
   signalement(9701, "message");
   signalement(9702, "publication");
   t.masques.push({ compteId: moi.compteId, cible: "sortie", cibleId: "42", creeLe: date() });
@@ -231,7 +231,108 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
   ]);
   assert.deepEqual(e.commentaires, [{ publicationId: "7", texte: "Trop bon !", date: date().toISOString() }]);
   assert.deepEqual([e.jaimesCommentaires, e.cloche, e.masques], [["9502"], [{ type: "mention", date: date().toISOString() }], [{ cible: "sortie", cibleId: "42" }]]);
-  assert.deepEqual(e.signalements, [{ cible: "message", raison: "haine", date: date().toISOString(), statut: "a-traiter" }], "seulement les contenus sociaux");
+  assert.deepEqual(e.signalements, [{ cible: "message", raison: "haine", precision: null, explication: "", date: date().toISOString(), statut: "a-traiter" }], "seulement les contenus sociaux");
+});
+
+test("listes suivies ou co-écrites : le titre seulement si elle t'est encore visible ; tes lieux de co-auteur restent", async () => {
+  const moi = await banc.creerPersonne();
+  const auteur = await banc.creerPersonne();
+  const discrete = await banc.creerPersonne({ prive: true });
+  const fache = await banc.creerPersonne();
+  const t = banc.tables;
+  const liste = (id: number, auteurId: number, titre: string, en: { visibilite?: string; suspendueLe?: Date; retireeLe?: Date } = {}) => t.listes.set(id, {
+    id, auteurId, titre, emoji: "📋", description: "", visibilite: en.visibilite ?? "tous", suspendueLe: en.suspendueLe ?? null, retireeLe: en.retireeLe ?? null, creeLe: date(), modifieLe: date(),
+  });
+  const suivre = (id: number) => t.abonnementsListes.push({ listeId: id, compteId: moi.compteId, creeLe: date() });
+  liste(9901, auteur.compteId, "Visible");
+  liste(9902, auteur.compteId, "Suspendue", { suspendueLe: date() });
+  liste(9903, auteur.compteId, "Retirée", { retireeLe: date() });
+  liste(9904, auteur.compteId, "Pour sa bande", { visibilite: "bande" });
+  liste(9905, discrete.compteId, "Compte privé");
+  liste(9906, auteur.compteId, "Signalée par toi");
+  liste(9907, fache.compteId, "De qui t'a bloqué");
+  for (let id = 9901; id <= 9907; id++) suivre(id);
+  t.signalements.set(9908, { id: 9908, cible: "liste", cibleId: "9906", raison: "haine", precision: null, explication: "", statut: "a-traiter", creeLe: date(), signaleParId: moi.compteId } as never);
+  liste(9909, auteur.compteId, "Co-écrite puis suspendue", { suspendueLe: date() });
+  t.coAuteurs.push({ listeId: 9909, compteId: moi.compteId, statut: "accepte", creeLe: date(), reponduLe: date() });
+  t.lieuxListes.push(
+    { listeId: 9901, lieuId: 20, ajouteParId: auteur.compteId, creeLe: date() },
+    { listeId: 9909, lieuId: 21, ajouteParId: moi.compteId, creeLe: date() }, { listeId: 9909, lieuId: 22, ajouteParId: auteur.compteId, creeLe: date() },
+  );
+  banc.bloquer(fache, moi);
+  const listes = async () => (await exporter(moi)).corps.export.listes.map((l: { titre: string | null; role: string; lieux: number[] }) => [l.titre, l.role, l.lieux]);
+  assert.deepEqual(await listes(), [
+    ["Visible", "abonne", []], [null, "abonne", []], [null, "abonne", []], [null, "abonne", []], [null, "abonne", []], [null, "abonne", []], [null, "abonne", []],
+    [null, "co-auteur", [21]],
+  ], "abonné : jamais de lieux ; co-auteur : les tiens, même quand le titre est caché");
+  // Pote de l'auteur, abonné accepté du compte privé : leurs listes te sont de nouveau visibles
+  banc.rendrePotes(moi, auteur);
+  banc.suivre(moi, discrete);
+  assert.deepEqual((await listes()).map(([titre]: [string | null]) => titre), ["Visible", null, null, "Pour sa bande", "Compte privé", null, null, null]);
+});
+
+test("tes abonnements avec leur statut, tes demandes de suivi reçues, et ce que TU as écrit en signalant (jamais la décision)", async () => {
+  const moi = await banc.creerPersonne();
+  const [suivie, demandee, refuseuse, curieux, fan] = await Promise.all([1, 2, 3, 4, 5].map(() => banc.creerPersonne()));
+  banc.suivre(moi, suivie!, "accepte");
+  banc.suivre(moi, demandee!, "demande");
+  banc.suivre(moi, refuseuse!, "refuse");
+  banc.suivre(curieux!, moi, "demande");
+  banc.suivre(fan!, moi, "accepte");
+  banc.tables.signalements.set(9951, {
+    id: 9951, cible: "message", cibleId: "77", lieuId: null, raison: "haine", precision: "Insultes", explication: "Il m'a insultée deux fois", source: "app",
+    statut: "retenu", decision: "Note privée de la Brigade", motif: "haine", motivation: "Motivation pour l'auteur", contestation: "Je conteste",
+    contesteLe: date(), reexamineLe: null, creeLe: date(), traiteLe: date(), signaleParId: moi.compteId, auteurContenuId: fan!.compteId,
+    instantaneChiffre: "v1:instantane-secret", fichierMedia: "fichier-secret.bin",
+  } as never);
+  const e = (await exporter(moi)).corps.export;
+  const ids = (liens: { personne: { id: string } }[]) => liens.map((l) => l.personne.id);
+  assert.deepEqual(e.suivis.abonnements.map((s: { personne: { id: string }; statut: string; depuis: string }) => [s.personne.id, s.statut, s.depuis]), [
+    [suivie!.idPublic, "suivi", date().toISOString()], [demandee!.idPublic, "demande", date().toISOString()], [refuseuse!.idPublic, "demande", date().toISOString()],
+  ], "un refus, silencieux, se lit « demande »");
+  assert.deepEqual([ids(e.suivis.demandesRecues), ids(e.suivis.abonnes)], [[curieux!.idPublic], [fan!.idPublic]]);
+  assert.deepEqual(e.signalements, [{
+    cible: "message", raison: "haine", precision: "Insultes", explication: "Il m'a insultée deux fois", date: date().toISOString(), statut: "retenu",
+  }]);
+  const texte = JSON.stringify(e);
+  for (const interdit of ["Note privée", "Motivation pour", "Je conteste", "instantane-secret", "fichier-secret", '"77"']) assert.ok(!texte.includes(interdit), `jamais « ${interdit} »`);
+});
+
+test("des milliers de messages : déchiffrés par paquets, en laissant passer les autres demandes entre deux paquets", async () => {
+  const chiffrement = creerChiffrementSocial(creerChiffrementDonnees(randomBytes(32)))!;
+  const nombre = PAQUET_DECHIFFREMENT * 2 + 1;
+  const messages: DonneesExportSocial["messages"] = Array.from({ length: nombre }, (_, i) => {
+    const idClient = randomUUID();
+    const conversationId = 1 + (i % 2);
+    return { id: i + 1, conversationId, type: "texte", idClient, texteChiffre: chiffrement.chiffrerMessage(`Message ${i + 1}`, conversationId, idClient), taille: null, creeLe: date() };
+  });
+  const d: DonneesExportSocial = {
+    profil: null, bande: [], demandesEnvoyees: [], demandesRecues: [], abonnements: [], abonnes: [], demandesSuiviRecues: [],
+    conversations: [1, 2].map((id) => ({ id, type: "groupe", titreChiffre: null, titreSortie: null })),
+    membres: [1, 2].map((conversationId) => ({ conversationId, compteId: 1 })), messages,
+    invitationsGroupes: [], reactions: [], sorties: [], invitationsSorties: [], participantsSorties: [], propositions: [], votes: [], listes: [], coAuteur: [],
+    abonnementsListes: [], lieuxListes: [], commentaires: [], jaimesCommentaires: [], cloche: [], signalements: [], masques: [],
+  };
+  const relations = {
+    presenter: async () => new Map(), lireLiens: async () => new Map(),
+    listerBlocages: async () => ({ parMoi: [], contreMoi: [], caches: new Set<number>() }),
+  };
+  // Un tour de boucle compté à chaque fois que Node reprend la main (sans paquets, aucun avant la fin)
+  let tours = 0;
+  let fini = false;
+  const compter = () => {
+    tours += 1;
+    if (!fini) setImmediate(compter);
+  };
+  setImmediate(compter);
+  const e = await assemblerExportSocial(d, { compteId: 1, relations, chiffrement, maintenant: date() });
+  const toursPendant = tours;
+  fini = true;
+  assert.ok(toursPendant >= 2, `l'API a repris la main entre les paquets (${toursPendant} fois)`);
+  const textes = e.conversations.flatMap((c) => c.messages.map((m) => m.texte));
+  assert.equal(textes.length, nombre);
+  assert.deepEqual(e.conversations[0]!.messages.slice(0, 2).map((m) => m.texte), ["Message 1", "Message 3"], "rangés par conversation, dans l'ordre");
+  assert.equal(e.conversations[1]!.messages.at(-1)!.texte, `Message ${nombre - 1}`);
 });
 
 test("sans profil social : profil null, et rien n'est créé", async () => {

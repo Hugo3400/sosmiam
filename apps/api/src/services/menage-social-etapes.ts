@@ -262,63 +262,77 @@ export function effacerMasquesAnciens(base: BaseMenage, seuils: SeuilsMenageSoci
  * Puis les commentaires « supprimés » (supprime_le) qui n'ont plus ni réponse ni signalement ouvert : effacés.
  * L'étape 7 bis de la spécification (signalements jugés depuis plus d'un an) n'est PAS ici : elle appartient à la session
  * Logiciel, propriétaire de la modération (effacerSignalementsAnciens, services/gestion/moderation-sociale.ts, déjà lancée
- * par faireLeMenage dans taches/taches-de-nuit.ts).
+ * par faireLeMenage dans taches/taches-de-nuit.ts). Cinq sous-étapes, chacune sous sa protection : une qui échoue
+ * n'empêche pas les suivantes.
  */
 export async function effacerContenusRetires(
-  base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, maintenant: Date,
+  base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, maintenant: Date, suivi: SuiviEtape = SUIVI_STRICT,
 ): Promise<{ contenusRetires: number; commentairesSupprimes: number }> {
   const seuil = date(seuils.contenusRetires);
   let contenusRetires = 0;
+  const retires = (nombre: number) => {
+    contenusRetires += nombre;
+    suivi.ajouter("contenusRetires", nombre);
+  };
   for (;;) {
-    const lignes = await base.$queryRaw<{ fichier: string | null }[]>`
+    const lignes = await essayer(suivi, "messages_conversations (retirés)", () => base.$queryRaw<{ fichier: string | null }[]>`
       WITH cibles AS (
         SELECT m.id, m.fichier FROM messages_conversations m
         WHERE m.retire_le < ${seuil} AND (m.texte_chiffre IS NOT NULL OR m.fichier IS NOT NULL) AND ${sansSignalementOuvert("message", "m.id")}
         ORDER BY m.id LIMIT ${TAILLE_PAQUET_MENAGE} FOR UPDATE SKIP LOCKED)
-      UPDATE messages_conversations m SET texte_chiffre = NULL, fichier = NULL FROM cibles WHERE m.id = cibles.id RETURNING cibles.fichier`;
-    contenusRetires += lignes.length;
+      UPDATE messages_conversations m SET texte_chiffre = NULL, fichier = NULL FROM cibles WHERE m.id = cibles.id RETURNING cibles.fichier`);
+    if (lignes === null) break;
+    retires(lignes.length);
     await supprimerMediasLibres(lignes.flatMap((l) => (l.fichier ? [l.fichier] : [])), medias, base);
     if (lignes.length < TAILLE_PAQUET_MENAGE) break;
   }
   const aDesReponses = Prisma.sql`EXISTS (SELECT 1 FROM commentaires_publications r WHERE r.reponse_a_id = commentaires_publications.id)`;
   const libre = sansSignalementOuvert("commentaire", "commentaires_publications.id");
-  contenusRetires += await effacerParPaquets(base, "commentaires_publications", Prisma.sql`retire_le < ${seuil} AND NOT ${aDesReponses} AND ${libre}`);
+  contenusRetires += await effacerParPaquets(base, "commentaires_publications", Prisma.sql`retire_le < ${seuil} AND NOT ${aDesReponses} AND ${libre}`, suivi, "contenusRetires");
   for (;;) {
-    const vides = await base.$executeRaw`
+    const vides = await essayer(suivi, "commentaires_publications (vidés)", () => base.$executeRaw`
       UPDATE commentaires_publications SET texte = '', mentions = '[]'::jsonb, supprime_le = COALESCE(supprime_le, ${date(maintenant)})
       WHERE id IN (
         SELECT id FROM commentaires_publications
         WHERE retire_le < ${seuil} AND (texte <> '' OR supprime_le IS NULL) AND ${aDesReponses} AND ${libre}
-        LIMIT ${TAILLE_PAQUET_MENAGE})`;
-    contenusRetires += vides;
+        LIMIT ${TAILLE_PAQUET_MENAGE})`);
+    if (vides === null) break;
+    retires(vides);
     if (vides < TAILLE_PAQUET_MENAGE) break;
   }
-  contenusRetires += await effacerParPaquets(base, "listes_lieux", Prisma.sql`retiree_le < ${seuil} AND ${sansSignalementOuvert("liste", "listes_lieux.id")}`);
-  const commentairesSupprimes = await effacerParPaquets(base, "commentaires_publications", Prisma.sql`supprime_le IS NOT NULL AND NOT ${aDesReponses} AND ${libre}`);
+  contenusRetires += await effacerParPaquets(base, "listes_lieux", Prisma.sql`retiree_le < ${seuil} AND ${sansSignalementOuvert("liste", "listes_lieux.id")}`, suivi, "contenusRetires");
+  const commentairesSupprimes = await effacerParPaquets(base, "commentaires_publications",
+    Prisma.sql`supprime_le IS NOT NULL AND NOT ${aDesReponses} AND ${libre}`, suivi, "commentairesSupprimes");
   return { contenusRetires, commentairesSupprimes };
 }
 
 /**
  * Étape 8 : les fichiers du dossier des médias de plus de 24 h que la base ne connaît plus, ni dans un message, ni dans le
- * fichier_media d'un signalement ouvert (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé…).
- * Ils sont supprimés. Les 24 h couvrent l'envoi en cours : le fichier est écrit juste avant sa ligne en base.
+ * fichier_media d'un signalement ouvert (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé,
+ * ancien fichier laissé par le rechiffrement de la nuit d'avant…). Ils sont supprimés. Les 24 h couvrent l'envoi en cours :
+ * le fichier est écrit juste avant sa ligne en base. Seule une page VIDE dit la fin du dossier : lister saute un fichier
+ * disparu entre readdir et stat, une page peut donc revenir plus courte sans être la dernière. Une page qui échoue est
+ * notée, et la suivante passe (le curseur, le dernier nom de la page, a déjà avancé).
  */
-export async function effacerFichiersOrphelins(base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat): Promise<number> {
+export async function effacerFichiersOrphelins(base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT): Promise<number> {
   let total = 0;
   let apres: string | null = null;
   for (;;) {
-    const page = await medias.lister(apres, TAILLE_PAQUET_MENAGE);
-    if (page.length === 0) return total;
+    const page = await essayer(suivi, "dossier des médias", () => medias.lister(apres, TAILLE_PAQUET_MENAGE));
+    if (page === null || page.length === 0) return total;
     apres = page.at(-1)!.fichier;
     const vieux = page.filter((f) => f.modifieLe.getTime() < seuils.orphelins.getTime()).map((f) => f.fichier);
-    if (vieux.length > 0) {
+    if (vieux.length === 0) continue;
+    const supprimes = await essayer(suivi, "fichiers orphelins", async () => {
       const [messages, signalements] = await Promise.all([
         base.messageConversation.findMany({ where: { fichier: { in: vieux } }, select: { fichier: true } }),
         base.signalement.findMany({ where: { AND: [{ fichierMedia: { in: vieux } }, SIGNALEMENT_OUVERT] }, select: { fichierMedia: true } }),
       ]);
       const connus = new Set<string | null>([...messages.map((m) => m.fichier), ...signalements.map((s) => s.fichierMedia)]);
-      total += await medias.supprimer(vieux.filter((f) => !connus.has(f)));
-    }
-    if (page.length < TAILLE_PAQUET_MENAGE) return total;
+      return medias.supprimer(vieux.filter((f) => !connus.has(f)));
+    });
+    if (supprimes === null) continue;
+    total += supprimes;
+    suivi.ajouter("fichiersOrphelins", supprimes);
   }
 }
