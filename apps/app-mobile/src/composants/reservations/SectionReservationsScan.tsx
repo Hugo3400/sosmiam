@@ -27,7 +27,7 @@ export function SectionReservationsScan({ reservations }: Props) {
     <View className="gap-3">
       <TitreSectionScan
         titre={SECTION_RESERVATIONS_SCAN.titre}
-        libelleLu={`${SECTION_RESERVATIONS_SCAN.titre}, ${enCours.length} à venir`}
+        libelleLu={lecturesReservations === 0 ? SECTION_RESERVATIONS_SCAN.titre : `${SECTION_RESERVATIONS_SCAN.titre}, ${enCours.length} à venir`}
         onToutVoir={reservations.length > 0 || lecturesReservations === 0 ? ouvrir : undefined}
       />
       {enCours.length > 0 ? (

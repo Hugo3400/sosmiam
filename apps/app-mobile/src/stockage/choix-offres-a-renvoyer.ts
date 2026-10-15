@@ -1,18 +1,23 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CLE = "sosmiam.choix-offres-a-renvoyer";
+export type ChoixTelephone = "oui" | "non" | "couper";
 
-export async function lireChoixOffresARenvoyer(): Promise<boolean | null> {
+const CLE = "sosmiam.choix-offres-a-renvoyer";
+const CHOIX: readonly unknown[] = ["oui", "non", "couper"] satisfies ChoixTelephone[];
+
+export async function lireChoixOffresARenvoyer(): Promise<ChoixTelephone | null> {
   try {
     const brut = await AsyncStorage.getItem(CLE);
     const lu: unknown = brut ? JSON.parse(brut) : null;
     if (typeof lu !== "object" || lu === null) return null;
-    const { offres } = lu as Record<string, unknown>;
-    return typeof offres === "boolean" ? offres : null;
+    const { choix, offres } = lu as Record<string, unknown>;
+    if (CHOIX.includes(choix)) return choix as ChoixTelephone;
+    if (typeof offres === "boolean") return offres ? "oui" : "non";
+    return null;
   } catch {
     return null;
   }
 }
 
-export const enregistrerChoixOffresARenvoyer = (offres: boolean) => AsyncStorage.setItem(CLE, JSON.stringify({ offres })).catch(() => {});
+export const enregistrerChoixOffresARenvoyer = (choix: ChoixTelephone) => AsyncStorage.setItem(CLE, JSON.stringify({ choix })).catch(() => {});
 export const effacerChoixOffresARenvoyer = () => AsyncStorage.removeItem(CLE).catch(() => {});

@@ -18,8 +18,7 @@ const EXPLICATION_MIN_AUTRE = 10;
 
 export type DependancesMiamSafe = {
   services: ServicesMiamSafe;
-  /** Prévient l'équipe du lieu (notification push) ; appelé sans attendre, une erreur n'empêche pas l'alerte */
-  prevenirEquipe: (alerte: NouvelleAlerte & { id: number }) => Promise<void>;
+  prevenirEquipe: (alerte: NouvelleAlerte & { id: number }) => Promise<number | void>;
   /** « Prévenir un pote » (partage de position) ; absent : ces adresses n'existent pas (anciens bancs d'essai) */
   partages?: DependancesPartagesMiamSafe;
 };
@@ -71,9 +70,10 @@ export function creerControleursMiamSafe({ services, prevenirEquipe }: Dependanc
       };
       const resultat = await services.creerAlerte(alerte, maintenant());
       if (!resultat.ok) return reponse.status(resultat.erreur === "lieu-inconnu" ? 404 : 409).json({ ok: false, erreur: resultat.erreur });
-      // Sans attendre Apple et Google : la personne sait tout de suite que c'est parti
-      prevenirEquipe({ ...alerte, id: resultat.id }).catch((erreur: unknown) => console.error("Alerte Miam Safe non transmise :", (erreur as Error)?.name));
-      reponse.status(201).json({ ok: true, id: resultat.id });
+      const telephones = await prevenirEquipe({ ...alerte, id: resultat.id }).catch((erreur: unknown) => {
+        console.error("Alerte Miam Safe non transmise :", (erreur as Error)?.name);
+      });
+      reponse.status(201).json(typeof telephones === "number" ? { ok: true, id: resultat.id, telephones } : { ok: true, id: resultat.id });
     },
 
     /** GET /miam-safe/alertes/:id : seulement la sienne */
@@ -102,9 +102,8 @@ export function creerControleursMiamSafe({ services, prevenirEquipe }: Dependanc
       const lieuId = lireIdentifiant(requete.params.id);
       const oui = lireCorps(requete).oui;
       if (typeof oui !== "boolean") throw new ChampInvalide("oui");
-      if (lieuId === null || !(await services.repondreSentiBien({ lieuId, compteId: compte(reponse).id, oui }))) {
-        return reponse.status(404).json({ ok: false, erreur: "lieu-inconnu" });
-      }
+      const resultat = lieuId === null ? "lieu-inconnu" : await services.repondreSentiBien({ lieuId, compteId: compte(reponse).id, oui });
+      if (resultat !== "ok") return reponse.status(resultat === "lieu-inconnu" ? 404 : 409).json({ ok: false, erreur: resultat });
       reponse.json({ ok: true });
     },
 

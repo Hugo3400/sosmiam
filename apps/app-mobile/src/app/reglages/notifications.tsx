@@ -31,6 +31,8 @@ const MESSAGE_ECHEC = "Oups, ce choix n'a pas pu être gardé sur ton téléphon
 
 const MESSAGE_OFFRES_EN_ATTENTE = "📮 Ton choix pour les offres part dès que le réseau revient.";
 
+const MESSAGE_CHUT_EN_ATTENTE = "📮 Ton « chut » part dès que le réseau revient.";
+
 /** Réglages > Notifications : tout couper, choisir les sortes d'alertes et le mode nuit. Chaque choix est gardé tout de suite. */
 export default function ReglagesNotifications() {
   const [reglages, setReglages] = useState<ChoixNotifications | null>(null);
@@ -68,7 +70,7 @@ export default function ReglagesNotifications() {
 
   const changerType = (type: TypeNotification, valeur: boolean) => {
     modifier((r) => ({ ...r, types: { ...r.types, [type]: valeur } }));
-    if (type === "offre" && derniers.current?.actives) void telephone.choisirOffres(valeur);
+    if (type === "offre" && derniers.current?.actives) void telephone.choisir(valeur ? "oui" : "non");
   };
   const changerSilence = (silence: Partial<ChoixNotifications["silence"]>) => modifier((r) => ({ ...r, silence: { ...r.silence, ...silence } }));
 
@@ -100,7 +102,7 @@ export default function ReglagesNotifications() {
               onChanger={(actives) => {
                 modifier((r) => ({ ...r, actives }));
                 // Allumé : on inscrit le téléphone (la question du système si besoin) ; coupé : le serveur l'oublie
-                void (actives ? telephone.inscrire(true, derniers.current?.types.offre ?? false) : telephone.couper());
+                void (actives ? telephone.inscrire() : telephone.couper());
               }}
             />
           </View>
@@ -128,9 +130,9 @@ export default function ReglagesNotifications() {
                 />
               ))}
           </View>
-          {reglages.actives && choixOffresEnAttente ? (
+          {choixOffresEnAttente ? (
             <Text accessibilityLiveRegion="polite" className="mt-2 font-texte text-sm leading-5 text-gris">
-              {lierPonctuation(MESSAGE_OFFRES_EN_ATTENTE)}
+              {lierPonctuation(reglages.actives ? MESSAGE_OFFRES_EN_ATTENTE : MESSAGE_CHUT_EN_ATTENTE)}
             </Text>
           ) : null}
 

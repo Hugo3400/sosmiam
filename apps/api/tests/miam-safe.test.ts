@@ -32,6 +32,7 @@ test("Miam Safe : le gérant signe la charte, l'alerte part, l'équipe dit « On
     const lea = await b.creerCompte("Léa");
     const envoi = await b.demander("POST", "/miam-safe/alertes", { jeton: lea.jeton, corps: { lieuId, endroit: "terrasse", detail: "  table 12,   pull vert " } });
     assert.equal(envoi.statut, 201);
+    assert.equal(envoi.corps.telephones, 1);
     assert.equal(b.equipesPrevenues.length, 1);
     assert.equal(b.equipesPrevenues[0].prenom, "Léa");
     assert.equal(b.equipesPrevenues[0].detail, "table 12, pull vert");
@@ -106,6 +107,7 @@ test("Miam Safe : signalements et « Tu t'es senti·e bien ici ? » demandent un
     assert.equal(b.miamSafe.signalements.length, 1);
 
     assert.equal((await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: lea.jeton, corps: { oui: "oui" } })).statut, 400);
+    b.validerVisite(lieuId, lea.id);
     assert.equal((await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: lea.jeton, corps: { oui: true } })).statut, 200);
   } finally {
     await b.fermer();
@@ -118,6 +120,7 @@ test("Miam Safe : le repère « Les Miamis s'y sentent bien » apparaît à 90 %
     const lieuId = b.ajouterLieu();
     for (let i = 0; i < 20; i++) {
       const compte = await b.creerCompte(`Miami${i}`);
+      b.validerVisite(lieuId, compte.id);
       await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: compte.jeton, corps: { oui: i >= 2 } });
     }
     assert.equal((await b.demander("GET", `/miam-safe/lieux/${lieuId}`)).corps.repere, true);
@@ -166,11 +169,12 @@ test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de
     update: async () => {},
   };
   const recus: string[] = [];
-  await prevenirEquipeMiamSafe(
+  const nombre = await prevenirEquipeMiamSafe(
     { lieuId: 18, compteId: 9, prenom: "Léa", endroit: "salle", detail: "" },
     async (appareil) => { recus.push(appareil.jeton); return "envoyee"; },
     table as never,
   );
+  assert.equal(nombre, 1);
   assert.deepEqual(recus, ["serveur-connecte"]);
   assert.deepEqual((filtres[0] as { sessionId: unknown }).sessionId, { not: null });
   assert.deepEqual((filtres[0] as { compteId: unknown }).compteId, { not: 9 });
@@ -184,4 +188,68 @@ test("Miam Safe : une notification urgente passe par le canal Android « miam-sa
   const simple = construireCorpsGoogle("jeton", { titre: "Coucou", texte: "…", lien: null });
   assert.deepEqual(simple.message.android, { priority: "high", notification: { channel_id: "notifications", default_sound: true, default_vibrate_timings: true, notification_priority: "PRIORITY_HIGH" } });
   assert.deepEqual(simple.message.data, {});
+});
+
+test("Miam Safe : « Tu t'es senti·e bien ici ? » n'est accepté qu'après une visite validée dans ce lieu", async () => {
+  const b = await creerBancPro();
+  try {
+    const lieuId = b.ajouterLieu();
+    const autreLieu = b.ajouterLieu();
+    const lea = await b.creerCompte("Léa");
+    const sansVisite = await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: lea.jeton, corps: { oui: true } });
+    assert.equal(sansVisite.statut, 409);
+    assert.equal(sansVisite.corps.erreur, "visite-requise");
+    b.validerVisite(autreLieu, lea.id);
+    assert.equal((await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: lea.jeton, corps: { oui: true } })).statut, 409);
+    b.validerVisite(lieuId, lea.id);
+    assert.equal((await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: lea.jeton, corps: { oui: true } })).statut, 200);
+    for (let i = 0; i < 25; i++) {
+      const compte = await b.creerCompte(`Faux${i}`);
+      await b.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { jeton: compte.jeton, corps: { oui: true } });
+    }
+    assert.equal((await b.demander("GET", `/miam-safe/lieux/${lieuId}`)).corps.repere, false);
+  } finally {
+    await b.fermer();
+  }
+});
+
+test("Miam Safe : l'alerte dit sur combien de téléphones de l'équipe elle est partie, 0 compris", async () => {
+  const b = await creerBancPro();
+  try {
+    const gerant = await b.creerGerant();
+    await b.demander("PUT", `/miam-safe/pro/lieux/${gerant.lieuId}/charte`, { jeton: gerant.jeton, corps: { accepte: true } });
+    const lea = await b.creerCompte("Léa");
+    b.telephonesEquipe.set(gerant.lieuId, 0);
+    const aucun = await b.demander("POST", "/miam-safe/alertes", { jeton: lea.jeton, corps: { lieuId: gerant.lieuId, endroit: "salle" } });
+    assert.equal(aucun.statut, 201);
+    assert.equal(aucun.corps.telephones, 0);
+    b.telephonesEquipe.set(gerant.lieuId, 3);
+    const trois = await b.demander("POST", "/miam-safe/alertes", { jeton: lea.jeton, corps: { lieuId: gerant.lieuId, endroit: "terrasse" } });
+    assert.equal(trois.corps.telephones, 3);
+  } finally {
+    await b.fermer();
+  }
+});
+
+test("Miam Safe : l'alerte est enregistrée et répond 201 même si la lecture des téléphones échoue", async () => {
+  const { creerControleursMiamSafe } = await import("../src/controleurs/miam-safe.ts");
+  const { creerMiamSafeEnMemoire } = await import("../src/services/miam-safe-en-memoire.ts");
+  const memoire = creerMiamSafeEnMemoire(() => true);
+  await memoire.services.signerCharte(18, 1, new Date());
+  const c = creerControleursMiamSafe({ services: memoire.services, prevenirEquipe: async () => { throw new Error("base"); } }, Date.now);
+  const erreurs = console.error;
+  console.error = () => {};
+  let statut = 0;
+  let corps: Record<string, unknown> = {};
+  try {
+    await c.envoyerAlerte(
+      { body: { lieuId: 18, endroit: "salle" } } as never,
+      { locals: { compte: { id: 7, prenom: "Léa" } }, status(s: number) { statut = s; return this; }, json(j: Record<string, unknown>) { corps = j; return this; } } as never,
+    );
+  } finally {
+    console.error = erreurs;
+  }
+  assert.equal(statut, 201);
+  assert.deepEqual(corps, { ok: true, id: 1 });
+  assert.equal(memoire.alertes.length, 1);
 });

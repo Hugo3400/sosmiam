@@ -8,7 +8,7 @@ type Alerte = { id: number; lieuId: number; compteId: number; prenom: string; en
 type Charte = { signeeLe: Date; retireeLe: Date | null; motifRetrait: string | null };
 
 /** `estPublie` : le lieu existe et est publié (lu dans les lieux en mémoire du banc d'essai) */
-export function creerMiamSafeEnMemoire(estPublie: (lieuId: number) => boolean) {
+export function creerMiamSafeEnMemoire(estPublie: (lieuId: number) => boolean, aVisiteValidee: (lieuId: number, compteId: number) => boolean = () => false) {
   const chartes = new Map<number, Charte>();
   const alertes: Alerte[] = [];
   const signalements: { lieuId: number; compteId: number; raison: RaisonSignalementMiamSafe; explication: string }[] = [];
@@ -44,9 +44,10 @@ export function creerMiamSafeEnMemoire(estPublie: (lieuId: number) => boolean) {
       return true;
     },
     async repondreSentiBien({ lieuId, compteId, oui }) {
-      if (!estPublie(lieuId)) return false;
+      if (!estPublie(lieuId)) return "lieu-inconnu";
+      if (!aVisiteValidee(lieuId, compteId)) return "visite-requise";
       reponses.set(`${lieuId}:${compteId}`, oui);
-      return true;
+      return "ok";
     },
     async listerAlertesLieu(lieuId, maintenant) {
       return alertes

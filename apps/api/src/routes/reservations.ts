@@ -24,11 +24,13 @@ export const LIMITE_DEMANDES_RESERVATIONS = { fenetre: 60 * 60_000, maximum: 20 
  * et prend les réservations dans l'app ; sinon 409 lieu-non-reservable { details.lieu }. Lieu non publié : 404 introuvable.
  *
  * GET  /app/reservations/creneaux?lieuId&jour (« AAAA-MM-JJ ») → 200 { ok, creneaux: string[] } (« HH:MM » toutes les
- *          30 min dans les horaires, au moins 30 min après maintenant, d'aujourd'hui à dans 30 jours ; sinon []) · 400
+ *          30 min dans les horaires, au moins 1 h après maintenant, d'aujourd'hui à dans 30 jours ; sinon []) · 400
  *          champ-invalide { champ: lieuId | jour } · 403 membre-du-lieu · 409 lieu-non-reservable
  * POST /app/reservations { lieuId, personnes (1 à 12), jour, heure (un des créneaux), message? (140 caractères, filtre de
  *          mots) } → 201 { ok, reservation: Reservation } (statut « demandee » ; sans réponse, elle expire 30 min avant le
- *          créneau) · 400 champ-invalide { champ: lieuId } | personnes-invalides | creneau-invalide | message-refuse ·
+ *          créneau ; le client est prévenu sur son téléphone, lien « /reservations », quand le lieu accepte, refuse ou
+ *          annule, et quand sa demande expire avant le créneau) · 400 champ-invalide { champ: lieuId } | personnes-invalides
+ *          | creneau-invalide (pas un des créneaux, ou moins d'1 h avant) | message-refuse ·
  *          403 membre-du-lieu | email-non-verifie · 409 lieu-non-reservable | reservation-en-cours { details:
  *          lieu, lieuId } (une demande en attente par lieu) | trop-de-reservations (3 à venir au plus, demandées ou acceptées)
  *          · Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : le petit mot

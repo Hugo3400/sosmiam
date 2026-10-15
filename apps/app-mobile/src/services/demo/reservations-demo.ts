@@ -4,7 +4,7 @@ import { faireEvoluerReservation } from "@sos-miam/commun/fonctions/reservations
 import { listerCreneauxReservation } from "@sos-miam/commun/fonctions/reservations/lister-creneaux-reservation";
 import { peutAgirAuComptoir } from "@sos-miam/commun/fonctions/roles/peut-agir-au-comptoir";
 import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
-import { RESERVATIONS_A_VENIR_MAX, RESERVATIONS_EN_ATTENTE_PAR_LIEU } from "@sos-miam/commun/regles/reservations";
+import { RESERVATIONS_A_VENIR_MAX, RESERVATIONS_EN_ATTENTE_PAR_LIEU, VENU_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { DemandeReservation, Reservation } from "@sos-miam/commun/types/reservation";
 import { validerDemandeReservation } from "@sos-miam/commun/validation/valider-demande-reservation";
@@ -28,6 +28,7 @@ const REPONSE_AUTO_MS = 8_000;
 const REFUS_PEPIN_MS = 3_000;
 const SANS_COMPTE: Echec = { ok: false, erreur: "connexion-requise" };
 const INTROUVABLE: Echec = { ok: false, erreur: "introuvable" };
+const MEMBRE_DU_LIEU: Echec = { ok: false, erreur: "membre-du-lieu" };
 
 const trouverLieu = (id: number) => lieuxExemples.find((l) => l.id === id);
 
@@ -72,12 +73,17 @@ function creerDemande(m: MagasinDemo, lieu: Lieu, demande: DemandeReservation, m
 
 export function creerReservationsDemo(ctx: ContexteDemo): ServiceReservations {
   const repondSeul = (lieuId: number) => ctx.lireReglages().lieuxRepondentSeuls && !peutAgirAuComptoir(ctx.lireRoles(), lieuId);
+  const verifierLieuPourMoi = (lieu: Lieu | undefined): Echec | null => {
+    const refus = verifierLieu(lieu);
+    if (refus || !lieu) return refus ?? INTROUVABLE;
+    return peutAgirAuComptoir(ctx.lireRoles(), lieu.id) ? MEMBRE_DU_LIEU : null;
+  };
   const trouverLaMienne = (m: Readonly<MagasinDemo>, id: number) => m.reservations.find((r) => r.id === id && r.client === "moi");
 
   return {
     async listerCreneaux(lieuId, jour) {
       const lieu = trouverLieu(lieuId);
-      const refus = verifierLieu(lieu);
+      const refus = verifierLieuPourMoi(lieu);
       if (refus || !lieu) return refus ?? INTROUVABLE;
       return { ok: true, creneaux: listerCreneauxReservation(lieu.ouverture, jour, new Date(ctx.maintenant())) };
     },
@@ -85,7 +91,7 @@ export function creerReservationsDemo(ctx: ContexteDemo): ServiceReservations {
     async reserver(demande) {
       if (!ctx.lireClient()) return SANS_COMPTE;
       const lieu = trouverLieu(demande.lieuId);
-      const refus = verifierLieu(lieu);
+      const refus = verifierLieuPourMoi(lieu);
       if (refus || !lieu) return refus ?? INTROUVABLE;
       const pepin = consommerPepin(["hors-ligne", "refus-lieu"]);
       const echecPepin = traduirePepinDemo(pepin, lieu.nom);
@@ -144,7 +150,8 @@ export function creerReservationsDemo(ctx: ContexteDemo): ServiceReservations {
         return { ok: true as const, reservation: convertirReservationDemo(r), validation };
       });
       if (reponse.ok && reponse.reservation.statut === "acceptee" && repondSeul(reponse.reservation.lieu.id)) {
-        planifierReponseReservationDemo(ctx, reponse.reservation, { type: "venu" }, REPONSE_AUTO_MS);
+        const venuPossibleDansMs = Date.parse(reponse.reservation.creneau) - VENU_AVANT_CRENEAU_MS - ctx.maintenant();
+        planifierReponseReservationDemo(ctx, reponse.reservation, { type: "venu" }, Math.max(REPONSE_AUTO_MS, venuPossibleDansMs));
       }
       return reponse;
     },

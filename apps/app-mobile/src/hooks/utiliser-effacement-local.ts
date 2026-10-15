@@ -10,7 +10,6 @@ import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
 import { effacerModeApp } from "~/stockage/mode-app";
-import { effacerReglagesNotifications, lireReglagesNotifications } from "~/stockage/reglages-notifications";
 import { effacerRolesDemo } from "~/stockage/roles-demo";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 
@@ -44,9 +43,7 @@ export function utiliserEffacementLocal() {
       await suivisPersonnes.effacer();
       await notifications.effacer();
       await effacerSignalementsLocaux();
-      const reglagesAvant = await lireReglagesNotifications();
-      await effacerReglagesNotifications();
-      if (reglagesAvant.actives && reglagesAvant.types.offre) void telephone.choisirOffres(false).catch(() => undefined);
+      await telephone.effacerReglages();
       // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses
       if (outilsDemo) {
         await outilsDemo.remettreAZero();

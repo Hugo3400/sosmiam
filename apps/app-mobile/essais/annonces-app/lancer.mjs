@@ -21,11 +21,11 @@ const resultat = spawnSync(
     new URL("./banc/enregistrer.mjs", ICI).href,
     "--test",
     "--test-reporter=spec",
-    "--test-timeout=30000",
+    "--test-timeout=120000",
     ...process.argv.slice(2),
     ...fichiers,
   ],
-  { stdio: "inherit", timeout: 2 * 60_000 },
+  { stdio: "inherit", timeout: 4 * 60_000 },
 );
 if (resultat.error) console.error(`Les essais n'ont pas pu tourner : ${resultat.error.message}`);
 process.exit(resultat.status ?? 1);

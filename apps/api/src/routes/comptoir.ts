@@ -111,7 +111,8 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * Réservations faites dans l'app (gérant ET équipe ; le lieu est relu sur la réservation, jamais pris dans la demande).
  * Réponse des gestes : 200 { ok, reservation: ReservationPro } (types/reservation.ts : prénom, initiale, emoji, personnes,
  * créneau, petit mot, statut, presence (« Je suis là » fait), code d'arrivée une fois acceptée ; jamais l'âge) ; 400
- * champ-invalide { champ: id | reservationId } ; 403 role-requis ; 404 introuvable (réservation inconnue).
+ * champ-invalide { champ: id | reservationId } ; 403 role-requis ; 404 introuvable (réservation inconnue). Accepter, refuser
+ * et annuler préviennent le client sur son téléphone (une fois, jamais le membre de l'équipe qui répond).
  * GET    /pro/comptoir/lieux/:id/reservations    → 200 { ok, reservations: ReservationPro[] } : depuis minuit (heure de Paris),
  *          ou depuis 4 h si c'est plus tôt (après minuit, la soirée reste visible), et à venir ; tous statuts, créneau
  *          croissant, 300 au plus

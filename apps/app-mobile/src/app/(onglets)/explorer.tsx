@@ -31,6 +31,7 @@ import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
+import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserLieuxDuMoment } from "~/hooks/utiliser-lieux-du-moment";
 import { utiliserLieuxFiltresExplorer } from "~/hooks/utiliser-lieux-filtres-explorer";
@@ -47,6 +48,7 @@ const avecCarte = Platform.OS !== "web";
 
 /** Après un filtre ou une recherche, le lecteur d'écran dit combien de lieux restent, une fois la frappe calmée (ms) */
 const DELAI_ANNONCE_NOMBRE = 700;
+const comparerVilles = new Intl.Collator("fr").compare;
 
 /**
  * Onglet « Explorer » : la carte des lieux et une liste qu'on remonte du bas, avec recherche, filtres,
@@ -94,7 +96,7 @@ export default function Explorer() {
   const { lieux: tousLesLieux, chargerZone } = utiliserLieux();
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;
-  const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
+  const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort(comparerVilles), [lieuxPermis]);
   const lieuxActuels = utiliserLieuxDuMoment(lieuxPermis, maintenant);
   const distancesInconnues = useMemo(() => !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null), [lieuxActuels]);
   const portee: PorteeExplorer = porteeChoisie ?? (pointDeDepart === null && distancesInconnues ? "france" : "proche");
@@ -258,32 +260,55 @@ export default function Explorer() {
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
   }
 
-  const outils = (
-    <OutilsListeExplorer
-      nombre={lieux.length}
-      resume={resume}
-      refCompteur={refCompteur}
-      autourDeMoiActif={position !== null}
-      recherche={recherche}
-      avisApproximative={position !== null && approximative && !avisApproximativeVu}
-      onToucherAutourDeMoi={() => void toucherAutourDeMoi()}
-      onArreterAutourDeMoi={arreterAutourDeMoi}
-      onFermerAvisApproximative={() => setAvisApproximativeVu(true)}
-      onRoulette={() => setRoulette(true)}
-    />
+  const gestes = utiliserGestesStables({
+    toucherAutourDeMoi: () => void toucherAutourDeMoi(),
+    arreterAutourDeMoi,
+    fermerAvisApproximative: () => setAvisApproximativeVu(true),
+    ouvrirRoulette: () => setRoulette(true),
+    fermerRoulette: () => setRoulette(false),
+    ouvrirDepuisRoulette: (id: number) => {
+      setRoulette(false);
+      ouvrir(id);
+    },
+    choisirPortee,
+    effacer,
+  });
+  const nombreLieux = lieux.length;
+  const autourDeMoiActif = position !== null;
+  const avisApproximative = autourDeMoiActif && approximative && !avisApproximativeVu;
+  const outils = useMemo(
+    () => (
+      <OutilsListeExplorer
+        nombre={nombreLieux}
+        resume={resume}
+        refCompteur={refCompteur}
+        autourDeMoiActif={autourDeMoiActif}
+        recherche={recherche}
+        avisApproximative={avisApproximative}
+        onToucherAutourDeMoi={gestes.toucherAutourDeMoi}
+        onArreterAutourDeMoi={gestes.arreterAutourDeMoi}
+        onFermerAvisApproximative={gestes.fermerAvisApproximative}
+        onRoulette={gestes.ouvrirRoulette}
+      />
+    ),
+    [nombreLieux, resume, autourDeMoiActif, recherche, avisApproximative, gestes],
   );
-  const vide = (
-    <VideExplorer
-      fauteDeDepart={fauteDeDepart}
-      portee={zone?.portee ?? null}
-      region={region}
-      ouOnRegarde={ouOnRegarde}
-      motRecherche={motRecherche}
-      avecFiltres={avecFiltres}
-      onAutourDeMoi={() => void toucherAutourDeMoi()}
-      onChoisirPortee={choisirPortee}
-      onEffacer={effacer}
-    />
+  const porteeRegardee = zone?.portee ?? null;
+  const vide = useMemo(
+    () => (
+      <VideExplorer
+        fauteDeDepart={fauteDeDepart}
+        portee={porteeRegardee}
+        region={region}
+        ouOnRegarde={ouOnRegarde}
+        motRecherche={motRecherche}
+        avecFiltres={avecFiltres}
+        onAutourDeMoi={gestes.toucherAutourDeMoi}
+        onChoisirPortee={gestes.choisirPortee}
+        onEffacer={gestes.effacer}
+      />
+    ),
+    [fauteDeDepart, porteeRegardee, region, ouOnRegarde, motRecherche, avecFiltres, gestes],
   );
 
   return (
@@ -347,11 +372,8 @@ export default function Explorer() {
         visible={roulette}
         lieux={lieux}
         depuis={depuis}
-        onFermer={() => setRoulette(false)}
-        onOuvrir={(id) => {
-          setRoulette(false);
-          ouvrir(id);
-        }}
+        onFermer={gestes.fermerRoulette}
+        onOuvrir={gestes.ouvrirDepuisRoulette}
       />
       <Annonce annonce={annonce} haut={hauteurEnTete} onFin={finAnnonce} />
     </View>

@@ -1,8 +1,5 @@
 // Assemble les services de la démo (source « demo »). Ce qui n'est pas encore construit répond comme les services
 // indisponibles (listes vides, actions « service-indisponible »), mais s'abonne déjà au magasin.
-// Lot 2 (fait) : comptoir = { ...creerComptoirDemo(ctx) }. Lot 3 : reservations = creerReservationsDemo(ctx), et
-// ...creerReservationsProDemo(ctx) dans le comptoir. Lot 4 : ...creerAvisProDemo(ctx) dans le
-// comptoir, ambassadeur = creerEspaceAmbassadeurDemo(ctx).
 import type { Services } from "@sos-miam/commun/client-api/services";
 
 import { creerServicesIndisponibles } from "../creer-services-indisponibles";
@@ -15,6 +12,7 @@ import { creerInteretsEvenementsDemo } from "./interets-evenements-demo";
 import { creerLieuProDemo } from "./lieu-pro-demo";
 import { creerMiamSafeDemo } from "./miam-safe-demo";
 import { creerReservationsDemo } from "./reservations-demo";
+import { creerReservationsProDemo } from "./reservations-pro-demo";
 import { creerSuggestionsDemo } from "./suggestions-demo";
 import type { ContexteDemo } from "./types-demo";
 import { creerVisitesDemo } from "./visites-demo";
@@ -29,7 +27,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     fidelite: creerFideliteDemo(ctx),
     reservations: creerReservationsDemo(ctx),
     avis: creerAvisDemo(ctx),
-    comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ecouter },
+    comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ...creerReservationsProDemo(ctx), ecouter },
     lieuPro: creerLieuProDemo(ctx),
     interetsEvenements: creerInteretsEvenementsDemo(ctx),
     ambassadeur: creerEspaceAmbassadeurDemo(ctx),

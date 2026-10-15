@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { AccessibilityInfo, ActivityIndicator, Linking, Text, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, Text, View } from "react-native";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { RESERVATIONS_A_VENIR_MAX } from "@sos-miam/commun/regles/reservations";
@@ -13,14 +13,14 @@ import { EtatVideReservations } from "~/composants/reservations/EtatVideReservat
 import { SectionReservations } from "~/composants/reservations/SectionReservations";
 import { FeuilleEchecVisite } from "~/composants/visites/FeuilleEchecVisite";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
-import { TEXTES_ECHEC_GESTE_RESERVATION, TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
+import { SANS_COMPTE_RESERVATIONS, TEXTES_ECHEC_GESTE_RESERVATION, TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
 import { calculerGestesReservation } from "~/fonctions/reservations/calculer-gestes-reservation";
 import { compterReservationsEnCours } from "~/fonctions/reservations/compter-reservations-en-cours";
 import { decrireAnnulationReservation, type TextesAnnulationReservation } from "~/fonctions/reservations/decrire-annulation-reservation";
-import { listerActionsEchecReservation } from "~/fonctions/reservations/lister-actions-echec-reservation";
 import { rangerReservations } from "~/fonctions/reservations/ranger-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserClientReservation } from "~/hooks/utiliser-client-reservation";
+import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserGestesReservation } from "~/hooks/utiliser-gestes-reservation";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
@@ -34,6 +34,7 @@ export default function EcranMesReservations() {
   const router = useRouter();
   const fermer = utiliserFermerPile();
   const { source } = utiliserServices();
+  const demanderCompte = utiliserDemandeCompte();
   const client = utiliserClientReservation();
   const { maintenantMs, recaler } = utiliserHorlogeMinute();
   const { lecture, actualiser, remplacer } = utiliserMesReservations();
@@ -55,14 +56,6 @@ export default function EcranMesReservations() {
     setFeuilleOuverte(true);
   }
 
-  const echec = gestes.echec;
-  const actionsEchec = echec
-    ? listerActionsEchecReservation(echec.erreur, {
-        reessayer: () => void (echec.geste === "annuler" ? gestes.annuler(echec.reservation) : gestes.signalerPresence(echec.reservation)),
-        ouvrirReglages: () => void Linking.openSettings().catch(() => {}),
-      })
-    : [];
-
   const dessinerCarte = (reservation: Reservation) => (
     <CarteReservation
       key={reservation.id}
@@ -78,8 +71,8 @@ export default function EcranMesReservations() {
 
   const contenu = () => {
     if (source === "indisponible") {
-      const message = MESSAGES_SERVICE["service-indisponible"];
-      return <CarteMessageReservations emoji={message.emoji} titre={message.titre} texte={message.texte} />;
+      const { emoji, titre, texte, bouton, indice } = SANS_COMPTE_RESERVATIONS;
+      return <CarteMessageReservations emoji={emoji} titre={titre} texte={texte} action={{ libelle: bouton, indice, onPress: () => demanderCompte("reserver") }} />;
     }
     if (lecture.etat === "attente") {
       return (
@@ -137,7 +130,13 @@ export default function EcranMesReservations() {
         onFermer={() => setFeuilleOuverte(false)}
       />
       <FeuillePositionVisite {...gestes.propsFeuillePosition} />
-      <FeuilleEchecVisite echec={echec} lieuNom={echec?.reservation.lieu.nom} textes={TEXTES_ECHEC_GESTE_RESERVATION} actions={actionsEchec} onFermer={gestes.fermerEchec} />
+      <FeuilleEchecVisite
+        echec={gestes.echec}
+        lieuNom={gestes.echec?.reservation.lieu.nom}
+        textes={TEXTES_ECHEC_GESTE_RESERVATION}
+        actions={gestes.actionsEchec}
+        onFermer={gestes.fermerEchec}
+      />
     </EcranReglage>
   );
 }

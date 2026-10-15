@@ -7,9 +7,13 @@ import { retirerMetadonneesJpeg } from "../src/fonctions/medias/retirer-metadonn
 import { TAILLE_MAX_PHOTO_AVIS } from "../src/services/photos-avis-regles.ts";
 import { FORME_PHOTO_AVIS } from "../src/services/stockage-photos-avis.ts";
 import { creerBancPhotosAvis } from "./outils/creer-banc-photos-avis.ts";
-import { avecDimensions, avecSegmentApp13, HEIC, PNG, segmentsJpeg } from "./outils/fabriquer-photos-avis.ts";
+import { avecDimensions, avecSegment, avecSegmentApp13, HEIC, PNG, segmentsJpeg } from "./outils/fabriquer-photos-avis.ts";
 
-const PHOTO = readFileSync(new URL("./donnees/photo-exif-position.jpg", import.meta.url));
+const PHOTO = readFileSync(new URL("./donnees/photo-avis-exif-position.jpg", import.meta.url));
+const GPS = "GPS 43.6108,3.8767";
+const ADOBE_PROPRE = Buffer.from([0xff, 0xee, 0x00, 0x0e, 0x41, 0x64, 0x6f, 0x62, 0x65, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x01]);
+const adobe = (transformation: number, enPlus = "") =>
+  Buffer.concat([Buffer.from("Adobe", "latin1"), Buffer.from([0x00, 0x65, 0x80, 0x00, 0x00, 0x00, transformation]), Buffer.from(enPlus, "latin1")]);
 const TEXTE = "Des crêpes dorées, un cidre frais, et le Capitaine qui chante.";
 const JOUR = 24 * 3600_000;
 
@@ -27,10 +31,11 @@ const compter = (o: Buffer, motif: string | Buffer) => {
   return n;
 };
 
-test("envoi : 201 { ok, photo }, nom tiré au hasard, EXIF (position GPS), XMP, IPTC et commentaire retirés", async () => {
+test("envoi : 201 { ok, photo }, nom tiré au hasard, EXIF (position GPS), XMP, IPTC, Adobe bavard, JPG0 et commentaire retirés", async () => {
   const lea = await b.creerCompte();
-  const brute = avecSegmentApp13(PHOTO, "position:iptc 43.6108,3.8767");
+  const brute = avecSegment(avecSegment(avecSegmentApp13(PHOTO, "position:iptc 43.6108,3.8767"), 0xee, adobe(1, GPS)), 0xf0, Buffer.from(GPS, "latin1"));
   assert.ok(segmentsJpeg(brute).includes(0xe1) && segmentsJpeg(brute).includes(0xed), "la photo d'essai a bien EXIF et IPTC");
+  assert.equal(compter(brute, GPS), 2);
   assert.ok(compter(PHOTO, Buffer.from([0x88, 0x25])) > 0, "la photo d'essai a bien un pointeur GPS");
   const r = await envoyer(lea.jeton, brute);
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
@@ -39,11 +44,50 @@ test("envoi : 201 { ok, photo }, nom tiré au hasard, EXIF (position GPS), XMP, 
   assert.equal(r.entetes.get("cache-control"), "private, no-store");
   const rangee = b.stockage.fichiers.get(r.corps!.photo)!;
   assert.deepEqual(rangee.fiche, { compteId: lea.id, deposeLe: new Date(b.banc.horloge) });
-  for (const secret of ["position:", "Exif", "xmpmeta", "commentaire", "TelephoneDeLea", "Photoshop", "8BIM"]) assert.equal(compter(rangee.octets!, secret), 0, secret);
-  assert.deepEqual(segmentsJpeg(rangee.octets!).filter((m) => m >= 0xe1 && m <= 0xef), []);
-  assert.deepEqual(rangee.octets, retirerMetadonneesJpeg(PHOTO));
+  for (const secret of ["position:", "Exif", "xmpmeta", "commentaire", "TelephoneDeLea", "Photoshop", "8BIM", GPS]) assert.equal(compter(rangee.octets!, secret), 0, secret);
+  assert.deepEqual(segmentsJpeg(rangee.octets!).filter((m) => (m >= 0xe1 && m <= 0xef) || m >= 0xf0), [0xee]);
+  assert.deepEqual(rangee.octets, Buffer.concat([PHOTO.subarray(0, 2), ADOBE_PROPRE, retirerMetadonneesJpeg(PHOTO)!.subarray(2)]));
   const deux = await envoyer(lea.jeton);
   assert.notEqual(deux.corps!.photo, r.corps!.photo);
+});
+
+test("Adobe (APP14) réécrit en ses 12 octets utiles, segments JPG et JPG0 à JPG13 retirés, image intacte", () => {
+  const propre = retirerMetadonneesJpeg(PHOTO)!;
+  const avecAdobe = (o: Buffer) => Buffer.concat([o.subarray(0, 2), ADOBE_PROPRE, o.subarray(2)]);
+  assert.deepEqual(retirerMetadonneesJpeg(avecSegment(PHOTO, 0xee, adobe(1))), avecAdobe(propre), "Adobe standard : version et drapeaux remis à zéro");
+  assert.deepEqual(retirerMetadonneesJpeg(avecSegment(PHOTO, 0xee, adobe(1, GPS))), avecAdobe(propre), "texte après les 12 octets : retiré");
+  const transforme = retirerMetadonneesJpeg(avecSegment(PHOTO, 0xee, adobe(2)))!;
+  assert.equal(transforme[17], 2, "la transformation des couleurs est gardée");
+  for (const [contenu, cas] of [[adobe(7), "transformation inconnue"], [Buffer.from("Adobe\0d", "latin1"), "trop court"], [Buffer.from(`Ducky${GPS}`, "latin1"), "pas Adobe"]] as const) {
+    assert.deepEqual(retirerMetadonneesJpeg(avecSegment(PHOTO, 0xee, contenu)), propre, cas);
+  }
+  for (const marqueur of [0xc8, 0xf0, 0xf7, 0xfd]) {
+    assert.deepEqual(retirerMetadonneesJpeg(avecSegment(PHOTO, marqueur, Buffer.from(GPS, "latin1"))), propre, `FF ${marqueur.toString(16)}`);
+  }
+  assert.deepEqual(retirerMetadonneesJpeg(propre), propre, "rien d'autre ne bouge");
+});
+
+test("preparerPhotoAvis : 320 px au moins de petit côté, sinon pas de +10 pour une vignette", () => {
+  for (const [largeur, hauteur] of [[319, 2000], [2000, 319], [1, 1], [64, 48]]) {
+    assert.deepEqual(preparerPhotoAvis(avecDimensions(PHOTO, largeur, hauteur)), { ok: false, erreur: "media-invalide", champ: "dimensions" }, `${largeur} × ${hauteur}`);
+  }
+  for (const [largeur, hauteur] of [[320, 320], [4096, 320], [320, 4096]]) {
+    const r = preparerPhotoAvis(avecDimensions(PHOTO, largeur, hauteur));
+    assert.deepEqual(r.ok && [r.largeur, r.hauteur], [largeur, hauteur], `${largeur} × ${hauteur}`);
+  }
+});
+
+test("6 Mo pile : 201 (le remplissage après la fin de l'image est jeté) ; un octet de plus : 413", async () => {
+  const lea = await b.creerCompte();
+  const pile = Buffer.concat([PHOTO, Buffer.alloc(TAILLE_MAX_PHOTO_AVIS - PHOTO.length, 0x47)]);
+  assert.equal(pile.length, 6 * 1024 * 1024);
+  const r = await envoyer(lea.jeton, pile);
+  assert.equal(r.statut, 201, JSON.stringify(r.corps));
+  assert.deepEqual(b.stockage.fichiers.get(r.corps!.photo)!.octets, retirerMetadonneesJpeg(PHOTO));
+  const trop = await envoyer(lea.jeton, Buffer.concat([pile, Buffer.from([0x47])]));
+  assert.deepEqual([trop.statut, trop.corps], [413, { ok: false, erreur: "media-trop-lourd" }]);
+  assert.deepEqual(preparerPhotoAvis(Buffer.concat([pile, Buffer.from([0x47])])), { ok: false, erreur: "media-trop-lourd" });
+  assert.equal(b.stockage.fichiers.size, 1);
 });
 
 test("preparerPhotoAvis : JPEG seulement, 6 Mo et 4 096 px au plus, fichier entier", () => {
@@ -55,7 +99,7 @@ test("preparerPhotoAvis : JPEG seulement, 6 Mo et 4 096 px au plus, fichier enti
   assert.deepEqual(preparerPhotoAvis(avecDimensions(PHOTO, 5000, 300)), { ok: false, erreur: "media-invalide", champ: "dimensions" });
   assert.deepEqual(preparerPhotoAvis(PHOTO.subarray(0, PHOTO.length - 40)), { ok: false, erreur: "media-invalide", champ: "format" });
   const bonne = preparerPhotoAvis(PHOTO);
-  assert.deepEqual(bonne.ok && [bonne.largeur, bonne.hauteur], [64, 48]);
+  assert.deepEqual(bonne.ok && [bonne.largeur, bonne.hauteur], [640, 480]);
 });
 
 test("refus : type, taille, dimensions, fichier abîmé ; rien n'est écrit", async () => {
@@ -67,6 +111,7 @@ test("refus : type, taille, dimensions, fichier abîmé ; rien n'est écrit", as
     [PHOTO, "application/octet-stream", 415, { ok: false, erreur: "format-refuse" }],
     [Buffer.concat([PHOTO.subarray(0, 4), Buffer.alloc(TAILLE_MAX_PHOTO_AVIS)]), "image/jpeg", 413, { ok: false, erreur: "media-trop-lourd" }],
     [avecDimensions(PHOTO, 300, 4097), "image/jpeg", 400, { ok: false, erreur: "media-invalide", champ: "dimensions" }],
+    [avecDimensions(PHOTO, 400, 300), "image/jpeg", 400, { ok: false, erreur: "media-invalide", champ: "dimensions" }],
     [PHOTO.subarray(0, PHOTO.length - 40), "image/jpeg", 400, { ok: false, erreur: "media-invalide", champ: "format" }],
   ];
   for (const [octets, type, statut, corps] of cas) {

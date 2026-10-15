@@ -1,11 +1,32 @@
-import { effacerChoixOffresARenvoyer, enregistrerChoixOffresARenvoyer, lireChoixOffresARenvoyer } from "~/stockage/choix-offres-a-renvoyer";
+import {
+  effacerChoixOffresARenvoyer,
+  enregistrerChoixOffresARenvoyer,
+  lireChoixOffresARenvoyer,
+  type ChoixTelephone,
+} from "~/stockage/choix-offres-a-renvoyer";
 
 export type IssueEnvoiOffres = "parti" | "a-renvoyer" | "sans-suite";
-export type EnvoyerOffres = (offres: boolean) => Promise<IssueEnvoiOffres>;
+export type EnvoyerOffres = (choix: ChoixTelephone, valable: () => boolean) => Promise<IssueEnvoiOffres>;
 
 const ATTENTES_MS = [30_000, 120_000, 600_000];
+const ENVOI_MAX_MS = 60_000;
 
-type Choix = { offres: boolean; numero: number };
+type Choix = { valeur: ChoixTelephone; numero: number };
+
+function envoyerSansBloquer(envoyer: EnvoyerOffres, valeur: ChoixTelephone): Promise<IssueEnvoiOffres> {
+  let abandonne = false;
+  let minuterie: ReturnType<typeof setTimeout> | undefined;
+  const limite = new Promise<IssueEnvoiOffres>((repondre) => {
+    minuterie = setTimeout(() => {
+      abandonne = true;
+      repondre("a-renvoyer");
+    }, ENVOI_MAX_MS);
+  });
+  const envoi = Promise.resolve()
+    .then(() => envoyer(valeur, () => !abandonne))
+    .catch((): IssueEnvoiOffres => "a-renvoyer");
+  return Promise.race([envoi, limite]).finally(() => clearTimeout(minuterie));
+}
 
 export function creerRenvoiChoixOffres() {
   let choix: Choix | null | undefined;
@@ -28,14 +49,14 @@ export function creerRenvoiChoixOffres() {
   };
 
   const persister = () => {
-    ecritures = ecritures.then(() => (choix ? enregistrerChoixOffresARenvoyer(choix.offres) : effacerChoixOffresARenvoyer()));
+    ecritures = ecritures.then(() => (choix ? enregistrerChoixOffresARenvoyer(choix.valeur) : effacerChoixOffresARenvoyer()));
     return ecritures;
   };
 
   const charger = () => {
-    chargement ??= lireChoixOffresARenvoyer().then((offres) => {
+    chargement ??= lireChoixOffresARenvoyer().then((valeur) => {
       if (choix !== undefined) return;
-      choix = offres === null ? null : { offres, numero: ++numero };
+      choix = valeur === null ? null : { valeur, numero: ++numero };
       if (choix) montrer(true);
     });
     return chargement;
@@ -65,15 +86,9 @@ export function creerRenvoiChoixOffres() {
       if (!envoi) montrer(false);
       return;
     }
-    let issue: IssueEnvoiOffres;
     enVol = { choix: envoi, tour };
-    try {
-      issue = await envoyer(envoi.offres);
-    } catch {
-      issue = "a-renvoyer";
-    } finally {
-      enVol = null;
-    }
+    const issue = await envoyerSansBloquer(envoyer, envoi.valeur);
+    enVol = null;
     if (issue === "a-renvoyer") {
       if (choix) montrer(true);
       if (!tourPrevu) programmer();
@@ -97,8 +112,8 @@ export function creerRenvoiChoixOffres() {
     return tour;
   }
 
-  async function choisir(offres: boolean, envoyer: EnvoyerOffres): Promise<void> {
-    choix = { offres, numero: ++numero };
+  async function choisir(valeur: ChoixTelephone, envoyer: EnvoyerOffres): Promise<void> {
+    choix = { valeur, numero: ++numero };
     await persister();
     await lancer(envoyer);
   }

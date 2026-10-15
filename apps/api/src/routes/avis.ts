@@ -41,6 +41,7 @@ const corpsPhoto: RequestHandler = (requete, reponse, suite) => {
  *        les avis visibles du lieu publié, 30 par page, les plus récents d'abord (suite : le curseur de la page suivante) ;
  *        resume : moyenne prudente au dixième, nombre d'avis, part de clients qui reviennent (dès 20 clients, visites
  *        validées par client et jours distincts) · 400 champ-invalide { champ: lieuId | apres } · 404 lieu-inconnu
+ * GET  /app/avis/photos/:photo → 200 image/jpeg (public, max-age=300) · 404 photo-inconnue (avis masqué, lieu plus publié)
  *
  * Avec session (Authorization: Bearer ou X-Session-Compte), jamais en cache :
  * GET  /app/avis/a-ecrire → 200 { ok, visites: Visite[] } : les visites validées dont l'avis est ouvert (1 h après la
@@ -55,6 +56,10 @@ const corpsPhoto: RequestHandler = (requete, reponse, suite) => {
  *        NON vérifié (sans rattachement validé), sans visite ni points, un par compte et par lieu tous les 30 jours
  *        · 400 avis-invalide · 404 lieu-inconnu · 403 email-non-verifie | membre-du-lieu
  *        · 409 avis-visite-requise (lieu vérifié) | avis-recent { details.jusqua: ISO 8601, le prochain possible }
+ * POST /app/avis/photos (le JPEG brut, Content-Type: image/jpeg, 6 Mo au plus) → 201 { ok, photo: "<uuid>.jpg" }, sans
+ *        métadonnées, à citer dans un avis dans les 24 h ; de 320 px (petit côté) à 4 096 px (grand côté)
+ *        · 400 media-invalide { champ: format | dimensions } · 403 compte-limite · 413 media-trop-lourd · 415 format-refuse
+ *        · 429 trop-de-demandes (20 par heure) · 503 stockage-plein (Retry-After: 3600)
  *
  * Ambassadeur actif seulement (sinon 403 ambassadeur-non-actif), jamais en cache :
  * GET  /app/avis/a-relire → 200 { ok, avis: AvisARelire[] } : 20 au plus, le plus ancien d'abord ; jamais l'auteur ni son

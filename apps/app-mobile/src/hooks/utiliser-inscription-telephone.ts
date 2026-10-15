@@ -100,7 +100,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
     if (!pret || !avecProfil) return;
     let actif = true;
     lireReglagesNotifications().then((reglages) => {
-      if (actif && reglages.actives) void inscrire(true, reglages.types.offre);
+      if (actif && reglages.actives) void inscrire();
     });
     return () => {
       actif = false;

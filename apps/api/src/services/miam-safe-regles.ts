@@ -36,8 +36,7 @@ export interface ServicesMiamSafe {
   lireAlerte(id: number, compteId: number, maintenant: Date): Promise<AlerteSuivie | null>;
   /** false : lieu inconnu ou pas publié */
   enregistrerSignalement(s: { lieuId: number; compteId: number; raison: RaisonSignalementMiamSafe; explication: string }): Promise<boolean>;
-  /** La dernière réponse compte ; false : lieu inconnu ou pas publié */
-  repondreSentiBien(r: { lieuId: number; compteId: number; oui: boolean }): Promise<boolean>;
+  repondreSentiBien(r: { lieuId: number; compteId: number; oui: boolean }): Promise<"ok" | "lieu-inconnu" | "visite-requise">;
   /** Comptoir : les alertes récentes du lieu, les plus récentes d'abord */
   listerAlertesLieu(lieuId: number, maintenant: Date): Promise<AlerteComptoir[]>;
   /** « On arrive » : false si l'alerte n'est pas à ce lieu (ou déjà trop ancienne) ; une alerte déjà répondue reste répondue */

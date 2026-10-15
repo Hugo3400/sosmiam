@@ -12,6 +12,7 @@ import type { InfosVisiteLieu } from "@sos-miam/commun/types/visite";
 import { LigneBlocVisite } from "~/composants/lieux/LigneBlocVisite";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
+import { TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -101,6 +102,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
   const scanner = () => {
     if (demanderCompte("scan")) router.push("/scan/camera");
   };
+  const titreReserver = lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.titreSortie : TEXTES_RESERVER_TABLE.titre;
   const reserver = () => {
     if (demanderCompte("reserver")) router.push({ pathname: "/lieu/[id]/reserver", params: { id: String(lieu.id) } });
   };
@@ -218,9 +220,9 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
         {infos.reservable ? (
           <LigneBlocVisite
             emoji="📅"
-            titre="Réserver une table"
+            titre={titreReserver}
             texte="Gratuit, sans carte bancaire : le lieu te répond dans l'app."
-            libelleLu="Réserver une table. Gratuit, sans carte bancaire : le lieu te répond dans l'app."
+            libelleLu={`${titreReserver}. Gratuit, sans carte bancaire : le lieu te répond dans l'app.`}
             indice="Choisis le jour, l'heure et combien vous êtes"
             onPress={reserver}
           />

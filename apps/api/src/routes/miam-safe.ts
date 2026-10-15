@@ -32,8 +32,10 @@ export const LIMITE_LECTURE_PARTAGES = { fenetre: 60_000, maximum: 30 };
  *                                          90 % de oui sur au moins 20 réponses) · 404 lieu-inconnu (inconnu ou pas publié)
  * Session obligatoire (401 session-expiree sinon) :
  * POST /miam-safe/alertes                { lieuId, endroit: "salle"|"terrasse"|"toilettes"|"ailleurs", detail? (80 car.) }
- *                                        → 201 { ok, id } : l'équipe du lieu reçoit tout de suite une notification « urgente »
- *                                          (prénom du compte, endroit, détail ; jamais le nom ni la photo)
+ *                                        → 201 { ok, id, telephones? } : l'équipe du lieu reçoit tout de suite une notification
+ *                                          « urgente » (prénom du compte, endroit, détail ; jamais le nom ni la photo) ;
+ *                                          telephones = sur combien de ses téléphones elle part (0 : personne n'est prévenu ;
+ *                                          absent si on n'a pas pu les compter)
  *                                        · 400 champ-invalide {champ} · 404 lieu-inconnu · 409 pas-miam-safe (pas de charte
  *                                          active : l'app propose les secours ou un pote) · 429 (3 par compte par 10 min)
  * GET  /miam-safe/alertes/:id            → 200 { ok, alerte: { id, statut: "envoyee"|"en-route"|"sans-reponse", creeLe,
@@ -43,6 +45,7 @@ export const LIMITE_LECTURE_PARTAGES = { fenetre: 60_000, maximum: 30 };
  *                                          explication? (500 car. ; 10 au moins pour « autre ») } → 201 { ok } : jamais
  *                                          affiché sur la fiche, lu par l'équipe sous 48 h · 404 lieu-inconnu · 429 (5 par 24 h)
  * PUT  /miam-safe/lieux/:id/senti-bien   { oui: boolean } → 200 { ok } (la dernière réponse compte) · 404 lieu-inconnu
+ *                                          · 409 visite-requise (aucune visite validée de ce compte dans ce lieu)
  * « Prévenir un pote » de sa bande (position chiffrée dans la base, effacée dès la fin du partage, jamais dans un journal ;
  * un pote retiré ou bloqué ne voit plus rien). partage = { id, sens: "envoye"|"recu", personne: PersonneResume (l'autre),
  * lieu: { id, nom } | null, avecPosition, position: { latitude, longitude, precisionM, le } | null (seulement en cours),

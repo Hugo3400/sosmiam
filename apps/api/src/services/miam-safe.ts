@@ -46,9 +46,10 @@ export const servicesMiamSafe: ServicesMiamSafe = {
   },
 
   async repondreSentiBien({ lieuId, compteId, oui }) {
-    if (!(await estPublie(lieuId))) return false;
+    if (!(await estPublie(lieuId))) return "lieu-inconnu";
+    if ((await baseDeDonnees.visite.count({ where: { lieuId, compteId, statut: "validee" } })) === 0) return "visite-requise";
     await baseDeDonnees.reponseSentiBien.upsert({ where: { lieuId_compteId: { lieuId, compteId } }, create: { lieuId, compteId, oui }, update: { oui } });
-    return true;
+    return "ok";
   },
 
   async listerAlertesLieu(lieuId, maintenant) {

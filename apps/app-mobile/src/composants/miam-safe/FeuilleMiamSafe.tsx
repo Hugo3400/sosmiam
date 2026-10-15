@@ -55,11 +55,12 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
   const charte = lireCharte(etatLieu);
   const { lecture, relire } = etatLieu;
   const [vue, setVue] = useState<Vue>("choix");
+  const [ouverte, setOuverte] = useState(false);
 
-  useEffect(() => {
-    if (!visible) return;
-    setVue(lireAlerteGardeeMiamSafe(source, lieuId) ? "alerte" : "choix");
-  }, [visible, source, lieuId]);
+  if (visible !== ouverte) {
+    setOuverte(visible);
+    if (visible) setVue(lireAlerteGardeeMiamSafe(source, lieuId) ? "alerte" : "choix");
+  }
 
   useEffect(() => {
     if (visible && lecture === "ratee") relire();

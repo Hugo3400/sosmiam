@@ -19,6 +19,11 @@ export function avecSegmentApp13(octets: Uint8Array, secret: string): Buffer {
   return Buffer.concat([octets.subarray(0, 2), entete, contenu, octets.subarray(2)]);
 }
 
+export function avecSegment(octets: Uint8Array, marqueur: number, contenu: Uint8Array): Buffer {
+  const entete = Buffer.from([0xff, marqueur, (contenu.length + 2) >> 8, (contenu.length + 2) & 0xff]);
+  return Buffer.concat([octets.subarray(0, 2), entete, contenu, octets.subarray(2)]);
+}
+
 export function avecDimensions(octets: Uint8Array, largeur: number, hauteur: number): Buffer {
   const copie = Buffer.from(octets);
   const sof = copie.indexOf(Buffer.from([0xff, 0xc0]));

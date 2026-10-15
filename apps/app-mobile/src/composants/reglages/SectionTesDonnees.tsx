@@ -89,7 +89,7 @@ export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
         <Text className="flex-1 font-texte text-sm leading-5 text-gris">
           {lierPonctuation(
             connecte
-              ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés). Ta photo et ton régime particulier restent sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."
+              ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés), ta photo de profil aussi quand tu la montres. Ton régime particulier reste sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."
               : "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
           )}
         </Text>

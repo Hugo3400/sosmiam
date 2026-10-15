@@ -42,8 +42,8 @@ function decrireAvatar(avatar: Avatar): string {
 /** Réglages > Avatar : un Miami (en tête), un emoji de la liste, ou une photo (appareil photo ou galerie). */
 export default function ReglagesAvatar() {
   const { avatar, changerAvatar, retirerPhoto: retirerPhotoProfil, etatPhoto, profil } = utiliserProfil();
-  const source = utiliserSourceSociale();
-  const partage = source === "demo" ? "demo" : source === "compte" && profil !== null ? "compte" : "visite";
+  const sourceSociale = utiliserSourceSociale();
+  const partage = sourceSociale === "demo" ? "demo" : profil !== null ? "compte" : "visite";
   const { width } = useWindowDimensions();
   // Une seule ouverture du sélecteur à la fois (deux appuis rapides n'ouvrent pas deux fois l'appareil photo)
   const occupe = useRef(false);
@@ -118,17 +118,19 @@ export default function ReglagesAvatar() {
     void appliquer({ type: "emoji", emoji }, `C'est noté : ${decrireAvatar({ type: "emoji", emoji })}.`);
   }
 
-  async function garderPhoto(uriChoisie: string, annonce: string) {
+  async function garderPhoto(uriChoisie: string, annonce: string): Promise<boolean> {
     let uri: string;
     try {
       uri = await garderPhotoAvatar(await preparerPhotoProfil(uriChoisie));
     } catch {
-      return signalerErreur("Ta photo n'a pas pu être préparée. Réessaie, ou choisis-en une autre.");
+      signalerErreur("Ta photo n'a pas pu être préparée. Réessaie, ou choisis-en une autre.");
+      return false;
     }
     const nouveau: Avatar = partage === "compte" ? { type: "photo", uri, partage: "a-envoyer" } : { type: "photo", uri };
     const enregistree = await appliquer(nouveau, annonce);
     // Pas enregistrée comme avatar : on ne laisse pas traîner la copie
     if (!enregistree) supprimerPhotoAvatar(uri);
+    return enregistree;
   }
 
   async function garderResultat(resultat: ImagePicker.ImagePickerResult) {
@@ -140,7 +142,7 @@ export default function ReglagesAvatar() {
     if (avatar.type !== "photo" || !avatar.uri || preparation) return;
     setPreparation(true);
     try {
-      await garderPhoto(avatar.uri, "C'est parti : ta photo part sur SOS Miam.");
+      if (!(await garderPhoto(avatar.uri, "C'est parti : ta photo part sur SOS Miam."))) return;
       void enregistrerEncartPhotoLocaleVu();
       setEncartVu(true);
     } finally {
@@ -310,7 +312,7 @@ export default function ReglagesAvatar() {
       {cameraRefusee ? (
         <View className="mt-4 gap-3 rounded-carte border-2 border-encre bg-white p-4">
           <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
-            Pas d'accès à l'appareil photo
+            {"Pas d'accès à l'appareil photo"}
           </Text>
           <Text className="font-texte text-sm leading-5 text-gris">
             {lierPonctuation(

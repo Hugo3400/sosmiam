@@ -10,6 +10,7 @@ import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
 import { creerSignatureQr } from "../../src/fonctions/securite/creer-signature-qr.ts";
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
+import type { MessagePush } from "../../src/services/notifications/expedier-push.ts";
 import type { RoleRattachement } from "../../src/services/pro-regles.ts";
 import { creerMomentLieuEnMemoire } from "../../src/services/moment-lieu-en-memoire.ts";
 import { creerVisitesEnMemoire, type LieuVisiteEnMemoire } from "../../src/services/visites-en-memoire.ts";
@@ -39,6 +40,7 @@ export async function creerBancVisites() {
   const roles = new Map<string, RoleRattachement>();
   const moment = creerMomentLieuEnMemoire((compteId) => visites.comptes.get(compteId)?.prenom ?? null);
   const points: { compteId: number; valeur: number; raison: string }[] = [];
+  const prevenus: { compteId: number; message: MessagePush }[] = [];
   const horloge = () => banc.horloge;
   const visitesApp: DependancesVisites = {
     depot: visites.depot, chiffrement, signerQr,
@@ -47,6 +49,7 @@ export async function creerBancVisites() {
     lireRole: async (compteId, lieuId) => roles.get(`${compteId}:${lieuId}`) ?? null,
     ajouterPoints: async (compteId, valeur, raison) => void points.push({ compteId, valeur, raison }),
     moment: moment.services,
+    prevenirCompte: async (compteId, message) => void prevenus.push({ compteId, message }),
   };
   const serveur = creerApplication({
     enregistrerInscription: async () => {},
@@ -95,6 +98,7 @@ export async function creerBancVisites() {
     for (const liste of [visites.visites, visites.presentations, visites.cartes, visites.recompenses, visites.demandes, visites.reservations, visites.sos]) liste.length = 0;
     visites.programmes.clear();
     points.length = 0;
+    prevenus.length = 0;
     visites.lieux.set(1, { ...LIEU_TEST, position: { ...LIEU_TEST.position! }, ouverture: OUVERTURE_TEST.map((c) => ({ ...c, jours: [...c.jours] })) });
     moment.lieux.clear();
     moment.sos.length = 0;
@@ -102,5 +106,6 @@ export async function creerBancVisites() {
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));
-  return { banc, visites, moment, points, signerQr, creerCompte, rattacher, demander, vider, fermer };
+  const attendreEnvois = () => new Promise<void>((fini) => setImmediate(() => setImmediate(fini)));
+  return { banc, visites, moment, points, prevenus, attendreEnvois, visitesApp, signerQr, creerCompte, rattacher, demander, vider, fermer };
 }

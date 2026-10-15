@@ -1,3 +1,4 @@
+import { COTE_MIN_PHOTO_AVIS } from "../../../../../packages/commun/src/regles/avis.ts";
 import { COTE_MAX_PHOTO_AVIS, TAILLE_MAX_PHOTO_AVIS, type RefusPhotoAvis } from "../../services/photos-avis-regles.ts";
 import { lireTailleJpeg } from "../medias/lire-taille-jpeg.ts";
 import { retirerMetadonneesJpeg } from "../medias/retirer-metadonnees-jpeg.ts";
@@ -11,7 +12,9 @@ export function preparerPhotoAvis(octets: Uint8Array): PhotoAvisPreparee | Refus
   if (octets.length > TAILLE_MAX_PHOTO_AVIS) return { ok: false, erreur: "media-trop-lourd" };
   const taille = lireTailleJpeg(octets);
   if (!taille) return { ok: false, erreur: "media-invalide", champ: "format" };
-  if (taille.largeur > COTE_MAX_PHOTO_AVIS || taille.hauteur > COTE_MAX_PHOTO_AVIS) return { ok: false, erreur: "media-invalide", champ: "dimensions" };
+  if (Math.max(taille.largeur, taille.hauteur) > COTE_MAX_PHOTO_AVIS || Math.min(taille.largeur, taille.hauteur) < COTE_MIN_PHOTO_AVIS) {
+    return { ok: false, erreur: "media-invalide", champ: "dimensions" };
+  }
   const propre = retirerMetadonneesJpeg(octets);
   if (!propre) return { ok: false, erreur: "media-invalide", champ: "format" };
   return { ok: true, octets: propre, largeur: taille.largeur, hauteur: taille.hauteur };

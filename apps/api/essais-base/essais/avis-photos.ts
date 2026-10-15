@@ -17,7 +17,7 @@ const { egal, vrai } = verifications;
 const T = new Date("2027-05-01T03:30:00Z");
 const JOUR = 86_400_000;
 const ilYa = (ms: number) => new Date(T.getTime() - ms);
-const PHOTO = readFileSync(new URL("../../tests/donnees/photo-exif-position.jpg", import.meta.url));
+const PHOTO = readFileSync(new URL("../../tests/donnees/photo-avis-exif-position.jpg", import.meta.url));
 const inserer = (table: string, valeurs: Record<string, unknown>) => insererLigne(essai.db, table, valeurs);
 
 const LEA = await inserer("comptes", { email: "lea@exemple.fr", prenom: "Léa", points: 0, palier: "curieux" });

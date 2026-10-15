@@ -13,18 +13,19 @@ export async function prevenirEquipeMiamSafe(
   alerte: { lieuId: number; compteId: number; prenom: string; endroit: string; detail: string },
   envoyer: ExpedierPush = expedierPush,
   appareilsPush: TableAppareilsPush = baseDeDonnees.appareilPush,
-): Promise<void> {
+): Promise<number> {
   const appareils = await appareilsPush.findMany({
     where: { actif: true, sessionId: { not: null }, compteId: { not: alerte.compteId }, compte: { rattachementsLieux: { some: { lieuId: alerte.lieuId, statut: "valide" } } } },
     select: { id: true, jeton: true, plateforme: true },
   });
   const message = { titre: `🛡 ${alerte.prenom} a besoin d'aide`, texte: ecrireTexteAlerte(alerte.endroit, alerte.detail), lien: "/pro/comptoir", urgent: true };
-  await Promise.all(
+  void Promise.all(
     appareils.map(async (appareil) => {
       const resultat = await envoyer(appareil, message);
       if (resultat === "jeton-invalide") await appareilsPush.update({ where: { id: appareil.id }, data: { actif: false } });
       // L'erreur vient d'Apple ou de Google (statut et raison), sans donnée personnelle
       else if (resultat !== "envoyee") console.error("Alerte Miam Safe :", resultat.erreur);
     }),
-  );
+  ).catch((erreur: unknown) => console.error("Alerte Miam Safe non transmise :", (erreur as Error)?.name));
+  return appareils.length;
 }

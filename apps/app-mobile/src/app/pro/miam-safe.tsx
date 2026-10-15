@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -43,17 +43,28 @@ export default function EcranMiamSafePro() {
   const [envoi, setEnvoi] = useState(false);
   const [resultat, setResultat] = useState<{ ok: boolean; texte: string } | null>(null);
   const [confirmation, setConfirmation] = useState(false);
-
-  const lire = useCallback(async () => {
-    if (lieuId === null) return;
-    const r = await miamSafe.lireCharte(lieuId).catch(() => null);
-    setCharte(r?.ok ? r.charte : null);
-    setErreurLecture(r?.ok ? null : ecrireErreur(r ? r.erreur : null));
-  }, [miamSafe, lieuId]);
+  const [lecture, setLecture] = useState(0);
 
   useEffect(() => {
-    void lire();
-  }, [lire]);
+    if (lieuId === null) return;
+    let actif = true;
+    miamSafe
+      .lireCharte(lieuId)
+      .catch(() => null)
+      .then((r) => {
+        if (!actif) return;
+        setCharte(r?.ok ? r.charte : null);
+        setErreurLecture(r?.ok ? null : ecrireErreur(r ? r.erreur : null));
+      });
+    return () => {
+      actif = false;
+    };
+  }, [miamSafe, lieuId, lecture]);
+
+  const relire = () => {
+    setCharte(undefined);
+    setLecture((n) => n + 1);
+  };
 
   const agir = async (geste: Geste) => {
     if (lieuId === null || envoi) return;
@@ -69,7 +80,7 @@ export default function EcranMiamSafePro() {
       return;
     }
     setResultat({ ok: false, texte: ecrireErreur(r ? r.erreur : null) });
-    if (r?.erreur === "charte-retiree") void lire();
+    if (r?.erreur === "charte-retiree") relire();
   };
 
   const signable = charte !== undefined && charte !== null && !charte.signee && !charte.retireeParEquipe;
@@ -97,7 +108,7 @@ export default function EcranMiamSafePro() {
         </Text>
         {demo && lieuPro ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
 
-        <EtatCharteMiamSafe charte={lieuId === null ? null : charte} erreur={lieuId === null ? "Ouvre le mode pro de ton lieu pour voir sa charte." : erreurLecture} onReessayer={() => void lire()} />
+        <EtatCharteMiamSafe charte={lieuId === null ? null : charte} erreur={lieuId === null ? "Ouvre le mode pro de ton lieu pour voir sa charte." : erreurLecture} onReessayer={relire} />
 
         <EngagementsCharteMiamSafe />
 

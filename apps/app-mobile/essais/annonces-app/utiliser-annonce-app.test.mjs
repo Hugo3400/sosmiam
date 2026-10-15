@@ -49,12 +49,15 @@ function Sonde() {
   const etat = utiliserAnnonceApp();
   const visible = etat.ouverte && etat.annonce !== null;
   utiliserInscriptionFeuille(visible, etat.fermer);
-  monde.etatHook = etat;
+  useEffect(() => {
+    monde.etatHook = etat;
+  });
+  const { annonce, marquerMontree } = etat;
   useEffect(() => {
     if (!visible) return;
-    monde.ouvertures.push(etat.annonce.id - base);
-    if (!monde.affichageRefuse) etat.marquerMontree();
-  }, [visible]);
+    monde.ouvertures.push(annonce.id - base);
+    if (!monde.affichageRefuse) marquerMontree();
+  }, [visible, annonce, marquerMontree]);
   return null;
 }
 

@@ -8,6 +8,8 @@ export const TEXTE_AVIS_MAX = 1000;
 /** Réponse publique du lieu à un avis (une par avis) */
 export const REPONSE_LIEU_MAX = 600;
 
+export const COTE_MIN_PHOTO_AVIS = 320;
+
 /**
  * Moyenne prudente : on part de 5 avis « fictifs » à 4 sur 5, pour qu'un lieu tout neuf ne soit ni noté 5 sur 5
  * grâce à un seul ami, ni coulé par une seule mauvaise note.

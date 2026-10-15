@@ -29,7 +29,7 @@ export type DependancesAvis = Omit<ContexteAvis, "horloge"> & {
    */
   reevaluerDefis?: (compteId: number, maintenant: Date) => Promise<unknown>;
   /**
-   * La photo envoyée avant l'avis existe-t-elle, et vient-elle de ce compte ? Absent (pas encore d'envoi de photo) : un
+   * La photo envoyée avant l'avis existe-t-elle, et vient-elle de ce compte ? Absent : un
    * avis avec photo est refusé, 400 avis-invalide { champ: "photo" }
    */
   verifierPhoto?: (fichier: string, compteId: number) => Promise<boolean>;

@@ -1,7 +1,11 @@
-/** Un segment APP14 « Adobe » : aucune donnée personnelle (version, drapeaux, transformation des couleurs), et sans lui
- *  certains JPEG s'affichent avec de fausses couleurs : on le garde */
-function estSegmentAdobe(octets: Uint8Array, debut: number, fin: number): boolean {
-  return fin - debut >= 5 && String.fromCharCode(...octets.subarray(debut, debut + 5)) === "Adobe";
+const ADOBE = [0x41, 0x64, 0x6f, 0x62, 0x65];
+
+/** Un segment APP14 « Adobe » : sans lui certains JPEG s'affichent avec de fausses couleurs */
+function reecrireSegmentAdobe(octets: Uint8Array, debut: number, fin: number): Uint8Array | null {
+  if (fin - debut < 12 || !ADOBE.every((octet, k) => octets[debut + k] === octet)) return null;
+  const transformation = octets[debut + 11];
+  if (transformation > 2) return null;
+  return Uint8Array.of(0xff, 0xee, 0x00, 0x0e, ...ADOBE, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, transformation);
 }
 
 /**
@@ -41,8 +45,10 @@ export function retirerMetadonneesJpeg(octets: Uint8Array): Buffer | null {
     const fin = i + 2 + ((octets[i + 2] << 8) | octets[i + 3]);
     if (fin < i + 4 || fin > n) return null;
     if (marqueur >= 0xc0 && marqueur <= 0xcf && marqueur !== 0xc4 && marqueur !== 0xc8 && marqueur !== 0xcc) sofVu = true;
-    const metadonnee = marqueur === 0xfe || (marqueur >= 0xe1 && marqueur <= 0xef && !(marqueur === 0xee && estSegmentAdobe(octets, i + 4, fin)));
-    if (!metadonnee) morceaux.push(octets.subarray(i, fin));
+    const metadonnee = marqueur === 0xfe || marqueur === 0xc8 || (marqueur >= 0xe1 && marqueur <= 0xef) || (marqueur >= 0xf0 && marqueur <= 0xfd);
+    const adobe = marqueur === 0xee ? reecrireSegmentAdobe(octets, i + 4, fin) : null;
+    if (adobe) morceaux.push(adobe);
+    else if (!metadonnee) morceaux.push(octets.subarray(i, fin));
     i = fin;
     if (marqueur !== 0xda) continue;
     if (!sofVu) return null;

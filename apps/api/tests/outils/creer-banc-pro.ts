@@ -26,8 +26,10 @@ export async function creerBancPro() {
   const banc = { horloge: Date.parse("2026-10-09T10:00:00Z") };
   const memoire = creerComptesEnMemoire(() => banc.horloge);
   // Miam Safe en mémoire : les lieux publiés du banc ; les alertes « envoyées » à l'équipe sont notées ici, sans push
-  const miamSafe = creerMiamSafeEnMemoire((lieuId) => memoire.lieux.get(lieuId)?.statut === "publie");
+  const visitesValidees = new Set<string>();
+  const miamSafe = creerMiamSafeEnMemoire((lieuId) => memoire.lieux.get(lieuId)?.statut === "publie", (lieuId, compteId) => visitesValidees.has(`${lieuId}:${compteId}`));
   const equipesPrevenues: (NouvelleAlerte & { id: number })[] = [];
+  const telephonesEquipe = new Map<number, number>();
   // « Prévenir un pote » : partages en mémoire, une bande d'essai (paires de comptes) et des téléphones comptés à la main
   const partages = creerPartagesMiamSafeEnMemoire((lieuId) => {
     const lieu = memoire.lieux.get(lieuId);
@@ -49,7 +51,10 @@ export async function creerBancPro() {
     },
     miamSafe: {
       services: miamSafe.services,
-      prevenirEquipe: async (alerte) => void equipesPrevenues.push(alerte),
+      prevenirEquipe: async (alerte) => {
+        equipesPrevenues.push(alerte);
+        return telephonesEquipe.get(alerte.lieuId) ?? 1;
+      },
       partages: {
         services: partages.services,
         potes: {
@@ -110,7 +115,8 @@ export async function creerBancPro() {
 
   return {
     banc, memoire, miamSafe, equipesPrevenues, demander, creerCompte, ajouterLieu, creerGerant,
-    partages, potesPrevenus, telephones, idPublic,
+    partages, potesPrevenus, telephones, idPublic, telephonesEquipe,
+    validerVisite: (lieuId: number, compteId: number) => void visitesValidees.add(`${lieuId}:${compteId}`),
     rendrePotes: (a: number, b: number) => void bande.add(paire(a, b)),
     retirerPotes: (a: number, b: number) => void bande.delete(paire(a, b)),
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),

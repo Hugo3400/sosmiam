@@ -5,8 +5,10 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 
 import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 import { resumerLieu } from "~/fonctions/lieux/resumer-lieu";
+import { calculerFenetreArrivees } from "~/fonctions/reservations/calculer-fenetre-arrivees";
 
 import { construireQrDemo } from "./construire-qr-demo";
+import { presenterReservationProDemo } from "./presenter-reservation-pro-demo";
 import { trouverClientDemo } from "./trouver-client-demo";
 import type { ClientDemo, MagasinDemo } from "./types-demo";
 
@@ -74,6 +76,12 @@ export function calculerEtatComptoirDemo(m: Readonly<MagasinDemo>, lieu: Lieu, m
       };
     });
 
+  const fenetre = calculerFenetreArrivees(maintenantMs);
+  const arrivees = m.reservations
+    .filter((r) => r.lieuId === lieu.id && r.statut === "acceptee" && Date.parse(r.creneau) >= fenetre.depuisMs && Date.parse(r.creneau) < fenetre.avantMs)
+    .sort((a, b) => Date.parse(a.creneau) - Date.parse(b.creneau) || a.id - b.id)
+    .map((r) => presenterReservationProDemo(m, r, moi));
+
   return {
     lieu: resumerLieu(lieu),
     validationActive: validationLieuxExemples[lieu.id]?.validationActive ?? false,
@@ -81,8 +89,8 @@ export function calculerEtatComptoirDemo(m: Readonly<MagasinDemo>, lieu: Lieu, m
     qr: presentation ? construireQrDemo(presentation, maintenantMs) : null,
     // Les plus anciennes d'abord : c'est l'ordre du passage en caisse
     demandes: [...additions, ...recompenses].sort((a, b) => a.depuis.localeCompare(b.depuis)),
-    arrivees: [],
-    reservationsARepondre: 0,
+    arrivees,
+    reservationsARepondre: m.reservations.filter((r) => r.lieuId === lieu.id && r.statut === "demandee").length,
     validees,
     genereLe: new Date(maintenantMs).toISOString(),
   };
