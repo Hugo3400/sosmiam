@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { FournisseurSession } from "~/composants/compte/FournisseurSession";
 import { FournisseurLieux } from "~/composants/contenu/FournisseurLieux";
+import { FournisseurPositionActuelle } from "~/composants/explorer/FournisseurPositionActuelle";
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurPublications } from "~/composants/fil/FournisseurPublications";
 import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
@@ -48,6 +49,7 @@ export default function RacineApp() {
       <FournisseurActivite>
       {/* Les lieux (exemples en démo, sinon le serveur) : sous le profil, pour les distances depuis ta ville */}
       <FournisseurLieux>
+      <FournisseurPositionActuelle>
       {/* Le fil (exemples en démo, sinon le serveur) : vignettes, profils et notifications s'en servent aussi */}
       <FournisseurPublications>
       {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
@@ -75,6 +77,7 @@ export default function RacineApp() {
         </FournisseurModes>
       </FournisseurInvite>
       </FournisseurPublications>
+      </FournisseurPositionActuelle>
       </FournisseurLieux>
       </FournisseurActivite>
     </FournisseurProfil>

@@ -25,7 +25,7 @@ import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
-import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserOrigineDistances } from "~/hooks/utiliser-origine-distances";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import couleurs from "~/theme/couleurs";
 
@@ -49,8 +49,7 @@ export default function FicheLieu() {
   // Stable : « Envoyer à un pote » reste une fonction stable pour l'en-tête mémorisé
   const exiger = utiliserCompteRequis();
   const activite = utiliserActivite();
-  // Distance depuis le centre de ta ville (partout en France), pas depuis Montpellier
-  const depart = utiliserPointDeDepart();
+  const origine = utiliserOrigineDistances();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   // Stable : l'en-tête mémorisé la reçoit pour « Suivre », sans se redessiner à chaque rescousse
@@ -111,7 +110,8 @@ export default function FicheLieu() {
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
         <EnTeteFicheLieu
           lieu={lieu}
-          km={calculerKmLieu(lieu, depart)}
+          km={calculerKmLieu(lieu, origine.depart)}
+          depuis={origine.depuis}
           margeHaut={marges.top}
           onEnvoyer={ouvrirEnvoi}
           onAnnoncer={annoncer}

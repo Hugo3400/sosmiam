@@ -24,6 +24,7 @@ import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserClientReservation } from "~/hooks/utiliser-client-reservation";
 import { utiliserCreneauxReservation } from "~/hooks/utiliser-creneaux-reservation";
 import { utiliserEnvoiReservation, type RefusReservation } from "~/hooks/utiliser-envoi-reservation";
+import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 
 type Props = {
   lieu: Lieu;
@@ -46,6 +47,7 @@ export function EcranReserverTable({ lieu }: Props) {
   const [annulationOuverte, setAnnulationOuverte] = useState(false);
   const resultatAnnulation = useRef<Promise<boolean> | null>(null);
   const envoi = utiliserEnvoiReservation();
+  const horloge = utiliserHorlogeMinute();
   const { creneauxLus, refusLieu } = utiliserCreneauxReservation(lieu.id, jourChoisi);
 
   const jourLocal = jours.find((j) => j.jour === jourChoisi) ?? jours[0];
@@ -95,8 +97,9 @@ export function EcranReserverTable({ lieu }: Props) {
       <EncadreReservation key={refus.numero} ton="refus" emoji={encadreRefus.emoji} titre={encadreRefus.titre} texte={encadreRefus.texte} action={lireActionRefus(refus.erreur)} />
     ) : null;
 
-  const maintenantMs = maintenant.getTime();
-  const annulation = reservation ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, Date.now()).annulationTardive, maintenantMs) : null;
+  const annulation = reservation
+    ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, horloge.maintenantMs).annulationTardive, horloge.maintenantMs)
+    : null;
   const libelleEnvoyer = envoi.envoi ? TEXTES_RESERVER_TABLE.envoi : refusLimite ? TEXTES_RESERVER_TABLE.envoyerSansPetitMot : TEXTES_RESERVER_TABLE.envoyer;
 
   return (
@@ -125,10 +128,13 @@ export function EcranReserverTable({ lieu }: Props) {
       {reservation ? (
         <DemandeEnvoyeeReservation
           reservation={reservation}
-          maintenantMs={Date.now()}
+          maintenantMs={horloge.maintenantMs}
           client={client}
           refus={dessinerRefus()}
-          onAnnuler={() => setAnnulationOuverte(true)}
+          onAnnuler={() => {
+            horloge.recaler();
+            setAnnulationOuverte(true);
+          }}
           onVoirReservations={() => router.push("/reservations")}
           onRetourFiche={revenirFiche}
           onAutreCreneau={envoi.recommencer}

@@ -13,6 +13,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
@@ -23,8 +24,8 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
   lieu: Lieu;
-  /** Distance du lieu depuis ta ville, en km (un nombre : l'en-tête est mémorisé) ; null si on ne la connaît pas : rien ne s'affiche */
   km: number | null;
+  depuis: string | null;
   /** Hauteur de la zone de l'heure et de l'encoche, en haut de l'écran */
   margeHaut: number;
   onEnvoyer: () => void;
@@ -42,7 +43,7 @@ const AUTEUR_LIEU = { type: "lieu" } as const;
  * « Suivre » et « Envoyer à un pote » (Miam Safe : le bouton 🚨 en haut à droite de la fiche). Mémorisé : une rescousse ou une annonce ne le redessine pas
  * (« Suivre » lit lui-même tes suivis, il est le seul à se redessiner quand tu suis le lieu).
  */
-export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHaut, onEnvoyer, onAnnoncer }: Props) {
+export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis, margeHaut, onEnvoyer, onAnnoncer }: Props) {
   // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
   const avecCompte = utiliserProfil().profil !== null;
   // Sans compte SOS Miam, un lieu ne lance pas de SOS : rien à afficher
@@ -83,7 +84,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
         </Text>
         <Text className="font-texte-moyen text-base text-gris">
           {lieu.info} · 📍 {ecrireQuartierVille(lieu)}
-          {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
+          {km === null ? "" : ` · ${depuis ? `à ${ecrireDistanceDepuis(km, depuis)}` : formaterDistance(km)}`} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
         {verifie ? null : <CarteLieuNonVerifie lieu={lieu} />}

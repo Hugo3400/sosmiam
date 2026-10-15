@@ -1,77 +1,23 @@
-import * as Location from "expo-location";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState } from "react-native";
+import { createContext, useContext } from "react";
 
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
+import type { LecturePosition } from "~/fonctions/geo/lire-position-telephone";
 
-/**
- * « refus » : la personne vient de dire non ; « refus-definitif » : elle avait déjà dit non et le téléphone ne redemande plus
- * (seuls ses réglages peuvent changer ça) ; « coupee » : localisation éteinte ; « introuvable » : pas de position pour l'instant
- */
-export type ErreurPosition = "refus" | "refus-definitif" | "coupee" | "introuvable";
+export type { ErreurPosition } from "~/fonctions/geo/lire-position-telephone";
 
-// Une position récente suffit ; sinon on en demande une, sans attendre plus de 12 secondes
-const AGE_MAX_POSITION = 2 * 60 * 1000;
-const DELAI_MAX = 12_000;
+export type EtatPositionActuelle = {
+  position: PositionLieu | null;
+  approximative: boolean;
+  recherche: boolean;
+  oublisApresAbsence: number;
+  chercher: () => Promise<LecturePosition | null>;
+  oublier: () => void;
+};
 
-/**
- * Position du téléphone pour « Autour de moi » (Explorer) : demandée seulement quand on touche le bouton,
- * gardée en mémoire tant que l'app reste ouverte (oubliée dès qu'elle passe en arrière-plan), jamais enregistrée. Elle ne
- * part jamais telle quelle : le serveur ne reçoit que les cases de 0,5 degré autour de la tienne (calculerZoneAutour).
- */
-export function utiliserPositionActuelle() {
-  const [position, setPosition] = useState<PositionLieu | null>(null);
-  const [recherche, setRecherche] = useState(false);
-  const monte = useRef(true);
-  useEffect(() => {
-    monte.current = true;
-    return () => {
-      monte.current = false;
-    };
-  }, []);
+export const ContextePositionActuelle = createContext<EtatPositionActuelle | null>(null);
 
-  // L'app passe en arrière-plan : on oublie la position (il faudra retoucher « Autour de moi » au retour)
-  useEffect(() => {
-    const abonnement = AppState.addEventListener("change", (etat) => {
-      if (etat === "background") setPosition(null);
-    });
-    return () => abonnement.remove();
-  }, []);
-
-  const chercher = useCallback(async (): Promise<{ position: PositionLieu } | { erreur: ErreurPosition }> => {
-    setRecherche(true);
-    let minuterie: ReturnType<typeof setTimeout> | undefined;
-    try {
-      // Localisation coupée : sur iPhone, la demande d'accès répondrait « refusé » ; on le dit d'abord
-      if (!(await Location.hasServicesEnabledAsync())) return { erreur: "coupee" };
-      // Lu avant de demander : sur iPhone, un premier « Ne pas autoriser » répond déjà « ne redemande plus »,
-      // alors que la personne vient juste de dire non ; seul un refus d'avant renvoie vers les réglages
-      const avant = await Location.getForegroundPermissionsAsync();
-      if (!avant.granted && !avant.canAskAgain) return { erreur: "refus-definitif" };
-      const acces = await Location.requestForegroundPermissionsAsync();
-      if (!acces.granted) return { erreur: "refus" };
-      const lue =
-        (await Location.getLastKnownPositionAsync({ maxAge: AGE_MAX_POSITION })) ??
-        (await Promise.race([
-          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-          new Promise<null>((resoudre) => {
-            minuterie = setTimeout(() => resoudre(null), DELAI_MAX);
-          }),
-        ]));
-      if (!lue) return { erreur: "introuvable" };
-      const trouvee = { latitude: lue.coords.latitude, longitude: lue.coords.longitude };
-      if (monte.current) setPosition(trouvee);
-      return { position: trouvee };
-    } catch {
-      return { erreur: "introuvable" };
-    } finally {
-      if (minuterie) clearTimeout(minuterie);
-      if (monte.current) setRecherche(false);
-    }
-  }, []);
-
-  /** Oublie la position (retour au tri par envies) */
-  const oublier = useCallback(() => setPosition(null), []);
-
-  return { position, recherche, chercher, oublier };
+export function utiliserPositionActuelle(): EtatPositionActuelle {
+  const valeur = useContext(ContextePositionActuelle);
+  if (!valeur) throw new Error("utiliserPositionActuelle doit être appelé sous <FournisseurPositionActuelle>.");
+  return valeur;
 }
