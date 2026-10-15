@@ -16,7 +16,10 @@
       "usesAppleSignIn": true,
       "associatedDomains": [
         "applinks:sosmiam.fr"
-      ]
+      ],
+      "entitlements": {
+        "com.apple.developer.usernotifications.time-sensitive": true
+      }
     },
     "android": {
       "package": "fr.sosmiam.app",
