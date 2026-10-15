@@ -13,6 +13,7 @@ import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
@@ -22,8 +23,8 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   lieu: Lieu;
-  /** Distance affichée (depuis ta position quand on la connaît) ; null si on ne la connaît pas : rien ne s'affiche */
   km: number | null;
+  depuis: string | null;
   /** Image du lieu ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   /** Lieu touché sur la carte : la ligne est mise en avant */
@@ -37,9 +38,10 @@ type Props = {
 const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
-export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir, evenement = null }: Props) {
+export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null }: Props) {
   const ouvert = estOuvertMaintenant(lieu);
   const distance = km === null ? null : formaterDistance(km);
+  const distanceLue = km === null ? null : ecrireDistanceDepuis(km, depuis);
   // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)
   const verifie = estLieuVerifie(lieu);
   const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
@@ -53,7 +55,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
     [lieu.nom, ...quoiEtOu].join(", "),
-    `${distance ? `À ${distance}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
+    `${distanceLue ? `À ${distanceLue}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
     evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,

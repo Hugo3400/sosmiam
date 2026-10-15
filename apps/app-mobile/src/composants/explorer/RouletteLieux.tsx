@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
@@ -21,6 +21,7 @@ type Props = {
   visible: boolean;
   /** Les lieux d'Explorer, déjà filtrés : la roulette pioche dedans */
   lieux: LieuExplorer[];
+  depuis: string | null;
   onFermer: () => void;
   onOuvrir: (id: number) => void;
 };
@@ -40,12 +41,11 @@ function piocher(lieux: LieuExplorer[], exclus: (number | null)[]): LieuExplorer
   return lieux[0];
 }
 
-/** Ce que le lecteur d'écran dit du lieu tiré */
-function decrire({ lieu, km }: LieuExplorer): string {
+function decrire({ lieu, km }: LieuExplorer, depuis: string | null): string {
   return [
     lieu.nom,
     lieu.info,
-    [ecrireQuartierVille(lieu), km === null ? null : `à ${formaterDistance(km)}`].filter(Boolean).join(", "),
+    [ecrireQuartierVille(lieu), km === null ? null : `à ${ecrireDistanceDepuis(km, depuis)}`].filter(Boolean).join(", "),
     lieu.sos ? `SOS ce soir : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}` : null,
   ]
     .filter(Boolean)
@@ -56,7 +56,7 @@ function decrire({ lieu, km }: LieuExplorer): string {
  * La roulette d'Explorer : les lieux défilent vite, ralentissent et s'arrêtent sur un (direct si les animations sont réduites),
  * petite vibration à l'arrivée, résultat dit au lecteur d'écran. Jamais deux fois de suite le même lieu quand il y en a plusieurs.
  */
-export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
+export function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -99,7 +99,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
       echelle.value = withSequence(withTiming(1.05, { duration: 140 }), withSpring(1, { damping: 9 }));
     }
     if (Platform.OS === "web") return;
-    const annonce = `La roulette a choisi : ${decrire(tirage)}`;
+    const annonce = `La roulette a choisi : ${decrire(tirage, depuis)}`;
     // Sur iPhone, l'annonce attend que VoiceOver ait fini sa phrase en cours
     if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(annonce, { queue: true });
     else AccessibilityInfo.announceForAccessibility(annonce);
@@ -192,7 +192,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
                 {/* Pendant que ça tourne, une seule phrase pour le lecteur d'écran, pas une rafale de noms */}
                 <View
                   accessible
-                  accessibilityLabel={tourne || !affiche ? "La roulette tourne…" : decrire(affiche)}
+                  accessibilityLabel={tourne || !affiche ? "La roulette tourne…" : decrire(affiche, depuis)}
                   // Sur iPhone, l'état « busy » est lu en anglais : le libellé « La roulette tourne… » suffit
                   accessibilityState={Platform.OS === "ios" ? undefined : { busy: tourne }}
                   className="overflow-hidden rounded-carte border-2 border-encre bg-white"
@@ -223,7 +223,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
                         {lieu ? `${lieu.info} · ${lieu.prix}${lieu.sos?.offre ? ` · ${lieu.sos.offre}` : ""}` : " "}
                       </Text>
                       <Text numberOfLines={1} className="font-texte-moyen text-sm text-encre">
-                        {affiche && lieu ? `📍 ${[ecrireQuartierVille(lieu), affiche.km === null ? null : formaterDistance(affiche.km)].filter(Boolean).join(" · ")}` : " "}
+                        {affiche && lieu ? `📍 ${[ecrireQuartierVille(lieu), affiche.km === null ? null : ecrireDistanceDepuis(affiche.km, depuis)].filter(Boolean).join(" · ")}` : " "}
                       </Text>
                     </View>
                   </Animated.View>

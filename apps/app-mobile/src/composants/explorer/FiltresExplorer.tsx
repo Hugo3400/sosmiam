@@ -53,7 +53,7 @@ const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ?
 /** Ce que montre la pastille de zone, et ce qu'elle dit au lecteur d'écran */
 function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): { texte: string; lu: string; icone: keyof typeof Ionicons.glyphMap } {
   if (zone.ville !== null) return { texte: zone.ville, lu: `Ville : ${zone.ville}`, icone: "business" };
-  if (zone.portee === "proche") return { texte: `${zone.rayonKm} km`, lu: `Zone : à moins de ${zone.rayonKm} kilomètres ${autourDe}`, icone: "location" };
+  if (zone.portee === "proche") return { texte: `${zone.rayonKm} km ${autourDe}`, lu: `Zone : à moins de ${zone.rayonKm} kilomètres ${autourDe}`, icone: "location" };
   if (zone.portee === "region" && region) return { texte: region, lu: `Zone : ta région, ${region}`, icone: "map" };
   return { texte: "Toute la France", lu: "Zone : toute la France", icone: "earth" };
 }
@@ -127,7 +127,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-3.5 active:opacity-80"
         >
           <Ionicons name={zoneDecrite.icone} size={16} color={couleurs.encre} />
-          <Text numberOfLines={1} className="max-w-[160px] font-texte-gras text-[14px] text-encre">
+          <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[14px] text-encre">
             {zoneDecrite.texte}
           </Text>
           <Ionicons name="chevron-down" size={16} color={couleurs.encre} />

@@ -8,7 +8,7 @@ import { CarrouselSos } from "~/composants/explorer/CarrouselSos";
 import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
@@ -41,6 +41,7 @@ type Props = {
   onChangerHauteur?: (hauteur: number) => void;
   /** Filtre « Événements » : l'événement de chaque lieu sur la période, montré dans sa ligne */
   evenements?: Map<number, EvenementLieuPublic> | null;
+  depuis: string | null;
 };
 
 type Cran = "carte" | "repliee" | "moitie" | "depliee";
@@ -68,7 +69,7 @@ const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", 
  * À poser par l'écran en bas (position absolue, au-dessus de la barre d'onglets) : elle gère elle-même sa hauteur.
  */
 export function FeuilleLieux(props: Props) {
-  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements } = props;
+  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis } = props;
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -217,8 +218,7 @@ export function FeuilleLieux(props: Props) {
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
   const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu) : false;
-  // Distance inconnue (lieu pas encore placé) : rien, jamais « 0 km »
-  const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? formaterDistance(lieuSelectionne.km) : null;
+  const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? ecrireDistanceDepuis(lieuSelectionne.km, depuis) : null;
   const luSelection = lieuSelectionne
     ? [
         `Sélectionné sur la carte : ${lieuSelectionne.lieu.nom}, ${lieuSelectionne.lieu.info}`,
@@ -335,7 +335,7 @@ export function FeuilleLieux(props: Props) {
             ListHeaderComponent={
               sos.length > 0 ? (
                 <View>
-                  <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} />
+                  <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} depuis={depuis} />
                   <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">Tous les lieux</Text>
                 </View>
               ) : null
@@ -346,6 +346,7 @@ export function FeuilleLieux(props: Props) {
               <LigneLieu
                 lieu={item.lieu}
                 km={item.km}
+                depuis={depuis}
                 image={vignettes.get(item.lieu.id) ?? null}
                 selectionne={item.lieu.id === selection}
                 onOuvrir={onOuvrir}

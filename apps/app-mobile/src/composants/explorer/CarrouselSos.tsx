@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View, type ImageSourcePropType } from "rea
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -15,13 +15,14 @@ type Props = {
   /** Image de chaque lieu par identifiant (null : dégradé et emoji du lieu) */
   vignettes: ReadonlyMap<number, ImageSourcePropType | null>;
   onOuvrir: (id: number) => void;
+  depuis: string | null;
 };
 
 const LARGEUR_CARTE = 208;
 const SOUS_TITRE = "De la place et des bons plans : ta fourchette tombe à pic.";
 
 /** « 🛟 SOS ce soir » : les lieux qui ont de la place ou un bon plan ce soir, en cartes qui défilent de côté. */
-export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
+export function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
   if (sos.length === 0) return null;
   return (
     <View className="gap-2 pb-4 pt-1">
@@ -32,8 +33,7 @@ export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
         {sos.map(({ lieu, km }) => {
-          // Distance inconnue (lieu pas encore placé) : sa ville à la place
-          const distance = km === null ? null : formaterDistance(km);
+          const distance = km === null ? null : ecrireDistanceDepuis(km, depuis);
           const ligne = lieu.sos
             ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}`
             : (lieu.alerte ?? "");
