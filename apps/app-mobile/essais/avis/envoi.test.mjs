@@ -68,7 +68,7 @@ test("un texte trop court ne fait rien partir", async () => {
   assert.equal(appels.photos.length + appels.avis.length, 0);
 });
 
-test("l'avis échoue (réseau, 409) : la photo déjà déposée resservira, sans nouvel envoi", async () => {
+test("l'avis échoue (réseau, panne) : la photo déjà déposée resservira, sans nouvel envoi", async () => {
   const { appels, entree } = monterService({ avis: ["lance", { ok: false, erreur: "erreur-serveur" }] });
   const premier = await envoyerAvisAvecPhoto(entree());
   assert.deepEqual(premier.refus, { ou: "envoi", erreur: "hors-ligne", details: undefined });

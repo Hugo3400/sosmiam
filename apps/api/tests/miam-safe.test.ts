@@ -213,6 +213,19 @@ test("Miam Safe : « Tu t'es senti·e bien ici ? » n'est accepté qu'après une
   }
 });
 
+test("Miam Safe : une réponse « senti bien » ne compte dans le repère que si le compte a une visite validée dans ce lieu", async () => {
+  const { creerMiamSafeEnMemoire } = await import("../src/services/miam-safe-en-memoire.ts");
+  const visites = new Set<string>();
+  const memoire = creerMiamSafeEnMemoire(() => true, (lieuId, compteId) => visites.has(`${lieuId}:${compteId}`));
+  for (let compteId = 1; compteId <= 20; compteId++) {
+    visites.add(`7:${compteId}`);
+    assert.equal(await memoire.services.repondreSentiBien({ lieuId: 7, compteId, oui: true }), "ok");
+  }
+  assert.equal((await memoire.services.lireLieu(7))?.repere, true);
+  visites.delete("7:20");
+  assert.equal((await memoire.services.lireLieu(7))?.repere, false);
+});
+
 test("Miam Safe : l'alerte dit sur combien de téléphones de l'équipe elle est partie, 0 compris", async () => {
   const b = await creerBancPro();
   try {

@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AccessibilityInfo, FlatList, PanResponder, Pressable, Text, View, type ImageSourcePropType } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { AccessibilityInfo, FlatList, PanResponder, Pressable, Text, View, type ListRenderItem } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 
-import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { CarrouselSos } from "~/composants/explorer/CarrouselSos";
 import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
@@ -12,9 +11,10 @@ import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
+import { lireAlcoolLieu } from "~/fonctions/lieux/lire-alcool-lieu";
 import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
-import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
+import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
@@ -61,6 +61,10 @@ const ELAN = 180;
 const DUREE = 280;
 
 const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", moitie: "depliee", depliee: "repliee" };
+const BORDURE_HAUT = 2;
+const MARGE_BAS_LISTE = 24;
+
+const lireCleLieu = (element: LieuExplorer) => String(element.lieu.id);
 
 /**
  * La feuille de liste d'Explorer, posée en bas sur la carte : quatre hauteurs (carte seule, repliée, moitié, dépliée),
@@ -77,20 +81,18 @@ export function FeuilleLieux(props: Props) {
   const [cran, setCran] = useState<Cran>("moitie");
   const [hauteurEnTete, setHauteurEnTete] = useState(56);
   const [hauteurSelection, setHauteurSelection] = useState(HAUTEUR_SELECTION_ESTIMEE);
+  const [hauteurHaut, setHauteurHaut] = useState(HAUTEUR_POIGNEE + 56);
   const [lecteurEcran, setLecteurEcran] = useState(false);
   const refListe = useRef<FlatList<LieuExplorer>>(null);
   const refCarteSelection = useRef<View>(null);
   const refPoignee = useRef<View>(null);
 
   // Une publication signalée ou « Pas intéressé » ne sert pas de vignette (comme dans le profil)
-  const vignettes = useMemo(() => {
-    const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
-    return new Map<number, ImageSourcePropType | null>(lieux.map(({ lieu }) => [lieu.id, trouverVignetteLieu(lieu.id, publications)]));
-  }, [lieux, toutesLesPublications, estMasquee]);
+  const vignettes = useMemo(() => indexerVignettesLieux(toutesLesPublications, estMasquee), [toutesLesPublications, estMasquee]);
 
-  const lieuSelectionne = selection === null ? null : (lieux.find((l) => l.lieu.id === selection) ?? null);
+  const lieuSelectionne = useMemo(() => (selection === null ? null : (lieux.find((l) => l.lieu.id === selection) ?? null)), [lieux, selection]);
   // Un bar ou une offre qui parle d'alcool dans la liste (happy hour…) : le message sanitaire en bas
-  const alcool = useMemo(() => lieux.some(({ lieu }) => lieuEvoqueAlcool(lieu)), [lieux]);
+  const alcool = useMemo(() => lieux.some(({ lieu }) => lireAlcoolLieu(lieu)), [lieux]);
 
   // Les trois hauteurs : repliée = poignée + en-tête + une ligne (ou la carte « Sélection »), dépliée = toute la place.
   // Avec un lecteur d'écran, la ligne reste visible même sous la carte « Sélection » : il ne parcourt jamais une liste cachée
@@ -104,6 +106,9 @@ export function FeuilleLieux(props: Props) {
   const carte = lecteurEcran ? repliee : Math.min(repliee, HAUTEUR_CARTE_SEULE);
   const hauteurs: Record<Cran, number> = { carte, repliee, moitie, depliee };
   const cible = pleinEcran ? depliee : hauteurs[cran];
+  const listeFixe = !pleinEcran && !lecteurEcran;
+  const hauteurListe = Math.max(0, depliee - BORDURE_HAUT - hauteurHaut);
+  const margeBasListe = MARGE_BAS_LISTE + (listeFixe ? Math.max(0, depliee - cible) : 0);
 
   const hauteur = useSharedValue(cible);
   const styleHauteur = useAnimatedStyle(() => ({ height: hauteur.value }));
@@ -216,6 +221,35 @@ export function FeuilleLieux(props: Props) {
     ];
   });
 
+  const renderItem = useCallback<ListRenderItem<LieuExplorer>>(
+    ({ item }) => (
+      <LigneLieu
+        lieu={item.lieu}
+        km={item.km}
+        depuis={depuis}
+        image={vignettes.get(item.lieu.id) ?? null}
+        selectionne={item.lieu.id === selection}
+        onOuvrir={onOuvrir}
+        evenement={evenements?.get(item.lieu.id) ?? null}
+        maintenant={maintenant}
+      />
+    ),
+    [vignettes, selection, onOuvrir, evenements, depuis, maintenant],
+  );
+  const enTeteListe = useMemo(
+    () =>
+      sos.length > 0 ? (
+        <View>
+          <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} depuis={depuis} />
+          <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">Tous les lieux</Text>
+        </View>
+      ) : null,
+    [sos, vignettes, onOuvrir, depuis],
+  );
+  const piedListe = useMemo(() => (alcool ? <View className="px-4 pt-3"><MentionPrevention /></View> : null), [alcool]);
+  const styleContenuListe = useMemo(() => ({ paddingBottom: margeBasListe, flexGrow: 1 }), [margeBasListe]);
+  const styleListe = useMemo(() => (listeFixe ? { height: hauteurListe } : { flex: 1 }), [listeFixe, hauteurListe]);
+
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
   const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu, maintenant) : false;
@@ -234,7 +268,7 @@ export function FeuilleLieux(props: Props) {
   return (
     <Animated.View style={styleHauteur}>
       <View className={`flex-1 overflow-hidden bg-creme ${pleinEcran ? "" : "rounded-t-3xl border-t-2 border-encre"}`}>
-        <View {...(pleinEcran ? {} : glissementEnTete.panHandlers)}>
+        <View onLayout={(e) => setHauteurHaut(Math.round(e.nativeEvent.layout.height))} {...(pleinEcran ? {} : glissementEnTete.panHandlers)}>
           {pleinEcran ? (
             <View className="h-2" />
           ) : carteSeule ? (
@@ -322,39 +356,25 @@ export function FeuilleLieux(props: Props) {
           ) : null}
         </View>
 
-        <View className="flex-1" {...(pleinEcran ? {} : glissementApercu.panHandlers)}>
+        <View style={styleListe} {...(pleinEcran ? {} : glissementApercu.panHandlers)}>
           <FlatList
             ref={refListe}
             data={lieux}
-            keyExtractor={(l) => String(l.lieu.id)}
+            keyExtractor={lireCleLieu}
             extraData={selection}
             scrollEnabled={pleinEcran || lecteurEcran || cran !== "repliee"}
             keyboardShouldPersistTaps="handled"
             // Faire défiler la liste range le clavier de la recherche (sinon il la cache presque entière)
             keyboardDismissMode="on-drag"
-            contentContainerStyle={{ paddingBottom: 24, flexGrow: 1 }}
-            ListHeaderComponent={
-              sos.length > 0 ? (
-                <View>
-                  <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} depuis={depuis} />
-                  <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">Tous les lieux</Text>
-                </View>
-              ) : null
-            }
-            ListEmptyComponent={<View className="px-4 py-2">{vide}</View>}
-            ListFooterComponent={alcool ? <View className="px-4 pt-3"><MentionPrevention /></View> : null}
-            renderItem={({ item }) => (
-              <LigneLieu
-                lieu={item.lieu}
-                km={item.km}
-                depuis={depuis}
-                image={vignettes.get(item.lieu.id) ?? null}
-                selectionne={item.lieu.id === selection}
-                onOuvrir={onOuvrir}
-                evenement={evenements?.get(item.lieu.id) ?? null}
-                maintenant={maintenant}
-              />
-            )}
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            updateCellsBatchingPeriod={80}
+            windowSize={5}
+            contentContainerStyle={styleContenuListe}
+            ListHeaderComponent={enTeteListe}
+            ListEmptyComponent={lieux.length === 0 ? <View className="px-4 py-2">{vide}</View> : null}
+            ListFooterComponent={piedListe}
+            renderItem={renderItem}
           />
         </View>
       </View>
