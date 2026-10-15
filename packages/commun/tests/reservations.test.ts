@@ -6,6 +6,8 @@ import { faireEvoluerReservation } from "../src/fonctions/reservations/faire-evo
 import { listerCreneauxReservation } from "../src/fonctions/reservations/lister-creneaux-reservation.ts";
 import { calculerDecalageParis } from "../src/fonctions/temps/calculer-decalage-paris.ts";
 import { calculerInstantParis } from "../src/fonctions/temps/calculer-instant-paris.ts";
+import { DELAI_MIN_RESERVATION_MS, EXPIRATION_AVANT_CRENEAU_MS } from "../src/regles/reservations.ts";
+import { validerDemandeReservation } from "../src/validation/valider-demande-reservation.ts";
 
 const MINUTE = 60_000;
 const HEURE = 60 * MINUTE;
@@ -158,12 +160,25 @@ test("créneaux : toutes les 30 min dans les horaires, jusqu'à la dernière dem
   assert.deepEqual(listerCreneauxReservation([{ jours: [1, 2], de: "12:00", a: "14:00" }], "2026-10-10", MIDI), []);
 });
 
-test("créneaux : au moins 30 min après maintenant", () => {
+test("créneaux : au moins 1 h après maintenant, pour laisser au lieu 30 min pour répondre", () => {
+  assert.equal(DELAI_MIN_RESERVATION_MS, 60 * MINUTE);
+  assert.ok(DELAI_MIN_RESERVATION_MS - EXPIRATION_AVANT_CRENEAU_MS >= 30 * MINUTE);
   const a19h10 = new Date("2026-10-09T17:10:00.000Z");
-  assert.deepEqual(listerCreneauxReservation(nonna, "2026-10-09", a19h10), ["20:00", "20:30", "21:00", "21:30", "22:00"]);
+  assert.deepEqual(listerCreneauxReservation(nonna, "2026-10-09", a19h10), ["20:30", "21:00", "21:30", "22:00"]);
   const a19h = new Date("2026-10-09T17:00:00.000Z");
-  assert.equal(listerCreneauxReservation(nonna, "2026-10-09", a19h)[0], "19:30");
+  assert.equal(listerCreneauxReservation(nonna, "2026-10-09", a19h)[0], "20:00");
+  assert.equal(listerCreneauxReservation(nonna, "2026-10-09", new Date(a19h.getTime() + 1))[0], "20:30");
+  assert.deepEqual(listerCreneauxReservation(nonna, "2026-10-09", new Date("2026-10-09T19:30:00.000Z")), []);
   assert.deepEqual(listerCreneauxReservation(nonna, "2026-10-09", new Date("2026-10-09T20:00:00.000Z")), []);
+});
+
+test("demande : le même délai d'1 h, vérifié par validerDemandeReservation (téléphone et API)", () => {
+  const demande = { lieuId: 1, personnes: 2, jour: "2026-10-09", heure: "20:00", message: null };
+  const a19h = new Date("2026-10-09T17:00:00.000Z");
+  assert.equal(validerDemandeReservation(demande, nonna, a19h), null);
+  assert.equal(validerDemandeReservation(demande, nonna, new Date(a19h.getTime() + 1)), "creneau-invalide");
+  assert.equal(validerDemandeReservation({ ...demande, heure: "20:30" }, nonna, new Date("2026-10-09T17:31:00.000Z")), "creneau-invalide");
+  assert.equal(validerDemandeReservation({ ...demande, heure: "20:30" }, nonna, new Date("2026-10-09T17:30:00.000Z")), null);
 });
 
 test("créneaux : une ouverture qui passe minuit s'arrête à 23 h 30", () => {

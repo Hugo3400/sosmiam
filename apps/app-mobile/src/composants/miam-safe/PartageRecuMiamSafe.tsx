@@ -7,17 +7,21 @@ import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { decrireFraicheurPosition } from "~/fonctions/miam-safe/decrire-fraicheur-position";
 import { ouvrirPositionPlans } from "~/fonctions/miam-safe/ouvrir-position-plans";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 
 type Props = { partage: PartagePositionMiamSafe };
 
-/**
- * L'écran du partage, côté pote prévenu : qui, depuis quel lieu, sa position (et depuis quand), l'ouvrir dans Plans, lui
- * écrire, et les secours. Ton sérieux, sans blague.
- */
 export function PartageRecuMiamSafe({ partage }: Props) {
   const router = useRouter();
+  const { ouvrirPrive } = utiliserConversations();
   const { prenom } = partage.personne;
   const position = partage.position;
+
+  const ecrire = async () => {
+    const conversation = await ouvrirPrive(partage.personne.id).catch(() => null);
+    if (conversation) router.push({ pathname: "/potes/discussion/[id]", params: { id: conversation } });
+    else router.push(`/potes/profil/${partage.personne.id}` as Href);
+  };
 
   return (
     <View className="gap-4">
@@ -50,7 +54,7 @@ export function PartageRecuMiamSafe({ partage }: Props) {
         </View>
       )}
 
-      <Bouton libelle={`Écrire à ${prenom}`} variante="blanc" onPress={() => router.push(`/potes/profil/${partage.personne.id}` as Href)} />
+      <Bouton libelle={`Écrire à ${prenom}`} variante="blanc" onPress={() => void ecrire()} />
       <Text className="font-texte text-base leading-6 text-encre">
         Appelle ton pote. Si tu penses qu'il y a un danger, appelle les secours et donne-leur le lieu.
       </Text>

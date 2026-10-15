@@ -25,6 +25,7 @@ export function FournisseurVisites({ children }: { children: ReactNode }) {
   const inscrit = profil !== null;
   const [donnees, setDonnees] = useState<Donnees>(DONNEES_VIDES);
   const [lu, setLu] = useState(false);
+  const [lecturesReservations, setLecturesReservations] = useState(0);
 
   // Lu au moment de la lecture : une réponse arrivée après l'effacement du profil est ignorée
   const inscritActuel = useRef(inscrit);
@@ -53,6 +54,7 @@ export function FournisseurVisites({ children }: { children: ReactNode }) {
       reservations: reservations?.ok ? reservations.reservations : avant.reservations,
     }));
     setLu(true);
+    if (reservations?.ok) setLecturesReservations((n) => n + 1);
   }, [services]);
 
   // Inscription : première lecture ; profil effacé : on oublie tout
@@ -65,6 +67,7 @@ export function FournisseurVisites({ children }: { children: ReactNode }) {
     derniereLecture.current += 1;
     setDonnees(DONNEES_VIDES);
     setLu(false);
+    setLecturesReservations(0);
   }, [inscrit, chargement, rafraichir]);
 
   // Les services préviennent à chaque changement (une addition réglée par le lieu, un tampon posé…)
@@ -83,8 +86,8 @@ export function FournisseurVisites({ children }: { children: ReactNode }) {
   }, [retours, rafraichir]);
 
   const valeur = useMemo<EtatVisites>(
-    () => ({ ...donnees, pret: !chargement && (!inscrit || lu), source: services.source, rafraichir }),
-    [donnees, chargement, inscrit, lu, services.source, rafraichir],
+    () => ({ ...donnees, lecturesReservations, pret: !chargement && (!inscrit || lu), source: services.source, rafraichir }),
+    [donnees, lecturesReservations, chargement, inscrit, lu, services.source, rafraichir],
   );
 
   return <ContexteVisites.Provider value={valeur}>{children}</ContexteVisites.Provider>;

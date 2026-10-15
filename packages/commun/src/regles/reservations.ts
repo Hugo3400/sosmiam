@@ -10,8 +10,8 @@ export const PERSONNES_RESERVATION_MAX = 12;
 /** On réserve au plus 30 jours à l'avance (aujourd'hui compris) */
 export const JOURS_RESERVATION_MAX = 30;
 
-/** Un créneau commence au moins 30 min après la demande */
-export const DELAI_MIN_RESERVATION_MS = 30 * 60_000;
+/** Un créneau commence au moins 1 h après la demande */
+export const DELAI_MIN_RESERVATION_MS = 60 * 60_000;
 
 /** Les créneaux tombent toutes les 30 min (« 19:00 », « 19:30 »…) */
 export const PAS_CRENEAUX_MIN = 30;

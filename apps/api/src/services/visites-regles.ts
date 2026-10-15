@@ -159,7 +159,7 @@ export interface TablesVisites {
   creerReservation(reservation: NouvelleReservation): Promise<LigneReservation>;
   modifierReservation(id: number, champs: ChampsReservation): Promise<void>;
   /** Les demandes sans réponse à 30 min du créneau (ou moins) deviennent « expiree » (sans effet) */
-  expirerReservations(maintenant: Date): Promise<void>;
+  expirerReservations(maintenant: Date): Promise<LigneReservation[]>;
   /** Le SOS du soir qui était en cours à cet instant chez ce lieu vérifié (arrêté depuis ou non), avec sa fin prévue */
   lireSosA(lieuId: number, instant: Date): Promise<{ jusqua: Date } | null>;
 }

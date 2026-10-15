@@ -15,6 +15,7 @@ type Entree = {
   etat: EtatMiamSafeLieu;
   lueLe: number;
   echecs: number;
+  dernierEssai: number;
   generation: number;
   enCours: boolean;
   relance: ReturnType<typeof setTimeout> | null;
@@ -24,6 +25,7 @@ type Entree = {
 const DUREE_VALIDITE_MS = 5 * 60_000;
 const PREMIERE_RELANCE_MS = 15_000;
 const RELANCE_SUIVANTE_MS = 60_000;
+const ECART_MIN_RELECTURE_MS = 5000;
 const SANS_MIAM_SAFE: MiamSafeLieu = { engage: false, repere: false };
 const EN_COURS: EtatMiamSafeLieu = { lecture: "en-cours", valeur: null };
 const RATEE: EtatMiamSafeLieu = { lecture: "ratee", valeur: null };
@@ -74,6 +76,7 @@ function lancer(entree: Entree) {
   if (entree.enCours) return;
   arreterRelance(entree);
   entree.enCours = true;
+  entree.dernierEssai = Date.now();
   const generation = entree.generation;
   if (entree.etat.valeur === null && entree.etat !== EN_COURS) changer(entree, EN_COURS);
   void lireValeur(entree).then((valeur) => {
@@ -102,7 +105,7 @@ function trouverEntree(services: Services, lieuId: number): Entree {
     existante.service = service;
     return existante;
   }
-  const entree: Entree = { lieuId, service, etat: EN_COURS, lueLe: 0, echecs: 0, generation: 0, enCours: false, relance: null, abonnes: new Set() };
+  const entree: Entree = { lieuId, service, etat: EN_COURS, lueLe: 0, echecs: 0, dernierEssai: 0, generation: 0, enCours: false, relance: null, abonnes: new Set() };
   entrees.set(cle, entree);
   return entree;
 }
@@ -126,7 +129,8 @@ export function suivreMiamSafeLieu(services: Services, lieuId: number, prevenir:
 }
 
 export function relireMiamSafeLieu(services: Services, lieuId: number) {
-  lancer(trouverEntree(services, lieuId));
+  const entree = trouverEntree(services, lieuId);
+  if (Date.now() - entree.dernierEssai >= ECART_MIN_RELECTURE_MS) lancer(entree);
 }
 
 export function oublierMiamSafeLieu(lieuId: number) {

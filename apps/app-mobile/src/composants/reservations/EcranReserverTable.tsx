@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { AccessibilityInfo } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { DemandeReservation } from "@sos-miam/commun/types/reservation";
@@ -12,18 +11,23 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { DemandeEnvoyeeReservation } from "~/composants/reservations/DemandeEnvoyeeReservation";
 import { EncadreReservation, type ActionEncadreReservation } from "~/composants/reservations/EncadreReservation";
 import { FormulaireReservation } from "~/composants/reservations/FormulaireReservation";
+import { FeuilleEchecVisite } from "~/composants/visites/FeuilleEchecVisite";
+import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { ACTIONS_REFUS_RESERVATION, TEXTES_REFUS_RESERVATION, TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
+import { TEXTES_ECHEC_GESTE_RESERVATION } from "~/contenus/textes-mes-reservations";
+import { ACTIONS_REFUS_RESERVATION, PETIT_MOT_REFUSE, TEXTES_REFUS_RESERVATION, TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
 import { calculerGestesReservation } from "~/fonctions/reservations/calculer-gestes-reservation";
 import { calculerJoursReservation } from "~/fonctions/reservations/calculer-jours-reservation";
 import { decrireAnnulationReservation } from "~/fonctions/reservations/decrire-annulation-reservation";
 import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { decrireEtapeReserver } from "~/fonctions/reservations/decrire-etape-reserver";
 import { ecrireCreneauIso } from "~/fonctions/reservations/ecrire-creneau-iso";
+import { garderCreneauxATemps } from "~/fonctions/reservations/garder-creneaux-a-temps";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserClientReservation } from "~/hooks/utiliser-client-reservation";
 import { utiliserCreneauxReservation } from "~/hooks/utiliser-creneaux-reservation";
 import { utiliserEnvoiReservation, type RefusReservation } from "~/hooks/utiliser-envoi-reservation";
+import { utiliserGestesReservation } from "~/hooks/utiliser-gestes-reservation";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 
 type Props = {
@@ -31,14 +35,13 @@ type Props = {
 };
 
 const PERSONNES_PAR_DEFAUT = 2;
-const MESSAGE_PETIT_MOT_REFUSE = `${MESSAGES_SERVICE["message-refuse"].titre} ${MESSAGES_SERVICE["message-refuse"].texte}`;
 const REFUS_BLOQUANTS: readonly ErreurService[] = ["lieu-non-reservable", "membre-du-lieu", "introuvable"];
 
 export function EcranReserverTable({ lieu }: Props) {
   const router = useRouter();
   const client = utiliserClientReservation();
-  const [maintenant] = useState(() => new Date());
-  const jours = useMemo(() => calculerJoursReservation(lieu.ouverture, maintenant), [lieu.ouverture, maintenant]);
+  const horloge = utiliserHorlogeMinute();
+  const jours = useMemo(() => calculerJoursReservation(lieu.ouverture, new Date(horloge.maintenantMs)), [lieu.ouverture, horloge.maintenantMs]);
   const aujourdhui = jours[0].jour;
   const [jourChoisi, setJourChoisi] = useState(() => (jours.find((j) => j.creneaux.length > 0) ?? jours[0]).jour);
   const [heureChoisie, setHeure] = useState<string | null>(null);
@@ -47,20 +50,27 @@ export function EcranReserverTable({ lieu }: Props) {
   const [annulationOuverte, setAnnulationOuverte] = useState(false);
   const resultatAnnulation = useRef<Promise<boolean> | null>(null);
   const envoi = utiliserEnvoiReservation();
-  const horloge = utiliserHorlogeMinute();
+  const gestes = utiliserGestesReservation({
+    remplacer: (reservation) => {
+      horloge.recaler();
+      envoi.remplacer(reservation);
+    },
+    actualiser: envoi.relire,
+  });
   const { creneauxLus, refusLieu } = utiliserCreneauxReservation(lieu.id, jourChoisi);
 
   const jourLocal = jours.find((j) => j.jour === jourChoisi) ?? jours[0];
-  const jour = { ...jourLocal, creneaux: creneauxLus[jourLocal.jour] ?? jourLocal.creneaux };
+  const lus = creneauxLus[jourLocal.jour];
+  const jour = { ...jourLocal, creneaux: lus ? garderCreneauxATemps(jourLocal.jour, lus, horloge.maintenantMs) : jourLocal.creneaux };
   const heure = heureChoisie && jour.creneaux.includes(heureChoisie) ? heureChoisie : null;
   const prochainOuvert = jours.find((j) => j.jour > jour.jour && j.creneaux.length > 0) ?? null;
-  const quand = heure ? decrireCreneauReservation(ecrireCreneauIso(jour.jour, heure), maintenant.getTime()).lu : null;
+  const quand = heure ? decrireCreneauReservation(ecrireCreneauIso(jour.jour, heure), horloge.maintenantMs).lu : null;
   const { reservation } = envoi;
 
   const refus: RefusReservation | null = envoi.refus ?? (refusLieu ? { ...refusLieu, numero: 0 } : null);
   const refusLimite = refus?.erreur === "compte-limite";
-  const erreurPetitMot = refus?.erreur === "message-refuse" ? MESSAGE_PETIT_MOT_REFUSE : null;
-  const encadreRefus = refus && !refusLimite && !erreurPetitMot ? decrireEchecVisite(refus.erreur, refus.details, lieu.nom, TEXTES_REFUS_RESERVATION[refus.erreur]) : null;
+  const petitMotRefuse = refus?.erreur === "message-refuse";
+  const encadreRefus = refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(refus.erreur, refus.details, lieu.nom, TEXTES_REFUS_RESERVATION[refus.erreur]) : null;
   const bloque = refusLieu !== null && REFUS_BLOQUANTS.includes(refusLieu.erreur);
   const etape = decrireEtapeReserver(reservation, lieu);
 
@@ -82,6 +92,11 @@ export function EcranReserverTable({ lieu }: Props) {
     void envoi.envoyer(demande);
   }
 
+  function envoyerSansPetitMot() {
+    setPetitMot("");
+    envoyer("");
+  }
+
   function lireActionRefus(erreur: ErreurService): ActionEncadreReservation | undefined {
     if (erreur === "lieu-non-reservable") return { libelle: ACTIONS_REFUS_RESERVATION.retourFiche, onPress: revenirFiche };
     if (erreur === "introuvable") return { libelle: ACTIONS_REFUS_RESERVATION.voirExplorer, onPress: () => router.navigate("/explorer") };
@@ -92,10 +107,23 @@ export function EcranReserverTable({ lieu }: Props) {
     return undefined;
   }
 
-  const dessinerRefus = () =>
-    refus && encadreRefus ? (
-      <EncadreReservation key={refus.numero} ton="refus" emoji={encadreRefus.emoji} titre={encadreRefus.titre} texte={encadreRefus.texte} action={lireActionRefus(refus.erreur)} />
-    ) : null;
+  function dessinerAuDessusDuBouton() {
+    if (refusLimite) return <RefusLimitationEnPlace key={refus?.numero} texte={REFUS_LIMITATION.petitMot} />;
+    if (petitMotRefuse) {
+      return (
+        <EncadreReservation
+          key={refus?.numero}
+          ton="refus"
+          emoji={PETIT_MOT_REFUSE.emoji}
+          titre={PETIT_MOT_REFUSE.titre}
+          texte={PETIT_MOT_REFUSE.texte}
+          action={{ libelle: TEXTES_RESERVER_TABLE.envoyerSansPetitMot, onPress: envoyerSansPetitMot }}
+        />
+      );
+    }
+    if (!refus || !encadreRefus) return null;
+    return <EncadreReservation key={refus.numero} ton="refus" emoji={encadreRefus.emoji} titre={encadreRefus.titre} texte={encadreRefus.texte} action={lireActionRefus(refus.erreur)} />;
+  }
 
   const annulation = reservation
     ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, horloge.maintenantMs).annulationTardive, horloge.maintenantMs)
@@ -113,28 +141,24 @@ export function EcranReserverTable({ lieu }: Props) {
           ? undefined
           : {
               libelle: libelleEnvoyer,
-              onPress: refusLimite
-                ? () => {
-                    setPetitMot("");
-                    envoyer("");
-                  }
-                : () => envoyer(petitMot),
+              onPress: refusLimite ? envoyerSansPetitMot : () => envoyer(petitMot),
               desactive: heure === null || envoi.envoi || bloque,
               indice: heure === null ? TEXTES_RESERVER_TABLE.indiceSansHeure : TEXTES_RESERVER_TABLE.indiceEnvoyer,
             }
       }
-      auDessusDuBouton={refusLimite ? <RefusLimitationEnPlace key={refus?.numero} texte={REFUS_LIMITATION.petitMot} /> : dessinerRefus()}
+      auDessusDuBouton={reservation ? null : dessinerAuDessusDuBouton()}
     >
       {reservation ? (
         <DemandeEnvoyeeReservation
           reservation={reservation}
           maintenantMs={horloge.maintenantMs}
           client={client}
-          refus={dessinerRefus()}
+          presenceEnCours={gestes.presence?.reservationId === reservation.id ? gestes.presence.texte : null}
           onAnnuler={() => {
             horloge.recaler();
             setAnnulationOuverte(true);
           }}
+          onSignalerPresence={(r) => void gestes.signalerPresence(r)}
           onVoirReservations={() => router.push("/reservations")}
           onRetourFiche={revenirFiche}
           onAutreCreneau={envoi.recommencer}
@@ -146,9 +170,10 @@ export function EcranReserverTable({ lieu }: Props) {
           aujourdhui={aujourdhui}
           jour={jour}
           heure={heure}
+          maintenantMs={horloge.maintenantMs}
           personnes={personnes}
           petitMot={petitMot}
-          erreurPetitMot={erreurPetitMot}
+          erreurPetitMot={petitMotRefuse ? PETIT_MOT_REFUSE.sousLeChamp : null}
           quand={quand}
           onChoisirJour={choisirJour}
           onChoisirHeure={(suivante) => changer(() => setHeure(suivante))}
@@ -166,7 +191,7 @@ export function EcranReserverTable({ lieu }: Props) {
         libelleConfirmer={annulation?.libelleConfirmer ?? ""}
         libelleRester={annulation?.libelleRester ?? ""}
         onConfirmer={() => {
-          resultatAnnulation.current = envoi.annuler();
+          resultatAnnulation.current = reservation ? gestes.annuler(reservation) : null;
         }}
         onRefermee={() => {
           const annonce = annulation?.annonce;
@@ -176,6 +201,8 @@ export function EcranReserverTable({ lieu }: Props) {
         }}
         onFermer={() => setAnnulationOuverte(false)}
       />
+      <FeuillePositionVisite {...gestes.propsFeuillePosition} />
+      <FeuilleEchecVisite echec={gestes.echec} lieuNom={lieu.nom} textes={TEXTES_ECHEC_GESTE_RESERVATION} actions={gestes.actionsEchec} onFermer={gestes.fermerEchec} />
     </EcranReglage>
   );
 }

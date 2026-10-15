@@ -1,10 +1,11 @@
 import { DELAI_MIN_RESERVATION_MS, EXPIRATION_AVANT_CRENEAU_MS, PERSONNES_RESERVATION_MAX } from "@sos-miam/commun/regles/reservations";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
+import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
 import type { MomentCreneau } from "~/fonctions/reservations/grouper-creneaux-reservation";
 import type { RaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans-creneau";
 
-const MINUTES_AVANCE = Math.round(DELAI_MIN_RESERVATION_MS / 60_000);
+const DELAI_AVANCE = ecrireAttente(DELAI_MIN_RESERVATION_MS);
 const MINUTES_AVANT_EXPIRATION = Math.round(EXPIRATION_AVANT_CRENEAU_MS / 60_000);
 
 export const TEXTES_RESERVER_TABLE = {
@@ -13,6 +14,7 @@ export const TEXTES_RESERVER_TABLE = {
   sousTitre: "Gratuit, sans carte bancaire : l'équipe te répond dans l'app.",
   jour: "Quel jour ?",
   heure: "À quelle heure ?",
+  heureDeParis: "Les heures sont celles du lieu, à l'heure de Paris.",
   personnes: "Vous serez combien ?",
   personnesLu: "Nombre de personnes",
   grandeTablee: `Plus de ${PERSONNES_RESERVATION_MAX} ? Appelle directement le lieu : les grandes tablées, ça s'organise de vive voix.`,
@@ -50,7 +52,7 @@ export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; c
     court: "Trop tard",
     lu: "plus de créneau",
     titre: "Plus de créneau aujourd'hui",
-    texte: `On réserve au moins ${MINUTES_AVANCE}\u00a0min à l'avance, et le dernier créneau du jour est passé. Un autre jour, ça te dit ?`,
+    texte: `On réserve au moins ${DELAI_AVANCE} à l'avance, pour laisser à l'équipe le temps de te répondre : le dernier créneau du jour est passé. Un autre jour, ça te dit ?`,
   },
 };
 
@@ -66,9 +68,14 @@ export const TEXTES_REFUS_RESERVATION: Readonly<Partial<Record<ErreurService, st
   "membre-du-lieu": "On ne réserve pas chez soi : ta table, tu la connais déjà ! Va plutôt goûter chez les voisins.",
   "hors-ligne": "Rien n'est parti. Vérifie ta connexion, puis renvoie : tes choix t'attendent ici.",
   introuvable: "Ce lieu n'est plus sur SOS Miam pour l'instant. Reviens à l'Explorer pour en dénicher un autre.",
-  "transition-interdite": "Elle a bougé entre-temps : la carte ci-dessous est à jour.",
-  "delai-depasse": "Le créneau est déjà passé : il n'y a plus rien à annuler.",
 };
+
+export const PETIT_MOT_REFUSE = {
+  emoji: "✋",
+  titre: "Ton petit mot ne passe pas",
+  texte: "Il contient un terme qu'on ne laisse pas passer. Reformule-le juste au-dessus, ou envoie ta demande sans.",
+  sousLeChamp: "On reformule ? Ton petit mot contient un terme qu'on ne laisse pas passer.",
+} as const;
 
 export const ACTIONS_REFUS_RESERVATION = {
   retourFiche: "Retour à la fiche",

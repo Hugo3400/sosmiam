@@ -7,16 +7,12 @@ import { LONGUEUR_MAX_EXPLICATION_SIGNALEMENT, LONGUEUR_MIN_EXPLICATION_SIGNALEM
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
-import { Mascotte } from "~/composants/marque/Mascotte";
 import { LIBELLES_RAISON_MIAM_SAFE } from "~/contenus/miam-safe";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
 type Props = { lieuId: number; nomLieu: string };
 
-/**
- * Raconter après coup ce qui s'est passé dans un lieu : une raison, tes mots, et c'est lu par notre équipe sous 48 h.
- * Jamais affiché sur la fiche du lieu. Envoyé par le service Miam Safe (démo, ou API plus tard).
- */
 export function RaconterMiamSafe({ lieuId, nomLieu }: Props) {
   const { miamSafe } = utiliserServices();
   const [erreur, setErreur] = useState<string | null>(null);
@@ -28,8 +24,7 @@ export function RaconterMiamSafe({ lieuId, nomLieu }: Props) {
 
   if (envoye) {
     return (
-      <View accessible className="items-center gap-3 py-2">
-        <Mascotte expression="clin" taille={110} />
+      <View accessible accessibilityLiveRegion="polite" className="items-center gap-3 py-2">
         <Text className="text-center font-texte-gras text-lg text-encre">Merci de nous l'avoir dit.</Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
           Notre équipe le lit sous {DELAI_LECTURE_SIGNALEMENT_HEURES} h et te dira ce qu'elle a décidé. Rien n'apparaît sur la fiche du lieu.
@@ -40,7 +35,7 @@ export function RaconterMiamSafe({ lieuId, nomLieu }: Props) {
 
   return (
     <View className="gap-4">
-      <Text className="font-texte text-base leading-6 text-gris">Ce qui s'est passé au {nomLieu}. Ça reste entre toi et notre équipe.</Text>
+      <Text className="font-texte text-base leading-6 text-gris">Ce qui s'est passé {direChezLieu(nomLieu)}. Ça reste entre toi et notre équipe.</Text>
       <View className="gap-2">
         {RAISONS_SIGNALEMENT_MIAM_SAFE.map((r, i) => (
           <Pastille

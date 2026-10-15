@@ -19,7 +19,7 @@ const ecrireHeure = (minutes: number) =>
 
 /**
  * Les créneaux réservables d'un jour « AAAA-MM-JJ » (heure de Paris), triés : « HH:MM » toutes les 30 min, dans les
- * horaires d'ouverture (de l'ouverture jusqu'à la dernière demi-heure avant la fermeture), au moins 30 min après
+ * horaires d'ouverture (de l'ouverture jusqu'à la dernière demi-heure avant la fermeture), au moins 1 h après
  * maintenant, et seulement d'aujourd'hui à dans 30 jours. Un créneau d'ouverture qui passe minuit s'arrête à 23 h 30
  * ce jour-là (pas de réservation après minuit). Jour mal écrit, passé ou trop lointain : aucun créneau.
  */

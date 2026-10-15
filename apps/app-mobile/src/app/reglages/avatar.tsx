@@ -4,16 +4,23 @@ import { AccessibilityInfo, ActivityIndicator, Alert, Linking, Platform, Pressab
 
 import type { IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
 import { Bouton } from "~/composants/interface/Bouton";
+import { EncartPhotoLocale } from "~/composants/profil/EncartPhotoLocale";
+import { EtatEnvoiPhoto } from "~/composants/profil/EtatEnvoiPhoto";
 import { GrilleMiamis } from "~/composants/profil/GrilleMiamis";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
+import { MentionPhotoProfil } from "~/composants/profil/MentionPhotoProfil";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { avatarsEmoji } from "~/contenus/avatars-emoji";
+import { decrireEtatPhoto } from "~/fonctions/compte/decrire-etat-photo";
 import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
+import { preparerPhotoProfil } from "~/fonctions/compte/preparer-photo-profil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { AVATAR_PAR_DEFAUT, garderPhotoAvatar, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
+import { enregistrerEncartPhotoLocaleVu, lireEncartPhotoLocaleVu } from "~/stockage/encart-photo-locale";
 import couleurs from "~/theme/couleurs";
 
 // Options du sélecteur : une image carrée, recadrable, assez légère pour un rond de profil
@@ -32,18 +39,44 @@ function decrireAvatar(avatar: Avatar): string {
   return avatar.type === "photo" ? "ta photo" : `avatar ${nommerAvatar(avatar)}`;
 }
 
-/** Réglages > Avatar : un Miami (en tête), un emoji de la liste, ou une photo (appareil photo ou galerie) qui reste sur le téléphone. */
+/** Réglages > Avatar : un Miami (en tête), un emoji de la liste, ou une photo (appareil photo ou galerie). */
 export default function ReglagesAvatar() {
-  const { avatar, changerAvatar } = utiliserProfil();
+  const { avatar, changerAvatar, retirerPhoto: retirerPhotoProfil, etatPhoto, profil } = utiliserProfil();
+  const source = utiliserSourceSociale();
+  const partage = source === "demo" ? "demo" : source === "compte" && profil !== null ? "compte" : "visite";
   const { width } = useWindowDimensions();
   // Une seule ouverture du sélecteur à la fois (deux appuis rapides n'ouvrent pas deux fois l'appareil photo)
   const occupe = useRef(false);
   const [enCours, setEnCours] = useState<"camera" | "galerie" | null>(null);
   const [cameraRefusee, setCameraRefusee] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [encartVu, setEncartVu] = useState(true);
+  const [preparation, setPreparation] = useState(false);
+  const [enLigneIci, setEnLigneIci] = useState(false);
+  const partageAvant = useRef(avatar.type === "photo" ? avatar.partage : undefined);
   // Après « Retirer la photo », sa ligne disparaît : le lecteur d'écran est ramené sur l'avatar actuel
   const refAvatarActuel = useRef<View>(null);
   const ramenerFocus = useRef(false);
+  const photoLocale = avatar.type === "photo" && avatar.partage === undefined;
+  const description = decrireEtatPhoto(etatPhoto, avatar.type === "photo" && avatar.partage === "a-envoyer", Date.now());
+
+  useEffect(() => {
+    let actif = true;
+    void lireEncartPhotoLocaleVu().then((vu) => {
+      if (actif) setEncartVu(vu);
+    });
+    return () => {
+      actif = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const partageActuel = avatar.type === "photo" ? avatar.partage : undefined;
+    const vientDePartir = partageAvant.current === "a-envoyer" && partageActuel !== undefined && partageActuel !== "a-envoyer";
+    partageAvant.current = partageActuel;
+    setEnLigneIci(vientDePartir);
+    if (vientDePartir) AccessibilityInfo.announceForAccessibility("Ta photo est en ligne : ta bande et les Miamis la voient.");
+  }, [avatar]);
 
   useEffect(() => {
     if (!ramenerFocus.current || avatar.type === "photo") return;
@@ -85,17 +118,40 @@ export default function ReglagesAvatar() {
     void appliquer({ type: "emoji", emoji }, `C'est noté : ${decrireAvatar({ type: "emoji", emoji })}.`);
   }
 
-  async function garderResultat(resultat: ImagePicker.ImagePickerResult) {
-    if (resultat.canceled || resultat.assets.length === 0) return;
+  async function garderPhoto(uriChoisie: string, annonce: string) {
     let uri: string;
     try {
-      uri = await garderPhotoAvatar(resultat.assets[0].uri);
+      uri = await garderPhotoAvatar(await preparerPhotoProfil(uriChoisie));
     } catch {
-      return signalerErreur("Ta photo n'a pas pu être gardée sur le téléphone. Réessaie, ou choisis-en une autre.");
+      return signalerErreur("Ta photo n'a pas pu être préparée. Réessaie, ou choisis-en une autre.");
     }
-    const enregistree = await appliquer({ type: "photo", uri }, "C'est noté : ta photo est ton nouvel avatar.");
+    const nouveau: Avatar = partage === "compte" ? { type: "photo", uri, partage: "a-envoyer" } : { type: "photo", uri };
+    const enregistree = await appliquer(nouveau, annonce);
     // Pas enregistrée comme avatar : on ne laisse pas traîner la copie
     if (!enregistree) supprimerPhotoAvatar(uri);
+  }
+
+  async function garderResultat(resultat: ImagePicker.ImagePickerResult) {
+    if (resultat.canceled || resultat.assets.length === 0) return;
+    await garderPhoto(resultat.assets[0].uri, partage === "compte" ? "C'est noté : ta photo est ton nouvel avatar. Elle part sur SOS Miam." : "C'est noté : ta photo est ton nouvel avatar.");
+  }
+
+  async function montrerPhotoLocale() {
+    if (avatar.type !== "photo" || !avatar.uri || preparation) return;
+    setPreparation(true);
+    try {
+      await garderPhoto(avatar.uri, "C'est parti : ta photo part sur SOS Miam.");
+      void enregistrerEncartPhotoLocaleVu();
+      setEncartVu(true);
+    } finally {
+      setPreparation(false);
+    }
+  }
+
+  function laisserPhotoLocale() {
+    void enregistrerEncartPhotoLocaleVu();
+    setEncartVu(true);
+    AccessibilityInfo.announceForAccessibility("D'accord, ta photo reste sur ce téléphone.");
   }
 
   async function ouvrirSelecteur(source: "camera" | "galerie") {
@@ -129,19 +185,33 @@ export default function ReglagesAvatar() {
     }
   }
 
+  async function enleverPhoto(annonce: string | null): Promise<boolean> {
+    setErreur(null);
+    try {
+      await retirerPhotoProfil();
+      if (annonce) AccessibilityInfo.announceForAccessibility(annonce);
+      return true;
+    } catch {
+      signalerErreur("Oups, ta photo n'a pas pu être retirée. Réessaie dans un instant.");
+      return false;
+    }
+  }
+
   function retirerPhoto() {
     // Sur le web (aperçu de développement), Alert n'existe pas : on retire directement et on l'annonce
-    if (surLeWeb) return void appliquer(AVATAR_PAR_DEFAUT, `Photo retirée : retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}.`);
+    if (surLeWeb) return void enleverPhoto("Photo retirée : retour à ton avatar d'avant.");
     // Sur le téléphone, le lecteur d'écran se pose sur l'avatar actuel, qui dit déjà lequel c'est
     const retirer = () => {
       ramenerFocus.current = true;
-      void appliquer(AVATAR_PAR_DEFAUT, null).then((ok) => {
+      void enleverPhoto(null).then((ok) => {
         if (!ok) ramenerFocus.current = false;
       });
     };
     Alert.alert(
       "Retirer ta photo ?",
-      `Elle sera effacée de SOS Miam et tu repartiras avec l'${decrireAvatar(AVATAR_PAR_DEFAUT)}, à changer quand tu veux.`,
+      partage === "compte"
+        ? `Elle disparaît de SOS Miam, pour toi comme pour les autres, et tu retrouves ton avatar d'avant (ou l'${decrireAvatar(AVATAR_PAR_DEFAUT)}).`
+        : `Elle sera effacée de ce téléphone et tu repartiras avec l'${decrireAvatar(AVATAR_PAR_DEFAUT)}, à changer quand tu veux.`,
       [
         { text: "Garder ma photo", style: "cancel" },
         { text: "Retirer", style: "destructive", onPress: retirer },
@@ -218,9 +288,24 @@ export default function ReglagesAvatar() {
           droite={chargement("galerie")}
         />
         {avatar.type === "photo" ? (
-          <LigneReglage emoji="🗑️" titre="Retirer la photo" detail={`Retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}`} danger onPress={retirerPhoto} />
+          <LigneReglage
+            emoji="🗑️"
+            titre="Retirer ma photo"
+            detail={partage === "compte" ? "Retour à ton avatar d'avant" : `Retour à l'${decrireAvatar(AVATAR_PAR_DEFAUT)}`}
+            danger
+            onPress={retirerPhoto}
+          />
         ) : null}
       </View>
+
+      {photoLocale && partage === "compte" && !encartVu ? <EncartPhotoLocale enCours={preparation} onMontrer={() => void montrerPhotoLocale()} onLaisser={laisserPhotoLocale} /> : null}
+
+      {description && partage === "compte" ? <EtatEnvoiPhoto description={description} /> : null}
+      {enLigneIci && !description ? (
+        <Text accessibilityLiveRegion="polite" className="mt-4 font-texte-semi text-sm leading-5 text-encre">
+          {lierPonctuation("✅ Ta photo est en ligne : ta bande et les Miamis la voient.")}
+        </Text>
+      ) : null}
 
       {cameraRefusee ? (
         <View className="mt-4 gap-3 rounded-carte border-2 border-encre bg-white p-4">
@@ -242,9 +327,7 @@ export default function ReglagesAvatar() {
         </Text>
       ) : null}
 
-      <Text accessibilityLabel="Ta photo reste sur ton téléphone." className="mt-6 font-texte text-sm leading-5 text-gris">
-        🔒 Ta photo reste sur ton téléphone.
-      </Text>
+      <MentionPhotoProfil partage={partage} photoLocale={photoLocale && encartVu} />
     </EcranReglage>
   );
 }

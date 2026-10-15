@@ -214,7 +214,9 @@ export function creerVisitesEnMemoire() {
     },
     async expirerReservations(maintenant) {
       const limite = maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS;
-      for (const r of reservations) if (r.statut === "demandee" && r.creneau.getTime() <= limite) r.statut = "expiree";
+      const expirees = reservations.filter((r) => r.statut === "demandee" && r.creneau.getTime() <= limite);
+      for (const r of expirees) r.statut = "expiree";
+      return expirees.map(copier);
     },
     async lireSosA(lieuId, instant) {
       if (!lieux.get(lieuId)?.verifie) return null;

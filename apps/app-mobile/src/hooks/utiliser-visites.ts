@@ -18,6 +18,7 @@ export type EtatVisites = {
   aEcrire: Visite[];
   cartes: CarteFidelite[];
   reservations: Reservation[];
+  lecturesReservations: number;
   /** Points des visites et des avis avec photo (à ajouter aux points comptés sur le téléphone, voir utiliserPointsTotaux) */
   points: number;
   /** Relit tout ; ce qui n'a pas pu être relu (pas de réseau…) garde sa dernière valeur */

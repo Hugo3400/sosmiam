@@ -43,12 +43,19 @@ test("sans session : 401 partout", async () => {
   }
 });
 
-test("créneaux : dans les horaires, 30 min après maintenant ; lieu non réservable ou non vérifié ; un bar comme les autres", async () => {
+test("créneaux : dans les horaires, 1 h après maintenant ; lieu non réservable ou non vérifié ; un bar comme les autres", async () => {
   const lea = await b.creerCompte();
   const r = await b.demander("GET", "/app/reservations/creneaux?lieuId=1&jour=2026-10-09", lea.jeton);
   assert.equal(r.statut, 200, JSON.stringify(r.corps));
   assert.equal(r.entetes.get("cache-control"), "private, no-store");
-  assert.deepEqual(r.corps.creneaux, ["12:30", "13:00", "13:30", "14:00", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"]);
+  assert.deepEqual(r.corps.creneaux, ["13:00", "13:30", "14:00", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"]);
+  const tropTot = await reserver(lea.jeton, { heure: "12:30" });
+  assert.deepEqual([tropTot.statut, tropTot.corps.erreur], [400, "creneau-invalide"]);
+  b.banc.horloge += 1;
+  assert.deepEqual((await reserver(lea.jeton, { heure: "13:00" })).corps.erreur, "creneau-invalide");
+  b.banc.horloge -= 1;
+  assert.equal((await reserver(lea.jeton, { heure: "13:00" })).statut, 201, "pile 1 h avant : encore possible");
+  b.visites.reservations.length = 0;
   assert.deepEqual((await b.demander("GET", "/app/reservations/creneaux?lieuId=1&jour=2026-10-08", lea.jeton)).corps.creneaux, []);
   for (const [requete, champ] of [["lieuId=1&jour=demain", "jour"], ["lieuId=abc&jour=2026-10-09", "lieuId"], ["jour=2026-10-09", "lieuId"]]) {
     const x = await b.demander("GET", `/app/reservations/creneaux?${requete}`, lea.jeton);
@@ -192,7 +199,7 @@ test("« Je suis là » : une fois, sur place, d'une heure avant le créneau à 
   assert.equal(JSON.stringify(b.visites.reservations).includes("43.61"), false);
 
   const sam = await b.creerCompte({ prenom: "Sam" });
-  const demande = (await reserver(sam.jeton)).corps.reservation.id;
+  const demande = (await reserver(sam.jeton, { heure: "21:00" })).corps.reservation.id;
   assert.equal((await b.demander("POST", `/app/reservations/${demande}/presence`, sam.jeton, { position: SUR_PLACE })).corps.erreur, "transition-interdite");
   b.banc.horloge = VINGT_HEURES + 4 * 60 * MINUTE + MINUTE;
   const lea2 = await b.creerCompte();

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
 import type { Reservation } from "@sos-miam/commun/types/reservation";
@@ -13,8 +13,9 @@ type Props = {
   reservation: Reservation;
   maintenantMs: number;
   client: { prenom: string; avatar: string };
-  refus: ReactNode;
+  presenceEnCours: string | null;
   onAnnuler: (reservation: Reservation) => void;
+  onSignalerPresence: (reservation: Reservation) => void;
   onVoirReservations: () => void;
   onRetourFiche: () => void;
   onAutreCreneau: () => void;
@@ -40,7 +41,8 @@ function dessinerEtapes() {
   );
 }
 
-export function DemandeEnvoyeeReservation({ reservation, maintenantMs, client, refus, onAnnuler, onVoirReservations, onRetourFiche, onAutreCreneau }: Props) {
+export function DemandeEnvoyeeReservation(props: Props) {
+  const { reservation, maintenantMs, client, presenceEnCours, onVoirReservations, onRetourFiche, onAutreCreneau } = props;
   const enAttente = reservation.statut === "demandee";
   const tientToujours = enAttente || reservation.statut === "acceptee" || reservation.statut === "honoree";
 
@@ -56,15 +58,14 @@ export function DemandeEnvoyeeReservation({ reservation, maintenantMs, client, r
         </View>
       ) : null}
 
-      {refus}
-
       <CarteReservation
         reservation={reservation}
         maintenantMs={maintenantMs}
         client={client}
+        presenceEnCours={presenceEnCours}
         avecVoirLieu={false}
-        onAnnuler={onAnnuler}
-        onSignalerPresence={onVoirReservations}
+        onAnnuler={props.onAnnuler}
+        onSignalerPresence={props.onSignalerPresence}
         onOuvrirLieu={onRetourFiche}
       />
 

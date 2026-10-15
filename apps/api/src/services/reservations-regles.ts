@@ -4,6 +4,7 @@
 // faireEvoluerReservation (packages/commun). Sans accès à la base ici.
 import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
 import type { ErreurService } from "../../../../packages/commun/src/types/erreurs-service.ts";
+import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { MotifRefusReservation, StatutReservation } from "../../../../packages/commun/src/types/reservation.ts";
 
 /** Réservations rendues à la personne (« Mes réservations ») */
@@ -45,3 +46,11 @@ export type FiltreReservations = {
 /** « trop-de-reservations » : à ajouter à ErreurService (packages/commun) avec son message */
 export type ErreurReservation = ErreurService;
 export type EchecReservation = { ok: false; erreur: ErreurReservation; details?: DetailsErreur; champ?: string };
+
+export type ReponseReservation = {
+  compteId: number;
+  lieu: LieuResume;
+  creneau: Date;
+  statut: "acceptee" | "refusee" | "annulee" | "expiree";
+  motif: MotifRefusReservation | null;
+};

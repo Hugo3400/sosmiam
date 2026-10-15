@@ -15,11 +15,12 @@ type Props = {
   visible: boolean;
   bouton: { libelle: string; ouvrir: () => void } | null;
   onFermer: () => void;
+  onMontree: () => void;
 };
 
 const DELAI_FOCUS_TITRE = 700;
 
-export function FenetreAnnonceApp({ annonce, visible, bouton, onFermer }: Props) {
+export function FenetreAnnonceApp({ annonce, visible, bouton, onFermer, onMontree }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const refTitre = useRef<Text>(null);
@@ -36,7 +37,7 @@ export function FenetreAnnonceApp({ annonce, visible, bouton, onFermer }: Props)
   if (!annonce) return null;
 
   return (
-    <Modal visible={ouverte} transparent animationType="fade" onRequestClose={onFermer} aria-label={annonce.titre}>
+    <Modal visible={ouverte} transparent animationType="fade" onRequestClose={onFermer} onShow={onMontree} aria-label={annonce.titre}>
       <View style={{ paddingTop: marges.top + 16, paddingBottom: marges.bottom + 16 }} className="flex-1 items-center justify-center px-4">
         <Pressable
           accessibilityRole="button"

@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
+import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
@@ -27,6 +28,13 @@ function decrireCarte(carte: CarteLieu | null): string {
   return `${sections} section${sections > 1 ? "s" : ""} · ${nombre} sur la carte`;
 }
 
+function decrireCharte(charte: CharteMiamSafe | null): string {
+  if (!charte) return "La charte, ses engagements et ta signature";
+  if (charte.signee) return "Charte signée";
+  if (charte.retireeParEquipe) return "Retirée par l'équipe SOS Miam";
+  return "Pas encore signée : le badge sur ta fiche, gratuit";
+}
+
 /**
  * « Mon lieu » (gérant) : ce qui se règle une fois pour toutes. La carte (plats, boissons, formules), la carte de fidélité,
  * les infos pratiques affichées sur la fiche, le kit (QR de vitrine), ce soir (SOS et message du moment), les événements et
@@ -35,10 +43,11 @@ function decrireCarte(carte: CarteLieu | null): string {
 export default function EcranMonLieu() {
   const router = useRouter();
   const { lieuPro } = utiliserModes();
-  const { comptoir } = utiliserServices();
+  const { comptoir, miamSafe } = utiliserServices();
   const demo = utiliserOutilsDemo() !== null;
   const [programme, setProgramme] = useState<ProgrammeFidelite | null | undefined>(undefined);
   const [carte, setCarte] = useState<CarteLieu | null | undefined>(undefined);
+  const [charte, setCharte] = useState<CharteMiamSafe | null | undefined>(undefined);
 
   // Relu à chaque retour sur l'onglet (après avoir réglé la carte du lieu ou celle de fidélité)
   useFocusEffect(
@@ -47,10 +56,11 @@ export default function EcranMonLieu() {
       let actif = true;
       comptoir.lireProgramme(lieuPro.id).then((r) => actif && setProgramme(r.ok ? r.programme : null));
       comptoir.lireCarteDuLieu(lieuPro.id).then((r) => actif && setCarte(r.ok ? r.carte : null));
+      miamSafe.lireCharte(lieuPro.id).then((r) => actif && setCharte(r.ok ? r.charte : null), () => actif && setCharte(null));
       return () => {
         actif = false;
       };
-    }, [comptoir, lieuPro]),
+    }, [comptoir, miamSafe, lieuPro]),
   );
 
   if (!lieuPro) return null;
@@ -73,6 +83,7 @@ export default function EcranMonLieu() {
           <LigneMonLieu emoji="🍽️" titre="La carte" detail={carte === undefined ? "…" : decrireCarte(carte)} onPress={() => router.push("/pro/carte")} />
           <LigneMonLieu emoji="🎟️" titre="Carte de fidélité" detail={programme === undefined ? "…" : decrireProgramme(programme)} onPress={() => router.push("/pro/fidelite")} />
           <LigneMonLieu emoji="📋" titre="Infos pratiques" detail="Téléphone, animaux, accès, terrasse, paiements… ce qu'on voit sur ta fiche" onPress={() => router.push("/pro/infos")} />
+          <LigneMonLieu emoji="🛡" titre="Miam Safe" detail={charte === undefined ? "…" : decrireCharte(charte)} onPress={() => router.push("/pro/miam-safe")} />
           <LigneMonLieu emoji="🪧" titre="Mon kit" detail="Le QR de ta vitrine, qui ouvre ta fiche" onPress={() => router.push("/pro/kit")} />
           <LigneMonLieu emoji="👥" titre="Équipe et appareils" detail="Invite tes serveurs : chacun son compte, on sait qui a validé quoi" />
           <LigneMonLieu emoji="🛟" titre="Ce soir" detail="SOS du soir et message du moment : préviens les gourmands du coin" onPress={() => router.push("/pro/ce-soir")} />

@@ -16,7 +16,6 @@ import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
-import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
 import couleurs from "~/theme/couleurs";
@@ -83,7 +82,6 @@ export default function EcranVisite() {
   }, [etatAffiche]);
 
   const lieuId = visite?.lieu.id ?? null;
-  const miamSafe = utiliserMiamSafeLieu(lieuId ?? 0);
   // Dans le lieu : addition demandée, ou visite validée (on y est encore, souvent)
   const dansLeLieu = statut === "demandee" || statut === "validee";
   const { lieu: lieuConnu } = utiliserLieuParId(lieuId);
@@ -169,7 +167,7 @@ export default function EcranVisite() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Miam Safe"
-              accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, le comptoir"
+              accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
               hitSlop={12}
               onPress={() => setMiamSafeOuvert(true)}
               className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
@@ -186,14 +184,8 @@ export default function EcranVisite() {
           visible={miamSafeOuvert}
           lieuId={visite.lieu.id}
           nomLieu={visite.lieu.nom}
-          engage={miamSafe.engage}
           avecCompte
           onFermer={() => setMiamSafeOuvert(false)}
-          onMontrerEcran={() => {
-            setMiamSafeOuvert(false);
-            // iOS n'ouvre pas une fenêtre pendant qu'une autre se referme : on laisse la feuille descendre d'abord
-            setTimeout(() => router.push("/miam-safe/comptoir"), 450);
-          }}
           onCreerCompte={() => setMiamSafeOuvert(false)}
         />
       ) : null}

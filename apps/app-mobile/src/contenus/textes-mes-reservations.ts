@@ -15,9 +15,9 @@ export const TEXTES_MES_RESERVATIONS = {
 } as const;
 
 export const TEXTES_ECHEC_GESTE_RESERVATION: Readonly<Partial<Record<ErreurService, string>>> = {
-  "transition-interdite": "Elle a bougé entre-temps (une réponse du lieu, peut-être) : la liste est à jour.",
+  "transition-interdite": "Elle a bougé entre-temps (une réponse du lieu, peut-être) : on vient de tout remettre à jour.",
   "delai-depasse": "Le créneau est déjà passé : il n'y a plus rien à annuler.",
-  introuvable: "Cette réservation n'existe plus de ton côté. La liste est à jour.",
+  introuvable: "Cette réservation n'existe plus de ton côté : on vient de tout remettre à jour.
   "hors-ligne": "Rien n'est parti. Vérifie ta connexion, puis réessaie : rien n'est perdu.",
 };
 

@@ -7,7 +7,7 @@ import { contientMotInterdit } from "./contient-mot-interdit.ts";
 
 /**
  * Vérifie une demande de réservation (téléphone, puis API) : nombre de personnes, créneau réservable ce jour-là
- * (listerCreneauxReservation : horaires d'ouverture, au moins 30 min après maintenant, 30 jours au plus) et petit mot
+ * (listerCreneauxReservation : horaires d'ouverture, au moins 1 h après maintenant, 30 jours au plus) et petit mot
  * facultatif (140 caractères, sans insulte). Rend la première erreur trouvée, ou null. Le lieu (existe, prend les
  * réservations) et les limites par compte sont vérifiés par le service.
  */

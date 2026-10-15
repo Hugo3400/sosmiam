@@ -237,9 +237,10 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
       await b.reservation.update({ where: { id }, data: champs });
     },
     async expirerReservations(maintenant) {
-      await b.reservation.updateMany({
+      const expirees = await b.reservation.updateManyAndReturn({
         where: { statut: "demandee", creneau: { lte: new Date(maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS) } }, data: { statut: "expiree" },
       });
+      return expirees.map(versReservation);
     },
     async lireSosA(lieuId, instant) {
       return b.sosLieu.findFirst({

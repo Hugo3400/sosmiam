@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { AccessibilityInfo } from "react-native";
+import { AccessibilityInfo, Linking } from "react-native";
 
 import type { DetailsErreur, ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
+import { listerActionsEchecReservation } from "~/fonctions/reservations/lister-actions-echec-reservation";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
@@ -74,5 +75,12 @@ export function utiliserGestesReservation(o: { remplacer: (reservation: Reservat
     [lire, trouverLieu, services, remplacer, echouer, router],
   );
 
-  return { annuler, signalerPresence, presence, echec, fermerEchec: () => setEchec(null), propsFeuillePosition: position.propsFeuille };
+  const actionsEchec = echec
+    ? listerActionsEchecReservation(echec.erreur, {
+        reessayer: () => void (echec.geste === "annuler" ? annuler(echec.reservation) : signalerPresence(echec.reservation)),
+        ouvrirReglages: () => void Linking.openSettings().catch(() => {}),
+      })
+    : [];
+
+  return { annuler, signalerPresence, presence, echec, actionsEchec, fermerEchec: () => setEchec(null), propsFeuillePosition: position.propsFeuille };
 }

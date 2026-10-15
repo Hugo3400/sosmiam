@@ -29,11 +29,11 @@ export const BADGES_AUTOMATIQUES: readonly BadgeAutomatique[] = [
   { id: "un-an-de-miam", mesure: "semaines-d-affilee", filtres: null, objectif: 52 },
   // Décidé le 14 octobre 2026 : 3 visites validées après 22 h, dans tous les lieux (loi Évin : plus « 3 bars »)
   { id: "noctambule", mesure: "visites", filtres: { apresHeure: 22 }, objectif: 3 },
-  { id: "curieux", mesure: "lieux-differents", filtres: null, objectif: 10 },
+  { id: "fureteur", mesure: "lieux-differents", filtres: null, objectif: 10 },
   { id: "explorateur", mesure: "villes-differentes", filtres: null, objectif: 5 },
   { id: "baroudeur", mesure: "villes-differentes", filtres: null, objectif: 10 },
   { id: "premiere-plume", mesure: "avis", filtres: null, objectif: 1 },
-  { id: "plume-gourmande", mesure: "avis", filtres: null, objectif: 5 },
+  { id: "plume-de-la-brigade", mesure: "avis", filtres: null, objectif: 5 },
   { id: "plume-d-or", mesure: "avis", filtres: null, objectif: 20 },
   { id: "oeil-de-chef", mesure: "avis", filtres: { avecPhoto: true }, objectif: 5 },
   { id: "objectif-gourmand", mesure: "avis", filtres: { avecPhoto: true }, objectif: 20 },
