@@ -6,7 +6,7 @@ import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import type { TablesSociales } from "./tables-sociales-en-memoire.ts";
 
 export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteId: number): DonneesExportSocial {
-  const membre = tables.membres.filter((m) => m.compteId === compteId).map((m) => m.conversationId);
+  const membre = new Set(tables.membres.filter((m) => m.compteId === compteId).map((m) => m.conversationId));
   const messages = [...tables.messages.values()].filter((m) => m.auteurId === compteId);
   const invitationsGroupes = tables.invitationsGroupes.filter((i) => i.compteId === compteId);
   const conversationIds = new Set([...membre, ...messages.map((m) => m.conversationId), ...invitationsGroupes.map((i) => i.conversationId)]);
@@ -28,7 +28,7 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
       const c = tables.conversations.get(id);
       return c ? [{ ...c, titreSortie: sortieDe(id)?.titre ?? null }] : [];
     }),
-    membres: tables.membres.filter((m) => membre.includes(m.conversationId)),
+    membres: tables.membres.filter((m) => membre.has(m.conversationId)),
     messages,
     invitationsGroupes,
     reactions: tables.reactions.filter((r) => r.compteId === compteId),

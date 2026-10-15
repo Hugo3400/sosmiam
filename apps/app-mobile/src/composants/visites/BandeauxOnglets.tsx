@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BandeauPartagesRecusMiamSafe } from "~/composants/miam-safe/BandeauPartagesRecusMiamSafe";
 import { BandeauVisiteEnCours } from "~/composants/visites/BandeauVisiteEnCours";
 
 type Props = {
@@ -15,9 +16,10 @@ const ECART = 8;
 const ONGLETS_SANS_BANDEAU: readonly string[] = ["index"];
 
 /**
- * Les bandeaux posés au-dessus de la barre d'onglets, dans les onglets perso : ta demande d'addition en cours (puis son
- * issue), et plus tard les additions qui attendent dans ton lieu (mode pro). Toujours montés, même cachés, pour ne rien
- * rater de ce qui change ; ils laissent passer les touchers autour d'eux.
+ * Les bandeaux posés au-dessus de la barre d'onglets, dans les onglets perso : d'abord un pote qui ne se sent pas en
+ * sécurité et partage sa position avec toi (Miam Safe, sur TOUS les onglets, fil compris : c'est rare et ça ne doit pas
+ * attendre), puis ta demande d'addition en cours (puis son issue), et plus tard les additions qui attendent dans ton lieu
+ * (mode pro). Toujours montés, même cachés, pour ne rien rater de ce qui change ; ils laissent passer les touchers autour.
  */
 export function BandeauxOnglets({ ongletActif }: Props) {
   const marges = useSafeAreaInsets();
@@ -28,6 +30,7 @@ export function BandeauxOnglets({ ongletActif }: Props) {
       style={{ position: "absolute", left: 12, right: 12, bottom: marges.bottom + HAUTEUR_BARRE_ONGLETS + ECART, gap: 8, alignItems: "center" }}
     >
       <View pointerEvents="box-none" style={{ width: "100%", maxWidth: 520, gap: 8 }}>
+        <BandeauPartagesRecusMiamSafe />
         <BandeauVisiteEnCours masque={masque} demandeAffichee={ongletActif === "scan"} />
       </View>
     </View>

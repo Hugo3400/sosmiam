@@ -64,6 +64,7 @@ import { trouverInscritNewsletter } from "./services/desinscription-newsletter.t
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
 import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
 import { desinscrireAppareil, inscrireAppareil } from "./services/appareils-push.ts";
+import { creerAvisGestion } from "./services/avis-gestion.ts";
 import { creerDefis } from "./services/defis.ts";
 import { brancherReevaluationDefis } from "./fonctions/defis/brancher-reevaluation-defis.ts";
 import { servicesConnexionQr } from "./services/connexion-qr.ts";
@@ -156,7 +157,9 @@ const serveur = creerApplication({
     defis,
     // Modération des contenus sociaux : instantanés, médias signalés et cloche, ceux de la partie sociale de l'app
     moderationSociale: { chiffrement: socialApp.chiffrement, medias: socialApp.medias, cloche: socialApp.cloche },
-    visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }) },
+    visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }),
+    // Relecture des avis : publier ou masquer (statut, points de la photo, défis : logique de la session App)
+    avis: creerAvisGestion({ depot: depotAvis, ajouterPoints: ajouterPointsEtDefis, reevaluerDefis: (id, le) => defis.reevaluer(id, le) }) },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
     services: {

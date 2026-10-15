@@ -15,6 +15,7 @@ export type ErreurCompte =
   | "jeton-externe-invalide" | "profil-a-completer" | "compte-deja-rattache" | "email-manquant" | "apple-indisponible" | "google-indisponible"
   | "verification-indisponible" | "chiffrement-indisponible" | "confirmation-incorrecte"
   | "identite-deja-reliee" | "deja-relie" | "derniere-connexion"
+  | "compte-limite" | "aucune-limitation" | "deja-conteste"
   | "erreur";
 
 const CODES = new Set<string>([
@@ -40,6 +41,8 @@ const CODES = new Set<string>([
   "verification-indisponible", "chiffrement-indisponible", "confirmation-incorrecte",
   // « Mes façons de me connecter » (POST et DELETE /comptes/moi/connexions/…)
   "identite-deja-reliee", "deja-relie", "derniere-connexion",
+  // Compte limité par l'équipe (403, avec details.jusqua) ; sa contestation (GET et POST /comptes/moi/limitation…)
+  "compte-limite", "aucune-limitation", "deja-conteste",
 ]);
 
 /** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
@@ -67,6 +70,8 @@ export type ReponseComptes<T extends object> =
       section?: number | null; element?: number | null;
       /** « profil-a-completer » (Apple, Google) : de quoi pré-remplir « Finir ton inscription » */
       prefill?: { email?: string; prenom?: string; nom?: string };
+      /** « compte-limite » : la fin de la limitation (ISO 8601), ou null : jusqu'à nouvel ordre (details.jusqua de l'API) */
+      jusqua?: string | null;
     };
 
 type OptionsAppel = {
@@ -85,6 +90,12 @@ function lirePrefill(prefill: object): { email?: string; prenom?: string; nom?: 
   return lu;
 }
 
+/** La fin d'une limitation dans details.jusqua (403 « compte-limite ») : une date ISO lisible, sinon null (jusqu'à nouvel ordre) */
+function lireJusqua(details: unknown): string | null {
+  const jusqua = typeof details === "object" && details !== null ? (details as Record<string, unknown>).jusqua : null;
+  return typeof jusqua === "string" && jusqua.length <= 40 && !Number.isNaN(Date.parse(jusqua)) ? jusqua : null;
+}
+
 /** Appelle l'API des comptes et lit sa réponse JSON. */
 export async function appelerApiComptes<T extends object>(chemin: string, { methode = "GET", jeton, ip, corps, entetes }: OptionsAppel = {}): Promise<ReponseComptes<T>> {
   try {
@@ -101,7 +112,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     });
     const lu: unknown = await reponse.json().catch(() => null);
     if (typeof lu !== "object" || lu === null) return { ok: false, erreur: "erreur" };
-    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown; section?: unknown; element?: unknown; prefill?: unknown };
+    const donnees = lu as { ok?: unknown; erreur?: unknown; champ?: unknown; attente?: unknown; section?: unknown; element?: unknown; prefill?: unknown; details?: unknown };
     if (donnees.ok === true && reponse.ok) return lu as { ok: true } & T;
     // Le « message » que l'API joint parfois (invitation d'une adresse sans compte) n'est pas repris : chaque page a son
     // propre texte pour chaque code (routes/pro/equipe.tsx), au ton du site, et rien de ce que l'API écrit n'arrive tel quel
@@ -116,6 +127,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
       ...(typeof donnees.section === "number" || donnees.section === null ? { section: donnees.section } : {}),
       ...(typeof donnees.element === "number" || donnees.element === null ? { element: donnees.element } : {}),
       ...(typeof donnees.prefill === "object" && donnees.prefill !== null ? { prefill: lirePrefill(donnees.prefill) } : {}),
+      ...(donnees.erreur === "compte-limite" ? { jusqua: lireJusqua(donnees.details) } : {}),
     };
   } catch {
     return { ok: false, erreur: "erreur" };
