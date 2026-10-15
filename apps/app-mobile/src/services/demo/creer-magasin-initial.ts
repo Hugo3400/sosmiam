@@ -12,6 +12,7 @@ import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { resumerLieu } from "~/fonctions/lieux/resumer-lieu";
 
+import { ajouterMesReservationsDemo } from "./ajouter-mes-reservations-demo";
 import { deciderVisiteDemo } from "./decider-visite-demo";
 import type { MagasinDemo, VisiteDemo } from "./types-demo";
 
@@ -157,5 +158,6 @@ export function creerMagasinInitial(maintenantMs: number): MagasinDemo {
     });
   }
   ajouterEspaceAmbassadeur(m, maintenantMs);
+  ajouterMesReservationsDemo(m, maintenantMs);
   return m;
 }

@@ -12,6 +12,7 @@ import { creerFideliteDemo } from "./fidelite-demo";
 import { creerInteretsEvenementsDemo } from "./interets-evenements-demo";
 import { creerLieuProDemo } from "./lieu-pro-demo";
 import { creerMiamSafeDemo } from "./miam-safe-demo";
+import { creerReservationsDemo } from "./reservations-demo";
 import { creerSuggestionsDemo } from "./suggestions-demo";
 import type { ContexteDemo } from "./types-demo";
 import { creerVisitesDemo } from "./visites-demo";
@@ -24,7 +25,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     source: "demo",
     visites: creerVisitesDemo(ctx),
     fidelite: creerFideliteDemo(ctx),
-    reservations: { ...enAttente.reservations },
+    reservations: creerReservationsDemo(ctx),
     avis: { ...enAttente.avis },
     comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ecouter },
     lieuPro: creerLieuProDemo(ctx),

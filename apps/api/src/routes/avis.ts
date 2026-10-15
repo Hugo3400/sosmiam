@@ -1,9 +1,11 @@
-import { Router, type RequestHandler } from "express";
+import express, { Router, type RequestHandler } from "express";
 
+import { creerControleursPhotosAvis, repondreRefusPhotoAvis } from "../controleurs/avis-photos.ts";
 import { creerControleursAvis, type DependancesAvis } from "../controleurs/avis.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
+import { TAILLE_MAX_PHOTO_AVIS } from "../services/photos-avis-regles.ts";
 
 /** Avis d'un lieu, sans session (fiche du lieu, défilement), par IP */
 export const LIMITE_LECTURES_AVIS_PUBLICS = { fenetre: 60_000, maximum: 120 };
@@ -13,6 +15,16 @@ export const LIMITE_LECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 200 };
 export const LIMITE_ECRITURES_AVIS = { fenetre: 10 * 60_000, maximum: 20 };
 /** Verdicts des ambassadeurs, par compte */
 export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
+export const LIMITE_LECTURES_PHOTOS_AVIS = { fenetre: 60_000, maximum: 600 };
+export const LIMITE_ENVOIS_PHOTOS_AVIS = { fenetre: 60 * 60_000, maximum: 20 };
+
+const lireCorpsPhoto = express.raw({ type: "image/jpeg", limit: TAILLE_MAX_PHOTO_AVIS });
+const corpsPhoto: RequestHandler = (requete, reponse, suite) => {
+  lireCorpsPhoto(requete, reponse, (erreur?: unknown) => {
+    if ((erreur as { type?: string } | undefined)?.type === "entity.too.large") return void repondreRefusPhotoAvis(reponse, { ok: false, erreur: "media-trop-lourd" });
+    suite(erreur);
+  });
+};
 
 /**
  * /app/avis : les avis des lieux (docs/decisions.md, « Scan et validation des visites » et « Lieux vérifiés et non
@@ -66,6 +78,7 @@ export function creerRoutesAvisApp(
   refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
 ) {
   const c = creerControleursAvis(d, horloge);
+  const photos = d.photos ? creerControleursPhotosAvis(d.photos) : null;
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const prive: RequestHandler = (_q, reponse, suite) => {
     reponse.set("Cache-Control", "private, no-store");
@@ -79,6 +92,7 @@ export function creerRoutesAvisApp(
   const routes = Router();
   // Sans session : avant la protection du reste du routeur
   routes.get("/lieux/:lieuId", limiterRequetes(LIMITE_LECTURES_AVIS_PUBLICS), c.lireLieu);
+  if (photos) routes.get("/photos/:photo", limiterRequetes(LIMITE_LECTURES_PHOTOS_AVIS), photos.lire);
   // Ambassadeur actif (exigerAmbassadeurActif ouvre aussi la session)
   routes.get("/a-relire", ...ambassadeur, lectures, c.listerARelire);
   routes.post("/:id/relecture", ...ambassadeur, relectures, c.relire);
@@ -87,6 +101,7 @@ export function creerRoutesAvisApp(
   routes.get("/a-ecrire", lectures, c.listerAEcrire);
   routes.post("/", ecritures, refuserSiLimite, c.donner);
   routes.post("/non-verifie", ecritures, refuserSiLimite, c.donnerNonVerifie);
+  if (photos) routes.post("/photos", parCompte(LIMITE_ENVOIS_PHOTOS_AVIS), refuserSiLimite, corpsPhoto, photos.deposer);
   routes.use(gererErreursComptes);
   return routes;
 }

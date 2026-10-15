@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { calculerPointsPhotoAvis } from "../src/fonctions/avis/calculer-points-photo-avis.ts";
 import { lireVerdictRelecture } from "../src/fonctions/avis/lire-verdict-relecture.ts";
 import { resumerAvis } from "../src/fonctions/avis/resumer-avis.ts";
 import { signerAvis } from "../src/fonctions/avis/signer-avis.ts";
@@ -47,4 +48,11 @@ test("résumé des avis : moyenne prudente au dixième, nombre, part de retour a
   const retours = Array.from({ length: 7 }, (_, i) => ({ client: `c${i}`, jour: "2026-10-04" }));
   // 7 sur 30 = 0,2333…
   assert.deepEqual(resumerAvis([1, 1], [...clients, ...retours]), { moyenne: 3.1, nombre: 2, partRetour: 0.23 });
+});
+
+test("points de la photo d'un avis : 10 pour un avis vérifié avec photo, 0 pour un repas offert, sans photo ou non vérifié", () => {
+  assert.equal(calculerPointsPhotoAvis({ verifie: true, avecPhoto: true, repasOffert: false }), 10);
+  assert.equal(calculerPointsPhotoAvis({ verifie: true, avecPhoto: true, repasOffert: true }), 0);
+  assert.equal(calculerPointsPhotoAvis({ verifie: true, avecPhoto: false, repasOffert: false }), 0);
+  assert.equal(calculerPointsPhotoAvis({ verifie: false, avecPhoto: true, repasOffert: false }), 0);
 });

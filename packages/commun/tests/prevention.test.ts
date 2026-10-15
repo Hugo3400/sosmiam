@@ -18,6 +18,9 @@ test("parleDAlcool : mots d'alcool et happy hours, pas le reste", () => {
   for (const texte of ["Un verre offert", "2 pintes pour le prix d'une", "Apéros à 5 €", "Mojitos à 6 €", "Kirs offerts", "Digestifs offerts", "Cognac", "Caipirinha", "Une IPA offerte"]) {
     assert.equal(parleDAlcool(texte), true, texte);
   }
+  for (const texte of ["Un muscadet bien frais avec les huîtres", "Bourbon maison", "Saké chaud offert", "Un petit génépi pour finir", "Vin mousseux du coin"]) {
+    assert.equal(parleDAlcool(texte), true, texte);
+  }
   for (const texte of ["Salle calme ce soir", "Fournée du soir à -30 %", "Vinaigrette maison", "Verrerie artisanale", "Un tiramisu offert", "", null, undefined]) {
     assert.equal(parleDAlcool(texte), false, String(texte));
   }
