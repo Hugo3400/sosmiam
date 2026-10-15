@@ -7,6 +7,7 @@ import { RefusOuvertureAvis } from "~/composants/avis/RefusOuvertureAvis";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
 import { choisirRefusOuvertureAvis } from "~/fonctions/avis/choisir-refus-ouverture-avis";
+import { estRefusOuverturePassager } from "~/fonctions/avis/est-refus-ouverture-passager";
 import { utiliserEnvoiAvis } from "~/hooks/utiliser-envoi-avis";
 import { utiliserEtatAvisEnDirect } from "~/hooks/utiliser-etat-avis-en-direct";
 import { utiliserPhotoAvis } from "~/hooks/utiliser-photo-avis";
@@ -18,7 +19,7 @@ const lireVisiteId = (brut: unknown) => (typeof brut === "string" && /^\d{1,12}$
 export default function EcranDonnerAvis() {
   const router = useRouter();
   const { visiteId } = useLocalSearchParams<{ visiteId: string }>();
-  const { pret, resultat, echec } = utiliserVisiteEnDirect(lireVisiteId(visiteId));
+  const { pret, resultat, echec, relire } = utiliserVisiteEnDirect(lireVisiteId(visiteId));
   const visite = resultat?.visite ?? null;
   const { etat, maintenant } = utiliserEtatAvisEnDirect(visite?.avis ?? null);
   const envoi = utiliserEnvoiAvis();
@@ -42,7 +43,9 @@ export default function EcranDonnerAvis() {
 
   const refus = choisirRefusOuvertureAvis({ visite, echecLecture: echec, refusEnvoi: envoi.refus, etat, maintenant });
   if (refus || !visite) {
-    return <RefusOuvertureAvis refus={refus ?? { erreur: "introuvable" }} nomLieu={visite?.lieu.nom} onRetour={revenir} />;
+    const motif = refus ?? { erreur: "introuvable" as const };
+    const passager = estRefusOuverturePassager(motif, visite !== null);
+    return <RefusOuvertureAvis refus={motif} nomLieu={visite?.lieu.nom} onRetour={revenir} onReessayer={passager ? relire : undefined} />;
   }
 
   return <EcranFormulaireAvis visite={visite} envoi={envoi} photo={photo} onRetour={revenir} />;

@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Keyboard, Platform, StyleSheet, View } from "react-native";
-import MapView, { type LatLng, type MapPressEvent } from "react-native-maps";
+import MapView, { type LatLng, type MapPressEvent, type Region } from "react-native-maps";
 import { useReducedMotion } from "react-native-reanimated";
 
 import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
-import type { PositionLieu } from "@sos-miam/commun/types/lieu";
+import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import { MarqueurGroupe } from "~/composants/explorer/MarqueurGroupe";
 import { MarqueurLieu } from "~/composants/explorer/MarqueurLieu";
 import { MarqueurPosition } from "~/composants/explorer/MarqueurPosition";
+import type { PointCarte } from "~/contenus/regroupement-carte";
+import { calculerDemiCoteRue } from "~/fonctions/geo/calculer-demi-cote-rue";
+import { estRegionAssezChangee } from "~/fonctions/geo/est-region-assez-changee";
+import { regrouperLieuxParGrille } from "~/fonctions/geo/regrouper-lieux-par-grille";
+import { decrireLieuCarte } from "~/fonctions/lieux/decrire-lieu-carte";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 
@@ -90,11 +97,12 @@ function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu 
  * Elle part de la zone choisie (sinon ta ville ou nos lieux), la recadre quand elle change (rayon, région, France, ta position
  * qui arrive), cadre les lieux trouvés quand les filtres changent, et va doucement vers le lieu sélectionné.
  */
-export function CarteLieux({ lieux, centre, cadre, position, selection, onSelection, margeHaut, margeBas }: Props) {
+export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, position, selection, onSelection, margeHaut, margeBas }: Props) {
   const carte = useRef<MapView>(null);
   const animationsReduites = useReducedMotion();
   const [chargee, setChargee] = useState(false);
   const [hauteur, setHauteur] = useState(0);
+  const [largeur, setLargeur] = useState(0);
   const [lecteurEcran, setLecteurEcran] = useState(false);
   // Les gestes natifs ne sont pas prêts tant que la carte n'est ni chargée ni mesurée (Android plante en cadrant une carte de taille 0)
   const prete = chargee && hauteur > 0;
@@ -106,12 +114,22 @@ export function CarteLieux({ lieux, centre, cadre, position, selection, onSelect
   const haut = Math.round(margeHaut * reduction);
   const bas = Math.round(margeBas * reduction);
 
-  const places = lieux.flatMap(({ lieu }) => (lieu.position ? [{ lieu, position: lieu.position }] : []));
+  const places = useMemo(() => lieux.flatMap(({ lieu }) => (lieu.position ? [{ lieu, position: lieu.position }] : [])), [lieux]);
   // Clés indépendantes de l'ordre et des objets : trier par distance (« Autour de moi ») ne recadre pas la carte
-  const cleLieux = places
-    .map((p) => p.lieu.id)
-    .sort((a, b) => a - b)
-    .join(",");
+  const cleLieux = useMemo(
+    () =>
+      places
+        .map((p) => p.lieu.id)
+        .sort((a, b) => a - b)
+        .join(","),
+    [places],
+  );
+  const parId = useMemo(() => new Map<number, Lieu>(places.map((p) => [p.lieu.id, p.lieu])), [places]);
+  const points = useMemo(
+    (): PointCarte[] =>
+      places.map((p) => ({ id: p.lieu.id, latitude: p.position.latitude, longitude: p.position.longitude, prioritaire: !!p.lieu.sos || !!p.lieu.alerte })),
+    [places],
+  );
   const clePosition = position ? `${position.latitude.toFixed(5)},${position.longitude.toFixed(5)}` : null;
   const cleCentre = centre ? `${centre.latitude},${centre.longitude}` : null;
   const cleCadre = cadre?.cle ?? null;
@@ -131,10 +149,20 @@ export function CarteLieux({ lieux, centre, cadre, position, selection, onSelect
 
   // Ce que lisent les cadrages (lancés par les effets, parfois après une attente) : toujours les dernières valeurs.
   // Déclaré avant les autres effets, pour être à jour quand ils passent.
-  const etat = useRef({ places, centre, cadre, position, haut, bas, hauteur, animationsReduites });
+  const etat = useRef({ places, centre, cadre, position, haut, bas, hauteur, largeur, animationsReduites });
   useEffect(() => {
-    etat.current = { places, centre, cadre, position, haut, bas, hauteur, animationsReduites };
+    etat.current = { places, centre, cadre, position, haut, bas, hauteur, largeur, animationsReduites };
   });
+
+  const [regionVue, setRegionVue] = useState<Region>(regionDepart);
+  const regroupement = useMemo(
+    () => regrouperLieuxParGrille(points, regionVue, { largeur, hauteur }, selection),
+    [points, regionVue, largeur, hauteur, selection],
+  );
+
+  function suivreRegion(region: Region) {
+    if (estRegionAssezChangee(regionVue, region)) setRegionVue(region);
+  }
 
   // VoiceOver ou TalkBack : la carte leur est cachée (voir plus bas)
   useEffect(() => {
@@ -231,6 +259,16 @@ export function CarteLieux({ lieux, centre, cadre, position, selection, onSelect
       dernierAppuiMarqueur.current = Date.now();
       onSelection(id);
     },
+    ouvrirGroupe: (cle: string) => {
+      Keyboard.dismiss();
+      dernierAppuiMarqueur.current = Date.now();
+      const groupe = regroupement.groupes.find((g) => g.cle === cle);
+      const membres = groupe ? groupe.ids.flatMap((id) => parId.get(id)?.position ?? []) : [];
+      if (membres.length === 0) return;
+      const { haut: h, bas: b, hauteur: hauteurCarte, largeur: largeurCarte } = etat.current;
+      const cote = Math.min(largeurCarte - MARGE_CADRE * 2, hauteurCarte - h - b - MARGE_CADRE * 2);
+      cadrer(coinsAutour(membres, calculerDemiCoteRue(cote)));
+    },
   });
 
   function toucherCarte(evenement: MapPressEvent) {
@@ -266,14 +304,44 @@ export function CarteLieux({ lieux, centre, cadre, position, selection, onSelect
         // Android centrerait la carte à chaque toucher : on le fait déjà, plus doucement
         moveOnMarkerPress={false}
         onMapReady={() => setChargee(true)}
-        onLayout={(evenement) => setHauteur(evenement.nativeEvent.layout.height)}
+        onLayout={(evenement) => {
+          setHauteur(evenement.nativeEvent.layout.height);
+          setLargeur(evenement.nativeEvent.layout.width);
+        }}
+        onRegionChangeComplete={suivreRegion}
         onPress={toucherCarte}
       >
         {position ? <MarqueurPosition position={position} /> : null}
-        {places.map(({ lieu, position: positionLieu }) => (
-          <MarqueurLieu key={lieu.id} lieu={lieu} position={positionLieu} selectionne={lieu.id === selection} onPress={gestes.choisir} />
+        {regroupement.seuls.map((seul) => {
+          const lieu = parId.get(seul.id);
+          if (!lieu) return null;
+          return (
+            <MarqueurLieu
+              key={seul.id}
+              id={seul.id}
+              emoji={lieu.emoji}
+              latitude={seul.latitude}
+              longitude={seul.longitude}
+              sos={!!lieu.sos}
+              alerte={!!lieu.alerte}
+              verifie={estLieuVerifie(lieu)}
+              libelle={decrireLieuCarte(lieu)}
+              selectionne={seul.id === selection}
+              onPress={gestes.choisir}
+            />
+          );
+        })}
+        {regroupement.groupes.map((groupe) => (
+          <MarqueurGroupe
+            key={groupe.cle}
+            cle={groupe.cle}
+            nombre={groupe.nombre}
+            latitude={groupe.latitude}
+            longitude={groupe.longitude}
+            onPress={gestes.ouvrirGroupe}
+          />
         ))}
       </MapView>
     </View>
   );
-}
+});

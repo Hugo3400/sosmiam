@@ -1,8 +1,12 @@
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useRef, useState } from "react";
 
+import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
+import { COTE_MIN_PHOTO_AVIS } from "@sos-miam/commun/regles/avis";
+
 import type { PhotoAvis } from "~/contenus/type-donner-avis";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { estPhotoAvisTropPetite } from "~/fonctions/avis/est-photo-avis-trop-petite";
 import { preparerPhotoChat } from "~/fonctions/chat/preparer-photo-chat";
 
 export type EtatPhotoAvis = {
@@ -37,8 +41,9 @@ export function utiliserPhotoAvis(): EtatPhotoAvis {
       if (uri === null) return;
       setPreparation(true);
       const prete = await preparerPhotoChat(uri).catch(() => null);
-      if (prete) setPhoto(prete);
-      else setErreur(TEXTES_DONNER_AVIS.photoIllisible);
+      if (!prete) return setErreur(TEXTES_DONNER_AVIS.photoIllisible);
+      if (estPhotoAvisTropPetite(prete)) return setErreur(remplirModele(TEXTES_DONNER_AVIS.photoTropPetiteChoix, { cote: String(COTE_MIN_PHOTO_AVIS) }));
+      setPhoto(prete);
     } finally {
       occupe.current = false;
       setPreparation(false);
