@@ -15,7 +15,7 @@ export type EtatLieux = {
   source: "demo" | "serveur";
   /** Le serveur n'a pas répondu (la copie du téléphone reste affichée) */
   horsLigne: boolean;
-  /** Relit la liste sur le serveur (tirer pour rafraîchir, retour dans l'app) */
+  /** Relit la liste sur le serveur (ouverture, retour dans l'app), et avec elle les zones déjà lues */
   recharger: () => Promise<void>;
   /**
    * Lit un seul lieu absent de la liste (lien partagé, lieu tout juste publié) et l'y ajoute. « inconnu » : absent,
@@ -24,7 +24,8 @@ export type EtatLieux = {
   chargerLieu: (id: number) => Promise<LectureLieu>;
   /**
    * Lit aussi les lieux d'une zone (autour de toi, ta région, une ville choisie) et les ajoute à la liste : sans zone, le
-   * serveur n'en rend que 1 000. Une zone lue il y a moins de 10 minutes n'est pas relue ; rien en démo (liste complète).
+   * serveur n'en rend que 1 000. La zone part arrondie à la grille de 0,5 degré (jamais une position exacte) ; une zone lue
+   * il y a moins de 10 minutes n'est pas relue ; seules les 4 dernières sont gardées ; rien en démo (liste complète).
    */
   chargerZone: (zone: ZoneGeo) => void;
 };

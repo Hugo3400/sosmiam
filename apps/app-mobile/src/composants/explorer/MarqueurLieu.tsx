@@ -29,7 +29,9 @@ function decrireLieu(lieu: Lieu): string[] {
     ? `En SOS ce soir : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}`
     : null;
   const nonVerifie = estLieuVerifie(lieu) ? null : "Lieu non vérifié, sans compte SOS Miam";
-  return [`${lieu.info}, ${lieu.quartier}`, sos, lieu.alerte ?? null, nonVerifie].filter((morceau): morceau is string => !!morceau);
+  // Un quartier pas renseigné ne laisse pas de « , » orpheline
+  const quoiEtOu = [lieu.info.trim(), lieu.quartier.trim()].filter(Boolean).join(", ");
+  return [quoiEtOu, sos, lieu.alerte ?? null, nonVerifie].filter((morceau): morceau is string => !!morceau);
 }
 
 /**

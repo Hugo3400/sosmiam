@@ -19,11 +19,13 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
+import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
 import { direDansRegion } from "~/fonctions/geo/dire-dans-region";
 import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
@@ -148,11 +150,12 @@ export default function Explorer() {
   }, [filtres.ville, portee, position, pointDeDepart, rayon, region]);
   const cadre = useMemo(() => (zone ? calculerCadrePortee(zone) : null), [zone]);
   // Sans zone, le serveur ne rend que 1 000 lieux : on lit aussi ceux de l'endroit regardé (autour de toi ou de la ville
-  // choisie jusqu'au bout du curseur, sinon ta région). Toute la France : la liste seule.
+  // choisie jusqu'au bout du curseur, sinon ta région). Toute la France : la liste seule. Ce qui part au serveur : les
+  // cases de 0,5 degré autour de la case où tu es (calculerZoneAutour), jamais ta position exacte.
   const zoneALire = useMemo(() => {
     if (zone?.portee === "region") return cadre;
     const autourDe = zone?.portee === "proche" ? zone.centre : filtres.ville ? centre : null;
-    return autourDe ? calculerCadrePortee({ portee: "proche", centre: autourDe, rayonKm: RAYON_PROCHE_KM.max }) : null;
+    return autourDe ? calculerZoneAutour(autourDe, RAYON_PROCHE_KM.max) : null;
   }, [zone, cadre, filtres.ville, centre]);
   useEffect(() => {
     if (zoneALire) chargerZone(zoneALire);
@@ -164,6 +167,12 @@ export default function Explorer() {
     const avecEvenement = filtres.evenement ? dansLaZone.filter((l) => evenementsParLieu?.has(l.id) ?? false) : dansLaZone;
     return trierLieuxExplorer(filtrerLieuxExplorer(avecEvenement, filtres, maintenant), profil, position, pointDeDepart);
   }, [lieuxActuels, zone, filtres, evenementsParLieu, maintenant, profil, position, pointDeDepart]);
+  // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
+  // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
+  const fauteDeDepart = useMemo(
+    () => zone?.portee === "proche" && zone.centre === null && !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null),
+    [zone, lieuxActuels],
+  );
   const choixZone = useMemo(
     (): ChoixZone => (filtres.ville ? { portee: null, rayonKm: rayon, ville: filtres.ville } : { portee, rayonKm: rayon, ville: null }),
     [filtres.ville, portee, rayon],
@@ -177,10 +186,11 @@ export default function Explorer() {
   }, [lieux, selection]);
 
   // Ce que dira l'annonce du nombre de lieux (lu quand elle part, après l'attente)
-  const nombre = useRef({ lieux: lieux.length, recherche: false, sauter: false });
+  const nombre = useRef({ lieux: lieux.length, recherche: false, fauteDeDepart: false, sauter: false });
   useEffect(() => {
     nombre.current.lieux = lieux.length;
     nombre.current.recherche = filtres.texte.trim() !== "";
+    nombre.current.fauteDeDepart = fauteDeDepart;
   });
   // Les filtres, la recherche ou la zone ont changé : le lecteur d'écran dit combien de lieux restent (rien au premier affichage)
   const choixAnnonces = useMemo(() => ({ filtres, zone }), [filtres, zone]);
@@ -193,8 +203,15 @@ export default function Explorer() {
     nombre.current.sauter = false;
     if (sauter) return;
     const minuterie = setTimeout(() => {
-      const { lieux: n, recherche: avecRecherche } = nombre.current;
-      const texte = n === 0 ? (avecRecherche ? "Aucun lieu pour cette recherche" : "Aucun lieu avec ces filtres") : `${n} lieu${n > 1 ? "x" : ""}`;
+      const { lieux: n, recherche: avecRecherche, fauteDeDepart: sansDepart } = nombre.current;
+      const texte =
+        n > 0
+          ? `${n} lieu${n > 1 ? "x" : ""}`
+          : sansDepart
+            ? "Aucun lieu : on ne sait pas où tu es"
+            : avecRecherche
+              ? "Aucun lieu pour cette recherche"
+              : "Aucun lieu avec ces filtres";
       if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
       else AccessibilityInfo.announceForAccessibility(texte);
     }, DELAI_ANNONCE_NOMBRE);
@@ -285,9 +302,20 @@ export default function Explorer() {
   );
 
   // Liste vide : on dit si c'est la recherche ou les filtres qui bloquent. « Effacer les filtres » garde toujours la recherche (comme la pastille).
+  // Faute de point de départ, ce ne sont ni l'une ni les autres : on le dit, et on propose « Autour de moi » ou toute la France.
   const motRecherche = filtres.texte.trim();
   const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant;
-  const vide = (
+  const vide = fauteDeDepart ? (
+    <View className="items-center gap-3 px-6 py-6">
+      <Mascotte expression="surprise" taille={96} />
+      <Text className="text-center font-titre text-xl text-encre">Tu es où ?</Text>
+      <Text className="text-center font-texte text-base leading-6 text-gris">
+        {lierPonctuation("On ne sait pas où tu es : touche « Autour de moi » ou choisis une ville en haut, et on te trouve de bonnes tables à côté !")}
+      </Text>
+      <Bouton libelle="Autour de moi" indice="Demande ta position pour voir les lieux autour de toi" petit onPress={() => void basculerAutourDeMoi()} />
+      <Bouton libelle="Voir toute la France" variante="blanc" petit onPress={() => setPortee("france")} />
+    </View>
+  ) : (
     <View className="items-center gap-3 px-6 py-6">
       <Mascotte expression="surprise" taille={96} />
       <Text className="text-center font-titre text-xl text-encre">Rien par ici…</Text>

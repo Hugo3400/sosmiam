@@ -15,6 +15,7 @@ import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import couleurs from "~/theme/couleurs";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
@@ -45,10 +46,13 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
 
   // Le bon plan affiché parle d'alcool (happy hour…) ou l'événement montré en a (comme sur la fiche) : le message sanitaire juste dessous
   const offreAlcool = (!sos && parleDAlcool(lieu.alerte)) || evenement?.alcool === true;
+  // Ce que c'est et où : un morceau vide (quartier pas renseigné) ne laisse pas de « , » orpheline
+  const ou = ecrireQuartierVille(lieu);
+  const quoiEtOu = [lieu.info.trim(), ou].filter(Boolean);
 
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
-    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`,
+    [lieu.nom, ...quoiEtOu].join(", "),
     `${distance ? `À ${distance}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
@@ -78,7 +82,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
       <View className="flex-1 gap-0.5">
         <Text numberOfLines={1} className="font-texte-gras text-base text-encre">{lieu.nom}</Text>
         <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-          {lieu.info} · {lieu.quartier}, {lieu.ville}
+          {quoiEtOu.join(" · ")}
         </Text>
         <Text numberOfLines={1} className="font-texte-moyen text-[13px] text-gris">
           {distance ? `${distance} · ` : ""}{lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? "Ouvert" : "Fermé"}</Text>

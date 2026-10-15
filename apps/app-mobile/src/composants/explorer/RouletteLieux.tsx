@@ -10,6 +10,7 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -44,7 +45,7 @@ function decrire({ lieu, km }: LieuExplorer): string {
   return [
     lieu.nom,
     lieu.info,
-    `${lieu.quartier}, ${lieu.ville}${km === null ? "" : `, à ${formaterDistance(km)}`}`,
+    [ecrireQuartierVille(lieu), km === null ? null : `à ${formaterDistance(km)}`].filter(Boolean).join(", "),
     lieu.sos ? `SOS ce soir : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}` : null,
   ]
     .filter(Boolean)
@@ -222,7 +223,7 @@ export function RouletteLieux({ visible, lieux, onFermer, onOuvrir }: Props) {
                         {lieu ? `${lieu.info} · ${lieu.prix}${lieu.sos?.offre ? ` · ${lieu.sos.offre}` : ""}` : " "}
                       </Text>
                       <Text numberOfLines={1} className="font-texte-moyen text-sm text-encre">
-                        {affiche && lieu ? `📍 ${lieu.quartier}, ${lieu.ville}${affiche.km === null ? "" : ` · ${formaterDistance(affiche.km)}`}` : " "}
+                        {affiche && lieu ? `📍 ${[ecrireQuartierVille(lieu), affiche.km === null ? null : formaterDistance(affiche.km)].filter(Boolean).join(" · ")}` : " "}
                       </Text>
                     </View>
                   </Animated.View>

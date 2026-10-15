@@ -16,7 +16,8 @@ const DELAI_MAX = 12_000;
 
 /**
  * Position du téléphone pour « Autour de moi » (Explorer) : demandée seulement quand on touche le bouton,
- * gardée en mémoire tant que l'app reste ouverte (oubliée dès qu'elle passe en arrière-plan), jamais enregistrée ni envoyée.
+ * gardée en mémoire tant que l'app reste ouverte (oubliée dès qu'elle passe en arrière-plan), jamais enregistrée. Elle ne
+ * part jamais telle quelle : le serveur ne reçoit que les cases de 0,5 degré autour de la tienne (calculerZoneAutour).
  */
 export function utiliserPositionActuelle() {
   const [position, setPosition] = useState<PositionLieu | null>(null);

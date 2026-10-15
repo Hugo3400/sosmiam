@@ -25,8 +25,10 @@ const INTERRUPTEURS: readonly { cle: keyof ReglagesSociaux; emoji: string; titre
     cle: "pushSocial",
     emoji: "🔔",
     titre: "Notifications de ma bande",
-    // Éteint, l'API ne pousse plus rien de social (messages compris) ; la cloche et les conversations, elles, se remplissent
-    detail: "Messages, sorties et nouveaux potes, sur ton téléphone. Éteint, rien de ta bande n'y arrive, messages compris : tu retrouves tout en ouvrant l'app.",
+    // Éteint, l'API ne pousse plus rien de social (messages compris) ; la cloche et les conversations, elles, se remplissent.
+    // Sauf l'alerte Miam Safe d'un pote : elle part sans regarder ce réglage (API, controleurs/partages-miam-safe.ts)
+    detail:
+      "Messages, sorties et nouveaux potes, sur ton téléphone. Éteint, rien de ta bande n'y arrive, messages compris : tu retrouves tout en ouvrant l'app. Seule exception : un pote qui te prévient avec Miam Safe, ça passe toujours.",
   },
 ];
 

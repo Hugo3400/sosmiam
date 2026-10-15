@@ -14,6 +14,7 @@ import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -81,7 +82,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           {lieu.nom}
         </Text>
         <Text className="font-texte-moyen text-base text-gris">
-          {lieu.info} · 📍 {lieu.quartier}, {lieu.ville}
+          {lieu.info} · 📍 {ecrireQuartierVille(lieu)}
           {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>

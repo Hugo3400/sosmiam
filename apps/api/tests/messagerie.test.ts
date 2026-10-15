@@ -93,16 +93,19 @@ test("textes et lieux chiffrés en base, tels quels ; la notification ne dit jam
   assert.deepEqual(lu.corps.fil.messages.map((m: { texte: string }) => m.texte), [texte, "Le meilleur kebab"]);
 });
 
-test("textes refusés : vide, invisible, caractère de contrôle, trop long, mot interdit (message-refuse), type inconnu, idClient mal formé", async () => {
+test("textes refusés : vide, invisible, caractère de contrôle, trop long, mot interdit (message-refuse), type inconnu, idClient mal formé ; fins de ligne \\r\\n gardées en \\n", async () => {
   const { a, id } = await deuxPotes();
   const envoi = (corps: unknown) => a.demander("POST", `/app/conversations/${id}/messages`, corps);
   assert.deepEqual((await envoi({ idClient: randomUUID(), type: "texte", texte: "  " })).corps, { ok: false, erreur: "champ-invalide", champ: "texte" });
-  for (const texte of ["\u0001".repeat(500), "​‍﻿", "Salut\u0000"]) {
+  for (const texte of ["\u0001".repeat(500), "\u200B\u200D\uFEFF", "Salut\u0000"]) {
     const refus = await envoi({ idClient: randomUUID(), type: "texte", texte });
     assert.deepEqual([refus.statut, refus.corps], [400, { ok: false, erreur: "champ-invalide", champ: "texte" }], JSON.stringify(texte));
   }
-  const accepte = await envoi({ idClient: randomUUID(), type: "texte", texte: "On y va ?\nÀ 20 h 👩‍🍳🇫🇷" });
-  assert.deepEqual([accepte.statut, accepte.corps.message.texte], [201, "On y va ?\nÀ 20 h 👩‍🍳🇫🇷"]);
+  const accepte = await envoi({ idClient: randomUUID(), type: "texte", texte: "On y va ?\nÀ 20\u202Fh 👩\u200D🍳🇫🇷" });
+  assert.deepEqual([accepte.statut, accepte.corps.message.texte], [201, "On y va ?\nÀ 20\u202Fh 👩\u200D🍳🇫🇷"]);
+  // Collé depuis un ordinateur (l'app ne change pas les fins de ligne) : \r\n et \r arrivent en \n, jamais un refus
+  const colle = await envoi({ idClient: randomUUID(), type: "texte", texte: "On y va ?\r\nÀ 20 h\rpile\r\n" });
+  assert.deepEqual([colle.statut, colle.corps.message.texte], [201, "On y va ?\nÀ 20 h\npile"]);
   assert.equal((await envoi({ idClient: randomUUID(), type: "texte", texte: "x".repeat(501) })).corps.champ, "texte");
   assert.deepEqual((await envoi({ idClient: randomUUID(), type: "texte", texte: "espèce de connard" })).corps, { ok: false, erreur: "message-refuse", champ: "texte" });
   assert.equal((await envoi({ idClient: randomUUID(), type: "photo" })).corps.champ, "type");

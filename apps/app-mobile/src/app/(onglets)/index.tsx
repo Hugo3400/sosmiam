@@ -21,6 +21,7 @@ import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
@@ -133,7 +134,10 @@ export default function PourToi() {
   const { publications: toutesLesPublications, horsLigne: filHorsLigne } = utiliserPublications();
   const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
-  const publications = useMemo(() => ordonnerPublications(toutesLesPublications, lieux, profil, suivisDuTri), [toutesLesPublications, lieux, profil, suivisDuTri]);
+  const publications = useMemo(
+    () => ordonnerPublications(toutesLesPublications, lieux, profil, suivisDuTri, depart),
+    [toutesLesPublications, lieux, profil, suivisDuTri, depart],
+  );
 
   const { estMasquee } = activite;
   const liste = useMemo(() => {
@@ -267,7 +271,7 @@ export default function PourToi() {
   function partager(p: Publication) {
     const lieu = lieuParId.get(p.lieuId);
     if (!lieu) return;
-    Share.share({ message: `${lieu.emoji} ${lieu.nom} (${lieu.quartier}, ${lieu.ville}) a besoin de monde ! Je l'ai trouvé sur SOS Miam 🛟 https://sosmiam.fr` }).catch(() => {});
+    Share.share({ message: `${lieu.emoji} ${lieu.nom} (${ecrireQuartierVille(lieu)}) a besoin de monde ! Je l'ai trouvé sur SOS Miam 🛟 https://sosmiam.fr` }).catch(() => {});
   }
 
   // L'animation part dès l'appui sur le fil d'affichage ; le nouveau rendu (accessibilité, appuis) passe ensuite, sans la bloquer

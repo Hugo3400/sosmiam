@@ -3,14 +3,14 @@ import type { Profil } from "@sos-miam/commun/types/profil";
 
 import { envieParChoix, typeParChoixLieu } from "~/contenus/correspondances-envies";
 
-// Une distance inconnue (lieu pas encore placé) compte comme loin, au bout du curseur d'Explorer : à envies égales,
-// jamais devant un lieu dont on sait qu'il est près de toi
-const KM_SI_INCONNU = 50;
+// Une distance inconnue (même pas la ville du lieu, estimerKmPourClasser) compte comme plus loin que tout point de France,
+// Corse comprise : quelles que soient les envies, jamais devant un lieu dont on sait où il est
+const KM_SI_INCONNU = 2_000;
 
 /**
  * Intérêt d'un lieu pour la personne, pour trier le fil « Pour toi » : ses envies (type de lieu, moments, régime),
  * un coup de pouce aux lieux qui ont besoin de monde (SOS, alerte, nouveauté), et un peu moins quand c'est loin.
- * « km » : sa distance (calculerKmLieu), null si on ne la connaît pas.
+ * « km » : sa distance pour classer (estimerKmPourClasser), null si on ne la connaît pas du tout.
  */
 export function calculerScoreLieu(lieu: Lieu, profil: Profil, km: number | null): number {
   const envies = profil.envies;

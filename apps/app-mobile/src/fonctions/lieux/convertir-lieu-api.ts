@@ -6,8 +6,8 @@ import { calculerDistance } from "~/fonctions/geo/calculer-distance";
 const PRIX_MOYEN_PAR_GAMME: Record<Lieu["prix"], number> = { "€": 12, "€€": 22, "€€€": 40 };
 
 /**
- * Un lieu de l'API au format de l'app : la distance est calculée sur le téléphone depuis le point de départ (ta position ou
- * le centre de ta ville ; jamais envoyé au serveur). Sans point de départ ou sans position du lieu, elle est inconnue :
+ * Un lieu de l'API au format de l'app : la distance est calculée sur le téléphone depuis le point de départ (le centre de
+ * ta ville ; jamais envoyé tel quel au serveur). Sans point de départ ou sans position du lieu, elle est inconnue :
  * l'infini (jamais 0, qui le mettrait « à côté de toi »), que calculerKmLieu rend en null.
  */
 export function convertirLieuApi(lieu: LieuApi, depart: PositionLieu | null): Lieu {
