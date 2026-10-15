@@ -122,11 +122,13 @@ Comment ça se passe :
 
 - Pendant le changement, tout se lit avec l'une ou l'autre clé, et tout ce qui s'écrit l'est avec la nouvelle.
 - Chaque nuit, les textes sont réécrits par paquets de 500 (100 000 par table et par nuit au plus), puis les fichiers
-  (500 par nuit au plus : une photo pèse jusqu'à 5 Mo). Un fichier n'est jamais écrasé : le rechiffré prend un nouveau
-  nom, et la base passe au nouveau nom (message et signalement). L'ancien fichier n'est **pas** supprimé tout de suite :
-  plus cité par aucun message ni signalement ouvert, il part avec les fichiers orphelins de plus de 24 h (étape 8 du
-  ménage) **la nuit suivante**. Un signalement fait pendant le rechiffrement peut encore citer l'ancien nom : ce
-  fichier-là reste tant que le signalement est ouvert, et la nuit suivante le rechiffre à son tour.
+  (500 par nuit au plus : une photo pèse jusqu'à 5 Mo ; et le rechiffrement s'arrête pour la nuit si le disque passe sous
+  17 % de place libre, pour ne jamais prendre la place des envois des Miamis, refusés sous 15 %). Un fichier n'est jamais
+  écrasé : le rechiffré prend un nouveau nom, il est forcé sur le disque, et la base passe au nouveau nom (le message, et
+  tous les signalements qui le citent, jugés compris). L'ancien fichier n'est **pas** supprimé tout de suite : plus cité
+  par aucun message ni signalement qui le garde, il part avec les fichiers orphelins de plus de 24 h (étape 8 du ménage)
+  **la nuit suivante**. Un signalement fait pendant le rechiffrement peut encore citer l'ancien nom : ce fichier-là reste
+  tant que le signalement le garde, et la nuit suivante le rechiffre à son tour.
 - Dans le journal du logiciel de gestion, la ligne « Chiffrés sociaux réécrits avec la nouvelle clé (… illisible(s),
   … restant(s)) » paraît chaque nuit tant que l'ancienne clé est là, même quand il n'y a plus rien à réécrire ; le
   détail donne le nombre réécrit cette nuit-là. Seulement des nombres, jamais un contenu. Elle manque une nuit où
@@ -140,8 +142,9 @@ Comment ça se passe :
   (restants = illisibles, deux nuits de suite). Les illisibles (un chiffré abîmé qu'aucune des deux clés ne relit) restent
   tels quels : un message illisible s'affiche « illisible » dans l'app et part avec sa conversation (1 an sans message),
   sauf si un de ses messages attend la modération (signalement ouvert : elle part la nuit qui suit la décision) ; une
-  photo ou une note vocale part au bout de 90 jours, **sauf** celle d'un message au signalement ouvert (pas encore jugé,
-  ou contesté et pas encore réexaminé), gardée tant qu'il l'est.
+  photo ou une note vocale disparaît de la conversation au bout de 90 jours, et son fichier part du disque, **sauf** si
+  un signalement la garde pour la modération : ouvert (pas encore jugé, ou contesté et pas encore réexaminé), ou jugé
+  depuis moins de 6 mois (183 jours après la décision, ou après le réexamen), même retenu (décision du 15 octobre 2026).
 - Les sauvegardes faites avant le changement contiennent aussi des messages chiffrés avec l'ancienne clé, et le dossier
   des médias n'est pas dans la sauvegarde de la base : la règle des 30 jours de la section « Les sauvegardes » suffit.
 
@@ -159,6 +162,48 @@ Exemples : « illisible, table messages_conversations, id 2003 », « illisible,
 `profils_sociaux` (compte_id : le code d'invitation de sa bande ; un nouveau lien le remplace),
 `conversations` (titre d'un groupe), `messages_conversations` (texte d'un message), `signalements` (instantané d'un
 signalement). Ne jamais copier une valeur chiffrée dans un chat ou un ticket.
+
+**Au-delà de 100 illisibles** (le journal n'en détaille que 100 par nuit), ou pour les avoir tous d'un coup : une fois la
+règle de fin remplie (restants = illisibles, deux nuits de suite, sans « rechiffrement » dans les étapes ratées), plus rien
+d'autre n'attend l'ancienne clé. Donc **chaque ligne dont la colonne chiffrée ne commence pas par `v<courante>:`** (la
+version de `SOS_MIAM_CLE_DONNEES_VERSION`) **est un illisible**. Requêtes à lancer par Hugo, en lecture seule, dans psql
+sur la base `sosmiam` (par exemple `sudo -u postgres psql -d sosmiam`), ici pour une clé courante en version 2 (remplacer
+`'v2:%'` par la version courante, par exemple `'v3:%'`). Elles ne sortent que des identifiants, jamais un chiffré :
+
+```sql
+-- Codes d'invitation de la bande (un nouveau lien les remplace)
+SELECT compte_id FROM profils_sociaux
+WHERE code_invitation_chiffre IS NOT NULL AND code_invitation_chiffre NOT LIKE 'v2:%' ORDER BY compte_id;
+
+-- Titres des groupes
+SELECT id FROM conversations
+WHERE titre_chiffre IS NOT NULL AND titre_chiffre NOT LIKE 'v2:%' ORDER BY id;
+
+-- Textes des messages et lieux envoyés (avec leur conversation)
+SELECT id, conversation_id FROM messages_conversations
+WHERE texte_chiffre IS NOT NULL AND texte_chiffre NOT LIKE 'v2:%' ORDER BY id;
+
+-- Instantanés des signalements
+SELECT id FROM signalements
+WHERE instantane_chiffre IS NOT NULL AND instantane_chiffre NOT LIKE 'v2:%' ORDER BY id;
+```
+
+Pour seulement les compter, remplacer la liste des colonnes par `count(*)` (et retirer `ORDER BY`). C'est exactement la
+condition du rechiffrement (« v12: » ne commence pas par « v1: » : le motif ne prend jamais une autre version pour la
+courante).
+
+Les photos et notes vocales ne sont pas dans la base : leur version est écrite au début du fichier (`v2:` en clair, puis
+le chiffré). Même règle, sur le dossier des médias, en root (lecture seule ; pour une version à deux chiffres, `head -c 4`
+et `"v12:"`) :
+
+```sh
+cd /var/lib/sos-miam/medias-chat && for f in *.bin; do [ "$(head -c 3 "$f" 2>/dev/null)" = "v2:" ] || echo "$f"; done
+```
+
+Puis, pour savoir à quoi sert un de ces fichiers (dans psql, avec son nom) :
+`SELECT id, conversation_id FROM messages_conversations WHERE fichier = '<nom>.bin';` et
+`SELECT id, statut FROM signalements WHERE fichier_media = '<nom>.bin';` (aucune ligne : le ménage le retire comme
+orphelin la nuit suivante).
 
 ## Si la clé fuit
 
