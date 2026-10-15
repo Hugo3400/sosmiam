@@ -17,17 +17,18 @@ type Props = {
   lieuId: number;
   nomLieu: string;
   age: number | null;
+  lieuAlcool: boolean;
 };
 
 const T = TEXTES_AVIS_LIEU;
 const AVIS_AU_DEPART = 3;
 const AVIS_EN_PLUS = 5;
 
-export function SectionAvisLieu({ lieuId, nomLieu, age }: Props) {
+export function SectionAvisLieu({ lieuId, nomLieu, age, lieuAlcool }: Props) {
   const { lecture, suiteEnCours, relire, lireSuite } = utiliserAvisLieu(lieuId);
   const lireSourcePhoto = utiliserSourcePhotoAvis();
   const [montres, setMontres] = useState(AVIS_AU_DEPART);
-  const visibles = useMemo(() => (lecture.etat === "lu" ? filtrerAvisSelonAge(lecture.avis, age) : []), [lecture, age]);
+  const visibles = useMemo(() => (lecture.etat === "lu" ? filtrerAvisSelonAge(lecture.avis, age, lieuAlcool) : []), [lecture, age, lieuAlcool]);
 
   const contenu = () => {
     if (lecture.etat === "attente") {

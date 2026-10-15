@@ -76,7 +76,8 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
   // Celle enregistrée par le lieu s'il l'a fait, sinon celle de la fiche (lue une fois, pour l'aperçu et la prévention)
   const carteDuLieu = utiliserCarteDuLieu(lieu.id);
   // Un bar, une offre qui parle d'alcool, ou des boissons alcoolisées sur la carte telle qu'elle est montrée : message sanitaire
-  const alcool = useMemo(() => lieuEvoqueAlcool(lieu) || carteContientAlcool(carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null), [lieu, carteDuLieu, age]);
+  const lieuAlcool = useMemo(() => lieuEvoqueAlcool(lieu), [lieu]);
+  const alcool = useMemo(() => lieuAlcool || carteContientAlcool(carteDuLieu ? filtrerCarteSelonAge(carteDuLieu, age) : null), [lieuAlcool, carteDuLieu, age]);
   const arrivee = utiliserArriveeTerminee();
   const animationsReduites = useReducedMotion();
 
@@ -121,7 +122,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
         ))}
       </View>
 
-      <SectionAvisLieu lieuId={lieu.id} nomLieu={lieu.nom} age={age} />
+      <SectionAvisLieu lieuId={lieu.id} nomLieu={lieu.nom} age={age} lieuAlcool={lieuAlcool} />
 
       {/* Une info a changé : le client la propose, l'équipe vérifie avant de toucher à la fiche */}
       <LienProposerModification lieu={lieu} />
