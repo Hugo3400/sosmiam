@@ -10,6 +10,7 @@ import { utiliserInvitationEnAttente } from "~/hooks/utiliser-invitation-en-atte
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
+import { SuiviEcranOuvert } from "~/composants/navigation/SuiviEcranOuvert";
 
 /**
  * Pile d'écrans de l'app. Pas encore inscrit : seulement l'inscription. Inscrit : les onglets et tout le reste.
@@ -26,8 +27,9 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const modes = utiliserModes();
   // Après « Quitter la démo » : le compte mis de côté se rouvre avant d'afficher quoi que ce soit
   const reprise = utiliserRepriseCompte();
-  // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran
-  utiliserInscriptionTelephone();
+  const pret = policesChargees && !chargement && modes.pret && !reprise;
+  // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran (une fois la pile affichée)
+  utiliserInscriptionTelephone(pret);
   // Session expirée côté serveur (ou profil sans session) : retour à l'accueil, où « Me connecter » t'attend
   utiliserFinDeSession();
   // Un lien d'invitation ouvert avant d'avoir un compte : rouvert une fois le compte créé
@@ -36,7 +38,6 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   useEffect(() => {
     void renvoyerSignalementsEnAttente();
   }, []);
-  const pret = policesChargees && !chargement && modes.pret && !reprise;
   const inscrit = profil !== null;
 
   useEffect(() => {
@@ -48,6 +49,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   return (
     <>
       <StatusBar style="dark" />
+      {/* L'écran ouvert, pour les notifications (pas de bannière pour la discussion que tu as sous les yeux) */}
+      <SuiviEcranOuvert />
       <Stack screenOptions={{ headerShown: false }}>
         {/* Pour regarder : avec un compte, ou en visite sans compte (les onglets d'abord : c'est l'écran d'arrivée) */}
         <Stack.Protected guard={inscrit || invite}>

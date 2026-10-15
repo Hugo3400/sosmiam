@@ -3,26 +3,59 @@ import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 
+import { creerCanauxAndroid } from "~/fonctions/notifications/creer-canaux-android";
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { lireEcranOuvert } from "~/services/ecran-ouvert";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
-// Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sans son
+/**
+ * Les écrans qui se mettent à jour tout seuls (le pouls est relu à chaque notification reçue) : déjà ouverts, leur
+ * notification ne s'affiche pas. Jamais Miam Safe (une alerte se montre toujours), ni les onglets ou les listes, où ce que
+ * dit la notification (une campagne sur « / », par exemple) n'est pas forcément à l'écran.
+ */
+const ECRANS_A_JOUR = /^\/potes\/(discussion|sortie|profil)\/[^/]+$/;
+
+/** Le message de cette notification est déjà sous tes yeux : l'écran de son lien est ouvert, et il se met à jour seul */
+const estDejaSousTesYeux = (notification: Notifications.Notification): boolean => {
+  try {
+    const lien = lireLienNotification(notification);
+    return lien !== null && ECRANS_A_JOUR.test(lien) && lien === lireEcranOuvert();
+  } catch {
+    // Dans le doute, la notification s'affiche
+    return false;
+  }
+};
+
 if (Platform.OS !== "web") {
+  // Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sans son, sauf si son écran est déjà ouvert
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
+    handleNotification: async (notification) => {
+      const afficher = !estDejaSousTesYeux(notification);
+      return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: false, shouldSetBadge: false };
+    },
   });
+  // Android : le canal « Miam Safe » des alertes urgentes, avant toute demande d'autorisation
+  void creerCanauxAndroid();
 }
+
+/**
+ * La dernière notification touchée déjà ouverte : la même peut arriver deux fois (au lancement de l'app et par l'écoute).
+ * L'identifiant seul ne suffit pas : sur iPhone, les messages d'une même conversation partagent le leur (apns-collapse-id),
+ * d'où la date d'arrivée en plus.
+ */
+let derniereOuverte: string | null = null;
 
 /**
  * À la racine de l'app : le téléphone s'inscrit aux notifications quand il y a un profil et que « Recevoir des
  * notifications » est allumé (la question du système est posée une fois, au premier lancement avec un profil), puis à chaque
  * connexion ou déconnexion (le téléphone est lié au compte, ou délié) et quand la ville change. Toucher une notification
- * ouvre son écran (son « lien »), même quand elle a lancé l'app.
+ * ouvre son écran (son « lien »), même quand elle a lancé l'app : seulement une fois la pile d'écrans affichée (`pileAffichee`),
+ * sinon la navigation partirait avant elle. Un écran déjà ouvert n'est pas empilé une deuxième fois.
  */
-export function utiliserInscriptionTelephone(): void {
+export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
   const router = useRouter();
   const { pret, connecte } = utiliserSession();
   const { profil } = utiliserProfil();
@@ -42,13 +75,27 @@ export function utiliserInscriptionTelephone(): void {
   }, [pret, connecte, avecProfil, inscrire]);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
+    if (Platform.OS === "web" || !pileAffichee) return;
     const ouvrir = (reponse: Notifications.NotificationResponse | null) => {
-      const lien = lireLienNotification(reponse?.notification.request.content.data);
-      if (lien) router.push(lien as Href);
+      if (!reponse) return;
+      const cle = `${reponse.notification.request.identifier}@${reponse.notification.date}`;
+      if (cle === derniereOuverte) return;
+      derniereOuverte = cle;
+      try {
+        // Ouverte : on l'oublie, pour ne pas la rouvrir au prochain affichage de la pile (après « Quitter la démo »)
+        Notifications.clearLastNotificationResponse();
+      } catch {
+        // Pas disponible ici : l'identifiant gardé suffit
+      }
+      const lien = lireLienNotification(reponse.notification);
+      if (lien && lien !== lireEcranOuvert()) router.push(lien as Href);
     };
-    Notifications.getLastNotificationResponseAsync().then(ouvrir).catch(() => {});
+    try {
+      ouvrir(Notifications.getLastNotificationResponse());
+    } catch {
+      // Pas de module natif (navigateur, Expo Go selon les versions) : rien à rouvrir
+    }
     const abonnement = Notifications.addNotificationResponseReceivedListener(ouvrir);
     return () => abonnement.remove();
-  }, [router]);
+  }, [router, pileAffichee]);
 }

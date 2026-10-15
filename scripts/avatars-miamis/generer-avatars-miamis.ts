@@ -1,5 +1,6 @@
 // Refait kits/SOS_Miam_kit_de_marque/06_Avatars_des_Miamis : chaque Miami et le Capitaine en SVG et en PNG 1024 px
-// (rond jaune clair, transparent autour), et la planche des seize en 1080 × 1350.
+// (rond jaune clair, transparent autour), et la planche des seize en 1080 × 1350 ; et les images de l'app
+// (apps/app-mobile/assets/images/avatars-miamis, PNG 420 px : un rond de 140 points sur un écran 3x).
 // Usage : node scripts/avatars-miamis/generer-avatars-miamis.ts   (Chrome sans écran de Playwright, ou son chemin dans CHROME)
 // Ensuite, pour l'Espace presse du logiciel : python3 -I scripts/presse/assembler-presse.py <travail> --depuis-presse
 import { execFileSync } from "node:child_process";
@@ -8,6 +9,7 @@ import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { AVATARS_MIAMIS } from "../../packages/commun/src/regles/avatars-miamis.ts";
 import { dessinerMiami, dessinerSvgMiami } from "./dessiner-miami.ts";
 import { CAPITAINE, MIAMIS, type Miami } from "./miamis.ts";
 import { COULEURS } from "./parties-bouee.ts";
@@ -15,7 +17,14 @@ import { COULEURS } from "./parties-bouee.ts";
 const RACINE = resolve(fileURLToPath(import.meta.url), "../../..");
 const SORTIE = join(RACINE, "kits/SOS_Miam_kit_de_marque/06_Avatars_des_Miamis");
 const POLICE = join(RACINE, "node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2");
+const SORTIE_APP = join(RACINE, "apps/app-mobile/assets/images/avatars-miamis");
 const TAILLE = 1024;
+const TAILLE_APP = 420;
+
+// Les dessins et la liste de packages/commun (identifiants acceptés par l'API) doivent rester les mêmes, dans le même ordre
+if (MIAMIS.map((m) => m.id).join() !== AVATARS_MIAMIS.map((m) => m.id).join()) {
+  throw new Error("Les Miamis dessinés et AVATARS_MIAMIS (packages/commun/src/regles/avatars-miamis.ts) ne correspondent pas.");
+}
 
 function trouverChrome(): string {
   if (process.env.CHROME) return process.env.CHROME;
@@ -40,6 +49,7 @@ function enregistrer(miami: Miami, nom: string): void {
   const svg = dessinerSvgMiami(miami, COULEURS.jauneClair, TAILLE);
   writeFileSync(join(SORTIE, `${nom}.svg`), svg);
   capturer(svg, TAILLE, TAILLE, join(SORTIE, `${nom}.png`));
+  capturer(dessinerSvgMiami(miami, COULEURS.jauneClair, TAILLE_APP), TAILLE_APP, TAILLE_APP, join(SORTIE_APP, `${miami.id}.png`));
 }
 
 /** Les seize Miamis sur une image 4:5 (1080 × 1350), avec leur nom : aucune date, aucune promesse */
@@ -54,10 +64,12 @@ h1{margin:0 0 40px;font-size:84px;font-weight:900;letter-spacing:-3px;line-heigh
 <div class="p"><h1>Les <span>Miamis</span></h1><div class="g">${cases}</div></div>`;
 }
 
-rmSync(SORTIE, { recursive: true, force: true });
-mkdirSync(SORTIE, { recursive: true });
+for (const dossier of [SORTIE, SORTIE_APP]) {
+  rmSync(dossier, { recursive: true, force: true });
+  mkdirSync(dossier, { recursive: true });
+}
 for (const miami of MIAMIS) enregistrer(miami, `SOSMiam_Miami_${miami.id}`);
 enregistrer(CAPITAINE, "SOSMiam_Capitaine_Bouiboui_avatar");
 capturer(planche(), 1080, 1350, join(SORTIE, "SOSMiam_Miamis_planche.png"));
 rmSync(travail, { recursive: true, force: true });
-console.log(`✅ ${MIAMIS.length} Miamis, le Capitaine et la planche dans ${SORTIE}`);
+console.log(`✅ ${MIAMIS.length} Miamis, le Capitaine et la planche dans ${SORTIE}, et les images de l'app dans ${SORTIE_APP}`);
