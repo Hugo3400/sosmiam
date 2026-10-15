@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import type { ReglageMessageMoment } from "@sos-miam/commun/client-api/contrat-lieu-pro";
 import { MESSAGE_MOMENT_MAX } from "@sos-miam/commun/regles/sos-lieu";
 import type { MomentLieu } from "@sos-miam/commun/types/moment-lieu";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ChoixFin } from "~/composants/pro/ChoixFin";
@@ -19,13 +20,15 @@ type Props = {
   /** Rend le champ refusé, « refuse » (pas affiché, l'écran a dit pourquoi : le texte reste), ou null si c'est affiché */
   onAfficher: (message: ReglageMessageMoment) => Promise<ChampMessage | "refuse" | null>;
   onEffacer: () => void;
+  /** Compte limité : pourquoi le dernier geste n'est pas parti, dit au-dessus du bouton */
+  refusLimite: string | null;
 };
 
 /**
  * Le message du moment (« Happy hour jusqu'à 20 h ») : 80 caractères, affiché sur la fiche du lieu jusqu'à l'heure choisie
  * (24 h au plus), puis effacé tout seul. Un message en place peut être remplacé ou effacé.
  */
-export function BlocMessageMoment({ moment, enCours, onAfficher, onEffacer }: Props) {
+export function BlocMessageMoment({ moment, enCours, refusLimite, onAfficher, onEffacer }: Props) {
   const [texte, setTexte] = useState("");
   const durees = listerDureesMessage(new Date(), moment.fermeture);
   const [duree, setDuree] = useState<string | null>(durees[0]?.cle ?? null);
@@ -67,6 +70,7 @@ export function BlocMessageMoment({ moment, enCours, onAfficher, onEffacer }: Pr
       />
       <ChoixFin libelle="Combien de temps ?" choix={durees} choisi={duree} onChoisir={setDuree} />
       {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">24 h au plus, et pas dans le passé.</Text> : null}
+      <RefusLimitationEnPlace texte={refusLimite} />
       <Bouton libelle={actuel ? "Remplacer le message" : "Afficher le message"} desactive={enCours || texte.trim() === ""} onPress={() => void afficher()} />
     </View>
   );

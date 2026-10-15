@@ -30,6 +30,8 @@ export default function EcranCeSoir() {
   const [enCours, setEnCours] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
+  // Compte limité : la phrase reste au-dessus du bouton du bloc refusé, jusqu'au prochain geste
+  const [refusLimite, setRefusLimite] = useState<{ bloc: "sos" | "message"; texte: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,11 +51,17 @@ export default function EcranCeSoir() {
   const id = lieuPro.id;
 
   /**
-   * Un geste : la réponse remplace l'état ; un refus de champ revient à l'appelant, les autres sont annoncés et rendent
-   * « refuse » (le bloc garde ce qui était écrit). `refusLimite` : la phrase d'un compte limité, qui ne publie plus pour le lieu
+   * Un geste : la réponse remplace l'état ; un refus de champ revient à l'appelant, les autres rendent « refuse » (le bloc
+   * garde ce qui était écrit) et sont annoncés. `siLimite` : un compte limité ne publie plus pour le lieu, la phrase va au bloc
    */
-  async function agir<C extends string>(geste: () => Promise<ReponseMoment>, champs: readonly C[], merci: string, refusLimite?: string): Promise<C | "refuse" | null> {
+  async function agir<C extends string>(
+    geste: () => Promise<ReponseMoment>,
+    champs: readonly C[],
+    merci: string,
+    siLimite?: { bloc: "sos" | "message"; texte: string },
+  ): Promise<C | "refuse" | null> {
     setEnCours(true);
+    setRefusLimite(null);
     const r = await geste();
     setEnCours(false);
     if (r.ok) {
@@ -63,9 +71,11 @@ export default function EcranCeSoir() {
       return null;
     }
     if (r.erreur === "champ-invalide" && champs.includes(r.champ as C)) return r.champ as C;
-    annoncer(r.erreur === "compte-limite" && refusLimite ? refusLimite : decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    if (r.erreur === "compte-limite" && siLimite) setRefusLimite(siLimite);
+    else annoncer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
     return "refuse";
   }
+  const refusDe = (bloc: "sos" | "message") => (refusLimite?.bloc === bloc ? refusLimite.texte : null);
 
   return (
     <EcranReglage titre="Ce soir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · le SOS du soir et ton message du moment`}>
@@ -79,7 +89,8 @@ export default function EcranCeSoir() {
             <BlocSosDuSoir
               moment={moment}
               enCours={enCours}
-              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !", REFUS_LIMITATION.sosDuSoir)}
+              refusLimite={refusDe("sos")}
+              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !", { bloc: "sos", texte: REFUS_LIMITATION.sosDuSoir })}
               onArreter={() => void agir(() => service.arreterSos(id), [], "SOS arrêté. À demain pour le prochain !")}
             />
           </SectionReglages>
@@ -87,7 +98,8 @@ export default function EcranCeSoir() {
             <BlocMessageMoment
               moment={moment}
               enCours={enCours}
-              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche", REFUS_LIMITATION.messageMoment)}
+              refusLimite={refusDe("message")}
+              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche", { bloc: "message", texte: REFUS_LIMITATION.messageMoment })}
               onEffacer={() => void agir(() => service.effacerMessage(id), [], "Message effacé")}
             />
           </SectionReglages>

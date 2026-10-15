@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import type { LancementSos } from "@sos-miam/commun/client-api/contrat-lieu-pro";
 import { SOS_OFFRE_MAX, SOS_PLACES_MAX, SOS_PLACES_MIN } from "@sos-miam/commun/regles/sos-lieu";
 import type { MomentLieu } from "@sos-miam/commun/types/moment-lieu";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
@@ -21,6 +22,8 @@ type Props = {
   /** Rend le champ refusé, « refuse » (pas parti, l'écran a dit pourquoi), ou null si c'est parti */
   onLancer: (sos: LancementSos) => Promise<ChampSos | "refuse" | null>;
   onArreter: () => void;
+  /** Compte limité : pourquoi le dernier geste n'est pas parti, dit au-dessus du bouton */
+  refusLimite: string | null;
 };
 
 const ERREURS: Record<ChampSos, string> = {
@@ -33,7 +36,7 @@ const ERREURS: Record<ChampSos, string> = {
  * Le SOS « place ce soir » : un par jour, jusqu'à la fermeture (ou plus tôt). Lancé, il montre ses places, son offre et
  * jusqu'à quand, avec « Arrêter le SOS » ; arrêté ou fini, il dit qu'on se retrouve demain.
  */
-export function BlocSosDuSoir({ moment, enCours, onLancer, onArreter }: Props) {
+export function BlocSosDuSoir({ moment, enCours, refusLimite, onLancer, onArreter }: Props) {
   const [places, setPlaces] = useState(4);
   const [offre, setOffre] = useState("");
   const fins = listerFinsCeSoir(new Date(), moment.fermeture);
@@ -105,6 +108,7 @@ export function BlocSosDuSoir({ moment, enCours, onLancer, onArreter }: Props) {
       />
       <ChoixFin libelle="Jusqu'à quand ?" choix={fins} choisi={fin} onChoisir={setFin} />
       {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">{ERREURS.jusqua}</Text> : null}
+      <RefusLimitationEnPlace texte={refusLimite} />
       <Bouton libelle="Lancer le SOS" variante="encre" desactive={enCours || !choixFin} onPress={() => setConfirmation("lancer")} />
       <FeuilleConfirmation
         visible={confirmation === "lancer"}
