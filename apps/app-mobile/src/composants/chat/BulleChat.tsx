@@ -7,6 +7,7 @@ import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { CarteLieuChat } from "~/composants/chat/CarteLieuChat";
 import { NoteVocale } from "~/composants/chat/NoteVocale";
+import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
 import { RondPote } from "~/composants/potes/RondPote";
@@ -51,7 +52,7 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
-  const { basculerReaction, renvoyer } = utiliserConversations();
+  const { basculerReaction, renvoyer, envoisEnPause } = utiliserConversations();
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   const dernierAppui = useRef(0);
@@ -222,7 +223,9 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
       <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
         {bulle}
         <ReactionsMessage conversationId={conversationId} message={message} deMoi />
-        {message.etat === "echec" ? (
+        {message.etat === "echec" && envoisEnPause.has(message.id) ? (
+          <PauseMessageLimite />
+        ) : message.etat === "echec" ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Pas parti. Touche pour réessayer."

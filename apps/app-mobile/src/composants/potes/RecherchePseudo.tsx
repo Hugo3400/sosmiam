@@ -5,6 +5,7 @@ import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -56,7 +57,9 @@ export function RecherchePseudo() {
               ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
               : resultat.type === "demandes-fermees"
                 ? `${pote.prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
-                : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
+                : resultat.type === "erreur" && resultat.erreur === "compte-limite"
+                  ? REFUS_LIMITATION.bande
+                  : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
     setErreur(resultat.type === "ajoute" || resultat.type === "deja" || resultat.type === "demande" ? null : message);
     AccessibilityInfo.announceForAccessibility(message);
   }

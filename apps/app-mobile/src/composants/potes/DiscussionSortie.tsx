@@ -11,7 +11,7 @@ import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
-import type { ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
 
 /** Un message prêt à afficher : son auteur, son heure, et le jour à écrire au-dessus quand il change */
@@ -54,6 +54,8 @@ const PRES_DU_BAS = 120;
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
 export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer }: Props) {
   const animationsReduites = useReducedMotion();
+  // Tes messages refusés parce que ton compte est limité : la bulle le dit, sans « Réessaie »
+  const { envoisEnPause } = utiliserConversations();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
@@ -179,6 +181,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                 debutSerie={debutSerie}
                 etat={item.message.etat}
                 onRenvoyer={() => renvoyer(item.message.id)}
+                enPause={envoisEnPause.has(item.message.id)}
                 onOptions={
                   item.deMoi || ETATS_CACHES.has(item.message.etat)
                     ? undefined

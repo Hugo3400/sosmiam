@@ -6,6 +6,7 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import type { ResultatAjoutBande } from "~/hooks/utiliser-communaute";
 import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 /** Ce qui s'est passé après un scan ou un texte collé (lien d'invitation, ou pseudo seul) */
@@ -40,6 +41,8 @@ const decrire = (retour: RetourAjout): { emoji: string; titre: string; detail: s
     case "invitation-invalide":
       return { emoji: "🔗", titre: "Ce lien ne marche plus", detail: "Ton pote a peut-être changé son lien. Demande-lui le nouveau, ou son QR code : c'est réglé en 2 secondes." };
     case "erreur":
+      // Compte limité : pas une panne, rien à réessayer (l'annonce de toute l'app dit où lire le pourquoi)
+      if (retour.erreur === "compte-limite") return { emoji: "⏸️", titre: "Pas cette fois", detail: REFUS_LIMITATION.bande };
       return { emoji: "😕", titre: "Ça n'a pas marché cette fois", detail: "Réessaie dans un instant. Si ça continue, demande à ton pote de te remontrer son QR code." };
     case "pas-invitation":
       return { emoji: "🤔", titre: "Ce n'est pas une invitation SOS Miam", detail: "Demande à ton pote son QR code, dans Potes puis « Ajouter un pote ». Ou colle son lien, il commence par sosmiam.fr/invitation/." };

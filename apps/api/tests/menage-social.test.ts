@@ -1,10 +1,11 @@
-// Tests du ménage social de la nuit (lot L7, spécification E.1) : seuils et lignes du journal (fonctions pures), rechiffrement
+// Tests du ménage social de la nuit (lot L7, spécification E.1) : seuils (fonction pure ; les lignes du journal sont dans
+// menage-social-journal.test.ts), rechiffrement
 // d'un texte et d'un fichier pendant un changement de clé (vraies clés de test, ancienne et nouvelle), protection de chaque
 // étape, de chaque paquet et de chaque sous-étape (ce qui échoue n'arrête pas la suite ; le journal ne garde que des noms et
 // des codes), liste du dossier des médias jusqu'à une page vide, ordre des verrous (sorties puis conversations ; compte puis
 // conversation pour un signalement de message), garde des fichiers signalés (ouvert, ou jugé depuis moins de 183 jours) aux
-// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit (et sa ligne au journal du logiciel, 60 caractères
-// au plus), sur des bases factices. Les requêtes SQL des étapes 1 à 9 sont essayées sur PGlite, hors de ces tests
+// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit (et sa ligne au journal du logiciel), sur des
+// bases factices. Les requêtes SQL des étapes 1 à 9 sont essayées sur PGlite, hors de ces tests
 // (scratchpad essai-l7/essai-menage-l7.mts).
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -93,43 +94,6 @@ test("seuils : les durées décidées (90 jours, 1 an, 30 jours, 24 h, 6 et 13 m
     contenusRetires: ilYa(365), orphelins: ilYa(1), fichiersSignales: ilYa(183),
   });
   assert.notEqual(s.medias, T, "une copie : le ménage ne peut pas déplacer maintenant");
-});
-
-test("lignes du journal : seulement ce qui ne vaut pas zéro, des nombres, et le rechiffrement même à zéro", () => {
-  assert.deepEqual(decrireBilanMenageSocial(BILAN_VIDE), []);
-  const lignes = decrireBilanMenageSocial({ ...BILAN_VIDE, medias: 3, invitationsGroupes: 2, cloche: 40 });
-  assert.deepEqual(lignes, [
-    [3, "Médias du chat effacés (90 jours)"],
-    [2, "Invitations à des groupes expirées (30 jours)"],
-    [40, "Cloche : notifications effacées (90 jours, 200 par compte)"],
-  ]);
-  const rotation = decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: { rechiffres: 0, illisibles: 0, restants: 0, enAttenteDePlace: 0 }, etapesRatees: ["cloche"] });
-  assert.deepEqual(rotation, [
-    [0, "Rechiffrement social : 0 illisible(s), 0 restant(s)"],
-    [1, "Ménage social, étape(s) ratée(s) : cloche"],
-  ], "même à zéro : la règle de fin se lit chaque nuit (restants = illisibles deux nuits de suite, sans étape « rechiffrement » ratée)");
-});
-
-/** noterAction (services/gestion/journal.ts) ne garde que 60 caractères de l'action */
-const LONGUEUR_ACTION_JOURNAL = 60;
-
-test("lignes du journal : 60 caractères au plus, nombres entiers, « rechiffrement » en tête des étapes ratées, la pause du disque", () => {
-  const tout: BilanMenageSocial = {
-    ...Object.fromEntries(Object.entries(BILAN_VIDE).map(([cle, valeur]) => [cle, typeof valeur === "number" ? 123_456 : valeur])) as BilanMenageSocial,
-    rechiffrement: { rechiffres: 500, illisibles: 99_999, restants: 1_234_567, enAttenteDePlace: 4321 },
-    etapesRatees: ["médias", "conversations", "conversations vides", "demandes", "cloche", "masques", "contenus retirés", "fichiers orphelins", "rechiffrement"],
-  };
-  const lignes = decrireBilanMenageSocial(tout);
-  assert.equal(lignes.length, 16 + 3);
-  for (const [, quoi] of lignes) assert.ok(quoi.length <= LONGUEUR_ACTION_JOURNAL, `${quoi.length} : ${quoi}`);
-  assert.deepEqual(lignes.slice(-3), [
-    [500, "Rechiffrement social : 99999 illisible(s), 1234567 restant(…"],
-    [4321, "Fichiers à rechiffrer en pause : disque presque plein"],
-    [9, "Ménage social, étape(s) ratée(s) : rechiffrement, médias, c…"],
-  ], "coupées par « … », mais jamais avant les nombres ; « rechiffrement » en tête de la liste des étapes ratées");
-  // Pas de pause (plafond de la nuit, ou disque assez libre) : pas de ligne
-  const sansPause = decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: { rechiffres: 500, illisibles: 0, restants: 40, enAttenteDePlace: 0 } });
-  assert.deepEqual(sansPause, [[500, "Rechiffrement social : 0 illisible(s), 40 restant(s)"]]);
 });
 
 /** Une clé v1, puis la v2 qui garde la v1 en ancienne (changement de clé en cours) */

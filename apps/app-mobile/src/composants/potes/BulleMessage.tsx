@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
+import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -22,6 +23,8 @@ type Props = {
   etat?: MessageSortie["etat"];
   /** Un de tes messages qui n'est pas parti : le renvoyer */
   onRenvoyer?: () => void;
+  /** Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, la ligne ouvre le pourquoi */
+  enPause?: boolean;
 };
 
 const TAILLE_AVATAR = 32;
@@ -31,7 +34,7 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
  * Un message de la discussion d'une sortie : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar et leur
  * prénom. Compte connecté : « Envoi… » le temps qu'il parte, « Pas parti. Touche pour réessayer. » s'il n'est pas parti.
  */
-export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer }: Props) {
+export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false }: Props) {
   // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
   const cache = ETATS_CACHES.has(etat);
   const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : "font-texte text-base leading-[22px] text-encre"}>{lierPonctuation(texte)}</Text>;
@@ -55,7 +58,9 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
             </Text>
           ) : null}
         </View>
-        {echec ? (
+        {echec && enPause ? (
+          <PauseMessageLimite />
+        ) : echec ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Pas parti. Touche pour réessayer."

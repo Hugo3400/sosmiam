@@ -17,6 +17,7 @@ import { BandeDemandeRecue } from "~/composants/suivi/BandeDemandeRecue";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { EncadreComptePrive } from "~/composants/suivi/EncadreComptePrive";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
@@ -147,7 +148,9 @@ export default function ProfilPote() {
           ? `Demande envoyée à ${prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
           : resultat.type === "demandes-fermees"
             ? `${prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
-            : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
+            : resultat.type === "erreur" && resultat.erreur === "compte-limite"
+              ? REFUS_LIMITATION.bande
+              : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
     );
   };
 
