@@ -6,6 +6,7 @@
 // la clé courante, ou repris la nuit suivante). Seulement des nombres en sortie : jamais un texte, un fichier ni une clé. Un
 // chiffré illisible va au journal du serveur par sa table et son id (ou le nom tiré au hasard de son fichier), jamais par son
 // contenu : c'est là qu'on les retrouve (docs/procedure-changement-cle.md, « La partie sociale »).
+import { PART_LIBRE_MIN_DISQUE } from "../../../../packages/commun/src/regles/chat.ts";
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { rechiffrerMediaSocial } from "../fonctions/social/rechiffrer-media-social.ts";
 import { rechiffrerTexteSocial } from "../fonctions/social/rechiffrer-texte-social.ts";
@@ -30,11 +31,18 @@ export type OptionsRechiffrementSocial = {
   taille?: number;
   /** Paquets de textes au plus par table et par nuit (200, soit 100 000 lignes) : la nuit reste courte */
   paquetsParTable?: number;
-  /** Fichiers réécrits au plus par nuit (500) : une photo pèse jusqu'à 5 Mo */
+  /** Fichiers réécrits au plus par nuit (500) : une photo pèse jusqu'à 5 Mo ; et jamais sous 15 % + 2 points de disque libre */
   fichiersParNuit?: number;
 };
 
 type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string };
+
+/**
+ * Avant chaque fichier réécrit, la part libre du disque doit rester au-dessus de PART_LIBRE_MIN_DISQUE (15 %, sous laquelle
+ * les envois de médias des gens sont refusés) plus cette marge : le rechiffrement ne prend jamais la place des envois. En
+ * dessous, il s'arrête pour la nuit, et ce qui reste se compte comme au plafond.
+ */
+export const MARGE_PART_LIBRE_RECHIFFREMENT = 0.02;
 
 /** Les illisibles détaillés au journal du serveur, par nuit au plus (au-delà, leur nombre seulement : une mauvaise ancienne
  *  clé les rendrait tous illisibles, le journal ne doit pas déborder) */
@@ -120,13 +128,16 @@ async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaCha
  * Les photos et notes vocales écrites avec une ancienne clé. Rien ne le dit dans la base : il faut lire l'en-tête de chaque
  * fichier. Mais tout ce qui s'écrit depuis le changement l'est avec la clé courante, et un fichier réécrit est neuf : rangés
  * par date de modification, les fichiers anciens viennent tous EN TÊTE. On les reprend dans cet ordre, et on s'arrête après
- * 20 fichiers courants de suite ; si le plafond de la nuit est atteint avant, ce qui reste d'anciens se compte par dichotomie.
- * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), et la base passe au
- * nouveau nom (message et signalement). L'ancien fichier n'est PAS supprimé ici : un signalement en cours a pu le lire avant
- * la transaction et l'écrire après (il le garde alors, étape 8), un « Message supprimé » peut le viser au même moment, et le
- * nouveau n'a pas encore été forcé sur le disque (pas de fsync). Plus cité par aucun message ni signalement ouvert, il part
- * avec les orphelins de plus de 24 h (étape 8) la nuit suivante ; d'ici là il n'est pas compté dans les restants (cette
- * nuit, il compte comme rechiffré). Un fichier que la base ne connaît plus du tout est compté restant, et laissé à l'étape 8.
+ * 20 fichiers courants de suite ; si le plafond de la nuit est atteint avant, ou si le disque passe sous PART_LIBRE_MIN_DISQUE
+ * + MARGE_PART_LIBRE_RECHIFFREMENT (relu avant chaque écriture), ce qui reste d'anciens se compte par dichotomie.
+ * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), il est forcé sur
+ * le disque (fsync, StockageMediasChat.ecrire), puis la base passe au nouveau nom : le message, et TOUS les signalements qui
+ * citent l'ancien, ouverts ou jugés (un signalement jugé depuis moins de 183 jours garde son fichier, décision de Hugo du
+ * 15/10/2026 : sans suivre le nouveau nom, il perdrait la preuve). L'ancien fichier n'est PAS supprimé ici : un signalement
+ * en cours a pu le lire avant la transaction et l'écrire après (il le garde alors, étape 8), et un « Message supprimé » peut
+ * le viser au même moment. Plus cité par aucun message ni signalement qui le garde, il part avec les orphelins de plus de
+ * 24 h (étape 8) la nuit suivante ; d'ici là il n'est pas compté dans les restants (cette nuit, il compte comme rechiffré).
+ * Un fichier que la base ne connaît plus du tout est compté restant, et laissé à l'étape 8.
  */
 async function rechiffrerFichiers(
   base: BaseMenage, social: ChiffrementSocial, medias: StockageMediasChat, plafond: number, journal: JournalIllisibles,
@@ -138,6 +149,8 @@ async function rechiffrerFichiers(
     return octets !== null && social.estAncienOctets(octets);
   };
   let i = 0;
+  // Le disque est trop plein pour écrire : la boucle s'arrête sur un ancien (fichiers[i]), compté avec la suite
+  let disquePlein = false;
   for (let courantsDeSuite = 0; i < fichiers.length && courantsDeSuite < 20 && bilan.rechiffres < plafond; i++) {
     const ancien = fichiers[i]!.fichier;
     const octets = await medias.lire(ancien);
@@ -157,6 +170,12 @@ async function rechiffrerFichiers(
       continue;
     }
     courantsDeSuite = 0;
+    const partLibre = await medias.lirePartLibre();
+    if (!(partLibre >= PART_LIBRE_MIN_DISQUE + MARGE_PART_LIBRE_RECHIFFREMENT)) {
+      disquePlein = true;
+      console.error(`Rechiffrement social : disque presque plein (${Math.floor(partLibre * 100)} % libre), les fichiers attendent une autre nuit`);
+      break;
+    }
     await medias.ecrire(nouveau, chiffre);
     const [messages, signalements] = await base.$transaction([
       base.messageConversation.updateMany({ where: { fichier: ancien }, data: { fichier: nouveau } }),
@@ -172,7 +191,7 @@ async function rechiffrerFichiers(
     // L'ancien reste sur le disque : l'étape 8 d'une nuit suivante l'efface, s'il n'est plus cité (voir plus haut)
     bilan.rechiffres += 1;
   }
-  if (bilan.rechiffres >= plafond && i < fichiers.length) {
+  if ((disquePlein || bilan.rechiffres >= plafond) && i < fichiers.length) {
     // Le premier fichier courant après i : les anciens qui restent sont entre les deux
     let [bas, haut] = [i, fichiers.length];
     while (bas < haut) {

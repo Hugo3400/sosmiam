@@ -253,23 +253,32 @@ test("une sortie que tu as quittée n'y est plus, même créée par toi ; qui pr
   assert.equal(creee.statut, 201, JSON.stringify(creee.corps));
   const id = creee.corps.sortie.id as string;
   assert.equal((await malo.demander("POST", `/app/sorties/${id}/reponse`, { vient: true })).statut, 200);
-  const sorties = async (p: PersonneDeTest) => (await exporter(p)).corps.export.sorties.map((s: { titre: string; role: string }) => [s.titre, s.role]);
+  // Par le service (la route n'en permet que 2 par 24 h) : le même que GET /app/social/export
+  const sorties = async (p: PersonneDeTest) => (await banc.social.dependances.exportSocial.exporter(p.compteId, date())).sorties.map((s) => [s.titre, s.role]);
   assert.deepEqual(await sorties(lea), [["Pizza quittée", "organisateur"]]);
   assert.deepEqual(await sorties(malo), [["Pizza quittée", "participant"]]);
 
-  // Léa quitte : son invitation et sa place partent, la colonne garde son id ; Malo, seul participant, a la main
+  // Léa quitte : son invitation et sa place partent ; Malo, seul participant, a la main
   assert.equal((await lea.demander("DELETE", `/app/sorties/${id}/participation`)).statut, 200);
-  assert.equal(banc.tables.sorties.get(Number(id))?.organisateurId, lea.compteId, "la sortie reste, avec Léa dans la colonne");
-  assert.deepEqual(await sorties(lea), [], "quittée : ni « organisateur », ni rien");
-  assert.equal((await malo.demander("GET", `/app/sorties/${id}`)).corps.sortie.moi.organisateur, true);
-  assert.deepEqual(await sorties(malo), [["Pizza quittée", "organisateur"]], "comme l'app : celui qui a la main");
-  assert.deepEqual(await sorties(noe), [["Pizza quittée", "invite"]], "son invitation attend toujours");
+  const sortie = banc.tables.sorties.get(Number(id))!;
+  const verifier = async (cas: string) => {
+    assert.deepEqual(await sorties(lea), [], `${cas} : quittée, ni « organisateur », ni rien`);
+    assert.equal((await malo.demander("GET", `/app/sorties/${id}`)).corps.sortie.moi.organisateur, true, cas);
+    assert.deepEqual(await sorties(malo), [["Pizza quittée", "organisateur"]], `${cas} : comme l'app, celui qui a la main`);
+    assert.deepEqual(await sorties(noe), [["Pizza quittée", "invite"]], `${cas} : son invitation attend toujours`);
+  };
+  assert.equal(sortie.organisateurId, malo.compteId, "quitter réaligne la colonne (marquerSortie)");
+  await verifier("colonne réalignée");
+  // Une colonne qui garde l'id de Léa (ligne d'avant l'alignement, ou un geste qui n'appelle pas marquer) : l'export suit
+  // ton invitation et celui qui a la main, pas la colonne
+  sortie.organisateurId = lea.compteId;
+  await verifier("colonne pas réalignée");
 });
 
 test("les limitations de ton compte : motif, motivation, dates et ta contestation ; jamais celles des autres ni qui a décidé", async () => {
   const moi = await banc.creerPersonne();
   const autre = await banc.creerPersonne();
-  const limitations = creerLimitationsEnMemoire(() => banc.horloge.maintenant);
+  const limitations = creerLimitationsEnMemoire(() => banc.horloge.maintenant).services;
   const { relations, chiffrement } = banc.social.dependances;
   const service = creerExportSocialEnMemoire(banc.tables, relations, chiffrement, limitations.listerLimitationsDuCompte);
   assert.deepEqual((await service.exporter(moi.compteId, date())).limitations, [], "branché, sans limitation : une liste vide");

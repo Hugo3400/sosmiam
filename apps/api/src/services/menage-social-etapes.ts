@@ -1,15 +1,18 @@
 // Les étapes 1 à 8 du ménage social de la nuit (spécification sociale E.1), une fonction par étape, appelées dans l'ordre par
 // menage-social.ts. Chaque étape travaille par paquets de 500, en boucle tant qu'il en reste ; chaque paquet (et chaque
 // sous-étape) a sa propre protection (SuiviEtape) : ses nombres vont au bilan tout de suite, et un échec est noté sans arrêter
-// la suite (le paquet suivant, quand un curseur avance ; sinon la sous-étape suivante). Règle commune : rien de ce qui
-// touche un signalement OUVERT (pas encore jugé, ou contesté et pas encore réexaminé : SIGNALEMENT_OUVERT, le filtre
-// CONTESTES de la modération) ne part : ni le média d'un message signalé, ni sa conversation, ni un contenu retiré dont la
-// décision est contestée. Les fichiers passent par StockageMediasChat, et seulement après la mise à jour de la base
-// (supprimerMediasLibres : un fichier qu'un signalement ouvert garde reste sur le disque). Jamais un contenu dans le journal.
+// la suite (le paquet suivant, quand un curseur avance ; sinon la sous-étape suivante). Règles communes : rien de ce qui
+// touche un signalement OUVERT (pas encore jugé, ou contesté et pas encore réexaminé : le filtre CONTESTES de la
+// modération) ne part, ni la conversation d'un message signalé, ni un contenu retiré dont la décision est contestée ; et le
+// FICHIER chiffré d'une photo ou d'une note vocale signalée reste sur le disque tant qu'un signalement le garde : ouvert,
+// ou jugé depuis moins de 183 jours, même retenu (décision de Hugo du 15/10/2026 : signalementsGardantLeurFichier,
+// seuils.fichiersSignales). Le message, lui, ne montre plus son média 90 jours après l'envoi (étape 1) : seule la copie
+// citée par le signalement (fichier_media) reste, pour la modération. Les fichiers passent par StockageMediasChat, et
+// seulement après la mise à jour de la base (supprimerMediasLibres). Jamais un contenu dans le journal.
 import { MAX_NOTIFICATIONS_CLOCHE, TYPES_CLOCHE_MODERATION } from "../../../../packages/commun/src/regles/cloche.ts";
 import { Prisma, type PrismaClient } from "../base-de-donnees/client-genere/client.ts";
 import type { SeuilsMenageSocial } from "../fonctions/social/calculer-seuils-menage-social.ts";
-import { effacerConversations, SIGNALEMENT_OUVERT, supprimerMediasLibres } from "./effacer-conversations.ts";
+import { effacerConversations, signalementsGardantLeurFichier, supprimerMediasLibres } from "./effacer-conversations.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 
 export const TAILLE_PAQUET_MENAGE = 500;
@@ -111,9 +114,11 @@ async function effacerParPaquets(
 }
 
 /**
- * Étape 1 : photos et notes vocales dont media_expire_le est passé (90 jours après l'envoi), sauf celles d'un message au
- * signalement ouvert. `fichier` passe à NULL (typeMime, taille, durée et media_expire_le restent : l'app dit « Ce média a
- * expiré ») ; puis les fichiers partent du disque. SKIP LOCKED : un message en cours de modification attend la nuit suivante.
+ * Étape 1 : photos et notes vocales dont media_expire_le est passé (90 jours après l'envoi), signalées ou non : le média
+ * disparaît quand même de la conversation (décision de Hugo du 15/10/2026). `fichier` passe à NULL (typeMime, taille, durée
+ * et media_expire_le restent : l'app dit « Ce média a expiré ») ; puis les fichiers partent du disque, SAUF celui qu'un
+ * signalement garde (ouvert, ou jugé depuis moins de 183 jours : sa copie, fichier_media, reste pour la modération ; le
+ * ménage l'efface ensuite comme orphelin, étape 8). SKIP LOCKED : un message en cours de modification attend la nuit suivante.
  */
 export async function effacerMediasExpires(
   base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT,
@@ -124,13 +129,13 @@ export async function effacerMediasExpires(
     const lignes = await essayer(suivi, "messages_conversations (médias expirés)", () => base.$queryRaw<{ fichier: string }[]>`
       WITH cibles AS (
         SELECT m.id, m.fichier FROM messages_conversations m
-        WHERE m.media_expire_le <= ${date(seuils.medias)} AND m.fichier IS NOT NULL AND ${sansSignalementOuvert("message", "m.id")}
+        WHERE m.media_expire_le <= ${date(seuils.medias)} AND m.fichier IS NOT NULL
         ORDER BY m.id LIMIT ${TAILLE_PAQUET_MENAGE} FOR UPDATE SKIP LOCKED)
       UPDATE messages_conversations m SET fichier = NULL FROM cibles WHERE m.id = cibles.id RETURNING cibles.fichier`);
     if (lignes === null) return total;
     total += lignes.length;
     suivi.ajouter("medias", lignes.length);
-    await supprimerMediasLibres(lignes.map((l) => l.fichier), medias, base);
+    await supprimerMediasLibres(lignes.map((l) => l.fichier), medias, base, seuils.fichiersSignales);
     if (lignes.length < TAILLE_PAQUET_MENAGE) return total;
   }
 }
@@ -143,10 +148,12 @@ export async function effacerMediasExpires(
  * signalement ouvert (il verrouille aussi la conversation du message, signalements-sociaux.ts) l'écartent ; un envoi qui
  * attendait le verrou trouve ensuite la conversation absente (404). Ordre des verrous de sorties.ts et de la modération :
  * les sorties d'abord, puis leurs conversations (jamais d'interblocage avec un geste sur une sortie). Le curseur (`apres`)
- * avance avant la transaction : un paquet qui échoue est noté, et le suivant passe quand même.
+ * avance avant la transaction : un paquet qui échoue est noté, et le suivant passe quand même. Après la transaction, les
+ * fichiers de leurs messages partent, sauf ceux qu'un signalement garde (seuils.fichiersSignales).
  */
 async function effacerConversationsSelon(
-  base: BaseMenage, condition: Prisma.Sql, medias: StockageMediasChat, suivi: SuiviEtape, compteur: "conversations" | "conversationsVides",
+  base: BaseMenage, condition: Prisma.Sql, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape,
+  compteur: "conversations" | "conversationsVides",
 ): Promise<{ conversations: number; sorties: number }> {
   const bilan = { conversations: 0, sorties: 0 };
   let apres = 0;
@@ -168,8 +175,8 @@ async function effacerConversationsSelon(
       return { effacees, sorties: toujours.filter((c) => c.type === "sortie").length };
     }, DELAIS_TRANSACTION));
     if (fait) {
-      // La transaction est validée : les photos et vocaux partent du disque (sauf ceux qu'un signalement ouvert garde)
-      await fait.effacees.apresTransaction(base);
+      // La transaction est validée : les photos et vocaux partent du disque (sauf ceux qu'un signalement garde)
+      await fait.effacees.apresTransaction(base, seuils.fichiersSignales);
       bilan.conversations += fait.effacees.conversations;
       bilan.sorties += fait.sorties;
       suivi.ajouter(compteur, fait.effacees.conversations);
@@ -188,17 +195,19 @@ async function effacerConversationsSelon(
 export function effacerConversationsAnciennes(base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT) {
   const seuil = date(seuils.conversations);
   const condition = Prisma.sql`c.dernier_message_le < ${seuil} AND (s.quand IS NULL OR s.quand < ${seuil}) AND ${SANS_MESSAGE_SIGNALE}`;
-  return effacerConversationsSelon(base, condition, medias, suivi, "conversations");
+  return effacerConversationsSelon(base, condition, seuils, medias, suivi, "conversations");
 }
 
 /**
  * Étape 3 : conversations sans plus aucun membre (groupe abandonné, privé dont les deux comptes sont partis, sortie sans
- * participant), avec la même clause « aucun message au signalement ouvert » et le même verrou. Leurs invitations en attente
- * partent avec elles (cascade).
+ * participant), avec la même clause « aucun message au signalement ouvert », le même verrou et la même garde des fichiers
+ * signalés. Leurs invitations en attente partent avec elles (cascade).
  */
-export async function effacerConversationsVides(base: BaseMenage, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT): Promise<number> {
+export async function effacerConversationsVides(
+  base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT,
+): Promise<number> {
   const condition = Prisma.sql`NOT EXISTS (SELECT 1 FROM membres_conversations mc WHERE mc.conversation_id = c.id) AND ${SANS_MESSAGE_SIGNALE}`;
-  return (await effacerConversationsSelon(base, condition, medias, suivi, "conversationsVides")).conversations;
+  return (await effacerConversationsSelon(base, condition, seuils, medias, suivi, "conversationsVides")).conversations;
 }
 
 /**
@@ -256,7 +265,8 @@ export function effacerMasquesAnciens(base: BaseMenage, seuils: SeuilsMenageSoci
 /**
  * Étape 7 : contenus retirés par la modération depuis plus d'un an (la durée de garde des signalements après décision), sauf
  * si la décision est contestée et pas encore réexaminée (un réexamen peut remettre le contenu en ligne) :
- * - messages : texte chiffré et fichier à NULL (le fichier part du disque) ; le message reste « retiré » ;
+ * - messages : texte chiffré et fichier à NULL (le fichier part du disque, sauf si un signalement le garde : jugé, ou
+ *   réexaminé, depuis moins de 183 jours) ; le message reste « retiré » ;
  * - commentaires : effacés s'ils n'ont pas de réponse ; sinon texte et mentions vidés, « Commentaire supprimé » ;
  * - listes : effacées (leurs lieux, co-auteurs et abonnés partent en cascade).
  * Puis les commentaires « supprimés » (supprime_le) qui n'ont plus ni réponse ni signalement ouvert : effacés.
@@ -283,7 +293,7 @@ export async function effacerContenusRetires(
       UPDATE messages_conversations m SET texte_chiffre = NULL, fichier = NULL FROM cibles WHERE m.id = cibles.id RETURNING cibles.fichier`);
     if (lignes === null) break;
     retires(lignes.length);
-    await supprimerMediasLibres(lignes.flatMap((l) => (l.fichier ? [l.fichier] : [])), medias, base);
+    await supprimerMediasLibres(lignes.flatMap((l) => (l.fichier ? [l.fichier] : [])), medias, base, seuils.fichiersSignales);
     if (lignes.length < TAILLE_PAQUET_MENAGE) break;
   }
   const aDesReponses = Prisma.sql`EXISTS (SELECT 1 FROM commentaires_publications r WHERE r.reponse_a_id = commentaires_publications.id)`;
@@ -308,8 +318,9 @@ export async function effacerContenusRetires(
 
 /**
  * Étape 8 : les fichiers du dossier des médias de plus de 24 h que la base ne connaît plus, ni dans un message, ni dans le
- * fichier_media d'un signalement ouvert (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé,
- * ancien fichier laissé par le rechiffrement de la nuit d'avant…). Ils sont supprimés. Les 24 h couvrent l'envoi en cours :
+ * fichier_media d'un signalement qui le garde (ouvert, ou jugé depuis moins de 183 jours : signalementsGardantLeurFichier)
+ * (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé depuis plus de 183 jours, ancien fichier
+ * laissé par le rechiffrement de la nuit d'avant…). Ils sont supprimés. Les 24 h couvrent l'envoi en cours :
  * le fichier est écrit juste avant sa ligne en base. Seule une page VIDE dit la fin du dossier : lister saute un fichier
  * disparu entre readdir et stat, une page peut donc revenir plus courte sans être la dernière. Si la base ou la suppression
  * échoue pour une page, c'est noté et la page suivante passe (le curseur, son dernier nom, a déjà avancé) ; si le dossier
@@ -327,7 +338,9 @@ export async function effacerFichiersOrphelins(base: BaseMenage, seuils: SeuilsM
     const supprimes = await essayer(suivi, "fichiers orphelins", async () => {
       const [messages, signalements] = await Promise.all([
         base.messageConversation.findMany({ where: { fichier: { in: vieux } }, select: { fichier: true } }),
-        base.signalement.findMany({ where: { AND: [{ fichierMedia: { in: vieux } }, SIGNALEMENT_OUVERT] }, select: { fichierMedia: true } }),
+        base.signalement.findMany({
+          where: { AND: [{ fichierMedia: { in: vieux } }, signalementsGardantLeurFichier(seuils.fichiersSignales)] }, select: { fichierMedia: true },
+        }),
       ]);
       const connus = new Set<string | null>([...messages.map((m) => m.fichier), ...signalements.map((s) => s.fichierMedia)]);
       return medias.supprimer(vieux.filter((f) => !connus.has(f)));

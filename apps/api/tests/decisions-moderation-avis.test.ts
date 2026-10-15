@@ -2,11 +2,14 @@
 // « Modération des avis et limitation d'un compte ») : masqués par l'équipe à la relecture, ils entrent dans « mes
 // décisions » de leur AUTEUR seulement (la ligne Signalement n'a personne qui a signalé), avec motif et motivation, et se
 // contestent comme un contenu social retiré (une fois, dans les 6 mois). La ligne elle-même est écrite par le logiciel de
-// gestion : ici, le test la pose dans la table comme le ferait son rappel (cible « avis » ou « reponse-avis », cibleId :
-// l'id de l'avis, raison « relecture », source « equipe », statut « retenu »). Tout en mémoire.
+// gestion avec construireDecisionAvis (fonctions/avis) : ici, le test pose dans la table EXACTEMENT ce qu'elle construit
+// (cible « avis » ou « reponse-avis », cibleId : l'id de l'avis, raison « relecture », source « equipe », statut
+// « retenu »), plus les défauts de la base. Tout en mémoire.
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 
+import type { MotifModeration } from "../../../packages/commun/src/contenus/motifs-moderation.ts";
+import { construireDecisionAvis } from "../src/fonctions/avis/construire-decision-avis.ts";
 import { prendreId } from "../src/services/tables-sociales-en-memoire.ts";
 import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
 
@@ -18,24 +21,37 @@ before(async () => {
 });
 after(() => banc.fermer());
 
-/** Comme le rappel du logiciel quand l'équipe masque un avis ou une réponse à la relecture */
-function masquerParLEquipe(cible: "avis" | "reponse-avis", avisId: number, auteur: PersonneDeTest, o: { motif?: string; signaleParId?: number } = {}) {
+/**
+ * Comme le rappel du logiciel quand l'équipe masque un avis ou une réponse à la relecture : la ligne de
+ * construireDecisionAvis, avec ce que la base y ajoute d'elle-même (identifiant, colonnes laissées à leur défaut) ;
+ * signaleParId : seulement pour vérifier qu'une ligne trafiquée ne va pas chez cette personne
+ */
+function masquerParLEquipe(cible: "avis" | "reponse-avis", avisId: number, auteur: PersonneDeTest, o: { motif?: MotifModeration; signaleParId?: number } = {}) {
   const id = prendreId(banc.tables, "signalements");
-  const traiteLe = new Date(banc.horloge.maintenant);
+  const maintenant = new Date(banc.horloge.maintenant);
+  const ecrite = construireDecisionAvis({ cible, avisId, lieuId: 77, compteId: auteur.compteId, motif: o.motif ?? "fausse-info", motivation: MOTIVATION, maintenant });
   banc.tables.signalements.set(id, {
-    id, cible, cibleId: String(avisId), lieuId: 77, raison: "relecture", precision: null, explication: "", source: "equipe",
-    statut: "retenu", decision: null, motif: o.motif ?? "fausse-info", motivation: MOTIVATION, contestation: null, contesteLe: null, reexamineLe: null,
-    creeLe: traiteLe, traiteLe, signaleParId: o.signaleParId ?? null, auteurContenuId: auteur.compteId, instantaneChiffre: null, fichierMedia: null,
+    id, precision: null, decision: null, contestation: null, contesteLe: null, reexamineLe: null, creeLe: maintenant, instantaneChiffre: null, fichierMedia: null,
+    ...ecrite,
+    ...(o.signaleParId !== undefined ? { signaleParId: o.signaleParId } : {}),
   });
   return id;
 }
-/** Comme le réexamen du logiciel qui donne raison à l'auteur (puis retablirAvis : l'avis revient en ligne) */
+/** Comme le réexamen du logiciel qui donne raison à l'auteur (avec retablirAvisDans : l'avis revient en ligne) */
 function donnerRaison(id: number) {
   const maintenant = new Date(banc.horloge.maintenant);
   Object.assign(banc.tables.signalements.get(id)!, { statut: "rejete", motif: null, motivation: "Relu : ton avis parle bien de ce lieu.", traiteLe: maintenant, reexamineLe: maintenant });
 }
 const decisions = async (p: PersonneDeTest) => (await p.demander("GET", "/app/moderation/mes-decisions")).corps.decisions;
 const contester = (p: PersonneDeTest, id: number, texte = "C'était bien ce lieu, j'y étais hier soir !") => p.demander("POST", `/app/moderation/${id}/contestation`, { texte });
+
+test("construireDecisionAvis : la ligne que le logiciel écrit au masquage, champ par champ", () => {
+  const maintenant = new Date("2026-10-16T14:00:00Z");
+  assert.deepEqual(construireDecisionAvis({ cible: "reponse-avis", avisId: 42, lieuId: 18, compteId: null, motif: "haine", motivation: MOTIVATION, maintenant }), {
+    cible: "reponse-avis", cibleId: "42", lieuId: 18, raison: "relecture", explication: "", source: "equipe", statut: "retenu",
+    motif: "haine", motivation: MOTIVATION, traiteLe: maintenant, signaleParId: null, auteurContenuId: null,
+  });
+});
 
 test("avis masqué par l'équipe : chez son auteur seulement, avec motif et motivation, contestable 6 mois, puis réexaminé", async () => {
   const auteur = await banc.creerPersonne({ pseudo: "auteur.avis.masque" });

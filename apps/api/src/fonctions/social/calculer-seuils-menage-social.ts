@@ -1,7 +1,7 @@
 import { DUREE_CONVERSATION_SANS_MESSAGE_JOURS, DUREE_DEPART_GROUPE_JOURS, DUREE_INVITATION_GROUPE_JOURS } from "../../../../../packages/commun/src/regles/chat.ts";
 import { DUREE_CLOCHE_JOURS, DUREE_CLOCHE_MODERATION_JOURS } from "../../../../../packages/commun/src/regles/cloche.ts";
 import { DUREE_DEMANDE_BANDE_JOURS } from "../../../../../packages/commun/src/regles/potes.ts";
-import { DUREE_GARDE_SIGNALEMENT_JOURS } from "../../../../../packages/commun/src/regles/signalement.ts";
+import { DUREE_CONTESTATION_JOURS, DUREE_GARDE_SIGNALEMENT_JOURS } from "../../../../../packages/commun/src/regles/signalement.ts";
 import { DUREE_DEMANDE_SUIVI_JOURS } from "../../../../../packages/commun/src/regles/suivis.ts";
 import { DUREE_REFUS_CO_AUTEUR_JOURS } from "../../services/listes-regles.ts";
 
@@ -39,6 +39,12 @@ export type SeuilsMenageSocial = {
   contenusRetires: Date;
   /** Étape 8 : fichiers du dossier des médias que la base ne connaît pas, plus de 24 h */
   orphelins: Date;
+  /**
+   * Étapes 1, 2, 3, 7 et 8 : le fichier (photo, note vocale) cité par un signalement ouvert, ou jugé APRÈS cette date (la
+   * décision, ou le réexamen s'il y en a eu un), reste sur le disque, même si le signalement est retenu : 183 jours, le délai
+   * de contestation (décision de Hugo du 15/10/2026 ; signalementsGardantLeurFichier, effacer-conversations.ts)
+   */
+  fichiersSignales: Date;
 };
 
 /** Les dates limites du ménage social, à partir de maintenant (E.1, durées de packages/commun/src/regles/) */
@@ -60,5 +66,6 @@ export function calculerSeuilsMenageSocial(maintenant: Date): SeuilsMenageSocial
     masques: avant(DUREE_MASQUES_JOURS),
     contenusRetires: avant(DUREE_GARDE_SIGNALEMENT_JOURS),
     orphelins: avant(1),
+    fichiersSignales: avant(DUREE_CONTESTATION_JOURS),
   };
 }

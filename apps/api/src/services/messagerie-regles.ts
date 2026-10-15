@@ -159,8 +159,9 @@ export type DepotMessagerie = {
   lire: TablesMessagerie;
   ecrire: <T>(geste: (t: TablesMessagerie) => Promise<T>) => Promise<T>;
   /**
-   * Après une transaction validée : supprime du disque ces photos et notes vocales, SAUF celles qu'un signalement ouvert garde
-   * (supprimerMediasLibres du socle) ; rend le nombre supprimé, sans jamais lever d'erreur
+   * Après une transaction validée : supprime du disque ces photos et notes vocales, SAUF celles qu'un signalement garde
+   * (ouvert, ou jugé depuis moins de 183 jours : supprimerMediasLibres du socle) ; rend le nombre supprimé, sans jamais lever
+   * d'erreur
    */
   supprimerFichiers: (fichiers: readonly string[]) => Promise<number>;
 };

@@ -5,7 +5,8 @@
 // clé. Chaque étape a sa propre protection, et dans une étape chaque paquet et chaque sous-étape (SuiviEtape,
 // menage-social-etapes.ts) : ce qui échoue n'empêche pas la suite (le nom de l'étape va dans le bilan, le journal du serveur
 // ne garde que le nom et le code de l'erreur), et ce qui est fait reste compté, au bilan au fil des paquets. Le bilan ne
-// contient que des nombres, jamais un contenu.
+// contient que des nombres, jamais un contenu. Le fichier d'une photo ou d'une note vocale signalée reste sur le disque
+// tant qu'un signalement le garde (ouvert, ou jugé depuis moins de 183 jours : décision de Hugo du 15/10/2026).
 // Les signalements jugés depuis plus d'un an (étape 7 bis de la spécification) sont effacés par la session Logiciel
 // (effacerSignalementsAnciens, services/gestion/moderation-sociale.ts), pas ici.
 import { calculerSeuilsMenageSocial } from "../fonctions/social/calculer-seuils-menage-social.ts";
@@ -69,7 +70,7 @@ export async function faireLeMenageSocial(o: OptionsMenageSocial): Promise<Bilan
 
   await etape("médias", (suivi) => effacerMediasExpires(base, seuils, medias, suivi));
   await etape("conversations", (suivi) => effacerConversationsAnciennes(base, seuils, medias, suivi));
-  await etape("conversations vides", (suivi) => effacerConversationsVides(base, medias, suivi));
+  await etape("conversations vides", (suivi) => effacerConversationsVides(base, seuils, medias, suivi));
   await etape("demandes", (suivi) => effacerDemandesExpirees(base, seuils, suivi));
   await etape("cloche", (suivi) => effacerClocheAncienne(base, seuils, suivi));
   await etape("masques", (suivi) => effacerMasquesAnciens(base, seuils, suivi));

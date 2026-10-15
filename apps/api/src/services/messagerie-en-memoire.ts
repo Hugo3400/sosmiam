@@ -8,7 +8,7 @@ import type { LigneMessage } from "../fonctions/social/presenter-message.ts";
 import type { DepotMessagerie, FiltreMessages, LigneConversation, LigneInvitationGroupe, LigneMembre, TablesMessagerie } from "./messagerie-regles.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
-import { effacerConversationsEnMemoire, prendreId, type TablesSociales } from "./tables-sociales-en-memoire.ts";
+import { effacerConversationsEnMemoire, lireFichiersGardesEnMemoire, prendreId, type TablesSociales } from "./tables-sociales-en-memoire.ts";
 
 const DUREE_MEDIAS_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -259,7 +259,8 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
 
 /**
  * Le dépôt en mémoire : mêmes gestes pour lire et écrire. Les écritures passent l'une après l'autre (comme les verrous de la
- * base : deux envois simultanés ne dépassent jamais un quota) ; les fichiers d'un signalement ouvert restent (comme la base).
+ * base : deux envois simultanés ne dépassent jamais un quota) ; les fichiers qu'un signalement garde restent (ouvert, ou
+ * jugé depuis moins de 183 jours, comme la base).
  */
 export function creerDepotMessagerieEnMemoire(tables: TablesSociales, relations: RelationsSociales, medias: StockageMediasChat): DepotMessagerie {
   const t = creerTablesMessagerieEnMemoire(tables, relations, medias);
@@ -272,9 +273,7 @@ export function creerDepotMessagerieEnMemoire(tables: TablesSociales, relations:
       return tour;
     },
     supprimerFichiers: async (fichiers) => {
-      const gardes = new Set([...tables.signalements.values()]
-        .filter((s) => s.fichierMedia !== null && (s.statut === "a-traiter" || (s.contesteLe !== null && s.reexamineLe === null)))
-        .map((s) => s.fichierMedia));
+      const gardes = lireFichiersGardesEnMemoire(tables);
       return medias.supprimer(fichiers.filter((f) => !gardes.has(f))).catch(() => 0);
     },
   };

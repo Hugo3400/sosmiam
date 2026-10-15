@@ -10,6 +10,8 @@ import type {
   MessageConversation, NotificationCloche, ProfilSocial, PropositionSortie, ReactionMessage, Signalement, Sortie, SuiviPersonne,
   VoteSortie,
 } from "../base-de-donnees/client-genere/client.ts";
+import { calculerSeuilsMenageSocial } from "../fonctions/social/calculer-seuils-menage-social.ts";
+import { estFichierGardeParSignalement } from "../fonctions/social/est-fichier-garde-par-signalement.ts";
 import type { ConversationsEffacees } from "./effacer-conversations.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 
@@ -212,10 +214,19 @@ export function oublierCompteEnMemoire(tables: TablesSociales, id: number): void
 }
 
 /**
+ * Les fichiers que gardent les signalements en mémoire (même règle que signalementsGardantLeurFichier, effacer-conversations.ts) :
+ * ouverts, ou jugés après `seuil` (par défaut maintenant − 183 jours, le délai de contestation), même retenus.
+ */
+export function lireFichiersGardesEnMemoire(tables: Pick<TablesSociales, "signalements">, seuil?: Date): Set<string> {
+  const limite = seuil ?? calculerSeuilsMenageSocial(new Date()).fichiersSignales;
+  return new Set([...tables.signalements.values()].flatMap((s) => (s.fichierMedia !== null && estFichierGardeParSignalement(s, limite) ? [s.fichierMedia] : [])));
+}
+
+/**
  * effacerConversations (effacer-conversations.ts) sur les tables en mémoire, avec les mêmes cascades que la base : membres,
  * invitations aux groupes, messages et leurs réactions, départs, et la sortie avec ses invitations, propositions et votes.
- * Les fichiers des messages sont rendus ; apresTransaction() les retire du stockage, sauf ceux qu'un signalement ouvert garde
- * (pas encore jugé, ou contesté et pas encore réexaminé). Les signalements restent.
+ * Les fichiers des messages sont rendus ; apresTransaction() les retire du stockage, sauf ceux qu'un signalement garde
+ * (lireFichiersGardesEnMemoire : ouvert, ou jugé depuis moins de 183 jours). Les signalements restent.
  */
 export async function effacerConversationsEnMemoire(
   tables: TablesSociales, ids: readonly number[], medias: Pick<StockageMediasChat, "supprimer">,
@@ -234,10 +245,8 @@ export async function effacerConversationsEnMemoire(
   return {
     conversations: cibles.size,
     fichiers,
-    apresTransaction: async () => {
-      const gardes = new Set([...tables.signalements.values()]
-        .filter((s) => s.fichierMedia !== null && (s.statut === "a-traiter" || (s.contesteLe !== null && s.reexamineLe === null)))
-        .map((s) => s.fichierMedia));
+    apresTransaction: async (_base, seuil) => {
+      const gardes = lireFichiersGardesEnMemoire(tables, seuil);
       return medias.supprimer(fichiers.filter((f) => !gardes.has(f)));
     },
   };

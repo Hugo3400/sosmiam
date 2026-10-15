@@ -1,8 +1,10 @@
 // Tests des décisions de l'équipe sur les avis et les réponses des lieux (services/avis-gestion.ts), appelées par le logiciel
 // de gestion : statut changé une seule fois, points de la photo retirés puis rendus DANS la transaction du statut (tout ou
-// rien), défis relancés après, rappel dans la transaction. Aucune base de données : avis en mémoire, mouvements de points
-// notés par le double (pointsPhoto), défis notés au lieu d'être réévalués. La vraie base : essai PGlite hors ligne
-// (creerDepotAvis().ecrire avec le vrai client Prisma et toutes les migrations).
+// rien), exactement symétriques (plancher à 0 compris), défis relancés après, rappel dans la transaction, rétablissement
+// dans la transaction de l'appelant (retablirAvisDans, puis apresRetablir). Aucune base de données : avis en mémoire,
+// mouvements de points notés par le double (pointsPhoto, le journal ; pointsComptes, le total), transaction de l'appelant
+// jouée par le double (transaction), défis notés au lieu d'être réévalués. La vraie base : essai PGlite hors ligne
+// (creerDepotAvis() avec le vrai client Prisma et toutes les migrations).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -11,7 +13,7 @@ import { creerAvisClient } from "../src/services/avis-client.ts";
 import { creerAvisEnMemoire } from "../src/services/avis-en-memoire.ts";
 import { creerAvisGestion, type DependancesAvisGestion } from "../src/services/avis-gestion.ts";
 import { creerAvisPro } from "../src/services/avis-pro.ts";
-import type { DepotAvis, NouvelleLigneAvis } from "../src/services/avis-regles.ts";
+import type { DepotAvis, NouvelleLigneAvis, TablesAvis } from "../src/services/avis-regles.ts";
 
 const T0 = new Date("2026-10-15T09:00:00Z");
 const MAINTENANT = new Date("2026-10-16T14:00:00Z");
@@ -19,24 +21,29 @@ const MAINTENANT = new Date("2026-10-16T14:00:00Z");
 const AUTEUR = 7;
 const GERANT = 50;
 const REPONSE = "Merci pour ton passage, on t'attend pour la prochaine fournée de crêpes !";
+/** Les points de l'auteur au départ (assez pour que le plancher à 0 ne joue pas, sauf exprès) */
+const POINTS_DEPART = 100;
 
 function creerBanc(o: { ajouterPoints?: DependancesAvisGestion["ajouterPoints"] } = {}) {
   const memoire = creerAvisEnMemoire();
   memoire.lieux.set(1, { id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "Montpellier", publie: true, verifie: true });
+  memoire.pointsComptes.set(AUTEUR, POINTS_DEPART);
   /** Les mouvements de points de la photo, écrits dans les transactions (défaits avec elles) */
   const points = memoire.pointsPhoto;
   const defis: { compteId: number; maintenant: Date }[] = [];
   /** Pannes à la demande : les points (dans la transaction) ou la réévaluation des défis (après) */
   const panne = { points: false, defis: false };
+  const avecPanne = (t: TablesAvis): TablesAvis => ({
+    ...t,
+    poserPointsPhoto: async (...args) => {
+      if (panne.points) throw new Error("base indisponible");
+      return t.poserPointsPhoto(...args);
+    },
+  });
   const depot: DepotAvis = {
     lire: memoire.depot.lire,
-    ecrire: (fn) => memoire.depot.ecrire((t) => fn({
-      ...t,
-      poserPointsPhoto: async (...args) => {
-        if (panne.points) throw new Error("base indisponible");
-        return t.poserPointsPhoto(...args);
-      },
-    })),
+    ecrire: (fn) => memoire.depot.ecrire((t) => fn(avecPanne(t))),
+    dans: (tx) => avecPanne(memoire.depot.dans(tx)),
   };
   const gestion = creerAvisGestion({
     depot,
@@ -75,7 +82,9 @@ function creerBanc(o: { ajouterPoints?: DependancesAvisGestion["ajouterPoints"] 
   };
   /** Le gérant répond à cet avis (posée « en-relecture ») */
   const repondre = async (id: number) => assert.ok((await pro.repondre(GERANT, id, REPONSE)).ok);
-  return { memoire, gestion, pro, points, defis, panne, avis, ligne, pagePublique, comptoir, repondre };
+  /** Le total des points de ce compte */
+  const total = (compteId = AUTEUR) => memoire.pointsComptes.get(compteId) ?? 0;
+  return { memoire, gestion, pro, points, defis, panne, avis, ligne, pagePublique, comptoir, repondre, total };
 }
 
 test("publier : en relecture → publié, sans points, défis relancés pour un avis vérifié seulement ; une seule fois", async () => {
@@ -114,6 +123,7 @@ test("masquer : l'avis sort de la page publique, de la moyenne et du comptoir ; 
   assert.deepEqual(apres.resume, resumerAvis([5], []));
   assert.deepEqual((await b.comptoir()).map((a) => a.id), [garde]);
   assert.deepEqual(b.points, [{ compteId: AUTEUR, points: -10, raison: "avis-photo", detail: `avis masqué ${id}, lieu 1` }]);
+  assert.equal(b.total(), POINTS_DEPART - 10);
   assert.deepEqual(b.defis, []);
   assert.deepEqual(await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT), { ok: false, erreur: "deja-tranche", statut: "masque" });
   assert.equal(b.points.length, 1, "jamais retirés deux fois");
@@ -157,7 +167,7 @@ test("rétablir : si le rendu des points rate, l'avis reste masqué ; jamais plu
   await assert.rejects(b.gestion.retablirAvis(id, MAINTENANT), /base indisponible/);
   assert.deepEqual([b.ligne(id).statut, b.points.map((p) => p.points), b.defis], ["masque", [-10], []]);
   b.panne.points = false;
-  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10 });
+  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true });
   assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: false, erreur: "pas-masque" });
   assert.deepEqual(b.points.map((p) => p.points), [-10, 10], "un retrait, un rendu : le compte retrouve ses points, pas un de plus");
 });
@@ -170,7 +180,7 @@ test("défis : une réévaluation qui rate après coup est notée au journal ; s
   assert.equal((await b.gestion.trancherAvis(publie, { action: "publier" }, MAINTENANT)).ok, true);
   const masque = await b.avis({ photo: "photo-7.jpg" });
   await b.gestion.trancherAvis(masque, { action: "masquer" }, MAINTENANT);
-  assert.deepEqual(await b.gestion.retablirAvis(masque, MAINTENANT), { ok: true, avisId: masque, compteId: AUTEUR, lieuId: 1, pointsRendus: 10 });
+  assert.deepEqual(await b.gestion.retablirAvis(masque, MAINTENANT), { ok: true, avisId: masque, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true });
   assert.deepEqual([b.ligne(publie).statut, b.ligne(masque).statut, b.points.map((p) => p.points)], ["publie", "publie", [-10, 10]]);
   assert.equal(journal.mock.callCount(), 2, "la publication et le retour en ligne");
 });
@@ -280,7 +290,7 @@ test("rétablir : un avis masqué revient en ligne, avec les points de sa photo 
   const id = await b.avis({ photo: "photo-7.jpg" });
   assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: false, erreur: "pas-masque" }, "encore en relecture");
   await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT);
-  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10 });
+  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true });
   assert.equal(b.ligne(id).statut, "publie");
   assert.deepEqual((await b.pagePublique()).ids, [id]);
   assert.deepEqual(b.points.map((p) => [p.compteId, p.points, p.raison, p.detail]), [
@@ -293,7 +303,7 @@ test("rétablir : un avis masqué revient en ligne, avec les points de sa photo 
   // Sans photo ni visite : en ligne, sans points ni défis
   const nonVerifie = await b.avis({ verifie: false, photo: "photo-7.jpg" });
   await b.gestion.trancherAvis(nonVerifie, { action: "masquer" }, MAINTENANT);
-  assert.deepEqual(await b.gestion.retablirAvis(nonVerifie, MAINTENANT), { ok: true, avisId: nonVerifie, compteId: AUTEUR, lieuId: 1, pointsRendus: 0 });
+  assert.deepEqual(await b.gestion.retablirAvis(nonVerifie, MAINTENANT), { ok: true, avisId: nonVerifie, compteId: AUTEUR, lieuId: 1, pointsRendus: 0, aReevaluer: false });
   assert.deepEqual([b.points.length, b.defis.length], [2, 1]);
 });
 
@@ -303,10 +313,110 @@ test("rétablir une réponse : masquée → publiée, sans points ; sinon pas-ma
   await b.repondre(id);
   assert.deepEqual(await b.gestion.retablirReponseAvis(id, MAINTENANT), { ok: false, erreur: "pas-masque" });
   await b.gestion.trancherReponseAvis(id, { action: "masquer" }, MAINTENANT);
-  assert.deepEqual(await b.gestion.retablirReponseAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: GERANT, lieuId: 1, pointsRendus: 0 });
+  assert.deepEqual(await b.gestion.retablirReponseAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: GERANT, lieuId: 1, pointsRendus: 0, aReevaluer: false });
   assert.equal(b.ligne(id).reponseStatut, "publiee");
   assert.equal((await b.pagePublique()).avis[0]!.reponseLieu?.texte, REPONSE);
   assert.deepEqual(await b.gestion.retablirReponseAvis(id, MAINTENANT), { ok: false, erreur: "pas-masque" });
   assert.deepEqual(await b.gestion.retablirReponseAvis(await b.avis(), MAINTENANT), { ok: false, erreur: "introuvable" });
   assert.deepEqual([b.points, b.defis], [[], []]);
+});
+
+test("retablirAvisDans : dans la transaction de l'appelant ; si elle échoue après, rien n'est rétabli ; défis après", async () => {
+  const b = creerBanc();
+  const id = await b.avis({ photo: "photo-7.jpg" });
+  await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT);
+  const attendu = { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true };
+
+  // La transaction de l'appelant lève après le rétablissement : statut, total et journal reviennent, pas de défis
+  let vuDedans: unknown = null;
+  await assert.rejects(b.memoire.transaction(async (tx) => {
+    vuDedans = [await b.gestion.retablirAvisDans(tx, id, MAINTENANT), b.ligne(id).statut, b.total()];
+    throw new Error("décision impossible");
+  }), /décision impossible/);
+  assert.deepEqual(vuDedans, [attendu, "publie", POINTS_DEPART], "dans la transaction : rétabli avec ses points");
+  assert.deepEqual([b.ligne(id).statut, b.total(), b.points.map((p) => p.points), b.defis], ["masque", POINTS_DEPART - 10, [-10], []]);
+
+  // Une erreur de la base pendant le rendu des points lève : la transaction de l'appelant revient en arrière
+  b.panne.points = true;
+  await assert.rejects(b.memoire.transaction((tx) => b.gestion.retablirAvisDans(tx, id, MAINTENANT)), /base indisponible/);
+  assert.deepEqual([b.ligne(id).statut, b.total()], ["masque", POINTS_DEPART - 10]);
+  b.panne.points = false;
+
+  // Validée : rétabli avec ses points ; les défis attendent apresRetablir
+  const r = await b.memoire.transaction((tx) => b.gestion.retablirAvisDans(tx, id, MAINTENANT));
+  assert.deepEqual(r, attendu);
+  assert.deepEqual([b.ligne(id).statut, b.total(), b.defis], ["publie", POINTS_DEPART, []]);
+  await b.gestion.apresRetablir(r, MAINTENANT);
+  assert.deepEqual(b.defis, [{ compteId: AUTEUR, maintenant: MAINTENANT }]);
+  await assert.rejects(Promise.resolve().then(() => b.memoire.depot.dans({} as never)), /transaction inconnue/, "hors d'une transaction ouverte");
+});
+
+test("retablirAvisDans : « pas-masque » et « introuvable » rendus sans lever ; la transaction de l'appelant continue", async (t) => {
+  const b = creerBanc();
+  const enRelecture = await b.avis({ photo: "photo-7.jpg" });
+  const masque = await b.avis({ photo: "photo-7.jpg" });
+  await b.gestion.trancherAvis(masque, { action: "masquer" }, MAINTENANT);
+  const rendus = await b.memoire.transaction(async (tx) => [
+    await b.gestion.retablirAvisDans(tx, enRelecture, MAINTENANT),
+    await b.gestion.retablirAvisDans(tx, 999, MAINTENANT),
+    await b.gestion.retablirReponseAvisDans(tx, enRelecture, MAINTENANT),
+    await b.gestion.retablirAvisDans(tx, masque, MAINTENANT),
+  ]);
+  assert.deepEqual(rendus, [
+    { ok: false, erreur: "pas-masque" }, { ok: false, erreur: "introuvable" }, { ok: false, erreur: "introuvable" },
+    { ok: true, avisId: masque, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true },
+  ]);
+  assert.deepEqual([b.ligne(enRelecture).statut, b.ligne(masque).statut, b.total()], ["en-relecture", "publie", POINTS_DEPART]);
+  for (const r of rendus.slice(0, 3)) await b.gestion.apresRetablir(r, MAINTENANT);
+  assert.deepEqual(b.defis, [], "rien à relancer pour un échec");
+
+  // apresRetablir ne lève jamais : une réévaluation qui rate est notée au journal
+  const journal = t.mock.method(console, "error", () => {});
+  b.panne.defis = true;
+  await b.gestion.apresRetablir(rendus[3]!, MAINTENANT);
+  assert.equal(journal.mock.callCount(), 1);
+
+  // La réponse d'un lieu : défaite avec la transaction de l'appelant, sinon rétablie (sans points ni défis)
+  const repondu = await b.avis({ statut: "publie" });
+  await b.repondre(repondu);
+  await b.gestion.trancherReponseAvis(repondu, { action: "masquer" }, MAINTENANT);
+  await assert.rejects(b.memoire.transaction(async (tx) => {
+    assert.equal((await b.gestion.retablirReponseAvisDans(tx, repondu, MAINTENANT)).ok, true);
+    throw new Error("après");
+  }), /après/);
+  assert.equal(b.ligne(repondu).reponseStatut, "masquee");
+  assert.deepEqual(await b.memoire.transaction((tx) => b.gestion.retablirReponseAvisDans(tx, repondu, MAINTENANT)),
+    { ok: true, avisId: repondu, compteId: GERANT, lieuId: 1, pointsRendus: 0, aReevaluer: false });
+  assert.equal(b.ligne(repondu).reponseStatut, "publiee");
+});
+
+test("plancher à 0 : un compte à 3 points masqué passe à 0 (retrait réel 3) ; rétabli, il revient à 3, pas à 10", async () => {
+  const b = creerBanc();
+  b.memoire.pointsComptes.set(AUTEUR, 3);
+  const id = await b.avis({ photo: "photo-7.jpg" });
+  assert.deepEqual(await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, statut: "masque", pointsRetires: 3 });
+  assert.deepEqual([b.total(), b.points.map((p) => [p.points, p.detail])], [0, [[-3, `avis masqué ${id}, lieu 1`]]], "le journal dit le vrai retrait");
+  // À 0 point : rien à retirer, rien au journal, donc rien à rendre
+  const aZero = await b.avis({ photo: "photo-7.jpg" });
+  assert.deepEqual(await b.gestion.trancherAvis(aZero, { action: "masquer" }, MAINTENANT), { ok: true, avisId: aZero, compteId: AUTEUR, lieuId: 1, statut: "masque", pointsRetires: 0 });
+  assert.equal(b.points.length, 1);
+
+  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 3, aReevaluer: true });
+  assert.deepEqual(await b.gestion.retablirAvis(aZero, MAINTENANT), { ok: true, avisId: aZero, compteId: AUTEUR, lieuId: 1, pointsRendus: 0, aReevaluer: true });
+  assert.deepEqual([b.total(), b.points.map((p) => p.points)], [3, [-3, 3]], "le compte retrouve ses 3 points, pas un de plus");
+});
+
+test("deux rétablissements : un seul rend les points ; même un avis remasqué sans retrait ne rend rien", async () => {
+  const b = creerBanc();
+  const id = await b.avis({ photo: "photo-7.jpg" });
+  await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT);
+  const deux = await Promise.all([b.gestion.retablirAvis(id, MAINTENANT), b.memoire.transaction((tx) => b.gestion.retablirAvisDans(tx, id, MAINTENANT))]);
+  assert.deepEqual(deux.filter((r) => r.ok).map((r) => r.ok && r.pointsRendus), [10]);
+  assert.deepEqual(deux.filter((r) => !r.ok), [{ ok: false, erreur: "pas-masque" }]);
+  assert.deepEqual([b.ligne(id).statut, b.total()], ["publie", POINTS_DEPART]);
+
+  // L'avis repasse « masque » sans nouveau retrait (une écriture à la main) : le journal dit déjà tout rendu
+  b.ligne(id).statut = "masque";
+  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 0, aReevaluer: true });
+  assert.deepEqual([b.total(), b.points.map((p) => p.points)], [POINTS_DEPART, [-10, 10]]);
 });
