@@ -4,7 +4,6 @@ import { Text, View } from "react-native";
 
 import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
 import { LIBELLES_MOTIF_REFUS_CLIENT } from "@sos-miam/commun/contenus/motifs-refus";
-import { decrireEtatAvis } from "@sos-miam/commun/fonctions/visites/decrire-etat-avis";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ResultatValidation, Visite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -14,6 +13,7 @@ import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireOuvertureAvis } from "~/fonctions/visites/decrire-ouverture-avis";
 import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
+import { utiliserEtatAvisEnDirect } from "~/hooks/utiliser-etat-avis-en-direct";
 
 type Props = {
   /** Une visite qui n'attend plus le lieu : validée, refusée, expirée, annulée ou retirée */
@@ -92,14 +92,14 @@ function dessinerContestation(visite: Visite, onContester: () => void) {
 export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Props) {
   const router = useRouter();
   const { visite } = resultat;
+  const { etat: etatAvis, maintenant } = utiliserEtatAvisEnDirect(visite.avis);
   // « Redemander » : seulement pour une addition, chez un lieu qu'on peut ouvrir
   const redemander = lieu && visite.mode === "addition" ? <BoutonDemanderAddition lieu={lieu} libelle="Redemander l'addition" /> : null;
 
   if (visite.statut === "validee") {
     const tampon = decrireTamponVisite(resultat);
     const jour = decrireJour(visite.valideLe);
-    const ouverture = decrireOuvertureAvis(visite.avis);
-    const etatAvis = decrireEtatAvis(visite.avis, Date.now());
+    const ouverture = decrireOuvertureAvis(visite.avis, maintenant);
     return (
       <View className="gap-5">
         {dessinerEnTete(

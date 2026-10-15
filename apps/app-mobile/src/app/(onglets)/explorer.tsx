@@ -230,6 +230,7 @@ export default function Explorer() {
   const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
   const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
   const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");
+
   function changerZone(choix: ChoixZone) {
     changerRayon(choix.rayonKm);
     if (choix.ville !== null) {
