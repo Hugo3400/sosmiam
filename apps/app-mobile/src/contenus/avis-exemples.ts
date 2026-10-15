@@ -1,6 +1,6 @@
-// Avis vérifiés INVENTÉS pour la démo (en développement seulement), sur Chez Nonna Lia (0), Sucre & Garrigue (1) et
-// La Cabane d'Émile (13). Signés « Prénom I. », datés au mois à l'affichage ; un avis critique mais honnête, avec la
-// réponse du lieu, montre qu'on ne retire pas un avis parce qu'il pique. Les dates sont relatives au départ de la démo.
+// Avis vérifiés INVENTÉS pour la démo (en développement seulement). Signés « Prénom I. », datés au mois à l'affichage ;
+// un avis critique mais honnête, avec la réponse du lieu, montre qu'on ne retire pas un avis parce qu'il pique. Les dates
+// sont relatives au départ de la démo.
 import type { NoteAvis } from "@sos-miam/commun/types/avis";
 import type { ModeValidation } from "@sos-miam/commun/types/visite";
 
@@ -12,6 +12,7 @@ export type AvisExemple = {
   preuve: ModeValidation;
   ilYaJours: number;
   reponseLieu: { texte: string; ilYaJours: number } | null;
+  photo?: string;
 };
 
 export const avisExemples: readonly AvisExemple[] = [
@@ -62,6 +63,7 @@ export const avisExemples: readonly AvisExemple[] = [
     preuve: "reservation",
     ilYaJours: 5,
     reponseLieu: null,
+    photo: "demo-exemple-huitres.jpg",
   },
   {
     lieuId: 13,
@@ -71,5 +73,36 @@ export const avisExemples: readonly AvisExemple[] = [
     preuve: "addition",
     ilYaJours: 15,
     reponseLieu: null,
+  },
+  {
+    lieuId: 18,
+    signature: "Nadia K.",
+    note: 5,
+    texte: "Les moules du Capitaine, c'est une tempête de saveurs dans une casserole. Et l'île flottante porte bien son nom : on a dérivé jusqu'au café.",
+    preuve: "addition",
+    ilYaJours: 3,
+    reponseLieu: null,
+    photo: "demo-exemple-moules.jpg",
+  },
+  {
+    lieuId: 18,
+    signature: "Thomas B.",
+    note: 3,
+    texte: "Bon poisson du jour, mais la terrasse était pleine et on a mangé dedans, un peu serrés. On reviendra un midi plus calme.",
+    preuve: "comptoir",
+    ilYaJours: 9,
+    reponseLieu: null,
+  },
+  {
+    lieuId: 18,
+    signature: "Romane P.",
+    note: 4,
+    texte: "Accueil aux petits oignons et assiettes généreuses. Petit bémol pour l'attente au dessert, mais la Brigade s'est excusée avec le sourire.",
+    preuve: "reservation",
+    ilYaJours: 16,
+    reponseLieu: {
+      texte: "Merci Romane ! Le pâtissier était seul en cuisine ce soir-là : on a renforcé l'équipe du dessert. À très vite à bord !",
+      ilYaJours: 15,
+    },
   },
 ];

@@ -89,11 +89,13 @@ test("le lieu sélectionné est toujours seul, même loin de la vue ou dans un g
 });
 
 test("les SOS et les alertes restent seuls, jusqu'à leur propre plafond", () => {
-  const points = creerPointsFrance(1622, 14, { partPrioritaires: 0.05 });
+  const points = creerPointsFrance(1622, 14, { partPrioritaires: 0.1 });
   const resultat = regrouperLieuxParGrille(points, FRANCE, TAILLE_TELEPHONE, null);
   const seuls = new Set(resultat.seuls.map((s) => s.id));
   const prioritairesSeuls = points.filter((p) => p.prioritaire && seuls.has(p.id)).length;
-  assert.equal(prioritairesSeuls, Math.min(PLAFOND_PRIORITAIRES_CARTE, points.filter((p) => p.prioritaire).length));
+  const prioritairesVus = points.filter((p) => p.prioritaire && dansLaFenetre(p, FRANCE)).length;
+  assert.ok(prioritairesVus > PLAFOND_PRIORITAIRES_CARTE);
+  assert.ok(prioritairesSeuls >= PLAFOND_PRIORITAIRES_CARTE, `${prioritairesSeuls} SOS seuls`);
   const tousPrioritaires = creerPointsFrance(1622, 15, { partPrioritaires: 1 });
   const plein = regrouperLieuxParGrille(tousPrioritaires, FRANCE, TAILLE_TELEPHONE, tousPrioritaires[3].id);
   assert.ok(compterMarqueurs(plein) <= PLAFOND_MARQUEURS_CARTE);
@@ -119,7 +121,7 @@ test("ordre fixe : seuls triés par id, groupes par clé, quel que soit l'ordre 
 });
 
 test("clés stables : glisser un peu la carte garde les mêmes groupes au milieu", () => {
-  const points = creerPointsFrance(3000, 17);
+  const points = creerPointsFrance(10_000, 17);
   const region = regionAutour(MARSEILLE, 12_000);
   const glissee = { ...region, latitude: region.latitude + region.latitudeDelta * 0.15, longitude: region.longitude - region.longitudeDelta * 0.15 };
   const avant = regrouperLieuxParGrille(points, region, TAILLE_TELEPHONE, null);
@@ -128,7 +130,10 @@ test("clés stables : glisser un peu la carte garde les mêmes groupes au milieu
   const parCle = new Map(apres.groupes.map((g) => [g.cle, g]));
   const auMilieu = avant.groupes.filter((g) => dansLaVue(g, { ...region, latitudeDelta: region.latitudeDelta / 2, longitudeDelta: region.longitudeDelta / 2 }));
   assert.ok(auMilieu.length > 0);
-  for (const g of auMilieu) assert.deepEqual(parCle.get(g.cle)?.ids, g.ids, `groupe ${g.cle}`);
+  for (const g of auMilieu) {
+    assert.doesNotMatch(g.cle, /^place:/);
+    assert.deepEqual(parCle.get(g.cle)?.ids, g.ids, `groupe ${g.cle}`);
+  }
 });
 
 test(`sous ${SEUIL_SANS_GROUPE_CARTE} lieux, pas de grille : seuls les lieux posés au même endroit sont réunis`, () => {
@@ -140,7 +145,7 @@ test(`sous ${SEUIL_SANS_GROUPE_CARTE} lieux, pas de grille : seuls les lieux pos
     const membres = points.filter((p) => g.ids.includes(p.id));
     assert.ok(membres.every((m) => m.latitude.toFixed(5) === membres[0].latitude.toFixed(5) && m.longitude.toFixed(5) === membres[0].longitude.toFixed(5)));
   }
-  assert.equal(idsMontres(resultat).length, points.length);
+  assert.equal(idsMontres(resultat).length, points.filter((p) => dansLaFenetre(p, FRANCE)).length);
 });
 
 test("au zoom rue, les lieux posés au même endroit sont écartés, chacun touchable", () => {

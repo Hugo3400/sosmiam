@@ -151,7 +151,7 @@ export function creerMagasinInitial(maintenantMs: number): MagasinDemo {
       signature: a.signature,
       note: a.note,
       texte: a.texte,
-      photo: null,
+      photo: a.photo ?? null,
       preuve: a.preuve,
       creeLe: iso(maintenantMs - a.ilYaJours * JOUR),
       statut: "publie",

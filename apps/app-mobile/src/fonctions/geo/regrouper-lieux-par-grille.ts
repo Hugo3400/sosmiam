@@ -93,18 +93,19 @@ function trierParProximite(points: PointCarte[], echelle: Echelle): PointCarte[]
 }
 
 function former(cle: string, membres: PointCarte[]): GroupeCarte {
+  const tries = [...membres].sort((a, b) => a.id - b.id);
   let latitude = 0;
   let longitude = 0;
-  for (const membre of membres) {
+  for (const membre of tries) {
     latitude += membre.latitude;
     longitude += membre.longitude;
   }
   return {
     cle,
-    nombre: membres.length,
-    latitude: latitude / membres.length,
-    longitude: longitude / membres.length,
-    ids: membres.map((membre) => membre.id).sort((a, b) => a - b),
+    nombre: tries.length,
+    latitude: latitude / tries.length,
+    longitude: longitude / tries.length,
+    ids: tries.map((membre) => membre.id),
   };
 }
 

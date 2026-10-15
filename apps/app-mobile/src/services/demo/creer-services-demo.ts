@@ -5,6 +5,7 @@ import type { Services } from "@sos-miam/commun/client-api/services";
 import { creerServicesIndisponibles } from "../creer-services-indisponibles";
 import { creerAnnoncesAppDemo } from "./annonces-app-demo";
 import { creerAvisDemo } from "./avis-demo";
+import { creerAvisProDemo } from "./avis-pro-demo";
 import { creerComptoirDemo } from "./comptoir-demo";
 import { creerEspaceAmbassadeurDemo } from "./espace-ambassadeur-demo";
 import { creerFideliteDemo } from "./fidelite-demo";
@@ -27,7 +28,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     fidelite: creerFideliteDemo(ctx),
     reservations: creerReservationsDemo(ctx),
     avis: creerAvisDemo(ctx),
-    comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ...creerReservationsProDemo(ctx), ecouter },
+    comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ...creerReservationsProDemo(ctx), ...creerAvisProDemo(ctx), ecouter },
     lieuPro: creerLieuProDemo(ctx),
     interetsEvenements: creerInteretsEvenementsDemo(ctx),
     ambassadeur: creerEspaceAmbassadeurDemo(ctx),
