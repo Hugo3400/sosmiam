@@ -20,7 +20,9 @@ export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
  * 401 session-expiree ; 429 trop-de-demandes (Retry-After). Un avis est signé « Prénom I. » (prénom seul sans nom donné),
  * daté au mois (heure de Paris), jamais l'auteur ni son âge. On ne le masque jamais automatiquement :
  * certains partent en relecture (compte de moins de 7 jours, 3 notes tranchées ou plus sur le lieu en 24 h, 1 sur 20 au
- * hasard) et restent visibles ; un ambassadeur donne un verdict consultatif, l'équipe tranche dans le logiciel.
+ * hasard) et restent visibles ; un ambassadeur donne un verdict consultatif, l'équipe tranche dans le logiciel
+ * (services/avis-gestion.ts) : publié, ou masqué (il sort de la page du lieu, de sa moyenne et du comptoir, et les points
+ * de sa photo sont retirés ; une contestation qui donne raison à l'auteur le remet en ligne).
  *
  * Sans session (cache public 60 s) :
  * GET  /app/avis/lieux/:lieuId[?apres=<suite>] → 200 { ok, resume: ResumeAvis, avis: AvisPublic[], suite: string | null } :

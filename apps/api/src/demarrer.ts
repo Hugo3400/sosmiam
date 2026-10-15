@@ -73,6 +73,7 @@ import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 import { noterAction } from "./services/gestion/journal.ts";
+import { servicesLimitations } from "./services/limitations-comptes.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -101,6 +102,11 @@ const versionMinimale = {
   android: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_ANDROID),
 };
 const zones = { trouverZoneDeCommune, listerZones, lireZone };
+// Limitations des comptes (décision de Hugo du 15 octobre 2026) : un seul service pour tous. Les comptes et l'espace pro
+// refusent ce qui se voit des autres (comptes.limitations ci-dessous) ; le logiciel de gestion limite, lève, réexamine et
+// fait le ménage à 1 an ; la partie sociale de l'app refuse avec limitations.estLimite (403 « compte-limite » :
+// repondreCompteLimite de middlewares/refuser-si-limite.ts). Contrat : services/limitations-comptes-regles.ts.
+const limitations = servicesLimitations;
 // Connexion avec Apple et Google : audiences acceptées (séparées par des virgules). Apple : l'App ID de l'app iOS par
 // défaut ; Google : les identifiants client OAuth (iOS, Android, web), aucun par défaut (POST /comptes/google : 503)
 const audiencesApple = lireListeVirgules(process.env.SOS_MIAM_APPLE_AUDIENCES, AUDIENCES_APPLE_DEFAUT);
@@ -179,6 +185,8 @@ const serveur = creerApplication({
       noterRefus: (email) => noterDesinscription(email) },
     // Repasser en public par le profil accepte les demandes de suivi en attente, comme PUT /app/suivis-personnes/confidentialite
     apresPassageEnPublic: creerApresPassageEnPublic(socialApp, Date.now),
+    // Compte limité par l'équipe : « Ton compte est limité », sa contestation, et les refus 403 « compte-limite »
+    limitations,
   },
   espaceAmbassadeur: { missionsDuCompte, terminerMission, messagesDuCompte, marquerMessageLu, noterPresence },
   // Recherche de commune et places de fondateurs, sans session (page du programme, formulaire de candidature)

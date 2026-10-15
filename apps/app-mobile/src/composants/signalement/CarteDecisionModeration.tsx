@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 
 import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
-import type { CibleSignalementSocial, DecisionModerationApi } from "@sos-miam/commun/types/signalement";
+import type { CibleDecisionModeration, DecisionModerationApi } from "@sos-miam/commun/types/signalement";
 import { Bouton } from "~/composants/interface/Bouton";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
@@ -15,15 +15,26 @@ type Props = {
   maintenant: Date;
 };
 
-/** Le nom de chaque contenu, et s'il est féminin (« Ta liste », « retirée ») */
-const CIBLES: Readonly<Record<CibleSignalementSocial, { nom: string; feminin: boolean }>> = {
+/**
+ * Le nom de chaque contenu, s'il est féminin (« Ta liste », « retirée »), et, s'il le faut, comment le dire au milieu d'une
+ * phrase pour qu'on sache de quoi on parle (« ton avis sur un lieu »)
+ */
+const CIBLES: Readonly<Record<CibleDecisionModeration, { nom: string; feminin: boolean; dansUnePhrase?: string }>> = {
   commentaire: { nom: "commentaire", feminin: false },
   message: { nom: "message", feminin: false },
   liste: { nom: "liste", feminin: true },
   profil: { nom: "profil", feminin: false },
   sortie: { nom: "sortie", feminin: true },
   groupe: { nom: "groupe", feminin: false },
+  avis: { nom: "avis", feminin: false, dansUnePhrase: "ton avis sur un lieu" },
+  "reponse-avis": { nom: "réponse à un avis", feminin: true },
 };
+
+/**
+ * Un avis ou la réponse d'un lieu à un avis : l'équipe les masque en décidant, à la relecture (décision du 15/10/2026). Un
+ * « rien à redire » sur eux vient donc d'une contestation qui t'a donné raison : ils sont de retour en ligne.
+ */
+const MASQUES_A_LA_RELECTURE: readonly CibleDecisionModeration[] = ["avis", "reponse-avis"];
 
 const FONDS_STATUT: Readonly<Record<DecisionModerationApi["statut"], string>> = { masque: "bg-jaune-clair", retenu: "bg-rose-alerte", rejete: "bg-creme" };
 const EMOJIS_STATUT: Readonly<Record<DecisionModerationApi["statut"], string>> = { masque: "🙈", retenu: "🧹", rejete: "✅" };
@@ -39,13 +50,13 @@ const ecrireDate = (iso: string | null) => {
  * Un profil, une sortie ou un groupe ne disparaissent pas : la modération remet par défaut ce qui posait problème (l'avatar,
  * le titre de la sortie, le titre du groupe)
  */
-const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleSignalementSocial, { auteur: string; signale: string }>>> = {
+const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleDecisionModeration, { auteur: string; signale: string }>>> = {
   profil: { auteur: "L'équipe a remis ton avatar par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : son avatar a été remis par défaut. Merci de veiller au grain !" },
   sortie: { auteur: "L'équipe a remis le titre de ta sortie par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre de la sortie a été remis par défaut. Merci de veiller au grain !" },
   groupe: { auteur: "L'équipe a effacé le titre de ton groupe : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre du groupe a été effacé. Merci de veiller au grain !" },
 };
 
-/** Ce que c'était, le statut dit simplement, et la phrase qui l'explique (accordés au féminin pour une liste ou une sortie) */
+/** Ce que c'était, le statut dit simplement, et la phrase qui l'explique (accordés au féminin pour une liste, une sortie ou une réponse) */
 function decrire({ cible, role, statut }: DecisionModerationApi) {
   const { nom, feminin } = CIBLES[cible] ?? { nom: "contenu", feminin: false };
   const e = feminin ? "e" : "";
@@ -57,6 +68,8 @@ function decrire({ cible, role, statut }: DecisionModerationApi) {
     if (statut === "masque")
       return { quoi, feminin, statut: `Masqué${e} en attendant la modération`, phrase: `${feminin ? "Elle" : "Il"} est caché${e} pour tout le monde, le temps qu'une personne de l'équipe ${feminin ? "la" : "le"} regarde de près.` };
     if (statut === "retenu") return { quoi, feminin, statut: `Retiré${e}`, phrase: `L'équipe l'a retiré${e} : ${il} ne respectait pas une règle de la communauté.` };
+    if (MASQUES_A_LA_RELECTURE.includes(cible))
+      return { quoi, feminin, statut: "De retour en ligne", phrase: `Bonne nouvelle : l'équipe a tout relu, ${il} respecte les règles de la communauté. ${feminin ? "Elle" : "Il"} est de nouveau visible pour tout le monde.` };
     return { quoi, feminin, statut: `Rien à redire, ${il} reste en ligne`, phrase: `L'équipe a regardé de près : ${il} respecte les règles de la communauté.` };
   }
   const quoi = `Ton signalement ${feminin ? "d'une" : "d'un"} ${nom}`;
@@ -68,13 +81,15 @@ function decrire({ cible, role, statut }: DecisionModerationApi) {
 }
 
 /**
- * Une décision de la modération, dans « Décisions de la modération » : ce que c'était (« Ton commentaire », « Ton
- * signalement d'un message »), le statut dit simplement, la règle des CGU en cause et l'explication de l'équipe, la date,
- * puis « Contester » tant que c'est possible, ou où en est la contestation. Jamais qui a signalé.
+ * Une décision de la modération, dans « Décisions de la modération » : ce que c'était (« Ton commentaire », « Ton avis »,
+ * « Ta réponse à un avis », « Ton signalement d'un message »), le statut dit simplement, la règle des CGU en cause et
+ * l'explication de l'équipe, la date, puis « Contester » tant que c'est possible, ou où en est la contestation. Jamais qui a
+ * signalé.
  * VoiceOver lit la décision d'un seul tenant, puis le bouton.
  */
 export function CarteDecisionModeration({ decision, onContester, maintenant }: Props) {
   const { quoi, feminin, statut, phrase } = decrire(decision);
+  const quoiDansUnePhrase = (decision.role === "auteur" ? CIBLES[decision.cible]?.dansUnePhrase : undefined) ?? quoi.toLowerCase();
   // Un code que cette version de l'app ne connaît pas encore : la règle n'est pas citée, on dit seulement qu'il y en a une
   const motif = decision.motif ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { libelle: string; regle: string } | undefined>>)[decision.motif] : undefined;
   const regle = decision.motif ? (motif ? `${motif.libelle} : « ${motif.regle} »` : "une des règles de la communauté (nos conditions d'utilisation)") : null;
@@ -145,7 +160,7 @@ export function CarteDecisionModeration({ decision, onContester, maintenant }: P
             variante="blanc"
             petit
             className="self-start"
-            libelleLu={`Contester la décision sur ${quoi.toLowerCase()}`}
+            libelleLu={`Contester la décision sur ${quoiDansUnePhrase}`}
             indice="Explique à l'équipe pourquoi tu n'es pas d'accord"
             onPress={onContester}
           />

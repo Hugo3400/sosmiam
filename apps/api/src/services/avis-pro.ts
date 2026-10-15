@@ -1,7 +1,8 @@
 // Les avis vus du comptoir (voir routes/comptoir.ts) : l'équipe du lieu (gérant et équipe) lit les avis visibles de son lieu
 // avec leur réponse ; seul le gérant répond, une fois par avis, en public (600 caractères, filtre de mots, vérifié par le
-// contrôleur). La réponse est publiée tout de suite et relue après par l'équipe SOS Miam dans le logiciel ; jamais de
-// message privé du lieu au client. Le lieu est relu sur l'avis, jamais pris dans la demande.
+// contrôleur). La réponse est visible tout de suite, posée « en-relecture », et relue après par l'équipe SOS Miam dans le
+// logiciel (avis-gestion.ts) ; jamais de message privé du lieu au client. Le lieu est relu sur l'avis, jamais pris dans
+// la demande.
 import type { AvisPublic, PageAvisLieu } from "../../../../packages/commun/src/types/avis.ts";
 import { lirePageAvis } from "../fonctions/avis/lire-page-avis.ts";
 import { presenterAvisPublic } from "../fonctions/avis/presenter-avis-public.ts";

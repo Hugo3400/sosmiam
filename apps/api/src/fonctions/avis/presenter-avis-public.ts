@@ -4,7 +4,8 @@ import { calculerClesPeriodes } from "../dates/calculer-cles-periodes.ts";
 
 /**
  * Un avis tel que tout le monde le voit (packages/commun, types/avis.ts) : signé, daté au mois (heure de Paris), jamais
- * l'auteur, son âge ni son statut de relecture. La réponse du lieu se montre tant que l'équipe SOS Miam ne l'a pas masquée.
+ * l'auteur, son âge ni son statut de relecture. La réponse du lieu se montre tant que l'équipe SOS Miam ne l'a pas masquée
+ * (« en-relecture » à la pose, puis « publiee » : visible dans les deux cas).
  */
 export function presenterAvisPublic(a: LigneAvis): AvisPublic {
   const reponseVisible = a.reponseTexte !== null && a.reponseStatut !== "masquee";

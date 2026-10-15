@@ -81,7 +81,9 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  *          (chacun avec reponseLieu), suite: string | null } : les avis visibles (publiés ou en relecture), 30 par page, les
  *          plus récents d'abord · 400 champ-invalide { champ: id | apres }
  * POST   /pro/comptoir/avis/:avisId/reponse { texte (600 caractères, sans gros mot) } (GÉRANT seulement) → 201 { ok, avis } :
- *          réponse publique publiée tout de suite, relue après par l'équipe SOS Miam ; jamais de message privé au client
+ *          réponse publique visible tout de suite, posée « en-relecture » et relue après par l'équipe SOS Miam (masquée,
+ *          elle n'est plus montrée nulle part ; elle revient si une contestation donne raison au lieu) ; jamais de message
+ *          privé au client
  *          · 400 message-refuse { champ: texte } | champ-invalide { champ: avisId } · 403 role-requis (équipe, ou pas ce lieu)
  *          · 404 introuvable (avis inconnu ou masqué) · 409 reponse-deja-donnee (une réponse par avis, même masquée)
  *

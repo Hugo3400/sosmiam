@@ -5,6 +5,7 @@ import { gererErreurs } from "./middlewares/gerer-erreurs.ts";
 import { creerLimiteConnectes } from "./middlewares/limiter-connectes.ts";
 import { creerControleMajorite } from "./middlewares/exiger-majeur.ts";
 import { creerProtectionComptes, gererErreursComptes } from "./middlewares/proteger-comptes.ts";
+import { creerRefuserSiLimite } from "./middlewares/refuser-si-limite.ts";
 import { PREFIXE_GESTION } from "./middlewares/proteger-gestion.ts";
 import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts";
 import { creerRoutesApp } from "./routes/app.ts";
@@ -187,7 +188,7 @@ export function creerApplication({
       application.use("/pro/comptoir", routesVisites.comptoir);
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
-    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite));
+    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));
     // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version

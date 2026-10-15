@@ -88,11 +88,17 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  *                                          visiteur et par heure) · 503 chiffrement-indisponible (date de l'invité illisible)
  * DELETE /pro/lieux/:id/equipe/:compteId (gérant) → 200 { ok } (statut « retire ») · 404 membre-inconnu (pas un membre
  *                                        « equipe » invité ou validé : un gérant ne se retire pas ici)
+ * Compte LIMITÉ par l'équipe (routes/comptes.ts, GET /comptes/moi/limitation) : ce que les clients ou d'autres comptes
+ * verraient est refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou null : jusqu'à
+ * nouvel ordre), après les contrôles du lieu et du rôle, et rien n'est fait : PATCH /pro/lieux/:id (fiche publique),
+ * PUT /pro/lieux/:id/carte, POST /pro/lieux/:id/equipe (invitation). Lire, chercher, et retirer un membre restent permis.
  */
 export function creerRoutesPro(
   services: ServicesPro, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number = Date.now,
   /** Réservé aux 18 ans et plus, et pas d'invitation d'un mineur (middlewares/exiger-majeur.ts) */
   majorite: ControleMajorite,
+  /** Compte limité : refuse ce qui se voit des autres (middlewares/refuser-si-limite.ts) ; absent : rien n'est refusé */
+  refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
 ) {
   const exigerRattachement = creerProtectionPro(services);
   const rattachements = creerControleursRattachements(services, horloge);
@@ -105,12 +111,12 @@ export function creerRoutesPro(
   routes.use(limiteConnectee, protection.exigerCompte, majorite.exigerMajeur);
   routes.get("/recherche-lieux", limiterRequetes(LIMITE_RECHERCHE_LIEUX), rattachements.chercher);
   routes.get("/lieux/:id", exigerRattachement(), fiche.lire);
-  routes.patch("/lieux/:id", limiterRequetes(LIMITE_MODIFIER_FICHE), exigerRattachement(true), fiche.modifier);
+  routes.patch("/lieux/:id", limiterRequetes(LIMITE_MODIFIER_FICHE), exigerRattachement(true), refuserSiLimite, fiche.modifier);
   routes.get("/lieux/:id/suggestions", exigerRattachement(), fiche.suggestions);
   routes.get("/lieux/:id/carte", exigerRattachement(), carte.lire);
-  routes.put("/lieux/:id/carte", limiteCarte, exigerRattachement(true), carte.enregistrer);
+  routes.put("/lieux/:id/carte", limiteCarte, exigerRattachement(true), refuserSiLimite, carte.enregistrer);
   routes.get("/lieux/:id/equipe", exigerRattachement(true), equipe.lister);
-  routes.post("/lieux/:id/equipe", limiterRequetes(LIMITE_INVITATIONS), exigerRattachement(true), equipe.inviter);
+  routes.post("/lieux/:id/equipe", limiterRequetes(LIMITE_INVITATIONS), exigerRattachement(true), refuserSiLimite, equipe.inviter);
   routes.delete("/lieux/:id/equipe/:compteId", exigerRattachement(true), equipe.retirer);
   routes.use(gererErreursComptes);
   return routes;

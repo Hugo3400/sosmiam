@@ -1,5 +1,5 @@
 // Tests des avis au comptoir (/pro/comptoir/lieux/:id/avis, /pro/comptoir/avis/:avisId/reponse) : l'équipe lit les avis de
-// son lieu, seul le gérant répond, une fois, en public, publié tout de suite.
+// son lieu, seul le gérant répond, une fois, en public, visible tout de suite (posée « en-relecture », relue ensuite).
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 
@@ -20,7 +20,7 @@ async function equipe() {
 
 const REPONSE = "Merci Léa ! Le tiramisu vous attend, et la prochaine fois la terrasse sera chauffée.";
 
-test("le gérant répond une fois, en public, publié tout de suite ; l'équipe ne répond pas", async () => {
+test("le gérant répond une fois, en public, visible tout de suite (en relecture) ; l'équipe ne répond pas", async () => {
   const { gerant, serveur } = await equipe();
   const avis = await b.ajouterAvis({ lieuId: 1, note: 3 });
   const refus = await b.demander("POST", `/pro/comptoir/avis/${avis.id}/reponse`, serveur.jeton, { texte: REPONSE });
@@ -31,7 +31,7 @@ test("le gérant répond une fois, en public, publié tout de suite ; l'équipe 
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   assert.equal(r.entetes.get("cache-control"), "private, no-store");
   assert.deepEqual(r.corps.avis.reponseLieu, { texte: REPONSE, mois: "2026-11" });
-  assert.deepEqual([b.donnees.avis[0]!.reponseStatut, b.donnees.avis[0]!.reponseParId], ["publiee", gerant.id]);
+  assert.deepEqual([b.donnees.avis[0]!.reponseStatut, b.donnees.avis[0]!.reponseParId], ["en-relecture", gerant.id]);
   const publics = (await b.demander("GET", "/app/avis/lieux/1")).corps.avis;
   assert.deepEqual(publics[0].reponseLieu, { texte: REPONSE, mois: "2026-11" });
 
