@@ -121,7 +121,7 @@ export async function effacerMediasExpires(
   let total = 0;
   for (;;) {
     // Sans curseur : après un échec, l'étape s'arrête là (le paquet suivant serait le même)
-    const lignes = await essayer(suivi, "messages_conversations", () => base.$queryRaw<{ fichier: string }[]>`
+    const lignes = await essayer(suivi, "messages_conversations (médias expirés)", () => base.$queryRaw<{ fichier: string }[]>`
       WITH cibles AS (
         SELECT m.id, m.fichier FROM messages_conversations m
         WHERE m.media_expire_le <= ${date(seuils.medias)} AND m.fichier IS NOT NULL AND ${sansSignalementOuvert("message", "m.id")}
@@ -152,13 +152,13 @@ async function effacerConversationsSelon(
   let apres = 0;
   for (;;) {
     // Sans cette liste, le curseur ne peut pas avancer : un échec ici arrête l'étape
-    const candidates = await essayer(suivi, "conversations", () => base.$queryRaw<{ id: number }[]>`
+    const candidates = await essayer(suivi, "liste des conversations", () => base.$queryRaw<{ id: number }[]>`
       SELECT c.id FROM conversations c LEFT JOIN sorties s ON s.conversation_id = c.id
       WHERE c.id > ${apres} AND ${condition} ORDER BY c.id LIMIT ${TAILLE_PAQUET_MENAGE}`);
     if (candidates === null || candidates.length === 0) return bilan;
     apres = Number(candidates.at(-1)!.id);
     const ids = candidates.map((c) => Number(c.id));
-    const fait = await essayer(suivi, "conversations", () => base.$transaction(async (tx) => {
+    const fait = await essayer(suivi, "paquet de conversations", () => base.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM sorties WHERE conversation_id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`;
       await tx.$queryRaw`SELECT id FROM conversations WHERE id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`;
       const toujours = await tx.$queryRaw<{ id: number; type: string }[]>`
