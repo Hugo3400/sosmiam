@@ -75,9 +75,22 @@ const codeErreur = (erreur: unknown) => (erreur as NodeJS.ErrnoException | null)
 /** Un système de fichiers qui ne sait pas forcer un dossier sur le disque (fsync refusé) : le fichier, lui, l'est déjà */
 const SYNC_DOSSIER_IMPOSSIBLE = new Set(["EINVAL", "ENOTSUP", "EOPNOTSUPP"]);
 
+/** Les fonctions de node:fs/promises dont se sert le vrai stockage (DISQUE) */
+export type DisqueMediasChat = {
+  chmod: typeof chmod;
+  mkdir: typeof mkdir;
+  open: typeof open;
+  readdir: typeof readdir;
+  readFile: typeof readFile;
+  stat: typeof stat;
+  statfs: typeof statfs;
+  unlink: typeof unlink;
+};
+const DISQUE: DisqueMediasChat = { chmod, mkdir, open, readdir, readFile, stat, statfs, unlink };
+
 /** Force sur le disque l'entrée d'un nouveau fichier dans `dossier` (sans quoi une coupure peut perdre le nom) */
-async function forcerDossier(dossier: string): Promise<void> {
-  const poignee = await open(dossier, "r");
+async function forcerDossier(dossier: string, ouvrir: DisqueMediasChat["open"]): Promise<void> {
+  const poignee = await ouvrir(dossier, "r");
   try {
     await poignee.sync();
   } catch (erreur) {
@@ -91,16 +104,19 @@ export type OptionsStockageMediasChat = {
   /** Appelé quand la part libre passe sous PART_LIBRE_MIN_DISQUE, une fois par heure au plus (ligne du journal du logiciel) */
   quandDisquePresquePlein?: (partLibre: number) => void;
   horloge?: () => number;
+  /** node:fs/promises par défaut ; les tests y glissent un espion (ordre des fsync) ou une panne (disque plein, EINVAL) */
+  disque?: Partial<DisqueMediasChat>;
 };
 
 /** Le vrai stockage, dans `dossier` (créé en 0700 au premier besoin) */
 export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: OptionsStockageMediasChat = {}): StockageMediasChat {
   const horloge = o.horloge ?? Date.now;
+  const fs: DisqueMediasChat = { ...DISQUE, ...o.disque };
   let preparation: Promise<void> | null = null;
   const preparer = () => {
     preparation ??= (async () => {
-      await mkdir(dossier, { recursive: true, mode: 0o700 });
-      await chmod(dossier, 0o700);
+      await fs.mkdir(dossier, { recursive: true, mode: 0o700 });
+      await fs.chmod(dossier, 0o700);
     })().catch((erreur: unknown) => {
       preparation = null;
       throw erreur;
@@ -116,7 +132,7 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
       const cible = chemin(fichier);
       await preparer();
       // « wx » : un fichier qui existait n'est jamais écrasé (EEXIST : rien n'est touché)
-      const poignee = await open(cible, "wx", 0o600);
+      const poignee = await fs.open(cible, "wx", 0o600);
       try {
         try {
           await poignee.writeFile(octets);
@@ -125,17 +141,17 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
         } finally {
           await poignee.close();
         }
-        await forcerDossier(dossier);
+        await forcerDossier(dossier, fs.open);
       } catch (erreur) {
         // Un fichier commencé puis interrompu (disque plein, erreur d'écriture) part : rien n'est cité en base
-        await unlink(cible).catch(() => undefined);
+        await fs.unlink(cible).catch(() => undefined);
         throw erreur;
       }
     },
     lire: async (fichier) => {
       if (!estNomValide(fichier)) return null;
       try {
-        return await readFile(join(dossier, fichier));
+        return await fs.readFile(join(dossier, fichier));
       } catch (erreur) {
         if (codeErreur(erreur) === "ENOENT") return null;
         throw erreur;
@@ -145,7 +161,7 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
       let supprimes = 0;
       const valides = [...new Set(fichiers.filter(estNomValide))];
       for (let debut = 0; debut < valides.length; debut += 50) {
-        const resultats = await Promise.all(valides.slice(debut, debut + 50).map((fichier) => unlink(join(dossier, fichier)).then(
+        const resultats = await Promise.all(valides.slice(debut, debut + 50).map((fichier) => fs.unlink(join(dossier, fichier)).then(
           () => true,
           (erreur: unknown) => {
             if (codeErreur(erreur) === "ENOENT") return false;
@@ -160,7 +176,7 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
       let part = 0;
       try {
         await preparer();
-        const disque = await statfs(dossier);
+        const disque = await fs.statfs(dossier);
         part = disque.blocks > 0 ? Math.min(1, Math.max(0, disque.bavail / disque.blocks)) : 0;
       } catch {
         part = 0;
@@ -174,7 +190,7 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
     lister: async (apres, nombre) => {
       let noms: string[];
       try {
-        noms = await readdir(dossier);
+        noms = await fs.readdir(dossier);
       } catch (erreur) {
         if (codeErreur(erreur) === "ENOENT") return [];
         throw erreur;
@@ -183,7 +199,7 @@ export function creerStockageMediasChat(dossier = DOSSIER_MEDIAS_CHAT, o: Option
       const liste: FichierMediaChat[] = [];
       for (const fichier of choisis) {
         try {
-          liste.push({ fichier, modifieLe: (await stat(join(dossier, fichier))).mtime });
+          liste.push({ fichier, modifieLe: (await fs.stat(join(dossier, fichier))).mtime });
         } catch (erreur) {
           if (codeErreur(erreur) !== "ENOENT") throw erreur;
         }

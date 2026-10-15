@@ -1,15 +1,18 @@
 // Tests du stockage des photos et notes vocales du chat (vrai disque, dans un dossier temporaire : jamais le vrai dossier des
-// médias), des quotas de B.12, et de l'effacement des conversations (version Prisma avec une fausse transaction, et version
-// en mémoire avec les mêmes cascades) : le fichier d'un signalement ouvert, ou jugé depuis moins de 183 jours, reste sur le
-// disque (décision de Hugo du 15/10/2026).
+// médias), de ses fsync (ordre exact et pannes, par un disque espionné), des quotas de B.12, et de l'effacement des
+// conversations (version Prisma avec une fausse transaction, et version en mémoire avec les mêmes cascades) : le fichier d'un
+// signalement ouvert, ou jugé depuis moins de 183 jours, reste sur le disque (décision de Hugo du 15/10/2026).
 import assert from "node:assert/strict";
 import { mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { open, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 
 import { effacerConversations, supprimerMediasLibres } from "../src/services/effacer-conversations.ts";
-import { creerStockageMediasChat, creerStockageMediasChatEnMemoire, FORME_FICHIER_MEDIA_CHAT, verifierQuotasMediasChat } from "../src/services/stockage-medias-chat.ts";
+import {
+  creerStockageMediasChat, creerStockageMediasChatEnMemoire, FORME_FICHIER_MEDIA_CHAT, verifierQuotasMediasChat, type DisqueMediasChat,
+} from "../src/services/stockage-medias-chat.ts";
 import { creerTablesSocialesEnMemoire, effacerConversationsEnMemoire } from "../src/services/tables-sociales-en-memoire.ts";
 
 const racine = mkdtempSync(join(tmpdir(), "sos-miam-medias-essai-"));
@@ -67,6 +70,102 @@ test("disque : une photo de 5 Mo écrite entière et forcée sur le disque ; un 
   await assert.rejects(s.ecrire(nom, Buffer.from("autre")), (e: NodeJS.ErrnoException) => e.code === "EEXIST");
   assert.ok((await s.lire(nom))!.equals(photo), "un fichier qui existait n'est jamais touché");
   assert.deepEqual(readdirSync(dossier), [nom]);
+});
+
+/**
+ * node:fs/promises espionné, pour les fichiers écrits dans `dossier` : chaque ouverture, chaque appel sur une poignée et
+ * chaque unlink vont dans `journal` (« open:fichier:wx:600 », « sync:dossier »…), sur le vrai disque. `pannes` fait lever
+ * une erreur de ce code à l'appel choisi (« writeFile:fichier » : après en avoir écrit le début, comme un disque qui se
+ * remplit en route).
+ */
+function espionnerDisque(dossier: string, pannes: Record<string, string> = {}) {
+  const journal: string[] = [];
+  const qui = (chemin: string) => (chemin === dossier ? "dossier" : "fichier");
+  const panne = (appel: string) => {
+    if (pannes[appel]) throw Object.assign(new Error(`Panne d'essai (${appel})`), { code: pannes[appel] });
+  };
+  const ouvrir = async (chemin: string, drapeaux: string, mode?: number) => {
+    const nom = qui(chemin);
+    journal.push(`open:${nom}:${drapeaux}${mode === undefined ? "" : `:${mode.toString(8)}`}`);
+    const vraie = await open(chemin, drapeaux, mode);
+    return {
+      writeFile: async (octets: Uint8Array) => {
+        journal.push(`writeFile:${nom}`);
+        if (pannes[`writeFile:${nom}`]) await vraie.write(octets.subarray(0, 3));
+        panne(`writeFile:${nom}`);
+        await vraie.writeFile(octets);
+      },
+      sync: async () => {
+        journal.push(`sync:${nom}`);
+        panne(`sync:${nom}`);
+        await vraie.sync();
+      },
+      close: async () => {
+        journal.push(`close:${nom}`);
+        await vraie.close();
+      },
+    };
+  };
+  const supprimer = async (chemin: string) => {
+    journal.push(`unlink:${qui(chemin)}`);
+    await unlink(chemin);
+  };
+  const disque: Partial<DisqueMediasChat> = { open: ouvrir as never, unlink: supprimer as never };
+  return { journal, disque };
+}
+
+/** Ce que fait une écriture réussie, dans l'ordre : le fichier (contenu forcé AVANT de fermer), puis l'entrée du dossier */
+const ECRITURE_COMPLETE = ["open:fichier:wx:600", "writeFile:fichier", "sync:fichier", "close:fichier", "open:dossier:r", "sync:dossier", "close:dossier"];
+
+test("fsync : open(wx, 0600) → writeFile → fsync du fichier → close → fsync du dossier, dans cet ordre exact", async () => {
+  const dossier = join(racine, "ordre");
+  const { journal, disque } = espionnerDisque(dossier);
+  const s = creerStockageMediasChat(dossier, { disque });
+  const nom = s.tirerNom();
+  await s.ecrire(nom, Buffer.from("chiffre"));
+  assert.deepEqual(journal, ECRITURE_COMPLETE);
+  assert.deepEqual(await s.lire(nom), Buffer.from("chiffre"));
+  assert.equal(statSync(join(dossier, nom)).mode & 0o777, 0o600);
+});
+
+test("fsync : une écriture ou un fsync qui rate → le fichier commencé est supprimé (poignée fermée), l'erreur remonte", async () => {
+  const cas: [string, string, string[]][] = [
+    ["writeFile:fichier", "ENOSPC", ["open:fichier:wx:600", "writeFile:fichier", "close:fichier", "unlink:fichier"]],
+    ["sync:fichier", "EIO", ["open:fichier:wx:600", "writeFile:fichier", "sync:fichier", "close:fichier", "unlink:fichier"]],
+    ["sync:dossier", "EIO", [...ECRITURE_COMPLETE, "unlink:fichier"]],
+  ];
+  for (const [appel, code, attendu] of cas) {
+    const dossier = join(racine, `panne-${appel.replace(":", "-")}`);
+    const { journal, disque } = espionnerDisque(dossier, { [appel]: code });
+    const s = creerStockageMediasChat(dossier, { disque });
+    await assert.rejects(s.ecrire(s.tirerNom(), Buffer.alloc(64, 7)), (e: NodeJS.ErrnoException) => e.code === code, appel);
+    assert.deepEqual(journal, attendu, appel);
+    assert.deepEqual(readdirSync(dossier), [], `${appel} : aucun fichier entamé ne reste (rien ne sera cité en base)`);
+  }
+});
+
+test("fsync : EEXIST → le fichier qui existait n'est ni réécrit ni supprimé", async () => {
+  const dossier = join(racine, "deja-pris");
+  const { journal, disque } = espionnerDisque(dossier);
+  const s = creerStockageMediasChat(dossier, { disque });
+  const nom = s.tirerNom();
+  await s.ecrire(nom, Buffer.from("premier"));
+  journal.length = 0;
+  await assert.rejects(s.ecrire(nom, Buffer.from("second")), (e: NodeJS.ErrnoException) => e.code === "EEXIST");
+  assert.deepEqual(journal, ["open:fichier:wx:600"], "ni écriture, ni unlink");
+  assert.deepEqual(await s.lire(nom), Buffer.from("premier"));
+});
+
+test("fsync : un système de fichiers qui refuse le fsync d'un dossier (EINVAL, ENOTSUP, EOPNOTSUPP) → toléré, le fichier reste", async () => {
+  for (const code of ["EINVAL", "ENOTSUP", "EOPNOTSUPP"]) {
+    const dossier = join(racine, `sans-fsync-dossier-${code}`);
+    const { journal, disque } = espionnerDisque(dossier, { "sync:dossier": code });
+    const s = creerStockageMediasChat(dossier, { disque });
+    const nom = s.tirerNom();
+    await s.ecrire(nom, Buffer.from("chiffre"));
+    assert.deepEqual(journal, ECRITURE_COMPLETE, `${code} : essayé quand même, et la poignée du dossier refermée`);
+    assert.deepEqual(await s.lire(nom), Buffer.from("chiffre"), code);
+  }
 });
 
 test("disque illisible : part libre 0, alerte une fois par heure", async () => {

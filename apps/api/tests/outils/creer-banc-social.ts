@@ -3,7 +3,8 @@
 // jeton en « Authorization: Bearer » (comme l'app). Chaque demande a sa propre IP, sauf si le test en donne une. Un compte
 // supprimé (supprimerCompte, ou effacerCompte du double des comptes, route comprise) part aussi des tables sociales, avec les
 // cascades et les SET NULL de la base (oublierCompteEnMemoire). lireRole est celui du double pro (rattachements de test).
-// estLimite (compte limité par l'équipe) : absente par défaut, rien n'est refusé.
+// estLimite (compte limité par l'équipe) : absente par défaut, rien n'est refusé. `limitations` : le double des limitations
+// (creerLimitationsEnMemoire, même horloge), lu par l'export (GET /app/social/export) ; il ne refuse rien tout seul.
 import { randomBytes } from "node:crypto";
 import type { AddressInfo } from "node:net";
 
@@ -13,6 +14,7 @@ import { creerJeton } from "../../src/fonctions/securite/creer-jeton.ts";
 import { lireAncienTitulaireEnMemoire } from "../../src/services/bande-en-memoire.ts";
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
+import { creerLimitationsEnMemoire } from "../../src/services/limitations-comptes-en-memoire.ts";
 import { creerSocialAppEnMemoire, type OptionsSocialAppEnMemoire } from "../../src/services/social-app-en-memoire.ts";
 import { oublierCompteEnMemoire } from "../../src/services/tables-sociales-en-memoire.ts";
 
@@ -34,18 +36,22 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
   const lireHorloge = () => horloge.maintenant;
   const memoire = creerComptesEnMemoire(lireHorloge);
   const chiffrement = o.sansCle ? null : creerChiffrementDonnees(randomBytes(32));
+  // Limiter un compte (banc.limitations.limiterCompte) le fait apparaître dans son export
+  const limitations = creerLimitationsEnMemoire(lireHorloge, (id) => memoire.comptes.has(id));
   const social = creerSocialAppEnMemoire({
-    ...o, chiffrement, comptes: memoire.comptes, horloge: lireHorloge,
+    ...o, chiffrement, comptes: memoire.comptes, horloge: lireHorloge, listerLimitations: limitations.services.listerLimitationsDuCompte,
     // Le gérant d'un lieu : un rattachement validé du double pro (memoire.rattachements, ou le parcours /pro)
     lireRole: o.lireRole ?? ((compteId, lieuId) => memoire.pro.lireRole(compteId, lieuId)),
     // Les pseudos libérés du double des comptes (un ancien lien d'invitation après un changement de pseudo)
     lireAncienTitulaire: lireAncienTitulaireEnMemoire(memoire.pseudosReserves),
   });
-  // Comme la base : effacer un compte efface aussi ses lignes sociales (cascades) et le remplace par null ailleurs (SET NULL)
+  // Comme la base : effacer un compte efface aussi ses lignes sociales et ses limitations (cascades) et le remplace par null
+  // ailleurs (SET NULL)
   const effacerCompte = memoire.services.effacerCompte.bind(memoire.services);
   memoire.services.effacerCompte = async (id) => {
     await effacerCompte(id);
     oublierCompteEnMemoire(social.tables, id);
+    limitations.oublierCompte(id);
   };
   const serveur = creerApplication({
     enregistrerInscription: async () => {},
@@ -113,7 +119,8 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
   }
 
   return {
-    horloge, memoire, social, tables: social.tables, pushs: social.pushs, demander, creerPersonne, rendrePotes, suivre, bloquer, supprimerCompte,
+    horloge, memoire, social, tables: social.tables, pushs: social.pushs, limitations: limitations.services, demander, creerPersonne, rendrePotes, suivre,
+    bloquer, supprimerCompte,
     /** Les notifications partent au tour suivant de la boucle (après la réponse) */
     attendreEnvois: () => new Promise<void>((fini) => setImmediate(() => setImmediate(fini))),
     fermer: () => new Promise<void>((fini) => serveur.close(() => fini())),
