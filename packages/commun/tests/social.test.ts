@@ -156,8 +156,8 @@ test("identifiant public : 10 caractères de a à z et de 2 à 9", () => {
 });
 
 test("cloche : 15 types sans doublon, dont les 3 de la modération gardés 6 mois (le temps de contester)", () => {
-  assert.equal(TYPES_CLOCHE.length, 15);
-  assert.equal(new Set(TYPES_CLOCHE).size, 15);
+  assert.equal(TYPES_CLOCHE.length, 16);
+  assert.equal(new Set(TYPES_CLOCHE).size, 16);
   assert.ok(TYPES_CLOCHE.includes("invitation-groupe"));
   assert.ok(TYPES_CLOCHE_MODERATION.every((type) => (TYPES_CLOCHE as readonly string[]).includes(type)));
   assert.equal(DUREE_CLOCHE_MODERATION_JOURS, DUREE_CONTESTATION_JOURS);

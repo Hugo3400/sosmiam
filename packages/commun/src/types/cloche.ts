@@ -9,9 +9,9 @@ import type { PersonneResume } from "./social.ts";
 export type TypeCloche =
   | "nouvel-abonne" | "demande-acceptee" | "bande-ajout" | "bande-acceptee" | "lien-renouvele" | "invitation-sortie"
   | "sortie-lieu-choisi" | "sortie-annulee" | "invitation-groupe" | "liste-coauteur" | "mention" | "reponse-commentaire"
-  | "contenu-masque" | "contenu-retire" | "signalement-decide";
+  | "contenu-masque" | "contenu-retire" | "signalement-decide" | "compte-limite";
 
-export type CibleCloche = "sortie" | "conversation" | "liste" | "publication" | "commentaire" | "signalement";
+export type CibleCloche = "sortie" | "conversation" | "liste" | "publication" | "commentaire" | "signalement" | "limitation";
 
 export type NotificationClocheApi = {
   id: string;
