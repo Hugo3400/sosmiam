@@ -81,4 +81,12 @@ egal(await lireAuteurs(lieux.personne), [null, max, nina], "toujours trois en co
 // Le lieu voisin n'a jamais bougé
 egal(await lireSos(voisin), [[max, null]], "un autre lieu : jamais touché");
 
+const finiALInstant = await creerLieu();
+await poserSos(finiALInstant, max, MAINTENANT);
+await poserSos(finiALInstant, nina, MAINTENANT);
+egal(await lireAuteurs(finiALInstant), [], "jusqua = maintenant : plus en cours, aucun auteur");
+await moment.arreterSos(finiALInstant, MAINTENANT, max);
+await moment.arreterSos(finiALInstant, MAINTENANT);
+egal(await lireSos(finiALInstant), [[max, null], [nina, null]], "jusqua = maintenant : jamais arrêté, ni par seulementDe ni par tous");
+
 await terminerEssai(import.meta.url, essai, verifications.nombre);

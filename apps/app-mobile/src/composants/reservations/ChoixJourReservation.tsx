@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Platform, Pressable, ScrollView, Text } from "react-native";
 
 import type { JourReservation } from "~/contenus/type-jour-reservation";
@@ -13,6 +14,10 @@ type Props = {
   onChoisir: (jour: string) => void;
 };
 
+const LARGEUR_JOUR = 70;
+const ECART_JOURS = 8;
+const MARGE_RANGEE = 20;
+
 function lireCouleurs(choisi: boolean, sansCreneau: boolean) {
   if (choisi) return { cadre: "border-encre bg-encre", haut: "text-jaune", numero: "text-white", bas: "text-jaune" };
   if (sansCreneau) return { cadre: "border-dashed border-gris bg-creme", haut: "text-gris", numero: "text-gris", bas: "text-gris" };
@@ -21,8 +26,34 @@ function lireCouleurs(choisi: boolean, sansCreneau: boolean) {
 
 export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: Props) {
   const ios = Platform.OS === "ios";
+  const rangee = useRef<ScrollView>(null);
+  const decalage = useRef(0);
+  const largeurVisible = useRef(0);
+  const indexChoisi = jours.findIndex((jour) => jour.jour === choisi);
+
+  useEffect(() => {
+    if (indexChoisi < 0 || largeurVisible.current === 0) return;
+    const debut = MARGE_RANGEE + indexChoisi * (LARGEUR_JOUR + ECART_JOURS);
+    const fin = debut + LARGEUR_JOUR;
+    if (debut < decalage.current) rangee.current?.scrollTo({ x: debut - MARGE_RANGEE, animated: true });
+    else if (fin > decalage.current + largeurVisible.current) rangee.current?.scrollTo({ x: fin - largeurVisible.current + MARGE_RANGEE, animated: true });
+  }, [indexChoisi]);
+
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-5" contentContainerClassName="gap-2 px-5 py-1">
+    <ScrollView
+      ref={rangee}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={32}
+      onLayout={(evenement) => {
+        largeurVisible.current = evenement.nativeEvent.layout.width;
+      }}
+      onScroll={(evenement) => {
+        decalage.current = evenement.nativeEvent.contentOffset.x;
+      }}
+      className="-mx-5"
+      contentContainerClassName="gap-2 px-5 py-1"
+    >
       {jours.map((jour, index) => {
         const decrit = decrireJourReservation(jour.jour, aujourdhui);
         const raison = lireRaisonSansCreneau(jour, aujourdhui);
