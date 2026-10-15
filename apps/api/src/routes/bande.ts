@@ -18,7 +18,8 @@ export const LIMITE_DEMANDES_BANDE = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  * (créer son lien est un geste volontaire) : exigerProfilSocial (409 pseudo-requis). /app/blocages : lireProfilSocial (pas
  * besoin de pseudo pour bloquer). Une personne est désignée par son identifiant public (:personne, 10 caractères). Erreurs
  * { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes (Retry-After) ; 400 champ-invalide { champ } ;
- * 503 chiffrement-indisponible (🔐, sans la clé des données).
+ * 503 chiffrement-indisponible (🔐, sans la clé des données). Compte limité par l'équipe (refuserSiLimite, avant la clé et le
+ * profil social) : 403 compte-limite { details: { jusqua } } sur POST /rejoindre et POST /demandes ; le reste passe.
  *
  * GET    /app/bande                → 200 { ok, bande: BandeApi } : tes potes (du plus récent au plus ancien), demandes reçues
  *          (sans celles que tu as refusées) et envoyées (refusées comprises : tu ne sais pas qu'elles l'ont été), 50 chacune au
@@ -76,7 +77,7 @@ export const LIMITE_DEMANDES_BANDE = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  */
 export function creerRoutesBande(d: Pick<DependancesSocialApp, "bande" | "relations" | "chiffrement">, contexte: ContexteRoutesSociales) {
   const c = creerControleursBande(d, contexte.appliquer, contexte.horloge);
-  const { lectures, gestes } = contexte;
+  const { lectures, gestes, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   // La clé avant le profil : sans elle, rien n'est créé
   const cle = exigerChiffrementSocial(d.chiffrement);
@@ -86,8 +87,8 @@ export function creerRoutesBande(d: Pick<DependancesSocialApp, "bande" | "relati
   bande.get("/", lectures, lireProfilSocial, c.lireBande);
   bande.get("/invitation", lectures, cle, exigerProfilSocial, c.lireInvitation);
   bande.post("/invitation/renouveler", gestes, cle, exigerProfilSocial, c.renouvelerInvitation);
-  bande.post("/rejoindre", gestes, ...essais, cle, exigerProfilSocial, c.rejoindre);
-  bande.post("/demandes", gestes, contexte.parCompte(LIMITE_DEMANDES_BANDE), exigerProfilSocial, c.demander);
+  bande.post("/rejoindre", gestes, ...essais, refuserSiLimite, cle, exigerProfilSocial, c.rejoindre);
+  bande.post("/demandes", gestes, contexte.parCompte(LIMITE_DEMANDES_BANDE), refuserSiLimite, exigerProfilSocial, c.demander);
   bande.post("/demandes/:personne/accepter", gestes, exigerProfilSocial, c.accepter);
   bande.delete("/demandes/:personne", gestes, exigerProfilSocial, c.retirerDemande);
   bande.get("/activite", lectures, lireProfilSocial, c.lireActivite);

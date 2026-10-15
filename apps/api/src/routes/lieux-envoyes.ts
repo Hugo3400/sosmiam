@@ -12,7 +12,8 @@ export const LIMITE_LIEUX_ENVOYES = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  * ensemble) dans votre discussion privée, créée au besoin : mêmes règles que les messages (signalement, un an, notification).
  * Session obligatoire, jamais en cache, 🔐 (sauf « vus ») ; lectures : lireProfilSocial ; envoi et « vus » :
  * exigerProfilSocial (409 pseudo-requis). Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes
- * (Retry-After) ; 400 champ-invalide { champ }.
+ * (Retry-After) ; 400 champ-invalide { champ }. Compte limité par l'équipe (refuserSiLimite, avant le profil social et la
+ * clé) : 403 compte-limite { details: { jusqua } } sur POST (envoyer) ; les lectures et « vus » passent.
  *
  * POST   /app/lieux-envoyes { idClient: string (UUID v4), lieuId: number, a: string[] (1 à 20 identifiants publics), mot?: string
  *          | null } → 201 { ok, envoyes: LieuEnvoyeApi[], ignores: string[] } : un message « lieu » par pote, chacun avec ce même
@@ -29,12 +30,12 @@ export const LIMITE_LIEUX_ENVOYES = { fenetre: 24 * 60 * 60_000, maximum: 50 };
  */
 export function creerRoutesLieuxEnvoyes(d: DependancesSocialApp, contexte: ContexteRoutesSociales) {
   const c = creerControleursLieuxEnvoyes(d, contexte);
-  const { lectures, gestes } = contexte;
+  const { lectures, gestes, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   const cle = exigerChiffrementSocial(d.chiffrement);
 
   const routes = Router();
-  routes.post("/", contexte.parCompte(LIMITE_LIEUX_ENVOYES), exigerProfilSocial, cle, c.envoyer);
+  routes.post("/", contexte.parCompte(LIMITE_LIEUX_ENVOYES), refuserSiLimite, exigerProfilSocial, cle, c.envoyer);
   routes.get("/recus", lectures, lireProfilSocial, cle, c.lister("recus"));
   routes.get("/envoyes", lectures, lireProfilSocial, cle, c.lister("envoyes"));
   routes.put("/vus", gestes, exigerProfilSocial, c.marquerVus);

@@ -41,6 +41,8 @@ export type ErreurService =
   | "hors-ligne"
   | "trop-de-demandes"
   | "compte-limite"
+  | "aucune-limitation"
+  | "deja-conteste"
   | "validations-en-pause"
   | "introuvable"
   | "transition-interdite"

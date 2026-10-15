@@ -159,7 +159,9 @@ const serveur = creerApplication({
     moderationSociale: { chiffrement: socialApp.chiffrement, medias: socialApp.medias, cloche: socialApp.cloche },
     visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }),
     // Relecture des avis : publier ou masquer (statut, points de la photo, défis : logique de la session App)
-    avis: creerAvisGestion({ depot: depotAvis, ajouterPoints: ajouterPointsEtDefis, reevaluerDefis: (id, le) => defis.reevaluer(id, le) }) },
+    avis: creerAvisGestion({ depot: depotAvis, ajouterPoints: ajouterPointsEtDefis, reevaluerDefis: (id, le) => defis.reevaluer(id, le) }),
+    // Limitation d'un compte : limiter, lever, réexaminer (services de la session Site)
+    limitations },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
     services: {

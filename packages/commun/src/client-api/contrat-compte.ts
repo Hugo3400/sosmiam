@@ -4,6 +4,7 @@
 import type { CompteApp, ConnexionExterne, ConnexionsCompte, InscriptionEmail, ProfilACompleter, ProfilServeur } from "../types/compte-app.ts";
 import type { ReponseApi } from "./reponse-api.ts";
 import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../types/connexion-qr.ts";
+import type { LimitationCompteApi } from "../types/limitation-compte.ts";
 
 /** Une connexion réussie : le jeton à garder dans le coffre-fort du téléphone, et le compte */
 export type SessionOuverte = { session: string; compte: CompteApp; nouveau: boolean };
@@ -50,6 +51,13 @@ export interface ServiceCompte {
   supprimerCompte(
     confirmation: { motDePasse: string } | { identityToken: string; nonce: string } | { idToken: string; nonce?: string },
   ): Promise<ReponseApi>;
+
+  // Limitation du compte (décidée dans le logiciel de gestion) : ce qui se voit des autres est en pause, le reste marche
+  /** La limitation en cours, sinon celle à venir, sinon null */
+  lireLimitation(): Promise<ReponseApi<{ limitation: LimitationCompteApi | null }>>;
+  /** Une seule fois, pendant la limitation ; texte de 10 à 1 000 caractères. Erreurs : « aucune-limitation »,
+   * « deja-conteste », « champ-invalide » (champ texte), « trop-de-demandes » */
+  contesterLimitation(texte: string): Promise<ReponseApi>;
 
   // Connexion par QR code, comme Discord (apps/api/src/routes/connexion-qr.ts) : un QR vit 2 minutes et sert une fois
   /** Nouveau téléphone, sans session : un QR à afficher (https://sosmiam.fr/q/<code>) ; garder le secret, jamais dans le QR.

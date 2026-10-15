@@ -15,7 +15,9 @@ export const LIMITE_CREATIONS_LISTES = { fenetre: 24 * 60 * 60_000, maximum: 20 
  * blocage, dans un sens ou dans l'autre. Règle « 404 avant 403 » : une liste que tu ne vois pas répond toujours 404
  * liste-inconnue, même aux gestes réservés à l'auteur. Seuls les lieux encore publiés sont montrés et comptés. Erreurs
  * { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes (Retry-After) ; 400 champ-invalide { champ } ;
- * 409 pseudo-requis.
+ * 409 pseudo-requis. Compte limité par l'équipe (refuserSiLimite, avant le profil social) : 403 compte-limite { details:
+ * { jusqua } } sur POST (créer), PATCH /:id, PUT /:id/lieux/:lieuId et POST /:id/co-auteurs ; le reste passe (supprimer,
+ * retirer un lieu, accepter ou refuser une invitation, suivre une liste…).
  *
  * GET    /app/listes               → 200 { ok, miennes: ListeResumeApi[], coEcrites: ListeResumeApi[], suivies: ListeResumeApi[],
  *          invitations: ListeResumeApi[] } (invitations : co-auteur, à accepter)
@@ -49,18 +51,18 @@ export const LIMITE_CREATIONS_LISTES = { fenetre: 24 * 60 * 60_000, maximum: 20 
  */
 export function creerRoutesListes(d: DependancesSocialApp, contexte: ContexteRoutesSociales) {
   const c = creerControleursListes(d, contexte);
-  const { lectures, gestes } = contexte;
+  const { lectures, gestes, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   const routes = Router();
   routes.get("/", lectures, lireProfilSocial, c.listerMiennes);
   routes.get("/a-decouvrir", lectures, lireProfilSocial, c.listerADecouvrir);
-  routes.post("/", contexte.parCompte(LIMITE_CREATIONS_LISTES), exigerProfilSocial, c.creer);
+  routes.post("/", contexte.parCompte(LIMITE_CREATIONS_LISTES), refuserSiLimite, exigerProfilSocial, c.creer);
   routes.get("/:id", lectures, lireProfilSocial, c.lire);
-  routes.patch("/:id", gestes, exigerProfilSocial, c.modifier);
+  routes.patch("/:id", gestes, refuserSiLimite, exigerProfilSocial, c.modifier);
   routes.delete("/:id", gestes, exigerProfilSocial, c.supprimer);
-  routes.put("/:id/lieux/:lieuId", gestes, exigerProfilSocial, c.basculerLieu(true));
+  routes.put("/:id/lieux/:lieuId", gestes, refuserSiLimite, exigerProfilSocial, c.basculerLieu(true));
   routes.delete("/:id/lieux/:lieuId", gestes, exigerProfilSocial, c.basculerLieu(false));
-  routes.post("/:id/co-auteurs", gestes, exigerProfilSocial, c.inviterCoAuteur);
+  routes.post("/:id/co-auteurs", gestes, refuserSiLimite, exigerProfilSocial, c.inviterCoAuteur);
   routes.post("/:id/co-auteurs/moi/accepter", gestes, exigerProfilSocial, c.accepterCoAuteur);
   routes.delete("/:id/co-auteurs/:personne", gestes, exigerProfilSocial, c.retirerCoAuteur);
   routes.put("/:id/abonnement", gestes, exigerProfilSocial, c.suivre(true));

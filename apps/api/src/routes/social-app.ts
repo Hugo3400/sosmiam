@@ -7,6 +7,11 @@
 //   par route, sa limite par compte et le middleware du profil social (lireProfilSocial pour les lectures et quelques gestes
 //   sans pseudo, exigerProfilSocial pour le reste : 409 pseudo-requis), et enfin les refus en JSON (gererRefusSociaux, puis
 //   gererErreursComptes : 400 champ-invalide, 500) ;
+// - compte limité par l'équipe (décision de Hugo du 15 octobre 2026) : refuserSiLimite (403 compte-limite { details: { jusqua
+//   } }) sur les seules écritures que les AUTRES voient (messages, groupes, sorties, listes, commentaires, demandes…), posé
+//   après la session et la limite par compte, avant le profil social (un refus n'en crée pas), la clé et le corps d'un
+//   média ; tout le reste passe (lire, signaler, contester, bloquer, quitter, accepter, voter, J'aime, supprimer le sien…).
+//   L'inventaire : tests/limitation-inventaire-routes.test.ts ;
 // - 404 AVANT 403 : on vérifie d'abord que tu VOIS la ressource (sinon 404 *-inconnu(e)), seulement ensuite un 403 ; une
 //   personne qui t'a bloqué est « inconnue » (404 personne-inconnue), jamais « bloquée » ;
 // - blocages dans les deux sens partout : ce qu'écrit l'un est caché pour l'autre, et inversement ;
@@ -24,6 +29,7 @@ import { gererRefusSociaux } from "../controleurs/social-champs.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { creerProfilSocialMiddlewares, type ProfilSocialMiddlewares } from "../middlewares/profil-social.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
+import { creerRefuserSiLimite } from "../middlewares/refuser-si-limite.ts";
 import type { ChiffrementSocial } from "../services/chiffrement-social.ts";
 import type { ServicesCloche } from "../services/cloche-regles.ts";
 import type { AppliquerEffetsSociaux } from "../services/effets-sociaux-regles.ts";
@@ -51,6 +57,7 @@ import { creerRoutesCommentaires } from "./commentaires.ts";
 import { creerRoutesModerationApp } from "./moderation-app.ts";
 import { creerRoutesSignalementsSociaux } from "./signalements-sociaux.ts";
 import type { ServicesExportSocial } from "../services/export-social-regles.ts";
+import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
 
 /** Toutes les lectures sociales (pouls, fils, profils, listes…), par compte : une seule limite pour tous les domaines */
 export const LIMITE_LECTURES_SOCIALES = { fenetre: 10 * 60_000, maximum: 900 };
@@ -71,6 +78,9 @@ export type DependancesSocialApp = {
   contesterSignalement: (id: number, texte: string, maintenant: Date) => Promise<boolean>;
   /** servicesPro.lireRole : le gérant d'un lieu répond et masque au nom du lieu */
   lireRole: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>;
+  /** limitations.estLimite (services/limitations-comptes.ts, session Site) : un compte limité par l'équipe ne peut plus écrire
+   *  ce que les autres voient (403 compte-limite) ; absente : rien n'est refusé */
+  estLimite?: ServicesLimitations["estLimite"];
   // Un domaine par ligne, à la fin (lots L3 à L7) : bande, suivis, messagerie, sorties, listes, commentaires…
   /** Bande, invitations, demandes, blocages, « Quoi de neuf » et classement (lot L3) ; aussi pour Miam Safe : listerPotes, estPote */
   bande: ServicesBande;
@@ -106,6 +116,9 @@ export type ContexteRoutesSociales = {
   gestes: RequestHandler;
   /** Une limite propre au domaine, comptée par compte */
   parCompte: (r: { fenetre: number; maximum: number }) => RequestHandler;
+  /** Compte limité par l'équipe : 403 compte-limite sur les écritures que les autres voient. Après la session et la limite
+   *  par compte, AVANT exigerProfilSocial, la clé (🔐) et le corps d'un média */
+  refuserSiLimite: RequestHandler;
 };
 
 const sansCache: RequestHandler = (_requete, reponse, suite) => {
@@ -125,6 +138,7 @@ export function creerRoutesSocialesApp(d: DependancesSocialApp, protection: Prot
     lectures: parCompte(LIMITE_LECTURES_SOCIALES),
     gestes: parCompte(LIMITE_GESTES_SOCIAUX),
     parCompte,
+    refuserSiLimite: creerRefuserSiLimite(d.estLimite, horloge),
   };
   const routes = Router();
   /** Session obligatoire, jamais en cache, puis les adresses du domaine et ses refus en JSON */

@@ -16,6 +16,8 @@ export const LIMITE_CREATIONS_SORTIES = { fenetre: 24 * 60 * 60_000, maximum: 10
  * comptent. Une invitation d'une personne avec qui il y a un blocage (l'organisateur qui a la main, ou celui qui a invité)
  * n'existe plus pour l'invité : cachée, et 404 sortie-inconnue s'il l'accepte. Erreurs { ok: false, erreur,
  * champ? } : 401 session-expiree ; 429 trop-de-demandes (Retry-After) ; 400 champ-invalide { champ } ; 409 pseudo-requis.
+ * Compte limité par l'équipe (refuserSiLimite, avant le profil social) : 403 compte-limite { details: { jusqua } } sur POST
+ * (créer), POST /:id/invites et POST /:id/propositions ; le reste passe (répondre, voter, quitter, annuler, retirer…).
  *
  * GET    /app/sorties              → 200 { ok, sorties: SortieApi[], invitations: InvitationSortieApi[] } : tes sorties (à venir
  *          d'abord, de la plus proche à la plus lointaine, puis les passées de la plus récente à la plus ancienne ; sans celles
@@ -63,16 +65,16 @@ export const LIMITE_CREATIONS_SORTIES = { fenetre: 24 * 60 * 60_000, maximum: 10
  */
 export function creerRoutesSorties(d: DependancesSocialApp, contexte: ContexteRoutesSociales) {
   const c = creerControleursSorties(d, contexte);
-  const { lectures, gestes } = contexte;
+  const { lectures, gestes, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   const routes = Router();
   routes.get("/", lectures, lireProfilSocial, c.lister);
-  routes.post("/", contexte.parCompte(LIMITE_CREATIONS_SORTIES), exigerProfilSocial, c.creer);
+  routes.post("/", contexte.parCompte(LIMITE_CREATIONS_SORTIES), refuserSiLimite, exigerProfilSocial, c.creer);
   routes.get("/:id", lectures, lireProfilSocial, c.lire);
   routes.delete("/:id", gestes, exigerProfilSocial, c.annuler);
   routes.post("/:id/reponse", gestes, exigerProfilSocial, c.repondre);
-  routes.post("/:id/invites", gestes, exigerProfilSocial, c.inviter);
-  routes.post("/:id/propositions", gestes, exigerProfilSocial, c.proposer);
+  routes.post("/:id/invites", gestes, refuserSiLimite, exigerProfilSocial, c.inviter);
+  routes.post("/:id/propositions", gestes, refuserSiLimite, exigerProfilSocial, c.proposer);
   routes.put("/:id/votes/:lieuId", gestes, exigerProfilSocial, c.voter(true));
   routes.delete("/:id/votes/:lieuId", gestes, exigerProfilSocial, c.voter(false));
   routes.post("/:id/terminer-vote", gestes, exigerProfilSocial, c.terminerVote);

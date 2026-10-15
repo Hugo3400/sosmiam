@@ -1,7 +1,8 @@
 // Effacer des conversations (spécification sociale D.1) : une seule fonction pour l'annulation d'une sortie, le dernier
 // départ d'un groupe ou d'une sortie, et les étapes 2 et 3 du ménage de nuit (conversations d'un an sans message, et
 // conversations vides). DANS la transaction de l'appelant : les lignes des conversations sont verrouillées (dans l'ordre
-// des id, contre les interblocages ; un message qui arrive attend, puis trouve la conversation absente : 404), les fichiers
+// des id, contre les interblocages ; un message qui arrive attend, puis trouve la conversation absente : 404 ; l'appelant
+// qui touche des sorties a verrouillé les sorties AVANT, comme sorties.ts et le ménage de nuit), les fichiers
 // de leurs messages sont lus, puis les conversations effacées : la base efface en cascade membres, invitations, messages,
 // réactions, départs, et la sortie avec ses invitations, propositions et votes. APRÈS la transaction (apresTransaction) :
 // les photos et notes vocales partent du disque, SAUF celles qu'un signalement ouvert garde (fichier_media, A.7). Les

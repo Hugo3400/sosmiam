@@ -5,8 +5,8 @@ sos-miam/
 ├── CLAUDE.md                  règles du projet
 ├── docs/                      arborescence (ce fichier), décisions produit, idées pour plus tard (idees.md) et procédure de changement de la clé des données des comptes (procedure-changement-cle.md)
 ├── presse/                    Espace presse du logiciel de gestion : affiches (A4, A3, 40 × 60 cm), réseaux, imprimés, Capitaine, flyer, Miam Safe, documents, visuels stores, kit de marque, images, vidéos et sons (PNG, JPG, SVG, PDF, Markdown, MP4, sons), avec index.json, aperçus et un zip par famille ; kits/ : les zips que servent aussi les kits médias du site (contenus/maquettes-kits.ts) ; videos/ hors git (voir LISEZMOI.md)
-├── kits/                      kit de marque (logos, mascotte Capitaine Bouiboui, pictos, bannières, couleurs ; voir LISEZMOI.txt) et archives des vidéos
-├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, generer-kit-media-pro.sh, generer-kit-media-lieux.sh, recuperer-inscrits.py, lire-boite-mail.py, autoriser-poste-gestion.ts, regler-boite-mail.ts, preparer-communes.ts…) ; presse/ : exporter-maquettes.py et assembler-presse.py, qui refont presse/ depuis les canevas (voir scripts/presse/LISEZMOI.md)
+├── kits/                      kit de marque (logos, mascotte Capitaine Bouiboui, pictos, bannières, couleurs, avatars des Miamis ; voir LISEZMOI.txt) et archives des vidéos
+├── scripts/                   outils du dépôt (verifier-lignes.sh, deployer-site.sh, generer-kit-media.sh, generer-kit-media-pro.sh, generer-kit-media-lieux.sh, recuperer-inscrits.py, lire-boite-mail.py, autoriser-poste-gestion.ts, regler-boite-mail.ts, preparer-communes.ts…) ; presse/ : exporter-maquettes.py et assembler-presse.py, qui refont presse/ depuis les canevas (voir scripts/presse/LISEZMOI.md) ; avatars-miamis/ : les dessins des Miamis (bouée, visages, couvre-chefs) et generer-avatars-miamis.ts, qui refait kits/SOS_Miam_kit_de_marque/06_Avatars_des_Miamis
 ├── apps/
 │   ├── site-web/              LE SITE (React Router 8)
 │   ├── app-mobile/            L'APP iOS + Android (Expo)

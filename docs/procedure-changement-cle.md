@@ -65,10 +65,15 @@ Toutes les commandes sont à lancer **par Hugo lui-même, en root, sur le serveu
    répond 503 aux adresses des comptes de l'app : relire le message (fichier mal protégé, mal écrit, version oubliée),
    corriger, redémarrer. Le message ne contient jamais la clé.
 
-6. **Attendre le rechiffrement de nuit** (vers 3 h 30). Dans le journal du logiciel de gestion, la ligne
-   « Rechiffrement des comptes (changement de clé des données) » donne des nombres : rechiffrés, illisibles, restants.
-   Attendre **« 0 restant(s) »**. S'il reste des « illisible(s) », ne pas aller plus loin : un compte qu'aucune des deux
-   clés ne lit est à regarder avant de jeter l'ancienne clé.
+6. **Attendre le rechiffrement de nuit** (vers 3 h 30). Dans le journal du logiciel de gestion, deux lignes donnent des
+   nombres (rechiffrés, illisibles, restants ; les restants comptent les illisibles) : « Rechiffrement des comptes
+   (changement de clé des données) » et « Chiffrés sociaux réécrits avec la nouvelle clé » (la partie sociale, voir plus
+   bas). **Règle de fin** : on peut passer à l'étape 7 quand, **sur les deux lignes**, restants = illisibles, et que ces
+   nombres ne bougent plus d'une nuit à l'autre (deux nuits de suite pareilles, sans ligne « Ménage social : étape(s)
+   ratée(s) » qui cite « rechiffrement » ces nuits-là). Le cas simple : « 0 illisible(s), 0 restant(s) » deux nuits de
+   suite. S'il reste des illisibles, les regarder d'abord (partie sociale : « Retrouver les illisibles » plus bas ;
+   comptes : avec la session Site) : l'ancienne clé ne les relit pas non plus, elle ne les sauvera donc pas, mais c'est le
+   moment de comprendre d'où ils viennent.
 
 7. **Retirer l'ancienne clé du serveur** : effacer la ligne `SOS_MIAM_CLE_DONNEES_ANCIENNE` de `apps/api/.env` (garder
    `SOS_MIAM_CLE_DONNEES_VERSION=2` !), puis, une fois la copie hors ligne vérifiée :
@@ -86,11 +91,9 @@ Au prochain changement, même chemin avec la version 3, et ainsi de suite.
 
 - Le nom et la date de naissance se lisent avec l'une ou l'autre clé ; tout ce qui est écrit l'est avec la nouvelle.
 - Les liens « Me désinscrire » des mails déjà envoyés restent bons **tant que l'ancienne clé est là** (étapes 5 à 7).
-- La partie sociale (messagerie chiffrée, bande) se sert des sous-clés de la clé des données : **à relire par la session
-  App** avant un changement de clé. Ce qu'elle a chiffré avec une sous-clé (`deriverCle(contexte)`) doit, comme le nom et
-  la date de naissance, porter la version de sa clé et se relire avec `deriverCleVersion(contexte, version)` ou
-  `deriverClesAnciennes(contexte)` ; à elle de dire si ses données se rechiffrent la nuit ou s'effacent d'elles-mêmes avant
-  l'étape 7. Tant qu'elle ne l'a pas confirmé ici, ne pas retirer l'ancienne clé.
+- La partie sociale (messagerie chiffrée, bande, signalements) se sert des sous-clés de la clé des données : chaque chiffré
+  porte la version de sa clé et se relit avec l'une ou l'autre. Confirmé par la session App le 15 octobre 2026 : elle se
+  **rechiffre la nuit**, voir « La partie sociale » plus bas (sa ligne compte dans la règle de fin de l'étape 6).
 - Les partages de position de Miam Safe (« Prévenir un pote », sous-clé `miam-safe:position`) : **rien à rechiffrer**. Une
   position est effacée au bout d'1 heure au plus (fin ou arrêt du partage), et une position illisible s'affiche comme
   « pas de position », sans erreur.
@@ -102,7 +105,8 @@ la même ancienne clé (`SOS_MIAM_CLE_DONNEES_ANCIENNE`) ; il n'y a rien d'autre
 
 Code concerné : `apps/api/src/services/chiffrement-social.ts` (quatre sous-clés tirées de la clé des données ; chaque
 chiffré porte la version de sa clé, `v<N>:`), `services/rechiffrement-social.ts` (la réécriture), lancé comme étape 9 du
-ménage social (`services/menage-social.ts`, `nettoyerSocial` dans `taches/taches-de-nuit.ts`, avant la sauvegarde).
+ménage social (`services/menage-social.ts`). Le branchement est fait : `nettoyerSocial`, dans `taches/taches-de-nuit.ts`,
+passe chaque nuit après `nettoyerComptes` et avant la sauvegarde ; il n'y a rien à brancher.
 
 Ce qui est chiffré, et donc réécrit :
 
@@ -119,23 +123,50 @@ Comment ça se passe :
 - Pendant le changement, tout se lit avec l'une ou l'autre clé, et tout ce qui s'écrit l'est avec la nouvelle.
 - Chaque nuit, les textes sont réécrits par paquets de 500 (100 000 par table et par nuit au plus), puis les fichiers
   (500 par nuit au plus : une photo pèse jusqu'à 5 Mo). Un fichier n'est jamais écrasé : le rechiffré prend un nouveau
-  nom, la base passe au nouveau nom (message et signalement), puis l'ancien fichier est supprimé.
+  nom, et la base passe au nouveau nom (message et signalement). L'ancien fichier n'est **pas** supprimé tout de suite :
+  plus cité par aucun message ni signalement ouvert, il part avec les fichiers orphelins de plus de 24 h (étape 8 du
+  ménage) **la nuit suivante**. Un signalement fait pendant le rechiffrement peut encore citer l'ancien nom : ce
+  fichier-là reste tant que le signalement est ouvert, et la nuit suivante le rechiffre à son tour.
 - Dans le journal du logiciel de gestion, la ligne « Chiffrés sociaux réécrits avec la nouvelle clé (… illisible(s),
   … restant(s)) » paraît chaque nuit tant que l'ancienne clé est là, même quand il n'y a plus rien à réécrire ; le
-  détail donne le nombre réécrit cette nuit-là. Seulement des nombres, jamais un contenu.
-- **Étape 7 (retirer l'ancienne clé)** : attendre « 0 restant(s) » sur la ligne des comptes **et** sur celle-ci. S'il
-  reste des « illisible(s) » (un chiffré abîmé qu'aucune des deux clés ne relit), les regarder avant : un message
-  illisible s'affiche « illisible » dans l'app et part avec sa conversation (1 an sans message) ; une photo ou une note
-  vocale part au bout de 90 jours.
+  détail donne le nombre réécrit cette nuit-là. Seulement des nombres, jamais un contenu. Elle manque une nuit où
+  l'étape a échoué (ligne « Ménage social : étape(s) ratée(s) (rechiffrement) ») : cette nuit-là ne compte pas.
+- **Combien de nuits** : « 0 restant(s) » (hors illisibles) arrive la nuit N, la plus grande de ⌈photos et vocaux
+  anciens ÷ 500⌉ et ⌈lignes anciennes de la plus grosse table ÷ 100 000⌉ : la **1re nuit** tant qu'il y a moins de 500
+  photos et vocaux et moins de 100 000 lignes par table. La règle de fin (deux nuits pareilles) est donc remplie au plus
+  tôt **la nuit N + 1** : cette nuit-là, l'étape 8 a retiré les anciens fichiers de la nuit N, et un fichier qu'un
+  signalement aurait cité entre-temps a été rechiffré.
+- **Étape 7 (retirer l'ancienne clé)** : la règle de fin de l'étape 6, sur la ligne des comptes **et** sur celle-ci
+  (restants = illisibles, deux nuits de suite). Les illisibles (un chiffré abîmé qu'aucune des deux clés ne relit) restent
+  tels quels : un message illisible s'affiche « illisible » dans l'app et part avec sa conversation (1 an sans message),
+  sauf si un de ses messages attend la modération (signalement ouvert : elle part la nuit qui suit la décision) ; une
+  photo ou une note vocale part au bout de 90 jours, **sauf** celle d'un message au signalement ouvert (pas encore jugé,
+  ou contesté et pas encore réexaminé), gardée tant qu'il l'est.
 - Les sauvegardes faites avant le changement contiennent aussi des messages chiffrés avec l'ancienne clé, et le dossier
   des médias n'est pas dans la sauvegarde de la base : la règle des 30 jours de la section « Les sauvegardes » suffit.
+
+### Retrouver les illisibles
+
+Chaque nuit, le rechiffrement écrit chaque illisible dans le journal d'erreurs de l'API (pm2), par sa **table et son id**,
+ou le **nom de son fichier** (tiré au hasard), jamais par son contenu ; 100 par nuit au plus, puis leur nombre. À lancer
+par Hugo, en root :
+
+```sh
+grep -h "Rechiffrement social" /root/.pm2/logs/sos-miam-api-error*.log | tail -n 120
+```
+
+Exemples : « illisible, table messages_conversations, id 2003 », « illisible, fichier 0f…c2.bin ». Les tables possibles :
+`profils_sociaux` (compte_id : le code d'invitation de sa bande ; un nouveau lien le remplace),
+`conversations` (titre d'un groupe), `messages_conversations` (texte d'un message), `signalements` (instantané d'un
+signalement). Ne jamais copier une valeur chiffrée dans un chat ou un ticket.
 
 ## Si la clé fuit
 
 1. Changer de clé **tout de suite** (étapes 1 à 5), sans attendre une date ronde.
-2. Retirer l'ancienne clé dès le premier « 0 restant(s) » (étapes 7 et 8). Le rechiffrement passe chaque nuit ; il n'a
-   pas encore de bouton « maintenant » : si l'attente d'une nuit est de trop, demander à une session d'en ajouter un
-   (la fonction `rechiffrerComptes` est prête).
+2. Retirer l'ancienne clé dès que la règle de fin de l'étape 6 est remplie (étapes 7 et 8). Le rechiffrement passe
+   chaque nuit ; il n'a pas encore de bouton « maintenant » : si l'attente d'une nuit est de trop, demander à une session
+   d'en ajouter un (les fonctions `rechiffrerComptes` et `rechiffrerSocial` sont prêtes ; pour la partie sociale, les
+   anciens fichiers ne partent qu'avec l'étape 8 du ménage, 24 h après au plus tôt).
 3. Se demander ce qui a pu fuir **avec** elle : la clé seule ne lit rien ; avec une copie de la base ou d'une sauvegarde
    d'avant le changement, elle lit les noms et dates de naissance qu'elle contient. Les sauvegardes sont chiffrées avec
    une autre clé (`cle-sauvegardes`) : si celle-là a fui aussi, la changer également.
@@ -150,6 +181,6 @@ la relire, il faut la clé des sauvegardes **et** l'ancienne clé des données (
 `SOS_MIAM_CLE_DONNEES_ANCIENNE` comme à l'étape 4, puis laisser la nuit rechiffrer).
 
 La politique de confidentialité dit qu'on garde **les 30 dernières sauvegardes** (une par nuit) et qu'une donnée effacée
-en disparaît au plus tard 30 jours après. Donc : garder la copie hors ligne de l'ancienne clé **30 jours après la nuit du
-« 0 restant(s) »** (la dernière sauvegarde qui en a besoin sort alors du lot), puis la détruire. La garder plus longtemps
+en disparaît au plus tard 30 jours après. Donc : garder la copie hors ligne de l'ancienne clé **30 jours après son retrait
+du serveur (étape 7)** (la dernière sauvegarde qui en a besoin sort alors du lot), puis la détruire. La garder plus longtemps
 ne sert à rien, et ce serait une clé de plus à protéger.

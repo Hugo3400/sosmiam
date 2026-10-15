@@ -311,8 +311,9 @@ export async function effacerContenusRetires(
  * fichier_media d'un signalement ouvert (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé,
  * ancien fichier laissé par le rechiffrement de la nuit d'avant…). Ils sont supprimés. Les 24 h couvrent l'envoi en cours :
  * le fichier est écrit juste avant sa ligne en base. Seule une page VIDE dit la fin du dossier : lister saute un fichier
- * disparu entre readdir et stat, une page peut donc revenir plus courte sans être la dernière. Une page qui échoue est
- * notée, et la suivante passe (le curseur, le dernier nom de la page, a déjà avancé).
+ * disparu entre readdir et stat, une page peut donc revenir plus courte sans être la dernière. Si la base ou la suppression
+ * échoue pour une page, c'est noté et la page suivante passe (le curseur, son dernier nom, a déjà avancé) ; si le dossier
+ * ne se lit pas, l'étape s'arrête là.
  */
 export async function effacerFichiersOrphelins(base: BaseMenage, seuils: SeuilsMenageSocial, medias: StockageMediasChat, suivi: SuiviEtape = SUIVI_STRICT): Promise<number> {
   let total = 0;

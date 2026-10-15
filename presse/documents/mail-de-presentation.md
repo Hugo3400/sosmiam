@@ -32,9 +32,9 @@ Pour les commerçants, la fiche est gratuite, pour toujours. Un lieu dont la sal
 
 Chez nous, un SOS ne veut jamais dire « on coule ». Il veut dire « venez nous découvrir ».
 
-Le site et un prototype de l'app sont prêts. Nous lançons à Montpellier et dans l'Hérault, avec 10 ambassadeurs fondateurs. Pour les lieux, tout est gratuit : la fiche, les alertes « place ce soir » et les statistiques, sans abonnement ni commission.
+Le site est en ligne sur sosmiam.fr, et l'app arrive bientôt sur l'App Store et Google Play. Nous lançons partout en France, avec des ambassadeurs fondateurs dans chaque ville. Pour les lieux, tout est gratuit : la fiche, les alertes « place ce soir » et les statistiques, sans abonnement ni commission.
 
-Nous aimerions beaucoup vous montrer le prototype et recueillir votre regard. Auriez-vous 20 minutes dans les prochains jours, autour d'un café ?
+Nous aimerions beaucoup vous montrer l'app avant sa sortie et recueillir votre regard. Auriez-vous 20 minutes dans les prochains jours, autour d'un café ?
 
 Derrière chaque petite adresse, il y a souvent quelqu'un qui s'est lancé avec ses économies, son savoir-faire et beaucoup de courage. Nous voulons simplement que plus de monde pousse sa porte.
 
@@ -42,7 +42,7 @@ Merci de nous avoir lus jusqu'ici.
 
 Bien chaleureusement,
 
-Hugo, pour SOS Miam \[téléphone\] · \[lien vers la démo\]
+Hugo, pour SOS Miam · sosmiam.fr · bonjour@sosmiam.fr · \[téléphone\]
 
 ## À personnaliser avant envoi
 
@@ -51,11 +51,11 @@ La demande finale est la seule phrase à adapter au destinataire ; le reste vaut
 | Destinataire | Phrase de demande à mettre à la place |
 | --- | --- |
 | Restaurateur ou commerçant | Nous serions ravis de passer vous montrer l'app et de créer votre fiche avec vous : 5 minutes suffisent. |
-| Partenaire, mentor, incubateur | Auriez-vous 20 minutes pour nous donner votre regard sur le prototype ? |
-| Futur ambassadeur | Nous cherchons nos 10 ambassadeurs fondateurs, et nous avons pensé à vous en premier. |
+| Partenaire, mentor, incubateur | Auriez-vous 20 minutes pour nous donner votre regard sur l'app avant sa sortie ? |
+| Futur ambassadeur | Nous cherchons les ambassadeurs fondateurs de votre ville, et nous avons pensé à vous en premier. |
 
 - [ ] Remplacer \[Prénom\] et \[nom du créateur\] (le TikTokeur qui nous a inspirés : son nom n'est pas dans les notes du projet).
-- [ ] Ajouter un lien de démo qui fonctionne : sosmiam.fr n'est pas encore acheté.
-- [ ] Vérifier la ville de lancement : le site dit Montpellier et l'Hérault, une première idée parlait de Paris.
-- [ ] Joindre une ou deux captures du prototype : une image touche plus qu'un long paragraphe.
+- [ ] Ajouter votre numéro de téléphone à la signature (le site, sosmiam.fr, et l'adresse bonjour@sosmiam.fr y sont déjà).
+- [ ] Lancement : partout en France depuis le 8 octobre, avec des ambassadeurs fondateurs dans chaque ville. Ne citer aucune ville comme ville de lancement.
+- [ ] Joindre une ou deux captures de l'app : une image touche plus qu'un long paragraphe.
 - [ ] Signer avec tous les prénoms si vous êtes plusieurs, et garder le vouvoiement pour un premier contact.

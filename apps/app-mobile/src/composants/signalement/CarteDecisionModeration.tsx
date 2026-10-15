@@ -51,7 +51,11 @@ const ecrireDate = (iso: string | null) => {
  * le titre de la sortie, le titre du groupe)
  */
 const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleDecisionModeration, { auteur: string; signale: string }>>> = {
-  profil: { auteur: "L'équipe a remis ton avatar par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : son avatar a été remis par défaut. Merci de veiller au grain !" },
+  // Décision de Hugo : un profil retenu reçoit un pseudo neutre (« miami » + 4 chiffres) et perd son avatar
+  profil: {
+    auteur: "L'équipe a remplacé ton pseudo par un pseudo neutre et retiré ton avatar : ils ne respectaient pas une règle de la communauté. Tu peux choisir un nouveau pseudo dans Réglages › Mes infos.",
+    signale: "L'équipe t'a donné raison : son pseudo et son avatar ont été remis par défaut. Merci de veiller au grain !",
+  },
   sortie: { auteur: "L'équipe a remis le titre de ta sortie par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre de la sortie a été remis par défaut. Merci de veiller au grain !" },
   groupe: { auteur: "L'équipe a effacé le titre de ton groupe : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre du groupe a été effacé. Merci de veiller au grain !" },
 };

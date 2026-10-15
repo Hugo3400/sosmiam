@@ -27,6 +27,7 @@ import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import { rechiffrerComptes } from "../services/rechiffrement-comptes.ts";
 import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
 import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
+import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -75,6 +76,9 @@ async function faireLeMenage() {
     // Pseudos libérés dont les 30 jours de réservation sont passés (un nombre seulement, jamais un pseudo)
     const pseudosReserves = await effacerPseudosReservesExpires();
     if (pseudosReserves > 0) await noterAction("serveur", "Réservations de pseudos libérés effacées (30 jours passés)", `${pseudosReserves} pseudo(s)`);
+    // Limitations de comptes finies ou levées depuis plus d'un an (décision de Hugo du 15/10/2026 ; un nombre seulement)
+    const limitations = await effacerLimitationsAnciennes(new Date());
+    if (limitations > 0) await noterAction("serveur", "Limitations de comptes effacées (finies ou levées depuis plus d'un an)", `${limitations} limitation(s)`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }

@@ -29,6 +29,9 @@ scripts d'ici ne font que les exporter et tout ranger ; le dossier de travail (`
 5. Prévenir la session Logiciel (l'Espace presse relit `index.json`) et la session Site (les kits).
 
 Les zips sont déterministes : un fichier qui n'a pas changé donne le même zip, git ne voit rien.
+N'exporte que les familles retouchées : Chrome écrit la date dans chaque PDF, donc un PDF réexporté change toujours
+pour git, même identique à l'œil. Pour ne changer qu'un fichier d'une famille, copie la famille depuis `presse/` dans
+`<travail>/sortie/` et remplace juste ce fichier.
 
 ## Ce qui n'est pas exporté par ces scripts
 

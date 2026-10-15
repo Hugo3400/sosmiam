@@ -11,7 +11,8 @@ export const LIMITE_SUIVIS_PERSONNES = { fenetre: 24 * 60 * 60_000, maximum: 200
  * cache ; lectures : lireProfilSocial (rien n'est créé) ; écritures : exigerProfilSocial (409 pseudo-requis). On ne prévient
  * jamais l'autre d'un refus, d'un retrait ni d'un « ne plus suivre ». Suivre ne donne jamais accès au chat. Les lieux et les
  * pseudos de créateurs se suivent dans /app/activite. Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429
- * trop-de-demandes (Retry-After) ; 400 champ-invalide { champ }.
+ * trop-de-demandes (Retry-After) ; 400 champ-invalide { champ }. Compte limité par l'équipe (refuserSiLimite, avant le profil
+ * social) : 403 compte-limite { details: { jusqua } } sur PUT /abonnements/:personne (suivre) ; le reste passe.
  *
  * GET    /app/suivis-personnes     → 200 { ok, suivis: ResumeSuivisApi } : prive, compteurs, demandes reçues (sans celles que
  *          tu as refusées) et envoyées (refusées comprises, montrées « demande » : tu ne sais pas qu'elles l'ont été), 50
@@ -37,14 +38,14 @@ export const LIMITE_SUIVIS_PERSONNES = { fenetre: 24 * 60 * 60_000, maximum: 200
  */
 export function creerRoutesSuivisPersonnes(d: Pick<DependancesSocialApp, "suivis" | "relations">, contexte: ContexteRoutesSociales) {
   const c = creerControleursSuivisPersonnes(d, contexte.appliquer, contexte.horloge);
-  const { lectures, gestes } = contexte;
+  const { lectures, gestes, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
 
   const routes = Router();
   routes.get("/", lectures, lireProfilSocial, c.lireResume);
   routes.get("/abonnes", lectures, lireProfilSocial, c.lister("abonnes"));
   routes.get("/abonnements", lectures, lireProfilSocial, c.lister("abonnements"));
-  routes.put("/abonnements/:personne", gestes, contexte.parCompte(LIMITE_SUIVIS_PERSONNES), exigerProfilSocial, c.suivre(true));
+  routes.put("/abonnements/:personne", gestes, contexte.parCompte(LIMITE_SUIVIS_PERSONNES), refuserSiLimite, exigerProfilSocial, c.suivre(true));
   routes.delete("/abonnements/:personne", gestes, exigerProfilSocial, c.suivre(false));
   routes.post("/demandes/:personne/accepter", gestes, exigerProfilSocial, c.accepterDemande);
   routes.delete("/demandes/:personne", gestes, exigerProfilSocial, c.refuserDemande);

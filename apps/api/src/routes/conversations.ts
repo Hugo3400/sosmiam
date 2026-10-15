@@ -20,7 +20,10 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * (Authorization: Bearer), jamais en cache. Lectures : lireProfilSocial (sans profil : liste vide, 404 ailleurs) ; écritures :
  * exigerProfilSocial (409 pseudo-requis). 🔐 : routes qui lisent ou écrivent un texte, un titre ou un média (503
  * chiffrement-indisponible sans la clé). Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes
- * (Retry-After) ; 400 champ-invalide { champ } ; 400 message-refuse { champ } (filtre de mots).
+ * (Retry-After) ; 400 champ-invalide { champ } ; 400 message-refuse { champ } (filtre de mots). Compte limité par l'équipe
+ * (refuserSiLimite, avant le profil social, la clé et le corps d'un média) : 403 compte-limite { details: { jusqua } } sur
+ * POST /groupes, PATCH /:id, POST /:id/invites, POST /:id/messages, POST /:id/medias et PUT des réactions ; le reste passe
+ * (répondre à une invitation, quitter, couper, lu, effacer pour moi, supprimer son message, retirer sa réaction…).
  * - Ce que tu vois : les conversations dont tu es MEMBRE ; dans un groupe, on n'entre qu'en acceptant une invitation (avant :
  *   seulement l'invitation, ni les messages ni les membres). Les messages après ton arrivée (ou ton « Effacer pour moi »),
  *   sans ceux d'une personne avec qui il y a un blocage (dans un sens ou dans l'autre), ni ceux que tu as signalés. Un privé
@@ -81,7 +84,7 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
 export function creerRoutesConversations(d: DependancesSocialApp, contexte: ContexteRoutesSociales) {
   const c = creerControleursConversations(d, contexte);
   const m = creerControleursMediasChat(d, contexte);
-  const { lectures, gestes, parCompte } = contexte;
+  const { lectures, gestes, parCompte, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   const cle = exigerChiffrementSocial(d.chiffrement);
   const lireCorpsBrut = express.raw({ type: TYPES_MEDIAS_CHAT, limit: TAILLE_MAX_CORPS_MEDIA });
@@ -96,21 +99,21 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
   const routes = Router();
   routes.get("/", lectures, lireProfilSocial, cle, c.lister);
   routes.post("/prive", gestes, exigerProfilSocial, cle, c.ouvrirPrive);
-  routes.post("/groupes", parCompte(LIMITE_CREATIONS_GROUPES), exigerProfilSocial, cle, c.creerGroupe);
+  routes.post("/groupes", parCompte(LIMITE_CREATIONS_GROUPES), refuserSiLimite, exigerProfilSocial, cle, c.creerGroupe);
   routes.get("/:id", lectures, lireProfilSocial, cle, c.lireFil);
-  routes.patch("/:id", gestes, exigerProfilSocial, cle, c.modifierGroupe);
-  routes.post("/:id/invites", gestes, exigerProfilSocial, cle, c.inviter);
+  routes.patch("/:id", gestes, refuserSiLimite, exigerProfilSocial, cle, c.modifierGroupe);
+  routes.post("/:id/invites", gestes, refuserSiLimite, exigerProfilSocial, cle, c.inviter);
   routes.post("/:id/reponse", gestes, exigerProfilSocial, cle, c.repondre);
   routes.delete("/:id/membres/:personne", gestes, exigerProfilSocial, c.retirerMembre);
   routes.put("/:id/membres/:personne/role", gestes, exigerProfilSocial, cle, c.changerRole);
   routes.put("/:id/notifications", gestes, exigerProfilSocial, c.couper);
   routes.put("/:id/lu", gestes, exigerProfilSocial, c.marquerLu);
   routes.post("/:id/effacer", gestes, exigerProfilSocial, c.effacerPourMoi);
-  routes.post("/:id/messages", parCompte(LIMITE_MESSAGES), exigerProfilSocial, cle, c.envoyer);
-  routes.post("/:id/medias", parCompte(LIMITE_MEDIAS), exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
+  routes.post("/:id/messages", parCompte(LIMITE_MESSAGES), refuserSiLimite, exigerProfilSocial, cle, c.envoyer);
+  routes.post("/:id/medias", parCompte(LIMITE_MEDIAS), refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
   routes.get("/:id/messages/:messageId/media", lectures, lireProfilSocial, cle, m.lireMedia);
   routes.delete("/:id/messages/:messageId", gestes, exigerProfilSocial, c.supprimerMessage);
-  routes.put("/:id/messages/:messageId/reactions/:reaction", gestes, exigerProfilSocial, c.reagir(true));
+  routes.put("/:id/messages/:messageId/reactions/:reaction", gestes, refuserSiLimite, exigerProfilSocial, c.reagir(true));
   routes.delete("/:id/messages/:messageId/reactions/:reaction", gestes, exigerProfilSocial, c.reagir(false));
   return routes;
 }

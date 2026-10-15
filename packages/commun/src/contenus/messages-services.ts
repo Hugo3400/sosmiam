@@ -181,6 +181,16 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Compte limité jusqu'au {date}",
     texte: "Certaines actions sont en pause pour l'instant. On t'explique pourquoi dans Réglages › Décisions de la modération : si c'est une erreur, conteste, un humain relira.",
   },
+  "aucune-limitation": {
+    emoji: "🌤️",
+    titre: "Rien à contester",
+    texte: "Ton compte n'est pas limité (ou ne l'est plus) : tout marche normalement.",
+  },
+  "deja-conteste": {
+    emoji: "📨",
+    titre: "Contestation déjà envoyée",
+    texte: "On a bien ta contestation : une autre personne de l'équipe la relit, et tu auras sa réponse. Une seule par limitation.",
+  },
   "validations-en-pause": {
     emoji: "⏸️",
     titre: "Validations en pause jusqu'au {date}",

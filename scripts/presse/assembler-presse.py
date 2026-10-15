@@ -61,7 +61,8 @@ def fmt(p):
 ACCENTS = {'banniere': 'bannière', 'bannieres': 'bannières', 'icone': 'icône', 'validee': 'validée', 'envoyee': 'envoyée', 'presentation': 'présentation',
            'apercu': 'aperçu', 'role': 'rôle', 'ecusson': 'écusson', 'epingle': 'épingle', 'epingles': 'épingles', 'patisseries': 'pâtisseries', 'detoure': 'détouré',
            'bouee': 'bouée', 'a': 'à', 'pepites': 'pépites', 'cest': 'c’est', 'fete': 'fête', 'doeil': 'd’œil', 'coeur': 'cœur', 'gouts': 'goûts',
-           'evenement': 'événement', 'empile': 'empilé', 'emblemes': 'emblèmes', 'reseaux': 'réseaux', 'sos': 'SOS', 'big': 'BIG', 'tete': 'tête'}
+           'evenement': 'événement', 'empile': 'empilé', 'emblemes': 'emblèmes', 'reseaux': 'réseaux', 'sos': 'SOS', 'big': 'BIG', 'tete': 'tête',
+           'beret': 'béret'}
 
 
 def accentuer(t):
@@ -79,7 +80,9 @@ def lisible(nom):
 
 
 # ─── Les familles ───
-idx = json.load(open(f'{O}/index-canevas.json', encoding='utf-8'))['familles']
+# Toujours dans le même ordre, quel que soit l'ordre des exports (l'index ne bouge pas pour rien dans git)
+ORDRE_CANEVAS = ['affiches', 'reseaux', 'imprimes']
+idx = sorted(json.load(open(f'{O}/index-canevas.json', encoding='utf-8'))['familles'], key=lambda f: ORDRE_CANEVAS.index(f['id']))
 FORMATS_AFFICHES = [('a3', 'A3 (297 × 420 mm)', 'en A3'), ('40x60', '40 × 60 cm', 'en 40 × 60 cm (rallongée, rien n’est déformé)')]
 for fam in idx:
     if fam['id'] != 'affiches': continue
@@ -118,9 +121,9 @@ for n, d in [('flyer-a5-recto', 'Flyer A5, recto : « Les pépites de ton quarti
     flyer.append({'nom': f'{n}.png', 'chemin': f'flyer/{n}.png', 'format': 'PNG', 'taille': taille_image(f'{P}/flyer/{n}.png'), 'description': d})
     flyer.append({'nom': f'{n}.pdf', 'chemin': f'flyer/{n}.pdf', 'format': 'PDF', 'taille': 'A5', 'description': d})
 idx.append({'id': 'flyer', 'titre': 'Flyer A5 recto verso', 'fichiers': flyer})
-docs = [('mail-de-presentation.md', 'Mail de présentation de SOS Miam (partenaires, commerçants, futurs ambassadeurs), version du 5 octobre'),
+docs = [('mail-de-presentation.md', 'Mail de présentation de SOS Miam (partenaires, commerçants, futurs ambassadeurs), mis à jour le 15 octobre'),
         ('fiche-de-presentation-du-lieu.md', 'Fiche à remplir par un lieu pour créer sa page (version du 8 octobre)'),
-        ('recrutement-ambassadeurs-fondateurs.md', 'Campagne de recrutement des ambassadeurs fondateurs : calendrier, messages, formulaire, FAQ'),
+        ('recrutement-ambassadeurs-fondateurs.md', 'Campagne de recrutement des ambassadeurs fondateurs, par ville : calendrier, publications, messages, FAQ (mise à jour le 15 octobre)'),
         ('kit-reseaux-sociaux.md', 'Kit réseaux sociaux : bios, formats, ton et hashtags'),
         ('kit-de-marque-explications.md', 'Le kit de marque expliqué : couleurs, typos, rôle de chaque logo')]
 idx.append({'id': 'documents', 'titre': 'Documents (mail, fiche lieu, recrutement, réseaux)', 'fichiers': [
@@ -152,7 +155,7 @@ for racine, _, fs in sorted(os.walk(src)):
         t = fmt(f)
         marque.append({'nom': f, 'chemin': f'kit-de-marque/{rel}', 'format': t, 'taille': taille_image(f'{P}/kit-de-marque/{rel}') if t == 'PNG' else None,
                        'description': f'{rubrique} · {lisible(f)}' if f != 'LISEZMOI.txt' else 'Mode d’emploi du kit de marque (vocabulaire : les Miamis, la Brigade)'})
-idx.append({'id': 'kit-de-marque', 'titre': 'Kit de marque (logos, mascotte, pictos, bannières)', 'fichiers': marque})
+idx.append({'id': 'kit-de-marque', 'titre': 'Kit de marque (logos, mascotte, avatars des Miamis, pictos, bannières)', 'fichiers': marque})
 
 # Pack vidéos, sons et images de campagne (presse/videos/ est hors git)
 campagne = []
@@ -200,7 +203,7 @@ def canaux(fam, f):
     elif fam == 'stores': base = ['ios'] if c.startswith('stores/ios/') else (['android'] if c.startswith('stores/android/') else ['ios', 'android'])
     elif fam == 'kit-de-marque':
         if '/01_Logos/Icones/' in c: base = ['instagram', 'tiktok'] if 'avatar' in n else (['ios', 'android'] if 'icone' in n else ['web'])
-        elif '/01_Logos/' in c or '/02_Mascotte/' in c: base = ['instagram', 'tiktok', 'impression']
+        elif '/01_Logos/' in c or '/02_Mascotte/' in c or '/06_Avatars_des_Miamis/' in c: base = ['instagram', 'tiktok', 'impression']
         elif '/03_Pictos' in c: base = ['instagram', 'impression']
         elif '/Instagram_stories_a_la_une/' in c: base = ['instagram']
         elif '/Facebook/' in c: base = ['facebook']
@@ -209,6 +212,15 @@ def canaux(fam, f):
     else: base = []
     return base + ['marque'] if fam == 'kit-de-marque' else base
 
+
+# L'ancienne campagne de recrutement (« 10 fondateurs à Montpellier », remplacée le 9 octobre 2026 par des fondateurs par
+# ville) : gardée pour mémoire, signalée, et hors des filtres Instagram et TikTok pour qu'on ne la poste pas par erreur
+ANCIENNE_CAMPAGNE = ' — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster'
+for fam in idx:
+    for f in fam['fichiers']:
+        if (fam['id'] == 'campagne' and 'ambassadeurs' in f['nom']) or (fam['id'] == 'videos' and '_19_recrutement' in f['nom']):
+            f['description'] += ANCIENNE_CAMPAGNE
+            f['ancienne'] = True
 
 # ─── Aperçus, zips, index ───
 os.makedirs(f'{P}/apercus')
@@ -239,7 +251,7 @@ for fam in idx:
     apercus = {os.path.splitext(f['nom'])[0]: f['apercu'] for f in fam['fichiers'] if f['apercu']}
     for f in fam['fichiers']:
         if not f['apercu']: f['apercu'] = apercus.get(re.sub(r'-(a3|40x60)$', '', os.path.splitext(f['nom'])[0]))
-        f['canaux'] = canaux(fam['id'], f)
+        f['canaux'] = [] if f.pop('ancienne', False) else canaux(fam['id'], f)
 
 # Les zips des kits médias du site (apps/site-web/src/contenus/maquettes-kits.ts)
 os.makedirs(f'{P}/kits')

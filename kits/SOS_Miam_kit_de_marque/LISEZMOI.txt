@@ -32,6 +32,16 @@ Restos, pâtisseries, bars et sorties. Épingle jaune pour un lieu, épingle tom
 05_Couleurs
 Palette, codes couleur et typographies.
 
+06_Avatars_des_Miamis
+Les photos de profil de l'app : seize Miamis, des matelots de la Brigade. Ils ont la bouée du Capitaine,
+chacun avec son couvre-chef et sa tête : Toque, Pompon, Béret, Galette, Paille, Platine, Solaire, Pirate,
+Fiesta, Bob, Raclette, Moustache, Chantilly, Binocles, Marmotte, Tuba.
+- Un rond sur fond jaune clair, en SVG et en PNG 1024 px (transparent autour du rond).
+- SOSMiam_Capitaine_Bouiboui_avatar : le Capitaine au même format. Réservé au compte officiel SOS Miam :
+  aucun Miami ne porte la casquette de capitaine.
+- SOSMiam_Miamis_planche : les seize avec leur nom, en 1080 × 1350 (format Instagram).
+Refaits par scripts/avatars-miamis/generer-avatars-miamis.ts (dans le dépôt).
+
 Vocabulaire
 - Les Miamis : la communauté SOS Miam, au quotidien (« Salut les Miamis ! »).
 - La Brigade : les Miamis quand un lieu lance un SOS ou pour fêter les rescousses (« Merci la Brigade ! »).

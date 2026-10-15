@@ -7,6 +7,7 @@ import { BoutonEcrireMail } from "~/composants/interface/BoutonEcrireMail.tsx";
 import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx";
 import { MailsRecusDe } from "~/ecrans/boite/MailsRecusDe.tsx";
 import { DateNaissanceCompte } from "./DateNaissanceCompte.tsx";
+import { LimitationCompte } from "./LimitationCompte.tsx";
 import { ModaleIdentite } from "./ModaleIdentite.tsx";
 import { PastillesConnexion } from "./PastillesConnexion.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
@@ -89,6 +90,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
               </ul>
             </section>
           )}
+          <LimitationCompte compteId={compte.id} prenom={compte.prenom} onChange={onChange} />
           <section className="grid gap-3">
             <h3 className="font-extrabold">Sur demande de la personne</h3>
             <div className="flex flex-wrap gap-2">

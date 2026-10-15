@@ -6,6 +6,7 @@ import type { ClientHttp } from "../client-http.ts";
 import type { ServiceCompte, SessionOuverte } from "../contrat-compte.ts";
 import type { ReponseApi } from "../reponse-api.ts";
 import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../../types/connexion-qr.ts";
+import type { LimitationCompteApi } from "../../types/limitation-compte.ts";
 
 export function creerCompteApi(client: ClientHttp): ServiceCompte {
   const ouvrir = async (chemin: string, corps: unknown): Promise<ReponseApi<SessionOuverte>> => {
@@ -46,6 +47,8 @@ export function creerCompteApi(client: ClientHttp): ServiceCompte {
     motDePasseOublie: (email) => client.demander("POST", "/comptes/mot-de-passe-oublie", { corps: { email }, session: false }),
     renvoyerVerification: () => client.demander<{ dejaVerifie: boolean }>("POST", "/comptes/moi/renvoyer-verification"),
     supprimerCompte: (confirmation) => client.demander("DELETE", "/comptes/moi", { corps: confirmation }),
+    lireLimitation: () => client.demander<{ limitation: LimitationCompteApi | null }>("GET", "/comptes/moi/limitation"),
+    contesterLimitation: (texte) => client.demander("POST", "/comptes/moi/limitation/contestation", { corps: { texte } }),
 
     // Connexion par QR code : le nouveau téléphone demande et attend (sans session) ; l'app connectée scanne et répond
     demanderConnexionQr: () => client.demander<QrConnexion>("POST", "/comptes/qr", { corps: { cible: "app" }, session: false }),

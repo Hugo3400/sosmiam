@@ -64,6 +64,8 @@ import { lireActiviteApp } from "./statistiques-activite-app.ts";
 import { lireReservationsGestion } from "./reservations-gestion.ts";
 import { listerAvisARelire } from "./avis-a-relire.ts";
 import { deciderAvis } from "./decisions-avis.ts";
+import { listerLimitationsEnCours } from "./limitations-gestion.ts";
+import { prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue } from "../courriels/courriels-limitations.ts";
 import { lireBilanMois } from "./bilan-mois.ts";
 import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
@@ -98,7 +100,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
-  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, deciderAvis,
+  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, deciderAvis, listerLimitationsEnCours, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

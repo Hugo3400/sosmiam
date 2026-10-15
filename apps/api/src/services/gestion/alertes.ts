@@ -11,7 +11,7 @@ import { compterSurveillance } from "./surveillance-visites.ts";
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -38,6 +38,8 @@ export async function lireAlertes(maintenant = new Date()) {
     // Avis en relecture et réponses des lieux à relire (déjà en ligne)
     baseDeDonnees.avis.count({ where: { statut: "en-relecture" } }),
     baseDeDonnees.avis.count({ where: { reponseStatut: "en-relecture" } }),
+    // Limitations de comptes contestées, pas encore réexaminées
+    baseDeDonnees.limitationCompte.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
@@ -48,6 +50,7 @@ export async function lireAlertes(maintenant = new Date()) {
     ambassadeurs: { enAttente, candidatures, certifications },
     surveillance,
     avis: { aRelire: avisARelire, reponses: reponsesARelire },
+    limitations: { contestees: limitationsContestees },
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };

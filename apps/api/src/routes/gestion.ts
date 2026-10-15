@@ -12,9 +12,11 @@ import { creerControleursPresse } from "../controleurs/gestion/controleurs-press
 import { creerControleursEvenementsGestion } from "../controleurs/gestion/controleurs-evenements-gestion.ts";
 import { creerControleursReservationsGestion } from "../controleurs/gestion/controleurs-reservations-gestion.ts";
 import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-avis-gestion.ts";
+import { creerControleursLimitations } from "../controleurs/gestion/controleurs-limitations.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
+import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
 import type { ModerationSociale } from "../services/gestion/cibles-moderation.ts";
 import { creerControleursNotifications } from "../controleurs/gestion/controleurs-notifications.ts";
 import { creerControleursOutilsLieux } from "../controleurs/gestion/controleurs-outils-lieux.ts";
@@ -51,12 +53,14 @@ export type DependancesGestion = {
   defis?: DefisGestion;
   /** Relecture des avis (services/avis-gestion.ts de la session App) : publier, masquer, rétablir ; absent → 503 */
   avis?: AvisGestion;
+  /** Limitation d'un compte (services/limitations-comptes.ts de la session Site) : limiter, lever, réexaminer ; absent → 503 */
+  limitations?: ServicesLimitations;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion, limitations }: DependancesGestion) {
   const protection = creerProtectionGestion(lireAcces, horloge, sessions);
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
@@ -75,6 +79,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const evenements = creerControleursEvenementsGestion(services);
   const reservations = creerControleursReservationsGestion(services);
   const avis = creerControleursAvisGestion(services, avisGestion, moderationSociale);
+  const lim = creerControleursLimitations(services, limitations, moderationSociale);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -183,6 +188,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/avis/a-relire", avis.aRelire);
   routes.post("/avis/:id/decision", avis.deciderAvis);
   routes.post("/avis/:id/reponse/decision", avis.deciderReponse);
+  routes.get("/limitations", lim.liste);
+  routes.get("/comptes/:id/limitations", lim.duCompte);
+  routes.post("/comptes/:id/limitations", lim.limiter);
+  routes.post("/limitations/:id/levee", lim.lever);
+  routes.post("/limitations/:id/reexamen", lim.reexaminer);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

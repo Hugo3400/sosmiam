@@ -21,7 +21,9 @@ const sansCache: RequestHandler = (_requete, reponse, suite) => {
  * (Authorization: Bearer), jamais en cache. Écrire et modifier demandent un pseudo (exigerProfilSocial : 409 pseudo-requis) ;
  * lire « mes commentaires », aimer, supprimer le sien et masquer au nom du lieu, non (lireProfilSocial : rien n'est créé).
  * Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes (Retry-After) ; 400 champ-invalide
- * { champ } ; 400 message-refuse { champ: "texte" } (filtre de mots) ; 503 chiffrement-indisponible (🔐).
+ * { champ } ; 400 message-refuse { champ: "texte" } (filtre de mots) ; 503 chiffrement-indisponible (🔐). Compte limité par
+ * l'équipe (refuserSiLimite, après la session et la limite, avant le profil social) : 403 compte-limite { details: { jusqua } }
+ * sur POST (commenter) et PATCH /:id (modifier) ; le reste passe (supprimer le sien, J'aime, masquer au nom du lieu).
  *
  * Sans session (cache public 30 s ; 120 lectures par minute et par IP) :
  * GET    /app/commentaires/publications/:publicationId[?apres=]
@@ -65,7 +67,7 @@ const sansCache: RequestHandler = (_requete, reponse, suite) => {
  */
 export function creerRoutesCommentaires(d: Pick<DependancesSocialApp, "commentaires" | "chiffrement">, contexte: ContexteRoutesSociales) {
   const c = creerControleursCommentaires(d, contexte.horloge, contexte.appliquer);
-  const { lectures, gestes, limiteConnectee, protection } = contexte;
+  const { lectures, gestes, limiteConnectee, protection, refuserSiLimite } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   /** Session obligatoire, jamais en cache (la chaîne des autres domaines sociaux) */
   const session = [limiteConnectee, protection.exigerCompte, sansCache];
@@ -74,8 +76,8 @@ export function creerRoutesCommentaires(d: Pick<DependancesSocialApp, "commentai
   const routes = Router();
   routes.get("/publications/:publicationId", limiterRequetes(LIMITE_LECTURES_COMMENTAIRES_PUBLIQUES), c.lister);
   routes.get("/publications/:publicationId/moi", ...session, lectures, lireProfilSocial, c.lireMiens);
-  routes.post("/publications/:publicationId", ...session, contexte.parCompte(LIMITE_COMMENTAIRES), exigerProfilSocial, c.commenter);
-  routes.patch("/:id", ...session, gestes, exigerProfilSocial, c.modifier);
+  routes.post("/publications/:publicationId", ...session, contexte.parCompte(LIMITE_COMMENTAIRES), refuserSiLimite, exigerProfilSocial, c.commenter);
+  routes.patch("/:id", ...session, gestes, refuserSiLimite, exigerProfilSocial, c.modifier);
   routes.delete("/:id", ...session, gestes, lireProfilSocial, c.supprimer);
   routes.put("/:id/jaime", ...session, gestes, lireProfilSocial, c.aimer(true));
   routes.delete("/:id/jaime", ...session, gestes, lireProfilSocial, c.aimer(false));
