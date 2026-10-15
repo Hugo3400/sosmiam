@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
 import { LIBELLES_MOTIF_REFUS_RESERVATION } from "@sos-miam/commun/contenus/motifs-refus";
@@ -18,17 +18,21 @@ type Props = {
 
 export function FeuilleRefusReservation({ visible, titre, onConfirmer, onFermer }: Props) {
   const [motif, setMotif] = useState<MotifRefusReservation | null>(null);
-
-  useEffect(() => {
-    if (visible) setMotif(null);
-  }, [visible]);
+  const fermer = () => {
+    setMotif(null);
+    onFermer();
+  };
+  const confirmer = (choisi: MotifRefusReservation) => {
+    setMotif(null);
+    onConfirmer(choisi);
+  };
 
   return (
     <FeuilleBas
       visible={visible}
       titre={titre}
       sousTitre={TEXTES_RESERVATIONS_PRO.refusDetail}
-      onFermer={onFermer}
+      onFermer={fermer}
       pied={
         <>
           <Bouton
@@ -36,9 +40,9 @@ export function FeuilleRefusReservation({ visible, titre, onConfirmer, onFermer 
             variante="encre"
             desactive={motif === null}
             indice={motif === null ? "Choisis d'abord un motif" : undefined}
-            onPress={() => motif && onConfirmer(motif)}
+            onPress={() => motif && confirmer(motif)}
           />
-          <Bouton libelle={TEXTES_RESERVATIONS_PRO.refusRester} variante="blanc" onPress={onFermer} />
+          <Bouton libelle={TEXTES_RESERVATIONS_PRO.refusRester} variante="blanc" onPress={fermer} />
         </>
       }
     >

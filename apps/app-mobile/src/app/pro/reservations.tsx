@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,7 +34,11 @@ export default function EcranReservationsPro() {
   const [aRefuser, setARefuser] = useState<ReservationPro | null>(null);
   const [refusOuvert, setRefusOuvert] = useState(false);
 
-  const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
+  const numeroAnnonce = useRef(0);
+  const annoncer = (texte: string) => {
+    numeroAnnonce.current += 1;
+    setAnnonce({ texte, numero: numeroAnnonce.current });
+  };
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/pro/comptoir"));
 
   async function suivre(reservation: ReservationPro, geste: Promise<ReponseGeste>, modele: string) {

@@ -43,14 +43,18 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
       noterStatutAlerteMiamSafe(source, lieuId, id, statut);
       setAlerte((a) => (a?.id === id ? { ...a, statut } : a));
     };
-    const relecture = setInterval(async () => {
+    let actif = true;
+    const suivre = async () => {
       const r = await miamSafe.suivreAlerte(id).catch(() => null);
-      if (!r?.ok) return;
+      if (!actif || !r?.ok) return;
       if (r.alerte.statut === "en-route" || (r.alerte.statut === "sans-reponse" && actuel === "envoyee")) changer(r.alerte.statut);
-    }, actuel === "envoyee" ? RELECTURE_MS : RELECTURE_SANS_REPONSE_MS);
+    };
+    if (Date.now() - alerte.envoyeeLe > RELECTURE_MS) void suivre();
+    const relecture = setInterval(() => void suivre(), actuel === "envoyee" ? RELECTURE_MS : RELECTURE_SANS_REPONSE_MS);
     const reste = alerte.envoyeeLe + DELAI_RELANCE_ALERTE_SECONDES * 1000 - Date.now();
     const relance = actuel === "envoyee" ? setTimeout(() => changer("sans-reponse"), Math.max(0, reste)) : null;
     return () => {
+      actif = false;
       clearInterval(relecture);
       if (relance) clearTimeout(relance);
     };

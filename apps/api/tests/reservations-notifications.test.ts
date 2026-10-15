@@ -136,7 +136,7 @@ test("expiration découverte après le créneau (serveur arrêté) : endormie sa
 test("tâche de la minute : fait expirer et prévient, une seule fois ; une erreur est notée, jamais levée", async () => {
   const lea = await b.creerCompte();
   await reserver(lea.jeton, { heure: "21:00" });
-  const passer = creerPassageExpirationReservations({ ...b.visitesApp, horloge: () => b.banc.horloge });
+  const passer = creerPassageExpirationReservations({ depot: b.visitesApp.depot, prevenirCompte: b.visitesApp.prevenirCompte!, horloge: () => b.banc.horloge });
   assert.equal(await passer(), 0);
   b.banc.horloge = VINGT_HEURES + 30 * MINUTE;
   assert.equal(await passer(), 1);
@@ -172,7 +172,7 @@ test("suivreExpirations : après une transaction réussie seulement ; une lectur
     await t.expirerReservations(maintenant);
     throw new Error("annulée");
   }));
-  assert.deepEqual(recues, [], "transaction annulée : personne n'est prévenu");
+  assert.equal(recues.length, 0, "transaction annulée : personne n'est prévenu");
   for (const r of memoire.reservations) r.statut = "demandee";
   await assert.rejects(depot.lire(async (t) => {
     await t.expirerReservations(maintenant);
