@@ -4,11 +4,13 @@
 // connexion avec des mots de passe faux, n'empêche pas le titulaire connecté de changer de mot de passe.
 import type { Request, Response } from "express";
 
+import { detecterChangementVisible } from "../fonctions/comptes/detecter-changement-visible.ts";
 import { estSansMotDePasse } from "../fonctions/comptes/est-sans-mot-de-passe.ts";
 import { validerMotDePasse } from "../fonctions/comptes/valider-mot-de-passe.ts";
 import { hacherMotDePasse } from "../fonctions/securite/hacher-mot-de-passe.ts";
 import { verifierMotDePasse } from "../fonctions/securite/verifier-mot-de-passe.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
+import { repondreCompteLimite } from "../middlewares/refuser-si-limite.ts";
 import type { ModificationCompte } from "../services/comptes.ts";
 import { faireAttendre, verifierEnComptant } from "./comptes-attente.ts";
 import { lireCompteId, lireCorps, lireLigne, lireLigneFacultative, lireMotDePasse, lirePrenom } from "./comptes-champs.ts";
@@ -45,10 +47,16 @@ export function creerControleursMonCompte(contexte: ContexteComptes) {
     async modifier(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       const modification: ModificationCompte = {};
-      if (corps.prenom !== undefined) modification.prenom = lirePrenom(corps, (reponse.locals.compte as CompteSession).prenom);
+      const prenomActuel = (reponse.locals.compte as CompteSession).prenom;
+      if (corps.prenom !== undefined) modification.prenom = lirePrenom(corps, prenomActuel);
       if (corps.ville !== undefined) modification.ville = lireLigne(corps, "ville", 2, 80);
       if (corps.quartier !== undefined) modification.quartier = lireLigneFacultative(corps, "quartier", 80);
       const id = lireCompteId(reponse);
+      // Compte limité : le prénom se voit des autres, il ne change pas (le reste passe ; le même prénom renvoyé aussi)
+      if (contexte.limitations && detecterChangementVisible({ prenom: modification.prenom }, { prenom: prenomActuel, pseudo: null, avatar: null })) {
+        const limitation = await contexte.limitations.estLimite(id, new Date(contexte.horloge()));
+        if (limitation) return repondreCompteLimite(reponse, limitation);
+      }
       if (Object.keys(modification).length > 0) await services.modifierCompte(id, modification);
       const compte = await lireCompteVu(id);
       if (!compte) return sessionExpiree(reponse);

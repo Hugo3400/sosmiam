@@ -2,11 +2,15 @@
 // 14 octobre 2026) : l'équipe juge l'INSTANTANÉ chiffré pris au moment du signalement, jamais le contenu vivant (elle n'a
 // pas la clé des messages non signalés) ; la décision retire ou remet en ligne le commentaire, le message ou la liste, et la
 // cloche prévient l'auteur (« contenu-retire ») et ceux qui ont signalé (« signalement-decide »), comme le veut le règlement
-// européen sur les services numériques. Profil, sortie et groupe : l'équipe agit à la main (avatar, titre, compte).
+// européen sur les services numériques. Profil, sortie et groupe : remis par défaut (pseudo neutre, titre « Sortie »,
+// groupe sans titre).
+import { randomInt } from "node:crypto";
+
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import { SIGNALEMENT_OUVERT, supprimerMediasLibres } from "../effacer-conversations.ts";
 import type { NouvelleNotificationCloche } from "../effets-sociaux-regles.ts";
+import { estReservePourUnAutre, reserverPseudoDans } from "../pseudos-reserves.ts";
 import type { StockageMediasChat } from "../stockage-medias-chat.ts";
 import { CIBLES_REMISES_PAR_DEFAUT, type ModerationSociale } from "./cibles-moderation.ts";
 
@@ -96,22 +100,31 @@ export async function appliquerDecisionSociale(
     });
     // L'app relit la discussion quand sa version bouge : le message y devient « retiré », ou revient
     await tx.conversation.update({ where: { id: message.conversationId }, data: { version: { increment: 1 }, modifieLe: maintenant } });
-    return { fichier: decision === "retenu" ? message.fichier : null };
+    // Retenu : le message perd son fichier, mais le fichier chiffré reste sur le disque, cité par le signalement, jusqu'à la
+    // fin du délai de contestation (décision de Hugo du 15/10/2026) : le ménage de nuit de la session App l'efface ensuite
+    return { fichier: null };
   }
   return { fichier: null };
 }
 
 /**
  * Profil, sortie ou groupe retenu : on ne peut pas les « retirer », on remet par défaut ce que tout le monde voit (accord de
- * la session App du 15/10/2026). Profil : l'avatar (le pseudo attend une décision de Hugo : sans pseudo, la personne sort de
- * toute la partie sociale). Sortie : titre « Sortie », verrou de la sortie d'abord (même ordre que sorties.ts), puis la
+ * la session App du 15/10/2026). Profil : l'avatar effacé et un pseudo neutre « miami1234 » (choix de Hugo), l'ancien
+ * réservé 30 jours pour personne. Sortie : titre « Sortie », verrou de la sortie d'abord (même ordre que sorties.ts), puis la
  * discussion (sinon le fil répond « inchange »), et l'ancien titre effacé de la cloche. Groupe : sans titre (l'app affiche
  * « Groupe ») ; modifieLe est indispensable, le pouls des messages lit MAX(modifie_le). Un réexamen ne rend pas l'ancien
  * titre (l'auteur peut en remettre un).
  */
 async function remettreParDefaut(tx: Transaction, s: { cible: string; cibleId: string; auteurContenuId: number | null }, maintenant: Date) {
   if (s.cible === "profil") {
-    if (s.auteurContenuId) await tx.compte.updateMany({ where: { id: s.auteurContenuId }, data: { avatar: null } });
+    if (!s.auteurContenuId) return;
+    const compte = await tx.compte.findUnique({ where: { id: s.auteurContenuId }, select: { pseudo: true } });
+    if (!compte) return;
+    // Pseudo neutre (choix de Hugo du 15/10/2026) : la personne reste visible de sa bande et peut en choisir un autre ;
+    // l'ancien est réservé 30 jours pour personne, pas même elle
+    const pseudo = compte.pseudo ? await choisirPseudoNeutre(tx, maintenant) : null;
+    if (compte.pseudo) await reserverPseudoDans(tx, compte.pseudo, null, "suppression", maintenant);
+    await tx.compte.update({ where: { id: s.auteurContenuId }, data: { avatar: null, ...(pseudo ? { pseudo } : {}) } });
     return;
   }
   const id = Number(s.cibleId);
@@ -131,9 +144,19 @@ async function remettreParDefaut(tx: Transaction, s: { cible: string; cibleId: s
   });
 }
 
+/** « miami » et 4 chiffres (6 si la chance manque), libre et pas réservé */
+async function choisirPseudoNeutre(tx: Transaction, maintenant: Date) {
+  for (let essai = 0; essai < 30; essai++) {
+    const pseudo = `miami${randomInt(essai < 20 ? 1000 : 100_000, essai < 20 ? 10_000 : 1_000_000)}`;
+    const pris = await tx.compte.findUnique({ where: { pseudo }, select: { id: true } });
+    if (!pris && !(await estReservePourUnAutre(tx, pseudo, undefined, maintenant))) return pseudo;
+  }
+  throw new Error("Aucun pseudo neutre libre trouvé");
+}
+
 /**
  * Après la décision : la cloche de l'auteur (« contenu-retire », avec le motif) et de chaque personne qui a signalé
- * (« signalement-decide », retenu ou rejeté), sur son propre signalement ; puis le fichier d'un message retiré. Jamais
+ * (« signalement-decide », retenu ou rejeté), sur son propre signalement ; puis un fichier devenu libre. Jamais
  * bloquant : la décision est déjà enregistrée.
  */
 export async function prevenirApresDecision(

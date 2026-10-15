@@ -23,6 +23,7 @@ import type {
   CandidatureBrute, LieuCandidature, NouvelleCandidature, NouvelleProposition, OrigineProposition, PropositionVue, ResultatChangementCommune,
 } from "../services/comptes-espace.ts";
 import type { ModificationProfil, ProfilLu } from "../services/comptes-profil.ts";
+import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
 import { PseudoDejaPris } from "../services/erreurs-comptes.ts";
 import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompte } from "../services/suggestions-comptes-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
@@ -112,6 +113,9 @@ export type ContexteComptes = {
   newsletter?: InscriptionNewsletterComptes;
   /** Repasser en public par le profil accepte les demandes de suivi en attente (partie sociale) ; absente : rien de plus */
   apresPassageEnPublic?: (compteId: number) => Promise<void>;
+  /** Limitations décidées par l'équipe (services/limitations-comptes.ts) : un compte limité ne change ni son prénom, ni son
+   * pseudo, ni son avatar ; absentes : personne n'est limité */
+  limitations?: ServicesLimitations;
 };
 
 /** 503 « chiffrement-indisponible » : la clé des données des comptes n'a pas été lue au démarrage */

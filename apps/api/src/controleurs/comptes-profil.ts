@@ -5,8 +5,10 @@ import type { Request, Response } from "express";
 import { estPseudoValide } from "../../../../packages/commun/src/validation/est-pseudo-valide.ts";
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import { calculerAgeProfil } from "../fonctions/comptes/calculer-age-profil.ts";
+import { detecterChangementVisible } from "../fonctions/comptes/detecter-changement-visible.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
+import { repondreCompteLimite } from "../middlewares/refuser-si-limite.ts";
 import type { ModificationProfil, ProfilLu } from "../services/comptes-profil.ts";
 import { lireCompteId, lireCorps, lireLigne, lirePrenom } from "./comptes-champs.ts";
 import { lireAvatar, lireEnvies, lireNomChiffre, lirePseudo, normaliserPseudo, relireEnvies } from "./comptes-profil-champs.ts";
@@ -32,7 +34,7 @@ export type ProfilVu = {
   age: number | null;
 };
 
-export function creerControleursProfil({ services, chiffrement, horloge, apresPassageEnPublic }: ContexteComptes) {
+export function creerControleursProfil({ services, chiffrement, horloge, apresPassageEnPublic, limitations }: ContexteComptes) {
   const sessionExpiree = (reponse: Response) => reponse.status(401).json({ ok: false, erreur: "session-expiree" });
 
   /** Déchiffre le nom et la date (une donnée illisible lève une erreur : 500, sans rien citer). */
@@ -81,6 +83,13 @@ export function creerControleursProfil({ services, chiffrement, horloge, apresPa
       const id = lireCompteId(reponse);
       const corps = lireCorps(requete);
       const modification = lireModification(corps, (reponse.locals.compte as CompteSession).prenom);
+      // Compte limité : prénom, pseudo et avatar se voient des autres, ils ne changent pas (l'app renvoie le profil entier :
+      // une valeur inchangée passe, comme la ville, les envies ou « privé »)
+      if (limitations && (modification.prenom !== undefined || modification.pseudo !== undefined || modification.avatar)) {
+        const limitation = await limitations.estLimite(id, new Date(horloge()));
+        const actuel = limitation ? await services.lireProfil(id) : null;
+        if (limitation && actuel && detecterChangementVisible(modification, actuel)) return repondreCompteLimite(reponse, limitation);
+      }
       // Compte du site (ambassadeur, pro) qui arrive dans l'app : il donne sa date une fois, et elle doit confirmer les
       // 18 ans juré à l'inscription. Ensuite, plus jamais ici.
       if (corps.dateNaissance !== undefined) {
