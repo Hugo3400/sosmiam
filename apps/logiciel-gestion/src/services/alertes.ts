@@ -14,6 +14,8 @@ export type Alertes = {
   ambassadeurs: { enAttente: number; candidatures: number; certifications?: number };
   /** Surveillance des visites : comptes et lieux signalés pas encore vus, refus contestés à relire */
   surveillance?: { comptes: number; lieux: number; contestations: number };
+  /** Avis en relecture et réponses des lieux à relire */
+  avis?: { aRelire: number; reponses: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };

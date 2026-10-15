@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  Bell, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
+  Bell, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -44,6 +44,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
     groupe: "Sécurité",
     entrees: [
       { ecran: "moderation", libelle: "Modération", icone: ShieldAlert },
+      { ecran: "avis", libelle: "Avis à relire", icone: Star },
       { ecran: "miam-safe", libelle: "Miam Safe", icone: ShieldCheck },
     ],
   },
