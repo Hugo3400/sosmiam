@@ -53,6 +53,12 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
 export function FournisseurProfil({ children }: { children: ReactNode }) {
   const session = utiliserSession();
   const [profil, setProfilAffiche] = useState<Profil | null>(null);
+  // La synchro garde la copie à jour du profil (relue au retour de chaque réponse du serveur) et l'écrit sur le téléphone
+  const { poserProfil: setProfil, installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
+    actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
+    afficherProfil: setProfilAffiche,
+  });
+
   const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
   const [inviteBrut, setInvite] = useState(false);
   const [chargement, setChargement] = useState(true);
@@ -60,12 +66,6 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   // Les entrées en visite qui attendent que les écrans de la visite soient ouverts, et ce qui est affiché en ce moment
   const enAttenteInvite = useRef<(() => void)[]>([]);
   const inviteAffichee = useRef(false);
-
-  // La synchro garde la copie à jour du profil (relue au retour de chaque réponse du serveur) et l'écrit sur le téléphone
-  const { poserProfil: setProfil, installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
-    actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
-    afficherProfil: setProfilAffiche,
-  });
 
   useEffect(() => {
     (async () => {

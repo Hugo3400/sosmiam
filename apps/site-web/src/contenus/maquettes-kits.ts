@@ -48,12 +48,16 @@ function affiche(id: string, titre: string, texte: string, description: string, 
   };
 }
 
-/** Une série de visuels réseaux : les trois premiers en aperçu, toute la série dans un zip */
-function serie(id: string, titre: string, texte: string, images: number, story: boolean): Maquette {
+/**
+ * Une série de visuels réseaux (famille « reseaux », ou une campagne comme « recrutement ») : les trois premiers en aperçu,
+ * toute la série dans un zip. Un post seul n'a pas de numéro (post-….png) ; les autres images, si (…-1.png).
+ */
+function serie(id: string, titre: string, texte: string, images: number, story: boolean, famille = "reseaux"): Maquette {
+  const fichierImage = (i: number) => (images === 1 && id.startsWith("post-") ? `${famille}/${id}.png` : `${famille}/${id}-${i + 1}.png`);
   return {
-    id, groupe: "reseaux", titre, texte, kits: ["ambassadeurs"],
-    apercus: Array.from({ length: Math.min(images, 3) }, (_, i) => apercu(`reseaux/${id}-${i + 1}.png`, `${titre}, image ${i + 1} sur ${images}`)),
-    fichiers: [{ nom: `reseaux-${id}.zip`, chemin: `kits/reseaux-${id}.zip`, format: "ZIP", taille: `${images} image${images > 1 ? "s" : ""} ${story ? "1080 × 1920" : "1080 × 1350"}` }],
+    id: `${famille}-${id}`, groupe: "reseaux", titre, texte, kits: ["ambassadeurs"],
+    apercus: Array.from({ length: Math.min(images, 3) }, (_, i) => apercu(fichierImage(i), images > 1 ? `${titre}, image ${i + 1} sur ${images}` : titre)),
+    fichiers: [{ nom: `${famille}-${id}.zip`, chemin: `kits/${famille}-${id}.zip`, format: "ZIP", taille: `${images} image${images > 1 ? "s" : ""} ${story ? "1080 × 1920" : "1080 × 1350"}` }],
   };
 }
 
@@ -95,6 +99,11 @@ export const maquettesKits: Maquette[] = [
     apercus: [apercu("imprimes/badges-epingle-38mm.png", "Badges ronds à épingle : la mascotte, « Sauveur de table » et le bouclier Miam Safe.")],
     fichiers: [{ nom: "badges-epingle-38mm.png", chemin: "imprimes/badges-epingle-38mm.png", format: "PNG", taille: "4032 × 936 px" }],
   },
+
+  // Campagne « ambassadeurs fondateurs » (validée par Hugo le 15 octobre 2026) : en tête, c'est celle à poster en ce moment
+  serie("carrousel-deviens-fondateur-de-ta-ville", "Carrousel « Deviens fondateur de ta ville »", "Ton rôle, ce que tu y gagnes, les places par ville et comment candidater, en cinq images.", 5, false, "recrutement"),
+  serie("post-ce-numero-pourrait-etre-le-tien", "Post « Ce numéro pourrait être le tien »", "La carte de fondateur, pour donner envie de candidater.", 1, false, "recrutement"),
+  serie("stories-candidatures-fondateurs", "Stories « Candidatures fondateurs »", "Quatre stories, avec de la place en bas pour le sondage ou le lien.", 4, true, "recrutement"),
 
   // Visuels réseaux (kit des ambassadeurs)
   serie("carrousel-cest-quoi-sos-miam", "Carrousel « C'est quoi SOS Miam ? »", "Le concept en six images, pour ceux qui découvrent.", 6, false),

@@ -1,3 +1,4 @@
+import { lireAvatarMiami } from "../../../../../packages/commun/src/validation/lire-avatar-miami.ts";
 import { CIBLES_MODERATION } from "~/contenus/cibles-moderation.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import type { LieuCite, Signalement } from "~/services/moderation.ts";
@@ -8,6 +9,12 @@ const nomAuteur = (a: unknown) => {
   return auteur ? (auteur.pseudo ? `@${auteur.pseudo}` : auteur.prenom ?? "?") : "compte supprimé";
 };
 const texte = (v: unknown) => (typeof v === "string" ? v : "");
+/** Un emoji tel quel, ou le nom d'un avatar Miami (« miami:toque » → « Miami Toque ») ; un Miami inconnu de cette version : « avatar Miami » */
+const nomAvatar = (v: unknown) => {
+  const miami = lireAvatarMiami(v);
+  if (miami) return miami.reserve ? `avatar ${miami.nom}` : `avatar Miami ${miami.nom}`;
+  return texte(v).startsWith("miami:") ? "avatar Miami" : texte(v);
+};
 
 /**
  * Un contenu social tel qu'il était au moment du signalement (son instantané déchiffré) : jamais le contenu vivant, qui a
@@ -51,7 +58,7 @@ export function InstantaneSignale({ signalement, lieux }: { signalement: Signale
           {Array.isArray(c.lieux) && c.lieux.length > 0 && <p className="text-[13px] text-gris">Lieux : {c.lieux.map(nomLieu).join(", ")}</p>}
         </>
       )}
-      {c.cible === "profil" && <p className="text-sm">{texte(c.avatar)} <strong>{c.pseudo ? `@${texte(c.pseudo)}` : "sans pseudo"}</strong> · {texte(c.prenom)}</p>}
+      {c.cible === "profil" && <p className="text-sm">{nomAvatar(c.avatar)} <strong>{c.pseudo ? `@${texte(c.pseudo)}` : "sans pseudo"}</strong> · {texte(c.prenom)}</p>}
       {c.cible === "sortie" && (
         <>
           <p className="text-sm font-semibold">{texte(c.emoji)} {texte(c.titre)}</p>

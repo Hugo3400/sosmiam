@@ -1,10 +1,13 @@
 // Double en mémoire des avis, pour les tests (aucune base de données). Mêmes gestes que avis.ts ; une seule chose à la fois
 // en JavaScript, donc le verrou ne fait rien (deux écritures peuvent s'entrelacer à chaque await : les gestes conditionnels
 // tranchent, comme dans la base). ecrire est tout ou rien : chaque écriture note de quoi la défaire, et une erreur levée
-// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction. Les points de la photo n'ont
-// pas de compte ici : chaque mouvement est noté (pointsPhoto), et défait avec le reste.
+// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction. Les points de la photo : chaque
+// mouvement est noté (pointsPhoto, le journal) et le total du compte suit (pointsComptes, jamais sous 0, comme
+// ajouterPointsDans), défaits avec le reste. transaction joue la transaction d'un appelant (le logiciel de gestion) :
+// depot.dans(tx) y écrit, et tout est défait si son fn lève.
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { MotifAvisLouche } from "../../../../packages/commun/src/types/avis.ts";
+import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
 import type { CompteAuteur, DepotAvis, LieuAvis, LigneAvis, NouvelleLigneAvis, TablesAvis } from "./avis-regles.ts";
 import type { LigneVisite } from "./visites-regles.ts";
@@ -27,6 +30,8 @@ export function creerAvisEnMemoire() {
   const avis: AvisEnMemoire[] = [];
   const relectures: RelectureEnMemoire[] = [];
   const pointsPhoto: MouvementPointsEnMemoire[] = [];
+  /** Le total des points de chaque compte (absent : 0), posé par les tests */
+  const pointsComptes = new Map<number, number>();
   let prochainId = 1;
 
   const resumer = (l: LieuAvis): LieuResume => ({ id: l.id, nom: l.nom, emoji: l.emoji, type: l.type, ville: l.ville });
@@ -163,22 +168,59 @@ export function creerAvisEnMemoire() {
       if (!enTransaction) throw new Error("Avis : points de la photo posés hors d'une transaction");
       const mouvement: MouvementPointsEnMemoire = { compteId, points, raison: "avis-photo", detail };
       pointsPhoto.push(mouvement);
-      annuler(() => retirer(pointsPhoto, mouvement));
+      const avant = pointsComptes.get(compteId);
+      pointsComptes.set(compteId, Math.max(0, (avant ?? 0) + points));
+      annuler(() => {
+        retirer(pointsPhoto, mouvement);
+        if (avant === undefined) pointsComptes.delete(compteId);
+        else pointsComptes.set(compteId, avant);
+      });
+    },
+    async lirePointsCompte(compteId) {
+      return pointsComptes.get(compteId) ?? 0;
+    },
+    async sommerPointsPhoto(compteId, detail) {
+      return pointsPhoto.filter((m) => m.compteId === compteId && m.detail === detail).reduce((somme, m) => somme + m.points, 0);
     },
   });
+
+  /** Tout ou rien : fn reçoit de quoi noter ses écritures, défaites (de la dernière à la première) s'il lève */
+  async function toutOuRien<T>(fn: (noter: (geste: () => void) => void) => Promise<T>): Promise<T> {
+    const aDefaire: (() => void)[] = [];
+    try {
+      return await fn((geste) => aDefaire.push(geste));
+    } catch (erreur) {
+      for (const geste of aDefaire.reverse()) geste();
+      throw erreur;
+    }
+  }
+  /** Les transactions ouvertes par transaction (un jeton opaque chacune) et de quoi y noter une écriture */
+  const ouvertes = new WeakMap<object, (geste: () => void) => void>();
 
   const lecture = creerTables(() => {}, false);
   const depot: DepotAvis = {
     lire: (fn) => fn(lecture),
-    async ecrire(fn) {
-      const aDefaire: (() => void)[] = [];
-      try {
-        return await fn(creerTables((geste) => aDefaire.push(geste)));
-      } catch (erreur) {
-        for (const geste of aDefaire.reverse()) geste();
-        throw erreur;
-      }
+    ecrire: (fn) => toutOuRien((noter) => fn(creerTables(noter))),
+    dans(tx) {
+      const noter = ouvertes.get(tx);
+      if (!noter) throw new Error("Avis : transaction inconnue ou déjà terminée");
+      return creerTables(noter);
     },
   };
-  return { depot, lieux, comptes, visites, avis, relectures, pointsPhoto };
+  /**
+   * Comme baseDeDonnees.$transaction chez l'appelant : tx est un jeton (aucun geste Prisma dessus), à passer à depot.dans ;
+   * si fn lève, tout ce qui a été écrit par depot.dans(tx) est défait
+   */
+  async function transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+    const jeton = {};
+    try {
+      return await toutOuRien((noter) => {
+        ouvertes.set(jeton, noter);
+        return fn(jeton as Prisma.TransactionClient);
+      });
+    } finally {
+      ouvertes.delete(jeton);
+    }
+  }
+  return { depot, transaction, lieux, comptes, visites, avis, relectures, pointsPhoto, pointsComptes };
 }

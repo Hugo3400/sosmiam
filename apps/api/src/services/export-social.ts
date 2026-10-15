@@ -1,9 +1,13 @@
 // Export de tes données sociales, version Prisma (contrat et mise en forme dans export-social-regles.ts) : les lignes de la
 // personne, et seulement les siennes (ses messages, jamais ceux des autres ; jamais son code d'invitation). Les blocages ne
-// sont pas lus ici : la mise en forme les lit une fois (relations.listerBlocages) et cache ceux qu'ils concernent.
+// sont pas lus ici : la mise en forme les lit une fois (relations.listerBlocages) et cache ceux qu'ils concernent. Les
+// limitations du compte viennent du service de la session Site (limitations-comptes.ts), lu tel quel.
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
-import { creerServicesExportSocial, type DonneesExportSocial, type ServicesExportSocial } from "./export-social-regles.ts";
+import {
+  creerServicesExportSocial, type DonneesExportSocial, type ListerLimitationsExport, type ServicesExportSocial,
+} from "./export-social-regles.ts";
+import { creerLimitationsComptes, listerLimitationsDuCompte } from "./limitations-comptes.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 
 type Base = typeof baseDeDonnees;
@@ -29,18 +33,17 @@ export async function lireDonneesExportSocial(base: Base, compteId: number): Pro
     base.reactionMessage.findMany({ where: { compteId }, select: { messageId: true, reaction: true, creeLe: true }, orderBy: parDate }),
   ]);
   const membre = membresMoi.map((m) => m.conversationId);
+  // Les sorties où ton invitation attend ta réponse ou est acceptée ; quittée, elle n'a plus ton invitation (même si tu l'as créée)
+  const avecMonInvitation = { invitations: { some: { compteId, statut: { in: ["invite", "accepte"] } } } };
   const conversationIds = [...new Set([...membre, ...messages.map((m) => m.conversationId), ...invitationsGroupes.map((i) => i.conversationId)])];
   const [conversations, membres, sorties, invitationsSorties, participantsSorties, propositions, votes] = await Promise.all([
     base.conversation.findMany({ where: { id: { in: conversationIds } }, select: { id: true, type: true, titreChiffre: true, sortie: { select: { titre: true } } } }),
     base.membreConversation.findMany({ where: { conversationId: { in: membre } }, select: { conversationId: true, compteId: true }, orderBy: { arriveLe: "asc" } }),
-    base.sortie.findMany({
-      where: { OR: [{ organisateurId: compteId }, { invitations: { some: { compteId } } }] },
-      select: { id: true, titre: true, quand: true, organisateurId: true },
-    }),
+    base.sortie.findMany({ where: avecMonInvitation, select: { id: true, titre: true, quand: true, organisateurId: true } }),
     base.invitationSortie.findMany({ where: { compteId }, select: { sortieId: true, statut: true, inviteParId: true } }),
-    // Qui a la main sur les sorties où ton invitation attend ta réponse : un blocage avec lui la cache (estInvitationCachee)
+    // Qui a la main sur ces sorties : un blocage avec lui cache une invitation (estInvitationCachee) ; toi, tu es « organisateur »
     base.invitationSortie.findMany({
-      where: { statut: "accepte", sortie: { invitations: { some: { compteId, statut: "invite" } } } },
+      where: { statut: "accepte", sortie: avecMonInvitation },
       select: { sortieId: true, compteId: true, creeLe: true, reponduLe: true },
     }),
     base.propositionSortie.findMany({ where: { proposeParId: compteId }, select: { sortieId: true, lieuId: true } }),
@@ -77,7 +80,16 @@ export async function lireDonneesExportSocial(base: Base, compteId: number): Pro
   };
 }
 
-export function creerExportSocial(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null; base?: Base }): ServicesExportSocial {
+/**
+ * listerLimitations : par défaut, le service des limitations de la session Site sur la même base (celui de demarrer.ts
+ * sur la vraie base) ; tant que la table n'existe pas, aucune limitation. Le passer seulement pour un autre branchement.
+ */
+export function creerExportSocial(o: {
+  relations: RelationsSociales; chiffrement: ChiffrementSocial | null; base?: Base; listerLimitations?: ListerLimitationsExport;
+}): ServicesExportSocial {
   const base = o.base ?? baseDeDonnees;
-  return creerServicesExportSocial({ lire: (compteId) => lireDonneesExportSocial(base, compteId), relations: o.relations, chiffrement: o.chiffrement });
+  const listerLimitations = o.listerLimitations ?? (o.base ? creerLimitationsComptes(o.base).listerLimitationsDuCompte : listerLimitationsDuCompte);
+  return creerServicesExportSocial({
+    lire: (compteId) => lireDonneesExportSocial(base, compteId), relations: o.relations, chiffrement: o.chiffrement, listerLimitations,
+  });
 }

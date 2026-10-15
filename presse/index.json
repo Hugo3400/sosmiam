@@ -1214,6 +1214,127 @@
    "zip": "imprimes/sos-miam-imprimes.zip"
   },
   {
+   "id": "recrutement",
+   "titre": "Campagne ambassadeurs fondateurs",
+   "fichiers": [
+    {
+     "nom": "carrousel-deviens-fondateur-de-ta-ville-1.png",
+     "chemin": "recrutement/carrousel-deviens-fondateur-de-ta-ville-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens fondateur de ta ville, image 1/5",
+     "apercu": "apercus/recrutement-carrousel-deviens-fondateur-de-ta-ville-1.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-fondateur-de-ta-ville-2.png",
+     "chemin": "recrutement/carrousel-deviens-fondateur-de-ta-ville-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens fondateur de ta ville, image 2/5",
+     "apercu": "apercus/recrutement-carrousel-deviens-fondateur-de-ta-ville-2.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-fondateur-de-ta-ville-3.png",
+     "chemin": "recrutement/carrousel-deviens-fondateur-de-ta-ville-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens fondateur de ta ville, image 3/5",
+     "apercu": "apercus/recrutement-carrousel-deviens-fondateur-de-ta-ville-3.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-fondateur-de-ta-ville-4.png",
+     "chemin": "recrutement/carrousel-deviens-fondateur-de-ta-ville-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens fondateur de ta ville, image 4/5",
+     "apercu": "apercus/recrutement-carrousel-deviens-fondateur-de-ta-ville-4.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "carrousel-deviens-fondateur-de-ta-ville-5.png",
+     "chemin": "recrutement/carrousel-deviens-fondateur-de-ta-ville-5.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Carrousel · Deviens fondateur de ta ville, image 5/5",
+     "apercu": "apercus/recrutement-carrousel-deviens-fondateur-de-ta-ville-5.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "post-ce-numero-pourrait-etre-le-tien.png",
+     "chemin": "recrutement/post-ce-numero-pourrait-etre-le-tien.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Post · Ce numéro pourrait être le tien",
+     "apercu": "apercus/recrutement-post-ce-numero-pourrait-etre-le-tien.png",
+     "canaux": [
+      "instagram"
+     ]
+    },
+    {
+     "nom": "stories-candidatures-fondateurs-1.png",
+     "chemin": "recrutement/stories-candidatures-fondateurs-1.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Candidatures fondateurs, image 1/4",
+     "apercu": "apercus/recrutement-stories-candidatures-fondateurs-1.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-candidatures-fondateurs-2.png",
+     "chemin": "recrutement/stories-candidatures-fondateurs-2.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Candidatures fondateurs, image 2/4",
+     "apercu": "apercus/recrutement-stories-candidatures-fondateurs-2.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-candidatures-fondateurs-3.png",
+     "chemin": "recrutement/stories-candidatures-fondateurs-3.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Candidatures fondateurs, image 3/4",
+     "apercu": "apercus/recrutement-stories-candidatures-fondateurs-3.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    },
+    {
+     "nom": "stories-candidatures-fondateurs-4.png",
+     "chemin": "recrutement/stories-candidatures-fondateurs-4.png",
+     "format": "PNG",
+     "taille": "1080 × 1920 px",
+     "description": "Stories · Candidatures fondateurs, image 4/4",
+     "apercu": "apercus/recrutement-stories-candidatures-fondateurs-4.png",
+     "canaux": [
+      "instagram",
+      "tiktok"
+     ]
+    }
+   ],
+   "zip": "recrutement/sos-miam-recrutement.zip"
+  },
+  {
    "id": "miam-safe",
    "titre": "Miam Safe",
    "fichiers": [
@@ -3466,7 +3587,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_apercu.png",
      "format": "PNG",
      "taille": "2148 × 1150 px",
-     "description": "Ambassadeurs · Ambassadeurs aperçu — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs aperçu — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_apercu.png",
      "canaux": []
     },
@@ -3475,7 +3596,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_1_couverture.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 1 couverture — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 1 couverture — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_1_couverture.png",
      "canaux": []
     },
@@ -3484,7 +3605,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 2 ton rôle — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 2 ton rôle — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
      "canaux": []
     },
@@ -3493,7 +3614,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_3_avantages.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_3_avantages.png",
      "canaux": []
     },
@@ -3502,7 +3623,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_4_profil.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 4 profil — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 4 profil — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_4_profil.png",
      "canaux": []
     },
@@ -3511,7 +3632,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_5_candidater.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 5 candidater — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 5 candidater — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_5_candidater.png",
      "canaux": []
     },
@@ -3520,7 +3641,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_post_ce_numero.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs post ce numero — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs post ce numero — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_post_ce_numero.png",
      "canaux": []
     },
@@ -3529,7 +3650,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_story_1_teaser.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 1 teaser — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs story 1 teaser — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_1_teaser.png",
      "canaux": []
     },
@@ -3538,7 +3659,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_story_2_annonce.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 2 annonce — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs story 2 annonce — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_2_annonce.png",
      "canaux": []
     },
@@ -3547,7 +3668,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_story_3_avantages.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs story 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_3_avantages.png",
      "canaux": []
     },
@@ -3556,7 +3677,7 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_story_4_dernier_appel.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 4 dernier appel — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Ambassadeurs · Ambassadeurs story 4 dernier appel — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_4_dernier_appel.png",
      "canaux": []
     },
@@ -4158,7 +4279,7 @@
      "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s.mp4",
      "format": "MP4",
      "taille": "27 s",
-     "description": "Vidéo 19 · Recrutement ambassadeurs — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Vidéo 19 · Recrutement ambassadeurs — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s.jpg",
      "canaux": []
     },
@@ -4167,7 +4288,7 @@
      "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.mp4",
      "format": "MP4",
      "taille": "27 s",
-     "description": "Vidéo 19 · Recrutement ambassadeurs · sans musique — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
+     "description": "Vidéo 19 · Recrutement ambassadeurs · sans musique — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »",
      "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.jpg",
      "canaux": []
     },

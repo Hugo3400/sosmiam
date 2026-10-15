@@ -11,10 +11,12 @@ import type { Profil } from "@sos-miam/commun/types/profil";
 import type { DecisionModerationApi } from "@sos-miam/commun/types/signalement";
 import { appliquerChangementsInfos } from "~/fonctions/compte/appliquer-changements-infos";
 import { estPseudoNeutre } from "~/fonctions/compte/est-pseudo-neutre";
+import { expliquerPseudoServeur } from "~/fonctions/compte/expliquer-pseudo-serveur";
 import { fusionnerProfilServeur } from "~/fonctions/compte/fusionner-profil-serveur";
 import { listerChampsDifferents } from "~/fonctions/compte/lister-champs-differents";
 import { preparerModificationsProfil } from "~/fonctions/compte/preparer-modifications-profil";
 import { sontProfilsIdentiques } from "~/fonctions/compte/sont-profils-identiques";
+import { trierRefusProfil } from "~/fonctions/compte/trier-refus-profil";
 import { trouverDecisionProfil } from "~/fonctions/compte/trouver-decision-profil";
 import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
@@ -178,38 +180,30 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     if (memoire.echecsServeur < ECHECS_SERVEUR_MAX) minuterie = setTimeout(lancer, attente);
   }
 
-  /** La décision de la modération sur ton profil depuis `depuis` ; « illisible » si la liste ne se lit pas */
-  async function lireDecisionProfil(depuis: number): Promise<DecisionModerationApi | null | "illisible"> {
-    const r = await o.moderation.listerDecisions();
-    return r.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
+  /**
+   * Le serveur montre un autre pseudo que celui d'avant : l'équipe (profil retenu : décision dans « mes décisions », ou
+   * forme d'un pseudo neutre si la liste ne se lit pas) ou un autre téléphone du compte (sans bruit). À la première
+   * synchro, la liste n'est lue que pour un pseudo neutre.
+   */
+  async function expliquerPseudo(ancien: string | null, nouveau: string, premiere: boolean) {
+    let decision: DecisionModerationApi | null | "illisible" = null;
+    if (!premiere || estPseudoNeutre(nouveau)) {
+      const r = await o.moderation.listerDecisions();
+      const depuis = premiere || !memoire.etat.luLe ? Date.now() - RESERVATION_MS : memoire.etat.luLe;
+      decision = r.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
+    }
+    const { annonce, misDeCote } = expliquerPseudoServeur(ancien, nouveau, decision, premiere, RESERVATION_MS);
+    if (misDeCote) memoire.etat.pseudoMisDeCote = misDeCote;
+    if (annonce) memoire.etat.annonce = annonce;
   }
 
   /** Téléphone d'avant la synchro : ce qui diffère vient de Mes infos ou Mes envies, jamais parti. Le téléphone gagne, une fois */
   async function rattraperPremiereFois(local: Profil, serveur: ProfilServeur) {
     marquer(memoire, listerChampsDifferents(local, serveur));
-    if (local.pseudo && local.pseudo !== serveur.pseudo) {
-      if (serveur.pseudo === null) marquer(memoire, ["pseudo"]);
-      else {
-        const decision = estPseudoNeutre(serveur.pseudo) ? await lireDecisionProfil(Date.now() - RESERVATION_MS) : null;
-        if (decision) {
-          const le = decision !== "illisible" && decision.decideLe ? Date.parse(decision.decideLe) : Date.now();
-          memoire.etat.pseudoMisDeCote = { pseudo: local.pseudo, jusqua: new Date(le + RESERVATION_MS).toISOString() };
-          memoire.etat.annonce = { type: "pseudo-neutre", pseudo: serveur.pseudo };
-        } else memoire.etat.annonce = { type: "pseudo-du-serveur", pseudo: serveur.pseudo };
-      }
-    }
+    // Pseudo jamais parti alors que le serveur n'en a aucun : il part (seule exception à « le serveur fait foi »)
+    if (local.pseudo && serveur.pseudo === null) marquer(memoire, ["pseudo"]);
+    else if (local.pseudo && serveur.pseudo && local.pseudo !== serveur.pseudo) await expliquerPseudo(local.pseudo, serveur.pseudo, true);
     memoire.etat.premiereFaite = true;
-  }
-
-  /** Pseudo changé ailleurs : par l'équipe (profil retenu : annonce douce), ou par un autre téléphone du compte (sans bruit) */
-  async function surveillerPseudo(nouveau: string | null, envoye: string | null) {
-    const ancien = memoire.etat.pseudoServeur;
-    if (ancien === undefined || nouveau === null || nouveau === ancien || nouveau === envoye) return;
-    const decision = await lireDecisionProfil(memoire.etat.luLe || Date.now() - RESERVATION_MS);
-    if (decision === null || (decision === "illisible" && !estPseudoNeutre(nouveau))) return;
-    const le = decision !== "illisible" && decision.decideLe ? Date.parse(decision.decideLe) : Date.now();
-    if (ancien) memoire.etat.pseudoMisDeCote = { pseudo: ancien, jusqua: new Date(le + RESERVATION_MS).toISOString() };
-    if (estPseudoNeutre(nouveau)) memoire.etat.annonce = { type: "pseudo-neutre", pseudo: nouveau };
   }
 
   /**
@@ -221,8 +215,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     memoire.etat.aEnvoyer = memoire.etat.aEnvoyer.filter((m) => m.numero > depart);
     const avant = lireProfil();
     if (!avant) return;
+    const ancien = memoire.etat.pseudoServeur;
     if (!memoire.etat.premiereFaite) await rattraperPremiereFois(ajuster ? ajuster(avant) : avant, serveur);
-    else await surveillerPseudo(serveur.pseudo, envoye);
+    else if (ancien !== undefined && serveur.pseudo && serveur.pseudo !== ancien && serveur.pseudo !== envoye) await expliquerPseudo(ancien, serveur.pseudo, false);
     if (gen !== generation) return;
     // Ville inconnue du serveur (compte du site, envoi raté) : celle du téléphone repart, une fois par lancement
     if (!serveur.ville && !memoire.villeReparee) {
@@ -245,17 +240,11 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     garder();
   }
 
-  /** Un refus définitif en arrière-plan : le champ en cause quitte la file, la valeur du serveur est relue, le reste repart */
-  function refuserEnArrierePlan(r: { erreur: ErreurService; champ?: string; details?: DetailsErreur }, partis: ChampSynchro[], depart: number) {
-    const champ = r.champ as ChampSynchro | undefined;
-    if (r.erreur === "pseudo-pris" && partis.includes("pseudo")) {
-      // Le pseudo d'avant la synchro n'a jamais pu partir : il s'efface du téléphone, « Il te manque un pseudo » prend le relais
-      oublierMarques(memoire, ["pseudo"], depart);
-    } else if (r.erreur === "compte-limite" && (partis.includes("prenom") || partis.includes("pseudo"))) {
-      if (partis.includes("prenom")) memoire.etat.annonce = { type: "prenom-limite", jusqua: r.details?.jusqua ?? null };
-      oublierMarques(memoire, ["prenom", "pseudo"], depart);
-    } else if (r.erreur === "champ-invalide" && champ && partis.includes(champ)) oublierMarques(memoire, [champ], depart);
-    else oublierMarques(memoire, partis, depart);
+  /** Un refus définitif : le champ en cause quitte la file, la valeur du serveur est relue, le reste repart */
+  function refuserEnArrierePlan(r: Parameters<typeof trierRefusProfil>[0], partis: ChampSynchro[], depart: number) {
+    const { retirer, annonce } = trierRefusProfil(r, partis);
+    oublierMarques(memoire, retirer, depart);
+    if (annonce) memoire.etat.annonce = annonce;
     memoire.relire = true;
     garder();
   }
@@ -399,11 +388,11 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       lancer();
     },
     /** Un nouveau profil complet (inscription, connexion, reprise) : rien ne part, rien n'attend, plus de rattrapage */
-    async installer(profil: Profil) {
+    async installer(nouveau: Profil) {
       generation += 1;
       arreterMinuterie();
       memoire = { ...memoireVide(creerSynchroProfil(true)), pret: true };
-      await sousVerrou(() => ecrireProfil(profil));
+      await sousVerrou(() => ecrireProfil(nouveau));
       garder();
       if (actif) {
         memoire.relire = true;

@@ -9,9 +9,12 @@
 //   comme Réglages › Personnes bloquées). Les blocages sont lus une seule fois (relations.listerBlocages) ;
 // - le titre d'une liste suivie ou co-écrite seulement si elle t'est encore visible (même règle que filtrerVisibles de
 //   listes.ts et voit de listes-en-memoire.ts) ; celui d'un groupe seulement si tu en es membre ou invité (pas après un
-//   refus) ; une invitation à une sortie qu'un blocage te cache n'y est pas (estInvitationCachee, comme l'app) ;
+//   refus) ; une invitation à une sortie qu'un blocage te cache n'y est pas (estInvitationCachee, comme l'app), ni une
+//   sortie que tu as quittée (même si tu l'avais créée) ; « organisateur » : tu as la main (trouverOrganisateurEffectif) ;
 // - de tes signalements, ce que TU as écrit (raison, précision, explication) et leur statut ; jamais la décision, sa
-//   motivation, une contestation ni l'instantané du contenu.
+//   motivation, une contestation ni l'instantané du contenu ;
+// - les limitations de TON compte (listerLimitations, session Site : limitations-comptes.ts) : motif, motivation, dates et
+//   ta contestation ; jamais qui a décidé ou réexaminé (la table ne le garde pas, le journal du logiciel suffit).
 // Les messages se déchiffrent par paquets (PAQUET_DECHIFFREMENT) : entre deux paquets, l'API répond aux autres demandes.
 // Choix de construction (à confirmer par Hugo, B.1) : les photos et notes vocales ne sont pas jointes (date, type, taille).
 import { peutVoirListe } from "../../../../packages/commun/src/fonctions/social/peut-voir-liste.ts";
@@ -29,6 +32,7 @@ import type {
 } from "../base-de-donnees/client-genere/client.ts";
 import { trouverOrganisateurEffectif } from "../fonctions/social/trouver-organisateur-effectif.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
+import type { LimitationLue } from "./limitations-comptes-regles.ts";
 import { AUCUN_LIEN, type RelationsSociales } from "./relations-sociales-regles.ts";
 import { estInvitationCachee } from "./sorties-regles.ts";
 
@@ -39,6 +43,14 @@ export interface ServicesExportSocial {
 
 /** Ce que l'export lit des relations : les personnes en petit, les blocages (une fois) et tes liens avec les auteurs de listes */
 export type RelationsExportSocial = Pick<RelationsSociales, "presenter" | "listerBlocages" | "lireLiens">;
+
+/** Ce que l'export lit d'une limitation de ton compte : jamais le compte de l'équipe (la table ne le garde pas) */
+export type LimitationExportLue = Pick<
+  LimitationLue, "id" | "motif" | "motivation" | "debut" | "fin" | "leveeLe" | "contestation" | "contesteLe" | "reexamineLe" | "creeLe"
+>;
+
+/** Toutes les limitations encore gardées d'un compte (listerLimitationsDuCompte de limitations-comptes.ts, ou son double) */
+export type ListerLimitationsExport = (compteId: number) => Promise<LimitationExportLue[]>;
 
 /** Les lignes d'une personne, telles que la base (ou le double) les rend ; rien n'est encore déchiffré, filtré ni présenté */
 export type DonneesExportSocial = {
@@ -61,10 +73,10 @@ export type DonneesExportSocial = {
   messages: Pick<MessageConversation, "id" | "conversationId" | "type" | "idClient" | "texteChiffre" | "taille" | "creeLe">[];
   invitationsGroupes: Pick<InvitationGroupe, "conversationId" | "inviteParId" | "statut" | "creeLe">[];
   reactions: Pick<ReactionMessage, "messageId" | "reaction" | "creeLe">[];
-  /** Les sorties que tu organises ou où l'on t'invite ; tes invitations, tes propositions et tes votes (lieu par sortie) */
+  /** Les sorties où tu as une invitation (pas celles que tu as quittées) ; tes invitations, propositions et votes (lieu par sortie) */
   sorties: Pick<Sortie, "id" | "titre" | "quand" | "organisateurId">[];
   invitationsSorties: Pick<InvitationSortie, "sortieId" | "statut" | "inviteParId">[];
-  /** Les participants (invitations « accepte ») des sorties où ton invitation attend ta réponse : qui y a la main */
+  /** Les participants (invitations « accepte ») des sorties où ton invitation attend ta réponse ou est acceptée : qui y a la main */
   participantsSorties: Pick<InvitationSortie, "sortieId" | "compteId" | "creeLe" | "reponduLe">[];
   propositions: { sortieId: number; lieuId: number }[];
   votes: { sortieId: number; lieuId: number }[];
@@ -79,12 +91,15 @@ export type DonneesExportSocial = {
   /** Tes signalements ; cibleId ne sert qu'à cacher une liste que tu as signalée (il ne sort pas) */
   signalements: Pick<Signalement, "id" | "cible" | "cibleId" | "raison" | "precision" | "explication" | "statut" | "creeLe">[];
   masques: Pick<ElementMasque, "cible" | "cibleId" | "creeLe">[];
+  /** Les limitations de ton compte ; absent : l'export ne les lit pas (listerLimitations pas branché) */
+  limitations?: LimitationExportLue[];
 };
 
 /** Des lignes déchiffrées d'un coup, au plus : déchiffrer est synchrone, et des dizaines de milliers de messages gèleraient l'API */
 export const PAQUET_DECHIFFREMENT = 2_000;
 
 const iso = (d: Date) => d.toISOString();
+const isoOuNull = (d: Date | null) => (d ? iso(d) : null);
 const parDate = <T extends { creeLe: Date }>(a: T, b: T) => a.creeLe.getTime() - b.creeLe.getTime();
 const estCibleSociale = (cible: string): cible is CibleSignalementSocial => (CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(cible);
 /** Rend la main à la boucle de Node : les demandes en attente passent avant le paquet suivant */
@@ -239,13 +254,13 @@ export async function assemblerExportSocial(
     reactions: [...d.reactions].sort(parDate).map((r) => ({ messageId: String(r.messageId), reaction: r.reaction as CodeReaction, date: iso(r.creeLe) })),
     sorties: [...d.sorties].sort((a, b) => a.quand.getTime() - b.quand.getTime() || a.id - b.id).flatMap((s) => {
       const mienne = invitationSortie.get(s.id);
-      // Choix de construction : une invitation que tu as refusée n'y est pas (le contrat n'a pas de rôle « refusé »)
-      const role = s.organisateurId === compteId ? "organisateur" : mienne?.statut === "accepte" ? "participant" : mienne?.statut === "invite" ? "invite" : null;
-      if (!role) return [];
-      if (role === "invite" && mienne) {
-        const organisateurEffectif = trouverOrganisateurEffectif(s.organisateurId, participantsDe.get(s.id) ?? []);
-        if (estInvitationCachee({ organisateurEffectif }, mienne, caches)) return [];
-      }
+      // Sans ton invitation, tu as quitté la sortie (même celle que tu as créée : la colonne garde ton id) ; choix de
+      // construction : une invitation que tu as refusée n'y est pas (le contrat n'a pas de rôle « refusé »)
+      if (!mienne || (mienne.statut !== "accepte" && mienne.statut !== "invite")) return [];
+      const organisateurEffectif = trouverOrganisateurEffectif(s.organisateurId, participantsDe.get(s.id) ?? []);
+      if (mienne.statut === "invite" && estInvitationCachee({ organisateurEffectif }, mienne, caches)) return [];
+      // Comme moi.organisateur de l'app (presenterSortie) : celui qui a la main, pas seulement celui qui l'a créée
+      const role = mienne.statut === "invite" ? "invite" : organisateurEffectif === compteId ? "organisateur" : "participant";
       return [{ titre: s.titre, quand: iso(s.quand), role, propositions: lieuxDeSortie(propositionsDe, s.id), votes: lieuxDeSortie(votesDe, s.id) }];
     }),
     listes: [...d.listes].sort((a, b) => a.id - b.id).flatMap((l) => [
@@ -262,20 +277,29 @@ export async function assemblerExportSocial(
       ? [{ cible: s.cible, raison: s.raison, precision: s.precision, explication: s.explication, date: iso(s.creeLe), statut: s.statut }]
       : []),
     masques: [...d.masques].sort(parDate).map((m) => ({ cible: m.cible as CibleMasque, cibleId: m.cibleId })),
+    ...(d.limitations ? { limitations: [...d.limitations].sort((a, b) => parDate(a, b) || a.id - b.id).map((l) => ({
+      motif: l.motif, motivation: l.motivation, debut: iso(l.debut), fin: isoOuNull(l.fin), leveeLe: isoOuNull(l.leveeLe),
+      contestation: l.contestation, contesteLe: isoOuNull(l.contesteLe), reexamineLe: isoOuNull(l.reexamineLe), decideeLe: iso(l.creeLe),
+    })) } : {}),
   };
 }
 
-/** Le service, posé sur une façon de lire les lignes (la base, ou les tables en mémoire) */
+/** Le service, posé sur une façon de lire les lignes (la base, ou les tables en mémoire) et, s'il y en a, les limitations */
 export function creerServicesExportSocial(o: {
   lire: (compteId: number) => Promise<DonneesExportSocial>;
   relations: RelationsExportSocial;
   chiffrement: ChiffrementSocial | null;
+  /** Absente : l'export n'a pas de champ « limitations » */
+  listerLimitations?: ListerLimitationsExport;
 }): ServicesExportSocial {
   return {
     async exporter(compteId, maintenant) {
       // La route passe par exigerChiffrementSocial : sans clé, c'est une erreur de branchement (500), jamais un export vide
       if (!o.chiffrement) throw new Error("Chiffrement social absent : export sans exigerChiffrementSocial");
-      return assemblerExportSocial(await o.lire(compteId), { compteId, relations: o.relations, chiffrement: o.chiffrement, maintenant });
+      const [donnees, limitations] = await Promise.all([o.lire(compteId), o.listerLimitations?.(compteId)]);
+      return assemblerExportSocial(limitations ? { ...donnees, limitations } : donnees, {
+        compteId, relations: o.relations, chiffrement: o.chiffrement, maintenant,
+      });
     },
   };
 }

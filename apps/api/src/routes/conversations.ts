@@ -22,7 +22,8 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * chiffrement-indisponible sans la clé). Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes
  * (Retry-After) ; 400 champ-invalide { champ } ; 400 message-refuse { champ } (filtre de mots). Compte limité par l'équipe
  * (refuserSiLimite, avant le profil social, la clé et le corps d'un média) : 403 compte-limite { details: { jusqua } } sur
- * POST /groupes, PATCH /:id, POST /:id/invites, POST /:id/messages, POST /:id/medias et PUT des réactions ; le reste passe
+ * POST /groupes, PATCH /:id, POST /:id/invites, PUT /:id/membres/:personne/role, POST /:id/messages, POST /:id/medias et
+ * PUT des réactions ; le reste passe
  * (répondre à une invitation, quitter, couper, lu, effacer pour moi, supprimer son message, retirer sa réaction…).
  * - Ce que tu vois : les conversations dont tu es MEMBRE ; dans un groupe, on n'entre qu'en acceptant une invitation (avant :
  *   seulement l'invitation, ni les messages ni les membres). Les messages après ton arrivée (ou ton « Effacer pour moi »),
@@ -105,7 +106,8 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
   routes.post("/:id/invites", gestes, refuserSiLimite, exigerProfilSocial, cle, c.inviter);
   routes.post("/:id/reponse", gestes, exigerProfilSocial, cle, c.repondre);
   routes.delete("/:id/membres/:personne", gestes, exigerProfilSocial, c.retirerMembre);
-  routes.put("/:id/membres/:personne/role", gestes, exigerProfilSocial, cle, c.changerRole);
+  // Compte limité : il ne redistribue pas les pouvoirs d'un groupe (décision de Hugo du 15/10/2026) ; retirer quelqu'un reste permis
+  routes.put("/:id/membres/:personne/role", gestes, refuserSiLimite, exigerProfilSocial, cle, c.changerRole);
   routes.put("/:id/notifications", gestes, exigerProfilSocial, c.couper);
   routes.put("/:id/lu", gestes, exigerProfilSocial, c.marquerLu);
   routes.post("/:id/effacer", gestes, exigerProfilSocial, c.effacerPourMoi);

@@ -23,6 +23,8 @@ const ECRITURES_REFUSEES = [
   "POST /app/conversations/groupes",
   "PATCH /app/conversations/:id",
   "POST /app/conversations/:id/invites",
+  // Décision de Hugo du 15/10/2026 : un compte limité ne redistribue pas les pouvoirs d'un groupe (retirer quelqu'un reste permis)
+  "PUT /app/conversations/:id/membres/:personne/role",
   "POST /app/conversations/:id/messages",
   "POST /app/conversations/:id/medias",
   "PUT /app/conversations/:id/messages/:messageId/reactions/:reaction",
@@ -63,7 +65,6 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["POST /app/conversations/prive", "ouvrir le privé avec un pote, sans texte (les messages, eux, sont refusés)"],
   ["POST /app/conversations/:id/reponse", "accepter ou refuser une invitation"],
   ["DELETE /app/conversations/:id/membres/:personne", "quitter un groupe, ou un admin retire un membre"],
-  ["PUT /app/conversations/:id/membres/:personne/role", "un admin change un rôle (rien d'écrit)"],
   ["PUT /app/conversations/:id/notifications", "couper les notifications"],
   ["PUT /app/conversations/:id/lu", "marquer lu"],
   ["POST /app/conversations/:id/effacer", "effacer la discussion pour soi"],

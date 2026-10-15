@@ -1,15 +1,18 @@
 // Tests de l'export « Télécharger mes données sociales » (GET /app/social/export, lot L7) : TES messages déchiffrés, jamais
 // ceux des autres ni ton code d'invitation ; rien de ce que l'autre ne t'a pas montré (refus silencieux, blocage dans un
 // sens ou dans l'autre, liste qui ne t'est plus visible, invitation refusée ou cachée) ; tes suivis et ce que tu as écrit en
-// signalant ; déchiffré par paquets ; sans profil social, rien n'est créé ; 503 sans la clé ; 2 par 24 h. Tout en mémoire,
-// avec une clé de test.
+// signalant ; une sortie quittée n'y est plus (« organisateur » : qui a la main) ; les limitations de ton compte (jamais
+// qui a décidé) ; déchiffré par paquets ; sans profil social, rien n'est créé ; 503 sans la clé ; 2 par 24 h. Tout en
+// mémoire, avec une clé de test.
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 
 import { creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
 import { creerChiffrementSocial } from "../src/services/chiffrement-social.ts";
+import { creerExportSocialEnMemoire } from "../src/services/export-social-en-memoire.ts";
 import { assemblerExportSocial, PAQUET_DECHIFFREMENT, type DonneesExportSocial } from "../src/services/export-social-regles.ts";
+import { creerLimitationsEnMemoire } from "../src/services/limitations-comptes-en-memoire.ts";
 import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
 
 let banc: Awaited<ReturnType<typeof creerBancSocial>>;
@@ -27,6 +30,7 @@ const exporter = async (p: PersonneDeTest) => {
 };
 const ecrire = (p: PersonneDeTest, id: string, texte: string) =>
   p.demander("POST", `/app/conversations/${id}/messages`, { idClient: randomUUID(), type: "texte", texte });
+const JOUR = 86_400_000;
 
 test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamais les messages des autres ni ton code", async () => {
   const lea = await banc.creerPersonne({ prenom: "Léa", pseudo: "lea.export" });
@@ -188,7 +192,9 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
     t.sorties.set(id, {
       id, conversationId: id, organisateurId, titre, emoji: "🍝", quand: date(-joursAvant * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
     });
-    if (statut) t.invitationsSorties.push({ sortieId: id, compteId: moi.compteId, inviteParId: autre.compteId, statut, creeLe: date(), reponduLe: null });
+    // Comme dans la vraie base : l'organisateur participe à sa sortie (son invitation « accepte »)
+    if (organisateurId !== moi.compteId) t.invitationsSorties.push({ sortieId: id, compteId: organisateurId, inviteParId: null, statut: "accepte", creeLe: date(-9_000), reponduLe: null });
+    if (statut) t.invitationsSorties.push({ sortieId: id, compteId: moi.compteId, inviteParId: organisateurId === moi.compteId ? null : autre.compteId, statut, creeLe: date(), reponduLe: null });
   };
   sortie(9201, "Mon resto", moi.compteId, "accepte", 4);
   sortie(9202, "Invité", autre.compteId, "invite", 3);
@@ -232,6 +238,69 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
   assert.deepEqual(e.commentaires, [{ publicationId: "7", texte: "Trop bon !", date: date().toISOString() }]);
   assert.deepEqual([e.jaimesCommentaires, e.cloche, e.masques], [["9502"], [{ type: "mention", date: date().toISOString() }], [{ cible: "sortie", cibleId: "42" }]]);
   assert.deepEqual(e.signalements, [{ cible: "message", raison: "haine", precision: null, explication: "", date: date().toISOString(), statut: "a-traiter" }], "seulement les contenus sociaux");
+});
+
+test("une sortie que tu as quittée n'y est plus, même créée par toi ; qui prend la main y est « organisateur »", async () => {
+  const lea = await banc.creerPersonne();
+  const malo = await banc.creerPersonne();
+  const noe = await banc.creerPersonne();
+  banc.rendrePotes(lea, malo);
+  banc.rendrePotes(lea, noe);
+  const creee = await lea.demander("POST", "/app/sorties", {
+    titre: "Pizza quittée", emoji: "🍕", quand: date(JOUR).toISOString(), finVote: date(JOUR / 2).toISOString(), invites: [malo.idPublic, noe.idPublic], lieux: [12],
+    idClient: randomUUID(),
+  });
+  assert.equal(creee.statut, 201, JSON.stringify(creee.corps));
+  const id = creee.corps.sortie.id as string;
+  assert.equal((await malo.demander("POST", `/app/sorties/${id}/reponse`, { vient: true })).statut, 200);
+  const sorties = async (p: PersonneDeTest) => (await exporter(p)).corps.export.sorties.map((s: { titre: string; role: string }) => [s.titre, s.role]);
+  assert.deepEqual(await sorties(lea), [["Pizza quittée", "organisateur"]]);
+  assert.deepEqual(await sorties(malo), [["Pizza quittée", "participant"]]);
+
+  // Léa quitte : son invitation et sa place partent, la colonne garde son id ; Malo, seul participant, a la main
+  assert.equal((await lea.demander("DELETE", `/app/sorties/${id}/participation`)).statut, 200);
+  assert.equal(banc.tables.sorties.get(Number(id))?.organisateurId, lea.compteId, "la sortie reste, avec Léa dans la colonne");
+  assert.deepEqual(await sorties(lea), [], "quittée : ni « organisateur », ni rien");
+  assert.equal((await malo.demander("GET", `/app/sorties/${id}`)).corps.sortie.moi.organisateur, true);
+  assert.deepEqual(await sorties(malo), [["Pizza quittée", "organisateur"]], "comme l'app : celui qui a la main");
+  assert.deepEqual(await sorties(noe), [["Pizza quittée", "invite"]], "son invitation attend toujours");
+});
+
+test("les limitations de ton compte : motif, motivation, dates et ta contestation ; jamais celles des autres ni qui a décidé", async () => {
+  const moi = await banc.creerPersonne();
+  const autre = await banc.creerPersonne();
+  const limitations = creerLimitationsEnMemoire(() => banc.horloge.maintenant);
+  const { relations, chiffrement } = banc.social.dependances;
+  const service = creerExportSocialEnMemoire(banc.tables, relations, chiffrement, limitations.listerLimitationsDuCompte);
+  assert.deepEqual((await service.exporter(moi.compteId, date())).limitations, [], "branché, sans limitation : une liste vide");
+
+  // Une ancienne, levée avant sa fin ; puis une en cours (jusqu'à nouvel ordre), contestée puis réexaminée
+  const ancienne = await limitations.limiterCompte({
+    compteId: moi.compteId, motif: "pub-cachee", motivation: "Des liens de pub dans tes commentaires", debut: date(-10 * JOUR), fin: date(-2 * JOUR),
+  }, date(-11 * JOUR));
+  assert.ok(ancienne.ok);
+  assert.ok((await limitations.leverLimitation(ancienne.limitation.id, date(-5 * JOUR))).ok);
+  const enCours = await limitations.limiterCompte({ compteId: moi.compteId, motif: "haine", motivation: "Des insultes répétées dans une discussion" }, date(-JOUR));
+  assert.ok(enCours.ok);
+  assert.ok((await limitations.contesterLimitation(moi.compteId, "Je n'ai insulté personne, relisez bien", date(-JOUR / 2))).ok);
+  assert.ok((await limitations.reexaminerLimitation(enCours.limitation.id, date(-JOUR / 4))).ok);
+  assert.ok((await limitations.limiterCompte({ compteId: autre.compteId, motif: "arnaque", motivation: "Motivation pour un autre compte" }, date())).ok);
+
+  const e = await service.exporter(moi.compteId, date());
+  assert.deepEqual(e.limitations, [
+    {
+      motif: "pub-cachee", motivation: "Des liens de pub dans tes commentaires", debut: date(-10 * JOUR).toISOString(), fin: date(-2 * JOUR).toISOString(),
+      leveeLe: date(-5 * JOUR).toISOString(), contestation: null, contesteLe: null, reexamineLe: null, decideeLe: date(-11 * JOUR).toISOString(),
+    },
+    {
+      motif: "haine", motivation: "Des insultes répétées dans une discussion", debut: date(-JOUR).toISOString(), fin: null, leveeLe: null,
+      contestation: "Je n'ai insulté personne, relisez bien", contesteLe: date(-JOUR / 2).toISOString(), reexamineLe: date(-JOUR / 4).toISOString(),
+      decideeLe: date(-JOUR).toISOString(),
+    },
+  ], "de la plus ancienne à la plus récente ; ni id, ni compte, ni personne de l'équipe");
+  assert.ok(!JSON.stringify(e).includes("Motivation pour un autre compte"));
+  // L'app en mémoire (social-app-en-memoire.ts) ne donne pas encore les limitations : pas de champ, rien d'inventé
+  assert.equal("limitations" in (await exporter(moi)).corps.export, false);
 });
 
 test("listes suivies ou co-écrites : le titre seulement si elle t'est encore visible ; tes lieux de co-auteur restent", async () => {

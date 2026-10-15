@@ -4,10 +4,22 @@
 // sauf dans « bloques » (ceux que TU as bloqués, comme Réglages › Personnes bloquées).
 import type { DemandeBandeApi } from "./bande.ts";
 import type { TypeCloche } from "./cloche.ts";
+import type { LimitationCompteApi } from "./limitation-compte.ts";
 import type { CodeReaction, TypeConversation } from "./messagerie.ts";
 import type { CibleSignalementSocial } from "./signalement.ts";
 import type { CibleMasque, PersonneResume, ReglagesSociaux } from "./social.ts";
 import type { LienSuiviApi } from "./suivis.ts";
+
+/**
+ * Une limitation de ton compte décidée par l'équipe (décision de Hugo du 15 octobre 2026) : ce qu'on t'en a dit, ta
+ * contestation et ses dates ; jamais qui l'a décidée ni qui l'a réexaminée. Dates en ISO.
+ */
+export type LimitationExportApi = Pick<LimitationCompteApi, "motif" | "motivation" | "debut" | "fin" | "contestation" | "contesteLe" | "reexamineLe"> & {
+  /** Levée par l'équipe avant la fin prévue (null : pas levée) */
+  leveeLe: string | null;
+  /** Quand l'équipe l'a décidée (elle peut commencer plus tard : debut) */
+  decideeLe: string;
+};
 
 export type ExportSocialApi = {
   genereLe: string;
@@ -37,7 +49,10 @@ export type ExportSocialApi = {
    */
   invitationsGroupes: { titre: string | null; date: string; statut: "invite" | "refuse" }[];
   reactions: { messageId: string; reaction: CodeReaction; date: string }[];
-  /** Sans une invitation refusée, ni une invitation qu'un blocage te cache (comme dans l'app) */
+  /**
+   * Comme dans l'app : sans une invitation refusée, une invitation qu'un blocage te cache, ni une sortie que tu as quittée.
+   * organisateur : tu as la main (celui qui l'a créée tant qu'il y participe, sinon le plus ancien participant)
+   */
   sorties: { titre: string; quand: string; role: "organisateur" | "invite" | "participant"; propositions: number[]; votes: number[] }[];
   /**
    * auteur : le titre et tous les lieux ; co-auteur : les lieux que TU as ajoutés ; abonné : aucun lieu. Co-auteur et abonné :
@@ -50,4 +65,9 @@ export type ExportSocialApi = {
   /** Ce que TU as écrit en signalant (raison, précision, explication) et où il en est ; jamais la décision ni sa motivation */
   signalements: { cible: CibleSignalementSocial; raison: string; precision: string | null; explication: string; date: string; statut: string }[];
   masques: { cible: CibleMasque; cibleId: string }[];
+  /**
+   * Les limitations de ton compte encore gardées (en cours, à venir, ou finies ou levées depuis moins d'un an), de la plus
+   * ancienne à la plus récente. Absent : l'API qui a fait l'export ne lit pas encore les limitations
+   */
+  limitations?: LimitationExportApi[];
 };

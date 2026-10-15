@@ -3,7 +3,9 @@
 // le verrou porte sur la ligne du compte (SELECT … FOR UPDATE) et ne fait rien en lecture. Les doublons (un verdict par
 // ambassadeur, une réponse par avis, un avis par visite) et les décisions concurrentes (statut changé seulement s'il est
 // encore celui attendu) sont arrêtés par la base elle-même, sans faire échouer la transaction. Les points de la photo d'un
-// avis (décisions de l'équipe, avis-gestion.ts) sont posés dans cette même transaction (ajouterPointsDans de comptes.ts).
+// avis (décisions de l'équipe, avis-gestion.ts) sont posés dans cette même transaction (ajouterPointsDans de comptes.ts),
+// et relus dans le journal des points (raison « avis-photo », détail exact). dans prête les mêmes gestes à une transaction
+// ouverte par le logiciel de gestion (rétablir un avis avec la décision du réexamen).
 import type { RaisonRelecture, StatutAvis, StatutReponseAvis } from "../../../../packages/commun/src/types/avis.ts";
 import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
@@ -172,6 +174,13 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
       if (!enTransaction) throw new Error("Avis : points de la photo posés hors d'une transaction");
       await ajouterPointsDans(b, compteId, points, "avis-photo", detail);
     },
+    async lirePointsCompte(compteId) {
+      return (await b.compte.findUnique({ where: { id: compteId }, select: { points: true } }))?.points ?? 0;
+    },
+    async sommerPointsPhoto(compteId, detail) {
+      const { _sum } = await b.journalPoints.aggregate({ where: { compteId, raison: "avis-photo", detail }, _sum: { points: true } });
+      return _sum.points ?? 0;
+    },
   };
 }
 
@@ -179,5 +188,6 @@ export function creerDepotAvis(): DepotAvis {
   return {
     lire: (fn) => fn(creerTables(baseDeDonnees, false)),
     ecrire: (fn) => baseDeDonnees.$transaction((transaction) => fn(creerTables(transaction, true))),
+    dans: (tx) => creerTables(tx, true),
   };
 }

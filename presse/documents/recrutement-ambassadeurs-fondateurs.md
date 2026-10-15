@@ -52,26 +52,26 @@ J1 est le jour où tu lances la campagne ; les premiers fondateurs sont annoncé
 | J7 | Post « Ce numéro pourrait être le tien » | Mail aux associations étudiantes et de quartier | À faire |
 | J10 | Stories avec les questions reçues | Demander aux commerçants partenaires de partager | À faire |
 | J14 | Vidéo repostée en story | Faire le point : candidatures par ville, villes encore sans candidat | À faire |
-| J18 | Story 4 « Dernier appel » avec le sticker compte à rebours | Messages privés ciblés sur les villes encore sans candidat | À faire |
+| J18 | Story 4 « Ta ville a encore des places ? » | Messages privés ciblés sur les villes encore sans candidat | À faire |
 | J21 | Story « Merci pour vos candidatures ! » | Choisir les fondateurs, ville par ville | À faire |
 | J22 à J26 | Rien de prévu | Visios d'environ 30 minutes avec les fondateurs de chaque ville | À faire |
 | J28 | Post d'annonce des premiers fondateurs, avec leur accord | Cartes numériques dans l'espace, autocollants à préparer | À faire |
 
 ## Les publications
 
-La vidéo, le carrousel, le post et les 4 stories sont prêts à poster ; les légendes ci-dessous sont à copier telles quelles.
+Le carrousel, le post et les 4 stories ont été refaits le 15 octobre : famille « Campagne ambassadeurs fondateurs » de l'Espace presse, et kit média des ambassadeurs. La vidéo 19 date encore de l'ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de la poster. Les légendes ci-dessous sont à copier telles quelles.
 
-&#91;image: Aperçu des visuels de la campagne : carrousel, post et stories\]
+&#91;image: Les visuels de la campagne ambassadeurs fondateurs : carrousel de 5 images, post et 4 stories\]
 
 | Visuel | Où | Légende ou sticker |
 | --- | --- | --- |
 | SOSMiam\_19\_recrutement\_ambassadeurs\_27s.mp4 | Reel Instagram, TikTok, Facebook | On cherche les ambassadeurs fondateurs de ta ville, partout en France. Tu connais LA pépite de ton quartier ? Aide-la à se faire connaître. Candidature : lien en bio. #SOSMiam #Ambassadeur |
-| carrousel\_1 à carrousel\_5 | Post Instagram et Facebook | Des places comptées dans chaque ville. Tu déniches les pépites, tu tiens les fiches à jour, tu crées tes sélections. En échange : ta carte de fondateur, ton prénom en vitrine et l'app avant tout le monde. Glisse, puis candidate via le lien en bio. #SOSMiam #Ambassadeur |
-| post\_ce\_numero | Post Instagram et Facebook | Ce numéro pourrait être le tien. Les cartes de fondateur de ta ville n'existeront qu'une fois. Candidatures ouvertes, lien en bio. #SOSMiam #Ambassadeur |
-| story\_1\_teaser | Story | Sticker sondage « Tu as une pépite à nous souffler ? » : Oui / Évidemment |
-| story\_2\_annonce | Story | Sticker lien « Je candidate », posé sous la flèche |
-| story\_3\_avantages | Story | Sticker lien « Candidater » |
-| story\_4\_dernier\_appel | Story | Sticker compte à rebours réglé sur la date de clôture, puis sticker lien sous la flèche |
+| carrousel-deviens-fondateur-de-ta-ville-1 à 5 | Post Instagram et Facebook | Des places comptées dans chaque ville. Tu déniches les pépites, tu tiens les fiches à jour, tu crées tes sélections. En échange : ta carte de fondateur, ton prénom en vitrine et l'app avant tout le monde. Glisse, puis candidate via le lien en bio. #SOSMiam #Ambassadeur |
+| post-ce-numero-pourrait-etre-le-tien | Post Instagram et Facebook | Ce numéro pourrait être le tien. Les cartes de fondateur de ta ville n'existeront qu'une fois. Candidatures ouvertes, lien en bio. #SOSMiam #Ambassadeur |
+| stories-candidatures-fondateurs-1 | Story | Sticker sondage « Tu as une pépite à nous souffler ? » : Oui / Évidemment |
+| stories-candidatures-fondateurs-2 | Story | Sticker lien « Je candidate », posé sous la flèche |
+| stories-candidatures-fondateurs-3 | Story | Sticker lien « Candidater » |
+| stories-candidatures-fondateurs-4 | Story | Sticker lien « Je candidate », posé sous la flèche |
 
 ## Les messages à envoyer
 

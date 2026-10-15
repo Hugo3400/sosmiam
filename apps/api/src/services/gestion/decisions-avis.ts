@@ -40,10 +40,18 @@ export async function deciderAvis(
   return resultat;
 }
 
-/** Réexamen qui donne raison à l'auteur : l'avis (ou la réponse) revient en ligne, les points de la photo sont rendus. */
+/**
+ * Réexamen qui donne raison à l'auteur : l'avis (ou la réponse) revient en ligne, les points de la photo sont rendus.
+ * Appelé APRÈS l'écriture de la décision (en attendant retablirAvisDans de la session App, dans la même transaction) : un
+ * échec ne fait pas échouer la décision, déjà enregistrée ; il est écrit dans le journal du serveur, à rétablir à la main.
+ */
 export async function retablirApresReexamen(avis: AvisGestion | undefined, cible: string, cibleId: string, maintenant: Date) {
   const id = Number(cibleId);
   if (!avis || !Number.isSafeInteger(id)) return;
-  const resultat = cible === "avis" ? await avis.retablirAvis(id, maintenant) : cible === "reponse-avis" ? await avis.retablirReponseAvis(id, maintenant) : null;
-  if (resultat && !resultat.ok) console.error(`Avis : réexamen sans effet sur ${cible} n° ${id} (${resultat.erreur})`);
+  try {
+    const resultat = cible === "avis" ? await avis.retablirAvis(id, maintenant) : cible === "reponse-avis" ? await avis.retablirReponseAvis(id, maintenant) : null;
+    if (resultat && !resultat.ok) console.error(`Avis : réexamen sans effet sur ${cible} n° ${id} (${resultat.erreur})`);
+  } catch (erreur) {
+    console.error(`Avis : ${cible} n° ${id} PAS remis en ligne après le réexamen, à rétablir à la main :`, (erreur as Error).message);
+  }
 }

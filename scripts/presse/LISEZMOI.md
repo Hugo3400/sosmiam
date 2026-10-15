@@ -12,6 +12,7 @@ scripts d'ici ne font que les exporter et tout ranger ; le dossier de travail (`
 | `affiches` | Affiches SOS Miam : https://claude.ai/artifact/2J72bM5ci1C9DDqpoFL55S |
 | `reseaux` | Réseaux SOS Miam : https://claude.ai/artifact/LWd76cD7xmBZX3Yf2Lk9gk |
 | `imprimes` | Imprimés SOS Miam : https://claude.ai/artifact/Kr9uXMZ61QHDtGDWtvWnsq |
+| `recrutement` | Campagne ambassadeurs fondateurs : https://claude.ai/artifact/315bU4qZ6N1DV7zVt1Fegp |
 | `capitaine` | Capitaine Bouiboui : https://claude.ai/artifact/2eDDjg6gYUDoDWgDYh1BZL |
 | `flyer` | Flyer SOS Miam : https://claude.ai/artifact/M5Jab7BY8YKS3qhsabWXaP |
 

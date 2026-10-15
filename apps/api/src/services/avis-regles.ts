@@ -165,10 +165,22 @@ export interface TablesAvis {
    * l'avis). En base : ajouterPointsDans de services/comptes.ts (le total ne descend jamais sous 0). Refusé en lecture.
    */
   poserPointsPhoto(compteId: number, points: number, detail: string): Promise<void>;
+  /** Le total des points du compte (0 s'il n'existe pas) ; sous le verrou du compte, il ne bouge plus jusqu'à la fin */
+  lirePointsCompte(compteId: number): Promise<number>;
+  /**
+   * La somme des lignes du journal des points de ce compte, raison « avis-photo », dont le détail est EXACTEMENT celui-ci
+   * (0 s'il n'y en a pas) : ce qui a été retiré au masquage d'un avis, ou déjà rendu à son retour en ligne
+   */
+  sommerPointsPhoto(compteId: number, detail: string): Promise<number>;
 }
 
-/** lire : sans transaction ; ecrire : tout ou rien, verrous compris (une erreur levée défait tout ce qui a été écrit) */
+/**
+ * lire : sans transaction ; ecrire : tout ou rien, verrous compris (une erreur levée défait tout ce qui a été écrit) ;
+ * dans : les mêmes gestes dans une transaction déjà ouverte par l'appelant (le logiciel de gestion), qui la valide ou la
+ * défait lui-même avec tout ce qu'il y écrit
+ */
 export type DepotAvis = {
   lire<T>(fn: (t: TablesAvis) => Promise<T>): Promise<T>;
   ecrire<T>(fn: (t: TablesAvis) => Promise<T>): Promise<T>;
+  dans(tx: Prisma.TransactionClient): TablesAvis;
 };
