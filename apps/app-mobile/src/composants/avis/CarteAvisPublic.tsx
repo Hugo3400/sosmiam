@@ -2,23 +2,23 @@ import { Image } from "expo-image";
 import { Text, View } from "react-native";
 
 import { MENTIONS_AVIS_REGLEMENT } from "@sos-miam/commun/contenus/libelles-reglement";
-import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
+import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { AvisPublic } from "@sos-miam/commun/types/avis";
-import type { SourcePhotoAvis } from "~/composants/avis/BlocPhotoAvis";
 import { EtoilesAvis } from "~/composants/avis/EtoilesAvis";
+import { TEXTES_CARTE_AVIS } from "~/contenus/textes-carte-avis";
+import { ecrirePreuveAvis } from "~/fonctions/avis/ecrire-preuve-avis";
 import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
   avis: AvisPublic;
-  sourcePhoto: SourcePhotoAvis | null;
+  sourcePhoto: { uri: string } | null;
   nomLieu: string;
 };
 
 function listerEtiquettes(avis: AvisPublic): { texte: string; fond: string }[] {
-  const preuve = avis.preuve ? ` · ${LIBELLES_MODE_VALIDATION[avis.preuve]}` : "";
-  const etiquettes = [avis.verifie ? { texte: `✓ Visite vérifiée${preuve}`, fond: "bg-white" } : { texte: "Avis non vérifié", fond: "bg-creme" }];
+  const etiquettes = [{ texte: ecrirePreuveAvis(avis), fond: avis.verifie ? "bg-white" : "bg-creme" }];
   if (avis.repasOffert && MENTIONS_AVIS_REGLEMENT.offert) etiquettes.push({ texte: `🎁 ${MENTIONS_AVIS_REGLEMENT.offert}`, fond: "bg-rose-alerte" });
   if (avis.avecReduction && MENTIONS_AVIS_REGLEMENT.reduction) etiquettes.push({ texte: MENTIONS_AVIS_REGLEMENT.reduction, fond: "bg-jaune-clair" });
   return etiquettes;
@@ -40,7 +40,7 @@ export function CarteAvisPublic({ avis, sourcePhoto, nomLieu }: Props) {
       {sourcePhoto ? (
         <Image
           source={sourcePhoto}
-          accessibilityLabel={`Photo de l'avis de ${avis.signature}`}
+          accessibilityLabel={remplirModele(TEXTES_CARTE_AVIS.photoLue, { signature: avis.signature })}
           contentFit="cover"
           style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 12, borderWidth: 1, borderColor: couleurs.ligne }}
         />
@@ -56,7 +56,9 @@ export function CarteAvisPublic({ avis, sourcePhoto, nomLieu }: Props) {
 
       {avis.reponseLieu ? (
         <View className="gap-1 rounded-2xl border-l-4 border-jaune bg-creme px-3 py-2.5">
-          <Text className="font-texte-gras text-sm text-encre">{`Réponse de ${nomLieu} · ${ecrireMoisAnnee(avis.reponseLieu.mois)}`}</Text>
+          <Text className="font-texte-gras text-sm text-encre">
+            {remplirModele(TEXTES_CARTE_AVIS.reponseLieu, { lieu: nomLieu, mois: ecrireMoisAnnee(avis.reponseLieu.mois) })}
+          </Text>
           <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(avis.reponseLieu.texte)}</Text>
         </View>
       ) : null}

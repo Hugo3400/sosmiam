@@ -9,6 +9,7 @@ const MINUTES_AVANT_EXPIRATION = Math.round(EXPIRATION_AVANT_CRENEAU_MS / 60_000
 
 export const TEXTES_RESERVER_TABLE = {
   titre: "Réserver une table",
+  titreSortie: "Réserver ta place",
   sousTitre: "Gratuit, sans carte bancaire : l'équipe te répond dans l'app.",
   jour: "Quel jour ?",
   heure: "À quelle heure ?",
@@ -24,10 +25,16 @@ export const TEXTES_RESERVER_TABLE = {
   recapNote: `Gratuit, sans carte bancaire. Sans réponse ${MINUTES_AVANT_EXPIRATION}\u00a0min avant le créneau, la demande s'endort toute seule.`,
   envoyer: "Envoyer ma demande",
   envoyerSansPetitMot: "Envoyer sans petit mot",
+  envoi: "Envoi…",
   indiceEnvoyer: "Envoie ta demande au lieu, qui te répond dans l'app",
   indiceSansHeure: "Choisis d'abord le jour et l'heure",
   prochainJourOuvert: "Voir le prochain jour ouvert",
   indiceProchainJourOuvert: "Choisit le prochain jour avec des créneaux",
+  sansHorairesTitre: "Pas encore d'horaires ici",
+  sansHorairesTexte: "L'équipe {deLieu} n'a pas encore mis ses horaires dans l'app, alors on ne peut pas te proposer de créneau. Passe les voir ou appelle-les : ils seront ravis.",
+  lieuIntrouvableTitre: "Ce lieu n'est plus là",
+  lieuIntrouvableTexte: "Il n'est plus sur SOS Miam pour l'instant. Plein d'autres pépites t'attendent dans l'Explorer.",
+  voirExplorer: "Voir d'autres pépites",
 } as const;
 
 export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; court: string; lu: string; titre: string; texte: string }>> = {
@@ -43,7 +50,7 @@ export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; c
     court: "Trop tard",
     lu: "plus de créneau",
     titre: "Plus de créneau aujourd'hui",
-    texte: `On réserve au moins ${MINUTES_AVANCE}\u00a0min à l'avance, et la dernière table du jour est déjà partie. Demain, ça te dit ?`,
+    texte: `On réserve au moins ${MINUTES_AVANCE}\u00a0min à l'avance, et le dernier créneau du jour est passé. Un autre jour, ça te dit ?`,
   },
 };
 
@@ -55,22 +62,28 @@ export const MOMENTS_CRENEAUX: Readonly<Record<MomentCreneau, { emoji: string; l
 };
 
 export const TEXTES_REFUS_RESERVATION: Readonly<Partial<Record<ErreurService, string>>> = {
-  "email-non-verifie":
-    "Pour réserver, il faut un e-mail confirmé : le lieu doit pouvoir compter sur toi. Touche le lien qu'on t'a envoyé, ou redemande-le depuis ton compte.",
+  "email-non-verifie": "Pour réserver, il faut un e-mail confirmé. Touche le lien qu'on t'a envoyé, ou redemande-le depuis ton compte.",
   "membre-du-lieu": "On ne réserve pas chez soi : ta table, tu la connais déjà ! Va plutôt goûter chez les voisins.",
   "hors-ligne": "Rien n'est parti. Vérifie ta connexion, puis renvoie : tes choix t'attendent ici.",
-  introuvable: "Ce lieu n'est plus sur SOS Miam pour l'instant. Retourne sur la fiche pour en dénicher un autre.",
+  introuvable: "Ce lieu n'est plus sur SOS Miam pour l'instant. Reviens à l'Explorer pour en dénicher un autre.",
+  "transition-interdite": "Elle a bougé entre-temps : la carte ci-dessous est à jour.",
+  "delai-depasse": "Le créneau est déjà passé : il n'y a plus rien à annuler.",
 };
 
 export const ACTIONS_REFUS_RESERVATION = {
   retourFiche: "Retour à la fiche",
+  voirExplorer: "Voir l'Explorer",
   voirReservations: "Voir mes réservations",
   confirmerEmail: "Confirmer mon e-mail",
 } as const;
 
 export const TEXTES_DEMANDE_ENVOYEE = {
   titre: "Demande envoyée !",
-  sousTitre: "L'équipe {deLieu} te répond ici, dans l'app. Tu reçois une notif dès qu'elle a tranché.",
+  sousTitre: "L'équipe {deLieu} te répond ici, dans l'app : sa réponse arrive dans Mes réservations.",
+  titreAcceptee: "C'est réservé !",
+  sousTitreAcceptee: "L'équipe {deLieu} t'attend. Le jour J, touche « Je\u00a0suis\u00a0là » en arrivant, dans Mes réservations.",
+  titreRefusee: "Pas cette fois",
+  sousTitreRefusee: "L'équipe {deLieu} a répondu : la carte t'explique pourquoi. Un autre créneau te tente ?",
   titreAnnulee: "Demande annulée",
   sousTitreAnnulee: "Une autre date te tente ? Choisis un nouveau créneau, la table t'attend peut-être déjà.",
   etapesTitre: "Et ensuite ?",

@@ -62,7 +62,10 @@ export default function ReglagesNotifications() {
     );
   }
 
-  const changerType = (type: TypeNotification, valeur: boolean) => modifier((r) => ({ ...r, types: { ...r.types, [type]: valeur } }));
+  const changerType = (type: TypeNotification, valeur: boolean) => {
+    modifier((r) => ({ ...r, types: { ...r.types, [type]: valeur } }));
+    if (type === "offre" && derniers.current?.actives) void telephone.inscrire(false, valeur);
+  };
   const changerSilence = (silence: Partial<ChoixNotifications["silence"]>) => modifier((r) => ({ ...r, silence: { ...r.silence, ...silence } }));
 
   return (
@@ -93,7 +96,7 @@ export default function ReglagesNotifications() {
               onChanger={(actives) => {
                 modifier((r) => ({ ...r, actives }));
                 // Allumé : on inscrit le téléphone (la question du système si besoin) ; coupé : le serveur l'oublie
-                void (actives ? telephone.inscrire(true) : telephone.couper());
+                void (actives ? telephone.inscrire(true, derniers.current?.types.offre ?? false) : telephone.couper());
               }}
             />
           </View>

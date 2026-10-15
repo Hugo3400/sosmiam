@@ -4,7 +4,7 @@
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 
 export type InscriptionAppareil = {
-  jeton: string; plateforme: "ios" | "android"; ville: string | null; compteId: number | null;
+  jeton: string; plateforme: "ios" | "android"; ville: string | null; offres: boolean; compteId: number | null;
   /** Empreinte SHA-256 du jeton de la session valable qui inscrit le téléphone (jamais le jeton), ou null sans session */
   empreinteSession: string | null;
 };

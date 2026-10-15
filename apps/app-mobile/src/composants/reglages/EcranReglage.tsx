@@ -9,17 +9,19 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
-  titre: string;
+  titre?: string;
   sousTitre?: string;
+  centre?: boolean;
   /** Bouton fixé en bas (ex. « Enregistrer ») */
   boutonPrincipal?: { libelle: string; onPress: () => void; desactive?: boolean; indice?: string };
   /** Dans le bas fixe, juste au-dessus du bouton principal (ex. le refus d'un compte limité) : toujours en vue, même quand le contenu défile */
   auDessusDuBouton?: ReactNode;
+  onRetour?: () => void;
   children: ReactNode;
 };
 
 /** Cadre des écrans de réglages : bouton retour, grand titre, contenu qui défile et bouton principal fixé en bas. */
-export function EcranReglage({ titre, sousTitre, boutonPrincipal, auDessusDuBouton, children }: Props) {
+export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, children }: Props) {
   const router = useRouter();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -29,19 +31,21 @@ export function EcranReglage({ titre, sousTitre, boutonPrincipal, auDessusDuBout
             accessibilityRole="button"
             accessibilityLabel="Retour"
             hitSlop={12}
-            onPress={() => router.back()}
+            onPress={onRetour ?? (() => router.back())}
             className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>
         </View>
 
-        <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8" keyboardShouldPersistTaps="handled">
-          <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">
-            {lierPonctuation(titre)}
-          </Text>
+        <ScrollView className="flex-1" contentContainerClassName={centre ? "flex-grow justify-center px-5 pb-8" : "px-5 pb-8"} keyboardShouldPersistTaps="handled">
+          {titre ? (
+            <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">
+              {lierPonctuation(titre)}
+            </Text>
+          ) : null}
           {sousTitre ? <Text className="mt-2 font-texte text-base leading-6 text-gris">{lierPonctuation(sousTitre)}</Text> : null}
-          <View className="mt-6">{children}</View>
+          <View className={titre || sousTitre ? "mt-6" : ""}>{children}</View>
         </ScrollView>
 
         {boutonPrincipal ? (

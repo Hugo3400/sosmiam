@@ -7,6 +7,16 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerJetonPush, enregistrerJetonPush, lireJetonPush } from "~/stockage/jeton-push";
 
+const ATTENTE_MAX_MS = 20_000;
+
+let fileTelephone: Promise<unknown> = Promise.resolve();
+
+function envoyerALaSuite<T>(tache: () => Promise<T>): Promise<T> {
+  const tour = fileTelephone.then(tache);
+  fileTelephone = Promise.race([tour.catch(() => undefined), new Promise((fini) => setTimeout(fini, ATTENTE_MAX_MS))]);
+  return tour;
+}
+
 /**
  * Le téléphone et les notifications : l'inscrire sur le serveur (jeton natif, plateforme, ta ville ; lié à ton compte si tu
  * es connecté) ou l'en retirer. Rien en démo (pas de serveur). `inscrire(demander)` : poser la question au système si besoin.
@@ -18,23 +28,23 @@ export function utiliserAppareilPush() {
   const ville = profil?.ville ?? null;
 
   const inscrire = useCallback(
-    async (demander: boolean): Promise<LectureJetonTelephone["ok"] | "refusee" | "a-demander" | "indisponible"> => {
+    (demander: boolean, offres: boolean): Promise<LectureJetonTelephone["ok"] | "refusee" | "a-demander" | "indisponible"> => envoyerALaSuite(async () => {
       if (DEMO_VISITES_ACTIVE) return "indisponible";
       const lu = await lireJetonTelephone(demander);
       if (!lu.ok) return lu.raison;
-      const r = await appareils.inscrire({ jeton: lu.jeton, plateforme: lu.plateforme, ville: ville || null });
+      const r = await appareils.inscrire({ jeton: lu.jeton, plateforme: lu.plateforme, ville: ville || null, offres });
       if (r.ok) await enregistrerJetonPush(lu.jeton);
       return r.ok;
-    },
+    }),
     [appareils, ville],
   );
 
-  const couper = useCallback(async () => {
+  const couper = useCallback(() => envoyerALaSuite(async () => {
     const jeton = await lireJetonPush();
     if (!jeton || DEMO_VISITES_ACTIVE) return;
     const r = await appareils.desinscrire(jeton);
     if (r.ok) await effacerJetonPush();
-  }, [appareils]);
+  }), [appareils]);
 
   return { inscrire, couper };
 }

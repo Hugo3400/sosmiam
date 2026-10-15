@@ -39,6 +39,7 @@ export function creerServicesIndisponibles(): Services {
     avis: {
       listerAvisAEcrire: async () => ({ ok: true, visites: [] }),
       envoyerAvis: indisponible,
+      envoyerPhotoAvis: indisponible,
       listerAvisLieu: async () => ({ ok: true, resume: resumeVide(), avis: [] }),
     },
     comptoir: {

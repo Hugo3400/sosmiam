@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Platform, Pressable, ScrollView, Text } from "react-native";
 
 import type { JourReservation } from "~/contenus/type-jour-reservation";
@@ -17,6 +17,7 @@ type Props = {
 const LARGEUR_JOUR = 70;
 const ECART_JOURS = 8;
 const MARGE_RANGEE = 20;
+const AGRANDISSEMENT_MAX = 1.2;
 
 function lireCouleurs(choisi: boolean, sansCreneau: boolean) {
   if (choisi) return { cadre: "border-encre bg-encre", haut: "text-jaune", numero: "text-white", bas: "text-jaune" };
@@ -31,13 +32,20 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
   const largeurVisible = useRef(0);
   const indexChoisi = jours.findIndex((jour) => jour.jour === choisi);
 
+  const amenerJourEnVue = useCallback(
+    (anime: boolean) => {
+      if (indexChoisi < 0 || largeurVisible.current === 0) return;
+      const debut = MARGE_RANGEE + indexChoisi * (LARGEUR_JOUR + ECART_JOURS);
+      const fin = debut + LARGEUR_JOUR;
+      if (debut < decalage.current) rangee.current?.scrollTo({ x: debut - MARGE_RANGEE, animated: anime });
+      else if (fin > decalage.current + largeurVisible.current) rangee.current?.scrollTo({ x: fin - largeurVisible.current + MARGE_RANGEE, animated: anime });
+    },
+    [indexChoisi],
+  );
+
   useEffect(() => {
-    if (indexChoisi < 0 || largeurVisible.current === 0) return;
-    const debut = MARGE_RANGEE + indexChoisi * (LARGEUR_JOUR + ECART_JOURS);
-    const fin = debut + LARGEUR_JOUR;
-    if (debut < decalage.current) rangee.current?.scrollTo({ x: debut - MARGE_RANGEE, animated: true });
-    else if (fin > decalage.current + largeurVisible.current) rangee.current?.scrollTo({ x: fin - largeurVisible.current + MARGE_RANGEE, animated: true });
-  }, [indexChoisi]);
+    amenerJourEnVue(true);
+  }, [amenerJourEnVue]);
 
   return (
     <ScrollView
@@ -46,7 +54,9 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={32}
       onLayout={(evenement) => {
+        const premiereFois = largeurVisible.current === 0;
         largeurVisible.current = evenement.nativeEvent.layout.width;
+        if (premiereFois) amenerJourEnVue(false);
       }}
       onScroll={(evenement) => {
         decalage.current = evenement.nativeEvent.contentOffset.x;
@@ -73,11 +83,13 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
             }}
             className={`min-h-[78px] w-[70px] items-center justify-center rounded-2xl border-2 px-1 py-2 active:opacity-80 ${couleurs.cadre}`}
           >
-            <Text numberOfLines={1} className={`font-texte-semi text-xs ${couleurs.haut}`}>
+            <Text numberOfLines={1} maxFontSizeMultiplier={AGRANDISSEMENT_MAX} className={`font-texte-semi text-xs ${couleurs.haut}`}>
               {decrit.haut}
             </Text>
-            <Text className={`font-titre text-2xl ${couleurs.numero}`}>{decrit.numero}</Text>
-            <Text numberOfLines={1} className={`font-texte text-[11px] ${couleurs.bas}`}>
+            <Text maxFontSizeMultiplier={AGRANDISSEMENT_MAX} className={`font-titre text-2xl ${couleurs.numero}`}>
+              {decrit.numero}
+            </Text>
+            <Text numberOfLines={1} maxFontSizeMultiplier={AGRANDISSEMENT_MAX} className={`font-texte text-[11px] ${couleurs.bas}`}>
               {raison ? SANS_CRENEAU[raison].court : decrit.mois}
             </Text>
           </Pressable>

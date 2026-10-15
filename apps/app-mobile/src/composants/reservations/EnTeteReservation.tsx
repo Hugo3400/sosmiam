@@ -18,8 +18,9 @@ export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Prop
   const { lieu } = reservation;
   const creneau = decrireCreneauReservation(reservation.creneau, maintenantMs);
   const personnes = ecrireNombrePersonnes(reservation.personnes);
-  const etiquette = decrireStatutReservation(reservation);
-  const libelle = [`${lieu.nom}, à ${lieu.ville}`, `${creneau.lu}, ${personnes}`, etiquette.lu, ...(reservation.demo ? [ETIQUETTE_DEMO.lu] : [])].join(". ");
+  const etiquette = decrireStatutReservation(reservation, maintenantMs);
+  const ou = lieu.ville ? `${lieu.nom}, à ${lieu.ville}` : lieu.nom;
+  const libelle = [ou, `${creneau.lu}, ${personnes}`, etiquette.lu, ...(reservation.demo ? [ETIQUETTE_DEMO.lu] : [])].join(". ");
 
   return (
     <View accessible accessibilityLabel={libelle} className="flex-row items-start gap-3">
@@ -35,7 +36,7 @@ export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Prop
         <Text numberOfLines={2} className={`font-texte-gras text-base ${enRetrait ? "text-gris" : "text-encre"}`}>
           {lieu.nom}
         </Text>
-        <Text className="font-texte text-[13px] leading-[18px] text-gris">{`${lieu.ville} · ${personnes}`}</Text>
+        <Text className="font-texte text-[13px] leading-[18px] text-gris">{lieu.ville ? `${lieu.ville} · ${personnes}` : personnes}</Text>
         <Text className={`mt-1 font-texte-semi text-[15px] leading-5 ${enRetrait ? "text-gris" : "text-encre"}`}>{creneau.court}</Text>
         <View className="mt-1.5 flex-row flex-wrap gap-1.5">
           <EtiquetteStatutReservation etiquette={etiquette} />

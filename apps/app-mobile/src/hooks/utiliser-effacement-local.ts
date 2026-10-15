@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
@@ -9,7 +10,7 @@ import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
 import { effacerModeApp } from "~/stockage/mode-app";
-import { effacerReglagesNotifications } from "~/stockage/reglages-notifications";
+import { effacerReglagesNotifications, lireReglagesNotifications } from "~/stockage/reglages-notifications";
 import { effacerRolesDemo } from "~/stockage/roles-demo";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 
@@ -25,6 +26,7 @@ export function utiliserEffacementLocal() {
   const conversations = utiliserConversations();
   const suivisPersonnes = utiliserSuivisPersonnes();
   const notifications = utiliserNotifications();
+  const telephone = utiliserAppareilPush();
   // Les outils de la démo des visites (en développement seulement) ; null dans une version publiée
   const outilsDemo = utiliserOutilsDemo();
   const [enCours, setEnCours] = useState(false);
@@ -42,7 +44,9 @@ export function utiliserEffacementLocal() {
       await suivisPersonnes.effacer();
       await notifications.effacer();
       await effacerSignalementsLocaux();
+      const reglagesAvant = await lireReglagesNotifications();
       await effacerReglagesNotifications();
+      if (reglagesAvant.actives && reglagesAvant.types.offre) void telephone.inscrire(false, false).catch(() => undefined);
       // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses
       if (outilsDemo) {
         await outilsDemo.remettreAZero();

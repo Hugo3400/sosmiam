@@ -31,11 +31,12 @@ export function creerControleursAppareils(d: DependancesAppareils) {
       if (corps.ville !== undefined && corps.ville !== null && typeof corps.ville !== "string") return refuser(reponse, "ville");
       const ville = typeof corps.ville === "string" ? corps.ville.replace(/\s+/g, " ").trim() : "";
       if (ville.length > VILLE_MAX) return refuser(reponse, "ville");
+      if (corps.offres !== undefined && typeof corps.offres !== "boolean") return refuser(reponse, "offres");
       const compte = reponse.locals.compte as CompteSession | undefined;
       // Session valable seulement (la protection l'a vérifiée) ; absente, invalide ou expirée : ni compte, ni session
       const jetonSession = compte ? lireJetonSession(requete) : null;
       await d.inscrire({
-        jeton, plateforme: corps.plateforme, ville: ville || null, compteId: compte?.id ?? null,
+        jeton, plateforme: corps.plateforme, ville: ville || null, offres: corps.offres === true, compteId: compte?.id ?? null,
         empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null,
       });
       reponse.json({ ok: true });
