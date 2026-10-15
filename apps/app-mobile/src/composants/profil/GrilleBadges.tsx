@@ -82,7 +82,7 @@ export function GrilleBadges({ obtenus, demo }: Props) {
               </Text>
             </>
           ) : (
-            <Text className="font-texte text-sm text-gris">👆 Touche un badge pour savoir comment l'obtenir.</Text>
+            <Text className="font-texte text-sm text-gris">{"👆 Touche un badge pour savoir comment l'obtenir."}</Text>
           )}
         </View>
       </>

@@ -21,6 +21,7 @@ import { alerterErreurPosition } from "~/fonctions/geo/alerter-erreur-position";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
 import { decrireZoneRegardee } from "~/fonctions/geo/decrire-zone-regardee";
+import { ecrireDepuisVille } from "~/fonctions/geo/ecrire-depuis-ville";
 import { ecrireErreurPosition } from "~/fonctions/geo/ecrire-erreur-position";
 import { ecrireRepliDistances } from "~/fonctions/geo/ecrire-repli-distances";
 import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
@@ -33,7 +34,6 @@ import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
-import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
@@ -71,7 +71,6 @@ export default function Explorer() {
   const focus = useIsFocused();
   const { profil } = utiliserProfil();
   const pointDeDepart = utiliserPointDeDepart();
-  const depuisVille = utiliserDepartVille().depuis;
   const { position, approximative, recherche, chercher, oublier, oublisApresAbsence } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
@@ -121,6 +120,7 @@ export default function Explorer() {
 
   // En visite sans compte (âge inconnu), pas de bar, comme partout dans l'app
   const age = profil ? calculerAge(profil.dateNaissance) : null;
+  const depuisVille = useMemo(() => (pointDeDepart ? ecrireDepuisVille(profil?.ville ?? "") : null), [pointDeDepart, profil?.ville]);
   const { lieux: tousLesLieux, chargerZone } = utiliserLieux();
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;

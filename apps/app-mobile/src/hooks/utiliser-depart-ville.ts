@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
-import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
-import { eliderDe } from "~/fonctions/texte/elider-de";
+import { ecrireDepuisVille } from "~/fonctions/geo/ecrire-depuis-ville";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
@@ -12,8 +11,5 @@ export function utiliserDepartVille(): DepartDistances {
   const depart = utiliserPointDeDepart();
   const { profil } = utiliserProfil();
   const nom = profil?.ville ?? "";
-  return useMemo(() => {
-    const ville = depart ? trouverVilleFrance(nom) : null;
-    return { depart, depuis: ville ? eliderDe(ville.nom) : null };
-  }, [depart, nom]);
+  return useMemo(() => ({ depart, depuis: depart ? ecrireDepuisVille(nom) : null }), [depart, nom]);
 }
