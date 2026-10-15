@@ -6,13 +6,13 @@ import type { EtapeEnvoiAvis, RefusEnvoiAvis } from "~/contenus/type-donner-avis
 type Echec = Extract<ReponseApi, { ok: false }>;
 
 const REFUS_EN_PLEIN_ECRAN: readonly ErreurService[] = ["avis-pas-ouvert", "avis-ferme", "avis-deja-donne", "membre-du-lieu", "connexion-requise"];
-const REFUS_DE_LA_PHOTO: readonly ErreurService[] = ["format-refuse", "media-trop-lourd", "media-invalide", "stockage-plein"];
+const REFUS_DE_LA_PHOTO: readonly ErreurService[] = ["format-refuse", "media-trop-lourd", "media-invalide", "stockage-plein", "trop-de-demandes", "introuvable"];
 
 export function classerRefusAvis(echec: Echec, etape: EtapeEnvoiAvis): RefusEnvoiAvis {
   const { erreur, details, champ } = echec;
   if (erreur === "compte-limite") return { ou: "limite" };
   if (REFUS_EN_PLEIN_ECRAN.includes(erreur)) return { ou: "ecran", erreur, details };
-  if (etape === "photo" && (REFUS_DE_LA_PHOTO.includes(erreur) || erreur === "introuvable")) return { ou: "photo", erreur };
+  if (etape === "photo" && REFUS_DE_LA_PHOTO.includes(erreur)) return { ou: "photo", erreur, ...(champ ? { champ } : {}), ...(details ? { details } : {}) };
   if (erreur === "avis-invalide") return champ === "photo" ? { ou: "photo", erreur } : { ou: "texte" };
   if (erreur === "introuvable") return { ou: "ecran", erreur, details };
   return { ou: "envoi", erreur, details };

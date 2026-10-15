@@ -9,7 +9,7 @@ export type SaisieAvis = { note: NoteAvis | null; texte: string; photo: PhotoAvi
 export type RefusEnvoiAvis =
   | { ou: "ecran"; erreur: ErreurService; details?: DetailsErreur }
   | { ou: "texte" }
-  | { ou: "photo"; erreur: ErreurService }
+  | { ou: "photo"; erreur: ErreurService; champ?: string; details?: DetailsErreur }
   | { ou: "limite" }
   | { ou: "envoi"; erreur: ErreurService; details?: DetailsErreur };
 
