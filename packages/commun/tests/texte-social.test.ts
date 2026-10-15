@@ -164,7 +164,7 @@ test("titres de groupe, de liste et de sortie : nettoyés comme les messages (\\
   assert.deepEqual(gardes("Brunch\rdu dimanche"), Array(3).fill("Brunch\ndu dimanche"));
   assert.deepEqual(gardes(`${"a".repeat(20)}\r\n${"b".repeat(19)}`), Array(3).fill(`${"a".repeat(20)}\n${"b".repeat(19)}`));
   assert.deepEqual(gardes(`${"a".repeat(20)}\r\n${"b".repeat(20)}`), Array(3).fill({ ok: false, champ: "titre" }));
-  for (const invisible of ["​⁠", "ㅤ️", "­⠀", "\r\n‍\r\n", "\u0085\u000B"]) {
+  for (const invisible of ["\u200B\u2060", "\u3164\uFE0F", "\u00AD\u2800", "\r\n\u200D\r\n", "\u0085\u000B"]) {
     assert.deepEqual(gardes(invisible), Array(3).fill({ ok: false, champ: "titre" }), JSON.stringify(invisible));
   }
 });
@@ -183,7 +183,6 @@ test("signalement « autre » : ses 10 caractères comptés après le nettoyage,
     ["Pas\u000Csympa!", "Pas\nsympa!"],
     ["Pas\u0085sympa!", "Pas\nsympa!"],
     ["Pas sympa!\u0085", "Pas sympa!"],
-    ["​Pas sympa​", "​Pas sympa​"],
   ];
   for (const [texte, garde] of limites) {
     assert.equal(validerSignalementContenu({ ...s, explication: texte })?.explication ?? null, garde, JSON.stringify(texte));

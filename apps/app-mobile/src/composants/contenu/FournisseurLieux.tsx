@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AppState } from "react-native";
 
 import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu, LieuApi } from "@sos-miam/commun/types/lieu";
 import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { RAYON_PROCHE_KM } from "~/contenus/portee-explorer";
@@ -25,6 +26,8 @@ const ZONES_GARDEES = 4;
 /** La clé d'une zone arrondie à la grille (des multiples de 0,5 degré : deux cadrages voisins ne relisent pas le serveur) */
 const cleZone = (z: ZoneGeo) => [z.nord, z.sud, z.ouest, z.est].map((b) => b.toFixed(2)).join(",");
 
+const estLieuDisparu = (erreur: ErreurService) => erreur === "lieu-inconnu" || erreur === "introuvable";
+
 /** Une zone gardée : ses bords arrondis, et quand elle a été demandée au serveur pour la dernière fois (0 : à redemander) */
 type ZoneGardee = { zone: ZoneGeo; demandee: number };
 
@@ -41,6 +44,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   const [lus, setLus] = useState<LieuApi[] | null>(null);
   // Les lieux lus un par un (absents de la liste), gardés jusqu'à la prochaine liste qui les contient
   const [enPlus, setEnPlus] = useState<LieuApi[]>([]);
+  const enPlusActuels = useRef<LieuApi[]>([]);
   // Les lieux lus par zone, par clé de zone (une zone relue remplace ce qu'elle avait), et les zones gardées, de la plus
   // ancienne demande à la plus récente
   const [deZones, setDeZones] = useState<Record<string, LieuApi[]>>({});
@@ -67,6 +71,28 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     [contenu],
   );
 
+  useEffect(() => {
+    enPlusActuels.current = enPlus;
+  }, [enPlus]);
+
+  const relireEnPlus = useCallback(
+    async (liste: LieuApi[]) => {
+      const dansLaListe = new Set(liste.map((l) => l.id));
+      const absents = enPlusActuels.current.filter((l) => !dansLaListe.has(l.id));
+      const lectures = await Promise.all(absents.map(async (l) => [l.id, await contenu.lireLieu(l.id).catch(() => null)] as const));
+      const relus = new Map(lectures);
+      setEnPlus((deja) =>
+        deja.flatMap((l) => {
+          if (dansLaListe.has(l.id)) return [];
+          const relu = relus.get(l.id);
+          if (relu?.ok) return [relu.lieu];
+          return relu && estLieuDisparu(relu.erreur) ? [] : [l];
+        }),
+      );
+    },
+    [contenu],
+  );
+
   const recharger = useCallback(async () => {
     if (DEMO_VISITES_ACTIVE) return;
     derniereLecture.current = Date.now();
@@ -74,10 +100,11 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     if (!r.ok) return setHorsLigne(true);
     setHorsLigne(false);
     setLus(r.lieux);
+    void relireEnPlus(r.lieux);
     // Les zones déjà lues aussi : un SOS terminé ou un lieu retiré disparaît partout
     for (const [cle, { demandee }] of zones.current) if (Date.now() - demandee > ZONE_FRAICHE_MS) lireZone(cle);
     await enregistrerLieuxServeur(r.lieux);
-  }, [contenu, lireZone]);
+  }, [contenu, lireZone, relireEnPlus]);
 
   const chargerLieu = useCallback(
     async (id: number): Promise<LectureLieu> => {
@@ -87,7 +114,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       }
       const r = await contenu.lireLieu(id);
       // Seul un « lieu inconnu » dit que le lieu n'existe pas : le reste (réseau, serveur) se retente plus tard
-      if (!r.ok) return { ok: false, raison: r.erreur === "lieu-inconnu" || r.erreur === "introuvable" ? "inconnu" : "hors-ligne" };
+      if (!r.ok) return { ok: false, raison: estLieuDisparu(r.erreur) ? "inconnu" : "hors-ligne" };
       setEnPlus((deja) => [...deja.filter((l) => l.id !== id), r.lieu]);
       return { ok: true, lieu: convertirLieuApi(r.lieu, depart) };
     },
