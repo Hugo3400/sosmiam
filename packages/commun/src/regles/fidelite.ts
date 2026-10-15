@@ -24,7 +24,7 @@ export const JOURS_HONNEUR_RECOMPENSES = 30;
 export const MOTS_ALCOOL: readonly string[] = [
   "vin", "vins", "biere", "bieres", "pinte", "spritz", "apero", "aperitif", "cocktail", "cocktails", "shot", "shots",
   "picpoul", "muscat", "champagne", "cremant", "prosecco", "cidre", "pastis", "ricard", "rhum", "whisky", "vodka", "gin",
-  "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "porto", "martini",
+  "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "portos", "martini",
   "cognac", "armagnac", "calvados", "caipirinha", "margarita", "ipa",
   "muscadet", "chardonnay", "sauvignon", "merlot", "syrah", "riesling",
   "whiskey", "sake", "absinthe", "vermouth", "amaretto", "grappa", "ouzo", "genepi", "hydromel",
@@ -37,4 +37,5 @@ export const EXPRESSIONS_ALCOOL: readonly string[] = [
   "un sancerre", "du sancerre", "verre de sancerre", "bouteille de sancerre", "sancerre blanc", "sancerre rouge", "sancerre rose",
   "un chablis", "du chablis", "petit chablis", "verre de chablis", "bouteille de chablis", "chablis premier cru", "chablis grand cru",
   "un beaujolais", "beaujolais nouveau", "beaujolais villages", "verre de beaujolais", "bouteille de beaujolais", "pichet de beaujolais",
+  "un porto", "du porto", "au porto", "verre de porto", "bouteille de porto", "porto tonic", "porto blanc", "porto rouge", "porto rose", "porto tawny",
 ];

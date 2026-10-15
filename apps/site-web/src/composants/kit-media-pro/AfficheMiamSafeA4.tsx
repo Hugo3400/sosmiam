@@ -2,7 +2,7 @@ import { Logo } from "~/composants/interface/Logo";
 import { QrCode } from "~/composants/kit-media-pro/QrCode";
 import { BouclierMiamSafe } from "~/composants/marque/BouclierMiamSafe";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { ENGAGEMENTS_CHARTE_MIAM_SAFE } from "~/contenus/charte-miam-safe";
+import { ENGAGEMENTS_CHARTE_MIAM_SAFE } from "../../../../../packages/commun/src/contenus/charte-miam-safe.ts";
 import { LIEN_ESPACE_PRO, LIEN_ESPACE_PRO_COURT, formatsImpression, texteAfficheMiamSafe } from "~/contenus/kit-media-pro";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 

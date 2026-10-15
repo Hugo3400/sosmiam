@@ -23,6 +23,6 @@ export const TEXTES_AVIS_PRO = {
   publierEnCours: "On publie…",
   publierIndiceVide: "Écris d'abord ta réponse",
   pasMaintenant: "Pas maintenant",
-  annoncePubliee: "Réponse publiée sous l'avis de {signature}.",
+  annoncePubliee: "C'est en ligne : {signature} peut lire ta réponse, juste sous son avis.",
   relecture: "Comme chaque réponse, la tienne peut être relue par l'équipe SOS Miam.",
 } as const;

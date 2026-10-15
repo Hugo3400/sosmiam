@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
+import { enchainerPhrases } from "~/fonctions/texte/enchainer-phrases";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
 };
 
 export function EncadreRefusEnvoiAvis({ emoji, titre, texte }: Props) {
-  const annonce = `${titre}. ${texte}`;
+  const annonce = enchainerPhrases([titre, texte]);
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(annonce);

@@ -23,3 +23,7 @@ export const RAYON_GROUPE_POINTS = 44;
 export const MARGE_VUE_CARTE = 0.25;
 
 export const METRES_PAR_DEGRE = 111_320;
+
+export type PointProjete = { point: PointCarte; x: number; y: number };
+
+export type AmasCarte = { membres: PointProjete[]; groupe: GroupeCarte; nord: number; sud: number; ouest: number; est: number };

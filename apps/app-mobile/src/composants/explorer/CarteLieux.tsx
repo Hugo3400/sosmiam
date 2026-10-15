@@ -271,6 +271,41 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
     },
   });
 
+  const marqueurs = useMemo(
+    () => [
+      ...regroupement.seuls.flatMap((seul) => {
+        const lieu = parId.get(seul.id);
+        if (!lieu) return [];
+        return [
+          <MarqueurLieu
+            key={seul.id}
+            id={seul.id}
+            emoji={lieu.emoji}
+            latitude={seul.latitude}
+            longitude={seul.longitude}
+            sos={!!lieu.sos}
+            alerte={!!lieu.alerte}
+            verifie={estLieuVerifie(lieu)}
+            libelle={decrireLieuCarte(lieu)}
+            selectionne={seul.id === selection}
+            onPress={gestes.choisir}
+          />,
+        ];
+      }),
+      ...regroupement.groupes.map((groupe) => (
+        <MarqueurGroupe
+          key={groupe.cle}
+          cle={groupe.cle}
+          nombre={groupe.nombre}
+          latitude={groupe.latitude}
+          longitude={groupe.longitude}
+          onPress={gestes.ouvrirGroupe}
+        />
+      )),
+    ],
+    [regroupement, parId, selection, gestes],
+  );
+
   function toucherCarte(evenement: MapPressEvent) {
     // Toucher la carte referme le clavier de la recherche
     Keyboard.dismiss();
@@ -312,35 +347,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
         onPress={toucherCarte}
       >
         {position ? <MarqueurPosition position={position} /> : null}
-        {regroupement.seuls.map((seul) => {
-          const lieu = parId.get(seul.id);
-          if (!lieu) return null;
-          return (
-            <MarqueurLieu
-              key={seul.id}
-              id={seul.id}
-              emoji={lieu.emoji}
-              latitude={seul.latitude}
-              longitude={seul.longitude}
-              sos={!!lieu.sos}
-              alerte={!!lieu.alerte}
-              verifie={estLieuVerifie(lieu)}
-              libelle={decrireLieuCarte(lieu)}
-              selectionne={seul.id === selection}
-              onPress={gestes.choisir}
-            />
-          );
-        })}
-        {regroupement.groupes.map((groupe) => (
-          <MarqueurGroupe
-            key={groupe.cle}
-            cle={groupe.cle}
-            nombre={groupe.nombre}
-            latitude={groupe.latitude}
-            longitude={groupe.longitude}
-            onPress={gestes.ouvrirGroupe}
-          />
-        ))}
+        {marqueurs}
       </MapView>
     </View>
   );

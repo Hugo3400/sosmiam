@@ -4,7 +4,7 @@
 // servis par /kit-media-lieux/<nom> (routes/ressources/telecharger-kit-lieux.ts). Pour les refaire :
 // npm run site:kit-media-lieux (scripts/generer-kit-media-lieux.sh), qui capture chaque visuel sur la route de rendu du
 // serveur de développement (/rendu-kit-lieux/<id>). Aucune promesse : ni de monde, ni de classement, ni de sécurité.
-import { PHRASE_MIAM_SAFE } from "~/contenus/charte-miam-safe";
+import { PHRASE_MIAM_SAFE } from "../../../../packages/commun/src/regles/miam-safe.ts";
 
 /** Dossier des fichiers, depuis le dossier du site (apps/site-web), d'où le serveur est toujours lancé */
 export const DOSSIER_KIT_MEDIA_LIEUX = "kit-media-lieux";

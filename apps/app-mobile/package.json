@@ -10,7 +10,8 @@
     "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "essais:synchro": "node essais/synchro-profil/lancer.mjs"
+    "essais:synchro": "node essais/synchro-profil/lancer.mjs",
+    "essais:avis": "node essais/avis/lancer.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/bricolage-grotesque": "^0.4.1",

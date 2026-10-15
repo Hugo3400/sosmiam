@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
 import { LigneChoixZone } from "~/composants/explorer/LigneChoixZone";
@@ -43,7 +43,8 @@ export function FeuilleZoneExplorer({ visible, choix, region, autourDe, villes, 
   const km = brouillon.rayonKm;
   const zone = (portee: PorteeExplorer) => setBrouillon({ portee, rayonKm: km, ville: null });
   // Une ville choisie qui n'est plus dans la liste reste proposée : on peut toujours la voir cochée
-  const proposees = choix.ville && !villes.includes(choix.ville) ? [choix.ville, ...villes] : villes;
+  const proposees = useMemo(() => (choix.ville && !villes.includes(choix.ville) ? [choix.ville, ...villes] : villes), [choix.ville, villes]);
+  const choixVilles = useMemo(() => proposees.map((ville) => () => setBrouillon((b) => ({ portee: null, rayonKm: b.rayonKm, ville }))), [proposees]);
   const zones: { portee: PorteeExplorer; emoji: string; libelle: string; detail?: string }[] = [
     { portee: "proche", emoji: "📍", libelle: "À quelques kilomètres", detail: `Autour ${autourDe}` },
     ...(region ? [{ portee: "region" as const, emoji: "🗺️", libelle: "Ta région", detail: region }] : []),
@@ -90,7 +91,7 @@ export function FeuilleZoneExplorer({ visible, choix, region, autourDe, villes, 
             Ou une ville précise
           </Text>
           {proposees.map((v, i) => (
-            <LigneChoixZone key={v} emoji="🏙️" libelle={v} choisi={brouillon.ville === v} position={zones.length + i + 1} total={total} onPress={() => setBrouillon({ portee: null, rayonKm: km, ville: v })} />
+            <LigneChoixZone key={v} emoji="🏙️" libelle={v} choisi={brouillon.ville === v} position={zones.length + i + 1} total={total} onPress={choixVilles[i]} />
           ))}
         </View>
       ) : null}

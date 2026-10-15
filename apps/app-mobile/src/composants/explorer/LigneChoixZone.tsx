@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { memo } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -17,7 +18,7 @@ type Props = {
 };
 
 /** Une ligne de « On explore où ? » : emoji, libellé (et précision), rond coché ou non. Au moins 56 points de haut. */
-export function LigneChoixZone({ emoji, libelle, detail, choisi, position, total, onPress }: Props) {
+export const LigneChoixZone = memo(function LigneChoixZone({ emoji, libelle, detail, choisi, position, total, onPress }: Props) {
   const lu = detail ? `${libelle}, ${detail}` : libelle;
   return (
     <Pressable
@@ -39,4 +40,4 @@ export function LigneChoixZone({ emoji, libelle, detail, choisi, position, total
       {choisi ? <Ionicons name="checkmark-circle" size={24} color={couleurs.encre} /> : <View className="h-6 w-6 rounded-full border-2 border-ligne" />}
     </Pressable>
   );
-}
+});

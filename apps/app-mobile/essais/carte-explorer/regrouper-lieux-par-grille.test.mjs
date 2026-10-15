@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  MARGE_VUE_CARTE,
   METRES_PAR_POINT_RUE,
   PLAFOND_MARQUEURS_CARTE,
   PLAFOND_PRIORITAIRES_CARTE,
+  RAYON_GROUPE_POINTS,
   SEUIL_SANS_GROUPE_CARTE,
 } from "~/contenus/regroupement-carte";
 import { regrouperLieuxParGrille } from "~/fonctions/geo/regrouper-lieux-par-grille";
@@ -28,8 +30,15 @@ const VUES = [
 function dansLaFenetre(point, region, taille = TAILLE_TELEPHONE) {
   const degresParPoint = region.longitudeDelta / taille.largeur;
   const cos = Math.cos((region.latitude * Math.PI) / 180);
-  const demiLatitude = Math.max(region.latitudeDelta, degresParPoint * cos * taille.hauteur);
-  return Math.abs(point.latitude - region.latitude) <= demiLatitude && Math.abs(point.longitude - region.longitude) <= region.longitudeDelta;
+  const part = 0.5 + MARGE_VUE_CARTE;
+  const demiLatitude = Math.max(region.latitudeDelta, degresParPoint * cos * taille.hauteur) * part;
+  const demiLongitude = region.longitudeDelta * part;
+  return (
+    point.latitude >= region.latitude - demiLatitude &&
+    point.latitude <= region.latitude + demiLatitude &&
+    point.longitude >= region.longitude - demiLongitude &&
+    point.longitude <= region.longitude + demiLongitude
+  );
 }
 
 function dansLaVue(point, region) {
@@ -63,8 +72,49 @@ test("aucun lieu de la fenêtre ne disparaît : chacun est seul ou dans un group
     const montres = idsMontres(resultat);
     assert.equal(new Set(montres).size, montres.length, `${nom} : un lieu montré deux fois`);
     if (metresParPoint(region) <= METRES_PAR_POINT_RUE) continue;
-    const attendus = points.filter((p) => dansLaFenetre(p, region)).map((p) => p.id);
-    assert.deepEqual([...montres].sort((a, b) => a - b), attendus.sort((a, b) => a - b), nom);
+    const vus = new Set(montres);
+    for (const p of points.filter((p) => dansLaFenetre(p, region))) assert.ok(vus.has(p.id), `${nom} : lieu ${p.id} disparu`);
+    const parId = new Map(points.map((p) => [p.id, p]));
+    for (const s of resultat.seuls) assert.ok(dansLaFenetre(parId.get(s.id), region), `${nom} : lieu seul ${s.id} hors de la fenêtre`);
+    for (const g of resultat.groupes) {
+      assert.ok(g.ids.some((id) => dansLaFenetre(parId.get(id), region)), `${nom} : groupe ${g.cle} sans aucun lieu dans la fenêtre`);
+    }
+  }
+});
+
+test("choisir un lieu dans un groupe le sort de ce groupe sans toucher aux autres", () => {
+  const points = creerPointsFrance(6000, 19);
+  const region = regionAutour(MARSEILLE, 10_000);
+  const avant = regrouperLieuxParGrille(points, region, TAILLE_TELEPHONE, null);
+  const groupe = [...avant.groupes].sort((a, b) => b.nombre - a.nombre)[0];
+  assert.ok(groupe && groupe.nombre > 2);
+  const choisi = groupe.ids[1];
+  const apres = regrouperLieuxParGrille(points, region, TAILLE_TELEPHONE, choisi);
+  assert.ok(apres.seuls.some((s) => s.id === choisi));
+  const parCle = new Map(apres.groupes.map((g) => [g.cle, g]));
+  assert.deepEqual(parCle.get(groupe.cle)?.ids, groupe.ids.filter((id) => id !== choisi));
+  for (const g of avant.groupes) if (g.cle !== groupe.cle) assert.deepEqual(parCle.get(g.cle)?.ids, g.ids, `groupe ${g.cle}`);
+  assert.equal(apres.groupes.length, avant.groupes.length);
+  assert.equal(apres.seuls.length, avant.seuls.length + 1);
+});
+
+test("un groupe ne réunit que des lieux proches à l'écran (sous le plafond)", () => {
+  const points = creerPointsFrance(1622, 20);
+  for (const metres of [40_000, 10_000, 4_000, 1_500]) {
+    const region = regionAutour(MARSEILLE, metres);
+    const resultat = regrouperLieuxParGrille(points, region, TAILLE_TELEPHONE, null);
+    assert.ok(compterMarqueurs(resultat) < PLAFOND_MARQUEURS_CARTE / 2);
+    const degresParPoint = region.longitudeDelta / TAILLE_TELEPHONE.largeur;
+    const cos = Math.cos((MARSEILLE.latitude * Math.PI) / 180);
+    const parId = new Map(points.map((p) => [p.id, p]));
+    const limite = 2 * RAYON_GROUPE_POINTS * 2 ** 0.25 + 1;
+    for (const g of resultat.groupes) {
+      for (const id of g.ids) {
+        const p = parId.get(id);
+        const ecart = Math.hypot((p.longitude - g.longitude) / degresParPoint, (p.latitude - g.latitude) / (degresParPoint * cos));
+        assert.ok(ecart <= limite, `${metres} m : lieu ${id} à ${ecart.toFixed(0)} points du centre de son groupe`);
+      }
+    }
   }
 });
 
@@ -178,4 +228,25 @@ test("des points sans position valable ne cassent rien", () => {
   const resultat = regrouperLieuxParGrille(points, regionAutour(MARSEILLE, 10_000), { largeur: 0, hauteur: 0 }, null);
   assert.deepEqual(resultat.seuls.map((s) => s.id), [2]);
   assert.deepEqual(regrouperLieuxParGrille([], FRANCE, TAILLE_TELEPHONE, 3), { seuls: [], groupes: [] });
+});
+
+test("hors SOS et alertes, deux marqueurs ne se posent pas l'un sur l'autre", () => {
+  const points = creerPointsFrance(6000, 21, { partPrioritaires: 0 });
+  for (const metres of [60_000, 20_000, 10_000, 4_000]) {
+    const region = regionAutour(MARSEILLE, metres);
+    const resultat = regrouperLieuxParGrille(points, region, TAILLE_TELEPHONE, null);
+    const degresParPoint = region.longitudeDelta / TAILLE_TELEPHONE.largeur;
+    const cos = Math.cos((MARSEILLE.latitude * Math.PI) / 180);
+    const marqueurs = [...resultat.seuls, ...resultat.groupes];
+    let trop = 0;
+    for (let i = 0; i < marqueurs.length; i++) {
+      for (let j = i + 1; j < marqueurs.length; j++) {
+        const a = marqueurs[i];
+        const b = marqueurs[j];
+        const ecart = Math.hypot((a.longitude - b.longitude) / degresParPoint, (a.latitude - b.latitude) / (degresParPoint * cos));
+        if (ecart < RAYON_GROUPE_POINTS * 2 ** -0.25 - 1) trop += 1;
+      }
+    }
+    assert.equal(trop, 0, `${metres} m : ${trop} paires de marqueurs trop proches`);
+  }
 });

@@ -61,6 +61,19 @@ test("parleDAlcool : bourbon, mousseux, sancerre, chablis et beaujolais seulemen
   }
 });
 
+test("parleDAlcool : le porto à boire, pas Porto ni Porto-Vecchio", () => {
+  for (const texte of ["Melon au porto", "Un porto offert", "Porto tonic en terrasse", "Une bouteille de porto à partager", "Deux portos offerts"]) {
+    assert.equal(parleDAlcool(texte), true, texte);
+  }
+  for (const texte of ["Concert à Porto-Vecchio", "Pastéis de nata comme à Porto", "Pizzeria de Porto-Vecchio, pâte maison"]) {
+    assert.equal(parleDAlcool(texte), false, texte);
+  }
+  const pizzeria = { type: "resto" as const, plat: "Pizza figatellu", info: "La pizzeria de Porto-Vecchio", tags: ["Fait maison"] };
+  assert.equal(lieuEvoqueAlcool(pizzeria), false);
+  assert.equal(estEvenementAlcool({ alcool: false, titre: "Fête du quartier à Porto-Vecchio", description: "Pâtisseries corses et jeux" }, "patisserie"), false);
+  assert.equal(estRecompenseAlcool({ recompense: "Un porto blanc offert", alcool: false }), true);
+});
+
 test("parleDAlcool : œ, ø et ß restent des lettres, un mot d'alcool collé à elles ne compte pas", () => {
   for (const texte of ["Ginœ", "Vinø", "ßgin"]) assert.equal(parleDAlcool(texte), false, texte);
   for (const texte of ["Œil de chef, gin maison", "Un gin, ø"]) assert.equal(parleDAlcool(texte), true, texte);

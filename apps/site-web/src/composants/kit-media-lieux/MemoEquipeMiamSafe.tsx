@@ -1,6 +1,6 @@
 import { BouclierMiamSafe } from "~/composants/marque/BouclierMiamSafe";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { PHRASE_MIAM_SAFE } from "~/contenus/charte-miam-safe";
+import { PHRASE_MIAM_SAFE } from "../../../../../packages/commun/src/regles/miam-safe.ts";
 import { formatsKitLieux, texteMemoEquipe as t } from "~/contenus/kit-media-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 

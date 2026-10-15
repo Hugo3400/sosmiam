@@ -10,6 +10,7 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { calculerFenetreListeLieux } from "~/fonctions/lieux/calculer-fenetre-liste-lieux";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import { lireAlcoolLieu } from "~/fonctions/lieux/lire-alcool-lieu";
 import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
@@ -63,6 +64,7 @@ const DUREE = 280;
 const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", moitie: "depliee", depliee: "repliee" };
 const BORDURE_HAUT = 2;
 const MARGE_BAS_LISTE = 24;
+const HAUTEUR_EN_TETE_LISTE_ESTIMEE = 300;
 
 const lireCleLieu = (element: LieuExplorer) => String(element.lieu.id);
 
@@ -82,6 +84,7 @@ export function FeuilleLieux(props: Props) {
   const [hauteurEnTete, setHauteurEnTete] = useState(56);
   const [hauteurSelection, setHauteurSelection] = useState(HAUTEUR_SELECTION_ESTIMEE);
   const [hauteurHaut, setHauteurHaut] = useState(HAUTEUR_POIGNEE + 56);
+  const [hauteurEnTeteListe, setHauteurEnTeteListe] = useState(HAUTEUR_EN_TETE_LISTE_ESTIMEE);
   const [lecteurEcran, setLecteurEcran] = useState(false);
   const refListe = useRef<FlatList<LieuExplorer>>(null);
   const refCarteSelection = useRef<View>(null);
@@ -108,7 +111,10 @@ export function FeuilleLieux(props: Props) {
   const cible = pleinEcran ? depliee : hauteurs[cran];
   const listeFixe = !pleinEcran && !lecteurEcran;
   const hauteurListe = Math.max(0, depliee - BORDURE_HAUT - hauteurHaut);
-  const margeBasListe = MARGE_BAS_LISTE + (listeFixe ? Math.max(0, depliee - cible) : 0);
+  const partieCachee = listeFixe ? Math.max(0, depliee - cible) : 0;
+  const margeBasListe = MARGE_BAS_LISTE + partieCachee;
+  const hauteurVisibleListe = listeFixe ? hauteurListe : cible - (pleinEcran ? 0 : BORDURE_HAUT) - hauteurHaut;
+  const fenetreListe = calculerFenetreListeLieux(hauteurVisibleListe, sos.length > 0 ? hauteurEnTeteListe : 0);
 
   const hauteur = useSharedValue(cible);
   const styleHauteur = useAnimatedStyle(() => ({ height: hauteur.value }));
@@ -239,7 +245,7 @@ export function FeuilleLieux(props: Props) {
   const enTeteListe = useMemo(
     () =>
       sos.length > 0 ? (
-        <View>
+        <View onLayout={(e) => setHauteurEnTeteListe(Math.round(e.nativeEvent.layout.height))}>
           <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} depuis={depuis} />
           <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">Tous les lieux</Text>
         </View>
@@ -249,6 +255,7 @@ export function FeuilleLieux(props: Props) {
   const piedListe = useMemo(() => (alcool ? <View className="px-4 pt-3"><MentionPrevention /></View> : null), [alcool]);
   const styleContenuListe = useMemo(() => ({ paddingBottom: margeBasListe, flexGrow: 1 }), [margeBasListe]);
   const styleListe = useMemo(() => (listeFixe ? { height: hauteurListe } : { flex: 1 }), [listeFixe, hauteurListe]);
+  const indicateurListe = useMemo(() => ({ bottom: partieCachee }), [partieCachee]);
 
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
@@ -369,8 +376,9 @@ export function FeuilleLieux(props: Props) {
             initialNumToRender={8}
             maxToRenderPerBatch={6}
             updateCellsBatchingPeriod={80}
-            windowSize={5}
+            windowSize={fenetreListe}
             contentContainerStyle={styleContenuListe}
+            scrollIndicatorInsets={indicateurListe}
             ListHeaderComponent={enTeteListe}
             ListEmptyComponent={lieux.length === 0 ? <View className="px-4 py-2">{vide}</View> : null}
             ListFooterComponent={piedListe}

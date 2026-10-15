@@ -28,7 +28,7 @@ test("photo trop petite : on dit la taille attendue (320 px), pas un refus vague
 
 test("trop de photos en une heure : l'attente donnée par le serveur, sinon « dans un moment »", () => {
   const avecAttente = decrireRefusPhotoAvis({ ou: "photo", erreur: "trop-de-demandes", details: { attenteS: 120 } });
-  assert.match(avecAttente.texte, /2 minutes/);
+  assert.match(avecAttente.texte, /2[\s  ]minutes/);
   assert.equal(avecAttente.emoji, "🐢");
   const sansAttente = decrireRefusPhotoAvis({ ou: "photo", erreur: "trop-de-demandes" });
   assert.match(sansAttente.texte, /dans un moment/);

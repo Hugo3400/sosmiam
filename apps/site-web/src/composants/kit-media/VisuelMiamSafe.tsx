@@ -3,7 +3,7 @@ import { CadreVisuel, type FormatVisuel } from "~/composants/kit-media/CadreVisu
 import { PastilleSite } from "~/composants/kit-media/PastilleSite";
 import { BouclierMiamSafe } from "~/composants/marque/BouclierMiamSafe";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { PHRASE_MIAM_SAFE } from "~/contenus/charte-miam-safe";
+import { PHRASE_MIAM_SAFE } from "../../../../../packages/commun/src/regles/miam-safe.ts";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 /**

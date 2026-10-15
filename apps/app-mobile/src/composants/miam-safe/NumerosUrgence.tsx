@@ -1,6 +1,7 @@
 import { Linking, Pressable, Text, View } from "react-native";
 
 import { NUMEROS_URGENCE } from "~/contenus/miam-safe";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 /**
  * Les secours en un appui, toujours en premier dans Miam Safe : 17, 18, 15, 112, et le 114 par SMS.
@@ -10,7 +11,7 @@ export function NumerosUrgence() {
   return (
     <View className="gap-3 rounded-2xl bg-encre p-4">
       <Text accessibilityRole="header" className="font-texte-gras text-base text-creme">
-        Danger réel ? Appelle tout de suite.
+        {lierPonctuation("Danger réel ? Appelle tout de suite.")}
       </Text>
       <View className="flex-row flex-wrap gap-2">
         {NUMEROS_URGENCE.map((n) => (

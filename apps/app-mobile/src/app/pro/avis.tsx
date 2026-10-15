@@ -16,6 +16,7 @@ import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { TEXTES_AVIS_LIEU } from "~/contenus/textes-avis-lieu";
 import { TEXTES_AVIS_PRO } from "~/contenus/textes-avis-pro";
 import { ecrireResumeAvis } from "~/fonctions/avis/ecrire-resume-avis";
+import { enchainerPhrases } from "~/fonctions/texte/enchainer-phrases";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserAvisPro } from "~/hooks/utiliser-avis-pro";
@@ -66,7 +67,7 @@ export default function EcranAvisPro() {
     setFeuilleOuverte(false);
     if (r.erreur === "compte-limite") return setLimiteVue(true);
     const message = decrireEchecVisite(r.erreur, r.details, lieuPro?.nom);
-    annoncer(`${message.titre}. ${message.texte}`);
+    annoncer(enchainerPhrases([message.titre, message.texte]));
   }
 
   const dessiner = (avis: AvisPublic) => (

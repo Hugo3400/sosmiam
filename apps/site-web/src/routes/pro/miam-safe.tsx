@@ -5,7 +5,7 @@ import { CaseACocher } from "~/composants/compte/CaseACocher";
 import { FormulaireCompte, type ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { Section } from "~/composants/mise-en-page/Section";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
-import { ENGAGEMENTS_CHARTE_MIAM_SAFE } from "~/contenus/charte-miam-safe";
+import { ENGAGEMENTS_CHARTE_MIAM_SAFE } from "../../../../../packages/commun/src/contenus/charte-miam-safe.ts";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { formaterJourEnLettres } from "~/fonctions/dates/formater-jour-en-lettres";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";

@@ -1,10 +1,12 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { creerAvisApi } from "@sos-miam/commun/client-api/api/api-avis";
 import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { AvisPublic, ResumeAvis } from "@sos-miam/commun/types/avis";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { clientApiPublic } from "~/services/client-api-public";
 
 export type LectureAvisLieu =
   | { etat: "attente" }
@@ -13,8 +15,11 @@ export type LectureAvisLieu =
 
 const HORS_LIGNE: Extract<ReponseApi, { ok: false }> = { ok: false, erreur: "hors-ligne" };
 
+const AVIS_PUBLICS = creerAvisApi(clientApiPublic);
+
 export function utiliserAvisLieu(lieuId: number) {
-  const { avis: service } = utiliserServices();
+  const services = utiliserServices();
+  const service = services.source === "indisponible" ? AVIS_PUBLICS : services.avis;
   const [lecture, setLecture] = useState<LectureAvisLieu>({ etat: "attente" });
   const [suiteEnCours, setSuiteEnCours] = useState(false);
   const monte = useRef(true);
