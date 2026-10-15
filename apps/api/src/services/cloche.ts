@@ -30,8 +30,8 @@ export function creerCloche(relations: RelationsSociales = creerRelationsSociale
           orderBy: { id: "desc" },
         });
         if (deja) {
-          await base.notificationCloche.update({ where: { id: deja.id }, data: { creeLe: maintenant, detail, enRetour: n.enRetour ?? false } });
-          continue;
+          const { count } = await base.notificationCloche.updateMany({ where: { id: deja.id }, data: { creeLe: maintenant, detail, enRetour: n.enRetour ?? false } });
+          if (count > 0) continue;
         }
         await base.notificationCloche.create({
           data: { compteId: n.compteId, type: n.type, acteurId: n.acteurId, cible, cibleId, detail, enRetour: n.enRetour ?? false, creeLe: maintenant },

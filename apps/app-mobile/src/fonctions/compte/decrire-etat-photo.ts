@@ -29,7 +29,7 @@ export function decrireEtatPhoto(etat: EtatPhotoSynchro | null, enAttenteDEnvoi:
     };
   }
   const dans = etat.attenteMs ? ` dans ${ecrireAttente(etat.attenteMs)}` : " un peu plus tard";
-  if (etat.raison === "quota") return { texte: `⏳ Tu as changé de photo 20 fois aujourd'hui : on souffle un peu ! Ta nouvelle photo partira toute seule${dans}.`, enCours: false, refus: false };
+  if (etat.raison === "quota" && envoi) return { texte: `⏳ Tu as changé de photo 20 fois aujourd'hui : on souffle un peu ! Ta nouvelle photo partira toute seule${dans}.`, enCours: false, refus: false };
   if (etat.raison === "stockage") return { texte: `🗄️ Notre serveur est plein à craquer (on s'en occupe !) : ${suite}${dans}.`, enCours: false, refus: false };
   return { texte: `🛠️ Notre serveur reprend son souffle : ${suite} un peu plus tard. Rien n'est perdu.`, enCours: false, refus: false };
 }

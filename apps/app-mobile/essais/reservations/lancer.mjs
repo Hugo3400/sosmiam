@@ -19,6 +19,8 @@ const resultat = spawnSync(
     "--disable-warning=ExperimentalWarning",
     "--import",
     new URL("../synchro-profil/banc/enregistrer.mjs", ICI).href,
+    "--import",
+    new URL("./enregistrer-relatifs.mjs", ICI).href,
     "--test",
     "--test-reporter=spec",
     "--test-timeout=30000",

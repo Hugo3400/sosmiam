@@ -13,7 +13,7 @@ function lireJusqua(requete: Request): Date | null {
   const brut = lireCorps(requete).jusqua;
   if (brut === undefined || brut === null) return null;
   const lu = typeof brut === "string" && brut.length <= 40 ? Date.parse(brut) : Number.NaN;
-  if (Number.isNaN(lu)) throw new ChampInvalide("jusqua");
+  if (Number.isNaN(lu) || lu < 0) throw new ChampInvalide("jusqua");
   return new Date(lu);
 }
 
