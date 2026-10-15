@@ -16,6 +16,13 @@ export const PASSAGERES = new Set<ErreurService>(["hors-ligne", "trop-de-demande
 export const ECHECS_SERVEUR_MAX = 3;
 /** Garde-fou : jamais plus de demandes d'affilée pour une même synchro */
 export const TOURS_MAX = 6;
+export const ATTENTE_STOCKAGE_PLEIN_MS = 3600_000;
+
+export type OperationPhotoSynchro = "envoi" | "retrait";
+export type EtatPhotoSynchro =
+  | { operation: OperationPhotoSynchro; etat: "en-cours" }
+  | { operation: OperationPhotoSynchro; etat: "attente"; raison: "reseau" | "serveur" | "quota" | "stockage"; jusqua?: number }
+  | { operation: OperationPhotoSynchro; etat: "refusee"; raison: "compte-limite" | "fichier" | "autre" };
 
 export type Memoire = {
   /** L'état gardé sur le téléphone est relu (rien ne part avant) */
@@ -36,13 +43,16 @@ export type Memoire = {
   villeReparee: boolean;
   /** Le serveur vient de refuser l'avatar : la prochaine lecture lui rend la valeur du serveur, sans rattrapage */
   avatarRefuse: boolean;
+  photoPasAvant: number;
+  photoEssais: number;
+  photoEchecs: number;
 };
 
 export type VueSynchro = { annonce: AnnonceSynchro | null; pseudoMisDeCote: string | null };
 
 export const memoireVide = (etat: SynchroProfil = creerSynchroProfil(false)): Memoire => ({
   pret: false, etat, numero: 0, essais: 0, pasAvant: 0, echecsServeur: 0, relire: false, pompePrevue: false, infosEnAttente: 0, villeReparee: false,
-  avatarRefuse: false,
+  avatarRefuse: false, photoPasAvant: 0, photoEssais: 0, photoEchecs: 0,
 });
 
 /** Une marque par champ, avec un nouveau numéro (une marque d'avant est remplacée) */

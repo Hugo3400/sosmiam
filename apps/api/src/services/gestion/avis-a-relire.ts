@@ -2,6 +2,7 @@
 // ambassadeurs comptés, jamais qui les a donnés) et les réponses des lieux à relire. Trancher passe par le service de la
 // session App (avis-gestion.ts), qui change le statut, les points et les défis.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { creerStockagePhotosAvis, type StockagePhotosAvis } from "../stockage-photos-avis.ts";
 
 const PAR_PAGE = 20;
 const LIEU = { select: { id: true, nom: true, emoji: true, ville: true } } as const;
@@ -47,4 +48,13 @@ export async function listerAvisARelire({ quoi, page }: { quoi: "avis" | "repons
     })),
     reponses: [],
   };
+}
+
+let stockagePhotos: StockagePhotosAvis | null = null;
+
+export async function lirePhotoAvisGestion(avisId: number): Promise<Buffer | null> {
+  const avis = await baseDeDonnees.avis.findUnique({ where: { id: avisId }, select: { photo: true } });
+  if (!avis?.photo) return null;
+  stockagePhotos ??= creerStockagePhotosAvis();
+  return stockagePhotos.lire(avis.photo);
 }

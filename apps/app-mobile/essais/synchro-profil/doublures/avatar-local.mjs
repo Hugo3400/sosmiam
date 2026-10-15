@@ -30,3 +30,9 @@ export async function effacerAvatarLocal() {
 export async function garderPhotoAvatar(uri) {
   return uri;
 }
+
+export async function lireOctetsPhotoAvatar(uri) {
+  if (globalThis.__photosIllisibles?.has(uri)) throw new Error("photo-absente");
+  journal().push("photo-lue:" + uri);
+  return new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
 
 import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
@@ -22,6 +22,7 @@ const ZONE_FRAICHE_MS = 60_000;
 // Les zones gardées : les 4 dernières demandées (autour de toi, de ta ville, d'une ville choisie, ta région) ; les plus
 // anciennes sont oubliées avec leurs lieux, pour ne pas grossir sans fin (celle de ta ville, jamais)
 const ZONES_GARDEES = 4;
+const ENREGISTREMENT_APRES_MS = 3_000;
 
 /** La clé d'une zone arrondie à la grille (des multiples de 0,5 degré : deux cadrages voisins ne relisent pas le serveur) */
 const cleZone = (z: ZoneGeo) => [z.nord, z.sud, z.ouest, z.est].map((b) => b.toFixed(2)).join(",");
@@ -63,7 +64,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
         // Oubliée entre-temps (d'autres zones sont passées devant) : sa réponse ne revient pas dans la liste
         const encore = zones.current.get(cle);
         if (!encore) return;
-        if (r.ok) setDeZones((deja) => ({ ...deja, [cle]: r.lieux }));
+        if (r.ok) startTransition(() => setDeZones((deja) => ({ ...deja, [cle]: r.lieux })));
         // Pas de réseau : la zone pourra être redemandée tout de suite
         else encore.demandee = 0;
       });
@@ -99,11 +100,11 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     const r = await contenu.listerLieux();
     if (!r.ok) return setHorsLigne(true);
     setHorsLigne(false);
-    setLus(r.lieux);
+    startTransition(() => setLus(r.lieux));
     void relireEnPlus(r.lieux);
     // Les zones déjà lues aussi : un SOS terminé ou un lieu retiré disparaît partout
     for (const [cle, { demandee }] of zones.current) if (Date.now() - demandee > ZONE_FRAICHE_MS) lireZone(cle);
-    await enregistrerLieuxServeur(r.lieux);
+    setTimeout(() => void enregistrerLieuxServeur(r.lieux), ENREGISTREMENT_APRES_MS);
   }, [contenu, lireZone, relireEnPlus]);
 
   const chargerLieu = useCallback(
@@ -166,6 +167,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     };
   }, [recharger]);
 
+  const convertis = useMemo(() => new WeakMap<LieuApi, Lieu>(), [depart]);
   const lieux = useMemo<Lieu[]>(() => {
     if (DEMO_VISITES_ACTIVE) return lieuxExemples;
     // La liste d'abord, puis les lieux lus par zone, puis ceux lus un par un : chaque lieu une seule fois
@@ -176,8 +178,14 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       dejaLa.add(l.id);
       tous.push(l);
     }
-    return tous.map((l) => convertirLieuApi(l, depart));
-  }, [lus, deZones, enPlus, depart]);
+    return tous.map((l) => {
+      const deja = convertis.get(l);
+      if (deja) return deja;
+      const converti = convertirLieuApi(l, depart);
+      convertis.set(l, converti);
+      return converti;
+    });
+  }, [lus, deZones, enPlus, depart, convertis]);
   const parId = useMemo(() => new Map(lieux.map((l) => [l.id, l] as const)), [lieux]);
 
   const valeur = useMemo<EtatLieux>(

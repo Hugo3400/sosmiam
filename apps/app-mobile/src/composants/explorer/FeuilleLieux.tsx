@@ -42,6 +42,7 @@ type Props = {
   /** Filtre « Événements » : l'événement de chaque lieu sur la période, montré dans sa ligne */
   evenements?: Map<number, EvenementLieuPublic> | null;
   depuis: string | null;
+  maintenant: Date;
 };
 
 type Cran = "carte" | "repliee" | "moitie" | "depliee";
@@ -69,7 +70,7 @@ const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", 
  * À poser par l'écran en bas (position absolue, au-dessus de la barre d'onglets) : elle gère elle-même sa hauteur.
  */
 export function FeuilleLieux(props: Props) {
-  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis } = props;
+  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis, maintenant } = props;
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -217,7 +218,7 @@ export function FeuilleLieux(props: Props) {
 
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
-  const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu) : false;
+  const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu, maintenant) : false;
   const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? ecrireDistanceDepuis(lieuSelectionne.km, depuis) : null;
   const luSelection = lieuSelectionne
     ? [
@@ -351,6 +352,7 @@ export function FeuilleLieux(props: Props) {
                 selectionne={item.lieu.id === selection}
                 onOuvrir={onOuvrir}
                 evenement={evenements?.get(item.lieu.id) ?? null}
+                maintenant={maintenant}
               />
             )}
           />

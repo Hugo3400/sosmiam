@@ -51,7 +51,7 @@ export type Signalement = {
 };
 
 export type AvisDecide = {
-  id: number; note: number; texte: string; signature: string; statut: string; reponseTexte: string | null; reponseStatut: string | null; lieu: { nom: string; emoji: string };
+  id: number; note: number; texte: string; signature: string; statut: string; reponseTexte: string | null; reponseStatut: string | null; avecPhoto?: boolean; lieu: { nom: string; emoji: string };
 };
 
 export type LieuCite = { id: number; nom: string; emoji: string; ville: string };

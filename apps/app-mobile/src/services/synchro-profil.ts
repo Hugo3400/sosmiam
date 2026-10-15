@@ -1,7 +1,6 @@
 // La synchro du profil d'un compte connecté, sans React : le serveur fait foi, le téléphone garde une copie pour s'ouvrir
 // hors ligne et ne gagne que pour un champ changé ici, pas encore parti (marque « à envoyer »). Les régimes ne partent
-// jamais (RGPD, article 9) ; la date de naissance non plus (seule l'équipe la corrige) ; ton avatar, seulement en emoji
-// ou en Miami (une photo reste sur le téléphone). Contrat : PATCH et GET /comptes/moi/profil
+// jamais (RGPD, article 9) ; la date de naissance non plus (seule l'équipe la corrige). Contrat : PATCH et GET /comptes/moi/profil
 // (packages/commun/src/client-api/contrat-compte.ts), un refus n'y écrit rien.
 import type { ServiceCompte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { ServiceModerationApp } from "@sos-miam/commun/client-api/contrat-moderation-app";
@@ -9,6 +8,7 @@ import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ProfilServeur } from "@sos-miam/commun/types/compte-app";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Profil } from "@sos-miam/commun/types/profil";
+import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
 import { appliquerChangementsInfos } from "~/fonctions/compte/appliquer-changements-infos";
 import { fusionnerProfilServeur } from "~/fonctions/compte/fusionner-profil-serveur";
 import { listerChampsDifferents } from "~/fonctions/compte/lister-champs-differents";
@@ -19,6 +19,8 @@ import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { creerExplicationPseudo } from "~/services/synchro-profil-pseudo";
 import { creerCopieAvatar } from "~/services/synchro-profil-avatar";
+import { creerChoixAvatar } from "~/services/synchro-profil-choix-avatar";
+import { choisirOperationPhoto, creerPhotoSynchro } from "~/services/synchro-profil-photo";
 import type { Avatar } from "~/stockage/avatar-local";
 import { enregistrerProfilLocal } from "~/stockage/profil-local";
 import {
@@ -32,11 +34,12 @@ import {
   memoireVide,
   oublierMarques,
   rienAChanger,
+  type EtatPhotoSynchro,
   type VueSynchro,
 } from "~/services/synchro-profil-memoire";
 import { creerSynchroProfil, effacerSynchroProfil, enregistrerSynchroProfil, lireSynchroProfil, type ChampSynchro } from "~/stockage/synchro-profil";
 
-export type { VueSynchro };
+export type { EtatPhotoSynchro, VueSynchro };
 
 export type OutilsSynchro = {
   comptes: ServiceCompte;
@@ -47,6 +50,7 @@ export type OutilsSynchro = {
   /** Met l'avatar à l'écran (gardé à part du profil ; le moteur en garde aussi la copie à jour) */
   afficherAvatar: (avatar: Avatar) => void;
   montrer: (vue: VueSynchro) => void;
+  montrerPhoto?: (etat: EtatPhotoSynchro | null) => void;
 };
 
 /**
@@ -74,6 +78,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   }
   const sousVerrou = <T>(etape: () => Promise<T>) => enchainer(etape, "verrou");
   const lireProfil = () => profil;
+  const montrerPhoto = (etat: EtatPhotoSynchro | null) => o.montrerPhoto?.(etat);
 
   /** Une annonce de pseudo disparaît dès que le pseudo n'est plus celui qu'elle annonce */
   function suivrePseudo() {
@@ -138,6 +143,15 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     if (memoire.echecsServeur < ECHECS_SERVEUR_MAX) minuterie = setTimeout(lancer, attente);
   }
 
+  const outilsAvatar = { lireMemoire: () => memoire, sousVerrou, lireAvatar: avatar.lire, ecrireAvatar: avatar.ecrire, garder, lancer };
+  const photos = creerPhotoSynchro({ ...outilsAvatar, lireComptes: () => o.comptes, lireGeneration: () => generation, montrer: montrerPhoto });
+  const choix = creerChoixAvatar({ ...outilsAvatar, lireProfil, marquerAvantEcriture, oublierAttentePhoto: photos.oublierAttente, montrerPhoto });
+
+  function arreterTout() {
+    arreterMinuterie();
+    photos.arreter();
+  }
+
   const expliquerPseudo = creerExplicationPseudo({
     listerDecisions: () => o.moderation.listerDecisions(),
     lireGeneration: () => generation,
@@ -160,9 +174,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
    * Le profil rendu par le serveur (GET, ou réponse d'un PATCH) : les champs partis quittent la file, le téléphone prend
    * les valeurs du serveur sauf pour ceux marqués pendant le voyage. `ajuster` : ce que Mes infos vient d'envoyer.
    */
-  async function recevoir(serveur: ProfilServeur, depart: number, envoye: string | null, ajuster?: (p: Profil) => Profil) {
+  async function recevoir(serveur: ProfilServeur, depart: number, envoye: string | null, ajuster?: (p: Profil) => Profil, retenus: ChampSynchro[] = []) {
     const gen = generation;
-    memoire.etat.aEnvoyer = memoire.etat.aEnvoyer.filter((m) => m.numero > depart);
+    memoire.etat.aEnvoyer = memoire.etat.aEnvoyer.filter((m) => m.numero > depart || retenus.includes(m.champ));
     const avant = lireProfil();
     if (!avant) return;
     const ancien = memoire.etat.pseudoServeur;
@@ -206,10 +220,21 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
 
   /** Ce qui part, relu sous le verrou (après toute écriture en cours, avec ses marques) */
   const prendreInstantane = () =>
-    sousVerrou(async () => ({ local: lireProfil(), partis: memoire.etat.aEnvoyer.map((m) => m.champ), depart: memoire.numero, avatarPublic: avatar.enPublic() }));
+    sousVerrou(async () => {
+      const photo = choisirOperationPhoto(memoire, avatar.lire());
+      const champs = memoire.etat.aEnvoyer.map((m) => m.champ);
+      const partis = photo ? champs.filter((c) => c !== "avatar") : champs;
+      const retenus: ChampSynchro[] = photo ? ["avatar"] : [];
+      return { local: lireProfil(), partis, retenus, depart: memoire.numero, avatarPublic: avatar.enPublic(), photo };
+    });
+
+  function suivrePhotoRestee(partis: ChampSynchro[], avatarPublic: string | null, serveur: ProfilServeur) {
+    if (partis.includes("avatar") && avatarPublic !== null && lireAvatarPhoto(serveur.avatar)) marquer(memoire, ["avatar"]);
+  }
 
   async function pomper() {
     const gen = generation;
+    let photoSautee = false;
     for (let tour = 0; tour < TOURS_MAX; tour++) {
       if (gen !== generation || !actif || memoire.infosEnAttente > 0) return;
       const patience = memoire.pasAvant - Date.now();
@@ -220,8 +245,14 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       }
       // L'instantané de ce qui part est pris sous le verrou : jamais entre une marque et l'écriture qu'elle annonce (sinon
       // l'ancienne valeur partirait avec une marque déjà comptée, et la réponse effacerait le nouveau choix)
-      const { local, partis, depart, avatarPublic } = await prendreInstantane();
+      const { local, partis, retenus, depart, avatarPublic, photo } = await prendreInstantane();
       if (gen !== generation || !actif || memoire.infosEnAttente > 0) return;
+      if (local && photo && !photoSautee && Date.now() >= memoire.photoPasAvant) {
+        const fin = await photos.executer(photo);
+        if (fin === "fin") return;
+        photoSautee = fin === "attente";
+        continue;
+      }
       if (!local || (partis.length === 0 && !memoire.relire)) return;
       memoire.relire = false;
       const corps = partis.length > 0 ? preparerModificationsProfil(local, partis, avatarPublic) : null;
@@ -231,7 +262,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       if (r.ok) {
         memoire.essais = 0;
         memoire.echecsServeur = 0;
-        await recevoir(r.profil, depart, partis.includes("pseudo") ? (local.pseudo ?? null) : null);
+        suivrePhotoRestee(partis, avatarPublic, r.profil);
+        await recevoir(r.profil, depart, partis.includes("pseudo") ? (local.pseudo ?? null) : null, undefined, retenus);
         continue;
       }
       // Session expirée : utiliserFinDeSession efface tout, synchro comprise
@@ -274,7 +306,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     const gen = generation;
     const demandes = champsDe(changements);
     for (let essai = 0; essai < 3; essai++) {
-      const { local, partis: enFile, depart, avatarPublic } = await prendreInstantane();
+      const { local, partis: enFile, retenus, depart, avatarPublic } = await prendreInstantane();
       if (gen !== generation || !actif || !local) return { ok: false, refus: "connexion-requise" };
       const champs = [...demandes, ...enFile];
       const ajuster = (p: Profil) => appliquerChangementsInfos(p, changements);
@@ -283,7 +315,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       if (r.ok) {
         memoire.essais = 0;
         memoire.echecsServeur = 0;
-        await recevoir(r.profil, depart, champs.includes("pseudo") ? (ajuster(local).pseudo ?? null) : null, ajuster);
+        suivrePhotoRestee(champs, avatarPublic, r.profil);
+        await recevoir(r.profil, depart, champs.includes("pseudo") ? (ajuster(local).pseudo ?? null) : null, ajuster, retenus);
         return { ok: true, parti: true };
       }
       if (r.erreur === "connexion-requise") return { ok: false, refus: r.erreur };
@@ -347,29 +380,30 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     arreter() {
       actif = false;
       generation += 1;
-      arreterMinuterie();
+      arreterTout();
     },
     /** Compte connecté hors démo, avec un profil : la synchro tourne ; sinon, aucune demande */
     activer(oui: boolean) {
       if (oui === actif) return;
       actif = oui;
       generation += 1;
-      arreterMinuterie();
+      arreterTout();
       if (!oui) return;
-      Object.assign(memoire, { relire: true, essais: 0, echecsServeur: 0 });
+      Object.assign(memoire, { relire: true, essais: 0, echecsServeur: 0, photoEssais: 0, photoEchecs: 0 });
       lancer();
     },
     auPremierPlan() {
       if (!actif) return;
       if (Date.now() - memoire.etat.luLe > RELECTURE_MS) memoire.relire = true;
       if (!memoire.relire && memoire.etat.aEnvoyer.length === 0) return;
-      Object.assign(memoire, { essais: 0, echecsServeur: 0 });
+      Object.assign(memoire, { essais: 0, echecsServeur: 0, photoEssais: 0, photoEchecs: 0 });
       lancer();
     },
     /** Un nouveau profil complet (inscription, connexion, reprise) : rien ne part, rien n'attend, plus de rattrapage */
     async installer(nouveau: Profil) {
       generation += 1;
-      arreterMinuterie();
+      arreterTout();
+      montrerPhoto(null);
       memoire = { ...memoireVide(creerSynchroProfil(true)), pret: true };
       await sousVerrou(() => ecrireProfil(nouveau));
       garder();
@@ -381,7 +415,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     /** Tout oublier (avant d'effacer le profil) : les réponses en route sont ignorées, l'écriture en cours finit d'abord */
     async oublier() {
       generation += 1;
-      arreterMinuterie();
+      arreterTout();
+      montrerPhoto(null);
       memoire = { ...memoireVide(), pret: true };
       await sousVerrou(effacerSynchroProfil);
       garder(false);
@@ -418,36 +453,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       });
       lancer();
     },
-    /**
-     * Ton avatar (Réglages > Avatar) : tout de suite sur le téléphone. Un emoji ou un Miami part ensuite, avec un profil et
-     * hors démo, marque gardée avant l'écriture (comme Mes envies) ; sans profil (visite), rien ne part. Une photo ne quitte
-     * jamais le téléphone : pas de marque, et celle d'un emoji pas encore parti s'en va (les autres gardent le dernier
-     * emoji ou Miami du serveur)
-     */
-    async modifierAvatar(nouveau: Avatar) {
-      await sousVerrou(async () => {
-        const m = memoire;
-        const marquesAvant = m.etat.aEnvoyer;
-        if (nouveau.type === "photo") {
-          if (m.etat.aEnvoyer.some((x) => x.champ === "avatar")) {
-            oublierMarques(m, ["avatar"], m.numero);
-            garder();
-          }
-        } else if (lireProfil() && !DEMO_VISITES_ACTIVE) await marquerAvantEcriture(["avatar"]);
-        try {
-          await avatar.ecrire(nouveau);
-        } catch (erreur) {
-          // Pas écrit (disque plein…) : les marques d'avant reviennent (un emoji qui attendait déjà reste), sinon l'ancien
-          // avatar repartirait et écraserait celui choisi sur un autre téléphone
-          if (m === memoire) {
-            m.etat.aEnvoyer = marquesAvant;
-            garder();
-          }
-          throw erreur;
-        }
-      });
-      lancer();
-    },
+    modifierAvatar: choix.modifierAvatar,
+    retirerPhoto: choix.retirerPhoto,
     fermerAnnonce() {
       if (!memoire.etat.annonce) return;
       memoire.etat.annonce = null;

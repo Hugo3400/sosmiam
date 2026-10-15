@@ -1,8 +1,16 @@
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 
+const HEURES_GARDEES_MAX = 2_000;
+const minutesParHeure = new Map<string, number>();
+
 const minutes = (heure: string) => {
+  const deja = minutesParHeure.get(heure);
+  if (deja !== undefined) return deja;
   const [h, m] = heure.split(":").map(Number);
-  return h * 60 + m;
+  const valeur = h * 60 + m;
+  if (minutesParHeure.size >= HEURES_GARDEES_MAX) minutesParHeure.clear();
+  minutesParHeure.set(heure, valeur);
+  return valeur;
 };
 
 /** Vrai si le lieu est ouvert à ce moment, d'après ses créneaux ; un créneau qui finit avant de commencer passe minuit. */

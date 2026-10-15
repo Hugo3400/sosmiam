@@ -55,6 +55,13 @@ export function creerControleursAvisGestion(s: ServicesGestion, avis?: AvisGesti
         page: Math.min(1000, Math.max(1, Math.floor(Number(requete.query.page)) || 1)),
       }));
     },
+    photo: async (requete: Request, reponse: Response) => {
+      const id = lireId(requete.params.id) ?? 0;
+      const photo = await s.lirePhotoAvisGestion(id);
+      if (!photo) return reponse.status(404).json({ ok: false, erreur: "introuvable" });
+      await noter(reponse, "Photo d'avis regardée", `avis n° ${id}`);
+      reponse.set("Cache-Control", "no-store").set("X-Content-Type-Options", "nosniff").type("image/jpeg").send(photo);
+    },
     deciderAvis: decider("avis"),
     deciderReponse: decider("reponse-avis"),
   };

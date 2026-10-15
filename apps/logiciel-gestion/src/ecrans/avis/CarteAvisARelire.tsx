@@ -5,6 +5,7 @@ import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { trancherAvis, type AvisARelire } from "~/services/avis.ts";
 import { ActionsAvis } from "./ActionsAvis.tsx";
+import { PhotoAvis } from "./PhotoAvis.tsx";
 
 type Props = { avis: AvisARelire; onDecide: () => void; ouvrirCompte: (id: number) => void };
 
@@ -25,6 +26,7 @@ export function CarteAvisARelire({ avis: a, onDecide, ouvrirCompte }: Props) {
         </div>
         <p className="text-sm"><span aria-label={`${a.note} sur 5`} className="font-bold tracking-wider text-encre">{etoiles(a.note)}</span> · {a.signature} · {formaterDate(a.creeLe, true)}</p>
         <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{a.texte}</p>
+        {a.avecPhoto && <PhotoAvis avisId={a.id} />}
         {a.raisonRelecture && <p className="text-[13px] text-gris">Relu parce que : {LIBELLES_RAISON_RELECTURE[a.raisonRelecture as RaisonRelecture] ?? a.raisonRelecture}</p>}
         <p className="text-[13px]">
           Ambassadeurs : {a.verdicts.ok + a.verdicts.louche === 0 ? "pas encore relu" : `${a.verdicts.ok} « ça va », ${a.verdicts.louche} « louche »`}

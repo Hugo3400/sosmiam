@@ -32,14 +32,15 @@ type Props = {
   onOuvrir: (id: number) => void;
   /** Filtre « Événements » : l'événement de ce lieu sur la période */
   evenement?: EvenementLieuPublic | null;
+  maintenant: Date;
 };
 
 // « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
 const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
-export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null }: Props) {
-  const ouvert = estOuvertMaintenant(lieu);
+export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null, maintenant }: Props) {
+  const ouvert = estOuvertMaintenant(lieu, maintenant);
   const distance = km === null ? null : formaterDistance(km);
   const distanceLue = km === null ? null : ecrireDistanceDepuis(km, depuis);
   // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)

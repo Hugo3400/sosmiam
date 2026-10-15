@@ -53,10 +53,10 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
   const avis = idsAvis.length
     ? await baseDeDonnees.avis.findMany({
       where: { id: { in: idsAvis } },
-      select: { id: true, note: true, texte: true, signature: true, statut: true, reponseTexte: true, reponseStatut: true, lieu: { select: { nom: true, emoji: true } } },
+      select: { id: true, note: true, texte: true, signature: true, statut: true, reponseTexte: true, reponseStatut: true, photo: true, lieu: { select: { nom: true, emoji: true } } },
     })
     : [];
-  const avisParId = new Map(avis.map((a) => [String(a.id), a]));
+  const avisParId = new Map(avis.map(({ photo, ...a }) => [String(a.id), { ...a, avecPhoto: photo !== null }]));
   const instantanes = new Map(signalements.map((s) => [s.id, lireInstantane(social, s)]));
   const [lieux, signaleurs] = await Promise.all([
     lireLieuxDesInstantanes([...instantanes.values()].map((i) => (i?.etat === "lu" ? i.contenu : undefined))),

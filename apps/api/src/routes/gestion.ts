@@ -189,6 +189,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/evenements/:id/suspension", evenements.suspendre);
   routes.get("/reservations", reservations.bilan);
   routes.get("/avis/a-relire", avis.aRelire);
+  routes.get("/avis/:id/photo", avis.photo);
   routes.post("/avis/:id/decision", avis.deciderAvis);
   routes.post("/avis/:id/reponse/decision", avis.deciderReponse);
   routes.get("/limitations", lim.liste);

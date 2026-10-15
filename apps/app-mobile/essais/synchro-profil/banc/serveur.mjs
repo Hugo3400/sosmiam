@@ -3,7 +3,9 @@
 // ou un Miami qu'on ne peut pas choisir, un compte limité (prénom, pseudo ou avatar changés), un pseudo pris. `s` garde ce
 // qu'il a vu (demandes) et ce que l'app a montré (vues, profil, avatar) ; un essai règle ses humeurs (horsLigne, retard,
 // limite, refuserAvatar, pris, decisions).
+import { randomUUID } from "node:crypto";
 import { lireAvatarMiami } from "@sos-miam/commun/validation/lire-avatar-miami";
+import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
 import { creerMoteurSynchroProfil } from "~/services/synchro-profil";
 import { CLE_SYNCHRO, DEFAUT, LOCAL, VU } from "./donnees.mjs";
 import { oublierMinuteries, pause } from "./minuteries.mjs";
@@ -19,6 +21,7 @@ export function remettreDoublures() {
   globalThis.__delaiMagasin = 0;
   globalThis.__delaiEcriture = 0;
   globalThis.__delaiAvatar = 0;
+  globalThis.__photosIllisibles = new Set();
 }
 
 /** Un Miami qu'une personne ne peut pas choisir (comme lireAvatar de l'API : jamais le Capitaine, jamais un Miami inconnu) */
@@ -47,8 +50,15 @@ export function monter(o = {}) {
     pris: new Set(o.pris ?? []),
     limite: o.limite === true,
     refuserAvatar: false,
+    repli: o.repli ?? null,
+    refusPhoto: null,
+    etatsPhoto: [],
     avatar: undefined,
     profil: undefined,
+  };
+  const refusPhoto = () => {
+    if (s.horsLigne) return { ok: false, erreur: "hors-ligne" };
+    return s.refusPhoto ? { ok: false, ...structuredClone(s.refusPhoto) } : null;
   };
   const repondre = async () => {
     if (s.retard) await s.retard;
@@ -73,8 +83,29 @@ export function monter(o = {}) {
         return { ok: false, erreur: "compte-limite", details: { jusqua: null } };
       }
       if (change("pseudo") && s.pris.has(m.pseudo)) return { ok: false, erreur: "pseudo-pris" };
-      s.serveur = { ...s.serveur, ...m, ...(m.avatar === "" ? { avatar: null } : {}) };
+      const photo = lireAvatarPhoto(s.serveur.avatar) ? s.serveur.avatar : null;
+      if (photo && m.avatar !== undefined && m.avatar !== photo) s.repli = m.avatar || null;
+      s.serveur = { ...s.serveur, ...m, ...(m.avatar === "" ? { avatar: null } : {}), ...(photo && m.avatar !== undefined ? { avatar: photo } : {}) };
       return { ok: true, profil: structuredClone(s.serveur) };
+    },
+    envoyerPhotoProfil: async (fichier) => {
+      s.demandes.push("POST photo");
+      await repondre();
+      const refus = refusPhoto();
+      if (refus) return refus;
+      if (!(fichier instanceof Uint8Array) || fichier.length === 0) return { ok: false, erreur: "format-refuse" };
+      if (s.limite) return { ok: false, erreur: "compte-limite", details: { jusqua: null } };
+      if (!lireAvatarPhoto(s.serveur.avatar)) s.repli = s.serveur.avatar;
+      s.serveur = { ...s.serveur, avatar: `photo:${randomUUID()}.jpg` };
+      return { ok: true, avatar: s.serveur.avatar };
+    },
+    retirerPhotoProfil: async () => {
+      s.demandes.push("DELETE photo");
+      await repondre();
+      const refus = refusPhoto();
+      if (refus && refus.erreur !== "trop-de-demandes") return refus;
+      if (lireAvatarPhoto(s.serveur.avatar)) s.serveur = { ...s.serveur, avatar: s.repli };
+      return { ok: true, avatar: s.serveur.avatar };
     },
   };
   const moteur = creerMoteurSynchroProfil({
@@ -84,6 +115,7 @@ export function monter(o = {}) {
     afficherProfil: (p) => (s.profil = p),
     afficherAvatar: (a) => (s.avatar = a),
     montrer: (v) => s.vues.push(v),
+    montrerPhoto: (e) => s.etatsPhoto.push(e),
   });
   return { moteur, s };
 }
@@ -113,3 +145,4 @@ export const lirePatchs = (s) => s.demandes.filter((d) => d.startsWith("PATCH"))
 export const lirePatchsAvecAvatar = (s) => lirePatchs(s).filter((d) => d.includes('"avatar"'));
 /** Les écritures de l'avatar sur le téléphone */
 export const lireEcrituresAvatar = () => globalThis.__journalAvatar.filter((e) => e.startsWith("avatar:"));
+export const lireDemandesPhoto = (s) => s.demandes.filter((d) => d.endsWith(" photo"));

@@ -32,6 +32,10 @@ export const GRENOUILLE = { type: "emoji", emoji: "🐸" };
 export const TOQUE = { type: "miami", id: "toque" };
 export const PHOTO_A = { type: "photo", uri: "file:///app/avatar-1.jpg" };
 export const PHOTO_B = { type: "photo", uri: "file:///app/avatar-2.jpg" };
+export const A_ENVOYER = { type: "photo", uri: "file:///app/avatar-3.jpg", partage: "a-envoyer" };
+export const A_ENVOYER_B = { type: "photo", uri: "file:///app/avatar-4.jpg", partage: "a-envoyer" };
+export const SUR_LE_SERVEUR = "photo:11111111-2222-4333-8444-555555555555.jpg";
+export const EN_LIGNE = { type: "photo", uri: null, partage: SUR_LE_SERVEUR };
 
 export const CLE_SYNCHRO = "sosmiam.synchro-profil";
 

@@ -19,3 +19,4 @@ export type DecisionAvis = { action: "publier" } | { action: "masquer"; motif: s
 export const listerAvisARelire = (quoi: "avis" | "reponses", page: number) => appeler<FileAvis>("GET", `/avis/a-relire${parametres({ quoi, page })}`);
 export const trancherAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/decision`, { corps: decision });
 export const trancherReponseAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/reponse/decision`, { corps: decision });
+export const lirePhotoAvis = (id: number) => appeler<Blob>("GET", `/avis/${id}/photo`, { reponse: "blob" });

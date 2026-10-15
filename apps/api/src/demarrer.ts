@@ -51,6 +51,9 @@ import { creerVuesLieux } from "./services/vues-lieux.ts";
 import { creerStatistiquesLieu } from "./services/statistiques-lieu.ts";
 import { creerEvenements } from "./services/evenements.ts";
 import { creerDepotAvis } from "./services/avis.ts";
+import { citationsPhotosAvis } from "./services/citations-photos-avis.ts";
+import { creerPhotosAvis } from "./services/photos-avis.ts";
+import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { prevenirCompte, prevenirCompteEtCompter } from "./services/notifications/prevenir-compte.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
@@ -97,6 +100,7 @@ brancherRechiffrementDeNuit(chiffrement);
 // Événements des lieux et avis : un seul service pour l'app et pour le comptoir de l'équipe
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
+const photosAvis = creerPhotosAvis({ stockage: creerStockagePhotosAvis(), citations: citationsPhotosAvis });
 // Défis et badges automatiques : recomptés après chaque ajout de points des autres domaines (sans les faire attendre ni
 // échouer) et à chaque lecture des défis ; leurs propres points sont posés avec la réussite, dans la même transaction
 const defis = creerDefis({ ajouterPointsDans, donnerBadge });
@@ -241,9 +245,8 @@ const serveur = creerApplication({
   vuesLieux: { services: creerVuesLieux() },
   // Événements des lieux : dates visibles et « Ça m'intéresse » (l'âge, pour l'alcool, est lu avec la clé des données)
   evenementsApp: { services: evenements, chiffrement },
-  // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs. Pas encore
-  // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
-  avisApp: { depot: depotAvis, chiffrement, reevaluerDefis: (id, le) => defis.reevaluer(id, le), tirer: (max) => randomInt(max) },
+  // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs
+  avisApp: { depot: depotAvis, chiffrement, reevaluerDefis: (id, le) => defis.reevaluer(id, le), tirer: (max) => randomInt(max), verifierPhoto: photosAvis.verifier, photos: photosAvis },
   // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
   defisApp: { services: defis },
   // Connexion par QR code, comme Discord : le site ou un nouveau téléphone affiche le QR, l'app connectée valide

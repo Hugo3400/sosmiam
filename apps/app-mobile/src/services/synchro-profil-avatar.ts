@@ -1,6 +1,5 @@
 // L'avatar dans la synchro du profil (services/synchro-profil.ts) : il vit à part du profil (stockage/avatar-local.ts),
-// le moteur en garde la copie à jour comme celle du profil, l'écrit sur le téléphone et la met à l'écran. Ne part que
-// l'emoji ou le Miami (ecrireAvatarPublic) ; une photo ne quitte jamais le téléphone.
+// le moteur en garde la copie à jour comme celle du profil, l'écrit sur le téléphone et la met à l'écran.
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { fusionnerAvatarServeur } from "~/fonctions/compte/fusionner-avatar-serveur";
 import { marquer, type Memoire } from "~/services/synchro-profil-memoire";
@@ -28,6 +27,7 @@ export function creerCopieAvatar(afficher: (avatar: Avatar) => void) {
     /** L'avatar lu au démarrage, ou remis par défaut (effacé) : rien n'est écrit sur le téléphone */
     poser,
     ecrire,
+    lire: () => avatar,
     /** Ce qui part pour l'avatar : l'emoji ou « miami:<id> » ; null pour une photo (rien ne part) */
     enPublic: () => (avatar ? ecrireAvatarPublic(avatar) : null),
     /**

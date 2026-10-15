@@ -9,6 +9,7 @@ const appels: unknown[] = [];
 const journal: string[] = [];
 const services = {
   noterAction: async (_poste: string, action: string, detail?: string) => void journal.push(`${action} · ${detail ?? ""}`),
+  lirePhotoAvisGestion: async (id: number) => (id === 3 ? Buffer.from("JPEG") : null),
   listerAvisARelire: async (options: unknown) => (appels.push(options), { compteurs: { avis: 0, reponses: 0 }, parPage: 20, avis: [], reponses: [] }),
   deciderAvis: async (_avis: unknown, cible: string, id: number, decision: { action: string }) => {
     appels.push({ cible, id, decision });
@@ -50,4 +51,14 @@ test("décision : masquer exige motif et motivation ; journal sans texte ; 409, 
     { cible: "avis", id: 7, decision: masquer },
     { cible: "avis", id: 8, decision: masquer },
   ]);
+});
+
+test("photo d'un avis : servie sans cache même masqué, notée au journal ; sans photo 404", async () => {
+  const reponse = await banc.demander("GET", "/avis/3/photo", { session });
+  assert.equal(reponse.status, 200);
+  assert.equal(reponse.headers.get("content-type"), "image/jpeg");
+  assert.equal(reponse.headers.get("cache-control"), "no-store");
+  assert.equal(await reponse.text(), "JPEG");
+  assert.equal(journal.at(-1), "Photo d'avis regardée · avis n° 3");
+  assert.equal((await banc.demander("GET", "/avis/4/photo", { session })).status, 404);
 });

@@ -1,10 +1,10 @@
 import { useBottomTabBarHeight } from "expo-router/tabs";
-import { useFocusEffect, useIsFocused, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, Keyboard, Platform, Text, View } from "react-native";
+import { useIsFocused, useRouter } from "expo-router";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, Keyboard, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { BarreRechercheExplorer } from "~/composants/explorer/BarreRechercheExplorer";
 import { CarteLieux } from "~/composants/explorer/CarteLieux";
@@ -28,14 +28,13 @@ import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
-import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
-import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
-import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserLieuxDuMoment } from "~/hooks/utiliser-lieux-du-moment";
+import { utiliserLieuxFiltresExplorer } from "~/hooks/utiliser-lieux-filtres-explorer";
+import { utiliserMinuteCourante } from "~/hooks/utiliser-minute-courante";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
@@ -48,15 +47,6 @@ const avecCarte = Platform.OS !== "web";
 
 /** Après un filtre ou une recherche, le lecteur d'écran dit combien de lieux restent, une fois la frappe calmée (ms) */
 const DELAI_ANNONCE_NOMBRE = 700;
-const MINUTE = 60_000;
-
-/**
- * Les lieux tels qu'ils sont à cet instant : un SOS dont l'heure de fin est passée disparaît partout (liste, carte, roulette, tri).
- * Toujours de nouveaux objets : les lignes et marqueurs mémorisés se redessinent, et recalculent « Ouvert » / « Fermé ».
- */
-function lieuxDuMoment(lieux: Lieu[], maintenant: Date): Lieu[] {
-  return lieux.map((lieu) => ({ ...lieu, sos: estSosEnCours(lieu, maintenant) ? lieu.sos : undefined }));
-}
 
 /**
  * Onglet « Explorer » : la carte des lieux et une liste qu'on remonte du bas, avec recherche, filtres,
@@ -74,6 +64,7 @@ export default function Explorer() {
   const { position, approximative, recherche, chercher, oublier, oublisApresAbsence } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
+  const [porteeAvantAutour, setPorteeAvantAutour] = useState<{ portee: PorteeExplorer | null } | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [oublisDits, setOublisDits] = useState(oublisApresAbsence);
   const [avisApproximativeVu, setAvisApproximativeVu] = useState(false);
@@ -84,28 +75,8 @@ export default function Explorer() {
   const [hauteurEnTete, setHauteurEnTete] = useState(0);
   const [hauteurFeuille, setHauteurFeuille] = useState(0);
   const [hauteurClavier, setHauteurClavier] = useState(0);
-  const [maintenant, setMaintenant] = useState(() => new Date());
+  const maintenant = utiliserMinuteCourante();
   const refCompteur = useRef<Text>(null);
-
-  // L'heure avance : « Ouvert maintenant », Ouvert / Fermé et les SOS du soir se recalculent à chaque minute
-  // tant que l'onglet est affiché, et dès qu'on revient dans l'app
-  useFocusEffect(
-    useCallback(() => {
-      let minuterie: ReturnType<typeof setTimeout> | undefined;
-      const avancer = () => {
-        setMaintenant(new Date());
-        minuterie = setTimeout(avancer, MINUTE - (Date.now() % MINUTE) + 50);
-      };
-      avancer();
-      const abonnement = AppState.addEventListener("change", (etat) => {
-        if (etat === "active") setMaintenant(new Date());
-      });
-      return () => {
-        clearTimeout(minuterie);
-        abonnement.remove();
-      };
-    }, []),
-  );
 
   // Sur iPhone, le clavier ne pousse rien tout seul : la feuille et le cadrage de la carte se posent au-dessus de lui
   useEffect(() => {
@@ -124,7 +95,7 @@ export default function Explorer() {
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
-  const lieuxActuels = useMemo(() => lieuxDuMoment(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
+  const lieuxActuels = utiliserLieuxDuMoment(lieuxPermis, maintenant);
   const distancesInconnues = useMemo(() => !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null), [lieuxActuels]);
   const portee: PorteeExplorer = porteeChoisie ?? (pointDeDepart === null && distancesInconnues ? "france" : "proche");
   // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux
@@ -158,11 +129,18 @@ export default function Explorer() {
   }, [zoneALire, chargerZone]);
   // Filtre « Événements » : seulement les lieux qui en ont un sur la période (null tant que c'est coupé ou pas encore lu)
   const evenementsParLieu = utiliserEvenementsExplorer(filtres.evenement, age);
-  const lieux = useMemo(() => {
-    const dansLaZone = zone ? lieuxActuels.filter((l) => estDansPortee(l, zone)) : lieuxActuels;
-    const avecEvenement = filtres.evenement ? dansLaZone.filter((l) => evenementsParLieu?.has(l.id) ?? false) : dansLaZone;
-    return trierLieuxExplorer(filtrerLieuxExplorer(avecEvenement, filtres, maintenant), profil, position, pointDeDepart);
-  }, [lieuxActuels, zone, filtres, evenementsParLieu, maintenant, profil, position, pointDeDepart]);
+  const texteRecherche = useDeferredValue(filtres.texte);
+  const lieux = utiliserLieuxFiltresExplorer({
+    lieux: lieuxActuels,
+    zone,
+    filtres,
+    texte: texteRecherche,
+    evenementsParLieu,
+    maintenant,
+    profil,
+    position,
+    depart: pointDeDepart,
+  });
   // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
   // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
   const fauteDeDepart = zone?.portee === "proche" && zone.centre === null && distancesInconnues;
@@ -175,12 +153,16 @@ export default function Explorer() {
 
   const selectionRetiree = useMemo(() => selection !== null && !lieux.some(({ lieu }) => lieu.id === selection), [lieux, selection]);
   if (selectionRetiree) setSelection(null);
+  if (position === null && porteeAvantAutour !== null) {
+    setPorteeAvantAutour(null);
+    if (porteeChoisie === "proche") setPorteeChoisie(porteeAvantAutour.portee);
+  }
   if (focus && oublisDits !== oublisApresAbsence) {
     setOublisDits(oublisApresAbsence);
     setAnnonce({ texte: "Plus de 5 min hors de l'app : ta position est oubliée 📍", numero: oublisApresAbsence });
   }
 
-  const motRecherche = filtres.texte.trim();
+  const motRecherche = texteRecherche.trim();
   const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;
   // Ce que dira l'annonce du nombre de lieux (lu quand elle part, après l'attente)
   const nombre = useRef({ lieux: lieux.length, recherche: false, filtres: false, fauteDeDepart: false, sauter: false });
@@ -224,6 +206,7 @@ export default function Explorer() {
 
   async function toucherAutourDeMoi() {
     const actualisation = position !== null;
+    const porteeAvant = porteeChoisie;
     const resultat = await chercher();
     if (!resultat) return;
     if ("erreur" in resultat) {
@@ -232,6 +215,7 @@ export default function Explorer() {
       return;
     }
     if (actualisation) return annoncer("Ta position est à jour 📍");
+    setPorteeAvantAutour({ portee: porteeAvant });
     setPorteeChoisie("proche");
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
   }
@@ -259,13 +243,18 @@ export default function Explorer() {
   const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
   const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");
 
+  function choisirPortee(portee: PorteeExplorer | null) {
+    setPorteeAvantAutour(null);
+    setPorteeChoisie(portee);
+  }
+
   function changerZone(choix: ChoixZone) {
     changerRayon(choix.rayonKm);
     if (choix.ville !== null) {
       setFiltres((f) => ({ ...f, ville: choix.ville }));
       return;
     }
-    setPorteeChoisie(choix.portee);
+    choisirPortee(choix.portee);
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
   }
 
@@ -292,7 +281,7 @@ export default function Explorer() {
       motRecherche={motRecherche}
       avecFiltres={avecFiltres}
       onAutourDeMoi={() => void toucherAutourDeMoi()}
-      onChoisirPortee={setPorteeChoisie}
+      onChoisirPortee={choisirPortee}
       onEffacer={effacer}
     />
   );
@@ -349,6 +338,7 @@ export default function Explorer() {
             onChangerHauteur={setHauteurFeuille}
             evenements={evenementsParLieu}
             depuis={depuis}
+            maintenant={maintenant}
           />
         </View>
       ) : null}

@@ -62,7 +62,7 @@ import { lireStatistiques } from "./statistiques.ts";
 import { lireStatistiquesCommunaute } from "./statistiques-communaute.ts";
 import { lireActiviteApp } from "./statistiques-activite-app.ts";
 import { lireReservationsGestion } from "./reservations-gestion.ts";
-import { listerAvisARelire } from "./avis-a-relire.ts";
+import { lirePhotoAvisGestion, listerAvisARelire } from "./avis-a-relire.ts";
 import { deciderAvis } from "./decisions-avis.ts";
 import { listerLimitationsEnCours } from "./limitations-gestion.ts";
 import { lirePhotoProfilPourEquipe } from "../photos-profil.ts";
@@ -102,7 +102,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
-  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
+  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, lirePhotoAvisGestion, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

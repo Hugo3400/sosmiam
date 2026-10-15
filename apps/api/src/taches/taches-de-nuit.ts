@@ -29,6 +29,7 @@ import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
 import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
 import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
+import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -158,6 +159,15 @@ async function nettoyerSocial() {
   }
 }
 
+async function nettoyerPhotosAvis() {
+  try {
+    const effacees = await faireLeMenagePhotosAvis();
+    if (effacees > 0) await noterAction("serveur", "Photos d'avis effacées (jamais utilisées, avis effacé, ou masqué depuis plus de 183 jours)", `${effacees} photo(s)`);
+  } catch (erreur) {
+    console.error("Ménage des photos d'avis impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerPhotosProfil() {
   try {
     const effacees = await menagerPhotosProfil();
@@ -173,6 +183,7 @@ async function nettoyerPuisSauvegarder() {
   await nettoyerComptes();
   await nettoyerSocial();
   await nettoyerPhotosProfil();
+  await nettoyerPhotosAvis();
   await prevenirLesComptesInactifs();
   await rechiffrerLesComptes();
   await sauvegarder();
