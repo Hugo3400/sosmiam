@@ -37,6 +37,7 @@ export type ExportSocialApi = {
    */
   invitationsGroupes: { titre: string | null; date: string; statut: "invite" | "refuse" }[];
   reactions: { messageId: string; reaction: CodeReaction; date: string }[];
+  /** Sans une invitation refusée, ni une invitation qu'un blocage te cache (comme dans l'app) */
   sorties: { titre: string; quand: string; role: "organisateur" | "invite" | "participant"; propositions: number[]; votes: number[] }[];
   /**
    * auteur : le titre et tous les lieux ; co-auteur : les lieux que TU as ajoutés ; abonné : aucun lieu. Co-auteur et abonné :

@@ -8,6 +8,9 @@ import type { PageLiensSuiviApi } from "../../types/suivis.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { MasqueSocial, ResultatRecherchePersonne, ServiceSocial } from "../contrat-social.ts";
 
+/** L'export rassemble et déchiffre tous tes messages : il peut prendre bien plus que les 15 s d'une demande ordinaire */
+const DELAI_EXPORT_MS = 60_000;
+
 /** « ?apres=<suite> » : la suite de la page d'avant, opaque, renvoyée telle quelle ; rien pour la première page */
 const ecrireApres = (suite?: string) => (suite ? `?apres=${encodeURIComponent(suite)}` : "");
 
@@ -21,7 +24,7 @@ export function creerSocialApi(client: ClientHttp): ServiceSocial {
     lirePouls: () => client.demander<{ pouls: PoulsSocial }>("GET", "/app/social/pouls"),
     chercher: (debut) => client.demander<{ resultats: ResultatRecherchePersonne[] }>("POST", "/app/personnes/recherche", { corps: { debut } }),
     suggerer: () => client.demander<{ suggestions: SuggestionPersonneApi[] }>("GET", "/app/personnes/suggestions"),
-    exporter: () => client.demander<{ export: ExportSocialApi }>("GET", "/app/social/export"),
+    exporter: () => client.demander<{ export: ExportSocialApi }>("GET", "/app/social/export", { delaiMs: DELAI_EXPORT_MS }),
     lireProfil: (id) => client.demander<{ profil: ProfilCommunautaireApi }>("GET", personne(id)),
     listerLiensDe: (id, sens, apres) => client.demander<PageLiensSuiviApi>("GET", `${personne(id)}/${sens}${ecrireApres(apres)}`),
     listerListesDe: (id) => client.demander<{ listes: ListeResumeApi[] }>("GET", `${personne(id)}/listes`),

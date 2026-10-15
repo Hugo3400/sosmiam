@@ -27,6 +27,8 @@ export type OptionsDemande = {
   /** En-têtes en plus (« Idempotency-Key » d'une création de groupe, de sortie ou de liste) ; Accept, Content-Type,
    * Authorization, X-Session-Compte et Cookie restent toujours ceux du client (ENTETES_RESERVES) */
   entetes?: Readonly<Record<string, string>>;
+  /** Un autre délai pour cette demande seulement (l'export des données sociales, plus long à préparer) ; sinon celui du client */
+  delaiMs?: number;
 };
 
 export type ClientHttp = {
@@ -53,8 +55,8 @@ const DELAI_DEFAUT_MS = 15_000;
 /** Une photo de 5 Mo sur un réseau mobile moyen : plus long qu'une demande JSON */
 const DELAI_OCTETS_MS = 60_000;
 
-/** Ce que reçoit envoyer en plus d'une demande JSON : un corps brut et son type, un autre délai */
-type OptionsEnvoi = OptionsDemande & { brut?: { corps: Blob | ArrayBuffer | Uint8Array; type: string }; delaiMs?: number };
+/** Ce que reçoit envoyer en plus d'une demande JSON : un corps brut et son type */
+type OptionsEnvoi = OptionsDemande & { brut?: { corps: Blob | ArrayBuffer | Uint8Array; type: string } };
 
 /** Les codes de l'API que l'app sait dire tels quels (ceux qui ont un texte) */
 const CONNUS = new Set<string>(Object.keys(MESSAGES_SERVICE));
