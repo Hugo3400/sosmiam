@@ -74,6 +74,51 @@ test("parleDAlcool : le porto à boire, pas Porto ni Porto-Vecchio", () => {
   assert.equal(estRecompenseAlcool({ recompense: "Un porto blanc offert", alcool: false }), true);
 });
 
+test("porto, bourbon, chablis, sancerre et beaujolais seuls comptent, sauf la ville, la région, la vanille ou le café", () => {
+  for (const texte of [
+    "Porto offert",
+    "Le porto en dessert",
+    "SOS : porto offert ce soir",
+    "SOS : -20% sur le chablis",
+    "Bourbon offert",
+    "Masterclass bourbon",
+    "Le chablis offert",
+    "Sancerre offert au dessert",
+    "Soirée Beaujolais",
+    "Dégustation de chablis et huîtres",
+    "Dégustation de sancerre",
+    "Du beaujolais nouveau",
+    "Le meilleur porto de Porto",
+    "Balade à Chablis, puis chablis offert",
+  ]) {
+    assert.equal(parleDAlcool(texte), true, texte);
+  }
+  for (const texte of [
+    "Mousse au chocolat maison",
+    "Champignons portobello grillés",
+    "Week-end à Porto",
+    "12 rue de Porto, 33000 Bordeaux",
+    "Spécialités de Porto Rico",
+    "Gousses de vanille bourbon",
+    "Pâtisserie du Bourbonnais",
+    "Thermes de Bourbon-Lancy",
+    "Tarte aux fraises de l'île Bourbon",
+    "Le crottin vient de Sancerre",
+    "Visite guidée de Chablis",
+  ]) {
+    assert.equal(parleDAlcool(texte), false, texte);
+  }
+  assert.equal(estRecompenseAlcool({ recompense: "Porto offert", alcool: false }), true);
+  assert.equal(estRecompenseAlcool({ recompense: "Le chablis offert", alcool: false }), true);
+  assert.equal(estRecompenseAlcool({ recompense: "Un flan vanille bourbon", alcool: false }), false);
+  assert.equal(estEvenementAlcool({ alcool: false, titre: "Soirée porto & tapas", description: "" }, "resto"), true);
+  assert.equal(estEvenementAlcool({ alcool: false, titre: "Masterclass bourbon", description: "" }, "resto"), true);
+  assert.equal(estEvenementAlcool({ alcool: false, titre: "Brunch portugais", description: "Les recettes de grand-mère, comme à Porto" }, "resto"), false);
+  const resto = { type: "resto" as const, plat: "Francesinha", info: "Au 4 avenue de Porto, juste à côté du marché", tags: ["Fait maison"] };
+  assert.equal(lieuEvoqueAlcool(resto), false);
+  assert.equal(lieuEvoqueAlcool({ ...resto, sos: { places: 4, jusqua: "22:00", offre: "Porto offert au dessert" } }), true);
+});
+
 test("parleDAlcool : œ, ø et ß restent des lettres, un mot d'alcool collé à elles ne compte pas", () => {
   for (const texte of ["Ginœ", "Vinø", "ßgin"]) assert.equal(parleDAlcool(texte), false, texte);
   for (const texte of ["Œil de chef, gin maison", "Un gin, ø"]) assert.equal(parleDAlcool(texte), true, texte);
