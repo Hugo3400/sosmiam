@@ -35,6 +35,17 @@ async function reserver(jeton: string, corps: Record<string, unknown> = {}) {
 
 const geste = (id: number, nom: string, jeton: string, corps?: unknown) => b.demander("POST", `/pro/comptoir/reservations/${id}/${nom}`, jeton, corps);
 
+async function taire<T>(sortie: "log" | "error", faire: () => Promise<T>): Promise<{ resultat: T; lignes: unknown[][] }> {
+  const lignes: unknown[][] = [];
+  const avant = console[sortie];
+  console[sortie] = (...x: unknown[]) => void lignes.push(x);
+  try {
+    return { resultat: await faire(), lignes };
+  } finally {
+    console[sortie] = avant;
+  }
+}
+
 async function prevenus() {
   await b.attendreEnvois();
   return b.prevenus.map((p) => ({ compteId: p.compteId, ...p.message }));
@@ -139,22 +150,16 @@ test("tâche de la minute : fait expirer et prévient, une seule fois ; une erre
   const passer = creerPassageExpirationReservations({ depot: b.visitesApp.depot, prevenirCompte: b.visitesApp.prevenirCompte!, horloge: () => b.banc.horloge });
   assert.equal(await passer(), 0);
   b.banc.horloge = VINGT_HEURES + 30 * MINUTE;
-  assert.equal(await passer(), 1);
+  const { resultat, lignes } = await taire("log", passer);
+  assert.deepEqual([resultat, lignes], [1, [["Réservations : 1 demande(s) sans réponse endormie(s)."]]]);
   assert.equal(await passer(), 0);
   assert.deepEqual((await prevenus()).map((p) => [p.compteId, p.titre]), [[lea.id, "Pas de réponse à temps 😴"]]);
 
   const enPanne = creerPassageExpirationReservations({
     depot: { lire: () => Promise.reject(new Error("base")), ecrire: () => Promise.reject(new Error("base")) }, prevenirCompte: async () => {},
   });
-  const erreurs: unknown[] = [];
-  const console_error = console.error;
-  console.error = (...x: unknown[]) => void erreurs.push(x);
-  try {
-    assert.equal(await enPanne(), 0);
-  } finally {
-    console.error = console_error;
-  }
-  assert.equal(erreurs.length, 1);
+  const panne = await taire("error", enPanne);
+  assert.deepEqual([panne.resultat, panne.lignes.length], [0, 1]);
 });
 
 test("suivreExpirations : après une transaction réussie seulement ; une lecture prévient même si la suite échoue", async () => {
@@ -184,18 +189,13 @@ test("suivreExpirations : après une transaction réussie seulement ; une lectur
 });
 
 test("creerPrevenirReponses : un envoi raté ne casse rien", async () => {
-  const erreurs: unknown[] = [];
-  const console_error = console.error;
-  console.error = (...x: unknown[]) => void erreurs.push(x);
-  try {
+  const { lignes } = await taire("error", async () => {
     const prevenir = creerPrevenirReponses(() => Promise.reject(new Error("APNs")), () => VINGT_HEURES - 3600_000);
     prevenir([{ compteId: 1, lieu: { id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "" }, creneau: new Date(VINGT_HEURES), statut: "acceptee", motif: null }]);
     await b.attendreEnvois();
     await b.attendreEnvois();
-  } finally {
-    console.error = console_error;
-  }
-  assert.equal(erreurs.length, 1);
+  });
+  assert.equal(lignes.length, 1);
 });
 
 test("textes : aujourd'hui, ce soir, demain ou la date, toujours à l'heure de Paris ; « ta place » pour une sortie", () => {

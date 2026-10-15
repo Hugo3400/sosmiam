@@ -253,6 +253,17 @@ test("ancien « oui » d'avant le 15/10, lancement hors ligne : le « non » att
   assert.equal(m.serveur.accordsEnvoyes(), 0);
 });
 
+test("ancien « oui » d'avant le 15/10 puis effacement sans profil (session expirée) : l'accord du reliquat est retiré quand même", async () => {
+  const m = creerMonde();
+  m.serveur.lignes.set(JETON, { actif: true, offres: true, le: 99 });
+  globalThis.__magasin.set(CLE_REGLAGES, JSON.stringify(RELIQUAT));
+  globalThis.__magasin.set(CLE_JETON, JETON);
+  await m.lancerApp({ avecProfil: false });
+  await m.toutEffacer();
+  assert.equal(m.serveur.recoitOffres(), false);
+  assert.equal(m.serveur.dateAccord(), null);
+});
+
 test("réponse perdue d'un « oui », puis autorisation retirée dans le système : le « non » retire quand même l'accord", async () => {
   const m = creerMonde();
   await partirDe(m, { offre: false });
