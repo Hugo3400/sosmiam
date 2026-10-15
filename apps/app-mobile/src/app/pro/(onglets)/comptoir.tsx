@@ -23,7 +23,6 @@ import { ListeValideesInstant } from "~/composants/pro/ListeValideesInstant";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
-import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -40,7 +39,6 @@ export default function EcranComptoir() {
   const { lieuPro } = utiliserModes();
   const demo = utiliserOutilsDemo() !== null;
   const comptoir = utiliserComptoir(lieuPro?.id ?? null);
-  const miamSafe = utiliserMiamSafeLieu(lieuPro?.id ?? 0);
   const { etat } = comptoir;
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -86,8 +84,7 @@ export default function EcranComptoir() {
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
         <EnTeteMode mode="pro" titre="Comptoir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
         {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
-        {/* Miam Safe : les alertes silencieuses en tête du comptoir (lieux qui ont signé la charte) */}
-        {miamSafe.engage ? <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} /> : null}
+        <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} />
         {/* Ce soir : SOS du soir et message du moment, pour toute l'équipe (« Mon lieu » n'est qu'au gérant) */}
         <CarteCeSoir lieuId={lieuPro.id} />
 
