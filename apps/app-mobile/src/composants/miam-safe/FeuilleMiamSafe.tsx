@@ -10,9 +10,9 @@ import { ChoixAideMiamSafe, type CharteLueMiamSafe, type VueAideMiamSafe } from 
 import { FeuilleSecoursMiamSafe } from "~/composants/miam-safe/FeuilleSecoursMiamSafe";
 import { PrevenirPoteMiamSafe } from "~/composants/miam-safe/PrevenirPoteMiamSafe";
 import { RaconterMiamSafe } from "~/composants/miam-safe/RaconterMiamSafe";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserAlerteGardeeMiamSafe } from "~/hooks/utiliser-alerte-gardee-miam-safe";
 import { utiliserEtatMiamSafeLieu, type EtatLectureMiamSafeLieu } from "~/hooks/utiliser-etat-miam-safe-lieu";
-import { utiliserServices } from "~/hooks/utiliser-services";
-import { lireAlerteGardeeMiamSafe } from "~/services/memoire-alertes-miam-safe";
 
 type Props = {
   visible: boolean;
@@ -38,10 +38,14 @@ const TITRES: Record<Vue, string> = {
 const DELAI_FERMETURE_FEUILLE_MS = 450;
 
 const TEXTES_COMPTOIR_SANS_PHRASE: Record<Exclude<CharteLueMiamSafe, "signee">, string> = {
-  "pas-signee": "Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe. L'écran lui dit en clair que tu as besoin d'aide, et quoi faire.",
+  "pas-signee": lierPonctuation("Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe. L'écran lui dit en clair que tu as besoin d'aide, et quoi faire."),
   "en-cours": "On vérifie si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
   inconnue: "On n'a pas pu vérifier si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
 };
+
+const SOUCI_EQUIPE = lierPonctuation("Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.");
+
+const PHRASE_ENTRE_GUILLEMETS = lierPonctuation(`« ${PHRASE_MIAM_SAFE} »`);
 
 function lireCharte({ lecture, engage }: EtatLectureMiamSafeLieu): CharteLueMiamSafe {
   if (lecture === "lue") return engage ? "signee" : "pas-signee";
@@ -50,7 +54,7 @@ function lireCharte({ lecture, engage }: EtatLectureMiamSafeLieu): CharteLueMiam
 
 export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer, onCreerCompte }: Props) {
   const router = useRouter();
-  const { source } = utiliserServices();
+  const { alerte } = utiliserAlerteGardeeMiamSafe(lieuId);
   const etatLieu = utiliserEtatMiamSafeLieu(lieuId);
   const charte = lireCharte(etatLieu);
   const { lecture, relire } = etatLieu;
@@ -59,7 +63,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
 
   if (visible !== ouverte) {
     setOuverte(visible);
-    if (visible) setVue(lireAlerteGardeeMiamSafe(source, lieuId) ? "alerte" : "choix");
+    if (visible) setVue("choix");
   }
 
   useEffect(() => {
@@ -81,7 +85,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
       onFermer={onFermer}
       pied={vue === "choix" ? <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} /> : <Bouton libelle="Retour" variante="blanc" onPress={() => setVue("choix")} />}
     >
-      {vue === "choix" ? <ChoixAideMiamSafe charte={charte} onChoisir={setVue} /> : null}
+      {vue === "choix" ? <ChoixAideMiamSafe charte={charte} alerte={alerte} onChoisir={setVue} /> : null}
       {vue === "pote" ? (
         <PrevenirPoteMiamSafe
           lieuId={lieuId}
@@ -97,16 +101,19 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
       {vue === "comptoir" && charte === "signee" ? (
         <View className="gap-4">
           <Text className="font-texte text-base leading-6 text-gris">Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres.</Text>
-          <Text className="font-titre-gras text-3xl text-encre">« {PHRASE_MIAM_SAFE} »</Text>
-          <Text className="font-texte text-base leading-6 text-gris">Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit.</Text>
+          <Text className="font-titre-gras text-3xl text-encre">{PHRASE_ENTRE_GUILLEMETS}</Text>
+          <Text className="font-texte text-base leading-6 text-gris">
+            {lierPonctuation("Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit.")}
+          </Text>
           <Bouton libelle="Montrer l'écran au personnel" variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir?phrase=1" as Href)} />
+          <Text className="font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
         </View>
       ) : null}
       {vue === "comptoir" && charte !== "signee" ? (
         <View className="gap-4">
           <Text accessibilityLiveRegion="polite" className="font-texte text-base leading-6 text-gris">{TEXTES_COMPTOIR_SANS_PHRASE[charte]}</Text>
           <Bouton libelle="Montrer l'écran à l'équipe" variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir" as Href)} />
-          <Text className="font-texte text-sm leading-5 text-gris">Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
         </View>
       ) : null}
     </FeuilleBas>

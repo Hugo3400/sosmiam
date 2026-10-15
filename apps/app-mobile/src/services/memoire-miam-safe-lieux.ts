@@ -15,7 +15,7 @@ type Entree = {
   etat: EtatMiamSafeLieu;
   lueLe: number;
   echecs: number;
-  dernierEssai: number;
+  finiLe: number;
   generation: number;
   enCours: boolean;
   relance: ReturnType<typeof setTimeout> | null;
@@ -59,7 +59,7 @@ function programmerRelance(entree: Entree) {
   entree.relance = setTimeout(
     () => {
       entree.relance = null;
-      if (entree.abonnes.size > 0) lancer(entree);
+      if (entree.abonnes.size > 0) lancer(entree, false);
     },
     entree.echecs <= 1 ? PREMIERE_RELANCE_MS : RELANCE_SUIVANTE_MS,
   );
@@ -72,17 +72,17 @@ async function lireValeur(entree: Entree): Promise<MiamSafeLieu | null> {
   return reponse.erreur === "lieu-inconnu" ? SANS_MIAM_SAFE : null;
 }
 
-function lancer(entree: Entree) {
+function lancer(entree: Entree, annoncer: boolean) {
   if (entree.enCours) return;
   arreterRelance(entree);
   entree.enCours = true;
-  entree.dernierEssai = Date.now();
   const generation = entree.generation;
-  if (entree.etat.valeur === null && entree.etat !== EN_COURS) changer(entree, EN_COURS);
+  if (annoncer && entree.etat.valeur === null && entree.etat !== EN_COURS) changer(entree, EN_COURS);
   void lireValeur(entree).then((valeur) => {
     entree.enCours = false;
+    entree.finiLe = Date.now();
     if (generation !== entree.generation) {
-      if (entree.abonnes.size > 0) lancer(entree);
+      if (entree.abonnes.size > 0) lancer(entree, false);
       return;
     }
     if (valeur) {
@@ -105,7 +105,7 @@ function trouverEntree(services: Services, lieuId: number): Entree {
     existante.service = service;
     return existante;
   }
-  const entree: Entree = { lieuId, service, etat: EN_COURS, lueLe: 0, echecs: 0, dernierEssai: 0, generation: 0, enCours: false, relance: null, abonnes: new Set() };
+  const entree: Entree = { lieuId, service, etat: EN_COURS, lueLe: 0, echecs: 0, finiLe: 0, generation: 0, enCours: false, relance: null, abonnes: new Set() };
   entrees.set(cle, entree);
   return entree;
 }
@@ -121,7 +121,7 @@ export function lireEtatMiamSafeLieu(services: Services, lieuId: number): EtatMi
 export function suivreMiamSafeLieu(services: Services, lieuId: number, prevenir: () => void): () => void {
   const entree = trouverEntree(services, lieuId);
   entree.abonnes.add(prevenir);
-  if (!entree.enCours && !entree.relance && estPerimee(entree)) lancer(entree);
+  if (!entree.enCours && !entree.relance && estPerimee(entree)) lancer(entree, false);
   return () => {
     entree.abonnes.delete(prevenir);
     if (entree.abonnes.size === 0) arreterRelance(entree);
@@ -130,7 +130,7 @@ export function suivreMiamSafeLieu(services: Services, lieuId: number, prevenir:
 
 export function relireMiamSafeLieu(services: Services, lieuId: number) {
   const entree = trouverEntree(services, lieuId);
-  if (Date.now() - entree.dernierEssai >= ECART_MIN_RELECTURE_MS) lancer(entree);
+  if (!entree.enCours && Date.now() - entree.finiLe >= ECART_MIN_RELECTURE_MS) lancer(entree, true);
 }
 
 export function oublierMiamSafeLieu(lieuId: number) {
@@ -138,6 +138,6 @@ export function oublierMiamSafeLieu(lieuId: number) {
     if (entree.lieuId !== lieuId) continue;
     entree.generation += 1;
     entree.lueLe = 0;
-    if (entree.abonnes.size > 0) lancer(entree);
+    if (entree.abonnes.size > 0) lancer(entree, false);
   }
 }
