@@ -89,7 +89,7 @@
   - absences et annulations tardives notées, sans rien d'automatique ;
   - limites : 20 demandes par heure et par compte ;
   - **le client reçoit une notification quand le lieu répond (décidé par Hugo le 15 octobre 2026)** : acceptée, refusée ou annulée par le lieu, et quand sa demande expire sans réponse (une seule fois, jamais à celui qui répond ; pas de notification pour une demande déjà passée). Elle ouvre « Mes réservations » ;
-  - **un créneau se réserve au moins 1 h à l'avance (15 octobre 2026, choix de construction, à confirmer par Hugo)** : une demande sans réponse s'endort 30 min avant le créneau, le lieu a donc toujours au moins 30 min pour répondre (`DELAI_MIN_RESERVATION_MS`, packages/commun/src/regles/reservations.ts).
+  - **un créneau se réserve au moins 1 h à l'avance (15 octobre 2026, choix de construction, à confirmer par Hugo)** : une demande sans réponse s'endort 30 min avant le créneau, le lieu a donc toujours au moins 30 min pour répondre (`DELAI_MIN_RESERVATION_MS`, packages/commun/src/regles/reservations.ts). L'app et sa démo lisent cette règle partagée, et l'écran « Réserver » la réapplique chaque minute tant qu'il reste ouvert.
 
 ## L'app parle au serveur (décidé le 9 octobre 2026 ; socle de l'API construit le 9 octobre)
 - **Adresse : `api.sosmiam.fr`**, un sous-domaine à part, derrière Cloudflare comme le site. On n'y ouvre que ce dont l'app a besoin (comptes, Miam Safe, puis visites, potes…), jamais `/api-gestion` ni `/bot`.

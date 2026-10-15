@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 
 import { calculerBorneClocheLue } from "../src/fonctions/social/calculer-borne-cloche-lue.ts";
+import { LIMITE_GESTES_SOCIAUX } from "../src/routes/social-app.ts";
 import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
 
 const limites = new Set<number>();
@@ -109,6 +110,33 @@ test("effacer-lues avec un profil social : jusqu'à vuesLe du serveur, jamais pl
   assert.deepEqual(await poulsCloche(moi), { nonVues: 0, signature: "0:0:" });
   assert.equal((await effacerLues(moi, { jusqua: "hier soir" })).corps.champ, "jusqua");
   assert.equal((await effacerLues(moi, { jusqua: 12 })).corps.champ, "jusqua");
+});
+
+test("jusqua d'avant 1970 (année 0 ou négative) : 400 sur /vu et /effacer-lues, jamais une erreur de la base", async () => {
+  const moi = await banc.creerPersonne({ pseudo: "lues.dates" });
+  for (const jusqua of ["0000-01-01T00:00:00.000Z", "-000001-01-01T00:00:00.000Z", "-271821-04-20T00:00:00.000Z", "1969-12-31T23:59:59.999Z"]) {
+    for (const chemin of ["/app/cloche/vu", "/app/cloche/effacer-lues"]) {
+      const r = await moi.demander("POST", chemin, { jusqua });
+      assert.deepEqual([r.statut, r.corps.erreur, r.corps.champ], [400, "champ-invalide", "jusqua"], `${chemin} ${jusqua}`);
+    }
+  }
+  assert.equal((await effacerLues(moi, { jusqua: "1970-01-01T00:00:00.000Z" })).statut, 200);
+});
+
+test("limite de débit : DELETE et effacer-lues partagent celle des gestes, 429 avec Retry-After", async () => {
+  const moi = await banc.creerPersonne({ pseudo: "lues.debit" });
+  let premier429 = 0;
+  let r = await moi.demander("DELETE", "/app/cloche/999999");
+  for (let i = 1; i <= LIMITE_GESTES_SOCIAUX.maximum + 1 && r.statut !== 429; i++) {
+    premier429 = i;
+    r = await moi.demander("DELETE", `/app/cloche/${999_999 - i}`);
+  }
+  assert.equal(r.statut, 429);
+  assert.ok(premier429 > 0 && premier429 < LIMITE_GESTES_SOCIAUX.maximum);
+  assert.equal(r.corps.erreur, "trop-de-demandes");
+  assert.ok(r.entetes.get("retry-after"));
+  const lues = await effacerLues(moi);
+  assert.deepEqual([lues.statut, lues.corps.erreur], [429, "trop-de-demandes"]);
 });
 
 test("effacer-lues sans profil social : la date du téléphone (jusqua), jamais après maintenant ; sans elle, rien ; aucun profil créé", async () => {
