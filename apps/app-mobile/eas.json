@@ -30,7 +30,10 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "6820551130"
+        "ascAppId": "6820551130",
+        "ascApiKeyPath": "/root/sos-miam-secrets/AuthKey_5FX74F83M9.p8",
+        "ascApiKeyIssuerId": "6f669ccc-b75d-4b9c-b400-9f4eff2b85bf",
+        "ascApiKeyId": "5FX74F83M9"
       },
       "android": {
         "track": "internal",
