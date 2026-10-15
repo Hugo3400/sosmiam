@@ -24,12 +24,18 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * l'emoji, le code et les tampons chez elle. Le QR (qr.texte) est signé par l'API et change toutes les 30 s.
  * Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : ce qu'il publierait pour
  * le lieu et que les autres voient est refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou
- * null : jusqu'à nouvel ordre), et rien n'est fait : PUT …/programme (la récompense que voient les clients), POST …/sos,
- * PUT …/message, POST et PUT …/evenements, POST /avis/:avisId/reponse. Le refus passe après la session et la limite par
- * compte, juste avant le contrôleur, donc avant le rôle (relu par le contrôleur) : un compte limité l'apprend même chez un
- * lieu qui n'est pas le sien, et rien de plus. Les autres membres de l'équipe, non limités, publient toujours. Restent
- * permis : lire, le QR, régler, refuser ou annuler une visite, offrir une récompense, répondre à une réservation, et
- * retirer ce qui est publié (arrêter le SOS, effacer le message, annuler un événement).
+ * null : jusqu'à nouvel ordre), et rien n'est fait : POST …/sos, PUT et DELETE …/message, POST et PUT …/evenements,
+ * POST /avis/:avisId/reponse. Ce refus-là passe après la session et la limite par compte, juste avant le contrôleur, donc
+ * avant le rôle (relu par le contrôleur) : un compte limité l'apprend même chez un lieu qui n'est pas le sien, et rien de
+ * plus. Il ne retire que ce qui est À LUI (« sans pouvoir annuler ce qui est aux autres ») ; ces refus-là sont décidés par
+ * le contrôleur, après le rôle et la ressource relue (même refus, même forme) :
+ * - DELETE …/sos : le SOS en cours d'un collègue (ou d'un compte supprimé depuis) → 403 ; le sien → 200 ;
+ * - DELETE …/evenements/:evenementId : l'événement d'un collègue → 403 ; le sien → 200 (déjà annulé : 200, rien ne change) ;
+ * - DELETE …/message : le message du moment ne garde pas qui l'a écrit, il est au lieu, donc aux autres → toujours 403 ;
+ * - PUT …/programme : l'éteindre (actif: false, le reste tel qu'enregistré) → 200 ; le créer, le rallumer, changer la
+ *   récompense (texte libre que voient les clients) ou le nombre de visites → 403.
+ * Les autres membres de l'équipe, non limités, publient et retirent toujours. Restent permis : lire, le QR, régler, refuser
+ * ou annuler une visite, offrir une récompense, répondre à une réservation.
  *
  * GET    /pro/comptoir/lieux                     → 200 { ok, lieux: LieuGere[] } (rattachements validés)
  * GET    /pro/comptoir/lieux/:id                 → 200 { ok, etat }
@@ -133,7 +139,8 @@ export function creerRoutesComptoir(
   { moment, reservations, statistiques, evenements, avis }: ControleursComptoirEnPlus,
   avant: RequestHandler[],
   parCompte: (r: { fenetre: number; maximum: number }) => RequestHandler,
-  /** Compte limité : 403 compte-limite sur ce que le lieu publie pour les autres (middlewares/refuser-si-limite.ts) */
+  /** Compte limité : 403 compte-limite sur ce que le lieu publie pour les autres (middlewares/refuser-si-limite.ts) ; le
+   *  programme, le SOS et les événements retirés le reçoivent par leur contrôleur (routes/visites.ts) */
   refuserSiLimite: RequestHandler,
 ) {
   const lectures = parCompte(LIMITE_LECTURES_COMPTOIR);
@@ -145,7 +152,7 @@ export function creerRoutesComptoir(
   routes.post("/lieux/:id/qr", gestes, c.montrerQr);
   routes.delete("/lieux/:id/qr", gestes, c.cacherQr);
   routes.get("/lieux/:id/programme", lectures, c.lireProgramme);
-  routes.put("/lieux/:id/programme", gestes, refuserSiLimite, c.reglerProgramme);
+  routes.put("/lieux/:id/programme", gestes, c.reglerProgramme);
   routes.post("/visites/:visiteId/reglee", gestes, c.marquerReglee);
   routes.post("/visites/:visiteId/refuser", gestes, c.refuser);
   routes.post("/visites/:visiteId/annuler", gestes, c.annulerValidation);
@@ -154,7 +161,7 @@ export function creerRoutesComptoir(
   routes.post("/lieux/:id/sos", gestes, refuserSiLimite, moment.lancerSos);
   routes.delete("/lieux/:id/sos", gestes, moment.arreterSos);
   routes.put("/lieux/:id/message", gestes, refuserSiLimite, moment.reglerMessage);
-  routes.delete("/lieux/:id/message", gestes, moment.effacerMessage);
+  routes.delete("/lieux/:id/message", gestes, refuserSiLimite, moment.effacerMessage);
   routes.get("/lieux/:id/reservations", lectures, reservations.lister);
   routes.post("/reservations/:reservationId/accepter", gestes, reservations.accepter);
   routes.post("/reservations/:reservationId/refuser", gestes, reservations.refuser);

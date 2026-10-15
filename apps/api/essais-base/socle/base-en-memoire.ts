@@ -8,7 +8,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import { PrismaClient } from "../../src/base-de-donnees/client-genere/client.ts";
 import { appliquerMigrations, listerMigrations } from "./migrations-depot.ts";
-import { brancherPoolSur } from "./pool-pglite.ts";
+import { brancherPoolSur, type ModeTransactions } from "./pool-pglite.ts";
 
 /** Les valeurs restent en texte (comme pg les reçoit) : les parseurs de l'adaptateur Prisma les lisent ensuite */
 const TEXTE_BRUT: Record<number, (x: string) => string> = {};
@@ -36,13 +36,14 @@ async function verifierBrancheSurPGlite(client: PrismaClient, nom: string): Prom
   }
 }
 
-export async function creerBaseEnMemoire(options: { extensions?: Extensions } = {}): Promise<BaseEnMemoire> {
+/** transactions : « a-la-suite » (défaut) ou « melees », voir pool-pglite.ts */
+export async function creerBaseEnMemoire(options: { extensions?: Extensions; transactions?: ModeTransactions } = {}): Promise<BaseEnMemoire> {
   const db = new PGlite({ parsers: TEXTE_BRUT, extensions: options.extensions });
   const migrations = listerMigrations();
   await appliquerMigrations(db, migrations);
   // connexion.ts demande UTC à sa connexion (options) : le pool d'essai n'en a pas, c'est donc toute la base
   await db.exec("SET TIME ZONE 'UTC'");
-  brancherPoolSur(db);
+  brancherPoolSur(db, options.transactions);
   const base = new PrismaClient({ adapter: new PrismaPg(new pg.Pool({})) });
   const { baseDeDonnees } = await import("../../src/base-de-donnees/connexion.ts");
   await verifierBrancheSurPGlite(base, "client Prisma de l'essai");

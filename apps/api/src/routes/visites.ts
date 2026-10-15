@@ -83,15 +83,18 @@ export function creerRoutesVisites(
   fidelite.delete("/cartes/:lieuId/demande", gestes, c.annulerDemandeRecompense);
   fidelite.use(gererErreursComptes);
 
-  // Les autres gestes de l'équipe, au même comptoir : le rôle est toujours relu (rattachement validé)
+  // Les autres gestes de l'équipe, au même comptoir : le rôle est toujours relu (rattachement validé). Le même refus des
+  // comptes limités va aussi aux contrôleurs qui seuls savent s'il s'applique (l'auteur d'un SOS ou d'un événement, le
+  // programme de fidélité déjà enregistré)
   const roleDe = (compteId: number, lieuId: number) => c.comptoir.roleDe(compteId, lieuId);
   const enPlus = {
-    moment: creerControleursMomentLieu(d.moment, roleDe, horloge),
+    moment: creerControleursMomentLieu(d.moment, roleDe, horloge, refuserSiLimite),
     reservations: creerControleursReservationsPro(d, roleDe, horloge),
     statistiques: d.statistiques ? creerControleursStatistiques(d.statistiques, roleDe, horloge) : null,
-    evenements: d.evenements ? creerControleursEvenementsPro(d.evenements, roleDe, horloge) : null,
+    evenements: d.evenements ? creerControleursEvenementsPro(d.evenements, roleDe, horloge, refuserSiLimite) : null,
     avis: d.avis ? creerControleursAvisPro(d.avis, roleDe, horloge) : null,
   };
   const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
-  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), enPlus, avantComptoir, parCompte, refuserSiLimite) };
+  const comptoir = creerControleursComptoir(c.comptoir, d.ajouterPoints, refuserSiLimite);
+  return { visites, fidelite, comptoir: creerRoutesComptoir(comptoir, enPlus, avantComptoir, parCompte, refuserSiLimite) };
 }

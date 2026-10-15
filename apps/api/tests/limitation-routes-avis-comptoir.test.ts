@@ -1,9 +1,11 @@
-// Tests par la route d'un compte limité, dans les avis et au comptoir de l'équipe (décision de Hugo du 15 octobre 2026,
-// docs/decisions.md, « Modération des avis et limitation d'un compte ») : 403 « compte-limite » { details: { jusqua } } sur
-// ses avis et sur ce qu'il publierait pour son lieu (SOS du soir, message du moment, événements, réponse à un avis,
-// récompense de fidélité), et rien n'est écrit ; le comptoir (valider une visite), ses propres visites, les lectures et
-// retirer ce qui est publié passent ; les autres membres de l'équipe publient toujours. Monté par creerApplication, comme en
-// vrai (les deux branchements de application.ts sont testés) : tout en mémoire, aucune base.
+// Tests par la route d'un compte limité, dans les avis, les réservations et au comptoir de l'équipe (décision de Hugo du
+// 15 octobre 2026, docs/decisions.md, « Modération des avis et limitation d'un compte ») : 403 « compte-limite » { details:
+// { jusqua } } sur ses avis, le petit mot d'une réservation et ce qu'il publierait pour son lieu (SOS du soir, message du
+// moment, événements, réponse à un avis, récompense de fidélité), et rien n'est écrit ; le comptoir (valider une visite),
+// ses propres visites, une réservation sans mot, les lectures, éteindre le programme et retirer ce qui est À LUI passent ;
+// ce qui est aux autres (SOS ou événement d'un collègue, message du moment du lieu) reste ; les autres membres de l'équipe
+// publient et retirent toujours. Monté par creerApplication, comme en vrai (les branchements de application.ts sont
+// testés) : tout en mémoire, aucune base.
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { after, beforeEach, test } from "node:test";
@@ -179,7 +181,7 @@ test("compte limité, au comptoir : rien de ce que le lieu publie ne passe, rien
   assert.deepEqual(statuts(repasses), { sos: 201, message: 200, creerEvenement: 201, modifierEvenement: 200, reponse: 201, programme: 200 });
 });
 
-test("compte limité, au comptoir : retirer ce qui est publié passe, et les autres membres de l'équipe publient toujours", async () => {
+test("compte limité, au comptoir : il retire son SOS et son événement, et les autres membres de l'équipe publient toujours", async () => {
   const gerant = await creerMembre("Max", "gerant");
   const serveuse = await creerMembre("Nina", "equipe");
   const evenementId = (await demander("POST", "/pro/comptoir/lieux/1/evenements", serveuse.jeton, QUIZ)).corps.evenement.id as number;
@@ -189,15 +191,112 @@ test("compte limité, au comptoir : retirer ce qui est publié passe, et les aut
   // Jusqu'à nouvel ordre : jusqua null
   assert.deepEqual((await demander("POST", "/pro/comptoir/lieux/1/evenements", serveuse.jeton, QUIZ)).corps, refus(null));
 
+  // Son SOS et son événement : à elle, elle les retire
   const sos = await demander("DELETE", "/pro/comptoir/lieux/1/sos", serveuse.jeton);
   assert.deepEqual([sos.statut, sos.corps.moment.sos.enCours], [200, false]);
-  const message = await demander("DELETE", "/pro/comptoir/lieux/1/message", serveuse.jeton);
-  assert.deepEqual([message.statut, message.corps.moment.message], [200, null]);
   const annule = await demander("DELETE", `/pro/comptoir/lieux/1/evenements/${evenementId}`, serveuse.jeton);
   assert.deepEqual([annule.statut, annule.corps.evenement.statut], [200, "annule"]);
-  // Le gérant, lui, n'est pas limité : il publie pour le lieu
+  // Le message du moment ne garde pas qui l'a écrit : il est au lieu, elle ne l'efface plus
+  const message = await demander("DELETE", "/pro/comptoir/lieux/1/message", serveuse.jeton);
+  assert.deepEqual([message.statut, message.corps], [403, refus(null)]);
+  assert.equal(moment.lieux.get(1)?.alerte, "Happy hour jusqu'à 14 h");
+  // Le gérant, lui, n'est pas limité : il publie pour le lieu, et efface le message
   assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/message", gerant.jeton, { texte: "Salle calme ce soir" })).statut, 200);
   assert.equal((await demander("POST", "/pro/comptoir/lieux/1/evenements", gerant.jeton, QUIZ)).statut, 201);
+  const efface = await demander("DELETE", "/pro/comptoir/lieux/1/message", gerant.jeton);
+  assert.deepEqual([efface.statut, efface.corps.moment.message], [200, null]);
+});
+
+test("compte limité, au comptoir : le SOS et l'événement d'un collègue restent ; un collègue non limité les retire", async () => {
+  const gerant = await creerMembre("Max", "gerant");
+  const serveuse = await creerMembre("Nina", "equipe");
+  const serveur = await creerMembre("Léo", "equipe");
+  assert.equal((await demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 })).statut, 201);
+  const evenementId = (await demander("POST", "/pro/comptoir/lieux/1/evenements", serveuse.jeton, QUIZ)).corps.evenement.id as number;
+  const dejaAnnule = (await demander("POST", "/pro/comptoir/lieux/1/evenements", serveuse.jeton, { ...QUIZ, titre: "Blind test du jeudi" })).corps.evenement.id as number;
+  assert.equal((await demander("DELETE", `/pro/comptoir/lieux/1/evenements/${dejaAnnule}`, serveuse.jeton)).statut, 200);
+  const fin = new Date(banc.horloge + 7 * JOUR);
+  await limiter(gerant.id, fin);
+
+  // Ce que Nina a publié est à elle : le gérant limité n'y touche pas, et rien ne bouge
+  for (const chemin of ["/pro/comptoir/lieux/1/sos", `/pro/comptoir/lieux/1/evenements/${evenementId}`]) {
+    const r = await demander("DELETE", chemin, gerant.jeton);
+    assert.deepEqual([r.statut, r.corps], [403, refus(fin)], chemin);
+  }
+  assert.deepEqual([moment.sos[0]?.arreteLe, evenements.evenements.find((e) => e.id === evenementId)?.annuleLe], [null, null]);
+  // Un événement déjà annulé : rien ne change, rien à refuser
+  assert.equal((await demander("DELETE", `/pro/comptoir/lieux/1/evenements/${dejaAnnule}`, gerant.jeton)).statut, 200);
+
+  // Léo n'est pas limité : il arrête le SOS et annule l'événement de sa collègue, comme avant
+  const sos = await demander("DELETE", "/pro/comptoir/lieux/1/sos", serveur.jeton);
+  assert.deepEqual([sos.statut, sos.corps.moment.sos.enCours], [200, false]);
+  const annule = await demander("DELETE", `/pro/comptoir/lieux/1/evenements/${evenementId}`, serveur.jeton);
+  assert.deepEqual([annule.statut, annule.corps.evenement.statut], [200, "annule"]);
+  // Plus de SOS en cours : rien à arrêter, ça passe même pour le gérant limité
+  assert.equal((await demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton)).statut, 200);
+});
+
+test("compte limité, programme de fidélité : l'éteindre passe, le créer, le rallumer ou le changer est refusé", async () => {
+  const gerant = await creerMembre("Max", "gerant");
+  const gerante = await creerMembre("Zoé", "gerant");
+  assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, PROGRAMME)).statut, 200);
+  const fin = new Date(banc.horloge + 7 * JOUR);
+  await limiter(gerant.id, fin);
+  const regler = (corps: unknown) => demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, corps);
+
+  // Changer la récompense ou le nombre de visites, même en l'éteignant : refusé, rien n'est écrit
+  for (const corps of [{ ...PROGRAMME, recompense: "Un dessert offert" }, { ...PROGRAMME, actif: false, recompense: "Un dessert offert" }, { ...PROGRAMME, actif: false, visitesRequises: 6 }]) {
+    const r = await regler(corps);
+    assert.deepEqual([r.statut, r.corps], [403, refus(fin)], JSON.stringify(corps));
+  }
+  assert.deepEqual([visites.programmes.get(1)?.actif, visites.programmes.get(1)?.recompense], [true, "Un café gourmand"]);
+  // L'éteindre, le reste tel qu'enregistré (espaces autour nettoyés) : permis, et de nouveau sans rien changer
+  const eteint = await regler({ ...PROGRAMME, actif: false, recompense: "  Un café gourmand " });
+  assert.equal(eteint.statut, 200, JSON.stringify(eteint.corps));
+  assert.deepEqual([eteint.corps.programme.actif, eteint.corps.programme.recompense, eteint.corps.programme.visitesRequises], [false, "Un café gourmand", 5]);
+  assert.equal((await regler({ ...PROGRAMME, actif: false })).statut, 200);
+  // Le rallumer : refusé
+  assert.deepEqual([(await regler(PROGRAMME)).statut, visites.programmes.get(1)?.actif], [403, false]);
+  // Un membre d'équipe ne règle pas le programme (même s'il ne fait que l'éteindre), limité ou non
+  const serveuse = await creerMembre("Nina", "equipe");
+  await limiter(serveuse.id);
+  const equipe = await demander("PUT", "/pro/comptoir/lieux/1/programme", serveuse.jeton, { ...PROGRAMME, actif: false });
+  assert.deepEqual([equipe.statut, equipe.corps.erreur], [403, "role-requis"]);
+  // Zoé n'est pas limitée : elle rallume et change la récompense, comme avant
+  const rallume = await demander("PUT", "/pro/comptoir/lieux/1/programme", gerante.jeton, { ...PROGRAMME, recompense: "Un dessert offert" });
+  assert.deepEqual([rallume.statut, rallume.corps.programme.actif, rallume.corps.programme.recompense], [200, true, "Un dessert offert"]);
+  assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/programme", gerante.jeton, { ...PROGRAMME, actif: false, recompense: "Un dessert offert" })).statut, 200);
+
+  // Pas encore de programme : même éteint, le créer est refusé
+  visites.programmes.clear();
+  const cree = await regler({ ...PROGRAMME, actif: false });
+  assert.deepEqual([cree.statut, cree.corps, visites.programmes.size], [403, refus(fin), 0]);
+});
+
+test("compte limité, réservation : sans petit mot, elle passe ; avec un mot, 403 et rien n'est écrit", async () => {
+  visites.lieux.get(1)!.reservable = true;
+  const lea = await creerCompte("Léa");
+  const sam = await creerCompte("Sam");
+  const fin = new Date(banc.horloge + 3 * JOUR);
+  await limiter(lea.id, fin);
+  const DEMANDE = { lieuId: 1, personnes: 2, jour: "2026-10-09", heure: "20:00" };
+  const reserver = (jeton: string, corps: Record<string, unknown>) => demander("POST", "/app/reservations", jeton, { ...DEMANDE, ...corps });
+
+  // Un mot (ou quelque chose qui n'est pas un texte) : refusé avant le contrôleur
+  for (const message of ["Une table en terrasse ?", "  Anniversaire  ", 42]) {
+    const r = await reserver(lea.jeton, { message });
+    assert.deepEqual([r.statut, r.corps], [403, refus(fin)], JSON.stringify(message));
+  }
+  assert.equal(visites.reservations.length, 0);
+  // Sans mot (fait d'espaces, null, vide ou absent) : la demande passe, puis Léa l'annule (permis)
+  for (const corps of [{ message: "   " }, { message: null }, { message: "" }, {}]) {
+    const r = await reserver(lea.jeton, corps);
+    assert.deepEqual([r.statut, r.corps.reservation?.message], [201, null], JSON.stringify(corps));
+    assert.equal((await demander("POST", `/app/reservations/${r.corps.reservation.id}/annuler`, lea.jeton)).statut, 200);
+  }
+  // Sam n'est pas limité : son mot passe
+  const r = await reserver(sam.jeton, { message: "Une table en terrasse ?" });
+  assert.deepEqual([r.statut, r.corps.reservation?.message], [201, "Une table en terrasse ?"]);
 });
 
 test("compte limité : le comptoir valide toujours les visites, et ses propres visites passent", async () => {

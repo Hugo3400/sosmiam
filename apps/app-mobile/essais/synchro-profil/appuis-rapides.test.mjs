@@ -1,7 +1,7 @@
 // Deux appuis rapides (deux avatars, deux cases de Mes envies), à différents écarts et vitesses d'écriture du téléphone :
 // le second choix gagne toujours, sur le téléphone et sur le serveur. S'il arrive pendant l'écriture du premier, un seul
-// envoi part ; sinon, deux, dans l'ordre. Les écarts tombent loin des délais d'écriture : l'issue ne dépend pas de la
-// charge de la machine.
+// envoi part ; sinon, deux, dans l'ordre. L'issue tient à l'ordre des minuteries (une pause plus courte que l'écriture en
+// cours finit toujours avant elle), pas à la vitesse de la machine.
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { PIZZA, TACO, etat } from "./banc/donnees.mjs";

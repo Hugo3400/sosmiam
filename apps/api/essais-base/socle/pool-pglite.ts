@@ -2,9 +2,13 @@
 // client global de connexion.ts, qui crée son pool à la première requête) part dans la base PGlite en mémoire, jamais sur
 // le réseau. Les valeurs sont préparées comme pg les prépare et relues en texte par les parseurs de l'adaptateur.
 //
-// Une transaction à la fois, comme le multiplexeur de pglite-socket : PGlite n'a qu'une session, la connexion prêtée garde
-// donc la main jusqu'à release(), et une requête hors transaction attend son tour. Deux transactions « en même temps » s'y
-// suivent toujours : l'attente sur un verrou n'est jamais rejouée (on lit le verrou lui-même, voir les essais des avis).
+// Par défaut, une transaction à la fois, comme le multiplexeur de pglite-socket : PGlite n'a qu'une session, la connexion
+// prêtée garde donc la main jusqu'à release(), et une requête hors transaction attend son tour. Deux transactions « en même
+// temps » s'y suivent toujours : l'attente sur un verrou n'est jamais rejouée (on lit le verrou lui-même, voir les essais
+// des avis). Un code qui lit hors de sa transaction pendant qu'elle est ouverte (en production : sur une autre connexion du
+// pool) y attendrait jusqu'à l'expiration de la transaction : l'essai choisit alors « mêlées » (tout passe dans la session
+// unique, dans l'ordre d'arrivée ; la lecture hors transaction voit ce que la transaction a écrit), jamais pour un essai de
+// concurrence.
 import type { PGlite } from "@electric-sql/pglite";
 import pg from "pg";
 import utilitairesPg from "pg/lib/utils.js";
@@ -15,12 +19,16 @@ type Requete = { text: string; values?: unknown[]; types?: { getTypeParser: (oid
 /** Au-delà, une requête qui attend son tour signale un interblocage (une requête hors de la transaction ouverte ?) */
 const ATTENTE_MAX_MS = 15_000;
 
+export type ModeTransactions = "a-la-suite" | "melees";
+
 let baseCourante: PGlite | null = null;
+let mode: ModeTransactions = "a-la-suite";
 let file: Promise<void> = Promise.resolve();
 
 /** La base PGlite où partent les requêtes des pools (null : aucune, toute requête est refusée) */
-export function brancherPoolSur(db: PGlite | null): void {
+export function brancherPoolSur(db: PGlite | null, transactions: ModeTransactions = "a-la-suite"): void {
   baseCourante = db;
+  mode = transactions;
 }
 
 const SERIALISEURS = new Proxy({}, { get: () => (valeur: unknown) => utilitairesPg.prepareValue(valeur) });
@@ -40,6 +48,7 @@ async function executer(cfg: Requete | string, valeurs?: unknown[]) {
 
 /** Attend son tour dans la file ; rend la fonction qui passe la main (une seule fois) */
 async function prendreLaMain(): Promise<() => void> {
+  if (mode === "melees") return () => undefined;
   let rendre!: () => void;
   const tour = new Promise<void>((r) => (rendre = r));
   const avant = file;
@@ -48,9 +57,6 @@ async function prendreLaMain(): Promise<() => void> {
   const delai = new Promise<never>((_, refuser) => {
     minuterie = setTimeout(() => refuser(new Error(`Base d'essai : une requête attend depuis ${ATTENTE_MAX_MS / 1000} s la fin d'une transaction (PGlite n'a qu'une session : une requête hors de la transaction pendant qu'elle est ouverte ?)`)), ATTENTE_MAX_MS);
   });
-  const pile = new Error("attente").stack;
-  const espion = setTimeout(() => console.error("ATTENTE >2s", pile), 2000);
-  void avant.then(() => clearTimeout(espion));
   try {
     await Promise.race([avant, delai]);
   } catch (erreur) {

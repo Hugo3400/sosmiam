@@ -16,7 +16,9 @@ import { creerSocial } from "../../src/services/social.ts";
 import { creerBaseEnMemoire } from "../socle/base-en-memoire.ts";
 import { creerVerifications, terminerEssai } from "../socle/verifications.ts";
 
-const essai = await creerBaseEnMemoire();
+// Transactions « mêlées » : le signalement lit les liens entre personnes (relations-sociales.ts, client de l'essai) hors de
+// sa transaction pendant qu'elle est ouverte, comme en production sur une autre connexion du pool
+const essai = await creerBaseEnMemoire({ transactions: "melees" });
 const { base } = essai;
 const verifications = creerVerifications();
 const { egal } = verifications;
