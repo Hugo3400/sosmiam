@@ -15,6 +15,7 @@ import { creerCandidatureCertification, lireCandidatureCertification } from "./s
 import { changerCommuneCandidature, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { envoyerLienMotDePasse, envoyerLienVerificationEmail } from "./services/courriels/courriels-comptes.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
+import { listerAnnoncesApp } from "./services/annonces-app.ts";
 import { reveillerNotifications } from "./services/notifications/file-push.ts";
 import { prevenirEquipeMiamSafe } from "./services/notifications/prevenir-equipe-miam-safe.ts";
 import { servicesMiamSafe } from "./services/miam-safe.ts";
@@ -242,6 +243,7 @@ const serveur = creerApplication({
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },
+  annoncesApp: { lister: (filtres) => listerAnnoncesApp(filtres) },
   newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
   // Potes, profils, masques, pouls et cloche de l'app (routes /app/social, /app/personnes, /app/masques, /app/cloche…)
   socialApp,

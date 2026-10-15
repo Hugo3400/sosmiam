@@ -13,6 +13,7 @@ import { creerControleursEvenementsGestion } from "../controleurs/gestion/contro
 import { creerControleursReservationsGestion } from "../controleurs/gestion/controleurs-reservations-gestion.ts";
 import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-avis-gestion.ts";
 import { creerControleursLimitations } from "../controleurs/gestion/controleurs-limitations.ts";
+import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-annonces-app.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
@@ -80,6 +81,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const reservations = creerControleursReservationsGestion(services);
   const avis = creerControleursAvisGestion(services, avisGestion, moderationSociale);
   const lim = creerControleursLimitations(services, limitations, moderationSociale);
+  const popups = creerControleursAnnoncesApp(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -193,6 +195,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.post("/comptes/:id/limitations", lim.limiter);
   routes.post("/limitations/:id/levee", lim.lever);
   routes.post("/limitations/:id/reexamen", lim.reexaminer);
+  routes.get("/annonces-app", popups.liste);
+  routes.post("/annonces-app", popups.creer);
+  routes.put("/annonces-app/:id", popups.modifier);
+  routes.post("/annonces-app/:id/publication", popups.publier);
+  routes.delete("/annonces-app/:id", popups.supprimer);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

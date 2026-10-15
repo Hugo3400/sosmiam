@@ -1,4 +1,5 @@
-import { View } from "react-native";
+import type { Ref } from "react";
+import { View, type TextInput } from "react-native";
 
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { TEXTE_AVIS_MAX, TEXTE_AVIS_MIN } from "@sos-miam/commun/regles/avis";
@@ -17,6 +18,7 @@ type Props = {
   pointsPhoto: number;
   repasOffert: boolean;
   preparationPhoto: boolean;
+  refTexte?: Ref<TextInput>;
   erreurTexte: string | null;
   erreurPhoto: string | null;
   mentionAlcool: boolean;
@@ -35,36 +37,53 @@ function decrireLongueur(texte: string): string {
   return `${compteur} · ${reste}`;
 }
 
-export function FormulaireAvis(p: Props) {
+export function FormulaireAvis({
+  note,
+  texte,
+  photo,
+  pointsPhoto,
+  repasOffert,
+  preparationPhoto,
+  refTexte,
+  erreurTexte,
+  erreurPhoto,
+  mentionAlcool,
+  desactive,
+  onChoisirNote,
+  onChangerTexte,
+  onAjouterPhoto,
+  onRetirerPhoto,
+}: Props) {
   return (
     <View className="gap-7">
-      <ChoixNoteAvis note={p.note} onChoisir={p.onChoisirNote} />
+      <ChoixNoteAvis note={note} onChoisir={onChoisirNote} />
       <View className="gap-3">
         <ChampTexte
+          ref={refTexte}
           libelle={TEXTES_DONNER_AVIS.texteTitre}
-          valeur={p.texte}
-          onChangeTexte={p.onChangerTexte}
+          valeur={texte}
+          onChangeTexte={onChangerTexte}
           placeholder={TEXTES_DONNER_AVIS.textePlaceholder}
-          aide={decrireLongueur(p.texte)}
-          erreur={p.erreurTexte}
+          aide={decrireLongueur(texte)}
+          erreur={erreurTexte}
           multiline
           numberOfLines={5}
           textAlignVertical="top"
           maxLength={TEXTE_AVIS_MAX}
           autoCapitalize="sentences"
-          editable={!p.desactive}
+          editable={!desactive}
         />
-        {p.mentionAlcool ? <MentionPrevention /> : null}
+        {mentionAlcool ? <MentionPrevention /> : null}
       </View>
       <BlocPhotoAvis
-        photo={p.photo}
-        pointsPhoto={p.pointsPhoto}
-        repasOffert={p.repasOffert}
-        preparation={p.preparationPhoto}
-        erreur={p.erreurPhoto}
-        desactive={p.desactive}
-        onAjouter={p.onAjouterPhoto}
-        onRetirer={p.onRetirerPhoto}
+        photo={photo}
+        pointsPhoto={pointsPhoto}
+        repasOffert={repasOffert}
+        preparation={preparationPhoto}
+        erreur={erreurPhoto}
+        desactive={desactive}
+        onAjouter={onAjouterPhoto}
+        onRetirer={onRetirerPhoto}
       />
     </View>
   );

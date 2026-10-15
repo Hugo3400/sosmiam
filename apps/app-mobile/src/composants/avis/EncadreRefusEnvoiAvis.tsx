@@ -1,18 +1,15 @@
 import { useEffect } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
-import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
-import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
-import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
-  erreur: ErreurService;
-  details?: DetailsErreur;
+  emoji: string;
+  titre: string;
+  texte: string;
 };
 
-export function EncadreRefusEnvoiAvis({ erreur, details }: Props) {
-  const { emoji, titre, texte } = decrireEchecVisite(erreur, details);
+export function EncadreRefusEnvoiAvis({ emoji, titre, texte }: Props) {
   const annonce = `${titre}. ${texte}`;
 
   useEffect(() => {

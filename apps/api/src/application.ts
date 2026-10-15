@@ -11,6 +11,7 @@ import { creerRoutesGestion, type DependancesGestion } from "./routes/gestion.ts
 import { creerRoutesApp } from "./routes/app.ts";
 import { creerRoutesContenuApp } from "./routes/contenu-app.ts";
 import { creerRoutesAppareils } from "./routes/appareils.ts";
+import { creerRoutesAnnoncesApp, type DependancesAnnoncesApp } from "./routes/annonces-app.ts";
 import type { DependancesAppareils } from "./controleurs/appareils.ts";
 import { creerRoutesActivite } from "./routes/activite.ts";
 import type { DependancesActivite } from "./controleurs/activite.ts";
@@ -108,6 +109,7 @@ type Dependances = {
   newsletter?: DependancesNewsletterPublic;
   /** Téléphones inscrits aux notifications push (routes /app/appareils ; seulement avec `comptes`) */
   appareilsApp?: DependancesAppareils;
+  annoncesApp?: DependancesAnnoncesApp;
   /** L'app, avec session : défis du moment et avancée du compte (GET /app/defis ; seulement avec `comptes`) */
   defisApp?: DependancesDefisApp;
   /** Connexion par QR code, comme Discord (routes /comptes/qr sans session, /app/qr avec la session de l'app ; seulement
@@ -132,7 +134,7 @@ export function creerApplication({
   listerLieuxDuPlan,
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
-  newsletter, appareilsApp,
+  newsletter, appareilsApp, annoncesApp,
   defisApp,
   connexionQr,
   socialApp,
@@ -201,6 +203,7 @@ export function creerApplication({
     if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
     // Téléphones inscrits aux notifications (session facultative : le compte vient d'elle si elle est valable)
     if (appareilsApp) application.use("/app/appareils", creerRoutesAppareils(appareilsApp, protection));
+    if (annoncesApp) application.use("/app/annonces", creerRoutesAnnoncesApp(annoncesApp, protection));
     if (espaceAmbassadeur) {
       application.use(
         "/espace-ambassadeur",

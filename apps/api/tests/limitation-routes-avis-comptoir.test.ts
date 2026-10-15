@@ -87,6 +87,7 @@ async function demander(methode: string, chemin: string, jeton?: string, corps?:
     method: methode,
     headers: { "X-IP-Visiteur": `v-${Math.random()}`, "Content-Type": "application/json", ...(jeton ? { Authorization: `Bearer ${jeton}` } : {}) },
     body: corps === undefined ? undefined : JSON.stringify(corps),
+    signal: AbortSignal.timeout(3_000),
   });
   return { statut: reponse.status, corps: (await reponse.json()) as Record<string, any> };
 }

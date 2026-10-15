@@ -37,6 +37,7 @@ export const TEXTES_DONNER_AVIS = {
   photoVisages: "Pas de visages d'inconnus sur ta photo : merci pour eux !",
   photoGalerieFermee: "Ta galerie n'a pas voulu s'ouvrir. Vérifie dans les réglages de ton téléphone que SOS Miam peut voir tes photos.",
   photoIllisible: "Cette photo n'a pas pu être préparée. Choisis-en une autre !",
+  photoPasPartie: "Ta photo n'est pas partie",
   photoRefusee: "Ta photo n'est pas passée. Choisis-en une autre, ou publie sans photo.",
   photoTropLourde: "Ta photo est trop lourde pour partir. Choisis-en une autre, ou publie sans photo.",
   photoPasEncore: "L'envoi des photos arrive tout bientôt : publie sans photo pour l'instant, ton avis compte déjà !",

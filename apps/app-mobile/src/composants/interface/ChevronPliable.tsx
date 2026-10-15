@@ -1,0 +1,34 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect } from "react";
+import { View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
+
+import couleurs from "~/theme/couleurs";
+
+type Props = {
+  deplie: boolean;
+};
+
+export function ChevronPliable({ deplie }: Props) {
+  const animationsReduites = useReducedMotion();
+  const tour = useSharedValue(deplie ? 1 : 0);
+
+  useEffect(() => {
+    const cible = deplie ? 1 : 0;
+    tour.value = animationsReduites ? cible : withTiming(cible, { duration: 220, easing: Easing.out(Easing.quad) });
+  }, [deplie, animationsReduites, tour]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${180 * tour.value}deg` }] }));
+
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      className={`h-9 w-9 items-center justify-center rounded-full border-2 border-encre ${deplie ? "bg-white" : "bg-jaune"}`}
+    >
+      <Animated.View style={style}>
+        <Ionicons name="chevron-down" size={18} color={couleurs.encre} />
+      </Animated.View>
+    </View>
+  );
+}

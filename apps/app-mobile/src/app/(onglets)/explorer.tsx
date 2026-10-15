@@ -1,5 +1,5 @@
 import { useBottomTabBarHeight } from "expo-router/tabs";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useIsFocused, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, Keyboard, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,9 +17,12 @@ import { VideExplorer } from "~/composants/explorer/VideExplorer";
 import { Annonce } from "~/composants/interface/Annonce";
 import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
+import { alerterErreurPosition } from "~/fonctions/geo/alerter-erreur-position";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
 import { decrireZoneRegardee } from "~/fonctions/geo/decrire-zone-regardee";
+import { ecrireErreurPosition } from "~/fonctions/geo/ecrire-erreur-position";
+import { ecrireRepliDistances } from "~/fonctions/geo/ecrire-repli-distances";
 import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -30,11 +33,12 @@ import { filtrerLieuxExplorer } from "~/fonctions/lieux/filtrer-lieux-explorer";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
-import { utiliserAutourDeMoi } from "~/hooks/utiliser-autour-de-moi";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
+import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
 import couleurs from "~/theme/couleurs";
@@ -64,18 +68,15 @@ export default function Explorer() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const hauteurBarreOnglets = useBottomTabBarHeight();
+  const focus = useIsFocused();
   const { profil } = utiliserProfil();
-  const { depart: pointDeDepart, depuis: depuisVille } = utiliserDepartVille();
+  const pointDeDepart = utiliserPointDeDepart();
+  const depuisVille = utiliserDepartVille().depuis;
+  const { position, approximative, recherche, chercher, oublier, oublisApresAbsence } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
-  const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
-  const finAnnonce = useCallback(() => setAnnonce(null), []);
-  const regarderAutourDeToi = useCallback(() => {
-    setPorteeChoisie("proche");
-    setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
-  }, []);
-  const { position, approximative, recherche, toucher, arreter } = utiliserAutourDeMoi({ depuisVille, annoncer, onActive: regarderAutourDeToi });
+  const [oublisDits, setOublisDits] = useState(oublisApresAbsence);
   const [avisApproximativeVu, setAvisApproximativeVu] = useState(false);
   const [rayon, changerRayon] = utiliserRayonExplorer();
   const [selection, setSelection] = useState<number | null>(null);
@@ -173,7 +174,13 @@ export default function Explorer() {
   // SOS d'abord, puis les alertes du soir
   const sos = useMemo(() => lieux.filter(({ lieu }) => lieu.sos || lieu.alerte).sort((a, b) => Number(!!b.lieu.sos) - Number(!!a.lieu.sos)), [lieux]);
 
-  if (selection !== null && !lieux.some(({ lieu }) => lieu.id === selection)) setSelection(null);
+  const selectionRetiree = useMemo(() => selection !== null && !lieux.some(({ lieu }) => lieu.id === selection), [lieux, selection]);
+  if (selectionRetiree) setSelection(null);
+  if (focus && oublisDits !== oublisApresAbsence) {
+    setOublisDits(oublisApresAbsence);
+    const repli = ecrireRepliDistances(depuisVille);
+    setAnnonce({ texte: `Plus de 5 minutes d'absence : ta position est oubliée${repli ? `, ${repli}` : ""} 📍`, numero: oublisApresAbsence });
+  }
 
   const motRecherche = filtres.texte.trim();
   const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;
@@ -213,7 +220,29 @@ export default function Explorer() {
     return () => clearTimeout(minuterie);
   }, [choixAnnonces]);
 
+  const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
+  const finAnnonce = useCallback(() => setAnnonce(null), []);
   const ouvrir = useCallback((id: number) => router.push({ pathname: "/lieu/[id]", params: { id: String(id) } }), [router]);
+
+  async function toucherAutourDeMoi() {
+    const actualisation = position !== null;
+    const resultat = await chercher();
+    if (!resultat) return;
+    if ("erreur" in resultat) {
+      const message = ecrireErreurPosition(resultat.erreur, actualisation, depuisVille);
+      if (!alerterErreurPosition(resultat.erreur, message)) annoncer(message);
+      return;
+    }
+    if (actualisation) return annoncer("Position à jour : les distances partent de toi 📍");
+    setPorteeChoisie("proche");
+    setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
+  }
+
+  function arreterAutourDeMoi() {
+    oublier();
+    const repli = ecrireRepliDistances(depuisVille);
+    annoncer(repli ? `Autour de moi arrêté : ${repli}` : "Autour de moi arrêté : ta position est oubliée");
+  }
 
   /** Remet les filtres à zéro depuis la liste vide (la recherche aussi si demandé) ; le lecteur d'écran passe sur le compteur */
   function effacer(aussiLaRecherche: boolean) {
@@ -250,8 +279,8 @@ export default function Explorer() {
       autourDeMoiActif={position !== null}
       recherche={recherche}
       avisApproximative={position !== null && approximative && !avisApproximativeVu}
-      onToucherAutourDeMoi={() => void toucher()}
-      onArreterAutourDeMoi={arreter}
+      onToucherAutourDeMoi={() => void toucherAutourDeMoi()}
+      onArreterAutourDeMoi={arreterAutourDeMoi}
       onFermerAvisApproximative={() => setAvisApproximativeVu(true)}
       onRoulette={() => setRoulette(true)}
     />
@@ -264,7 +293,7 @@ export default function Explorer() {
       ouOnRegarde={ouOnRegarde}
       motRecherche={motRecherche}
       avecFiltres={avecFiltres}
-      onAutourDeMoi={() => void toucher()}
+      onAutourDeMoi={() => void toucherAutourDeMoi()}
       onChoisirPortee={setPorteeChoisie}
       onEffacer={effacer}
     />

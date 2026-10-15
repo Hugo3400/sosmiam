@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Text, View, type TextInput } from "react-native";
 
 import { calculerPointsPhotoAvis } from "@sos-miam/commun/fonctions/avis/calculer-points-photo-avis";
 import { signerAvis } from "@sos-miam/commun/fonctions/avis/signer-avis";
@@ -18,7 +18,7 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
-import { decrireRefusPhotoAvis } from "~/fonctions/avis/decrire-refus-photo-avis";
+import { decrireRefusEnvoiAvis } from "~/fonctions/avis/decrire-refus-envoi-avis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { EtatEnvoiAvis } from "~/hooks/utiliser-envoi-avis";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
@@ -50,7 +50,9 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
   const { limitation } = utiliserLimitationCompte();
   const [note, setNote] = useState<NoteAvis | null>(null);
   const [texte, setTexte] = useState("");
+  const refTexte = useRef<TextInput>(null);
   const { refus, enCours } = envoi;
+  const motRefuse = refus?.ou === "texte";
 
   const repasOffert = visite.reglement?.type === "offert";
   const typeReglement = visite.reglement?.type;
@@ -59,7 +61,11 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
   const limite = limitation?.active === true || refus?.ou === "limite";
   const complet = note !== null && texte.trim().length >= TEXTE_AVIS_MIN;
   const signature = profil ? signerAvis(profil.prenom, profil.nom?.trim().charAt(0) || null) : null;
-  const erreurPhoto = photo.erreur ?? (refus?.ou === "photo" ? decrireRefusPhotoAvis(refus.erreur) : null);
+  const message = decrireRefusEnvoiAvis(refus);
+
+  useEffect(() => {
+    if (motRefuse) refTexte.current?.focus();
+  }, [motRefuse]);
 
   function oublierRefusSaisie() {
     if (refus && refus.ou !== "limite") envoi.oublierRefus();
@@ -83,8 +89,8 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
       auDessusDuBouton={
         limite ? (
           <RefusLimitationEnPlace texte={REFUS_LIMITATION.avis} />
-        ) : refus?.ou === "envoi" ? (
-          <EncadreRefusEnvoiAvis erreur={refus.erreur} details={refus.details} />
+        ) : message ? (
+          <EncadreRefusEnvoiAvis emoji={message.emoji} titre={message.titre} texte={message.texte} />
         ) : null
       }
     >
@@ -102,8 +108,9 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
           pointsPhoto={calculerPointsPhotoAvis({ verifie: true, avecPhoto: true, repasOffert })}
           repasOffert={repasOffert}
           preparationPhoto={photo.preparation}
-          erreurTexte={refus?.ou === "texte" ? TEXTES_DONNER_AVIS.texteRetouche : null}
-          erreurPhoto={erreurPhoto}
+          refTexte={refTexte}
+          erreurTexte={motRefuse ? TEXTES_DONNER_AVIS.texteRetouche : null}
+          erreurPhoto={photo.erreur}
           mentionAlcool={!lieuAlcool && parleDAlcool(texte)}
           desactive={enCours !== null}
           onChoisirNote={(nouvelle) => {
