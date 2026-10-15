@@ -1,14 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -43,6 +45,7 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
   const titreOptions = useRef<Text>(null);
   const titreConfirmation = useRef<Text>(null);
   const [aConfirmer, setAConfirmer] = useState<OptionMenu | null>(null);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   // Le contenu reste celui de l'ouverture pendant que la feuille redescend
   const [affiche, setAffiche] = useState({ titre, options });
   if (visible && (affiche.titre !== titre || affiche.options !== options)) setAffiche({ titre, options });
@@ -70,62 +73,68 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={reculer}
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <ScrollView contentContainerClassName="px-5">
-          {aConfirmer?.confirmation ? (
-            <View className="gap-3">
-              <Text ref={titreConfirmation} accessibilityRole="header" className="font-titre text-2xl text-encre">
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <PoigneeFeuille geste={geste} className="px-5">
+            {aConfirmer?.confirmation ? (
+              <Text ref={titreConfirmation} accessibilityRole="header" className="mb-3 font-titre text-2xl text-encre">
                 {lierPonctuation(aConfirmer.confirmation.titre)}
               </Text>
-              <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(aConfirmer.confirmation.detail)}</Text>
-              <Bouton
-                libelle={aConfirmer.confirmation.confirmer}
-                variante="encre"
-                onPress={() => {
-                  onFermer();
-                  aConfirmer.agir();
-                }}
-                className="mt-2"
-              />
-              <Bouton libelle={aConfirmer.confirmation.rester} variante="blanc" onPress={() => setAConfirmer(null)} />
-            </View>
-          ) : (
-            <>
+            ) : (
               <Text ref={titreOptions} accessibilityRole="header" accessibilityLabel={retirerEmoji(affiche.titre)} numberOfLines={2} className="mb-2 font-titre text-2xl text-encre">
                 {lierPonctuation(affiche.titre)}
               </Text>
-              {affiche.options.map((o) => (
-                <Pressable
-                  key={o.cle}
-                  accessibilityRole="button"
-                  accessibilityLabel={o.titre}
-                  accessibilityHint={o.detail}
-                  onPress={() => choisir(o)}
-                  className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
-                >
-                  <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
-                    {o.emoji}
-                  </Text>
-                  <View className="flex-1">
-                    <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                    {o.detail ? <Text className="font-texte text-sm text-gris">{o.detail}</Text> : null}
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+            )}
+          </PoigneeFeuille>
+          <ScrollView contentContainerClassName="px-5">
+            {aConfirmer?.confirmation ? (
+              <View className="gap-3">
+                <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(aConfirmer.confirmation.detail)}</Text>
+                <Bouton
+                  libelle={aConfirmer.confirmation.confirmer}
+                  variante="encre"
+                  onPress={() => {
+                    onFermer();
+                    aConfirmer.agir();
+                  }}
+                  className="mt-2"
+                />
+                <Bouton libelle={aConfirmer.confirmation.rester} variante="blanc" onPress={() => setAConfirmer(null)} />
+              </View>
+            ) : (
+              <>
+                {affiche.options.map((o) => (
+                  <Pressable
+                    key={o.cle}
+                    accessibilityRole="button"
+                    accessibilityLabel={o.titre}
+                    accessibilityHint={o.detail}
+                    onPress={() => choisir(o)}
+                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                  >
+                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
+                      {o.emoji}
+                    </Text>
+                    <View className="flex-1">
+                      <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                      {o.detail ? <Text className="font-texte text-sm text-gris">{o.detail}</Text> : null}
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                  </Pressable>
+                ))}
+                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                 </Pressable>
-              ))}
-              <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-              </Pressable>
-            </>
-          )}
-        </ScrollView>
-      </View>
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </Animated.View>
     </Modal>
   );
 }

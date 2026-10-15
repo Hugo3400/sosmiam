@@ -1,10 +1,12 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
@@ -30,6 +32,7 @@ export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
 
   useEffect(() => {
     if (!visible) return;
@@ -41,24 +44,25 @@ export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer, sans rien changer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-2">
-            <View className="gap-1.5">
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} ecart="grand" className="px-5">
               <Text ref={refTitre} accessibilityRole="header" className="font-titre text-2xl text-encre">
                 {lierPonctuation(titre)}
               </Text>
+            </PoigneeFeuille>
+            <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" contentContainerClassName={`gap-5 px-5 pb-2 ${sousTitre ? "pt-1.5" : "pt-5"}`}>
               {sousTitre ? <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(sousTitre)}</Text> : null}
-            </View>
-            {children}
-          </ScrollView>
-          <View className="mt-4 gap-3 px-5">{pied}</View>
-        </View>
+              {children}
+            </ScrollView>
+            <View className="mt-4 gap-3 px-5">{pied}</View>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

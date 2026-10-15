@@ -89,3 +89,7 @@ export const TEXTES_IDEES = {
     reseau: "Le réseau a fait des siennes : ton commentaire n'est pas parti. Réessaie dans un instant.",
   },
 } as const;
+
+export const REFUS_LIMITATION_IDEES = {
+  idee: "Ton compte est limité : proposer une idée attendra la fin de la limitation. Voter « Miam ! », tu peux toujours.",
+} as const;

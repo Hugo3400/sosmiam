@@ -12,6 +12,7 @@ const ELAN = 150;
 const DUREE_RETOUR = 220;
 const DUREE_SORTIE = 180;
 const ATTENTE_FERMETURE = 450;
+const ATTENTE_REMISE = 800;
 
 type Options = { sortieAnimee?: boolean };
 
@@ -28,10 +29,16 @@ export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void
   });
 
   useLayoutEffect(() => {
-    if (!visible) return;
-    cancelAnimation(decalage);
-    decalage.value = 0;
-  }, [visible, decalage]);
+    if (visible || sortieAnimee) {
+      cancelAnimation(decalage);
+      decalage.value = 0;
+      return;
+    }
+    const attente = setTimeout(() => {
+      decalage.value = 0;
+    }, ATTENTE_REMISE);
+    return () => clearTimeout(attente);
+  }, [visible, sortieAnimee, decalage]);
 
   useEffect(
     () => () => {

@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react";
 import { Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
@@ -49,6 +51,7 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   // Confirmation touchée, feuille pas encore refermée
   const confirmee = useRef(false);
   const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,39 +89,41 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
       {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer, sans rien changer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
-        // Comme le menu « ⋯ » : jamais plus haute que l'écran, le texte défile au-dessus des boutons
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
-          >
-            <EmojiOuMiami valeur={emoji} personneId={personneId} taille={60} className="text-3xl" />
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <PoigneeFeuille geste={geste} ecart="grand" className="px-5">
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
+            >
+              <EmojiOuMiami valeur={emoji} personneId={personneId} taille={60} className="text-3xl" />
+            </View>
+            <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
+              {lierPonctuation(titre)}
+            </Text>
+          </PoigneeFeuille>
+          <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
+            <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(detail)}</Text>
+          </ScrollView>
+          <View className="mt-5 gap-3 px-5">
+            <Bouton libelle={libelleConfirmer} variante="encre" onPress={confirmer} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityHint={indiceRester}
+              onPress={onFermer}
+              className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            >
+              <Text className="font-texte-gras text-base text-encre">{libelleRester}</Text>
+            </Pressable>
           </View>
-          <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-            {lierPonctuation(titre)}
-          </Text>
-          <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(detail)}</Text>
-        </ScrollView>
-        <View className="mt-5 gap-3 px-5">
-          <Bouton libelle={libelleConfirmer} variante="encre" onPress={confirmer} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint={indiceRester}
-            onPress={onFermer}
-            className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
-          >
-            <Text className="font-texte-gras text-base text-encre">{libelleRester}</Text>
-          </Pressable>
         </View>
-      </View>
+      </Animated.View>
     </Modal>
   );
 }

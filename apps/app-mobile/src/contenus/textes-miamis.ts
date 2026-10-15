@@ -1,5 +1,3 @@
-import type { ChoixGenre } from "@sos-miam/commun/types/genre";
-
 export const TEXTES_ESPACE_COMMUNAUTE = {
   titre: "Communauté",
   bande: "Ma bande",
@@ -8,8 +6,6 @@ export const TEXTES_ESPACE_COMMUNAUTE = {
 } as const;
 
 export const TEXTES_ACCUEIL_MIAMIS = {
-  demo: "Miamis d'exemple",
-  demoSuite: " : ils acceptent, votent et répondent tout seuls. Rien ne part sur le serveur.",
   bientotTitre: "Les Miamis arrivent",
   bientotTexte: "Sorties ouvertes, boîte à idées et « Qui est là ? » : la Brigade branche tout ça sur le serveur. Ta bande, elle, t'attend juste à côté.",
   presentsSurtitre: (ville: string) => `${ville} · en ce moment`,
@@ -43,59 +39,14 @@ export const TEXTES_MES_ENVIES = {
   annuler: "Annuler",
 } as const;
 
-export const TEXTES_QUI_EST_LA = {
-  titre: "Qui est là ?",
-  intro: (ville: string) =>
-    `Les Miamis de ${ville} qui ont choisi d'apparaître ici. Fais coucou : si c'est réciproque, vous pouvez vous ajouter à vos bandes. Sinon, rien de plus : pas de notification, pas de pression.`,
-  montrer: "Me montrer ici",
-  visible: "Les Miamis de ta ville te voient ici (pseudo et avatar).",
-  invisible: "Tu es invisible ici, et tu ne peux pas faire coucou.",
-  mutuelTitre: (pseudo: string) => `@${pseudo} et toi, vous vous êtes fait coucou !`,
-  mutuelEnvies: (envies: string[]) =>
-    envies.length === 0 ? "De quoi papoter : un coucou, c'est déjà un début." : `Vous avez ${envies.length > 1 ? `${envies.length} envies` : "une envie"} en commun : ${envies.join(", ")}.`,
-  ajouter: "Ajouter à ma bande",
-  demandeEnvoyee: "Demande envoyée",
-  plusTard: "Plus tard",
-  coucou: "Coucou",
-  coucouEnvoye: "Coucou envoyé",
-  pote: "Pote",
-  aFaitCoucou: "T'a fait coucou",
-  dansTaBande: "Dans ta bande",
-  ambassadeur: "Du programme Ambassadeurs",
-  nouveau: "Vient d'arriver en ville",
-  rescousses: (n: number) => (n > 1 ? `${n} rescousses` : `${n} rescousse`),
-  organise: (titre: string) => `organise ${titre}`,
-  enCommun: (envies: string[]) => (envies.length === 1 ? `${envies[0]} en commun` : `${envies.length} envies en commun`),
-  vide: "Personne pour l'instant. Reviens à l'heure du déjeuner, c'est là que ça bouge !",
-  invisiblePourCoucou: "Montre-toi d'abord ici pour faire coucou : c'est donnant-donnant.",
-  coucouParti: (prenom: string) => `👋 Coucou envoyé à ${prenom}.`,
-  demandePartie: (prenom: string) => `🤝 Demande envoyée à ${prenom} pour rejoindre ta bande.`,
-} as const;
-
-export const TEXTES_GENRE = {
-  titre: "Mon genre",
-  intro: "Facultatif. Il sert à une seule chose : te montrer les sorties réservées (entre filles, entre garçons, autres genres). Personne ne le voit : ni les autres Miamis, ni les lieux.",
-  regle: "Tu peux le changer une fois par mois, pour que les sorties réservées restent entre les bonnes personnes.",
-  bloque: (date: string) => `C'est enregistré. Prochain changement possible le ${date} (une fois par mois).`,
-  jamaisTitre: "Ce qu'on ne te demandera jamais",
-  jamaisTexte: "Ton orientation. « LGBT+ friendly » est une étiquette de sortie, que chacun peut choisir ou filtrer, pas une case de ton profil.",
-  enregistrer: "Enregistrer",
-  enregistre: "Enregistré",
-  ligneReglage: "Mon genre",
-  ligneSection: "Communauté",
-  ligneVide: "Facultatif, et invisible pour les autres",
-} as const;
-
-export const OPTIONS_GENRE: readonly { id: ChoixGenre; nom: string; effet: string }[] = [
-  { id: "femme", nom: "Femme", effet: "Tu vois aussi les sorties « Entre filles »." },
-  { id: "homme", nom: "Homme", effet: "Tu vois aussi les sorties « Entre garçons »." },
-  { id: "autre", nom: "Autres", effet: "Tu vois aussi les sorties « Autres genres »." },
-  { id: "ne-pas-dire", nom: "Je préfère ne pas dire", effet: "Tu vois les sorties ouvertes à tous, pas les sorties réservées." },
-];
-
 export const REFUS_LIMITATION_MIAMIS = {
   venir: "Ton compte est limité : demander à venir à une sortie des Miamis attendra la fin de la limitation.",
-  idee: "Ton compte est limité : proposer une idée attendra la fin de la limitation. Voter « Miam ! », tu peux toujours.",
-  coucou: "Ton compte est limité : les coucous attendront la fin de la limitation.",
-  apparaitre: "Ton compte est limité : apparaître dans « Qui est là ? » attendra la fin de la limitation.",
+} as const;
+
+export const TEXTES_ACCES_MIAMIS = {
+  demo: { emoji: "🧪", titre: "Les Miamis ne jouent pas la démo", texte: "Ici, tout est vrai : de vraies sorties, de vraies idées, de vrais Miamis. Quitte la démo et connecte-toi pour les rejoindre." },
+  visite: { emoji: "👋", titre: "Les Miamis t'attendent", texte: "Crée ton compte pour rejoindre des sorties, voter pour les idées et dire coucou aux Miamis de ta ville." },
+  bientot: { emoji: "🛠️", titre: "Les Miamis arrivent", texte: "La Brigade branche les sorties des Miamis, la boîte à idées et « Qui est là ? » sur le serveur. Encore un peu de patience !" },
+  reessayer: "Réessayer",
+  retour: "Retour",
 } as const;
