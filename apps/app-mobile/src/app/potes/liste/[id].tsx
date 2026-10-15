@@ -17,6 +17,7 @@ import { EnTeteListe } from "~/composants/potes/EnTeteListe";
 import { FeuilleCoAuteursListe } from "~/composants/potes/FeuilleCoAuteursListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
 import { LigneLieuListe } from "~/composants/potes/LigneLieuListe";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { compterAbonnesListe } from "~/fonctions/communaute/compter-abonnes-liste";
 import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { estListeSuivie } from "~/fonctions/communaute/est-liste-suivie";
@@ -145,9 +146,12 @@ export default function EcranListePartagee() {
   };
 
   const ajouter = (lieuId: number) => {
-    communaute.ajouterLieuListe(liste.id, lieuId);
-    setChoixOuvert(false);
     const lieu = trouverLieu(lieuId);
+    // Affichée tout de suite ; si le serveur refuse, l'adresse repart de la liste et on dit pourquoi
+    communaute.ajouterLieuListe(liste.id, lieuId, (erreur) =>
+      annoncer(erreur === "compte-limite" ? REFUS_LIMITATION.lieuListe : `${lieu?.nom ?? "Cette adresse"} n'a pas pu rejoindre la liste. Réessaie dans un instant ?`),
+    );
+    setChoixOuvert(false);
     annoncer(lieu ? `😋 ${lieu.nom} rejoint la liste !` : "😋 Adresse ajoutée !");
   };
 

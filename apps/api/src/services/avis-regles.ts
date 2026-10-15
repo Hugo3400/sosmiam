@@ -169,7 +169,7 @@ export interface TablesAvis {
   lirePointsCompte(compteId: number): Promise<number>;
   /**
    * La somme des lignes du journal des points de ce compte, raison « avis-photo », dont le détail est EXACTEMENT celui-ci
-   * (0 s'il n'y en a pas) : ce qui a été retiré au masquage d'un avis, ou déjà rendu à son retour en ligne
+   * (0 s'il n'y en a pas) : ce qui a été posé à l'écriture d'un avis, retiré à son masquage, ou rendu à son retour en ligne
    */
   sommerPointsPhoto(compteId: number, detail: string): Promise<number>;
 }

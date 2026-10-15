@@ -67,10 +67,10 @@ Toutes les commandes sont à lancer **par Hugo lui-même, en root, sur le serveu
 
 6. **Attendre le rechiffrement de nuit** (vers 3 h 30). Dans le journal du logiciel de gestion, deux lignes donnent des
    nombres (rechiffrés, illisibles, restants ; les restants comptent les illisibles) : « Rechiffrement des comptes
-   (changement de clé des données) » et « Chiffrés sociaux réécrits avec la nouvelle clé » (la partie sociale, voir plus
-   bas). **Règle de fin** : on peut passer à l'étape 7 quand, **sur les deux lignes**, restants = illisibles, et que ces
-   nombres ne bougent plus d'une nuit à l'autre (deux nuits de suite pareilles, sans ligne « Ménage social : étape(s)
-   ratée(s) » qui cite « rechiffrement » ces nuits-là). Le cas simple : « 0 illisible(s), 0 restant(s) » deux nuits de
+   (changement de clé des données) » et « Rechiffrement social : … illisible(s), … restant(s) » (la partie sociale, voir
+   plus bas). **Règle de fin** : on peut passer à l'étape 7 quand, **sur les deux lignes**, restants = illisibles, et que
+   ces nombres ne bougent plus d'une nuit à l'autre (deux nuits de suite pareilles, sans ligne « Ménage social, étape(s)
+   ratée(s) : … » qui cite « rechiffrement » ces nuits-là). Le cas simple : « 0 illisible(s), 0 restant(s) » deux nuits de
    suite. S'il reste des illisibles, les regarder d'abord (partie sociale : « Retrouver les illisibles » plus bas ;
    comptes : avec la session Site) : l'ancienne clé ne les relit pas non plus, elle ne les sauvera donc pas, mais c'est le
    moment de comprendre d'où ils viennent.
@@ -129,10 +129,16 @@ Comment ça se passe :
   par aucun message ni signalement qui le garde, il part avec les fichiers orphelins de plus de 24 h (étape 8 du ménage)
   **la nuit suivante**. Un signalement fait pendant le rechiffrement peut encore citer l'ancien nom : ce fichier-là reste
   tant que le signalement le garde, et la nuit suivante le rechiffre à son tour.
-- Dans le journal du logiciel de gestion, la ligne « Chiffrés sociaux réécrits avec la nouvelle clé (… illisible(s),
-  … restant(s)) » paraît chaque nuit tant que l'ancienne clé est là, même quand il n'y a plus rien à réécrire ; le
-  détail donne le nombre réécrit cette nuit-là. Seulement des nombres, jamais un contenu. Elle manque une nuit où
-  l'étape a échoué (ligne « Ménage social : étape(s) ratée(s) (rechiffrement) ») : cette nuit-là ne compte pas.
+- Dans le journal du logiciel de gestion, la ligne « Rechiffrement social : … illisible(s), … restant(s) » paraît chaque
+  nuit tant que l'ancienne clé est là, même quand il n'y a plus rien à réécrire ; le détail donne le nombre réécrit cette
+  nuit-là. Seulement des nombres, jamais un contenu (et 60 caractères au plus par ligne, la longueur que garde le
+  journal : les nombres viennent en tête). Elle manque une nuit où l'étape a échoué (ligne « Ménage social, étape(s)
+  ratée(s) : rechiffrement… », « rechiffrement » toujours en tête de la liste) : cette nuit-là ne compte pas.
+- **Disque presque plein** : une nuit où le disque passe sous 17 % de place libre, le rechiffrement des fichiers se met en
+  pause, et une ligne de plus le dit : « Fichiers à rechiffrer en pause : disque presque plein », le détail donnant le
+  nombre de photos et vocaux qui attendent (déjà comptés dans les restants). Tant qu'elle revient, les restants ne
+  baissent pas et la règle de fin ne peut pas être remplie : libérer de la place sur le disque (ou l'agrandir), le
+  rechiffrement reprend tout seul la nuit suivante.
 - **Combien de nuits** : « 0 restant(s) » (hors illisibles) arrive la nuit N, la plus grande de ⌈photos et vocaux
   anciens ÷ 500⌉ et ⌈lignes anciennes de la plus grosse table ÷ 100 000⌉ : la **1re nuit** tant qu'il y a moins de 500
   photos et vocaux et moins de 100 000 lignes par table. La règle de fin (deux nuits pareilles) est donc remplie au plus

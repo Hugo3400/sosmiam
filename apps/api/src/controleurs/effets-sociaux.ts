@@ -1,8 +1,10 @@
 // Applique les effets d'un geste social (services/effets-sociaux-regles.ts) : la cloche AVANT la réponse (l'app la relit
 // tout de suite), les notifications sur le téléphone APRÈS, sans être attendues : jamais elles ne retardent une demande ni
 // ne la font échouer. Toutes passent par prevenirCompte, hors anti-spam (réponse de Hugo du 14/10/2026, I.15 a), et
-// seulement vers les téléphones encore connectés (prevenirCompte filtre sessionId). Dans une même conversation, le premier
-// message sonne, les suivants dans les 30 s arrivent sans son. Jamais un texte de message, un jeton ni un e-mail au journal.
+// seulement vers les téléphones encore connectés (prevenirCompte filtre sessionId), marquées `social` (canal « messages » sur
+// Android). Dans une même conversation, un message sonne ; ceux qui arrivent moins de 30 s après le dernier qui a sonné
+// arrivent sans son (une longue rafale sonne donc toutes les 30 s environ). Jamais un texte de message, un jeton ni un
+// e-mail au journal.
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import type { ServicesCloche } from "../services/cloche-regles.ts";
 import { DELAI_SANS_SON_MS, type AppliquerEffetsSociaux, type EffetSocial } from "../services/effets-sociaux-regles.ts";
@@ -31,9 +33,12 @@ export function creerAppliquerEffetsSociaux({ cloche, prevenirCompte, lirePushSo
     for (const [cle, moment] of derniersSons) if (moment <= limite) derniersSons.delete(cle);
   }, 60_000).unref();
 
-  /** sonore faux si un message de la même conversation a sonné chez lui il y a moins de 30 s */
-  function regler(effet: EffetPush, maintenant: number) {
-    const { message } = effet;
+  /**
+   * Toutes `social` (le canal « messages » sur Android, posé ici et nulle part ailleurs) ; sonore faux si un message de la
+   * même conversation a sonné chez lui il y a moins de 30 s
+   */
+  function regler(effet: EffetPush, maintenant: number): MessagePush {
+    const message = { ...effet.message, social: true };
     if (effet.sorte !== "message" || !message.regroupement || message.sonore === false) return message;
     const cle = `${effet.compteId}|${message.regroupement}`;
     const dernier = derniersSons.get(cle);

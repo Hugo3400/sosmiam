@@ -21,9 +21,10 @@ import {
 
 /**
  * Ce qu'un envoi a donné : « pseudo-requis » (choisis ton pseudo d'abord), « introuvable » (le commentaire auquel tu
- * réponds n'est plus là, ou un blocage), « reseau » (pas parti, réessaie)
+ * réponds n'est plus là, ou un blocage), « compte-limite » (ton compte est limité : pas une panne, rien à réessayer),
+ * « reseau » (pas parti, réessaie)
  */
-export type ResultatCommentaire = ResultatTexte | "pseudo-requis" | "introuvable" | "reseau";
+export type ResultatCommentaire = ResultatTexte | "pseudo-requis" | "introuvable" | "compte-limite" | "reseau";
 
 export type CommentairesPublication = {
   source: SourceSociale;
@@ -65,6 +66,7 @@ const lireRefus = (erreur: ErreurService, champ?: string): ResultatCommentaire =
   if (erreur === "message-refuse") return "mot-interdit";
   if (erreur === "champ-invalide" && champ === "texte") return "trop-long";
   if (erreur === "commentaire-inconnu" || erreur === "publication-inconnue") return "introuvable";
+  if (erreur === "compte-limite") return "compte-limite";
   return "reseau";
 };
 

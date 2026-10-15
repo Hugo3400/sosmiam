@@ -3,8 +3,9 @@
 // étape, de chaque paquet et de chaque sous-étape (ce qui échoue n'arrête pas la suite ; le journal ne garde que des noms et
 // des codes), liste du dossier des médias jusqu'à une page vide, ordre des verrous (sorties puis conversations ; compte puis
 // conversation pour un signalement de message), garde des fichiers signalés (ouvert, ou jugé depuis moins de 183 jours) aux
-// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit, sur des bases factices. Les requêtes SQL des
-// étapes 1 à 9 sont essayées sur PGlite, hors de ces tests (scratchpad essai-l7/essai-menage-l7.mts).
+// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit (et sa ligne au journal du logiciel, 60 caractères
+// au plus), sur des bases factices. Les requêtes SQL des étapes 1 à 9 sont essayées sur PGlite, hors de ces tests
+// (scratchpad essai-l7/essai-menage-l7.mts).
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { test } from "node:test";
@@ -100,13 +101,35 @@ test("lignes du journal : seulement ce qui ne vaut pas zéro, des nombres, et le
   assert.deepEqual(lignes, [
     [3, "Médias du chat effacés (90 jours)"],
     [2, "Invitations à des groupes expirées (30 jours)"],
-    [40, "Notifications de la cloche effacées (90 jours ou au-delà de 200)"],
+    [40, "Cloche : notifications effacées (90 jours, 200 par compte)"],
   ]);
-  const rotation = decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: { rechiffres: 0, illisibles: 0, restants: 0 }, etapesRatees: ["cloche"] });
+  const rotation = decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: { rechiffres: 0, illisibles: 0, restants: 0, enAttenteDePlace: 0 }, etapesRatees: ["cloche"] });
   assert.deepEqual(rotation, [
-    [0, "Chiffrés sociaux réécrits avec la nouvelle clé (0 illisible(s), 0 restant(s))"],
-    [1, "Ménage social : étape(s) ratée(s) (cloche), voir le journal du serveur"],
+    [0, "Rechiffrement social : 0 illisible(s), 0 restant(s)"],
+    [1, "Ménage social, étape(s) ratée(s) : cloche"],
   ], "même à zéro : la règle de fin se lit chaque nuit (restants = illisibles deux nuits de suite, sans étape « rechiffrement » ratée)");
+});
+
+/** noterAction (services/gestion/journal.ts) ne garde que 60 caractères de l'action */
+const LONGUEUR_ACTION_JOURNAL = 60;
+
+test("lignes du journal : 60 caractères au plus, nombres entiers, « rechiffrement » en tête des étapes ratées, la pause du disque", () => {
+  const tout: BilanMenageSocial = {
+    ...Object.fromEntries(Object.entries(BILAN_VIDE).map(([cle, valeur]) => [cle, typeof valeur === "number" ? 123_456 : valeur])) as BilanMenageSocial,
+    rechiffrement: { rechiffres: 500, illisibles: 99_999, restants: 1_234_567, enAttenteDePlace: 4321 },
+    etapesRatees: ["médias", "conversations", "conversations vides", "demandes", "cloche", "masques", "contenus retirés", "fichiers orphelins", "rechiffrement"],
+  };
+  const lignes = decrireBilanMenageSocial(tout);
+  assert.equal(lignes.length, 16 + 3);
+  for (const [, quoi] of lignes) assert.ok(quoi.length <= LONGUEUR_ACTION_JOURNAL, `${quoi.length} : ${quoi}`);
+  assert.deepEqual(lignes.slice(-3), [
+    [500, "Rechiffrement social : 99999 illisible(s), 1234567 restant(…"],
+    [4321, "Fichiers à rechiffrer en pause : disque presque plein"],
+    [9, "Ménage social, étape(s) ratée(s) : rechiffrement, médias, c…"],
+  ], "coupées par « … », mais jamais avant les nombres ; « rechiffrement » en tête de la liste des étapes ratées");
+  // Pas de pause (plafond de la nuit, ou disque assez libre) : pas de ligne
+  const sansPause = decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: { rechiffres: 500, illisibles: 0, restants: 40, enAttenteDePlace: 0 } });
+  assert.deepEqual(sansPause, [[500, "Rechiffrement social : 0 illisible(s), 40 restant(s)"]]);
 });
 
 /** Une clé v1, puis la v2 qui garde la v1 en ancienne (changement de clé en cours) */
@@ -254,7 +277,8 @@ test("rechiffrement : un fichier qui disparaît pendant le listage ne fait plus 
     signalement: { updateMany: async () => ({ count: 0 }) },
   } as unknown as BaseMenage;
   const bilan = await rechiffrerSocial(v2, avecDisparition(medias, PREMIER), base, { fichiersParNuit: 1 });
-  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 1 }, "avant : la liste s'arrêtait à la page de 999, et disait 0 restant");
+  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 1, enAttenteDePlace: 0 },
+    "avant : la liste s'arrêtait à la page de 999, et disait 0 restant ; le plafond de la nuit n'est pas une pause du disque");
   assert.deepEqual(repointes, [AVANT_DERNIER], "le plus ancien d'abord");
   assert.ok(medias.fichiers.has(AVANT_DERNIER), "l'ancien fichier reste sur le disque : l'étape 8 le retire la nuit suivante");
 });
@@ -272,7 +296,7 @@ test("rechiffrement : un illisible va au journal par sa table et son id (ou son 
     },
   } as unknown as BaseMenage;
   const { resultat: bilan, notes } = await ecouterJournal(() => rechiffrerSocial(v2, medias, base));
-  assert.deepEqual(bilan, { rechiffres: 0, illisibles: 2, restants: 2 }, "restants = illisibles : rien d'autre ne demande l'ancienne clé");
+  assert.deepEqual(bilan, { rechiffres: 0, illisibles: 2, restants: 2, enAttenteDePlace: 0 }, "restants = illisibles : rien d'autre ne demande l'ancienne clé");
   assert.deepEqual(notes, [
     "Rechiffrement social : illisible, table messages_conversations, id 2003 (laissé tel quel)",
     `Rechiffrement social : illisible, fichier ${DERNIER} (laissé tel quel)`,
@@ -425,10 +449,17 @@ test("rechiffrement : sous 15 % + 2 points de disque libre, les fichiers attende
   };
   const a = await preparer(0.17);
   const { resultat: bilan, notes } = await ecouterJournal(() => rechiffrerSocial(v2, a.surveille, base));
-  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 2 }, "17 % : un fichier passe ; à 16,9 %, les 2 autres sont comptés comme au plafond");
+  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 2, enAttenteDePlace: 2 },
+    "17 % : un fichier passe ; à 16,9 %, les 2 autres sont comptés comme au plafond, et attendent de la place");
   assert.equal(a.ecrits.length, 1, "rien n'est écrit sous la marge");
   assert.deepEqual(notes, ["Rechiffrement social : disque presque plein (16 % libre), les fichiers attendent une autre nuit"], "des nombres seulement");
   const b = await preparer(0.1);
-  assert.deepEqual((await ecouterJournal(() => rechiffrerSocial(v2, b.surveille, base))).resultat, { rechiffres: 0, illisibles: 0, restants: 3 });
+  const plein = (await ecouterJournal(() => rechiffrerSocial(v2, b.surveille, base))).resultat;
+  assert.deepEqual(plein, { rechiffres: 0, illisibles: 0, restants: 3, enAttenteDePlace: 3 });
   assert.deepEqual([b.ecrits.length, b.medias.fichiers.size], [0, 3], "disque déjà sous la marge : rien n'est écrit, tout est compté");
+  // Le journal du logiciel dit pourquoi les restants ne baissent pas
+  assert.deepEqual(decrireBilanMenageSocial({ ...BILAN_VIDE, rechiffrement: plein }), [
+    [0, "Rechiffrement social : 0 illisible(s), 3 restant(s)"],
+    [3, "Fichiers à rechiffrer en pause : disque presque plein"],
+  ]);
 });

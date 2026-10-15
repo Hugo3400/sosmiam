@@ -8,6 +8,7 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { PastilleAuNomDuLieu } from "~/composants/fil/PastilleAuNomDuLieu";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { RondPote } from "~/composants/potes/RondPote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
@@ -49,6 +50,7 @@ const refus: Record<Exclude<ResultatCommentaire, "ok" | "introuvable">, string> 
   "trop-long": `Un poil trop long : ${LONGUEUR_MAX_COMMENTAIRE} caractères maximum ✂️`,
   vide: "Écris quelques mots avant d'envoyer 😉",
   "pseudo-requis": "Choisis d'abord ton pseudo dans Réglages › Mes infos, et ça repart 🏷️",
+  "compte-limite": REFUS_LIMITATION.commentaire,
   reseau: "Pas parti : ta connexion fait la sieste. Réessaie dans un instant 📡",
 };
 

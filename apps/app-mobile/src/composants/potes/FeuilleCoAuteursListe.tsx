@@ -7,6 +7,7 @@ import type { ListePartagee, Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { RondPote } from "~/composants/potes/RondPote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -51,7 +52,7 @@ export function FeuilleCoAuteursListe({ visible, liste, onFermer }: Props) {
     const erreur = inviter ? await inviterCoAuteur(liste.id, pote.id) : await retirerCoAuteur(liste.id, pote.id);
     setEnCours(null);
     if (erreur) {
-      const texte = MESSAGES_SERVICE[erreur].texte;
+      const texte = erreur === "compte-limite" ? REFUS_LIMITATION.coAuteur : MESSAGES_SERVICE[erreur].texte;
       setSouci(texte);
       return AccessibilityInfo.announceForAccessibility(texte);
     }

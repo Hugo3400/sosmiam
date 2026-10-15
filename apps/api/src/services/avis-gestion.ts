@@ -3,8 +3,10 @@
 // qu'un réexamen a rendu à son auteur. Une décision tient en UNE transaction, sous le verrou du compte de l'auteur : le
 // statut change (écriture conditionnelle : deux décisions en même temps, une seule passe) et, avec lui, les points de la
 // photo partent (masquer) ou reviennent (rétablir) : si l'un rate, ou si l'API s'arrête en route, rien n'est écrit. Les
-// points sont exactement symétriques : le masquage retire 10 points, ou moins si le compte en a moins (le total ne descend
-// jamais sous 0), et le journal note ce retrait réel ; le retour en ligne rend ce que le journal dit retiré pour CET avis,
+// points se lisent dans le journal (raison « avis-photo ») : le masquage retire ceux de la règle (10), jamais plus que le
+// total du compte (il ne descend jamais sous 0) ni que ce que CET avis tient encore (la ligne « avis <id>, lieu <lieuId> »
+// posée à l'écriture par controleurs/avis.ts, plus ses masquages et ses retours en ligne : un ajout raté à l'écriture ne
+// retire rien), et le journal note ce retrait réel ; le retour en ligne rend ce que le journal dit retiré pour CET avis,
 // moins ce qui a déjà été rendu (jamais un point de plus). Seuls les défis sont relancés après (leur réévaluation ouvre sa
 // propre transaction ; un raté y est seulement noté au journal). Jamais de notification ni de cloche ici : la session du
 // logiciel écrit sa décision (motif, motivation) dans la même transaction par dansLaTransaction, prévient l'auteur après ;
@@ -62,7 +64,11 @@ export type DependancesAvisGestion = {
 const INTROUVABLE = { ok: false, erreur: "introuvable" } as const;
 const PAS_MASQUE = { ok: false, erreur: "pas-masque" } as const;
 
-/** Le détail des lignes du journal des points (raison « avis-photo ») : il relie chaque mouvement à son avis */
+/**
+ * Le détail des lignes du journal des points (raison « avis-photo ») : il relie chaque mouvement à son avis. detailEcrit :
+ * celui que pose controleurs/avis.ts à l'écriture (le même depuis la création des avis, le 09/10)
+ */
+const detailEcrit = (a: LigneAvis) => `avis ${a.id}, lieu ${a.lieuId}`;
 const detailMasque = (a: LigneAvis) => `avis masqué ${a.id}, lieu ${a.lieuId}`;
 const detailRetabli = (a: LigneAvis) => `avis rétabli ${a.id}, lieu ${a.lieuId}`;
 
@@ -78,14 +84,26 @@ async function relireSousVerrou(t: TablesAvis, avisId: number): Promise<LigneAvi
 }
 
 /**
- * Masquage, sous le verrou : retire les points de la photo (10, ou le total du compte s'il en a moins : le plancher à 0
- * d'ajouterPointsDans ne mange alors rien, et le journal dit le vrai retrait) ; rend ce qui a été retiré
+ * Ce que CET avis tient encore d'après le journal, sous le verrou : ses points de l'écriture, moins ce que ses masquages ont
+ * retiré, plus ce que ses retours en ligne ont rendu
+ */
+async function lirePointsTenus(t: TablesAvis, a: LigneAvis): Promise<number> {
+  let tenus = 0;
+  for (const detail of [detailEcrit(a), detailMasque(a), detailRetabli(a)]) tenus += await t.sommerPointsPhoto(a.compteId, detail);
+  return tenus;
+}
+
+/**
+ * Masquage, sous le verrou : retire les points de la photo (10), sans dépasser ni le total du compte (le plancher à 0
+ * d'ajouterPointsDans ne mange alors rien, et le journal dit le vrai retrait) ni ce que l'avis tient encore (jamais deux
+ * retraits pour un seul gain, rien si l'ajout de l'écriture a raté) ; rend ce qui a été retiré
  */
 async function retirerPointsPhoto(t: TablesAvis, a: LigneAvis): Promise<number> {
   const prevus = calculerPointsPhotoAvis(a);
   if (prevus === 0) return 0;
-  const retrait = Math.min(prevus, Math.max(0, await t.lirePointsCompte(a.compteId)));
-  if (retrait > 0) await t.poserPointsPhoto(a.compteId, -retrait, detailMasque(a));
+  const retrait = Math.min(prevus, await t.lirePointsCompte(a.compteId), await lirePointsTenus(t, a));
+  if (retrait <= 0) return 0;
+  await t.poserPointsPhoto(a.compteId, -retrait, detailMasque(a));
   return retrait;
 }
 
@@ -133,8 +151,8 @@ export function creerAvisGestion(d: DependancesAvisGestion) {
     /**
      * Publier ou masquer un avis en relecture. Masquer : il sort de la page du lieu, de sa moyenne et du comptoir ; les
      * points de sa photo sont retirés avec lui (avis vérifié avec photo, sauf repas offert ; jamais plus que le total du
-     * compte). Publier un avis vérifié : il compte désormais pour les défis (en relecture, il ne comptait pas : masqué,
-     * rien à relancer).
+     * compte, ni que ce que l'avis tient encore d'après le journal). Publier un avis vérifié : il compte désormais pour les
+     * défis (en relecture, il ne comptait pas : masqué, rien à relancer).
      */
     async trancherAvis(avisId: number, decision: DecisionAvisGestion, maintenant: Date, o: OptionsDecisionAvis = {}): Promise<ResultatTrancherAvis> {
       const vers = decision.action === "publier" ? "publie" : "masque";
@@ -175,15 +193,16 @@ export function creerAvisGestion(d: DependancesAvisGestion) {
     /**
      * Un réexamen donne raison à l'auteur, DANS la transaction de l'appelant (tx : celle de son réexamen) : verrou du compte,
      * relecture, masqué → publié (écriture conditionnelle) et, avec lui, les points retirés au masquage. « introuvable » et
-     * « pas-masque » sont rendus (rien n'a été écrit, la transaction reste utilisable) ; une erreur de la base lève (la
-     * transaction de l'appelant revient alors en arrière). Les défis : apresRetablir, une fois tx validée.
+     * « pas-masque » sont rendus (rien n'a été écrit, la transaction reste utilisable) ; une erreur de la base, ou de
+     * depot.dans, rejette la promesse, jamais pendant l'appel (la transaction de l'appelant revient alors en arrière). Les
+     * défis : apresRetablir, une fois tx validée.
      */
-    retablirAvisDans(tx: Prisma.TransactionClient, avisId: number, _maintenant: Date): Promise<ResultatRetablir> {
+    async retablirAvisDans(tx: Prisma.TransactionClient, avisId: number, _maintenant: Date): Promise<ResultatRetablir> {
       return retablirAvisTables(d.depot.dans(tx), avisId);
     },
 
     /** Le pendant de retablirAvisDans pour la réponse d'un lieu : masquée → publiée, sans points ni défis */
-    retablirReponseAvisDans(tx: Prisma.TransactionClient, avisId: number, _maintenant: Date): Promise<ResultatRetablir> {
+    async retablirReponseAvisDans(tx: Prisma.TransactionClient, avisId: number, _maintenant: Date): Promise<ResultatRetablir> {
       return retablirReponseTables(d.depot.dans(tx), avisId);
     },
 

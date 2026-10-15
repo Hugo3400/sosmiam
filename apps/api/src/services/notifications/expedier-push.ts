@@ -6,15 +6,28 @@ import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.t
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
 /**
- * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive » : capacité cochée sur l'App ID et entitlement dans
- * app.json le 15 octobre, actifs à partir de la première version de l'app construite ensuite), et
- * sur Android le canal « miam-safe » de l'app (importance maximale) ; réservé aux alertes Miam Safe.
+ * `urgent` : réservé aux alertes Miam Safe (alerte au comptoir, « Prévenir un pote »). Passe les modes Concentration de
+ * l'iPhone (« time-sensitive » : capacité cochée sur l'App ID et entitlement dans app.json le 15 octobre, actifs à partir de
+ * la première version de l'app construite ensuite), part sur Android dans le canal « miam-safe » de l'app (importance
+ * maximale), et porte le repère urgent: "1" (à la racine du message APNs, dans data chez Google) : app ouverte, l'app ne fait
+ * sonner qu'une notification qui l'a (et dont le lien est celui d'une alerte Miam Safe).
  * `regroupement` (« conversation:<id> », 64 octets au plus) : une seule notification par conversation à l'écran, la suivante
- * remplace la précédente (apns-collapse-id et thread-id sur iPhone, tag sur Android).
- * `sonore` (vrai par défaut) : faux, l'iPhone la montre sans son (les messages d'une même rafale de 30 s), et Android la
- * range dans le canal « messages-discrets » de l'app (importance basse : ni son, ni vibration, ni bannière).
+ * remplace la précédente (apns-collapse-id et thread-id sur iPhone ; tag sur Android, répété dans data : app ouverte, expo
+ * prend data.tag comme identifiant de la notification, sinon chaque message s'empilerait).
+ * `sonore` (vrai par défaut) : faux pour un message qui arrive moins de 30 s après le dernier de la même conversation qui a
+ * sonné chez cette personne ; l'iPhone le montre sans son, Android le range dans le canal « messages-discrets » (muet).
+ * `social` : posé par l'applicateur des effets sociaux, et lui seul (messages, groupes, sorties, bande) : canal « messages »
+ * sur Android. Tout le reste (campagnes du logiciel, visite revue par l'équipe…) part dans le canal « notifications ».
  */
-export type MessagePush = { titre: string; texte: string; lien: string | null; urgent?: boolean; regroupement?: string; sonore?: boolean };
+export type MessagePush = {
+  titre: string;
+  texte: string;
+  lien: string | null;
+  urgent?: boolean;
+  regroupement?: string;
+  sonore?: boolean;
+  social?: boolean;
+};
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
 export type ResultatPush = "envoyee" | "jeton-invalide" | { erreur: string };
 export type ExpedierPush = (appareil: { jeton: string; plateforme: string }, message: MessagePush) => Promise<ResultatPush>;
@@ -57,25 +70,39 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
   };
   return {
     entetes: regroupement ? { "apns-collapse-id": regroupement } : {},
-    corps: JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}) }),
+    // lien et urgent à la racine : l'app les lit dans trigger.payload (content.data reste vide pour un message qui ne vient
+    // pas du service d'Expo)
+    corps: JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}), ...(message.urgent ? { urgent: "1" } : {}) }),
   };
 }
+
+/**
+ * Le canal Android de l'app (creer-canaux-android.ts) : « miam-safe » (importance maximale), « messages-discrets » (la suite
+ * d'une rafale, muette), « messages » (son et bannière) ou « notifications » (son, sans bannière)
+ */
+const lireCanalAndroid = (message: MessagePush) =>
+  message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : message.social ? "messages" : "notifications";
 
 /** Le corps d'une notification Google (FCM v1) pour ce téléphone */
 export function construireCorpsGoogle(jeton: string, message: MessagePush) {
   const regroupement = lireRegroupement(message);
-  const canal = message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : null;
   return {
     message: {
       token: jeton,
       notification: { title: message.titre, body: message.texte },
-      data: message.lien ? { lien: message.lien } : {},
-      // Miam Safe (urgent) : le canal « miam-safe » de l'app, en importance maximale ; la suite d'une rafale (sonore faux) :
-      // le canal « messages-discrets », muet. Tant que le canal n'existe pas sur le téléphone, Android retombe sur le canal
-      // par défaut
+      // Aucune clé réservée par FCM (from, message_type, google.…, gcm.…) ; l'app lit lien, tag et urgent app ouverte
+      data: {
+        ...(message.lien ? { lien: message.lien } : {}),
+        ...(regroupement ? { tag: regroupement } : {}),
+        ...(message.urgent ? { urgent: "1" } : {}),
+      },
+      // Le canal est toujours nommé. Sans lui, ou s'il n'existe pas encore sur le téléphone, la notification tomberait dans
+      // un canal de repli « Miscellaneous » qui sonne (celui de Firebase app fermée, celui d'expo app ouverte) ; app fermée,
+      // Firebase essaie d'abord le canal par défaut du manifeste, « notifications » (app.json). L'app crée ses canaux dès son
+      // lancement, avant d'inscrire le téléphone : en pratique, ils existent
       android: {
         priority: "high",
-        ...(regroupement || canal ? { notification: { ...(regroupement ? { tag: regroupement } : {}), ...(canal ? { channel_id: canal } : {}) } } : {}),
+        notification: { ...(regroupement ? { tag: regroupement } : {}), channel_id: lireCanalAndroid(message) },
       },
     },
   };

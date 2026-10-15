@@ -32,8 +32,11 @@ export type NouvelleSortie = {
   finVote: string;
 };
 
-/** Pourquoi une sortie n'est pas créée : un champ à revoir, trop de sorties à venir, ou pas de réseau (réessaie) */
-export type ErreurNouvelleSortie = "titre" | "participants" | "lieux" | "quand" | "trop" | "reseau";
+/**
+ * Pourquoi une sortie n'est pas créée : un champ à revoir, trop de sorties à venir, ton compte limité par l'équipe (rien à
+ * réessayer), ou pas de réseau (réessaie)
+ */
+export type ErreurNouvelleSortie = "titre" | "participants" | "lieux" | "quand" | "trop" | "compte-limite" | "reseau";
 
 /** « Tu viens ? » : une sortie où l'on t'invite, vue avant de répondre (ni propositions, ni votes, ni discussion) */
 export type InvitationSortie = {
@@ -53,8 +56,14 @@ export type InvitationSortie = {
 
 export type NouvelleListeCommunaute = { titre: string; emoji: string; description: string; visibilite?: VisibiliteListe };
 
-/** Pourquoi une liste n'est pas créée : un champ à revoir, trop de listes (50), ou pas de réseau (réessaie) */
-export type ErreurNouvelleListe = "titre" | "description" | "trop" | "reseau";
+/** Pourquoi une liste n'est pas créée : un champ à revoir, trop de listes (50), ton compte limité, ou pas de réseau (réessaie) */
+export type ErreurNouvelleListe = "titre" | "description" | "trop" | "compte-limite" | "reseau";
+
+/**
+ * Un geste qui s'affiche tout de suite (« ok » rendu avant la réponse) puis que le serveur refuse : il est défait, et ce
+ * rappel dit pourquoi à l'écran qui l'avait annoncé (par exemple « compte-limite »). Compte connecté seulement
+ */
+export type SurRefusGeste = (erreur: ErreurService) => void;
 
 export type EtatCommunaute = {
   /** D'où vient la bande : la démo, le serveur (compte connecté), ou rien encore (visite, attente) */
@@ -118,7 +127,7 @@ export type EtatCommunaute = {
   /** Vote (ou retire ton vote) pour un lieu ; sans effet une fois le vote fini */
   voter: (sortieId: string, lieuId: number) => void;
   /** « interdit » : lieu inconnu, ou vote déjà fini */
-  proposerLieu: (sortieId: string, lieuId: number) => "ok" | "deja" | "max" | "interdit";
+  proposerLieu: (sortieId: string, lieuId: number, surRefus?: SurRefusGeste) => "ok" | "deja" | "max" | "interdit";
   /** Démo seulement : avec un compte, la discussion passe par la messagerie (utiliserDiscussionSortie) */
   envoyerMessage: (sortieId: string, texte: string) => ResultatTexte;
   /** Termine le vote tout de suite (seulement l'organisateur) */
@@ -149,7 +158,7 @@ export type EtatCommunaute = {
   /** Compte connecté : des listes lues ailleurs (le profil d'une personne) ; trouvées ensuite dans listes */
   noterListes: (listes: ListeResumeApi[]) => void;
   basculerSuiviListe: (listeId: string) => void;
-  ajouterLieuListe: (listeId: string, lieuId: number) => void;
+  ajouterLieuListe: (listeId: string, lieuId: number, surRefus?: SurRefusGeste) => void;
   retirerLieuListe: (listeId: string, lieuId: number) => void;
   /** Les listes qu'on t'invite à remplir, en attente de ta réponse (compte connecté ; vides en démo) */
   invitationsListes: ListePartagee[];
@@ -168,7 +177,7 @@ export type EtatCommunaute = {
   /** Lieux reçus de tes potes (sans ceux des personnes bloquées ni ceux que tu as signalés) */
   recommandationsRecues: Recommandation[];
   recommandationsEnvoyees: Recommandation[];
-  envoyerLieu: (lieuId: number, potes: string[], mot?: string) => ResultatTexte;
+  envoyerLieu: (lieuId: number, potes: string[], mot?: string, surRefus?: SurRefusGeste) => ResultatTexte;
   marquerRecommandationVue: (id: string) => void;
   /** Retire des lieux qu'on t'a envoyés (pour toi seulement : ton pote n'en sait rien) ; rend ceux retirés, pour « Annuler » */
   retirerRecommandations: (ids: string[]) => Recommandation[];

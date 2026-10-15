@@ -12,6 +12,7 @@ import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-in
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ChoixVisibiliteListe } from "~/composants/potes/ChoixVisibiliteListe";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ErreurNouvelleListe } from "~/hooks/utiliser-communaute";
@@ -32,6 +33,7 @@ const ERREURS_CREATION: Record<ErreurNouvelleListe, string> = {
   titre: `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_LISTE} caractères au plus, et des mots gentils.`,
   description: `Cette description ne passe pas : ${LONGUEUR_MAX_DESCRIPTION_LISTE} caractères au plus, et des mots gentils.`,
   trop: `${MAX_LISTES_PAR_COMPTE} listes, c'est le maximum. Fusionne ou supprime celles qui dorment, et la suivante aura sa place.`,
+  "compte-limite": REFUS_LIMITATION.liste,
   reseau: "Le réseau a fait des siennes : ta liste n'est pas partie. Réessaie dans un instant.",
 };
 
@@ -111,7 +113,7 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
       setEnvoi(true);
       const erreur = await modifierListe(liste.id, changements);
       setEnvoi(false);
-      if (erreur) return montrerSouci(MESSAGES_SERVICE[erreur].texte);
+      if (erreur) return montrerSouci(erreur === "compte-limite" ? REFUS_LIMITATION.liste : MESSAGES_SERVICE[erreur].texte);
       return onModifiee?.();
     }
     setEnvoi(true);

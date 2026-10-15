@@ -169,7 +169,7 @@ export function utiliserListesCompte(actif: boolean, { monId, noterPersonne }: D
       if (!r.ok) {
         if (r.erreur === "trop-de-listes") return { erreur: "trop" };
         if (r.erreur === "champ-invalide" || r.erreur === "message-refuse") return { erreur: r.champ === "description" ? "description" : "titre" };
-        return { erreur: "reseau" };
+        return { erreur: r.erreur === "compte-limite" ? "compte-limite" : "reseau" };
       }
       garder([r.liste], null);
       ranger("miennes", r.liste.id, true);
@@ -218,9 +218,12 @@ export function utiliserListesCompte(actif: boolean, { monId, noterPersonne }: D
           () => sociaux.listes.suivre(id, oui),
         );
       },
-      ajouterLieuListe: (id, lieuId) => {
+      ajouterLieuListe: (id, lieuId, surRefus) => {
         if (!trouver(id)?.serveur?.moi.peutRemplir) return;
-        void faire(id, () => avecLieu(id, lieuId, true), () => sociaux.listes.basculerLieu(id, lieuId, true));
+        // Refusé : la relecture de faire retire l'adresse, et l'écran qui l'avait annoncée dit pourquoi
+        void faire(id, () => avecLieu(id, lieuId, true), () => sociaux.listes.basculerLieu(id, lieuId, true)).then((r) => {
+          if (!r.ok) surRefus?.(r.erreur);
+        });
       },
       retirerLieuListe: (id, lieuId) => {
         if (!trouver(id)?.serveur?.moi.peutRemplir) return;

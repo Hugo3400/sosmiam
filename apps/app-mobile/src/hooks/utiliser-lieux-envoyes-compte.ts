@@ -79,7 +79,7 @@ export function utiliserLieuxEnvoyesCompte(actif: boolean, { monId, noterPersonn
     return {
       recommandationsRecues,
       recommandationsEnvoyees: envoyes.map(convertirLieuEnvoyeApi).sort((a, b) => b.date.localeCompare(a.date)),
-      envoyerLieu: (lieuId, potes, mot) => {
+      envoyerLieu: (lieuId, potes, mot, surRefus) => {
         const propre = mot?.trim() ?? "";
         if (propre.length > LONGUEUR_MAX_MOT_RECOMMANDATION) return "trop-long";
         if (propre && contientMotInterdit(propre)) return "mot-interdit";
@@ -94,7 +94,10 @@ export function utiliserLieuxEnvoyesCompte(actif: boolean, { monId, noterPersonn
         void sociaux.messagerie.envoyerLieuAPotes(idClient, lieuId, a, propre || null).then((r) => {
           if (!tant(g)) return;
           setEnvoyes((avant) => [...(r.ok ? r.envoyes : []), ...avant.filter((l) => !l.id.startsWith(`envoi:${idClient}:`))]);
-          if (!r.ok) void charger();
+          if (r.ok) return;
+          // Refusé (compte limité, réseau…) : l'envoi quitte « Envoyés », et l'écran qui a dit « C'est envoyé ! » se corrige
+          void charger();
+          surRefus?.(r.erreur);
         });
         return "ok";
       },

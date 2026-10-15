@@ -17,8 +17,13 @@ export const TEXTES_LIMITATION = {
   regleInconnue: "Une des règles de la communauté (nos conditions d'utilisation)",
   explication: "L'explication de l'équipe",
   coupeTitre: "Ce qui attend la fin",
+  /**
+   * Exactement ce que l'API refuse (ECRITURES_REFUSEES de apps/api/tests/limitation-inventaire-routes.test.ts, plus les
+   * suggestions, la fiche, la carte et l'équipe d'un lieu, le prénom, le pseudo et l'avatar). Pas les avis : leurs routes ne
+   * sont pas encore branchées (A_BRANCHER_PLUS_TARD) ; ils reviendront ici avec elles.
+   */
   coupe:
-    "Tout ce que les autres verraient : messages, réactions et groupes, commentaires, avis, sorties, listes, lieux envoyés à tes potes, invitations et demandes, suggestions sur la fiche d'un lieu, la fiche et la carte de ton lieu, l'arrivée dans une équipe, et un nouveau prénom, pseudo ou avatar.",
+    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires, sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, la fiche et la carte de ton lieu, inviter dans ton équipe ou y entrer, et un nouveau prénom, pseudo ou avatar.",
   resteTitre: "Ce qui marche comme d'habitude",
   reste:
     "Tout lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, tes missions d'ambassadeur…), l'export de tes données et la suppression de ton compte.",
@@ -35,4 +40,25 @@ export const TEXTES_LIMITATION = {
   contestationRelue: "Une autre personne de l'équipe l'a relue le {date}.",
   /** L'annonce de toute l'app après une écriture refusée ; {fin} comme pour intro */
   annonce: "Ton compte est limité {fin} : certaines actions sont en pause.",
+} as const;
+
+/**
+ * Un geste refusé « compte-limite », dit sur place par l'écran qui montre déjà ses erreurs (l'annonce de toute l'app, avec
+ * « Voir pourquoi », s'y ajoute). Jamais une panne de réseau, jamais « Réessaie » : la limitation dure ce qu'elle dure.
+ */
+export const REFUS_LIMITATION = {
+  commentaire: "Ton compte est limité : les commentaires sont en pause pour l'instant.",
+  message: "Ton compte est limité : les messages sont en pause pour l'instant.",
+  /** Sous une bulle qui n'est pas partie (ni « Réessaie » : touchée, elle ouvre le pourquoi) */
+  bulle: "En pause : ton compte est limité. Voir pourquoi",
+  groupe: "Ton compte est limité : créer un groupe attendra la fin de la limitation.",
+  lieuEnvoye: "Ton compte est limité : envoyer un lieu à tes potes attendra la fin de la limitation.",
+  liste: "Ton compte est limité : créer ou modifier une liste attendra la fin de la limitation.",
+  lieuListe: "Ton compte est limité : ajouter une adresse à une liste attendra la fin de la limitation.",
+  coAuteur: "Ton compte est limité : inviter quelqu'un à remplir ta liste attendra la fin de la limitation.",
+  sortie: "Ton compte est limité : les sorties (créer, inviter, proposer un lieu) sont en pause pour l'instant.",
+  bande: "Ton compte est limité : rejoindre une bande ou demander à y entrer attendra la fin de la limitation.",
+  suivre: "Ton compte est limité : suivre quelqu'un attendra la fin de la limitation.",
+  suggestion: "Ton compte est limité : les suggestions sur la fiche d'un lieu sont en pause pour l'instant.",
+  ficheLieu: "Ton compte est limité : la fiche et la carte de ton lieu attendront la fin de la limitation.",
 } as const;

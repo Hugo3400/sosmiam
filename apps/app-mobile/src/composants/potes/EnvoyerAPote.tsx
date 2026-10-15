@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,10 +9,12 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
@@ -47,6 +49,12 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const [mot, setMot] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoyesA, setEnvoyesA] = useState<string[] | null>(null);
+  // Le dernier envoi : un refus arrivé pour un envoi plus ancien (feuille rouverte depuis) ne touche à rien
+  const envoiCourant = useRef(0);
+  useEffect(() => {
+    if (visible) envoiCourant.current++;
+  }, [visible]);
+  utiliserInscriptionFeuille(visible, onFermer);
   // À chaque ouverture, on repart d'une feuille vierge (sans montrer l'ancien envoi le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -72,7 +80,15 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     // Dernière vérification : seulement des potes de la bande
     const ids = choisis.filter((id) => potes.some((p) => p.id === id));
     if (ids.length === 0) return;
-    const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined);
+    const numero = ++envoiCourant.current;
+    // Compte connecté : « C'est envoyé ! » s'affiche tout de suite ; si le serveur refuse, on revient au choix des potes et on dit pourquoi
+    const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined, (erreur) => {
+      if (numero !== envoiCourant.current) return;
+      const texte = erreur === "compte-limite" ? REFUS_LIMITATION.lieuEnvoye : "Ton lieu n'est pas parti : réessaie dans un instant.";
+      setEnvoyesA(null);
+      setErreur(texte);
+      AccessibilityInfo.announceForAccessibility(texte);
+    });
     if (resultat !== "ok") return setErreur(ERREURS_MOT[resultat]);
     const prenoms = potes.filter((p) => ids.includes(p.id)).map((p) => p.prenom);
     setEnvoyesA(prenoms);
