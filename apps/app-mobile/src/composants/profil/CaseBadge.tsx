@@ -15,7 +15,7 @@ type Props = {
 
 export function CaseBadge({ badge, obtenu, selectionne, commentObtenir, onToucher }: Props) {
   const petitEcran = useWindowDimensions().width < LARGEUR_PETIT_ECRAN;
-  const taille = petitEcran ? "text-[11px] leading-[14px]" : "text-xs leading-4";
+  const taille = petitEcran ? "text-[10px] leading-[13px]" : "text-xs leading-4";
   const etat = obtenu ? "obtenu" : "à débloquer";
   const aide = commentObtenir ? ` ${commentObtenir}` : "";
   return (

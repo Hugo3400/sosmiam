@@ -8,6 +8,7 @@ import { choisirAvatarPublic } from "../src/fonctions/comptes/choisir-avatar-pub
 import { masquerPhotoAvatar } from "../src/fonctions/comptes/masquer-photo-avatar.ts";
 import { preparerPhotoProfil } from "../src/fonctions/comptes/preparer-photo-profil.ts";
 import { retirerMetadonneesJpeg } from "../src/fonctions/medias/retirer-metadonnees-jpeg.ts";
+import { lirePhotoProfilPourEquipe } from "../src/services/photos-profil.ts";
 import { creerBancPhotosProfil } from "./outils/creer-banc-photos-profil.ts";
 import { avecDimensions, avecSegmentApp13, HEIC, PNG, segmentsJpeg } from "./outils/fabriquer-photos-avis.ts";
 
@@ -169,6 +170,16 @@ test("compte limité : nouvel envoi refusé (403), photo cachée aux autres, ret
   assert.equal((await b.demander("GET", "/comptes/moi/profil", { jeton: zoe.jeton })).corps!.profil.avatar, `photo:${nom}`, "elle voit toujours la sienne");
   assert.deepEqual((await b.demander("DELETE", "/comptes/moi/photo", { jeton: zoe.jeton })).corps, { ok: true, avatar: "🦊" });
   assert.equal(b.stockage.fichiers.has(nom), false);
+});
+
+test("équipe : la photo actuelle se lit même pour un compte limité ; sans photo, null", async () => {
+  b.brancher();
+  const zoe = await b.inscrire();
+  assert.equal(await lirePhotoProfilPourEquipe(zoe.id), null);
+  const nom = nomDe(await envoyer(zoe.jeton));
+  await b.limiter(zoe.id);
+  const lue = await lirePhotoProfilPourEquipe(zoe.id);
+  assert.ok(lue && lue.equals(b.stockage.fichiers.get(nom)!.octets!));
 });
 
 test("effacement du compte : la photo part du disque avec lui", async () => {
