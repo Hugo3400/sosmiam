@@ -66,6 +66,12 @@ test("mots d'alcool : entiers, sans accent ni majuscule, malgré la ponctuation"
   for (const texte of ["Un tiramisu maison", "Une vinaigrette maison", "Un ginger maison", "Un café gourmand", "Un verre offert", ""]) {
     assert.equal(contientMotAlcool(texte), false, texte);
   }
+  for (const texte of ["Un éclair vanille bourbon", "Un cappuccino bien mousseux", "Une tarte de Chablis", "La cidrerie"]) {
+    assert.equal(contientMotAlcool(texte), false, texte);
+  }
+  for (const texte of ["Une coupe de mousseux", "Un verre de Sancerre", "Kirs offerts", "Deux IPAs"]) {
+    assert.equal(contientMotAlcool(texte), true, texte);
+  }
 });
 
 test("carte à 4 sur 5, puis +1 : 0 tampon et une récompense prête, figée", () => {
