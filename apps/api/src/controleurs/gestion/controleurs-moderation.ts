@@ -37,7 +37,7 @@ export function creerControleursModeration(s: ServicesGestion, social?: Moderati
       const cible = lireParametre(requete.query.cible, 12);
       reponse.json(await s.listerSignalements(lireParametre(requete.query.statut, 10), social, CIBLES.includes(cible) ? cible : ""));
     }),
-    /** GET /moderation/:id/media : la photo ou la note vocale d'un message signalé, déchiffrée, tant qu'il n'est pas jugé */
+    /** GET /moderation/:id/media : la photo ou la note vocale d'un message signalé, déchiffrée, tant que le signalement est ouvert (à traiter, ou contesté et pas encore réexaminé : le fichier est gardé 183 jours après la décision pour ça) */
     media: verifier(async (requete, reponse) => {
       const media = await s.lireMediaSignale(id(requete), social);
       if (!media) return introuvable(reponse);
