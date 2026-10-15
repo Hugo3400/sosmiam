@@ -15,8 +15,9 @@ export function decrireStatutReservation(reservation: Reservation): EtiquetteRes
     case "refusee":
       return { texte: "Pas cette fois", lu: "Pas cette fois : le lieu a refusé", ton: "rose" };
     case "annulee":
-      return reservation.motifRefus
-        ? { texte: "Annulée par le lieu", lu: "Annulée par le lieu", ton: "rose" }
+      if (reservation.motifRefus) return { texte: "Annulée par le lieu", lu: "Annulée par le lieu", ton: "rose" };
+      return reservation.reponduLe === null
+        ? { texte: "Demande annulée", lu: "Demande annulée par toi", ton: "doux" }
         : { texte: "Annulée par toi", lu: "Annulée par toi", ton: "doux" };
     case "expiree":
       return { texte: "😴 Demande endormie", lu: "Demande endormie, sans réponse à temps", ton: "doux" };

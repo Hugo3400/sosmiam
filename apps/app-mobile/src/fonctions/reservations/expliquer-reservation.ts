@@ -9,6 +9,7 @@ const citerMotif = (reservation: Reservation) => `« ${LIBELLES_MOTIF_REFUS_RESE
 
 function expliquerAnnulation(reservation: Reservation): string {
   if (reservation.motifRefus) return `Le lieu a dû annuler : ${citerMotif(reservation)}. Désolé pour le contretemps, tu n'y es pour rien.`;
+  if (reservation.reponduLe === null) return "Demande annulée avant la réponse du lieu : rien de plus à faire, il ne sera pas dérangé.";
   if (reservation.tardive) return `Annulée moins de ${HEURES_ANNULATION_TARDIVE} h avant : le lieu l'a vue passer. Rien de grave si ça reste rare.`;
   return "Annulée à temps : ta table est repartie pour un autre Miami. Merci pour le lieu !";
 }

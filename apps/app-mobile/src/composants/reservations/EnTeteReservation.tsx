@@ -35,10 +35,8 @@ export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Prop
         <Text numberOfLines={2} className={`font-texte-gras text-base ${enRetrait ? "text-gris" : "text-encre"}`}>
           {lieu.nom}
         </Text>
-        <Text className="font-texte text-[13px] leading-[18px] text-gris">{lieu.ville}</Text>
-        <Text className={`mt-1 font-texte-semi text-[15px] leading-5 ${enRetrait ? "text-gris" : "text-encre"}`}>
-          {`${creneau.court} · ${personnes}`}
-        </Text>
+        <Text className="font-texte text-[13px] leading-[18px] text-gris">{`${lieu.ville} · ${personnes}`}</Text>
+        <Text className={`mt-1 font-texte-semi text-[15px] leading-5 ${enRetrait ? "text-gris" : "text-encre"}`}>{creneau.court}</Text>
         <View className="mt-1.5 flex-row flex-wrap gap-1.5">
           <EtiquetteStatutReservation etiquette={etiquette} />
           {reservation.demo ? <EtiquetteStatutReservation etiquette={ETIQUETTE_DEMO} /> : null}
