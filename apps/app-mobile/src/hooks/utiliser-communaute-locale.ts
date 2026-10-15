@@ -19,6 +19,7 @@ import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-in
 import { creerCommentairesExemples } from "~/contenus/commentaires-exemples";
 import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples, VERSION_EXEMPLES } from "~/contenus/potes-exemples";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
+import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { ajouterNouveauxExemples } from "~/fonctions/communaute/ajouter-nouveaux-exemples";
 import { basculerVote } from "~/fonctions/communaute/basculer-vote";
@@ -124,7 +125,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         id: ID_MOI,
         pseudo: profil?.pseudo ?? "",
         prenom: profil?.prenom ?? "Toi",
-        avatar: avatar.type === "emoji" ? avatar.emoji : "📷",
+        avatar: ecrireAvatarPublic(avatar) ?? "📷",
         ville: profil?.ville ?? "",
         // Avec un compte : points et badges du serveur ; en démo, comptés sur le téléphone
         points: DEMO_VISITES_ACTIVE ? calculerPointsLocaux(mesures) : (compte?.points ?? 0),

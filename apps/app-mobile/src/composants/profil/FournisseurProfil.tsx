@@ -4,6 +4,9 @@ import { Platform } from "react-native";
 
 import type { Profil } from "@sos-miam/commun/types/profil";
 import { ContexteProfil } from "~/hooks/utiliser-profil";
+import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserSynchroProfil } from "~/hooks/utiliser-synchro-profil";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import {
   AVATAR_PAR_DEFAUT,
   effacerAvatarLocal,
@@ -45,9 +48,13 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
 /**
  * Lit le profil, l'avatar et la visite sans compte au démarrage et les met à disposition de toute l'app (voir utiliserProfil).
  * Une visite sans compte ne reprend pas si un profil existe ou si un verrou d'âge est posé sur ce téléphone (retour à l'inscription).
+ * Avec un compte connecté (hors démo), le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil).
  */
 export function FournisseurProfil({ children }: { children: ReactNode }) {
-  const [profil, setProfil] = useState<Profil | null>(null);
+  const session = utiliserSession();
+  const [profil, setProfilAffiche] = useState<Profil | null>(null);
+  // Le profil à jour même entre deux rendus : la synchro le relit au retour de chaque réponse
+  const profilActuel = useRef<Profil | null>(null);
   const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
   const [inviteBrut, setInvite] = useState(false);
   const [chargement, setChargement] = useState(true);
@@ -55,6 +62,25 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   // Les entrées en visite qui attendent que les écrans de la visite soient ouverts, et ce qui est affiché en ce moment
   const enAttenteInvite = useRef<(() => void)[]>([]);
   const inviteAffichee = useRef(false);
+
+  const setProfil = useCallback((nouveau: Profil | null) => {
+    profilActuel.current = nouveau;
+    setProfilAffiche(nouveau);
+  }, []);
+  const lireProfil = useCallback(() => profilActuel.current, []);
+  const ecrireProfil = useCallback(
+    async (nouveau: Profil) => {
+      await enregistrerProfilLocal(nouveau);
+      setProfil(nouveau);
+    },
+    [setProfil],
+  );
+  const { installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
+    actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
+    pseudo: profil?.pseudo,
+    lireProfil,
+    ecrireProfil,
+  });
 
   useEffect(() => {
     (async () => {
@@ -71,7 +97,7 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
     })()
       .catch(() => {})
       .finally(() => setChargement(false));
-  }, []);
+  }, [setProfil]);
 
   // La visite est à l'écran (garde des écrans comprise) : on prévient ceux qui attendaient pour y naviguer
   useEffect(() => {
@@ -98,19 +124,24 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
     setInvite(false);
   }, []);
 
-  const enregistrer = useCallback(async (nouveau: Profil) => {
-    await enregistrerProfilLocal(nouveau);
-    await oublierModeInvite();
-    setProfil(nouveau);
-    setInvite(false);
-  }, []);
+  // Un profil complet qui vient du serveur ou vient d'y partir : la synchro l'installe sans rien renvoyer
+  const enregistrer = useCallback(
+    async (nouveau: Profil) => {
+      await installer(nouveau);
+      await oublierModeInvite();
+      setInvite(false);
+    },
+    [installer],
+  );
 
+  // La synchro d'abord : les marques « à envoyer » d'un compte ne doivent jamais partir avec le compte suivant
   const effacer = useCallback(async () => {
+    await oublier();
     await Promise.all([effacerProfilLocal(), effacerAvatarLocal(), oublierModeInvite()]);
     setAvatar(AVATAR_PAR_DEFAUT);
     setInvite(false);
     setProfil(null);
-  }, []);
+  }, [oublier, setProfil]);
 
   const changerAvatar = useCallback(
     async (nouveau: Avatar) => {
@@ -122,8 +153,11 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   );
 
   const valeur = useMemo(
-    () => ({ profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, effacer, avatar, changerAvatar }),
-    [profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, effacer, avatar, changerAvatar],
+    () => ({
+      profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote,
+      effacer, avatar, changerAvatar,
+    }),
+    [profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote, effacer, avatar, changerAvatar],
   );
   return <ContexteProfil.Provider value={valeur}>{children}</ContexteProfil.Provider>;
 }

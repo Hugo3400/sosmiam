@@ -34,20 +34,20 @@ test("limiter : champs vérifiés, une seule à la fois, mail demandé, journal 
   assert.equal((await limiter(404, corps)).status, 404);
   const reponse = await limiter(3, corps);
   assert.equal(reponse.status, 200);
-  const { limitation } = await reponse.json();
+  const { limitation } = (await reponse.json()) as { limitation: { id: number; fin: string | null } };
   assert.ok(limitation.fin && Date.parse(limitation.fin) > Date.now() + 6.9 * 86_400_000);
   assert.match(journal.at(-1)!, /^Compte limité · compte n° 3, limitation n° \d+, motif « haine », fin : \d{4}-\d{2}-\d{2}$/);
   assert.ok(!journal.at(-1)!.includes("insultants"));
   assert.deepEqual(mails, ["limite:3"]);
   assert.equal((await limiter(3, { ...corps, jours: null })).status, 409);
-  const fiche = await (await banc.demander("GET", "/comptes/3/limitations", { session })).json();
+  const fiche = (await (await banc.demander("GET", "/comptes/3/limitations", { session })).json()) as { enVigueur: { id: number }; toutes: unknown[] };
   assert.equal(fiche.enVigueur.id, limitation.id);
   assert.equal(fiche.toutes.length, 1);
 });
 
 test("réexaminer : seulement une contestation ; lever : une seule fois", async () => {
   mails.length = 0;
-  const { limitation } = await (await limiter(5, { ...corps, jours: null })).json();
+  const { limitation } = (await (await limiter(5, { ...corps, jours: null })).json()) as { limitation: { id: number } };
   assert.equal((await banc.demander("POST", `/limitations/${limitation.id}/reexamen`, { session, corps: { lever: true } })).status, 409);
   assert.equal((await limitations.contesterLimitation(5, "Je n'ai insulté personne, c'était une blague entre amis.")).ok, true);
   assert.equal((await banc.demander("POST", `/limitations/${limitation.id}/reexamen`, { session, corps: { lever: "oui" } })).status, 400);

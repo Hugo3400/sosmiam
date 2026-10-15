@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { RondPote } from "~/composants/potes/RondPote";
 import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -60,9 +61,7 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
           style={{ width: TAILLE_ROND, height: TAILLE_ROND, borderRadius: TAILLE_ROND / 2 }}
           className="items-center justify-center border-2 border-encre bg-jaune"
         >
-          <Text allowFontScaling={false} style={{ fontSize: 22, lineHeight: 28 }}>
-            {description.emoji}
-          </Text>
+          <EmojiOuMiami valeur={description.emoji} taille={TAILLE_ROND - 4} allowFontScaling={false} style={{ fontSize: 22, lineHeight: 28 }} />
         </View>
       )}
       <View className="flex-1 gap-0.5">

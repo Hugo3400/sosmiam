@@ -23,6 +23,7 @@ export function lireLienNotification(notification: Notification | null | undefin
   if (!notification) return null;
   const { content, trigger } = notification.request;
   let lien = lireChampLien(content.data);
-  if (lien === undefined && trigger && trigger.type === "push" && "payload" in trigger) lien = lireChampLien(trigger.payload);
+  // Seul le déclencheur « push » d'iPhone a un payload
+  if (lien === undefined && trigger && "payload" in trigger) lien = lireChampLien(trigger.payload);
   return typeof lien === "string" && LIENS_PERMIS.some((forme) => forme.test(lien)) ? lien : null;
 }

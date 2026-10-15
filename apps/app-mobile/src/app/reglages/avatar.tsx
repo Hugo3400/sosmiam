@@ -2,24 +2,24 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Alert, Linking, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 
+import type { IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
 import { Bouton } from "~/composants/interface/Bouton";
+import { GrilleMiamis } from "~/composants/profil/GrilleMiamis";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { avatarsEmoji } from "~/contenus/avatars-emoji";
+import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { AVATAR_PAR_DEFAUT, garderPhotoAvatar, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
 import couleurs from "~/theme/couleurs";
 
-/** Nom lu par le lecteur d'écran pour un emoji d'avatar (« renard ») ; à défaut, l'emoji lui-même. */
-const nommerAvatar = (emoji: string) => avatarsEmoji.find((a) => a.emoji === emoji)?.nom ?? emoji;
-
 // Options du sélecteur : une image carrée, recadrable, assez légère pour un rond de profil
 const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 };
 
-// Grille d'emoji : ronds de 56 points minimum, aussi larges que possible sur la largeur de l'écran (marges de 20 points)
+// Grilles des Miamis et des emoji : ronds de 56 points minimum, aussi larges que possible sur la largeur de l'écran (marges de 20 points)
 const ECART = 10;
 const TAILLE_MIN = 56;
 const TAILLE_MAX = 72;
@@ -27,10 +27,10 @@ const TAILLE_MAX = 72;
 const surLeWeb = Platform.OS === "web";
 
 function decrireAvatar(avatar: Avatar): string {
-  return avatar.type === "photo" ? "ta photo" : `avatar ${nommerAvatar(avatar.emoji)}`;
+  return avatar.type === "photo" ? "ta photo" : `avatar ${nommerAvatar(avatar)}`;
 }
 
-/** Réglages > Avatar : un emoji de la liste, ou une photo (appareil photo ou galerie) qui reste sur le téléphone. */
+/** Réglages > Avatar : un Miami (en tête), un emoji de la liste, ou une photo (appareil photo ou galerie) qui reste sur le téléphone. */
 export default function ReglagesAvatar() {
   const { avatar, changerAvatar } = utiliserProfil();
   const { width } = useWindowDimensions();
@@ -69,6 +69,11 @@ export default function ReglagesAvatar() {
       signalerErreur("Oups, ton avatar n'a pas pu être enregistré. Réessaie dans un instant.");
       return false;
     }
+  }
+
+  function choisirMiami(id: IdMiamiAuChoix) {
+    if (avatar.type === "miami" && avatar.id === id) return;
+    void appliquer({ type: "miami", id }, `C'est noté : ${decrireAvatar({ type: "miami", id })}.`);
   }
 
   function choisirEmoji(emoji: string) {
@@ -147,13 +152,19 @@ export default function ReglagesAvatar() {
   const chargement = (source: "camera" | "galerie") => (enCours === source ? <ActivityIndicator color={couleurs.encre} /> : undefined);
 
   return (
-    <EcranReglage titre="Ton avatar" sousTitre="Un emoji qui te ressemble, ou ta vraie bouille.">
+    <EcranReglage titre="Ton avatar" sousTitre="Un Miami de la Brigade, un emoji qui te ressemble, ou ta vraie bouille.">
       <View ref={refAvatarActuel} accessible accessibilityLabel={`Ton avatar actuel : ${decrireAvatar(avatar)}`} className="items-center">
         <ImageAvatar avatar={avatar} taille={140} />
       </View>
 
       <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
-        Un emoji
+        Un Miami
+      </Text>
+      <Text className="mt-1 font-texte text-sm leading-5 text-gris">Les matelots de la Brigade, chacun avec son couvre-chef.</Text>
+      <GrilleMiamis choisi={avatar.type === "miami" ? avatar.id : null} taille={tailleRond} ecart={ECART} onChoisir={choisirMiami} />
+
+      <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
+        Ou un emoji
       </Text>
       <View accessibilityRole="radiogroup" accessibilityLabel="Choisis un emoji" className="mt-3 flex-row flex-wrap" style={{ gap: ECART }}>
         {avatarsEmoji.map(({ emoji, nom }, i) => {

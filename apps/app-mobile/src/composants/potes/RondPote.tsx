@@ -1,6 +1,7 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -11,7 +12,7 @@ type Props = {
   taille: number;
 };
 
-/** L'avatar d'un pote dans son rond (son emoji sur fond jaune clair) ; pour toi, ton avatar du profil (emoji ou photo). Décoratif : le prénom est lu à côté. */
+/** L'avatar d'un pote dans son rond (son emoji sur fond jaune clair, ou son Miami) ; pour toi, ton avatar du profil (emoji, Miami ou photo). Décoratif : le prénom est lu à côté. */
 export function RondPote({ pote, taille }: Props) {
   const { avatar } = utiliserProfil();
   const monId = utiliserMonId();
@@ -24,10 +25,8 @@ export function RondPote({ pote, taille }: Props) {
       style={{ width: taille, height: taille, borderRadius: taille / 2 }}
       className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune-clair"
     >
-      {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système */}
-      <Text allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }}>
-        {pote.avatar}
-      </Text>
+      {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système ; un Miami remplit l'intérieur du rond */}
+      <EmojiOuMiami valeur={pote.avatar} taille={taille - 4} allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }} />
     </View>
   );
 }

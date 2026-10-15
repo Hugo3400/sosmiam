@@ -5,12 +5,15 @@ import type { DecisionModerationApi } from "@sos-miam/commun/types/signalement";
 import { Bouton } from "~/composants/interface/Bouton";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { CarteDecisionModeration } from "~/composants/signalement/CarteDecisionModeration";
+import { CarteLimitationCompte } from "~/composants/signalement/CarteLimitationCompte";
 import { FeuilleContesterDecision } from "~/composants/signalement/FeuilleContesterDecision";
+import { FeuilleContesterLimitation } from "~/composants/signalement/FeuilleContesterLimitation";
 import { MessageDecisionsModeration } from "~/composants/signalement/MessageDecisionsModeration";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserDecisionsModeration } from "~/hooks/utiliser-decisions-moderation";
+import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import couleurs from "~/theme/couleurs";
 
@@ -18,25 +21,32 @@ import couleurs from "~/theme/couleurs";
 const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-inconnue"];
 
 /**
- * Réglages › Décisions de la modération (règlement européen sur les services numériques) : une carte par décision sur tes
- * contenus et sur tes signalements, avec la règle en cause, l'explication de l'équipe et « Contester » pendant 6 mois.
- * Jamais qui a signalé. Ouvert aussi depuis la cloche (contenu masqué, retiré, signalement examiné). Démo et visite : ce
- * qui arrivera ici avec un compte.
+ * Réglages › Décisions de la modération (règlement européen sur les services numériques) : en tête, « Ton compte est
+ * limité » s'il l'est (jusqu'à quand, la règle, l'explication, ce qui marche toujours, « Contester »), puis une carte par
+ * décision sur tes contenus et sur tes signalements, avec la règle en cause, l'explication de l'équipe et « Contester »
+ * pendant 6 mois. Jamais qui a signalé. Ouvert aussi depuis la cloche (contenu masqué, retiré, signalement examiné, compte
+ * limité) et l'annonce d'une écriture refusée (« Voir pourquoi »). Démo et visite : ce qui arrivera ici avec un compte.
  */
 export default function DecisionsModeration() {
   const source = utiliserSourceSociale();
   const moderation = utiliserDecisionsModeration();
+  const limitation = utiliserLimitationCompte();
   const exigerCompte = utiliserCompteRequis();
   const [contestee, setContestee] = useState<DecisionModerationApi | null>(null);
   const [feuilleVisible, setFeuilleVisible] = useState(false);
+  const [feuilleLimitationVisible, setFeuilleLimitationVisible] = useState(false);
   const [relecture, setRelecture] = useState(false);
   const maintenant = new Date();
   const { decisions } = moderation;
+  const limite = limitation.limitation;
+  // Une des deux lectures a raté : ce qu'on montre peut être incomplet (ou d'avant)
+  const ratee = moderation.ratee || limitation.ratee;
+  const rien = decisions.length === 0 && !limite;
 
   async function relire() {
     if (relecture) return;
     setRelecture(true);
-    await moderation.relire().catch(() => false);
+    await Promise.all([moderation.relire().catch(() => false), limitation.relire().catch(() => false)]);
     setRelecture(false);
   }
 
@@ -64,7 +74,7 @@ export default function DecisionsModeration() {
         </MessageDecisionsModeration>
       );
     }
-    if (source === "attente" || !moderation.pret || (relecture && decisions.length === 0)) {
+    if (source === "attente" || !moderation.pret || !limitation.pret || (relecture && rien)) {
       return (
         <View accessible accessibilityLabel="Les décisions arrivent" className="items-center gap-3 py-10">
           <ActivityIndicator size="large" color={couleurs.encre} />
@@ -72,14 +82,14 @@ export default function DecisionsModeration() {
         </View>
       );
     }
-    if (moderation.ratee && decisions.length === 0) {
+    if (ratee && rien) {
       return (
         <MessageDecisionsModeration emoji="📡" titre="Les décisions sont restées en cuisine" texte="La connexion fait des siennes, rien de grave. Vérifie ton réseau, et on retente ?">
           <Bouton libelle="Réessayer" variante="blanc" petit className="mt-3" indice="Relit les décisions de la modération" onPress={() => void relire()} />
         </MessageDecisionsModeration>
       );
     }
-    if (decisions.length === 0) {
+    if (rien) {
       return (
         <MessageDecisionsModeration
           emoji="🌿"
@@ -90,9 +100,11 @@ export default function DecisionsModeration() {
     }
     return (
       <View className="gap-4">
-        {moderation.ratee ? (
+        {ratee ? (
           <View accessibilityLiveRegion="polite" className="flex-row items-center gap-2 rounded-2xl border-2 border-dashed border-gris/60 py-1 pl-3 pr-1">
-            <Text className="flex-1 font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation("📡 Pas pu rafraîchir : tu vois les décisions d'avant.")}</Text>
+            <Text className="flex-1 font-texte text-[13px] leading-[18px] text-gris">
+              {lierPonctuation(moderation.ratee ? "📡 Pas pu rafraîchir : tu vois les décisions d'avant." : "📡 Pas pu vérifier si ton compte est limité : on retente ?")}
+            </Text>
             {relecture ? (
               <ActivityIndicator size="small" color={couleurs.gris} accessibilityLabel="On retente" style={{ marginHorizontal: 16 }} />
             ) : (
@@ -109,6 +121,9 @@ export default function DecisionsModeration() {
               </Pressable>
             )}
           </View>
+        ) : null}
+        {limite ? (
+          <CarteLimitationCompte limitation={limite} maintenant={maintenant} onContester={() => setFeuilleLimitationVisible(true)} />
         ) : null}
         {decisions.map((decision) => (
           <CarteDecisionModeration
@@ -141,6 +156,7 @@ export default function DecisionsModeration() {
         onContester={contester}
         onFermer={() => setFeuilleVisible(false)}
       />
+      <FeuilleContesterLimitation visible={feuilleLimitationVisible} onContester={limitation.contester} onFermer={() => setFeuilleLimitationVisible(false)} />
     </>
   );
 }

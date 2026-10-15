@@ -11,6 +11,7 @@ import { BlocRecompensePrete } from "~/composants/fidelite/BlocRecompensePrete";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { LigneVisite } from "~/composants/visites/LigneVisite";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
+import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
@@ -38,10 +39,10 @@ export default function EcranCarteFidelite() {
 
   const carte = cartes.find((c) => String(c.lieu.id) === lieuId) ?? null;
   const visitesIci = visites.filter((v) => String(v.lieu.id) === lieuId && v.statut === "validee");
-  // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji (jamais la photo)
+  // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji ou Miami (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");
   const signature = profil ? (initiale ? `${profil.prenom} ${initiale}.` : profil.prenom) : "Toi";
-  const emoji = avatar.type === "emoji" ? avatar.emoji : "🙂";
+  const emoji = ecrireAvatarPublic(avatar) ?? "🙂";
 
   async function agir(action: "demander" | "annuler") {
     if (!carte || envoi) return;

@@ -14,6 +14,7 @@ import { EtatVisiteTerminee } from "~/composants/visites/EtatVisiteTerminee";
 import { FeuilleContestation } from "~/composants/visites/FeuilleContestation";
 import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -89,10 +90,10 @@ export default function EcranVisite() {
   // Écran réservé aux inscrits (PileRacine) : le lieu de la visite s'affiche tel quel, bar compris
   const lieu = lieuConnu ?? null;
 
-  // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji (jamais la photo)
+  // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji ou Miami (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");
   const signature = profil ? (initiale ? `${profil.prenom} ${initiale}.` : profil.prenom) : "Toi";
-  const emoji = avatar.type === "emoji" ? avatar.emoji : "🙂";
+  const emoji = ecrireAvatarPublic(avatar) ?? "🙂";
 
   // Ouverte par-dessus le parcours du Scan (« Tu es chez qui ? », le scanner) : on referme tout le parcours d'un coup, pour
   // retrouver l'onglet (ou la fiche) d'où l'on était parti, plutôt que de retomber sur « Tu es chez qui ? » une fois la visite faite

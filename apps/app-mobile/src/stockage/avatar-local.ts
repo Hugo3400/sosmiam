@@ -1,4 +1,4 @@
-// Avatar de la personne : un emoji, ou une photo gardée dans les fichiers de l'app.
+// Avatar de la personne : un emoji, un Miami (dessins de la marque), ou une photo gardée dans les fichiers de l'app.
 // La photo ne quitte pas le téléphone (pas encore d'API). Sur le web (aperçu de développement), on garde l'adresse donnée par le navigateur.
 // Sur le téléphone, on ne garde que le nom du fichier : iOS peut changer le dossier de l'app (mise à jour), on refait l'adresse à chaque lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -6,7 +6,10 @@ import { Directory, File, Paths } from "expo-file-system";
 import { Image } from "expo-image";
 import { Platform } from "react-native";
 
-export type Avatar = { type: "emoji"; emoji: string } | { type: "photo"; uri: string };
+import { AVATARS_MIAMIS, type IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
+
+/** Un Miami au choix seulement : le Capitaine, réservé au compte officiel, ne se choisit pas */
+export type Avatar = { type: "emoji"; emoji: string } | { type: "miami"; id: IdMiamiAuChoix } | { type: "photo"; uri: string };
 
 export const AVATAR_PAR_DEFAUT: Extract<Avatar, { type: "emoji" }> = { type: "emoji", emoji: "🦸" };
 
@@ -39,6 +42,11 @@ export async function lireAvatarLocal(): Promise<Avatar> {
     if (typeof lu !== "object" || lu === null) return AVATAR_PAR_DEFAUT;
     const a = lu as Record<string, unknown>;
     if (a.type === "emoji" && typeof a.emoji === "string" && a.emoji !== "") return { type: "emoji", emoji: a.emoji };
+    if (a.type === "miami") {
+      // Un Miami que cette version ne connaît pas (ou plus) : l'avatar par défaut
+      const miami = AVATARS_MIAMIS.find((m) => m.id === a.id);
+      return miami ? { type: "miami", id: miami.id } : AVATAR_PAR_DEFAUT;
+    }
     if (a.type === "photo" && typeof a.uri === "string" && a.uri !== "") {
       if (surLeWeb) return { type: "photo", uri: a.uri };
       const photo = retrouverPhoto(a.uri);

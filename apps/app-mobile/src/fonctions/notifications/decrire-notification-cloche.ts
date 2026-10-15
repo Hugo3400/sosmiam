@@ -14,8 +14,8 @@ type Sources = {
 
 /**
  * La phrase d'une notification de la cloche du serveur (bande, sorties, groupes, listes, commentaires, modération), prête à
- * afficher. Une personne qui a quitté SOS Miam devient « Quelqu'un ». Les trois types de la modération (contenu masqué,
- * retiré, signalement examiné) ouvrent Réglages › Décisions de la modération.
+ * afficher. Une personne qui a quitté SOS Miam devient « Quelqu'un ». Les quatre types de la modération (contenu masqué,
+ * retiré, signalement examiné, compte limité) ouvrent Réglages › Décisions de la modération.
  */
 export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, publications, lieux }: Sources): NotificationDecrite | null {
   const qui = n.acteur ? (trouverPote(n.acteur.id)?.prenom ?? n.acteur.prenom) : "Quelqu'un";
@@ -69,6 +69,16 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
       // Un code que cette version de l'app ne connaît pas encore : la phrase générale
       const motif = n.detail ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { enClair: string } | undefined>>)[n.detail]?.enClair : undefined;
       return decrire("🧹", motif ? `Un de tes contenus a été retiré par la modération (motif : ${motif}).` : "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", ...moderation);
+    }
+    case "compte-limite": {
+      // detail : le code du motif ; un code que cette version de l'app ne connaît pas encore : la phrase générale
+      const motif = n.detail ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { enClair: string } | undefined>>)[n.detail]?.enClair : undefined;
+      return decrire(
+        "⏸️",
+        `L'équipe a limité ton compte${motif ? ` (motif : ${motif})` : ""} : ce que les autres verraient est en pause, le reste marche comme d'habitude. On t'explique pourquoi, et tu peux contester.`,
+        "/reglages/decisions-moderation",
+        "Ouvre « Ton compte est limité » dans les décisions de la modération",
+      );
     }
     case "signalement-decide":
       if (n.detail === "retenu") return decrire("🛡️", "On a examiné ton signalement : le contenu est retiré. Merci de veiller au grain !", ...moderation);

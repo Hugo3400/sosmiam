@@ -4,6 +4,7 @@ import { creerServicesApi } from "@sos-miam/commun/client-api/api/creer-services
 
 import type { Profil } from "@sos-miam/commun/types/profil";
 import type { RolesCompte } from "@sos-miam/commun/types/roles";
+import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
@@ -20,7 +21,7 @@ function construireClient(profil: Profil | null, avatar: Avatar): ClientDemo | n
     cle: "moi",
     prenom: profil.prenom,
     initialeNom: nom ? nom.charAt(0).toLocaleUpperCase("fr-FR") : null,
-    avatar: avatar.type === "emoji" ? avatar.emoji : "🙂",
+    avatar: ecrireAvatarPublic(avatar) ?? "🙂",
   };
 }
 

@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { formaterCodeLu } from "~/fonctions/visites/formater-code-lu";
 
@@ -17,8 +18,8 @@ type Props = {
 };
 
 const TAILLES = {
-  grand: { case: 76, police: 52, interligne: 62, avatar: "h-10 w-10", emoji: "text-xl", prenom: "text-lg" },
-  moyen: { case: 54, police: 34, interligne: 42, avatar: "h-8 w-8", emoji: "text-base", prenom: "text-base" },
+  grand: { case: 76, police: 52, interligne: 62, avatar: "h-10 w-10", miami: 36, emoji: "text-xl", prenom: "text-lg" },
+  moyen: { case: 54, police: 34, interligne: 42, avatar: "h-8 w-8", miami: 28, emoji: "text-base", prenom: "text-base" },
 } as const;
 
 /**
@@ -53,7 +54,7 @@ export function CodeRapprochement({ code, prenom, avatar, legende, taille = "gra
         </View>
         <View className="mt-4 flex-row items-center gap-2">
           <View className={`${t.avatar} items-center justify-center rounded-full border-2 border-encre bg-jaune-clair`}>
-            <Text className={t.emoji}>{avatar}</Text>
+            <EmojiOuMiami valeur={avatar} taille={t.miami} className={t.emoji} />
           </View>
           <Text className={`font-texte-gras ${t.prenom} text-encre`}>{prenom}</Text>
         </View>

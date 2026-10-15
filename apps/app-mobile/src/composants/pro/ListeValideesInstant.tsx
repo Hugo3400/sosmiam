@@ -2,6 +2,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { ValidationRecente } from "@sos-miam/commun/types/comptoir";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
@@ -31,7 +32,7 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
           <View key={v.visiteId} className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
             <View accessible accessibilityLabel={`${nom}, validé par ${MODES[v.mode]}. ${decrireReglement(v.reglement, "lieu").titre}. Annulable ${reste}.`} className="flex-1 flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-full bg-jaune">
-                <Text className="text-lg">{v.avatar}</Text>
+                <EmojiOuMiami valeur={v.avatar} taille={40} className="text-lg" />
               </View>
               <View className="flex-1">
                 <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">

@@ -5,6 +5,7 @@ import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { DUREE_PARTAGE_POSITION_MINUTES } from "@sos-miam/commun/regles/miam-safe";
 import type { PartagePositionMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { lirePositionMiamSafe } from "~/fonctions/miam-safe/lire-position-miam-safe";
@@ -108,7 +109,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
                   onPress={() => setChoisi(p.id)}
                   className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-4 py-2 active:opacity-80 ${selectionne ? "border-encre bg-jaune-clair" : "border-ligne bg-white"}`}
                 >
-                  <Text className="text-2xl">{p.avatar}</Text>
+                  <EmojiOuMiami valeur={p.avatar} taille={32} className="text-2xl" />
                   <View className="shrink grow">
                     <Text className="font-texte-gras text-base text-encre">{p.prenom}</Text>
                     <Text className="font-texte text-sm text-gris">@{p.pseudo}</Text>

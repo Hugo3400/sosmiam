@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 
 import { DUREE_PRESENTATION_QR_MS } from "@sos-miam/commun/regles/visites";
 import type { QrAffiche, ValidationRecente } from "@sos-miam/commun/types/comptoir";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -35,7 +36,7 @@ export function BandeauValidationsQr({ qr, validees, maintenant }: Props) {
         <View accessible accessibilityLabel={`Déjà scanné : ${scannes.map((v) => (v.initialeNom ? `${v.prenom} ${v.initialeNom}.` : v.prenom)).join(", ")}`} className="flex-row flex-wrap justify-center gap-2">
           {scannes.map((v) => (
             <View key={v.visiteId} className="flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-3 py-1">
-              <Text className="text-base">{v.avatar}</Text>
+              <EmojiOuMiami valeur={v.avatar} taille={20} className="text-base" />
               <Text className="font-texte-gras text-sm text-encre">✓ {v.initialeNom ? `${v.prenom} ${v.initialeNom}.` : v.prenom}</Text>
             </View>
           ))}

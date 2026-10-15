@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
 
@@ -58,10 +59,8 @@ export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }
           className={`items-center justify-center overflow-hidden border-2 border-encre ${fondsRond[type]}`}
         >
           {degrade ? <LinearGradient colors={degrade} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={{ position: "absolute", inset: 0 }} /> : null}
-          {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système */}
-          <Text allowFontScaling={false} style={{ fontSize: TAILLE_ROND * 0.5, lineHeight: TAILLE_ROND * 0.64 }}>
-            {emoji}
-          </Text>
+          {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système ; un Miami remplit l'intérieur du rond */}
+          <EmojiOuMiami valeur={emoji} taille={TAILLE_ROND - 4} allowFontScaling={false} style={{ fontSize: TAILLE_ROND * 0.5, lineHeight: TAILLE_ROND * 0.64 }} />
         </View>
         <Text numberOfLines={1} className="text-center font-texte-gras text-[15px] text-encre">
           {nom}

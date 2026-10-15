@@ -8,8 +8,10 @@ import { creerServicesSociauxApi } from "@sos-miam/commun/client-api/api/creer-s
 import { creerClientHttp } from "@sos-miam/commun/client-api/client-http";
 import type { SessionOuverte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { CompteApp } from "@sos-miam/commun/types/compte-app";
+import { observerCompteLimite } from "~/fonctions/compte/observer-compte-limite";
 import { ContexteSession, type ValeurSession } from "~/hooks/utiliser-session";
 import { ADRESSE_API } from "~/services/adresse-api";
+import { signalerCompteLimite } from "~/services/refus-compte-limite";
 import { effacerJetonSession, enregistrerJetonSession, lireJetonSession } from "~/stockage/session-compte";
 
 /**
@@ -33,9 +35,10 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
     await effacerJetonSession();
   }, []);
 
-  // Un seul client pour toute l'app : il relit le jeton à chaque demande
+  // Un seul client pour toute l'app : il relit le jeton à chaque demande. Une écriture refusée « compte-limite » est signalée
+  // à l'annonce de toute l'app (AnnonceCompteLimite) ; la réponse arrive telle quelle à l'écran
   const client = useMemo(
-    () => creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true) }),
+    () => observerCompteLimite(creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true) }), signalerCompteLimite),
     [oublier],
   );
   // Les services sociaux (potes, messages, cloche…) en version API : la démo garde son code local, une visite n'a rien

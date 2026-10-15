@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 
 import type { DemandeComptoir } from "@sos-miam/commun/types/comptoir";
 import { BoutonCarteComptoir } from "~/composants/pro/BoutonCarteComptoir";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { decrireAttente } from "~/fonctions/pro/decrire-attente";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
@@ -34,7 +35,7 @@ export function CarteDemandeComptoir({ demande, maintenant, onRegler, onRefuser,
       <View accessible accessibilityLabel={`${nom}, ${attente}. ${detail}. Code : ${codeLu}`} className="gap-3">
         <View className="flex-row items-start gap-3">
           <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-creme">
-            <Text className="text-2xl">{demande.avatar}</Text>
+            <EmojiOuMiami valeur={demande.avatar} taille={44} className="text-2xl" />
           </View>
           <View className="flex-1 gap-0.5">
             <View className="flex-row items-baseline gap-2">

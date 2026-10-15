@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 
 import { creerCanauxAndroid } from "~/fonctions/notifications/creer-canaux-android";
+import { estDejaSousTesYeux } from "~/fonctions/notifications/est-deja-sous-tes-yeux";
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -11,21 +12,13 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
-/**
- * Les écrans qui se mettent à jour tout seuls (le pouls est relu à chaque notification reçue) : déjà ouverts, leur
- * notification ne s'affiche pas. Jamais Miam Safe (une alerte se montre toujours), ni les onglets ou les listes, où ce que
- * dit la notification (une campagne sur « / », par exemple) n'est pas forcément à l'écran.
- */
-const ECRANS_A_JOUR = /^\/potes\/(discussion|sortie|profil)\/[^/]+$/;
-
-/** Le message de cette notification est déjà sous tes yeux : l'écran de son lien est ouvert, et il se met à jour seul */
-const estDejaSousTesYeux = (notification: Notifications.Notification): boolean => {
+/** Une notification reçue app ouverte s'affiche, sauf si son message est déjà sous tes yeux (son écran est ouvert, et à jour) */
+const estAffichable = (notification: Notifications.Notification): boolean => {
   try {
-    const lien = lireLienNotification(notification);
-    return lien !== null && ECRANS_A_JOUR.test(lien) && lien === lireEcranOuvert();
+    return !estDejaSousTesYeux(lireLienNotification(notification), lireEcranOuvert());
   } catch {
     // Dans le doute, la notification s'affiche
-    return false;
+    return true;
   }
 };
 
@@ -33,7 +26,7 @@ if (Platform.OS !== "web") {
   // Une notification qui arrive pendant que l'app est ouverte s'affiche quand même, sans son, sauf si son écran est déjà ouvert
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
-      const afficher = !estDejaSousTesYeux(notification);
+      const afficher = estAffichable(notification);
       return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: false, shouldSetBadge: false };
     },
   });

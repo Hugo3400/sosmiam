@@ -4,6 +4,7 @@ import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
@@ -96,7 +97,7 @@ export function FeuilleConfirmation({ visible, emoji, titre, detail, libelleConf
             importantForAccessibility="no-hide-descendants"
             className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
           >
-            <Text className="text-3xl">{emoji}</Text>
+            <EmojiOuMiami valeur={emoji} taille={60} className="text-3xl" />
           </View>
           <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
             {lierPonctuation(titre)}

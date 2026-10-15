@@ -12,8 +12,8 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
-import { avatarsEmoji } from "~/contenus/avatars-emoji";
 import { etapesEnvies } from "~/contenus/inscription/envies";
+import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
@@ -61,10 +61,7 @@ export default function Reglages() {
   const detailEnvies =
     nombreEnvies === 0 ? "Rien de coché pour l'instant" : `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} cochée${nombreEnvies > 1 ? "s" : ""}`;
   // L'avatar actuel est dit en toutes lettres (l'image à droite n'est pas lue par le lecteur d'écran)
-  const detailAvatar =
-    avatar.type === "photo"
-      ? "Ta photo pour l'instant, ou un emoji"
-      : `En ${avatarsEmoji.find((a) => a.emoji === avatar.emoji)?.nom ?? avatar.emoji} pour l'instant, ou en photo`;
+  const detailAvatar = avatar.type === "photo" ? "Ta photo pour l'instant, ou un Miami" : `En ${nommerAvatar(avatar)} pour l'instant, ou en photo`;
 
   const nombreBloques = communaute.bloques.length;
   const detailBloques = !communaute.pret

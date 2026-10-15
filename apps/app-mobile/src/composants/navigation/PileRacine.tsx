@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
+import { AnnonceCompteLimite } from "~/composants/compte/AnnonceCompteLimite";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
 import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
@@ -97,6 +98,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="q/[code]" />
         </Stack.Protected>
       </Stack>
+      {/* Une écriture refusée parce que le compte est limité, n'importe où : une seule annonce douce, au-dessus de tout */}
+      <AnnonceCompteLimite />
     </>
   );
 }

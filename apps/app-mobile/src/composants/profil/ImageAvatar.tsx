@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
+import { IMAGES_MIAMIS } from "~/contenus/images-miamis";
 import { AVATAR_PAR_DEFAUT, type Avatar } from "~/stockage/avatar-local";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
   taille: number;
 };
 
-/** L'avatar dans son rond : un emoji sur fond jaune clair, ou la photo choisie (l'emoji par défaut si elle ne se charge pas). Décoratif pour le lecteur d'écran (le prénom est lu à côté). */
+/** L'avatar dans son rond : un emoji sur fond jaune clair, un Miami, ou la photo choisie (l'emoji par défaut si elle ne se charge pas). Décoratif pour le lecteur d'écran (le prénom est lu à côté). */
 export function ImageAvatar({ avatar, taille }: Props) {
   // Adresse de la photo qui n'a pas voulu se charger : on retente dès que l'avatar change
   const [photoCassee, setPhotoCassee] = useState<string | null>(null);
@@ -24,7 +25,9 @@ export function ImageAvatar({ avatar, taille }: Props) {
       style={{ width: taille, height: taille, borderRadius: taille / 2 }}
       className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune-clair"
     >
-      {photo ? (
+      {avatar.type === "miami" ? (
+        <Image source={IMAGES_MIAMIS[avatar.id]} contentFit="cover" style={{ width: "100%", height: "100%" }} />
+      ) : photo ? (
         // Cache en mémoire seulement : la photo est déjà un fichier du téléphone, pas besoin d'une copie sur le disque qui survivrait à « Retirer la photo »
         <Image source={{ uri: photo }} cachePolicy="memory" contentFit="cover" onError={() => setPhotoCassee(photo)} style={{ width: "100%", height: "100%" }} />
       ) : (
