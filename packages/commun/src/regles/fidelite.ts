@@ -24,18 +24,27 @@ export const JOURS_HONNEUR_RECOMPENSES = 30;
 export const MOTS_ALCOOL: readonly string[] = [
   "vin", "vins", "biere", "bieres", "pinte", "spritz", "apero", "aperitif", "cocktail", "cocktails", "shot", "shots",
   "picpoul", "muscat", "champagne", "cremant", "prosecco", "cidre", "pastis", "ricard", "rhum", "whisky", "vodka", "gin",
-  "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "portos", "martini",
+  "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "porto", "martini",
   "cognac", "armagnac", "calvados", "caipirinha", "margarita", "ipa",
   "muscadet", "chardonnay", "sauvignon", "merlot", "syrah", "riesling",
   "whiskey", "sake", "absinthe", "vermouth", "amaretto", "grappa", "ouzo", "genepi", "hydromel",
+  "bourbon", "chablis", "sancerre", "beaujolais",
 ];
 
+const HOMONYMES_ALCOOL = ["porto", "bourbon", "chablis", "sancerre", "beaujolais"];
+const CONTENANTS_ALCOOL = ["verre", "bouteille", "coupe", "flute", "pichet", "carafe", "ballon", "magnum", "fond", "larme", "degustation", "masterclass"];
+
 export const EXPRESSIONS_ALCOOL: readonly string[] = [
-  "verre de bourbon", "bouteille de bourbon", "degustation de bourbon", "au bourbon", "bourbon coca", "bourbon cola", "bourbon sour",
   "un mousseux", "du mousseux", "le mousseux", "au mousseux",
-  "coupe de mousseux", "verre de mousseux", "bouteille de mousseux",
-  "un sancerre", "du sancerre", "verre de sancerre", "bouteille de sancerre", "sancerre blanc", "sancerre rouge", "sancerre rose",
-  "un chablis", "du chablis", "petit chablis", "verre de chablis", "bouteille de chablis", "chablis premier cru", "chablis grand cru",
-  "un beaujolais", "beaujolais nouveau", "beaujolais villages", "verre de beaujolais", "bouteille de beaujolais", "pichet de beaujolais",
-  "un porto", "du porto", "au porto", "verre de porto", "bouteille de porto", "porto tonic", "porto blanc", "porto rouge", "porto rose", "porto tawny",
+  ...CONTENANTS_ALCOOL.flatMap((contenant) => [...HOMONYMES_ALCOOL, "mousseux"].map((mot) => `${contenant} de ${mot}`)),
+  "beaujolais nouveau", "beaujolais villages",
+];
+
+export const EXPRESSIONS_SANS_ALCOOL: readonly string[] = [
+  ...["a", "de", "depuis", "pour", "vers"].flatMap((avant) => HOMONYMES_ALCOOL.map((lieu) => `${avant} ${lieu}`)),
+  "du beaujolais", "en beaujolais", "dans le beaujolais",
+  "porto vecchio", "porto novo", "porto rico", "porto alegre", "porto santo", "fc porto",
+  "vanille bourbon", "vanilles bourbon", "vanille de bourbon", "bourbon vanille", "vanilla bourbon", "bourbon vanilla",
+  "ile bourbon", "ile de bourbon", "cafe bourbon", "bourbon pointu", "palais bourbon", "rose bourbon", "biscuit bourbon",
+  "bourbon lancy", "bourbon l archambault",
 ];

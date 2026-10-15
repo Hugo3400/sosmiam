@@ -1,4 +1,4 @@
-import { POINTS_AVIS_PHOTO } from "../../services/avis-regles.ts";
+import { calculerPointsPhotoAvis as calculerPointsPhotoSelonCommun } from "../../../../../packages/commun/src/fonctions/avis/calculer-points-photo-avis.ts";
 
 /**
  * Les points de la photo d'un avis (raison « avis-photo ») : 10 pour un avis vérifié (écrit grâce à une visite) avec une
@@ -7,5 +7,5 @@ import { POINTS_AVIS_PHOTO } from "../../services/avis-regles.ts";
  * l'avis tient encore d'après le journal) ; le retour en ligne, lui, rend ce que le journal dit retiré (avis-gestion.ts).
  */
 export function calculerPointsPhotoAvis(a: { visiteId: number | null; photo: string | null; repasOffert: boolean }): number {
-  return a.visiteId !== null && a.photo !== null && !a.repasOffert ? POINTS_AVIS_PHOTO : 0;
+  return calculerPointsPhotoSelonCommun({ verifie: a.visiteId !== null, avecPhoto: a.photo !== null, repasOffert: a.repasOffert });
 }

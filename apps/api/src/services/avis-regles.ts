@@ -11,8 +11,6 @@ import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import type { LigneVisite } from "./visites-regles.ts";
 
-/** Un avis vérifié avec photo : +10 points (raison « avis-photo »), jamais pour un repas offert ni un avis non vérifié */
-export const POINTS_AVIS_PHOTO = 10;
 /** Avis rendus par page (lecture publique et comptoir) */
 export const AVIS_PAR_PAGE = 30;
 /** Avis non vérifié : un par compte et par lieu sur cette durée */

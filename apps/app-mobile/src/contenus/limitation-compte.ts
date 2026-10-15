@@ -79,8 +79,6 @@ export const REFUS_LIMITATION = {
   annulerEvenement: "Ton compte est limité : annuler l'événement d'un collègue attendra la fin de la limitation. Les tiens, tu peux toujours les annuler.",
   avis: "Ton compte est limité : les avis (vérifiés ou non) sont en pause pour l'instant.",
   reponseAvis: "Ton compte est limité : répondre aux avis attendra la fin de la limitation.",
-  // Prêt pour l'écran de réservation (lieu/[id]/reserver est provisoire) : le petit mot est un texte libre que lit le lieu,
-  // refusé à un compte limité ; sans mot, la demande passe comme d'habitude (choix de la session App du 15/10/2026)
   petitMot: "Ton compte est limité : le petit mot au lieu attendra la fin de la limitation. Envoie ta demande sans petit mot, elle part comme d'habitude.",
 } as const;
 
