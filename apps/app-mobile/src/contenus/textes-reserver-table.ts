@@ -84,8 +84,11 @@ export const TEXTES_DEMANDE_ENVOYEE = {
   sousTitreAcceptee: "L'équipe {deLieu} t'attend. Le jour J, touche « Je\u00a0suis\u00a0là » en arrivant, dans Mes réservations.",
   titreRefusee: "Pas cette fois",
   sousTitreRefusee: "L'équipe {deLieu} a répondu : la carte t'explique pourquoi. Un autre créneau te tente ?",
+  titreEndormie: "Demande endormie",
+  sousTitreEndormie: "L'équipe {deLieu} n'a pas répondu à temps. Un autre créneau te tente ?",
   titreAnnulee: "Demande annulée",
-  sousTitreAnnulee: "Une autre date te tente ? Choisis un nouveau créneau, la table t'attend peut-être déjà.",
+  titreReservationAnnulee: "Réservation annulée",
+  sousTitreAnnulee: "Une autre date te tente ? Choisis un nouveau créneau : le lieu t'attend peut-être déjà.",
   etapesTitre: "Et ensuite ?",
   etapes: [
     { emoji: "📬", texte: "L'équipe regarde son planning et accepte, ou te dit si c'est complet (ça arrive aux meilleurs)." },

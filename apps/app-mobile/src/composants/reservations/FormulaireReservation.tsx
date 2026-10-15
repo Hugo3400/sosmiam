@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
+import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { MESSAGE_RESERVATION_MAX, PERSONNES_RESERVATION_MAX, PERSONNES_RESERVATION_MIN } from "@sos-miam/commun/regles/reservations";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -35,22 +35,25 @@ type Props = {
   onChangerPersonnes: (personnes: number) => void;
   onChangerPetitMot: (texte: string) => void;
   onProchainJourOuvert: (() => void) | null;
-  children?: ReactNode;
 };
 
-export function FormulaireReservation(props: Props) {
-  const { lieu, jours, aujourdhui, jour, heure, personnes, petitMot, erreurPetitMot, quand, children } = props;
+function dessinerJourEtHeure(props: Props) {
+  const { lieu, jours, aujourdhui, jour, heure } = props;
+  const deLieu = direDeLieu(lieu.nom);
+  if (lieu.ouverture.length === 0) {
+    return (
+      <EncadreReservation
+        ton="doux"
+        emoji="🕰️"
+        titre={TEXTES_RESERVER_TABLE.sansHorairesTitre}
+        texte={remplirModele(TEXTES_RESERVER_TABLE.sansHorairesTexte, { deLieu })}
+      />
+    );
+  }
   const raison = lireRaisonSansCreneau(jour, aujourdhui);
   const sansCreneau = raison ? SANS_CRENEAU[raison] : null;
-  const petitMotEnvoye = petitMot.trim().replace(/\s+/g, " ");
-
   return (
-    <View className="gap-7">
-      <View className="gap-3">
-        <EnTeteLieuReservation lieu={lieu} />
-        {lieu.type === "bar" ? <MentionPrevention /> : null}
-      </View>
-
+    <>
       <View className="gap-3">
         <TitreEtapeReservation titre={TEXTES_RESERVER_TABLE.jour} />
         <ChoixJourReservation jours={jours} aujourdhui={aujourdhui} choisi={jour.jour} onChoisir={props.onChoisirJour} />
@@ -63,7 +66,7 @@ export function FormulaireReservation(props: Props) {
             ton="doux"
             emoji={sansCreneau.emoji}
             titre={sansCreneau.titre}
-            texte={remplirModele(sansCreneau.texte, { deLieu: direDeLieu(lieu.nom) })}
+            texte={remplirModele(sansCreneau.texte, { deLieu })}
             action={
               props.onProchainJourOuvert
                 ? { libelle: TEXTES_RESERVER_TABLE.prochainJourOuvert, indice: TEXTES_RESERVER_TABLE.indiceProchainJourOuvert, onPress: props.onProchainJourOuvert }
@@ -74,6 +77,23 @@ export function FormulaireReservation(props: Props) {
           <ChoixCreneauReservation creneaux={jour.creneaux} choisi={heure} onChoisir={props.onChoisirHeure} />
         )}
       </View>
+    </>
+  );
+}
+
+export function FormulaireReservation(props: Props) {
+  const { lieu, personnes, petitMot, erreurPetitMot, quand } = props;
+  const petitMotEnvoye = petitMot.trim().replace(/\s+/g, " ");
+  const estBar = lieu.type === "bar";
+
+  return (
+    <View className="gap-7">
+      <View className="gap-3">
+        <EnTeteLieuReservation lieu={lieu} />
+        {estBar ? <MentionPrevention /> : null}
+      </View>
+
+      {dessinerJourEtHeure(props)}
 
       <View className="gap-3">
         <TitreEtapeReservation titre={TEXTES_RESERVER_TABLE.personnes} />
@@ -88,21 +108,22 @@ export function FormulaireReservation(props: Props) {
         <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TEXTES_RESERVER_TABLE.grandeTablee)}</Text>
       </View>
 
-      <ChampTexte
-        libelle={TEXTES_RESERVER_TABLE.petitMot}
-        mention={TEXTES_RESERVER_TABLE.petitMotMention}
-        valeur={petitMot}
-        onChangeTexte={props.onChangerPetitMot}
-        placeholder={TEXTES_RESERVER_TABLE.petitMotExemple}
-        multiline
-        maxLength={MESSAGE_RESERVATION_MAX}
-        aide={`${TEXTES_RESERVER_TABLE.petitMotAide} · ${petitMot.length}/${MESSAGE_RESERVATION_MAX}`}
-        erreur={erreurPetitMot}
-      />
+      <View className="gap-3">
+        <ChampTexte
+          libelle={TEXTES_RESERVER_TABLE.petitMot}
+          mention={TEXTES_RESERVER_TABLE.petitMotMention}
+          valeur={petitMot}
+          onChangeTexte={props.onChangerPetitMot}
+          placeholder={TEXTES_RESERVER_TABLE.petitMotExemple}
+          multiline
+          maxLength={MESSAGE_RESERVATION_MAX}
+          aide={`${TEXTES_RESERVER_TABLE.petitMotAide} · ${petitMot.length}/${MESSAGE_RESERVATION_MAX}`}
+          erreur={erreurPetitMot}
+        />
+        {!estBar && parleDAlcool(petitMotEnvoye) ? <MentionPrevention variante="courte" /> : null}
+      </View>
 
       {quand ? <RecapitulatifReservation nomLieu={lieu.nom} emojiLieu={lieu.emoji} quand={quand} personnes={personnes} petitMot={petitMotEnvoye || null} /> : null}
-
-      {children}
     </View>
   );
 }

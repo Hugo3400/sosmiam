@@ -48,7 +48,7 @@ const corpsPhoto: RequestHandler = (requete, reponse, suite) => {
  * POST /app/avis { visiteId, note (1 à 5), texte (10 à 1000 caractères, sans insulte), photo? (null) }
  *        → 201 { ok, pointsGagnes (10 avec une photo, sauf repas offert ; sinon 0), avis: AvisPublic } : un avis par visite,
  *        « Repas offert » si la visite était offerte
- *        · 400 avis-invalide { champ?: photo } (validerAvis ; une photo n'est acceptée qu'une fois l'envoi de photos ouvert)
+ *        · 400 avis-invalide { champ?: photo }
  *        · 404 introuvable (pas sa visite, lieu plus publié) · 403 membre-du-lieu (rattaché au lieu, ou qui le demande)
  *        · 409 avis-pas-ouvert (visite pas validée, retirée, ou moins d'1 h après) | avis-ferme (14 jours passés) | avis-deja-donne
  * POST /app/avis/non-verifie { lieuId, note, texte, photo? } → 201 { ok, pointsGagnes: 0, avis } : seulement chez un lieu

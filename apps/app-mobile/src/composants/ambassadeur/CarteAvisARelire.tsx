@@ -1,10 +1,12 @@
 import { Image } from "expo-image";
 import { Text, View } from "react-native";
 
-import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
 import { LIBELLES_RAISON_RELECTURE } from "@sos-miam/commun/contenus/raisons-relecture";
 import type { AvisARelire } from "@sos-miam/commun/types/avis";
+import { EtoilesAvis } from "~/composants/avis/EtoilesAvis";
 import { Bouton } from "~/composants/interface/Bouton";
+import { ecrirePreuveAvis } from "~/fonctions/avis/ecrire-preuve-avis";
+import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = { avis: AvisARelire; desactive: boolean; onOk: () => void; onLouche: () => void; onPasser: () => void };
@@ -14,16 +16,13 @@ type Props = { avis: AvisARelire; desactive: boolean; onOk: () => void; onLouche
  * te le propose. Ton verdict est consultatif : l'équipe tranche.
  */
 export function CarteAvisARelire({ avis: a, desactive, onOk, onLouche, onPasser }: Props) {
-  const etoiles = "★".repeat(a.note) + "☆".repeat(5 - a.note);
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
       <Text className="font-texte-gras text-base text-encre">{`${a.lieu.emoji} ${a.lieu.nom} · ${a.lieu.ville}`}</Text>
-      <Text accessibilityLabel={`Note : ${a.note} sur 5`} className="font-titre text-xl text-encre">
-        {etoiles}
-      </Text>
+      <EtoilesAvis note={a.note} taille={22} />
       <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(a.texte)}</Text>
       {a.photo ? <Image source={{ uri: a.photo }} accessibilityLabel="Photo de l'avis" style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 12 }} contentFit="cover" /> : null}
-      <Text className="font-texte text-sm text-gris">{`${a.preuve ? `Visite vérifiée (${LIBELLES_MODE_VALIDATION[a.preuve].toLowerCase()})` : "Avis non vérifié"} · ${a.mois}`}</Text>
+      <Text className="font-texte text-sm text-gris">{`${ecrirePreuveAvis({ verifie: a.preuve !== null, preuve: a.preuve })} · ${ecrireMoisAnnee(a.mois)}`}</Text>
       <Text className="font-texte text-sm italic text-gris">{lierPonctuation(LIBELLES_RAISON_RELECTURE[a.raison])}</Text>
       <View className="gap-2">
         <Bouton libelle="Ça me va" petit desactive={desactive} onPress={onOk} />

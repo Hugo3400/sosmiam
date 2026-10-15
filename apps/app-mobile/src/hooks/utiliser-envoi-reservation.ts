@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
+import type { DetailsErreur, ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { DemandeReservation, Reservation } from "@sos-miam/commun/types/reservation";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -9,7 +9,7 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export type RefusReservation = { erreur: ErreurService; details?: DetailsErreur; numero: number };
 
-const HORS_LIGNE = { ok: false as const, erreur: "hors-ligne" as const };
+const HORS_LIGNE: Extract<ReponseApi, { ok: false }> = { ok: false, erreur: "hors-ligne" };
 
 export function utiliserEnvoiReservation() {
   const services = utiliserServices();
@@ -27,16 +27,20 @@ export function utiliserEnvoiReservation() {
 
   const lancer = useCallback(
     async (geste: () => Promise<{ ok: true; reservation: Reservation } | { ok: false; erreur: ErreurService; details?: DetailsErreur }>) => {
-      if (occupe.current) return;
+      if (occupe.current) return false;
       occupe.current = true;
       setEnvoi(true);
       setRefus(null);
       try {
         const reponse = await geste().catch(() => HORS_LIGNE);
-        if (!reponse.ok) return refuser(reponse.erreur, reponse.details);
+        if (!reponse.ok) {
+          refuser(reponse.erreur, reponse.details);
+          return false;
+        }
         vibrerLegerement();
         setEnvoyee(reponse.reservation);
         void rafraichir();
+        return true;
       } finally {
         occupe.current = false;
         setEnvoi(false);
@@ -48,7 +52,7 @@ export function utiliserEnvoiReservation() {
   const envoyer = useCallback((demande: DemandeReservation) => lancer(() => services.reservations.reserver(demande)), [lancer, services]);
 
   const annuler = useCallback(() => {
-    if (!envoyee) return Promise.resolve();
+    if (!envoyee) return Promise.resolve(false);
     return lancer(() => services.reservations.annulerReservation(envoyee.id));
   }, [lancer, services, envoyee]);
 

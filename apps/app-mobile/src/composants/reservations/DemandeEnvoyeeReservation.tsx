@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
 import type { Reservation } from "@sos-miam/commun/types/reservation";
@@ -13,14 +13,36 @@ type Props = {
   reservation: Reservation;
   maintenantMs: number;
   client: { prenom: string; avatar: string };
+  refus: ReactNode;
   onAnnuler: (reservation: Reservation) => void;
   onVoirReservations: () => void;
   onRetourFiche: () => void;
   onAutreCreneau: () => void;
 };
 
-export function DemandeEnvoyeeReservation({ reservation, maintenantMs, client, onAnnuler, onVoirReservations, onRetourFiche, onAutreCreneau }: Props) {
+function dessinerEtapes() {
+  return (
+    <View className="gap-3">
+      <TitreEtapeReservation titre={TEXTES_DEMANDE_ENVOYEE.etapesTitre} />
+      {TEXTES_DEMANDE_ENVOYEE.etapes.map((etape) => (
+        <View key={etape.emoji} className="flex-row items-start gap-3">
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair"
+          >
+            <Text className="text-base">{etape.emoji}</Text>
+          </View>
+          <Text className="flex-1 pt-2 font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(etape.texte)}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function DemandeEnvoyeeReservation({ reservation, maintenantMs, client, refus, onAnnuler, onVoirReservations, onRetourFiche, onAutreCreneau }: Props) {
   const enAttente = reservation.statut === "demandee";
+  const tientToujours = enAttente || reservation.statut === "acceptee" || reservation.statut === "honoree";
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(TEXTES_DEMANDE_ENVOYEE.annonce);
@@ -28,41 +50,28 @@ export function DemandeEnvoyeeReservation({ reservation, maintenantMs, client, o
 
   return (
     <View className="gap-6">
-      {enAttente ? (
+      {tientToujours ? (
         <View className="items-center">
           <Mascotte expression="clin" taille={120} flotte />
         </View>
       ) : null}
 
+      {refus}
+
       <CarteReservation
         reservation={reservation}
         maintenantMs={maintenantMs}
         client={client}
+        avecVoirLieu={false}
         onAnnuler={onAnnuler}
-        onSignalerPresence={() => {}}
+        onSignalerPresence={onVoirReservations}
         onOuvrirLieu={onRetourFiche}
       />
 
-      {enAttente ? (
-        <View className="gap-3">
-          <TitreEtapeReservation titre={TEXTES_DEMANDE_ENVOYEE.etapesTitre} />
-          {TEXTES_DEMANDE_ENVOYEE.etapes.map((etape) => (
-            <View key={etape.emoji} className="flex-row items-start gap-3">
-              <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-                className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair"
-              >
-                <Text className="text-base">{etape.emoji}</Text>
-              </View>
-              <Text className="flex-1 pt-2 font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(etape.texte)}</Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
+      {enAttente ? dessinerEtapes() : null}
 
       <View className="gap-3">
-        {enAttente ? (
+        {tientToujours ? (
           <Bouton libelle={TEXTES_DEMANDE_ENVOYEE.voirReservations} onPress={onVoirReservations} />
         ) : (
           <Bouton libelle={TEXTES_DEMANDE_ENVOYEE.autreCreneau} onPress={onAutreCreneau} />

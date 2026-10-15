@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { AccessibilityInfo } from "react-native";
 
-import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
+import type { DetailsErreur, ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
@@ -14,7 +14,7 @@ export type EchecGesteReservation = { erreur: ErreurService; details?: DetailsEr
 
 export type PresenceEnCours = { reservationId: number; texte: string };
 
-const HORS_LIGNE = { ok: false as const, erreur: "hors-ligne" as const };
+const HORS_LIGNE: Extract<ReponseApi, { ok: false }> = { ok: false, erreur: "hors-ligne" };
 const A_RELIRE: readonly ErreurService[] = ["transition-interdite", "delai-depasse", "introuvable", "hors-fenetre-presence"];
 
 export function utiliserGestesReservation(o: { remplacer: (reservation: Reservation) => void; actualiser: () => Promise<void> }) {

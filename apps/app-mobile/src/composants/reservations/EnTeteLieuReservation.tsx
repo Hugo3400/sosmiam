@@ -9,7 +9,7 @@ type Props = {
 export function EnTeteLieuReservation({ lieu }: Props) {
   const ou = [lieu.quartier, lieu.ville].filter(Boolean).join(" · ");
   return (
-    <View accessible accessibilityLabel={`${lieu.nom}, ${ou}`} className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white px-4 py-3">
+    <View accessible accessibilityLabel={ou ? `${lieu.nom}, ${ou}` : lieu.nom} className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white px-4 py-3">
       <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
         <Text allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }}>
           {lieu.emoji}

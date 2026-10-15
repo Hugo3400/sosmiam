@@ -8,6 +8,7 @@ export const TEXTES_MES_RESERVATIONS = {
   chargement: "On rassemble tes réservations…",
   reessayer: "Réessayer",
   indiceReessayer: "Relit tes réservations",
+  lectureHorsLigne: "Tes réservations t'attendent bien au chaud : elles arrivent dès que le réseau revient.",
   positionEnCours: "On regarde où tu es…",
   envoiPresence: "On prévient le lieu…",
   presenceNotee: "C'est noté, tu es sur place. Donne ton code à l'équipe.",
@@ -24,6 +25,7 @@ export const ENTREE_MES_RESERVATIONS = {
   titre: "Mes réservations",
   indice: "Ouvre tes réservations",
   vide: "Pas encore de table en vue : réserve depuis la fiche d'une pépite",
+  rienDePrevu: "Rien de prévu pour l'instant : une pépite te tente ?",
 } as const;
 
 export const SECTION_RESERVATIONS_SCAN = {

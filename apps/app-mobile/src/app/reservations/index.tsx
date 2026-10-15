@@ -91,7 +91,7 @@ export default function EcranMesReservations() {
     if (lecture.etat === "erreur") {
       const message = MESSAGES_SERVICE[lecture.erreur];
       const action = { libelle: TEXTES_MES_RESERVATIONS.reessayer, indice: TEXTES_MES_RESERVATIONS.indiceReessayer, onPress: () => void actualiser() };
-      return <CarteMessageReservations emoji={message.emoji} titre={message.titre} texte={TEXTES_ECHEC_GESTE_RESERVATION[lecture.erreur] ?? message.texte} action={action} />;
+      return <CarteMessageReservations emoji={message.emoji} titre={message.titre} texte={lecture.erreur === "hors-ligne" ? TEXTES_MES_RESERVATIONS.lectureHorsLigne : message.texte} action={action} />;
     }
     if (lecture.reservations.length === 0) return <EtatVideReservations onExplorer={() => router.navigate("/explorer")} />;
     const { aVenir, passees } = rangerReservations(lecture.reservations, maintenantMs);

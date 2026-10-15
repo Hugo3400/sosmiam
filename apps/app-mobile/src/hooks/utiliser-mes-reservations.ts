@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { utiliserServices } from "~/hooks/utiliser-services";
@@ -7,7 +8,7 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export type LectureMesReservations = { etat: "attente" } | { etat: "lu"; reservations: Reservation[] } | { etat: "erreur"; erreur: ErreurService };
 
-const HORS_LIGNE = { ok: false as const, erreur: "hors-ligne" as const };
+const HORS_LIGNE: Extract<ReponseApi, { ok: false }> = { ok: false, erreur: "hors-ligne" };
 
 export function utiliserMesReservations(): {
   lecture: LectureMesReservations;
