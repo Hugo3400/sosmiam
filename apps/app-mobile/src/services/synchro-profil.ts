@@ -33,7 +33,6 @@ import {
   memoireVide,
   oublierMarques,
   rienAChanger,
-  type Memoire,
   type VueSynchro,
 } from "~/services/synchro-profil-memoire";
 import { creerSynchroProfil, effacerSynchroProfil, enregistrerSynchroProfil, lireSynchroProfil, type ChampSynchro } from "~/stockage/synchro-profil";
@@ -153,12 +152,17 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
         const r = await o.moderation.listerDecisions().catch(() => null);
         decision = r?.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
       }
-      if (gen !== generation || m !== memoire) return;
       const { annonce, misDeCote } = expliquerPseudoServeur(ancien, nouveau, decision, premiere, RESERVATION_MS);
       if (!annonce && !misDeCote) return;
-      if (misDeCote) m.etat.pseudoMisDeCote = misDeCote;
-      if (annonce) m.etat.annonce = annonce;
-      garder();
+      // Dans le verrou : après l'écriture du profil reçu (la fusion lancée juste après cette lecture)
+      await sousVerrou(async () => {
+        if (gen !== generation || m !== memoire) return;
+        if (misDeCote) m.etat.pseudoMisDeCote = misDeCote;
+        if (annonce) m.etat.annonce = annonce;
+        garder();
+        // Le pseudo du téléphone a pu rester un autre (changé pendant la lecture) : une annonce qui ne colle pas s'en va
+        suivrePseudo();
+      });
     })();
   }
 
