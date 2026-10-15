@@ -11,6 +11,7 @@ import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion
 import { creerControleursPresse } from "../controleurs/gestion/controleurs-presse.ts";
 import { creerControleursEvenementsGestion } from "../controleurs/gestion/controleurs-evenements-gestion.ts";
 import { creerControleursReservationsGestion } from "../controleurs/gestion/controleurs-reservations-gestion.ts";
+import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-avis-gestion.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { ModerationSociale } from "../services/gestion/cibles-moderation.ts";
@@ -70,6 +71,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const presse = creerControleursPresse(services);
   const evenements = creerControleursEvenementsGestion(services);
   const reservations = creerControleursReservationsGestion(services);
+  const avis = creerControleursAvisGestion(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale);
@@ -175,6 +177,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/evenements", evenements.liste);
   routes.post("/evenements/:id/suspension", evenements.suspendre);
   routes.get("/reservations", reservations.bilan);
+  routes.get("/avis/a-relire", avis.aRelire);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

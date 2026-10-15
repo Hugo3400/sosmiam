@@ -1,0 +1,31 @@
+// Limitation d'un compte (décision de Hugo du 15 octobre 2026, CGU « Modération ») : décidée par l'équipe dans le logiciel
+// de gestion, avec le motif et le pourquoi écrit pour la personne, qui est prévenue (cloche et mail) et peut contester une
+// fois pendant la limitation ; une autre personne de l'équipe réexamine. Un compte limité ne fait plus rien qui se voie des
+// autres, mais il lit, valide ses visites, exporte ses données, conteste et peut supprimer son compte. Effacée 1 an après
+// sa fin ou sa levée (tâche de nuit). Service : apps/api/src/services/limitations-comptes.ts.
+
+/// Une limitation de compte. Aucune donnée sur la personne de l'équipe qui décide : le journal du logiciel suffit.
+model LimitationCompte {
+  id           Int       @id @default(autoincrement())
+  compteId     Int       @map("compte_id")
+  compte       Compte    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  /// Un code de MOTIFS_MODERATION (packages/commun/src/contenus/motifs-moderation.ts)
+  motif        String    @db.VarChar(12)
+  /// Le pourquoi, écrit pour la personne (10 à 1 000 caractères) : montré dans l'app, sur le site et dans le mail
+  motivation   String    @db.VarChar(1000)
+  debut        DateTime  @default(now()) @db.Timestamptz(0)
+  /// Fin prévue ; null : jusqu'à nouvel ordre
+  fin          DateTime? @db.Timestamptz(0)
+  /// Levée par l'équipe avant la fin prévue (null : pas levée)
+  leveeLe      DateTime? @map("levee_le") @db.Timestamptz(0)
+  /// La contestation de la personne (10 à 1 000 caractères), une seule fois, pendant la limitation
+  contestation String?   @db.VarChar(1000)
+  contesteLe   DateTime? @map("conteste_le") @db.Timestamptz(0)
+  /// Réexamen de la contestation par une autre personne de l'équipe (null : pas encore)
+  reexamineLe  DateTime? @map("reexamine_le") @db.Timestamptz(0)
+  creeLe       DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@index([compteId, leveeLe])
+  @@index([fin])
+  @@map("limitations_comptes")
+}

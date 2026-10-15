@@ -135,6 +135,8 @@ model Compte {
   demandesConnexionQr        DemandeConnexionQr[]
   /// Anciens pseudos de ce compte, réservés 30 jours après un changement (pseudos-reserves.prisma)
   pseudosReserves            PseudoReserve[]
+  /// Limitations décidées par l'équipe (limitations-comptes.prisma)
+  limitations                LimitationCompte[]
   @@index([derniereConnexion])
   @@map("comptes")
 }
