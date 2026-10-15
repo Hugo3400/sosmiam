@@ -3,42 +3,60 @@ import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
+import { decouperEnPaquets } from "~/fonctions/lieux/decouper-en-paquets.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
+import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { modifierLieuxEnLot, supprimerLieuxEnLot, type ModificationLot, type ResumeLieu } from "~/services/lieux.ts";
 import { ModaleModifierLieux } from "./ModaleModifierLieux.tsx";
 
 type Props = { choisis: ResumeLieu[]; onVider: () => void; onFait: (message: string) => void };
 
+/** L'API prend au plus 500 lieux par envoi ; une suppression efface aussi des fichiers, d'où des paquets plus petits */
+const PAQUET_MODIFICATION = 500;
+const PAQUET_SUPPRESSION = 100;
+
 /** Barre collée en bas de l'écran quand des lieux sont sélectionnés : changer leur statut, les modifier, les supprimer. */
 export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
   const [fenetre, setFenetre] = useState<"modifier" | "supprimer" | null>(null);
   const [enCours, setEnCours] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [avancement, setAvancement] = useState<{ faits: number; total: number } | null>(null);
   const ids = choisis.map((lieu) => lieu.id);
   const nombre = choisis.length;
-  const lieux = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
+  const lieux = `${formaterNombre(nombre)} lieu${nombre > 1 ? "x" : ""}`;
   const publications = choisis.reduce((total, lieu) => total + lieu._count.publications, 0);
 
-  async function agir(nom: string, action: () => Promise<{ nombre: number }>, message: (n: number) => string) {
+  /** Envoie la sélection par paquets, l'un après l'autre ; s'arrête au premier refus en disant ce qui est déjà fait */
+  async function agir(nom: string, taille: number, action: (paquet: number[]) => Promise<{ nombre: number }>, message: (n: number) => string) {
     setEnCours(nom);
     setErreur(null);
+    let faits = 0;
+    let envoyes = 0;
     try {
-      const { nombre: faits } = await action();
+      for (const paquet of decouperEnPaquets(ids, taille)) {
+        if (ids.length > taille) setAvancement({ faits: envoyes, total: ids.length });
+        faits += (await action(paquet)).nombre;
+        envoyes += paquet.length;
+      }
       setFenetre(null);
       onFait(message(faits));
     } catch (probleme) {
-      setErreur(expliquerErreur(probleme instanceof ErreurApi ? probleme : null));
+      const raison = expliquerErreur(probleme instanceof ErreurApi ? probleme : null);
+      setErreur(envoyes > 0 ? `${formaterNombre(envoyes)} lieux traités sur ${formaterNombre(ids.length)}, puis : ${raison}` : raison);
     } finally {
       setEnCours(null);
+      setAvancement(null);
     }
   }
+  const pluriel = (n: number) => `${formaterNombre(n)} lieu${n > 1 ? "x" : ""}`;
   const changerStatut = (statut: NonNullable<ModificationLot["statut"]>, libelle: string) =>
-    agir(statut, () => modifierLieuxEnLot(ids, { statut }), (n) => `${n} lieu${n > 1 ? "x" : ""} ${libelle} ✅`);
+    agir(statut, PAQUET_MODIFICATION, (paquet) => modifierLieuxEnLot(paquet, { statut }), (n) => `${pluriel(n)} ${libelle} ✅`);
 
   return (
     <div className="sticky bottom-4 z-20 mt-6 flex flex-wrap items-center gap-2 rounded-full border-2 border-encre bg-nuit py-2 pr-2 pl-5 text-white shadow-brut">
       <p className="mr-auto font-semibold">{lieux} sélectionné{nombre > 1 ? "s" : ""}</p>
+      {avancement && <p role="status" className="chiffres text-sm text-white/80">{formaterNombre(avancement.faits)} / {formaterNombre(avancement.total)}…</p>}
       {erreur && <p role="alert" className="text-sm font-semibold text-tomate">{erreur}</p>}
       <Bouton petit icone={Globe} chargement={enCours === "publie"} onClick={() => changerStatut("publie", "en ligne")}>Mettre en ligne</Bouton>
       <Bouton petit icone={FilePen} chargement={enCours === "brouillon"} onClick={() => changerStatut("brouillon", "passés en brouillon")}>Brouillon</Bouton>
@@ -53,7 +71,7 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
         <ModaleModifierLieux
           nombre={nombre}
           onFermer={() => setFenetre(null)}
-          onValider={(modification) => agir("modifier", () => modifierLieuxEnLot(ids, modification), (n) => `${n} lieu${n > 1 ? "x" : ""} modifié${n > 1 ? "s" : ""} ✅`)}
+          onValider={(modification) => agir("modifier", PAQUET_MODIFICATION, (paquet) => modifierLieuxEnLot(paquet, modification), (n) => `${pluriel(n)} modifié${n > 1 ? "s" : ""} ✅`)}
         />
       )}
       <Modale
@@ -67,7 +85,7 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
               variante="danger"
               icone={Trash2}
               chargement={enCours === "supprimer"}
-              onClick={() => agir("supprimer", () => supprimerLieuxEnLot(ids), (n) => `${n} lieu${n > 1 ? "x" : ""} supprimé${n > 1 ? "s" : ""}`)}
+              onClick={() => agir("supprimer", PAQUET_SUPPRESSION, (paquet) => supprimerLieuxEnLot(paquet), (n) => `${pluriel(n)} supprimé${n > 1 ? "s" : ""}`)}
             >
               Supprimer pour de bon
             </Bouton>

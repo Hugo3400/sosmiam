@@ -73,3 +73,12 @@ test("pastilles du menu : 1 à 9 tels quels, « +9 » au-delà", async () => {
   const { formaterNombrePastille } = await import("../src/fonctions/alertes/formater-nombre-pastille.ts");
   assert.deepEqual([1, 9, 10, 250].map(formaterNombrePastille), ["1", "9", "+9", "+9"]);
 });
+
+test("paquets : 500 lieux au plus par envoi, dans l'ordre, rien de perdu", async () => {
+  const { decouperEnPaquets } = await import("../src/fonctions/lieux/decouper-en-paquets.ts");
+  const ids = Array.from({ length: 2791 }, (_, i) => i + 1);
+  const paquets = decouperEnPaquets(ids, 500);
+  assert.deepEqual(paquets.map((p) => p.length), [500, 500, 500, 500, 500, 291]);
+  assert.deepEqual(paquets.flat(), ids);
+  assert.deepEqual(decouperEnPaquets([], 500), []);
+});
