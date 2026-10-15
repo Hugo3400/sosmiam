@@ -89,6 +89,7 @@ function oublierMarques(memoire: Memoire, champs: Iterable<ChampSynchro>, depart
 }
 
 const champsDe = (c: ChangementsInfos): ChampSynchro[] => (["prenom", "pseudo", "nom", "ville"] as const).filter((champ) => c[champ] !== undefined);
+const rienAChanger = (c: ChangementsInfos) => champsDe(c).length === 0;
 
 /** Le profil avec les changements de Mes infos (nom "" : plus de nom) */
 function appliquerChangements(local: Profil, c: ChangementsInfos): Profil {
@@ -400,7 +401,7 @@ function creerMoteur(o: Outils) {
       garder(false);
     },
     modifierInfos(changements: ChangementsInfos): Promise<ResultatInfos> {
-      if (demandes(changements)) return Promise.resolve({ ok: true, parti: true });
+      if (rienAChanger(changements)) return Promise.resolve({ ok: true, parti: true });
       if (DEMO_VISITES_ACTIVE) return ecrireSurTelephone(changements, false).then(() => ({ ok: true, parti: false }));
       if (!actif || !memoire.pret) {
         // Tout début du lancement (session ou état pas encore relus) : le pseudo attend le réseau, le reste attend ici
@@ -440,11 +441,6 @@ function creerMoteur(o: Outils) {
       }
     },
   };
-
-  /** Rien à changer */
-  function demandes(c: ChangementsInfos) {
-    return champsDe(c).length === 0;
-  }
 }
 
 type Options = {
