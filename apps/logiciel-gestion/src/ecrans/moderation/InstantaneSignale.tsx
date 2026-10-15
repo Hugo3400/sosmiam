@@ -13,6 +13,7 @@ const texte = (v: unknown) => (typeof v === "string" ? v : "");
 const nomAvatar = (v: unknown) => {
   const miami = lireAvatarMiami(v);
   if (miami) return miami.reserve ? `avatar ${miami.nom}` : `avatar Miami ${miami.nom}`;
+  if (texte(v).startsWith("photo:")) return "photo de profil (ci-contre)";
   return texte(v).startsWith("miami:") ? "avatar Miami" : texte(v);
 };
 

@@ -18,8 +18,8 @@ export const typesNotifications: ChoixTypeNotification[] = [
   {
     type: "offre",
     emoji: "🎁",
-    titre: "Offres et happy hours",
-    detail: "En l'allumant, tu acceptes de recevoir des notifications promotionnelles des lieux\u00a0: bons plans et happy hours. Tu l'éteins quand tu veux.",
+    titre: "Offres et bons plans",
+    detail: "En l'allumant, tu acceptes de recevoir des notifications promotionnelles des lieux\u00a0: offres et bons plans. Tu l'éteins quand tu veux.",
     groupe: "lieux",
   },
   { type: "evenement", emoji: "🎉", titre: "Événements", detail: "Concert, quiz, soirée à thème\u00a0: de quoi bouger", groupe: "lieux" },

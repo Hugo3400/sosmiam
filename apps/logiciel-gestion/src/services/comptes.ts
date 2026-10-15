@@ -34,6 +34,7 @@ export type ListeComptes = {
 export type FicheCompte = Omit<ResumeCompte, "_count" | "ambassadeur" | "surApp"> & {
   cguVersion: string;
   prive?: boolean | null;
+  aUnePhoto?: boolean;
   /** Une date de naissance est enregistrée (chiffrée) : « Afficher » la montre, avec une ligne au journal */
   dateNaissanceRenseignee?: boolean;
   modifieLe: string;

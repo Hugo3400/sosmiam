@@ -104,6 +104,11 @@ export function creerPhotosProfil({ stockage, depot, preuves, horloge = Date.now
       return debut.getTime() <= signalement.creeLe.getTime() ? stockage.lire(photo) : null;
     },
 
+    async lirePourEquipe(compteId: number): Promise<Buffer | null> {
+      const photo = await depot.lirePhoto(compteId);
+      return photo ? stockage.lire(photo) : null;
+    },
+
     async menager(quand = maintenant()): Promise<number> {
       const limite = quand.getTime() - DELAI_ORPHELIN_PHOTO_PROFIL_MS;
       let effacees = 0;
@@ -133,4 +138,8 @@ export async function retirerPhotoProfil(compteId: number, raison: RaisonRetrait
 
 export async function lirePhotoProfilSignalee(signalementId: number): Promise<Buffer | null> {
   return photosBranchees ? photosBranchees.lirePhotoDuSignalement(signalementId) : null;
+}
+
+export async function lirePhotoProfilPourEquipe(compteId: number): Promise<Buffer | null> {
+  return photosBranchees ? photosBranchees.lirePourEquipe(compteId) : null;
 }

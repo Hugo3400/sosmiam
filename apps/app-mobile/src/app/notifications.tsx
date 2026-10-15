@@ -134,7 +134,7 @@ export default function Notifications() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <StatusBar style="dark" />
-      <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
+      <View className="min-h-14 flex-row items-center justify-between gap-3 px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
@@ -144,15 +144,13 @@ export default function Notifications() {
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
+        <BoutonEffacerLues nombre={pretAAfficher ? nombreLues : 0} onEffacer={lancerEffacementLues} onRefermee={annoncerEffacementLues} />
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
-        <View className="flex-row flex-wrap items-center justify-between gap-3">
-          <Text ref={titreEcran} accessibilityRole="header" className="font-titre text-3xl text-encre">
-            Notifications
-          </Text>
-          <BoutonEffacerLues nombre={pretAAfficher ? nombreLues : 0} onEffacer={lancerEffacementLues} onRefermee={annoncerEffacementLues} />
-        </View>
+        <Text ref={titreEcran} accessibilityRole="header" className="font-titre text-3xl text-encre">
+          Notifications
+        </Text>
 
         {source === "demo" ? (
           <View accessible className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">

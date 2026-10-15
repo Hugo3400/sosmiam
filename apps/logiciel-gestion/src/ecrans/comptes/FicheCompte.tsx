@@ -60,7 +60,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
             <dt className="text-gris">Adresse</dt><dd className="truncate">{compte.email} · <PastilleEmailVerifie le={compte.emailVerifieLe} /></dd>
             <dt className="text-gris">Se connecte avec</dt><dd><PastillesConnexion connexions={compte.connexions} /></dd>
-            {compte.pseudo && <><dt className="text-gris">Pseudo</dt><dd>@{compte.pseudo}{compte.prive ? " · profil privé" : ""}</dd></>}
+            {compte.pseudo && <><dt className="text-gris">Pseudo</dt><dd>@{compte.pseudo}{compte.prive ? " · profil privé" : ""}{compte.aUnePhoto ? " · photo de profil" : ""}</dd></>}
             {compte.ville && <><dt className="text-gris">Ville</dt><dd>{compte.ville}</dd></>}
             <DateNaissanceCompte compteId={compte.id} prenom={compte.prenom} renseignee={Boolean(compte.dateNaissanceRenseignee)} onChange={recharger} />
             <dt className="text-gris">Créé</dt><dd>{formaterDate(compte.creeLe)}</dd>

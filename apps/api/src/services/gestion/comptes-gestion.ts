@@ -75,6 +75,7 @@ export async function lireCompteGestion(id: number) {
       where: { id },
       select: {
         id: true, prenom: true, pseudo: true, ville: true, prive: true, email: true, emailVerifieLe: true, points: true, palier: true, cguVersion: true, creeLe: true, modifieLe: true, derniereConnexion: true,
+        photoProfil: true,
         // Jamais le nom ni la date de naissance (chiffrés) : seulement « renseignés ou non », pour le bouton « Afficher »
         dateNaissanceChiffree: true,
         // Lus pour dire « mail, Google, Apple », jamais rendus tels quels
@@ -88,9 +89,10 @@ export async function lireCompteGestion(id: number) {
     baseDeDonnees.sessionCompte.groupBy({ by: ["support"], where: { compteId: id }, _count: { _all: true }, _max: { activite: true } }),
   ]);
   if (!compte) return null;
-  const { dateNaissanceChiffree, motDePasse, googleSub, appleSub, ...visible } = compte;
+  const { dateNaissanceChiffree, motDePasse, googleSub, appleSub, photoProfil, ...visible } = compte;
   return {
     ...visible,
+    aUnePhoto: photoProfil !== null,
     connexions: { mail: !motDePasse.startsWith(PREFIXE_SANS_MOT_DE_PASSE), google: googleSub !== null, apple: appleSub !== null },
     dateNaissanceRenseignee: Boolean(dateNaissanceChiffree), sessions: sessions.map((s) => ({ support: s.support, nombre: s._count._all, derniereActivite: s._max.activite })) };
 }

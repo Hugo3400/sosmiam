@@ -10,6 +10,7 @@ import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import { SIGNALEMENT_OUVERT, supprimerMediasLibres } from "../effacer-conversations.ts";
 import type { NouvelleNotificationCloche } from "../effets-sociaux-regles.ts";
+import { lirePhotoProfilSignalee, retirerPhotoProfil } from "../photos-profil.ts";
 import { estReservePourUnAutre, reserverPseudoDans } from "../pseudos-reserves.ts";
 import type { StockageMediasChat } from "../stockage-medias-chat.ts";
 import { CIBLES_REMISES_PAR_DEFAUT, type ModerationSociale } from "./cibles-moderation.ts";
@@ -154,6 +155,14 @@ async function choisirPseudoNeutre(tx: Transaction, maintenant: Date) {
   throw new Error("Aucun pseudo neutre libre trouvé");
 }
 
+export async function retirerPhotoDuProfilRetenu(compteId: number) {
+  const resultat = await retirerPhotoProfil(compteId, "moderation").catch((erreur: unknown) => {
+    console.error(`Modération : photo du compte n° ${compteId} pas retirée :`, (erreur as Error).message);
+    return null;
+  });
+  if (resultat && !resultat.ok) console.error(`Modération : photo du compte n° ${compteId} pas retirée (${resultat.erreur})`);
+}
+
 /**
  * Après la décision : la cloche de l'auteur (« contenu-retire », avec le motif) et de chaque personne qui a signalé
  * (« signalement-decide », retenu ou rejeté), sur son propre signalement ; puis un fichier devenu libre. Jamais
@@ -184,6 +193,11 @@ export async function prevenirApresDecision(
 
 /** Le média d'un signalement encore ouvert (photo, note vocale), déchiffré ; null s'il n'y en a pas (ou plus) */
 export async function lireMediaSignale(id: number, social: ModerationSociale | undefined) {
+  const ouvert = await baseDeDonnees.signalement.findFirst({ where: { AND: [{ id }, SIGNALEMENT_OUVERT] }, select: { cible: true } });
+  if (ouvert?.cible === "profil") {
+    const photo = await lirePhotoProfilSignalee(id);
+    return photo ? { etat: "lu" as const, octets: photo, type: "image/jpeg" } : null;
+  }
   if (!social?.chiffrement) return { etat: "sans-cle" as const };
   const s = await baseDeDonnees.signalement.findFirst({ where: { AND: [{ id, fichierMedia: { not: null } }, SIGNALEMENT_OUVERT] }, select: { id: true, fichierMedia: true, instantaneChiffre: true } });
   if (!s?.fichierMedia) return null;

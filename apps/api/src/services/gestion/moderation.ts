@@ -2,9 +2,10 @@
 // « Signalements et modération »). Une décision vaut pour tous les signalements encore ouverts sur le même contenu :
 // on juge la publication, pas chaque signalement.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
-import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, type ModerationSociale } from "./moderation-sociale.ts";
+import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, retirerPhotoDuProfilRetenu, type ModerationSociale } from "./moderation-sociale.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import type { AvisGestion, ResultatRetablir } from "../avis-gestion.ts";
+import { PREFIXE_AVATAR_PHOTO } from "../../../../../packages/commun/src/regles/photo-profil.ts";
 import { CIBLES_AVIS } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
@@ -14,6 +15,9 @@ export const RAISONS_AVEC_MASQUAGE_IMMEDIAT = ["choquant"];
 
 /** Un autre poste a pris la décision pendant la nôtre : tout est annulé (rétablissement d'un avis compris) */
 class DejaDecide extends Error {}
+
+const avatarEnPhoto = (instantane: ReturnType<typeof lireInstantane> | undefined) =>
+  instantane?.etat === "lu" && typeof instantane.contenu.avatar === "string" && instantane.contenu.avatar.startsWith(PREFIXE_AVATAR_PHOTO);
 
 /** Contestée et pas encore réexaminée */
 const CONTESTES = { contesteLe: { not: null }, reexamineLe: null } as const;
@@ -64,7 +68,7 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     publication: signalement.cible === "publication" ? parId.get(signalement.cibleId) ?? null : null,
     avis: (CIBLES_AVIS as readonly string[]).includes(signalement.cible) ? avisParId.get(signalement.cibleId) ?? null : null,
     instantane: instantanes.get(signalement.id) ?? null,
-    avecMedia: fichierMedia !== null,
+    avecMedia: fichierMedia !== null || (signalement.cible === "profil" && avatarEnPhoto(instantanes.get(signalement.id))),
     signaleur: signalement.signaleParId ? signaleurs[signalement.signaleParId] ?? null : null,
   }));
   // Les signalements graves encore ouverts passent en tête de file
@@ -140,6 +144,7 @@ export async function deciderSignalement(
     // Hors de la transaction : la réévaluation des défis ouvre la sienne (elle attendrait le verrou du compte)
     await avis!.apresRetablir(retabli, maintenant);
   }
+  if (decision === "retenu" && signalement.cible === "profil" && signalement.auteurContenuId) await retirerPhotoDuProfilRetenu(signalement.auteurContenuId);
   await prevenirApresDecision(social, decides, decision, motif, fichier, maintenant);
   return rendu;
 }
