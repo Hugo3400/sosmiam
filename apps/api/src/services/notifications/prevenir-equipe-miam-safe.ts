@@ -2,19 +2,20 @@
 // même app fermée, en notification « urgente ». Le prénom et l'endroit seulement, jamais le nom ni la photo.
 // Pas de file d'attente ni d'anti-spam ici : chaque seconde compte (le nombre d'alertes est limité à l'envoi, par compte).
 // Seulement les téléphones encore connectés (session ouverte, comme prevenirCompte) : l'ancien téléphone d'un serveur
-// qui s'est déconnecté ne reçoit plus les alertes du lieu.
+// qui s'est déconnecté ne reçoit plus les alertes du lieu. Jamais l'auteur de l'alerte : une serveuse qui demande de l'aide
+// en silence dans son propre lieu ne fait pas sonner son téléphone.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { ecrireTexteAlerte } from "../../fonctions/miam-safe/ecrire-texte-alerte.ts";
 import { expedierPush, type ExpedierPush } from "./expedier-push.ts";
 import type { TableAppareilsPush } from "./prevenir-compte.ts";
 
 export async function prevenirEquipeMiamSafe(
-  alerte: { lieuId: number; prenom: string; endroit: string; detail: string },
+  alerte: { lieuId: number; compteId: number; prenom: string; endroit: string; detail: string },
   envoyer: ExpedierPush = expedierPush,
   appareilsPush: TableAppareilsPush = baseDeDonnees.appareilPush,
 ): Promise<void> {
   const appareils = await appareilsPush.findMany({
-    where: { actif: true, sessionId: { not: null }, compte: { rattachementsLieux: { some: { lieuId: alerte.lieuId, statut: "valide" } } } },
+    where: { actif: true, sessionId: { not: null }, compteId: { not: alerte.compteId }, compte: { rattachementsLieux: { some: { lieuId: alerte.lieuId, statut: "valide" } } } },
     select: { id: true, jeton: true, plateforme: true },
   });
   const message = { titre: `🛡 ${alerte.prenom} a besoin d'aide`, texte: ecrireTexteAlerte(alerte.endroit, alerte.detail), lien: "/pro/comptoir", urgent: true };

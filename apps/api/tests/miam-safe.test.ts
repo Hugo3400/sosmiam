@@ -145,30 +145,35 @@ test("Miam Safe : le texte de la notification dit où, jamais qui en entier", ()
   assert.equal(ecrireTexteAlerte("salle", ""), "En salle. Va la voir discrètement.");
 });
 
-test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de l'équipe", async () => {
+test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de l'équipe, jamais sur ceux de son auteur", async () => {
   // Le service se branche sur la base au chargement, sans s'y connecter : la table des téléphones est un double
   process.env.DATABASE_URL ??= "postgresql://essai@127.0.0.1:1/essai";
   const { prevenirEquipeMiamSafe } = await import("../src/services/notifications/prevenir-equipe-miam-safe.ts");
   const telephones = [
-    { id: 1, jeton: "serveur-connecte", plateforme: "ios", sessionId: 31 as number | null },
-    { id: 2, jeton: "ancien-telephone-deconnecte", plateforme: "android", sessionId: null },
+    { id: 1, jeton: "serveur-connecte", plateforme: "ios", compteId: 7, sessionId: 31 as number | null },
+    { id: 2, jeton: "ancien-telephone-deconnecte", plateforme: "android", compteId: 7, sessionId: null },
+    // La serveuse qui lance l'alerte depuis son propre lieu : son téléphone ne sonne pas
+    { id: 3, jeton: "telephone-de-l-autrice", plateforme: "ios", compteId: 9, sessionId: 40 },
   ];
   const filtres: unknown[] = [];
   const table = {
-    findMany: async ({ where }: { where: { sessionId?: { not: null } } }) => {
+    findMany: async ({ where }: { where: { sessionId?: { not: null }; compteId?: { not: number } } }) => {
       filtres.push(where);
-      return telephones.filter((t) => where.sessionId === undefined || t.sessionId !== null).map(({ id, jeton, plateforme }) => ({ id, jeton, plateforme }));
+      return telephones
+        .filter((t) => (where.sessionId === undefined || t.sessionId !== null) && (where.compteId === undefined || t.compteId !== where.compteId.not))
+        .map(({ id, jeton, plateforme }) => ({ id, jeton, plateforme }));
     },
     update: async () => {},
   };
   const recus: string[] = [];
   await prevenirEquipeMiamSafe(
-    { lieuId: 18, prenom: "Léa", endroit: "salle", detail: "" },
+    { lieuId: 18, compteId: 9, prenom: "Léa", endroit: "salle", detail: "" },
     async (appareil) => { recus.push(appareil.jeton); return "envoyee"; },
     table as never,
   );
   assert.deepEqual(recus, ["serveur-connecte"]);
   assert.deepEqual((filtres[0] as { sessionId: unknown }).sessionId, { not: null });
+  assert.deepEqual((filtres[0] as { compteId: unknown }).compteId, { not: 9 });
 });
 
 test("Miam Safe : une notification urgente passe par le canal Android « miam-safe », les autres non", async () => {
