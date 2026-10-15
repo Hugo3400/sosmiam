@@ -19,6 +19,10 @@ import { creerVisitesGestion } from "../src/services/visites-gestion.ts";
 import { creerBancGestion } from "./outils/creer-banc-gestion.ts";
 import { LIEU_TEST } from "./outils/creer-banc-visites.ts";
 
+/** Android 7 (sans canaux) : son, vibration et priorité posés par le message, sauf pour la suite muette d'une rafale */
+const SONNE_ANDROID_7 = { default_sound: true, default_vibrate_timings: true, notification_priority: "PRIORITY_HIGH" };
+const URGENT_ANDROID_7 = { ...SONNE_ANDROID_7, notification_priority: "PRIORITY_MAX" };
+
 test("anti-spam : 1 par jour, 4 par semaine", () => {
   const maintenant = new Date("2026-10-08T20:00:00Z");
   const ilYA = (heures: number) => new Date(maintenant.getTime() - heures * 3_600_000);
@@ -49,7 +53,7 @@ test("regroupement et son (messagerie, lot L4) : une notification par conversati
   assert.deepEqual(apple.entetes, {});
   assert.deepEqual(JSON.parse(apple.corps), { aps: { alert: { title: simple.titre, body: simple.texte }, sound: "default" }, lien: "/explorer" });
   // Android : toujours un canal ; « notifications » pour ce qui n'est ni urgent, ni social
-  assert.deepEqual(construireCorpsGoogle("jeton-g", simple).message.android, { priority: "high", notification: { channel_id: "notifications" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", simple).message.android, { priority: "high", notification: { channel_id: "notifications", ...SONNE_ANDROID_7 } });
   assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, lien: null }).message.data, {}, "sans lien, data vide");
   const message = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3", regroupement: "conversation:3", sonore: false, social: true };
   const groupe = construireEnvoiApple(message);
@@ -64,9 +68,9 @@ test("regroupement et son (messagerie, lot L4) : une notification par conversati
     },
   });
   // Android : le message qui sonne part sur « messages », la suite d'une rafale sur le canal muet ; Miam Safe passe avant tout
-  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, sonore: true }).message.android, { priority: "high", notification: { tag: "conversation:3", channel_id: "messages" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, sonore: true }).message.android, { priority: "high", notification: { tag: "conversation:3", channel_id: "messages", ...SONNE_ANDROID_7 } });
   assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, sonore: false }).message.android, { priority: "high", notification: { channel_id: "messages-discrets" } });
-  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, urgent: true, sonore: false, social: true }).message.android, { priority: "high", notification: { channel_id: "miam-safe" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, urgent: true, sonore: false, social: true }).message.android, { priority: "high", notification: { channel_id: "miam-safe", ...URGENT_ANDROID_7 } });
   // Au-delà de 64 octets, Apple refuserait l'en-tête : pas de regroupement, la notification part quand même (ni tag chez Google)
   assert.deepEqual(construireEnvoiApple({ ...message, regroupement: "x".repeat(65) }).entetes, {});
   assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, regroupement: "x".repeat(65) }).message.data, { lien: "/potes/discussion/3" });
@@ -81,7 +85,7 @@ test("repère urgent : urgent: \"1\" à la racine du message APNs et dans data c
   assert.deepEqual(construireCorpsGoogle("jeton-g", alerte), {
     message: {
       token: "jeton-g", notification: { title: alerte.titre, body: alerte.texte }, data: { lien: "/pro/comptoir", urgent: "1" },
-      android: { priority: "high", notification: { channel_id: "miam-safe" } },
+      android: { priority: "high", notification: { channel_id: "miam-safe", ...URGENT_ANDROID_7 } },
     },
   });
   // Même lien, sans urgent (une future notification pro vers le comptoir) : aucun repère, canal « notifications »

@@ -78,7 +78,8 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
 
 /**
  * Le canal Android de l'app (creer-canaux-android.ts) : « miam-safe » (importance maximale), « messages-discrets » (la suite
- * d'une rafale, muette), « messages » (son, vibration et bannière) ou « notifications » (son, sans bannière)
+ * d'une rafale, muette), « messages » (son, vibration et bannière) ou « notifications » (son, vibration et bannière, comme
+ * les messages : choix de Hugo du 15 octobre 2026)
  */
 const lireCanalAndroid = (message: MessagePush) =>
   message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : message.social ? "messages" : "notifications";
@@ -86,11 +87,14 @@ const lireCanalAndroid = (message: MessagePush) =>
 /** Le corps d'une notification Google (FCM v1) pour ce téléphone */
 export function construireCorpsGoogle(jeton: string, message: MessagePush) {
   const regroupement = lireRegroupement(message);
+  const canal = lireCanalAndroid(message);
   return {
     message: {
       token: jeton,
       notification: { title: message.titre, body: message.texte },
-      // Aucune clé réservée par FCM (from, message_type, google.…, gcm.…) ; app ouverte, expo lit tag, l'app lit lien et urgent
+      // Aucune clé réservée par FCM (from, message_type, google.…, gcm.…) ; app ouverte, expo lit tag, l'app lit lien et urgent.
+      // Limite connue d'expo 57 : app ouverte, ses tâches sont rangées par identifiant (le tag, commun à toute une
+      // discussion) ; dans une rafale très serrée, une notification peut ne pas s'afficher (le volet garde la précédente)
       data: {
         ...(message.lien ? { lien: message.lien } : {}),
         ...(regroupement ? { tag: regroupement } : {}),
@@ -100,9 +104,15 @@ export function construireCorpsGoogle(jeton: string, message: MessagePush) {
       // un canal de repli « Miscellaneous » qui sonne (celui de Firebase app fermée, celui d'expo app ouverte) ; app fermée,
       // Firebase essaie d'abord le canal par défaut du manifeste, « notifications » (app.json). L'app crée ses canaux dès son
       // lancement, avant d'inscrire le téléphone : en pratique, ils existent
+      // Android 7 (pas de canaux) : sans ces clés, la notification arriverait sans son, sans vibration ni bannière ;
+      // Android 8 et plus les ignore (le canal décide). Rien pour la suite d'une rafale, qui reste muette
       android: {
         priority: "high",
-        notification: { ...(regroupement ? { tag: regroupement } : {}), channel_id: lireCanalAndroid(message) },
+        notification: {
+          ...(regroupement ? { tag: regroupement } : {}),
+          channel_id: canal,
+          ...(canal === "messages-discrets" ? {} : { default_sound: true, default_vibrate_timings: true, notification_priority: canal === "miam-safe" ? "PRIORITY_MAX" : "PRIORITY_HIGH" }),
+        },
       },
     },
   };
