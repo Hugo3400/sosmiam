@@ -97,9 +97,7 @@ export async function deciderSignalement(
   const prendre = (transaction: Prisma.TransactionClient) => transaction.signalement
     .updateMany({ where: reexamen ? { id, ...CONTESTES } : { id, statut: "a-traiter" }, data: { traiteLe: maintenant } })
     .then(({ count }) => { if (count === 0) throw new DejaDecide(); });
-  let resultat;
-  try {
-    resultat = await baseDeDonnees.$transaction(async (transaction) => {
+  const decider = async (transaction: Prisma.TransactionClient) => {
     let retabli: ResultatRetablir | null = null;
     const idAvis = Number(signalement.cibleId);
     if (avis && decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible) && Number.isSafeInteger(idAvis)) {
@@ -128,7 +126,10 @@ export async function deciderSignalement(
       },
     });
     return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier, retabli };
-    });
+  };
+  let resultat: Awaited<ReturnType<typeof decider>>;
+  try {
+    resultat = await baseDeDonnees.$transaction(decider);
   } catch (erreur) {
     if (erreur instanceof DejaDecide) return "deja-decide" as const;
     throw erreur;
