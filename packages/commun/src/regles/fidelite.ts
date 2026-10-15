@@ -44,7 +44,7 @@ export const EXPRESSIONS_SANS_ALCOOL: readonly string[] = [
   ...["a", "de", "depuis", "pour", "vers"].flatMap((avant) => HOMONYMES_ALCOOL.map((lieu) => `${avant} ${lieu}`)),
   "du beaujolais", "en beaujolais", "dans le beaujolais",
   "porto vecchio", "porto novo", "porto rico", "porto alegre", "porto santo", "fc porto",
-  "vanille bourbon", "vanilles bourbon", "vanille de bourbon", "bourbon vanille", "vanilla bourbon", "bourbon vanilla",
-  "ile bourbon", "ile de bourbon", "cafe bourbon", "bourbon pointu", "palais bourbon", "rose bourbon", "biscuit bourbon",
+  "vanille bourbon", "vanilles bourbon", "bourbon vanille", "vanilla bourbon", "bourbon vanilla",
+  "ile bourbon", "cafe bourbon", "bourbon pointu", "palais bourbon", "rose bourbon", "biscuit bourbon",
   "bourbon lancy", "bourbon l archambault",
 ];
