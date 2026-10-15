@@ -1,8 +1,10 @@
 const FENETRE_MIN = 5;
 const FENETRE_MAX = 21;
+const AVANCE_MIN = 900;
 
 export function calculerFenetreListeLieux(hauteurVisible: number, hauteurEnTete: number): number {
   if (!(hauteurVisible > 0)) return FENETRE_MAX;
-  const fenetre = Math.ceil((2 * (Math.max(0, hauteurEnTete) + hauteurVisible)) / hauteurVisible);
-  return Math.min(FENETRE_MAX, Math.max(FENETRE_MIN, fenetre));
+  const pourDepasserEnTete = Math.ceil((2 * (Math.max(0, hauteurEnTete) + hauteurVisible)) / hauteurVisible);
+  const pourVoirVenir = Math.ceil(1 + (2 * AVANCE_MIN) / hauteurVisible);
+  return Math.min(FENETRE_MAX, Math.max(FENETRE_MIN, pourDepasserEnTete, pourVoirVenir));
 }

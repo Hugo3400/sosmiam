@@ -1,0 +1,1 @@
+export const MOIS_ENTRE_DEUX_CHANGEMENTS_GENRE = 1;

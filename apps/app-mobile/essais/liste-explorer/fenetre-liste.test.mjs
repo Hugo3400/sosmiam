@@ -10,17 +10,22 @@ test("en haut de la liste, la fenêtre de rendu dépasse toujours l'en-tête (si
     for (let enTete = 0; enTete <= 700; enTete += 13) {
       const fenetre = calculerFenetreListeLieux(visible, enTete);
       assert.ok(Number.isInteger(fenetre) && fenetre >= 5 && fenetre <= 21, `${visible} / ${enTete} : ${fenetre}`);
-      if (fenetre < 21) assert.ok(finDeFenetre(visible, fenetre) >= enTete + visible, `visible ${visible}, en-tête ${enTete}, fenêtre ${fenetre}`);
+      if (fenetre < 21) {
+        assert.ok(finDeFenetre(visible, fenetre) >= enTete + visible, `visible ${visible}, en-tête ${enTete}, fenêtre ${fenetre}`);
+        assert.ok(finDeFenetre(visible, fenetre) - visible >= 900, `avance : visible ${visible}, fenêtre ${fenetre}`);
+      }
     }
   }
 });
 
 test("liste fixe d'un téléphone : fenêtre légère de 5", () => {
-  for (const visible of [400, 480, 541, 600, 700]) assert.equal(calculerFenetreListeLieux(visible, 300), 5);
+  for (const visible of [450, 480, 541, 600, 700]) assert.equal(calculerFenetreListeLieux(visible, 300), 5);
+  assert.equal(calculerFenetreListeLieux(300, 300), 7);
   assert.equal(calculerFenetreListeLieux(541, 0), 5);
 });
 
-test("feuille repliée avec un lecteur d'écran (82 points visibles sous le carrousel) : fenêtre élargie, jamais au-delà de l'ancien réglage", () => {
+test("lecteur d'écran (la liste suit la feuille) : fenêtre élargie, jamais au-delà de l'ancien réglage", () => {
+  assert.equal(calculerFenetreListeLieux(210, 300), 10);
   const fenetre = calculerFenetreListeLieux(82, 330);
   assert.ok(fenetre > 5 && fenetre <= 21);
   assert.ok(finDeFenetre(82, fenetre) > 330);
