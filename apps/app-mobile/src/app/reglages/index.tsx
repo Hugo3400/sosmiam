@@ -1,16 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Alert, Linking, Platform, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
+import { Annonce } from "~/composants/interface/Annonce";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
 import { avatarsEmoji } from "~/contenus/avatars-emoji";
 import { etapesEnvies } from "~/contenus/inscription/envies";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
@@ -31,8 +34,9 @@ function ouvrirLien(adresse: string) {
 }
 
 /**
- * Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ton compte privé, les personnes bloquées, les pages
- * légales, les Coulisses de la démo (en développement seulement) et de quoi tout effacer.
+ * Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ta confidentialité (compte privé et « Ta bande »),
+ * les personnes bloquées, les pages légales, les Coulisses de la démo (en développement seulement) et tes données : avec un
+ * compte, les télécharger et voir les décisions de la modération ; et de quoi tout effacer.
  */
 export default function Reglages() {
   const router = useRouter();
@@ -43,6 +47,10 @@ export default function Reglages() {
   const outilsDemo = effacement.avecDemo;
   const demo = utiliserModeDemo();
   const { connecte, compte, fermer } = utiliserSession();
+  const marges = useSafeAreaInsets();
+  const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const finAnnonce = useCallback(() => setAnnonce(null), []);
+  const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
   if (!profil) return null;
 
   // Seules les envies que l'app connaît encore sont comptées
@@ -65,11 +73,15 @@ export default function Reglages() {
       ? "Personne pour l'instant, que des bonnes ondes"
       : `${nombreBloques} personne${nombreBloques > 1 ? "s" : ""} bloquée${nombreBloques > 1 ? "s" : ""} · tu peux changer d'avis`;
 
-  const detailConfidentialite = !suivisPersonnes.pret
-    ? "Qui peut te suivre sans demander"
-    : suivisPersonnes.comptePrive
-      ? "Activé : chaque abonné te demande d'abord"
-      : "Désactivé : tout le monde peut te suivre";
+  // Avec un compte, l'écran règle aussi « Ta bande » (qui te trouve, ce que voit ta bande)
+  const avecTaBande = suivisPersonnes.source === "compte";
+  const detailConfidentialite = avecTaBande
+    ? `${suivisPersonnes.pret ? (suivisPersonnes.comptePrive ? "Compte privé" : "Compte public") : "Compte privé ou public"} · qui te trouve, ce que voit ta bande`
+    : !suivisPersonnes.pret
+      ? "Qui peut te suivre sans demander"
+      : suivisPersonnes.comptePrive
+        ? "Activé : chaque abonné te demande d'abord"
+        : "Désactivé : tout le monde peut te suivre";
 
   const version = Constants.expoConfig?.version;
 
@@ -96,148 +108,136 @@ export default function Reglages() {
   }
 
   return (
-    <EcranReglage titre="Réglages" sousTitre="Ton profil, tes alertes et tes données : ici, c'est toi qui décides.">
-      {connecte ? (
-        <SectionReglages titre="Ton compte">
-          <LigneReglage
-            emoji="🔑"
-            titre="Mon compte"
-            detail={compte ? `${compte.email}${compte.emailVerifie ? "" : " · e-mail à confirmer"}` : "E-mail, mot de passe, déconnexion"}
-            onPress={() => router.push("/reglages/compte")}
-          />
-        </SectionReglages>
-      ) : null}
-      <SectionReglages titre="Ton profil">
-        <LigneReglage
-          emoji="🎭"
-          titre="Avatar"
-          detail={detailAvatar}
-          onPress={() => router.push("/reglages/avatar")}
-          droite={
-            <View className="flex-row items-center gap-2">
-              <ImageAvatar avatar={avatar} taille={40} />
-              <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
-            </View>
-          }
-        />
-        <LigneReglage
-          emoji="🪪"
-          titre="Mes infos"
-          detail={`${profil.prenom}${profil.nom ? ` ${profil.nom}` : ""} · ${profil.ville}`}
-          onPress={() => router.push("/reglages/infos")}
-        />
-        <LigneReglage emoji="😋" titre="Mes envies" detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
-      </SectionReglages>
-
-      <SectionReglages titre="Notifications">
-        <LigneReglage
-          emoji="🔔"
-          titre="Mes notifications"
-          detail="Les alertes qui t'intéressent, et du calme la nuit"
-          onPress={() => router.push("/reglages/notifications")}
-        />
-      </SectionReglages>
-
-      <SectionReglages titre="Ta tranquillité">
-        <LigneReglage emoji="🔒" titre="Compte privé" detail={detailConfidentialite} onPress={() => router.push("/reglages/confidentialite")} />
-        <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
-      </SectionReglages>
-
-      <SectionReglages titre="Confidentialité et aide">
-        <LigneReglage
-          emoji="🔐"
-          titre="Politique de confidentialité"
-          detail="Celle du site ; la partie de l'app arrive avant sa sortie"
-          role="lien"
-          onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite")}
-        />
-        <LigneReglage
-          emoji="📜"
-          titre="Conditions d'utilisation"
-          detail="Les règles du jeu, noir sur blanc"
-          role="lien"
-          onPress={() => ouvrirLien("https://sosmiam.fr/cgu")}
-        />
-        <LigneReglage
-          emoji="⚖️"
-          titre="Mentions légales"
-          detail="Qui se cache derrière SOS Miam"
-          role="lien"
-          onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales")}
-        />
-        <LigneReglage
-          emoji="🩺"
-          titre="Santé et prévention"
-          detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
-          role="lien"
-          onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
-        />
-        <LigneReglage
-          emoji="💌"
-          titre="Nous écrire"
-          detail={`Une question, une idée, un bug\u00a0: ${ADRESSE_CONTACT}`}
-          role="lien"
-          onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
-        />
-      </SectionReglages>
-
-      {demo.possible ? (
-        <SectionReglages titre="Démo">
-          {outilsDemo ? (
+    <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
+      <EcranReglage titre="Réglages" sousTitre="Ton profil, tes alertes et tes données : ici, c'est toi qui décides.">
+        {connecte ? (
+          <SectionReglages titre="Ton compte">
             <LigneReglage
-              emoji="🎬"
-              titre="Coulisses de la démo"
-              detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
-              onPress={() => router.push("/reglages/demo")}
+              emoji="🔑"
+              titre="Mon compte"
+              detail={compte ? `${compte.email}${compte.emailVerifie ? "" : " · e-mail à confirmer"}` : "E-mail, mot de passe, déconnexion"}
+              onPress={() => router.push("/reglages/compte")}
             />
-          ) : null}
-          {/* En démo, pas de compte (donc pas de « Mon compte ») : la connexion par QR se regarde d'ici */}
-          {demo.actif ? (
-            <LigneReglage
-              emoji="📷"
-              titre="Connecter un appareil"
-              detail="La connexion par QR code, en démo : rien ne part sur le serveur"
-              onPress={() => router.push("/reglages/connecter-appareil")}
-            />
-          ) : null}
+          </SectionReglages>
+        ) : null}
+        <SectionReglages titre="Ton profil">
           <LigneReglage
-            emoji="🧪"
-            titre={demo.actif ? (demo.compteDeCote ? "Quitter la démo et revenir sur mon compte" : "Quitter la démo") : "Passer en mode démo"}
-            detail={
-              demo.actif
-                ? demo.compteDeCote
-                  ? `Tu retrouves ${demo.compteDeCote} directement, sans te reconnecter (ce que la démo a gardé est effacé)`
-                  : "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
-                : "Lieux, potes et visites d'exemple (développement seulement). Ton compte est mis de côté : tu le retrouves en quittant la démo"
+            emoji="🎭"
+            titre="Avatar"
+            detail={detailAvatar}
+            onPress={() => router.push("/reglages/avatar")}
+            droite={
+              <View className="flex-row items-center gap-2">
+                <ImageAvatar avatar={avatar} taille={40} />
+                <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+              </View>
             }
-            onPress={demo.actif ? demo.sortir : demo.entrer}
+          />
+          <LigneReglage
+            emoji="🪪"
+            titre="Mes infos"
+            detail={`${profil.prenom}${profil.nom ? ` ${profil.nom}` : ""} · ${profil.ville}`}
+            onPress={() => router.push("/reglages/infos")}
+          />
+          <LigneReglage emoji="😋" titre="Mes envies" detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
+        </SectionReglages>
+
+        <SectionReglages titre="Notifications">
+          <LigneReglage
+            emoji="🔔"
+            titre="Mes notifications"
+            detail="Les alertes qui t'intéressent, et du calme la nuit"
+            onPress={() => router.push("/reglages/notifications")}
           />
         </SectionReglages>
-      ) : null}
 
-      <SectionReglages titre="Tes données">
-        <View className="flex-row gap-3 py-3">
-          <Text accessibilityElementsHidden importantForAccessibility="no" className="text-base leading-5">
-            🔒
-          </Text>
-          <Text className="flex-1 font-texte text-sm leading-5 text-gris">
-            {lierPonctuation(
-              connecte
-                ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés). Ta photo et ton régime particulier restent sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."
-                : "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
-            )}
-          </Text>
-        </View>
-        <LigneReglage
-          emoji="🧽"
-          titre="Effacer mes données et recommencer"
-          detail="Profil, avatar, rescousses, lieux gardés… tout repart à zéro"
-          danger
-          onPress={demanderEffacement}
-        />
-      </SectionReglages>
+        <SectionReglages titre="Ta tranquillité">
+          <LigneReglage
+            emoji="🔒"
+            titre={avecTaBande ? "Confidentialité" : "Compte privé"}
+            detail={detailConfidentialite}
+            onPress={() => router.push("/reglages/confidentialite")}
+          />
+          <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
+        </SectionReglages>
 
-      {version ? <Text className="text-center font-texte text-xs text-gris">SOS Miam · version {version}</Text> : null}
-    </EcranReglage>
+        <SectionReglages titre="Confidentialité et aide">
+          <LigneReglage
+            emoji="🔐"
+            titre="Politique de confidentialité"
+            detail="Celle du site ; la partie de l'app arrive avant sa sortie"
+            role="lien"
+            onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite")}
+          />
+          <LigneReglage
+            emoji="📜"
+            titre="Conditions d'utilisation"
+            detail="Les règles du jeu, noir sur blanc"
+            role="lien"
+            onPress={() => ouvrirLien("https://sosmiam.fr/cgu")}
+          />
+          <LigneReglage
+            emoji="⚖️"
+            titre="Mentions légales"
+            detail="Qui se cache derrière SOS Miam"
+            role="lien"
+            onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales")}
+          />
+          <LigneReglage
+            emoji="🩺"
+            titre="Santé et prévention"
+            detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
+            role="lien"
+            onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
+          />
+          <LigneReglage
+            emoji="💌"
+            titre="Nous écrire"
+            detail={`Une question, une idée, un bug\u00a0: ${ADRESSE_CONTACT}`}
+            role="lien"
+            onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
+          />
+        </SectionReglages>
+
+        {demo.possible ? (
+          <SectionReglages titre="Démo">
+            {outilsDemo ? (
+              <LigneReglage
+                emoji="🎬"
+                titre="Coulisses de la démo"
+                detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
+                onPress={() => router.push("/reglages/demo")}
+              />
+            ) : null}
+            {/* En démo, pas de compte (donc pas de « Mon compte ») : la connexion par QR se regarde d'ici */}
+            {demo.actif ? (
+              <LigneReglage
+                emoji="📷"
+                titre="Connecter un appareil"
+                detail="La connexion par QR code, en démo : rien ne part sur le serveur"
+                onPress={() => router.push("/reglages/connecter-appareil")}
+              />
+            ) : null}
+            <LigneReglage
+              emoji="🧪"
+              titre={demo.actif ? (demo.compteDeCote ? "Quitter la démo et revenir sur mon compte" : "Quitter la démo") : "Passer en mode démo"}
+              detail={
+                demo.actif
+                  ? demo.compteDeCote
+                    ? `Tu retrouves ${demo.compteDeCote} directement, sans te reconnecter (ce que la démo a gardé est effacé)`
+                    : "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
+                  : "Lieux, potes et visites d'exemple (développement seulement). Ton compte est mis de côté : tu le retrouves en quittant la démo"
+              }
+              onPress={demo.actif ? demo.sortir : demo.entrer}
+            />
+          </SectionReglages>
+        ) : null}
+
+        <SectionTesDonnees connecte={connecte} onEffacer={demanderEffacement} onAnnoncer={annoncer} />
+
+        {version ? <Text className="text-center font-texte text-xs text-gris">SOS Miam · version {version}</Text> : null}
+      </EcranReglage>
+      <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
+    </View>
   );
 }

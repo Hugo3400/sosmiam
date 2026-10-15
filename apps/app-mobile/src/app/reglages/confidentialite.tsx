@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Annonce } from "~/composants/interface/Annonce";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
+import { BlocTaBande } from "~/composants/reglages/BlocTaBande";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
@@ -20,8 +21,9 @@ const decrireDemandes = (nombre: number) =>
   nombre > 1 ? `Les ${nombre} demandes en attente seront acceptées.` : "La demande en attente sera acceptée.";
 
 /**
- * Réglages > Compte privé : en privé, chaque nouvel abonné doit te demander, et ceux qui ne te suivent pas ne voient que ton
- * en-tête. Passer en privé garde tes abonnés ; repasser en public accepte les demandes en attente (après confirmation).
+ * Réglages > Compte privé (« Confidentialité » avec un compte) : en privé, chaque nouvel abonné doit te demander, et ceux qui
+ * ne te suivent pas ne voient que ton en-tête. Passer en privé garde tes abonnés ; repasser en public accepte les demandes
+ * en attente (après confirmation). Avec un compte, en plus, le bloc « Ta bande » : qui te trouve et ce que voit ta bande.
  */
 export default function ReglagesConfidentialite() {
   const marges = useSafeAreaInsets();
@@ -37,6 +39,7 @@ export default function ReglagesConfidentialite() {
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
 
   const nombreDemandes = suivis.demandesRecues.length;
+  const avecTaBande = suivis.source === "compte";
 
   async function passerEnPublic(): Promise<string> {
     const fait = await suivis.changerConfidentialite("public");
@@ -59,7 +62,10 @@ export default function ReglagesConfidentialite() {
 
   return (
     <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
-      <EcranReglage titre="Compte privé" sousTitre="Qui peut te suivre, et ce que voient ceux qui ne te suivent pas.">
+      <EcranReglage
+        titre={avecTaBande ? "Confidentialité" : "Compte privé"}
+        sousTitre={avecTaBande ? "Qui peut te suivre, qui peut te trouver, et ce que voit ta bande." : "Qui peut te suivre, et ce que voient ceux qui ne te suivent pas."}
+      >
         {!suivis.pret ? (
           <View className="mt-4 items-center">
             <ActivityIndicator color={couleurs.encre} accessibilityLabel="Chargement de tes réglages" />
@@ -86,6 +92,8 @@ export default function ReglagesConfidentialite() {
                 {lierPonctuation("Passer en privé ne met personne dehors : tes abonnés restent. Et si tu repasses en public, les demandes en attente seront acceptées.")}
               </Text>
             </View>
+
+            <BlocTaBande onAnnoncer={annoncer} />
           </View>
         )}
       </EcranReglage>

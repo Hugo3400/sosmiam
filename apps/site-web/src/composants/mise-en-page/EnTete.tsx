@@ -1,85 +1,98 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { useCallback, useRef, useState } from "react";
+import { Link, useLocation } from "react-router";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Logo } from "~/composants/interface/Logo";
+import { LienNavigation } from "~/composants/mise-en-page/LienNavigation";
+import { MenuMobile } from "~/composants/mise-en-page/MenuMobile";
+import { MenuSansJavascript } from "~/composants/mise-en-page/MenuSansJavascript";
+import { lienMonCompte, lienPreviensMoi, liensBarre } from "~/contenus/liens-en-tete";
+import { utiliserEnTeteCollee } from "~/hooks/utiliser-en-tete-collee";
+import { utiliserSectionVisible } from "~/hooks/utiliser-section-visible";
 
-const liens = [
-  { href: "/#comment", texte: "Comment ça marche" },
-  { href: "/#adresses", texte: "Les adresses" },
-  { href: "/#big-sos", texte: "BIG SOS" },
-  { href: "/#pros", texte: "Pour les pros" },
-  { href: "/#ambassadeurs", texte: "Ambassadeurs" },
-  { href: "/faq", texte: "FAQ" },
-];
+const ID_MENU = "menu-mobile";
+/** Les sections de l'accueil suivies à l'écran (« L'app », « Les lieux », « BIG SOS ») */
+const SECTIONS = liensBarre.flatMap((lien) => (lien.section ? [lien.section] : []));
 
-/** En-tête collant : logo, liens vers les sections, et menu burger sous 1024 px (Échap le ferme). */
+const focusVisible = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
+const classeLienBarre =
+  `block whitespace-nowrap rounded-full px-3 py-2 text-[.95rem] font-semibold text-encre/85 transition-colors xl:px-4 ${focusVisible} ` +
+  "hover:bg-jaune-clair hover:text-encre aria-[current=page]:bg-jaune aria-[current=page]:text-encre aria-[current=true]:bg-jaune aria-[current=true]:text-encre";
+const classeBoutonContour =
+  `inline-flex items-center gap-2 whitespace-nowrap rounded-full border-2 border-encre bg-white py-2 text-[.9rem] font-semibold transition-colors ${focusVisible} ` +
+  "hover:bg-jaune-clair";
+
+/**
+ * En-tête des pages publiques de sosmiam.fr, collant en haut de l'écran (une ombre légère dès qu'il est collé).
+ * Grands écrans : le logo, cinq liens au milieu (la section de l'accueil qu'on lit ou la page où l'on est en jaune), puis
+ * « Mon compte » et « Préviens-moi » (la newsletter). Sous 1024 px : le logo, « Préviens-moi » dès 768 px, et le bouton
+ * « Menu » qui ouvre MenuMobile par-dessus la page (MenuSansJavascript quand JavaScript est coupé).
+ */
 export function EnTete() {
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const enTete = useRef<HTMLElement>(null);
   const boutonMenu = useRef<HTMLButtonElement>(null);
-  const fermer = () => setMenuOuvert(false);
-
-  useEffect(() => {
-    if (!menuOuvert) return;
-    function fermerAvecEchap(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      setMenuOuvert(false);
-      boutonMenu.current?.focus();
-    }
-    document.addEventListener("keydown", fermerAvecEchap);
-    return () => document.removeEventListener("keydown", fermerAvecEchap);
-  }, [menuOuvert]);
+  const { pathname } = useLocation();
+  const collee = utiliserEnTeteCollee(enTete);
+  const sectionVisible = utiliserSectionVisible(SECTIONS, pathname === "/");
+  const fermerMenu = useCallback(() => setMenuOuvert(false), []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-encre/5 bg-creme/90 backdrop-blur-md">
-      <div className="mx-auto flex h-[72px] w-[min(1120px,100%-32px)] items-center justify-between gap-4">
-        <Link to="/" aria-label="SOS Miam, accueil" onClick={fermer}>
-          <Logo />
-        </Link>
-
-        {/* Le bouton vient avant le menu : après l'ouverture, Tab passe directement aux liens */}
-        <button
-          ref={boutonMenu}
-          type="button"
-          className="p-2 lg:hidden"
-          aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
-          aria-expanded={menuOuvert}
-          aria-controls="menu-principal"
-          onClick={() => setMenuOuvert(!menuOuvert)}
-        >
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={`my-[5px] block h-[2.5px] w-6 rounded bg-encre transition-transform duration-200
-              ${menuOuvert && i === 0 ? "translate-y-[7.5px] rotate-45" : ""}
-              ${menuOuvert && i === 1 ? "opacity-0" : ""}
-              ${menuOuvert && i === 2 ? "-translate-y-[7.5px] -rotate-45" : ""}`} />
-          ))}
-        </button>
-
-        <nav
-          id="menu-principal"
-          aria-label="Menu principal"
-          className={`${menuOuvert ? "flex" : "hidden"} absolute inset-x-0 top-[72px] flex-col gap-4 border-b-2 border-encre bg-creme px-4 pt-6 pb-7
-            lg:static lg:flex lg:flex-row lg:items-center lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 xl:gap-7`}
-        >
-          {liens.map((lien) => {
-            const classes = "whitespace-nowrap font-medium decoration-jaune decoration-[3px] underline-offset-4 hover:underline";
-            // Les sections de l'accueil (/#…) restent des ancres ; les autres pages passent par le routeur
-            return lien.href.includes("#")
-              ? <a key={lien.href} href={lien.href} onClick={fermer} className={classes}>{lien.texte}</a>
-              : <Link key={lien.href} to={lien.href} onClick={fermer} className={classes}>{lien.texte}</Link>;
-          })}
-          {/* Discret, juste avant le bouton : le compte (app, espaces), ses données et sa suppression. Dans le menu burger, et
-              dès 1280 px ; entre les deux, la ligne serait trop longue (il reste le lien du pied de page) */}
-          <Link
-            to="/mon-compte"
-            onClick={fermer}
-            className="whitespace-nowrap text-sm font-medium text-gris lg:hidden xl:block decoration-jaune decoration-[3px] underline-offset-4 hover:text-encre hover:underline"
-          >
-            Mon compte
+    <>
+      <header
+        ref={enTete}
+        className={`sticky top-0 z-50 border-b backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-300
+          ${collee ? "border-encre/10 bg-creme/85 shadow-[0_10px_24px_-18px_rgb(26_26_26/0.45)]" : "border-encre/5 bg-creme"}`}
+      >
+        <div className="mx-auto flex h-[72px] w-[min(1120px,100%-32px)] items-center gap-4">
+          <Link to="/" aria-label="SOS Miam, accueil" className="shrink-0 rounded-lg focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-encre">
+            <Logo className="h-9 w-auto xl:h-10" />
           </Link>
-          <Bouton href="/#inscription" petit onClick={fermer} className="whitespace-nowrap">Je m'inscris</Bouton>
-        </nav>
-      </div>
-    </header>
+
+          <nav aria-label="Menu principal" className="mx-auto hidden lg:block">
+            <ul className="flex items-center gap-0.5 xl:gap-1">
+              {liensBarre.map((lien) => (
+                <li key={lien.adresse}>
+                  <LienNavigation lien={lien} sectionVisible={lien.section === sectionVisible} className={classeLienBarre} />
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <LienNavigation lien={lienMonCompte} className={`${classeBoutonContour} pr-4 pl-3 aria-[current=page]:bg-jaune-clair`}>
+              <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="2.2" />
+                <path d="M4.5 20.5c1.2-3.9 4.1-6 7.5-6s6.3 2.1 7.5 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+              {lienMonCompte.texte}
+            </LienNavigation>
+            <Bouton href={lienPreviensMoi.adresse} petit className="whitespace-nowrap">{lienPreviensMoi.texte}</Bouton>
+          </div>
+
+          <div className="ml-auto flex items-center gap-3 lg:hidden">
+            {/* Dans une enveloppe : la classe « hidden » ne l'emporterait pas sur le « inline-flex » du bouton */}
+            <span className="hidden md:inline-flex">
+              <Bouton href={lienPreviensMoi.adresse} petit className="whitespace-nowrap">{lienPreviensMoi.texte}</Bouton>
+            </span>
+            <button
+              ref={boutonMenu}
+              type="button"
+              aria-expanded={menuOuvert}
+              aria-controls={ID_MENU}
+              onClick={() => setMenuOuvert(true)}
+              className={`${classeBoutonContour} px-4 aria-expanded:bg-jaune-clair noscript:hidden`}
+            >
+              <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              Menu
+            </button>
+            <MenuSansJavascript />
+          </div>
+        </div>
+      </header>
+      <MenuMobile id={ID_MENU} ouvert={menuOuvert} surFermeture={fermerMenu} boutonMenu={boutonMenu} sectionVisible={sectionVisible} />
+    </>
   );
 }

@@ -1,0 +1,32 @@
+import type { BilanMenageSocial } from "../../services/menage-social.ts";
+
+/**
+ * Les lignes du journal du logiciel pour le ménage social de la nuit : [nombre, ce qui est parti], seulement celles qui ne
+ * valent pas zéro (jamais un contenu, seulement des nombres). Pendant un changement de clé, la ligne du rechiffrement
+ * paraît chaque nuit, même à zéro : « 0 restant(s) » dit que l'ancienne clé n'est plus utile à la partie sociale.
+ */
+export function decrireBilanMenageSocial(bilan: BilanMenageSocial): [number, string][] {
+  const lignes: [number, string][] = [
+    [bilan.medias, "Médias du chat effacés (90 jours)"],
+    [bilan.conversations, "Conversations effacées (1 an sans message)"],
+    [bilan.sorties, "Sorties effacées avec leur discussion (1 an après leur date ou leur dernier message)"],
+    [bilan.conversationsVides, "Conversations sans membre effacées"],
+    [bilan.demandesBande, "Demandes de bande expirées (30 jours)"],
+    [bilan.demandesSuivi, "Demandes de suivi expirées (30 jours)"],
+    [bilan.invitationsSorties, "Invitations à des sorties passées effacées"],
+    [bilan.invitationsGroupes, "Invitations à des groupes expirées (30 jours)"],
+    [bilan.invitationsCoAuteurs, "Invitations à remplir une liste expirées (30 jours)"],
+    [bilan.departsGroupes, "Départs de groupes oubliés (30 jours)"],
+    [bilan.clesIdempotence, "Clés d'envoi en double effacées (24 h)"],
+    [bilan.cloche, "Notifications de la cloche effacées (90 jours ou au-delà de 200)"],
+    [bilan.masques, "Éléments masqués oubliés (13 mois)"],
+    [bilan.contenusRetires, "Contenus retirés par la modération effacés (plus d'un an)"],
+    [bilan.commentairesSupprimes, "Commentaires supprimés effacés pour de bon"],
+    [bilan.fichiersOrphelins, "Fichiers du chat orphelins effacés (plus de 24 h)"],
+  ];
+  const visibles = lignes.filter(([nombre]) => nombre > 0);
+  const r = bilan.rechiffrement;
+  if (r) visibles.push([r.rechiffres, `Chiffrés sociaux réécrits avec la nouvelle clé (${r.illisibles} illisible(s), ${r.restants} restant(s))`]);
+  if (bilan.etapesRatees.length > 0) visibles.push([bilan.etapesRatees.length, `Ménage social : étape(s) ratée(s) (${bilan.etapesRatees.join(", ")}), voir le journal du serveur`]);
+  return visibles;
+}

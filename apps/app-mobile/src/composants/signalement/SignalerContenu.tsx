@@ -8,6 +8,7 @@ import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement"
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import couleurs from "~/theme/couleurs";
 
@@ -20,13 +21,17 @@ type Props = {
   onTermine: () => void;
 };
 
+/** Ce qui disparaît de ton écran dès le signalement ; un profil, une sortie ou un groupe restent visibles jusqu'à la décision */
+const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "message", "liste", "recommandation"];
+
 /**
- * Signaler un commentaire, un message de sortie, un lieu envoyé par un pote, une liste ou un profil, à placer dans une feuille : la raison, les précisions et
- * le pourquoi (mêmes étapes que pour une publication), puis merci. Le contenu signalé disparaît pour toi.
- * À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
+ * Signaler un commentaire, un message, un lieu envoyé par un pote, une liste, un profil, une sortie ou un groupe, à placer
+ * dans une feuille : la raison, les précisions et le pourquoi (mêmes étapes que pour une publication), puis merci. Avec un
+ * compte, le signalement part à l'équipe, qui dira sa décision (Réglages › Décisions de la modération) ; en démo, il reste
+ * sur le téléphone. À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
  */
 export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
-  const { signaler } = utiliserCommunaute();
+  const { signaler, source } = utiliserCommunaute();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");
@@ -42,16 +47,30 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   }, [raison, envoye]);
 
   if (envoye) {
+    // Avec un compte, le signalement est parti au serveur ; en démo (et sans compte), il reste sur le téléphone
+    const avecCompte = source === "compte";
+    const cache = CIBLES_CACHEES.includes(cible);
+    const titre = avecCompte ? "Merci, on regarde ça" : "Merci, c'est noté";
     return (
       <View className="items-center gap-3 pb-2 pt-1">
-        <Text ref={titreMerci} accessibilityRole="header" accessibilityLabel="Merci, c'est noté" className="text-center font-titre text-2xl text-encre">
-          Merci, c'est noté 🚩
+        <Text ref={titreMerci} accessibilityRole="header" accessibilityLabel={titre} className="text-center font-titre text-2xl text-encre">
+          {titre} 🚩
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-encre">
-          {cible === "profil" ? "On va regarder ce profil de près." : "Ça n'apparaîtra plus pour toi, et on va regarder ça de près."}
+          {avecCompte
+            ? cache
+              ? "Ça a déjà disparu de ton écran."
+              : "L'équipe te dira ce qu'elle a décidé."
+            : cible === "profil"
+              ? "On va regarder ce profil de près."
+              : "Ça n'apparaîtra plus pour toi, et on va regarder ça de près."}
         </Text>
         <Text className="text-center font-texte text-sm leading-5 text-gris">
-          Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur.
+          {lierPonctuation(
+            avecCompte
+              ? `${cache ? "L'équipe te dira ce qu'elle a décidé" : "Tu retrouveras sa décision"} dans Réglages › Décisions de la modération. La personne concernée ne saura jamais que c'est toi.`
+              : "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur.",
+          )}
         </Text>
         <Bouton libelle="Fermer" onPress={onTermine} className="mt-2 self-stretch" />
       </View>

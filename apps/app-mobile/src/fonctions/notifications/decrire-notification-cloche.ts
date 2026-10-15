@@ -14,8 +14,8 @@ type Sources = {
 
 /**
  * La phrase d'une notification de la cloche du serveur (bande, sorties, groupes, listes, commentaires, modération), prête à
- * afficher. Une personne qui a quitté SOS Miam devient « Quelqu'un ». Les trois types de la modération n'ouvrent rien pour
- * l'instant (« Décisions de la modération » arrive avec l'export des données, lot L7).
+ * afficher. Une personne qui a quitté SOS Miam devient « Quelqu'un ». Les trois types de la modération (contenu masqué,
+ * retiré, signalement examiné) ouvrent Réglages › Décisions de la modération.
  */
 export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, publications, lieux }: Sources): NotificationDecrite | null {
   const qui = n.acteur ? (trouverPote(n.acteur.id)?.prenom ?? n.acteur.prenom) : "Quelqu'un";
@@ -23,6 +23,7 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
   const id = n.cible?.id ?? "";
   const profil = n.acteur ? ({ pathname: "/potes/profil/[id]", params: { id: n.acteur.id } } as const) : null;
   const sortie = n.cible?.type === "sortie" ? ({ pathname: "/potes/sortie/[id]", params: { id } } as const) : null;
+  const moderation = ["/reglages/decisions-moderation", "Ouvre les décisions de la modération"] as const;
   const decrire = (emoji: string, texte: string, ouvrir: NotificationDecrite["ouvrir"], indice?: string): NotificationDecrite => ({
     emoji,
     texte: lierPonctuation(texte),
@@ -62,17 +63,17 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
       return decrire(
         "🙈",
         n.detail === "masque-par-le-lieu" ? "Le lieu a masqué ton commentaire le temps qu'on vérifie." : "Un de tes contenus est masqué le temps qu'on vérifie : quelqu'un l'a trouvé choquant.",
-        null,
+        ...moderation,
       );
     case "contenu-retire": {
       // Un code que cette version de l'app ne connaît pas encore : la phrase générale
       const motif = n.detail ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { enClair: string } | undefined>>)[n.detail]?.enClair : undefined;
-      return decrire("🧹", motif ? `Un de tes contenus a été retiré par la modération (motif : ${motif}).` : "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", null);
+      return decrire("🧹", motif ? `Un de tes contenus a été retiré par la modération (motif : ${motif}).` : "Un de tes contenus a été retiré : il ne respectait pas les règles de SOS Miam.", ...moderation);
     }
     case "signalement-decide":
-      if (n.detail === "retenu") return decrire("🛡️", "On a examiné ton signalement : le contenu est retiré. Merci de veiller au grain !", null);
-      if (n.detail === "rejete") return decrire("🛡️", "On a examiné ton signalement : le contenu respecte nos règles, il reste en ligne. Merci quand même !", null);
-      return decrire("🛡️", "On a examiné ton signalement : merci !", null);
+      if (n.detail === "retenu") return decrire("🛡️", "On a examiné ton signalement : le contenu est retiré. Merci de veiller au grain !", ...moderation);
+      if (n.detail === "rejete") return decrire("🛡️", "On a examiné ton signalement : le contenu respecte nos règles, il reste en ligne. Merci quand même !", ...moderation);
+      return decrire("🛡️", "On a examiné ton signalement : merci !", ...moderation);
     default:
       return null;
   }
