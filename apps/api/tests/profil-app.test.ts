@@ -52,12 +52,16 @@ test("PATCH profil : prénom, nom (effaçable), pseudo, ville, envies (remplacé
   const efface = (await modifier(jeton, { nom: null, avatar: "🇫🇷" })).corps.profil;
   assert.deepEqual([efface.nom, efface.avatar, efface.ville, efface.pseudo], [null, "🇫🇷", "Brest", "zoelou"]);
   assert.equal((await modifier(jeton, { avatar: "" })).corps.profil.avatar, null);
+  // Un Miami au choix (nettoyé de ses espaces), mais jamais le Capitaine ni un Miami inconnu
+  assert.equal((await modifier(jeton, { avatar: " miami:raclette " })).corps.profil.avatar, "miami:raclette");
+  assert.equal((await modifier(jeton, { avatar: "miami:chantilly" })).corps.profil.avatar, "miami:chantilly");
   // Rien à changer : le profil tel quel
   assert.equal((await modifier(jeton, {})).statut, 200);
   const refus: [string, Record<string, unknown>][] = [
     ["dateNaissance", { dateNaissance: "1990-01-01" }],
     ["envies", { envies: { regimes: ["halal"] } }],
     ["avatar", { avatar: "A" }], ["avatar", { avatar: "🦊🦊" }], ["avatar", { avatar: 3 }],
+    ["avatar", { avatar: "miami:capitaine" }], ["avatar", { avatar: "miami:licorne" }], ["avatar", { avatar: "miami:" }],
     ["prive", { prive: "oui" }],
     ["pseudo", { pseudo: "pu.te" }], ["pseudo", { pseudo: null }],
     ["prenom", { prenom: "" }], ["ville", { ville: "x" }],

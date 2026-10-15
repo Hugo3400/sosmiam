@@ -37,7 +37,7 @@ function creerServi(): ContainerBuilder {
       "# ✅ C'est servi",
       "### 🌐 Déjà en ligne\n" +
         lister([
-          "**sosmiam.fr** : le site, la FAQ et la page santé et prévention",
+          "**sosmiam.fr** : le site, la FAQ et la page santé et prévention, avec une navigation toute neuve et la page « Ce qu'on prépare » pour jeter un œil à ce qui arrive",
           "**Un seul compte pour tout** : l'app, l'espace ambassadeur et l'espace pro. Tu te connectes avec ton e-mail, Google ou Apple, et même avec un QR code, comme sur Discord",
           "**L'espace ambassadeur** : missions, kit média, propositions de lieux, des places de fondateurs dans chaque ville de France, et le titre d'ambassadeur certifié pour celles et ceux qui aident déjà les lieux du coin",
           "**L'espace pro, gratuit pour les lieux** : leur fiche, leur carte, leur équipe, et des affiches de vitrine et chevalets de table à imprimer",
@@ -73,6 +73,7 @@ function creerSurLeFeu(): ContainerBuilder {
         "**La sortie de l'app sur iPhone et Android** : on fait les dernières vérifs et on prépare les premières versions d'essai sur de vrais téléphones",
         "**La messagerie entre potes** : messages privés, groupes, photos et notes vocales. Tout est prêt ; on finit le ménage automatique (les vieilles photos et les conversations endormies s'effacent toutes seules) avant d'ouvrir les portes",
         "**Les finitions entre potes** : signaler ce qui dérape en un geste, tes réglages, et les notifications qui vont avec",
+        "**Les avatars des Miamis** : 16 petites bouilles dessinées rien que pour ton profil",
         "**Des milliers de fiches de lieux** en préparation, partout en France, pour que l'app ne sonne pas creux le jour J",
       ]),
     ],

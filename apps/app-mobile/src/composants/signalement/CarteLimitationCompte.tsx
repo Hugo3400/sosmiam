@@ -30,20 +30,6 @@ function lireEtat(l: LimitationCompteApi, maintenant: Date): Etat {
 
 const capitale = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
 
-/** Un bloc de la carte (titre en petit, texte), lu d'un seul tenant par VoiceOver */
-function Bloc({ titre, texte, encadre = false }: { titre: string; texte: string; encadre?: boolean }) {
-  return (
-    <View accessible accessibilityLabel={lierPonctuation(`${titre} : ${texte}`)} className="gap-1">
-      <Text className="font-texte-semi text-sm text-gris">{titre}</Text>
-      <Text
-        className={`font-texte text-[15px] leading-[22px] text-encre ${encadre ? "rounded-2xl border-2 border-encre bg-white px-3 py-2.5" : ""}`}
-      >
-        {lierPonctuation(texte)}
-      </Text>
-    </View>
-  );
-}
-
 /**
  * « Ton compte est limité », en tête de « Décisions de la modération » : jusqu'à quand (ou « jusqu'à nouvel ordre »), la
  * règle des CGU en cause et l'explication de l'équipe, ce qui attend la fin et ce qui marche comme d'habitude, puis
@@ -71,6 +57,16 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
     ? remplirModele(etat === "active" ? t.contestationMaintenue : t.contestationRelue, { date: reexamineLe })
     : t.contestationEnAttente;
 
+  /** Un bloc de la carte (titre en petit, texte), lu d'un seul tenant par VoiceOver */
+  const bloc = (titreBloc: string, texte: string, encadre = false) => (
+    <View accessible accessibilityLabel={lierPonctuation(`${titreBloc} : ${texte}`)} className="gap-1">
+      <Text className="font-texte-semi text-sm text-gris">{titreBloc}</Text>
+      <View className={encadre ? "rounded-2xl border-2 border-encre bg-white px-3 py-2.5" : ""}>
+        <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
+      </View>
+    </View>
+  );
+
   return (
     <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${etat === "finie" ? "bg-white" : "bg-jaune-clair"}`}>
       <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${pastille.texte}. ${intro}`)} className="gap-2">
@@ -84,14 +80,10 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
         <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(intro)}</Text>
       </View>
 
-      <Bloc titre={t.regle} texte={regle} />
-      {motivation ? <Bloc titre={t.explication} texte={motivation} encadre /> : null}
-      {etat !== "finie" ? (
-        <>
-          <Bloc titre={t.coupeTitre} texte={t.coupe} />
-          <Bloc titre={t.resteTitre} texte={t.reste} />
-        </>
-      ) : null}
+      {bloc(t.regle, regle)}
+      {motivation ? bloc(t.explication, motivation, true) : null}
+      {etat !== "finie" ? bloc(t.coupeTitre, t.coupe) : null}
+      {etat !== "finie" ? bloc(t.resteTitre, t.reste) : null}
 
       {contestable || contestation || etat === "a-venir" ? (
         <View className="gap-2 border-t-2 border-dashed border-encre pt-4">
@@ -103,7 +95,9 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
               <Text className="font-texte text-[15px] leading-[22px] text-encre">
                 {lierPonctuation(`📮 ${contesteLe ? remplirModele(t.contestationEnvoyee, { date: contesteLe }) : t.contestationEnvoyeeSansDate}`)}
               </Text>
-              <Text className="rounded-2xl border-2 border-encre bg-white px-3 py-2.5 font-texte text-[15px] leading-[22px] text-encre">{contestation}</Text>
+              <View className="rounded-2xl border-2 border-encre bg-white px-3 py-2.5">
+                <Text className="font-texte text-[15px] leading-[22px] text-encre">{contestation}</Text>
+              </View>
               <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation(`${reexamineLe ? "🔁" : "⏳"} ${suiteContestation}`)}</Text>
             </View>
           ) : contestable ? (

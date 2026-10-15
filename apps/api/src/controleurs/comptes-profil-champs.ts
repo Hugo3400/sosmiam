@@ -2,6 +2,7 @@
 // de packages/commun (estPseudoValide, nomPublicContientMotInterdit), importées telles quelles, jamais recopiées.
 // Un champ qui ne va pas lève ChampInvalide (400 « champ-invalide » avec son nom).
 import { estPseudoValide } from "../../../../packages/commun/src/validation/est-pseudo-valide.ts";
+import { lireAvatarMiami } from "../../../../packages/commun/src/validation/lire-avatar-miami.ts";
 import { nomPublicContientMotInterdit } from "../../../../packages/commun/src/validation/nom-public-contient-mot-interdit.ts";
 import type { CategorieEnvie } from "../../../../packages/commun/src/types/profil.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
@@ -58,11 +59,19 @@ export function lirePseudo(valeur: unknown): string {
 /** Pseudo nettoyé (sans « @ », en minuscules), ou "" si ce n'est pas un texte : fonctions/comptes/normaliser-pseudo.ts */
 export { normaliserPseudo };
 
-/** Avatar : un seul emoji (une seule « lettre » à l'écran, 16 caractères au plus) ; null ou "" : effacé. */
+/**
+ * Avatar : un seul emoji (une seule « lettre » à l'écran, 16 caractères au plus), ou un Miami au choix (« miami:toque »,
+ * jamais le Capitaine, réservé au compte officiel) ; null ou "" : effacé.
+ */
 export function lireAvatar(valeur: unknown): string | null {
   if (valeur === null || valeur === "") return null;
   if (typeof valeur !== "string") throw new ChampInvalide("avatar");
   const avatar = valeur.trim();
+  const miami = lireAvatarMiami(avatar);
+  if (miami) {
+    if (miami.reserve) throw new ChampInvalide("avatar");
+    return avatar;
+  }
   const graphemes = [...segmenteur.segment(avatar)].length;
   if (avatar.length > AVATAR_MAX || graphemes !== 1 || !/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(avatar)) {
     throw new ChampInvalide("avatar");
