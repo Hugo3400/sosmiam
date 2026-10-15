@@ -56,8 +56,8 @@ export const LIMITE_PROPOSITIONS_LIEUX = { fenetre: 24 * 60 * 60_000, maximum: 1
 export const LIMITE_CONNEXION_EXTERNE = { fenetre: DIX_MINUTES, maximum: 20 };
 /** Relier ou délier Apple et Google depuis « Mon compte » : 10 demandes par COMPTE et par heure, les trois adresses ensemble */
 export const LIMITE_CONNEXIONS_COMPTE = { fenetre: 60 * 60_000, maximum: 10 };
-/** Contester sa limitation : 5 envois par COMPTE et par 24 heures (une seule contestation est gardée) */
-export const LIMITE_CONTESTATION_LIMITATION = { fenetre: 24 * 60 * 60_000, maximum: 5 };
+/** Contester sa limitation : 10 envois par COMPTE et par 24 heures, essais trop courts compris (une seule contestation est gardée) */
+export const LIMITE_CONTESTATION_LIMITATION = { fenetre: 24 * 60 * 60_000, maximum: 10 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -239,7 +239,7 @@ export type DependancesComptes = {
  *                                        limitation } (même forme que GET) : une seule fois, pendant la limitation ; une autre
  *                                        personne de l'équipe la réexamine dans le logiciel de gestion · 400 champ-invalide
  *                                        {champ: texte} · 404 aucune-limitation (aucune en cours, même à venir) · 409
- *                                        deja-conteste · 429 (5 envois par compte et par 24 h)
+ *                                        deja-conteste · 429 (10 envois par compte et par 24 h)
  * Compte LIMITÉ (décision de Hugo du 15 octobre 2026, docs/decisions.md) : ce que les AUTRES utilisateurs verraient est
  * refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (jusqua : ISO 8601, ou null : jusqu'à nouvel
  * ordre), rien n'est fait. Ici : POST /comptes/moi/suggestions (le gérant les lit) ; POST /comptes/moi/rattachements/:id/

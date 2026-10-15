@@ -3,7 +3,9 @@
 // on juge la publication, pas chaque signalement.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, type ModerationSociale } from "./moderation-sociale.ts";
+import type { AvisGestion } from "../avis-gestion.ts";
 import { CIBLES_AVIS } from "./cibles-moderation.ts";
+import { retablirApresReexamen } from "./decisions-avis.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
 /** Même liste que RAISONS_AVEC_MASQUAGE_IMMEDIAT (packages/commun/src/regles/signalement.ts), que l'API ne peut pas encore importer */
@@ -80,7 +82,9 @@ export type DecisionModeration = { decision: "retenu" | "rejete"; note: string |
  * ceux qui ont signalé (moderation-sociale.ts). Null si le signalement n'existe pas ; « deja-decide » si la décision est déjà
  * prise et pas contestée.
  */
-export async function deciderSignalement(id: number, { decision, note, motif, motivation }: DecisionModeration, social?: ModerationSociale, maintenant = new Date()) {
+export async function deciderSignalement(
+  id: number, { decision, note, motif, motivation }: DecisionModeration, social?: ModerationSociale, maintenant = new Date(), avis?: AvisGestion,
+) {
   const signalement = await baseDeDonnees.signalement.findUnique({ where: { id } });
   if (!signalement) return null;
   const reexamen = signalement.statut !== "a-traiter";
@@ -110,6 +114,10 @@ export async function deciderSignalement(id: number, { decision, note, motif, mo
     return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier };
   });
   const { decides, fichier, ...rendu } = resultat;
+  // Avis ou réponse masqués à la relecture : un réexamen qui donne raison à l'auteur les remet en ligne (points rendus)
+  if (decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible)) {
+    await retablirApresReexamen(avis, signalement.cible, signalement.cibleId, maintenant);
+  }
   await prevenirApresDecision(social, decides, decision, motif, fichier, maintenant);
   return rendu;
 }

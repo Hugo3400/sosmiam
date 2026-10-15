@@ -1,5 +1,5 @@
 // Double en mémoire de l'export de tes données sociales (contrat et mise en forme dans export-social-regles.ts), posé sur les
-// tables partagées : mêmes filtres que la version Prisma (export-social.ts).
+// tables partagées : mêmes filtres que la version Prisma (export-social.ts). Les blocages sont lus par la mise en forme.
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import { creerServicesExportSocial, type DonneesExportSocial, type ServicesExportSocial } from "./export-social-regles.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
@@ -11,6 +11,7 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
   const invitationsGroupes = tables.invitationsGroupes.filter((i) => i.compteId === compteId);
   const conversationIds = new Set([...membre, ...messages.map((m) => m.conversationId), ...invitationsGroupes.map((i) => i.conversationId)]);
   const invitationsSorties = tables.invitationsSorties.filter((i) => i.compteId === compteId);
+  const enAttente = new Set(invitationsSorties.filter((i) => i.statut === "invite").map((i) => i.sortieId));
   const coAuteur = tables.coAuteurs.filter((c) => c.compteId === compteId && c.statut === "accepte").map((c) => c.listeId);
   const abonnementsListes = tables.abonnementsListes.filter((a) => a.compteId === compteId).map((a) => a.listeId);
   const listes = [...tables.listes.values()].filter((l) => l.auteurId === compteId || coAuteur.includes(l.id) || abonnementsListes.includes(l.id));
@@ -20,9 +21,9 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
     bande: tables.bande.filter((b) => b.compteId === compteId),
     demandesEnvoyees: tables.demandes.filter((x) => x.deId === compteId),
     demandesRecues: tables.demandes.filter((x) => x.aId === compteId && x.refuseeLe === null),
-    bloques: tables.blocages.filter((b) => b.bloqueurId === compteId).map((b) => b.bloqueId),
     abonnements: tables.suivis.filter((s) => s.suiveurId === compteId),
     abonnes: tables.suivis.filter((s) => s.suiviId === compteId && s.statut === "accepte"),
+    demandesSuiviRecues: tables.suivis.filter((s) => s.suiviId === compteId && s.statut === "demande"),
     conversations: [...conversationIds].flatMap((id) => {
       const c = tables.conversations.get(id);
       return c ? [{ ...c, titreSortie: sortieDe(id)?.titre ?? null }] : [];
@@ -33,12 +34,13 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
     reactions: tables.reactions.filter((r) => r.compteId === compteId),
     sorties: [...tables.sorties.values()].filter((s) => s.organisateurId === compteId || invitationsSorties.some((i) => i.sortieId === s.id)),
     invitationsSorties,
+    participantsSorties: tables.invitationsSorties.filter((i) => i.statut === "accepte" && enAttente.has(i.sortieId)),
     propositions: [...tables.propositions.values()].filter((p) => p.proposeParId === compteId),
     votes: tables.votes.filter((v) => v.compteId === compteId).flatMap((v) => {
       const p = tables.propositions.get(v.propositionId);
       return p ? [{ sortieId: p.sortieId, lieuId: p.lieuId }] : [];
     }),
-    listes,
+    listes: listes.map((l) => ({ ...l, auteurPrive: tables.comptes.get(l.auteurId)?.prive ?? false })),
     coAuteur,
     abonnementsListes,
     lieuxListes: tables.lieuxListes.filter((l) => listes.some((x) => x.id === l.listeId)),

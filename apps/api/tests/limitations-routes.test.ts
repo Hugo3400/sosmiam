@@ -132,6 +132,10 @@ test("POST /comptes/moi/limitation/contestation : 10 à 1 000 caractères, une s
   // Sans service : 404
   const sans = await demander("POST", "/comptes/moi/limitation/contestation", { jeton, adresse: sansService.adresse, corps: { texte: "Ce n'était pas moi du tout." } });
   assert.deepEqual([sans.statut, sans.corps.erreur], [404, "aucune-limitation"]);
+  // 10 envois par compte et par 24 h, essais refusés compris (6 déjà faits sur cette API)
+  const statuts = [];
+  for (let i = 0; i < 5; i++) statuts.push((await contester("Encore et encore, pour voir.")).statut);
+  assert.deepEqual(statuts, [409, 409, 409, 409, 429]);
 });
 
 test("compte limité : 403 compte-limite sur les suggestions, et sur prénom, pseudo et avatar seulement s'ils CHANGENT", async () => {
