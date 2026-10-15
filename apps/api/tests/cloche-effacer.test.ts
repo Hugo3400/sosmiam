@@ -125,16 +125,16 @@ test("jusqua d'avant 1970 (année 0 ou négative) : 400 sur /vu et /effacer-lues
 
 test("limite de débit : DELETE et effacer-lues partagent celle des gestes, 429 avec Retry-After", async () => {
   const moi = await banc.creerPersonne({ pseudo: "lues.debit" });
-  let premier429 = 0;
-  let r = await moi.demander("DELETE", "/app/cloche/999999");
-  for (let i = 1; i <= LIMITE_GESTES_SOCIAUX.maximum + 1 && r.statut !== 429; i++) {
-    premier429 = i;
-    r = await moi.demander("DELETE", `/app/cloche/${999_999 - i}`);
+  const statuts: number[] = [];
+  let r = await moi.demander("DELETE", "/app/cloche/1000000");
+  while (r.statut !== 429 && statuts.length <= LIMITE_GESTES_SOCIAUX.maximum) {
+    statuts.push(r.statut);
+    r = await moi.demander("DELETE", `/app/cloche/${1_000_001 + statuts.length}`);
   }
-  assert.equal(r.statut, 429);
-  assert.ok(premier429 > 0 && premier429 < LIMITE_GESTES_SOCIAUX.maximum);
-  assert.equal(r.corps.erreur, "trop-de-demandes");
+  assert.deepEqual([r.statut, r.corps.erreur], [429, "trop-de-demandes"]);
   assert.ok(r.entetes.get("retry-after"));
+  assert.ok(statuts.length > 0 && statuts.length <= LIMITE_GESTES_SOCIAUX.maximum, `${statuts.length} demandes avant le 429`);
+  assert.ok(statuts.every((s) => s === 404));
   const lues = await effacerLues(moi);
   assert.deepEqual([lues.statut, lues.corps.erreur], [429, "trop-de-demandes"]);
 });

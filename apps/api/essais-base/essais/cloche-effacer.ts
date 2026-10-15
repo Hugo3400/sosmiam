@@ -70,6 +70,32 @@ vrai(neuve[0]!.id > listee.id);
 await cloche.noter([{ compteId: moi, type: "liste-coauteur", acteurId: lea, cible: { type: "liste", id: "5" } }], heure(5));
 egal((await lignes(moi)).filter((l) => l.type === "liste-coauteur").map((l) => [l.id, l.creeLe]), [[neuve[0]!.id, heure(5).toISOString()]], "puis remontée, jamais en double");
 
+const tom = await creerCompte();
+const sortie = (compteId: number) => ({ compteId, type: "invitation-sortie" as const, acteurId: lea, cible: { type: "sortie" as const, id: "77" }, detail: "Pizza" });
+await cloche.noter([sortie(tom), sortie(autre)], heure(6));
+const tableCloche = base.notificationCloche;
+const baseEnCourse = new Proxy(base, {
+  get(cible, cle, recepteur) {
+    if (cle !== "notificationCloche") return Reflect.get(cible, cle, recepteur);
+    return new Proxy(tableCloche, {
+      get(table, nom, r) {
+        if (nom !== "findFirst") return Reflect.get(table, nom, r);
+        return async (args: Parameters<typeof tableCloche.findFirst>[0]) => {
+          const trouvee = await tableCloche.findFirst(args);
+          if (trouvee) await tableCloche.deleteMany({ where: { id: trouvee.id } });
+          return trouvee;
+        };
+      },
+    });
+  },
+}) as typeof base;
+await creerCloche(creerRelationsSociales(base), baseEnCourse).noter([sortie(tom), sortie(autre)], heure(7));
+egal(
+  [(await lignes(tom)).map((l) => [l.type, l.creeLe]), (await lignes(autre)).filter((l) => l.type === "invitation-sortie").map((l) => l.creeLe)],
+  [[["invitation-sortie", heure(7).toISOString()]], [heure(7).toISOString()]],
+  "effacée pendant noter : une ligne neuve, et le reste de la fournée n'est pas perdu",
+);
+
 const decision = (id: string, quand: Date) =>
   cloche.noter([{ compteId: sansProfil, type: "signalement-decide", acteurId: null, cible: { type: "signalement", id }, detail: "rejete" }], quand);
 await decision("41", heure(0));
