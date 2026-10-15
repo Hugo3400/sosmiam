@@ -26,6 +26,15 @@ export const MOTS_ALCOOL: readonly string[] = [
   "picpoul", "muscat", "champagne", "cremant", "prosecco", "cidre", "pastis", "ricard", "rhum", "whisky", "vodka", "gin",
   "tequila", "mezcal", "kir", "mojito", "sangria", "digestif", "liqueur", "limoncello", "porto", "martini",
   "cognac", "armagnac", "calvados", "caipirinha", "margarita", "ipa",
-  "muscadet", "chardonnay", "sauvignon", "merlot", "syrah", "riesling", "chablis", "sancerre", "beaujolais",
-  "bourbon", "whiskey", "sake", "absinthe", "vermouth", "amaretto", "grappa", "ouzo", "genepi", "hydromel", "mousseux",
+  "muscadet", "chardonnay", "sauvignon", "merlot", "syrah", "riesling",
+  "whiskey", "sake", "absinthe", "vermouth", "amaretto", "grappa", "ouzo", "genepi", "hydromel",
+];
+
+export const EXPRESSIONS_ALCOOL: readonly string[] = [
+  "verre de bourbon", "bouteille de bourbon", "degustation de bourbon", "au bourbon", "bourbon coca", "bourbon cola", "bourbon sour",
+  "un mousseux", "du mousseux", "le mousseux", "au mousseux",
+  "coupe de mousseux", "verre de mousseux", "bouteille de mousseux",
+  "un sancerre", "du sancerre", "verre de sancerre", "bouteille de sancerre", "sancerre blanc", "sancerre rouge", "sancerre rose",
+  "un chablis", "du chablis", "petit chablis", "verre de chablis", "bouteille de chablis", "chablis premier cru", "chablis grand cru",
+  "un beaujolais", "beaujolais nouveau", "beaujolais villages", "verre de beaujolais", "bouteille de beaujolais", "pichet de beaujolais",
 ];
