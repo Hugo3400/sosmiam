@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
+import { AnnonceProfil } from "~/composants/profil/AnnonceProfil";
 import { BoueesSemaine } from "~/composants/profil/BoueesSemaine";
 import { CartePalier } from "~/composants/profil/CartePalier";
 import { ChiffresProfil } from "~/composants/profil/ChiffresProfil";
@@ -106,6 +107,8 @@ export default function Profil() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pt-4" contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 24 }}>
         <EnTeteProfil profil={profil} avatar={avatar} age={age} />
+        {/* Pseudo remplacé par l'équipe, pseudo jamais parti de ce téléphone, prénom gelé : une annonce douce, une fois */}
+        <AnnonceProfil />
         <EntreeSuivis suivis={activite.suivis} age={age} />
         <EntreeFidelite />
         {ambassadeur ? (

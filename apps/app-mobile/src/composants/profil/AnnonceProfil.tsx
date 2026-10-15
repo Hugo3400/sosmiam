@@ -2,7 +2,6 @@ import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 import { AccessibilityInfo, Platform, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ANNONCES_PROFIL, BOUTON_COMPRIS } from "~/contenus/annonces-profil";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
@@ -18,8 +17,8 @@ function decrire(annonce: AnnonceSynchro): { emoji: string; titre: string; texte
   const modele = ANNONCES_PROFIL[annonce.type];
   if (annonce.type === "prenom-limite") {
     // « Compte limité jusqu'au 12 octobre 2026 », ou « pour l'instant » sans date (même titre qu'une alerte « compte-limite »)
-    const titre = decrireEchecVisite("compte-limite", annonce.jusqua ? { jusqua: annonce.jusqua } : undefined).titre;
-    return { emoji: modele.emoji, titre: titre || MESSAGES_SERVICE["compte-limite"].titre, texte: lierPonctuation(modele.texte) };
+    const { titre } = decrireEchecVisite("compte-limite", annonce.jusqua ? { jusqua: annonce.jusqua } : undefined);
+    return { emoji: modele.emoji, titre, texte: lierPonctuation(modele.texte) };
   }
   return { emoji: modele.emoji, titre: modele.titre, texte: lierPonctuation(modele.texte.replace("{pseudo}", annonce.pseudo)) };
 }
@@ -32,19 +31,19 @@ function decrire(annonce: AnnonceSynchro): { emoji: string; titre: string; texte
 export function AnnonceProfil() {
   const router = useRouter();
   const { annonce, fermerAnnonce } = utiliserProfil();
-  const description = annonce ? decrire(annonce) : null;
-  const cle = annonce ? JSON.stringify(annonce) : null;
 
   // Lue une fois au lecteur d'écran, à sa première apparition
   useEffect(() => {
-    if (!cle || !description || dejaDites.has(cle)) return;
+    const cle = annonce ? JSON.stringify(annonce) : null;
+    if (!annonce || !cle || dejaDites.has(cle)) return;
     dejaDites.add(cle);
-    const lu = `${description.titre}. ${description.texte}`;
-    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(lu, { queue: true });
-    else AccessibilityInfo.announceForAccessibility(lu);
-  }, [cle, description]);
+    const { titre, texte } = decrire(annonce);
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(`${titre}. ${texte}`, { queue: true });
+    else AccessibilityInfo.announceForAccessibility(`${titre}. ${texte}`);
+  }, [annonce]);
 
-  if (!annonce || !description) return null;
+  if (!annonce) return null;
+  const description = decrire(annonce);
   const modele = ANNONCES_PROFIL[annonce.type];
 
   return (

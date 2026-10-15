@@ -8,10 +8,13 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { etapesEnvies } from "~/contenus/inscription/envies";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
-/** Mes envies : toutes les catégories, l'une sous l'autre. On coche sur une copie, enregistrée d'un coup. */
+/**
+ * Mes envies : toutes les catégories, l'une sous l'autre. On coche sur une copie, enregistrée d'un coup sur le téléphone ;
+ * avec un compte, elle part ensuite au serveur sans te faire attendre (sans les régimes, qui restent ici), même sans réseau.
+ */
 export default function ReglagesEnvies() {
   const router = useRouter();
-  const { profil, enregistrer } = utiliserProfil();
+  const { profil, modifierEnvies } = utiliserProfil();
   const [envies, setEnvies] = useState<Profil["envies"]>(() => profil?.envies ?? {});
   const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
   if (!profil) return null;
@@ -34,7 +37,7 @@ export default function ReglagesEnvies() {
     if (!profil || !change || enregistrementEnCours) return;
     setEnregistrementEnCours(true);
     try {
-      await enregistrer({ ...profil, envies });
+      await modifierEnvies(envies);
       router.back();
     } catch {
       setEnregistrementEnCours(false);
