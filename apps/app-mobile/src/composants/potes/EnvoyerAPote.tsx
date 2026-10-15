@@ -48,6 +48,8 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const [choisis, setChoisis] = useState<string[]>([]);
   const [mot, setMot] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
+  // Le serveur a refusé l'envoi (compte limité, réseau) : dit au-dessus d'« Envoyer », pas comme une faute du petit mot
+  const [refus, setRefus] = useState<string | null>(null);
   const [envoyesA, setEnvoyesA] = useState<string[] | null>(null);
   // Le dernier envoi : un refus arrivé pour un envoi plus ancien (feuille rouverte depuis) ne touche à rien
   const envoiCourant = useRef(0);
@@ -63,6 +65,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       setChoisis([]);
       setMot("");
       setErreur(null);
+      setRefus(null);
       setEnvoyesA(null);
     }
   }
@@ -72,6 +75,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   function basculer(id: string) {
     vibrerLegerement();
     setErreur(null);
+    setRefus(null);
     setChoisis((avant) => (avant.includes(id) ? avant.filter((x) => x !== id) : [...avant, id]));
   }
 
@@ -86,9 +90,10 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       if (numero !== envoiCourant.current) return;
       const texte = refus === "compte-limite" ? REFUS_LIMITATION.lieuEnvoye : "Ton lieu n'est pas parti : réessaie dans un instant.";
       setEnvoyesA(null);
-      setErreur(texte);
+      setRefus(texte);
       AccessibilityInfo.announceForAccessibility(texte);
     });
+    setRefus(null);
     if (resultat !== "ok") return setErreur(ERREURS_MOT[resultat]);
     const prenoms = potes.filter((p) => ids.includes(p.id)).map((p) => p.prenom);
     setEnvoyesA(prenoms);
@@ -203,6 +208,9 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
             aide={`${mot.length}/${LONGUEUR_MAX_MOT_RECOMMANDATION}`}
             erreur={erreur}
           />
+          {refus ? (
+            <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(refus)}</Text>
+          ) : null}
           <Bouton
             libelle="Envoyer"
             desactive={choisis.length === 0}
