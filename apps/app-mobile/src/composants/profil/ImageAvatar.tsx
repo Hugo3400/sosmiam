@@ -2,7 +2,9 @@ import { Image } from "expo-image";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
+import { construireAdressePhotoProfil } from "@sos-miam/commun/fonctions/compte/construire-adresse-photo-profil";
 import { IMAGES_MIAMIS } from "~/contenus/images-miamis";
+import { ADRESSE_MEDIAS } from "~/services/adresse-api";
 import { AVATAR_PAR_DEFAUT, type Avatar } from "~/stockage/avatar-local";
 
 type Props = {
@@ -15,8 +17,12 @@ type Props = {
 export function ImageAvatar({ avatar, taille }: Props) {
   // Adresse de la photo qui n'a pas voulu se charger : on retente dès que l'avatar change
   const [photoCassee, setPhotoCassee] = useState<string | null>(null);
-  const photo = avatar.type === "photo" && avatar.uri !== photoCassee ? avatar.uri : null;
+  const [photoAffichee, setPhotoAffichee] = useState<string | null>(null);
+  const source = avatar.type === "photo" ? (avatar.uri ?? (avatar.partage ? construireAdressePhotoProfil(avatar.partage, ADRESSE_MEDIAS) : null)) : null;
+  const photo = source !== photoCassee ? source : null;
+  const surLeTelephone = avatar.type === "photo" && avatar.uri !== null;
   const emoji = avatar.type === "emoji" ? avatar.emoji : AVATAR_PAR_DEFAUT.emoji;
+  const tailleEmoji = { fontSize: taille * 0.52, lineHeight: taille * 0.66 };
 
   return (
     <View
@@ -28,11 +34,26 @@ export function ImageAvatar({ avatar, taille }: Props) {
       {avatar.type === "miami" ? (
         <Image source={IMAGES_MIAMIS[avatar.id]} contentFit="cover" style={{ width: "100%", height: "100%" }} />
       ) : photo ? (
-        // Cache en mémoire seulement : la photo est déjà un fichier du téléphone, pas besoin d'une copie sur le disque qui survivrait à « Retirer la photo »
-        <Image source={{ uri: photo }} cachePolicy="memory" contentFit="cover" onError={() => setPhotoCassee(photo)} style={{ width: "100%", height: "100%" }} />
+        <>
+          {photoAffichee === photo ? null : (
+            <Text allowFontScaling={false} style={tailleEmoji}>
+              {AVATAR_PAR_DEFAUT.emoji}
+            </Text>
+          )}
+          <Image
+            source={{ uri: photo }}
+            cachePolicy={surLeTelephone ? "memory" : "memory-disk"}
+            placeholder={photoAffichee && photoAffichee !== photo ? { uri: photoAffichee } : undefined}
+            placeholderContentFit="cover"
+            contentFit="cover"
+            onLoad={() => setPhotoAffichee(photo)}
+            onError={() => setPhotoCassee(photo)}
+            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+          />
+        </>
       ) : (
         // Taille fixe : l'emoji suit le rond, pas la taille de texte du système (sinon il déborde)
-        <Text allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }}>
+        <Text allowFontScaling={false} style={tailleEmoji}>
           {emoji}
         </Text>
       )}

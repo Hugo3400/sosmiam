@@ -1,9 +1,5 @@
 import type { EndroitAlerte, RaisonSignalementMiamSafe } from "@sos-miam/commun/regles/miam-safe";
 
-// Textes et données d'exemple de Miam Safe (décidé le 9 octobre 2026, voir docs/decisions.md).
-// Ton doux et sérieux sur ces écrans : pas de blague, pas d'easter egg.
-
-/** Un numéro d'urgence : appelé (tel:) ou, pour le 114, écrit par SMS (sms:) */
 export type NumeroUrgence = { numero: string; libelle: string; lien: string; lu: string };
 
 export const NUMEROS_URGENCE: readonly NumeroUrgence[] = [
@@ -29,12 +25,11 @@ export const LIBELLES_RAISON_MIAM_SAFE: Record<RaisonSignalementMiamSafe, { titr
   autre: { titre: "Autre chose", detail: "Raconte-nous avec tes mots." },
 };
 
-/**
- * Lieux d'exemple qui ont signé la charte Miam Safe, avec leurs réponses à « Tu t'es senti·e bien ici ? » (démo).
- * Le 18 est le Restaurant du Capitaine Bouiboui, le lieu de démo du mode pro.
- */
-export const LIEUX_MIAM_SAFE_EXEMPLES: Readonly<Record<number, { oui: number; reponses: number }>> = {
+export const LIEUX_SIGNATAIRES_MIAM_SAFE_EXEMPLES: readonly number[] = [0, 4, 18];
+
+export const REPONSES_SENTI_BIEN_EXEMPLES: Readonly<Record<number, { oui: number; reponses: number }>> = {
   0: { oui: 46, reponses: 49 },
+  3: { oui: 23, reponses: 24 },
   4: { oui: 15, reponses: 16 },
   18: { oui: 29, reponses: 31 },
 };

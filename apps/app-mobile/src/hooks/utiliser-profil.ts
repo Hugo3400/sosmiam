@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Profil } from "@sos-miam/commun/types/profil";
+import type { EtatPhotoSynchro } from "~/services/synchro-profil-memoire";
 import type { Avatar } from "~/stockage/avatar-local";
 import type { AnnonceSynchro } from "~/stockage/synchro-profil";
 
@@ -61,13 +62,14 @@ export type EtatProfil = {
   pseudoMisDeCote: string | null;
   /** Efface le profil, l'avatar, la synchro et la visite sans compte du téléphone (retour à la bienvenue) */
   effacer: () => Promise<void>;
-  /** Emoji, Miami ou photo de profil (gardé à part du profil ; avec un compte, l'emoji ou le Miami suit sur le serveur) */
+  /** Emoji, Miami ou photo de profil (gardé à part du profil) */
   avatar: Avatar;
   /**
-   * Change d'avatar, tout de suite sur le téléphone ; l'ancienne photo, s'il y en avait une, en est supprimée. Avec un
-   * compte (hors démo), un emoji ou un Miami part ensuite au serveur ; une photo, jamais
+   * Change d'avatar, tout de suite sur le téléphone ; l'ancienne photo, s'il y en avait une, en est supprimée.
    */
   changerAvatar: (avatar: Avatar) => Promise<void>;
+  retirerPhoto: () => Promise<void>;
+  etatPhoto: EtatPhotoSynchro | null;
 };
 
 export const ContexteProfil = createContext<EtatProfil | null>(null);

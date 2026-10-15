@@ -13,6 +13,7 @@ type Props = {
   visible: boolean;
   /** Dans le rond jaune, en haut de la feuille (pas lu par VoiceOver) */
   emoji: string;
+  personneId?: string;
   /** La question : « Ne plus suivre Léa ? », « Retirer Karim de tes abonnés ? » */
   titre: string;
   /** Ce qui va se passer, en une ou deux phrases */
@@ -42,7 +43,7 @@ const DUREE_FERMETURE = 450;
  * comme Instagram ou TikTok : rien ne se défait sur un seul toucher. Avec un très grand texte, le haut de la feuille défile
  * et les deux boutons restent toujours à l'écran. Animations réduites dans les réglages : elle apparaît en fondu.
  */
-export function FeuilleConfirmation({ visible, emoji, titre, detail, libelleConfirmer, libelleRester, indiceRester, onConfirmer, onRefermee, onFermer }: Props) {
+export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail, libelleConfirmer, libelleRester, indiceRester, onConfirmer, onRefermee, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -99,7 +100,7 @@ export function FeuilleConfirmation({ visible, emoji, titre, detail, libelleConf
             importantForAccessibility="no-hide-descendants"
             className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
           >
-            <EmojiOuMiami valeur={emoji} taille={60} className="text-3xl" />
+            <EmojiOuMiami valeur={emoji} personneId={personneId} taille={60} className="text-3xl" />
           </View>
           <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
             {lierPonctuation(titre)}

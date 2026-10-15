@@ -2,32 +2,42 @@ import { Pressable, Text, View } from "react-native";
 
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 
-/** Les façons d'avoir de l'aide, dans la feuille Miam Safe */
 export type VueAideMiamSafe = "pote" | "comptoir" | "alerte" | "raconter";
 
+export type CharteLueMiamSafe = "signee" | "pas-signee" | "en-cours" | "inconnue";
+
 type Props = {
-  /** Le lieu a signé la charte : la phrase, l'écran et l'alerte silencieuse marchent chez lui */
-  engage: boolean;
+  charte: CharteLueMiamSafe;
   onChoisir: (vue: VueAideMiamSafe) => void;
 };
 
-type Choix = { vue: VueAideMiamSafe; emoji: string; titre: string; detail: string; seulementEngage?: boolean };
+type Choix = { vue: VueAideMiamSafe; emoji: string; titre: string; detail: string };
 
-const CHOIX: readonly Choix[] = [
-  { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Une notification, et ta position pendant 1 h." },
-  { vue: "comptoir", emoji: "🛎", titre: "Demander au comptoir", detail: "Une phrase à dire, ou un écran à montrer.", seulementEngage: true },
-  { vue: "alerte", emoji: "🤫", titre: "Alerter le comptoir en silence", detail: "Si tu ne peux pas y aller.", seulementEngage: true },
-  { vue: "raconter", emoji: "✏️", titre: "Raconter ce qui s'est passé", detail: "Reste entre toi et notre équipe." },
-];
+const SOUCI_EQUIPE = "Le souci vient de l'équipe du lieu ? Appelle plutôt un proche ou les secours.";
 
-/** Le premier écran de Miam Safe : les secours d'abord, puis les autres façons d'avoir de l'aide. */
-export function ChoixAideMiamSafe({ engage, onChoisir }: Props) {
-  const choix = CHOIX.filter((c) => engage || !c.seulementEngage);
+const TEXTES_CHARTE: Record<Exclude<CharteLueMiamSafe, "signee">, string> = {
+  "pas-signee":
+    "Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe, et l'alerte silencieuse n'y marche pas. L'écran lui dit quoi faire, en clair.",
+  "en-cours": "On vérifie si ce lieu a signé la charte Miam Safe…",
+  inconnue: "On n'a pas pu vérifier si ce lieu a signé la charte Miam Safe.",
+};
+
+function listerChoix(signee: boolean): Choix[] {
+  return [
+    { vue: "pote", emoji: "👋", titre: "Prévenir un pote", detail: "Une notification, et ta position pendant 1 h." },
+    { vue: "comptoir", emoji: "🛎", titre: "Demander au comptoir", detail: signee ? "Une phrase à dire, ou un écran à montrer." : "Un écran à montrer à l'équipe." },
+    ...(signee ? [{ vue: "alerte" as const, emoji: "🤫", titre: "Alerter le comptoir en silence", detail: "Si tu ne peux pas y aller." }] : []),
+    { vue: "raconter", emoji: "✏️", titre: "Raconter ce qui s'est passé", detail: "Reste entre toi et notre équipe." },
+  ];
+}
+
+export function ChoixAideMiamSafe({ charte, onChoisir }: Props) {
+  const signee = charte === "signee";
   return (
     <View className="gap-4">
       <NumerosUrgence />
       <View className="gap-2">
-        {choix.map((c) => (
+        {listerChoix(signee).map((c) => (
           <Pressable
             key={c.vue}
             accessibilityRole="button"
@@ -45,11 +55,12 @@ export function ChoixAideMiamSafe({ engage, onChoisir }: Props) {
           </Pressable>
         ))}
       </View>
-      {engage ? (
-        <Text className="text-center font-texte text-sm leading-5 text-gris">Le souci vient de l'équipe du lieu ? Appelle plutôt un proche ou les secours.</Text>
-      ) : (
-        <Text className="text-center font-texte text-sm leading-5 text-gris">Ce lieu n'a pas encore signé la charte Miam Safe : son équipe ne connaît pas la phrase.</Text>
+      {signee ? null : (
+        <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm leading-5 text-gris">
+          {TEXTES_CHARTE[charte]}
+        </Text>
       )}
+      <Text className="text-center font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
     </View>
   );
 }

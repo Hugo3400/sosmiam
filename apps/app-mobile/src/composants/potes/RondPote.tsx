@@ -26,7 +26,7 @@ export function RondPote({ pote, taille }: Props) {
       className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune-clair"
     >
       {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système ; un Miami remplit l'intérieur du rond */}
-      <EmojiOuMiami valeur={pote.avatar} taille={taille - 4} allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }} />
+      <EmojiOuMiami valeur={pote.avatar} personneId={pote.id} taille={taille - 4} allowFontScaling={false} style={{ fontSize: taille * 0.52, lineHeight: taille * 0.66 }} />
     </View>
   );
 }

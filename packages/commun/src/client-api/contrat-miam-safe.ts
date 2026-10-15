@@ -10,7 +10,7 @@ export interface ServiceMiamSafe {
   /** Sans compte : le badge et le repère d'un lieu publié (« lieu-inconnu » sinon) */
   lireLieu(lieuId: number): Promise<ReponseApi<MiamSafeLieu>>;
   /** « pas-miam-safe » : le lieu n'a pas de charte active (proposer les secours ou un pote) ; « trop-de-demandes » : 3 par 10 min */
-  envoyerAlerte(alerte: { lieuId: number; endroit: EndroitAlerte; detail: string }): Promise<ReponseApi<{ id: number }>>;
+  envoyerAlerte(alerte: { lieuId: number; endroit: EndroitAlerte; detail: string }): Promise<ReponseApi<{ id: number; telephones?: number }>>;
   suivreAlerte(alerteId: number): Promise<ReponseApi<{ alerte: AlerteSuivie }>>;
   signaler(signalement: { lieuId: number; raison: RaisonSignalementMiamSafe; explication: string }): Promise<ReponseApi>;
   repondreSentiBien(lieuId: number, oui: boolean): Promise<ReponseApi>;

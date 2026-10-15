@@ -1,14 +1,13 @@
-// Miam Safe joué sur le téléphone (source « demo ») : mêmes règles que l'API (apps/api/src/routes/miam-safe.ts), données
-// d'exemple (contenus/miam-safe.ts), rien n'est envoyé. L'équipe du Capitaine Bouiboui répond « On arrive » toute seule.
 import type { ServiceMiamSafe } from "@sos-miam/commun/client-api/contrat-miam-safe";
 import { calculerRepereSentiBien } from "@sos-miam/commun/fonctions/miam-safe/calculer-repere-senti-bien";
+import { peutAgirAuComptoir } from "@sos-miam/commun/fonctions/roles/peut-agir-au-comptoir";
+import { peutReglerLieu } from "@sos-miam/commun/fonctions/roles/peut-regler-lieu";
 import { DELAI_RELANCE_ALERTE_SECONDES, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
 import type { CharteMiamSafe, StatutAlerteMiamSafe } from "@sos-miam/commun/types/miam-safe";
-import { LIEUX_MIAM_SAFE_EXEMPLES } from "~/contenus/miam-safe";
+import { LIEUX_SIGNATAIRES_MIAM_SAFE_EXEMPLES, REPONSES_SENTI_BIEN_EXEMPLES } from "~/contenus/miam-safe";
 
 import type { ContexteDemo } from "./types-demo";
 
-/** Démo : l'équipe répond « On arrive » au bout de quelques secondes */
 const REPONSE_DEMO_MS = 4000;
 
 type AlerteDemo = { id: number; lieuId: number; endroit: EndroitAlerte; detail: string; creeLe: number; repondueLe: number | null };
@@ -18,11 +17,10 @@ function calculerStatut(a: AlerteDemo, maintenant: number): StatutAlerteMiamSafe
   return maintenant - a.creeLe >= DELAI_RELANCE_ALERTE_SECONDES * 1000 ? "sans-reponse" : "envoyee";
 }
 
-/** Le prénom du client de la démo, tel que l'équipe le verrait au comptoir ; l'heure de la démo */
-export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "maintenant">): ServiceMiamSafe {
+export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "lireRoles" | "maintenant">): ServiceMiamSafe {
   const lirePrenom = () => ctx.lireClient()?.prenom ?? "Quelqu'un";
   const chartes = new Map<number, CharteMiamSafe>(
-    Object.keys(LIEUX_MIAM_SAFE_EXEMPLES).map((id) => [Number(id), { signee: true, signeeLe: "2026-10-09T10:00:00.000Z", retireeParEquipe: false }]),
+    LIEUX_SIGNATAIRES_MIAM_SAFE_EXEMPLES.map((id) => [id, { signee: true, signeeLe: "2026-10-09T10:00:00.000Z", retireeParEquipe: false }]),
   );
   const alertes: AlerteDemo[] = [];
   let prochaine = 0;
@@ -31,7 +29,7 @@ export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "mainte
 
   return {
     async lireLieu(lieuId) {
-      const reponses = LIEUX_MIAM_SAFE_EXEMPLES[lieuId];
+      const reponses = REPONSES_SENTI_BIEN_EXEMPLES[lieuId];
       return { ok: true, engage: engage(lieuId), repere: reponses ? calculerRepereSentiBien(reponses.oui, reponses.reponses) : false };
     },
     async envoyerAlerte({ lieuId, endroit, detail }) {
@@ -39,7 +37,7 @@ export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "mainte
       const maintenant = ctx.maintenant();
       const id = ++prochaine;
       alertes.push({ id, lieuId, endroit, detail: detail.trim().slice(0, 80), creeLe: maintenant, repondueLe: maintenant + REPONSE_DEMO_MS });
-      return { ok: true, id };
+      return { ok: true, id, telephones: 1 };
     },
     async suivreAlerte(alerteId) {
       const a = alertes.find((x) => x.id === alerteId);
@@ -72,17 +70,20 @@ export function creerMiamSafeDemo(ctx: Pick<ContexteDemo, "lireClient" | "mainte
       return { ok: true };
     },
     async lireCharte(lieuId) {
+      if (!peutAgirAuComptoir(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
       return { ok: true, charte: charte(lieuId) };
     },
     async signerCharte(lieuId) {
-      chartes.set(lieuId, { signee: true, signeeLe: new Date().toISOString(), retireeParEquipe: false });
+      if (!peutReglerLieu(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      if (charte(lieuId).retireeParEquipe) return { ok: false, erreur: "charte-retiree" };
+      if (!engage(lieuId)) chartes.set(lieuId, { signee: true, signeeLe: new Date(ctx.maintenant()).toISOString(), retireeParEquipe: false });
       return { ok: true, charte: charte(lieuId) };
     },
     async quitterCharte(lieuId) {
-      chartes.set(lieuId, { signee: false, signeeLe: null, retireeParEquipe: false });
+      if (!peutReglerLieu(ctx.lireRoles(), lieuId)) return { ok: false, erreur: "role-requis" };
+      if (engage(lieuId)) chartes.set(lieuId, { signee: false, signeeLe: null, retireeParEquipe: false });
       return { ok: true, charte: charte(lieuId) };
     },
-    // « Prévenir un pote » : jamais joué en démo (on ne fait pas croire qu'un pote est prévenu) ; l'écran le dit
     prevenirPote: async () => ({ ok: false, erreur: "service-indisponible" }),
     envoyerPosition: async () => ({ ok: false, erreur: "partage-inconnu" }),
     arreterPartage: async () => ({ ok: false, erreur: "partage-inconnu" }),

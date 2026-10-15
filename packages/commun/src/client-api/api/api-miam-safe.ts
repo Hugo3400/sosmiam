@@ -7,7 +7,7 @@ import type { ServiceMiamSafe } from "../contrat-miam-safe.ts";
 export function creerMiamSafeApi(client: ClientHttp): ServiceMiamSafe {
   return {
     lireLieu: (lieuId) => client.demander<MiamSafeLieu>("GET", `/miam-safe/lieux/${lieuId}`, { session: false }),
-    envoyerAlerte: (alerte) => client.demander<{ id: number }>("POST", "/miam-safe/alertes", { corps: alerte }),
+    envoyerAlerte: (alerte) => client.demander<{ id: number; telephones?: number }>("POST", "/miam-safe/alertes", { corps: alerte }),
     suivreAlerte: (alerteId) => client.demander<{ alerte: AlerteSuivie }>("GET", `/miam-safe/alertes/${alerteId}`),
     signaler: (signalement) => client.demander("POST", "/miam-safe/signalements", { corps: signalement }),
     repondreSentiBien: (lieuId, oui) => client.demander("PUT", `/miam-safe/lieux/${lieuId}/senti-bien`, { corps: { oui } }),

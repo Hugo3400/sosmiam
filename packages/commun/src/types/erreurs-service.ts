@@ -98,6 +98,7 @@ export type ErreurService =
   | "lieu-sans-position"
   | "pas-miam-safe"
   | "charte-retiree"
+  | "visite-requise"
   | "pote-inconnu"
   | "partage-inconnu"
   | "partage-termine"

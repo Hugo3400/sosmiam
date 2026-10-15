@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
   visible: boolean;
@@ -39,6 +40,7 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMo
   // « Je m'inscris » touché, feuille pas encore refermée
   const inscription = useRef(false);
   const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
+  utiliserInscriptionFeuille(visible, onFermer);
 
   // VoiceOver commence par le titre (sinon il tombe sur le fond « Fermer »), une fois la feuille arrivée
   useEffect(() => {

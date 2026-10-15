@@ -16,7 +16,7 @@ import { utiliserSortiesCompte } from "~/hooks/utiliser-sorties-compte";
  * commentaires ont leur propre hook (utiliserCommentairesPublication). Ton identifiant est l'identifiant public de ton profil social (« » tant qu'il
  * n'existe pas). Les données du téléphone te désignent toujours par « moi » : trouverPote le reconnaît encore.
  */
-export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute): EtatCommunaute {
+export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute): EtatCommunaute & { bloquesLus: boolean } {
   const bande = utiliserBandeCompte(actif);
   const monId = bande.moiSocial?.personne.id ?? "";
   const { noterPersonne, estMasque, masquer, demasquer, bloques } = bande;
@@ -25,7 +25,7 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
   const lieuxEnvoyes = utiliserLieuxEnvoyesCompte(actif, { monId, noterPersonne, bloques, estMasque, masquer, demasquer });
   const signalements = utiliserSignalementsCompte(actif);
 
-  return useMemo((): EtatCommunaute => {
+  return useMemo((): EtatCommunaute & { bloquesLus: boolean } => {
     const personne = bande.moiSocial?.personne;
     const moi: Pote = {
       ...locale.moi,
@@ -58,6 +58,7 @@ export function utiliserCommunauteCompte(actif: boolean, locale: EtatCommunaute)
       // Plus de notion « ajouté en vrai » : le serveur a vérifié chaque arrivée dans la bande (lien, QR code ou demande acceptée)
       moyenAjout: (id) => (potes.some((p) => p.id === id) ? "lien" : undefined),
       bloques: bande.bloques,
+      bloquesLus: bande.bloquesLus,
       bloquer: bande.bloquer,
       debloquer: bande.debloquer,
       activites: bande.activites,

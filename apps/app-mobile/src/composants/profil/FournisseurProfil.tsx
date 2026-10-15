@@ -3,19 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Platform } from "react-native";
 
 import type { Profil } from "@sos-miam/commun/types/profil";
+import { preparerPhotoProfil } from "~/fonctions/compte/preparer-photo-profil";
 import { ContexteProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSynchroProfil } from "~/hooks/utiliser-synchro-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import {
-  AVATAR_PAR_DEFAUT,
-  effacerAvatarLocal,
-  enregistrerAvatarLocal,
-  garderPhotoAvatar,
-  lireAvatarLocal,
-  supprimerPhotoAvatar,
-  type Avatar,
-} from "~/stockage/avatar-local";
+import { AVATAR_PAR_DEFAUT, effacerAvatarLocal, garderPhotoAvatar, lireAvatarLocal, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
 import { effacerModeInvite, enregistrerModeInvite, lireModeInvite } from "~/stockage/mode-invite";
 import { effacerProfilLocal, lireProfilLocal } from "~/stockage/profil-local";
 import { lireVerrouAge } from "~/stockage/verrou-age";
@@ -24,21 +17,15 @@ import { lireVerrouAge } from "~/stockage/verrou-age";
  * Android peut fermer l'app pendant l'appareil photo ou le recadrage : la photo choisie attend alors dans le sélecteur.
  * On la reprend comme avatar au démarrage suivant ; au moindre souci, on garde l'avatar actuel.
  */
-async function reprendrePhotoEnAttente(actuel: Avatar): Promise<Avatar> {
-  if (Platform.OS !== "android") return actuel;
-  let uri: string | null = null;
+async function reprendrePhotoEnAttente(): Promise<string | null> {
+  if (Platform.OS !== "android") return null;
   try {
     const enAttente = await ImagePicker.getPendingResultAsync();
     // Une erreur du sélecteur n'a pas de « canceled » : rien à reprendre
-    if (!enAttente || !("canceled" in enAttente) || enAttente.canceled || enAttente.assets.length === 0) return actuel;
-    uri = await garderPhotoAvatar(enAttente.assets[0].uri);
-    const nouveau: Avatar = { type: "photo", uri };
-    await enregistrerAvatarLocal(nouveau);
-    if (actuel.type === "photo") supprimerPhotoAvatar(actuel.uri);
-    return nouveau;
+    if (!enAttente || !("canceled" in enAttente) || enAttente.canceled || enAttente.assets.length === 0) return null;
+    return await garderPhotoAvatar(await preparerPhotoProfil(enAttente.assets[0].uri));
   } catch {
-    if (uri) supprimerPhotoAvatar(uri);
-    return actuel;
+    return null;
   }
 }
 
@@ -49,7 +36,7 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
  * Lit le profil, l'avatar et la visite sans compte au démarrage et les met à disposition de toute l'app (voir utiliserProfil).
  * Une visite sans compte ne reprend pas si un profil existe ou si un verrou d'âge est posé sur ce téléphone (retour à l'inscription).
  * Avec un compte connecté (hors démo), le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil), et
- * ton avatar avec (l'emoji ou le Miami : une photo reste sur le téléphone).
+ * ton avatar avec.
  */
 export function FournisseurProfil({ children }: { children: ReactNode }) {
   const session = utiliserSession();
@@ -61,8 +48,8 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
     afficherProfil: setProfilAffiche,
     afficherAvatar: setAvatar,
   });
-  const { poserProfil: setProfil, poserAvatar, modifierAvatar: changerAvatar, installer, oublier, modifierInfos, modifierEnvies } = synchro;
-  const { annonce, fermerAnnonce, pseudoMisDeCote } = synchro;
+  const { poserProfil: setProfil, poserAvatar, modifierAvatar: changerAvatar, retirerPhoto, installer, oublier, modifierInfos, modifierEnvies } = synchro;
+  const { annonce, fermerAnnonce, pseudoMisDeCote, etatPhoto } = synchro;
 
   const [inviteBrut, setInvite] = useState(false);
   const [chargement, setChargement] = useState(true);
@@ -74,20 +61,21 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       const [lu, avatarLu, inviteLue] = await Promise.all([lireProfilLocal(), lireAvatarLocal(), lireModeInvite()]);
-      const avatarFinal = lu ? await reprendrePhotoEnAttente(avatarLu) : avatarLu;
+      const photoReprise = lu ? await reprendrePhotoEnAttente() : null;
       let inviteFinale = false;
       if (inviteLue) {
         if (lu || (await lireVerrouAge())) await oublierModeInvite();
         else inviteFinale = true;
       }
       // L'avatar avant le profil : la synchro (qui démarre avec le profil) ne tourne jamais sans lui
-      poserAvatar(avatarFinal);
+      poserAvatar(avatarLu);
       setProfil(lu);
       setInvite(inviteFinale);
+      if (photoReprise) await changerAvatar({ type: "photo", uri: photoReprise, partage: "a-envoyer" }).catch(() => supprimerPhotoAvatar(photoReprise));
     })()
       .catch(() => {})
       .finally(() => setChargement(false));
-  }, [setProfil, poserAvatar]);
+  }, [setProfil, poserAvatar, changerAvatar]);
 
   // La visite est à l'écran (garde des écrans comprise) : on prévient ceux qui attendaient pour y naviguer
   useEffect(() => {
@@ -136,9 +124,12 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   const valeur = useMemo(
     () => ({
       profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote,
-      effacer, avatar, changerAvatar,
+      effacer, avatar, changerAvatar, retirerPhoto, etatPhoto,
     }),
-    [profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote, effacer, avatar, changerAvatar],
+    [
+      profil, chargement, invite, entrerEnInvite, quitterInvite, enregistrer, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote, effacer,
+      avatar, changerAvatar, retirerPhoto, etatPhoto,
+    ],
   );
   return <ContexteProfil.Provider value={valeur}>{children}</ContexteProfil.Provider>;
 }

@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { BoutonSecoursMiamSafe } from "~/composants/miam-safe/BoutonSecoursMiamSafe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
 
@@ -27,7 +28,7 @@ export function LieuEnAttente({ horsLigne, onReessayer }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <StatusBar style="dark" />
-      <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
+      <View className="min-h-14 flex-row items-center justify-between px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
@@ -37,6 +38,7 @@ export function LieuEnAttente({ horsLigne, onReessayer }: Props) {
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
+        {horsLigne ? <BoutonSecoursMiamSafe sansInternet /> : null}
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="items-center gap-4 px-8 pb-10 pt-4">

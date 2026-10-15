@@ -101,8 +101,8 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="q/[code]" />
         </Stack.Protected>
       </Stack>
-      {/* Une écriture refusée parce que le compte est limité, n'importe où : une seule annonce douce, au-dessus de tout */}
       <AnnonceAppOuverture />
+      {/* Une écriture refusée parce que le compte est limité, n'importe où : une seule annonce douce, au-dessus de tout */}
       <AnnonceCompteLimite />
     </>
   );

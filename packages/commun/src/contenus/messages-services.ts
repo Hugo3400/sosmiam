@@ -468,6 +468,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Charte retirée par l'équipe",
     texte: "L'équipe SOS Miam a retiré la charte de ce lieu. Écris-nous à bonjour@sosmiam.fr pour en parler.",
   },
+  "visite-requise": {
+    emoji: "🧾",
+    titre: "Après une visite seulement",
+    texte: "On te pose la question après une visite validée dans ce lieu : c'est ce qui rend le repère fiable.",
+  },
   "pote-inconnu": {
     emoji: "👋",
     titre: "Cette personne n'est plus dans ta bande",

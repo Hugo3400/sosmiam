@@ -6,6 +6,7 @@ type Props = {
   nom: string;
   /** Son emoji (🎬 pour un créateur, celui du lieu, l'avatar d'une personne), dans le rond jaune */
   emoji: string;
+  personneId?: string;
   /** Ce qui va se passer ; par défaut, le texte des lieux et des créateurs (« Ses publications ne passeront plus en tête de ton fil… ») */
   detail?: string;
   /** « Ne plus suivre » touché : arrête le suivi tout de suite (une seule fois, même sur un double appui). La feuille appelle ensuite onFermer. */
@@ -25,11 +26,12 @@ const DETAIL_PAR_DEFAUT = "Ses publications ne passeront plus en tête de ton fi
  * Petite feuille qui monte du bas avant d'arrêter de suivre un lieu, un créateur ou une personne (comme Instagram ou TikTok) :
  * on ne désabonne jamais sur un seul toucher. « Ne plus suivre » ou « Je reste » (la feuille générique FeuilleConfirmation).
  */
-export function FeuilleNePlusSuivre({ visible, nom, emoji, detail = DETAIL_PAR_DEFAUT, onConfirmer, onRefermee, onFermer }: Props) {
+export function FeuilleNePlusSuivre({ visible, nom, emoji, personneId, detail = DETAIL_PAR_DEFAUT, onConfirmer, onRefermee, onFermer }: Props) {
   return (
     <FeuilleConfirmation
       visible={visible}
       emoji={emoji}
+      personneId={personneId}
       titre={`Ne plus suivre ${nom} ?`}
       detail={detail}
       libelleConfirmer="Ne plus suivre"

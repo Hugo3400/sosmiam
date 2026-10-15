@@ -36,6 +36,7 @@ export type BandeCompte = {
   pseudoRequis: boolean;
   potes: Pote[];
   bloques: Pote[];
+  bloquesLus: boolean;
   demandesRecues: Pote[];
   demandesEnvoyees: Pote[];
   activites: ActivitePote[];
@@ -74,6 +75,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
   const [pseudoRequis, setPseudoRequis] = useState(false);
   const [bande, setBande] = useState<BandeApi | null>(null);
   const [bloquesApi, setBloquesApi] = useState<PersonneResume[]>([]);
+  const [bloquesLus, setBloquesLus] = useState(false);
   const [activitesApi, setActivitesApi] = useState<ActiviteBandeApi[]>([]);
   const [classement, setClassement] = useState<ClassementApi | null>(null);
   const [masques, setMasques] = useState<ReadonlySet<string>>(new Set());
@@ -91,7 +93,10 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
     const [b, bl] = await Promise.all([sociaux.bande.lireBande(), sociaux.bande.listerBloques()]);
     if (!tant(g)) return;
     if (b.ok) setBande(b.bande);
-    if (bl.ok) setBloquesApi(bl.bloques);
+    if (bl.ok) {
+      setBloquesApi(bl.bloques);
+      setBloquesLus(true);
+    }
     setHorsLigne(!b.ok);
   }, [sociaux, tant]);
 
@@ -118,6 +123,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
       setPseudoRequis(false);
       setBande(null);
       setBloquesApi([]);
+      setBloquesLus(false);
       setActivitesApi([]);
       setClassement(null);
       setMasques(new Set());
@@ -305,6 +311,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
       pseudoRequis,
       potes: enPotes(bande?.membres),
       bloques: bloquesApi.map((p) => annuaire.get(p.id) ?? convertirPersonneEnPote(p)),
+      bloquesLus,
       demandesRecues: enPotes(bande?.demandesRecues),
       demandesEnvoyees: enPotes(bande?.demandesEnvoyees),
       activites: activitesApi
@@ -332,7 +339,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
       },
     };
   }, [
-    pret, horsLigne, moiSocial, pseudoRequis, bande, bloquesApi, activitesApi, classement, masques, annuaire, idsBloques, enPotes, trouverPote,
+    pret, horsLigne, moiSocial, pseudoRequis, bande, bloquesApi, bloquesLus, activitesApi, classement, masques, annuaire, idsBloques, enPotes, trouverPote,
     ouvrirProfil, rejoindre, demander, accepter, retirerDemande, retirer, bloquer, debloquer, changerMasque, noterPersonne, chargerBande, chargerActivite, chargerMasques,
   ]);
 }
