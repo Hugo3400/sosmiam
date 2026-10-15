@@ -118,7 +118,8 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
     },
     auteurContenuId: m.auteurId,
     lieuId: null,
-    // Gardé sur le disque tant que le signalement n'est pas jugé (même si le message part), seulement s'il n'a pas expiré
+    // Gardé sur le disque tant que le signalement est ouvert, ou jugé (ou réexaminé) depuis moins de 183 jours, même si le
+    // message part (signalementsGardantLeurFichier) ; seulement s'il n'a pas expiré
     fichierMedia: avecMedia && m.mediaExpireLe && m.mediaExpireLe > maintenant ? m.fichier : null,
   };
 }

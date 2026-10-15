@@ -265,8 +265,8 @@ export function effacerMasquesAnciens(base: BaseMenage, seuils: SeuilsMenageSoci
 /**
  * Étape 7 : contenus retirés par la modération depuis plus d'un an (la durée de garde des signalements après décision), sauf
  * si la décision est contestée et pas encore réexaminée (un réexamen peut remettre le contenu en ligne) :
- * - messages : texte chiffré et fichier à NULL (le fichier part du disque, sauf si un signalement le garde : jugé, ou
- *   réexaminé, depuis moins de 183 jours) ; le message reste « retiré » ;
+ * - messages : texte chiffré et fichier à NULL (le fichier part du disque, sauf si un signalement le garde : ouvert, ou
+ *   jugé, ou réexaminé, depuis moins de 183 jours) ; le message reste « retiré » ;
  * - commentaires : effacés s'ils n'ont pas de réponse ; sinon texte et mentions vidés, « Commentaire supprimé » ;
  * - listes : effacées (leurs lieux, co-auteurs et abonnés partent en cascade).
  * Puis les commentaires « supprimés » (supprime_le) qui n'ont plus ni réponse ni signalement ouvert : effacés.

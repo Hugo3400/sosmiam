@@ -34,8 +34,9 @@ export const LIMITE_SIGNALEMENTS_SOCIAUX = { fenetre: 24 * 60 * 60_000, maximum:
  *
  * Enregistré dans une seule transaction : { cible, cibleId, signaleParId, auteurContenuId, lieuId (commentaire : celui de
  * la publication), raison, precision, explication, source: "app" }, puis, avec son id, l'instantané chiffré et, pour une
- * photo ou une note vocale, son fichier (gardé sur le disque tant que le signalement n'est pas jugé). Ce qu'on a signalé
- * reste caché pour soi tant que le signalement existe (1 an après la décision).
+ * photo ou une note vocale, son fichier (gardé sur le disque tant que le signalement est ouvert, ou jugé, ou réexaminé,
+ * depuis moins de 183 jours : signalementsGardantLeurFichier). Ce qu'on a signalé reste caché pour soi tant que le
+ * signalement existe (1 an après la décision).
  */
 export function creerRoutesSignalementsSociaux(d: Pick<DependancesSocialApp, "signalements" | "chiffrement">, contexte: ContexteRoutesSociales) {
   const c = creerControleursSignalementsSociaux(d, contexte.horloge, contexte.appliquer);

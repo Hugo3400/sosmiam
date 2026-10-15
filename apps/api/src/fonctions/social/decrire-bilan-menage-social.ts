@@ -7,7 +7,8 @@ import type { BilanMenageSocial } from "../../services/menage-social.ts";
  * de suite, sans ligne « étape(s) ratée(s) » qui cite « rechiffrement » ces nuits-là (règle de fin de
  * docs/procedure-changement-cle.md, comme rechiffrerSocial). Un seul « 0 restant(s) » ne suffit pas : la nuit d'après,
  * l'étape 8 retire les anciens fichiers rechiffrés, et le rechiffrement reprend un fichier qu'un signalement aurait cité
- * entre-temps sous son ancien nom.
+ * entre-temps sous son ancien nom. Une nuit où le disque est presque plein, une ligne de plus dit que le rechiffrement des
+ * fichiers est en pause, et combien attendent de la place : sans elle, les restants ne baissent pas sans raison visible.
  */
 export function decrireBilanMenageSocial(bilan: BilanMenageSocial): [number, string][] {
   const lignes: [number, string][] = [
@@ -31,6 +32,9 @@ export function decrireBilanMenageSocial(bilan: BilanMenageSocial): [number, str
   const visibles = lignes.filter(([nombre]) => nombre > 0);
   const r = bilan.rechiffrement;
   if (r) visibles.push([r.rechiffres, `Chiffrés sociaux réécrits avec la nouvelle clé (${r.illisibles} illisible(s), ${r.restants} restant(s))`]);
+  if (r && r.enAttenteDePlace > 0) {
+    visibles.push([r.enAttenteDePlace, `Rechiffrement des fichiers du chat en pause : le disque est presque plein (${r.enAttenteDePlace} fichier(s) attendent de la place, comptés dans les restants)`]);
+  }
   if (bilan.etapesRatees.length > 0) visibles.push([bilan.etapesRatees.length, `Ménage social : étape(s) ratée(s) (${bilan.etapesRatees.join(", ")}), voir le journal du serveur`]);
   return visibles;
 }

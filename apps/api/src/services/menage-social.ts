@@ -21,8 +21,9 @@ import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 
 /** Les nombres des étapes 1 à 8 (CompteursMenageSocial, menage-social-etapes.ts), puis le rechiffrement et les échecs */
 export type BilanMenageSocial = CompteursMenageSocial & {
-  /** Changement de clé des données : chiffrés réécrits, illisibles, restants ; null hors changement de clé, ou si l'étape a
-   *  échoué (jamais un décompte partiel, qui pourrait annoncer un faux « 0 restant(s) ») */
+  /** Changement de clé des données : chiffrés réécrits, illisibles, restants, fichiers en attente de place (disque presque
+   *  plein) ; null hors changement de clé, ou si l'étape a échoué (jamais un décompte partiel, qui pourrait annoncer un faux
+   *  « 0 restant(s) ») */
   rechiffrement: BilanRechiffrementSocial | null;
   /** Les étapes dont quelque chose a échoué (leur nom seulement, une fois) ; le reste a été fait */
   etapesRatees: string[];

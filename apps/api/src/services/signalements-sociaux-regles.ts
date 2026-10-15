@@ -63,7 +63,8 @@ export type ContenuLu = {
   auteurContenuId: number | null;
   /** Commentaire : le lieu de la publication ; sinon null */
   lieuId: number | null;
-  /** Photo ou note vocale encore là : son fichier chiffré, gardé tant que le signalement n'est pas jugé */
+  /** Photo ou note vocale encore là : son fichier chiffré, gardé tant que le signalement est ouvert, ou jugé (ou réexaminé)
+   *  depuis moins de 183 jours (signalementsGardantLeurFichier, services/effacer-conversations.ts) */
   fichierMedia: string | null;
 };
 

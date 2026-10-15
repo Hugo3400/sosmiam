@@ -24,6 +24,10 @@ export type BilanRechiffrementSocial = {
    *  plus (il ne sert plus : l'étape 8 le retire la nuit suivante). Égal à `illisibles` deux nuits de suite : l'ancienne
    *  clé ne sert plus à rien */
   restants: number;
+  /** Fichiers anciens qui attendent de la place (déjà comptés dans `restants`) : le disque est passé sous PART_LIBRE_MIN_DISQUE
+   *  + MARGE_PART_LIBRE_RECHIFFREMENT, le rechiffrement des fichiers s'est mis en pause pour la nuit ; 0 : pas de pause. Un
+   *  nombre seulement : il dit au journal du logiciel pourquoi les restants ne baissent pas */
+  enAttenteDePlace: number;
 };
 
 export type OptionsRechiffrementSocial = {
@@ -80,7 +84,7 @@ const TABLES: readonly TableChiffree[] = [
 async function rechiffrerTable(
   base: BaseMenage, social: ChiffrementSocial, t: TableChiffree, taille: number, paquets: number, journal: JournalIllisibles,
 ): Promise<BilanRechiffrementSocial> {
-  const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0 };
+  const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0, enAttenteDePlace: 0 };
   const [table, cle, colonne] = [Prisma.raw(t.table), Prisma.raw(t.cle), Prisma.raw(t.colonne)];
   // « v12: » ne commence pas par « v1: » : le motif ne prend jamais la clé courante pour une autre
   const ancien = Prisma.sql`${colonne} IS NOT NULL AND ${colonne} NOT LIKE ${`v${social.versionCourante}:%`}`;
@@ -129,7 +133,8 @@ async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaCha
  * fichier. Mais tout ce qui s'écrit depuis le changement l'est avec la clé courante, et un fichier réécrit est neuf : rangés
  * par date de modification, les fichiers anciens viennent tous EN TÊTE. On les reprend dans cet ordre, et on s'arrête après
  * 20 fichiers courants de suite ; si le plafond de la nuit est atteint avant, ou si le disque passe sous PART_LIBRE_MIN_DISQUE
- * + MARGE_PART_LIBRE_RECHIFFREMENT (relu avant chaque écriture), ce qui reste d'anciens se compte par dichotomie.
+ * + MARGE_PART_LIBRE_RECHIFFREMENT (relu avant chaque écriture), ce qui reste d'anciens se compte par dichotomie (disque
+ * presque plein : aussi dans `enAttenteDePlace`, pour que le journal du logiciel dise la pause).
  * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), il est forcé sur
  * le disque (fsync, StockageMediasChat.ecrire), puis la base passe au nouveau nom : le message, et TOUS les signalements qui
  * citent l'ancien, ouverts ou jugés (un signalement jugé depuis moins de 183 jours garde son fichier, décision de Hugo du
@@ -142,7 +147,7 @@ async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaCha
 async function rechiffrerFichiers(
   base: BaseMenage, social: ChiffrementSocial, medias: StockageMediasChat, plafond: number, journal: JournalIllisibles,
 ): Promise<BilanRechiffrementSocial> {
-  const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0 };
+  const bilan: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0, enAttenteDePlace: 0 };
   const fichiers = await listerParAge(medias);
   const estAncien = async (fichier: string) => {
     const octets = await medias.lire(fichier);
@@ -200,6 +205,7 @@ async function rechiffrerFichiers(
       else haut = milieu;
     }
     bilan.restants += bas - i;
+    if (disquePlein) bilan.enAttenteDePlace = bas - i;
   }
   return bilan;
 }
@@ -216,11 +222,12 @@ export async function rechiffrerSocial(
   if (!chiffrement || chiffrement.versionsAnciennes.length === 0) return null;
   const social = creerChiffrementSocial(chiffrement);
   if (!social) throw new Error("Chiffrement social indisponible pendant un changement de clé");
-  const total: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0 };
+  const total: BilanRechiffrementSocial = { rechiffres: 0, illisibles: 0, restants: 0, enAttenteDePlace: 0 };
   const ajouter = (b: BilanRechiffrementSocial) => {
     total.rechiffres += b.rechiffres;
     total.illisibles += b.illisibles;
     total.restants += b.restants;
+    total.enAttenteDePlace += b.enAttenteDePlace;
   };
   const journal = creerJournalIllisibles();
   try {
