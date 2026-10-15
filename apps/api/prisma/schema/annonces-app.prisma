@@ -1,0 +1,19 @@
+model AnnonceApp {
+  id            Int       @id @default(autoincrement())
+  titre         String    @db.VarChar(60)
+  texte         String    @db.VarChar(300)
+  emoji         String?   @db.VarChar(16)
+  boutonLibelle String?   @map("bouton_libelle") @db.VarChar(30)
+  boutonLien    String?   @map("bouton_lien") @db.VarChar(200)
+  cible         String    @default("tous") @db.VarChar(12)
+  ville         String?   @db.VarChar(80)
+  debut         DateTime  @db.Timestamptz(0)
+  fin           DateTime? @db.Timestamptz(0)
+  publieeLe     DateTime? @map("publiee_le") @db.Timestamptz(0)
+  retireeLe     DateTime? @map("retiree_le") @db.Timestamptz(0)
+  creeLe        DateTime  @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe     DateTime  @default(now()) @updatedAt @map("modifie_le") @db.Timestamptz(0)
+
+  @@index([publieeLe, debut])
+  @@map("annonces_app")
+}
