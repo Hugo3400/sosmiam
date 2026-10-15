@@ -81,13 +81,15 @@
   - raisons de relecture : rafale de notes tranchées, compte de moins de 7 jours, tirage d'1 sur 20 ;
   - un ambassadeur relit 20 avis à la fois ; un avis sort de sa liste après 3 verdicts ;
   - pas de +10 pour la photo d'un repas offert ; un avis non vérifié ne rapporte rien, demande un e-mail confirmé et compte dans la moyenne ;
-  - pas de photo tant que l'envoi de photos n'existe pas.
+  - la photo d'un avis (envoi construit le 15 octobre 2026) : un JPEG de 6 Mo et 4 096 px au plus, toutes ses métadonnées retirées ; **une photo trop petite ne rapporte pas les +10 (décidé par Hugo le 15 octobre 2026)** : refusée sous **320 px de petit côté**.
 - **Réservations** :
   - un lieu réservable est publié, vérifié et a coché « réservable » ;
   - une réservation honorée donne une visite « payée » (« Venu » se touche avant l'addition) ;
   - +25 si la demande a été faite pendant un SOS du soir, pour un créneau avant sa fin ;
   - absences et annulations tardives notées, sans rien d'automatique ;
-  - limites : 20 demandes par heure et par compte.
+  - limites : 20 demandes par heure et par compte ;
+  - **le client reçoit une notification quand le lieu répond (décidé par Hugo le 15 octobre 2026)** : acceptée, refusée ou annulée par le lieu, et quand sa demande expire sans réponse (une seule fois, jamais à celui qui répond ; pas de notification pour une demande déjà passée). Elle ouvre « Mes réservations » ;
+  - **un créneau se réserve au moins 1 h à l'avance (15 octobre 2026, choix de construction, à confirmer par Hugo)** : une demande sans réponse s'endort 30 min avant le créneau, le lieu a donc toujours au moins 30 min pour répondre (`DELAI_MIN_RESERVATION_MS`, packages/commun/src/regles/reservations.ts).
 
 ## L'app parle au serveur (décidé le 9 octobre 2026 ; socle de l'API construit le 9 octobre)
 - **Adresse : `api.sosmiam.fr`**, un sous-domaine à part, derrière Cloudflare comme le site. On n'y ouvre que ce dont l'app a besoin (comptes, Miam Safe, puis visites, potes…), jamais `/api-gestion` ni `/bot`.
