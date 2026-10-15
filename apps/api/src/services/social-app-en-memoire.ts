@@ -23,6 +23,7 @@ import { creerCommentairesEnMemoire } from "./commentaires-en-memoire.ts";
 import { creerDecisionsModerationAppEnMemoire, creerSignalementsSociauxEnMemoire } from "./signalements-sociaux-en-memoire.ts";
 import type { LireAncienTitulaire } from "./bande-regles.ts";
 import { creerExportSocialEnMemoire } from "./export-social-en-memoire.ts";
+import type { ListerLimitationsExport } from "./export-social-regles.ts";
 
 export type OptionsSocialAppEnMemoire = {
   /** Absent : une clé de test tirée au hasard ; null : pas de clé (routes 🔐 en 503 chiffrement-indisponible) */
@@ -40,6 +41,8 @@ export type OptionsSocialAppEnMemoire = {
   lireAncienTitulaire?: LireAncienTitulaire;
   /** Compte limité par l'équipe (une fausse estLimite, ou celle de creerLimitationsEnMemoire) ; absente : rien n'est refusé */
   estLimite?: DependancesSocialApp["estLimite"];
+  /** Les limitations du compte lues par l'export (listerLimitationsDuCompte de creerLimitationsEnMemoire) ; absente : pas de champ */
+  listerLimitations?: ListerLimitationsExport;
 };
 
 export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
@@ -79,7 +82,7 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
     commentaires: creerCommentairesEnMemoire(tables, { relations, social, lireRole: (c, l) => dependances.lireRole(c, l), chiffrement }),
     signalements: creerSignalementsSociauxEnMemoire(tables, relations, chiffrement),
     decisions: creerDecisionsModerationAppEnMemoire(tables, (id, texte, maintenant) => dependances.contesterSignalement(id, texte, maintenant)),
-    exportSocial: creerExportSocialEnMemoire(tables, relations, chiffrement),
+    exportSocial: creerExportSocialEnMemoire(tables, relations, chiffrement, o.listerLimitations),
   };
   return { dependances, tables, pushs, contestations, medias };
 }

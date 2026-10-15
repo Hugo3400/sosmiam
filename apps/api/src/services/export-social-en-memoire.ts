@@ -56,7 +56,7 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
   };
 }
 
-/** listerLimitations : absente, l'export n'a pas de champ « limitations » (social-app-en-memoire.ts ne le donne pas encore) */
+/** listerLimitations : absente, l'export n'a pas de champ « limitations » (social-app-en-memoire.ts la passe quand on la lui donne) */
 export function creerExportSocialEnMemoire(
   tables: TablesSociales, relations: RelationsSociales, chiffrement: ChiffrementSocial | null, listerLimitations?: ListerLimitationsExport,
 ): ServicesExportSocial {
