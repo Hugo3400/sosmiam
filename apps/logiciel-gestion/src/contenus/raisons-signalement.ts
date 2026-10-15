@@ -10,4 +10,6 @@ export const RAISONS_SIGNALEMENT: Record<string, string> = {
   "vie-privee": "Vie privée",
   "vol-contenu": "Vidéo ou photo volée",
   autre: "Autre chose",
+  // Pas un signalement : la décision de l'équipe à la relecture d'un avis (écran « Avis à relire »)
+  relecture: "Masqué à la relecture par l'équipe",
 };

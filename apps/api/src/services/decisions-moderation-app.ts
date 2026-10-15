@@ -1,8 +1,10 @@
 // Les décisions de la modération vues dans l'app, dans la base (contrat dans signalements-sociaux-regles.ts ; règlement
 // européen sur les services numériques, art. 17 et 20). Lecture seule, sauf la contestation, qui passe par
 // contesterSignalement de la session Logiciel (services/gestion/moderation.ts) : c'est le logiciel qui réexamine.
-import { CIBLES_SIGNALEMENT_SOCIAL } from "../../../../packages/commun/src/regles/signalement.ts";
-import type { CibleSignalementSocial } from "../../../../packages/commun/src/types/signalement.ts";
+// Un avis ou la réponse d'un lieu à un avis masqué par l'équipe (cible « avis » ou « reponse-avis ») n'entre que chez son
+// auteur : ces lignes n'ont personne qui a signalé (décision de l'équipe à la relecture).
+import { CIBLES_DECISION_MODERATION, CIBLES_SIGNALEMENT_SOCIAL } from "../../../../packages/commun/src/regles/signalement.ts";
+import type { CibleDecisionModeration } from "../../../../packages/commun/src/types/signalement.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import {
   choisirDecisions, MAX_LIGNES_DECISIONS, verifierContestation, type LigneSignalementDecision, type ServicesDecisionsModeration,
@@ -13,7 +15,9 @@ const SELECTION = {
   signaleParId: true, auteurContenuId: true, creeLe: true,
 } as const;
 const SOCIALES = { in: [...CIBLES_SIGNALEMENT_SOCIAL] };
-const lire = (s: { cible: string } & Omit<LigneSignalementDecision, "cible">): LigneSignalementDecision => ({ ...s, cible: s.cible as CibleSignalementSocial });
+/** Les contenus sociaux, plus un avis et une réponse d'un lieu */
+const DECIDABLES = { in: [...CIBLES_DECISION_MODERATION] };
+const lire = (s: { cible: string } & Omit<LigneSignalementDecision, "cible">): LigneSignalementDecision => ({ ...s, cible: s.cible as CibleDecisionModeration });
 
 export function creerDecisionsModerationApp(
   o: { contesterSignalement: (id: number, texte: string, maintenant: Date) => Promise<boolean> }, base = baseDeDonnees,
@@ -34,7 +38,9 @@ export function creerDecisionsModerationApp(
   return {
     async listerDecisions(compteId) {
       const lignes = (await base.signalement.findMany({
-        where: { cible: SOCIALES, OR: [{ auteurContenuId: compteId }, { signaleParId: compteId, statut: { in: ["retenu", "rejete"] } }] },
+        where: {
+          OR: [{ cible: DECIDABLES, auteurContenuId: compteId }, { cible: SOCIALES, signaleParId: compteId, statut: { in: ["retenu", "rejete"] } }],
+        },
         select: SELECTION,
         orderBy: [{ creeLe: "desc" }, { id: "desc" }],
         take: MAX_LIGNES_DECISIONS,
@@ -44,7 +50,7 @@ export function creerDecisionsModerationApp(
     },
 
     async contester(compteId, signalementId, texte, maintenant) {
-      const brute = await base.signalement.findFirst({ where: { id: signalementId, cible: SOCIALES }, select: SELECTION });
+      const brute = await base.signalement.findFirst({ where: { id: signalementId, cible: DECIDABLES }, select: SELECTION });
       const ligne = brute ? lire(brute) : null;
       const duContenu = ligne && ligne.auteurContenuId === compteId
         ? (await base.signalement.findMany({ where: { cible: ligne.cible, cibleId: ligne.cibleId }, select: SELECTION })).map(lire)

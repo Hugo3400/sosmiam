@@ -1,5 +1,7 @@
 // Double en mémoire des avis, pour les tests (aucune base de données). Mêmes gestes que avis.ts ; une seule chose à la fois
-// en JavaScript, donc le verrou ne fait rien.
+// en JavaScript, donc le verrou ne fait rien (deux écritures peuvent s'entrelacer à chaque await : les gestes conditionnels
+// tranchent, comme dans la base). ecrire est tout ou rien : chaque écriture note de quoi la défaire, et une erreur levée
+// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction.
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { MotifAvisLouche } from "../../../../packages/commun/src/types/avis.ts";
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
@@ -7,6 +9,12 @@ import type { CompteAuteur, DepotAvis, LieuAvis, LigneAvis, NouvelleLigneAvis, T
 import type { LigneVisite } from "./visites-regles.ts";
 
 type AvisEnMemoire = Omit<LigneAvis, "preuve" | "avecReduction">;
+
+/** Retire cette ligne de la liste (rien si elle n'y est plus) */
+const retirer = <T>(liste: T[], ligne: T) => {
+  const i = liste.indexOf(ligne);
+  if (i >= 0) liste.splice(i, 1);
+};
 export type RelectureEnMemoire = { avisId: number; ambassadeurId: number; verdict: "ok" | "louche" | "deporte"; motif: MotifAvisLouche | null; creeLe: Date };
 
 export function creerAvisEnMemoire() {
@@ -24,7 +32,10 @@ export function creerAvisEnMemoire() {
     return { ...a, preuve: visite?.mode ?? null, avecReduction: visite?.reglement?.type === "reduction" };
   };
 
-  const tables: TablesAvis = {
+  /** Les gestes ; annuler(geste) note de quoi défaire une écriture si l'appel échoue (rien à noter en lecture) */
+  const creerTables = (annuler: (geste: () => void) => void): TablesAvis => ({
+    brut: null,
+
     async verrouillerCompte() {},
 
     async lireLieu(lieuId) {
@@ -59,6 +70,7 @@ export function creerAvisEnMemoire() {
       const v = visites.find((visite) => visite.id === visiteId);
       if (!v || v.avisDonne) return false;
       v.avisDonne = true;
+      annuler(() => { v.avisDonne = false; });
       return true;
     },
 
@@ -66,6 +78,7 @@ export function creerAvisEnMemoire() {
       if (nouvel.visiteId !== null && avis.some((a) => a.visiteId === nouvel.visiteId)) throw Object.assign(new Error("doublon"), { code: "P2002" });
       const ligne: AvisEnMemoire = { ...nouvel, id: prochainId++, reponseTexte: null, reponseLe: null, reponseParId: null, reponseStatut: null };
       avis.push(ligne);
+      annuler(() => retirer(avis, ligne));
       return versLigne(ligne);
     },
     async lireAvis(id) {
@@ -112,17 +125,47 @@ export function creerAvisEnMemoire() {
     },
     async ajouterRelecture(avisId, ambassadeurId, verdict, le) {
       if (relectures.some((r) => r.avisId === avisId && r.ambassadeurId === ambassadeurId)) return "deja";
-      relectures.push({ avisId, ambassadeurId, verdict: verdict.type, motif: verdict.type === "louche" ? verdict.motif : null, creeLe: le });
+      const relecture: RelectureEnMemoire = { avisId, ambassadeurId, verdict: verdict.type, motif: verdict.type === "louche" ? verdict.motif : null, creeLe: le };
+      relectures.push(relecture);
+      annuler(() => retirer(relectures, relecture));
       return "ok";
     },
     async poserReponse(avisId, { texte, le, parId }) {
       const a = avis.find((ligne) => ligne.id === avisId);
       if (!a || a.reponseTexte !== null) return false;
-      Object.assign(a, { reponseTexte: texte, reponseLe: le, reponseParId: parId, reponseStatut: "publiee" });
+      const { reponseTexte, reponseLe, reponseParId, reponseStatut } = a;
+      Object.assign(a, { reponseTexte: texte, reponseLe: le, reponseParId: parId, reponseStatut: "en-relecture" });
+      annuler(() => void Object.assign(a, { reponseTexte, reponseLe, reponseParId, reponseStatut }));
       return true;
     },
-  };
+    async changerStatutAvis(avisId, de, vers) {
+      const a = avis.find((ligne) => ligne.id === avisId);
+      if (!a || a.statut !== de) return false;
+      a.statut = vers;
+      annuler(() => { a.statut = de; });
+      return true;
+    },
+    async changerStatutReponse(avisId, de, vers) {
+      const a = avis.find((ligne) => ligne.id === avisId);
+      if (!a || a.reponseTexte === null || a.reponseStatut !== de) return false;
+      a.reponseStatut = vers;
+      annuler(() => { a.reponseStatut = de; });
+      return true;
+    },
+  });
 
-  const depot: DepotAvis = { lire: (fn) => fn(tables), ecrire: (fn) => fn(tables) };
+  const lecture = creerTables(() => {});
+  const depot: DepotAvis = {
+    lire: (fn) => fn(lecture),
+    async ecrire(fn) {
+      const aDefaire: (() => void)[] = [];
+      try {
+        return await fn(creerTables((geste) => aDefaire.push(geste)));
+      } catch (erreur) {
+        for (const geste of aDefaire.reverse()) geste();
+        throw erreur;
+      }
+    },
+  };
   return { depot, lieux, comptes, visites, avis, relectures };
 }

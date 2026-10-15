@@ -12,6 +12,7 @@ import { ErreurApi } from "~/services/client-gestion.ts";
 import { deciderSignalement, type LieuCite, type Signalement } from "~/services/moderation.ts";
 import { InstantaneSignale } from "./InstantaneSignale.tsx";
 import { MediaSignale } from "./MediaSignale.tsx";
+import { AvisSignale } from "./AvisSignale.tsx";
 import { ModaleDecisionModeration, type ChoixModeration } from "./ModaleDecisionModeration.tsx";
 import { SuiteDecision } from "./SuiteDecision.tsx";
 
@@ -61,7 +62,7 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
         <div className="flex flex-wrap items-center gap-2">
           {urgent && <Badge ton="rouge"><Siren className="size-3.5" aria-hidden /> Masquée pour tous</Badge>}
           <Badge>{signalements.length} signalement{signalements.length > 1 ? "s" : ""}</Badge>
-          {premier.statut !== "a-traiter" && <Badge ton={premier.statut === "retenu" ? "rouge" : "vert"}>{premier.statut === "retenu" ? "Retiré" : "Remis en ligne"}</Badge>}
+          {premier.statut !== "a-traiter" && <Badge ton={premier.statut === "retenu" ? "rouge" : "vert"}>{premier.statut === "retenu" ? (cible.remise ? "Remis par défaut" : premier.cible === "avis" || premier.cible === "reponse-avis" ? "Masqué" : "Retiré") : "Remis en ligne"}</Badge>}
           {conteste && <Badge ton="jaune">Contesté le {formaterDate(premier.contesteLe!)}</Badge>}
         </div>
         {publication ? (
@@ -75,6 +76,8 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
           </div>
         ) : premier.cible === "publication" ? (
           <p className="text-sm text-gris">Contenu introuvable ({premier.cible} n° {premier.cibleId}) : il a peut-être été supprimé.</p>
+        ) : premier.cible === "avis" || premier.cible === "reponse-avis" ? (
+          <AvisSignale avis={premier.avis} reponse={premier.cible === "reponse-avis"} />
         ) : (
           <InstantaneSignale signalement={premier} lieux={lieux} />
         )}

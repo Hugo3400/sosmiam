@@ -1,13 +1,15 @@
 // Double EN MÉMOIRE des signalements sociaux et des décisions de la modération vues dans l'app (pour les tests), posé sur les
 // tables partagées (tables-sociales-en-memoire.ts) : mêmes règles que signalements-sociaux.ts, instantanes-signalements.ts
 // et decisions-moderation-app.ts (visibilité du contenu, un signalement par personne, instantané chiffré, masquage pour tous
-// sous conditions, une ligne par contenu pour l'auteur). Les outils de lecture et d'écriture servent aussi au double des
-// commentaires (masquage par le lieu).
+// sous conditions, une ligne par contenu pour l'auteur, avis et réponses d'un lieu masqués par l'équipe chez leur auteur
+// seulement). Les outils de lecture et d'écriture servent aussi au double des commentaires (masquage par le lieu).
 import { peutVoirListe } from "../../../../packages/commun/src/fonctions/social/peut-voir-liste.ts";
 import { calculerNiveauProfil } from "../../../../packages/commun/src/regles/calculer-niveau-profil.ts";
-import { CIBLES_AVEC_MASQUAGE_IMMEDIAT, CIBLES_SIGNALEMENT_SOCIAL, RAISONS_AVEC_MASQUAGE_IMMEDIAT } from "../../../../packages/commun/src/regles/signalement.ts";
+import {
+  CIBLES_AVEC_MASQUAGE_IMMEDIAT, CIBLES_DECISION_MODERATION, CIBLES_SIGNALEMENT_SOCIAL, RAISONS_AVEC_MASQUAGE_IMMEDIAT,
+} from "../../../../packages/commun/src/regles/signalement.ts";
 import type { VisibiliteListe } from "../../../../packages/commun/src/types/listes.ts";
-import type { CibleSignalementSocial } from "../../../../packages/commun/src/types/signalement.ts";
+import type { CibleDecisionModeration, CibleSignalementSocial } from "../../../../packages/commun/src/types/signalement.ts";
 import type { Signalement } from "../base-de-donnees/client-genere/client.ts";
 import { construireInstantane, type AuteurInstantane, type ContenuSignale } from "../fonctions/social/construire-instantane.ts";
 import { lireMentionsCommentaire } from "../fonctions/social/lire-mentions-commentaire.ts";
@@ -208,8 +210,11 @@ export function creerSignalementsSociauxEnMemoire(tables: TablesSociales, relati
 export function creerDecisionsModerationAppEnMemoire(
   tables: TablesSociales, contesterSignalement: (id: number, texte: string, maintenant: Date) => Promise<boolean>,
 ): ServicesDecisionsModeration {
-  const sociaux = () => [...tables.signalements.values()].filter((s) => (CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(s.cible)) as (Signalement & LigneSignalementDecision)[];
-  const estMasque = (cible: CibleSignalementSocial, cibleId: string) => {
+  const dans = (cibles: readonly string[]) => (s: Signalement) => cibles.includes(s.cible);
+  const sociale = dans(CIBLES_SIGNALEMENT_SOCIAL);
+  const decidables = () => [...tables.signalements.values()].filter(dans(CIBLES_DECISION_MODERATION)) as (Signalement & LigneSignalementDecision)[];
+  // Un avis ou une réponse d'un lieu n'est jamais masqué en attendant : l'équipe le masque en décidant
+  const estMasque = (cible: CibleDecisionModeration, cibleId: string) => {
     const id = Number(cibleId);
     if (cible === "commentaire") return !!(tables.commentaires.get(id)?.suspenduLe || tables.commentaires.get(id)?.masqueParLieuLe);
     if (cible === "message") return !!tables.messages.get(id)?.suspenduLe;
@@ -218,14 +223,14 @@ export function creerDecisionsModerationAppEnMemoire(
   };
   return {
     async listerDecisions(compteId) {
-      const lignes = sociaux()
-        .filter((s) => s.auteurContenuId === compteId || (s.signaleParId === compteId && (s.statut === "retenu" || s.statut === "rejete")))
+      const lignes = decidables()
+        .filter((s) => s.auteurContenuId === compteId || (s.signaleParId === compteId && sociale(s) && (s.statut === "retenu" || s.statut === "rejete")))
         .sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime() || b.id - a.id);
       return choisirDecisions(lignes, compteId, estMasque);
     },
     async contester(compteId, signalementId, texte, maintenant) {
-      const ligne = sociaux().find((s) => s.id === signalementId) ?? null;
-      const duContenu = ligne && ligne.auteurContenuId === compteId ? sociaux().filter((s) => s.cible === ligne.cible && s.cibleId === ligne.cibleId) : [];
+      const ligne = decidables().find((s) => s.id === signalementId) ?? null;
+      const duContenu = ligne && ligne.auteurContenuId === compteId ? decidables().filter((s) => s.cible === ligne.cible && s.cibleId === ligne.cibleId) : [];
       const verdict = verifierContestation(ligne, duContenu, compteId, maintenant);
       if (!verdict.ok) return verdict;
       if (!(await contesterSignalement(verdict.id, texte, maintenant))) return { ok: false, erreur: "decision-inconnue" };

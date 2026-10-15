@@ -1,7 +1,8 @@
-// Les avis des lieux dans la base : seulement lire et écrire (les règles sont dans avis-client.ts, avis-relecture.ts et
-// avis-pro.ts). ecrire passe par une transaction ; le verrou porte sur la ligne du compte (SELECT … FOR UPDATE) et ne
-// fait rien en lecture. Les doublons (un verdict par ambassadeur, une réponse par avis, un avis par visite) sont arrêtés
-// par la base elle-même, sans faire échouer la transaction.
+// Les avis des lieux dans la base : seulement lire et écrire (les règles sont dans avis-client.ts, avis-relecture.ts,
+// avis-pro.ts et avis-gestion.ts). ecrire passe par une transaction, prêtée telle quelle (brut) à qui doit y écrire aussi ;
+// le verrou porte sur la ligne du compte (SELECT … FOR UPDATE) et ne fait rien en lecture. Les doublons (un verdict par
+// ambassadeur, une réponse par avis, un avis par visite) et les décisions concurrentes (statut changé seulement s'il est
+// encore celui attendu) sont arrêtés par la base elle-même, sans faire échouer la transaction.
 import type { RaisonRelecture, StatutAvis, StatutReponseAvis } from "../../../../packages/commun/src/types/avis.ts";
 import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
@@ -41,6 +42,8 @@ const RESUME = { id: true, nom: true, emoji: true, type: true, ville: true } as 
 
 function creerTables(b: Client, enTransaction: boolean): TablesAvis {
   return {
+    brut: enTransaction ? b : null,
+
     async verrouillerCompte(compteId) {
       if (enTransaction) await b.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR UPDATE`;
     },
@@ -151,8 +154,16 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
     async poserReponse(avisId, { texte, le, parId }) {
       const { count } = await b.avis.updateMany({
         where: { id: avisId, reponseTexte: null },
-        data: { reponseTexte: texte, reponseLe: le, reponseParId: parId, reponseStatut: "publiee" },
+        data: { reponseTexte: texte, reponseLe: le, reponseParId: parId, reponseStatut: "en-relecture" },
       });
+      return count === 1;
+    },
+    async changerStatutAvis(avisId, de, vers) {
+      const { count } = await b.avis.updateMany({ where: { id: avisId, statut: de }, data: { statut: vers } });
+      return count === 1;
+    },
+    async changerStatutReponse(avisId, de, vers) {
+      const { count } = await b.avis.updateMany({ where: { id: avisId, reponseStatut: de, reponseTexte: { not: null } }, data: { reponseStatut: vers } });
       return count === 1;
     },
   };

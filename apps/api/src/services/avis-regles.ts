@@ -1,12 +1,13 @@
 // Avis des lieux (docs/decisions.md, « Scan et validation des visites » et « Lieux vérifiés et non vérifiés ») : les
 // réglages, les lignes lues et écrites, et les gestes élémentaires demandés aux données. Les règles sont écrites une fois,
-// au-dessus de ces gestes (avis-client.ts, avis-relecture.ts, avis-pro.ts) ; la base (avis.ts) et le double des tests
-// (avis-en-memoire.ts) ne font que lire et écrire. Sans accès à la base ici.
+// au-dessus de ces gestes (avis-client.ts, avis-relecture.ts, avis-pro.ts, avis-gestion.ts) ; la base (avis.ts) et le
+// double des tests (avis-en-memoire.ts) ne font que lire et écrire. Sans accès à la base ici.
 import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
 import type { RaisonRelecture, StatutAvis, StatutReponseAvis, VerdictRelecture } from "../../../../packages/commun/src/types/avis.ts";
 import type { ErreurService } from "../../../../packages/commun/src/types/erreurs-service.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { ModeValidation, ReglementVisite } from "../../../../packages/commun/src/types/visite.ts";
+import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import type { LigneVisite } from "./visites-regles.ts";
 
@@ -18,7 +19,7 @@ export const AVIS_PAR_PAGE = 30;
 export const DELAI_AVIS_NON_VERIFIE_MS = 30 * 24 * 3600_000;
 
 /**
- * Relecture (jamais un masquage : l'avis reste visible, l'équipe tranche dans le logiciel) :
+ * Relecture (jamais un masquage : l'avis reste visible, l'équipe tranche dans le logiciel, avis-gestion.ts) :
  * - compte-neuf : le compte a moins de 7 jours ;
  * - rafale-notes : avec celui-ci, 3 avis ou plus aux notes tranchées (1 ou 5) sur ce lieu en 24 h ;
  * - tirage : 1 avis sur 20, au hasard.
@@ -35,7 +36,8 @@ export const AVIS_A_RELIRE_MAX = 20;
 
 /**
  * Les avis visibles par tous (lecture publique, moyenne, comptoir). « en-relecture » en fait partie : on ne masque jamais
- * un avis automatiquement, la relecture se fait après la mise en ligne, comme pour la réponse du lieu.
+ * un avis automatiquement, la relecture se fait après la mise en ligne, comme pour la réponse du lieu (posée « en-relecture »,
+ * visible tant que l'équipe ne l'a pas masquée).
  */
 export const STATUTS_AVIS_VISIBLES: readonly StatutAvis[] = ["publie", "en-relecture"];
 
@@ -103,9 +105,16 @@ export type LieuAvis = LieuResume & { publie: boolean; verifie: boolean };
 
 /**
  * Les gestes élémentaires, dans une transaction (ecrire) ou non (lire) ; jamais de règle métier ici. Règle des appelants :
- * l'écriture d'un avis verrouille d'abord le compte de l'auteur, puis relit la visite.
+ * l'écriture d'un avis verrouille d'abord le compte de l'auteur, puis relit la visite (ou l'avis, pour une décision de
+ * l'équipe).
  */
 export interface TablesAvis {
+  /**
+   * La transaction de la base ouverte par ecrire, pour qu'un autre domaine y écrive avec l'avis (la décision de la
+   * modération du logiciel : voir avis-gestion.ts) ; null en lecture et dans le double des tests
+   */
+  readonly brut: Prisma.TransactionClient | null;
+
   /** Verrou sur la ligne du compte (rien en lecture) : deux avis du même compte se suivent */
   verrouillerCompte(compteId: number): Promise<void>;
 
@@ -141,11 +150,18 @@ export interface TablesAvis {
   listerARelire(ambassadeurId: number, lieuxExclus: number[], verdictsMax: number, limite: number): Promise<LigneAvis[]>;
   /** « deja » : cet ambassadeur a déjà rendu son verdict sur cet avis */
   ajouterRelecture(avisId: number, ambassadeurId: number, verdict: VerdictRelecture, le: Date): Promise<"ok" | "deja">;
-  /** Pose la réponse publique du lieu, seulement s'il n'y en a pas déjà une ; vrai si elle est posée */
+  /**
+   * Pose la réponse publique du lieu, seulement s'il n'y en a pas déjà une ; vrai si elle est posée. Elle est posée
+   * « en-relecture » : visible tout de suite, relue ensuite par l'équipe
+   */
   poserReponse(avisId: number, reponse: { texte: string; le: Date; parId: number }): Promise<boolean>;
+  /** Change le statut de l'avis seulement s'il est encore `de` (écriture conditionnelle) ; vrai s'il a changé */
+  changerStatutAvis(avisId: number, de: StatutAvis, vers: StatutAvis): Promise<boolean>;
+  /** Change le statut de la réponse du lieu seulement s'il est encore `de` ; vrai s'il a changé */
+  changerStatutReponse(avisId: number, de: StatutReponseAvis, vers: StatutReponseAvis): Promise<boolean>;
 }
 
-/** lire : sans transaction ; ecrire : tout ou rien, verrous compris */
+/** lire : sans transaction ; ecrire : tout ou rien, verrous compris (une erreur levée défait tout ce qui a été écrit) */
 export type DepotAvis = {
   lire<T>(fn: (t: TablesAvis) => Promise<T>): Promise<T>;
   ecrire<T>(fn: (t: TablesAvis) => Promise<T>): Promise<T>;

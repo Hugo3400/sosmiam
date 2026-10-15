@@ -1,19 +1,20 @@
 // Les avis côté client (voir routes/avis.ts) : avis à écrire, avis vérifié (une visite validée, ouvert 1 h après et pendant
 // 14 jours, un seul), avis non vérifié (lieu sans compte SOS Miam, un tous les 30 jours), lecture publique d'un lieu.
 // Signature figée à l'écriture (« Léa M. », prénom seul sans nom donné) ; jamais masqué automatiquement : certains
-// partent en relecture (compte neuf, rafale de notes, tirage au sort) et restent visibles, l'équipe tranche.
+// partent en relecture (compte neuf, rafale de notes, tirage au sort) et restent visibles, l'équipe tranche (avis-gestion.ts).
 import { signerAvis } from "../../../../packages/commun/src/fonctions/avis/signer-avis.ts";
 import type { AvisPublic, NouvelAvis, NouvelAvisNonVerifie, PageAvisLieu } from "../../../../packages/commun/src/types/avis.ts";
 import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { Visite } from "../../../../packages/commun/src/types/visite.ts";
+import { calculerPointsPhotoAvis } from "../fonctions/avis/calculer-points-photo-avis.ts";
 import { choisirRaisonRelecture } from "../fonctions/avis/choisir-raison-relecture.ts";
 import { lirePageAvis } from "../fonctions/avis/lire-page-avis.ts";
 import { presenterAvisPublic } from "../fonctions/avis/presenter-avis-public.ts";
 import { lireInitialeNom } from "../fonctions/visites/lire-initiale-nom.ts";
 import { presenterVisite } from "../fonctions/visites/presenter-visite.ts";
 import {
-  DELAI_AVIS_NON_VERIFIE_MS, NOTES_TRANCHEES, POINTS_AVIS_PHOTO, RAFALE_FENETRE_MS,
+  DELAI_AVIS_NON_VERIFIE_MS, NOTES_TRANCHEES, RAFALE_FENETRE_MS,
   type CompteAuteur, type ContexteAvis, type EchecAvis, type ErreurAvis, type LigneAvis, type TablesAvis,
 } from "./avis-regles.ts";
 
@@ -80,8 +81,7 @@ export function creerAvisClient(c: ContexteAvis) {
         const repasOffert = visite.reglement?.type === "offert";
         const avis = await ecrire(t, compte, { lieuId: lieu.id, visiteId: visite.id, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert }, le);
         // Les points d'une photo suivent ceux de la visite : rien pour un repas offert
-        const pointsAPoser = nouvel.photo !== null && !repasOffert ? POINTS_AVIS_PHOTO : 0;
-        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser };
+        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser: calculerPointsPhotoAvis(avis) };
       });
     },
 
@@ -100,7 +100,8 @@ export function creerAvisClient(c: ContexteAvis) {
           return echecAvis("avis-recent", { jusqua: new Date(dernier.getTime() + DELAI_AVIS_NON_VERIFIE_MS).toISOString() });
         }
         const avis = await ecrire(t, compte, { lieuId: lieu.id, visiteId: null, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert: false }, le);
-        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser: 0 };
+        // Sans visite, jamais de points (même avec une photo)
+        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser: calculerPointsPhotoAvis(avis) };
       });
     },
 

@@ -5,6 +5,9 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   commentaire: { libelle: "Commentaires", le: "le commentaire", emoji: "💬" },
   message: { libelle: "Messages", le: "le message", emoji: "✉️" },
   liste: { libelle: "Listes", le: "la liste", emoji: "📋" },
+  // Avis et réponses des lieux : masqués à la relecture (écran « Avis à relire »), ils n'arrivent ici que contestés
+  avis: { libelle: "Avis", le: "l'avis", emoji: "⭐" },
+  "reponse-avis": { libelle: "Réponses aux avis", le: "la réponse du lieu", emoji: "💬" },
   // Profil, sortie, groupe : retenus, ils ne sont pas retirés mais remis par défaut (l'API le fait dans la décision)
   profil: { libelle: "Profils", le: "le profil", emoji: "👤", remise: "son avatar est effacé. Le prénom se corrige depuis la fiche du compte ; le pseudo, pas encore" },
   sortie: { libelle: "Sorties", le: "la sortie", emoji: "🎉", remise: "son titre redevient « Sortie », pour tous ceux qui y sont invités" },

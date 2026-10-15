@@ -18,7 +18,7 @@
 import type { CibleDecisionModeration, DecisionModerationApi, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
 import type { ContenuSignale } from "../fonctions/social/construire-instantane.ts";
 import { presenterDecisionModeration, type LigneDecisionModeration } from "../fonctions/social/presenter-decision-moderation.ts";
-import { DUREE_CONTESTATION_JOURS } from "../../../../packages/commun/src/regles/signalement.ts";
+import { CIBLES_SIGNALEMENT_SOCIAL, DUREE_CONTESTATION_JOURS } from "../../../../packages/commun/src/regles/signalement.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 
 /** Ce qui se cache pour soi une fois signalé */
@@ -98,6 +98,8 @@ export type LigneSignalementDecision = LigneDecisionModeration & {
 };
 
 const estJuge = (s: { statut: string }) => s.statut === "retenu" || s.statut === "rejete";
+/** Ce qu'on signale par l'app : un avis ou une réponse d'un lieu n'a jamais de « signalement » à toi, seulement un auteur */
+const estSignalableParLApp = (cible: CibleDecisionModeration) => (CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(cible);
 /** La dernière décision d'un contenu : la plus récente (à égalité, le plus ancien signalement, celui de la décision groupée) */
 function lireDerniereDecision<T extends LigneSignalementDecision>(lignes: readonly T[]): T | null {
   let dernier: T | null = null;
@@ -112,7 +114,7 @@ function lireDerniereDecision<T extends LigneSignalementDecision>(lignes: readon
  * Les décisions d'un compte (B.10 bis), à partir des signalements qui le concernent :
  * - auteur : une ligne par contenu ; « masque » s'il est masqué maintenant et qu'un signalement attend (le plus ancien) ;
  *   sinon la dernière décision ;
- * - qui a signalé : chacun de ses signalements jugés.
+ * - qui a signalé : chacun de ses signalements jugés (contenus sociaux seulement).
  * `estMasque(cible, cibleId)` : l'état du contenu vivant (suspendu, ou masqué par le lieu). Un avis ou une réponse d'un lieu
  * n'attend jamais : l'équipe le masque en décidant (« retenu » d'emblée), on montre donc la décision.
  */
@@ -132,7 +134,7 @@ export function choisirDecisions(lignes: readonly LigneSignalementDecision[], co
     else if (dernier) choisies.push({ decision: presenterDecisionModeration(dernier, "auteur"), date: dernier.traiteLe!.getTime() });
   }
   for (const s of lignes) {
-    if (s.signaleParId === compteId && s.auteurContenuId !== compteId && estJuge(s) && s.traiteLe) {
+    if (s.signaleParId === compteId && s.auteurContenuId !== compteId && estSignalableParLApp(s.cible) && estJuge(s) && s.traiteLe) {
       choisies.push({ decision: presenterDecisionModeration(s, "signale"), date: s.traiteLe.getTime() });
     }
   }
@@ -145,7 +147,8 @@ const JOUR_MS = 24 * 60 * 60 * 1000;
  * Qui peut contester quoi (B.10 bis) : `ligne` est le signalement demandé, `duContenu` tous les signalements du même contenu.
  * - L'auteur du contenu : la dernière décision sur ce contenu, si elle est « retenu » ; une seule contestation à la fois, et
  *   une seule par décision (une décision réexaminée ne se conteste plus).
- * - Celui qui a signalé : SON signalement, s'il a été rejeté ; une fois.
+ * - Celui qui a signalé : SON signalement d'un contenu social, s'il a été rejeté ; une fois.
+ * Un avis ou une réponse d'un lieu masqué par l'équipe se conteste par son auteur, comme un contenu social retiré.
  * - Dans les 6 mois après la décision (contestation-hors-delai) ; sinon decision-inconnue (pas la tienne, pas encore jugée).
  * Rend l'id du signalement à contester.
  */
@@ -159,7 +162,7 @@ export function verifierContestation(
     if (!dernier || dernier.statut !== "retenu") return { ok: false, erreur: "decision-inconnue" };
     if (dernier.contesteLe !== null || duContenu.some((s) => s.contesteLe !== null && s.reexamineLe === null)) return { ok: false, erreur: "deja-contestee" };
     visee = dernier;
-  } else if (ligne.signaleParId === compteId) {
+  } else if (ligne.signaleParId === compteId && estSignalableParLApp(ligne.cible)) {
     if (ligne.statut !== "rejete" || !ligne.traiteLe) return { ok: false, erreur: "decision-inconnue" };
     if (ligne.contesteLe !== null) return { ok: false, erreur: "deja-contestee" };
     visee = ligne;

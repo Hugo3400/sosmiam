@@ -46,6 +46,12 @@ export type Signalement = {
     lieu: { nom: string; emoji: string };
     medias: Pick<Media, "id" | "type" | "fichier">[];
   } | null;
+  /** Avis ou réponse d'un lieu masqué à la relecture : tel qu'il est en base, pour le réexamen */
+  avis?: AvisDecide | null;
+};
+
+export type AvisDecide = {
+  id: number; note: number; texte: string; signature: string; statut: string; reponseTexte: string | null; reponseStatut: string | null; lieu: { nom: string; emoji: string };
 };
 
 export type LieuCite = { id: number; nom: string; emoji: string; ville: string };
