@@ -18,7 +18,7 @@ export function PanneauApercuReservations({ apercu, onChoisir }: Props) {
         {lierPonctuation(" : des réservations d'exemple, rien ne part au lieu. Toucher un choix remet tout à zéro.")}
       </Text>
       <View className="flex-row flex-wrap gap-2">
-        <Pastille role="radio" libelle="Avec des réservations" choisi={apercu === "exemples"} position={1} total={2} onPress={() => onChoisir("exemples")} />
+        <Pastille role="radio" libelle="Exemples" choisi={apercu === "exemples"} position={1} total={2} onPress={() => onChoisir("exemples")} />
         <Pastille role="radio" libelle="Rien de prévu" choisi={apercu === "vide"} position={2} total={2} onPress={() => onChoisir("vide")} />
       </View>
     </View>

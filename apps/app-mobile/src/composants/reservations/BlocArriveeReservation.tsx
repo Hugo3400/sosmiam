@@ -36,7 +36,7 @@ function dessinerPresencePossible(reservation: Reservation, onSignalerPresence: 
   return (
     <View className="gap-3 rounded-2xl border-2 border-encre bg-jaune-clair p-3">
       <Text className="font-texte text-[15px] leading-6 text-encre">
-        {lierPonctuation("Tu arrives ? Une fois sur place, touche « Je suis là » : c'est ce qui fait compter ta visite.")}
+        {lierPonctuation("Tu arrives ? Une fois sur place, touche « Je\u00a0suis\u00a0là » : c'est ce qui fait compter ta visite.")}
       </Text>
       {reservation.code ? <CodeArriveeReservation code={reservation.code} /> : null}
       <Bouton
@@ -58,7 +58,7 @@ function dessinerEnAttenteDuCreneau(reservation: Reservation) {
       {reservation.code ? <CodeArriveeReservation code={reservation.code} /> : null}
       <Text className="font-texte text-sm leading-5 text-gris">
         {lierPonctuation(
-          `Le lieu t'attend ! « Je suis là » s'allume ${HEURES_AVANT_PRESENCE} h avant ton créneau : touche-le sur place pour que ta visite compte.`,
+          `Le lieu t'attend ! « Je\u00a0suis\u00a0là » s'allume ${HEURES_AVANT_PRESENCE} h avant ton créneau : touche-le sur place pour que ta visite compte.`,
         )}
       </Text>
     </View>

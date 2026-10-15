@@ -1,3 +1,3 @@
 export function ecrireNombrePersonnes(personnes: number): string {
-  return `${personnes} personne${personnes > 1 ? "s" : ""}`;
+  return `${personnes}\u00a0personne${personnes > 1 ? "s" : ""}`;
 }

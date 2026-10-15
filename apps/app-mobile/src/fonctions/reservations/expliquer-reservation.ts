@@ -26,10 +26,10 @@ export function expliquerReservation(reservation: Reservation, presencePossible:
     case "expiree":
       return "Le lieu n'a pas répondu à temps, alors la demande s'est endormie. Rien n'est compté contre toi.";
     case "honoree":
-      if (presencePossible) return "Le lieu t'a vu arriver ! Touche « Je suis là » pour que ta visite compte.";
+      if (presencePossible) return "Le lieu t'a vu arriver ! Touche « Je\u00a0suis\u00a0là » pour que ta visite compte.";
       return reservation.presenceLe
         ? "Le lieu t'a vu passer et ta visite compte dans « Mes visites ». Reviens quand tu veux !"
-        : "Le lieu t'a vu passer, mais sans « Je suis là » sur place, la visite n'a pas pu compter. La prochaine fois, touche-le en arrivant !";
+        : "Le lieu t'a vu passer, mais sans « Je\u00a0suis\u00a0là » sur place, la visite n'a pas pu compter. La prochaine fois, touche-le en arrivant !";
     case "absent":
       return "Le lieu ne t'a pas vu passer. Un imprévu, ça arrive ! La prochaine fois, annule dans l'app : ta table fera le bonheur d'un autre Miami.";
   }
