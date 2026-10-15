@@ -17,6 +17,7 @@ import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
+import { estLigneLieuInchangee } from "~/fonctions/lieux/est-ligne-lieu-inchangee";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import couleurs from "~/theme/couleurs";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
@@ -59,7 +60,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
     `${distanceLue ? `À ${distanceLue}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
-    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,
+    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut, maintenant)} à ${ecrireHeure(evenement.debut)}` : null,
     offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
   ]
@@ -101,7 +102,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
         ) : null}
         {evenement ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-white px-2 py-0.5 font-texte-gras text-xs text-encre">
-            {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
+            {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut, maintenant).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
           </Text>
         ) : null}
         {offreAlcool ? (
@@ -119,4 +120,4 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
       <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
     </Pressable>
   );
-});
+}, estLigneLieuInchangee);

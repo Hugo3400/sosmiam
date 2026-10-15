@@ -121,7 +121,7 @@ export function lireEtatMiamSafeLieu(services: Services, lieuId: number): EtatMi
 export function suivreMiamSafeLieu(services: Services, lieuId: number, prevenir: () => void): () => void {
   const entree = trouverEntree(services, lieuId);
   entree.abonnes.add(prevenir);
-  if (!entree.enCours && !entree.relance && estPerimee(entree)) lancer(entree, false);
+  if (!entree.enCours && !entree.relance && estPerimee(entree)) lancer(entree, true);
   return () => {
     entree.abonnes.delete(prevenir);
     if (entree.abonnes.size === 0) arreterRelance(entree);

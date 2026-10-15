@@ -27,9 +27,9 @@ export function LieuReserveAdultes() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
-          hitSlop={12}
+          hitSlop={8}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>

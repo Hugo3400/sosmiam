@@ -25,11 +25,11 @@ export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = 
         accessibilityRole="button"
         accessibilityLabel="Miam Safe"
         accessibilityHint="Tu ne te sens pas en sécurité ici ? Les numéros d'urgence"
-        hitSlop={12}
+        hitSlop={8}
         onPress={() => setEtat("ouvert")}
-        className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
       >
-        <Text className="text-base">🚨</Text>
+        <Text className="text-lg">🚨</Text>
       </Pressable>
       {etat !== "jamais" ? (
         <FeuilleSecoursMiamSafe visible={etat === "ouvert"} sansInternet={sansInternet} onFermer={fermer} onCreerCompte={avecCreerCompte ? creerCompte : undefined} />
