@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { creerClientHttp } from "../src/client-api/client-http.ts";
 import { creerEcouteReguliere } from "../src/client-api/api/creer-ecoute-reguliere.ts";
 import { creerServicesSociauxApi } from "../src/client-api/api/creer-services-sociaux-api.ts";
+import { creerSocialApi } from "../src/client-api/api/api-social.ts";
+import type { ClientHttp, OptionsDemande } from "../src/client-api/client-http.ts";
 
 type Appel = { url: string; methode: string; entetes: Record<string, string>; corps: unknown };
 
@@ -130,6 +132,26 @@ test("client HTTP : session expirée → « connexion-requise » et l'app oublie
     new Promise((_ok, ko) => init.signal?.addEventListener("abort", () => ko(new Error("abandonné"))))) as unknown as typeof fetch;
   const pressé = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => null, delaiMs: 20, fetch: lent });
   assert.deepEqual(await pressé.demander("GET", "/x"), { ok: false, erreur: "hors-ligne" });
+});
+
+test("client HTTP : un délai pour une seule demande (delaiMs), sans rien changer pour les autres", async () => {
+  // Répond au bout de 60 ms, sauf si la demande est abandonnée avant
+  const lent = ((_url: string, init: RequestInit) => new Promise((ok, ko) => {
+    const minuterie = setTimeout(() => ok(json(200, { ok: true })), 60);
+    init.signal?.addEventListener("abort", () => { clearTimeout(minuterie); ko(new Error("abandonné")); });
+  })) as unknown as typeof fetch;
+  const pressé = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => null, delaiMs: 20, fetch: lent });
+  assert.deepEqual(await pressé.demander("GET", "/app/social/export", { delaiMs: 1_000 }), { ok: true });
+  assert.deepEqual(await pressé.demander("GET", "/app/social/pouls"), { ok: false, erreur: "hors-ligne" }, "les autres gardent le délai du client");
+});
+
+test("services sociaux : l'export attend jusqu'à 60 s ; les autres lectures gardent le délai du client", async () => {
+  const options: (OptionsDemande | undefined)[] = [];
+  const faux = { demander: async (_m: string, _c: string, o?: OptionsDemande) => { options.push(o); return { ok: true }; } } as unknown as ClientHttp;
+  const social = creerSocialApi(faux);
+  await social.exporter();
+  await social.lirePouls();
+  assert.deepEqual(options, [{ delaiMs: 60_000 }, undefined]);
 });
 
 test("écoute régulière : prévient tous les abonnés, s'arrête quand plus personne n'écoute", async () => {

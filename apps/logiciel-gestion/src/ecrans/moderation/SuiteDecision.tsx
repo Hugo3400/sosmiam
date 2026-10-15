@@ -52,7 +52,11 @@ export function SuiteDecision({ signalement, contenu, onChange }: { signalement:
           <Bouton petit variante="discret" icone={MessageSquareWarning} onClick={() => setContestation("")}>Contestation reçue…</Bouton>
         ) : null}
       </div>
-      <p className="text-[13px] text-gris">Tant que l'app n'a pas de comptes, ces messages partent de ta messagerie (l'auteur d'une vidéo, ou la personne qui a écrit à bonjour@).</p>
+      <p className="text-[13px] text-gris">
+        {signalement.cible === "publication"
+          ? "Pour une publication, ces messages partent de ta messagerie (l'auteur d'une vidéo, ou la personne qui a écrit à bonjour@)."
+          : "L'auteur et la personne qui a signalé sont déjà prévenus dans l'app (cloche et écran « Décisions ») : ces textes servent si quelqu'un écrit à bonjour@."}
+      </p>
       {etat.texte && <p role="status" className="font-semibold">{etat.texte}</p>}
       {contestation !== null && (
         <Modale

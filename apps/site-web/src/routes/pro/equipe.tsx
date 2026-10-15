@@ -7,6 +7,7 @@ import { Section } from "~/composants/mise-en-page/Section";
 import { FORMULAIRE_RETIRER, ListeEquipe } from "~/composants/pro/ListeEquipe";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
@@ -59,7 +60,10 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
   if (reponse.ok) return { ok: true, formulaire: "inviter", message: lierPonctuation("Invitation envoyée ! Elle s'affiche dans son tableau pro : il n'a plus qu'à l'accepter.") };
   await redirigerSiSessionFermee(request, reponse.erreur);
   if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: "inviter", erreurs: { email: lierPonctuation("Cette adresse e-mail ne semble pas valide.") }, valeurs: { email } };
-  const message = messagesInvitation[reponse.erreur] ?? "Oups, l'invitation n'est pas partie. Réessaie dans un instant.";
+  // Compte limité : une invitation arriverait chez quelqu'un, elle attend la fin de la limitation
+  const message = reponse.erreur === "compte-limite"
+    ? expliquerCompteLimite(reponse.jusqua)
+    : messagesInvitation[reponse.erreur] ?? "Oups, l'invitation n'est pas partie. Réessaie dans un instant.";
   return { ok: false, formulaire: "inviter", message: lierPonctuation(message), valeurs: { email } };
 }
 

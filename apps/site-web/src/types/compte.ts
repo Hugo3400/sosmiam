@@ -175,3 +175,23 @@ export type MessageAmbassadeur = {
   creeLe: string;
   luLe: string | null;
 };
+
+/**
+ * La limitation du compte décidée par l'équipe (GET /comptes/moi/limitation, apps/api/src/routes/comptes.ts) : en cours,
+ * ou à venir. Dates ISO 8601 ; fin null : jusqu'à nouvel ordre.
+ */
+export type LimitationCompte = {
+  /** Un code de MOTIFS_MODERATION (packages/commun/src/contenus/motifs-moderation.ts) */
+  motif: string;
+  /** Le pourquoi, écrit par l'équipe pour la personne */
+  motivation: string;
+  debut: string;
+  fin: string | null;
+  contestation: string | null;
+  contesteLe: string | null;
+  reexamineLe: string | null;
+  /** Vraie si elle court maintenant (fausse : elle commence plus tard) */
+  active: boolean;
+  /** Vraie si elle court et n'a pas encore été contestée (une seule fois, pendant la limitation) */
+  peutContester: boolean;
+};

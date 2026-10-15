@@ -10,6 +10,7 @@ import { CarteInvitation } from "~/composants/pro/CarteInvitation";
 import { CarteLieuPro } from "~/composants/pro/CarteLieuPro";
 import { EtatSansLieu } from "~/composants/pro/EtatSansLieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { accepterInvitation, listerRattachements, retirerRattachement } from "~/services/pro.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
@@ -61,9 +62,12 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   const reponse = geste === "accepter" ? await accepterInvitation(jeton, ip, id) : await retirerRattachement(jeton, ip, id);
   if (reponse.ok) return { ok: true, formulaire: FORMULAIRE_RATTACHEMENT, message: lierPonctuation(reussites[geste]) };
   await redirigerSiSessionFermee(request, reponse.erreur);
-  const message = reponse.erreur === "invitation-inconnue" || reponse.erreur === "rattachement-inconnu"
-    ? "Ça a déjà bougé entre-temps : la liste ci-dessous est à jour."
-    : "Oups, ça n'a pas marché. Réessaie dans un instant.";
+  // Compte limité : rejoindre une équipe se verrait du gérant, ça attend la fin de la limitation (refuser reste possible)
+  const message = reponse.erreur === "compte-limite"
+    ? expliquerCompteLimite(reponse.jusqua)
+    : reponse.erreur === "invitation-inconnue" || reponse.erreur === "rattachement-inconnu"
+      ? "Ça a déjà bougé entre-temps : la liste ci-dessous est à jour."
+      : "Oups, ça n'a pas marché. Réessaie dans un instant.";
   return { ok: false, formulaire: FORMULAIRE_RATTACHEMENT, message: lierPonctuation(message) };
 }
 

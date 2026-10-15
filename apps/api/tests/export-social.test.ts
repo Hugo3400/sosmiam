@@ -1,10 +1,15 @@
 // Tests de l'export « Télécharger mes données sociales » (GET /app/social/export, lot L7) : TES messages déchiffrés, jamais
-// ceux des autres ni ton code d'invitation ; rien de ce que l'autre ne t'a pas montré (refus silencieux, blocage qu'il a
-// fait) ; sans profil social, rien n'est créé ; 503 sans la clé ; 2 par 24 h. Tout en mémoire, avec une clé de test.
+// ceux des autres ni ton code d'invitation ; rien de ce que l'autre ne t'a pas montré (refus silencieux, blocage dans un
+// sens ou dans l'autre, liste qui ne t'est plus visible, invitation refusée ou cachée) ; tes suivis et ce que tu as écrit en
+// signalant ; déchiffré par paquets ; sans profil social, rien n'est créé ; 503 sans la clé ; 2 par 24 h. Tout en mémoire,
+// avec une clé de test.
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 
+import { creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
+import { creerChiffrementSocial } from "../src/services/chiffrement-social.ts";
+import { assemblerExportSocial, PAQUET_DECHIFFREMENT, type DonneesExportSocial } from "../src/services/export-social-regles.ts";
 import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
 
 let banc: Awaited<ReturnType<typeof creerBancSocial>>;
@@ -27,8 +32,10 @@ test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamai
   const lea = await banc.creerPersonne({ prenom: "Léa", pseudo: "lea.export" });
   const malo = await banc.creerPersonne({ prenom: "Malo", pseudo: "malo.export" });
   const zoe = await banc.creerPersonne({ prenom: "Zoé", pseudo: "zoe.export" });
+  const noe = await banc.creerPersonne({ prenom: "Noé", pseudo: "noe.export" });
   banc.rendrePotes(lea, malo);
   banc.rendrePotes(lea, zoe);
+  banc.rendrePotes(lea, noe);
   const code = (await lea.demander("GET", "/app/bande/invitation")).corps.invitation.code as string;
   assert.match(code, /^[a-z0-9]{12}$/i);
 
@@ -40,7 +47,7 @@ test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamai
   assert.equal(lieu.statut, 201, JSON.stringify(lieu.corps));
   assert.equal((await lea.demander("PUT", `/app/conversations/${prive}/messages/${secret.corps.message.id}/reactions/coeur`)).statut, 200);
 
-  const groupe = (await lea.demander("POST", "/app/conversations/groupes", { titre: "Les Miamis", emoji: "🍕", invites: [malo.idPublic, zoe.idPublic], idClient: randomUUID() })).corps.conversation.id as string;
+  const groupe = (await lea.demander("POST", "/app/conversations/groupes", { titre: "Les Miamis", emoji: "🍕", invites: [malo.idPublic, zoe.idPublic, noe.idPublic], idClient: randomUUID() })).corps.conversation.id as string;
   assert.equal((await malo.demander("POST", `/app/conversations/${groupe}/reponse`, { rejoint: true })).statut, 200);
   assert.equal((await zoe.demander("POST", `/app/conversations/${groupe}/reponse`, { rejoint: false })).statut, 200);
   await ecrire(lea, groupe, "Bienvenue la Brigade");
@@ -65,8 +72,11 @@ test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamai
   for (const interdit of ["Secret de Malo", "Message de Malo", code, "v1:"]) assert.ok(!texte.includes(interdit), `jamais « ${interdit} » dans l'export`);
 
   const pourZoe = (await exporter(zoe)).corps.export;
-  assert.deepEqual(pourZoe.invitationsGroupes.map((i: { titre: string; statut: string }) => [i.titre, i.statut]), [["Les Miamis", "refuse"]]);
+  assert.deepEqual(pourZoe.invitationsGroupes.map((i: { titre: string | null; statut: string }) => [i.titre, i.statut]), [[null, "refuse"]], "refusée : plus son titre");
   assert.deepEqual(pourZoe.conversations, [], "ni messages ni membres d'un groupe où elle n'est pas entrée");
+  assert.ok(!JSON.stringify(pourZoe).includes("Les Miamis"));
+  const pourNoe = (await exporter(noe)).corps.export;
+  assert.deepEqual(pourNoe.invitationsGroupes.map((i: { titre: string | null; statut: string }) => [i.titre, i.statut]), [["Les Miamis", "invite"]], "en attente : son titre");
 
   // Malo quitte le groupe : ses messages y restent, sans le titre ni les membres d'aujourd'hui
   assert.equal((await malo.demander("DELETE", `/app/conversations/${groupe}/membres/moi`)).statut, 200);
@@ -74,19 +84,93 @@ test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamai
   assert.deepEqual([quitte.titre, quitte.membres, quitte.messages.map((m: { texte: string }) => m.texte)], [null, [], ["Message de Malo dans le groupe"]]);
 });
 
-test("rien de ce que l'autre ne t'a pas montré : refus silencieux, blocage qu'il a fait, suivi refusé", async () => {
+test("rien de ce que l'autre ne t'a pas montré : refus silencieux, puis blocage dans un sens ou dans l'autre", async () => {
   const demandeur = await banc.creerPersonne();
   const discrete = await banc.creerPersonne();
+  const insistant = await banc.creerPersonne();
   banc.tables.demandes.push({ deId: demandeur.compteId, aId: discrete.compteId, creeLe: date(), refuseeLe: date() });
   banc.suivre(demandeur, discrete, "refuse");
-  banc.bloquer(discrete, demandeur);
-  const pourDemandeur = (await exporter(demandeur)).corps.export;
-  assert.deepEqual(pourDemandeur.demandesBande.envoyees.map((x: { personne: { id: string } }) => x.personne.id), [discrete.idPublic], "toujours « envoyée »");
-  assert.deepEqual(pourDemandeur.suivis.abonnements.map((x: { personne: { id: string } }) => x.personne.id), [discrete.idPublic], "toujours « demande envoyée »");
-  assert.deepEqual(pourDemandeur.bloques, [], "jamais qui t'a bloqué");
+  const avant = (await exporter(demandeur)).corps.export;
+  assert.deepEqual(avant.demandesBande.envoyees.map((x: { personne: { id: string } }) => x.personne.id), [discrete.idPublic], "toujours « envoyée »");
+  assert.deepEqual(avant.suivis.abonnements.map((x: { personne: { id: string }; statut: string }) => [x.personne.id, x.statut]), [[discrete.idPublic, "demande"]],
+    "un suivi refusé se lit « demande » : on ne te dit pas qu'il a été refusé");
   const pourDiscrete = (await exporter(discrete)).corps.export;
-  assert.deepEqual([pourDiscrete.demandesBande.recues, pourDiscrete.suivis.abonnes], [[], []], "refusées : comme dans l'app");
-  assert.deepEqual(pourDiscrete.bloques.map((p: { id: string }) => p.id), [demandeur.idPublic], "ceux que TU as bloqués");
+  assert.deepEqual([pourDiscrete.demandesBande.recues, pourDiscrete.suivis.abonnes, pourDiscrete.suivis.demandesRecues], [[], [], []], "refusées : comme dans l'app");
+
+  // Des liens restés malgré un blocage (sans les effacements de la vraie route) : la bande, les demandes et les suivis ne
+  // nomment ni qui t'a bloqué, ni qui tu as bloqué
+  banc.rendrePotes(demandeur, discrete);
+  banc.tables.demandes.push({ deId: discrete.compteId, aId: demandeur.compteId, creeLe: date(), refuseeLe: null });
+  banc.suivre(discrete, demandeur, "accepte");
+  banc.suivre(insistant, demandeur, "demande");
+  banc.bloquer(discrete, demandeur);
+  banc.bloquer(demandeur, insistant);
+  const apres = (await exporter(demandeur)).corps.export;
+  assert.deepEqual([apres.bande, apres.demandesBande, apres.suivis], [[], { envoyees: [], recues: [] }, { abonnements: [], abonnes: [], demandesRecues: [] }]);
+  assert.deepEqual(apres.bloques.map((p: { id: string }) => p.id), [insistant.idPublic], "ceux que TU as bloqués, jamais qui t'a bloqué");
+  const pourDiscreteApres = (await exporter(discrete)).corps.export;
+  assert.deepEqual(pourDiscreteApres.bloques.map((p: { id: string }) => p.id), [demandeur.idPublic], "ceux que TU as bloqués");
+  assert.ok(!JSON.stringify({ ...pourDiscreteApres, bloques: [] }).includes(demandeur.idPublic!), "et nulle part ailleurs");
+});
+
+test("blocage par l'autre, puis il change de pseudo : ni son nouveau pseudo ni l'ancien ; tes messages du privé restent", async () => {
+  const lea = await banc.creerPersonne({ pseudo: "lea.brouille" });
+  const malo = await banc.creerPersonne({ pseudo: "malo.avant" });
+  const noe = await banc.creerPersonne({ pseudo: "noe.temoin" });
+  banc.rendrePotes(lea, malo);
+  banc.rendrePotes(lea, noe);
+  const prive = (await lea.demander("POST", "/app/conversations/prive", { personne: malo.idPublic })).corps.conversation.id as string;
+  assert.equal((await ecrire(lea, prive, "Avant la brouille")).statut, 201);
+  assert.equal((await ecrire(malo, prive, "Réponse de Malo")).statut, 201);
+  const groupe = (await lea.demander("POST", "/app/conversations/groupes", { titre: "La tablée", emoji: "🍲", invites: [malo.idPublic, noe.idPublic], idClient: randomUUID() })).corps.conversation.id as string;
+  for (const p of [malo, noe]) assert.equal((await p.demander("POST", `/app/conversations/${groupe}/reponse`, { rejoint: true })).statut, 200);
+
+  // Malo bloque Léa (la vraie route : bande, suivis et invitations partent ; le privé et le groupe restent), puis change de pseudo
+  assert.equal((await malo.demander("PUT", `/app/blocages/${lea.idPublic}`)).statut, 200);
+  banc.tables.comptes.get(malo.compteId)!.pseudo = "malo.apres";
+  const e = (await exporter(lea)).corps.export;
+  const texte = JSON.stringify(e);
+  for (const interdit of ["malo.apres", "malo.avant", malo.idPublic!, "Réponse de Malo"]) assert.ok(!texte.includes(interdit), `jamais « ${interdit} »`);
+  const pourLea = (id: string) => e.conversations.find((c: { id: string }) => c.id === id);
+  assert.deepEqual([pourLea(prive).membres, pourLea(prive).messages.map((m: { texte: string }) => m.texte)], [["lea.brouille"], ["Avant la brouille"]], "toi seul, tes messages");
+  assert.deepEqual([...pourLea(groupe).membres].sort(), ["lea.brouille", "noe.temoin"], "le groupe ne le nomme pas non plus");
+  assert.deepEqual(e.bloques, [], "il t'a bloqué : tu ne le sais pas");
+
+  // Pour Malo, qui a bloqué : Léa dans « bloques » (comme Réglages › Personnes bloquées), nulle part ailleurs
+  const pourMalo = (await exporter(malo)).corps.export;
+  assert.deepEqual(pourMalo.bloques.map((p: { pseudo: string }) => p.pseudo), ["lea.brouille"]);
+  const privePourMalo = pourMalo.conversations.find((c: { id: string }) => c.id === prive);
+  assert.deepEqual([privePourMalo.membres, privePourMalo.messages.map((m: { texte: string }) => m.texte)], [["malo.apres"], ["Réponse de Malo"]]);
+  assert.ok(!JSON.stringify({ ...pourMalo, bloques: [] }).includes("lea.brouille"));
+});
+
+test("invitations qu'un blocage te cache : un groupe sans son titre, une sortie absente (même quand l'organisateur est parti)", async () => {
+  const moi = await banc.creerPersonne();
+  const hote = await banc.creerPersonne();
+  const ami = await banc.creerPersonne();
+  banc.rendrePotes(hote, moi);
+  const groupe = await hote.demander("POST", "/app/conversations/groupes", { titre: "Club secret", emoji: "🎲", invites: [moi.idPublic], idClient: randomUUID() });
+  assert.equal(groupe.statut, 201, JSON.stringify(groupe.corps));
+  const t = banc.tables;
+  const sortie = (id: number, titre: string, organisateurId: number | null, inviteParId: number | null, jours: number) => {
+    t.sorties.set(id, {
+      id, conversationId: id, organisateurId, titre, emoji: "🍕", quand: date(jours * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
+    });
+    if (organisateurId !== null) t.invitationsSorties.push({ sortieId: id, compteId: organisateurId, inviteParId: null, statut: "accepte", creeLe: date(-9_000), reponduLe: null });
+    t.invitationsSorties.push({ sortieId: id, compteId: moi.compteId, inviteParId, statut: "invite", creeLe: date(), reponduLe: null });
+  };
+  sortie(9801, "Chez l'hôte", hote.compteId, hote.compteId, 1);
+  // L'organisateur est parti avec son compte : l'hôte, plus ancien participant, a la main
+  sortie(9802, "Sans organisateur", null, null, 2);
+  t.invitationsSorties.push({ sortieId: 9802, compteId: hote.compteId, inviteParId: null, statut: "accepte", creeLe: date(-5_000), reponduLe: date(-4_000) });
+  sortie(9803, "Chez l'ami", ami.compteId, ami.compteId, 3);
+  const titres = (e: { invitationsGroupes: { titre: string | null }[]; sorties: { titre: string; role: string }[] }) =>
+    [e.invitationsGroupes.map((i) => i.titre), e.sorties.map((s) => [s.titre, s.role])];
+  assert.deepEqual(titres((await exporter(moi)).corps.export), [["Club secret"], [["Chez l'hôte", "invite"], ["Sans organisateur", "invite"], ["Chez l'ami", "invite"]]]);
+  banc.bloquer(moi, hote);
+  const apres = (await exporter(moi)).corps.export;
+  assert.deepEqual(titres(apres), [[null], [["Chez l'ami", "invite"]]]);
+  assert.ok(!JSON.stringify(apres).includes("Club secret"));
 });
 
 test("sorties, listes, commentaires, cloche, signalements, masques et médias", async () => {

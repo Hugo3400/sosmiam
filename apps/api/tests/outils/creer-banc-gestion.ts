@@ -12,12 +12,13 @@ import { calculerCodeTotp } from "../../src/fonctions/securite/calculer-code-tot
 import { calculerIdPoste } from "../../src/fonctions/securite/calculer-id-poste.ts";
 import { construireMessageGestion } from "../../src/fonctions/securite/construire-message-gestion.ts";
 import { creerStockageSessionsEnMemoire } from "../../src/middlewares/proteger-gestion.ts";
+import type { AvisGestion } from "../../src/services/avis-gestion.ts";
 import type { ChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import type { ServicesGestion } from "../../src/services/gestion/tous-les-services.ts";
 
 const { subtle } = webcrypto;
 
-export async function creerBancGestion(services: Partial<ServicesGestion>, comptes?: OutilsComptes, chiffrement: ChiffrementDonnees | null = null, visites?: VisitesGestion, defis?: DefisGestion) {
+export async function creerBancGestion(services: Partial<ServicesGestion>, comptes?: OutilsComptes, chiffrement: ChiffrementDonnees | null = null, visites?: VisitesGestion, defis?: DefisGestion, avis?: AvisGestion) {
   const secretTotp = new Uint8Array(randomBytes(20));
   let horloge = Date.now();
   const cles = (await subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as webcrypto.CryptoKeyPair;
@@ -35,6 +36,7 @@ export async function creerBancGestion(services: Partial<ServicesGestion>, compt
       chiffrement,
       visites,
       defis,
+      avis,
     },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));

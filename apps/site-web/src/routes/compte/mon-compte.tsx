@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { data, Link, redirect } from "react-router";
+import { data, Link, redirect, useActionData } from "react-router";
 
 import type { Route } from "./+types/mon-compte";
 import { BoutonDeconnexion } from "~/composants/compte/BoutonDeconnexion";
 import { ConnexionMonCompte } from "~/composants/compte/ConnexionMonCompte";
+import { EncadreCompteLimite, FORMULAIRE_CONTESTATION } from "~/composants/compte/EncadreCompteLimite";
 import { FormulaireChangerMotDePasse } from "~/composants/compte/FormulaireChangerMotDePasse";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { FormulaireProfil } from "~/composants/compte/FormulaireProfil";
@@ -17,6 +18,9 @@ import { Section } from "~/composants/mise-en-page/Section";
 import { site } from "~/contenus/legal/informations-legales";
 import { messagesConnexionExterne } from "~/contenus/connexion-externe";
 import { accueilsMonCompte, AIDE_SANS_MOT_DE_PASSE, CHAPO_CONNECTE, CHAPO_VISITEUR } from "~/contenus/mon-compte";
+import { textesLimitation } from "~/contenus/limitation-compte";
+import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
+import { lireMotifLimitation } from "~/fonctions/compte/lire-motif-limitation";
 import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { choisirCodeConnexionExterne } from "~/fonctions/connexion-externe/choisir-code-connexion-externe";
 import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
@@ -32,6 +36,7 @@ import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-conn
 import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
 import { lireQrAffiche } from "~/services/connexion-qr.server";
+import { contesterLimitation, lireLimitation } from "~/services/limitation-compte.server";
 import { preparerMesConnexions, traiterMesConnexions } from "~/services/mes-connexions.server";
 import {
   effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
@@ -101,7 +106,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { jeton, compte } = await exigerCompte(request);
   // Compte sans mot de passe (créé avec Apple ou Google) : la suppression se confirme en se reconnectant avec le compte lié
   // (si l'API ne répond pas, la page reste celle d'un compte avec mot de passe : l'API tranche de toute façon)
-  const connexions = await lireConnexionsCompte(jeton, lireIpVisiteur(request));
+  // « Ton compte est limité » : la limitation en cours ou à venir (si l'API ne répond pas, pas d'encadré : l'API tranche)
+  const ip = lireIpVisiteur(request);
+  const [connexions, limitationLue] = await Promise.all([lireConnexionsCompte(jeton, ip), lireLimitation(jeton, ip)]);
+  const limitation = limitationLue.ok && limitationLue.limitation
+    ? { vue: limitationLue.limitation, motif: lireMotifLimitation(limitationLue.limitation.motif) }
+    : null;
   const actifs = lireFournisseursActifs();
   const attente = lireCookieAttente(request, Date.now());
   const sansMotDePasse = connexions.ok && !connexions.connexions.motDePasse
@@ -129,6 +139,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     suppression,
     sansMotDePasse,
     mesConnexions: preparerMesConnexions(request, connexions, compte.email, espace === "ambassadeur" ? "/espace/mon-compte" : "/mon-compte", actifs),
+    limitation,
   };
 }
 
@@ -168,11 +179,25 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (reponse.ok) return { ok: true, formulaire: nom, message: "C'est enregistré." };
     await redirigerSiSessionFermee(request, reponse.erreur);
     const champ = reponse.champ as keyof typeof messages | undefined;
+    // Compte limité : un nouveau prénom se verrait des autres, il attend la fin de la limitation
+    if (reponse.erreur === "compte-limite") return { ok: false, formulaire: nom, message: lierPonctuation(expliquerCompteLimite(reponse.jusqua)), valeurs };
     if (reponse.erreur === "champ-invalide" && champ && (champ === "prenom" || champ === "ville" || champ === "quartier")) {
       // Le prénom avait la bonne longueur (vérifiée ici) : l'API le refuse pour un gros mot
       return { ok: false, formulaire: nom, erreurs: { [champ]: champ === "prenom" ? MESSAGE_PRENOM_REFUSE : messages[champ] }, valeurs };
     }
     return { ok: false, formulaire: nom, message: expliquer(reponse), valeurs };
+  }
+
+  if (nom === FORMULAIRE_CONTESTATION) {
+    // « Contester » ma limitation : 10 à 1 000 caractères, une seule fois, pendant la limitation
+    const texte = String(formulaire.get("texte") ?? "").trim();
+    if (texte.length < 10 || texte.length > 1000) return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(textesLimitation.texteInvalide) }, valeurs: { texte } };
+    const reponse = await contesterLimitation(jeton, ip, texte);
+    if (reponse.ok) return { ok: true, formulaire: nom, message: lierPonctuation(textesLimitation.envoiReussi) };
+    await redirigerSiSessionFermee(request, reponse.erreur);
+    if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(textesLimitation.texteInvalide) }, valeurs: { texte } };
+    const message = reponse.erreur === "deja-conteste" ? textesLimitation.dejaConteste : reponse.erreur === "aucune-limitation" ? textesLimitation.plusDeLimitation : null;
+    return { ok: false, formulaire: nom, message: message ? lierPonctuation(message) : expliquer(reponse), valeurs: { texte } };
   }
 
   if (nom === "mot-de-passe") {
@@ -233,6 +258,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
  * suppression du compte ; sur sosmiam.fr, en plus, « Mes données » et, sans connexion, la connexion et la suppression par mail.
  */
 export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
+  const reponseAction = useActionData<ReponseFormulaire>();
   const motDePasseChange = loaderData.connecte ? loaderData.motDePasseChange : null;
   // Mot de passe changé (on revient ici par une redirection, sans réponse d'action) : le formulaire l'annonce comme une
   // réussite et se vide. Un nouvel objet seulement quand la marque change : chaque changement est annoncé une fois.
@@ -271,13 +297,17 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  const { prenom, email, lieu, suppression, sansMotDePasse, mesConnexions } = loaderData;
+  const { prenom, email, lieu, suppression, sansMotDePasse, mesConnexions, limitation } = loaderData;
+  // Contestation refusée alors que l'encadré a disparu entre-temps (limitation finie ou levée) : le message reste visible
+  const contestationSansEncadre = !limitation && reponseAction?.formulaire === FORMULAIRE_CONTESTATION ? reponseAction.message : undefined;
   return (
     <Section fond="creme" etroit>
       <TitreSection principal chapo={lierPonctuation(surSite ? CHAPO_CONNECTE : "Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
         Mon compte
       </TitreSection>
       <div className="grid gap-8">
+        {limitation && <EncadreCompteLimite limitation={limitation.vue} motif={limitation.motif} />}
+        {contestationSansEncadre && <p role="status" className="rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 font-semibold">{contestationSansEncadre}</p>}
         <PartieCompte id="mes-infos" titre="Mes infos">
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>

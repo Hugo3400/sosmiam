@@ -13,6 +13,7 @@ import { lireBrouillonCarte } from "~/fonctions/carte/lire-brouillon-carte";
 import { nommerBoutonCarte } from "~/fonctions/carte/nommer-bouton-carte";
 import { nommerChampCarte } from "~/fonctions/carte/nommer-champ-carte";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
 import { enregistrerCartePro, lireCartePro } from "~/services/pro.server";
@@ -81,6 +82,8 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
     const nom = typeof envoi.element === "number" ? nommerChampCarte(envoi.section, champ === "autre" ? "nom" : champ, envoi.element) : nommerChampCarte(envoi.section, "titre");
     return { ...reponse, ok: false, erreurs: { [nom]: lierPonctuation(ERREURS_CARTE[champ]) }, focus: { champ: nom } };
   }
+  // Compte limité : la carte en ligne ne change pas tant que ça dure (le brouillon reste là)
+  if (envoi.erreur === "compte-limite") return { ...reponse, ok: false, message: lierPonctuation(`${expliquerCompteLimite(envoi.jusqua)} Ton brouillon est toujours là.`) };
   const texte = messagesEnvoi[envoi.erreur] ?? "Oups, ta carte n'a pas été enregistrée. Réessaie dans un instant : ton brouillon est toujours là.";
   return { ...reponse, ok: false, message: lierPonctuation(texte) };
 }

@@ -10,6 +10,7 @@ import { NOMS_CHAMPS } from "~/contenus/infos-pratiques";
 import { garderChampsModifies } from "~/fonctions/pro/garder-champs-modifies";
 import { lireChampsFiche } from "~/fonctions/pro/lire-champs-fiche";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
+import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
 import { modifierFichePro } from "~/services/pro.server";
@@ -70,6 +71,8 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
   if (reponse.erreur === "proposition-invalide" && reponse.champ === "message") {
     return { ok: false, formulaire: "fiche", erreurs: { message: lierPonctuation("Ce petit mot ne passe pas : raccourcis-le un peu.") }, valeurs };
   }
+  // Compte limité : la fiche publique ne change pas tant que ça dure
+  if (reponse.erreur === "compte-limite") return { ok: false, formulaire: "fiche", message: lierPonctuation(expliquerCompteLimite(reponse.jusqua)), valeurs };
   const texte = reponse.erreur === "trop-de-suggestions"
     ? "Il y a déjà des changements de nom ou d'adresse en attente : rien n'a été enregistré. Retire le nom et l'adresse pour enregistrer le reste, ou attends la réponse de l'équipe."
     : reponse.erreur === "reserve-au-gerant"
