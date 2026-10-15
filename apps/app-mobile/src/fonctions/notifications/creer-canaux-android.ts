@@ -11,7 +11,8 @@ import { Platform } from "react-native";
  *   discussion qui a sonné ; il remplace la notification de la discussion sans bruit. Importance normale (et non basse :
  *   sinon Android le rangerait dans les « Silencieuses », parfois cachées sur l'écran verrouillé), mais ni son, ni
  *   vibration, ni bannière : il reste dans les notifications normales, comme sur iPhone.
- * - « Nouvelles de SOS Miam » (« notifications ») : bons plans, visites, nouvelles. Importance normale : son, sans bannière.
+ * - « Nouvelles de SOS Miam » (« notifications ») : bons plans, visites, nouvelles. Importance haute, comme les messages
+ *   (choix de Hugo, 15 octobre 2026) : son, vibration et bannière.
  *   C'est aussi le canal par défaut du manifeste (« defaultChannel » d'app.json), pour un canal pas encore créé ici.
  * Attention : une fois un canal créé sur un téléphone, l'app ne peut plus changer son importance, son son ni sa vibration (il
  * faudrait un nouvel identifiant). Aucune version Android n'est publiée le 15 octobre 2026 : ces réglages sont ceux qui
@@ -47,6 +48,7 @@ export async function creerCanauxAndroid(): Promise<void> {
   await Notifications.setNotificationChannelAsync("notifications", {
     name: "Nouvelles de SOS Miam",
     description: "Les SOS et bons plans près de chez toi, tes visites validées et des nouvelles du Capitaine Bouiboui.",
-    importance: Notifications.AndroidImportance.DEFAULT,
+    importance: Notifications.AndroidImportance.HIGH,
+    enableVibrate: true,
   }).catch(() => null);
 }
