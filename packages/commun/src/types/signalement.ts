@@ -38,6 +38,14 @@ export type Signalement = {
 export type CibleSignalementSocial = "commentaire" | "message" | "liste" | "profil" | "sortie" | "groupe";
 
 /**
+ * Ce sur quoi la modération peut décider, vu dans « Décisions de la modération » (CIBLES_DECISION_MODERATION de
+ * regles/signalement.ts) : les contenus sociaux, plus un avis et la réponse d'un lieu à un avis, masqués par l'équipe à la
+ * relecture (décision du 15/10/2026). Un avis ne se signale pas par l'app comme un contenu social : il n'est pas dans
+ * CibleSignalementSocial.
+ */
+export type CibleDecisionModeration = CibleSignalementSocial | "avis" | "reponse-avis";
+
+/**
  * Un signalement de commentaire, de message (lieu envoyé compris, avec son petit mot), de liste, de profil, de sortie ou de
  * groupe (mêmes raisons que pour une publication). « recommandation » ne sert plus qu'à la démo de l'app, en attendant
  * son nettoyage (lots A3 et A7) : l'API ne la reçoit jamais (validerSignalementContenu la refuse).
@@ -65,7 +73,7 @@ export type SignalementSocialValide = {
 /** Une décision de la modération qui te concerne (GET /app/moderation/mes-decisions), jamais qui a signalé */
 export type DecisionModerationApi = {
   id: string;
-  cible: CibleSignalementSocial;
+  cible: CibleDecisionModeration;
   role: "auteur" | "signale";
   /** « masque » : masqué en attendant la modération (auteur seulement) */
   statut: "masque" | "retenu" | "rejete";

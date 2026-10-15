@@ -12,7 +12,7 @@ import { calculerNiveauProfil } from "../src/regles/calculer-niveau-profil.ts";
 import { DUREE_CLOCHE_MODERATION_JOURS, TYPES_CLOCHE, TYPES_CLOCHE_MODERATION } from "../src/regles/cloche.ts";
 import { MAX_CO_AUTEURS_LISTE, MAX_LIEUX_PAR_LISTE, MAX_LISTES_PAR_COMPTE } from "../src/regles/listes.ts";
 import { FORME_ID_PUBLIC, MAX_BANDE, MAX_PARTICIPANTS_SORTIE, MAX_PROPOSITIONS_SORTIE, MAX_SORTIES_A_VENIR } from "../src/regles/potes.ts";
-import { CIBLES_SIGNALEMENT_SOCIAL, DUREE_CONTESTATION_JOURS } from "../src/regles/signalement.ts";
+import { CIBLES_DECISION_MODERATION, CIBLES_SIGNALEMENT_SOCIAL, DUREE_CONTESTATION_JOURS } from "../src/regles/signalement.ts";
 import { estEmojiSeul } from "../src/validation/est-emoji-seul.ts";
 import { validerSignalementContenu } from "../src/validation/valider-signalement-contenu.ts";
 import { verifierTexteSocial } from "../src/validation/verifier-texte-social.ts";
@@ -41,6 +41,16 @@ test("signalement social : les 6 cibles, et l'identifiant qui va avec", () => {
   assert.equal(validerSignalementContenu({ ...signalement, cible: "publication" }), null);
   assert.equal(validerSignalementContenu(null), null);
   assert.equal(validerSignalementContenu([signalement]), null);
+});
+
+test("décisions de la modération : les 6 cibles sociales, plus l'avis et la réponse d'un lieu, qui ne se signalent pas par là", () => {
+  assert.deepEqual([...CIBLES_DECISION_MODERATION], [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis"]);
+  for (const cible of ["avis", "reponse-avis"]) {
+    assert.equal((CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(cible), false, cible);
+    assert.equal(validerSignalementContenu({ ...signalement, cible }), null, cible);
+  }
+  // La colonne Signalement.cible tient en 12 caractères
+  for (const cible of CIBLES_DECISION_MODERATION) assert.ok(cible.length <= 12, cible);
 });
 
 test("signalement social : raisons connues, explication obligatoire pour « autre », précision de 80 et explication de 500", () => {

@@ -1,4 +1,4 @@
-import type { CibleSignalementSocial, RaisonSignalement } from "../types/signalement.ts";
+import type { CibleDecisionModeration, CibleSignalementSocial, RaisonSignalement } from "../types/signalement.ts";
 
 // Règles des signalements de publications et des contenus sociaux : ce qu'on demande pour qu'ils soient utiles à la modération.
 
@@ -23,6 +23,13 @@ export const RAISONS_AVEC_MASQUAGE_IMMEDIAT: readonly RaisonSignalement[] = ["ch
 
 /** Ce qu'on peut signaler dans la partie sociale (un lieu envoyé est un message) */
 export const CIBLES_SIGNALEMENT_SOCIAL = ["commentaire", "message", "liste", "profil", "sortie", "groupe"] as const satisfies readonly CibleSignalementSocial[];
+
+/**
+ * Ce que montre « Décisions de la modération » (GET /app/moderation/mes-decisions) : les contenus sociaux, plus un avis et la
+ * réponse d'un lieu à un avis, masqués par l'équipe à la relecture (décision du 15/10/2026), pour leur auteur seulement.
+ * Ne sert jamais à valider ce qu'on signale par l'app (c'est CIBLES_SIGNALEMENT_SOCIAL).
+ */
+export const CIBLES_DECISION_MODERATION = [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis"] as const satisfies readonly CibleDecisionModeration[];
 
 /**
  * Contenus sociaux masqués pour tout le monde au premier signalement « choquant », en attendant la modération. Jamais un

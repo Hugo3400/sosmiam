@@ -3,6 +3,7 @@
 // on juge la publication, pas chaque signalement.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, type ModerationSociale } from "./moderation-sociale.ts";
+import { CIBLES_AVIS } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
 /** Même liste que RAISONS_AVEC_MASQUAGE_IMMEDIAT (packages/commun/src/regles/signalement.ts), que l'API ne peut pas encore importer */
@@ -38,6 +39,15 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     },
   });
   const parId = new Map(publications.map((publication) => [String(publication.id), publication]));
+  // Avis et réponses des lieux masqués par l'équipe (relecture) : montrés tels qu'ils sont, pour un réexamen
+  const idsAvis = [...new Set(signalements.filter((s) => (CIBLES_AVIS as readonly string[]).includes(s.cible)).map((s) => Number(s.cibleId)).filter(Number.isInteger))];
+  const avis = idsAvis.length
+    ? await baseDeDonnees.avis.findMany({
+      where: { id: { in: idsAvis } },
+      select: { id: true, note: true, texte: true, signature: true, statut: true, reponseTexte: true, reponseStatut: true, lieu: { select: { nom: true, emoji: true } } },
+    })
+    : [];
+  const avisParId = new Map(avis.map((a) => [String(a.id), a]));
   const instantanes = new Map(signalements.map((s) => [s.id, lireInstantane(social, s)]));
   const [lieux, signaleurs] = await Promise.all([
     lireLieuxDesInstantanes([...instantanes.values()].map((i) => (i?.etat === "lu" ? i.contenu : undefined))),
@@ -47,6 +57,7 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     ...signalement,
     urgent: RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(signalement.raison),
     publication: signalement.cible === "publication" ? parId.get(signalement.cibleId) ?? null : null,
+    avis: (CIBLES_AVIS as readonly string[]).includes(signalement.cible) ? avisParId.get(signalement.cibleId) ?? null : null,
     instantane: instantanes.get(signalement.id) ?? null,
     avecMedia: fichierMedia !== null,
     signaleur: signalement.signaleParId ? signaleurs[signalement.signaleParId] ?? null : null,

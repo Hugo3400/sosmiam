@@ -19,6 +19,8 @@ import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegar
 import { testerSauvegarde } from "../services/gestion/test-sauvegarde.ts";
 import { effacerAppareilsSilencieux, effacerInteretsPasses } from "../services/menage-app.ts";
 import { faireLeMenageDesComptes } from "../services/menage-comptes.ts";
+import { faireLeMenageSocial } from "../services/menage-social.ts";
+import { decrireBilanMenageSocial } from "../fonctions/social/decrire-bilan-menage-social.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { formaterOctets } from "../fonctions/texte/formater-octets.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
@@ -136,10 +138,26 @@ async function rechiffrerLesComptes() {
   }
 }
 
-/** D'abord le ménage (contacts, puis comptes), ensuite la sauvegarde : ce qui a passé sa durée de conservation n'y part pas. */
+/**
+ * Ménage de la partie sociale de l'app (spécification sociale E.1) : médias du chat (90 jours), conversations (1 an sans
+ * message) et conversations vides, demandes et invitations en attente, cloche, éléments masqués, contenus retirés depuis
+ * plus d'un an, fichiers orphelins ; pendant un changement de clé, le rechiffrement (chiffrementDeNuit). Avant la
+ * sauvegarde. Seulement des nombres dans le journal, jamais un contenu ; une erreur n'arrête pas les autres ménages.
+ */
+async function nettoyerSocial() {
+  try {
+    const bilan = await faireLeMenageSocial({ medias: creerStockageMediasChat(), chiffrement: chiffrementDeNuit });
+    for (const [nombre, quoi] of decrireBilanMenageSocial(bilan)) await noterAction("serveur", quoi, `${nombre}`);
+  } catch (erreur) {
+    console.error("Ménage social impossible :", resumerErreur(erreur));
+  }
+}
+
+/** D'abord le ménage (contacts, puis comptes, puis la partie sociale), ensuite la sauvegarde : ce qui a passé sa durée de conservation n'y part pas. */
 async function nettoyerPuisSauvegarder() {
   await faireLeMenage();
   await nettoyerComptes();
+  await nettoyerSocial();
   await prevenirLesComptesInactifs();
   await rechiffrerLesComptes();
   await sauvegarder();
