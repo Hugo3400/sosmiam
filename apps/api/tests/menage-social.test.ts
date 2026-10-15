@@ -2,8 +2,9 @@
 // d'un texte et d'un fichier pendant un changement de clé (vraies clés de test, ancienne et nouvelle), protection de chaque
 // étape, de chaque paquet et de chaque sous-étape (ce qui échoue n'arrête pas la suite ; le journal ne garde que des noms et
 // des codes), liste du dossier des médias jusqu'à une page vide, ordre des verrous (sorties puis conversations ; compte puis
-// conversation pour un signalement de message), sur des bases factices. Les requêtes SQL des étapes 1 à 9 sont essayées sur
-// PGlite, hors de ces tests (scratchpad essai-l7/essai-menage-l7.mts).
+// conversation pour un signalement de message), garde des fichiers signalés (ouvert, ou jugé depuis moins de 183 jours) aux
+// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit, sur des bases factices. Les requêtes SQL des
+// étapes 1 à 9 sont essayées sur PGlite, hors de ces tests (scratchpad essai-l7/essai-menage-l7.mts).
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { test } from "node:test";
@@ -25,7 +26,7 @@ import {
 // (jamais utilisée ici)
 process.env.DATABASE_URL ??= "postgresql://essai@127.0.0.1:1/essai";
 const { faireLeMenageSocial } = await import("../src/services/menage-social.ts");
-const { effacerFichiersOrphelins } = await import("../src/services/menage-social-etapes.ts");
+const { effacerContenusRetires, effacerConversationsAnciennes, effacerFichiersOrphelins, effacerMediasExpires } = await import("../src/services/menage-social-etapes.ts");
 const { rechiffrerSocial } = await import("../src/services/rechiffrement-social.ts");
 const { creerSignalementsSociaux } = await import("../src/services/signalements-sociaux.ts");
 
@@ -86,7 +87,7 @@ test("seuils : les durées décidées (90 jours, 1 an, 30 jours, 24 h, 6 et 13 m
   assert.deepEqual(s, {
     medias: T, conversations: ilYa(365), demandesBande: ilYa(30), demandesSuivi: ilYa(30), invitationsGroupes: ilYa(30), coAuteurs: ilYa(30),
     sortiesPassees: T, departs: ilYa(30), cles: ilYa(1), cloche: ilYa(90), clocheModeration: ilYa(183), masques: ilYa(395),
-    contenusRetires: ilYa(365), orphelins: ilYa(1),
+    contenusRetires: ilYa(365), orphelins: ilYa(1), fichiersSignales: ilYa(183),
   });
   assert.notEqual(s.medias, T, "une copie : le ménage ne peut pas déplacer maintenant");
 });
@@ -103,7 +104,7 @@ test("lignes du journal : seulement ce qui ne vaut pas zéro, des nombres, et le
   assert.deepEqual(rotation, [
     [0, "Chiffrés sociaux réécrits avec la nouvelle clé (0 illisible(s), 0 restant(s))"],
     [1, "Ménage social : étape(s) ratée(s) (cloche), voir le journal du serveur"],
-  ], "« 0 restant(s) » : l'ancienne clé n'est plus utile à la partie sociale");
+  ], "même à zéro : la règle de fin se lit chaque nuit (restants = illisibles deux nuits de suite, sans étape « rechiffrement » ratée)");
 });
 
 /** Une clé v1, puis la v2 qui garde la v1 en ancienne (changement de clé en cours) */
@@ -129,7 +130,8 @@ test("rechiffrer un texte : relu avec l'ancienne clé, réécrit avec la courant
   assert.equal(s2.dechiffrerCode(code!, 7), "CODESECRET23");
   const instantane = rechiffrerTexteSocial(s2, "instantanes", CONTEXTES_SOCIAUX.instantane(3), s1.chiffrerInstantane('{"texte":"x"}', 3));
   assert.equal(s2.dechiffrerInstantane(instantane!, 3), '{"texte":"x"}');
-  // Sans l'ancienne clé, rien ne se relit (c'est pourquoi on ne la retire qu'à « 0 restant(s) »)
+  // Sans l'ancienne clé, rien ne se relit : on ne la retire qu'une fois restants = illisibles deux nuits de suite, sans
+  // étape « rechiffrement » ratée ces nuits-là (règle de fin de docs/procedure-changement-cle.md)
   const sansAncienne = creerChiffrementSocial(creerChiffrementDonnees(randomBytes(32), { version: 2 }))!;
   assert.throws(() => rechiffrerTexteSocial(sansAncienne, "textes", contexte, ancien));
 });
