@@ -3,7 +3,7 @@ import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
 
 export type DescriptionEtatPhoto = { texte: string; enCours: boolean; refus: boolean };
 
-export function decrireEtatPhoto(etat: EtatPhotoSynchro | null, enAttenteDEnvoi: boolean, maintenant: number): DescriptionEtatPhoto | null {
+export function decrireEtatPhoto(etat: EtatPhotoSynchro | null, enAttenteDEnvoi: boolean): DescriptionEtatPhoto | null {
   const envoi = etat ? etat.operation === "envoi" : enAttenteDEnvoi;
   if (!etat) return enAttenteDEnvoi ? { texte: "📤 Ta photo part sur SOS Miam…", enCours: true, refus: false } : null;
   if (etat.etat === "en-cours") {
@@ -28,7 +28,7 @@ export function decrireEtatPhoto(etat: EtatPhotoSynchro | null, enAttenteDEnvoi:
       refus: false,
     };
   }
-  const dans = etat.jusqua ? ` dans ${ecrireAttente(etat.jusqua - maintenant)}` : " un peu plus tard";
+  const dans = etat.attenteMs ? ` dans ${ecrireAttente(etat.attenteMs)}` : " un peu plus tard";
   if (etat.raison === "quota") return { texte: `⏳ Tu as changé de photo 20 fois aujourd'hui : on souffle un peu ! Ta nouvelle photo partira toute seule${dans}.`, enCours: false, refus: false };
   if (etat.raison === "stockage") return { texte: `🗄️ Notre serveur est plein à craquer (on s'en occupe !) : ${suite}${dans}.`, enCours: false, refus: false };
   return { texte: `🛠️ Notre serveur reprend son souffle : ${suite} un peu plus tard. Rien n'est perdu.`, enCours: false, refus: false };

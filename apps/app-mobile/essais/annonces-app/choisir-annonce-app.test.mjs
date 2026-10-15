@@ -45,6 +45,40 @@ test("annonces mal formées venues du réseau : ignorées", () => {
   assert.equal(choisirAnnonceApp({ annonces: [annonce(1)] }, [], MAINTENANT), null);
 });
 
+test("identifiant non entier ou hors des entiers sûrs : ignorée", () => {
+  const liste = [annonce(2.5), annonce(Number.NaN), annonce(Number.MAX_SAFE_INTEGER + 1), annonce(Number.POSITIVE_INFINITY), annonce(1)];
+  assert.equal(choisirAnnonceApp(liste, [], MAINTENANT)?.id, 1);
+});
+
+test("identifiant négatif (pop-ups de la démo) : accepté", () => {
+  assert.equal(choisirAnnonceApp([annonce(-2), annonce(-1)], [], MAINTENANT)?.id, -2);
+  assert.equal(choisirAnnonceApp([annonce(-2), annonce(-1)], [-2], MAINTENANT)?.id, -1);
+});
+
+test("bouton mal formé : l'annonce est ignorée plutôt que de planter à l'affichage", () => {
+  const malFormes = [
+    { lien: "/explorer" },
+    { libelle: "", lien: "/explorer" },
+    { libelle: "   ", lien: "/explorer" },
+    { libelle: 12, lien: "/explorer" },
+    { libelle: "Go", lien: 42 },
+    { libelle: "Go" },
+    "/explorer",
+    true,
+  ];
+  for (const bouton of malFormes) {
+    assert.equal(choisirAnnonceApp([annonce(9, { bouton }), annonce(1)], [], MAINTENANT)?.id, 1, JSON.stringify(bouton));
+  }
+  assert.equal(choisirAnnonceApp([annonce(9, { bouton: undefined })], [], MAINTENANT)?.id, 9);
+});
+
+test("emoji qui n'est pas du texte : l'annonce est ignorée", () => {
+  for (const emoji of [{ texte: "🛟" }, ["🛟"], 7, true]) {
+    assert.equal(choisirAnnonceApp([annonce(9, { emoji }), annonce(1)], [], MAINTENANT)?.id, 1, JSON.stringify(emoji));
+  }
+  assert.equal(choisirAnnonceApp([annonce(9, { emoji: undefined })], [], MAINTENANT)?.id, 9);
+});
+
 test("rend l'annonce telle quelle (bouton et emoji compris)", () => {
   const a = annonce(10, { emoji: "🛟", bouton: { libelle: "Je file explorer", lien: "/explorer" } });
   assert.equal(choisirAnnonceApp([a], [], MAINTENANT), a);

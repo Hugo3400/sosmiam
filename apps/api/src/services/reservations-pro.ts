@@ -9,7 +9,9 @@ import { deciderReservation } from "../fonctions/reservations/decider-reservatio
 import { presenterReservationPro } from "../fonctions/reservations/presenter-reservation-pro.ts";
 import { presenterClientComptoir } from "../fonctions/visites/presenter-client-comptoir.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
-import { RESERVATIONS_AU_COMPTOIR, type ChampsReservation, type EchecReservation, type LigneReservation } from "./reservations-regles.ts";
+import {
+  RESERVATIONS_AU_COMPTOIR, type ChampsReservation, type EchecReservation, type LigneReservation, type ReponseReservation,
+} from "./reservations-regles.ts";
 import { creerOutilsReservations } from "./reservations-outils.ts";
 import type { PointsAPoser } from "./visites-client.ts";
 import type { TablesVisites } from "./visites-regles.ts";
@@ -20,7 +22,9 @@ export type ContexteReservationsPro = ContexteVisites & {
   roleDe: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>;
 };
 
-type ReponseGeste = { ok: true; reservation: ReservationPro; pointsAPoser: PointsAPoser } | EchecReservation;
+type ReponseGeste = { ok: true; reservation: ReservationPro; pointsAPoser: PointsAPoser; reponseLieu: ReponseReservation | null } | EchecReservation;
+
+const REPONSES_AU_CLIENT: ReadonlySet<EvenementReservation["type"]> = new Set(["accepter", "refuser", "annuler-lieu"]);
 
 export function creerReservationsPro(c: ContexteReservationsPro) {
   const o = creerOutilsVisites(c);
@@ -30,6 +34,13 @@ export function creerReservationsPro(c: ContexteReservationsPro) {
   async function presenterPourLeLieu(t: TablesVisites, lignes: LigneReservation[]): Promise<ReservationPro[]> {
     const comptes = await t.lireComptes([...new Set(lignes.map((r) => r.compteId))]);
     return lignes.map((r) => presenterReservationPro(r, presenterClientComptoir(comptes.get(r.compteId), c.chiffrement)));
+  }
+
+  async function decrireReponse(t: TablesVisites, r: LigneReservation, evenement: EvenementReservation, compteId: number): Promise<ReponseReservation | null> {
+    if (!REPONSES_AU_CLIENT.has(evenement.type) || r.compteId === compteId) return null;
+    if (r.statut !== "acceptee" && r.statut !== "refusee" && r.statut !== "annulee") return null;
+    const lieu = (await t.resumerLieux([r.lieuId])).get(r.lieuId) ?? o.lieuDisparu(r.lieuId);
+    return { compteId: r.compteId, lieu, creneau: r.creneau, statut: r.statut, motif: r.motifRefus };
   }
 
   /**
@@ -54,7 +65,8 @@ export function creerReservationsPro(c: ContexteReservationsPro) {
       if (!decision.ok) return o.echec(decision.erreur);
       const nee = decision.creerVisite ? await outils.honorer(t, decision.reservation, maintenant) : null;
       const [reservation] = await presenterPourLeLieu(t, [decision.reservation]);
-      return { ok: true, reservation, pointsAPoser: { compteId: r.compteId, points: nee?.points ?? [] } };
+      const reponseLieu = await decrireReponse(t, decision.reservation, evenement, compteId);
+      return { ok: true, reservation, pointsAPoser: { compteId: r.compteId, points: nee?.points ?? [] }, reponseLieu };
     });
   }
 

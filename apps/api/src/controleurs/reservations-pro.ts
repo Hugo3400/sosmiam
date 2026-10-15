@@ -7,8 +7,9 @@ import { MOTIFS_REFUS_RESERVATION } from "../../../../packages/commun/src/regles
 import type { MotifRefusReservation } from "../../../../packages/commun/src/types/reservation.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import type { RoleRattachement } from "../services/pro-regles.ts";
-import type { EchecReservation } from "../services/reservations-regles.ts";
+import type { EchecReservation, ReponseReservation } from "../services/reservations-regles.ts";
 import { creerReservationsPro } from "../services/reservations-pro.ts";
+import { brancherReponsesReservations } from "../services/reponses-reservations.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { repondreEchecReservation } from "./reservations.ts";
 import { champInvalide, poserPoints, type DependancesVisites } from "./visites.ts";
@@ -21,12 +22,14 @@ const lireMotif = (brut: unknown): MotifRefusReservation | null =>
 export function creerControleursReservationsPro(
   d: DependancesVisites, roleDe: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>, horloge: () => number,
 ) {
-  const reservations = creerReservationsPro({ ...d, roleDe, horloge });
+  const { depot, prevenir } = brancherReponsesReservations(d, horloge);
+  const reservations = creerReservationsPro({ ...d, depot, roleDe, horloge });
   const rendre = async (reponse: Response, r: ({ ok: true } & Record<string, unknown>) | EchecReservation) => {
     if (!r.ok) return repondreEchecReservation(reponse, r);
-    const { pointsAPoser, ...corps } = r;
+    const { pointsAPoser, reponseLieu, ...corps } = r;
     await poserPoints(d.ajouterPoints, pointsAPoser as Parameters<typeof poserPoints>[1]);
-    return reponse.json(corps);
+    reponse.json(corps);
+    if (reponseLieu) prevenir([reponseLieu as ReponseReservation]);
   };
   /** L'identifiant de l'adresse (:id, :reservationId), ou null après avoir répondu 400 */
   const lire = (requete: Request, reponse: Response, nom: string) => {

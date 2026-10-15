@@ -9,6 +9,7 @@ import { estLecturePositionValide } from "../../../../packages/commun/src/valida
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import { creerComptoir, type ContexteComptoir } from "../services/comptoir.ts";
+import { brancherReponsesReservations, type PrevenirCompte } from "../services/reponses-reservations.ts";
 import { creerFideliteClient } from "../services/fidelite-client.ts";
 import { creerVisitesClient, type PointsAPoser } from "../services/visites-client.ts";
 import type { EchecVisite } from "../services/visites-outils.ts";
@@ -29,6 +30,7 @@ export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
   evenements?: ServicesEvenements;
   /** Avis vus du comptoir (routes /pro/comptoir/lieux/:id/avis et /pro/comptoir/avis/:avisId/reponse ; absentes si non fourni) */
   avis?: Pick<DependancesAvis, "depot">;
+  prevenirCompte?: PrevenirCompte;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */
@@ -63,7 +65,7 @@ export async function poserPoints(ajouterPoints: DependancesVisites["ajouterPoin
 }
 
 export function creerControleursVisites(d: DependancesVisites, horloge: () => number) {
-  const contexte = { ...d, horloge };
+  const contexte = { ...d, depot: brancherReponsesReservations(d, horloge).depot, horloge };
   const visites = creerVisitesClient(contexte);
   const fidelite = creerFideliteClient(contexte);
   /** Rend { ok, … } ou le refus, sans les points (déjà posés) */

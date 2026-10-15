@@ -80,7 +80,7 @@ export function creerPhotoSynchro(o: OutilsPhoto) {
     if (longue) m.photoPasAvant = Date.now() + attente;
     arreter();
     if (m.photoEchecs < ECHECS_SERVEUR_MAX) minuterie = setTimeout(o.lancer, attente);
-    o.montrer({ operation, etat: "attente", raison: raisonAttente(erreur), ...(longue ? { jusqua: m.photoPasAvant } : {}) });
+    o.montrer({ operation, etat: "attente", raison: raisonAttente(erreur), ...(longue ? { attenteMs: attente } : {}) });
   }
 
   async function refuser(m: Memoire, op: OperationPhoto, operation: OperationPhotoSynchro, erreur: ErreurService) {

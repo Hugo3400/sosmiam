@@ -239,7 +239,7 @@ const serveur = creerApplication({
   visitesApp: {
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
     lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints: ajouterPointsEtDefis, moment: creerMomentLieu(),
-    statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis },
+    statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis }, prevenirCompte,
   },
   // Vues des fiches dans l'app : un compteur par lieu et par jour ; les visiteurs ne sont reconnus qu'en mémoire, jusqu'à minuit
   vuesLieux: { services: creerVuesLieux() },

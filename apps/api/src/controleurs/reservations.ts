@@ -6,6 +6,7 @@ import type { DemandeReservation } from "../../../../packages/commun/src/types/r
 import { estLecturePositionValide } from "../../../../packages/commun/src/validation/est-lecture-position-valide.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import { creerReservationsClient } from "../services/reservations-client.ts";
+import { brancherReponsesReservations } from "../services/reponses-reservations.ts";
 import type { EchecReservation, ErreurReservation } from "../services/reservations-regles.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { champInvalide, poserPoints, type DependancesVisites } from "./visites.ts";
@@ -29,7 +30,7 @@ export function repondreEchecReservation(reponse: Response, e: EchecReservation)
 const FORME_JOUR = /^\d{4}-\d{2}-\d{2}$/;
 
 export function creerControleursReservations(d: DependancesVisites, horloge: () => number) {
-  const reservations = creerReservationsClient({ ...d, horloge });
+  const reservations = creerReservationsClient({ ...d, depot: brancherReponsesReservations(d, horloge).depot, horloge });
   /** Rend { ok, … } (sans les points, déjà posés) ou le refus */
   const rendre = (reponse: Response, r: ({ ok: true } & Record<string, unknown>) | EchecReservation, statut = 200) => {
     if (!r.ok) return repondreEchecReservation(reponse, r);

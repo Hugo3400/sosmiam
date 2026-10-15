@@ -1,22 +1,31 @@
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
-import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
+import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
+
+import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
+import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { lireJourSemaine } from "~/fonctions/dates/lire-jour-semaine";
 
 const JOUR_MS = 86_400_000;
+const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
-const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+const lireJourUtc = (jour: string) => {
+  const [annee, mois, quantieme] = jour.split("-").map(Number);
+  return Date.UTC(annee, mois - 1, quantieme);
+};
 
-function nommerJour(creneau: Date, maintenant: Date): string {
-  const ecart = Math.round((debutDuJour(creneau) - debutDuJour(maintenant)) / JOUR_MS);
+function nommerJour(jour: string, aujourdhui: string): string {
+  const ecart = Math.round((lireJourUtc(jour) - lireJourUtc(aujourdhui)) / JOUR_MS);
   if (ecart === 0) return "Aujourd'hui";
   if (ecart === 1) return "Demain";
   if (ecart === -1) return "Hier";
-  return ecrireJourLong(creneau, maintenant);
+  const longue = formaterDateLongue(jour);
+  const texte = `${JOURS[lireJourSemaine(jour)]} ${jour.slice(0, 4) === aujourdhui.slice(0, 4) ? longue.replace(/ \d+$/, "") : longue}`;
+  return texte.charAt(0).toUpperCase() + texte.slice(1);
 }
 
 export function decrireCreneauReservation(creneau: string, maintenantMs: number): { court: string; lu: string } {
-  const date = new Date(creneau);
-  if (Number.isNaN(date.getTime())) return { court: "", lu: "" };
-  const jour = nommerJour(date, new Date(maintenantMs));
-  const heure = ecrireHeure(date);
+  const creneauMs = Date.parse(creneau);
+  if (Number.isNaN(creneauMs)) return { court: "", lu: "" };
+  const jour = nommerJour(calculerJourParis(creneauMs), calculerJourParis(maintenantMs));
+  const heure = ecrireHeureParis(creneau);
   return { court: `${jour} · ${heure}`, lu: `${jour} à ${heure}` };
 }

@@ -8,6 +8,7 @@ import { TitreSectionScan } from "~/composants/scan/TitreSectionScan";
 import { SECTION_RESERVATIONS_SCAN } from "~/contenus/textes-mes-reservations";
 import { listerReservationsEnCours } from "~/fonctions/reservations/lister-reservations-en-cours";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 type Props = {
   reservations: readonly Reservation[];
@@ -18,6 +19,7 @@ const RESERVATIONS_AFFICHEES = 2;
 export function SectionReservationsScan({ reservations }: Props) {
   const router = useRouter();
   const { maintenantMs } = utiliserHorlogeMinute();
+  const { lecturesReservations } = utiliserVisites();
   const enCours = listerReservationsEnCours(reservations, maintenantMs);
   const ouvrir = () => router.push("/reservations");
 
@@ -26,7 +28,7 @@ export function SectionReservationsScan({ reservations }: Props) {
       <TitreSectionScan
         titre={SECTION_RESERVATIONS_SCAN.titre}
         libelleLu={`${SECTION_RESERVATIONS_SCAN.titre}, ${enCours.length} à venir`}
-        onToutVoir={reservations.length > 0 ? ouvrir : undefined}
+        onToutVoir={reservations.length > 0 || lecturesReservations === 0 ? ouvrir : undefined}
       />
       {enCours.length > 0 ? (
         <View className="gap-2">
@@ -34,6 +36,8 @@ export function SectionReservationsScan({ reservations }: Props) {
             <ApercuReservation key={reservation.id} reservation={reservation} maintenantMs={maintenantMs} onPress={ouvrir} />
           ))}
         </View>
+      ) : lecturesReservations === 0 ? (
+        <SectionVideScan emoji="📶" texte={SECTION_RESERVATIONS_SCAN.pasEncoreLues} />
       ) : (
         <SectionVideScan emoji="📅" texte={SECTION_RESERVATIONS_SCAN.vide} />
       )}

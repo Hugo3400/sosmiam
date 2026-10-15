@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
+import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EtiquetteStatutReservation } from "~/composants/reservations/EtiquetteStatutReservation";
@@ -22,11 +23,13 @@ export function ApercuReservation({ reservation, maintenantMs, onPress }: Props)
   const creneau = decrireCreneauReservation(reservation.creneau, maintenantMs);
   const etiquette = decrireStatutReservation(reservation, maintenantMs);
   const personnes = ecrireNombrePersonnes(reservation.personnes);
+  const alcool = doitPrevenirAlcoolReservation(reservation.lieu.type, reservation.message);
+  const libelle = `${reservation.lieu.nom}, ${creneau.lu}, ${personnes}. ${etiquette.lu}${alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}`;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${reservation.lieu.nom}, ${creneau.lu}, ${personnes}. ${etiquette.lu}`}
+      accessibilityLabel={libelle}
       accessibilityHint={SECTION_RESERVATIONS_SCAN.indiceLigne}
       onPress={() => {
         vibrerLegerement();
@@ -47,7 +50,7 @@ export function ApercuReservation({ reservation, maintenantMs, onPress }: Props)
         <View className="flex-row">
           <EtiquetteStatutReservation etiquette={etiquette} />
         </View>
-        {doitPrevenirAlcoolReservation(reservation.lieu.type, reservation.message) ? <MentionPrevention variante="courte" /> : null}
+        {alcool ? <MentionPrevention variante="courte" /> : null}
       </View>
       <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
     </Pressable>

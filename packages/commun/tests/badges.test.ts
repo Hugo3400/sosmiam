@@ -119,17 +119,17 @@ test("semaines d'affilée : Saison complète à 12, une semaine vide fait repart
   assert.deepEqual(listerBadgesAtteints(faits({ visites: [...repeter(6, semaine), ...repeter(6, (i) => semaine(i + 7))] })), ["serie-4"]);
 });
 
-test("lieux et villes : Curieux à 10 lieux différents, Baroudeur à 10 villes", () => {
+test("lieux et villes : Fureteur à 10 lieux différents, Baroudeur à 10 villes", () => {
   const ailleurs = (i: number) => visite(i, { typeLieu: "sortie", lieuId: i, ville: `Ville ${i}` });
-  assert.deepEqual(listerBadgesAtteints(faits({ visites: repeter(10, ailleurs) })), ["curieux", "explorateur", "baroudeur"]);
+  assert.deepEqual(listerBadgesAtteints(faits({ visites: repeter(10, ailleurs) })), ["fureteur", "explorateur", "baroudeur"]);
 });
 
-test("avis : Première plume, Plume gourmande à 5 ; seuls les avis avec photo font Œil de chef", () => {
+test("avis : Première plume, Plume de la Brigade à 5 ; seuls les avis avec photo font Œil de chef", () => {
   const avis = (n: number, avecPhoto: boolean) => repeter(n, (i) => ({ le: LUNDI_MIDI + i, avecPhoto }));
   assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(1, true) })), ["premiere-plume"]);
-  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(5, false) })), ["premiere-plume", "plume-gourmande"]);
-  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(5, true) })), ["premiere-plume", "plume-gourmande", "oeil-de-chef"]);
-  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(20, true) })), ["premiere-plume", "plume-gourmande", "plume-d-or", "oeil-de-chef", "objectif-gourmand"]);
+  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(5, false) })), ["premiere-plume", "plume-de-la-brigade"]);
+  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(5, true) })), ["premiere-plume", "plume-de-la-brigade", "oeil-de-chef"]);
+  assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(20, true) })), ["premiere-plume", "plume-de-la-brigade", "plume-d-or", "oeil-de-chef", "objectif-gourmand"]);
 });
 
 test("bars : jamais comptés par un badge qui vise un type de lieu ; comptés, comme pour Noctambule, par ceux qui n'en visent aucun", () => {
@@ -139,6 +139,6 @@ test("bars : jamais comptés par un badge qui vise un type de lieu ; comptés, c
   assert.ok(atteints.every((id) => !avecTypeDeLieu.includes(id)));
   assert.deepEqual(atteints, [
     "coeur-sur-la-main", "bonne-etoile", "habitue", "mordu-de-miam", "serie-4", "saison-complete", "marathon-du-miam", "un-an-de-miam",
-    "noctambule", "curieux", "explorateur", "baroudeur",
+    "noctambule", "fureteur", "explorateur", "baroudeur",
   ]);
 });

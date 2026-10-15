@@ -12,7 +12,7 @@ export function ecrireNotificationReservation(r: ReponseReservation, maintenant:
   const place = r.lieu.type === "sortie" ? "ta place" : "ta table";
   switch (r.statut) {
     case "acceptee":
-      return { titre: "C'est réservé ! 🎉", texte: `${lieu} t'attend ${moment}. Ton code d'arrivée t'attend dans Mes réservations.`, lien: LIEN };
+      return { titre: "C'est réservé ! 🎉", texte: `${lieu} t'attend ${moment}. Ton code d'arrivée est dans Mes réservations.`, lien: LIEN };
     case "refusee":
       return { titre: "Pas cette fois 😕", texte: `${lieu} a répondu pour ${moment} : ${motif}. Plein d'autres créneaux (et d'autres pépites) t'attendent !`, lien: LIEN };
     case "annulee":

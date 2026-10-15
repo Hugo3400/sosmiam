@@ -21,7 +21,7 @@ export const ATTENTE_STOCKAGE_PLEIN_MS = 3600_000;
 export type OperationPhotoSynchro = "envoi" | "retrait";
 export type EtatPhotoSynchro =
   | { operation: OperationPhotoSynchro; etat: "en-cours" }
-  | { operation: OperationPhotoSynchro; etat: "attente"; raison: "reseau" | "serveur" | "quota" | "stockage"; jusqua?: number }
+  | { operation: OperationPhotoSynchro; etat: "attente"; raison: "reseau" | "serveur" | "quota" | "stockage"; attenteMs?: number }
   | { operation: OperationPhotoSynchro; etat: "refusee"; raison: "compte-limite" | "fichier" | "autre" };
 
 export type Memoire = {

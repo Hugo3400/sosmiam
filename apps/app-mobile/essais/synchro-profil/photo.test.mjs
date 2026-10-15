@@ -206,7 +206,7 @@ test("P6. 20 photos aujourd'hui (429) : la photo attend Retry-After, le reste du
   await plusTard(3_700_000, () => declencher(60));
   assert.equal(etat429.raison, "quota");
   assert.equal(etat429.etat, "attente");
-  assert.ok(etat429.jusqua > Date.now(), "jusqu'à quand");
+  assert.equal(etat429.attenteMs, 3_600_000);
   assert.deepEqual(attente, [3_600_000]);
   assert.deepEqual(r, { ok: true, parti: true });
   assert.deepEqual(avantRetour, ["POST photo", 'PATCH {"ville":"Lyon"}']);

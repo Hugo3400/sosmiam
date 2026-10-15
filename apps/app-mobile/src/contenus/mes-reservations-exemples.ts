@@ -1,3 +1,7 @@
+import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
+import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
+import { decalerJour } from "@sos-miam/commun/fonctions/temps/decaler-jour";
+
 import type { ReservationDemo } from "~/services/demo/types-demo";
 
 type MaReservationExemple = Omit<ReservationDemo, "id" | "client">;
@@ -10,10 +14,8 @@ const DEMI_HEURE = 30 * MINUTE;
 const LIEUX = { nonnaLia: 0, verreTordu: 5, pagaiesLez: 6, cleRuelles: 7, gadoue: 8, tiellePepita: 9, paddleFlamants: 12, cabaneEmile: 13, toquesLergue: 16 } as const;
 
 function poserDansJours(maintenantMs: number, jours: number, heures: number, minutes = 0): string {
-  const date = new Date(maintenantMs);
-  date.setDate(date.getDate() + jours);
-  date.setHours(heures, minutes, 0, 0);
-  return date.toISOString();
+  const heure = `${String(heures).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  return new Date(calculerInstantParis(decalerJour(calculerJourParis(maintenantMs), jours), heure)).toISOString();
 }
 
 const poserProchaineDemiHeure = (maintenantMs: number) => new Date(Math.ceil((maintenantMs + 10 * MINUTE) / DEMI_HEURE) * DEMI_HEURE).toISOString();

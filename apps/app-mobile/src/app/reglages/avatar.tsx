@@ -58,7 +58,7 @@ export default function ReglagesAvatar() {
   const refAvatarActuel = useRef<View>(null);
   const ramenerFocus = useRef(false);
   const photoLocale = avatar.type === "photo" && avatar.partage === undefined;
-  const description = decrireEtatPhoto(etatPhoto, avatar.type === "photo" && avatar.partage === "a-envoyer", Date.now());
+  const description = decrireEtatPhoto(etatPhoto, avatar.type === "photo" && avatar.partage === "a-envoyer");
 
   useEffect(() => {
     let actif = true;

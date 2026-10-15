@@ -12,9 +12,9 @@ import couleurs from "~/theme/couleurs";
 
 export function EntreeReservations() {
   const router = useRouter();
-  const { reservations } = utiliserVisites();
+  const { reservations, lecturesReservations } = utiliserVisites();
   const { maintenantMs } = utiliserHorlogeMinute();
-  const detail = resumerMesReservations(reservations, maintenantMs);
+  const detail = lecturesReservations > 0 ? resumerMesReservations(reservations, maintenantMs) : ENTREE_MES_RESERVATIONS.pasEncoreLues;
 
   return (
     <Pressable

@@ -15,6 +15,7 @@ import { RecapitulatifReservation } from "~/composants/reservations/Recapitulati
 import { TitreEtapeReservation } from "~/composants/reservations/TitreEtapeReservation";
 import { SANS_CRENEAU, TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
 import type { JourReservation } from "~/contenus/type-jour-reservation";
+import { estTelephoneALHeureDeParis } from "~/fonctions/dates/est-telephone-a-l-heure-de-paris";
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lireRaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans-creneau";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -26,6 +27,7 @@ type Props = {
   aujourdhui: string;
   jour: JourReservation;
   heure: string | null;
+  maintenantMs: number;
   personnes: number;
   petitMot: string;
   erreurPetitMot: string | null;
@@ -61,6 +63,9 @@ function dessinerJourEtHeure(props: Props) {
 
       <View className="gap-3">
         <TitreEtapeReservation titre={TEXTES_RESERVER_TABLE.heure} />
+        {estTelephoneALHeureDeParis(props.maintenantMs) ? null : (
+          <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(TEXTES_RESERVER_TABLE.heureDeParis)}</Text>
+        )}
         {sansCreneau ? (
           <EncadreReservation
             ton="doux"
