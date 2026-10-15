@@ -109,7 +109,7 @@ test("chaque compte a sa clé : l'alerte d'un compte n'apparaît pas pour un aut
   assert.equal(lireAlerteGardeeMiamSafe(ecrireCleAlerteMiamSafe("demo", "lea@example.com", lieu)), null);
 });
 
-test("les abonnés sont prévenus à chaque changement, et rattrapés à l'abonnement", () => {
+test("les abonnés sont prévenus à chaque changement, plus après leur départ", () => {
   garder(1);
   let appels = 0;
   const arreter = suivreAlerteGardeeMiamSafe(cle, () => (appels += 1));
@@ -119,4 +119,16 @@ test("les abonnés sont prévenus à chaque changement, et rattrapés à l'abonn
   arreter();
   mock.timers.tick(15 * MINUTE);
   assert.equal(appels, 2);
+});
+
+test("téléphone en veille (minuteurs en retard) : l'abonnement rattrape « sans réponse », puis l'oubli", () => {
+  garder(1);
+  const depart = Date.now();
+  mock.timers.setTime(depart + 3 * MINUTE);
+  assert.equal(lireAlerteGardeeMiamSafe(cle).statut, "envoyee");
+  suivreAlerteGardeeMiamSafe(cle, () => {})();
+  assert.equal(lireAlerteGardeeMiamSafe(cle).statut, "sans-reponse");
+  mock.timers.setTime(depart + 16 * MINUTE);
+  suivreAlerteGardeeMiamSafe(cle, () => {})();
+  assert.equal(lireAlerteGardeeMiamSafe(cle), null);
 });

@@ -1,5 +1,4 @@
 import type { ChoixGenre } from "@sos-miam/commun/types/genre";
-import type { EvenementMiamis } from "@sos-miam/commun/types/qui-est-la";
 
 export const TEXTES_ESPACE_COMMUNAUTE = {
   titre: "Communauté",
@@ -35,21 +34,6 @@ export const TEXTES_ACCUEIL_MIAMIS = {
   filTitre: "Ça bouge chez les Miamis",
   filVide: "C'est calme… trop calme. Lance une sortie ou une idée pour réveiller la Brigade !",
 } as const;
-
-export function decrireEvenementMiamis(evenement: EvenementMiamis): string {
-  switch (evenement.type) {
-    case "idee-proposee":
-      return `a proposé « ${evenement.titre} »`;
-    case "sortie-rejointe":
-      return `rejoint la sortie ${evenement.titre}`;
-    case "reponse-brigade":
-      return `a répondu à « ${evenement.titre} »`;
-    case "votes-idees":
-      return evenement.nombre > 1 ? `a voté pour ${evenement.nombre} idées` : "a voté pour une idée";
-    case "sortie-organisee":
-      return `organise ${evenement.titre}`;
-  }
-}
 
 export const TEXTES_MES_ENVIES = {
   titre: "Mes envies",
