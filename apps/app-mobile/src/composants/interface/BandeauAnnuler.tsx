@@ -41,7 +41,8 @@ export function BandeauAnnuler({ bandeau, bas, onFermer }: Props) {
 
   if (!bandeau) return null;
   return (
-    <Animated.View key={bandeau.numero} entering={FadeInDown.duration(200)} exiting={FadeOutDown.duration(200)} style={{ bottom: bas }} className="absolute inset-x-4">
+    // Position dans style, pas en className : NativeWind ignore className sur un Animated.View qui a un style
+    <Animated.View key={bandeau.numero} entering={FadeInDown.duration(200)} exiting={FadeOutDown.duration(200)} style={{ position: "absolute", left: 16, right: 16, bottom: bas }}>
       <View className="min-h-14 flex-row items-center gap-3 rounded-2xl bg-encre py-2 pl-4 pr-2">
         <Text className="flex-1 font-texte-semi text-[15px] text-white">{bandeau.texte}</Text>
         <Pressable

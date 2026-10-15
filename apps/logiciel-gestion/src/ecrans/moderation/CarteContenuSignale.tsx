@@ -78,9 +78,10 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
         ) : (
           <InstantaneSignale signalement={premier} lieux={lieux} />
         )}
-        {cible.aLaMain && aTraiter && (
+        {cible.remise && aTraiter && (
           <p className="rounded-xl border border-ligne px-3 py-2 text-[13px]">
-            Retenir ne change rien tout seul pour {cible.le} : corrige-le à la main (effacer l'avatar, remettre le titre « Sortie » ou « Groupe », ou agir sur le compte depuis sa fiche). L'auteur et la personne qui a signalé sont quand même prévenus.
+            Retenir remet {cible.le} par défaut : {cible.remise}. L'auteur reçoit le motif, la personne qui a signalé est prévenue. Un réexamen ne rend pas
+            l'ancien nom (l'auteur peut en remettre un).
           </p>
         )}
         <ul className="grid gap-2">
@@ -108,13 +109,14 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
       </div>
       {aTraiter && (
         <div className="flex flex-col gap-2 lg:w-60">
-          <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir le retrait" : cible.aLaMain ? "Retenir" : `Retirer ${cible.le}`}</Bouton>
-          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? "Remettre en ligne" : urgent ? "Remettre en ligne" : "Rien à redire"}</Bouton>
+          <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir la décision" : cible.remise ? "Remettre par défaut" : `Retirer ${cible.le}`}</Bouton>
+          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? (cible.remise ? "Donner raison" : "Remettre en ligne") : urgent && !cible.remise ? "Remettre en ligne" : "Rien à redire"}</Bouton>
         </div>
       )}
       {decision && (
         <ModaleDecisionModeration
           decision={decision}
+          cible={cible}
           urgent={urgent}
           reexamen={conteste}
           enCours={etat.enCours}

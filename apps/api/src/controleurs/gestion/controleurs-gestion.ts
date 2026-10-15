@@ -45,6 +45,8 @@ export function creerControleursGestion(s: ServicesGestion, comptes?: OutilsComp
     tableauDeBord: verifier(async (_requete, reponse) => reponse.json(await s.lireTableauDeBord())),
     alertes: verifier(async (_requete, reponse) => reponse.json(await s.lireAlertes())),
     communaute: verifier(async (_requete, reponse) => reponse.json(await s.lireStatistiquesCommunaute())),
+    /** GET /statistiques/activite-app : des nombres seulement, semaine par semaine */
+    activiteApp: verifier(async (_requete, reponse) => reponse.json(await s.lireActiviteApp())),
     bilan: verifier(async (requete, reponse) => {
       const mois = lireParametre(requete.query.mois, 7);
       if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(mois)) throw new ChampInvalide("mois");

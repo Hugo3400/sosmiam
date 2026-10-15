@@ -9,6 +9,8 @@ import { creerControleursFondateurs } from "../controleurs/gestion/controleurs-f
 import { creerControleursCourriels } from "../controleurs/gestion/controleurs-courriels.ts";
 import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion/controleurs-defis.ts";
 import { creerControleursPresse } from "../controleurs/gestion/controleurs-presse.ts";
+import { creerControleursEvenementsGestion } from "../controleurs/gestion/controleurs-evenements-gestion.ts";
+import { creerControleursReservationsGestion } from "../controleurs/gestion/controleurs-reservations-gestion.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { ModerationSociale } from "../services/gestion/cibles-moderation.ts";
@@ -66,6 +68,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const validationLieu = creerControleursValidationLieu(services);
   const d = creerControleursDefis(services, defis);
   const presse = creerControleursPresse(services);
+  const evenements = creerControleursEvenementsGestion(services);
+  const reservations = creerControleursReservationsGestion(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale);
@@ -111,6 +115,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/alertes", c.alertes);
   routes.get("/statistiques/communaute", c.communaute);
+  routes.get("/statistiques/activite-app", c.activiteApp);
   routes.get("/statistiques/bilan", c.bilan);
   routes.get("/recherche", c.recherche);
   routes.get("/calendrier", c.calendrier);
@@ -166,6 +171,10 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/presse", presse.liste);
   routes.get("/presse/fichiers/:id", presse.fichier);
   routes.post("/presse/fichiers/:id/lien", presse.creerLien);
+  // Événements des lieux : la liste et la suspension
+  routes.get("/evenements", evenements.liste);
+  routes.post("/evenements/:id/suspension", evenements.suspendre);
+  routes.get("/reservations", reservations.bilan);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

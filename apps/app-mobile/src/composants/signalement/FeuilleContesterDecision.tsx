@@ -145,7 +145,7 @@ export function FeuilleContesterDecision({ visible, decisionId, onContester, onF
             valeur={texte}
             onChangeTexte={setTexte}
             placeholder="Ce que l'équipe n'a peut-être pas vu, le contexte, ce qui te paraît injuste…"
-            aide={`${texte.length}/${LONGUEUR_MAX_CONTESTATION} · Seule l'équipe SOS Miam lit ta contestation.`}
+            aide={`${texte.length}/${MAX_ECRIT} · Seule l'équipe SOS Miam lit ta contestation.`}
             multiline
             textAlignVertical="top"
             maxLength={LONGUEUR_MAX_CONTESTATION}

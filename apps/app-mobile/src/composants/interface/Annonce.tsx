@@ -36,8 +36,9 @@ export function Annonce({ annonce, haut, onFin }: Props) {
       pointerEvents="none"
       importantForAccessibility="no-hide-descendants"
       accessibilityElementsHidden
-      style={{ top: haut }}
-      className="absolute inset-x-5 items-center"
+      // Dans style, pas en className : NativeWind ignore className sur un Animated.View qui a un style (la pastille
+      // tombait sous l'écran, dans le flux de la page)
+      style={{ position: "absolute", left: 20, right: 20, top: haut, alignItems: "center" }}
     >
       <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-4 py-2.5 text-center font-texte-gras text-[15px] text-encre">
         {annonce.texte}

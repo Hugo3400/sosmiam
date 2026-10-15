@@ -12,6 +12,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
   conversation: Conversation;
@@ -42,7 +43,7 @@ export function LigneConversation({ conversation, maintenant }: Props) {
     .filter((p): p is Pote => p !== null);
   const pote = groupe ? null : (autres[0] ?? null);
   // Privé dont l'autre a supprimé son compte : « Compte supprimé » (vos messages restent)
-  const nom = groupe ? conversation.titre || "Groupe sans nom" : (pote?.prenom ?? "Compte supprimé");
+  const nom = groupe ? nommerGroupe(conversation.titre) : (pote?.prenom ?? "Compte supprimé");
 
   const dernier = conversation.messages[conversation.messages.length - 1];
   const prefixe = !dernier ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;

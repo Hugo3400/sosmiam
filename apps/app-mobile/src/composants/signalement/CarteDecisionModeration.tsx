@@ -35,11 +35,23 @@ const ecrireDate = (iso: string | null) => {
   return Number.isNaN(date.getTime()) ? null : formaterDateLongue(formaterDateIso(date));
 };
 
+/**
+ * Un profil, une sortie ou un groupe ne disparaissent pas : la modération remet par défaut ce qui posait problème (l'avatar,
+ * le titre de la sortie, le titre du groupe)
+ */
+const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleSignalementSocial, { auteur: string; signale: string }>>> = {
+  profil: { auteur: "L'équipe a remis ton avatar par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : son avatar a été remis par défaut. Merci de veiller au grain !" },
+  sortie: { auteur: "L'équipe a remis le titre de ta sortie par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre de la sortie a été remis par défaut. Merci de veiller au grain !" },
+  groupe: { auteur: "L'équipe a effacé le titre de ton groupe : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre du groupe a été effacé. Merci de veiller au grain !" },
+};
+
 /** Ce que c'était, le statut dit simplement, et la phrase qui l'explique (accordés au féminin pour une liste ou une sortie) */
 function decrire({ cible, role, statut }: DecisionModerationApi) {
   const { nom, feminin } = CIBLES[cible] ?? { nom: "contenu", feminin: false };
   const e = feminin ? "e" : "";
   const il = feminin ? "elle" : "il";
+  const remis = statut === "retenu" ? REMIS_PAR_DEFAUT[cible] : undefined;
+  if (remis) return { quoi: role === "auteur" ? `${feminin ? "Ta" : "Ton"} ${nom}` : `Ton signalement ${feminin ? "d'une" : "d'un"} ${nom}`, feminin, statut: "Remis par défaut", phrase: remis[role === "auteur" ? "auteur" : "signale"] };
   if (role === "auteur") {
     const quoi = `${feminin ? "Ta" : "Ton"} ${nom}`;
     if (statut === "masque")

@@ -12,11 +12,11 @@ export type ContexteDroitValidation = {
  */
 export function verifierDroitValidation(
   c: ContexteDroitValidation,
-): { ok: true } | { ok: false; erreur: "lieu-sans-validation" | "compte-limite" | "membre-du-lieu" } {
+): { ok: true } | { ok: false; erreur: "lieu-sans-validation" | "validations-en-pause" | "membre-du-lieu" } {
   if (!c.lieu.validationActive) return { ok: false, erreur: "lieu-sans-validation" };
   if (c.compte.limiteJusqua !== null) {
     const finPause = Date.parse(c.compte.limiteJusqua);
-    if (Number.isNaN(finPause) || finPause > c.maintenantMs) return { ok: false, erreur: "compte-limite" };
+    if (Number.isNaN(finPause) || finPause > c.maintenantMs) return { ok: false, erreur: "validations-en-pause" };
   }
   if (c.compte.lieuxMembre.includes(c.lieu.id)) return { ok: false, erreur: "membre-du-lieu" };
   return { ok: true };

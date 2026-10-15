@@ -9,6 +9,8 @@ import { MOTIFS_MODERATION } from "~/contenus/motifs-moderation.ts";
 export type ChoixModeration = { decision: "retenu" | "rejete"; note: string; motif: string | null; motivation: string | null };
 type Props = {
   decision: "retenu" | "rejete";
+  /** Le contenu jugé (« la publication », « le groupe »…) et, s'il est remis par défaut plutôt que retiré, ce qui change */
+  cible: { le: string; remise?: string };
   urgent: boolean;
   reexamen: boolean;
   enCours: boolean;
@@ -18,16 +20,28 @@ type Props = {
 };
 
 /** Confirmer une décision. Pour retirer un contenu : la règle enfreinte et l'explication pour l'auteur (obligatoires). */
-export function ModaleDecisionModeration({ decision, urgent, reexamen, enCours, erreur, onFermer, onConfirmer }: Props) {
+export function ModaleDecisionModeration({ decision, cible, urgent, reexamen, enCours, erreur, onFermer, onConfirmer }: Props) {
   const [motif, setMotif] = useState("");
   const [motivation, setMotivation] = useState("");
   const [note, setNote] = useState("");
   const retirer = decision === "retenu";
   const valide = !retirer || (motif && motivation.trim().length >= 10);
+  const { le, remise } = cible;
+  const reglesAussi = " Les signalements encore ouverts sur ce contenu sont réglés du même coup.";
+  const titre = reexamen
+    ? (retirer ? "Réexamen : maintenir la décision ?" : "Réexamen : donner raison à l'auteur ?")
+    : retirer ? (remise ? `Remettre ${le} par défaut ?` : `Retirer ${le} ?`) : "Rien à redire ?";
+  const explication = retirer
+    ? (remise ? `Retenu : ${remise}.` : le === "la publication" ? "La publication est retirée du fil pour tout le monde (elle passe en « Masquée »)." : `On retire ${le} pour tout le monde.`) + reglesAussi
+    : reexamen
+      ? (remise ? "La décision est levée. L'ancien nom ne revient pas : l'auteur peut en remettre un." : `On remet ${le} en ligne pour tout le monde.`)
+      : urgent && !remise
+        ? `On remet ${le} en ligne pour tout le monde.${reglesAussi}`
+        : `On laisse ${le} tel quel.${reglesAussi}`;
 
   return (
     <Modale
-      titre={reexamen ? (retirer ? "Réexamen : maintenir le retrait ?" : "Réexamen : remettre en ligne ?") : retirer ? "Retirer la publication ?" : "Rien à redire ?"}
+      titre={titre}
       ouverte
       onFermer={onFermer}
       actions={
@@ -41,15 +55,7 @@ export function ModaleDecisionModeration({ decision, urgent, reexamen, enCours, 
       }
     >
       <div className="grid gap-4">
-        <p>
-          {retirer
-            ? "La publication est retirée du fil pour tout le monde (elle passe en « Masquée »). Les signalements encore ouverts sur elle sont réglés du même coup."
-            : reexamen
-              ? "La publication revient en ligne pour tout le monde."
-              : urgent
-                ? "La publication est remise en ligne pour tout le monde. Les signalements encore ouverts sur elle sont réglés du même coup."
-                : "La publication reste en ligne. Les signalements encore ouverts sur elle sont réglés du même coup."}
-        </p>
+        <p>{explication}</p>
         {retirer && (
           <>
             <Selecteur

@@ -8,12 +8,13 @@ import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import { SIGNALEMENT_OUVERT, supprimerMediasLibres } from "../effacer-conversations.ts";
 import type { NouvelleNotificationCloche } from "../effets-sociaux-regles.ts";
 import type { StockageMediasChat } from "../stockage-medias-chat.ts";
-import type { ModerationSociale } from "./cibles-moderation.ts";
+import { CIBLES_REMISES_PAR_DEFAUT, type ModerationSociale } from "./cibles-moderation.ts";
 
 export type { ModerationSociale } from "./cibles-moderation.ts";
 
 type Transaction = Prisma.TransactionClient;
 const UN_AN = 365 * 86_400_000;
+const TITRE_SORTIE_PAR_DEFAUT = "Sortie";
 
 /** L'instantané d'un signalement, déchiffré pour l'équipe ; « sans-cle » sans clé des données, « illisible » s'il ne se relit pas */
 export function lireInstantane(social: ModerationSociale | undefined, s: { id: number; instantaneChiffre: string | null }) {
@@ -66,11 +67,15 @@ export async function lireHistoriqueSignaleurs(ids: number[], maintenant = new D
  */
 export async function appliquerDecisionSociale(
   tx: Transaction,
-  s: { cible: string; cibleId: string; source: string },
+  s: { cible: string; cibleId: string; source: string; auteurContenuId: number | null },
   decision: "retenu" | "rejete",
   reexamen: boolean,
   maintenant: Date,
 ): Promise<{ fichier: string | null }> {
+  if (decision === "retenu" && (CIBLES_REMISES_PAR_DEFAUT as readonly string[]).includes(s.cible)) {
+    await remettreParDefaut(tx, s, maintenant);
+    return { fichier: null };
+  }
   const id = Number(s.cibleId);
   if (!Number.isSafeInteger(id)) return { fichier: null };
   if (s.cible === "commentaire") {
@@ -94,6 +99,36 @@ export async function appliquerDecisionSociale(
     return { fichier: decision === "retenu" ? message.fichier : null };
   }
   return { fichier: null };
+}
+
+/**
+ * Profil, sortie ou groupe retenu : on ne peut pas les « retirer », on remet par défaut ce que tout le monde voit (accord de
+ * la session App du 15/10/2026). Profil : l'avatar (le pseudo attend une décision de Hugo : sans pseudo, la personne sort de
+ * toute la partie sociale). Sortie : titre « Sortie », verrou de la sortie d'abord (même ordre que sorties.ts), puis la
+ * discussion (sinon le fil répond « inchange »), et l'ancien titre effacé de la cloche. Groupe : sans titre (l'app affiche
+ * « Groupe ») ; modifieLe est indispensable, le pouls des messages lit MAX(modifie_le). Un réexamen ne rend pas l'ancien
+ * titre (l'auteur peut en remettre un).
+ */
+async function remettreParDefaut(tx: Transaction, s: { cible: string; cibleId: string; auteurContenuId: number | null }, maintenant: Date) {
+  if (s.cible === "profil") {
+    if (s.auteurContenuId) await tx.compte.updateMany({ where: { id: s.auteurContenuId }, data: { avatar: null } });
+    return;
+  }
+  const id = Number(s.cibleId);
+  if (!Number.isSafeInteger(id)) return;
+  if (s.cible === "groupe") {
+    await tx.conversation.updateMany({ where: { id, type: "groupe" }, data: { titreChiffre: null, version: { increment: 1 }, modifieLe: maintenant } });
+    return;
+  }
+  await tx.$queryRaw`SELECT id FROM sorties WHERE id = ${id} FOR UPDATE`;
+  const sortie = await tx.sortie.findUnique({ where: { id }, select: { conversationId: true } });
+  if (!sortie) return;
+  await tx.sortie.updateMany({ where: { id }, data: { titre: TITRE_SORTIE_PAR_DEFAUT, version: { increment: 1 }, modifieLe: maintenant } });
+  await tx.conversation.update({ where: { id: sortie.conversationId }, data: { version: { increment: 1 }, modifieLe: maintenant } });
+  await tx.notificationCloche.updateMany({
+    where: { cible: "sortie", cibleId: String(id), type: { in: ["invitation-sortie", "sortie-annulee"] } },
+    data: { detail: TITRE_SORTIE_PAR_DEFAUT },
+  });
 }
 
 /**

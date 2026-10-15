@@ -21,6 +21,7 @@ import { enregistrerFichier } from "~/services/systeme.ts";
 import { CarteEnDirect } from "./CarteEnDirect.tsx";
 import { CarteJoursHeures } from "./CarteJoursHeures.tsx";
 import { GrilleClassements, GROUPES_CLASSEMENTS } from "./GrilleClassements.tsx";
+import { StatistiquesActiviteApp } from "./StatistiquesActiviteApp.tsx";
 import { StatistiquesCommunaute } from "./StatistiquesCommunaute.tsx";
 import { TuilesStatistiques } from "./TuilesStatistiques.tsx";
 
@@ -46,7 +47,11 @@ const NOMS_DIMENSIONS = Object.fromEntries(GROUPES_CLASSEMENTS.flatMap((g) => g.
 
 /** Statistiques de visite du site (et, plus tard, de l'app) : par jour, semaine, mois ou année. */
 export function EcranStatistiques() {
-  const [vue, setVue] = useState<SourceStatistiques | "communaute">("site");
+  const [vue, setVue] = useState<SourceStatistiques | "communaute" | "activite">("site");
+  // Communauté et activité de l'app : tirées de la base, sans période ni comparaison
+  const horsAudience = vue === "communaute" || vue === "activite";
+  // Ces deux vues chargent leurs propres données : « Actualiser » les recharge en les remontant
+  const [tour, setTour] = useState(0);
   const source: SourceStatistiques = vue === "app" ? "app" : "site";
   const [choix, setChoix] = useState<Choix>("30j");
   const [semaine, setSemaine] = useState(() => dateVersSemaine(new Date()));
@@ -86,18 +91,20 @@ export function EcranStatistiques() {
     <>
       <EnTeteEcran
         titre="Statistiques"
-        sousTitre="Comptées par le serveur, sans cookie : seulement des totaux, jamais d'adresse IP. Les navigateurs qui demandent à ne pas être suivis ne sont pas comptés."
+        sousTitre={horsAudience
+          ? "Tirées de la base : seulement des nombres, jamais le contenu d'un message ni le nom de quelqu'un."
+          : "Comptées par le serveur, sans cookie : seulement des totaux, jamais d'adresse IP. Les navigateurs qui demandent à ne pas être suivis ne sont pas comptés."}
         actions={
           <>
-            <Bouton icone={Download} desactive={!donnees} onClick={exporter}>Exporter en CSV</Bouton>
-            <Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={recharger}>Actualiser</Bouton>
+            {!horsAudience && <Bouton icone={Download} desactive={!donnees} onClick={exporter}>Exporter en CSV</Bouton>}
+            <Bouton icone={RotateCw} chargement={!horsAudience && chargement && !!donnees} onClick={horsAudience ? () => setTour((t) => t + 1) : recharger}>Actualiser</Bouton>
           </>
         }
       />
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <Onglets libelle="Source" valeur={vue} onChange={setVue} options={[{ valeur: "site", libelle: "Site web" }, { valeur: "app", libelle: "App" }, { valeur: "communaute", libelle: "Communauté" }]} />
-        {vue !== "communaute" && <Onglets libelle="Période" valeur={choix} onChange={setChoix} options={CHOIX.map(({ valeur, libelle }) => ({ valeur, libelle }))} />}
-        {vue !== "communaute" && uneSemaine && (
+        <Onglets libelle="Source" valeur={vue} onChange={setVue} options={[{ valeur: "site", libelle: "Site web" }, { valeur: "app", libelle: "Audience de l'app" }, { valeur: "activite", libelle: "Activité de l'app" }, { valeur: "communaute", libelle: "Communauté" }]} />
+        {!horsAudience && <Onglets libelle="Période" valeur={choix} onChange={setChoix} options={CHOIX.map(({ valeur, libelle }) => ({ valeur, libelle }))} />}
+        {!horsAudience && uneSemaine && (
           <div className="flex items-center gap-1">
             <Bouton petit variante="discret" icone={ChevronLeft} titre="Semaine précédente" onClick={() => decalerSemaine(-1)} />
             <label className="sr-only" htmlFor="semaine-choisie">Semaine</label>
@@ -112,11 +119,13 @@ export function EcranStatistiques() {
             <Bouton petit variante="discret" icone={ChevronRight} titre="Semaine suivante" desactive={semaine >= dateVersSemaine(new Date())} onClick={() => decalerSemaine(1)} />
           </div>
         )}
-        {vue !== "communaute" && <CaseACocher libelle="Comparer à la période d'avant" coche={comparer} onChange={setComparer} />}
+        {!horsAudience && <CaseACocher libelle="Comparer à la période d'avant" coche={comparer} onChange={setComparer} />}
       </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
       {vue === "communaute" ? (
-        <StatistiquesCommunaute />
+        <StatistiquesCommunaute key={tour} />
+      ) : vue === "activite" ? (
+        <StatistiquesActiviteApp key={tour} />
       ) : (
         <>
           <MessageErreur erreur={erreur} reessayer={recharger} />

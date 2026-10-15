@@ -47,7 +47,8 @@ export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreu
   }
   if (texteRemplacant) texte = texteRemplacant;
   const jour = lireJour(details?.jusqua);
-  if (erreur === "compte-limite" && !jour) titre = "Validations en pause pour l'instant";
+  if (erreur === "validations-en-pause" && !jour) titre = "Validations en pause pour l'instant";
+  if (erreur === "compte-limite" && !jour) titre = "Compte limité pour l'instant";
 
   const valeurs: Record<string, string> = {};
   if (typeof details?.distanceM === "number") valeurs.distance = formaterDistance(details.distanceM / 1000);

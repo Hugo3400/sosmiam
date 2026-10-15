@@ -7,7 +7,7 @@ import { rechercherPartout, type ResultatsRecherche } from "~/services/recherche
 
 type Props = { ouverte: boolean; onFermer: () => void; onAller: (ecran: Ecran, id: number | null) => void };
 
-/** Ctrl+K : chercher un lieu, un compte, une publication, un BIG SOS ou un écran, et l'ouvrir au clavier (↑ ↓ Entrée). */
+/** Ctrl+K : chercher un lieu, un compte, une publication, un BIG SOS, un défi, un événement, un fichier presse ou un écran, et l'ouvrir au clavier (↑ ↓ Entrée). */
 export function RechercheGlobale({ ouverte, onFermer, onAller }: Props) {
   const dialogue = useRef<HTMLDialogElement>(null);
   const [q, setQ] = useState("");
@@ -93,7 +93,7 @@ export function RechercheGlobale({ ouverte, onFermer, onAller }: Props) {
               </li>
             ))}
             {q.trim().length >= 2 && resultats && liste.length === 0 && <li className="px-3 py-4 text-sm text-gris">Rien trouvé pour « {q} ».</li>}
-            {q.trim().length < 2 && <li className="px-3 py-4 text-sm text-gris">Tape au moins 2 lettres : nom d'un lieu, prénom, adresse e-mail, ville, numéro (« n° 12 »)…</li>}
+            {q.trim().length < 2 && <li className="px-3 py-4 text-sm text-gris">Tape au moins 2 lettres : nom d'un lieu, prénom, pseudo, e-mail, ville, défi, événement, fichier presse, numéro de signalement (« n° 12 »)…</li>}
           </ul>
         </div>
       )}

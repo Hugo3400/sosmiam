@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  Bell, CalendarDays, Newspaper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
+  Bell, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -27,6 +27,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
       { ecran: "lieux", libelle: "Fiches des lieux", icone: Store },
       { ecran: "demandes", libelle: "Demandes de lieux", icone: Inbox },
       { ecran: "villes", libelle: "Villes", icone: MapPinned },
+      { ecran: "reservations", libelle: "Réservations", icone: CalendarCheck },
       { ecran: "big-sos", libelle: "BIG SOS", icone: LifeBuoy },
     ],
   },
@@ -34,6 +35,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
     groupe: "Dans l'app",
     entrees: [
       { ecran: "publications", libelle: "Publications", icone: Clapperboard },
+      { ecran: "evenements", libelle: "Événements", icone: PartyPopper },
       { ecran: "defis", libelle: "Défis", icone: Target },
       { ecran: "notifications", libelle: "Notifications", icone: Bell },
     ],

@@ -178,6 +178,11 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   },
   "compte-limite": {
     emoji: "⏸️",
+    titre: "Compte limité jusqu'au {date}",
+    texte: "Certaines actions sont en pause pour l'instant. On t'explique pourquoi dans Réglages › Décisions de la modération : si c'est une erreur, conteste, un humain relira.",
+  },
+  "validations-en-pause": {
+    emoji: "⏸️",
     titre: "Validations en pause jusqu'au {date}",
     texte: "On t'a écrit pour t'expliquer pourquoi. Si c'est une erreur, réponds-nous : un humain relira.",
   },

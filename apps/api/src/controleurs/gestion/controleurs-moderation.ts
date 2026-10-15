@@ -4,7 +4,7 @@
 import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
-import { CIBLES_SOCIALES, type ModerationSociale } from "../../services/gestion/cibles-moderation.ts";
+import { CIBLES_REMISES_PAR_DEFAUT, CIBLES_SOCIALES, type ModerationSociale } from "../../services/gestion/cibles-moderation.ts";
 import { MOTIFS_MODERATION } from "../../services/gestion/motifs-moderation.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 import { ChampInvalide, lireChoix, lireId, lireParametre, lireTexte } from "./lire-champs.ts";
@@ -54,7 +54,8 @@ export function creerControleursModeration(s: ServicesGestion, social?: Moderati
       const resultat = await s.deciderSignalement(id(requete), { decision, note: lireTexte(corps, "note", 500), motif, motivation }, social);
       if (!resultat) return introuvable(reponse);
       if (resultat === "deja-decide") return reponse.status(409).json({ ok: false, erreur: "deja-decide" });
-      const action = decision === "retenu" ? "Signalement retenu (contenu retiré)" : "Signalement rejeté";
+      const remis = (CIBLES_REMISES_PAR_DEFAUT as readonly string[]).includes(resultat.cible);
+      const action = decision === "retenu" ? `Signalement retenu (${remis ? "remis par défaut" : "contenu retiré"})` : "Signalement rejeté";
       await noter(reponse, resultat.reexamen ? `Réexamen : ${action.toLowerCase()}` : action, `${resultat.cible} n° ${resultat.cibleId}, ${resultat.regles} signalement(s) réglé(s)${motif ? `, motif « ${motif} »` : ""}`);
       reponse.json({ ok: true, ...resultat });
     }),

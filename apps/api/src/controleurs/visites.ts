@@ -34,7 +34,7 @@ export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */
 const STATUTS: Partial<Record<ErreurService | "champ-invalide", number>> = {
   introuvable: 404,
-  "membre-du-lieu": 403, "compte-limite": 403, "email-non-verifie": 403, "role-requis": 403,
+  "membre-du-lieu": 403, "compte-limite": 403, "validations-en-pause": 403, "email-non-verifie": 403, "role-requis": 403,
   "lieu-sans-validation": 409, "demande-en-cours": 409, "transition-interdite": 409, "delai-depasse": 409, "qr-epuise": 409,
   "qr-vitrine": 409, "code-faux": 409, "pas-de-recompense": 409,
   "qr-expire": 410,

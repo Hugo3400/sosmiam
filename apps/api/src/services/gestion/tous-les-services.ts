@@ -28,6 +28,7 @@ import { corrigerDateNaissance, corrigerIdentite, lireDateNaissance, lireIdentit
 import { ecrireSeuilsSurveillance, lireSurveillance, marquerContestationRelue, marquerSurveilleVu } from "./surveillance-visites.ts";
 import { changerCodePublic, lireValidationLieu, reglerValidationLieu } from "./validation-lieu.ts";
 import { creerLienPresse, lireLienPresse, listerPresse, trouverFichierPresse } from "./presse.ts";
+import { listerEvenementsGestion, suspendreEvenement } from "./evenements-gestion.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
@@ -59,12 +60,14 @@ import { lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde } from "./sauve
 import { ecrireObjectifMois, lireObjectifMois } from "./reglages.ts";
 import { lireStatistiques } from "./statistiques.ts";
 import { lireStatistiquesCommunaute } from "./statistiques-communaute.ts";
+import { lireActiviteApp } from "./statistiques-activite-app.ts";
+import { lireReservationsGestion } from "./reservations-gestion.ts";
 import { lireBilanMois } from "./bilan-mois.ts";
 import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
 export const servicesGestion = {
   noterAction, listerJournal,
-  lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques, lireStatistiquesCommunaute, lireBilanMois,
+  lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques, lireStatistiquesCommunaute, lireActiviteApp, lireBilanMois,
   listerInscrits, desinscrire, exporterInscrits, inscrireComptesAppNewsletter,
   listerBrouillons, lireBrouillon, creerBrouillon, modifierBrouillon, supprimerBrouillon,
   listerLieux, lireLieu, lireHistoriqueLieu, creerLieu, modifierLieu, supprimerLieu, modifierLieuxEnLot, supprimerLieuxEnLot,
@@ -93,7 +96,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
-  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse,
+  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

@@ -1,0 +1,180 @@
+// Tests de l'export « Télécharger mes données sociales » (GET /app/social/export, lot L7) : TES messages déchiffrés, jamais
+// ceux des autres ni ton code d'invitation ; rien de ce que l'autre ne t'a pas montré (refus silencieux, blocage qu'il a
+// fait) ; sans profil social, rien n'est créé ; 503 sans la clé ; 2 par 24 h. Tout en mémoire, avec une clé de test.
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { after, before, test } from "node:test";
+
+import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
+
+let banc: Awaited<ReturnType<typeof creerBancSocial>>;
+before(async () => {
+  banc = await creerBancSocial();
+  banc.tables.lieux.set(12, { statut: "publie", nom: "Chez Léa" });
+});
+after(() => banc.fermer());
+
+const date = (decalageMs = 0) => new Date(banc.horloge.maintenant + decalageMs);
+const exporter = async (p: PersonneDeTest) => {
+  const r = await p.demander("GET", "/app/social/export");
+  assert.equal(r.statut, 200, JSON.stringify(r.corps));
+  return r;
+};
+const ecrire = (p: PersonneDeTest, id: string, texte: string) =>
+  p.demander("POST", `/app/conversations/${id}/messages`, { idClient: randomUUID(), type: "texte", texte });
+
+test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamais les messages des autres ni ton code", async () => {
+  const lea = await banc.creerPersonne({ prenom: "Léa", pseudo: "lea.export" });
+  const malo = await banc.creerPersonne({ prenom: "Malo", pseudo: "malo.export" });
+  const zoe = await banc.creerPersonne({ prenom: "Zoé", pseudo: "zoe.export" });
+  banc.rendrePotes(lea, malo);
+  banc.rendrePotes(lea, zoe);
+  const code = (await lea.demander("GET", "/app/bande/invitation")).corps.invitation.code as string;
+  assert.match(code, /^[a-z0-9]{12}$/i);
+
+  const prive = (await lea.demander("POST", "/app/conversations/prive", { personne: malo.idPublic })).corps.conversation.id as string;
+  assert.equal((await ecrire(lea, prive, "Coucou Malo, on se fait une rescousse ?")).statut, 201);
+  const secret = await ecrire(malo, prive, "Secret de Malo");
+  assert.equal(secret.statut, 201);
+  const lieu = await lea.demander("POST", `/app/conversations/${prive}/messages`, { idClient: randomUUID(), type: "lieu", lieuId: 12, texte: "Le meilleur kebab" });
+  assert.equal(lieu.statut, 201, JSON.stringify(lieu.corps));
+  assert.equal((await lea.demander("PUT", `/app/conversations/${prive}/messages/${secret.corps.message.id}/reactions/coeur`)).statut, 200);
+
+  const groupe = (await lea.demander("POST", "/app/conversations/groupes", { titre: "Les Miamis", emoji: "🍕", invites: [malo.idPublic, zoe.idPublic], idClient: randomUUID() })).corps.conversation.id as string;
+  assert.equal((await malo.demander("POST", `/app/conversations/${groupe}/reponse`, { rejoint: true })).statut, 200);
+  assert.equal((await zoe.demander("POST", `/app/conversations/${groupe}/reponse`, { rejoint: false })).statut, 200);
+  await ecrire(lea, groupe, "Bienvenue la Brigade");
+  await ecrire(malo, groupe, "Message de Malo dans le groupe");
+
+  const r = await exporter(lea);
+  assert.match(r.entetes.get("cache-control") ?? "", /no-store/);
+  const e = r.corps.export;
+  assert.equal(e.genereLe, date().toISOString());
+  assert.deepEqual([e.profil.personne.id, e.profil.reglages.trouvable], [lea.idPublic, true]);
+  assert.deepEqual(e.bande.map((b: { personne: { id: string } }) => b.personne.id).sort(), [malo.idPublic, zoe.idPublic].sort());
+  const [conversationPrivee, conversationGroupe] = e.conversations;
+  assert.deepEqual([conversationPrivee.id, conversationPrivee.type, conversationPrivee.titre, [...conversationPrivee.membres].sort()], [prive, "prive", null, ["lea.export", "malo.export"]]);
+  assert.deepEqual(conversationPrivee.messages.map((m: { type: string; texte: string; lieuId: number | null; taille: number | null }) => [m.type, m.texte, m.lieuId, m.taille]), [
+    ["texte", "Coucou Malo, on se fait une rescousse ?", null, null],
+    ["lieu", "Le meilleur kebab", 12, null],
+  ], "tes messages seulement, déchiffrés");
+  assert.deepEqual([conversationGroupe.titre, [...conversationGroupe.membres].sort(), conversationGroupe.messages.map((m: { texte: string }) => m.texte)],
+    ["Les Miamis", ["lea.export", "malo.export"], ["Bienvenue la Brigade"]], "titre déchiffré ; Zoé a refusé : pas membre");
+  assert.deepEqual(e.reactions.map((x: { messageId: string; reaction: string }) => [x.messageId, x.reaction]), [[secret.corps.message.id, "coeur"]]);
+  const texte = JSON.stringify(e);
+  for (const interdit of ["Secret de Malo", "Message de Malo", code, "v1:"]) assert.ok(!texte.includes(interdit), `jamais « ${interdit} » dans l'export`);
+
+  const pourZoe = (await exporter(zoe)).corps.export;
+  assert.deepEqual(pourZoe.invitationsGroupes.map((i: { titre: string; statut: string }) => [i.titre, i.statut]), [["Les Miamis", "refuse"]]);
+  assert.deepEqual(pourZoe.conversations, [], "ni messages ni membres d'un groupe où elle n'est pas entrée");
+
+  // Malo quitte le groupe : ses messages y restent, sans le titre ni les membres d'aujourd'hui
+  assert.equal((await malo.demander("DELETE", `/app/conversations/${groupe}/membres/moi`)).statut, 200);
+  const quitte = (await exporter(malo)).corps.export.conversations.find((c: { id: string }) => c.id === groupe);
+  assert.deepEqual([quitte.titre, quitte.membres, quitte.messages.map((m: { texte: string }) => m.texte)], [null, [], ["Message de Malo dans le groupe"]]);
+});
+
+test("rien de ce que l'autre ne t'a pas montré : refus silencieux, blocage qu'il a fait, suivi refusé", async () => {
+  const demandeur = await banc.creerPersonne();
+  const discrete = await banc.creerPersonne();
+  banc.tables.demandes.push({ deId: demandeur.compteId, aId: discrete.compteId, creeLe: date(), refuseeLe: date() });
+  banc.suivre(demandeur, discrete, "refuse");
+  banc.bloquer(discrete, demandeur);
+  const pourDemandeur = (await exporter(demandeur)).corps.export;
+  assert.deepEqual(pourDemandeur.demandesBande.envoyees.map((x: { personne: { id: string } }) => x.personne.id), [discrete.idPublic], "toujours « envoyée »");
+  assert.deepEqual(pourDemandeur.suivis.abonnements.map((x: { personne: { id: string } }) => x.personne.id), [discrete.idPublic], "toujours « demande envoyée »");
+  assert.deepEqual(pourDemandeur.bloques, [], "jamais qui t'a bloqué");
+  const pourDiscrete = (await exporter(discrete)).corps.export;
+  assert.deepEqual([pourDiscrete.demandesBande.recues, pourDiscrete.suivis.abonnes], [[], []], "refusées : comme dans l'app");
+  assert.deepEqual(pourDiscrete.bloques.map((p: { id: string }) => p.id), [demandeur.idPublic], "ceux que TU as bloqués");
+});
+
+test("sorties, listes, commentaires, cloche, signalements, masques et médias", async () => {
+  const moi = await banc.creerPersonne();
+  const autre = await banc.creerPersonne();
+  const t = banc.tables;
+  const c = 9100;
+  t.conversations.set(c, { id: c, type: "groupe", clePrive: null, titreChiffre: null, emoji: "📷", creeParId: moi.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
+  t.membres.push({ conversationId: c, compteId: moi.compteId, role: "admin", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date() });
+  t.messages.set(9101, {
+    id: 9101, conversationId: c, auteurId: moi.compteId, type: "photo", idClient: randomUUID(), texteChiffre: null, fichier: null, typeMime: "image/jpeg", taille: 1234,
+    largeur: 10, hauteur: 10, dureeSecondes: null, mediaExpireLe: date(), creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null,
+  });
+  const sortie = (id: number, titre: string, organisateurId: number, statut: string | null, joursAvant: number) => {
+    t.sorties.set(id, {
+      id, conversationId: id, organisateurId, titre, emoji: "🍝", quand: date(-joursAvant * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
+    });
+    if (statut) t.invitationsSorties.push({ sortieId: id, compteId: moi.compteId, inviteParId: autre.compteId, statut, creeLe: date(), reponduLe: null });
+  };
+  sortie(9201, "Mon resto", moi.compteId, "accepte", 4);
+  sortie(9202, "Invité", autre.compteId, "invite", 3);
+  sortie(9203, "Participant", autre.compteId, "accepte", 2);
+  sortie(9204, "Refusée", autre.compteId, "refuse", 1);
+  t.propositions.set(9301, { id: 9301, sortieId: 9201, lieuId: 12, proposeParId: moi.compteId, creeLe: date() });
+  t.propositions.set(9302, { id: 9302, sortieId: 9203, lieuId: 14, proposeParId: autre.compteId, creeLe: date() });
+  t.votes.push({ propositionId: 9302, compteId: moi.compteId, creeLe: date() });
+  const liste = (id: number, auteurId: number, titre: string) =>
+    t.listes.set(id, { id, auteurId, titre, emoji: "📋", description: "", visibilite: "tous", suspendueLe: null, retireeLe: null, creeLe: date(), modifieLe: date() });
+  liste(9401, moi.compteId, "Mes kebabs");
+  liste(9402, autre.compteId, "On remplit ensemble");
+  liste(9403, autre.compteId, "Je la suis");
+  t.lieuxListes.push(
+    { listeId: 9401, lieuId: 12, ajouteParId: moi.compteId, creeLe: date() }, { listeId: 9401, lieuId: 13, ajouteParId: autre.compteId, creeLe: date() },
+    { listeId: 9402, lieuId: 14, ajouteParId: moi.compteId, creeLe: date() }, { listeId: 9402, lieuId: 15, ajouteParId: autre.compteId, creeLe: date() },
+    { listeId: 9403, lieuId: 16, ajouteParId: autre.compteId, creeLe: date() },
+  );
+  t.coAuteurs.push({ listeId: 9402, compteId: moi.compteId, statut: "accepte", creeLe: date(), reponduLe: date() });
+  t.abonnementsListes.push({ listeId: 9403, compteId: moi.compteId, creeLe: date() });
+  t.commentaires.set(9501, {
+    id: 9501, publicationId: 7, auteurId: moi.compteId, commeLieuId: null, ecritParId: null, texte: "Trop bon !", mentions: [], reponseAId: null, creeLe: date(),
+    modifieLe: null, supprimeLe: null, masqueParLieuLe: null, suspenduLe: null, retireLe: null,
+  });
+  t.jaimesCommentaires.push({ commentaireId: 9502, compteId: moi.compteId, creeLe: date() });
+  t.cloche.set(9601, { id: 9601, compteId: moi.compteId, type: "mention", acteurId: autre.compteId, cible: "commentaire", cibleId: "9501", detail: null, enRetour: false, creeLe: date() });
+  const signalement = (id: number, cible: string) =>
+    t.signalements.set(id, { id, cible, cibleId: "1", raison: "haine", statut: "a-traiter", creeLe: date(), signaleParId: moi.compteId } as never);
+  signalement(9701, "message");
+  signalement(9702, "publication");
+  t.masques.push({ compteId: moi.compteId, cible: "sortie", cibleId: "42", creeLe: date() });
+
+  const e = (await exporter(moi)).corps.export;
+  assert.deepEqual(e.conversations[0].messages, [{ date: date().toISOString(), type: "photo", texte: null, lieuId: null, taille: 1234 }], "un média : date, type et taille");
+  assert.deepEqual(e.sorties.map((s: { titre: string; role: string; propositions: number[]; votes: number[] }) => [s.titre, s.role, s.propositions, s.votes]), [
+    ["Mon resto", "organisateur", [12], []], ["Invité", "invite", [], []], ["Participant", "participant", [], [14]],
+  ], "une invitation refusée n'y est pas");
+  assert.deepEqual(e.listes.map((l: { titre: string; role: string; lieux: number[] }) => [l.titre, l.role, l.lieux]), [
+    ["Mes kebabs", "auteur", [12, 13]], ["On remplit ensemble", "co-auteur", [14]], ["Je la suis", "abonne", []],
+  ]);
+  assert.deepEqual(e.commentaires, [{ publicationId: "7", texte: "Trop bon !", date: date().toISOString() }]);
+  assert.deepEqual([e.jaimesCommentaires, e.cloche, e.masques], [["9502"], [{ type: "mention", date: date().toISOString() }], [{ cible: "sortie", cibleId: "42" }]]);
+  assert.deepEqual(e.signalements, [{ cible: "message", raison: "haine", date: date().toISOString(), statut: "a-traiter" }], "seulement les contenus sociaux");
+});
+
+test("sans profil social : profil null, et rien n'est créé", async () => {
+  const discret = await banc.creerPersonne({ sansProfil: true });
+  banc.tables.masques.push({ compteId: discret.compteId, cible: "suggestion", cibleId: "personne:abcdefghij", creeLe: date() });
+  const e = (await exporter(discret)).corps.export;
+  assert.deepEqual([e.profil, e.masques], [null, [{ cible: "suggestion", cibleId: "personne:abcdefghij" }]]);
+  assert.equal(banc.tables.profils.has(discret.compteId), false, "une lecture ne crée jamais le profil social");
+});
+
+test("2 exports par 24 h ; sans session : 401", async () => {
+  const p = await banc.creerPersonne();
+  await exporter(p);
+  await exporter(p);
+  const trop = await p.demander("GET", "/app/social/export");
+  assert.deepEqual([trop.statut, trop.corps.erreur], [429, "trop-de-demandes"]);
+  assert.ok(Number(trop.entetes.get("retry-after")) > 0);
+  assert.equal((await banc.demander("GET", "/app/social/export")).statut, 401);
+});
+
+test("sans la clé des données : 503 chiffrement-indisponible, sans compter dans les 2 par 24 h", async () => {
+  const sansCle = await creerBancSocial({ sansCle: true });
+  try {
+    const p = await sansCle.creerPersonne({ sansProfil: true });
+    for (let i = 0; i < 3; i++) assert.deepEqual((await p.demander("GET", "/app/social/export")).corps, { ok: false, erreur: "chiffrement-indisponible" });
+    assert.equal((await p.demander("GET", "/app/social/export")).statut, 503);
+  } finally {
+    await sansCle.fermer();
+  }
+});

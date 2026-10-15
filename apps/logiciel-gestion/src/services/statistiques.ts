@@ -51,6 +51,15 @@ export type StatistiquesCommunaute = {
 };
 export const lireStatistiquesCommunaute = () => appeler<StatistiquesCommunaute>("GET", "/statistiques/communaute");
 
+/** L'activité de l'app tirée de la base, semaine par semaine (des nombres seulement) */
+export type MesureActiviteApp = "visites" | "rescousses" | "avis" | "reservations" | "sorties" | "messages" | "commentaires";
+export type ActiviteApp = {
+  totaux: { actifsSemaine: number; surApp: number; visites: number; rescousses: number; avis: number };
+  semaines: ({ cle: string } & Record<MesureActiviteApp, number>)[];
+  villes: { ville: string; visites: number }[];
+};
+export const lireActiviteApp = () => appeler<ActiviteApp>("GET", "/statistiques/activite-app");
+
 /** Les chiffres d'un mois (bilan à partager) */
 export type ChiffresMois = {
   mois: string;

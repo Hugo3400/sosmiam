@@ -1,5 +1,5 @@
 // Aperçus publics (sosmiam.fr/preview et /preview/communaute) : noindex (balise et en-tête), servis sur sosmiam.fr
-// seulement, ouverts dans robots.txt (pour que Google lise leur noindex), absents du menu, du pied de page et du plan du site ; et la page ne dit ni date
+// seulement, ouverts dans robots.txt (pour que Google lise leur noindex), absents du menu et du plan du site (un lien « Ce qu'on prépare » dans le pied de page) ; et la page ne dit ni date
 // ni promesse (règle de docs/decisions.md : ne rien inventer comme engagement).
 // Les pages sont des .tsx, que Node ne lance pas : ce test les fait traduire par TypeScript (déjà dans le dépôt).
 // Lancer : node --test tests/*.test.ts
@@ -116,13 +116,11 @@ test("robots.txt : /preview reste ouvert sur sosmiam.fr, pour que Google lise so
   }
 });
 
-test("hors du plan du site, du menu et du pied de page (c'est le Discord qui y renvoie)", () => {
+test("hors du plan du site et du menu ; dans le pied de page, un seul lien vers /preview (demande de Hugo, 15/10)", () => {
   assert.ok(!pagesIndexees.some((page) => page.startsWith("/preview")));
   const adressesPied = groupesPiedDePage.flatMap((groupe) => groupe.liens.map((lien) => lien.adresse));
-  assert.ok(!adressesPied.some((adresse) => adresse.includes("/preview")));
-  for (const fichier of ["composants/mise-en-page/EnTete.tsx", "composants/mise-en-page/PiedDePage.tsx", "contenus/liens-pied-de-page.ts"]) {
-    assert.doesNotMatch(lire(fichier), /\/preview/, fichier);
-  }
+  assert.deepEqual(adressesPied.filter((adresse) => adresse.includes("/preview")), ["/preview"]);
+  assert.doesNotMatch(lire("composants/mise-en-page/EnTete.tsx"), /\/preview/);
 });
 
 // Une date : un mois (en entier ou abrégé), une année, « le 14 », « dimanche 19 », une saison ou « d'ici… »

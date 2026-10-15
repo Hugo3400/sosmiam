@@ -123,7 +123,7 @@ export default function DecisionsModeration() {
         ))}
         <Text className="mt-2 font-texte text-sm leading-5 text-gris">
           {lierPonctuation(
-            "On ne te dit jamais qui a signalé, et personne ne saura que tu as signalé. Une contestation est relue par une autre personne de l'équipe que celle qui a décidé.",
+            "On ne te dit jamais qui a signalé, et la personne concernée ne saura jamais que c'est toi qui as signalé. Une contestation est relue par une autre personne de l'équipe que celle qui a décidé.",
           )}
         </Text>
       </View>

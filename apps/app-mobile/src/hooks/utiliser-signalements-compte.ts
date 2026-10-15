@@ -32,14 +32,24 @@ export function utiliserSignalementsCompte(actif: boolean): SignalementsCompte {
   const generation = useRef(0);
   const etaitActif = useRef(false);
   const envoiEnCours = useRef(false);
+  // Le compte relu (sa date de création désigne ce qu'on garde sur le téléphone) ; null : pas encore relu, rien n'est gardé
+  // sur le disque, mais un signalement part quand même et attend en mémoire
   const creeLe = compte?.creeLe ?? null;
+  const creeLeCourant = useRef(creeLe);
+  creeLeCourant.current = creeLe;
   const enAttenteCourant = useRef(enAttente);
   enAttenteCourant.current = enAttente;
+
+  const garder = useCallback((suivants: SignalementSocialEnvoye[]) => {
+    enAttenteCourant.current = suivants;
+    setEnAttente(suivants);
+    if (creeLeCourant.current) void remplacerSignalementsSociauxAEnvoyer(creeLeCourant.current, suivants);
+  }, []);
 
   /** Envoie ceux qui attendent ; garde seulement ceux qui ont raté pour une raison passagère (réseau, serveur) */
   const vider = useCallback(async () => {
     const lot = enAttenteCourant.current;
-    if (!creeLe || envoiEnCours.current || lot.length === 0) return;
+    if (envoiEnCours.current || lot.length === 0) return;
     envoiEnCours.current = true;
     const g = generation.current;
     const restants: SignalementSocialEnvoye[] = [];
@@ -50,33 +60,44 @@ export function utiliserSignalementsCompte(actif: boolean): SignalementsCompte {
     envoiEnCours.current = false;
     if (g !== generation.current) return;
     // Ceux arrivés pendant l'envoi attendent encore
-    const suivants = [...restants, ...enAttenteCourant.current.filter((s) => !lot.includes(s))];
-    enAttenteCourant.current = suivants;
-    setEnAttente(suivants);
-    void remplacerSignalementsSociauxAEnvoyer(creeLe, suivants);
-  }, [creeLe, sociaux]);
+    garder([...restants, ...enAttenteCourant.current.filter((s) => !lot.includes(s))]);
+  }, [sociaux, garder]);
 
-  // Connexion : ce que tu as signalé est relu, et ce qui attendait repart ; déconnexion : tout est oublié
+  // Connexion : ce que tu as signalé est relu sur le serveur ; déconnexion : tout est oublié (et ce qui attendait aussi)
   useEffect(() => {
     generation.current += 1;
-    if (!actif || !creeLe) {
+    if (!actif) {
       if (etaitActif.current) void effacerSignalementsSociauxAEnvoyer();
       etaitActif.current = false;
       setSignales(new Set());
+      enAttenteCourant.current = [];
       setEnAttente([]);
       return;
     }
     etaitActif.current = true;
     const g = generation.current;
-    void (async () => {
-      const [lus, attente] = await Promise.all([Promise.all(CIBLES_CACHEES.map((cible) => sociaux.signalements.listerMiens(cible))), lireSignalementsSociauxAEnvoyer(creeLe)]);
+    void Promise.all(CIBLES_CACHEES.map((cible) => sociaux.signalements.listerMiens(cible).catch(() => null))).then((lus) => {
       if (g !== generation.current) return;
-      setSignales((avant) => new Set([...avant, ...lus.flatMap((r) => (r.ok ? r.cibleIds : []))]));
-      enAttenteCourant.current = attente;
-      setEnAttente(attente);
+      setSignales((avant) => new Set([...avant, ...lus.flatMap((r) => (r?.ok ? r.cibleIds : []))]));
+    });
+  }, [actif, sociaux]);
+
+  // Le compte est relu : ce qui attendait sur le téléphone rejoint ce qui attend en mémoire, puis tout repart
+  useEffect(() => {
+    if (!actif || !creeLe) return;
+    let encore = true;
+    void lireSignalementsSociauxAEnvoyer(creeLe).then((gardes) => {
+      if (!encore) return;
+      const memoire = enAttenteCourant.current;
+      const tous = [...gardes, ...memoire].filter((s, i, liste) => liste.findIndex((x) => x.cible === s.cible && x.cibleId === s.cibleId) === i);
+      setSignales((avant) => new Set([...avant, ...tous.map((s) => s.cibleId)]));
+      garder(tous);
       void vider();
-    })();
-  }, [actif, creeLe, sociaux, vider]);
+    });
+    return () => {
+      encore = false;
+    };
+  }, [actif, creeLe, garder, vider]);
 
   // Le pouls répond : le réseau est revenu, ce qui attendait repart
   const signature = pouls ? `${pouls.messages.signature}|${pouls.cloche.signature}` : null;
@@ -88,7 +109,7 @@ export function utiliserSignalementsCompte(actif: boolean): SignalementsCompte {
     const enAttenteIds = new Set(enAttente.map((s) => s.cibleId));
     return {
       signaler: (s) => {
-        if (!actif || !creeLe) return;
+        if (!actif) return;
         // Un lieu envoyé par un pote est un message pour le serveur
         const envoye: SignalementSocialEnvoye = { cible: s.cible === "recommandation" ? "message" : s.cible, cibleId: s.cibleId, raison: s.raison, precision: s.precision, explication: s.explication };
         setSignales((avant) => new Set(avant).add(s.cibleId));
@@ -98,14 +119,11 @@ export function utiliserSignalementsCompte(actif: boolean): SignalementsCompte {
           .catch(() => ({ ok: false as const, erreur: "hors-ligne" as ErreurService }))
           .then((r) => {
             if (g !== generation.current || r.ok || REFUS_DEFINITIFS.includes(r.erreur)) return;
-            // Pas parti : il attend sur le téléphone, le contenu reste caché
-            const suivants = [...enAttenteCourant.current.filter((x) => !(x.cible === envoye.cible && x.cibleId === envoye.cibleId)), envoye];
-            enAttenteCourant.current = suivants;
-            setEnAttente(suivants);
-            void remplacerSignalementsSociauxAEnvoyer(creeLe, suivants);
+            // Pas parti : il attend (sur le téléphone dès que le compte est relu), le contenu reste caché
+            garder([...enAttenteCourant.current.filter((x) => !(x.cible === envoye.cible && x.cibleId === envoye.cibleId)), envoye]);
           });
       },
       estSignale: (cibleId) => signales.has(cibleId) || enAttenteIds.has(cibleId),
     };
-  }, [actif, creeLe, sociaux, signales, enAttente]);
+  }, [actif, sociaux, signales, enAttente, garder]);
 }

@@ -7,6 +7,8 @@ import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
 import { EcranDefis } from "~/ecrans/defis/EcranDefis.tsx";
 import { EcranPresse } from "~/ecrans/presse/EcranPresse.tsx";
+import { EcranEvenements } from "~/ecrans/evenements/EcranEvenements.tsx";
+import { EcranReservations } from "~/ecrans/reservations/EcranReservations.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
@@ -161,6 +163,8 @@ export function Application() {
           {ecran === "annonces" && <EcranAnnonces />}
           {ecran === "defis" && <EcranDefis />}
           {ecran === "presse" && <EcranPresse />}
+          {ecran === "evenements" && <EcranEvenements />}
+          {ecran === "reservations" && <EcranReservations ouvrirLieu={(id) => allerA("lieux", id)} />}
           {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
           {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
           {ecran === "moderation" && <EcranModeration />}

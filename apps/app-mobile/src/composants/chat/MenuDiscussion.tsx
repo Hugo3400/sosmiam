@@ -15,6 +15,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import couleurs from "~/theme/couleurs";
+import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
   visible: boolean;
@@ -83,7 +84,9 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   const prenom = pote?.prenom ?? "cette personne";
   // Retiré de ta bande plus tôt : on ne lui annonce pas qu'il en sort
   const dansBande = !!pote && potes.some((p) => p.id === pote.id);
-  const titreGroupe = conversation?.titre ?? "ce groupe";
+  // Sans titre (effacé par la modération, illisible) : « Groupe » à l'écran, et pas de guillemets dans les phrases
+  const vraiTitre = conversation?.titre?.trim() || null;
+  const titreGroupe = nommerGroupe(vraiTitre);
   // Compte connecté : couper (ou remettre) les notifications de cette discussion ; les messages arrivent toujours
   const coupee = conversation?.coupee;
   const optionCouper =
@@ -163,13 +166,13 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
               )
             ) : vue === "quitter" && conversation ? (
               confirmation(
-                `Quitter « ${titreGroupe} » ?`,
+                vraiTitre ? `Quitter « ${vraiTitre} » ?` : "Quitter le groupe ?",
                 "Les messages du groupe disparaîtront de ton téléphone, et la bande continuera de papoter sans toi. Aucune rancune : c'est la vie de groupe !",
                 "Quitter le groupe",
                 "Non, je reste",
                 () => {
                   quitterGroupe(conversation.id);
-                  onQuitte(titreGroupe);
+                  onQuitte(vraiTitre ?? "le groupe");
                 },
               )
             ) : (

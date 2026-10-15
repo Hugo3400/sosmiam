@@ -95,6 +95,41 @@ Au prochain changement, même chemin avec la version 3, et ainsi de suite.
   position est effacée au bout d'1 heure au plus (fin ou arrêt du partage), et une position illisible s'affiche comme
   « pas de position », sans erreur.
 
+## La partie sociale (rechiffrement de nuit)
+
+Réponse de la session App (lot L7, 15 octobre 2026) au point ci-dessus : la partie sociale **se rechiffre la nuit**, avec
+la même ancienne clé (`SOS_MIAM_CLE_DONNEES_ANCIENNE`) ; il n'y a rien d'autre à régler.
+
+Code concerné : `apps/api/src/services/chiffrement-social.ts` (quatre sous-clés tirées de la clé des données ; chaque
+chiffré porte la version de sa clé, `v<N>:`), `services/rechiffrement-social.ts` (la réécriture), lancé comme étape 9 du
+ménage social (`services/menage-social.ts`, `nettoyerSocial` dans `taches/taches-de-nuit.ts`, avant la sauvegarde).
+
+Ce qui est chiffré, et donc réécrit :
+
+| Quoi | Où |
+|---|---|
+| Codes des liens et QR d'invitation de la bande | `profils_sociaux.code_invitation_chiffre` |
+| Titres des groupes | `conversations.titre_chiffre` |
+| Textes des messages et lieux envoyés (avec leur petit mot) | `messages_conversations.texte_chiffre` |
+| Copies des contenus signalés (instantanés de la modération) | `signalements.instantane_chiffre` |
+| Photos et notes vocales du chat | fichiers du dossier `DOSSIER_MEDIAS_CHAT` (`/var/lib/sos-miam/medias-chat`) |
+
+Comment ça se passe :
+
+- Pendant le changement, tout se lit avec l'une ou l'autre clé, et tout ce qui s'écrit l'est avec la nouvelle.
+- Chaque nuit, les textes sont réécrits par paquets de 500 (100 000 par table et par nuit au plus), puis les fichiers
+  (500 par nuit au plus : une photo pèse jusqu'à 5 Mo). Un fichier n'est jamais écrasé : le rechiffré prend un nouveau
+  nom, la base passe au nouveau nom (message et signalement), puis l'ancien fichier est supprimé.
+- Dans le journal du logiciel de gestion, la ligne « Chiffrés sociaux réécrits avec la nouvelle clé (… illisible(s),
+  … restant(s)) » paraît chaque nuit tant que l'ancienne clé est là, même quand il n'y a plus rien à réécrire ; le
+  détail donne le nombre réécrit cette nuit-là. Seulement des nombres, jamais un contenu.
+- **Étape 7 (retirer l'ancienne clé)** : attendre « 0 restant(s) » sur la ligne des comptes **et** sur celle-ci. S'il
+  reste des « illisible(s) » (un chiffré abîmé qu'aucune des deux clés ne relit), les regarder avant : un message
+  illisible s'affiche « illisible » dans l'app et part avec sa conversation (1 an sans message) ; une photo ou une note
+  vocale part au bout de 90 jours.
+- Les sauvegardes faites avant le changement contiennent aussi des messages chiffrés avec l'ancienne clé, et le dossier
+  des médias n'est pas dans la sauvegarde de la base : la règle des 30 jours de la section « Les sauvegardes » suffit.
+
 ## Si la clé fuit
 
 1. Changer de clé **tout de suite** (étapes 1 à 5), sans attendre une date ronde.

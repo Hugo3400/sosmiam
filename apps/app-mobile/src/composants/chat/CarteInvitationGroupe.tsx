@@ -7,6 +7,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = { invitation: InvitationGroupeChat };
 
@@ -21,7 +22,9 @@ export function CarteInvitationGroupe({ invitation }: Props) {
   const [enCours, setEnCours] = useState(false);
   const [souci, setSouci] = useState(false);
   const qui = invitation.invitePar ? (trouverPote(invitation.invitePar)?.prenom ?? "Un pote") : "Quelqu'un qui a quitté SOS Miam";
-  const titre = invitation.titre ?? "un groupe";
+  // Sans titre (effacé par la modération) : « un groupe », sans guillemets
+  const vraiTitre = invitation.titre?.trim() || null;
+  const titre = nommerGroupe(vraiTitre);
   const deja = invitation.membres > 1 ? `${invitation.membres} membres y sont déjà.` : "Tu serais parmi les premiers.";
 
   async function repondre(rejoint: boolean) {
@@ -42,7 +45,7 @@ export function CarteInvitationGroupe({ invitation }: Props) {
           {invitation.emoji ?? "💬"}
         </Text>
         <View className="flex-1">
-          <Text className="font-texte-gras text-base text-encre">{lierPonctuation(`${qui} t'invite dans « ${titre} »`)}</Text>
+          <Text className="font-texte-gras text-base text-encre">{lierPonctuation(vraiTitre ? `${qui} t'invite dans « ${vraiTitre} »` : `${qui} t'invite dans un groupe`)}</Text>
           <Text className="font-texte text-sm text-gris">{lierPonctuation(`Rejoindre le groupe ? ${deja}`)}</Text>
         </View>
       </View>

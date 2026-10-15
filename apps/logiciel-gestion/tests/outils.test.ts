@@ -58,6 +58,17 @@ test("recherche : les écrans d'abord (sans accents), puis les données", () => 
   assert.ok(listerResultatsRecherche("reglages", null).some((r) => r.titre === "Réglages"));
 });
 
+test("recherche : signalements, missions et fichiers presse ouvrent le bon écran", () => {
+  const resultats = listerResultatsRecherche("12", {
+    lieux: [], comptes: [], publications: [], bigSos: [], demandes: [], inscrits: [],
+    signalements: [{ id: 12, cible: "groupe", cibleId: "4", statut: "a-traiter", raison: "choquant" }],
+    missions: [{ id: 2, titre: "Passer chez Lia", statut: "a-faire", compteId: 12, compte: { prenom: "Inès" } }],
+    presse: [{ id: "abc", nom: "logo-12.png", format: "png", famille: "Logos" }],
+  });
+  assert.deepEqual(resultats.map((r) => [r.groupe, r.ecran, r.id]), [["Signalements", "moderation", null], ["Missions", "ambassadeurs", 12], ["Espace presse", "presse", null]]);
+  assert.equal(resultats[0]?.detail, "le groupe n° 4 · à traiter");
+});
+
 test("pastilles du menu : 1 à 9 tels quels, « +9 » au-delà", async () => {
   const { formaterNombrePastille } = await import("../src/fonctions/alertes/formater-nombre-pastille.ts");
   assert.deepEqual([1, 9, 10, 250].map(formaterNombrePastille), ["1", "9", "+9", "+9"]);

@@ -7,6 +7,7 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { listerPrenomsDiscussion } from "~/fonctions/chat/lister-prenoms-discussion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import couleurs from "~/theme/couleurs";
+import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
   conversation: Conversation;
@@ -25,7 +26,7 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
   const groupe = conversation.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
   const prenoms = listerPrenomsDiscussion(membres);
-  const titre = groupe ? (conversation.titre ?? "Groupe") : (pote?.prenom ?? "Compte supprimé");
+  const titre = groupe ? nommerGroupe(conversation.titre) : (pote?.prenom ?? "Compte supprimé");
   const nombre = membres.length + 1;
 
   return (

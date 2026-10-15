@@ -10,6 +10,7 @@ import type { Ecran } from "~/contenus/menu.ts";
 import { formaterNombre } from "~/fonctions/texte/formater-nombre.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { lireLancementVille, listerVilles } from "~/services/villes.ts";
+import { ResteAFaireVille } from "./ResteAFaireVille.tsx";
 
 type Props = { allerA: (ecran: Ecran, id: number | null) => void };
 
@@ -76,10 +77,19 @@ export function EcranVilles({ allerA }: Props) {
                   <h2 className="font-titre text-2xl font-extrabold">{point.ville}</h2>
                   {point.commune && <p className="text-sm text-gris">{point.commune.nom} ({point.commune.codeDepartement}) · {formaterNombre(point.commune.population)} habitants</p>}
                 </div>
+                <ResteAFaireVille point={point} />
                 <div className="grid gap-4 xl:grid-cols-2">
                   <Etape fait={point.lieux.enLigne > 0} titre="Des lieux en ligne" action={<Bouton petit onClick={() => allerA("lieux", null)}>Voir les lieux</Bouton>}>
                     <strong>{point.lieux.enLigne}</strong> en ligne sur {point.lieux.total} fiche(s). {point.lieux.brouillons} brouillon(s), dont{" "}
                     <strong>{point.lieux.brouillonsComplets}</strong> complet(s), prêts à mettre en ligne{point.lieux.masques ? `, et ${point.lieux.masques} masqué(s)` : ""}.
+                  </Etape>
+                  <Etape fait={point.lieux.quiValident > 0} titre="Des lieux qui valident les visites" action={<Bouton petit onClick={() => allerA("lieux", null)}>Régler la validation</Bouton>}>
+                    <strong>{point.lieux.quiValident}</strong> lieu(x) en ligne sur {point.lieux.enLigne} valident les visites (QR du comptoir, addition). Ça se règle dans
+                    la carte « Validation des visites » de chaque fiche.
+                  </Etape>
+                  <Etape fait={point.lieux.verifies > 0} titre="Des lieux vérifiés ✓" action={point.lieux.rattachementsEnAttente > 0 && <Bouton petit onClick={() => allerA("demandes", null)}>Trancher les demandes</Bouton>}>
+                    <strong>{point.lieux.verifies}</strong> lieu(x) en ligne tenus par un compte pro validé
+                    {point.lieux.rattachementsEnAttente > 0 ? <>, et <strong>{point.lieux.rattachementsEnAttente}</strong> demande(s) de compte pro en attente</> : ""}.
                   </Etape>
                   <Etape fait={Boolean(point.fondateurs && point.fondateurs.prises > 0)} titre="Des fondateurs" action={<Bouton petit onClick={() => allerA("ambassadeurs", null)}>Voir les candidatures</Bouton>}>
                     {point.fondateurs

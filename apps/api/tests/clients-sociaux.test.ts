@@ -15,8 +15,6 @@ before(async () => {
 });
 after(() => banc.fermer());
 
-/** Pas encore de route : l'export de tes données arrive avec le lot L7 (l'app ne le branche pas avant) */
-const ATTENDUES_PLUS_TARD = new Set(["social.exporter"]);
 const ID = "zzzzzzzzzz";
 const demain = () => new Date(banc.horloge.maintenant + 24 * 60 * 60_000).toISOString();
 /** Des arguments de la bonne forme ; par défaut, "1" (un identifiant de conversation, de sortie, de liste…) */
@@ -77,6 +75,7 @@ test("chaque méthode des clients sociaux de commun trouve sa route dans l'API",
   }
   assert.deepEqual(sansDemande, [], "chaque méthode parle à l'API");
   const sansRoute = demandes.filter((d) => d.statut === 404 && d.erreur === "introuvable").map((d) => `${d.appel} (${d.adresse})`);
-  assert.deepEqual(sansRoute, [...ATTENDUES_PLUS_TARD].map((a) => `${a} (GET /app/social/export)`));
+  // L'export de tes données (GET /app/social/export) est arrivé avec le lot L7 : plus aucune méthode sans sa route
+  assert.deepEqual(sansRoute, []);
   assert.ok(demandes.length >= 80, `${demandes.length} demandes`);
 });

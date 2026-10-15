@@ -5,6 +5,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { AideUrgence } from "~/composants/signalement/AideUrgence";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 type Props = {
   /** Raison grave : on rappelle encore les numéros d'urgence et Pharos */
@@ -36,9 +37,11 @@ export function MerciSignalement({ grave, masqueePourTous, onFermer }: Props) {
           : "Cette publication n'apparaîtra plus dans ton fil. On va regarder ça de près."}
       </Text>
       <Text className="text-center font-texte text-sm leading-5 text-gris">
-        {masqueePourTous
-          ? "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam, et le masquage pour tout le monde s'appliquera, dès que l'app sera reliée à notre serveur."
-          : "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur."}
+        {DEMO_VISITES_ACTIVE
+          ? masqueePourTous
+            ? "Démo : ton signalement reste sur ton téléphone. Pour de vrai, il part à l'équipe SOS Miam, et le masquage pour tout le monde s'applique tout de suite."
+            : "Démo : ton signalement reste sur ton téléphone. Pour de vrai, il part à l'équipe SOS Miam."
+          : "Ton signalement est parti à l'équipe SOS Miam, sans ton nom : personne ne sait qui l'a envoyé. Sans réseau, il attend sur ton téléphone et part dès que ça revient."}
       </Text>
       {grave ? (
         <View className="self-stretch">

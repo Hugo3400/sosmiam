@@ -206,11 +206,11 @@ test("verifierDroitValidation : ordre des contrôles (rien ne dépend du type du
   };
   assert.deepEqual(verifierDroitValidation(toutFaux), { ok: false, erreur: "lieu-sans-validation" });
   const etape2 = { ...toutFaux, lieu: base.lieu };
-  assert.deepEqual(verifierDroitValidation(etape2), { ok: false, erreur: "compte-limite" });
+  assert.deepEqual(verifierDroitValidation(etape2), { ok: false, erreur: "validations-en-pause" });
   const etape3 = { ...etape2, compte: { ...etape2.compte, limiteJusqua: iso(T0 - 1) } };
   assert.deepEqual(verifierDroitValidation(etape3), { ok: false, erreur: "membre-du-lieu" });
   const pauseIllisible = { ...base, compte: { ...base.compte, limiteJusqua: "un jour" } };
-  assert.deepEqual(verifierDroitValidation(pauseIllisible), { ok: false, erreur: "compte-limite" });
+  assert.deepEqual(verifierDroitValidation(pauseIllisible), { ok: false, erreur: "validations-en-pause" });
 });
 
 test("decrireEtatAvis", () => {

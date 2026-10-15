@@ -30,6 +30,8 @@ export async function lireLancementVille(nom: string) {
   const [lieux, ambassadeurs, appareils, inscrits] = await Promise.all([
     baseDeDonnees.lieu.findMany({
       select: {
+        validation: { select: { validationActive: true } },
+        rattachements: { select: { statut: true } },
         ville: true, statut: true, info: true, texte: true, adresse: true, quartier: true, latitude: true, longitude: true, horaires: true, ouverture: true,
         plat: true, telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true, terrasse: true, wifi: true, enfants: true,
         parking: true, paiements: true, reservation: true,
@@ -41,6 +43,7 @@ export async function lireLancementVille(nom: string) {
   ]);
   const ici = lieux.filter((lieu) => meme(lieu.ville, cle));
   const brouillons = ici.filter((lieu) => lieu.statut === "brouillon");
+  const enLigne = ici.filter((lieu) => lieu.statut === "publie");
   const ambassadeursIci = ambassadeurs.filter((a) => meme(a.ville, cle));
   const capitaine = ambassadeursIci.find((a) => a.statut === "actif" && a.compte.palier === "ambassadeur-ville");
   // Zone de fondateurs : la commune la plus proche de ce nom, puis sa zone (la ville, ou son département)
@@ -51,7 +54,13 @@ export async function lireLancementVille(nom: string) {
     commune: commune ? { nom: commune.nom, codeDepartement: commune.codeDepartement, population: commune.population } : null,
     lieux: {
       total: ici.length,
-      enLigne: ici.filter((lieu) => lieu.statut === "publie").length,
+      enLigne: enLigne.length,
+      /** En ligne et qui valident les visites (QR du comptoir, addition) */
+      quiValident: enLigne.filter((lieu) => lieu.validation?.validationActive).length,
+      /** En ligne et « vérifié ✓ » : au moins un compte pro rattaché et validé */
+      verifies: enLigne.filter((lieu) => lieu.rattachements.some((r) => r.statut === "valide")).length,
+      /** Demandes de rattachement pro à trancher, tous statuts de fiche confondus */
+      rattachementsEnAttente: ici.reduce((n, lieu) => n + lieu.rattachements.filter((r) => r.statut === "en-attente").length, 0),
       brouillons: brouillons.length,
       brouillonsComplets: brouillons.filter((lieu) => listerManquesLieu(lieu).length === 0).length,
       masques: ici.filter((lieu) => lieu.statut === "masque").length,
