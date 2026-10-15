@@ -6,7 +6,8 @@ import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.t
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
 /**
- * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive », une fois la capacité cochée sur l'App ID), et
+ * `urgent` : passe les modes Concentration de l'iPhone (« time-sensitive » : capacité cochée sur l'App ID et entitlement dans
+ * app.json le 15 octobre, actifs à partir de la première version de l'app construite ensuite), et
  * sur Android le canal « miam-safe » de l'app (importance maximale) ; réservé aux alertes Miam Safe.
  * `regroupement` (« conversation:<id> », 64 octets au plus) : une seule notification par conversation à l'écran, la suivante
  * remplace la précédente (apns-collapse-id et thread-id sur iPhone, tag sur Android).
