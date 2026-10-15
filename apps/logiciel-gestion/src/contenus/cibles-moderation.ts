@@ -9,7 +9,7 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   avis: { libelle: "Avis", le: "l'avis", emoji: "⭐" },
   "reponse-avis": { libelle: "Réponses aux avis", le: "la réponse du lieu", emoji: "💬" },
   // Profil, sortie, groupe : retenus, ils ne sont pas retirés mais remis par défaut (l'API le fait dans la décision)
-  profil: { libelle: "Profils", le: "le profil", emoji: "👤", remise: "son avatar est effacé. Le prénom se corrige depuis la fiche du compte ; le pseudo, pas encore" },
+  profil: { libelle: "Profils", le: "le profil", emoji: "👤", remise: "son pseudo devient « miami » et 4 chiffres (l'ancien est bloqué 30 jours) et son avatar est effacé. Le prénom se corrige depuis la fiche du compte" },
   sortie: { libelle: "Sorties", le: "la sortie", emoji: "🎉", remise: "son titre redevient « Sortie », pour tous ceux qui y sont invités" },
   groupe: { libelle: "Groupes", le: "le groupe", emoji: "👥", remise: "son nom est effacé : il s'affiche « Groupe » chez tous ses membres" },
 };

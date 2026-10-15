@@ -3,6 +3,7 @@ import { Router, type RequestHandler } from "express";
 import { creerAttenteParCompte } from "../controleurs/comptes-attente.ts";
 import { creerControleursCertification } from "../controleurs/comptes-certification.ts";
 import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts";
+import { creerControleursLimitation } from "../controleurs/comptes-limitation.ts";
 import { creerControleursMonCompte } from "../controleurs/comptes-moi.ts";
 import { creerControleursProfil } from "../controleurs/comptes-profil.ts";
 import { creerControleursPropositionsLieux } from "../controleurs/comptes-propositions-lieux.ts";
@@ -18,8 +19,10 @@ import type { InscriptionNewsletterComptes } from "../controleurs/comptes-newsle
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleMajorite } from "../middlewares/exiger-majeur.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
+import { creerRefuserSiLimite } from "../middlewares/refuser-si-limite.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
+import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
 import type { ServicesPro } from "../services/pro-regles.ts";
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 
@@ -53,6 +56,8 @@ export const LIMITE_PROPOSITIONS_LIEUX = { fenetre: 24 * 60 * 60_000, maximum: 1
 export const LIMITE_CONNEXION_EXTERNE = { fenetre: DIX_MINUTES, maximum: 20 };
 /** Relier ou délier Apple et Google depuis « Mon compte » : 10 demandes par COMPTE et par heure, les trois adresses ensemble */
 export const LIMITE_CONNEXIONS_COMPTE = { fenetre: 60 * 60_000, maximum: 10 };
+/** Contester sa limitation : 5 envois par COMPTE et par 24 heures (une seule contestation est gardée) */
+export const LIMITE_CONTESTATION_LIMITATION = { fenetre: 24 * 60 * 60_000, maximum: 5 };
 
 export type DependancesComptes = {
   services: ServicesComptes;
@@ -81,6 +86,10 @@ export type DependancesComptes = {
   /** PATCH /comptes/moi/profil { prive: false } : le compte repasse en public et accepte ses demandes de suivi en attente,
    * comme PUT /app/suivis-personnes/confidentialite (partie sociale, creerApresPassageEnPublic) ; absente : rien de plus */
   apresPassageEnPublic?: (compteId: number) => Promise<void>;
+  /** Limitations décidées par l'équipe dans le logiciel de gestion (services/limitations-comptes.ts, ou la mémoire) : GET
+   * /comptes/moi/limitation, sa contestation, et les refus 403 « compte-limite » (ici et dans l'espace pro) ; absentes :
+   * personne n'est limité (limitation: null, contestation 404) */
+  limitations?: ServicesLimitations;
 };
 
 /**
@@ -219,6 +228,26 @@ export type DependancesComptes = {
  * POST   /comptes/verifier-email        { jeton } → 200 { ok } (e-mail confirmé, jeton effacé) · 400 jeton-invalide · 429
  * POST   /comptes/moi/renvoyer-verification → 200 { ok, dejaVerifie } · 401 · 429 trop-de-demandes {attente} (1 lien toutes
  *                                        les 15 min et 5 par 24 h, l'envoi de l'inscription compris)
+ * GET    /comptes/moi/limitation        → 200 { ok, limitation: null | { motif, motivation, debut, fin, contestation,
+ *                                        contesteLe, reexamineLe, active, peutContester } } : la limitation décidée par
+ *                                        l'équipe (CGU, « Modération »), en cours (celle qui finit le plus tard) sinon la
+ *                                        prochaine à venir ; null s'il n'y en a pas, ou plus (finie ou levée). motif : un code
+ *                                        de MOTIFS_MODERATION (packages/commun) ; motivation : le pourquoi écrit pour la
+ *                                        personne ; dates ISO 8601, fin null : jusqu'à nouvel ordre ; active : elle court
+ *                                        maintenant ; peutContester : active et pas encore contestée. Jamais rien sur l'équipe.
+ * POST   /comptes/moi/limitation/contestation { texte } (10 à 1 000 caractères, espaces autour retirés) → 200 { ok,
+ *                                        limitation } (même forme que GET) : une seule fois, pendant la limitation ; une autre
+ *                                        personne de l'équipe la réexamine dans le logiciel de gestion · 400 champ-invalide
+ *                                        {champ: texte} · 404 aucune-limitation (aucune en cours, même à venir) · 409
+ *                                        deja-conteste · 429 (5 envois par compte et par 24 h)
+ * Compte LIMITÉ (décision de Hugo du 15 octobre 2026, docs/decisions.md) : ce que les AUTRES utilisateurs verraient est
+ * refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (jusqua : ISO 8601, ou null : jusqu'à nouvel
+ * ordre), rien n'est fait. Ici : POST /comptes/moi/suggestions (le gérant les lit) ; POST /comptes/moi/rattachements/:id/
+ * accepter (le gérant voit son équipe) ; PATCH /comptes/moi et PATCH /comptes/moi/profil seulement si le prénom, le
+ * pseudo ou l'avatar CHANGENT (une valeur renvoyée telle quelle passe ; retirer son avatar aussi ; ville, envies, prive,
+ * nom… restent permis). Espace pro : routes/pro.ts. Restent permis ce que seule l'équipe lit (proposer un lieu,
+ * candidatures fondateur et certification, demandes de rattachement, missions et messages de l'espace ambassadeur),
+ * et tout le reste : lire, Mon compte, mot de passe, connexions, export, suppression du compte, contestation, quitter.
  * POST   /comptes/moi/suggestions       { lieuId, proposition, message? } (tout compte connecté) : proposer une modification
  *                                        d'une fiche de lieu, décidée par l'équipe dans le logiciel de gestion.
  *                                        proposition : PropositionLieu de packages/commun (nom, adresse, horaires, texte,
@@ -338,6 +367,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
     externes: dependances.externes ?? null,
     newsletter: dependances.newsletter,
     apresPassageEnPublic: dependances.apresPassageEnPublic,
+    limitations: dependances.limitations,
   };
   const c = creerControleursComptes(contexte);
   const moi = creerControleursMonCompte(contexte);
@@ -349,6 +379,9 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   const propositionsLieux = creerControleursPropositionsLieux(contexte);
   const externes = creerControleursComptesExternes(contexte);
   const connexions = creerControleursConnexionsCompte(contexte);
+  const limitation = creerControleursLimitation(dependances.limitations, horloge);
+  // Compte limité : ce que les autres verraient est refusé (403 compte-limite), après la session
+  const refuserSiLimite = creerRefuserSiLimite(dependances.limitations?.estLimite, horloge);
   const parCompte = (reglages: { fenetre: number; maximum: number }) => limiterRequetes({ ...reglages, cle: (_requete, reponse) => `compte-${lireCompteId(reponse)}` });
   const routes = Router();
 
@@ -384,14 +417,16 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
     "/moi/propositions-lieux",
     protection.exigerCompte, propositionsLieux.exigerMajeur, parCompte(LIMITE_PROPOSITIONS_LIEUX), propositionsLieux.proposer,
   );
-  routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, suggestions.proposer);
+  routes.post("/moi/suggestions", limiterRequetes(LIMITE_SUGGESTIONS), protection.exigerCompte, refuserSiLimite, suggestions.proposer);
+  routes.get("/moi/limitation", protection.exigerCompte, limitation.lire);
+  routes.post("/moi/limitation/contestation", protection.exigerCompte, parCompte(LIMITE_CONTESTATION_LIMITATION), limitation.contester);
   if (dependances.pro) {
     const rattachements = creerControleursRattachements(dependances.pro, horloge);
     // Demander à gérer un lieu ou rejoindre une équipe : 18 ans et plus (la liste et « quitter » restent ouvertes)
     const { exigerMajeur } = creerControleMajorite(services.lireCompte, chiffrement, horloge);
     routes.get("/moi/rattachements", protection.exigerCompte, rattachements.lister);
     routes.post("/moi/rattachements", limiterRequetes(LIMITE_RATTACHEMENTS), protection.exigerCompte, exigerMajeur, rattachements.demander);
-    routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, exigerMajeur, rattachements.accepter);
+    routes.post("/moi/rattachements/:id/accepter", protection.exigerCompte, exigerMajeur, refuserSiLimite, rattachements.accepter);
     routes.delete("/moi/rattachements/:id", protection.exigerCompte, rattachements.quitter);
   }
   routes.get("/moi/candidature", protection.exigerAmbassadeurActif, espace.lireCandidature);
