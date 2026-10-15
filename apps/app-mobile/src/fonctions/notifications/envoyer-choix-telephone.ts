@@ -35,6 +35,7 @@ function lireJetonSansBloquer(lire: () => Promise<LectureJetonTelephone>): Promi
 async function retirerTelephone(garde: string | null, o: OutilsEnvoiTelephone, valable: () => boolean): Promise<IssueEnvoiOffres> {
   const lu = garde ? null : await lireJetonSansBloquer(o.lireJeton);
   const jeton = garde || (lu?.ok ? lu.jeton : null);
+  if (!garde && lu === null) return "a-renvoyer";
   if (!jeton || !valable()) return "sans-suite";
   const r = await o.desinscrire(jeton);
   if (r.ok) await o.effacerJeton();

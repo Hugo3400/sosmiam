@@ -182,7 +182,7 @@ test("lecture du jeton qui ne finit jamais : lâchée au bout de 10 s", async ()
     ["oui", JETON_GARDE, "a-renvoyer", []],
     ["non", JETON_GARDE, "parti", [["PUT", JETON_GARDE]]],
     ["non", null, "a-renvoyer", []],
-    ["couper", null, "sans-suite", []],
+    ["couper", null, "a-renvoyer", []],
   ];
   for (const [choix, garde, issue, attendu] of cas) {
     oublierMinuteries();
