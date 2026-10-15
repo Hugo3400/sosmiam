@@ -184,7 +184,7 @@ export function creerApplication({
       const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, majorite.exigerMajeur, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge));
       application.use("/app/visites", routesVisites.visites);
       application.use("/app/fidelite", routesVisites.fidelite);
-      application.use("/app/reservations", creerRoutesReservationsApp(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+      application.use("/app/reservations", creerRoutesReservationsApp(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
       application.use("/pro/comptoir", routesVisites.comptoir);
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session

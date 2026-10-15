@@ -27,6 +27,10 @@ type ReponseComptoir = ({ ok: true; etat: EtatComptoir } | EchecVisite) & { poin
 
 const presenterProgramme = (p: LigneProgramme): ProgrammeFidelite => ({ ...p, modifieLe: p.modifieLe.toISOString() });
 
+/** Même récompense, même version sans alcool, même alcool, même nombre de visites (réglages déjà nettoyés) */
+const memeRecompense = (a: ReglageFidelite, b: ReglageFidelite) =>
+  a.recompense === b.recompense && a.recompenseSansAlcool === b.recompenseSansAlcool && a.alcool === b.alcool && a.visitesRequises === b.visitesRequises;
+
 export function creerComptoir(c: ContexteComptoir) {
   const o = creerOutilsVisites(c);
 
@@ -211,12 +215,36 @@ export function creerComptoir(c: ContexteComptoir) {
       });
     },
 
-    /** PUT /pro/comptoir/lieux/:id/programme (gérant) : réglage revérifié par validerReglageFidelite */
+    /** PUT /pro/comptoir/lieux/:id/programme (gérant) : réglage revérifié par validerReglageFidelite, sous verrou du lieu */
     reglerProgramme(compteId: number, lieuId: number, reglage: ReglageFidelite): Promise<{ ok: true; programme: ProgrammeFidelite } | EchecVisite> {
       return c.depot.ecrire(async (t) => {
         if ((await c.lireRole(compteId, lieuId)) !== "gerant") return o.echec("role-requis");
         const valide = validerReglageFidelite(reglage);
         if (!valide.ok) return { ok: false, erreur: valide.erreur, champ: valide.champ };
+        await t.verrouillerLieu(lieuId);
+        const programme: LigneProgramme = { ...valide.reglage, lieuId, modifieLe: o.maintenant() };
+        await t.ecrireProgramme(programme);
+        return { ok: true, programme: presenterProgramme(programme) };
+      });
+    },
+
+    /**
+     * PUT /pro/comptoir/lieux/:id/programme qui ne fait qu'ÉTEINDRE le programme enregistré : actif: false, et la récompense,
+     * sa version sans alcool, l'alcool et le nombre de visites inchangés (une fois nettoyés par validerReglageFidelite).
+     * Permis même à un compte limité (décision de Hugo du 15 octobre 2026) : rien de neuf n'est montré aux clients, rien de
+     * ce qu'un autre gérant a écrit n'est défait. null : ce n'est pas qu'une extinction (pas encore de programme, un champ
+     * changé ou invalide, ou actif: true) ; le contrôleur passe alors par le refus des comptes limités, puis reglerProgramme.
+     * Sous verrou du lieu, comme reglerProgramme : comparé et écrit d'un seul geste, jamais sur une copie périmée.
+     */
+    eteindreProgramme(compteId: number, lieuId: number, reglage: ReglageFidelite): Promise<{ ok: true; programme: ProgrammeFidelite } | EchecVisite | null> {
+      return c.depot.ecrire(async (t) => {
+        if ((await c.lireRole(compteId, lieuId)) !== "gerant") return o.echec("role-requis");
+        const valide = validerReglageFidelite(reglage);
+        if (!valide.ok || valide.reglage.actif) return null;
+        await t.verrouillerLieu(lieuId);
+        const existant = await t.lireProgramme(lieuId);
+        if (!existant || !memeRecompense(existant, valide.reglage)) return null;
+        // Le même écrit que reglerProgramme : pour un compte non limité, rien ne change
         const programme: LigneProgramme = { ...valide.reglage, lieuId, modifieLe: o.maintenant() };
         await t.ecrireProgramme(programme);
         return { ok: true, programme: presenterProgramme(programme) };

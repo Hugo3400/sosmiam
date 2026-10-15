@@ -6,7 +6,8 @@ export type LieuMomentEnMemoire = { ouverture: CreneauOuverture[]; alerte: strin
 
 export function creerMomentLieuEnMemoire(prenoms: (compteId: number) => string | null = () => null) {
   const lieux = new Map<number, LieuMomentEnMemoire>();
-  const sos: (SosLigne & { lieuId: number })[] = [];
+  // compteId : qui l'a lancé (comme la colonne compte_id ; null : compte supprimé depuis)
+  const sos: (SosLigne & { lieuId: number; compteId: number | null })[] = [];
 
   const services: ServicesMomentLieu = {
     async lireLieu(lieuId) {
@@ -16,13 +17,16 @@ export function creerMomentLieuEnMemoire(prenoms: (compteId: number) => string |
     async lireSosDepuis(lieuId, depuis) {
       const trouve = sos.filter((s) => s.lieuId === lieuId && s.creeLe >= depuis).at(-1);
       if (!trouve) return null;
-      const { lieuId: _lieu, ...ligne } = trouve;
+      const { lieuId: _lieu, compteId: _compte, ...ligne } = trouve;
       return { ...ligne };
     },
     async lancerSos(lieuId, compteId, nouveau, maintenant, depuis) {
       if (sos.some((s) => s.lieuId === lieuId && s.creeLe >= depuis)) return "deja";
-      sos.push({ lieuId, ...nouveau, creeLe: maintenant, arreteLe: null, lancePar: prenoms(compteId) });
+      sos.push({ lieuId, compteId, ...nouveau, creeLe: maintenant, arreteLe: null, lancePar: prenoms(compteId) });
       return "ok";
+    },
+    async lireAuteursSosEnCours(lieuId, maintenant) {
+      return sos.filter((s) => s.lieuId === lieuId && !s.arreteLe && s.jusqua > maintenant).map((s) => s.compteId);
     },
     async arreterSos(lieuId, maintenant) {
       for (const s of sos) if (s.lieuId === lieuId && !s.arreteLe && s.jusqua > maintenant) s.arreteLe = maintenant;

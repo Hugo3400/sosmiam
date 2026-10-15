@@ -5,6 +5,9 @@
 // suivis.ts, signalement.ts, mots-interdits.ts), apps/api/prisma/schema (social, messagerie, sorties, listes, commentaires,
 // pseudos-reserves) ; décisions : docs/decisions.md, « Potes, messagerie et profils sur le serveur » et « Partie sociale :
 // réponses de Hugo après l'assemblage » (14 octobre 2026).
+// Le 15 octobre 2026 : interrupteurs des réglages sociaux dans l'app (Réglages › Confidentialité, bloc « Ta bande »,
+// apps/app-mobile/src/composants/reglages/BlocTaBande.tsx) et ménage de nuit en ligne (médias effacés après 90 jours,
+// conversations après 1 an sans message : apps/api/src/services/menage-social*.ts), passés au présent.
 import type { SectionLegale } from "~/contenus/legal/type-legal";
 
 export const sectionPotesCgu: SectionLegale = {
@@ -16,7 +19,7 @@ export const sectionPotesCgu: SectionLegale = {
       liste: [
         "**Ta bande** (200 potes au plus) : tes potes y entrent par ton **lien ou ton QR code d'invitation** (vous êtes alors ajoutés tout de suite, chacun dans la bande de l'autre), ou par une **demande** envoyée depuis ton pseudo, que tu acceptes ou non. Refuser une demande ne prévient personne, et retirer quelqu'un de ta bande vaut des deux côtés, sans le prévenir.",
         "**Ton lien d'invitation** fait entrer dans ta bande toute personne qui l'a : donne-le seulement aux gens que tu connais. S'il a circulé plus loin que prévu, « Changer mon lien » le remplace ; il change aussi tout seul après 10 arrivées qui se suivent de près (moins de 24 heures entre deux).",
-        "**« Qu'on me trouve par mon pseudo »** (l'interrupteur arrive **bientôt** dans les réglages de l'app) : si tu le coupes, personne ne te trouve dans la recherche, et une demande vers toi est refusée avec ce message : « Cette personne ne reçoit pas de demandes ». Ton lien d'invitation, lui, marche toujours.",
+        "**« Qu'on me trouve par mon pseudo »** (dans l'app, Réglages › Confidentialité) : si tu le coupes, personne ne te trouve dans la recherche, et une demande vers toi est refusée avec ce message : « Cette personne ne reçoit pas de demandes ». Ton lien d'invitation, lui, marche toujours.",
         "**Suivre quelqu'un** est à sens unique : tu vois passer ses listes et ses lieux. Ton compte est **public** par défaut ; en **privé**, chaque abonnement est une demande que tu acceptes ou non. Suivre quelqu'un n'ouvre **jamais** la messagerie : on ne s'écrit qu'entre potes de la même bande.",
         "**Ce que les autres voient de ton profil** dépend de ce lien (inconnu, abonné ou pote de ta bande) et de tes réglages : tout est détaillé dans la [politique de confidentialité](/confidentialite#potes).",
       ],
@@ -34,7 +37,7 @@ export const sectionMessagerieCgu: SectionLegale = {
         "**Les groupes** : seul un pote de ta bande peut t'inviter dans un groupe, et tu n'y entres qu'en **acceptant** l'invitation (refuser ne prévient personne). En arrivant, tu ne vois pas les messages écrits avant toi. Tu peux le quitter quand tu veux ; tu ne peux alors pas y être réinvité pendant 30 jours.",
         "**Les sorties** : l'organisateur invite des potes de sa bande (15 personnes au plus). Chacun répond à « Tu viens ? » avant d'entrer dans le vote et la discussion, qu'il lit alors depuis le début ; on vote pour un ou plusieurs lieux proposés (8 au plus), et à la fin du vote, le lieu qui a le plus de voix est retenu (à égalité, le premier proposé). Une sortie ne réserve rien dans le lieu : c'est une proposition entre potes.",
         "**Tes messages** : tu peux supprimer un de tes messages pour tout le monde (« Message supprimé » s'affiche), effacer une discussion pour toi seul, ou couper ses notifications. Il n'y a pas d'accusé de lecture : personne ne sait quand tu as lu.",
-        "**Les photos et les notes vocales** ne s'ouvrent que pendant **90 jours** : ensuite, « Ce média a expiré ». Garde de ton côté ce que tu tiens à garder.",
+        "**Les photos et les notes vocales** ne s'ouvrent que pendant **90 jours** : ensuite, « Ce média a expiré », et elles sont effacées de notre serveur (sauf celles d'un message signalé, gardées un temps pour la modération). Une conversation sans message depuis **1 an** est effacée, elle aussi. Garde de ton côté ce que tu tiens à garder.",
       ],
     },
     "Les [règles de la communauté](#regles-communaute) valent aussi dans les messages privés et les groupes. En particulier, il est interdit :",

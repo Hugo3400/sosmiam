@@ -11,6 +11,11 @@ export interface ServicesMomentLieu {
   lireSosDepuis(lieuId: number, depuis: Date): Promise<SosLigne | null>;
   /** Lance le SOS, sous verrou du lieu ; « deja » si un SOS a déjà été lancé depuis `depuis` (un par jour) */
   lancerSos(lieuId: number, compteId: number, sos: { places: number; offre: string | null; jusqua: Date }, maintenant: Date, depuis: Date): Promise<"ok" | "deja">;
+  /**
+   * Qui a lancé les SOS qu'arreterSos arrêterait à `maintenant` (pas arrêtés, pas finis) : le compte de chacun, null s'il a
+   * supprimé son compte depuis ; [] sans SOS en cours. Pour un compte limité, qui n'arrête que le sien
+   */
+  lireAuteursSosEnCours(lieuId: number, maintenant: Date): Promise<(number | null)[]>;
   /** Arrête le SOS en cours, s'il y en a un */
   arreterSos(lieuId: number, maintenant: Date): Promise<void>;
   /** Pose (ou efface, avec null) le message du moment */

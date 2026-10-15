@@ -27,6 +27,12 @@
 // suit le « ? », et le referer coupé avant son « ? » ; les journaux d'avant ont été nettoyés le même soir. Le programme du site (apps/site-web/serveur/, audit du 14 octobre
 // 2026) n'écrit que méthode, chemin sans paramètres, statut et durée ; ses journaux pm2 : 14 rotations aussi
 // (/etc/logrotate.d/sos-miam-pm2). Connexion par QR : confidentialite-connexion-qr.ts.
+// En ligne depuis le 15 octobre 2026 (API redémarrée vers 13 h), retiré de « Ce qui arrivera plus tard » : le ménage de nuit
+// de la partie sociale (apps/api/src/services/menage-social*.ts), « Télécharger mes données sociales » (GET
+// /app/social/export, 2 fois par 24 h : routes/social.ts, LIMITE_EXPORT_SOCIAL ; services/export-social-regles.ts : tes
+// données et TES messages, jamais ceux des autres, photos et notes vocales non jointes, limitations du compte sans nom de
+// l'équipe ; dans l'app : Réglages › Tes données) et l'écran « Décisions de la modération ». L'export fait par l'équipe sur
+// demande (services/gestion/export-social.ts) contient les métadonnées sociales, jamais le texte d'un message.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
 import { sectionDonneesApp } from "~/contenus/legal/confidentialite-donnees-app";
 import { sectionMessagerie } from "~/contenus/legal/confidentialite-messagerie";
@@ -301,7 +307,7 @@ export const documentConfidentialite: DocumentLegal = {
             "**Effacement** : faire effacer tes données, par exemple quand tu retires ton consentement ou qu'elles ne sont plus nécessaires (ton compte ambassadeur se supprime aussi en ligne, dans « Mon compte »).",
             "**Limitation** : faire geler l'utilisation de tes données pendant un temps, par exemple le temps de vérifier une contestation.",
             "**Opposition** : t'opposer à un traitement fondé sur notre intérêt légitime (voir juste en dessous).",
-            "**Portabilité** : recevoir les données que tu nous as fournies avec ton consentement ou pour ton compte (newsletter, formulaire, compte ambassadeur, compte de l'app) dans un format lisible par une machine, ou les faire transmettre à un autre service quand c'est techniquement possible. Pour tes données sociales (bande, listes, messages…), « Télécharger mes données sociales » arrive bientôt dans l'app (voir « Ce qui arrivera plus tard »).",
+            "**Portabilité** : recevoir les données que tu nous as fournies avec ton consentement ou pour ton compte (newsletter, formulaire, compte ambassadeur, compte de l'app) dans un format lisible par une machine, ou les faire transmettre à un autre service quand c'est techniquement possible. Pour tes données sociales (bande, listes, messages…), tu les télécharges toi-même dans l'app (voir « Comment exercer tes droits »).",
             "**Retrait du consentement** : à tout moment, aussi simplement que tu l'as donné. Ce qui a été fait avant reste valable.",
             "**Directives après ton décès** : nous dire ce que doivent devenir tes données après ta mort (conservation, effacement, communication) et désigner une personne chargée de les faire appliquer, comme le prévoit la loi Informatique et Libertés.",
           ],
@@ -315,6 +321,7 @@ export const documentConfidentialite: DocumentLegal = {
       blocs: [
         {
           liste: [
+            "**Tes données sociales, sans nous écrire** : dans l'app, « Télécharger mes données sociales » (Réglages › Tes données, **2 fois par 24 heures** au plus) te donne un fichier (au format JSON) avec ta bande, tes demandes, tes blocages, tes abonnements et tes abonnés, tes conversations avec **tes** messages, tes réactions, tes groupes et tes sorties, tes listes, tes commentaires, ta cloche, tes signalements (ce que tu as écrit, et où ils en sont), ce que tu as masqué et les limitations de ton compte (la règle, l'explication, les dates et ta contestation, sans aucun nom de l'équipe). Jamais les messages des autres, ni ce qu'ils ne t'ont pas montré, ni ton code d'invitation ; les photos et les notes vocales n'y sont pas jointes (seulement leur date, leur type et leur taille). Le fichier ne reste sur ton téléphone que le temps de l'enregistrer ou de le partager où tu veux. La copie que l'équipe peut te faire sur demande contient aussi tes données sociales mais, pour tes conversations, seulement ce qui les entoure (avec qui, quand), **jamais leur contenu**.",
             `**Écris-nous** à ${lienEmail} en précisant le droit que tu veux exercer. Pour les journaux du serveur, indique aussi ton adresse IP et le moment de ta visite : sans ça, impossible de retrouver les lignes qui te concernent (et elles disparaissent de toute façon au bout de 15 jours au plus).`,
             "**Pour les journaux, une précaution** : une adresse IP pouvant être partagée par plusieurs personnes (box familiale, Wi-Fi public, réseau mobile), on pourra te demander de quoi vérifier qu'elle était bien la tienne à ce moment-là, et on ne te communiquera pas les lignes qui pourraient concerner quelqu'un d'autre.",
             "**On te répond dans un délai d'un mois** au plus. Si ta demande est complexe, ce délai peut être prolongé de deux mois : on te prévient alors dans le premier mois, en t'expliquant pourquoi.",
@@ -349,9 +356,6 @@ export const documentConfidentialite: DocumentLegal = {
         "SOS Miam va grandir. Voici ce qui est prévu, **mais ne fonctionne pas aujourd'hui** :",
         {
           liste: [
-            "**« Télécharger mes données sociales »**, dans l'app : une copie de ta bande, de tes abonnements, de tes listes, de tes commentaires et de tes messages, à emporter où tu veux. D'ici là, la copie que l'équipe peut te faire sur demande ne contient pas tes données sociales ; et même ensuite, l'équipe ne t'enverra jamais le contenu d'une conversation, seulement ce qui l'entoure (avec qui, quand).",
-            "**Le ménage automatique de la partie sociale** : il effacera du serveur, au bout de leur durée, les photos et les notes vocales (90 jours), les conversations (1 an sans message), les sorties (1 an), les demandes (30 jours), la cloche (90 jours) et les signalements (1 an après la décision). Les durées sont dites dans chaque section.",
-            "**Un écran « Décisions de la modération »** dans l'app, pour voir les décisions qui te concernent et les contester (une fois, pendant 6 mois).",
             "**La publicité**, toujours signalée comme telle, et les **vidéos intégrées** : ce qui n'est pas indispensable ne sera activé qu'avec ton accord, recueilli par un bandeau conforme aux règles de la CNIL, et ton choix sera gardé 6 mois.",
             "**Des SMS**, peut-être un jour : ceux qui font de la pub ne partiront qu'avec ton accord explicite (une case non cochée d'avance), et « STOP » suffira pour arrêter.",
             "**Un suivi des plantages de l'app**, pour corriger les bugs plus vite : s'il arrive, cette page dira avant quel service le fait et ce qu'il reçoit.",

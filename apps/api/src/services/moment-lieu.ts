@@ -29,6 +29,11 @@ export function creerMomentLieu(): ServicesMomentLieu {
       });
     },
 
+    async lireAuteursSosEnCours(lieuId, maintenant) {
+      const enCours = await baseDeDonnees.sosLieu.findMany({ where: { lieuId, arreteLe: null, jusqua: { gt: maintenant } }, select: { compteId: true } });
+      return enCours.map((s) => s.compteId);
+    },
+
     async arreterSos(lieuId, maintenant) {
       await baseDeDonnees.sosLieu.updateMany({ where: { lieuId, arreteLe: null, jusqua: { gt: maintenant } }, data: { arreteLe: maintenant } });
     },

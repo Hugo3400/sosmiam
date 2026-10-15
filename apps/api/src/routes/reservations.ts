@@ -1,10 +1,11 @@
 import { Router, type RequestHandler } from "express";
 
-import { lireCompteId } from "../controleurs/comptes-champs.ts";
+import { lireCompteId, lireCorps } from "../controleurs/comptes-champs.ts";
 import { creerControleursReservations } from "../controleurs/reservations.ts";
 import type { DependancesVisites } from "../controleurs/visites.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
+import { creerRefuserSiLimiteSi } from "../middlewares/refuser-si-limite-selon.ts";
 
 /** Lectures (créneaux d'un jour, « Mes réservations », suivi d'une demande), par compte */
 export const LIMITE_LECTURES_RESERVATIONS = { fenetre: 10 * 60_000, maximum: 300 };
@@ -30,6 +31,11 @@ export const LIMITE_DEMANDES_RESERVATIONS = { fenetre: 60 * 60_000, maximum: 20 
  *          créneau) · 400 champ-invalide { champ: lieuId } | personnes-invalides | creneau-invalide | message-refuse ·
  *          403 membre-du-lieu | email-non-verifie · 409 lieu-non-reservable | reservation-en-cours { details:
  *          lieu, lieuId } (une demande en attente par lieu) | trop-de-reservations (3 à venir au plus, demandées ou acceptées)
+ *          · Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : le petit mot
+ *          est un texte libre que l'équipe du lieu lit, donc un message non vide (après les espaces) → 403 { ok: false,
+ *          erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou null), et rien n'est écrit ; sans mot (absent, null,
+ *          vide ou fait d'espaces), la demande passe comme d'habitude (réserver est une visite, et les visites restent
+ *          permises). Le refus passe après la session et la limite des demandes, juste avant le contrôleur
  * GET  /app/reservations                   → 200 { ok, reservations: Reservation[] } (100 au plus, créneau décroissant)
  * GET  /app/reservations/:id               → 200 { ok, reservation } · 404 introuvable (pas la sienne)
  * POST /app/reservations/:id/annuler       → 200 { ok, reservation } : une demande, ou une réservation acceptée avant son
@@ -43,12 +49,22 @@ export const LIMITE_DEMANDES_RESERVATIONS = { fenetre: 60 * 60_000, maximum: 20 
  *          position-perimee | position-simulee
  * Côté équipe du lieu (accepter, refuser, « Venu », « Pas venu », annuler) : routes/comptoir.ts (/pro/comptoir).
  */
-export function creerRoutesReservationsApp(d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number) {
+export function creerRoutesReservationsApp(
+  d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number,
+  /** Compte limité : refuse le petit mot d'une demande (middlewares/refuser-si-limite.ts) ; absent : rien n'est refusé */
+  refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
+) {
   const c = creerControleursReservations(d, horloge);
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const lectures = parCompte(LIMITE_LECTURES_RESERVATIONS);
   const gestes = parCompte(LIMITE_GESTES_RESERVATIONS);
   const demandes = parCompte(LIMITE_DEMANDES_RESERVATIONS);
+  // Le corps est déjà lu ici : application.ts monte le lecteur JSON (4 ko) avant /app/reservations. Un mot qui n'est pas
+  // un texte compte comme un mot (il serait refusé de toute façon : message-refuse)
+  const refuserSiPetitMot = creerRefuserSiLimiteSi(refuserSiLimite, (requete) => {
+    const message = lireCorps(requete).message;
+    return message !== undefined && message !== null && !(typeof message === "string" && message.trim() === "");
+  });
 
   const routes = Router();
   routes.use(limiteConnectee, protection.exigerCompte, (_q, reponse, suite) => {
@@ -57,7 +73,7 @@ export function creerRoutesReservationsApp(d: DependancesVisites, protection: Pr
   });
   routes.get("/creneaux", lectures, c.listerCreneaux);
   routes.get("/", lectures, c.lister);
-  routes.post("/", demandes, c.reserver);
+  routes.post("/", demandes, refuserSiPetitMot, c.reserver);
   routes.get("/:id", lectures, c.lire);
   routes.post("/:id/annuler", gestes, c.annuler);
   routes.post("/:id/presence", gestes, c.signalerPresence);

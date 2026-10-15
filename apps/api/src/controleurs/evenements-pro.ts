@@ -1,7 +1,9 @@
 // Événements d'un lieu, publiés par son équipe (voir routes/comptoir.ts, /pro/comptoir/lieux/:id/evenements) : le gérant et
 // l'équipe (rattachement validé) publient, modifient et annulent ; 10 à venir par lieu, 3 mois à l'avance au plus.
 // Le lieu d'un événement est relu sur l'événement, jamais pris dans la demande : un événement d'un autre lieu → 404.
-import type { Request, Response } from "express";
+// Compte limité (décision de Hugo du 15 octobre 2026) : il annule son propre événement, jamais celui d'un collègue
+// (l'événement garde qui l'a publié) ; publier et modifier sont refusés sur la route (routes/comptoir.ts).
+import type { Request, RequestHandler, Response } from "express";
 
 import { calculerProchaineOccurrence } from "../../../../packages/commun/src/fonctions/evenements/calculer-prochaine-occurrence.ts";
 import { listerOccurrencesEvenement } from "../../../../packages/commun/src/fonctions/evenements/lister-occurrences-evenement.ts";
@@ -11,6 +13,7 @@ import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import { validerEvenement } from "../../../../packages/commun/src/validation/valider-evenement.ts";
 import { presenterEvenementPro } from "../fonctions/evenements/presenter-evenement-pro.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
+import { refuserSiLimiteIci } from "../middlewares/refuser-si-limite-selon.ts";
 import type { ChampsEvenement, EvenementEquipe, ServicesEvenements } from "../services/evenements-regles.ts";
 import type { RoleRattachement } from "../services/pro-regles.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
@@ -27,6 +30,8 @@ export function creerControleursEvenementsPro(
   services: ServicesEvenements,
   roleDe: (compteId: number, lieuId: number) => Promise<RoleRattachement | null>,
   horloge: () => number,
+  /** Compte limité : refuserSiLimite de l'application (middlewares/refuser-si-limite.ts) ; absent : rien n'est refusé */
+  refuserSiLimite?: RequestHandler,
 ) {
   const maintenant = () => new Date(horloge());
   const typeDuLieu = async (lieuId: number): Promise<TypeLieu> => (await services.lireLieu(lieuId))?.type ?? "resto";
@@ -111,6 +116,9 @@ export function creerControleursEvenementsPro(
       const instant = maintenant();
       if (evenement.annuleLe === null) {
         if (!calculerProchaineOccurrence(evenement, instant)) return echec(reponse, 409, "evenement-passe");
+        // L'événement d'un collègue (ou d'un compte supprimé depuis) est aux autres : un compte limité ne l'annule pas (403
+        // compte-limite) ; le sien, oui. Déjà annulé : rien ne change, rien à refuser
+        if (evenement.compteId !== lireCompteId(reponse) && (await refuserSiLimiteIci(refuserSiLimite, requete, reponse))) return;
         await services.annuler(evenement.id, instant);
       }
       await repondre(reponse, lieuId, evenement.id);
