@@ -146,9 +146,9 @@ export default function EcranVisite() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Fermer"
-          hitSlop={12}
+          hitSlop={8}
           onPress={fermer}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
         >
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
@@ -168,11 +168,11 @@ export default function EcranVisite() {
               accessibilityRole="button"
               accessibilityLabel="Miam Safe"
               accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
-              hitSlop={12}
+              hitSlop={8}
               onPress={() => setMiamSafeOuvert(true)}
-              className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+              className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
             >
-              <Text className="text-base">🚨</Text>
+              <Text className="text-lg">🚨</Text>
             </Pressable>
           ) : null}
         </View>
