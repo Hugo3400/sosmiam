@@ -38,6 +38,8 @@ import {
 } from "~/services/synchro-profil-memoire";
 import { creerSynchroProfil, effacerSynchroProfil, enregistrerSynchroProfil, lireSynchroProfil, type ChampSynchro } from "~/stockage/synchro-profil";
 
+export type { VueSynchro };
+
 export type OutilsSynchro = {
   comptes: ServiceCompte;
   moderation: ServiceModerationApp;
@@ -100,6 +102,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   /** Redessine l'annonce et garde l'état sur le téléphone */
   function garder(enregistrer = true) {
     if (!lireMisDeCote()) memoire.etat.pseudoMisDeCote = null;
+    // « Prénom limité » : plus rien à dire une fois la limitation finie (jamais de date passée à l'écran)
+    const annonce = memoire.etat.annonce;
+    if (annonce?.type === "prenom-limite" && annonce.jusqua && !(Date.parse(annonce.jusqua) > Date.now())) memoire.etat.annonce = null;
     o.montrer({ annonce: memoire.etat.annonce, pseudoMisDeCote: lireMisDeCote() });
     if (enregistrer && memoire.pret) void enregistrerSynchroProfil(memoire.etat);
   }
@@ -135,26 +140,34 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   /**
    * Le serveur montre un autre pseudo que celui d'avant : l'équipe (profil retenu : décision dans « mes décisions », ou
    * forme d'un pseudo neutre si la liste ne se lit pas) ou un autre téléphone du compte (sans bruit). À la première
-   * synchro, la liste n'est lue que pour un pseudo neutre.
+   * synchro, la liste n'est lue que pour un pseudo neutre. Hors du couloir (Mes infos n'attend jamais cette lecture), et
+   * l'annonce n'est posée que si rien n'a changé entre-temps (déconnexion, autre compte : elle est oubliée).
    */
-  async function expliquerPseudo(ancien: string | null, nouveau: string, premiere: boolean) {
-    let decision: DecisionModerationApi | null | "illisible" = null;
-    if (!premiere || estPseudoNeutre(nouveau)) {
-      const r = await o.moderation.listerDecisions();
-      const depuis = premiere || !memoire.etat.luLe ? Date.now() - RESERVATION_MS : memoire.etat.luLe;
-      decision = r.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
-    }
-    const { annonce, misDeCote } = expliquerPseudoServeur(ancien, nouveau, decision, premiere, RESERVATION_MS);
-    if (misDeCote) memoire.etat.pseudoMisDeCote = misDeCote;
-    if (annonce) memoire.etat.annonce = annonce;
+  function expliquerPseudo(ancien: string | null, nouveau: string, premiere: boolean) {
+    const gen = generation;
+    const m = memoire;
+    const depuis = premiere || !m.etat.luLe ? Date.now() - RESERVATION_MS : m.etat.luLe;
+    void (async () => {
+      let decision: DecisionModerationApi | null | "illisible" = null;
+      if (!premiere || estPseudoNeutre(nouveau)) {
+        const r = await o.moderation.listerDecisions().catch(() => null);
+        decision = r?.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
+      }
+      if (gen !== generation || m !== memoire) return;
+      const { annonce, misDeCote } = expliquerPseudoServeur(ancien, nouveau, decision, premiere, RESERVATION_MS);
+      if (!annonce && !misDeCote) return;
+      if (misDeCote) m.etat.pseudoMisDeCote = misDeCote;
+      if (annonce) m.etat.annonce = annonce;
+      garder();
+    })();
   }
 
   /** Téléphone d'avant la synchro : ce qui diffère vient de Mes infos ou Mes envies, jamais parti. Le téléphone gagne, une fois */
-  async function rattraperPremiereFois(local: Profil, serveur: ProfilServeur) {
+  function rattraperPremiereFois(local: Profil, serveur: ProfilServeur) {
     marquer(memoire, listerChampsDifferents(local, serveur));
     // Pseudo jamais parti alors que le serveur n'en a aucun : il part (seule exception à « le serveur fait foi »)
     if (local.pseudo && serveur.pseudo === null) marquer(memoire, ["pseudo"]);
-    else if (local.pseudo && serveur.pseudo && local.pseudo !== serveur.pseudo) await expliquerPseudo(local.pseudo, serveur.pseudo, true);
+    else if (local.pseudo && serveur.pseudo && local.pseudo !== serveur.pseudo) expliquerPseudo(local.pseudo, serveur.pseudo, true);
     memoire.etat.premiereFaite = true;
   }
 
@@ -168,9 +181,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     const avant = lireProfil();
     if (!avant) return;
     const ancien = memoire.etat.pseudoServeur;
-    if (!memoire.etat.premiereFaite) await rattraperPremiereFois(ajuster ? ajuster(avant) : avant, serveur);
-    else if (ancien !== undefined && serveur.pseudo && serveur.pseudo !== ancien && serveur.pseudo !== envoye) await expliquerPseudo(ancien, serveur.pseudo, false);
-    if (gen !== generation) return;
+    if (!memoire.etat.premiereFaite) rattraperPremiereFois(ajuster ? ajuster(avant) : avant, serveur);
+    else if (ancien !== undefined && serveur.pseudo && serveur.pseudo !== ancien && serveur.pseudo !== envoye) expliquerPseudo(ancien, serveur.pseudo, false);
     // Ville inconnue du serveur (compte du site, envoi raté) : celle du téléphone repart, une fois par lancement
     if (!serveur.ville && !memoire.villeReparee) {
       memoire.villeReparee = true;
@@ -237,17 +249,25 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     }
   }
 
+  /**
+   * Un changement à toi : la marque « à envoyer » est gardée sur le téléphone AVANT le profil (app tuée entre les deux :
+   * une marque en trop ne fait que renvoyer la valeur du téléphone, une marque manquante perdrait le changement) ; nouvel
+   * essai tout de suite, puis 30 s (pas les 10 min d'une longue panne)
+   */
+  async function marquerAvantEcriture(champs: ChampSynchro[]) {
+    marquer(memoire, champs);
+    Object.assign(memoire, { essais: 0, echecsServeur: 0 });
+    garder(false);
+    if (memoire.pret) await enregistrerSynchroProfil(memoire.etat).catch(() => undefined);
+  }
+
   /** Écrit sur le téléphone ; `aEnvoyer` : avec la marque « à envoyer » (posée dans le verrou, avant toute fusion) */
   function ecrireSurTelephone(changements: ChangementsInfos, aEnvoyer: boolean) {
     return sousVerrou(async () => {
       const local = lireProfil();
       if (!local) return;
+      if (aEnvoyer) await marquerAvantEcriture(champsDe(changements));
       await ecrireProfil(appliquerChangementsInfos(local, changements));
-      if (!aEnvoyer) return;
-      marquer(memoire, champsDe(changements));
-      // Un changement à toi : nouvel essai tout de suite, puis 30 s (pas les 10 min d'une longue panne)
-      Object.assign(memoire, { essais: 0, echecsServeur: 0 });
-      garder();
     });
   }
 
@@ -272,11 +292,17 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       }
       if (r.erreur === "connexion-requise") return { ok: false, refus: r.erreur };
       if (PASSAGERES.has(r.erreur)) {
-        // Un nouveau pseudo doit être vérifié par le serveur : il n'attend jamais sur le téléphone
-        if (changements.pseudo !== undefined) return { ok: false, refus: "pseudo-sans-reseau" };
+        // Un nouveau pseudo doit être vérifié par le serveur : il n'attend jamais sur le téléphone. Sans réseau, on le dit
+        // sous la case ; un pépin du serveur (trop de demandes, panne) se dit tel quel, et le profil est relu ensuite (une
+        // erreur 500 peut arriver après l'écriture, pendant la relecture du serveur)
+        if (changements.pseudo !== undefined) {
+          if (r.erreur === "hors-ligne") return { ok: false, refus: "pseudo-sans-reseau" };
+          memoire.relire = true;
+          return { ok: false, refus: r.erreur, ...(r.details ? { details: r.details } : {}) };
+        }
         await ecrireSurTelephone(changements, true);
         patienter(r.erreur, r.details);
-        return { ok: true, parti: false };
+        return { ok: true, parti: false, attente: r.erreur === "hors-ligne" ? "reseau" : "serveur" };
       }
       memoire.essais = 0;
       memoire.echecsServeur = 0;
@@ -363,17 +389,24 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     },
     modifierInfos(changements: ChangementsInfos): Promise<ResultatInfos> {
       if (rienAChanger(changements)) return Promise.resolve({ ok: true, parti: true });
-      if (DEMO_VISITES_ACTIVE) return ecrireSurTelephone(changements, false).then(() => ({ ok: true, parti: false }));
+      // Démo : enregistré pour de bon sur le téléphone, rien n'attend le réseau
+      if (DEMO_VISITES_ACTIVE) return ecrireSurTelephone(changements, false).then(() => ({ ok: true, parti: true }));
       if (!actif || !memoire.pret) {
         // Tout début du lancement (session ou état pas encore relus) : le pseudo attend le réseau, le reste attend ici
         if (changements.pseudo !== undefined) return Promise.resolve({ ok: false, refus: "pseudo-sans-reseau" });
-        return ecrireSurTelephone(changements, true).then(() => ({ ok: true, parti: false }));
+        return ecrireSurTelephone(changements, true).then(() => ({ ok: true, parti: false, attente: "reseau" }));
       }
       const m = memoire;
       m.infosEnAttente += 1;
-      return enchainer(() => envoyerInfos(changements), "couloir").finally(() => {
+      // Gardé sur le téléphone faute de réseau : le prochain essai est déjà prévu (30 s), pas de deuxième envoi aussitôt
+      let essaiPrevu = false;
+      return enchainer(async () => {
+        const r = await envoyerInfos(changements);
+        essaiPrevu = r.ok && !r.parti;
+        return r;
+      }, "couloir").finally(() => {
         m.infosEnAttente -= 1;
-        lancer();
+        if (!essaiPrevu) lancer();
       });
     },
     /** Mes envies : tout de suite sur le téléphone (régimes compris) ; avec un compte, elles partent ensuite */
@@ -381,11 +414,8 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       await sousVerrou(async () => {
         const local = lireProfil();
         if (!local) return;
+        if (!DEMO_VISITES_ACTIVE) await marquerAvantEcriture(["envies"]);
         await ecrireProfil({ ...local, envies });
-        if (DEMO_VISITES_ACTIVE) return;
-        marquer(memoire, ["envies"]);
-        Object.assign(memoire, { essais: 0, echecsServeur: 0 });
-        garder();
       });
       lancer();
     },

@@ -53,6 +53,8 @@ const DELAI_APPUI_LONG = 350;
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
   const { basculerReaction, renvoyer, envoisEnPause } = utiliserConversations();
+  // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi
+  const enPause = message.etat === "echec" && envoisEnPause.has(message.id);
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   const dernierAppui = useRef(0);
@@ -223,7 +225,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
       <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
         {bulle}
         <ReactionsMessage conversationId={conversationId} message={message} deMoi />
-        {message.etat === "echec" && envoisEnPause.has(message.id) ? (
+        {enPause ? (
           <PauseMessageLimite />
         ) : message.etat === "echec" ? (
           <Pressable

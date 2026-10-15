@@ -17,7 +17,11 @@ export type ChangementsInfos = Partial<Pick<Profil, "prenom" | "pseudo" | "ville
 export type RefusInfos = ErreurService | "pseudo-mis-de-cote" | "pseudo-sans-reseau";
 
 /** parti : faux quand le changement attend le réseau sur le téléphone (il partira tout seul) */
-export type ResultatInfos = { ok: true; parti: boolean } | { ok: false; refus: RefusInfos; champ?: string; details?: DetailsErreur };
+/** parti faux : gardé sur le téléphone, il partira tout seul (`attente` : faute de réseau, ou le temps que le serveur se remette) */
+export type ResultatInfos =
+  | { ok: true; parti: true }
+  | { ok: true; parti: false; attente: "reseau" | "serveur" }
+  | { ok: false; refus: RefusInfos; champ?: string; details?: DetailsErreur };
 
 export type EtatProfil = {
   /** null tant que la personne n'est pas inscrite */

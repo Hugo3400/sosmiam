@@ -44,4 +44,5 @@ export const MESSAGES_INFOS = {
   aidePseudoManquantAvecCompte:
     "Tu n'en as pas encore : choisis-en un pour que tes potes te trouvent. 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas. On vérifie qu'il est libre pendant que tu tapes.",
   enAttenteDuReseau: "C'est noté ! Ça partira dès que le réseau revient.",
+  enAttenteDuServeur: "C'est noté ! Petit pépin de notre côté : ça repartira tout seul dans un instant.",
 } as const;

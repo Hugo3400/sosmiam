@@ -186,8 +186,8 @@ export default function ReglagesInfos() {
       return;
     }
     if (r.ok) {
-      // Sans réseau : gardé ici, il partira tout seul
-      if (!r.parti) AccessibilityInfo.announceForAccessibility(lierPonctuation(MESSAGES_INFOS.enAttenteDuReseau));
+      // Sans réseau (ou le serveur trébuche) : gardé ici, il partira tout seul
+      if (!r.parti) AccessibilityInfo.announceForAccessibility(lierPonctuation(r.attente === "reseau" ? MESSAGES_INFOS.enAttenteDuReseau : MESSAGES_INFOS.enAttenteDuServeur));
       router.back();
       return;
     }
