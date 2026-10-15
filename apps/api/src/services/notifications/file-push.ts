@@ -80,6 +80,30 @@ export async function traiterNotifications(expedier: ExpedierPush = expedierPush
   return due.id;
 }
 
+let passage: Promise<void> | null = null;
+let aRelancer = false;
+
+/** Vide la file tout de suite : toutes les notifications dues, une à une ; un seul passage à la fois, relancé s'il en arrive pendant. */
+export function reveillerNotifications(expedier: ExpedierPush = expedierPush): Promise<void> {
+  if (passage) {
+    aRelancer = true;
+    return passage;
+  }
+  passage = (async () => {
+    try {
+      do {
+        aRelancer = false;
+        while ((await traiterNotifications(expedier)) !== null);
+      } while (aRelancer);
+    } catch (erreur) {
+      console.error("Notifications :", (erreur as Error).message);
+    } finally {
+      passage = null;
+    }
+  })();
+  return passage;
+}
+
 /** État de l'envoi : réglages Apple et Google, téléphones inscrits, notifications à venir. */
 export async function lireEtatPush() {
   const [apple, google, parPlateforme, programmees] = await Promise.all([

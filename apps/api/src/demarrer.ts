@@ -15,7 +15,7 @@ import { creerCandidatureCertification, lireCandidatureCertification } from "./s
 import { changerCommuneCandidature, creerCandidature, creerProposition, lireCandidature, listerPropositions } from "./services/comptes-espace.ts";
 import { envoyerLienMotDePasse, envoyerLienVerificationEmail } from "./services/courriels/courriels-comptes.ts";
 import { traiterFileCourriels } from "./services/courriels/file-courriels.ts";
-import { traiterNotifications } from "./services/notifications/file-push.ts";
+import { reveillerNotifications } from "./services/notifications/file-push.ts";
 import { prevenirEquipeMiamSafe } from "./services/notifications/prevenir-equipe-miam-safe.ts";
 import { servicesMiamSafe } from "./services/miam-safe.ts";
 import { creerPartagesMiamSafe } from "./services/partages-miam-safe.ts";
@@ -123,8 +123,8 @@ void vider(); // ferme tout de suite les périodes terminées pendant que l'API 
 const passerLaFile = () => traiterFileCourriels().catch((erreur: unknown) => console.error("File des mails :", resumerErreur(erreur)));
 const minuteurCourriels = process.env.SCHEMA_BASE ? undefined : setInterval(passerLaFile, 20_000);
 // Notifications programmées (logiciel de gestion) : envoyées à Apple et Google dès leur heure, vérifié toutes les 30 secondes
-const envoyerLesNotifications = () => traiterNotifications().catch((erreur: unknown) => console.error("Notifications :", resumerErreur(erreur)));
-const minuteurNotifications = process.env.SCHEMA_BASE ? undefined : setInterval(envoyerLesNotifications, 30_000);
+const envoyerLesNotifications = () => reveillerNotifications();
+const minuteurNotifications = process.env.SCHEMA_BASE ? undefined : setInterval(envoyerLesNotifications, 10_000);
 // Partie sociale de l'app (profil social, personnes, masques, pouls, cloche ; puis bande, messagerie, sorties…) : textes,
 // médias, codes et instantanés chiffrés avec des sous-clés de la clé des données (503 sans elle) ; les notifications
 // sociales partent par prevenirCompte, hors anti-spam (réponse de Hugo du 14/10/2026)
