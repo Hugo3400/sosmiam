@@ -3,7 +3,11 @@ import type { BilanMenageSocial } from "../../services/menage-social.ts";
 /**
  * Les lignes du journal du logiciel pour le ménage social de la nuit : [nombre, ce qui est parti], seulement celles qui ne
  * valent pas zéro (jamais un contenu, seulement des nombres). Pendant un changement de clé, la ligne du rechiffrement
- * paraît chaque nuit, même à zéro : « 0 restant(s) » dit que l'ancienne clé n'est plus utile à la partie sociale.
+ * paraît chaque nuit, même à zéro : c'est elle qui dit la fin pour la partie sociale, quand restants = illisibles deux nuits
+ * de suite, sans ligne « étape(s) ratée(s) » qui cite « rechiffrement » ces nuits-là (règle de fin de
+ * docs/procedure-changement-cle.md, comme rechiffrerSocial). Un seul « 0 restant(s) » ne suffit pas : la nuit d'après,
+ * l'étape 8 retire les anciens fichiers rechiffrés, et le rechiffrement reprend un fichier qu'un signalement aurait cité
+ * entre-temps sous son ancien nom.
  */
 export function decrireBilanMenageSocial(bilan: BilanMenageSocial): [number, string][] {
   const lignes: [number, string][] = [
