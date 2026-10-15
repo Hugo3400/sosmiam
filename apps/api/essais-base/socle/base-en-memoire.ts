@@ -3,7 +3,7 @@
 // global de l'API (connexion.ts) y part aussi. Avant de rendre la main, on vérifie par une requête que les deux clients
 // parlent bien à PGlite. Aucune vraie base, aucun réseau, aucun processus lancé (garde-fou.ts, importé ici pour les essais
 // qui l'oublieraient).
-import { couperProcessusEnfants } from "./garde-fou.ts";
+import "./garde-fou.ts";
 import { PGlite, type Extensions } from "@electric-sql/pglite";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
@@ -39,7 +39,6 @@ async function verifierBrancheSurPGlite(client: PrismaClient, nom: string): Prom
 
 /** transactions : « a-la-suite » (défaut) ou « melees », voir pool-pglite.ts */
 export async function creerBaseEnMemoire(options: { extensions?: Extensions; transactions?: ModeTransactions } = {}): Promise<BaseEnMemoire> {
-  couperProcessusEnfants();
   const db = new PGlite({ parsers: TEXTE_BRUT, extensions: options.extensions });
   const migrations = listerMigrations();
   await appliquerMigrations(db, migrations);

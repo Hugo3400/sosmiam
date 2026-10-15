@@ -3,11 +3,12 @@
 // (DATABASE_URL qui n'est pas l'adresse factice, variables PG*, SCHEMA_BASE, node lancé avec --env-file), puis ferme les
 // portes une à une : aucun .env chargé (process.loadEnvFile coupé), ni prisma.config.ts ni dotenv importés, aucune
 // connexion réseau (net.Socket), aucun client pg qui se connecte, et tout pool pg envoyé dans PGlite (pool-pglite.ts).
-// Tout est synchrone : il a fini avant que le moindre autre module de l'essai ne s'exécute. Les processus (spawn, exec…) ne
-// sont coupés qu'à la création de la base d'un essai (couperProcessusEnfants) : le lanceur, qui l'importe aussi, forke les essais.
-import childProcess from "node:child_process";
+// Tout est synchrone : il a fini avant que le moindre autre module de l'essai ne s'exécute.
+import childProcess, { type ChildProcess, type ForkOptions } from "node:child_process";
 import { registerHooks, syncBuiltinESMExports } from "node:module";
 import net from "node:net";
+import { dirname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { remplacerPoolPg } from "./pool-pglite.ts";
 
@@ -55,16 +56,33 @@ pg.Client.prototype.connect = async function clientRefuse(): Promise<never> {
 remplacerPoolPg();
 
 const PROCESSUS = ["spawn", "exec", "execFile", "fork", "spawnSync", "execSync", "execFileSync"] as const;
+const DOSSIER_ESSAIS = fileURLToPath(new URL("../essais/", import.meta.url));
+const forkOriginal = childProcess.fork.bind(childProcess);
+const prototypeProcessus = childProcess.ChildProcess.prototype as unknown as { spawn: (this: ChildProcess, options: unknown) => unknown };
+const spawnOriginal = prototypeProcessus.spawn;
+let forkDuLanceurEnCours = false;
 
-/** Aucun processus lancé pendant un essai (psql, pg_dump, prisma migrate… parleraient à la vraie base) : spawn, exec,
- *  execFile, fork et leurs versions synchrones lèvent, imports nommés compris. Appelé par creerBaseEnMemoire et
- *  essayer-migration, jamais par le lanceur. */
-export function couperProcessusEnfants(): void {
-  for (const nom of PROCESSUS) {
-    (childProcess as unknown as Record<string, unknown>)[nom] = function processusRefuse(): never {
-      throw new Error(`Garde-fou des essais : aucun processus lancé (${nom}), la base est en mémoire (PGlite).`);
-    };
+const refuserProcessus = (nom: string): never => {
+  throw new Error(`Garde-fou des essais : aucun processus lancé (${nom}), la base est en mémoire (PGlite).`);
+};
+
+export function forkDuLanceur(essai: string, options: ForkOptions): ChildProcess {
+  if (dirname(resolve(essai)) + sep !== DOSSIER_ESSAIS) refuserProcessus(`fork de ${essai}, hors des essais`);
+  forkDuLanceurEnCours = true;
+  try {
+    return forkOriginal(essai, [], options);
+  } finally {
+    forkDuLanceurEnCours = false;
   }
-  // import { spawn } from "node:child_process" : les liaisons des modules déjà chargés suivent
-  syncBuiltinESMExports();
 }
+
+for (const nom of PROCESSUS) {
+  (childProcess as unknown as Record<string, unknown>)[nom] = function processusRefuse(): never {
+    return refuserProcessus(nom);
+  };
+}
+prototypeProcessus.spawn = function spawnRefuse(this: ChildProcess, options: unknown) {
+  if (!forkDuLanceurEnCours) refuserProcessus("ChildProcess.spawn");
+  return spawnOriginal.call(this, options);
+};
+syncBuiltinESMExports();

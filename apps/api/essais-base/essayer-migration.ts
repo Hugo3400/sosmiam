@@ -9,11 +9,11 @@
 // vide : ce qui y passe mais échouera sur une table remplie est signalé (colonne NOT NULL sans défaut, contrainte CHECK,
 // UNIQUE, clé étrangère ou index UNIQUE ajoutés à une table qui existait, type rétréci, NOT NULL posé). Quand PostgreSQL ne
 // donne pas de position, l'instruction fautive est retrouvée en rejouant le fichier instruction par instruction (sa ligne).
-import { couperProcessusEnfants } from "./socle/garde-fou.ts";
+import "./socle/garde-fou.ts";
 import { PGlite } from "@electric-sql/pglite";
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { appliquerFichierSql, appliquerMigrations, listerMigrations } from "./socle/migrations-depot.ts";
+import { appliquerFichierSql, appliquerMigrations, decrireValidationsPartielles, listerMigrations, trouverValidationsPartielles } from "./socle/migrations-depot.ts";
 import { comparerSchemas, lireSchema, resumerAjouts } from "./socle/schema-base.ts";
 
 const arreter = (message: string): never => {
@@ -36,8 +36,8 @@ const place = migrations.findIndex((m) => existsSync(m.fichier) && realpathSync(
 const avant = place === -1 ? migrations : migrations.slice(0, place);
 const apres = place === -1 ? [] : migrations.slice(place + 1);
 const jumelle = place === -1 ? migrations.find((m) => existsSync(m.fichier) && readFileSync(m.fichier, "utf8") === texte) : undefined;
+const validationsPartielles = trouverValidationsPartielles(texte);
 
-couperProcessusEnfants();
 const db = new PGlite();
 const version = String(((await db.query("SELECT version() AS v")).rows[0] as { v: string }).v).replace(/ on wasm32.*$/, "");
 try {
@@ -50,10 +50,11 @@ try {
   await appliquerFichierSql(db, fichier, affiche);
 } catch (erreur) {
   const indice = jumelle ? `\n(Son contenu est celui de la migration du dépôt ${jumelle.nom}, déjà rejouée juste avant : elle est déjà dans la chaîne.)` : "";
-  arreter(`ERREUR : ${(erreur as Error).message}\nAprès ${avant.length} migration(s) du dépôt rejouée(s), ton fichier ne passe pas (rien de lui n'est gardé).${indice}`);
+  const garde = validationsPartielles.length > 0 ? "" : " (rien de lui n'est gardé)";
+  arreter(`ERREUR : ${(erreur as Error).message}\nAprès ${avant.length} migration(s) du dépôt rejouée(s), ton fichier ne passe pas${garde}.${indice}`);
 }
 const schemaApres = await lireSchema(db);
-const changements = comparerSchemas(schemaAvant, schemaApres);
+const changements = comparerSchemas(schemaAvant, schemaApres, texte);
 try {
   await appliquerMigrations(db, apres);
 } catch (erreur) {
@@ -75,6 +76,9 @@ if (changements.retraits.length + changements.modifications.length === 0) {
 }
 if (changements.risques.length > 0) {
   console.log(`Attention, sur une table qui existait : passe ici (base vide), échouera si les lignes existantes ne respectent pas :\n${liste(changements.risques)}`);
+}
+if (validationsPartielles.length > 0) {
+  console.log(`Attention : ${decrireValidationsPartielles(validationsPartielles)}. Sur la vraie base, une instruction qui casse après lui y laisserait la migration à moitié appliquée : retire-le.`);
 }
 const installees = existsSync("/usr/lib/postgresql") ? readdirSync("/usr/lib/postgresql").join(", ") : null;
 console.log(`(PGlite = ${version}${installees ? ` ; PostgreSQL installé sur cette machine : ${installees}` : ""} : une syntaxe plus récente que la vraie base passerait ici.)`);

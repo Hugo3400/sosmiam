@@ -8,8 +8,9 @@ import "../socle/garde-fou.ts";
 import { readFileSync } from "node:fs";
 import { creerBaseEnMemoire } from "../socle/base-en-memoire.ts";
 import { decouperInstructions } from "../socle/decouper-instructions.ts";
-import { appliquerSql, decrireErreurPostgres, listerMigrations } from "../socle/migrations-depot.ts";
-import { comparerSchemas, lireSchema, resumerAjouts, type Changements } from "../socle/schema-base.ts";
+import { comparerMigration } from "../socle/comparer-migration.ts";
+import { appliquerSql, decrireErreurPostgres, listerMigrations, trouverValidationsPartielles } from "../socle/migrations-depot.ts";
+import { lireSchema, resumerAjouts } from "../socle/schema-base.ts";
 import { creerVerifications, terminerEssai } from "../socle/verifications.ts";
 
 const essai = await creerBaseEnMemoire();
@@ -17,17 +18,7 @@ const { db } = essai;
 const verifications = creerVerifications();
 const { egal, vrai, correspond, rejette } = verifications;
 
-/** Ce que la migration change, relevé avant et après, puis défait */
-async function comparer(sql: string): Promise<Changements> {
-  const avant = await lireSchema(db);
-  await db.exec("BEGIN");
-  try {
-    await db.exec(sql);
-    return comparerSchemas(avant, await lireSchema(db));
-  } finally {
-    await db.exec("ROLLBACK");
-  }
-}
+const comparer = (sql: string) => comparerMigration(db, sql);
 const existe = async (table: string) => (await essai.sql(`SELECT count(*) AS n FROM pg_class WHERE relname = $1`, [table]))[0]!.n === "1";
 
 // ── Le relevé : type, taille, nullité, défaut ──
@@ -47,7 +38,7 @@ egal(nullite.modifications, [
 ]);
 egal(nullite.risques, ["colonne avis.photo : devient NOT NULL (échouera si une ligne y a NULL)"], "seul le NOT NULL posé est un risque");
 const precise = await lireSchema(db);
-egal([precise.get("colonne avis.note"), precise.get("colonne avis.cree_le")], ["smallint NOT NULL", "timestamp(0) with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP"], "le type exact, avec sa précision");
+egal([precise.get("colonne avis.note")?.definition, precise.get("colonne avis.cree_le")?.definition], ["smallint NOT NULL", "timestamp(0) with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP"], "le type exact, avec sa précision");
 const fonction = await comparer(readFileSync(listerMigrations().find((m) => m.nom.endsWith("_ajouter-activite-visites-fidelite"))!.fichier, "utf8")
   .match(/CREATE FUNCTION poser_publie_le[\s\S]*?\$\$ LANGUAGE plpgsql;/)![0].replace("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION").replace("now()", "now() - interval '1 second'"));
 egal(fonction.modifications, ["fonction poser_publie_le() : sa définition change"], "le corps d'une fonction qui change se voit");
@@ -107,12 +98,39 @@ const avecPosition = `CREATE TABLE "essais_rejeu" ("id" SERIAL NOT NULL);\nALTER
 await rejette(appliquerSql(db, avecPosition, "e.sql"), /syntax error at or near "TEXT" ; \(code 42601\) ; ligne 2, colonne 45$/, "avec une position : la ligne et la colonne, sans rejeu");
 egal(decrireErreurPostgres({ message: "boum", code: "P0001", detail: "d", hint: "h", where: "PL/pgSQL" }, "", "ligne 4"),
   "boum ; (code P0001) ; ligne 4 ; détail : d ; piste : h ; contexte : PL/pgSQL");
+await rejette(appliquerSql(db, `-- Les Miamis 🍔🍟 adorent\nSELECT '🍕🍕' AS "part", 1 FRO avis;`, "e.sql"),
+  /syntax error at or near "avis" ; \(code 42601\) ; ligne 2, colonne 30$/, "la colonne comptée en caractères, emojis compris");
+
+const PARTIELLE = "le fichier valide une partie de lui-même";
+await rejette(appliquerSql(db, `CREATE TABLE "essais_rejeu" ("id" INTEGER);\nCOMMIT;\nCREATE TABLE "comptes" ("id" INTEGER);`, "e.sql"),
+  new RegExp(String.raw`ligne 3 \(instruction 2 sur 2 : « CREATE TABLE "comptes" \("id" INTEGER\) »\) ; ${PARTIELLE} \(COMMIT ligne 2\) : une erreur qui suit ne défait pas ce qui précède$`),
+  "un COMMIT au milieu : dit, et le rejeu part de la base d'avant le fichier");
+egal(await existe("essais_rejeu"), true, "ce qui précède le COMMIT reste, comme sur la vraie base");
+await db.exec(`DROP TABLE "essais_rejeu"`);
+await rejette(appliquerSql(db, `BEGIN;\nCREATE TABLE "essais_rejeu" ("id" INTEGER);\nEND;\nALTER TABLE "comptes" ADD COLUMN "email" TEXT;`, "e.sql"),
+  new RegExp(String.raw`ligne 4 \(instruction 2 sur 2 : « ALTER TABLE "comptes" ADD COLUMN "email" TEXT »\) ; ${PARTIELLE} \(END ligne 3\)`), "END aussi");
+await db.exec(`DROP TABLE "essais_rejeu"`);
+egal(trouverValidationsPartielles(`BEGIN;\nCREATE TABLE a (id int);\nCOMMIT;\n-- fin\n`), [], "un COMMIT final valide tout le fichier : rien à dire");
+await rejette(appliquerSql(db, `CREATE FUNCTION "essais_atomique"(i int) RETURNS int LANGUAGE sql\nBEGIN ATOMIC\n  SELECT 1;\n  SELECT i;\nEND;\nALTER TABLE "comptes" ADD COLUMN "email" TEXT;`, "e.sql"),
+  /ligne 6 \(instruction 2 sur 2 : « ALTER TABLE "comptes" ADD COLUMN "email" TEXT »\)$/, "le rejeu ne coupe pas dans BEGIN ATOMIC … END");
 
 // ── Le découpage : textes, noms, blocs $…$, commentaires imbriqués, E'…' ──
 const morceaux = decouperInstructions(`-- tête ;\nCREATE TABLE a (x text DEFAULT ';');\n/* bloc ; /* imbriqué ; */ encore ; */ SELECT E'l\\'a;';
 CREATE FUNCTION f() RETURNS int AS $corps$ SELECT 1; $corps$ LANGUAGE sql;\nSELECT "a;b", $1, date'2020;';\n-- fin ;\n`);
 egal(morceaux.map((i) => [i.ligne, i.texte]), [[2, "CREATE TABLE a (x text DEFAULT ';')"], [3, "SELECT E'l\\'a;'"],
   [4, "CREATE FUNCTION f() RETURNS int AS $corps$ SELECT 1; $corps$ LANGUAGE sql"], [5, `SELECT "a;b", $1, date'2020;'`]]);
+const atomique = `CREATE FUNCTION f(i int) RETURNS int LANGUAGE sql
+BEGIN ATOMIC
+  SELECT CASE WHEN i > 0 THEN 1 ELSE 0 END;
+  SELECT 2;
+END;
+CREATE OR REPLACE PROCEDURE p() LANGUAGE sql BEGIN ATOMIC SELECT 1; END;
+CREATE RULE r AS ON INSERT TO t DO ALSO (SELECT 1; SELECT 2);
+END;
+SELECT 3`;
+egal(decouperInstructions(atomique).map((i) => [i.ligne, i.texte.split("\n").at(-1)]), [[1, "END"], [6, "CREATE OR REPLACE PROCEDURE p() LANGUAGE sql BEGIN ATOMIC SELECT 1; END"],
+  [7, "CREATE RULE r AS ON INSERT TO t DO ALSO (SELECT 1; SELECT 2)"], [8, "END"], [9, "SELECT 3"]], "BEGIN ATOMIC … END et ( … ) ne sont pas coupés");
+egal(trouverValidationsPartielles(atomique).map((i) => i.ligne), [8], "seul le END de premier niveau valide une partie du fichier");
 let total = 0;
 for (const m of listerMigrations()) {
   const texte = readFileSync(m.fichier, "utf8");

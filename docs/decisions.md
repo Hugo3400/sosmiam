@@ -116,7 +116,7 @@
 - **Android après** (décidé le 8 octobre 2026) : on avance sur iPhone d'abord (Plans d'Apple, sans clé). Le fond de carte Android (Google Maps avec une clé, ou OpenStreetMap via un fournisseur) sera choisi à ce moment-là.
 - **Autour de moi** : tri par distance avec la position du téléphone, demandée seulement quand on touche le bouton, gardée le temps de l'écran, jamais enregistrée. Sans elle, la liste suit les envies (même score que le fil « Pour toi » ; un lieu pas encore placé sur la carte est classé au centre de sa ville, sans distance affichée).
   - **La position sert aussi à demander au serveur les lieux autour de toi** (« faut la position », Hugo, 15 octobre 2026 ; façon de faire choisie par la session App) : jamais la position exacte, seulement une **zone arrondie**, l'union des cases d'une grille fixe (pas de 0,5 degré, bords sur des multiples de 0,5) qui couvrent 50 km autour de la case où tu es. Deux positions dans la même case demandent exactement la même zone : le serveur sait au mieux dans quelle case de 0,5 degré (environ 55 × 40 km) tu es. Rien n'est enregistré, ni sur le téléphone ni sur le serveur. Même règle pour toute zone demandée (ta ville, une ville choisie, ta région) : `arrondirZoneALaGrille`, appliquée par l'app au moment d'envoyer.
-  - **Sans point de départ** (ni position, ni ville connue), aucun lieu n'est « à quelques km » : l'écran le dit (« On ne sait pas où tu es ») et propose « Autour de moi » ou toute la France.
+  - **Sans point de départ** (ni position, ni ville connue), Explorer s'ouvre sur toute la France (choix de la session App, 15 octobre 2026). Si tu choisis toi-même « À quelques km », aucun lieu n'y est : l'écran le dit (« On ne sait pas où tu es ») et propose « Autour de moi » ou toute la France.
 
 ## Carte des lieux (décidé le 8 octobre 2026)
 - Chaque fiche de lieu montre sa **carte** (« 🍽️ La carte » ; « 🎟️ Les formules » pour une activité) : les plats phares sur la fiche, la carte complète sur un écran à part (sections, prix, repères végé / vegan / sans gluten / épicé / fait maison / local).
@@ -300,7 +300,7 @@
   - « Autour de moi » regarde autour de ta position, dans le rayon réglé.
   - Une liste vide propose d'élargir (« Voir toute ta région », « Voir toute la France »).
 - **Ta région** : celle de ta position (« Autour de moi »), sinon celle de ta ville. Les contours approximatifs des 18 régions sont dans `packages/commun/src/contenus/regions-france.ts`.
-- **Au départ**, Explorer s'ouvre sur « quelques km » autour de ta ville.
+- **Au départ**, Explorer s'ouvre sur « quelques km » autour de ta ville ; sans ville connue (visite sans compte), sur toute la France.
 - **Carte seule** : la liste se descend tout en bas (glisser, ou le bouton ⌄ à droite de la poignée). Il ne reste qu'une barre « 12 lieux · Voir la liste ». Toucher un lieu sur la carte remonte la liste juste assez pour le montrer. Avec VoiceOver ou TalkBack, ce mode n'existe pas, parce que la carte leur est cachée.
 
 ## Infos pratiques des lieux (décidé le 9 octobre 2026)
@@ -352,6 +352,7 @@
 ## Notifications push (décidé le 8 octobre 2026)
 - **Durées (décidé le 14 octobre 2026)** : un téléphone inscrit aux notifications est effacé du serveur après **90 jours sans signe de vie** (l'app le confirme à chaque lancement), dès qu'Apple ou Google disent que son jeton ne marche plus, quand tu coupes les notifications dans l'app ou quand tu supprimes ton compte. Les « Ça m'intéresse » sont effacés **30 jours après la dernière date** de l'événement.
 - **Dans l'app (construit le 14 octobre 2026)** : le téléphone s'inscrit avec son jeton natif (APNs ou FCM, jamais celui d'Expo) et ta ville (`PUT /app/appareils`), lié à ton compte s'il est connecté, délié à la déconnexion. La question du système est posée au premier lancement avec un profil, si « Recevoir des notifications » est allumé ; couper l'interrupteur désinscrit le téléphone (`DELETE /app/appareils`). Toucher une notification ouvre son écran (lien connu seulement). Les choix par sorte (SOS, offres, événements…) restent sur le téléphone pour l'instant.
+- **Offres éteintes par défaut (règle 4.5.4 d'Apple, 15 octobre 2026)** : « Offres et happy hours » ne s'allume que si tu le fais toi-même dans Réglages › Notifications, sous la phrase d'accord « En l'allumant, tu acceptes de recevoir des notifications promotionnelles des lieux… ». Un choix déjà enregistré sur un téléphone ne change pas. Le serveur ne connaît pas encore ce choix (à faire côté API et logiciel de gestion).
 - **Envoyées directement à Apple (APNs) et à Google (FCM), sans intermédiaire** (pas le service d'Expo). Il faut une clé APNs « .p8 » (developer.apple.com → Keys) et un compte de service d'un projet Firebase gratuit, déposés par Hugo dans /root/sos-miam-secrets.
 - **Anti-spam : au plus 1 notification par jour et 4 par semaine par téléphone**, hors notifications demandées par la personne (« un SOS près de chez toi »).
 - Une notification n'ouvre qu'un écran de l'app (jamais une adresse extérieure) ; détail des réceptions effacé après 90 jours.

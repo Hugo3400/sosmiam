@@ -3,8 +3,7 @@
 //   npm run api:essais-base                  (depuis la racine du dépôt)
 //   npm run api:essais-base -- avis menage   (seulement les essais dont le nom contient l'un de ces mots)
 // Jamais dans api:verifier : à lancer à part, avant une migration ou après un changement des services Prisma.
-import "./socle/garde-fou.ts";
-import { fork } from "node:child_process";
+import { forkDuLanceur } from "./socle/garde-fou.ts";
 import { readdirSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { join } from "node:path";
@@ -14,6 +13,7 @@ import type { BilanEssai } from "./socle/verifications.ts";
 
 const DOSSIER_ESSAIS = fileURLToPath(new URL("./essais/", import.meta.url));
 const DOSSIER_API = fileURLToPath(new URL("../", import.meta.url));
+const GARDE_FOU = new URL("./socle/garde-fou.ts", import.meta.url).href;
 const DELAI_MAX_MS = 240_000;
 // Deux à la fois : plus, ils se disputent les processeurs (PGlite et Prisma en prennent plusieurs) et le VPS sert aussi le site
 const EN_MEME_TEMPS = Math.max(1, Math.min(2, availableParallelism() - 1));
@@ -31,8 +31,10 @@ if (essais.length === 0) {
 function lancerEssai(fichier: string): Promise<Resultat> {
   const debut = performance.now();
   return new Promise((fini) => {
-    const enfant = fork(join(DOSSIER_ESSAIS, fichier), [], {
-      cwd: DOSSIER_API, execArgv: ["--experimental-strip-types", "--disable-warning=ExperimentalWarning"], stdio: ["ignore", "pipe", "pipe", "ipc"],
+    const enfant = forkDuLanceur(join(DOSSIER_ESSAIS, fichier), {
+      cwd: DOSSIER_API,
+      execArgv: ["--experimental-strip-types", "--disable-warning=ExperimentalWarning", "--import", GARDE_FOU],
+      stdio: ["ignore", "pipe", "pipe", "ipc"],
     });
     let sortie = "";
     let bilan: BilanEssai | null = null;

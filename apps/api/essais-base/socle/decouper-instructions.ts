@@ -58,6 +58,42 @@ function sauterMorceau(sql: string, i: number): number {
   return i + 1;
 }
 
+const DEBUT_DE_MOT = /[A-Za-z_\u0080-\uffff]/;
+
+function lireMot(sql: string, i: number): string | null {
+  if (!DEBUT_DE_MOT.test(sql[i]!) || CARACTERE_DE_NOM.test(sql[i - 1] ?? "")) return null;
+  let fin = i + 1;
+  while (fin < sql.length && CARACTERE_DE_NOM.test(sql[fin]!)) fin++;
+  return sql.slice(i, fin);
+}
+
+const CREE_UNE_ROUTINE = /^create (or replace )?(function|procedure)( |$)/;
+
+function creerSuiviDesBlocs() {
+  let premiersMots: string[] = [];
+  let parentheses = 0;
+  let blocs = 0;
+  return {
+    lireMot(mot: string): void {
+      const minuscule = mot.toLowerCase();
+      if (premiersMots.length < 4) premiersMots.push(minuscule);
+      if (!CREE_UNE_ROUTINE.test(premiersMots.join(" ")) || parentheses > 0) return;
+      if (minuscule === "begin" || (minuscule === "case" && blocs > 0)) blocs++;
+      else if (minuscule === "end" && blocs > 0) blocs--;
+    },
+    lireSigne(signe: string): void {
+      if (signe === "(") parentheses++;
+      else if (signe === ")" && parentheses > 0) parentheses--;
+    },
+    horsDesBlocs: () => parentheses === 0 && blocs === 0,
+    recommencer(): void {
+      premiersMots = [];
+      parentheses = 0;
+      blocs = 0;
+    },
+  };
+}
+
 /** Les instructions du fichier, dans l'ordre ; celles qui ne sont que blancs et commentaires sont écartées */
 export function decouperInstructions(sql: string): Instruction[] {
   const instructions: Instruction[] = [];
@@ -74,11 +110,18 @@ export function decouperInstructions(sql: string): Instruction[] {
     if (j < fin && texte !== "") instructions.push({ texte, debut: j, ligne: sql.slice(0, j).split("\n").length });
     debut = fin + 1;
   };
+  const suivi = creerSuiviDesBlocs();
   for (let i = 0; i < sql.length;) {
-    if (sql[i] === ";") {
+    const mot = lireMot(sql, i);
+    if (mot !== null) {
+      suivi.lireMot(mot);
+      i += mot.length;
+    } else if (sql[i] === ";" && suivi.horsDesBlocs()) {
       finir(i);
+      suivi.recommencer();
       i++;
     } else {
+      suivi.lireSigne(sql[i]!);
       i = sauterMorceau(sql, i);
     }
   }
