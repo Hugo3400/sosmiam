@@ -33,7 +33,7 @@ test("jetons signés : ES256 (Apple, signature JOSE) et RS256 (Google) se vérif
   assert.ok(createVerify("SHA256").update(`${e}.${c}`).verify(google.publicKey, Buffer.from(s!, "base64url")));
 });
 
-test("regroupement et son (messagerie, lot L4) : une notification par conversation, la suivante sans son ; rien de changé sans eux", () => {
+test("regroupement et son (messagerie, lot L4) : une notification par conversation, la suivante sans son (canal muet sur Android) ; rien de changé sans eux", () => {
   const simple = { titre: "Ce soir, ça bouge 🛟", texte: "Trois lieux ont de la place.", lien: "/explorer" };
   const apple = construireEnvoiApple(simple);
   assert.deepEqual(apple.entetes, {});
@@ -47,9 +47,13 @@ test("regroupement et son (messagerie, lot L4) : une notification par conversati
   assert.deepEqual(construireCorpsGoogle("jeton-g", message), {
     message: {
       token: "jeton-g", notification: { title: "💬 Léa", body: "Nouveau message. Viens voir !" }, data: { lien: "/potes/discussion/3" },
-      android: { priority: "high", notification: { tag: "conversation:3" } },
+      android: { priority: "high", notification: { tag: "conversation:3", channel_id: "messages-discrets" } },
     },
   });
+  // Android : le premier message d'une rafale sonne (canal par défaut), la suite part sur le canal muet ; Miam Safe passe avant
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...message, sonore: true }).message.android, { priority: "high", notification: { tag: "conversation:3" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, sonore: false }).message.android, { priority: "high", notification: { channel_id: "messages-discrets" } });
+  assert.deepEqual(construireCorpsGoogle("jeton-g", { ...simple, urgent: true, sonore: false }).message.android, { priority: "high", notification: { channel_id: "miam-safe" } });
   // Au-delà de 64 octets, Apple refuserait l'en-tête : pas de regroupement, la notification part quand même
   assert.deepEqual(construireEnvoiApple({ ...message, regroupement: "x".repeat(65) }).entetes, {});
   const urgent = JSON.parse(construireEnvoiApple({ ...simple, urgent: true }).corps).aps;

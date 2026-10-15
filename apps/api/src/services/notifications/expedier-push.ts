@@ -10,8 +10,8 @@ import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type Reglage
  * sur Android le canal « miam-safe » de l'app (importance maximale) ; réservé aux alertes Miam Safe.
  * `regroupement` (« conversation:<id> », 64 octets au plus) : une seule notification par conversation à l'écran, la suivante
  * remplace la précédente (apns-collapse-id et thread-id sur iPhone, tag sur Android).
- * `sonore` (vrai par défaut) : faux, l'iPhone la montre sans son (les messages d'une même rafale de 30 s). Sur Android, le son
- * dépend du canal de notification choisi par l'app.
+ * `sonore` (vrai par défaut) : faux, l'iPhone la montre sans son (les messages d'une même rafale de 30 s), et Android la
+ * range dans le canal « messages-discrets » de l'app (importance basse : ni son, ni vibration, ni bannière).
  */
 export type MessagePush = { titre: string; texte: string; lien: string | null; urgent?: boolean; regroupement?: string; sonore?: boolean };
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
@@ -63,18 +63,18 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
 /** Le corps d'une notification Google (FCM v1) pour ce téléphone */
 export function construireCorpsGoogle(jeton: string, message: MessagePush) {
   const regroupement = lireRegroupement(message);
+  const canal = message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : null;
   return {
     message: {
       token: jeton,
       notification: { title: message.titre, body: message.texte },
       data: message.lien ? { lien: message.lien } : {},
-      // Miam Safe (urgent) : le canal « miam-safe » de l'app, en importance maximale ; tant qu'il n'existe pas sur le
-      // téléphone, Android retombe sur le canal par défaut
+      // Miam Safe (urgent) : le canal « miam-safe » de l'app, en importance maximale ; la suite d'une rafale (sonore faux) :
+      // le canal « messages-discrets », muet. Tant que le canal n'existe pas sur le téléphone, Android retombe sur le canal
+      // par défaut
       android: {
         priority: "high",
-        ...(regroupement || message.urgent
-          ? { notification: { ...(regroupement ? { tag: regroupement } : {}), ...(message.urgent ? { channel_id: "miam-safe" } : {}) } }
-          : {}),
+        ...(regroupement || canal ? { notification: { ...(regroupement ? { tag: regroupement } : {}), ...(canal ? { channel_id: canal } : {}) } } : {}),
       },
     },
   };
