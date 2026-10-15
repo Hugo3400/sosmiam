@@ -30,7 +30,7 @@ export function meta(_: Route.MetaArgs) {
   return creerMeta({
     titre: "SOS Miam : restos, bars et pâtisseries de ton quartier",
     description:
-      "Trouve les restos, bars, pâtisseries et sorties indépendants près de chez toi, et donne un coup de main aux lieux en SOS. Gratuit, partout en France.",
+      "Trouve les restos, bars et pâtisseries indépendants près de chez toi, et donne un coup de main aux lieux en SOS. Gratuit, partout en France.",
   });
 }
 

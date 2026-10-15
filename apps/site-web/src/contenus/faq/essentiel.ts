@@ -6,7 +6,7 @@ export const questionsEssentiel: QuestionFaq[] = [
     id: "faq-cest-quoi",
     question: "C'est quoi, SOS Miam ?",
     reponse: [
-      "Une app qui te fait découvrir les restos, pâtisseries, bars et sorties indépendants près de chez toi, en priorité ceux qui ont besoin de monde : la pépite qui vient d'ouvrir, la salle calme un mardi soir, ou le lieu qui traverse un coup dur. Tu y vas, tu valides ta visite, tu donnes un coup de pouce : le lieu se fait connaître ou remonte la pente, et toi, tu te régales.",
+      "Une app qui te fait découvrir les restos, bars et pâtisseries indépendants près de chez toi (et aussi quelques sorties), en priorité ceux qui ont besoin de monde : la pépite qui vient d'ouvrir, la salle calme un mardi soir, ou le lieu qui traverse un coup dur. Tu y vas, tu valides ta visite, tu donnes un coup de pouce : le lieu se fait connaître ou remonte la pente, et toi, tu te régales.",
     ],
   },
   {

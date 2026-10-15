@@ -32,7 +32,7 @@ export default function PageLiens() {
           <h1 className="mt-4"><span className="sr-only">SOS Miam</span><span aria-hidden="true"><Logo className="h-12 w-auto" /></span></h1>
           <p className="mt-4 font-titre text-2xl font-extrabold">Sauve une table, régale-toi.</p>
           <p className="mt-2 text-gris">
-            Les restos, pâtisseries, bars et sorties indépendants qui ont besoin de monde, partout en France.
+            Les restos, bars et pâtisseries indépendants qui ont besoin de monde (et quelques sorties), partout en France.
             Choisis ta porte d'entrée : on te garde une place.
           </p>
         </header>

@@ -17,7 +17,7 @@ export function HautProgramme() {
           </h1>
           <p className="mt-6 mb-8 max-w-[540px] text-lg text-gris">
             {lierPonctuation(
-              "Tu connais un petit resto, une pâtisserie ou un bowling qui mérite plus de monde ? Aide-nous à le faire connaître. C'est gratuit, ça se fait à ton rythme, et c'est partout en France.",
+              "Tu connais un petit resto, un bar ou une pâtisserie qui mérite plus de monde ? Aide-nous à le faire connaître. C'est gratuit, ça se fait à ton rythme, et c'est partout en France.",
             )}
           </p>
           <BoutonsProgramme />

@@ -38,7 +38,7 @@ export default function PageBienvenue({ loaderData }: Route.ComponentProps) {
       <Section fond="creme" className="!pt-10 md:!pt-16">
         <div className="grid items-center gap-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div>
-            <p className="inline-block rounded-full bg-encre px-3.5 py-1.5 text-[.9rem] font-semibold text-jaune">Pour les restos, bars, pâtisseries et sorties</p>
+            <p className="inline-block rounded-full bg-encre px-3.5 py-1.5 text-[.9rem] font-semibold text-jaune">Pour les restos, bars et pâtisseries (et les sorties aussi)</p>
             <h1 className="mt-5 text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold tracking-tight">{lierPonctuation("Ton lieu, ta fiche, tes gourmands.")}</h1>
             <p className="mt-4 max-w-xl text-lg text-gris">
               {lierPonctuation("L'espace pro de SOS Miam, c'est là où tu tiens ta fiche à jour, où tu vois ce que les clients te suggèrent et où tu invites ton équipe. Le tout sans payer un centime.")}

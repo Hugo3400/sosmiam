@@ -1,7 +1,7 @@
 # Décisions produit
 
 ## Concept
-- Faire découvrir les lieux indépendants (restos, pâtisseries, bars, bowlings, salles d'événements, sorties) qui ont besoin de monde, y compris ceux en vraie difficulté.
+- Faire découvrir les lieux indépendants qui ont besoin de monde, y compris ceux en vraie difficulté. **En avant : les restaurants, les bars et les pâtisseries** ; les activités et sorties (bowlings, salles d'événements…) viennent en second (précisé par Hugo le 15 octobre 2026).
 - Lancement **partout en France** (décidé le 8 octobre 2026 ; avant : Montpellier et l'Hérault d'abord). Le site ne met plus en avant une ville ou une région.
 - App : partout en France aussi (décidé le 8 octobre 2026) : villes de toute la France proposées à l'inscription (packages/commun/src/contenus/villes-france.ts), distances calculées depuis la ville du profil, carte d'Explorer ouverte sur ta ville. Les lieux d'exemple restent dans l'Hérault.
 - L'utilisateur a **3 rescousses par semaine** (rechargées le lundi) et valide ses visites par **QR code**.
