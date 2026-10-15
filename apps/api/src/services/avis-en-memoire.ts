@@ -1,7 +1,8 @@
 // Double en mémoire des avis, pour les tests (aucune base de données). Mêmes gestes que avis.ts ; une seule chose à la fois
 // en JavaScript, donc le verrou ne fait rien (deux écritures peuvent s'entrelacer à chaque await : les gestes conditionnels
 // tranchent, comme dans la base). ecrire est tout ou rien : chaque écriture note de quoi la défaire, et une erreur levée
-// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction.
+// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction. Les points de la photo n'ont
+// pas de compte ici : chaque mouvement est noté (pointsPhoto), et défait avec le reste.
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { MotifAvisLouche } from "../../../../packages/commun/src/types/avis.ts";
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
@@ -16,6 +17,8 @@ const retirer = <T>(liste: T[], ligne: T) => {
   if (i >= 0) liste.splice(i, 1);
 };
 export type RelectureEnMemoire = { avisId: number; ambassadeurId: number; verdict: "ok" | "louche" | "deporte"; motif: MotifAvisLouche | null; creeLe: Date };
+/** Un mouvement des points de la photo d'un avis (poserPointsPhoto), tel qu'il irait au journal des points */
+export type MouvementPointsEnMemoire = { compteId: number; points: number; raison: "avis-photo"; detail: string };
 
 export function creerAvisEnMemoire() {
   const lieux = new Map<number, LieuAvis>();
@@ -23,6 +26,7 @@ export function creerAvisEnMemoire() {
   const visites: LigneVisite[] = [];
   const avis: AvisEnMemoire[] = [];
   const relectures: RelectureEnMemoire[] = [];
+  const pointsPhoto: MouvementPointsEnMemoire[] = [];
   let prochainId = 1;
 
   const resumer = (l: LieuAvis): LieuResume => ({ id: l.id, nom: l.nom, emoji: l.emoji, type: l.type, ville: l.ville });
@@ -32,8 +36,11 @@ export function creerAvisEnMemoire() {
     return { ...a, preuve: visite?.mode ?? null, avecReduction: visite?.reglement?.type === "reduction" };
   };
 
-  /** Les gestes ; annuler(geste) note de quoi défaire une écriture si l'appel échoue (rien à noter en lecture) */
-  const creerTables = (annuler: (geste: () => void) => void): TablesAvis => ({
+  /**
+   * Les gestes ; annuler(geste) note de quoi défaire une écriture si l'appel échoue (rien à noter en lecture) ;
+   * enTransaction : faux en lecture, où les points sont refusés comme dans la base
+   */
+  const creerTables = (annuler: (geste: () => void) => void, enTransaction = true): TablesAvis => ({
     brut: null,
 
     async verrouillerCompte() {},
@@ -152,9 +159,15 @@ export function creerAvisEnMemoire() {
       annuler(() => { a.reponseStatut = de; });
       return true;
     },
+    async poserPointsPhoto(compteId, points, detail) {
+      if (!enTransaction) throw new Error("Avis : points de la photo posés hors d'une transaction");
+      const mouvement: MouvementPointsEnMemoire = { compteId, points, raison: "avis-photo", detail };
+      pointsPhoto.push(mouvement);
+      annuler(() => retirer(pointsPhoto, mouvement));
+    },
   });
 
-  const lecture = creerTables(() => {});
+  const lecture = creerTables(() => {}, false);
   const depot: DepotAvis = {
     lire: (fn) => fn(lecture),
     async ecrire(fn) {
@@ -167,5 +180,5 @@ export function creerAvisEnMemoire() {
       }
     },
   };
-  return { depot, lieux, comptes, visites, avis, relectures };
+  return { depot, lieux, comptes, visites, avis, relectures, pointsPhoto };
 }

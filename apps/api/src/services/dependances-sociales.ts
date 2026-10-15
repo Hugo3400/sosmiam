@@ -33,6 +33,9 @@ export type OptionsDependancesSociales = {
   /** Le disque des médias passe sous 15 % libres (une fois par heure au plus) : une ligne au journal du logiciel (B.12) ;
    *  absente : rien de plus que le 503 stockage-plein */
   quandDisquePresquePlein?: (partLibre: number) => void;
+  /** limitations.estLimite (session Site) : un compte limité par l'équipe ne peut plus écrire ce que les autres voient ;
+   *  absente : rien n'est refusé */
+  estLimite?: DependancesSocialApp["estLimite"];
 };
 
 export function creerDependancesSociales(o: OptionsDependancesSociales): DependancesSocialApp {
@@ -50,6 +53,7 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
     prevenirCompte: o.prevenirCompte,
     contesterSignalement: o.contesterSignalement,
     lireRole: o.lireRole,
+    estLimite: o.estLimite,
     social,
     // Un domaine par ligne, à la fin (lots L3 à L7)
     bande: creerBande({ relations, chiffrement, tirer: o.tirer }),

@@ -40,9 +40,10 @@ export function calculerPastilles(alertes: Alertes | null, problemesServeur: num
   if (alertes.boite?.nonLus) pastilles.boite = { nombre: alertes.boite.nonLus, libelle: `${alertes.boite.nonLus} mail(s) pas encore lu(s)` };
   if (alertes.surveillance) {
     const { comptes, lieux: refusants, contestations } = alertes.surveillance;
+    const limitations = alertes.limitations?.contestees ?? 0;
     pastilles.utilisateurs = {
-      nombre: comptes + refusants + contestations,
-      libelle: `${comptes} compte(s) et ${refusants} lieu(x) à regarder, ${contestations} contestation(s) à relire`,
+      nombre: comptes + refusants + contestations + limitations,
+      libelle: `${comptes} compte(s) et ${refusants} lieu(x) à regarder, ${contestations} contestation(s) à relire${limitations ? `, ${limitations} limitation(s) contestée(s)` : ""}`,
     };
   }
   pastilles["big-sos"] = { nombre: bigSos.aTraiter + bigSos.aCloturer, libelle: `${bigSos.aTraiter} à étudier, ${bigSos.aCloturer} bilan(s) à écrire` };

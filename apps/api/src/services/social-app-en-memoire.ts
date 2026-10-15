@@ -38,6 +38,8 @@ export type OptionsSocialAppEnMemoire = {
   prevenirCompte?: DependancesSocialApp["prevenirCompte"];
   /** Les pseudos libérés des comptes en mémoire (lireAncienTitulaireEnMemoire) ; absent : aucun pseudo réservé */
   lireAncienTitulaire?: LireAncienTitulaire;
+  /** Compte limité par l'équipe (une fausse estLimite, ou celle de creerLimitationsEnMemoire) ; absente : rien n'est refusé */
+  estLimite?: DependancesSocialApp["estLimite"];
 };
 
 export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
@@ -66,6 +68,7 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
       return true;
     },
     lireRole: o.lireRole ?? (async () => null),
+    estLimite: o.estLimite,
     social,
     // Un domaine par ligne, à la fin (lots L3 à L7)
     bande: creerBandeEnMemoire(tables, relations, chiffrement, tirer, o.lireAncienTitulaire),

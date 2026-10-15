@@ -16,6 +16,8 @@ export type Alertes = {
   surveillance?: { comptes: number; lieux: number; contestations: number };
   /** Avis en relecture et réponses des lieux à relire */
   avis?: { aRelire: number; reponses: number };
+  /** Limitations de comptes contestées, pas encore réexaminées */
+  limitations?: { contestees: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };

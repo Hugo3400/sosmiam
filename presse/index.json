@@ -1854,7 +1854,7 @@
   },
   {
    "id": "kit-de-marque",
-   "titre": "Kit de marque (logos, mascotte, pictos, bannières)",
+   "titre": "Kit de marque (logos, mascotte, avatars des Miamis, pictos, bannières)",
    "fichiers": [
     {
      "nom": "LISEZMOI.txt",
@@ -2963,6 +2963,496 @@
      "canaux": [
       "marque"
      ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_avatar.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Capitaine_Bouiboui_avatar.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Capitaine Bouiboui avatar",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Capitaine_Bouiboui_avatar.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Capitaine_Bouiboui_avatar.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Capitaine_Bouiboui_avatar.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Capitaine Bouiboui avatar",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Capitaine_Bouiboui_avatar.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_beret.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_beret.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami béret",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_beret.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_beret.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_beret.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami béret",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_beret.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_binocles.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_binocles.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami binocles",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_binocles.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_binocles.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_binocles.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami binocles",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_binocles.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_bob.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_bob.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami bob",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_bob.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_bob.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_bob.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami bob",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_bob.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_chantilly.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_chantilly.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami chantilly",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_chantilly.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_chantilly.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_chantilly.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami chantilly",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_chantilly.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_fiesta.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_fiesta.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami fiesta",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_fiesta.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_fiesta.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_fiesta.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami fiesta",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_fiesta.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_galette.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_galette.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami galette",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_galette.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_galette.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_galette.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami galette",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_galette.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_marmotte.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_marmotte.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami marmotte",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_marmotte.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_marmotte.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_marmotte.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami marmotte",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_marmotte.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_moustache.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_moustache.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami moustache",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_moustache.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_moustache.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_moustache.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami moustache",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_moustache.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_paille.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_paille.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami paille",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_paille.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_paille.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_paille.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami paille",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_paille.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_pirate.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_pirate.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami pirate",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_pirate.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_pirate.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_pirate.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami pirate",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_pirate.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_platine.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_platine.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami platine",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_platine.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_platine.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_platine.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami platine",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_platine.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_pompon.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_pompon.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami pompon",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_pompon.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_pompon.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_pompon.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami pompon",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_pompon.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_raclette.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_raclette.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami raclette",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_raclette.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_raclette.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_raclette.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami raclette",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_raclette.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_solaire.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_solaire.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami solaire",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_solaire.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_solaire.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_solaire.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami solaire",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_solaire.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_toque.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_toque.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami toque",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_toque.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_toque.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_toque.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami toque",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_toque.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_tuba.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_tuba.png",
+     "format": "PNG",
+     "taille": "1024 × 1024 px",
+     "description": "Avatars des Miamis · Miami tuba",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_tuba.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miami_tuba.svg",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miami_tuba.svg",
+     "format": "SVG",
+     "taille": null,
+     "description": "Avatars des Miamis · Miami tuba",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miami_tuba.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
+    },
+    {
+     "nom": "SOSMiam_Miamis_planche.png",
+     "chemin": "kit-de-marque/06_Avatars_des_Miamis/SOSMiam_Miamis_planche.png",
+     "format": "PNG",
+     "taille": "1080 × 1350 px",
+     "description": "Avatars des Miamis · Miamis planche",
+     "apercu": "apercus/kit-de-marque-06_Avatars_des_Miamis-SOSMiam_Miamis_planche.png",
+     "canaux": [
+      "instagram",
+      "tiktok",
+      "impression",
+      "marque"
+     ]
     }
    ],
    "zip": "kit-de-marque/sos-miam-kit-de-marque.zip"
@@ -2976,125 +3466,99 @@
      "chemin": "campagne/SOSMiam_ambassadeurs_apercu.png",
      "format": "PNG",
      "taille": "2148 × 1150 px",
-     "description": "Ambassadeurs · Ambassadeurs aperçu",
+     "description": "Ambassadeurs · Ambassadeurs aperçu — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_apercu.png",
-     "canaux": [
-      "presentation"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_carrousel_1_couverture.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_1_couverture.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 1 couverture",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 1 couverture — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_1_couverture.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 2 ton rôle",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 2 ton rôle — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_2_ton_role.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_carrousel_3_avantages.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_3_avantages.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 3 avantages",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_3_avantages.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_carrousel_4_profil.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_4_profil.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 4 profil",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 4 profil — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_4_profil.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_carrousel_5_candidater.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_carrousel_5_candidater.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs carrousel 5 candidater",
+     "description": "Ambassadeurs · Ambassadeurs carrousel 5 candidater — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_carrousel_5_candidater.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_post_ce_numero.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_post_ce_numero.png",
      "format": "PNG",
      "taille": "1080 × 1350 px",
-     "description": "Ambassadeurs · Ambassadeurs post ce numero",
+     "description": "Ambassadeurs · Ambassadeurs post ce numero — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_post_ce_numero.png",
-     "canaux": [
-      "instagram"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_story_1_teaser.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_story_1_teaser.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 1 teaser",
+     "description": "Ambassadeurs · Ambassadeurs story 1 teaser — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_1_teaser.png",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_story_2_annonce.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_story_2_annonce.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 2 annonce",
+     "description": "Ambassadeurs · Ambassadeurs story 2 annonce — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_2_annonce.png",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_story_3_avantages.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_story_3_avantages.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 3 avantages",
+     "description": "Ambassadeurs · Ambassadeurs story 3 avantages — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_3_avantages.png",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_ambassadeurs_story_4_dernier_appel.png",
      "chemin": "campagne/SOSMiam_ambassadeurs_story_4_dernier_appel.png",
      "format": "PNG",
      "taille": "1080 × 1920 px",
-     "description": "Ambassadeurs · Ambassadeurs story 4 dernier appel",
+     "description": "Ambassadeurs · Ambassadeurs story 4 dernier appel — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/campagne-SOSMiam_ambassadeurs_story_4_dernier_appel.png",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_15_compte_a_rebours_apercu.png",
@@ -3694,24 +4158,18 @@
      "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s.mp4",
      "format": "MP4",
      "taille": "27 s",
-     "description": "Vidéo 19 · Recrutement ambassadeurs",
+     "description": "Vidéo 19 · Recrutement ambassadeurs — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s.jpg",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.mp4",
      "chemin": "videos/SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.mp4",
      "format": "MP4",
      "taille": "27 s",
-     "description": "Vidéo 19 · Recrutement ambassadeurs · sans musique",
+     "description": "Vidéo 19 · Recrutement ambassadeurs · sans musique — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster",
      "apercu": "apercus/videos-SOSMiam_19_recrutement_ambassadeurs_27s_sans_musique.jpg",
-     "canaux": [
-      "instagram",
-      "tiktok"
-     ]
+     "canaux": []
     },
     {
      "nom": "SOSMiam_20_ouverture_bientot_15s.mp4",

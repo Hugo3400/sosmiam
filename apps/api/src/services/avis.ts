@@ -2,7 +2,8 @@
 // avis-pro.ts et avis-gestion.ts). ecrire passe par une transaction, prêtée telle quelle (brut) à qui doit y écrire aussi ;
 // le verrou porte sur la ligne du compte (SELECT … FOR UPDATE) et ne fait rien en lecture. Les doublons (un verdict par
 // ambassadeur, une réponse par avis, un avis par visite) et les décisions concurrentes (statut changé seulement s'il est
-// encore celui attendu) sont arrêtés par la base elle-même, sans faire échouer la transaction.
+// encore celui attendu) sont arrêtés par la base elle-même, sans faire échouer la transaction. Les points de la photo d'un
+// avis (décisions de l'équipe, avis-gestion.ts) sont posés dans cette même transaction (ajouterPointsDans de comptes.ts).
 import type { RaisonRelecture, StatutAvis, StatutReponseAvis } from "../../../../packages/commun/src/types/avis.ts";
 import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
@@ -11,6 +12,7 @@ import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } 
 import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import type { DepotAvis, LigneAvis, TablesAvis } from "./avis-regles.ts";
+import { ajouterPointsDans } from "./comptes.ts";
 import type { LigneVisite } from "./visites-regles.ts";
 
 type Client = Prisma.TransactionClient;
@@ -165,6 +167,10 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
     async changerStatutReponse(avisId, de, vers) {
       const { count } = await b.avis.updateMany({ where: { id: avisId, reponseStatut: de, reponseTexte: { not: null } }, data: { reponseStatut: vers } });
       return count === 1;
+    },
+    async poserPointsPhoto(compteId, points, detail) {
+      if (!enTransaction) throw new Error("Avis : points de la photo posés hors d'une transaction");
+      await ajouterPointsDans(b, compteId, points, "avis-photo", detail);
     },
   };
 }

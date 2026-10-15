@@ -3,6 +3,7 @@
 // jeton en « Authorization: Bearer » (comme l'app). Chaque demande a sa propre IP, sauf si le test en donne une. Un compte
 // supprimé (supprimerCompte, ou effacerCompte du double des comptes, route comprise) part aussi des tables sociales, avec les
 // cascades et les SET NULL de la base (oublierCompteEnMemoire). lireRole est celui du double pro (rattachements de test).
+// estLimite (compte limité par l'équipe) : absente par défaut, rien n'est refusé.
 import { randomBytes } from "node:crypto";
 import type { AddressInfo } from "node:net";
 
@@ -28,7 +29,7 @@ export type PersonneDeTest = {
 
 type OptionsPersonne = { pseudo?: string; prenom?: string; prive?: boolean; ville?: string; avatar?: string; sansPseudo?: boolean; sansProfil?: boolean };
 
-export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSocialAppEnMemoire, "prevenirCompte" | "tirer" | "partLibre" | "lireRole"> = {}) {
+export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSocialAppEnMemoire, "prevenirCompte" | "tirer" | "partLibre" | "lireRole" | "estLimite"> = {}) {
   const horloge = { maintenant: Date.parse("2026-10-14T10:00:00Z") };
   const lireHorloge = () => horloge.maintenant;
   const memoire = creerComptesEnMemoire(lireHorloge);

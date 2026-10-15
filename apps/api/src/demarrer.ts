@@ -132,6 +132,7 @@ const socialApp = creerDependancesSociales({
   chiffrement, prevenirCompte, contesterSignalement, lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), tirer: (max) => randomInt(max),
   // Disque des médias sous 15 % libres (B.12) : une ligne au journal du logiciel, une fois par heure au plus
   quandDisquePresquePlein: (part) => void noterAction("serveur", "Disque presque plein : envois de médias suspendus", `${Math.round(part * 100)} % libres`).catch((erreur: unknown) => console.error("Journal :", resumerErreur(erreur))),
+  estLimite: limitations.estLimite, // Compte limité par l'équipe : 403 compte-limite sur ce que les autres voient (routes/social-app.ts)
 });
 // Sorties : chaque minute, les votes échus reçoivent leur lieu retenu, et les participants sont prévenus (cloche et
 // téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma

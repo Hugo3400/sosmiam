@@ -22,16 +22,19 @@ import { listerComptes, type FiltresComptes } from "~/services/comptes.ts";
 import { lireSurveillance } from "~/services/surveillance.ts";
 import { FicheCompte } from "./FicheCompte.tsx";
 import { PastillesConnexion } from "./PastillesConnexion.tsx";
+import { PanneauLimitations } from "./PanneauLimitations.tsx";
 import { PanneauSurveillance } from "./PanneauSurveillance.tsx";
 
-type Props = { ouvrir?: { id: number } | null; surveillance?: Alertes["surveillance"]; onDecision: () => void };
+type Props = { ouvrir?: { id: number } | null; surveillance?: Alertes["surveillance"]; limitations?: Alertes["limitations"]; onDecision: () => void };
 
 /**
  * Tous les comptes SOS Miam (un seul par personne, pour l'app, l'espace ambassadeur et l'espace pro), et la surveillance
  * des visites : comptes et lieux signalés par les seuils, refus contestés.
  */
-export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
-  const [partie, setPartie] = useState<"comptes" | "signales" | "contestations">("comptes");
+export function EcranComptes({ ouvrir, surveillance, limitations, onDecision }: Props) {
+  const [partie, setPartie] = useState<"comptes" | "signales" | "contestations" | "limitations">("comptes");
+  // Les limitations chargent leurs propres données : « Actualiser » les recharge en remontant le panneau
+  const [tour, setTour] = useState(0);
   const [role, setRole] = useState<FiltresComptes["role"]>("");
   const [methode, setMethode] = useState<FiltresComptes["methode"]>("");
   const [lieu, setLieu] = useState<FiltresComptes["lieu"]>("");
@@ -44,7 +47,8 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
     if (ouvrir) setOuvert(ouvrir.id);
   }, [ouvrir]);
   const { donnees, erreur, chargement, recharger } = utiliserChargement(() => listerComptes({ recherche, role, page, methode, lieu }), [recherche, role, page, methode, lieu]);
-  const surveille = partie !== "comptes";
+  const surveille = partie === "signales" || partie === "contestations";
+  const tous = partie === "comptes";
   const suivi = utiliserChargement(() => (surveille ? lireSurveillance() : Promise.resolve(null)), [surveille]);
   // Après « vu », « relue » ou de nouveaux seuils : la liste se relit, et les pastilles du menu aussi
   const apresAction = () => {
@@ -65,7 +69,9 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
         titre="Comptes"
         sousTitre="Un seul compte par personne : l'app, l'espace ambassadeur et l'espace pro. Aucun mot de passe n'est visible ici, et les données sensibles restent chiffrées."
         actions={
-          surveille
+          partie === "limitations"
+            ? <Bouton icone={RotateCw} onClick={() => setTour((t) => t + 1)}>Actualiser</Bouton>
+            : surveille
             ? <Bouton icone={RotateCw} chargement={suivi.chargement && !!suivi.donnees} onClick={apresAction}>Actualiser</Bouton>
             : <Bouton icone={RotateCw} chargement={chargement && !!donnees} onClick={recharger}>Actualiser</Bouton>
         }
@@ -79,9 +85,11 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
             { valeur: "comptes", libelle: "Tous les comptes" },
             { valeur: "signales", libelle: "À surveiller", compteur: surveillance ? surveillance.comptes + surveillance.lieux : undefined },
             { valeur: "contestations", libelle: "Contestations", compteur: surveillance?.contestations },
+            { valeur: "limitations", libelle: "Limitations", compteur: limitations?.contestees || undefined },
           ]}
         />
       </div>
+      {partie === "limitations" && <PanneauLimitations key={tour} onOuvrir={setOuvert} onDecision={onDecision} />}
       {surveille && (
         <PanneauSurveillance
           vue={partie === "contestations" ? "contestations" : "signales"}
@@ -92,7 +100,7 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
           onOuvrir={setOuvert}
         />
       )}
-      {!surveille && donnees && (
+      {tous && donnees && (
         <div className="mb-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
           <TuileChiffre libelle="Comptes" valeur={donnees.total} accent />
           <TuileChiffre libelle="Sur l'app" valeur={donnees.compteurs.surApp ?? 0} detail="connectés depuis l'app, téléphone enregistré, Google ou Apple" />
@@ -100,7 +108,7 @@ export function EcranComptes({ ouvrir, surveillance, onDecision }: Props) {
           <TuileChiffre libelle="Inscrits par mail" valeur={donnees.compteurs.parMail ?? 0} detail={`${donnees.compteurs.parGoogle ?? 0} avec Google · ${donnees.compteurs.parApple ?? 0} avec Apple · ${donnees.compteurs.ambassadeurs} ambassadeurs`} />
         </div>
       )}
-      {!surveille && <Carte sansMarge titre={`Comptes${donnees ? ` (${formaterNombre(donnees.trouves)})` : ""}`}>
+      {tous && <Carte sansMarge titre={`Comptes${donnees ? ` (${formaterNombre(donnees.trouves)})` : ""}`}>
         <div className="flex flex-wrap items-end gap-4 border-b border-ligne px-5 py-4">
           <Onglets
             libelle="Rôle"
