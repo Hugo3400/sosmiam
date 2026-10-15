@@ -53,7 +53,8 @@ export default function EcranEvenementPro() {
   const [enCours, setEnCours] = useState(false);
   const [annulation, setAnnulation] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
-  // Compte limité : il ne publie plus pour le lieu (annuler un événement, lui, reste permis) ; dit en bas, jusqu'au prochain essai
+  // Compte limité : il ne publie plus pour le lieu, ni n'annule l'événement d'un collègue (les siens, oui) ; dit dans le bas
+  // fixe, au-dessus du bouton, jusqu'au prochain essai (dans le contenu, la phrase tomberait hors de vue)
   const [refusLimite, setRefusLimite] = useState<string | null>(null);
 
   // Modifier : l'événement est relu dans la liste du lieu (il n'existe pas de lecture d'un seul)
@@ -93,7 +94,9 @@ export default function EcranEvenementPro() {
 
   async function annuler() {
     if (!existant) return;
+    setRefusLimite(null);
     const r = await service.annulerEvenement(lieuId, existant.id);
+    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.annulerEvenement);
     if (!r.ok) return echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
     vibrerLegerement();
     router.back();
@@ -123,6 +126,7 @@ export default function EcranEvenementPro() {
       titre={existant ? "Modifier l'événement" : "Nouvel événement"}
       sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · sur ta fiche, dans Explorer, et chez qui te suit`}
       boutonPrincipal={{ libelle: enCours ? "Un instant…" : existant ? "Enregistrer" : "Publier l'événement", onPress: () => void enregistrer(), desactive: enCours }}
+      auDessusDuBouton={<RefusLimitationEnPlace texte={refusLimite} />}
     >
       <SectionReglages titre="L'essentiel">
         <View className="gap-4">
@@ -152,7 +156,6 @@ export default function EcranEvenementPro() {
       <SectionReglages titre="Prix et places">
         <ChampsTarifEvenement brouillon={b} onChanger={changer} erreurs={{ prixCentimes: message("prixCentimes"), places: message("places"), alcool: message("alcool") }} />
       </SectionReglages>
-      <RefusLimitationEnPlace texte={refusLimite} />
       {existant && existant.statut === "a-venir" ? (
         <View className="gap-2">
           <Text className="font-texte text-sm text-gris">{`${existant.interesses} personne${existant.interesses > 1 ? "s" : ""} intéressée${existant.interesses > 1 ? "s" : ""}${existant.publiePar ? ` · publié par ${existant.publiePar}` : ""}`}</Text>

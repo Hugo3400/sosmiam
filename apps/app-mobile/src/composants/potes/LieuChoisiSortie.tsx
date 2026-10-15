@@ -9,7 +9,8 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 type Props = {
   lieu: Lieu;
   image: ImageSourcePropType | null;
-  km: number;
+  /** Sa distance depuis ta ville ; null si on ne la connaît pas : rien ne s'affiche */
+  km: number | null;
   /** Votes qu'il a reçus */
   votes: number;
   onFiche: () => void;
@@ -28,7 +29,8 @@ export function LieuChoisiSortie({ lieu, image, km, votes, onFiche, onItineraire
         </Text>
         <Text className="font-texte-gras text-lg text-encre">{lieu.nom}</Text>
         <Text className="font-texte text-[15px] text-gris">
-          {lieu.info} · {lieu.quartier}, {lieu.ville} · {formaterDistance(km)}
+          {lieu.info} · {lieu.quartier}, {lieu.ville}
+          {km === null ? "" : ` · ${formaterDistance(km)}`}
         </Text>
         <Text className="font-texte text-sm text-gris">{lierPonctuation(detailVotes)}</Text>
         <View className="mt-3 flex-row gap-3">

@@ -16,7 +16,7 @@ import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import type { PorteeExplorer, ZonePortee } from "~/contenus/portee-explorer";
+import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
 import { direDansRegion } from "~/fonctions/geo/dire-dans-region";
@@ -124,7 +124,7 @@ export default function Explorer() {
 
   // En visite sans compte (âge inconnu), pas de bar, comme partout dans l'app
   const age = profil ? calculerAge(profil.dateNaissance) : null;
-  const { lieux: tousLesLieux } = utiliserLieux();
+  const { lieux: tousLesLieux, chargerZone } = utiliserLieux();
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
@@ -147,6 +147,16 @@ export default function Explorer() {
     return { portee };
   }, [filtres.ville, portee, position, pointDeDepart, rayon, region]);
   const cadre = useMemo(() => (zone ? calculerCadrePortee(zone) : null), [zone]);
+  // Sans zone, le serveur ne rend que 1 000 lieux : on lit aussi ceux de l'endroit regardé (autour de toi ou de la ville
+  // choisie jusqu'au bout du curseur, sinon ta région). Toute la France : la liste seule.
+  const zoneALire = useMemo(() => {
+    if (zone?.portee === "region") return cadre;
+    const autourDe = zone?.portee === "proche" ? zone.centre : filtres.ville ? centre : null;
+    return autourDe ? calculerCadrePortee({ portee: "proche", centre: autourDe, rayonKm: RAYON_PROCHE_KM.max }) : null;
+  }, [zone, cadre, filtres.ville, centre]);
+  useEffect(() => {
+    if (zoneALire) chargerZone(zoneALire);
+  }, [zoneALire, chargerZone]);
   // Filtre « Événements » : seulement les lieux qui en ont un sur la période (null tant que c'est coupé ou pas encore lu)
   const evenementsParLieu = utiliserEvenementsExplorer(filtres.evenement, age);
   const lieux = useMemo(() => {

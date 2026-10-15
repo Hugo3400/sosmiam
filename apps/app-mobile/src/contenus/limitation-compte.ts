@@ -18,16 +18,20 @@ export const TEXTES_LIMITATION = {
   explication: "L'explication de l'équipe",
   coupeTitre: "Ce qui attend la fin",
   /**
-   * Exactement ce que l'API refuse (ECRITURES_REFUSEES de apps/api/tests/limitation-inventaire-routes.test.ts, plus les
-   * avis vérifiés ou non (routes/avis.ts), les suggestions, le prénom, le pseudo et l'avatar, et dans l'espace pro ce que le
-   * lieu publie : fiche, carte, carte de fidélité, SOS du soir, message du moment, événements (créer, modifier), réponses aux
-   * avis, équipe). Arrêter le SOS, effacer le message et annuler un événement restent permis : c'est retirer, pas publier.
+   * Exactement ce que l'API refuse (apps/api/tests/limitation-inventaire-routes.test.ts : ECRITURES_REFUSEES pour la partie
+   * sociale, ECRITURES_REFUSEES_HORS_SOCIAL pour les avis et le comptoir, ECRITURES_CONDITIONNELLES_HORS_SOCIAL pour ce qui
+   * n'est refusé que dans certains cas), plus les suggestions et l'entrée dans une équipe (routes/comptes.ts), le prénom, le
+   * pseudo et l'avatar (controleurs/comptes-profil.ts), la fiche, la carte et l'invitation dans l'équipe (routes/pro.ts).
+   * Les trois cas tranchés par la session App le 15/10 (docs/decisions.md) : le petit mot d'une réservation, ce qui est à
+   * un collègue (son SOS, son événement) et le message du moment (il est au lieu, pas à son auteur) sont refusés ; éteindre
+   * la carte de fidélité sans rien y changer passe.
    */
   coupe:
-    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires, avis (vérifiés ou non), sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, et un nouveau prénom, pseudo ou avatar. En mode pro, publier pour ton lieu : sa fiche, sa carte, sa carte de fidélité, le SOS du soir, le message du moment, les événements et les réponses aux avis, et inviter dans ton équipe ou y entrer.",
+    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires (écrire, modifier), avis (vérifiés ou non), sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, un nouveau prénom, pseudo ou avatar, et le petit mot d'une demande de réservation. En mode pro, publier pour ton lieu : sa fiche, sa carte, le SOS du soir, le message du moment (l'afficher comme l'effacer), les événements (publier, modifier) et les réponses aux avis ; créer, rallumer ou modifier sa carte de fidélité ; arrêter le SOS ou annuler l'événement d'un collègue ; inviter dans ton équipe ou y entrer.",
   resteTitre: "Ce qui marche comme d'habitude",
+  /** Ce que l'API laisse passer (ECRITURES_PERMISES et ECRITURES_PERMISES_HORS_SOCIAL du même test), dit simplement */
   reste:
-    "Tout lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, tes missions d'ambassadeur…), le comptoir de ton lieu (valider les visites, répondre aux réservations), l'export de tes données et la suppression de ton compte.",
+    "Tout lire, valider tes visites, réserver une table (sans petit mot), Miam Safe, voter dans une sortie, mettre un J'aime à un commentaire, accepter ou refuser une invitation ou une demande, suivre une liste, signaler, bloquer, masquer, quitter, retirer quelqu'un de ta sortie ou de ton groupe, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, demander à gérer un lieu, tes missions d'ambassadeur…), l'export de tes données et la suppression de ton compte. En mode pro : le comptoir de ton lieu (valider les visites, répondre aux réservations), arrêter ton propre SOS, annuler tes propres événements et éteindre la carte de fidélité telle quelle.",
   contesterTitre: "Pas d'accord ?",
   contester: "Dis-nous pourquoi : une seule fois, tant que la limitation dure. Une autre personne de l'équipe que celle qui a décidé relit tout.",
   contestationAVenir: "Tu pourras la contester dès qu'elle commence.",
@@ -62,13 +66,33 @@ export const REFUS_LIMITATION = {
   suivre: "Ton compte est limité : suivre quelqu'un attendra la fin de la limitation.",
   suggestion: "Ton compte est limité : les suggestions sur la fiche d'un lieu sont en pause pour l'instant.",
   ficheLieu: "Ton compte est limité : la fiche et la carte de ton lieu attendront la fin de la limitation.",
-  fidelite: "Ton compte est limité : la carte de fidélité de ton lieu attendra la fin de la limitation.",
+  /** Éteindre la carte sans rien y changer passe toujours (choix de la session App du 15/10/2026) */
+  fidelite: "Ton compte est limité : créer, rallumer ou modifier la carte de fidélité attendra la fin de la limitation. L'éteindre telle quelle, tu peux toujours.",
   sosDuSoir: "Ton compte est limité : lancer le SOS du soir attendra la fin de la limitation.",
+  /** Le SOS d'un collègue est aux autres ; le sien s'arrête toujours (choix de la session App du 15/10/2026) */
+  arreterSos: "Ton compte est limité : arrêter le SOS d'un collègue attendra la fin de la limitation. Le tien, tu peux toujours l'arrêter.",
   messageMoment: "Ton compte est limité : afficher un message du moment attendra la fin de la limitation.",
+  /** Le message du moment ne garde pas son auteur : il est au lieu, donc aux autres (choix de la session App du 15/10/2026) */
+  effacerMessage: "Ton compte est limité : effacer le message du moment attendra la fin de la limitation.",
   evenement: "Ton compte est limité : publier ou modifier un événement attendra la fin de la limitation.",
+  /** L'événement d'un collègue est aux autres ; les siens s'annulent toujours (choix de la session App du 15/10/2026) */
+  annulerEvenement: "Ton compte est limité : annuler l'événement d'un collègue attendra la fin de la limitation. Les tiens, tu peux toujours les annuler.",
   // Prêts pour l'écran d'avis et les réponses du mode pro, pas encore dans l'app (avis/[visiteId] est provisoire)
   avis: "Ton compte est limité : les avis (vérifiés ou non) sont en pause pour l'instant.",
   reponseAvis: "Ton compte est limité : répondre aux avis attendra la fin de la limitation.",
+  // Prêt pour l'écran de réservation (lieu/[id]/reserver est provisoire) : le petit mot est un texte libre que lit le lieu,
+  // refusé à un compte limité ; sans mot, la demande passe comme d'habitude (choix de la session App du 15/10/2026)
+  petitMot: "Ton compte est limité : le petit mot au lieu attendra la fin de la limitation. Envoie ta demande sans petit mot, elle part comme d'habitude.",
+} as const;
+
+/** Sous une bulle qui n'est pas partie (PauseMessageLimite) : de quoi voir pourquoi, et la retirer du téléphone */
+export const BULLE_EN_PAUSE = {
+  voirPourquoi: "Voir pourquoi",
+  indiceVoirPourquoi: "Ouvre les décisions de la modération",
+  retirer: "Retirer",
+  retirerLu: "Retirer ce message",
+  indiceRetirer: "Il n'est jamais parti : il disparaît de ton téléphone",
+  retire: "Message retiré.",
 } as const;
 
 /** Le haut d'un refus montré en carte (emoji, titre, puis la phrase du geste de REFUS_LIMITATION) */

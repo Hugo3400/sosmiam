@@ -397,7 +397,7 @@ export default function PourToi() {
                   km={km}
                   largeur={taille.largeur}
                   hauteur={taille.hauteur}
-                  raison={profil ? trouverRaisonLieu({ ...lieu, km }, profil) : null}
+                  raison={profil ? trouverRaisonLieu(lieu, profil, km) : null}
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
                   suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}

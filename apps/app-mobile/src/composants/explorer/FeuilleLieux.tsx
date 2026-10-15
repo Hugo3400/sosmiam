@@ -217,10 +217,12 @@ export function FeuilleLieux(props: Props) {
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
   const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu) : false;
+  // Distance inconnue (lieu pas encore placé) : rien, jamais « 0 km »
+  const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? formaterDistance(lieuSelectionne.km) : null;
   const luSelection = lieuSelectionne
     ? [
         `Sélectionné sur la carte : ${lieuSelectionne.lieu.nom}, ${lieuSelectionne.lieu.info}`,
-        `À ${formaterDistance(lieuSelectionne.km)}, ${ouvertSelection ? "ouvert en ce moment" : "fermé en ce moment"}`,
+        `${distanceSelection ? `À ${distanceSelection}, ` : ""}${ouvertSelection ? "ouvert en ce moment" : "fermé en ce moment"}`,
         lieuSelectionne.lieu.sos ? `SOS : ${lieuSelectionne.lieu.sos.places} place${lieuSelectionne.lieu.sos.places > 1 ? "s" : ""} ce soir` : null,
         "Voir la fiche",
       ]
@@ -297,7 +299,7 @@ export function FeuilleLieux(props: Props) {
                 >
                   <VignetteLieu lieu={lieuSelectionne.lieu} image={vignettes.get(lieuSelectionne.lieu.id) ?? null} hauteur={52} arrondi={12} />
                   <View className="flex-1">
-                    <Text className="font-texte-semi text-xs text-gris">📍 Sélection · {formaterDistance(lieuSelectionne.km)}</Text>
+                    <Text className="font-texte-semi text-xs text-gris">📍 Sélection{distanceSelection ? ` · ${distanceSelection}` : ""}</Text>
                     <Text numberOfLines={1} className="font-texte-gras text-base text-encre">{lieuSelectionne.lieu.nom}</Text>
                     <Text className="font-texte-gras text-[13px] text-encre underline">Voir la fiche →</Text>
                   </View>

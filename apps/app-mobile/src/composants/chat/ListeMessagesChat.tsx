@@ -190,7 +190,6 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
   const confidentialite = prive ? `🔒 Rien qu'entre ${prive} et toi.` : "🔒 Seuls les membres de la conversation voient ces messages.";
 
-  const { demo } = utiliserCommunaute();
   const { chargerPlusAnciens } = utiliserConversations();
   const plusAnciens = conversation.plusAnciens === true;
   const enTete = useMemo(
@@ -209,7 +208,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
             <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
           </Pressable>
         ) : null}
-        {demo ? <BandeauDemoPotes /> : null}
+        <BandeauDemoPotes />
         <Text
           accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler.`}
           className="text-center font-texte text-[13px] leading-[18px] text-gris"
@@ -218,7 +217,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
         </Text>
       </View>
     ),
-    [confidentialite, demo, plusAnciens, chargerPlusAnciens, conversationId],
+    [confidentialite, plusAnciens, chargerPlusAnciens, conversationId],
   );
 
   const vide = useMemo(

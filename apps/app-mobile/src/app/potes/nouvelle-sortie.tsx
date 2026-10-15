@@ -195,9 +195,7 @@ export default function NouvelleSortie() {
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
             {lierPonctuation("Tu proposes des lieux, la bande vote, et tout le monde se retrouve au bon endroit. Simple, non ?")}
           </Text>
-          <View className="mb-6">
-            <BandeauDemoPotes />
-          </View>
+          <BandeauDemoPotes className="mb-6" />
 
           <SectionReglages titre="Le nom">
             <View className="gap-4 pt-2">

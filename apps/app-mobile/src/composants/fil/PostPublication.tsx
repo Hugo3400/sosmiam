@@ -31,8 +31,8 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   publication: Publication;
   lieu: Lieu;
-  /** Distance du lieu depuis ta ville, en km (un nombre : la publication est mémorisée) */
-  km: number;
+  /** Distance du lieu depuis ta ville, en km (un nombre : la publication est mémorisée) ; null si on ne la connaît pas : rien ne s'affiche */
+  km: number | null;
   largeur: number;
   hauteur: number;
   /** « Parce que tu aimes les restos »… */
@@ -207,7 +207,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     lieu.alerte,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
     raison,
-    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}, à ${formaterDistance(km)}, ${lieu.prix}`,
+    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}${km === null ? "" : `, à ${formaterDistance(km)}`}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
   const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
@@ -342,7 +342,8 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
               <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
-                📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
+                📍 {lieu.quartier}, {lieu.ville}
+                {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
               </Text>
             </View>
             {alcool ? <MentionPrevention variante="sur-image" /> : null}

@@ -7,13 +7,18 @@ import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 
 /**
  * Vrai si le lieu est dans la zone regardée par Explorer :
- * - à quelques km : à vol d'oiseau depuis ta position ou ta ville (sa distance d'exemple si on ne connaît ni l'une ni l'autre) ;
+ * - à quelques km : à vol d'oiseau depuis ta position ou ta ville ; un lieu pas encore placé sur la carte n'y est jamais
+ *   (on ne sait pas où il est, donc pas « près de toi »). Sans position ni ville connue : la distance d'exemple (démo),
+ *   sinon tout passe (on ne sait pas où tu es, comme une région inconnue) ;
  * - ta région : la région de sa ville si on la connaît, sinon le rectangle de la région (région inconnue : tout passe) ;
  * - toute la France : toujours.
  */
 export function estDansPortee(lieu: Lieu, zone: ZonePortee): boolean {
   if (zone.portee === "france") return true;
-  if (zone.portee === "proche") return calculerKmLieu(lieu, zone.centre) <= zone.rayonKm;
+  if (zone.portee === "proche") {
+    const km = calculerKmLieu(lieu, zone.centre);
+    return km === null ? zone.centre === null : km <= zone.rayonKm;
+  }
   if (zone.region === null) return true;
   const ville = trouverVilleFrance(lieu.ville);
   if (ville) return ville.region === zone.region;

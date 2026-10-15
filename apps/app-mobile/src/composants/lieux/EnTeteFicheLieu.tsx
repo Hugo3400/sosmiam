@@ -22,8 +22,8 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 
 type Props = {
   lieu: Lieu;
-  /** Distance du lieu depuis ta ville, en km (un nombre : l'en-tête est mémorisé) */
-  km: number;
+  /** Distance du lieu depuis ta ville, en km (un nombre : l'en-tête est mémorisé) ; null si on ne la connaît pas : rien ne s'affiche */
+  km: number | null;
   /** Hauteur de la zone de l'heure et de l'encoche, en haut de l'écran */
   margeHaut: number;
   onEnvoyer: () => void;
@@ -81,7 +81,8 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, margeHa
           {lieu.nom}
         </Text>
         <Text className="font-texte-moyen text-base text-gris">
-          {lieu.info} · 📍 {lieu.quartier}, {lieu.ville} · {formaterDistance(km)} · {lieu.prix}
+          {lieu.info} · 📍 {lieu.quartier}, {lieu.ville}
+          {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
         {verifie ? null : <CarteLieuNonVerifie lieu={lieu} />}

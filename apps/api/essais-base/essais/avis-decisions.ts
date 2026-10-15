@@ -105,6 +105,7 @@ egal([await points(AUTEUR), (await journal(AUTEUR)).length], [avantLot - 10 * ma
 const a4 = await ecrireAvis(AUTEUR, { photo: "photo-4.jpg" });
 const depotDouble: DepotAvis = {
   lire: depot.lire,
+  dans: depot.dans,
   ecrire: (fn) => depot.ecrire((t) => fn({
     ...t,
     async changerStatutAvis(avisId, de, vers) {

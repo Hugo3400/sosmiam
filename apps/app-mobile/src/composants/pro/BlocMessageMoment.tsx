@@ -20,15 +20,17 @@ type Props = {
   /** Rend le champ refusé, « refuse » (pas affiché, l'écran a dit pourquoi : le texte reste), ou null si c'est affiché */
   onAfficher: (message: ReglageMessageMoment) => Promise<ChampMessage | "refuse" | null>;
   onEffacer: () => void;
-  /** Compte limité : pourquoi le dernier geste n'est pas parti, dit au-dessus du bouton */
+  /** Compte limité : pourquoi le dernier message n'est pas parti, dit au-dessus du bouton */
   refusLimite: string | null;
+  /** Compte limité : pourquoi le message en place n'est pas effacé, dit au-dessus d'« Effacer le message » */
+  refusEffacer: string | null;
 };
 
 /**
  * Le message du moment (« Happy hour jusqu'à 20 h ») : 80 caractères, affiché sur la fiche du lieu jusqu'à l'heure choisie
  * (24 h au plus), puis effacé tout seul. Un message en place peut être remplacé ou effacé.
  */
-export function BlocMessageMoment({ moment, enCours, refusLimite, onAfficher, onEffacer }: Props) {
+export function BlocMessageMoment({ moment, enCours, refusLimite, refusEffacer, onAfficher, onEffacer }: Props) {
   const [texte, setTexte] = useState("");
   const durees = listerDureesMessage(new Date(), moment.fermeture);
   const [duree, setDuree] = useState<string | null>(durees[0]?.cle ?? null);
@@ -49,6 +51,7 @@ export function BlocMessageMoment({ moment, enCours, refusLimite, onAfficher, on
         <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
           <Text className="font-texte-gras text-base text-encre">{`📣 « ${actuel.texte} »`}</Text>
           <Text className="font-texte text-sm text-gris">{actuel.jusqua ? `Affiché sur ta fiche jusqu'à ${ecrireHeure(actuel.jusqua)}.` : "Affiché sur ta fiche par l'équipe SOS Miam."}</Text>
+          <RefusLimitationEnPlace texte={refusEffacer} />
           <Bouton libelle="Effacer le message" variante="blanc" petit desactive={enCours} onPress={onEffacer} />
         </View>
       ) : (

@@ -1,7 +1,8 @@
 // SOS « place ce soir » et message du moment, par l'équipe du lieu (voir routes/comptoir.ts). Le gérant et l'équipe peuvent les
 // régler ; un SOS par jour (jour de Paris), jusqu'à la fermeture ; un message qui s'efface tout seul, 24 h au plus.
 // Compte limité (décision de Hugo du 15 octobre 2026) : il arrête son propre SOS, jamais celui d'un collègue (le SOS garde
-// qui l'a lancé) ; lancer un SOS et le message du moment sont refusés sur la route (routes/comptoir.ts).
+// qui l'a lancé), même lancé pendant qu'il arrête le sien ; lancer un SOS et le message du moment sont refusés sur la route
+// (routes/comptoir.ts).
 import type { Request, RequestHandler, Response } from "express";
 
 import { calculerFermetureDuJour } from "../../../../packages/commun/src/fonctions/lieux/calculer-fermeture-du-jour.ts";
@@ -113,11 +114,15 @@ export function creerControleursMomentLieu(
       const lieuId = await lieuDeLEquipe(requete, reponse);
       if (lieuId === null) return;
       const maintenant = new Date(horloge());
+      const moi = lireCompteId(reponse);
       // Le SOS d'un collègue (ou d'un compte supprimé depuis) est aux autres : un compte limité ne l'arrête pas (403
-      // compte-limite) ; le sien, oui. Sans SOS en cours, rien à arrêter : ça passe
+      // compte-limite, même si le sien est en cours aussi : rien n'est arrêté) ; non limité, tout s'arrête. Sans SOS d'un
+      // autre (le sien, ou rien : ça passe), le compte n'est pas relu et seuls les siens s'arrêtent : un SOS qu'un collègue
+      // lance entre cette lecture et l'arrêt reste en cours, même si c'est un compte limité qui arrête
       const auteurs = await services.lireAuteursSosEnCours(lieuId, maintenant);
-      if (auteurs.some((auteur) => auteur !== lireCompteId(reponse)) && (await refuserSiLimiteIci(refuserSiLimite, requete, reponse))) return;
-      await services.arreterSos(lieuId, maintenant);
+      const unAutre = auteurs.some((auteur) => auteur !== moi);
+      if (unAutre && (await refuserSiLimiteIci(refuserSiLimite, requete, reponse))) return;
+      await services.arreterSos(lieuId, maintenant, unAutre ? undefined : moi);
       await repondre(reponse, lieuId);
     },
 

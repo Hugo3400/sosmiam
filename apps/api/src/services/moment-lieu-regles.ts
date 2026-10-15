@@ -16,8 +16,11 @@ export interface ServicesMomentLieu {
    * supprimé son compte depuis ; [] sans SOS en cours. Pour un compte limité, qui n'arrête que le sien
    */
   lireAuteursSosEnCours(lieuId: number, maintenant: Date): Promise<(number | null)[]>;
-  /** Arrête le SOS en cours, s'il y en a un */
-  arreterSos(lieuId: number, maintenant: Date): Promise<void>;
+  /**
+   * Arrête les SOS en cours, s'il y en a. seulementDe : seulement ceux que ce compte a lancés (un SOS qu'un collègue lance
+   * entre la lecture des auteurs et l'arrêt reste en cours, voir controleurs/moment-lieu.ts) ; absent : tous
+   */
+  arreterSos(lieuId: number, maintenant: Date, seulementDe?: number): Promise<void>;
   /** Pose (ou efface, avec null) le message du moment */
   reglerMessage(lieuId: number, message: { texte: string; jusqua: Date } | null): Promise<void>;
 }

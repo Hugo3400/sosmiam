@@ -60,7 +60,19 @@ test("un avis par visite, signé « Prénom I. », daté au mois, visible tout d
   assert.equal(b.donnees.visites[0]!.avisDonne, true);
   const publics = (await b.demander("GET", "/app/avis/lieux/1")).corps;
   assert.deepEqual(publics.avis, [r.corps.avis]);
-  assert.deepEqual(b.points, []);
+  // Sans photo, pas de points : rien au journal, rien sur le compte
+  assert.deepEqual([b.donnees.pointsPhoto, b.donnees.pointsComptes.has(lea.id)], [[], false]);
+});
+
+test("verrous : le compte de l'auteur est verrouillé avant de lire sa visite, de la marquer et de poser ses points", async () => {
+  const lea = await b.creerCompte({ nom: "Martin" });
+  const visite = b.creerVisite(lea.id, 1);
+  b.banc.horloge += 2 * HEURE;
+  const r = await donner(lea.jeton, { visiteId: visite, photo: `photo-${lea.id}.jpg` });
+  assert.deepEqual([r.statut, r.corps.pointsGagnes], [201, 10], JSON.stringify(r.corps));
+  // Comme dans la base : le verrou du compte d'abord (un masquage ou un autre avis du même compte attend son tour), puis
+  // la visite relue, marquée « avis donné », et les +10 de la photo
+  assert.deepEqual(b.gestes, [`verrouillerCompte ${lea.id}`, `lireVisite ${visite}`, `marquerAvisDonne ${visite}`, `poserPointsPhoto ${lea.id}`]);
 });
 
 test("signature : « Prénom I. » avec un nom, prénom seul sinon, jamais l'âge", async () => {
@@ -166,7 +178,8 @@ test("avis non vérifié : seulement chez un lieu non vérifié, sans points, un
   const r = await nonVerifie(lea.jeton, { photo: `photo-${lea.id}.jpg` });
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   assert.deepEqual([r.corps.pointsGagnes, r.corps.avis.verifie, r.corps.avis.preuve, r.corps.avis.signature, r.corps.avis.repasOffert], [0, false, null, "Léa M.", false]);
-  assert.deepEqual(b.points, []);
+  // Même avec une photo : rien au journal des points, rien sur le compte
+  assert.deepEqual([b.donnees.pointsPhoto, b.donnees.pointsComptes.has(lea.id)], [[], false]);
 
   b.banc.horloge += 29 * b.JOUR;
   const recent = await nonVerifie(lea.jeton, { note: 2 });

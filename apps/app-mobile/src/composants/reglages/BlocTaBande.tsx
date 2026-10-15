@@ -25,7 +25,8 @@ const INTERRUPTEURS: readonly { cle: keyof ReglagesSociaux; emoji: string; titre
     cle: "pushSocial",
     emoji: "🔔",
     titre: "Notifications de ma bande",
-    detail: "Messages, sorties et nouveaux potes, sur ton téléphone. Les messages arrivent toujours ; le reste, une fois par jour au plus.",
+    // Éteint, l'API ne pousse plus rien de social (messages compris) ; la cloche et les conversations, elles, se remplissent
+    detail: "Messages, sorties et nouveaux potes, sur ton téléphone. Éteint, rien de ta bande n'y arrive, messages compris : tu retrouves tout en ouvrant l'app.",
   },
 ];
 

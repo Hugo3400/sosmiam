@@ -28,8 +28,10 @@ export function creerMomentLieuEnMemoire(prenoms: (compteId: number) => string |
     async lireAuteursSosEnCours(lieuId, maintenant) {
       return sos.filter((s) => s.lieuId === lieuId && !s.arreteLe && s.jusqua > maintenant).map((s) => s.compteId);
     },
-    async arreterSos(lieuId, maintenant) {
-      for (const s of sos) if (s.lieuId === lieuId && !s.arreteLe && s.jusqua > maintenant) s.arreteLe = maintenant;
+    async arreterSos(lieuId, maintenant, seulementDe) {
+      for (const s of sos) {
+        if (s.lieuId === lieuId && !s.arreteLe && s.jusqua > maintenant && (seulementDe === undefined || s.compteId === seulementDe)) s.arreteLe = maintenant;
+      }
     },
     async reglerMessage(lieuId, message) {
       const lieu = lieux.get(lieuId);

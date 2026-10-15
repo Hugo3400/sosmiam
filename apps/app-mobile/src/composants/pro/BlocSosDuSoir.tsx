@@ -22,8 +22,10 @@ type Props = {
   /** Rend le champ refusé, « refuse » (pas parti, l'écran a dit pourquoi), ou null si c'est parti */
   onLancer: (sos: LancementSos) => Promise<ChampSos | "refuse" | null>;
   onArreter: () => void;
-  /** Compte limité : pourquoi le dernier geste n'est pas parti, dit au-dessus du bouton */
+  /** Compte limité : pourquoi le SOS n'est pas lancé, dit au-dessus du bouton */
   refusLimite: string | null;
+  /** Compte limité : pourquoi le SOS d'un collègue n'est pas arrêté, dit au-dessus d'« Arrêter le SOS » */
+  refusArreter: string | null;
 };
 
 const ERREURS: Record<ChampSos, string> = {
@@ -36,7 +38,7 @@ const ERREURS: Record<ChampSos, string> = {
  * Le SOS « place ce soir » : un par jour, jusqu'à la fermeture (ou plus tôt). Lancé, il montre ses places, son offre et
  * jusqu'à quand, avec « Arrêter le SOS » ; arrêté ou fini, il dit qu'on se retrouve demain.
  */
-export function BlocSosDuSoir({ moment, enCours, refusLimite, onLancer, onArreter }: Props) {
+export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLancer, onArreter }: Props) {
   const [places, setPlaces] = useState(4);
   const [offre, setOffre] = useState("");
   const fins = listerFinsCeSoir(new Date(), moment.fermeture);
@@ -53,6 +55,7 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, onLancer, onArrete
           {lierPonctuation(`${sos.places} place${sos.places > 1 ? "s" : ""} à remplir jusqu'à ${ecrireHeure(sos.jusqua)}${sos.offre ? ` · ${sos.offre}` : ""}.`)}
         </Text>
         <Text className="font-texte text-sm text-encre/75">{`Lancé à ${ecrireHeure(sos.lanceLe)}${sos.lancePar ? ` par ${sos.lancePar}` : ""}. Les gourmands du coin le voient dans l'app.`}</Text>
+        <RefusLimitationEnPlace texte={refusArreter} />
         <Bouton libelle="Arrêter le SOS" variante="blanc" desactive={enCours} onPress={() => setConfirmation("arreter")} />
         <FeuilleConfirmation
           visible={confirmation === "arreter"}

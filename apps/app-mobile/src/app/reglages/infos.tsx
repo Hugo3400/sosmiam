@@ -35,6 +35,10 @@ const REGLES_PSEUDO =
 // Ce que dit le serveur pendant la saisie (mêmes phrases que ses refus à l'enregistrement)
 const PSEUDO_PRIS = decrireRefusInfos("pseudo-pris").texte;
 const PSEUDO_MIS_DE_COTE = decrireRefusInfos("pseudo-mis-de-cote").texte;
+// Sans compte (la démo, ou un profil d'avant les comptes), personne ne vérifie le pseudo : on dit où il l'est pour de vrai
+const PSEUDO_SANS_COMPTE = DEMO_VISITES_ACTIVE
+  ? "En démo, il reste sur ton téléphone : avec un vrai compte, on vérifie qu'il est libre pendant que tu tapes."
+  : "Sans compte, il reste sur ce téléphone : c'est avec un compte qu'on vérifie qu'il est libre.";
 // Clavier sans accents ni emoji sur iPhone, sans suggestions sur Android
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
 // Avec un compte, la date est gardée chiffrée sur le serveur : seule l'équipe la corrige, sur demande (docs/decisions.md)
@@ -140,9 +144,7 @@ export default function ReglagesInfos() {
   const montrerErreurPseudo = pseudoQuitte || /[^a-z0-9._]/.test(pseudoNettoye);
   const messagePseudo = (montrerErreurPseudo ? erreurPseudoLocale : null) ?? erreurPseudoServeur ?? (refusPseudo && !refusPseudo.bloquant ? refusPseudo.texte : null);
   const aidePseudo = !avecCompte
-    ? pseudoActuel
-      ? "C'est avec lui que tes potes te trouvent (ton lien d'invitation et ton QR code suivront s'il change). On vérifiera qu'il est bien libre quand les comptes arriveront."
-      : "Tu n'en as pas encore : choisis-en un pour que tes potes te trouvent. 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas. On vérifiera qu'il est bien libre quand les comptes arriveront."
+    ? lierPonctuation(`${pseudoActuel ? "C'est avec lui que tes potes te trouvent (ton lien d'invitation et ton QR code suivront s'il change)." : "Tu n'en as pas encore : choisis-en un pour que tes potes te trouvent. 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas."} ${PSEUDO_SANS_COMPTE}`)
     : lierPonctuation(
         disponibilite === "verification"
           ? MESSAGES_INFOS.pseudoVerification

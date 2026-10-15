@@ -4,8 +4,10 @@
 // (POST, PUT, PATCH, DELETE) : soit refusée (refuserSiLimite, après la session et la limite par compte, avant le profil
 // social et le corps d'un média), soit permise (liste explicite, avec la raison). Une route nouvelle et pas encore rangée
 // fait échouer le test : il faut la mettre dans l'une des deux listes. Les lectures ne sont jamais refusées. Même inventaire,
-// plus bas, pour les routeurs montés à part par application.ts : les avis (routes/avis.ts), les visites, la fidélité et le
-// comptoir de l'équipe (routes/visites.ts et routes/comptoir.ts : ce que le lieu publie est refusé, le comptoir reste permis).
+// plus bas, pour les routeurs montés à part par application.ts : les avis (routes/avis.ts), les visites, la fidélité, les
+// réservations (routes/reservations.ts) et le comptoir de l'équipe (routes/visites.ts et routes/comptoir.ts : ce que le lieu
+// publie est refusé, le comptoir reste permis), avec une troisième liste : les écritures CONDITIONNELLES, refusées seulement
+// dans certains cas (un petit mot, ce qui est à un collègue, un programme qu'on ne fait pas qu'éteindre).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -15,6 +17,7 @@ import { creerSignatureQr } from "../src/fonctions/securite/creer-signature-qr.t
 import { creerProtectionComptes, creerStockageSessionsComptesEnMemoire } from "../src/middlewares/proteger-comptes.ts";
 import { creerRefuserSiLimite } from "../src/middlewares/refuser-si-limite.ts";
 import { creerRoutesAvisApp } from "../src/routes/avis.ts";
+import { creerRoutesReservationsApp } from "../src/routes/reservations.ts";
 import { creerRoutesSocialesApp } from "../src/routes/social-app.ts";
 import { creerRoutesVisites } from "../src/routes/visites.ts";
 import { creerAvisEnMemoire } from "../src/services/avis-en-memoire.ts";
@@ -105,16 +108,17 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["POST /app/moderation/:id/contestation", "contester une décision"],
 ]);
 
-/** Hors de la pile sociale (avis, visites, fidélité, comptoir) : ce que les autres verraient, refusé à un compte limité */
+/** Hors de la pile sociale (avis, visites, fidélité, réservations, comptoir) : ce que les autres verraient, refusé à un compte limité */
 const ECRITURES_REFUSEES_HORS_SOCIAL = [
   // Un avis, vérifié ou non : il se lit sur la page du lieu
   "POST /app/avis",
   "POST /app/avis/non-verifie",
-  // Ce que le lieu publie (décision de Hugo du 15/10/2026, espace pro) : la récompense de fidélité que voient les clients,
-  // le SOS du soir, le message du moment, ses événements, sa réponse à un avis
-  "PUT /pro/comptoir/lieux/:id/programme",
+  // Ce que le lieu publie (décision de Hugo du 15/10/2026, espace pro) : le SOS du soir, le message du moment, ses
+  // événements, sa réponse à un avis
   "POST /pro/comptoir/lieux/:id/sos",
   "PUT /pro/comptoir/lieux/:id/message",
+  // Le message du moment ne garde pas qui l'a écrit : il est au lieu, donc aux autres (les collègues non limités l'effacent)
+  "DELETE /pro/comptoir/lieux/:id/message",
   "POST /pro/comptoir/lieux/:id/evenements",
   "PUT /pro/comptoir/lieux/:id/evenements/:evenementId",
   "POST /pro/comptoir/avis/:avisId/reponse",
@@ -135,14 +139,26 @@ const ECRITURES_PERMISES_HORS_SOCIAL = new Map<string, string>([
   ["POST /pro/comptoir/visites/:visiteId/refuser", "le comptoir : refuser une visite (motif d'une liste fermée)"],
   ["POST /pro/comptoir/visites/:visiteId/annuler", "le comptoir : annuler une validation faite par erreur"],
   ["POST /pro/comptoir/recompenses/:demandeId/offrir", "le comptoir : offrir la récompense d'un client"],
-  ["DELETE /pro/comptoir/lieux/:id/sos", "arrêter le SOS (retirer ce qui est publié)"],
-  ["DELETE /pro/comptoir/lieux/:id/message", "effacer le message du moment"],
-  ["DELETE /pro/comptoir/lieux/:id/evenements/:evenementId", "annuler un événement (retirer ce qui est publié)"],
   ["POST /pro/comptoir/reservations/:reservationId/accepter", "répondre à une réservation"],
   ["POST /pro/comptoir/reservations/:reservationId/refuser", "répondre à une réservation (motif d'une liste fermée)"],
   ["POST /pro/comptoir/reservations/:reservationId/annuler", "annuler une réservation acceptée (motif d'une liste fermée)"],
   ["POST /pro/comptoir/reservations/:reservationId/venu", "le client est arrivé : sa visite se valide"],
   ["POST /pro/comptoir/reservations/:reservationId/absent", "« Pas venu »"],
+  ["POST /app/reservations/:id/annuler", "annuler sa réservation"],
+  ["POST /app/reservations/:id/presence", "« Je suis là » : une visite"],
+]);
+
+/**
+ * Hors de la pile sociale : les écritures refusées à un compte limité seulement dans certains cas (choix de la session App
+ * du 15/10/2026, docs/decisions.md). « route » : refuserSiLimiteSi (middlewares/refuser-si-limite-selon.ts) sur la route,
+ * à la place de refuserSiLimite ; « controleur » : rien sur la route, le contrôleur décide après le rôle et la ressource
+ * relue (refuserSiLimiteIci), testé par la route dans limitation-routes-avis-comptoir.test.ts.
+ */
+const ECRITURES_CONDITIONNELLES_HORS_SOCIAL = new Map<string, { ou: "route" | "controleur"; quand: string }>([
+  ["POST /app/reservations", { ou: "route", quand: "refusée avec un petit mot non vide (texte libre que lit le lieu) ; sans mot, une visite comme les autres" }],
+  ["PUT /pro/comptoir/lieux/:id/programme", { ou: "controleur", quand: "l'éteindre sans rien y changer passe ; le créer, le rallumer ou changer la récompense est refusé" }],
+  ["DELETE /pro/comptoir/lieux/:id/sos", { ou: "controleur", quand: "arrêter son propre SOS passe ; celui d'un collègue est refusé" }],
+  ["DELETE /pro/comptoir/lieux/:id/evenements/:evenementId", { ou: "controleur", quand: "annuler son propre événement passe ; celui d'un collègue est refusé" }],
 ]);
 
 /** Les middlewares reconnus par leur nom (les limites et la clé 🔐 sont anonymes) */
@@ -294,15 +310,17 @@ function construireHorsSocial() {
   const visites = creerVisitesEnMemoire();
   const avis = creerAvisEnMemoire();
   const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
-  const routesVisites = creerRoutesVisites({
+  const dependances = {
     depot: visites.depot, chiffrement, signerQr: creerSignatureQr(new Uint8Array(32).fill(3)), tirer: () => 1234,
     lireRole: async () => null, ajouterPoints: async () => {}, moment: creerMomentLieuEnMemoire().services,
     statistiques: creerStatistiquesLieuEnMemoire().services, evenements: creerEvenementsEnMemoire().services, avis: { depot: avis.depot },
-  }, protection, limiteConnectee, Date.now, exigerMajeur, refuserSiLimite);
+  };
+  const routesVisites = creerRoutesVisites(dependances, protection, limiteConnectee, Date.now, exigerMajeur, refuserSiLimite);
   const routeurs: [string, unknown][] = [
     ["/app/avis", creerRoutesAvisApp({ depot: avis.depot, chiffrement, tirer: () => 0 }, protection, limiteConnectee, Date.now, refuserSiLimite)],
     ["/app/visites", routesVisites.visites],
     ["/app/fidelite", routesVisites.fidelite],
+    ["/app/reservations", creerRoutesReservationsApp(dependances, protection, limiteConnectee, Date.now, refuserSiLimite)],
     ["/pro/comptoir", routesVisites.comptoir],
   ];
   return routeurs.flatMap(([prefixe, routeur]) => parcourirPlat(routeur as { stack: Couche[] }, prefixe));
@@ -311,16 +329,16 @@ function construireHorsSocial() {
 const routesHorsSocial = construireHorsSocial();
 const ecrituresHorsSocial = routesHorsSocial.filter((r) => estEcriture(r.cle));
 
-test("inventaire des avis, des visites et du comptoir : chaque écriture est rangée, refusée ou permise", () => {
+test("inventaire des avis, des visites, des réservations et du comptoir : chaque écriture est rangée, refusée, permise ou conditionnelle", () => {
   assert.ok(ecrituresHorsSocial.length > 25, `les routeurs ont été trouvés (${ecrituresHorsSocial.length} écritures)`);
   const cles = new Set(ecrituresHorsSocial.map((r) => r.cle));
   assert.equal(cles.size, ecrituresHorsSocial.length, "aucune écriture en double");
-  const nonRangees = [...cles].filter((cle) => !ECRITURES_REFUSEES_HORS_SOCIAL.includes(cle) && !ECRITURES_PERMISES_HORS_SOCIAL.has(cle));
-  assert.deepEqual(nonRangees, [], "écriture pas encore rangée : l'ajouter à ECRITURES_REFUSEES_HORS_SOCIAL ou à ECRITURES_PERMISES_HORS_SOCIAL");
-  const disparues = [...ECRITURES_REFUSEES_HORS_SOCIAL, ...ECRITURES_PERMISES_HORS_SOCIAL.keys()].filter((cle) => !cles.has(cle));
+  const listes = [ECRITURES_REFUSEES_HORS_SOCIAL, [...ECRITURES_PERMISES_HORS_SOCIAL.keys()], [...ECRITURES_CONDITIONNELLES_HORS_SOCIAL.keys()]];
+  const nonRangees = [...cles].filter((cle) => !listes.some((liste) => liste.includes(cle)));
+  assert.deepEqual(nonRangees, [], "écriture pas encore rangée : l'ajouter aux refusées, aux permises ou aux conditionnelles (HORS_SOCIAL)");
+  const disparues = listes.flat().filter((cle) => !cles.has(cle));
   assert.deepEqual(disparues, [], "route rangée qui n'existe plus : la retirer de la liste");
-  assert.deepEqual(ECRITURES_REFUSEES_HORS_SOCIAL.filter((cle) => ECRITURES_PERMISES_HORS_SOCIAL.has(cle)), [], "jamais refusée ET permise");
-  assert.equal(new Set(ECRITURES_REFUSEES_HORS_SOCIAL).size, ECRITURES_REFUSEES_HORS_SOCIAL.length);
+  assert.equal(new Set(listes.flat()).size, listes.flat().length, "une seule liste par écriture, une seule fois");
   // Les deux inventaires ne se recouvrent pas
   assert.deepEqual(ecritures.filter((r) => cles.has(r.cle)), []);
 });
@@ -341,12 +359,30 @@ test("inventaire des avis et du comptoir : refuserSiLimite après la session (et
   }
 });
 
-test("inventaire des avis, des visites et du comptoir : rien d'autre n'est refusé (lectures, comptoir, retirer ce qui est publié)", () => {
+test("inventaire des réservations et du comptoir : les écritures conditionnelles, sur la route (après la session et la limite) ou dans le contrôleur", () => {
+  for (const [cle, { ou, quand }] of ECRITURES_CONDITIONNELLES_HORS_SOCIAL) {
+    const route = ecrituresHorsSocial.find((r) => r.cle === cle);
+    assert.ok(route, cle);
+    const { montage, pile: middlewares } = route;
+    assert.ok(!middlewares.includes("refuserSiLimite"), `${cle} : ${quand}, jamais refusée d'office`);
+    const iRefus = middlewares.indexOf("refuserSiLimiteSi");
+    if (ou === "controleur") {
+      assert.equal(iRefus, -1, `${cle} : le contrôleur décide (${quand})`);
+      continue;
+    }
+    assert.ok(iRefus >= 0 && middlewares.lastIndexOf("refuserSiLimiteSi") === iRefus, `${cle} : refuserSiLimiteSi une fois`);
+    assert.ok(montage.includes("limiteConnectee") && montage.includes("exigerCompte"), `${cle} : après la session`);
+    assert.ok(iRefus >= 1 && middlewares.slice(0, iRefus).every((nom) => nom === "<anonymous>"), `${cle} : seulement des limites avant`);
+    assert.equal(iRefus, middlewares.length - 2, `${cle} : juste devant le contrôleur`);
+  }
+});
+
+test("inventaire des avis, des visites, des réservations et du comptoir : rien d'autre n'est refusé (lectures, comptoir, retirer le sien)", () => {
   for (const route of routesHorsSocial) {
-    assert.ok(!route.montage.includes("refuserSiLimite"), `${route.cle} : jamais sur tout un routeur`);
-    if (ECRITURES_REFUSEES_HORS_SOCIAL.includes(route.cle)) continue;
+    assert.ok(!route.montage.includes("refuserSiLimite") && !route.montage.includes("refuserSiLimiteSi"), `${route.cle} : jamais sur tout un routeur`);
+    if (ECRITURES_REFUSEES_HORS_SOCIAL.includes(route.cle) || ECRITURES_CONDITIONNELLES_HORS_SOCIAL.has(route.cle)) continue;
     const pourquoi = ECRITURES_PERMISES_HORS_SOCIAL.get(route.cle) ?? "une lecture";
-    assert.ok(!route.pile.includes("refuserSiLimite"), `${route.cle} : ${pourquoi}, jamais refusée`);
+    assert.ok(!route.pile.includes("refuserSiLimite") && !route.pile.includes("refuserSiLimiteSi"), `${route.cle} : ${pourquoi}, jamais refusée`);
   }
   for (const lecture of ["GET /app/avis/lieux/:lieuId", "GET /pro/comptoir/lieux/:id/moment", "GET /pro/comptoir/lieux/:id/evenements", "GET /pro/comptoir/lieux/:id/avis"]) {
     assert.ok(routesHorsSocial.some((r) => r.cle === lecture), `${lecture} : les lectures sont bien parcourues`);

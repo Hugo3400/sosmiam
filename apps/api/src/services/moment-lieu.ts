@@ -34,8 +34,9 @@ export function creerMomentLieu(): ServicesMomentLieu {
       return enCours.map((s) => s.compteId);
     },
 
-    async arreterSos(lieuId, maintenant) {
-      await baseDeDonnees.sosLieu.updateMany({ where: { lieuId, arreteLe: null, jusqua: { gt: maintenant } }, data: { arreteLe: maintenant } });
+    async arreterSos(lieuId, maintenant, seulementDe) {
+      // seulementDe absent : compteId undefined, que Prisma ignore (tous les SOS en cours du lieu)
+      await baseDeDonnees.sosLieu.updateMany({ where: { lieuId, arreteLe: null, jusqua: { gt: maintenant }, compteId: seulementDe }, data: { arreteLe: maintenant } });
     },
 
     async reglerMessage(lieuId, message) {

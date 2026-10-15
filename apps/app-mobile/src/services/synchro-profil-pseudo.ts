@@ -30,6 +30,9 @@ export function creerExplicationPseudo(o: OutilsExplication) {
     const m = o.lireMemoire();
     const depuis = premiere || !m.etat.luLe ? Date.now() - RESERVATION_MS : m.etat.luLe;
     void (async () => {
+      // Un tour de plus avant tout : l'appelant (recevoir) pose d'abord la fusion du profil reçu dans le verrou, et
+      // l'annonce passe après elle, même quand aucune liste n'est à lire (sinon elle serait comparée à l'ancien pseudo)
+      await null;
       let decision: DecisionModerationApi | null | "illisible" = null;
       if (!premiere || estPseudoNeutre(nouveau)) {
         const r = await o.listerDecisions().catch(() => null);

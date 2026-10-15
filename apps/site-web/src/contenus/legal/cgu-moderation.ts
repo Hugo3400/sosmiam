@@ -29,7 +29,10 @@
 // apps/site-web/src/contenus/limitation-compte.ts. Côté pro (relu le 15 octobre 2026 : routes/pro.ts et routes/comptoir.ts,
 // refuserSiLimite) : fiche, carte, invitation dans l'équipe, programme de fidélité, SOS du soir, message du moment,
 // événements (créer, modifier) et réponses aux avis ; arrêter un SOS, effacer un message, annuler un événement, retirer un
-// membre et tout le comptoir (visites, réservations, récompenses) restent permis.
+// membre et tout le comptoir (visites, réservations, récompenses) restent permis. Précisé par l'App le 15/10 pour le lot
+// suivant (au prochain redémarrage) : arrêter un SOS ou annuler un événement, seulement les SIENS ; effacer le message du
+// moment, refusé (il est au lieu) ; fidélité : désactiver permis, créer ou modifier en pause ; réservation avec un petit
+// mot refusée, sans mot permise.
 import { site } from "~/contenus/legal/informations-legales";
 import type { SectionLegale } from "~/contenus/legal/type-legal";
 
@@ -58,8 +61,8 @@ export const sectionModerationCgu: SectionLegale = {
     "**Un compte limité**, c'est un compte qui ne peut plus rien faire **qui se voie des autres utilisateurs**, pendant un temps donné ou jusqu'à nouvel ordre. C'est une décision de l'équipe, prise à la main, jamais par un algorithme. Pendant la limitation :",
     {
       liste: [
-        "**ce qui attend la fin** : tout ce que les autres verraient, c'est-à-dire les messages, les réactions et les groupes, les commentaires, les avis, les sorties, les listes, les lieux envoyés à tes potes, les invitations et les demandes, les suggestions sur la fiche d'un lieu, l'arrivée dans l'équipe d'un lieu, et un nouveau prénom, pseudo ou avatar. Si tu tiens un lieu : les changements de sa fiche, de sa carte ou de son programme de fidélité, les invitations dans son équipe, ses réponses aux avis, son SOS du soir, son message du moment et ses événements (les autres membres de son équipe, eux, publient toujours pour le lieu) ;",
-        "**ce qui reste permis** : lire, valider tes visites, Miam Safe, le comptoir de ton lieu (visites, réservations, récompenses), arrêter son SOS, effacer son message du moment, annuler un de ses événements, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, changer tes réglages, ce que seule notre équipe lit (proposer un lieu, candidater pour être fondateur ou ambassadeur certifié, demander à gérer un lieu, envoyer tes missions d'ambassadeur), « Mon compte », l'export de tes données, la contestation et la suppression de ton compte ;",
+        "**ce qui attend la fin** : tout ce que les autres verraient, c'est-à-dire les messages, les réactions et les groupes, les commentaires, les avis, les sorties, les listes, les lieux envoyés à tes potes, les invitations et les demandes, les suggestions sur la fiche d'un lieu, l'arrivée dans l'équipe d'un lieu, et un nouveau prénom, pseudo ou avatar. Si tu tiens un lieu : les changements de sa fiche, de sa carte, la création ou la modification de son programme de fidélité, les invitations dans son équipe, ses réponses aux avis, son SOS du soir, son message du moment (le publier comme l'effacer) et ses événements (les autres membres de son équipe, eux, publient toujours pour le lieu) ; et, pour une réservation, le petit mot au lieu ;",
+        "**ce qui reste permis** : lire, valider tes visites, Miam Safe, le comptoir de ton lieu (visites, réservations, récompenses), arrêter un SOS du soir ou annuler un événement que tu as toi-même lancés (pas ceux d'un collègue), désactiver le programme de fidélité, retirer un membre de ton équipe, réserver sans petit mot, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, changer tes réglages, ce que seule notre équipe lit (proposer un lieu, candidater pour être fondateur ou ambassadeur certifié, demander à gérer un lieu, envoyer tes missions d'ambassadeur), « Mon compte », l'export de tes données, la contestation et la suppression de ton compte ;",
         "**tu es prévenu**, dans l'app et par e-mail, avec la règle en cause, l'explication écrite par l'équipe et la date de fin (ou « jusqu'à nouvel ordre ») ; tout est aussi dans « Mon compte », sur le site ;",
         "**pas d'accord ?** Tu peux contester **une fois**, tant que la limitation dure, depuis « Mon compte » sur le site ou depuis l'écran « Décisions de la modération » de l'app : une autre personne de l'équipe que celle qui a décidé réexamine, à la main, et te répond. La limitation s'arrête à sa date de fin, ou plus tôt si on la lève.",
       ],

@@ -6,6 +6,7 @@ import QRCode from "react-native-qrcode-svg";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserLienInvitation } from "~/hooks/utiliser-lien-invitation";
+import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -27,6 +28,8 @@ const PARTAGE_IMPOSSIBLE = "Le partage n'a pas voulu s'ouvrir ici. Réessaie dan
 export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam à un pote" }: Props) {
   const router = useRouter();
   const { lien, erreur, changer } = utiliserLienInvitation(pseudo);
+  // « Démo » seulement en démo : ni pendant que la session d'un compte se relit, ni en visite
+  const demo = utiliserSourceSociale() === "demo";
   const [changement, setChangement] = useState<"en-cours" | "fait" | "rate" | null>(null);
   // Partage impossible (aperçu web sans partage) : on le dit gentiment
   const [partageImpossible, setPartageImpossible] = useState(false);
@@ -122,11 +125,11 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
             </Text>
           ) : null}
         </>
-      ) : (
+      ) : demo ? (
         <Text className="text-center font-texte text-xs leading-4 text-gris">
           {lierPonctuation("Démo : ton lien et ton QR code ne servent que dans l'app.")}
         </Text>
-      )}
+      ) : null}
       {erreur && !lien ? (
         <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm leading-5 text-gris">
           {lierPonctuation("Ton lien n'a pas pu se charger (le réseau, sûrement). Il reviendra tout seul à la prochaine ouverture.")}

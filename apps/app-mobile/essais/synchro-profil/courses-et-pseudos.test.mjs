@@ -118,11 +118,6 @@ test("E. rattrapage d'un téléphone d'avant la synchro : ce qui n'est jamais pa
 
 test(
   "E. rattrapage : l'annonce « pseudo du serveur » reste à l'écran (le changement de pseudo fait ici n'était jamais parti)",
-  {
-    todo:
-      "défaut du moteur : à la première synchro, l'annonce passe sous le verrou AVANT la fusion du profil reçu ; " +
-      "suivrePseudo la compare au pseudo pas encore fusionné (bobby) et l'efface aussitôt",
-  },
   async () => {
     const { s } = await rattraperTelephoneDAvant();
     assert.deepEqual(s.vues.at(-1)?.annonce, { type: "pseudo-du-serveur", pseudo: "bob" });
@@ -179,6 +174,8 @@ test("I. Mes infos pendant une relecture lente : elle attend la fin de la relect
   await pause(5);
   const p = moteur.modifierInfos({ ville: "Lyon" });
   await pause(5);
+  // Rien d'autre n'est parti pendant la relecture : Mes infos attend son tour dans le couloir
+  assert.deepEqual(s.demandes, ["GET"], "Mes infos attend la fin de la relecture");
   // Le serveur du banc regarde le réseau au moment de répondre : revenu, la relecture finit bien
   s.horsLigne = false;
   lacher();

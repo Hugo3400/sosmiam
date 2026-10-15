@@ -22,13 +22,16 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
   const [enCours, setEnCours] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [avancement, setAvancement] = useState<{ faits: number; total: number } | null>(null);
-  const ids = choisis.map((lieu) => lieu.id);
+  const idsChoisis = choisis.map((lieu) => lieu.id);
+  // Un lieu sans position ne se met pas en ligne : l'app ne saurait pas dire s'il est proche (« Autour de moi »)
+  const sansPosition = choisis.filter((lieu) => lieu.latitude === null || lieu.longitude === null).length;
+  const publiables = choisis.filter((lieu) => lieu.latitude !== null && lieu.longitude !== null).map((lieu) => lieu.id);
   const nombre = choisis.length;
   const lieux = `${formaterNombre(nombre)} lieu${nombre > 1 ? "x" : ""}`;
   const publications = choisis.reduce((total, lieu) => total + lieu._count.publications, 0);
 
   /** Envoie la sélection par paquets, l'un après l'autre ; s'arrête au premier refus en disant ce qui est déjà fait */
-  async function agir(nom: string, taille: number, action: (paquet: number[]) => Promise<{ nombre: number }>, message: (n: number) => string) {
+  async function agir(nom: string, taille: number, action: (paquet: number[]) => Promise<{ nombre: number }>, message: (n: number) => string, ids = idsChoisis) {
     setEnCours(nom);
     setErreur(null);
     let faits = 0;
@@ -52,13 +55,18 @@ export function BarreSelectionLieux({ choisis, onVider, onFait }: Props) {
   const pluriel = (n: number) => `${formaterNombre(n)} lieu${n > 1 ? "x" : ""}`;
   const changerStatut = (statut: NonNullable<ModificationLot["statut"]>, libelle: string) =>
     agir(statut, PAQUET_MODIFICATION, (paquet) => modifierLieuxEnLot(paquet, { statut }), (n) => `${pluriel(n)} ${libelle} ✅`);
+  function mettreEnLigne() {
+    if (publiables.length === 0) return setErreur("Aucun de ces lieux n'a de position : ajoute-la dans la fiche (ou dans « Contrôle », « Sans position »).");
+    const laisses = sansPosition ? ` · ${pluriel(sansPosition)} sans position laissé${sansPosition > 1 ? "s" : ""} de côté (voir « Contrôle »)` : "";
+    void agir("publie", PAQUET_MODIFICATION, (paquet) => modifierLieuxEnLot(paquet, { statut: "publie" }), (n) => `${pluriel(n)} en ligne ✅${laisses}`, publiables);
+  }
 
   return (
     <div className="sticky bottom-4 z-20 mt-6 flex flex-wrap items-center gap-2 rounded-full border-2 border-encre bg-nuit py-2 pr-2 pl-5 text-white shadow-brut">
       <p className="mr-auto font-semibold">{lieux} sélectionné{nombre > 1 ? "s" : ""}</p>
       {avancement && <p role="status" className="chiffres text-sm text-white/80">{formaterNombre(avancement.faits)} / {formaterNombre(avancement.total)}…</p>}
       {erreur && <p role="alert" className="text-sm font-semibold text-tomate">{erreur}</p>}
-      <Bouton petit icone={Globe} chargement={enCours === "publie"} onClick={() => changerStatut("publie", "en ligne")}>Mettre en ligne</Bouton>
+      <Bouton petit icone={Globe} chargement={enCours === "publie"} titre={sansPosition ? `${sansPosition} sans position ne seront pas mis en ligne` : undefined} onClick={mettreEnLigne}>Mettre en ligne</Bouton>
       <Bouton petit icone={FilePen} chargement={enCours === "brouillon"} onClick={() => changerStatut("brouillon", "passés en brouillon")}>Brouillon</Bouton>
       <Bouton petit icone={EyeOff} chargement={enCours === "masque"} onClick={() => changerStatut("masque", "masqués")}>Masquer</Bouton>
       <Bouton petit icone={Pencil} onClick={() => setFenetre("modifier")}>Modifier…</Bouton>

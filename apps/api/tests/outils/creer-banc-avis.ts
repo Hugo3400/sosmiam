@@ -3,7 +3,9 @@
 // une clé de chiffrement de test, un tirage au sort réglable et des rôles pro posés à la main. Les points de la photo vont
 // au journal du double (donnees.pointsPhoto, dans la transaction de l'avis) ; ajouterPoints (l'ancien branchement, qui ne
 // doit plus servir) et les défis relancés après sont notés ; pannes à la demande (les points, ou la fin de la transaction,
-// après tout ce qu'elle a écrit : ce qu'elle voyait est gardé dans vuEnFin). Chaque appel a sa propre IP.
+// après tout ce qu'elle a écrit : ce qu'elle voyait est gardé dans vuEnFin). Les gestes qui comptent pour l'ordre des
+// verrous (verrouiller le compte, lire et marquer la visite, poser les points) sont notés dans l'ordre (gestes). Chaque
+// appel a sa propre IP.
 import type { AddressInfo } from "node:net";
 
 import express, { Router } from "express";
@@ -50,9 +52,15 @@ export async function creerBancAvis() {
   const panne = { points: false, finTransaction: false };
   /** Ce que la transaction voyait juste avant sa panne de fin : les avis et les détails des points de la photo écrits */
   const vuEnFin: { avis: number[]; points: string[] }[] = [];
-  const avecPanne = (t: TablesAvis): TablesAvis => ({
+  /** Dans l'ordre, chaque geste noté et son premier argument : « verrouillerCompte 3 », « lireVisite 1 »… */
+  const gestes: string[] = [];
+  const observer = (t: TablesAvis): TablesAvis => ({
     ...t,
+    verrouillerCompte: async (compteId) => (gestes.push(`verrouillerCompte ${compteId}`), t.verrouillerCompte(compteId)),
+    lireVisite: async (id) => (gestes.push(`lireVisite ${id}`), t.lireVisite(id)),
+    marquerAvisDonne: async (visiteId) => (gestes.push(`marquerAvisDonne ${visiteId}`), t.marquerAvisDonne(visiteId)),
     poserPointsPhoto: async (...args) => {
+      gestes.push(`poserPointsPhoto ${args[0]}`);
       if (panne.points) throw new Error("base indisponible");
       return t.poserPointsPhoto(...args);
     },
@@ -60,14 +68,14 @@ export async function creerBancAvis() {
   const depot: DepotAvis = {
     lire: donnees.depot.lire,
     ecrire: (fn) => donnees.depot.ecrire(async (t) => {
-      const r = await fn(avecPanne(t));
+      const r = await fn(observer(t));
       if (panne.finTransaction) {
         vuEnFin.push({ avis: donnees.avis.map((a) => a.id), points: donnees.pointsPhoto.map((m) => m.detail) });
         throw new Error("transaction interrompue");
       }
       return r;
     }),
-    dans: (tx) => avecPanne(donnees.depot.dans(tx)),
+    dans: (tx) => observer(donnees.depot.dans(tx)),
   };
 
   const dependances = {
@@ -175,9 +183,9 @@ export async function creerBancAvis() {
     donnees.lieux.clear();
     donnees.pointsComptes.clear();
     for (const lieu of LIEUX) donnees.lieux.set(lieu.id, { ...lieu });
-    for (const liste of [donnees.visites, donnees.avis, donnees.relectures, donnees.pointsPhoto, points, defis, tirages, vuEnFin]) liste.length = 0;
+    for (const liste of [donnees.visites, donnees.avis, donnees.relectures, donnees.pointsPhoto, points, defis, tirages, vuEnFin, gestes]) liste.length = 0;
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));
-  return { banc, donnees, points, defis, panne, vuEnFin, tirages, creerCompte, rattacher, creerVisite, ajouterAvis, demander, vider, fermer, JOUR };
+  return { banc, donnees, points, defis, panne, vuEnFin, tirages, gestes, creerCompte, rattacher, creerVisite, ajouterAvis, demander, vider, fermer, JOUR };
 }

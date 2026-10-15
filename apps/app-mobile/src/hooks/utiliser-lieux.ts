@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 
+import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 
 export type LectureLieu = { ok: true; lieu: Lieu } | { ok: false; raison: "inconnu" | "hors-ligne" };
@@ -21,6 +22,11 @@ export type EtatLieux = {
    * brouillon ou masqué ; toujours « inconnu » en démo (la liste d'exemples est complète).
    */
   chargerLieu: (id: number) => Promise<LectureLieu>;
+  /**
+   * Lit aussi les lieux d'une zone (autour de toi, ta région, une ville choisie) et les ajoute à la liste : sans zone, le
+   * serveur n'en rend que 1 000. Une zone lue il y a moins de 10 minutes n'est pas relue ; rien en démo (liste complète).
+   */
+  chargerZone: (zone: ZoneGeo) => void;
 };
 
 export const ContexteLieux = createContext<EtatLieux | null>(null);

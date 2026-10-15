@@ -10,8 +10,11 @@
 // unique, dans l'ordre d'arrivée ; la lecture hors transaction voit ce que la transaction a écrit), jamais pour un essai de
 // concurrence.
 import type { PGlite } from "@electric-sql/pglite";
+import { createRequire } from "node:module";
 import pg from "pg";
-import utilitairesPg from "pg/lib/utils.js";
+
+/** La préparation des valeurs de pg lui-même (pg/lib/utils.js n'a pas de types) */
+const { prepareValue } = createRequire(import.meta.url)("pg/lib/utils.js") as { prepareValue: (valeur: unknown) => unknown };
 
 type Parseur = (texte: string) => unknown;
 type Requete = { text: string; values?: unknown[]; types?: { getTypeParser: (oid: number, format: string) => Parseur } };
@@ -31,7 +34,7 @@ export function brancherPoolSur(db: PGlite | null, transactions: ModeTransaction
   mode = transactions;
 }
 
-const SERIALISEURS = new Proxy({}, { get: () => (valeur: unknown) => utilitairesPg.prepareValue(valeur) });
+const SERIALISEURS = new Proxy({}, { get: () => (valeur: unknown) => prepareValue(valeur) });
 
 /** PGlite découpe toujours les tableaux : on les remet en littéral PostgreSQL pour le parseur de pg */
 const enLitteral = (v: unknown): unknown =>

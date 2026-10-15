@@ -1,8 +1,8 @@
 // Tests de l'export « Télécharger mes données sociales » (GET /app/social/export, lot L7), suite de export-social.test.ts :
 // une sortie quittée n'y est plus (« organisateur » : qui a la main) ; les limitations de ton compte (jamais celles des
 // autres ni qui a décidé), lues sur le double des limitations du banc (banc.limitations), par le service puis par la route,
-// et parties avec le compte supprimé ; sans listerLimitations (le service seul, ou creerSocialAppEnMemoire sans l'option),
-// pas de champ. Tout en mémoire, avec une clé de test.
+// et parties avec le compte supprimé (celles des autres restent) ; sans listerLimitations (le service seul, ou
+// creerSocialAppEnMemoire sans l'option), pas de champ. Tout en mémoire, avec une clé de test.
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
@@ -121,10 +121,16 @@ test("par la route : ta limitation dans TON export (ni id, ni compte, ni personn
   assert.deepEqual(pourAutre.limitations, [], "la limitation d'un autre compte n'est jamais dans ton export");
   assert.ok(!JSON.stringify(pourAutre).includes("faux bons de réduction"));
 
-  // Compte supprimé (comme DELETE /comptes/moi) : sa limitation part avec lui (ON DELETE CASCADE), rien ne traîne
+  // Compte supprimé (comme DELETE /comptes/moi) : sa limitation part avec lui (ON DELETE CASCADE), rien ne traîne ; celle
+  // d'un autre compte, limité juste avant, reste
+  const autreLimite = await banc.limitations.limiterCompte({
+    compteId: autre.compteId, motif: "haine", motivation: "Des insultes dans une discussion", fin: date(3 * JOUR),
+  }, date());
+  assert.ok(autreLimite.ok);
   assert.equal((await banc.limitations.listerLimitationsDuCompte(moi.compteId)).length, 1);
   await banc.supprimerCompte(moi);
   assert.deepEqual(await banc.limitations.listerLimitationsDuCompte(moi.compteId), [], "partie avec le compte");
+  assert.equal((await banc.limitations.listerLimitationsDuCompte(autre.compteId)).length, 1, "celle de l'autre compte reste");
 });
 
 test("creerSocialAppEnMemoire sans listerLimitations : l'export n'a pas de champ « limitations », pas même vide", async () => {

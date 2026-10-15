@@ -13,11 +13,13 @@ type Props = {
   sousTitre?: string;
   /** Bouton fixé en bas (ex. « Enregistrer ») */
   boutonPrincipal?: { libelle: string; onPress: () => void; desactive?: boolean; indice?: string };
+  /** Dans le bas fixe, juste au-dessus du bouton principal (ex. le refus d'un compte limité) : toujours en vue, même quand le contenu défile */
+  auDessusDuBouton?: ReactNode;
   children: ReactNode;
 };
 
 /** Cadre des écrans de réglages : bouton retour, grand titre, contenu qui défile et bouton principal fixé en bas. */
-export function EcranReglage({ titre, sousTitre, boutonPrincipal, children }: Props) {
+export function EcranReglage({ titre, sousTitre, boutonPrincipal, auDessusDuBouton, children }: Props) {
   const router = useRouter();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -43,7 +45,8 @@ export function EcranReglage({ titre, sousTitre, boutonPrincipal, children }: Pr
         </ScrollView>
 
         {boutonPrincipal ? (
-          <View className="border-t border-ligne bg-creme px-5 pb-4 pt-4">
+          <View className="gap-3 border-t border-ligne bg-creme px-5 pb-4 pt-4">
+            {auDessusDuBouton}
             <Bouton libelle={boutonPrincipal.libelle} onPress={boutonPrincipal.onPress} desactive={boutonPrincipal.desactive} indice={boutonPrincipal.indice} />
           </View>
         ) : null}

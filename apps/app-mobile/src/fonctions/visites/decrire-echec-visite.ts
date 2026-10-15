@@ -3,6 +3,7 @@ import { MESSAGES_SERVICE, type MessageService } from "@sos-miam/commun/contenus
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
+import { CARTE_REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
@@ -48,7 +49,7 @@ export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreu
   if (texteRemplacant) texte = texteRemplacant;
   const jour = lireJour(details?.jusqua);
   if (erreur === "validations-en-pause" && !jour) titre = "Validations en pause pour l'instant";
-  if (erreur === "compte-limite" && !jour) titre = "Compte limité pour l'instant";
+  if (erreur === "compte-limite" && !jour) titre = CARTE_REFUS_LIMITATION.titre;
 
   const valeurs: Record<string, string> = {};
   if (typeof details?.distanceM === "number") valeurs.distance = formaterDistance(details.distanceM / 1000);

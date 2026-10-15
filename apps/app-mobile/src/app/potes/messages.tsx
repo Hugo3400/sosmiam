@@ -23,7 +23,7 @@ export default function Messages() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { pret, conversations, nonLus, invitations } = utiliserConversations();
-  const { pret: communautePrete, potes, demo } = utiliserCommunaute();
+  const { pret: communautePrete, potes } = utiliserCommunaute();
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
   const [maintenant, setMaintenant] = useState(() => new Date());
 
@@ -95,7 +95,7 @@ export default function Messages() {
                   </Pressable>
                 ))}
               </View>
-              {demo ? <BandeauDemoPotes /> : null}
+              <BandeauDemoPotes />
               {invitations.map((invitation) => (
                 <CarteInvitationGroupe key={invitation.id} invitation={invitation} />
               ))}

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { BULLE_EN_PAUSE, REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import couleurs from "~/theme/couleurs";
@@ -23,8 +23,8 @@ export function PauseMessageLimite({ onRetirer }: Props) {
     <View className="mt-0.5 flex-row flex-wrap items-center justify-end gap-x-3">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${REFUS_LIMITATION.bulle} Voir pourquoi`}
-        accessibilityHint="Ouvre les décisions de la modération"
+        accessibilityLabel={`${REFUS_LIMITATION.bulle} ${BULLE_EN_PAUSE.voirPourquoi}`}
+        accessibilityHint={BULLE_EN_PAUSE.indiceVoirPourquoi}
         onPress={() => {
           vibrerLegerement();
           router.push("/reglages/decisions-moderation");
@@ -34,23 +34,23 @@ export function PauseMessageLimite({ onRetirer }: Props) {
       >
         <Ionicons name="pause-circle-outline" size={14} color={couleurs.encre} />
         <Text className="font-texte-semi text-[12px] text-encre">
-          {lierPonctuation(REFUS_LIMITATION.bulle)} <Text className="underline">Voir pourquoi</Text>
+          {lierPonctuation(REFUS_LIMITATION.bulle)} <Text className="underline">{BULLE_EN_PAUSE.voirPourquoi}</Text>
         </Text>
       </Pressable>
       {onRetirer ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retirer ce message"
-          accessibilityHint="Il n'est jamais parti : il disparaît de ton téléphone"
+          accessibilityLabel={BULLE_EN_PAUSE.retirerLu}
+          accessibilityHint={BULLE_EN_PAUSE.indiceRetirer}
           onPress={() => {
             vibrerLegerement();
             onRetirer();
-            AccessibilityInfo.announceForAccessibility("Message retiré.");
+            AccessibilityInfo.announceForAccessibility(BULLE_EN_PAUSE.retire);
           }}
           hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
           className="min-h-8 justify-center active:opacity-70"
         >
-          <Text className="font-texte-semi text-[12px] text-gris underline">Retirer</Text>
+          <Text className="font-texte-semi text-[12px] text-gris underline">{BULLE_EN_PAUSE.retirer}</Text>
         </Pressable>
       ) : null}
     </View>

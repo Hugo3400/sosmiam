@@ -117,18 +117,19 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
 
   /**
    * Le geste s'affiche tout de suite (gestes, listes, profil lu) ; la route part ; puis tout est relu et le geste oublié.
-   * Refusé (compte limité, réseau…) : le profil lu reprend la relation et les compteurs d'avant le geste (relire les listes
-   * ne relit pas son profil), et surRefus dit pourquoi
+   * `appliquer` rend l'écart qu'il a posé sur les abonnés de la personne (changerCompteurs), ou rien. Refusé (compte limité,
+   * réseau…) : le profil lu reprend la relation d'avant le geste et défait son écart (relire les listes ne relit pas son
+   * profil ; deux gestes refusés qui se croisent retombent ainsi sur le bon nombre d'abonnés), et surRefus dit pourquoi
    */
   const faire = useCallback(
-    (id: string, geste: Geste, appliquer: () => void, route: () => Promise<{ ok: true } | { ok: false; erreur: ErreurService }>, surRefus?: SurRefusGeste) => {
+    (id: string, geste: Geste, appliquer: () => number | void, route: () => Promise<{ ok: true } | { ok: false; erreur: ErreurService }>, surRefus?: SurRefusGeste) => {
       const avantGeste = profilsCourants.current.get(id);
       setGestes((avant) => new Map(avant).set(id, { ...avant.get(id), ...geste }));
       setProfils((avant) => {
         const p = avant.get(id);
         return p ? new Map(avant).set(id, { ...p, relation: { ...p.relation, ...geste } }) : avant;
       });
-      appliquer();
+      const ecart = appliquer() ?? 0;
       const g = generation.current;
       void route()
         .catch(() => ({ ok: false as const, erreur: "hors-ligne" as const }))
@@ -140,8 +141,8 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
               setProfils((avant) => {
                 const p = avant.get(id);
                 if (!p) return avant;
-                // Relu entre-temps (noterProfil) : ses compteurs viennent du serveur, ils sont déjà les bons
-                const compteurs = p.ordre === avantGeste.ordre ? avantGeste.compteurs : p.compteurs;
+                // Relu entre-temps (noterProfil) : ses compteurs viennent du serveur, ils sont déjà les bons ; sinon, l'inverse du geste
+                const compteurs = p.ordre === avantGeste.ordre ? { ...p.compteurs, abonnes: Math.max(0, p.compteurs.abonnes - ecart) } : p.compteurs;
                 return new Map(avant).set(id, { ...p, compteurs, relation: { ...p.relation, ...remise } });
               });
             }
@@ -301,7 +302,9 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
             setPages((p) => ({ ...p, abonnements: { ...p.abonnements, liens: [lien, ...sans(p.abonnements.liens, id)] } }));
             setResume((r) => (r ? { ...r, abonnements: r.abonnements + 1 } : r));
             changerCompteurs(id, 1);
-          } else setResume((r) => (r ? { ...r, demandesEnvoyees: [lien, ...sans(r.demandesEnvoyees, id)] } : r));
+            return 1;
+          }
+          setResume((r) => (r ? { ...r, demandesEnvoyees: [lien, ...sans(r.demandesEnvoyees, id)] } : r));
         },
         () => sociaux.suivis.suivre(id, true),
         surRefus,
@@ -320,7 +323,9 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
             setPages((p) => ({ ...p, abonnements: { ...p.abonnements, liens: sans(p.abonnements.liens, id) } }));
             setResume((r) => (r ? { ...r, abonnements: Math.max(0, r.abonnements - 1) } : r));
             changerCompteurs(id, -1);
-          } else setResume((r) => (r ? { ...r, demandesEnvoyees: sans(r.demandesEnvoyees, id) } : r));
+            return -1;
+          }
+          setResume((r) => (r ? { ...r, demandesEnvoyees: sans(r.demandesEnvoyees, id) } : r));
         },
         () => sociaux.suivis.suivre(id, false),
       );

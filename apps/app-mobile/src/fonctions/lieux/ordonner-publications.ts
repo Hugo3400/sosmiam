@@ -2,6 +2,7 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Profil } from "@sos-miam/commun/types/profil";
 
 import type { Publication } from "~/contenus/type-publication";
+import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { calculerScoreLieu } from "~/fonctions/lieux/calculer-score-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 
@@ -15,7 +16,8 @@ export function ordonnerPublications(publications: Publication[], lieux: Lieu[],
   const cles = new Set(suivis);
   const score = (p: Publication) => {
     const lieu = parId.get(p.lieuId);
-    return lieu && profil ? calculerScoreLieu(lieu, profil) : 0;
+    // La distance gardée sur le lieu (depuis ta ville, ou d'exemple en démo)
+    return lieu && profil ? calculerScoreLieu(lieu, profil, calculerKmLieu(lieu, null)) : 0;
   };
   const suivie = (p: Publication) => Number(cles.has(calculerCleSuivi(p.auteur, p.lieuId)) || cles.has(calculerCleSuivi({ type: "lieu" }, p.lieuId)));
   const restantes = publications.filter((p) => parId.has(p.lieuId)).sort((a, b) => suivie(b) - suivie(a) || score(b) - score(a));

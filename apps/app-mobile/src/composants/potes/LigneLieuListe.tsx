@@ -9,8 +9,8 @@ import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieu: Lieu;
-  /** Distance affichée (depuis le centre de ta ville quand on la connaît) */
-  km: number;
+  /** Distance affichée (depuis le centre de ta ville quand on la connaît) ; null si on ne la connaît pas : rien ne s'affiche */
+  km: number | null;
   /** Image du lieu (trouverVignetteLieu) ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   /** Dernière ligne de la carte : pas de trait dessous */
@@ -22,13 +22,13 @@ type Props = {
 
 /** Une adresse d'une liste partagée : vignette, nom, ce que c'est, ville et distance ; la toucher ouvre sa fiche. */
 export function LigneLieuListe({ lieu, km, image, derniere, onOuvrir, onRetirer }: Props) {
-  const distance = formaterDistance(km);
+  const distance = km === null ? null : formaterDistance(km);
 
   return (
     <View className={`flex-row items-center ${derniere ? "" : "border-b border-ligne"}`}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${lieu.nom}, ${lieu.info}, ${lieu.ville}. À ${distance}`}
+        accessibilityLabel={`${lieu.nom}, ${lieu.info}, ${lieu.ville}${distance ? `. À ${distance}` : ""}`}
         accessibilityHint="Ouvre la fiche du lieu"
         onPress={() => {
           vibrerLegerement();
@@ -44,9 +44,11 @@ export function LigneLieuListe({ lieu, km, image, derniere, onOuvrir, onRetirer 
           <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
             {lieu.info} · {lieu.ville}
           </Text>
-          <Text numberOfLines={1} className="font-texte-moyen text-[13px] text-gris">
-            📍 {distance}
-          </Text>
+          {distance ? (
+            <Text numberOfLines={1} className="font-texte-moyen text-[13px] text-gris">
+              📍 {distance}
+            </Text>
+          ) : null}
         </View>
         <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
       </Pressable>

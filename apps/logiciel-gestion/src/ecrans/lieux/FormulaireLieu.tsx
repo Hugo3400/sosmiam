@@ -95,6 +95,10 @@ export function FormulaireLieu({ id, onFermer, allerA, navigation, manques }: Pr
 
   async function enregistrer(suivre = false) {
     if (!lieu) return;
+    // Sans position, l'app ne saurait pas dire si le lieu est proche (« Autour de moi ») : pas de mise en ligne
+    if (lieu.statut === "publie" && (nombreOuNull(nombres.latitude) === null || nombreOuNull(nombres.longitude) === null)) {
+      return setEtat({ enCours: false, erreur: "Ajoute la position (bouton « Trouver les coordonnées », ou latitude et longitude) avant de mettre ce lieu en ligne." });
+    }
     setEtat({ enCours: true, erreur: null });
     try {
       await enregistrerLieu(id, {

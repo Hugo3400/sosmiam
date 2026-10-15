@@ -139,6 +139,8 @@ export default function EcranCartePro() {
     repartirDe(depart ?? CARTE_VIDE);
     // Revenue à une carte trop courte pour être rangée, l'écran ne doit pas rester coincé en mode Ranger
     setRangement(false);
+    // Plus rien à enregistrer : le refus d'un compte limité ne parle plus de ces changements-là
+    setRefusLimite(null);
   }
 
   function garderElement(element: ElementCarte, section: number) {

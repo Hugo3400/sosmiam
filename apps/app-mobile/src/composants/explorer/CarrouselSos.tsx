@@ -32,11 +32,12 @@ export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
         {sos.map(({ lieu, km }) => {
-          const distance = formaterDistance(km);
+          // Distance inconnue (lieu pas encore placé) : sa ville à la place
+          const distance = km === null ? null : formaterDistance(km);
           const ligne = lieu.sos
             ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}`
             : (lieu.alerte ?? "");
-          const lu = [lieu.nom, lieu.info, lieu.sos ? `SOS : ${ligne}` : ligne, lieu.sos?.offre, `À ${distance}`].filter(Boolean).join(". ");
+          const lu = [lieu.nom, lieu.info, lieu.sos ? `SOS : ${ligne}` : ligne, lieu.sos?.offre, distance ? `À ${distance}` : lieu.ville].filter(Boolean).join(". ");
           return (
             <Pressable
               key={lieu.id}
@@ -61,7 +62,7 @@ export function CarrouselSos({ sos, vignettes, onOuvrir }: Props) {
               <View className="gap-0.5 px-3 pb-3 pt-2">
                 <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">{lieu.nom}</Text>
                 <Text numberOfLines={1} className={`font-texte-semi text-[13px] ${lieu.sos ? "text-encre" : "text-rouge-texte"}`}>{ligne}</Text>
-                <Text numberOfLines={1} className="font-texte text-[13px] text-gris">📍 {distance}</Text>
+                <Text numberOfLines={1} className="font-texte text-[13px] text-gris">📍 {distance ?? lieu.ville}</Text>
                 {parleDAlcool(ligne) ? <MentionPrevention variante="courte" /> : null}
               </View>
             </Pressable>

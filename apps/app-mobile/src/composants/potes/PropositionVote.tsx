@@ -12,8 +12,8 @@ import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieu: Lieu;
-  /** Distance affichée (depuis ta ville) */
-  km: number;
+  /** Distance affichée (depuis ta ville) ; null si on ne la connaît pas : sa ville à la place */
+  km: number | null;
   /** Image du lieu ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   /** Qui l'a proposé (null si on ne le connaît plus) */
@@ -36,12 +36,12 @@ const AVATARS_MAX = 5;
 export function PropositionVote({ lieu, km, image, proposePar, votes, votants, aVote, termine, gagnant, onVoter, onOuvrir }: Props) {
   const monId = utiliserMonId();
   const prenomDe = (pote: Pote) => (pote.id === monId ? "toi" : pote.prenom);
-  const distance = formaterDistance(km);
+  const distance = km === null ? null : formaterDistance(km);
   const nombreVotes = votes === 0 ? "Pas encore de vote" : `${votes} vote${votes > 1 ? "s" : ""}`;
   const montres = votants.slice(0, AVATARS_MAX);
   const lu = [
     termine && gagnant ? "Lieu retenu" : null,
-    `${lieu.nom}, ${lieu.info}, à ${distance}`,
+    `${lieu.nom}, ${lieu.info}, ${distance ? `à ${distance}` : lieu.ville}`,
     proposePar ? `Proposé par ${prenomDe(proposePar)}` : null,
     votants.length > 0 ? `${nombreVotes} : ${votants.map(prenomDe).join(", ")}` : nombreVotes,
   ]
@@ -67,7 +67,7 @@ export function PropositionVote({ lieu, km, image, proposePar, votes, votants, a
             {lieu.nom}
           </Text>
           <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-            {lieu.info} · {distance}
+            {lieu.info} · {distance ?? lieu.ville}
           </Text>
           {proposePar ? (
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">

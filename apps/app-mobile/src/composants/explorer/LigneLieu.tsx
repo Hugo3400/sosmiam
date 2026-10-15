@@ -21,8 +21,8 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
   lieu: Lieu;
-  /** Distance affichée (depuis ta position quand on la connaît) */
-  km: number;
+  /** Distance affichée (depuis ta position quand on la connaît) ; null si on ne la connaît pas : rien ne s'affiche */
+  km: number | null;
   /** Image du lieu ; sans image, son dégradé et son emoji */
   image: ImageSourcePropType | null;
   /** Lieu touché sur la carte : la ligne est mise en avant */
@@ -38,7 +38,7 @@ const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
 export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne, onOuvrir, evenement = null }: Props) {
   const ouvert = estOuvertMaintenant(lieu);
-  const distance = formaterDistance(km);
+  const distance = km === null ? null : formaterDistance(km);
   // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)
   const verifie = estLieuVerifie(lieu);
   const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
@@ -49,7 +49,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
     `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`,
-    `À ${distance}, ${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
+    `${distance ? `À ${distance}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
     sos ? `SOS : ${sos}` : null,
     lieu.alerte && !sos ? lieu.alerte : null,
     evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut)} à ${ecrireHeure(evenement.debut)}` : null,
@@ -81,7 +81,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, image, selectionne,
           {lieu.info} · {lieu.quartier}, {lieu.ville}
         </Text>
         <Text numberOfLines={1} className="font-texte-moyen text-[13px] text-gris">
-          {distance} · {lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? "Ouvert" : "Fermé"}</Text>
+          {distance ? `${distance} · ` : ""}{lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? "Ouvert" : "Fermé"}</Text>
         </Text>
         {sos ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-encre">

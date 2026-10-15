@@ -15,10 +15,11 @@ export function creerRefuserSiLimiteSi(refuserSiLimite: RequestHandler, conditio
 }
 
 /**
- * refuserSiLimite appelé par un contrôleur, au bon moment (après le rôle et la ressource relue) : true s'il a répondu
- * 403 compte-limite (le contrôleur s'arrête là), false s'il a laissé passer. Absent : rien n'est refusé. Comme
- * creerRefuserSiLimite, le middleware répond ou appelle suite avant d'avoir fini ; s'il ne fait ni l'un ni l'autre, c'est
- * une erreur (500), jamais une demande laissée sans réponse.
+ * refuserSiLimite appelé par un contrôleur, au bon moment : après le rôle et la ressource relue (l'auteur d'un SOS ou d'un
+ * événement) ; pour le programme de fidélité, après le rôle seulement quand la demande l'éteint (actif: false), sinon
+ * avant, comme sur la route. true s'il a répondu 403 compte-limite (le contrôleur s'arrête là), false s'il a laissé passer.
+ * Absent : rien n'est refusé. Comme creerRefuserSiLimite, le middleware répond ou appelle suite avant d'avoir fini ; s'il
+ * ne fait ni l'un ni l'autre, c'est une erreur (500), jamais une demande laissée sans réponse.
  */
 export function refuserSiLimiteIci(refuserSiLimite: RequestHandler | undefined, requete: Request, reponse: Response): Promise<boolean> {
   if (!refuserSiLimite) return Promise.resolve(false);

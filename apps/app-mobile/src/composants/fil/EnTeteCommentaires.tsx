@@ -16,7 +16,7 @@ type Props = {
 };
 
 // Le bandeau honnête de la démo, affiché avec son éprouvette (🧪) mais lu sans
-const TEXTE_DEMO = "Potes d'exemple : tes vrais potes arriveront avec les comptes. D'ici là, tes commentaires restent sur ton téléphone";
+const TEXTE_DEMO = "Potes d'exemple : tes commentaires de démo restent sur ton téléphone. Quitte la démo pour retrouver tes vrais potes";
 
 /** Le haut de la feuille des commentaires : combien il y en a, la croix pour la fermer, et (en démo) le bandeau des potes d'exemple. */
 export function EnTeteCommentaires({ nombre, demo, onFermer, refTitre }: Props) {

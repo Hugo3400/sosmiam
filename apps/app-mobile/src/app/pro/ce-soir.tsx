@@ -19,6 +19,9 @@ import couleurs from "~/theme/couleurs";
 // Relu toutes les minutes tant que l'écran est ouvert : un SOS ou un message finit tout seul
 const RELECTURE_MS = 60_000;
 
+/** Où dire un refus « compte limité » : au-dessus du bouton du geste refusé (lancer ou arrêter le SOS, afficher ou effacer le message) */
+type BlocRefuse = "sos" | "arreter" | "message" | "effacer";
+
 /**
  * « Ce soir » (gérant et équipe) : le SOS « place ce soir » (un par jour, jusqu'à la fermeture) et le message du moment
  * affiché sur la fiche. Le serveur relit le rôle et les règles à chaque geste ; ses refus s'affichent sous le bon champ.
@@ -30,8 +33,9 @@ export default function EcranCeSoir() {
   const [enCours, setEnCours] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
-  // Compte limité : la phrase reste au-dessus du bouton du bloc refusé, jusqu'au prochain geste
-  const [refusLimite, setRefusLimite] = useState<{ bloc: "sos" | "message"; texte: string } | null>(null);
+  // Compte limité : la phrase reste au-dessus du bouton du geste refusé (lancer ou arrêter le SOS, afficher ou effacer le
+  // message), jusqu'au prochain geste
+  const [refusLimite, setRefusLimite] = useState<{ bloc: BlocRefuse; texte: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,7 +62,7 @@ export default function EcranCeSoir() {
     geste: () => Promise<ReponseMoment>,
     champs: readonly C[],
     merci: string,
-    siLimite?: { bloc: "sos" | "message"; texte: string },
+    siLimite?: { bloc: BlocRefuse; texte: string },
   ): Promise<C | "refuse" | null> {
     setEnCours(true);
     setRefusLimite(null);
@@ -75,7 +79,7 @@ export default function EcranCeSoir() {
     else annoncer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
     return "refuse";
   }
-  const refusDe = (bloc: "sos" | "message") => (refusLimite?.bloc === bloc ? refusLimite.texte : null);
+  const refusDe = (bloc: BlocRefuse) => (refusLimite?.bloc === bloc ? refusLimite.texte : null);
 
   return (
     <EcranReglage titre="Ce soir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · le SOS du soir et ton message du moment`}>
@@ -90,8 +94,9 @@ export default function EcranCeSoir() {
               moment={moment}
               enCours={enCours}
               refusLimite={refusDe("sos")}
+              refusArreter={refusDe("arreter")}
               onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !", { bloc: "sos", texte: REFUS_LIMITATION.sosDuSoir })}
-              onArreter={() => void agir(() => service.arreterSos(id), [], "SOS arrêté. À demain pour le prochain !")}
+              onArreter={() => void agir(() => service.arreterSos(id), [], "SOS arrêté. À demain pour le prochain !", { bloc: "arreter", texte: REFUS_LIMITATION.arreterSos })}
             />
           </SectionReglages>
           <SectionReglages titre="Message du moment">
@@ -99,8 +104,9 @@ export default function EcranCeSoir() {
               moment={moment}
               enCours={enCours}
               refusLimite={refusDe("message")}
+              refusEffacer={refusDe("effacer")}
               onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche", { bloc: "message", texte: REFUS_LIMITATION.messageMoment })}
-              onEffacer={() => void agir(() => service.effacerMessage(id), [], "Message effacé")}
+              onEffacer={() => void agir(() => service.effacerMessage(id), [], "Message effacé", { bloc: "effacer", texte: REFUS_LIMITATION.effacerMessage })}
             />
           </SectionReglages>
           <Text className="font-texte text-xs leading-4 text-gris">Ce qui parle d'alcool s'affiche avec le message sanitaire, et jamais en visite sans compte.</Text>

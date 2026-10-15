@@ -92,9 +92,7 @@ export default function NouveauGroupe() {
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
             {lierPonctuation("La team brunch, les fans de tielle ou toute la bande : un groupe, et vous papotez tous ensemble.")}
           </Text>
-          <View className="mb-6">
-            <BandeauDemoPotes />
-          </View>
+          <BandeauDemoPotes className="mb-6" />
 
           <SectionReglages titre="Le nom">
             <View className="gap-4 pt-2">

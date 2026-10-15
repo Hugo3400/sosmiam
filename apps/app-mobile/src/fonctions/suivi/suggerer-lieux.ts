@@ -22,7 +22,7 @@ export function suggererLieux({ lieux, depart, exclus, max }: Entree): { lieu: L
   return lieux
     .filter((lieu) => lieu.position && !exclus.has(lieu.id))
     .map((lieu) => ({ lieu, km: calculerKmLieu(lieu, depart) }))
-    .filter(({ km }) => km <= RAYON_PROCHE_KM)
+    .filter((l): l is { lieu: Lieu; km: number } => l.km !== null && l.km <= RAYON_PROCHE_KM)
     .sort((a, b) => a.km - b.km)
     .slice(0, max)
     .map(({ lieu, km }) => ({ lieu, raison: `À ${formaterDistance(km)}` }));

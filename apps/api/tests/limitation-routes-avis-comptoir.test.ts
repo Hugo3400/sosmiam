@@ -3,8 +3,8 @@
 // { jusqua } } sur ses avis, le petit mot d'une réservation et ce qu'il publierait pour son lieu (SOS du soir, message du
 // moment, événements, réponse à un avis, récompense de fidélité), et rien n'est écrit ; le comptoir (valider une visite),
 // ses propres visites, une réservation sans mot, les lectures, éteindre le programme et retirer ce qui est À LUI passent ;
-// ce qui est aux autres (SOS ou événement d'un collègue, message du moment du lieu) reste ; les autres membres de l'équipe
-// publient et retirent toujours. Monté par creerApplication, comme en vrai (les branchements de application.ts sont
+// ce qui est aux autres (SOS ou événement d'un collègue ou d'un compte supprimé depuis, même lancé pendant qu'il arrête le
+// sien, message du moment du lieu) reste ; les autres membres de l'équipe publient et retirent toujours. Monté par creerApplication, comme en vrai (les branchements de application.ts sont
 // testés) : tout en mémoire, aucune base.
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
@@ -115,6 +115,14 @@ async function limiter(compteId: number, fin: Date | null = new Date(banc.horlog
   return r.limitation;
 }
 const refus = (jusqua: Date | null) => ({ ok: false, erreur: "compte-limite", details: { jusqua: jusqua?.toISOString() ?? null } });
+
+/** Un SOS en cours (fini dans 2 h), lancé il y a `depuisMs`, écrit tout droit dans le double ; null : compte supprimé depuis */
+function poserSosEnCours(compteId: number | null, depuisMs: number) {
+  moment.sos.push({
+    lieuId: 1, compteId, places: 4, offre: null, jusqua: new Date(banc.horloge + 2 * 3600_000), creeLe: new Date(banc.horloge - depuisMs),
+    arreteLe: null, lancePar: compteId === null ? null : (visites.comptes.get(compteId)?.prenom ?? null),
+  });
+}
 
 /** Une visite validée au comptoir du lieu `lieuId`, dans les données des avis : son avis est ouvert (1 h après) */
 function creerVisiteAvis(compteId: number, lieuId: number) {
@@ -236,6 +244,62 @@ test("compte limité, au comptoir : le SOS et l'événement d'un collègue reste
   assert.equal((await demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton)).statut, 200);
 });
 
+test("compte limité, au comptoir : ce qui est à un compte supprimé, ou à une collègue en même temps que le sien, reste aussi", async () => {
+  const gerant = await creerMembre("Max", "gerant");
+  const serveuse = await creerMembre("Nina", "equipe");
+  const evenementId = (await demander("POST", "/pro/comptoir/lieux/1/evenements", serveuse.jeton, QUIZ)).corps.evenement.id as number;
+  const fin = new Date(banc.horloge + 7 * JOUR);
+  await limiter(gerant.id, fin);
+  const arreter = () => demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton);
+
+  // Le SOS du jour d'un compte supprimé depuis (compte_id à null) : il est aux autres, 403, rien n'est arrêté
+  poserSosEnCours(null, 3600_000);
+  const supprime = await arreter();
+  assert.deepEqual([supprime.statut, supprime.corps, moment.sos.map((s) => s.arreteLe)], [403, refus(fin), [null]]);
+  // Le sien et celui de Nina, en cours en même temps (comme juste après minuit : celui de la veille au soir et celui du
+  // jour) : le refus vaut pour tout le geste, 403, et rien n'est arrêté, pas même le sien
+  moment.sos.length = 0;
+  poserSosEnCours(serveuse.id, JOUR);
+  poserSosEnCours(gerant.id, 3600_000);
+  const deux = await arreter();
+  assert.deepEqual([deux.statut, deux.corps, moment.sos.map((s) => s.arreteLe)], [403, refus(fin), [null, null]]);
+
+  // L'événement d'un compte supprimé depuis (compte_id à null) : aux autres aussi, il n'est pas annulé
+  evenements.evenements.find((e) => e.id === evenementId)!.compteId = null;
+  const annule = await demander("DELETE", `/pro/comptoir/lieux/1/evenements/${evenementId}`, gerant.jeton);
+  assert.deepEqual([annule.statut, annule.corps, evenements.evenements.find((e) => e.id === evenementId)?.annuleLe], [403, refus(fin), null]);
+});
+
+test("compte limité, au comptoir : le SOS qu'une collègue lance pendant qu'il arrête (rien à lui en cours) reste en cours", async () => {
+  const gerant = await creerMembre("Max", "gerant");
+  const serveuse = await creerMembre("Nina", "equipe");
+  await limiter(gerant.id);
+  // Une base lente : les auteurs sont lus (aucun SOS en cours), puis Nina lance le sien avant que l'arrêt ne parte
+  const lire = moment.services.lireAuteursSosEnCours;
+  let signalerLus = () => {};
+  const lus = new Promise<void>((fini) => (signalerLus = fini));
+  let reprendre = () => {};
+  const nina = new Promise<void>((fini) => (reprendre = fini));
+  moment.services.lireAuteursSosEnCours = async (lieuId, maintenant) => {
+    const auteurs = await lire(lieuId, maintenant);
+    signalerLus();
+    await nina;
+    return auteurs;
+  };
+  try {
+    const arret = demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton);
+    await lus;
+    assert.equal((await demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 })).statut, 201);
+    reprendre();
+    // Rien d'à lui à arrêter : 200, et seuls ses SOS auraient été arrêtés ; celui de Nina reste en cours
+    const r = await arret;
+    assert.deepEqual([r.statut, r.corps.moment?.sos?.enCours], [200, true], JSON.stringify(r.corps));
+    assert.deepEqual(moment.sos.map((s) => [s.compteId, s.arreteLe]), [[serveuse.id, null]]);
+  } finally {
+    moment.services.lireAuteursSosEnCours = lire;
+  }
+});
+
 test("compte limité, programme de fidélité : l'éteindre passe, le créer, le rallumer ou le changer est refusé", async () => {
   const gerant = await creerMembre("Max", "gerant");
   const gerante = await creerMembre("Zoé", "gerant");
@@ -271,6 +335,27 @@ test("compte limité, programme de fidélité : l'éteindre passe, le créer, le
   visites.programmes.clear();
   const cree = await regler({ ...PROGRAMME, actif: false });
   assert.deepEqual([cree.statut, cree.corps, visites.programmes.size], [403, refus(fin), 0]);
+});
+
+test("compte limité, programme avec alcool : changer ou retirer sa version sans alcool, même en l'éteignant, est refusé", async () => {
+  const gerant = await creerMembre("Max", "gerant");
+  const AVEC_ALCOOL = { ...PROGRAMME, recompense: "Un verre de vin du coin", alcool: true, recompenseSansAlcool: "Un jus de fruits" };
+  assert.equal((await demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, AVEC_ALCOOL)).statut, 200);
+  const enregistre = structuredClone(visites.programmes.get(1));
+  const fin = new Date(banc.horloge + 7 * JOUR);
+  await limiter(gerant.id, fin);
+  // Une heure plus tard : un écrit changerait au moins modifieLe
+  banc.horloge += 3600_000;
+  const regler = (corps: unknown) => demander("PUT", "/pro/comptoir/lieux/1/programme", gerant.jeton, corps);
+
+  for (const recompenseSansAlcool of ["Une limonade maison", null]) {
+    const r = await regler({ ...AVEC_ALCOOL, actif: false, recompenseSansAlcool });
+    assert.deepEqual([r.statut, r.corps], [403, refus(fin)], JSON.stringify(recompenseSansAlcool));
+  }
+  assert.deepEqual(visites.programmes.get(1), enregistre, "rien n'est écrit, pas même l'heure");
+  // Tel qu'enregistré, version sans alcool comprise : l'éteindre passe
+  const eteint = await regler({ ...AVEC_ALCOOL, actif: false });
+  assert.deepEqual([eteint.statut, eteint.corps.programme?.actif, eteint.corps.programme?.recompenseSansAlcool], [200, false, "Un jus de fruits"]);
 });
 
 test("compte limité, réservation : sans petit mot, elle passe ; avec un mot, 403 et rien n'est écrit", async () => {

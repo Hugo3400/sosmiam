@@ -28,12 +28,16 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * POST /avis/:avisId/reponse. Ce refus-là passe après la session et la limite par compte, juste avant le contrôleur, donc
  * avant le rôle (relu par le contrôleur) : un compte limité l'apprend même chez un lieu qui n'est pas le sien, et rien de
  * plus. Il ne retire que ce qui est À LUI (« sans pouvoir annuler ce qui est aux autres ») ; ces refus-là sont décidés par
- * le contrôleur, après le rôle et la ressource relue (même refus, même forme) :
- * - DELETE …/sos : le SOS en cours d'un collègue (ou d'un compte supprimé depuis) → 403 ; le sien → 200 ;
+ * le contrôleur (même refus, même forme), après le rôle et la ressource relue, sauf pour le programme (voir plus bas) :
+ * - DELETE …/sos : le SOS en cours d'un collègue (ou d'un compte supprimé depuis) → 403, même si le sien est en cours aussi
+ *   (rien n'est arrêté) ; le sien seul → 200, et un SOS qu'un collègue lance pendant ce temps reste en cours ;
  * - DELETE …/evenements/:evenementId : l'événement d'un collègue → 403 ; le sien → 200 (déjà annulé : 200, rien ne change) ;
- * - DELETE …/message : le message du moment ne garde pas qui l'a écrit, il est au lieu, donc aux autres → toujours 403 ;
+ * - DELETE …/message : le message du moment ne garde pas qui l'a écrit, il est au lieu, donc aux autres → toujours 403
+ *   (refusé sur la route, comme le PUT) ;
  * - PUT …/programme : l'éteindre (actif: false, le reste tel qu'enregistré) → 200 ; le créer, le rallumer, changer la
- *   récompense (texte libre que voient les clients) ou le nombre de visites → 403.
+ *   récompense (texte libre que voient les clients), sa version sans alcool, l'alcool ou le nombre de visites → 403. La
+ *   limitation n'y passe après le rôle que quand la demande éteint (actif: false) ; avec actif: true, elle passe avant,
+ *   comme sur la route (un membre limité de l'équipe reçoit alors compte-limite, pas role-requis).
  * Les autres membres de l'équipe, non limités, publient et retirent toujours. Restent permis : lire, le QR, régler, refuser
  * ou annuler une visite, offrir une récompense, répondre à une réservation.
  *

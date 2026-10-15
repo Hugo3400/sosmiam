@@ -38,17 +38,19 @@ export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, erreur }
       {lieux.length > 0 ? (
         <View>
           {lieux.map((lieu) => {
-            const distance = formaterDistance(calculerKmLieu(lieu, depart));
+            // Distance inconnue (lieu pas encore placé) : sa ville à la place, jamais « 0 km »
+            const km = calculerKmLieu(lieu, depart);
+            const distance = km === null ? null : formaterDistance(km);
             return (
               <View key={lieu.id} className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2">
-                <View accessible accessibilityLabel={`${lieu.nom}, ${lieu.info}, à ${distance}`} className="flex-1 flex-row items-center gap-3">
+                <View accessible accessibilityLabel={`${lieu.nom}, ${lieu.info}, ${distance ? `à ${distance}` : lieu.ville}`} className="flex-1 flex-row items-center gap-3">
                   <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, publications)} hauteur={44} arrondi={12} />
                   <View className="flex-1">
                     <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
                       {lieu.nom}
                     </Text>
                     <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                      {lieu.info} · {distance}
+                      {lieu.info} · {distance ?? lieu.ville}
                     </Text>
                   </View>
                 </View>

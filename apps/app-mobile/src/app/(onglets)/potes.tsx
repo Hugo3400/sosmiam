@@ -30,7 +30,7 @@ const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) =
  */
 export default function Potes() {
   const { profil, invite } = utiliserProfil();
-  const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demo, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
+  const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { onglet: ongletDemande } = useLocalSearchParams<{ onglet?: string }>();
@@ -104,7 +104,7 @@ export default function Potes() {
           <EnTetePotes moi={moi} />
           {/* Profils créés avant Potes, ou le serveur qui attend ton pseudo : pas encore de pseudo */}
           {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
-          {demo ? <BandeauDemoPotes /> : null}
+          <BandeauDemoPotes />
         </View>
         <OngletsPotes
           onglet={onglet}
