@@ -17,6 +17,7 @@ import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts"
 import { creerLimitationsEnMemoire } from "../../src/services/limitations-comptes-en-memoire.ts";
 import { creerSocialAppEnMemoire, type OptionsSocialAppEnMemoire } from "../../src/services/social-app-en-memoire.ts";
 import { oublierCompteEnMemoire } from "../../src/services/tables-sociales-en-memoire.ts";
+import { oublierCompteCommunauteEnMemoire } from "../../src/services/communaute-en-memoire.ts";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ReponseSociale = { statut: number; corps: any; entetes: Headers };
@@ -51,6 +52,7 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
   memoire.services.effacerCompte = async (id) => {
     await effacerCompte(id);
     oublierCompteEnMemoire(social.tables, id);
+    oublierCompteCommunauteEnMemoire(social.tables, id);
     limitations.oublierCompte(id);
   };
   const serveur = creerApplication({
@@ -119,7 +121,7 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
   }
 
   return {
-    horloge, memoire, social, tables: social.tables, pushs: social.pushs, limitations: limitations.services, demander, creerPersonne, rendrePotes, suivre,
+    horloge, memoire, social, tables: social.tables, pushs: social.pushs, limitations: limitations.services, demander, creerPersonne, rendrePotes, suivre, chiffrement,
     bloquer, supprimerCompte,
     /** Les notifications partent au tour suivant de la boucle (après la réponse) */
     attendreEnvois: () => new Promise<void>((fini) => setImmediate(() => setImmediate(fini))),

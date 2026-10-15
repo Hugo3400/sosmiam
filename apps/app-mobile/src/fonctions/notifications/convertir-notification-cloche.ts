@@ -1,4 +1,5 @@
 import { TYPES_CLOCHE } from "@sos-miam/commun/regles/cloche";
+import { TYPES_CLOCHE_COMMUNAUTE } from "@sos-miam/commun/regles/communaute";
 import type { NotificationClocheApi } from "@sos-miam/commun/types/cloche";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import type { NotificationApp } from "~/hooks/utiliser-notifications";
@@ -9,7 +10,7 @@ import type { NotificationApp } from "~/hooks/utiliser-notifications";
  * que cette version de l'app ne connaît pas encore est laissé de côté plutôt que mal affiché.
  */
 export function convertirNotificationCloche(n: NotificationClocheApi): NotificationApp | null {
-  if (!(TYPES_CLOCHE as readonly string[]).includes(n.type)) return null;
+  if (![...TYPES_CLOCHE, ...TYPES_CLOCHE_COMMUNAUTE].some((type) => type === n.type)) return null;
   const base = { id: `cloche:${n.id}`, date: n.date };
   if (n.type === "nouvel-abonne" || n.type === "demande-acceptee") {
     if (!n.acteur) return null;

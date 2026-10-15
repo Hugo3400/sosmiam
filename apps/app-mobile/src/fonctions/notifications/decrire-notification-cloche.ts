@@ -2,6 +2,7 @@ import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-mode
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { Publication } from "~/contenus/type-publication";
+import { decrireNotificationClocheCommunaute } from "~/fonctions/notifications/decrire-notification-cloche-communaute";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { NotificationCloche } from "~/hooks/utiliser-notifications";
@@ -85,6 +86,6 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
       if (n.detail === "rejete") return decrire("🛡️", "On a examiné ton signalement : le contenu respecte nos règles, il reste en ligne. Merci quand même !", ...moderation);
       return decrire("🛡️", "On a examiné ton signalement : merci !", ...moderation);
     default:
-      return null;
+      return decrireNotificationClocheCommunaute(n, qui);
   }
 }

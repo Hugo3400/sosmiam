@@ -1,11 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo, useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -49,6 +52,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
   const { height: hauteurEcran } = useWindowDimensions();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   const [vue, setVue] = useState<Vue>("options");
   const [etape, setEtape] = useState<EtapeSignalement>("raison");
   // À chaque ouverture, on repart des options (sans montrer l'ancienne vue le temps d'un rendu)
@@ -130,65 +134,70 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
+          onLayout={geste.mesurerFeuille}
           // flexShrink : clavier ouvert, la feuille rétrécit et son contenu défile jusqu'au bouton d'envoi
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-            {vue === "signalement" ? (
-              <SignalementPublication
-                nomLieu={nomLieu}
-                etape={etape}
-                onChangerEtape={setEtape}
-                onEnvoyer={onSignaler}
-                onRetourMenu={revenirAuxOptions}
-                onFermer={onFermer}
-              />
-            ) : (
-              <>
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} className="px-5">
+              {vue === "signalement" ? null : (
                 <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">{nomLieu}</Text>
-                {options.map((o) => {
-                  // En visite, un petit cadenas sur ce qui demande un compte (tout sauf l'adresse)
-                  const verrouille = !avecCompte && o.choix !== "adresse";
-                  return (
-                    <Pressable
-                      key={o.choix}
-                      accessibilityRole="button"
-                      accessibilityLabel={o.titre}
-                      accessibilityState={{ disabled: o.desactive }}
-                      accessibilityHint={verrouille ? `${o.detail}. Il te faut un compte, une minute suffit` : o.detail}
-                      disabled={o.desactive}
-                      onPress={() => {
-                        vibrerLegerement();
-                        if (o.choix === "signaler" && avecCompte) ouvrirSignalement();
-                        else onChoisir(o.choix);
-                      }}
-                      className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${o.desactive ? "opacity-40" : ""}`}
-                    >
-                      <Text className="text-2xl">{o.emoji}</Text>
-                      <View className="flex-1">
-                        <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                        <Text className="font-texte text-sm text-gris">{o.detail}</Text>
-                      </View>
-                      {verrouille ? (
-                        <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
-                      ) : o.choix === "signaler" ? (
-                        <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
-                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-                </Pressable>
-              </>
-            )}
-          </ScrollView>
-        </View>
+              )}
+            </PoigneeFeuille>
+            <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+              {vue === "signalement" ? (
+                <SignalementPublication
+                  nomLieu={nomLieu}
+                  etape={etape}
+                  onChangerEtape={setEtape}
+                  onEnvoyer={onSignaler}
+                  onRetourMenu={revenirAuxOptions}
+                  onFermer={onFermer}
+                />
+              ) : (
+                <>
+                  {options.map((o) => {
+                    // En visite, un petit cadenas sur ce qui demande un compte (tout sauf l'adresse)
+                    const verrouille = !avecCompte && o.choix !== "adresse";
+                    return (
+                      <Pressable
+                        key={o.choix}
+                        accessibilityRole="button"
+                        accessibilityLabel={o.titre}
+                        accessibilityState={{ disabled: o.desactive }}
+                        accessibilityHint={verrouille ? `${o.detail}. Il te faut un compte, une minute suffit` : o.detail}
+                        disabled={o.desactive}
+                        onPress={() => {
+                          vibrerLegerement();
+                          if (o.choix === "signaler" && avecCompte) ouvrirSignalement();
+                          else onChoisir(o.choix);
+                        }}
+                        className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${o.desactive ? "opacity-40" : ""}`}
+                      >
+                        <Text className="text-2xl">{o.emoji}</Text>
+                        <View className="flex-1">
+                          <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                          <Text className="font-texte text-sm text-gris">{o.detail}</Text>
+                        </View>
+                        {verrouille ? (
+                          <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
+                        ) : o.choix === "signaler" ? (
+                          <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                        ) : null}
+                      </Pressable>
+                    );
+                  })}
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                  </Pressable>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

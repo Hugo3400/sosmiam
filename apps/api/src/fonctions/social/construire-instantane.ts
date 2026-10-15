@@ -34,7 +34,10 @@ export type ContenuSignale =
   | { cible: "liste"; titre: string; emoji: string; description: string; visibilite: string; lieux: number[]; auteur: AuteurInstantane }
   | { cible: "profil"; pseudo: string | null; prenom: string; avatar: string | null }
   | { cible: "sortie"; titre: string; emoji: string; quand: Date; lieux: number[]; organisateur: AuteurInstantane }
-  | { cible: "groupe"; titre: string | null; emoji: string | null; createur: AuteurInstantane };
+  | { cible: "groupe"; titre: string | null; emoji: string | null; createur: AuteurInstantane }
+  | { cible: "idee"; titre: string; detail: string; statut: string; auteur: AuteurInstantane; date: Date }
+  | { cible: "comment-idee"; texte: string; ideeId: number; reponseA: number | null; auteur: AuteurInstantane; date: Date }
+  | { cible: "miamis"; titre: string; description: string; quand: Date; lieuId: number; etiquettesLibres: string[]; organisateur: AuteurInstantane };
 
 /** Les plafonds d'un instantané : il tient toujours dans signalements.instantane_chiffre (VarChar(6000)) une fois chiffré */
 const MAX_TEXTE = 500;
@@ -78,5 +81,20 @@ export function construireInstantane(contenu: ContenuSignale): string {
       });
     case "groupe":
       return JSON.stringify({ v: 1, cible: contenu.cible, titre: couper(contenu.titre, MAX_COURT), emoji: contenu.emoji, createur: auteur(contenu.createur) });
+    case "idee":
+      return JSON.stringify({
+        v: 1, cible: contenu.cible, titre: couper(contenu.titre, MAX_COURT), detail: couper(contenu.detail, MAX_TEXTE), statut: contenu.statut,
+        auteur: auteur(contenu.auteur), date: contenu.date.toISOString(),
+      });
+    case "comment-idee":
+      return JSON.stringify({
+        v: 1, cible: contenu.cible, texte: couper(contenu.texte, MAX_TEXTE), ideeId: contenu.ideeId, reponseA: contenu.reponseA, auteur: auteur(contenu.auteur),
+        date: contenu.date.toISOString(),
+      });
+    case "miamis":
+      return JSON.stringify({
+        v: 1, cible: contenu.cible, titre: couper(contenu.titre, MAX_COURT), description: couper(contenu.description, MAX_TEXTE), quand: contenu.quand.toISOString(),
+        lieuId: contenu.lieuId, etiquettesLibres: contenu.etiquettesLibres.slice(0, 5).map((e) => couper(e, 40)), organisateur: auteur(contenu.organisateur),
+      });
   }
 }

@@ -15,8 +15,9 @@ import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import { filtrePublicationVisible } from "./publications-app.ts";
 import type { RelationsSociales, TransactionSociale } from "./relations-sociales-regles.ts";
 import type { ContenuLu, NouveauSignalementSocial } from "./signalements-sociaux-regles.ts";
+import { lireContenuCommunaute, masquerCommunautePourTous, type VoirSortieMiamis } from "./instantanes-communaute.ts";
 
-export type DependancesInstantanes = { chiffrement: ChiffrementSocial; relations: Pick<RelationsSociales, "bloqueEntre" | "lireLiens" | "trouverCompte"> };
+export type DependancesInstantanes = { chiffrement: ChiffrementSocial; relations: Pick<RelationsSociales, "bloqueEntre" | "lireLiens" | "trouverCompte">; voitLaSortieMiamis?: VoirSortieMiamis };
 
 /** pourLeLieu : le gérant relit un commentaire qu'il a masqué (pour le démasquer, ou le masquer de nouveau) */
 export type OptionsLecture = { pourLeLieu?: boolean };
@@ -202,6 +203,9 @@ export async function lireContenuSignale(
     case "liste": return lireListe(tx, d, compteId, id);
     case "sortie": return lireSortie(tx, compteId, id);
     case "groupe": return lireGroupe(tx, d, compteId, id);
+    case "idee":
+    case "comment-idee":
+    case "miamis": return lireContenuCommunaute(tx, d, compteId, cible, id, maintenant);
   }
 }
 
@@ -228,7 +232,7 @@ export async function masquerPourTous(tx: TransactionSociale, cible: Signalement
     const message = await tx.messageConversation.update({ where: { id }, data: { suspenduLe: maintenant }, select: { conversationId: true } });
     // L'app relit la discussion quand sa version bouge (C.2) : le message y devient « masqué »
     await tx.conversation.update({ where: { id: message.conversationId }, data: { version: { increment: 1 }, modifieLe: maintenant } });
-  }
+  } else if (cible === "idee" || cible === "comment-idee") await masquerCommunautePourTous(tx, cible, id, maintenant);
 }
 
 /**

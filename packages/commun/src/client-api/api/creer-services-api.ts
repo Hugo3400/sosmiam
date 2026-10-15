@@ -14,6 +14,7 @@ import { creerFideliteApi } from "./api-fidelite.ts";
 import { creerInteretsEvenementsApi } from "./api-interets-evenements.ts";
 import { creerLieuProApi } from "./api-lieu-pro.ts";
 import { creerMiamSafeApi } from "./api-miam-safe.ts";
+import { creerReglagesReservationsApi } from "./api-reglages-reservations.ts";
 import { creerReservationsApi } from "./api-reservations.ts";
 import { creerSuggestionsApi } from "./api-suggestions.ts";
 import { creerVisitesApi } from "./api-visites.ts";
@@ -25,6 +26,7 @@ export function creerServicesApi(client: ClientHttp, o: { lireStatutAmbassadeur:
     visites: creerVisitesApi(client),
     fidelite: creerFideliteApi(client),
     reservations: creerReservationsApi(client),
+    reglagesReservations: creerReglagesReservationsApi(client),
     avis: creerAvisApi(client),
     comptoir: {
       ...creerComptoirApi(client),
@@ -32,8 +34,11 @@ export function creerServicesApi(client: ClientHttp, o: { lireStatutAmbassadeur:
       listerReservations: (lieuId) => client.demander<{ reservations: ReservationPro[] }>("GET", `/pro/comptoir/lieux/${lieuId}/reservations`),
       repondreReservation: (id, reponse) =>
         reponse.accepter
-          ? client.demander<{ reservation: ReservationPro }>("POST", `/pro/comptoir/reservations/${id}/accepter`)
+          ? client.demander<{ reservation: ReservationPro }>("POST", `/pro/comptoir/reservations/${id}/accepter`, {
+            corps: { creneau: reponse.creneau ?? null, depasser: reponse.depasser === true },
+          })
           : client.demander<{ reservation: ReservationPro }>("POST", `/pro/comptoir/reservations/${id}/refuser`, { corps: { motif: reponse.motif } }),
+      annulerReservation: (id, motif) => client.demander<{ reservation: ReservationPro }>("POST", `/pro/comptoir/reservations/${id}/annuler`, { corps: { motif } }),
       marquerArrivee: (id, venu) => client.demander<{ reservation: ReservationPro }>("POST", `/pro/comptoir/reservations/${id}/${venu ? "venu" : "absent"}`),
       listerAvis: (lieuId) => client.demander<{ resume: ResumeAvis; avis: AvisPublic[] }>("GET", `/pro/comptoir/lieux/${lieuId}/avis`),
       repondreAvis: (avisId, texte) => client.demander<{ avis: AvisPublic }>("POST", `/pro/comptoir/avis/${avisId}/reponse`, { corps: { texte } }),

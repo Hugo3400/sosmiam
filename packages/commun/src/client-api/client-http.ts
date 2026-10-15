@@ -90,6 +90,7 @@ function lireDetails(corps: Record<string, unknown>): DetailsErreur | undefined 
   if (typeof d.lieu === "string") details.lieu = d.lieu;
   if (typeof d.attenteS === "number") details.attenteS = d.attenteS;
   if (typeof d.lieuId === "number") details.lieuId = d.lieuId;
+  if (typeof d.places === "number") details.places = d.places;
   return Object.keys(details).length > 0 ? details : undefined;
 }
 

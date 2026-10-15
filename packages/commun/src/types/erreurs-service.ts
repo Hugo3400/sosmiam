@@ -3,11 +3,13 @@
 // Celles de la partie sociale sont à part (erreurs-service-sociales.ts, textes dans contenus/messages-services-sociaux.ts).
 import type { ErreurServiceSociale } from "./erreurs-service-sociales.ts";
 import type { ErreurConnexionQr } from "./erreurs-connexion-qr.ts";
+import type { ErreurServiceCommunaute } from "./erreurs-service-communaute.ts";
 import type { ErreurServiceReservations } from "./erreurs-reservations.ts";
 
 export type ErreurService =
   | ErreurServiceSociale
   | ErreurConnexionQr
+  | ErreurServiceCommunaute
   | ErreurServiceReservations
   | "connexion-requise"
   | "service-indisponible"

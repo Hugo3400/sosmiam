@@ -35,7 +35,7 @@ export type Signalement = {
 };
 
 /** Ce qu'on peut signaler dans la partie sociale (CIBLES_SIGNALEMENT_SOCIAL de regles/signalement.ts). Un lieu envoyé est un message. */
-export type CibleSignalementSocial = "commentaire" | "message" | "liste" | "profil" | "sortie" | "groupe";
+export type CibleSignalementSocial = "commentaire" | "message" | "liste" | "profil" | "sortie" | "groupe" | "idee" | "comment-idee" | "miamis";
 
 /**
  * Ce sur quoi la modération peut décider, vu dans « Décisions de la modération » (CIBLES_DECISION_MODERATION de

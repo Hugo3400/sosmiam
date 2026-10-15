@@ -29,7 +29,7 @@ test("texte social : vide après trim, 500 caractères passent, 501 non, insulte
 const signalement = { cible: "message", cibleId: "42", raison: "choquant", precision: null, explication: "" };
 
 test("signalement social : les 6 cibles, et l'identifiant qui va avec", () => {
-  assert.deepEqual([...CIBLES_SIGNALEMENT_SOCIAL].sort(), ["commentaire", "groupe", "liste", "message", "profil", "sortie"]);
+  assert.deepEqual([...CIBLES_SIGNALEMENT_SOCIAL].sort(), ["comment-idee", "commentaire", "groupe", "idee", "liste", "message", "miamis", "profil", "sortie"]);
   for (const cible of ["commentaire", "message", "liste", "sortie", "groupe"]) {
     assert.equal(validerSignalementContenu({ ...signalement, cible })?.cible, cible);
   }

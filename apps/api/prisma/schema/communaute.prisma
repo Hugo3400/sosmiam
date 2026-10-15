@@ -1,0 +1,171 @@
+model ProfilCommunaute {
+  compteId      Int       @id @map("compte_id")
+  compte        Compte    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  genreChiffre  String?   @map("genre_chiffre") @db.VarChar(120)
+  genreChoisiLe DateTime? @map("genre_choisi_le") @db.Timestamptz(0)
+  quiEstLa      Boolean   @default(false) @map("qui_est_la")
+  modifieLe     DateTime  @default(now()) @map("modifie_le") @db.Timestamptz(0)
+
+  @@map("profils_communaute")
+}
+
+model PresenceQuiEstLa {
+  compteId Int      @id @map("compte_id")
+  compte   Compte   @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  villeCle String   @map("ville_cle") @db.VarChar(80)
+  jusqua   DateTime @db.Timestamptz(0)
+
+  @@index([villeCle, jusqua])
+  @@index([jusqua])
+  @@map("presences_qui_est_la")
+}
+
+model CoucouMiami {
+  deId   Int      @map("de_id")
+  de     Compte   @relation("CoucousEnvoyes", fields: [deId], references: [id], onDelete: Cascade)
+  aId    Int      @map("a_id")
+  a      Compte   @relation("CoucousRecus", fields: [aId], references: [id], onDelete: Cascade)
+  creeLe DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([deId, aId])
+  @@index([aId])
+  @@index([creeLe])
+  @@map("coucous_miamis")
+}
+
+model SortieDesMiamis {
+  id                 Int                            @id @default(autoincrement())
+  organisateurId     Int                            @map("organisateur_id")
+  organisateur       Compte                         @relation("SortiesDesMiamisOrganisees", fields: [organisateurId], references: [id], onDelete: Cascade)
+  lieuId             Int                            @map("lieu_id")
+  lieu               Lieu                           @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  conversationId     Int?                           @unique @map("conversation_id")
+  conversation       Conversation?                  @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  titre              String                         @db.VarChar(40)
+  description        String                         @default("") @db.VarChar(300)
+  quand              DateTime                       @db.Timestamptz(0)
+  villeCle           String                         @map("ville_cle") @db.VarChar(80)
+  publicType         String                         @default("tous") @map("public_type") @db.VarChar(12)
+  publicValeur       String?                        @map("public_valeur") @db.VarChar(8)
+  places             Int                            @db.SmallInt
+  placeGardeeNouveau Boolean                        @default(false) @map("place_gardee_nouveau")
+  recurrente         Boolean                        @default(false)
+  serieId            Int?                           @map("serie_id")
+  suiteTraiteeLe     DateTime?                      @map("suite_traitee_le") @db.Timestamptz(0)
+  rappelEnvoyeLe     DateTime?                      @map("rappel_envoye_le") @db.Timestamptz(0)
+  annuleeLe          DateTime?                      @map("annulee_le") @db.Timestamptz(0)
+  annulationTardive  Boolean                        @default(false) @map("annulation_tardive")
+  retireeLe          DateTime?                      @map("retiree_le") @db.Timestamptz(0)
+  version            Int                            @default(0)
+  modifieLe          DateTime                       @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  creeLe             DateTime                       @default(now()) @map("cree_le") @db.Timestamptz(0)
+  participations     ParticipationSortieDesMiamis[]
+  etiquettes         EtiquetteSortieDesMiamis[]
+
+  @@index([villeCle, quand])
+  @@index([organisateurId, quand])
+  @@index([lieuId])
+  @@index([quand])
+  @@index([serieId])
+  @@map("sorties_des_miamis")
+}
+
+model ParticipationSortieDesMiamis {
+  sortieId  Int             @map("sortie_id")
+  sortie    SortieDesMiamis @relation(fields: [sortieId], references: [id], onDelete: Cascade)
+  compteId  Int             @map("compte_id")
+  compte    Compte          @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  statut    String          @db.VarChar(8)
+  habitue   Boolean         @default(false)
+  creeLe    DateTime        @default(now()) @map("cree_le") @db.Timestamptz(3)
+  decideLe  DateTime?       @map("decide_le") @db.Timestamptz(3)
+  presentLe DateTime?       @map("present_le") @db.Timestamptz(0)
+
+  @@id([sortieId, compteId])
+  @@index([compteId, statut])
+  @@map("participations_sorties_des_miamis")
+}
+
+model EtiquetteSortieDesMiamis {
+  sortieId   Int             @map("sortie_id")
+  sortie     SortieDesMiamis @relation(fields: [sortieId], references: [id], onDelete: Cascade)
+  nom        String          @db.VarChar(32)
+  officielle Boolean         @default(false)
+  retireeLe  DateTime?       @map("retiree_le") @db.Timestamptz(0)
+
+  @@id([sortieId, nom])
+  @@index([nom])
+  @@map("etiquettes_sorties_des_miamis")
+}
+
+model IdeeCommunaute {
+  id             Int                         @id @default(autoincrement())
+  auteurId       Int?                        @map("auteur_id")
+  auteur         Compte?                     @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+  titre          String                      @db.VarChar(90)
+  titreCle       String                      @map("titre_cle") @db.VarChar(120)
+  detail         String                      @default("") @db.VarChar(500)
+  statut         String                      @default("en-relecture") @db.VarChar(12)
+  reponseBrigade String?                     @map("reponse_brigade") @db.VarChar(1000)
+  reponduLe      DateTime?                   @map("repondu_le") @db.Timestamptz(0)
+  ideeDuMois     String?                     @unique @map("idee_du_mois") @db.VarChar(7)
+  publieeLe      DateTime?                   @map("publiee_le") @db.Timestamptz(0)
+  suspendueLe    DateTime?                   @map("suspendue_le") @db.Timestamptz(0)
+  retireeLe      DateTime?                   @map("retiree_le") @db.Timestamptz(0)
+  modifieLe      DateTime                    @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  creeLe         DateTime                    @default(now()) @map("cree_le") @db.Timestamptz(3)
+  votes          VoteIdeeCommunaute[]
+  commentaires   CommentaireIdeeCommunaute[]
+
+  @@index([statut, creeLe])
+  @@index([auteurId])
+  @@index([titreCle])
+  @@map("idees_communaute")
+}
+
+model VoteIdeeCommunaute {
+  ideeId   Int            @map("idee_id")
+  idee     IdeeCommunaute @relation(fields: [ideeId], references: [id], onDelete: Cascade)
+  compteId Int            @map("compte_id")
+  compte   Compte         @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe   DateTime       @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([ideeId, compteId])
+  @@index([compteId])
+  @@index([creeLe])
+  @@map("votes_idees_communaute")
+}
+
+model CommentaireIdeeCommunaute {
+  id         Int                          @id @default(autoincrement())
+  ideeId     Int                          @map("idee_id")
+  idee       IdeeCommunaute               @relation(fields: [ideeId], references: [id], onDelete: Cascade)
+  auteurId   Int                          @map("auteur_id")
+  auteur     Compte                       @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  texte      String                       @db.VarChar(500)
+  reponseAId Int?                         @map("reponse_a_id")
+  reponseA   CommentaireIdeeCommunaute?   @relation("ReponsesIdee", fields: [reponseAId], references: [id], onDelete: SetNull)
+  reponses   CommentaireIdeeCommunaute[]  @relation("ReponsesIdee")
+  masqueLe   DateTime?                    @map("masque_le") @db.Timestamptz(0)
+  suspenduLe DateTime?                    @map("suspendu_le") @db.Timestamptz(0)
+  retireLe   DateTime?                    @map("retire_le") @db.Timestamptz(0)
+  creeLe     DateTime                     @default(now()) @map("cree_le") @db.Timestamptz(3)
+  jaimes     JaimeCommentaireIdee[]
+
+  @@index([ideeId, creeLe])
+  @@index([auteurId])
+  @@index([reponseAId])
+  @@map("commentaires_idees_communaute")
+}
+
+model JaimeCommentaireIdee {
+  commentaireId Int                       @map("commentaire_id")
+  commentaire   CommentaireIdeeCommunaute @relation(fields: [commentaireId], references: [id], onDelete: Cascade)
+  compteId      Int                       @map("compte_id")
+  compte        Compte                    @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  creeLe        DateTime                  @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([commentaireId, compteId])
+  @@index([compteId])
+  @@map("jaimes_commentaires_idees")
+}

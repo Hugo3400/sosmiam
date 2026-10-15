@@ -19,6 +19,8 @@ import { creerCommentaires } from "./commentaires.ts";
 import { creerDecisionsModerationApp } from "./decisions-moderation-app.ts";
 import { creerSignalementsSociaux } from "./signalements-sociaux.ts";
 import { creerExportSocial } from "./export-social.ts";
+import { creerCommunaute } from "./communaute.ts";
+import { creerDepotCommunaute } from "./communaute-tables.ts";
 
 export type OptionsDependancesSociales = {
   /** La clé des données (chargerChiffrementDonnees) ; null : pas de clé */
@@ -45,6 +47,8 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
   const cloche = creerCloche(relations);
   // Sans état : le même service sert aux domaines qui lisent un profil (suivis, commentaires)
   const social = creerSocial({ relations, tirer: o.tirer });
+  const communaute = creerCommunaute({ depot: creerDepotCommunaute({ relations, medias }), relations, chiffrementDonnees: o.chiffrement, estLimite: o.estLimite });
+  const voitLaSortieMiamis = async (compteId: number, sortieId: number, maintenant: Date) => (await communaute.sorties.lire(compteId, sortieId, maintenant)) !== null;
   return {
     chiffrement,
     medias,
@@ -62,8 +66,9 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
     sorties: creerSorties({ relations, medias }),
     listes: creerListes({ relations }),
     commentaires: creerCommentaires({ relations, social, lireRole: o.lireRole, chiffrement }),
-    signalements: creerSignalementsSociaux({ relations, chiffrement }),
+    signalements: creerSignalementsSociaux({ relations, chiffrement, voitLaSortieMiamis }),
     decisions: creerDecisionsModerationApp({ contesterSignalement: o.contesterSignalement }),
     exportSocial: creerExportSocial({ relations, chiffrement }),
+    communaute,
   };
 }

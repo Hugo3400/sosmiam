@@ -58,6 +58,8 @@ import { creerRoutesModerationApp } from "./moderation-app.ts";
 import { creerRoutesSignalementsSociaux } from "./signalements-sociaux.ts";
 import type { ServicesExportSocial } from "../services/export-social-regles.ts";
 import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
+import type { ServicesCommunaute } from "../services/communaute-regles.ts";
+import { creerRoutesCommunaute } from "./communaute.ts";
 
 /** Toutes les lectures sociales (pouls, fils, profils, listes…), par compte : une seule limite pour tous les domaines */
 export const LIMITE_LECTURES_SOCIALES = { fenetre: 10 * 60_000, maximum: 900 };
@@ -101,6 +103,7 @@ export type DependancesSocialApp = {
   decisions: ServicesDecisionsModeration;
   /** « Télécharger mes données sociales » : tes données et TES messages déchiffrés (lot L7, GET /app/social/export) */
   exportSocial: ServicesExportSocial;
+  communaute?: ServicesCommunaute;
 };
 
 /** Ce que chaque domaine reçoit pour construire ses routes */
@@ -163,5 +166,6 @@ export function creerRoutesSocialesApp(d: DependancesSocialApp, protection: Prot
   routes.use("/commentaires", creerRoutesCommentaires(d, contexte), gererRefusSociaux, gererErreursComptes);
   monter("/signalements", creerRoutesSignalementsSociaux(d, contexte));
   monter("/moderation", creerRoutesModerationApp(d, contexte));
+  if (d.communaute) monter("/communaute", creerRoutesCommunaute(d.communaute, d, contexte));
   return routes;
 }

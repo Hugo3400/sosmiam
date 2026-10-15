@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 
 export type EchecVisite = { erreur: ErreurService; details?: DetailsErreur };
 
@@ -51,6 +53,7 @@ export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFer
   }, [echec]);
 
   const visible = echec !== null && !enFermeture;
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
 
   useEffect(() => {
     if (!visible) return;
@@ -83,26 +86,28 @@ export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFer
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        {/* Avec un très grand texte, le message défile et les boutons restent à l'écran */}
-        <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
-          {affiche ? (
-            <MessageEchecVisite erreur={affiche.erreur} details={affiche.details} lieuNom={lieuNom} texte={textes?.[affiche.erreur]} refTitre={refTitre} />
-          ) : null}
-        </ScrollView>
-        <View className="mt-5 gap-3 px-5">
-          {actions.map((action) => (
-            <Bouton key={action.libelle} libelle={action.libelle} variante={action.variante ?? "jaune"} onPress={() => fermerPuis(action.onPress)} />
-          ))}
-          <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} />
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <PoigneeFeuille geste={geste} ecart="grand" />
+          {/* Avec un très grand texte, le message défile et les boutons restent à l'écran */}
+          <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
+            {affiche ? (
+              <MessageEchecVisite erreur={affiche.erreur} details={affiche.details} lieuNom={lieuNom} texte={textes?.[affiche.erreur]} refTitre={refTitre} />
+            ) : null}
+          </ScrollView>
+          <View className="mt-5 gap-3 px-5">
+            {actions.map((action) => (
+              <Bouton key={action.libelle} libelle={action.libelle} variante={action.variante ?? "jaune"} onPress={() => fermerPuis(action.onPress)} />
+            ))}
+            <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} />
+          </View>
         </View>
-      </View>
+      </Animated.View>
     </Modal>
   );
 }

@@ -1,3 +1,5 @@
+import { calculerLimiteReponseReservation } from "@sos-miam/commun/fonctions/reservations/calculer-limite-reponse-reservation";
+import { calculerPropositionsReservation } from "@sos-miam/commun/fonctions/reservations/calculer-propositions-reservation";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 
 import { trouverClientDemo } from "./trouver-client-demo";
@@ -12,6 +14,9 @@ export function presenterReservationProDemo(m: Readonly<MagasinDemo>, r: Reserva
     avatar: client.avatar,
     personnes: r.personnes,
     creneau: r.creneau,
+    propositions: calculerPropositionsReservation(r, null, []),
+    automatique: false,
+    limiteReponse: calculerLimiteReponseReservation(r, null),
     message: r.message,
     statut: r.statut,
     presence: r.presenceLe !== null,

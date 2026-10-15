@@ -27,6 +27,7 @@ export function creerServicesDemo(ctx: ContexteDemo): Services {
     visites: creerVisitesDemo(ctx),
     fidelite: creerFideliteDemo(ctx),
     reservations: creerReservationsDemo(ctx),
+    reglagesReservations: enAttente.reglagesReservations,
     avis: creerAvisDemo(ctx),
     comptoir: { ...enAttente.comptoir, ...creerComptoirDemo(ctx), ...creerReservationsProDemo(ctx), ...creerAvisProDemo(ctx), ecouter },
     lieuPro: creerLieuProDemo(ctx),

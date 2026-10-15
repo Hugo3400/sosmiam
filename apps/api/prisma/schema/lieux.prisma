@@ -96,6 +96,7 @@ model Lieu {
   sortiesRetenues       Sortie[]                 @relation("SortiesRetenues")
   dansLesListes         LieuDeListe[]
   commentairesCommeLieu CommentairePublication[]
+  sortiesDesMiamis      SortieDesMiamis[]
 
   @@index([statut, ville])
   @@map("lieux")

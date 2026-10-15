@@ -14,6 +14,7 @@ import { creerListesApi } from "./api-listes.ts";
 import { creerCommentairesApi } from "./api-commentaires.ts";
 import { creerModerationAppApi } from "./api-moderation-app.ts";
 import { creerSignalementsSociauxApi } from "./api-signalements-sociaux.ts";
+import { creerCommunauteApi } from "./api-communaute.ts";
 
 export function creerServicesSociauxApi(client: ClientHttp): ServicesSociaux {
   return {
@@ -27,5 +28,6 @@ export function creerServicesSociauxApi(client: ClientHttp): ServicesSociaux {
     commentaires: creerCommentairesApi(client),
     signalements: creerSignalementsSociauxApi(client),
     moderation: creerModerationAppApi(client),
+    communaute: creerCommunauteApi(client),
   };
 }

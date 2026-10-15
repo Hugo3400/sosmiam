@@ -1,15 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { FlatList, Modal, Pressable, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -23,6 +25,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { potes } = utiliserCommunaute();
@@ -45,76 +48,77 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.85, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.85, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <View className="px-5 pb-2">
-          <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-            Nouveau message
-          </Text>
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("À qui tu écris ? Un « t'as faim ? » suffit pour commencer.")}</Text>
-        </View>
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <PoigneeFeuille geste={geste} className="px-5 pb-2">
+            <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
+              Nouveau message
+            </Text>
+            <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("À qui tu écris ? Un « t'as faim ? » suffit pour commencer.")}</Text>
+          </PoigneeFeuille>
 
-        <FlatList
-          data={potes}
-          keyExtractor={(pote) => pote.id}
-          contentContainerClassName="px-5"
-          ListHeaderComponent={
-            potes.length > 0 ? (
+          <FlatList
+            data={potes}
+            keyExtractor={(pote) => pote.id}
+            contentContainerClassName="px-5"
+            ListHeaderComponent={
+              potes.length > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Nouveau groupe"
+                  accessibilityHint="Pour discuter à plusieurs"
+                  onPress={() => aller("/potes/nouveau-groupe")}
+                  className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
+                >
+                  <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune">
+                    <Ionicons name="people" size={20} color={couleurs.encre} />
+                  </View>
+                  <Text className="flex-1 font-texte-gras text-base text-encre">Nouveau groupe</Text>
+                  <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
+                </Pressable>
+              ) : null
+            }
+            ListEmptyComponent={
+              <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
+                <Text className="text-center font-texte text-base leading-6 text-gris">
+                  {lierPonctuation("Ta bande est vide pour l'instant : ajoute un pote, et vous pourrez papoter.")}
+                </Text>
+                <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => aller("/potes/ajouter")} />
+              </View>
+            }
+            renderItem={({ item: pote }) => (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Nouveau groupe"
-                accessibilityHint="Pour discuter à plusieurs"
-                onPress={() => aller("/potes/nouveau-groupe")}
+                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
+                accessibilityHint="Ouvre votre conversation privée"
+                onPress={() => void ecrire(pote.id)}
                 className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
               >
-                <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-                  <Ionicons name="people" size={20} color={couleurs.encre} />
+                <RondPote pote={pote} taille={40} />
+                <View className="flex-1">
+                  <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
+                    {pote.prenom}
+                  </Text>
+                  <Text numberOfLines={1} className="font-texte text-sm text-gris">
+                    {[`@${pote.pseudo}`, pote.ville.trim()].filter(Boolean).join(" · ")}
+                  </Text>
                 </View>
-                <Text className="flex-1 font-texte-gras text-base text-encre">Nouveau groupe</Text>
                 <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
               </Pressable>
-            ) : null
-          }
-          ListEmptyComponent={
-            <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
-              <Text className="text-center font-texte text-base leading-6 text-gris">
-                {lierPonctuation("Ta bande est vide pour l'instant : ajoute un pote, et vous pourrez papoter.")}
-              </Text>
-              <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => aller("/potes/ajouter")} />
-            </View>
-          }
-          renderItem={({ item: pote }) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
-              accessibilityHint="Ouvre votre conversation privée"
-              onPress={() => void ecrire(pote.id)}
-              className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
-            >
-              <RondPote pote={pote} taille={40} />
-              <View className="flex-1">
-                <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
-                  {pote.prenom}
-                </Text>
-                <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                  {[`@${pote.pseudo}`, pote.ville.trim()].filter(Boolean).join(" · ")}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
-            </Pressable>
-          )}
-          ListFooterComponent={
-            <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-              <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-            </Pressable>
-          }
-        />
-      </View>
+            )}
+            ListFooterComponent={
+              <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+              </Pressable>
+            }
+          />
+        </View>
+      </Animated.View>
     </Modal>
   );
 }

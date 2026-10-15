@@ -9,6 +9,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
+import { effacerEnviesMiamis } from "~/stockage/envies-miamis";
 import { effacerModeApp } from "~/stockage/mode-app";
 import { effacerRolesDemo } from "~/stockage/roles-demo";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
@@ -43,6 +44,7 @@ export function utiliserEffacementLocal() {
       await suivisPersonnes.effacer();
       await notifications.effacer();
       await effacerSignalementsLocaux();
+      await effacerEnviesMiamis();
       await telephone.effacerReglages();
       // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses
       if (outilsDemo) {

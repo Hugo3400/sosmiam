@@ -20,9 +20,9 @@ export const SERVICES_RESERVATION_MAX = 12;
 
 export const COUVERTS_PAR_SERVICE_MAX = 3000;
 
-export const COUVERTS_PAR_CRENEAU_MAX = 500;
-
 export const FIN_SERVICE_MAX_MIN = 24 * 60;
+
+export const RATTACHEMENT_SERVICE_MAX_MIN = 2 * 60;
 
 export const JOURS_FERMES_MAX = 120;
 

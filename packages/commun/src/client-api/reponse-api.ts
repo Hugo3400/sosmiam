@@ -3,7 +3,7 @@
 import type { ErreurService } from "../types/erreurs-service.ts";
 
 /** De quoi remplir le texte d'une erreur (remplirModele) ; jamais de position du téléphone */
-export type DetailsErreur = { distanceM?: number; precisionM?: number; jusqua?: string; lieu?: string; attenteS?: number; lieuId?: number };
+export type DetailsErreur = { distanceM?: number; precisionM?: number; jusqua?: string; lieu?: string; attenteS?: number; lieuId?: number; places?: number };
 
 /** Même forme que les réponses de l'API déjà lues par le site : { ok: true, … } | { ok: false, erreur, … } */
 export type ReponseApi<T extends object = Record<never, never>> =

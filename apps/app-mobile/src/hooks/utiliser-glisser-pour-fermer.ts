@@ -14,22 +14,23 @@ const DUREE_SORTIE = 180;
 const ATTENTE_FERMETURE = 450;
 const ATTENTE_REMISE = 800;
 
-type Options = { sortieAnimee?: boolean };
+type Options = { posee?: boolean };
 
-export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void, { sortieAnimee = false }: Options = {}) {
+export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void, { posee = false }: Options = {}) {
   const animationsReduites = useReducedMotion();
   const decalage = useSharedValue(0);
   const styleFeuille = useAnimatedStyle(() => ({ transform: [{ translateY: decalage.value }] }));
+  const styleJupe = useAnimatedStyle(() => ({ height: decalage.value }));
   const hauteur = useRef(0);
   const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dernier = useRef({ visible, onFermer, animationsReduites, sortieAnimee });
+  const dernier = useRef({ visible, onFermer, animationsReduites, posee });
 
   useEffect(() => {
-    dernier.current = { visible, onFermer, animationsReduites, sortieAnimee };
+    dernier.current = { visible, onFermer, animationsReduites, posee };
   });
 
   useLayoutEffect(() => {
-    if (visible || sortieAnimee) {
+    if (visible || posee) {
       cancelAnimation(decalage);
       decalage.value = 0;
       return;
@@ -38,7 +39,7 @@ export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void
       decalage.value = 0;
     }, ATTENTE_REMISE);
     return () => clearTimeout(attente);
-  }, [visible, sortieAnimee, decalage]);
+  }, [visible, posee, decalage]);
 
   useEffect(
     () => () => {
@@ -64,7 +65,7 @@ export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void
     }
 
     function fermer() {
-      if (!dernier.current.sortieAnimee || dernier.current.animationsReduites || hauteur.current <= 0) return demanderFermeture();
+      if (!dernier.current.posee || dernier.current.animationsReduites || hauteur.current <= 0) return demanderFermeture();
       decalage.value = withTiming(hauteur.current, { duration: DUREE_SORTIE, easing: Easing.in(Easing.cubic) }, (fini) => {
         if (fini) scheduleOnRN(demanderFermeture);
       });
@@ -98,7 +99,7 @@ export function utiliserGlisserPourFermer(visible: boolean, onFermer: () => void
     hauteur.current = evenement.nativeEvent.layout.height;
   }
 
-  return { panHandlers: repondeur.panHandlers, styleFeuille, mesurerFeuille };
+  return { panHandlers: repondeur.panHandlers, styleFeuille, styleJupe: posee ? null : styleJupe, mesurerFeuille };
 }
 
 export type GlisserPourFermer = ReturnType<typeof utiliserGlisserPourFermer>;

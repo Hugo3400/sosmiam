@@ -33,6 +33,7 @@ model Conversation {
   invitations      InvitationGroupe[]
   /// La sortie dont c'est la discussion (type « sortie »)
   sortie           Sortie?
+  sortieDesMiamis  SortieDesMiamis?
 
   @@index([dernierMessageLe])
   @@index([creeParId])

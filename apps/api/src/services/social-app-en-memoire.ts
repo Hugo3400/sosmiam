@@ -24,6 +24,8 @@ import { creerDecisionsModerationAppEnMemoire, creerSignalementsSociauxEnMemoire
 import type { LireAncienTitulaire } from "./bande-regles.ts";
 import { creerExportSocialEnMemoire } from "./export-social-en-memoire.ts";
 import type { ListerLimitationsExport } from "./export-social-regles.ts";
+import { creerCommunaute } from "./communaute.ts";
+import { creerDepotCommunauteEnMemoire } from "./communaute-en-memoire.ts";
 
 export type OptionsSocialAppEnMemoire = {
   /** Absent : une clé de test tirée au hasard ; null : pas de clé (routes 🔐 en 503 chiffrement-indisponible) */
@@ -53,9 +55,12 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
   const medias = creerStockageMediasChatEnMemoire({ partLibre: o.partLibre ?? 0.5, horloge: o.horloge });
   const relations = creerRelationsSocialesEnMemoire(tables);
   const cloche = creerClocheEnMemoire(tables, relations);
-  const chiffrement = creerChiffrementSocial(o.chiffrement === undefined ? creerChiffrementDonnees(randomBytes(32)) : o.chiffrement);
+  const donnees = o.chiffrement === undefined ? creerChiffrementDonnees(randomBytes(32)) : o.chiffrement;
+  const chiffrement = creerChiffrementSocial(donnees);
   // Sans état : le même service sert aux domaines qui lisent un profil (suivis, commentaires)
   const social = creerSocialEnMemoire(tables, relations, tirer);
+  const communaute = creerCommunaute({ depot: creerDepotCommunauteEnMemoire(tables, relations, medias), relations, chiffrementDonnees: donnees, estLimite: o.estLimite });
+  const voitLaSortieMiamis = async (compteId: number, sortieId: number, maintenant: Date) => (await communaute.sorties.lire(compteId, sortieId, maintenant)) !== null;
 
   const dependances: DependancesSocialApp = {
     chiffrement,
@@ -80,9 +85,10 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
     sorties: creerSortiesEnMemoire(tables, relations, medias),
     listes: creerListesEnMemoire(tables, relations),
     commentaires: creerCommentairesEnMemoire(tables, { relations, social, lireRole: (c, l) => dependances.lireRole(c, l), chiffrement }),
-    signalements: creerSignalementsSociauxEnMemoire(tables, relations, chiffrement),
+    signalements: creerSignalementsSociauxEnMemoire(tables, relations, chiffrement, voitLaSortieMiamis),
     decisions: creerDecisionsModerationAppEnMemoire(tables, (id, texte, maintenant) => dependances.contesterSignalement(id, texte, maintenant)),
     exportSocial: creerExportSocialEnMemoire(tables, relations, chiffrement, o.listerLimitations),
+    communaute,
   };
   return { dependances, tables, pushs, contestations, medias };
 }

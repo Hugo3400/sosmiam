@@ -13,6 +13,7 @@ import {
   compterRejets, ecrireSignalementSocial, lireContenuSignale, masquerPourTous, verrouillerConversationDuMessage,
 } from "./instantanes-signalements.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
+import type { VoirSortieMiamis } from "./instantanes-communaute.ts";
 import { ecrireEffetMasque, MAX_SIGNALES_LUS, type ServicesSignalementsSociaux } from "./signalements-sociaux-regles.ts";
 
 /**
@@ -26,7 +27,7 @@ async function verrouillerCompteQuiSignale(tx: Pick<Prisma.TransactionClient, "$
   await tx.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR NO KEY UPDATE`;
 }
 
-export function creerSignalementsSociaux(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null }, base = baseDeDonnees): ServicesSignalementsSociaux {
+export function creerSignalementsSociaux(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null; voitLaSortieMiamis?: VoirSortieMiamis }, base = baseDeDonnees): ServicesSignalementsSociaux {
   const { relations } = o;
   return {
     async signaler(compteId, s, maintenant) {
@@ -38,7 +39,7 @@ export function creerSignalementsSociaux(o: { relations: RelationsSociales; chif
         const deja = await tx.signalement.findFirst({ where: { signaleParId: compteId, cible: s.cible, cibleId: s.cibleId, source: "app" }, select: { id: true } });
         if (deja) return { ok: true as const, deja: true, masquePourTous: false, effets: [] };
         if (s.cible === "message") await verrouillerConversationDuMessage(tx, s.cibleId);
-        const lu = await lireContenuSignale(tx, { chiffrement, relations }, compteId, s.cible, s.cibleId, maintenant);
+        const lu = await lireContenuSignale(tx, { chiffrement, relations, voitLaSortieMiamis: o.voitLaSortieMiamis }, compteId, s.cible, s.cibleId, maintenant);
         // Son propre contenu ne se signale pas (on le supprime) : même réponse qu'un contenu invisible
         if (!lu || lu.auteurContenuId === compteId) return { ok: false as const, erreur: "contenu-inconnu" as const };
         let masquer = false;

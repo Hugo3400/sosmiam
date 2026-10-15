@@ -4,7 +4,7 @@ import { correspondAMesEnvies } from "~/fonctions/miamis/correspond-a-mes-envies
 
 export type FiltreSortiesMiamis = { type: "toutes" } | { type: "envies" } | { type: "etiquette"; nom: string };
 
-export function filtrerSortiesMiamis(sorties: readonly SortieMiamis[], filtre: FiltreSortiesMiamis, envies: readonly string[]): SortieMiamis[] {
+export function filtrerSortiesMiamis<T extends SortieMiamis>(sorties: readonly T[], filtre: FiltreSortiesMiamis, envies: readonly string[]): T[] {
   if (filtre.type === "toutes") return [...sorties];
   if (filtre.type === "envies") return sorties.filter((s) => correspondAMesEnvies(s, envies));
   const cle = normaliserEtiquette(filtre.nom);

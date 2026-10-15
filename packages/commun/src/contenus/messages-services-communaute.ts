@@ -1,6 +1,3 @@
-// Le texte de chaque erreur de l'espace communauté, repris par MESSAGES_SERVICE (messages-services.ts). Pas d'emoji dans
-// titre ni texte : l'emoji est à part, caché aux lecteurs d'écran. {date} : details.jusqua, remplacé par remplirModele.
-
 import type { ErreurServiceCommunaute } from "../types/erreurs-service-communaute.ts";
 import type { MessageService } from "./messages-services.ts";
 

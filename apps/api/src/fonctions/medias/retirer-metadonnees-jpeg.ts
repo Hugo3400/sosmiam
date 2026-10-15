@@ -1,4 +1,7 @@
+import { verifierPassagesJpeg } from "./verifier-passages-jpeg.ts";
+
 const ADOBE = [0x41, 0x64, 0x6f, 0x62, 0x65];
+const JFIF = [0x4a, 0x46, 0x49, 0x46, 0x00];
 
 /** Un segment APP14 « Adobe » : sans lui certains JPEG s'affichent avec de fausses couleurs */
 function reecrireSegmentAdobe(octets: Uint8Array, debut: number, fin: number): Uint8Array | null {
@@ -8,17 +11,23 @@ function reecrireSegmentAdobe(octets: Uint8Array, debut: number, fin: number): U
   return Uint8Array.of(0xff, 0xee, 0x00, 0x0e, ...ADOBE, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, transformation);
 }
 
+function reecrireSegmentJfif(octets: Uint8Array, debut: number, fin: number): Uint8Array | null {
+  if (fin - debut < 14 || !JFIF.every((octet, k) => octets[debut + k] === octet)) return null;
+  const unites = octets[debut + 7] <= 2 ? octets[debut + 7] : 0;
+  return Uint8Array.of(0xff, 0xe0, 0x00, 0x10, ...JFIF, 0x01, 0x01, unites, ...octets.subarray(debut + 8, debut + 12), 0x00, 0x00);
+}
+
+const estGarde = (marqueur: number) =>
+  marqueur === 0xdb || marqueur === 0xdd || marqueur === 0xda || (marqueur >= 0xc0 && marqueur <= 0xcf && marqueur !== 0xc8);
+
 /**
- * Une photo du chat sans ses métadonnées (spécification sociale B.8, D.4). On suit les segments et les marqueurs depuis le
- * début (SOI) jusqu'à la FIN DE L'IMAGE PRINCIPALE (EOI) :
- * - retirés : APP1 à APP15 (EXIF et sa position GPS, XMP, ICC, MPF, IPTC…), sauf APP14 « Adobe », et les commentaires (COM) ;
- * - gardés : APP0 (JFIF), DQT, SOF, DHT, DRI, SOS et les données compressées, telles quelles (dans les données, FF00 et
- *   RST0 à RST7 ne terminent pas un passage ; une image progressive a plusieurs passages) ;
- * - TOUT ce qui suit l'EOI est jeté : images MPF (seconde vue, carte de gain, avec leur propre EXIF), fichiers collés.
- * null : pas un JPEG, fichier mal formé ou tronqué (pas d'EOI), passage (SOS) avant le SOF, ou second SOI avant l'EOI.
- * Les pixels décodés restent identiques ; mais l'orientation EXIF et le profil de couleurs ICC (APP2) partent aussi : une
- * photo « tournée » par son EXIF s'afficherait couchée, et une photo Display P3 un peu terne. L'app envoie donc une photo
- * déjà redressée, en sRGB (preparerPhotoChat, spécification sociale G.2).
+ * Une photo (chat, avis, profil) sans ses métadonnées, du début (SOI) à la fin de l'image principale (EOI) :
+ * - gardés tels quels : DQT, SOF, DHT, DAC, DRI, SOS et les données compressées ;
+ * - réécrits : le premier APP0 « JFIF » (en-tête standard, sans vignette) et le premier APP14 « Adobe » ;
+ * - retirés : tout le reste (EXIF et sa position GPS, XMP, ICC, IPTC, COM, JPG, DNL…) et TOUT ce qui suit l'EOI.
+ * null : pas un JPEG Huffman (SOF0 à SOF2), mal formé ou tronqué, second SOI, ou données compressées qui ne tombent pas
+ * juste (octets parasites : verifierPassagesJpeg). Les pixels décodés restent identiques, mais l'orientation EXIF et le
+ * profil ICC partent aussi : l'app envoie une photo déjà redressée, en sRGB.
  */
 export function retirerMetadonneesJpeg(octets: Uint8Array): Buffer | null {
   const n = octets.length;
@@ -27,6 +36,7 @@ export function retirerMetadonneesJpeg(octets: Uint8Array): Buffer | null {
   let i = 2;
   let sofVu = false;
   let sosVu = false;
+  const reecrits = new Set<number>();
   for (;;) {
     if (i + 2 > n || octets[i] !== 0xff) return null;
     while (octets[i + 1] === 0xff) {
@@ -37,7 +47,8 @@ export function retirerMetadonneesJpeg(octets: Uint8Array): Buffer | null {
     if (marqueur === 0xd9) {
       if (!sosVu) return null;
       morceaux.push(octets.subarray(i, i + 2));
-      return Buffer.concat(morceaux);
+      const propre = Buffer.concat(morceaux);
+      return verifierPassagesJpeg(propre) ? propre : null;
     }
     // Un second SOI, un RST hors des données compressées ou un octet nul : fichier mal formé (ou deux images collées)
     if (marqueur === 0xd8 || marqueur === 0x00 || marqueur === 0x01 || (marqueur >= 0xd0 && marqueur <= 0xd7)) return null;
@@ -45,10 +56,17 @@ export function retirerMetadonneesJpeg(octets: Uint8Array): Buffer | null {
     const fin = i + 2 + ((octets[i + 2] << 8) | octets[i + 3]);
     if (fin < i + 4 || fin > n) return null;
     if (marqueur >= 0xc0 && marqueur <= 0xcf && marqueur !== 0xc4 && marqueur !== 0xc8 && marqueur !== 0xcc) sofVu = true;
-    const metadonnee = marqueur === 0xfe || marqueur === 0xc8 || (marqueur >= 0xe1 && marqueur <= 0xef) || (marqueur >= 0xf0 && marqueur <= 0xfd);
-    const adobe = marqueur === 0xee ? reecrireSegmentAdobe(octets, i + 4, fin) : null;
-    if (adobe) morceaux.push(adobe);
-    else if (!metadonnee) morceaux.push(octets.subarray(i, fin));
+    const reecrit = reecrits.has(marqueur)
+      ? null
+      : marqueur === 0xe0
+        ? reecrireSegmentJfif(octets, i + 4, fin)
+        : marqueur === 0xee
+          ? reecrireSegmentAdobe(octets, i + 4, fin)
+          : null;
+    if (reecrit) {
+      reecrits.add(marqueur);
+      morceaux.push(reecrit);
+    } else if (estGarde(marqueur)) morceaux.push(octets.subarray(i, fin));
     i = fin;
     if (marqueur !== 0xda) continue;
     if (!sofVu) return null;

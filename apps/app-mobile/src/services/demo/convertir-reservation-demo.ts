@@ -16,6 +16,8 @@ export function convertirReservationDemo(r: ReservationDemo): Reservation {
     lieu: lieu ? resumerLieu(lieu) : resumerLieuDisparu(r.lieuId),
     personnes: r.personnes,
     creneau: r.creneau,
+    creneauxProposes: [r.creneau],
+    automatique: false,
     message: r.message,
     statut: r.statut,
     motifRefus: r.motifRefus,

@@ -15,6 +15,8 @@ export function presenterReservation(r: LigneReservation, lieu: LieuResume, visi
     lieu,
     personnes: r.personnes,
     creneau: r.creneau.toISOString(),
+    creneauxProposes: [r.creneau.toISOString()],
+    automatique: false,
     message: r.message,
     statut: r.statut,
     motifRefus: r.statut === "refusee" || r.statut === "annulee" ? r.motifRefus : null,

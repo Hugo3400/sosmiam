@@ -13,7 +13,7 @@ const onglets: { nom: string; titre: string; icone: NomIcone }[] = [
   { nom: "index", titre: "Pour toi", icone: "heart" },
   { nom: "explorer", titre: "Explorer", icone: "map" },
   { nom: "scan", titre: "Scan", icone: "qr-code" },
-  { nom: "potes", titre: "Potes", icone: "people" },
+  { nom: "potes", titre: "Communauté", icone: "people" },
   { nom: "profil", titre: "Profil", icone: "person-circle" },
 ];
 

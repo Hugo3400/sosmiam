@@ -27,8 +27,9 @@ export interface ServiceComptoir {
   listerReservations(lieuId: number): Promise<ReponseApi<{ reservations: ReservationPro[] }>>;
   repondreReservation(
     id: number,
-    reponse: { accepter: true } | { accepter: false; motif: MotifRefusReservation },
+    reponse: { accepter: true; creneau?: string | null; depasser?: boolean } | { accepter: false; motif: MotifRefusReservation },
   ): Promise<ReponseApi<{ reservation: ReservationPro }>>;
+  annulerReservation(id: number, motif: MotifRefusReservation): Promise<ReponseApi<{ reservation: ReservationPro }>>;
   marquerArrivee(id: number, venu: boolean): Promise<ReponseApi<{ reservation: ReservationPro }>>;
   lireProgramme(lieuId: number): Promise<ReponseApi<{ programme: ProgrammeFidelite | null }>>;
   /** Les infos pratiques du lieu (téléphone, animaux, accès…) ; le gérant seul peut les changer */

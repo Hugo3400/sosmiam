@@ -12,7 +12,7 @@ import type { ReponseApi } from "../reponse-api.ts";
 import { convertirFicheEnInfosPratiques } from "./convertir-fiche-en-infos-pratiques.ts";
 import { creerEcouteReguliere } from "./creer-ecoute-reguliere.ts";
 
-type ServicesPlusTard = "listerReservations" | "repondreReservation" | "marquerArrivee" | "listerAvis" | "repondreAvis";
+type ServicesPlusTard = "listerReservations" | "repondreReservation" | "annulerReservation" | "marquerArrivee" | "listerAvis" | "repondreAvis";
 
 /** Une infos pratiques vides effacent tout : chaque champ absent part à null (l'API efface alors l'info) */
 const versFiche = (infos: InfosPratiques) => ({

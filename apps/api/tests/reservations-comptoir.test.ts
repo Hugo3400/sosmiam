@@ -213,6 +213,7 @@ test("état du comptoir : arrivées du jour et demandes à traiter ; liste du jo
   assert.deepEqual(etat.arrivees, [{
     id: a, prenom: "Léa", initialeNom: "M", avatar: "🐙", personnes: 2, creneau: "2026-10-09T18:00:00.000Z", message: "Anniversaire de Tom",
     statut: "acceptee", presence: false, code: "1234", creeLe,
+    propositions: [{ creneau: "2026-10-09T18:00:00.000Z", places: null, horsReglages: false, jourFerme: false }], automatique: false, limiteReponse: null,
   }]);
   assert.equal(etat.reservationsARepondre, 1);
   const liste = (await b.demander("GET", "/pro/comptoir/lieux/1/reservations", serveur.jeton)).corps.reservations;

@@ -2,14 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -41,6 +43,7 @@ const surLeWeb = Platform.OS === "web";
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const conversations = utiliserConversations();
@@ -135,62 +138,65 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.85, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.85, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <ScrollView contentContainerClassName="px-5">
-          <Text accessibilityRole="header" className="mb-2 font-titre text-2xl text-encre">
-            Partager dans la conversation
-          </Text>
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <PoigneeFeuille geste={geste} className="px-5">
+            <Text accessibilityRole="header" className="mb-2 font-titre text-2xl text-encre">
+              Partager dans la conversation
+            </Text>
+          </PoigneeFeuille>
+          <ScrollView contentContainerClassName="px-5">
 
-          {message ? (
-            <View className="mb-2 gap-2 rounded-2xl border-2 border-rouge-texte bg-rose-alerte px-3.5 py-2.5">
-              <Text className="font-texte-semi text-[15px] leading-[21px] text-rouge-texte">{lierPonctuation(message.texte)}</Text>
-              {message.reglages && !surLeWeb ? (
-                <Pressable accessibilityRole="link" onPress={ouvrirReglages} hitSlop={8} className="min-h-8 justify-center self-start active:opacity-70">
-                  <Text className="font-texte-gras text-[15px] text-encre underline">Ouvrir les réglages</Text>
+            {message ? (
+              <View className="mb-2 gap-2 rounded-2xl border-2 border-rouge-texte bg-rose-alerte px-3.5 py-2.5">
+                <Text className="font-texte-semi text-[15px] leading-[21px] text-rouge-texte">{lierPonctuation(message.texte)}</Text>
+                {message.reglages && !surLeWeb ? (
+                  <Pressable accessibilityRole="link" onPress={ouvrirReglages} hitSlop={8} className="min-h-8 justify-center self-start active:opacity-70">
+                    <Text className="font-texte-gras text-[15px] text-encre underline">Ouvrir les réglages</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+
+            {options.map((o) => {
+              const desactivee = enCours !== null && enCours !== o.cle;
+              return (
+                <Pressable
+                  key={o.cle}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${o.titre}, ${o.detail}`}
+                  accessibilityState={{ disabled: desactivee }}
+                  disabled={desactivee || enCours === o.cle}
+                  onPress={() => {
+                    vibrerLegerement();
+                    if (o.cle === "lieu") {
+                      setMessage(null);
+                      setChoixLieu(true);
+                    } else void choisirPhoto(o.cle);
+                  }}
+                  className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${desactivee ? "opacity-40" : ""}`}
+                >
+                  <Text className="text-2xl">{o.emoji}</Text>
+                  <View className="flex-1">
+                    <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                    <Text className="font-texte text-sm text-gris">{lierPonctuation(o.detail)}</Text>
+                  </View>
+                  {enCours === o.cle ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />}
                 </Pressable>
-              ) : null}
-            </View>
-          ) : null}
+              );
+            })}
 
-          {options.map((o) => {
-            const desactivee = enCours !== null && enCours !== o.cle;
-            return (
-              <Pressable
-                key={o.cle}
-                accessibilityRole="button"
-                accessibilityLabel={`${o.titre}, ${o.detail}`}
-                accessibilityState={{ disabled: desactivee }}
-                disabled={desactivee || enCours === o.cle}
-                onPress={() => {
-                  vibrerLegerement();
-                  if (o.cle === "lieu") {
-                    setMessage(null);
-                    setChoixLieu(true);
-                  } else void choisirPhoto(o.cle);
-                }}
-                className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${desactivee ? "opacity-40" : ""}`}
-              >
-                <Text className="text-2xl">{o.emoji}</Text>
-                <View className="flex-1">
-                  <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                  <Text className="font-texte text-sm text-gris">{lierPonctuation(o.detail)}</Text>
-                </View>
-                {enCours === o.cle ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />}
-              </Pressable>
-            );
-          })}
-
-          <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-            <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-          </Pressable>
-        </ScrollView>
-      </View>
+            <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+              <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      </Animated.View>
 
       {/* Dans la feuille : la liste des lieux s'ouvre par-dessus (deux fenêtres côte à côte se gênent sur iPhone) */}
       <ChoixLieu visible={visible && choixLieu} titre="Quel lieu partager ?" onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />

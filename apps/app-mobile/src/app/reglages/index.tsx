@@ -13,6 +13,7 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
 import { etapesEnvies } from "~/contenus/inscription/envies";
+import { TEXTES_GENRE } from "~/contenus/textes-genre";
 import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
@@ -138,6 +139,12 @@ export default function Reglages() {
           />
           <LigneReglage emoji="😋" titre="Mes envies" detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
         </SectionReglages>
+
+        {connecte ? (
+          <SectionReglages titre={TEXTES_GENRE.ligneSection}>
+            <LigneReglage emoji="🙋" titre={TEXTES_GENRE.ligneReglage} detail={TEXTES_GENRE.ligneVide} onPress={() => router.push("/reglages/genre")} />
+          </SectionReglages>
+        ) : null}
 
         <SectionReglages titre="Notifications">
           <LigneReglage

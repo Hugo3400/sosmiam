@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 
 type Props = {
   /** Le geste qui demande un compte (null : rien d'affiché) */
@@ -27,6 +28,7 @@ export function FeuilleCreerComptePosee({ raison, onInscrire, onFermer }: Props)
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const titre = useRef<Text>(null);
+  const geste = utiliserGlisserPourFermer(raison !== null, onFermer, { posee: true });
 
   // Pas une vraie fenêtre : iOS n'y emmène pas VoiceOver tout seul, on le place sur le titre une fois la feuille montée
   useEffect(() => {
@@ -52,16 +54,15 @@ export function FeuilleCreerComptePosee({ raison, onInscrire, onFermer }: Props)
         entering={animationsReduites ? FadeIn.duration(160) : SlideInDown.duration(220)}
         style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}
       >
-        <View
-          accessibilityViewIsModal
-          onAccessibilityEscape={onFermer}
-          // Jamais sous la barre d'état : avec un très grand texte, le haut défile et les deux boutons restent à l'écran
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: Math.min(hauteurEcran * 0.88, hauteurEcran - marges.top) }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
-        >
-          <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ContenuCreerCompte raison={raison} refTitre={titre} onInscrire={onInscrire} onPlusTard={onFermer} />
-        </View>
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onFermer} onLayout={geste.mesurerFeuille} style={geste.styleFeuille}>
+          <View
+            // Jamais sous la barre d'état : avec un très grand texte, le haut défile et les deux boutons restent à l'écran
+            style={{ paddingBottom: marges.bottom + 12, maxHeight: Math.min(hauteurEcran * 0.88, hauteurEcran - marges.top) }}
+            className="rounded-t-3xl border-t-2 border-encre bg-creme"
+          >
+            <ContenuCreerCompte raison={raison} refTitre={titre} geste={geste} onInscrire={onInscrire} onPlusTard={onFermer} />
+          </View>
+        </Animated.View>
       </Animated.View>
     </View>
   );

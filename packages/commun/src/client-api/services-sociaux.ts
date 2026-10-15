@@ -13,6 +13,7 @@ import type { ServiceListes } from "./contrat-listes.ts";
 import type { ServiceCommentaires } from "./contrat-commentaires.ts";
 import type { ServiceModerationApp } from "./contrat-moderation-app.ts";
 import type { ServiceSignalementsSociaux } from "./contrat-signalements-sociaux.ts";
+import type { ServiceCommunaute } from "./contrat-communaute.ts";
 
 export type ServicesSociaux = {
   /** Profil social, pouls, personnes et masques (/app/social, /app/personnes, /app/masques) */
@@ -35,4 +36,5 @@ export type ServicesSociaux = {
   signalements: ServiceSignalementsSociaux;
   /** Décisions de la modération et contestation (/app/moderation) */
   moderation: ServiceModerationApp;
+  communaute: ServiceCommunaute;
 };

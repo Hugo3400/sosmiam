@@ -81,11 +81,16 @@ export function creerReservationsDemo(ctx: ContexteDemo): ServiceReservations {
   const trouverLaMienne = (m: Readonly<MagasinDemo>, id: number) => m.reservations.find((r) => r.id === id && r.client === "moi");
 
   return {
+    async listerJours() {
+      return { ok: false, erreur: "service-indisponible" };
+    },
+
     async listerCreneaux(lieuId, jour) {
       const lieu = trouverLieu(lieuId);
       const refus = verifierLieuPourMoi(lieu);
       if (refus || !lieu) return refus ?? INTROUVABLE;
-      return { ok: true, creneaux: listerCreneauxReservation(lieu.ouverture, jour, new Date(ctx.maintenant())) };
+      const creneaux = listerCreneauxReservation(lieu.ouverture, jour, new Date(ctx.maintenant()));
+      return { ok: true, creneaux, disponibles: creneaux.map((heure) => ({ heure, peuDePlaces: false })), services: [], acceptation: "manuelle" };
     },
 
     async reserver(demande) {

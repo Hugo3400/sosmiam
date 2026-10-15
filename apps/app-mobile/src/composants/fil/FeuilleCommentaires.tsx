@@ -1,7 +1,7 @@
 import { router, type Href } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
@@ -17,6 +17,7 @@ import { EtatListeCommentaires } from "~/composants/fil/EtatListeCommentaires";
 import { MenuCommentaire } from "~/composants/fil/MenuCommentaire";
 import { Annonce } from "~/composants/interface/Annonce";
 import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { FeuilleCreerComptePosee } from "~/composants/invite/FeuilleCreerComptePosee";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { trouverAuteurCommentaire } from "~/fonctions/commentaires/trouver-auteur-commentaire";
@@ -25,6 +26,7 @@ import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommentairesPublication, type ResultatCommentaire } from "~/hooks/utiliser-commentaires-publication";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserOrdreCommentaires } from "~/hooks/utiliser-ordre-commentaires";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -66,6 +68,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   const communaute = utiliserCommunaute();
   const { trouverPote } = communaute;
   const discussion = utiliserCommentairesPublication(publicationId);
@@ -364,91 +367,93 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       >
         {/* Le haut reste transparent : la vidéo continue au-dessus, comme sur TikTok */}
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer les commentaires" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/20" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
+          onLayout={geste.mesurerFeuille}
           // flexShrink : clavier ouvert, la feuille rétrécit et la liste avec, le champ reste juste au-dessus du clavier
-          style={{ height: hauteurEcran * 0.7, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          style={[{ height: hauteurEcran * 0.7, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-1 h-1.5 w-12 self-center rounded-full bg-ligne" />
+          <View style={{ flex: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} ecart="petit" fond="leger">
+              {signale ? null : <EnTeteCommentaires nombre={nombre} demo={discussion.source === "demo"} onFermer={onFermer} refTitre={titreFeuille} />}
+            </PoigneeFeuille>
 
-          {signale ? (
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5 pt-2" contentContainerStyle={{ paddingBottom: marges.bottom + 16 }}>
-              <SignalerContenu
-                cible="commentaire"
-                cibleId={signale.id}
-                sujet={`le commentaire de ${nomDe(signale)}`}
-                onTermine={finSignalement}
-              />
-            </ScrollView>
-          ) : (
-            <>
-              <EnTeteCommentaires nombre={nombre} demo={discussion.source === "demo"} onFermer={onFermer} refTitre={titreFeuille} />
-
-              <FlatList
-                ref={liste}
-                data={ordonnes}
-                keyExtractor={(f) => f.commentaire.id}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-                contentContainerClassName="px-5 pb-4 pt-1"
-                contentContainerStyle={{ flexGrow: 1 }}
-                ListEmptyComponent={
-                  <EtatListeCommentaires
-                    ref={boutonEcrire}
-                    etat={!pret ? "chargement" : discussion.ratee ? "ratee" : "vide"}
-                    onReessayer={discussion.relire}
-                    onEcrire={ecrire}
-                  />
-                }
-                // Une relecture ratée au-dessus d'une liste déjà là : on garde ce qu'on avait, et on peut réessayer
-                ListHeaderComponent={
-                  discussion.ratee && ordonnes.length > 0 ? <EtatListeCommentaires etat="ratee" compact onReessayer={discussion.relire} onEcrire={ecrire} /> : null
-                }
-                ListFooterComponent={discussion.suite ? <BoutonCommentairesAnciens onCharger={discussion.chargerSuite} charges={charges} /> : null}
-                renderItem={({ item }) => (
-                  <BlocCommentaire
-                    fil={item}
-                    lieu={lieu}
-                    maintenant={maintenant}
-                    // Par défaut, les réponses du lieu se montrent tout de suite
-                    deplie={deplies[item.commentaire.id] ?? item.reponses.some((r) => r.auteur === "lieu")}
-                    onBasculer={(id) => setDeplies((d) => ({ ...d, [id]: !(d[id] ?? item.reponses.some((r) => r.auteur === "lieu")) }))}
-                    onRepondre={repondre}
-                    onAimer={aimer}
-                    onOptions={ouvrirOptions}
-                    onOuvrirProfil={ouvrirProfil}
-                    appuiLong={avecCompte}
-                    gerant={gerant}
-                  />
-                )}
-              />
-
-              {avecCompte ? (
-                <ChampCommentaire
-                  ref={champ}
-                  valeur={texte}
-                  onChanger={setTexte}
-                  reponseA={reponse?.nom ?? null}
-                  onAnnulerReponse={() => setReponse(null)}
-                  edition={edition !== null}
-                  onAnnulerEdition={() => {
-                    setEdition(null);
-                    setTexte("");
-                  }}
-                  onEnvoyer={envoyer}
-                  margeBas={clavierOuvert ? 8 : marges.bottom + 8}
-                  lieuGere={gerant ? lieu : null}
-                  commeLieu={commeLieu}
-                  onCommeLieu={setCommeLieu}
+            {signale ? (
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5 pt-2" contentContainerStyle={{ paddingBottom: marges.bottom + 16 }}>
+                <SignalerContenu
+                  cible="commentaire"
+                  cibleId={signale.id}
+                  sujet={`le commentaire de ${nomDe(signale)}`}
+                  onTermine={finSignalement}
                 />
-              ) : (
-                <ChampCommentaireInvite onCreerCompte={(bouton) => exigerCompte("commenter", bouton)} margeBas={marges.bottom + 8} />
-              )}
-            </>
-          )}
-        </View>
+              </ScrollView>
+            ) : (
+              <>
+                <FlatList
+                  ref={liste}
+                  data={ordonnes}
+                  keyExtractor={(f) => f.commentaire.id}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+                  contentContainerClassName="px-5 pb-4 pt-1"
+                  contentContainerStyle={{ flexGrow: 1 }}
+                  ListEmptyComponent={
+                    <EtatListeCommentaires
+                      ref={boutonEcrire}
+                      etat={!pret ? "chargement" : discussion.ratee ? "ratee" : "vide"}
+                      onReessayer={discussion.relire}
+                      onEcrire={ecrire}
+                    />
+                  }
+                  // Une relecture ratée au-dessus d'une liste déjà là : on garde ce qu'on avait, et on peut réessayer
+                  ListHeaderComponent={
+                    discussion.ratee && ordonnes.length > 0 ? <EtatListeCommentaires etat="ratee" compact onReessayer={discussion.relire} onEcrire={ecrire} /> : null
+                  }
+                  ListFooterComponent={discussion.suite ? <BoutonCommentairesAnciens onCharger={discussion.chargerSuite} charges={charges} /> : null}
+                  renderItem={({ item }) => (
+                    <BlocCommentaire
+                      fil={item}
+                      lieu={lieu}
+                      maintenant={maintenant}
+                      // Par défaut, les réponses du lieu se montrent tout de suite
+                      deplie={deplies[item.commentaire.id] ?? item.reponses.some((r) => r.auteur === "lieu")}
+                      onBasculer={(id) => setDeplies((d) => ({ ...d, [id]: !(d[id] ?? item.reponses.some((r) => r.auteur === "lieu")) }))}
+                      onRepondre={repondre}
+                      onAimer={aimer}
+                      onOptions={ouvrirOptions}
+                      onOuvrirProfil={ouvrirProfil}
+                      appuiLong={avecCompte}
+                      gerant={gerant}
+                    />
+                  )}
+                />
+
+                {avecCompte ? (
+                  <ChampCommentaire
+                    ref={champ}
+                    valeur={texte}
+                    onChanger={setTexte}
+                    reponseA={reponse?.nom ?? null}
+                    onAnnulerReponse={() => setReponse(null)}
+                    edition={edition !== null}
+                    onAnnulerEdition={() => {
+                      setEdition(null);
+                      setTexte("");
+                    }}
+                    onEnvoyer={envoyer}
+                    margeBas={clavierOuvert ? 8 : marges.bottom + 8}
+                    lieuGere={gerant ? lieu : null}
+                    commeLieu={commeLieu}
+                    onCommeLieu={setCommeLieu}
+                  />
+                ) : (
+                  <ChampCommentaireInvite onCreerCompte={(bouton) => exigerCompte("commenter", bouton)} margeBas={marges.bottom + 8} />
+                )}
+              </>
+            )}
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       <MenuCommentaire

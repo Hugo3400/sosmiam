@@ -4,6 +4,8 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
+import { SelecteurEspaceCommunaute, type EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
+import { TEXTES_ESPACE_COMMUNAUTE } from "~/contenus/textes-miamis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
@@ -12,10 +14,12 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   /** Ton profil communautaire (utiliserCommunaute().moi) */
   moi: Pote;
+  espace: EspaceCommunaute;
+  onChoisirEspace: (espace: EspaceCommunaute) => void;
 };
 
 /** Le haut de Potes : le titre, les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
-export function EnTetePotes({ moi }: Props) {
+export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
   const router = useRouter();
   const { nonLus } = utiliserConversations();
   const monId = utiliserMonId();
@@ -24,7 +28,7 @@ export function EnTetePotes({ moi }: Props) {
     <View className="gap-3 pt-2">
       <View className="flex-row items-center gap-3">
         <Text accessibilityRole="header" className="flex-1 font-titre text-[32px] leading-[36px] text-encre">
-          Tes potes
+          {TEXTES_ESPACE_COMMUNAUTE.titre}
         </Text>
         <Pressable
           accessibilityRole="button"
@@ -60,27 +64,31 @@ export function EnTetePotes({ moi }: Props) {
         </Pressable>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={moi.pseudo ? `Ton profil de pote, @${moi.pseudo}` : "Ton profil de pote"}
-        accessibilityHint="Ce que tes potes voient de toi"
-        onPress={() => {
-          vibrerLegerement();
-          router.push({ pathname: "/potes/profil/[id]", params: { id: monId } });
-        }}
-        className="min-h-11 flex-row items-center gap-2.5 self-start rounded-full border-2 border-encre bg-white py-1 pl-1 pr-3 active:opacity-80"
-      >
-        <RondPote pote={moi} taille={40} />
-        <View className="shrink">
-          <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
-            {moi.pseudo ? `@${moi.pseudo}` : moi.prenom}
-          </Text>
-          <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-            Ton profil de pote
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={16} color={couleurs.gris} />
-      </Pressable>
+      <SelecteurEspaceCommunaute espace={espace} onChoisir={onChoisirEspace} />
+
+      {espace === "bande" ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={moi.pseudo ? `Ton profil de pote, @${moi.pseudo}` : "Ton profil de pote"}
+          accessibilityHint="Ce que tes potes voient de toi"
+          onPress={() => {
+            vibrerLegerement();
+            router.push({ pathname: "/potes/profil/[id]", params: { id: monId } });
+          }}
+          className="min-h-11 flex-row items-center gap-2.5 self-start rounded-full border-2 border-encre bg-white py-1 pl-1 pr-3 active:opacity-80"
+        >
+          <RondPote pote={moi} taille={40} />
+          <View className="shrink">
+            <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
+              {moi.pseudo ? `@${moi.pseudo}` : moi.prenom}
+            </Text>
+            <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
+              Ton profil de pote
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={couleurs.gris} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

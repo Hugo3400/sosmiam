@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
+import { AccueilMiamis } from "~/composants/miamis/AccueilMiamis";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixPseudoManquant } from "~/composants/potes/ChoixPseudoManquant";
 import { EnTetePotes } from "~/composants/potes/EnTetePotes";
@@ -13,6 +14,7 @@ import { OngletsPotes, type OngletPotes } from "~/composants/potes/OngletsPotes"
 import { SectionBande } from "~/composants/potes/SectionBande";
 import { SectionListes } from "~/composants/potes/SectionListes";
 import { SectionSorties } from "~/composants/potes/SectionSorties";
+import type { EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -22,6 +24,7 @@ import couleurs from "~/theme/couleurs";
 const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
 const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) => o === valeur) ?? null;
+const lireEspace = (valeur: string | string[] | undefined): EspaceCommunaute | null => (valeur === "miamis" || valeur === "bande" ? valeur : null);
 
 /**
  * Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées, par
@@ -33,8 +36,9 @@ export default function Potes() {
   const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
-  const { onglet: ongletDemande } = useLocalSearchParams<{ onglet?: string }>();
+  const { onglet: ongletDemande, espace: espaceDemande } = useLocalSearchParams<{ onglet?: string; espace?: string }>();
   const [onglet, setOnglet] = useState<OngletPotes>(() => lireOnglet(ongletDemande) ?? "sorties");
+  const [espace, setEspace] = useState<EspaceCommunaute>(() => lireEspace(espaceDemande) ?? "bande");
   const defilement = useRef<ScrollView>(null);
   const hautOnglets = useRef(0);
   const position = useRef(0);
@@ -42,8 +46,16 @@ export default function Potes() {
 
   useEffect(() => {
     const demande = lireOnglet(ongletDemande);
-    if (demande) setOnglet(demande);
+    if (demande) {
+      setOnglet(demande);
+      setEspace("bande");
+    }
   }, [ongletDemande]);
+
+  useEffect(() => {
+    const demande = lireEspace(espaceDemande);
+    if (demande) setEspace(demande);
+  }, [espaceDemande]);
 
   // Compte connecté : ouvrir Potes crée ton profil social s'il manque (une fois par lancement ; sans effet en démo ou en visite)
   useEffect(() => {
@@ -68,6 +80,7 @@ export default function Potes() {
           "Des sorties où tout le monde vote pour le lieu (fini les débats sans fin)",
           "Un chat entre potes pour caler l'heure du rendez-vous",
           "Des listes partagées de bonnes adresses",
+          "Les Miamis : des sorties ouvertes à ta ville et une boîte à idées pour l'app",
         ]}
       />
     );
@@ -80,6 +93,25 @@ export default function Potes() {
     setOnglet(nouveau);
     // Déjà plus bas que les onglets : le nouvel onglet commence en haut, juste sous eux
     if (position.current > hautOnglets.current) defilement.current?.scrollTo({ y: hautOnglets.current, animated: false });
+  }
+
+  function choisirEspace(nouveau: EspaceCommunaute) {
+    setEspace(nouveau);
+    defilement.current?.scrollTo({ y: 0, animated: false });
+  }
+
+  if (espace === "miamis") {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
+        <ScrollView ref={defilement} contentContainerClassName="pt-4" contentContainerStyle={{ paddingBottom: hauteurBarreOnglets + 32 }}>
+          <View className="gap-5 px-5 pb-6">
+            <EnTetePotes moi={moi} espace={espace} onChoisirEspace={choisirEspace} />
+            {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
+          </View>
+          <AccueilMiamis />
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -101,7 +133,7 @@ export default function Potes() {
           }}
           className="gap-5 px-5 pb-5"
         >
-          <EnTetePotes moi={moi} />
+          <EnTetePotes moi={moi} espace={espace} onChoisirEspace={choisirEspace} />
           {/* Profils créés avant Potes, ou le serveur qui attend ton pseudo : pas encore de pseudo */}
           {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
           <BandeauDemoPotes />

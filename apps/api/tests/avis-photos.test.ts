@@ -10,6 +10,7 @@ import { creerBancPhotosAvis } from "./outils/creer-banc-photos-avis.ts";
 import { avecDimensions, avecSegment, avecSegmentApp13, HEIC, PNG, segmentsJpeg } from "./outils/fabriquer-photos-avis.ts";
 
 const PHOTO = readFileSync(new URL("./donnees/photo-avis-exif-position.jpg", import.meta.url));
+const VIGNETTE = readFileSync(new URL("./donnees/photo-exif-position.jpg", import.meta.url));
 const GPS = "GPS 43.6108,3.8767";
 const ADOBE_PROPRE = Buffer.from([0xff, 0xee, 0x00, 0x0e, 0x41, 0x64, 0x6f, 0x62, 0x65, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x01]);
 const adobe = (transformation: number, enPlus = "") =>
@@ -69,10 +70,10 @@ test("Adobe (APP14) réécrit en ses 12 octets utiles, segments JPG et JPG0 à J
 
 test("preparerPhotoAvis : 320 px au moins de petit côté, sinon pas de +10 pour une vignette", () => {
   for (const [largeur, hauteur] of [[319, 2000], [2000, 319], [1, 1], [64, 48]]) {
-    assert.deepEqual(preparerPhotoAvis(avecDimensions(PHOTO, largeur, hauteur)), { ok: false, erreur: "media-invalide", champ: "dimensions" }, `${largeur} × ${hauteur}`);
+    assert.deepEqual(preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur)), { ok: false, erreur: "media-invalide", champ: "dimensions" }, `${largeur} × ${hauteur}`);
   }
   for (const [largeur, hauteur] of [[320, 320], [4096, 320], [320, 4096]]) {
-    const r = preparerPhotoAvis(avecDimensions(PHOTO, largeur, hauteur));
+    const r = preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur));
     assert.deepEqual(r.ok && [r.largeur, r.hauteur], [largeur, hauteur], `${largeur} × ${hauteur}`);
   }
 });

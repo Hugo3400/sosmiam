@@ -95,6 +95,7 @@ test("demande : en attente, créneau à l'heure de Paris, petit mot nettoyé ; l
   assert.deepEqual(pro.corps.reservations, [{
     id: v.id, prenom: "Léa", initialeNom: "M", avatar: "🐙", personnes: 2, creneau: v.creneau, message: "Une table en terrasse ?",
     statut: "demandee", presence: false, code: null, creeLe: v.creeLe,
+    propositions: [{ creneau: v.creneau, places: null, horsReglages: false, jourFerme: false }], automatique: false, limiteReponse: "2026-10-09T17:30:00.000Z",
   }]);
 });
 

@@ -10,7 +10,7 @@ import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 export type TransactionSociale = Prisma.TransactionClient;
 
 /** Ce qu'une création rejouée retrouve par sa clé « Idempotency-Key » (CleIdempotence, VarChar(8)) */
-export type RessourceIdempotente = "groupe" | "sortie" | "liste";
+export type RessourceIdempotente = "groupe" | "sortie" | "liste" | "miamis" | "idee";
 
 export type LienEntre = {
   pote: boolean;

@@ -31,3 +31,36 @@ export function avecDimensions(octets: Uint8Array, largeur: number, hauteur: num
   copie.writeUInt16BE(largeur, sof + 7);
   return copie;
 }
+
+export function avecSegmentAvant(octets: Uint8Array, suivant: number, marqueur: number, contenu: Uint8Array): Buffer {
+  let i = 2;
+  while (octets[i + 1] !== suivant) i += 2 + ((octets[i + 2]! << 8) | octets[i + 3]!);
+  const entete = Buffer.from([0xff, marqueur, (contenu.length + 2) >> 8, (contenu.length + 2) & 0xff]);
+  return Buffer.concat([octets.subarray(0, i), entete, contenu, octets.subarray(i)]);
+}
+
+export function listerPassagesJpeg(octets: Uint8Array): { debut: number; fin: number; rst: number[] }[] {
+  const passages: { debut: number; fin: number; rst: number[] }[] = [];
+  let i = 2;
+  while (i + 4 <= octets.length && octets[i] === 0xff && octets[i + 1] !== 0xd9) {
+    const fin = i + 2 + ((octets[i + 2]! << 8) | octets[i + 3]!);
+    if (octets[i + 1] !== 0xda) {
+      i = fin;
+      continue;
+    }
+    const rst: number[] = [];
+    let j = fin;
+    for (;;) {
+      const ff = octets.indexOf(0xff, j);
+      const suivant = octets[ff + 1]!;
+      if (suivant >= 0xd0 && suivant <= 0xd7) rst.push(ff);
+      if (suivant === 0x00 || suivant === 0xff || (suivant >= 0xd0 && suivant <= 0xd7)) j = ff + (suivant === 0xff ? 1 : 2);
+      else {
+        passages.push({ debut: i, fin: ff, rst });
+        i = ff;
+        break;
+      }
+    }
+  }
+  return passages;
+}

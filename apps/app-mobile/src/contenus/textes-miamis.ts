@@ -6,8 +6,6 @@ export const TEXTES_ESPACE_COMMUNAUTE = {
 } as const;
 
 export const TEXTES_ACCUEIL_MIAMIS = {
-  bientotTitre: "Les Miamis arrivent",
-  bientotTexte: "Sorties ouvertes, boîte à idées et « Qui est là ? » : la Brigade branche tout ça sur le serveur. Ta bande, elle, t'attend juste à côté.",
   presentsSurtitre: (ville: string) => `${ville} · en ce moment`,
   presentsTitre: (n: number) =>
     n === 0 ? "Personne dans le coin pour l'instant. Et si tu ouvrais le bal ?" : n === 1 ? "Un Miami traîne dans le coin. Viens dire bonjour !" : `${n} Miamis traînent dans le coin. Viens dire bonjour !`,
@@ -22,11 +20,16 @@ export const TEXTES_ACCUEIL_MIAMIS = {
   aucuneEnvie: "pas encore choisies",
   modifierEnvies: "Modifier",
   aucuneSortie: "Pas encore de sortie avec cette étiquette. Et si c'était toi qui lançais la première ?",
+  aucuneEnvieChoisie: "Choisis d'abord tes envies avec « Modifier » : on te montrera les sorties qui te ressemblent.",
+  aucuneSortieTitre: "Aucune sortie pour l'instant",
+  aucuneSortieTexte: "Les Miamis de ta ville n'ont encore rien lancé. Un brunch, un resto, une tournée des crêpes : à toi l'honneur ?",
+  organiserBouton: "Organiser la première",
   astuceGenre: "Les sorties réservées (entre filles, entre garçons, autres genres) se débloquent avec Mon genre : facultatif, et personne ne le voit.",
   astuceGenreLien: "Choisir mon genre",
   ideesTitre: "Boîte à idées",
   ideesLien: "Toutes les idées",
   ideesIntro: "Tu votes, la Brigade lit tout. Les plus miam passent devant.",
+  ideesVide: "La boîte est encore vide. Une envie pour l'app ? Sois la première idée de la Brigade !",
   filTitre: "Ça bouge chez les Miamis",
   filVide: "C'est calme… trop calme. Lance une sortie ou une idée pour réveiller la Brigade !",
 } as const;
@@ -34,7 +37,7 @@ export const TEXTES_ACCUEIL_MIAMIS = {
 export const TEXTES_MES_ENVIES = {
   titre: "Mes envies",
   sousTitre: "Les étiquettes qui te font envie : on met en avant les sorties qui te correspondent (« Te correspond »).",
-  note: "Dans « Qui est là ? », on montre vos envies en commun, jamais celles qui parlent de religion ou de santé.",
+  note: "Elles restent sur ton téléphone : personne d'autre ne les voit.",
   enregistrer: "C'est noté",
   annuler: "Annuler",
 } as const;

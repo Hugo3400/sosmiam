@@ -21,6 +21,8 @@ import {
   type ServicesDecisionsModeration, type ServicesSignalementsSociaux,
 } from "./signalements-sociaux-regles.ts";
 import { prendreId, type TablesSociales } from "./tables-sociales-en-memoire.ts";
+import { estMasqueCommunauteEnMemoire, lireContenuCommunauteEnMemoire, masquerCommunauteEnMemoire } from "./communaute-signalements-en-memoire.ts";
+import type { VoirSortieMiamis } from "./instantanes-communaute.ts";
 
 type Relations = Pick<RelationsSociales, "bloqueEntre" | "lireLiens" | "trouverCompte">;
 
@@ -58,7 +60,7 @@ const vide = { lieuId: null, fichierMedia: null };
 
 /** Même règle que lireContenuSignale (instantanes-signalements.ts) */
 export async function lireContenuSignaleEnMemoire(
-  tables: TablesSociales, d: { chiffrement: ChiffrementSocial; relations: Relations }, compteId: number, cible: CibleSignalementSocial, cibleId: string,
+  tables: TablesSociales, d: { chiffrement: ChiffrementSocial; relations: Relations; voitLaSortieMiamis?: VoirSortieMiamis }, compteId: number, cible: CibleSignalementSocial, cibleId: string,
   maintenant: Date, o: { pourLeLieu?: boolean } = {},
 ): Promise<ContenuLu | null> {
   if (cible === "profil") {
@@ -68,6 +70,7 @@ export async function lireContenuSignaleEnMemoire(
     return { contenu: { cible, pseudo: compte.pseudo, prenom: compte.prenom, avatar: compte.avatar }, auteurContenuId: autre, ...vide };
   }
   const id = Number(cibleId);
+  if (cible === "idee" || cible === "comment-idee" || cible === "miamis") return lireContenuCommunauteEnMemoire(tables, d, compteId, cible, id, maintenant);
   if (cible === "commentaire") {
     const c = tables.commentaires.get(id);
     const publication = c ? publicationVisibleEnMemoire(tables, c.publicationId) : null;
@@ -172,17 +175,17 @@ function masquerPourTousEnMemoire(tables: TablesSociales, cible: CibleSignalemen
     const conversation = m ? tables.conversations.get(m.conversationId) : undefined;
     if (m) m.suspenduLe = maintenant;
     if (conversation) Object.assign(conversation, { version: conversation.version + 1, modifieLe: maintenant });
-  }
+  } else masquerCommunauteEnMemoire(tables, cible, id, maintenant);
 }
 
-export function creerSignalementsSociauxEnMemoire(tables: TablesSociales, relations: Relations, chiffrement: ChiffrementSocial | null): ServicesSignalementsSociaux {
+export function creerSignalementsSociauxEnMemoire(tables: TablesSociales, relations: Relations, chiffrement: ChiffrementSocial | null, voitLaSortieMiamis?: VoirSortieMiamis): ServicesSignalementsSociaux {
   const miens = (compteId: number, cible: string) =>
     [...tables.signalements.values()].filter((s) => s.signaleParId === compteId && s.cible === cible && s.source === "app").sort((a, b) => b.id - a.id);
   return {
     async signaler(compteId, s, maintenant) {
       if (!chiffrement) throw new Error("Signalement social sans clé des données");
       if (miens(compteId, s.cible).some((x) => x.cibleId === s.cibleId)) return { ok: true, deja: true, masquePourTous: false, effets: [] };
-      const lu = await lireContenuSignaleEnMemoire(tables, { chiffrement, relations }, compteId, s.cible, s.cibleId, maintenant);
+      const lu = await lireContenuSignaleEnMemoire(tables, { chiffrement, relations, voitLaSortieMiamis }, compteId, s.cible, s.cibleId, maintenant);
       if (!lu || lu.auteurContenuId === compteId) return { ok: false, erreur: "contenu-inconnu" };
       let masquer = false;
       if (CIBLES_AVEC_MASQUAGE_IMMEDIAT.includes(s.cible) && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(s.raison)) {
@@ -219,7 +222,7 @@ export function creerDecisionsModerationAppEnMemoire(
     if (cible === "commentaire") return !!(tables.commentaires.get(id)?.suspenduLe || tables.commentaires.get(id)?.masqueParLieuLe);
     if (cible === "message") return !!tables.messages.get(id)?.suspenduLe;
     if (cible === "liste") return !!tables.listes.get(id)?.suspendueLe;
-    return false;
+    return estMasqueCommunauteEnMemoire(tables, cible, id);
   };
   return {
     async listerDecisions(compteId) {

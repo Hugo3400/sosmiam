@@ -3,11 +3,16 @@
 import type { Reservation } from "../../types/reservation.ts";
 import type { ResultatValidation } from "../../types/visite.ts";
 import type { ClientHttp } from "../client-http.ts";
-import type { ServiceReservations } from "../contrat-reservations.ts";
+import type { CreneauxReservationLus, JoursReservationLus, ServiceReservations } from "../contrat-reservations.ts";
 
 export function creerReservationsApi(client: ClientHttp): ServiceReservations {
   return {
-    listerCreneaux: (lieuId, jour) => client.demander<{ creneaux: string[] }>("GET", `/app/reservations/creneaux?lieuId=${lieuId}&jour=${encodeURIComponent(jour)}`),
+    listerJours: (lieuId, personnes) => client.demander<JoursReservationLus>("GET", `/app/reservations/jours?lieuId=${lieuId}&personnes=${personnes}`),
+    listerCreneaux: (lieuId, jour, personnes) =>
+      client.demander<CreneauxReservationLus>(
+        "GET",
+        `/app/reservations/creneaux?lieuId=${lieuId}&jour=${encodeURIComponent(jour)}${personnes === undefined ? "" : `&personnes=${personnes}`}`,
+      ),
     reserver: (demande) => client.demander<{ reservation: Reservation }>("POST", "/app/reservations", { corps: demande }),
     listerReservations: () => client.demander<{ reservations: Reservation[] }>("GET", "/app/reservations"),
     lireReservation: (id) => client.demander<{ reservation: Reservation }>("GET", `/app/reservations/${id}`),

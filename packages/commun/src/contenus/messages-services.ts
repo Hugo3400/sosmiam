@@ -6,6 +6,8 @@
 import type { ErreurService } from "../types/erreurs-service.ts";
 import { MESSAGES_SERVICES_SOCIAUX } from "./messages-services-sociaux.ts";
 import { MESSAGES_CONNEXION_QR } from "./messages-connexion-qr.ts";
+import { MESSAGES_RESERVATIONS } from "./messages-reservations.ts";
+import { MESSAGES_SERVICES_COMMUNAUTE } from "./messages-services-communaute.ts";
 
 export type MessageService = { emoji: string; titre: string; texte: string };
 
@@ -160,11 +162,6 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     emoji: "💬",
     titre: "Tu as déjà répondu",
     texte: "Une réponse par avis, et la tienne est déjà passée. L'équipe SOS Miam la relit, comme toutes les autres.",
-  },
-  "trop-de-reservations": {
-    emoji: "🗓️",
-    titre: "Ton agenda est déjà bien rempli",
-    texte: "Tu as déjà 3 réservations à venir. Profite d'abord de celles-là, ou annules-en une, puis reviens en faire une autre.",
   },
   "hors-ligne": {
     emoji: "📶",
@@ -332,35 +329,10 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
     titre: "Ce n'est pas le bon code",
     texte: "Demande à la personne de remontrer son écran : 4 chiffres, à côté de son prénom.",
   },
-  "lieu-non-reservable": {
-    emoji: "📵",
-    titre: "{lieu} ne prend pas les réservations dans l'app",
-    texte: "Tu peux passer directement, ou leur donner une rescousse.",
-  },
-  "creneau-invalide": {
-    emoji: "🕰️",
-    titre: "Ce créneau ne marche pas",
-    texte: "Le lieu est fermé à cette heure-là, ou c'est trop proche. Choisis-en un autre.",
-  },
-  "personnes-invalides": {
-    emoji: "👥",
-    titre: "Combien vous êtes ?",
-    texte: "Entre 1 et 12 personnes. Pour un plus grand groupe, appelle directement le lieu.",
-  },
   "message-refuse": {
     emoji: "✋",
     titre: "On reformule ?",
     texte: "Ton petit mot contient un terme qu'on ne laisse pas passer.",
-  },
-  "reservation-en-cours": {
-    emoji: "📅",
-    titre: "Tu as déjà une demande ici",
-    texte: "Attends leur réponse, ou annule-la pour en faire une autre.",
-  },
-  "hors-fenetre-presence": {
-    emoji: "🕒",
-    titre: "Pas encore l'heure",
-    texte: "« Je suis là » s'ouvre une heure avant ton créneau, et jusqu'à 4 h après.",
   },
   "pas-de-recompense": {
     emoji: "🎁",
@@ -496,4 +468,6 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   ...MESSAGES_SERVICES_SOCIAUX,
   // Connexion par QR code (messages-connexion-qr.ts)
   ...MESSAGES_CONNEXION_QR,
+  ...MESSAGES_RESERVATIONS,
+  ...MESSAGES_SERVICES_COMMUNAUTE,
 };

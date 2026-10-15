@@ -29,12 +29,18 @@ export function creerServicesIndisponibles(): Services {
       annulerDemandeRecompense: indisponible,
     },
     reservations: {
-      listerCreneaux: async () => ({ ok: true, creneaux: [] }),
+      listerJours: indisponible,
+      listerCreneaux: async () => ({ ok: true, creneaux: [], disponibles: [], services: [], acceptation: "manuelle" }),
       reserver: indisponible,
       listerReservations: async () => ({ ok: true, reservations: [] }),
       lireReservation: indisponible,
       annulerReservation: indisponible,
       signalerPresence: indisponible,
+    },
+    reglagesReservations: {
+      lireReglages: indisponible,
+      reglerReservations: indisponible,
+      fermerJour: indisponible,
     },
     avis: {
       listerAvisAEcrire: async () => ({ ok: true, visites: [] }),
@@ -53,6 +59,7 @@ export function creerServicesIndisponibles(): Services {
       offrirRecompense: indisponible,
       listerReservations: async () => ({ ok: true, reservations: [] }),
       repondreReservation: indisponible,
+      annulerReservation: indisponible,
       marquerArrivee: indisponible,
       lireProgramme: indisponible,
       reglerProgramme: indisponible,

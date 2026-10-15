@@ -22,7 +22,7 @@ export const RAISONS_AVEC_EXPLICATION_OBLIGATOIRE: readonly RaisonSignalement[] 
 export const RAISONS_AVEC_MASQUAGE_IMMEDIAT: readonly RaisonSignalement[] = ["choquant"];
 
 /** Ce qu'on peut signaler dans la partie sociale (un lieu envoyé est un message) */
-export const CIBLES_SIGNALEMENT_SOCIAL = ["commentaire", "message", "liste", "profil", "sortie", "groupe"] as const satisfies readonly CibleSignalementSocial[];
+export const CIBLES_SIGNALEMENT_SOCIAL = ["commentaire", "message", "liste", "profil", "sortie", "groupe", "idee", "comment-idee", "miamis"] as const satisfies readonly CibleSignalementSocial[];
 
 /**
  * Ce que montre « Décisions de la modération » (GET /app/moderation/mes-decisions) : les contenus sociaux, plus un avis et la
@@ -36,7 +36,7 @@ export const CIBLES_DECISION_MODERATION = [...CIBLES_SIGNALEMENT_SOCIAL, "avis",
  * profil, une sortie ou un groupe. Seulement si celui qui signale a un e-mail vérifié, un compte d'au moins
  * ANCIENNETE_MIN_MASQUAGE_JOURS, et si ce contenu n'a jamais eu de signalement rejeté (réponse de Hugo du 14/10/2026).
  */
-export const CIBLES_AVEC_MASQUAGE_IMMEDIAT: readonly CibleSignalementSocial[] = ["commentaire", "message", "liste"];
+export const CIBLES_AVEC_MASQUAGE_IMMEDIAT: readonly CibleSignalementSocial[] = ["commentaire", "message", "liste", "idee", "comment-idee"];
 export const ANCIENNETE_MIN_MASQUAGE_JOURS = 7;
 
 /** On peut contester une décision de la modération pendant 6 mois (DSA) */

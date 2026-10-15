@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { Modal, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
@@ -41,6 +42,7 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMo
   const inscription = useRef(false);
   const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
 
   // VoiceOver commence par le titre (sinon il tombe sur le fond « Fermer »), une fois la feuille arrivée
   useEffect(() => {
@@ -83,15 +85,16 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMo
         style={{ minHeight: marges.top }}
         className="flex-1 bg-black/40"
       />
-      <View
+      <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
-        style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-        className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+        onLayout={geste.mesurerFeuille}
+        style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
       >
-        <View className="mb-4 h-1.5 w-12 self-center rounded-full bg-ligne" />
-        <ContenuCreerCompte raison={raison} refTitre={titre} onInscrire={inscrire} onPlusTard={onFermer} />
-      </View>
+        <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+          <ContenuCreerCompte raison={raison} refTitre={titre} geste={geste} onInscrire={inscrire} onPlusTard={onFermer} />
+        </View>
+      </Animated.View>
     </Modal>
   );
 }

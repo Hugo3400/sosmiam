@@ -56,6 +56,11 @@ const ECRITURES_REFUSEES = [
   // Commentaires : écrire, modifier
   "POST /app/commentaires/publications/:publicationId",
   "PATCH /app/commentaires/:id",
+  "POST /app/communaute/sorties",
+  "POST /app/communaute/sorties/:id/demande",
+  "POST /app/communaute/coucous/:personne",
+  "POST /app/communaute/idees",
+  "POST /app/communaute/idees/:id/commentaires",
 ];
 
 /** Les écritures qui restent permises à un compte limité, et pourquoi */
@@ -108,6 +113,22 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["DELETE /app/commentaires/:id/masque", "le gérant démasque"],
   ["POST /app/signalements", "signaler"],
   ["POST /app/moderation/:id/contestation", "contester une décision"],
+  ["DELETE /app/communaute/sorties/:id", "l'organisateur annule sa sortie des Miamis"],
+  ["DELETE /app/communaute/sorties/:id/demande", "annuler sa demande"],
+  ["DELETE /app/communaute/sorties/:id/participation", "« Je ne peux plus venir »"],
+  ["POST /app/communaute/sorties/:id/demandes/:personne", "l'organisateur accepte une arrivée"],
+  ["DELETE /app/communaute/sorties/:id/demandes/:personne", "l'organisateur refuse une arrivée"],
+  ["DELETE /app/communaute/sorties/:id/participants/:personne", "l'organisateur retire quelqu'un"],
+  ["POST /app/communaute/sorties/:id/presence", "valider sa présence après le QR du comptoir"],
+  ["PUT /app/communaute/genre", "son genre, que personne ne voit"],
+  ["DELETE /app/communaute/genre", "effacer son genre"],
+  ["PUT /app/communaute/qui-est-la", "se cacher passe ; se montrer (visible: true) est refusé par refuserSiLimiteSi"],
+  ["DELETE /app/communaute/idees/:id", "retirer son idée"],
+  ["PUT /app/communaute/idees/:id/vote", "voter « Miam ! »"],
+  ["DELETE /app/communaute/idees/:id/vote", "retirer son vote"],
+  ["DELETE /app/communaute/commentaires-idees/:id", "supprimer son commentaire"],
+  ["PUT /app/communaute/commentaires-idees/:id/jaime", "J'aime"],
+  ["DELETE /app/communaute/commentaires-idees/:id/jaime", "retirer son J'aime"],
 ]);
 
 /** Hors de la pile sociale (avis, visites, fidélité, réservations, comptoir) : ce que les autres verraient, refusé à un compte limité */

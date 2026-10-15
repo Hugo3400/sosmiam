@@ -25,13 +25,16 @@ export function creerDecisionsModerationApp(
   /** Les contenus masqués maintenant (suspendus, ou masqués par le lieu), parmi ceux qui ont un signalement en attente */
   async function lireMasques(lignes: readonly LigneSignalementDecision[]): Promise<Set<string>> {
     const ids = (cible: string) => [...new Set(lignes.filter((s) => s.cible === cible && s.statut === "a-traiter").map((s) => Number(s.cibleId)))].filter(Number.isSafeInteger);
-    const [commentaires, messages, listes] = await Promise.all([
+    const [commentaires, messages, listes, idees, commentairesIdees] = await Promise.all([
       base.commentairePublication.findMany({ where: { id: { in: ids("commentaire") }, OR: [{ suspenduLe: { not: null } }, { masqueParLieuLe: { not: null } }] }, select: { id: true } }),
       base.messageConversation.findMany({ where: { id: { in: ids("message") }, suspenduLe: { not: null } }, select: { id: true } }),
       base.listeLieux.findMany({ where: { id: { in: ids("liste") }, suspendueLe: { not: null } }, select: { id: true } }),
+      base.ideeCommunaute.findMany({ where: { id: { in: ids("idee") }, suspendueLe: { not: null } }, select: { id: true } }),
+      base.commentaireIdeeCommunaute.findMany({ where: { id: { in: ids("comment-idee") }, suspenduLe: { not: null } }, select: { id: true } }),
     ]);
     return new Set([
       ...commentaires.map((c) => `commentaire:${c.id}`), ...messages.map((m) => `message:${m.id}`), ...listes.map((l) => `liste:${l.id}`),
+      ...idees.map((i) => `idee:${i.id}`), ...commentairesIdees.map((c) => `comment-idee:${c.id}`),
     ]);
   }
 
