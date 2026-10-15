@@ -12,6 +12,7 @@ import { test } from "node:test";
 import { Prisma } from "../src/base-de-donnees/client-genere/client.ts";
 import { calculerSeuilsMenageSocial } from "../src/fonctions/social/calculer-seuils-menage-social.ts";
 import { decrireBilanMenageSocial } from "../src/fonctions/social/decrire-bilan-menage-social.ts";
+import { estFichierGardeParSignalement } from "../src/fonctions/social/est-fichier-garde-par-signalement.ts";
 import { rechiffrerMediaSocial } from "../src/fonctions/social/rechiffrer-media-social.ts";
 import { rechiffrerTexteSocial } from "../src/fonctions/social/rechiffrer-texte-social.ts";
 import { creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
@@ -29,6 +30,7 @@ const { faireLeMenageSocial } = await import("../src/services/menage-social.ts")
 const { effacerContenusRetires, effacerConversationsAnciennes, effacerFichiersOrphelins, effacerMediasExpires } = await import("../src/services/menage-social-etapes.ts");
 const { rechiffrerSocial } = await import("../src/services/rechiffrement-social.ts");
 const { creerSignalementsSociaux } = await import("../src/services/signalements-sociaux.ts");
+const { signalementsGardantLeurFichier } = await import("../src/services/effacer-conversations.ts");
 
 const JOUR = 86_400_000;
 const T = new Date("2027-03-01T03:30:00Z");
@@ -277,10 +279,11 @@ test("rechiffrement : un illisible va au journal par sa table et son id (ou son 
   ]);
 });
 
-test("signaler un message : verrou du compte, puis de sa conversation, AVANT de lire le message (le ménage ne le croise plus)", async () => {
+test("signaler un message : verrou du compte (FOR NO KEY UPDATE), puis de sa conversation, AVANT de lire le message", async () => {
   const ordre: string[] = [];
+  let deja: { id: number } | null = null;
   const tx = {
-    signalement: { findFirst: async () => null },
+    signalement: { findFirst: async () => deja },
     messageConversation: {
       findUnique: async (a: { select: Record<string, unknown> }) => {
         const saConversation = Object.keys(a.select).join() === "conversationId";
@@ -291,14 +294,141 @@ test("signaler un message : verrou du compte, puis de sa conversation, AVANT de 
     },
     $queryRaw: async (morceaux: TemplateStringsArray, ...valeurs: unknown[]) => {
       const { text, values } = rendre(morceaux, valeurs);
-      ordre.push(text.includes("FROM conversations") && text.includes("FOR UPDATE") ? `verrou de la conversation ${values.join()}` : text);
+      if (text === "SELECT id FROM comptes WHERE id = $1 FOR NO KEY UPDATE") ordre.push(`verrou du compte ${values.join()}`);
+      else ordre.push(text.includes("FROM conversations") && text.includes("FOR UPDATE") ? `verrou de la conversation ${values.join()}` : text);
       return [{ id: 9 }];
     },
   };
-  const relations = { verrouillerComptes: async (_tx: unknown, ids: number[]) => void ordre.push(`verrou du compte ${ids.join()}`) };
+  // Plus de relations.verrouillerComptes (FOR UPDATE) : l'appeler lèverait une erreur ici
+  const relations = {};
   const base = { $transaction: async (faire: (t: typeof tx) => Promise<unknown>) => faire(tx) };
   const services = creerSignalementsSociaux({ relations: relations as never, chiffrement: deuxCles().s2 }, base as never);
   const signalement = { cible: "message", cibleId: "42", raison: "haine", precision: null, explication: "" };
   assert.deepEqual(await services.signaler(1, signalement as never, T), { ok: false, erreur: "contenu-inconnu" });
-  assert.deepEqual(ordre, ["verrou du compte 1", "conversation du message", "verrou de la conversation 9", "lecture du message"]);
+  assert.deepEqual(ordre, ["verrou du compte 1", "conversation du message", "verrou de la conversation 9", "lecture du message"],
+    "FOR NO KEY UPDATE : la clé étrangère d'un message ou d'une réaction du même compte (FOR KEY SHARE) passe, sans interblocage");
+  // Déjà signalé : relu sous le verrou du compte, rien d'autre
+  ordre.length = 0;
+  deja = { id: 5 };
+  assert.deepEqual(await services.signaler(1, signalement as never, T), { ok: true, deja: true, masquePourTous: false, effets: [] });
+  assert.deepEqual(ordre, ["verrou du compte 1"]);
+});
+
+/** Un filtre Prisma (AND, OR, égalité, in, { not: null }, gt) rejoué sur une ligne en mémoire ; un opérateur inconnu lève */
+function verifierFiltre(ligne: Record<string, unknown>, filtre: Record<string, unknown>): boolean {
+  return Object.entries(filtre).every(([cle, attendu]) => {
+    if (cle === "AND") return (attendu as Record<string, unknown>[]).every((f) => verifierFiltre(ligne, f));
+    if (cle === "OR") return (attendu as Record<string, unknown>[]).some((f) => verifierFiltre(ligne, f));
+    const valeur = ligne[cle] ?? null;
+    if (attendu === null || typeof attendu !== "object") return valeur === attendu;
+    const o = attendu as { in?: unknown[]; not?: null; gt?: Date };
+    if (o.in) return o.in.includes(valeur);
+    if ("not" in o && o.not === null) return valeur !== null;
+    if (o.gt) return valeur instanceof Date && valeur.getTime() > o.gt.getTime();
+    throw new Error(`Opérateur inconnu pour ${cle}`);
+  });
+}
+
+/** Les cas de la décision du 15/10/2026 : le fichier reste tant que le signalement est ouvert, ou jugé depuis moins de 183 jours */
+const CAS_SIGNALES: { nom: string; garde: boolean; s: Record<string, unknown> | null }[] = [
+  { nom: "sans signalement", garde: false, s: null },
+  { nom: "ouvert", garde: true, s: { statut: "a-traiter", traiteLe: null, contesteLe: null, reexamineLe: null } },
+  { nom: "retenu il y a 10 jours", garde: true, s: { statut: "retenu", traiteLe: ilYa(10), contesteLe: null, reexamineLe: null } },
+  { nom: "rejeté il y a 182 jours", garde: true, s: { statut: "rejete", traiteLe: ilYa(182), contesteLe: null, reexamineLe: null } },
+  { nom: "jugé il y a 200 jours, sans contestation", garde: false, s: { statut: "retenu", traiteLe: ilYa(200), contesteLe: null, reexamineLe: null } },
+  { nom: "contesté, pas encore réexaminé", garde: true, s: { statut: "retenu", traiteLe: ilYa(200), contesteLe: ilYa(20), reexamineLe: null } },
+  { nom: "réexaminé il y a 10 jours", garde: true, s: { statut: "retenu", traiteLe: ilYa(300), contesteLe: ilYa(100), reexamineLe: ilYa(10) } },
+  { nom: "réexaminé il y a 200 jours", garde: false, s: { statut: "rejete", traiteLe: ilYa(380), contesteLe: ilYa(300), reexamineLe: ilYa(200) } },
+];
+
+test("garde d'un fichier signalé : la règle en mémoire et le filtre de la base disent la même chose", () => {
+  const seuil = calculerSeuilsMenageSocial(T).fichiersSignales;
+  for (const cas of CAS_SIGNALES.filter((c) => c.s)) {
+    assert.equal(estFichierGardeParSignalement(cas.s as never, seuil), cas.garde, cas.nom);
+    assert.equal(verifierFiltre({ ...cas.s, fichierMedia: "f" }, signalementsGardantLeurFichier(seuil) as never), cas.garde, cas.nom);
+  }
+});
+
+test("étapes 1, 2, 7 et 8 : le fichier d'un signalement ouvert ou jugé depuis moins de 183 jours reste, les autres partent", async () => {
+  const seuils = calculerSeuilsMenageSocial(T);
+  for (const etape of ["1 (médias de 90 jours)", "2 (conversations d'un an)", "7 (contenus retirés)", "8 (orphelins)"]) {
+    const medias = creerStockageMediasChatEnMemoire();
+    const fichiers = new Map<string, (typeof CAS_SIGNALES)[number]>();
+    for (const cas of CAS_SIGNALES) {
+      const nom = medias.tirerNom();
+      await medias.ecrire(nom, Buffer.from("chiffre"));
+      medias.fichiers.get(nom)!.modifieLe = ilYa(100);
+      fichiers.set(nom, cas);
+    }
+    const lignes = () => [...fichiers.keys()].map((fichier) => ({ fichier }));
+    const signalements = [...fichiers].flatMap(([fichierMedia, cas]) => (cas.s ? [{ ...cas.s, fichierMedia }] : []));
+    const requetes: string[] = [];
+    const tx = {
+      $queryRaw: async (morceaux: TemplateStringsArray) => (morceaux.join("?").includes("FOR UPDATE") ? [] : [{ id: 1, type: "groupe" }]),
+      messageConversation: { findMany: async () => lignes() },
+      conversation: { deleteMany: async () => ({ count: 1 }) },
+    };
+    const base = {
+      $queryRaw: async (morceaux: TemplateStringsArray, ...valeurs: unknown[]) => {
+        const { text, values } = rendre(morceaux, valeurs);
+        requetes.push(text);
+        if (text.includes("media_expire_le") || (text.includes("retire_le") && text.includes("messages_conversations"))) return lignes();
+        return text.includes("SELECT c.id FROM conversations c") && values[0] === 0 ? [{ id: 1 }] : [];
+      },
+      $executeRaw: async () => 0,
+      $transaction: async (faire: (t: typeof tx) => Promise<unknown>) => faire(tx),
+      // Les messages ne citent plus ces fichiers (fichier à NULL) : seuls les signalements peuvent les garder
+      messageConversation: { findMany: async () => [] },
+      signalement: {
+        findMany: async (a: { where: Record<string, unknown> }) =>
+          signalements.filter((l) => verifierFiltre(l, a.where)).map((l) => ({ fichierMedia: l.fichierMedia })),
+      },
+    } as unknown as BaseMenage;
+    if (etape.startsWith("1")) await effacerMediasExpires(base, seuils, medias);
+    else if (etape.startsWith("2")) await effacerConversationsAnciennes(base, seuils, medias);
+    else if (etape.startsWith("7")) await effacerContenusRetires(base, seuils, medias, T);
+    else await effacerFichiersOrphelins(base, seuils, medias);
+    for (const [fichier, cas] of fichiers) assert.equal(medias.fichiers.has(fichier), cas.garde, `étape ${etape} : ${cas.nom}`);
+    if (etape.startsWith("1")) {
+      const expires = requetes.find((r) => r.includes("media_expire_le"))!;
+      assert.ok(!expires.includes("signalements"), "le média signalé quitte quand même la conversation (fichier à NULL) : seule sa copie reste");
+    }
+  }
+});
+
+test("rechiffrement : sous 15 % + 2 points de disque libre, les fichiers attendent une autre nuit et le reste est compté", async () => {
+  const { s1, v2 } = deuxCles();
+  const base = {
+    $queryRaw: async (morceaux: TemplateStringsArray) => (morceaux.join("?").includes("count(*)") ? [{ restants: 0 }] : []),
+    $transaction: (requetes: Promise<unknown>[]) => Promise.all(requetes),
+    messageConversation: { updateMany: async () => ({ count: 1 }) },
+    signalement: { updateMany: async () => ({ count: 0 }) },
+  } as unknown as BaseMenage;
+  const preparer = async (partLibre: number) => {
+    const medias = creerStockageMediasChatEnMemoire({ partLibre, horloge: () => T.getTime() });
+    for (let i = 0; i < 3; i++) {
+      const nom = medias.tirerNom();
+      await medias.ecrire(nom, s1.chiffrerOctets(Buffer.from("photo de pâtes"), nom));
+      medias.fichiers.get(nom)!.modifieLe = ilYa(10 - i);
+    }
+    const ecrits: string[] = [];
+    // Chaque fichier réécrit prend de la place : après le premier, le disque passe à 16,9 % libre
+    const surveille: StockageMediasChat = {
+      ...medias,
+      ecrire: async (nom, octets) => {
+        ecrits.push(nom);
+        await medias.ecrire(nom, octets);
+        medias.reglerPartLibre(0.169);
+      },
+    };
+    return { medias, ecrits, surveille };
+  };
+  const a = await preparer(0.17);
+  const { resultat: bilan, notes } = await ecouterJournal(() => rechiffrerSocial(v2, a.surveille, base));
+  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 2 }, "17 % : un fichier passe ; à 16,9 %, les 2 autres sont comptés comme au plafond");
+  assert.equal(a.ecrits.length, 1, "rien n'est écrit sous la marge");
+  assert.deepEqual(notes, ["Rechiffrement social : disque presque plein (16 % libre), les fichiers attendent une autre nuit"], "des nombres seulement");
+  const b = await preparer(0.1);
+  assert.deepEqual((await ecouterJournal(() => rechiffrerSocial(v2, b.surveille, base))).resultat, { rechiffres: 0, illisibles: 0, restants: 3 });
+  assert.deepEqual([b.ecrits.length, b.medias.fichiers.size], [0, 3], "disque déjà sous la marge : rien n'est écrit, tout est compté");
 });

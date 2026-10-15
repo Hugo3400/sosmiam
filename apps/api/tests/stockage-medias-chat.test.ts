@@ -1,6 +1,7 @@
 // Tests du stockage des photos et notes vocales du chat (vrai disque, dans un dossier temporaire : jamais le vrai dossier des
 // médias), des quotas de B.12, et de l'effacement des conversations (version Prisma avec une fausse transaction, et version
-// en mémoire avec les mêmes cascades) : le fichier d'un signalement ouvert reste toujours sur le disque.
+// en mémoire avec les mêmes cascades) : le fichier d'un signalement ouvert, ou jugé depuis moins de 183 jours, reste sur le
+// disque (décision de Hugo du 15/10/2026).
 import assert from "node:assert/strict";
 import { mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -51,6 +52,23 @@ test("disque : dossier 0700, fichiers 0600, noms tirés, jamais un chemin, pas d
   assert.equal(alertes.length, part < 0.15 ? 1 : 0);
 });
 
+test("disque : une photo de 5 Mo écrite entière et forcée sur le disque ; une écriture refusée ne laisse rien", async () => {
+  const dossier = join(racine, "cinq-mo");
+  const s = creerStockageMediasChat(dossier);
+  const nom = s.tirerNom();
+  const photo = Buffer.alloc(5 * 1024 * 1024, 7);
+  const debut = performance.now();
+  await s.ecrire(nom, photo);
+  const duree = performance.now() - debut;
+  assert.ok((await s.lire(nom))!.equals(photo));
+  assert.equal(statSync(join(dossier, nom)).mode & 0o777, 0o600);
+  // Large marge (le disque d'essai peut être lent) : sur le VPS, une vingtaine de millisecondes avec le fsync
+  assert.ok(duree < 5000, `${Math.round(duree)} ms`);
+  await assert.rejects(s.ecrire(nom, Buffer.from("autre")), (e: NodeJS.ErrnoException) => e.code === "EEXIST");
+  assert.ok((await s.lire(nom))!.equals(photo), "un fichier qui existait n'est jamais touché");
+  assert.deepEqual(readdirSync(dossier), [nom]);
+});
+
 test("disque illisible : part libre 0, alerte une fois par heure", async () => {
   writeFileSync(join(racine, "fichier-pas-dossier"), "x");
   const alertes: number[] = [];
@@ -91,7 +109,7 @@ test("en mémoire : mêmes règles de noms", async () => {
   assert.equal(s.fichiers.size, 0);
 });
 
-test("effacerConversations : verrou trié, fichiers lus avant l'effacement, ceux des signalements ouverts gardés", async () => {
+test("effacerConversations : verrou trié, fichiers lus avant l'effacement, ceux que gardent les signalements restent", async () => {
   const medias = creerStockageMediasChatEnMemoire();
   const [f1, f2, f3] = [medias.tirerNom(), medias.tirerNom(), medias.tirerNom()];
   for (const f of [f1, f2, f3]) await medias.ecrire(f!, Buffer.from("x"));
@@ -113,10 +131,14 @@ test("effacerConversations : verrou trié, fichiers lus avant l'effacement, ceux
   assert.equal(medias.fichiers.size, 3, "rien sur le disque avant la fin de la transaction");
   let filtre: unknown;
   const base = { signalement: { findMany: async (a: unknown) => ((filtre = a), [{ fichierMedia: f2 }]) } };
-  assert.equal(await r.apresTransaction(base as never), 2);
-  assert.deepEqual([...medias.fichiers.keys()], [f2], "le fichier d'un signalement ouvert reste");
-  assert.match(JSON.stringify(filtre), /a-traiter/);
-  assert.match(JSON.stringify(filtre), /contesteLe/);
+  const seuil = new Date("2026-04-15T00:00:00Z");
+  assert.equal(await r.apresTransaction(base as never, seuil), 2);
+  assert.deepEqual([...medias.fichiers.keys()], [f2], "le fichier que garde un signalement reste");
+  const texte = JSON.stringify(filtre);
+  assert.match(texte, /a-traiter/);
+  assert.match(texte, /contesteLe/);
+  assert.ok(texte.includes(`"reexamineLe":{"gt":"${seuil.toISOString()}"}`) && texte.includes(`"traiteLe":{"gt":"${seuil.toISOString()}"}`),
+    "jugé (ou réexaminé) après le seuil du ménage : gardé aussi");
   // Rien à effacer : aucune requête
   const vide = await effacerConversations({} as never, [], medias);
   assert.equal(vide.conversations, 0);
@@ -134,18 +156,21 @@ test("effacerConversations : verrou trié, fichiers lus avant l'effacement, ceux
   assert.ok(!erreurs[0]!.includes(f2!), "pas de nom de fichier dans le journal");
 });
 
-test("effacerConversationsEnMemoire : mêmes cascades que la base, la sortie avec, le fichier d'un signalement ouvert gardé", async () => {
+test("effacerConversationsEnMemoire : mêmes cascades que la base, la sortie avec, le fichier qu'un signalement garde reste", async () => {
   const tables = creerTablesSocialesEnMemoire();
   const medias = creerStockageMediasChatEnMemoire();
-  const [libre, signale, conteste, juge] = [medias.tirerNom(), medias.tirerNom(), medias.tirerNom(), medias.tirerNom()];
-  for (const f of [libre, signale, conteste, juge]) await medias.ecrire(f, Buffer.from("x"));
+  const [libre, signale, conteste, juge, retenu, reexamine] = [1, 2, 3, 4, 5, 6].map(() => medias.tirerNom()) as [string, string, string, string, string, string];
+  for (const f of [libre, signale, conteste, juge, retenu, reexamine]) await medias.ecrire(f, Buffer.from("x"));
   const quand = new Date("2026-10-14T10:00:00Z");
+  const ilYa = (jours: number) => new Date(quand.getTime() - jours * 86_400_000);
   for (const id of [1, 2]) tables.conversations.set(id, { id, type: id === 1 ? "sortie" : "groupe" } as never);
   const message = (id: number, conversationId: number, fichier: string | null) => tables.messages.set(id, { id, conversationId, auteurId: 5, fichier } as never);
   message(10, 1, libre);
   message(11, 1, signale);
   message(12, 1, conteste);
   message(13, 1, juge);
+  message(14, 1, retenu);
+  message(15, 1, reexamine);
   message(20, 2, null);
   tables.reactions.push({ messageId: 10, compteId: 6, code: "miam", creeLe: quand } as never, { messageId: 20, compteId: 6, code: "miam", creeLe: quand } as never);
   tables.membres.push({ conversationId: 1, compteId: 5 } as never, { conversationId: 2, compteId: 5 } as never);
@@ -157,19 +182,23 @@ test("effacerConversationsEnMemoire : mêmes cascades que la base, la sortie ave
   tables.votes.push({ propositionId: 40, compteId: 6 } as never);
   const signalement = (id: number, fichierMedia: string, enPlus: Record<string, unknown>) =>
     tables.signalements.set(id, { id, fichierMedia, statut: "retenu", contesteLe: null, reexamineLe: null, ...enPlus } as never);
-  signalement(1, signale, { statut: "a-traiter" });
-  signalement(2, conteste, { contesteLe: quand });
-  signalement(3, juge, { contesteLe: quand, reexamineLe: quand });
+  signalement(1, signale, { statut: "a-traiter", traiteLe: null });
+  signalement(2, conteste, { traiteLe: ilYa(200), contesteLe: ilYa(20) });
+  signalement(3, juge, { traiteLe: ilYa(300), contesteLe: ilYa(250), reexamineLe: ilYa(200) });
+  signalement(4, retenu, { traiteLe: ilYa(10) });
+  signalement(5, reexamine, { traiteLe: ilYa(300), contesteLe: ilYa(100), reexamineLe: ilYa(10) });
   const r = await effacerConversationsEnMemoire(tables, [1, 99], medias);
-  assert.deepEqual([r.conversations, r.fichiers.sort()], [1, [libre, signale, conteste, juge].sort()]);
+  assert.deepEqual([r.conversations, r.fichiers.sort()], [1, [libre, signale, conteste, juge, retenu, reexamine].sort()]);
   assert.deepEqual([...tables.conversations.keys()], [2]);
   assert.deepEqual([...tables.messages.keys()], [20]);
   assert.deepEqual(tables.reactions.map((l) => l.messageId), [20]);
   assert.deepEqual(tables.membres.map((l) => l.conversationId), [2]);
   assert.deepEqual([tables.invitationsGroupes.length, tables.departs.length, tables.sorties.size, tables.invitationsSorties.length, tables.propositions.size, tables.votes.length], [0, 0, 0, 0, 0, 0]);
-  assert.equal(medias.fichiers.size, 4, "rien ne part du stockage avant la fin de la transaction");
-  assert.equal(await r.apresTransaction(), 2);
-  assert.deepEqual([...medias.fichiers.keys()].sort(), [signale, conteste].sort(), "pas jugé, ou contesté et pas réexaminé : gardé");
-  assert.equal(tables.signalements.size, 3, "les signalements restent");
+  assert.equal(medias.fichiers.size, 6, "rien ne part du stockage avant la fin de la transaction");
+  // Le seuil du ménage de nuit : 183 jours avant `quand`
+  assert.equal(await r.apresTransaction(undefined, ilYa(183)), 2);
+  assert.deepEqual([...medias.fichiers.keys()].sort(), [signale, conteste, retenu, reexamine].sort(),
+    "pas jugé, contesté et pas réexaminé, retenu il y a 10 jours, réexaminé il y a 10 jours : gardés ; réexaminé il y a 200 jours : parti");
+  assert.equal(tables.signalements.size, 5, "les signalements restent");
   assert.equal((await effacerConversationsEnMemoire(tables, [1], medias)).conversations, 0, "déjà partie : rien");
 });
