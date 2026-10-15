@@ -1,7 +1,23 @@
 import { createContext, useContext } from "react";
 
+import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Profil } from "@sos-miam/commun/types/profil";
 import type { Avatar } from "~/stockage/avatar-local";
+import type { AnnonceSynchro } from "~/stockage/synchro-profil";
+
+/** Ce que « Mes infos » change (seulement ce qui a bougé) ; nom "" : effacé */
+export type ChangementsInfos = Partial<Pick<Profil, "prenom" | "pseudo" | "ville">> & { nom?: string };
+
+/**
+ * Pourquoi « Mes infos » n'a rien enregistré : un refus du serveur (texte dans MESSAGES_SERVICE : « pseudo-pris »,
+ * « champ-invalide » avec son champ, « compte-limite »…), ou « pseudo-mis-de-cote » (ton ancien pseudo, retiré par
+ * l'équipe), ou « pseudo-sans-reseau » (un nouveau pseudo doit être vérifié par le serveur : jamais mis en attente)
+ */
+export type RefusInfos = ErreurService | "pseudo-mis-de-cote" | "pseudo-sans-reseau";
+
+/** parti : faux quand le changement attend le réseau sur le téléphone (il partira tout seul) */
+export type ResultatInfos = { ok: true; parti: boolean } | { ok: false; refus: RefusInfos; champ?: string; details?: DetailsErreur };
 
 export type EtatProfil = {
   /** null tant que la personne n'est pas inscrite */
@@ -20,9 +36,26 @@ export type EtatProfil = {
   entrerEnInvite: () => Promise<boolean>;
   /** Arrête la visite sans compte (retour à l'inscription) */
   quitterInvite: () => Promise<void>;
-  /** Enregistre le profil ; la visite sans compte, s'il y en avait une, s'arrête */
+  /**
+   * Installe un profil complet (inscription, connexion, reprise après la démo) : il vient du serveur ou vient d'y partir,
+   * donc rien ne part et les changements en attente sont oubliés. La visite sans compte, s'il y en avait une, s'arrête.
+   * Pour changer un profil déjà là, c'est modifierInfos ou modifierEnvies.
+   */
   enregistrer: (profil: Profil) => Promise<void>;
-  /** Efface le profil, l'avatar et la visite sans compte du téléphone (retour à la bienvenue) */
+  /**
+   * Mes infos (prénom, pseudo, nom, ville). Avec un compte, le serveur fait foi : on attend sa réponse (15 s au plus), et
+   * sans réseau, le changement attend sur le téléphone (sauf le pseudo, qui doit être vérifié). En démo : sur le téléphone.
+   */
+  modifierInfos: (changements: ChangementsInfos) => Promise<ResultatInfos>;
+  /** Mes envies : enregistrées tout de suite sur le téléphone ; avec un compte, elles partent ensuite (jamais les régimes) */
+  modifierEnvies: (envies: Profil["envies"]) => Promise<void>;
+  /** Ce que la carte du profil annonce (pseudo neutre de la modération…), une seule à la fois ; null : rien */
+  annonce: AnnonceSynchro | null;
+  /** L'annonce a été lue (« Compris », ou son bouton) : elle ne revient plus */
+  fermerAnnonce: () => void;
+  /** Ton ancien pseudo, retiré par l'équipe et réservé pour personne pendant 30 jours ; null : aucun */
+  pseudoMisDeCote: string | null;
+  /** Efface le profil, l'avatar, la synchro et la visite sans compte du téléphone (retour à la bienvenue) */
   effacer: () => Promise<void>;
   /** Emoji ou photo de profil (gardé à part : ce n'est pas une donnée du compte) */
   avatar: Avatar;
