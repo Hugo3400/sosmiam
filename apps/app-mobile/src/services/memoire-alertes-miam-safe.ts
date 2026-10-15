@@ -7,7 +7,10 @@ export type AlerteGardeeMiamSafe = {
   telephones: number | null;
   statut: StatutAlerteMiamSafe;
   reponduLe: number | null;
+  precedentes: number[];
 };
+
+export type AlerteEnvoyeeMiamSafe = Pick<AlerteGardeeMiamSafe, "id" | "envoyeeLe" | "telephones">;
 
 type Entree = { alerte: AlerteGardeeMiamSafe; minuteurs: ReturnType<typeof setTimeout>[] };
 
@@ -67,8 +70,12 @@ export function suivreAlerteGardeeMiamSafe(cle: string, rappel: () => void): () 
   };
 }
 
-export function garderAlerteMiamSafe(cle: string, alerte: AlerteGardeeMiamSafe) {
-  for (const minuteur of entrees.get(cle)?.minuteurs ?? []) clearTimeout(minuteur);
+export function garderAlerteMiamSafe(cle: string, envoyee: AlerteEnvoyeeMiamSafe) {
+  const avant = entrees.get(cle);
+  for (const minuteur of avant?.minuteurs ?? []) clearTimeout(minuteur);
+  const ancienne = avant?.alerte;
+  const precedentes = ancienne && ancienne.statut !== "en-route" ? [...ancienne.precedentes, ancienne.id] : [];
+  const alerte: AlerteGardeeMiamSafe = { ...envoyee, statut: "envoyee", reponduLe: null, precedentes };
   const maintenant = Date.now();
   const minuteurs = [
     setTimeout(() => passerSansReponse(cle), Math.max(0, alerte.envoyeeLe + DELAI_RELANCE_MS - maintenant)),
@@ -80,10 +87,10 @@ export function garderAlerteMiamSafe(cle: string, alerte: AlerteGardeeMiamSafe) 
 
 export function noterStatutAlerteMiamSafe(cle: string, alerteId: number, statut: StatutAlerteMiamSafe, reponduLe: number | null) {
   const alerte = entrees.get(cle)?.alerte;
-  if (!alerte || alerte.id !== alerteId || alerte.statut === statut) return;
-  remplacer(cle, { ...alerte, statut, reponduLe: statut === "en-route" ? reponduLe : alerte.reponduLe });
-}
-
-export function oublierAlerteMiamSafe(cle: string) {
-  retirer(cle);
+  if (!alerte || alerte.statut === "en-route") return;
+  if (statut === "en-route" && (alerte.id === alerteId || alerte.precedentes.includes(alerteId))) {
+    remplacer(cle, { ...alerte, statut, reponduLe });
+  } else if (statut === "sans-reponse" && alerte.id === alerteId && alerte.statut === "envoyee") {
+    remplacer(cle, { ...alerte, statut });
+  }
 }

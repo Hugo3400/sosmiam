@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { DELAI_RELANCE_ALERTE_SECONDES, ENDROITS_ALERTE, LONGUEUR_MAX_DETAIL_ALERTE, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
+import type { StatutAlerteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
@@ -10,15 +11,12 @@ import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserAlerteGardeeMiamSafe } from "~/hooks/utiliser-alerte-gardee-miam-safe";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import { garderAlerteMiamSafe, noterStatutAlerteMiamSafe, oublierAlerteMiamSafe } from "~/services/memoire-alertes-miam-safe";
+import { garderAlerteMiamSafe, type AlerteGardeeMiamSafe } from "~/services/memoire-alertes-miam-safe";
 import { oublierMiamSafeLieu } from "~/services/memoire-miam-safe-lieux";
 
-type Props = { lieuId: number; onPrevenirPote: () => void };
+type Props = { lieuId: number; cle: string; alerte: AlerteGardeeMiamSafe | null; aRelire: boolean; onPrevenirPote: () => void };
 
-const RELECTURE_MS = 3000;
-const RELECTURE_SANS_REPONSE_MS = 10_000;
 const MINUTES_RELANCE = DELAI_RELANCE_ALERTE_SECONDES / 60;
 const SOUCI_EQUIPE = lierPonctuation("Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.");
 
@@ -28,37 +26,18 @@ function decrireEnvoi(telephones: number | null, heure: string): string {
   return lierPonctuation(`Elle est partie à ${heure} sur ${vers} de l'équipe, avec ton prénom et où tu es. Rien ne sonne de ton côté.`);
 }
 
-function lireReponse(repondueLe: string | null): number {
-  const instant = repondueLe ? Date.parse(repondueLe) : Number.NaN;
-  return Number.isNaN(instant) ? Date.now() : instant;
-}
-
-export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
+export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, onPrevenirPote }: Props) {
   const { miamSafe } = utiliserServices();
-  const { cle, alerte } = utiliserAlerteGardeeMiamSafe(lieuId);
   const [endroit, setEndroit] = useState<EndroitAlerte | null>(null);
   const [detail, setDetail] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
-  const etat = alerte?.statut ?? "a-envoyer";
+  const [nouvelle, setNouvelle] = useState<StatutAlerteMiamSafe | null>(null);
 
-  useEffect(() => {
-    if (!alerte || alerte.statut === "en-route") return;
-    const { id, statut: actuel, envoyeeLe } = alerte;
-    let actif = true;
-    const suivre = async () => {
-      const r = await miamSafe.suivreAlerte(id).catch(() => null);
-      if (!actif || !r?.ok) return;
-      if (r.alerte.statut === "en-route") noterStatutAlerteMiamSafe(cle, id, "en-route", lireReponse(r.alerte.repondueLe));
-      else if (r.alerte.statut === "sans-reponse" && actuel === "envoyee") noterStatutAlerteMiamSafe(cle, id, "sans-reponse", null);
-    };
-    if (Date.now() - envoyeeLe > RELECTURE_MS) void suivre();
-    const relecture = setInterval(() => void suivre(), actuel === "envoyee" ? RELECTURE_MS : RELECTURE_SANS_REPONSE_MS);
-    return () => {
-      actif = false;
-      clearInterval(relecture);
-    };
-  }, [alerte, miamSafe, cle]);
+  if (nouvelle !== null && (alerte === null || (alerte.statut === "en-route" && nouvelle !== "en-route"))) setNouvelle(null);
+
+  const suivie = nouvelle === null ? alerte : null;
+  const etat = suivie?.statut ?? "a-envoyer";
 
   const envoyer = async () => {
     if (endroit === null || envoi) return;
@@ -67,7 +46,10 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
     const r = await miamSafe.envoyerAlerte({ lieuId, endroit, detail }).catch(() => null);
     setEnvoi(false);
     if (r?.ok) {
-      garderAlerteMiamSafe(cle, { id: r.id, envoyeeLe: Date.now(), telephones: typeof r.telephones === "number" ? r.telephones : null, statut: "envoyee", reponduLe: null });
+      garderAlerteMiamSafe(cle, { id: r.id, envoyeeLe: Date.now(), telephones: typeof r.telephones === "number" ? r.telephones : null });
+      setNouvelle(null);
+      setEndroit(null);
+      setDetail("");
       return;
     }
     if (r?.erreur === "pas-miam-safe") oublierMiamSafeLieu(lieuId);
@@ -76,7 +58,7 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
   };
 
   const recommencer = () => {
-    oublierAlerteMiamSafe(cle);
+    if (alerte) setNouvelle(alerte.statut);
     setEndroit(null);
     setDetail("");
     setErreur(null);
@@ -86,12 +68,12 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
     <Bouton libelle="Renvoyer une alerte" variante="blanc" petit indice="Une nouvelle alerte silencieuse à l'équipe du lieu" onPress={recommencer} />
   );
 
-  if (alerte && etat === "sans-reponse") {
+  if (suivie && etat === "sans-reponse") {
     return (
       <View className="gap-4">
-        <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">L'équipe n'a pas encore répondu.</Text>
+        <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">{aRelire ? "On regarde si l'équipe a répondu…" : "L'équipe n'a pas encore répondu."}</Text>
         <Text className="font-texte text-base leading-6 text-gris">
-          {lierPonctuation(`Ton alerte de ${ecrireHeure(new Date(alerte.envoyeeLe))} est remontée à l'équipe SOS Miam. Ne reste pas seul·e : appelle les secours, ou préviens un pote.`)}
+          {lierPonctuation(`Ton alerte de ${ecrireHeure(new Date(suivie.envoyeeLe))} est remontée à l'équipe SOS Miam. Ne reste pas seul·e : appelle les secours, ou préviens un pote.`)}
         </Text>
         <NumerosUrgence />
         <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
@@ -100,7 +82,7 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
     );
   }
 
-  if (alerte && etat === "envoyee" && alerte.telephones === 0) {
+  if (suivie && etat === "envoyee" && suivie.telephones === 0) {
     return (
       <View className="gap-4">
         <View accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
@@ -116,11 +98,11 @@ export function AlerteComptoirMiamSafe({ lieuId, onPrevenirPote }: Props) {
     );
   }
 
-  if (alerte) {
+  if (suivie) {
     const enRoute = etat === "en-route";
     const texte = enRoute
-      ? lierPonctuation(`Elle a répondu « On arrive » à ${ecrireHeure(new Date(alerte.reponduLe ?? alerte.envoyeeLe))}. Reste où tu es si tu peux : quelqu'un vient te voir discrètement.`)
-      : decrireEnvoi(alerte.telephones, ecrireHeure(new Date(alerte.envoyeeLe)));
+      ? lierPonctuation(`Elle a répondu « On arrive » à ${ecrireHeure(new Date(suivie.reponduLe ?? suivie.envoyeeLe))}. Reste où tu es si tu peux : quelqu'un vient te voir discrètement.`)
+      : decrireEnvoi(suivie.telephones, ecrireHeure(new Date(suivie.envoyeeLe)));
     return (
       <View className="gap-4">
         <View accessible accessibilityLiveRegion="polite" className={`gap-1 rounded-2xl p-4 ${enRoute ? "bg-jaune" : "bg-white"}`}>

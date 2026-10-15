@@ -12,6 +12,7 @@ export type CharteLueMiamSafe = "signee" | "pas-signee" | "en-cours" | "inconnue
 type Props = {
   charte: CharteLueMiamSafe;
   alerte?: AlerteGardeeMiamSafe | null;
+  aRelire?: boolean;
   onChoisir: (vue: VueAideMiamSafe) => void;
 };
 
@@ -36,17 +37,18 @@ function listerChoix(signee: boolean): Choix[] {
   ];
 }
 
-function decrireSuivi(alerte: AlerteGardeeMiamSafe): string {
+function decrireSuivi(alerte: AlerteGardeeMiamSafe, aRelire: boolean): string {
   const debut = `Ton alerte au comptoir de ${ecrireHeure(new Date(alerte.envoyeeLe))}`;
   if (alerte.statut === "en-route") return lierPonctuation(`${debut} : l'équipe a répondu « On arrive ».`);
+  if (aRelire) return lierPonctuation(`${debut} : on regarde si l'équipe a répondu…`);
   if (alerte.statut === "sans-reponse") return lierPonctuation(`${debut} : l'équipe n'a pas encore répondu.`);
   if (alerte.telephones === 0) return lierPonctuation(`${debut} : aucun téléphone de l'équipe ne l'a reçue.`);
   return lierPonctuation(`${debut} est partie : on attend la réponse de l'équipe.`);
 }
 
-export function ChoixAideMiamSafe({ charte, alerte = null, onChoisir }: Props) {
+export function ChoixAideMiamSafe({ charte, alerte = null, aRelire = false, onChoisir }: Props) {
   const signee = charte === "signee";
-  const suivi = alerte ? decrireSuivi(alerte) : null;
+  const suivi = alerte ? decrireSuivi(alerte, aRelire) : null;
   return (
     <View className="gap-4">
       <NumerosUrgence />
