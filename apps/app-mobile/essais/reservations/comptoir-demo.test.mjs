@@ -16,11 +16,11 @@ const ROLE_BOUIBOUI = { ambassadeur: null, pro: [{ id: LIEU_DEMO_PRO_ID, nom: "R
 const SANS_ROLE = { ambassadeur: null, pro: [] };
 const REGLAGES = { vraiePosition: false, lieuxRepondentSeuls: false, avisAccelere: false, pepin: null };
 
-function monterDemo(debut) {
+function monterDemo(debut, reglages = REGLAGES) {
   const etat = { maintenantMs: debut, roles: SANS_ROLE };
   const maintenant = () => etat.maintenantMs;
   const magasin = creerMagasinDemo({ maintenant });
-  const ctx = { magasin, lireClient: () => MOI, lireRoles: () => etat.roles, lireReglages: () => REGLAGES, maintenant };
+  const ctx = { magasin, lireClient: () => MOI, lireRoles: () => etat.roles, lireReglages: () => reglages, maintenant };
   return { etat, magasin, client: creerReservationsDemo(ctx), pro: creerReservationsProDemo(ctx) };
 }
 
@@ -120,4 +120,40 @@ test("délai d'une heure : la démo refuse un créneau à moins d'une heure, com
   const creneaux = await d.client.listerCreneaux(LIEU_DEMO_PRO_ID, "2026-10-15");
   assert.equal(creneaux.creneaux[0], "21:00");
   assert.deepEqual(await d.client.reserver({ lieuId: LIEU_DEMO_PRO_ID, personnes: 2, jour: "2026-10-15", heure: "20:30", message: null }), { ok: false, erreur: "creneau-invalide" });
+});
+
+const laisserPasser = async () => {
+  for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r));
+};
+
+test("démo : le « Venu » automatique attend que « Venu » soit permis (créneau − 30 min), au lieu d'échouer en silence", async (t) => {
+  const d = monterDemo(calculerInstantParis("2026-10-15", "18:00"), { ...REGLAGES, lieuxRepondentSeuls: true });
+  await d.magasin.remettreAZero();
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const faite = await d.client.reserver({ lieuId: LIEU_DEMO_PRO_ID, personnes: 2, jour: "2026-10-15", heure: "19:00", message: null });
+  assert.equal(faite.ok, true);
+  const id = faite.reservation.id;
+  const statut = async () => (await d.client.lireReservation(id)).reservation;
+
+  d.etat.maintenantMs += 8_000;
+  t.mock.timers.tick(8_000);
+  await laisserPasser();
+  assert.equal((await statut()).statut, "acceptee");
+
+  d.etat.maintenantMs = calculerInstantParis("2026-10-15", "18:10");
+  const sur = await d.client.signalerPresence(id, { latitude: 43.6008, longitude: 3.8972, precision: 10, ageMs: 1_000, simulee: false });
+  assert.equal(sur.ok, true);
+  assert.notEqual(sur.reservation.presenceLe, null);
+
+  d.etat.maintenantMs += 8_000;
+  t.mock.timers.tick(8_000);
+  await laisserPasser();
+  assert.equal((await statut()).statut, "acceptee", "« Venu » ne part pas 40 min avant le créneau");
+
+  d.etat.maintenantMs = calculerInstantParis("2026-10-15", "18:30") + 1_000;
+  t.mock.timers.tick(20 * 60_000);
+  await laisserPasser();
+  const venue = await statut();
+  assert.equal(venue.statut, "honoree");
+  assert.notEqual(venue.visiteId, null);
 });

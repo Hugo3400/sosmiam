@@ -88,7 +88,7 @@ export const TEXTES_DEMANDE_ENVOYEE = {
   titre: "Demande envoyée !",
   sousTitre: "L'équipe {deLieu} te répond ici, dans l'app : sa réponse arrive dans Mes réservations.",
   titreAcceptee: "C'est réservé !",
-  sousTitreAcceptee: "L'équipe {deLieu} t'attend. Le jour J, touche « Je\u00a0suis\u00a0là » en arrivant, dans Mes réservations.",
+  sousTitreAcceptee: "L'équipe {deLieu} t'attend. Le jour J, touche « Je\u00a0suis\u00a0là » en arrivant : ici, ou dans Mes réservations.",
   titreRefusee: "Pas cette fois",
   sousTitreRefusee: "L'équipe {deLieu} a répondu : la carte t'explique pourquoi. Un autre créneau te tente ?",
   titreEndormie: "Demande endormie",

@@ -9,6 +9,7 @@ import { RAYON_PROCHE_KM } from "~/contenus/portee-explorer";
 import { arrondirZoneALaGrille } from "~/fonctions/geo/arrondir-zone-a-la-grille";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
 import { convertirLieuApi } from "~/fonctions/lieux/convertir-lieu-api";
+import { creerConvertisseurLieux } from "~/fonctions/lieux/creer-convertisseur-lieux";
 import { ContexteLieux, type EtatLieux, type LectureLieu } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserSession } from "~/hooks/utiliser-session";
@@ -167,7 +168,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     };
   }, [recharger]);
 
-  const convertis = useMemo(() => new WeakMap<LieuApi, Lieu>(), [depart]);
+  const convertir = useMemo(() => creerConvertisseurLieux(depart), [depart]);
   const lieux = useMemo<Lieu[]>(() => {
     if (DEMO_VISITES_ACTIVE) return lieuxExemples;
     // La liste d'abord, puis les lieux lus par zone, puis ceux lus un par un : chaque lieu une seule fois
@@ -178,14 +179,8 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       dejaLa.add(l.id);
       tous.push(l);
     }
-    return tous.map((l) => {
-      const deja = convertis.get(l);
-      if (deja) return deja;
-      const converti = convertirLieuApi(l, depart);
-      convertis.set(l, converti);
-      return converti;
-    });
-  }, [lus, deZones, enPlus, depart, convertis]);
+    return tous.map((l) => convertir(l));
+  }, [lus, deZones, enPlus, convertir]);
   const parId = useMemo(() => new Map(lieux.map((l) => [l.id, l] as const)), [lieux]);
 
   const valeur = useMemo<EtatLieux>(

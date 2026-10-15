@@ -1,7 +1,7 @@
 import { useBottomTabBarHeight } from "expo-router/tabs";
-import { useIsFocused, useRouter } from "expo-router";
+import { useFocusEffect, useIsFocused, useRouter } from "expo-router";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Keyboard, Platform, Text, View } from "react-native";
+import { AccessibilityInfo, AppState, Keyboard, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
@@ -28,13 +28,15 @@ import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
+import { ecrireCleSosFinis } from "~/fonctions/lieux/ecrire-cle-sos-finis";
+import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
+import { filtrerLieuxTriesExplorer } from "~/fonctions/lieux/filtrer-lieux-tries-explorer";
+import { retirerSosFinis } from "~/fonctions/lieux/retirer-sos-finis";
+import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { eliderDe } from "~/fonctions/texte/elider-de";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserLieuxDuMoment } from "~/hooks/utiliser-lieux-du-moment";
-import { utiliserLieuxFiltresExplorer } from "~/hooks/utiliser-lieux-filtres-explorer";
-import { utiliserMinuteCourante } from "~/hooks/utiliser-minute-courante";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
@@ -47,7 +49,13 @@ const avecCarte = Platform.OS !== "web";
 
 /** Après un filtre ou une recherche, le lecteur d'écran dit combien de lieux restent, une fois la frappe calmée (ms) */
 const DELAI_ANNONCE_NOMBRE = 700;
+const MINUTE = 60_000;
 const comparerVilles = new Intl.Collator("fr").compare;
+
+function lireMinute(): Date {
+  const instant = Date.now();
+  return new Date(instant - (instant % MINUTE));
+}
 
 /**
  * Onglet « Explorer » : la carte des lieux et une liste qu'on remonte du bas, avec recherche, filtres,
@@ -76,8 +84,30 @@ export default function Explorer() {
   const [hauteurEnTete, setHauteurEnTete] = useState(0);
   const [hauteurFeuille, setHauteurFeuille] = useState(0);
   const [hauteurClavier, setHauteurClavier] = useState(0);
-  const maintenant = utiliserMinuteCourante();
+  const [maintenant, setMaintenant] = useState(lireMinute);
   const refCompteur = useRef<Text>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let minuterie: ReturnType<typeof setTimeout> | undefined;
+      const relire = () => {
+        const minute = lireMinute();
+        setMaintenant((avant) => (avant.getTime() === minute.getTime() ? avant : minute));
+      };
+      const avancer = () => {
+        relire();
+        minuterie = setTimeout(avancer, MINUTE - (Date.now() % MINUTE) + 50);
+      };
+      avancer();
+      const abonnement = AppState.addEventListener("change", (etat) => {
+        if (etat === "active") relire();
+      });
+      return () => {
+        clearTimeout(minuterie);
+        abonnement.remove();
+      };
+    }, []),
+  );
 
   // Sur iPhone, le clavier ne pousse rien tout seul : la feuille et le cadrage de la carte se posent au-dessus de lui
   useEffect(() => {
@@ -96,7 +126,8 @@ export default function Explorer() {
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort(comparerVilles), [lieuxPermis]);
-  const lieuxActuels = utiliserLieuxDuMoment(lieuxPermis, maintenant);
+  const cleSosFinis = useMemo(() => ecrireCleSosFinis(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
+  const lieuxActuels = useMemo(() => retirerSosFinis(lieuxPermis, cleSosFinis), [lieuxPermis, cleSosFinis]);
   const distancesInconnues = useMemo(() => !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null), [lieuxActuels]);
   const portee: PorteeExplorer = porteeChoisie ?? (pointDeDepart === null && distancesInconnues ? "france" : "proche");
   // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux
@@ -130,18 +161,17 @@ export default function Explorer() {
   }, [zoneALire, chargerZone]);
   // Filtre « Événements » : seulement les lieux qui en ont un sur la période (null tant que c'est coupé ou pas encore lu)
   const evenementsParLieu = utiliserEvenementsExplorer(filtres.evenement, age);
+  const lieuxTries = useMemo(() => {
+    const dansLaZone = zone ? lieuxActuels.filter((l) => estDansPortee(l, zone)) : lieuxActuels;
+    const avecEvenement = filtres.evenement ? dansLaZone.filter((l) => evenementsParLieu?.has(l.id) ?? false) : dansLaZone;
+    return trierLieuxExplorer(avecEvenement, profil, position, pointDeDepart);
+  }, [lieuxActuels, zone, filtres.evenement, evenementsParLieu, profil, position, pointDeDepart]);
   const texteRecherche = useDeferredValue(filtres.texte);
-  const lieux = utiliserLieuxFiltresExplorer({
-    lieux: lieuxActuels,
-    zone,
-    filtres,
-    texte: texteRecherche,
-    evenementsParLieu,
-    maintenant,
-    profil,
-    position,
-    depart: pointDeDepart,
-  });
+  const ouvertA = filtres.ouvertMaintenant ? maintenant : null;
+  const lieux = useMemo(
+    () => filtrerLieuxTriesExplorer(lieuxTries, { texte: texteRecherche, type: filtres.type, ville: filtres.ville, budgets: filtres.budgets, ouvertA }),
+    [lieuxTries, texteRecherche, filtres.type, filtres.ville, filtres.budgets, ouvertA],
+  );
   // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
   // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
   const fauteDeDepart = zone?.portee === "proche" && zone.centre === null && distancesInconnues;
