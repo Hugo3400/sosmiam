@@ -7,6 +7,7 @@ import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -60,7 +61,7 @@ export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }
         >
           {degrade ? <LinearGradient colors={degrade} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={{ position: "absolute", inset: 0 }} /> : null}
           {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système ; un Miami remplit l'intérieur du rond */}
-          <EmojiOuMiami valeur={emoji} taille={TAILLE_ROND - 4} allowFontScaling={false} style={{ fontSize: TAILLE_ROND * 0.5, lineHeight: TAILLE_ROND * 0.64 }} />
+          <EmojiOuMiami valeur={emoji} personneId={lirePersonneSuivie(cle)} taille={TAILLE_ROND - 4} allowFontScaling={false} style={{ fontSize: TAILLE_ROND * 0.5, lineHeight: TAILLE_ROND * 0.64 }} />
         </View>
         <Text numberOfLines={1} className="text-center font-texte-gras text-[15px] text-encre">
           {nom}

@@ -8,6 +8,7 @@ import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserEtatSuivi } from "~/hooks/utiliser-etat-suivi";
@@ -137,6 +138,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         visible={feuille.visible && etat !== "interdit"}
         nom={nom}
         emoji={emoji}
+        personneId={lirePersonneSuivie(cle)}
         detail={
           !personne
             ? undefined
@@ -165,6 +167,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
       <FeuilleConfirmation
         visible={feuille.visible && etat !== "interdit"}
         emoji={emoji}
+        personneId={lirePersonneSuivie(cle)}
         titre={`Annuler ta demande à ${nom} ?`}
         detail={`${nom} ne verra plus ta demande. Tu pourras en refaire une quand tu veux.`}
         libelleConfirmer="Annuler la demande"

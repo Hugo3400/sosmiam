@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 
 type Props = {
   /** Clé de suivi (calculerCleSuivi, ecrireCleSuivi) : « lieu:<id> », « createur:<pseudo> » ou « personne:<id> » */
@@ -57,7 +58,7 @@ export function LigneSuivi({ cle, emoji, nom, sousTitre, degrade, indice, dernie
             className="items-center justify-center overflow-hidden border-2 border-encre bg-jaune"
           >
             {degrade ? <LinearGradient colors={degrade} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={{ position: "absolute", inset: 0 }} /> : null}
-            <EmojiOuMiami valeur={emoji} taille={TAILLE_ROND - 4} className="text-2xl" />
+            <EmojiOuMiami valeur={emoji} personneId={lirePersonneSuivie(cle)} taille={TAILLE_ROND - 4} className="text-2xl" />
           </View>
         )}
         <View className="flex-1 gap-0.5">

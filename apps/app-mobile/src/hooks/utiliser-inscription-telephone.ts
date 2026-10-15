@@ -13,6 +13,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
+import { noterNotificationOuverte } from "~/services/notification-ouverte";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
 /**
@@ -114,6 +115,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
       const cle = `${reponse.notification.request.identifier}@${reponse.notification.date}`;
       if (cle === derniereOuverte) return;
       derniereOuverte = cle;
+      noterNotificationOuverte();
       try {
         // Ouverte : on l'oublie, pour ne pas la rouvrir au prochain affichage de la pile (après « Quitter la démo »)
         Notifications.clearLastNotificationResponse();
