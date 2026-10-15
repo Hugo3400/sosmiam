@@ -1,3 +1,4 @@
+import { choisirTypeSelonInfo } from "../../fonctions/lieux/choisir-type-selon-info.ts";
 import type { LieuSaisi, ModificationLot } from "../../services/gestion/lieux.ts";
 import { ChampInvalide, lireChoix, lireListe, lireNombre, lireTexte } from "./lire-champs.ts";
 
@@ -74,11 +75,13 @@ export function lireLieuSaisi(corps: Record<string, unknown>): LieuSaisi {
   if (couleurs.length !== 2 || couleurs.some((couleur) => !/^#[0-9a-fA-F]{6}$/.test(couleur))) throw new ChampInvalide("couleurs");
   const siteWeb = lireTexte(corps, "siteWeb", 200);
   if (siteWeb && !/^https:\/\/[^\s]+$/.test(siteWeb)) throw new ChampInvalide("siteWeb");
+  const info = lireTexte(corps, "info", 60, true);
   return {
     nom: lireTexte(corps, "nom", 80, true),
-    type: lireChoix(corps, "type", TYPES),
+    // « Bar à tapas » rangé en resto : c'est un bar (visite sans compte « sans bar ni alcool »)
+    type: choisirTypeSelonInfo(lireChoix(corps, "type", TYPES), info),
     emoji: lireTexte(corps, "emoji", 16, true),
-    info: lireTexte(corps, "info", 60, true),
+    info,
     texte: lireTexte(corps, "texte", 1000, true),
     adresse: lireTexte(corps, "adresse", 160),
     quartier: lireTexte(corps, "quartier", 60, true),
@@ -128,14 +131,15 @@ const EMOJIS_TYPE: Record<(typeof TYPES)[number], string> = { resto: "🍽️", 
  */
 export function lireLieuImporte(corps: Record<string, unknown>): LieuSaisi {
   const vide = (champ: string) => corps[champ] === undefined || corps[champ] === null || corps[champ] === "";
-  const type = vide("type") ? "resto" : lireChoix(corps, "type", TYPES);
+  const info = lireTexte(corps, "info", 60) ?? "";
+  const type = choisirTypeSelonInfo(vide("type") ? "resto" : lireChoix(corps, "type", TYPES), info);
   const siteWeb = lireTexte(corps, "siteWeb", 200);
   if (siteWeb && !/^https:\/\/[^\s]+$/.test(siteWeb)) throw new ChampInvalide("siteWeb");
   return {
     nom: lireTexte(corps, "nom", 80, true),
     type,
     emoji: EMOJIS_TYPE[type],
-    info: lireTexte(corps, "info", 60) ?? "",
+    info,
     texte: lireTexte(corps, "texte", 1000) ?? "",
     adresse: lireTexte(corps, "adresse", 160),
     quartier: lireTexte(corps, "quartier", 60) ?? "",

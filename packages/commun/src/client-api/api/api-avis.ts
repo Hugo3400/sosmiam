@@ -9,6 +9,7 @@ export function creerAvisApi(client: ClientHttp): ServiceAvis {
   return {
     listerAvisAEcrire: () => client.demander<{ visites: Visite[] }>("GET", "/app/avis/a-ecrire"),
     envoyerAvis: (avis) => client.demander<{ pointsGagnes: number; avis?: AvisPublic }>("POST", "/app/avis", { corps: avis }),
+    envoyerPhotoAvis: (jpeg) => client.envoyerOctets<{ photo: string }>("/app/avis/photos", jpeg, "image/jpeg"),
     listerAvisLieu: (lieuId, apres) =>
       client.demander<{ resume: ResumeAvis; avis: AvisPublic[]; suite?: string | null }>(
         "GET",

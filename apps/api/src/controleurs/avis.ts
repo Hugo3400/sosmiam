@@ -13,6 +13,7 @@ import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import { creerAvisClient, type AvisEcrit } from "../services/avis-client.ts";
 import { creerAvisRelecture } from "../services/avis-relecture.ts";
 import type { ContexteAvis, EchecAvis, ErreurAvis } from "../services/avis-regles.ts";
+import type { PhotosAvis } from "../services/photos-avis.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { champInvalide } from "./visites.ts";
 
@@ -32,6 +33,7 @@ export type DependancesAvis = Omit<ContexteAvis, "horloge"> & {
    * avis avec photo est refusé, 400 avis-invalide { champ: "photo" }
    */
   verifierPhoto?: (fichier: string, compteId: number) => Promise<boolean>;
+  photos?: Pick<PhotosAvis, "deposer" | "lirePublique">;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */
@@ -55,12 +57,19 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
   const client = creerAvisClient(contexte);
   const relecture = creerAvisRelecture(contexte);
 
-  /** La photo de la demande, vérifiée (null : pas de photo) ; undefined après avoir répondu 400 */
-  async function lirePhoto(brut: unknown, compteId: number, reponse: Response): Promise<string | null | undefined> {
+  const photosEnCours = new Set<string>();
+
+  async function ecrireAvecPhoto(brut: unknown, compteId: number, reponse: Response, ecrire: (photo: string | null) => Promise<unknown>) {
     const photo = lirePhotoAvis(brut);
-    if (photo === null) return null;
-    if (photo === undefined || !d.verifierPhoto || !(await d.verifierPhoto(photo, compteId))) return void avisInvalide(reponse, "photo");
-    return photo;
+    if (photo === null) return ecrire(null);
+    if (photo === undefined || !d.verifierPhoto || photosEnCours.has(photo)) return void avisInvalide(reponse, "photo");
+    photosEnCours.add(photo);
+    try {
+      if (!(await d.verifierPhoto(photo, compteId))) return void avisInvalide(reponse, "photo");
+      await ecrire(photo);
+    } finally {
+      photosEnCours.delete(photo);
+    }
   }
 
   /**
@@ -101,9 +110,7 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
       const compteId = lireCompteId(reponse);
       const nouvel = { visiteId: corps.visiteId, note: corps.note, texte: corps.texte, photo: corps.photo ?? null } as NouvelAvis;
       if (validerAvis(nouvel)) return avisInvalide(reponse);
-      const photo = await lirePhoto(corps.photo, compteId, reponse);
-      if (photo === undefined) return;
-      rendreAvis(reponse, compteId, await client.donnerAvis(compteId, { ...nouvel, photo }));
+      await ecrireAvecPhoto(corps.photo, compteId, reponse, async (photo) => rendreAvis(reponse, compteId, await client.donnerAvis(compteId, { ...nouvel, photo })));
     },
 
     /** POST /app/avis/non-verifie { lieuId, note, texte, photo? } */
@@ -112,9 +119,7 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
       const compteId = lireCompteId(reponse);
       const nouvel = { lieuId: corps.lieuId, note: corps.note, texte: corps.texte, photo: corps.photo ?? null } as NouvelAvisNonVerifie;
       if (validerAvisNonVerifie(nouvel)) return avisInvalide(reponse);
-      const photo = await lirePhoto(corps.photo, compteId, reponse);
-      if (photo === undefined) return;
-      rendreAvis(reponse, compteId, await client.donnerAvisNonVerifie(compteId, { ...nouvel, photo }));
+      await ecrireAvecPhoto(corps.photo, compteId, reponse, async (photo) => rendreAvis(reponse, compteId, await client.donnerAvisNonVerifie(compteId, { ...nouvel, photo })));
     },
 
     /** GET /app/avis/a-relire (ambassadeur actif) */

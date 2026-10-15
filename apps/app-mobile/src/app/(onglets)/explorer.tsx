@@ -228,11 +228,12 @@ export default function Explorer() {
 
   async function basculerAutourDeMoi() {
     if (position) return oublier();
-    // « Autour de moi » regarde autour de toi, dans le rayon réglé (plus dans une autre ville)
-    setPorteeChoisie("proche");
-    setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
     const resultat = await chercher();
-    if (!("erreur" in resultat)) return;
+    if (!("erreur" in resultat)) {
+      setPorteeChoisie("proche");
+      setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
+      return;
+    }
     const message = messagesPosition[resultat.erreur];
     if (Platform.OS === "web") return annoncer(message);
     // Un accès refusé pour de bon se règle dans les réglages de l'app : on y emmène

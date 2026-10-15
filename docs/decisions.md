@@ -121,6 +121,7 @@
 ## Carte des lieux (décidé le 8 octobre 2026)
 - Chaque fiche de lieu montre sa **carte** (« 🍽️ La carte » ; « 🎟️ Les formules » pour une activité) : les plats phares sur la fiche, la carte complète sur un écran à part (sections, prix, repères végé / vegan / sans gluten / épicé / fait maison / local).
 - Les boissons alcoolisées de la carte sont masquées pendant la visite sans compte (âge inconnu), comme le reste de l'alcool. Prix indicatifs : le lieu a toujours le dernier mot.
+- **Lieux où l'on vient pour boire, sans compte (décidé par Hugo le 15 octobre 2026 : « corrige tout »)** : en visite sans compte, l'app cache les bars et aussi les lieux dont la description dit bar, pub, cave à vin, caviste ou brasserie artisanale (les « Bistrot - Bar à vin » compris), sauf les bars sans alcool (à huîtres, à fruits, à jus…). Avec un compte, rien ne change : les bistrots restent parmi les restos. Les 42 vrais bars mal classés passent en type bar (Logiciel).
 - Pour l'instant, cartes d'exemple dans l'app (`contenus/cartes-exemples.ts`) ; plus tard, chaque lieu remplit la sienne (espace pro), et elle servira aussi aux avis par plat.
 
 ## Signalements et modération (décidé le 8 octobre 2026)

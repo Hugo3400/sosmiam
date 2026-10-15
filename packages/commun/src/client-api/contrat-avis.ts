@@ -9,6 +9,7 @@ export interface ServiceAvis {
   listerAvisAEcrire(): Promise<ReponseApi<{ visites: Visite[] }>>;
   /** avis : l'avis tel que les autres le verront (l'API le rend ; la démo peut s'en passer) */
   envoyerAvis(avis: NouvelAvis): Promise<ReponseApi<{ pointsGagnes: number; avis?: AvisPublic }>>;
+  envoyerPhotoAvis(jpeg: Blob | ArrayBuffer | Uint8Array): Promise<ReponseApi<{ photo: string }>>;
   /** apres : le curseur `suite` de la page précédente ; suite : celui de la page suivante (null à la dernière) */
   listerAvisLieu(lieuId: number, apres?: string | null): Promise<ReponseApi<{ resume: ResumeAvis; avis: AvisPublic[]; suite?: string | null }>>;
   /** Avis « non vérifié », sans points : facultatif tant que la démo ne le propose pas */
