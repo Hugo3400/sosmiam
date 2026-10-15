@@ -2,18 +2,18 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { RaconterMiamSafe } from "~/composants/miam-safe/RaconterMiamSafe";
 
 type Props = { lieuId: number; nomLieu: string };
 
-type Reponse = "oui" | "non" | null;
+type Reponse = "oui" | "non" | "visite-requise" | null;
 
-/**
- * Après une visite validée : « Tu t'es senti·e bien ici ? ». Les oui comptent pour le repère « Les Miamis s'y sentent bien »
- * (90 % sur au moins 20 réponses) ; un non ne s'affiche jamais, il propose de raconter en privé. La réponse part par le
- * service Miam Safe (démo, ou API plus tard) ; si elle ne part pas, la question reste là.
- */
+const VISITE_PAS_ENCORE_VUE = lierPonctuation(
+  "Elle ne compte qu'après une visite validée dans ce lieu, et on ne trouve pas encore la tienne de notre côté : rien n'est parti.",
+);
+
 export function QuestionSentiBien({ lieuId, nomLieu }: Props) {
   const { miamSafe } = utiliserServices();
   const [reponse, setReponse] = useState<Reponse>(null);
@@ -21,7 +21,17 @@ export function QuestionSentiBien({ lieuId, nomLieu }: Props) {
     const r = await miamSafe.repondreSentiBien(lieuId, oui).catch(() => null);
     // « Pas vraiment » propose quand même de raconter, même si la réponse n'est pas partie
     if (r?.ok || !oui) setReponse(oui ? "oui" : "non");
+    else if (r?.erreur === "visite-requise") setReponse("visite-requise");
   };
+
+  if (reponse === "visite-requise") {
+    return (
+      <View accessible accessibilityLiveRegion="polite" className="gap-1 rounded-carte border-2 border-encre bg-white p-4">
+        <Text className="font-texte-gras text-base text-encre">Merci pour ta réponse.</Text>
+        <Text className="font-texte text-base leading-6 text-gris">{VISITE_PAS_ENCORE_VUE}</Text>
+      </View>
+    );
+  }
 
   if (reponse === "oui") {
     return (
