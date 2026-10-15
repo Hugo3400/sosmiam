@@ -8,19 +8,18 @@ import { creerMoteurSynchroProfil, type VueSynchro } from "~/services/synchro-pr
 type Options = {
   /** Compte connecté hors démo, avec un profil (sinon : aucune demande, tout reste sur le téléphone) */
   actif: boolean;
-  /** Le pseudo affiché : une annonce de pseudo le suit */
-  pseudo: string | undefined;
-  lireProfil: () => Profil | null;
-  ecrireProfil: (profil: Profil) => Promise<void>;
+  /** Met le profil à l'écran : le moteur garde la copie à jour et l'écrit sur le téléphone */
+  afficherProfil: (profil: Profil | null) => void;
 };
 
 /**
- * La synchro du profil d'un compte connecté (appelée par FournisseurProfil) : le serveur fait foi, le téléphone garde une
+ * La synchro du profil d'un compte connecté (appelée par FournisseurProfil ; le moteur est dans services/synchro-profil.ts,
+ * il garde la copie à jour du profil et l'écrit sur le téléphone) : le serveur fait foi, le téléphone garde une
  * copie pour s'ouvrir hors ligne et ne gagne que pour un champ changé ici, pas encore parti. Relu au lancement et au retour
  * dans l'app (plus d'une minute après), envoyé après chaque changement, réessayé sans réseau (30 s, 2 min, 10 min). Le
  * pseudo neutre posé par la modération arrive avec une annonce douce, une seule fois. Démo et visite : rien ne part.
  */
-export function utiliserSynchroProfil({ actif, pseudo, lireProfil, ecrireProfil }: Options) {
+export function utiliserSynchroProfil({ actif, afficherProfil }: Options) {
   const { comptes, sociaux, rafraichir } = utiliserSession();
   const [vue, setVue] = useState<VueSynchro>({ annonce: null, pseudoMisDeCote: null });
   const [moteur] = useState(() =>
@@ -28,8 +27,7 @@ export function utiliserSynchroProfil({ actif, pseudo, lireProfil, ecrireProfil 
       comptes,
       moderation: sociaux.moderation,
       rafraichirCompte: rafraichir,
-      lireProfil,
-      ecrireProfil,
+      afficherProfil,
       montrer: (v) => setVue((avant) => (JSON.stringify(avant) === JSON.stringify(v) ? avant : v)),
     }),
   );
@@ -48,11 +46,10 @@ export function utiliserSynchroProfil({ actif, pseudo, lireProfil, ecrireProfil 
     return () => abonnement.remove();
   }, [moteur]);
 
-  useEffect(() => moteur.suivrePseudo(pseudo), [moteur, pseudo]);
-
   return useMemo(
     () => ({
       ...vue,
+      poserProfil: moteur.poserProfil,
       installer: moteur.installer,
       oublier: moteur.oublier,
       modifierInfos: moteur.modifierInfos,

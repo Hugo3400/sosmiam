@@ -17,7 +17,7 @@ import {
   type Avatar,
 } from "~/stockage/avatar-local";
 import { effacerModeInvite, enregistrerModeInvite, lireModeInvite } from "~/stockage/mode-invite";
-import { effacerProfilLocal, enregistrerProfilLocal, lireProfilLocal } from "~/stockage/profil-local";
+import { effacerProfilLocal, lireProfilLocal } from "~/stockage/profil-local";
 import { lireVerrouAge } from "~/stockage/verrou-age";
 
 /**
@@ -53,8 +53,6 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
 export function FournisseurProfil({ children }: { children: ReactNode }) {
   const session = utiliserSession();
   const [profil, setProfilAffiche] = useState<Profil | null>(null);
-  // Le profil à jour même entre deux rendus : la synchro le relit au retour de chaque réponse
-  const profilActuel = useRef<Profil | null>(null);
   const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
   const [inviteBrut, setInvite] = useState(false);
   const [chargement, setChargement] = useState(true);
@@ -63,23 +61,10 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   const enAttenteInvite = useRef<(() => void)[]>([]);
   const inviteAffichee = useRef(false);
 
-  const setProfil = useCallback((nouveau: Profil | null) => {
-    profilActuel.current = nouveau;
-    setProfilAffiche(nouveau);
-  }, []);
-  const lireProfil = useCallback(() => profilActuel.current, []);
-  const ecrireProfil = useCallback(
-    async (nouveau: Profil) => {
-      await enregistrerProfilLocal(nouveau);
-      setProfil(nouveau);
-    },
-    [setProfil],
-  );
-  const { installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
+  // La synchro garde la copie à jour du profil (relue au retour de chaque réponse du serveur) et l'écrit sur le téléphone
+  const { poserProfil: setProfil, installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
     actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
-    pseudo: profil?.pseudo,
-    lireProfil,
-    ecrireProfil,
+    afficherProfil: setProfilAffiche,
   });
 
   useEffect(() => {

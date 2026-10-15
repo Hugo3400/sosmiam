@@ -18,18 +18,25 @@ P = f'{TRAVAIL}/presse-nouveau'
 PACK = f'{TRAVAIL}/pack-videos/SOS_Miam'
 FFMPEG = os.environ.get('FFMPEG', '/var/www/bot/node_modules/ffmpeg-static/ffmpeg')
 MANUELLES = ['affiches', 'reseaux', 'imprimes', 'miam-safe', 'textes', 'capitaine', 'flyer', 'documents']
+# Familles qui peuvent manquer (une campagne pas encore exportée) : prises si elles sont là
+FACULTATIVES = ['recrutement']
+# Les familles des canevas, dans l'ordre de l'index (l'index ne bouge pas pour rien dans git)
+ORDRE_CANEVAS = ['affiches', 'reseaux', 'imprimes', 'recrutement']
 
 # ─── Entrées ───
 if DEPUIS_PRESSE:
-    for d in MANUELLES:
+    for d in MANUELLES + FACULTATIVES:
         if not os.path.exists(f'{O}/{d}') and os.path.exists(f'{PRESSE}/{d}'):
             shutil.copytree(f'{PRESSE}/{d}', f'{O}/{d}', ignore=shutil.ignore_patterns('sos-miam-*.zip'))
-    if not os.path.exists(f'{O}/index-canevas.json'):
-        ancien = json.load(open(f'{PRESSE}/index.json', encoding='utf-8'))['familles']
-        garder = [{'id': f['id'], 'titre': f['titre'], 'fichiers': [
-            {k: x[k] for k in ('nom', 'chemin', 'format', 'taille', 'description')} for x in f['fichiers'] if not re.search(r'-(a3|40x60)\.pdf$', x['nom'])
-        ]} for f in ancien if f['id'] in ('affiches', 'reseaux', 'imprimes')]
-        json.dump({'familles': garder}, open(f'{O}/index-canevas.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    # Les lignes d'index des familles de canevas qui n'ont pas été réexportées : reprises de l'index actuel
+    deja = json.load(open(f'{O}/index-canevas.json', encoding='utf-8'))['familles'] if os.path.exists(f'{O}/index-canevas.json') else []
+    ancien = json.load(open(f'{PRESSE}/index.json', encoding='utf-8'))['familles'] if os.path.exists(f'{PRESSE}/index.json') else []
+    ids = {f['id'] for f in deja}
+    for f in ancien:
+        if f['id'] in ORDRE_CANEVAS and f['id'] not in ids:
+            deja.append({'id': f['id'], 'titre': f['titre'], 'fichiers': [
+                {k: x[k] for k in ('nom', 'chemin', 'format', 'taille', 'description')} for x in f['fichiers'] if not re.search(r'-(a3|40x60)\.pdf$', x['nom'])]})
+    json.dump({'familles': deja}, open(f'{O}/index-canevas.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 manquants = [d for d in MANUELLES if not os.path.exists(f'{O}/{d}')]
 if manquants: raise SystemExit(f'❌ Il manque {", ".join(manquants)} dans {O} (ou relance avec --depuis-presse).')
 if not os.path.exists(PACK):
@@ -80,8 +87,7 @@ def lisible(nom):
 
 
 # ─── Les familles ───
-# Toujours dans le même ordre, quel que soit l'ordre des exports (l'index ne bouge pas pour rien dans git)
-ORDRE_CANEVAS = ['affiches', 'reseaux', 'imprimes']
+# Toujours dans le même ordre, quel que soit l'ordre des exports (ORDRE_CANEVAS, plus haut)
 idx = sorted(json.load(open(f'{O}/index-canevas.json', encoding='utf-8'))['familles'], key=lambda f: ORDRE_CANEVAS.index(f['id']))
 FORMATS_AFFICHES = [('a3', 'A3 (297 × 420 mm)', 'en A3'), ('40x60', '40 × 60 cm', 'en 40 × 60 cm (rallongée, rien n’est déformé)')]
 for fam in idx:
@@ -108,7 +114,8 @@ idx.append({'id': 'textes', 'titre': 'Textes (presse, newsletters, Discord)', 'f
 
 if os.path.exists(P): shutil.rmtree(P)
 os.makedirs(P)
-for d in MANUELLES: shutil.copytree(f'{O}/{d}', f'{P}/{d}', ignore=shutil.ignore_patterns('sos-miam-*.zip'))
+for d in MANUELLES + [f for f in FACULTATIVES if os.path.exists(f'{O}/{f}')]:
+    shutil.copytree(f'{O}/{d}', f'{P}/{d}', ignore=shutil.ignore_patterns('sos-miam-*.zip'))
 
 desc = {'carrousel-capitaine-1-presentation': 'Carrousel Capitaine Bouiboui, image 1/3 : « Voici Capitaine Bouiboui »',
         'carrousel-capitaine-2-fiche-identite': 'Carrousel Capitaine Bouiboui, image 2/3 : sa fiche d’identité',
@@ -196,7 +203,7 @@ def canaux(fam, f):
     elif fam in ('affiches', 'imprimes', 'flyer'): base = ['impression']
     elif fam == 'textes': base = ['textes']
     elif fam == 'miam-safe': base = ['textes'] if f['format'] == 'PDF' else (['instagram', 'tiktok'] if story else ['instagram'])
-    elif fam in ('reseaux', 'capitaine', 'campagne') and not (fam == 'campagne' and ('apercu' in n or 'photo_de_profil' in n)): base = ['instagram', 'tiktok'] if story else ['instagram']
+    elif fam in ('reseaux', 'recrutement', 'capitaine', 'campagne') and not (fam == 'campagne' and ('apercu' in n or 'photo_de_profil' in n)): base = ['instagram', 'tiktok'] if story else ['instagram']
     elif fam == 'campagne': base = ['presentation'] if 'apercu' in n else ['instagram', 'tiktok']  # planches « aperçu » : pas à poster
     elif fam == 'videos': base = ['instagram', 'tiktok']  # toutes en 1080 × 1920 (Reels, TikTok)
     elif fam == 'sons': base = ['sons']
@@ -215,7 +222,7 @@ def canaux(fam, f):
 
 # L'ancienne campagne de recrutement (« 10 fondateurs à Montpellier », remplacée le 9 octobre 2026 par des fondateurs par
 # ville) : gardée pour mémoire, signalée, et hors des filtres Instagram et TikTok pour qu'on ne la poste pas par erreur
-ANCIENNE_CAMPAGNE = ' — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster'
+ANCIENNE_CAMPAGNE = ' — ancienne campagne (« 10 fondateurs à Montpellier ») : à refaire avant de poster ; la nouvelle est dans « Campagne ambassadeurs fondateurs »'
 for fam in idx:
     for f in fam['fichiers']:
         if (fam['id'] == 'campagne' and 'ambassadeurs' in f['nom']) or (fam['id'] == 'videos' and '_19_recrutement' in f['nom']):
@@ -258,12 +265,14 @@ os.makedirs(f'{P}/kits')
 ambassadeurs = [f['chemin'] for fam in idx for f in fam['fichiers'] if (fam['id'] == 'affiches' and 'vitrine' not in f['nom'])
                 or (fam['id'] == 'imprimes' and re.match(r'(flyer-a6|planche-stickers|badges-epingle)', f['nom']))]
 subprocess.run(['zip', '-q', '-X', '-D', 'kits/sos-miam-affiches-et-imprimes.zip', *sorted(ambassadeurs)], cwd=P, check=True)
-series = {}
-for fam in idx:
-    if fam['id'] == 'reseaux':
-        for f in fam['fichiers']: series.setdefault(re.sub(r'-\d+\.png$', '', f['nom']), []).append(f['chemin'])
-for serie, chemins in series.items():
-    subprocess.run(['zip', '-q', '-X', '-D', f'kits/reseaux-{serie}.zip', *sorted(chemins)], cwd=P, check=True)
+# Un zip par série de visuels (carrousel, post, stories) des réseaux et des campagnes, pour les kits du site
+for famille in ('reseaux', 'recrutement'):
+    series = {}
+    for fam in idx:
+        if fam['id'] == famille:
+            for f in fam['fichiers']: series.setdefault(re.sub(r'(-\d+)?\.png$', '', f['nom']), []).append(f['chemin'])
+    for serie, chemins in series.items():
+        subprocess.run(['zip', '-q', '-X', '-D', f'kits/{famille}-{serie}.zip', *sorted(chemins)], cwd=P, check=True)
 
 json.dump({'genere': datetime.date.today().isoformat(), 'familles': idx}, open(f'{P}/index.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 shutil.copy2(f'{RACINE}/scripts/presse/presse-lisezmoi.md', f'{P}/LISEZMOI.md')

@@ -165,7 +165,9 @@ function parcourir(routeur: { stack: Couche[] }, chemins: WeakMap<object, string
 
 const { pile, chemins } = construirePile();
 const routes = parcourir(pile, chemins, "/app");
-const estEcriture = (cle: string) => /^(POST|PUT|PATCH|DELETE) /.test(cle);
+// Tout ce qui n'est pas une lecture est une écriture à classer : une route .all() (« _ALL ») ou une méthode inattendue
+// ne passe pas en silence
+const estEcriture = (cle: string) => !/^(GET|HEAD) /.test(cle);
 const ecritures = routes.filter((r) => estEcriture(r.cle));
 
 test("inventaire : chaque écriture sociale est rangée, refusée ou permise, et les listes sont à jour", () => {

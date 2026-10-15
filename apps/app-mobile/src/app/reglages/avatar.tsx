@@ -23,6 +23,8 @@ const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], 
 const ECART = 10;
 const TAILLE_MIN = 56;
 const TAILLE_MAX = 72;
+// Les Miamis, plus détaillés, montent un peu plus haut : 4 par ligne (8 sur une tablette), les 16 tombent juste
+const TAILLE_MAX_MIAMI = 84;
 
 const surLeWeb = Platform.OS === "web";
 
@@ -52,6 +54,8 @@ export default function ReglagesAvatar() {
   const largeurDispo = width - 40;
   const colonnes = Math.min(8, Math.max(4, Math.floor((largeurDispo + ECART) / (TAILLE_MIN + ECART))));
   const tailleRond = Math.min(TAILLE_MAX, Math.floor((largeurDispo - ECART * (colonnes - 1)) / colonnes));
+  const colonnesMiamis = colonnes >= 8 ? 8 : 4;
+  const tailleMiami = Math.min(TAILLE_MAX_MIAMI, Math.floor((largeurDispo - ECART * (colonnesMiamis - 1)) / colonnesMiamis));
 
   function signalerErreur(message: string) {
     setErreur(message);
@@ -161,7 +165,7 @@ export default function ReglagesAvatar() {
         Un Miami
       </Text>
       <Text className="mt-1 font-texte text-sm leading-5 text-gris">Les matelots de la Brigade, chacun avec son couvre-chef.</Text>
-      <GrilleMiamis choisi={avatar.type === "miami" ? avatar.id : null} taille={tailleRond} ecart={ECART} onChoisir={choisirMiami} />
+      <GrilleMiamis choisi={avatar.type === "miami" ? avatar.id : null} taille={tailleMiami} ecart={ECART} onChoisir={choisirMiami} />
 
       <Text accessibilityRole="header" className="mt-8 font-titre-gras text-xl text-encre">
         Ou un emoji

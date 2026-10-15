@@ -77,7 +77,7 @@ sos-miam/
 ## apps/app-mobile — l'app iOS + Android
 | Dossier | Contenu |
 |---|---|
-| `assets/images`, `icones`, `polices` | images, icône de l'app, polices |
+| `assets/images`, `icones`, `polices` | images (dont `avatars-miamis/` : les 16 Miamis et le Capitaine en PNG 420 px, refaits par `scripts/avatars-miamis`), icône de l'app, polices |
 | `src/app/(onglets)/` | écrans des onglets : Pour toi, Explorer, Scan, Potes, Profil (Expo Router) |
 | `src/app/(inscription)/` | première ouverture : bienvenue (carrousel), compte, fais connaissance, envies, c'est prêt |
 | `src/app/lieu/`, `big-sos/`, `compte/` | écrans d'un lieu, d'un BIG SOS, du compte |

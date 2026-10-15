@@ -18,6 +18,7 @@ import { sontProfilsIdentiques } from "~/fonctions/compte/sont-profils-identique
 import { trouverDecisionProfil } from "~/fonctions/compte/trouver-decision-profil";
 import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+import { enregistrerProfilLocal } from "~/stockage/profil-local";
 import {
   creerSynchroProfil,
   effacerSynchroProfil,
@@ -66,9 +67,8 @@ export type OutilsSynchro = {
   comptes: ServiceCompte;
   moderation: ServiceModerationApp;
   rafraichirCompte: () => Promise<void>;
-  lireProfil: () => Profil | null;
-  /** Écrit le profil sur le téléphone et à l'écran */
-  ecrireProfil: (profil: Profil) => Promise<void>;
+  /** Met le profil à l'écran (le moteur garde la copie à jour, relue au retour de chaque réponse) */
+  afficherProfil: (profil: Profil | null) => void;
   montrer: (vue: VueSynchro) => void;
 };
 
@@ -99,6 +99,8 @@ const rienAChanger = (c: ChangementsInfos) => champsDe(c).length === 0;
  * fusion ne passe jamais sur des envies cochées pendant le voyage). Démo : tout reste sur le téléphone.
  */
 export function creerMoteurSynchroProfil(o: OutilsSynchro) {
+  // Le profil à jour, même entre deux rendus (celui de l'écran le suit)
+  let profil: Profil | null = null;
   let memoire = memoireVide();
   // Chaque arrêt, effacement ou installation : une nouvelle génération, les réponses d'avant sont ignorées
   let generation = 0;
@@ -114,6 +116,27 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     return suite;
   }
   const sousVerrou = <T>(etape: () => Promise<T>) => enchainer(etape, "verrou");
+  const lireProfil = () => profil;
+
+  /** Une annonce de pseudo disparaît dès que le pseudo n'est plus celui qu'elle annonce */
+  function suivrePseudo() {
+    const annonce = memoire.etat.annonce;
+    if (!profil || !annonce || annonce.type === "prenom-limite" || annonce.pseudo === profil.pseudo) return;
+    memoire.etat.annonce = null;
+    garder();
+  }
+
+  function poserProfil(nouveau: Profil | null) {
+    profil = nouveau;
+    o.afficherProfil(nouveau);
+    suivrePseudo();
+  }
+
+  /** Écrit le profil sur le téléphone, puis à l'écran */
+  async function ecrireProfil(nouveau: Profil) {
+    await enregistrerProfilLocal(nouveau);
+    poserProfil(nouveau);
+  }
 
   const lireMisDeCote = () => {
     const m = memoire.etat.pseudoMisDeCote;
@@ -196,7 +219,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   async function recevoir(serveur: ProfilServeur, depart: number, envoye: string | null, ajuster?: (p: Profil) => Profil) {
     const gen = generation;
     memoire.etat.aEnvoyer = memoire.etat.aEnvoyer.filter((m) => m.numero > depart);
-    const avant = o.lireProfil();
+    const avant = lireProfil();
     if (!avant) return;
     if (!memoire.etat.premiereFaite) await rattraperPremiereFois(ajuster ? ajuster(avant) : avant, serveur);
     else await surveillerPseudo(serveur.pseudo, envoye);
@@ -207,13 +230,13 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       marquer(memoire, ["ville"]);
     }
     await sousVerrou(async () => {
-      const ecrit = o.lireProfil();
+      const ecrit = lireProfil();
       if (gen !== generation || !ecrit) return;
       const local = ajuster ? ajuster(ecrit) : ecrit;
       const fusion = fusionnerProfilServeur(local, serveur, new Set(memoire.etat.aEnvoyer.map((m) => m.champ))) ?? (ajuster ? local : null);
       // Rien de changé : on n'écrit pas (le profil est à la racine, toute l'app se redessinerait)
       if (!fusion || sontProfilsIdentiques(fusion, ecrit)) return;
-      await o.ecrireProfil(fusion);
+      await ecrireProfil(fusion);
       if (fusion.prenom !== ecrit.prenom) void o.rafraichirCompte();
     });
     if (gen !== generation) return;
@@ -247,7 +270,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
         minuterie = setTimeout(lancer, patience);
         return;
       }
-      const local = o.lireProfil();
+      const local = lireProfil();
       const partis = memoire.etat.aEnvoyer.map((m) => m.champ);
       if (!local || (partis.length === 0 && !memoire.relire)) return;
       memoire.relire = false;
@@ -276,9 +299,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   /** Écrit sur le téléphone ; `aEnvoyer` : avec la marque « à envoyer » (posée dans le verrou, avant toute fusion) */
   function ecrireSurTelephone(changements: ChangementsInfos, aEnvoyer: boolean) {
     return sousVerrou(async () => {
-      const local = o.lireProfil();
+      const local = lireProfil();
       if (!local) return;
-      await o.ecrireProfil(appliquerChangementsInfos(local, changements));
+      await ecrireProfil(appliquerChangementsInfos(local, changements));
       if (!aEnvoyer) return;
       marquer(memoire, champsDe(changements));
       garder();
@@ -290,7 +313,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     const gen = generation;
     const demandes = champsDe(changements);
     for (let essai = 0; essai < 3; essai++) {
-      const local = o.lireProfil();
+      const local = lireProfil();
       if (gen !== generation || !actif || !local) return { ok: false, refus: "connexion-requise" };
       const enFile = memoire.etat.aEnvoyer.map((m) => m.champ);
       const champs = [...demandes, ...enFile];
@@ -346,6 +369,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
         marquer(m, avant);
         m.pret = true;
         garder(avant.length > 0);
+        suivrePseudo();
         if (actif) {
           m.relire = true;
           lancer();
@@ -379,7 +403,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       generation += 1;
       arreterMinuterie();
       memoire = { ...memoireVide(creerSynchroProfil(true)), pret: true };
-      await sousVerrou(() => o.ecrireProfil(profil));
+      await sousVerrou(() => ecrireProfil(profil));
       garder();
       if (actif) {
         memoire.relire = true;
@@ -412,9 +436,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     /** Mes envies : tout de suite sur le téléphone (régimes compris) ; avec un compte, elles partent ensuite */
     async modifierEnvies(envies: Profil["envies"]) {
       await sousVerrou(async () => {
-        const local = o.lireProfil();
+        const local = lireProfil();
         if (!local) return;
-        await o.ecrireProfil({ ...local, envies });
+        await ecrireProfil({ ...local, envies });
         if (DEMO_VISITES_ACTIVE) return;
         marquer(memoire, ["envies"]);
         garder();
@@ -426,13 +450,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       memoire.etat.annonce = null;
       garder();
     },
-    /** Une annonce de pseudo disparaît dès que le pseudo n'est plus celui qu'elle annonce */
-    suivrePseudo(pseudo: string | undefined) {
-      const annonce = memoire.etat.annonce;
-      if (annonce && annonce.type !== "prenom-limite" && annonce.pseudo !== pseudo) {
-        memoire.etat.annonce = null;
-        garder();
-      }
-    },
+    /** Le profil lu au démarrage, ou plus de profil (effacé) : rien n'est écrit sur le téléphone */
+    poserProfil,
   };
 }
