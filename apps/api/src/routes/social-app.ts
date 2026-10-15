@@ -50,6 +50,7 @@ import type { ServicesDecisionsModeration, ServicesSignalementsSociaux } from ".
 import { creerRoutesCommentaires } from "./commentaires.ts";
 import { creerRoutesModerationApp } from "./moderation-app.ts";
 import { creerRoutesSignalementsSociaux } from "./signalements-sociaux.ts";
+import type { ServicesExportSocial } from "../services/export-social-regles.ts";
 
 /** Toutes les lectures sociales (pouls, fils, profils, listes…), par compte : une seule limite pour tous les domaines */
 export const LIMITE_LECTURES_SOCIALES = { fenetre: 10 * 60_000, maximum: 900 };
@@ -88,6 +89,8 @@ export type DependancesSocialApp = {
   signalements: ServicesSignalementsSociaux;
   /** Décisions de la modération vues dans l'app, et contestation (lot L6) */
   decisions: ServicesDecisionsModeration;
+  /** « Télécharger mes données sociales » : tes données et TES messages déchiffrés (lot L7, GET /app/social/export) */
+  exportSocial: ServicesExportSocial;
 };
 
 /** Ce que chaque domaine reçoit pour construire ses routes */

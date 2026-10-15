@@ -1,6 +1,8 @@
 import { Router } from "express";
 
+import { creerControleursExportSocial } from "../controleurs/export-social.ts";
 import { creerControleursSocial } from "../controleurs/social.ts";
+import { exigerChiffrementSocial } from "../middlewares/exiger-chiffrement-social.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import type { ContexteRoutesSociales, DependancesSocialApp } from "./social-app.ts";
 
@@ -10,6 +12,8 @@ export const LIMITE_RECHERCHE_PSEUDO = { fenetre: 10 * 60_000, maximum: 150 };
 export const LIMITE_RECHERCHE_PSEUDO_JOUR = { fenetre: 24 * 60 * 60_000, maximum: 1000 };
 /** Contre plusieurs comptes derrière une même connexion, par IP */
 export const LIMITE_RECHERCHE_PSEUDO_IP = { fenetre: 10 * 60_000, maximum: 300 };
+/** « Télécharger mes données sociales » : 2 par 24 h, par compte */
+export const LIMITE_EXPORT_SOCIAL = { fenetre: 24 * 60 * 60_000, maximum: 2 };
 
 /**
  * /app/social, /app/personnes, /app/masques : session obligatoire (Authorization: Bearer), jamais en cache. Lectures et
@@ -25,6 +29,12 @@ export const LIMITE_RECHERCHE_PSEUDO_IP = { fenetre: 10 * 60_000, maximum: 300 }
  *          · 400 champ-invalide { champ } · 409 pseudo-requis
  * GET    /app/social/pouls         → 200 { ok, pouls: PoulsSocial } : ce qui a changé (relu toutes les 30 s par l'app
  *          ouverte) ; sans profil social : tout à zéro, sauf la signature de la cloche (nonVues 0 : voir routes/cloche.ts)
+ * GET    /app/social/export 🔐      → 200 { ok, export: ExportSocialApi } : TES données sociales, pour toi seul (droit d'accès
+ *          et de portabilité, RGPD) : profil et réglages (null sans profil social, jamais créé ici), bande, demandes, blocages
+ *          faits, suivis, conversations (type, titre déchiffré, pseudos des membres), TES messages déchiffrés (pour un média :
+ *          date, type et taille), invitations aux groupes, réactions, sorties, listes, commentaires, J'aime, cloche,
+ *          signalements faits, éléments masqués. Jamais les messages des autres, jamais ton code d'invitation
+ *          · 503 chiffrement-indisponible (avant le compte des exports) · 429 trop-de-demandes (2 par 24 h)
  *
  * POST   /app/personnes/recherche { debut: string } → 200 { ok, resultats: { personne: PersonneResume, pote: boolean, prive:
  *          boolean }[] } : « @ » retiré, minuscules, 2 à 20 caractères ; le pseudo commence par ce début ; le pseudo exact
@@ -51,11 +61,10 @@ export const LIMITE_RECHERCHE_PSEUDO_IP = { fenetre: 10 * 60_000, maximum: 300 }
  * DELETE /app/masques/:cible/:cibleId → 200 { ok } (« Annuler »)
  *          cible : sortie | activite | liste | lieu-recu | suggestion (ce qu'on a signalé ne passe jamais par ici) ;
  *          cibleId : /^[a-z0-9:._-]{1,60}$/ · 400 champ-invalide { champ: "cible" | "cibleId" }
- *
- * (GET /app/social/export, l'export de tes données sociales, s'ajoute ici avec le lot L7.)
  */
 export function creerRoutesSocial(d: DependancesSocialApp, contexte: ContexteRoutesSociales) {
   const c = creerControleursSocial(d, contexte.horloge);
+  const exportSocial = creerControleursExportSocial(d, contexte.horloge);
   const { lectures, gestes } = contexte;
   const { lireProfilSocial, exigerProfilSocial } = contexte.profils;
   const recherche = [
@@ -67,6 +76,7 @@ export function creerRoutesSocial(d: DependancesSocialApp, contexte: ContexteRou
   social.post("/moi", gestes, exigerProfilSocial, c.ouvrirProfil);
   social.patch("/moi", gestes, exigerProfilSocial, c.modifierReglages);
   social.get("/pouls", lectures, lireProfilSocial, c.lirePouls);
+  social.get("/export", exigerChiffrementSocial(d.chiffrement), contexte.parCompte(LIMITE_EXPORT_SOCIAL), lireProfilSocial, exportSocial.exporter);
 
   const personnes = Router();
   personnes.post("/recherche", ...recherche, lireProfilSocial, c.chercher);

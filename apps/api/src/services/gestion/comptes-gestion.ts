@@ -4,6 +4,7 @@
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import type { ChiffrementDonnees } from "../chiffrement-donnees.ts";
+import { exporterActiviteSociale } from "./export-social.ts";
 import { dechiffrerProfil } from "./profil-gestion.ts";
 import { PREFIXE_SANS_MOT_DE_PASSE } from "../../fonctions/securite/creer-empreinte-sans-mot-de-passe.ts";
 
@@ -150,11 +151,15 @@ export async function exporterDonneesCompte(id: number, chiffrement: Chiffrement
     },
   });
   if (!compte) return null;
-  const mails = await baseDeDonnees.envoiCourriel.findMany({
-    where: { destinataire: compte.email },
-    select: { type: true, objet: true, statut: true, creeLe: true, envoyeLe: true },
-    orderBy: { creeLe: "asc" },
-  });
+  const [mails, social] = await Promise.all([
+    baseDeDonnees.envoiCourriel.findMany({
+      where: { destinataire: compte.email },
+      select: { type: true, objet: true, statut: true, creeLe: true, envoyeLe: true },
+      orderBy: { creeLe: "asc" },
+    }),
+    // La partie sociale de l'app : métadonnées seulement, jamais le texte d'un message (export-social.ts)
+    exporterActiviteSociale(id),
+  ]);
   const { nomChiffre, dateNaissanceChiffree, appleSub, googleSub, ...reste } = compte;
   return {
     exporteLe: new Date().toISOString(),
@@ -165,5 +170,6 @@ export async function exporterDonneesCompte(id: number, chiffrement: Chiffrement
       connecteAvecGoogle: googleSub ? "oui" : "non",
     },
     mailsEnvoyes: mails,
+    social,
   };
 }

@@ -10,12 +10,17 @@ import type { LienSuiviApi } from "./suivis.ts";
 
 export type ExportSocialApi = {
   genereLe: string;
-  profil: { personne: PersonneResume; reglages: ReglagesSociaux; creeLe: string };
+  /** null : pas de profil social (Potes jamais ouvert) ; l'export dit quand même ce qui existe (signalements, masques…) */
+  profil: { personne: PersonneResume; reglages: ReglagesSociaux; creeLe: string } | null;
   bande: { personne: PersonneResume; depuis: string }[];
   demandesBande: { envoyees: DemandeBandeApi[]; recues: DemandeBandeApi[] };
   bloques: PersonneResume[];
   suivis: { abonnements: LienSuiviApi[]; abonnes: LienSuiviApi[] };
-  /** Les conversations dont tu es membre ; membres : leurs pseudos */
+  /**
+   * Les conversations dont tu es membre (membres : leurs pseudos), et celles que tu as quittées où restent TES messages (sans
+   * titre ni membres : tu n'en fais plus partie). messages : les tiens seulement ; pour une photo ou un vocal, la taille
+   * (le fichier n'est pas joint)
+   */
   conversations: { id: string; type: TypeConversation; titre: string | null; membres: string[];
     messages: { date: string; type: "texte" | "lieu" | "photo" | "vocal"; texte: string | null; lieuId: number | null; taille: number | null }[] }[];
   /** Les invitations à des groupes que tu n'as pas acceptées : en attente (« invite ») ou refusées (« refuse ») */

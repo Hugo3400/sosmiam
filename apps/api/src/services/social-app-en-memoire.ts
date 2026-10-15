@@ -22,6 +22,7 @@ import { creerListesEnMemoire } from "./listes-en-memoire.ts";
 import { creerCommentairesEnMemoire } from "./commentaires-en-memoire.ts";
 import { creerDecisionsModerationAppEnMemoire, creerSignalementsSociauxEnMemoire } from "./signalements-sociaux-en-memoire.ts";
 import type { LireAncienTitulaire } from "./bande-regles.ts";
+import { creerExportSocialEnMemoire } from "./export-social-en-memoire.ts";
 
 export type OptionsSocialAppEnMemoire = {
   /** Absent : une clé de test tirée au hasard ; null : pas de clé (routes 🔐 en 503 chiffrement-indisponible) */
@@ -75,6 +76,7 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
     commentaires: creerCommentairesEnMemoire(tables, { relations, social, lireRole: (c, l) => dependances.lireRole(c, l), chiffrement }),
     signalements: creerSignalementsSociauxEnMemoire(tables, relations, chiffrement),
     decisions: creerDecisionsModerationAppEnMemoire(tables, (id, texte, maintenant) => dependances.contesterSignalement(id, texte, maintenant)),
+    exportSocial: creerExportSocialEnMemoire(tables, relations, chiffrement),
   };
   return { dependances, tables, pushs, contestations, medias };
 }

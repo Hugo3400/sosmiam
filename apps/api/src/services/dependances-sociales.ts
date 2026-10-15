@@ -18,6 +18,7 @@ import { creerListes } from "./listes.ts";
 import { creerCommentaires } from "./commentaires.ts";
 import { creerDecisionsModerationApp } from "./decisions-moderation-app.ts";
 import { creerSignalementsSociaux } from "./signalements-sociaux.ts";
+import { creerExportSocial } from "./export-social.ts";
 
 export type OptionsDependancesSociales = {
   /** La clé des données (chargerChiffrementDonnees) ; null : pas de clé */
@@ -59,5 +60,6 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
     commentaires: creerCommentaires({ relations, social, lireRole: o.lireRole, chiffrement }),
     signalements: creerSignalementsSociaux({ relations, chiffrement }),
     decisions: creerDecisionsModerationApp({ contesterSignalement: o.contesterSignalement }),
+    exportSocial: creerExportSocial({ relations, chiffrement }),
   };
 }

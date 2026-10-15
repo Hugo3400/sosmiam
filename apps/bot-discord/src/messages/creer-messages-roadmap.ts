@@ -6,7 +6,7 @@ import { creerBloc } from "../fonctions/discord/creer-bloc.ts";
 import { COULEURS } from "../interface/couleurs.ts";
 
 /** À changer à chaque nouvelle version de la roadmap. */
-const MISE_A_JOUR = "14 octobre 2026";
+const MISE_A_JOUR = "15 octobre 2026";
 
 function lister(lignes: string[]): string {
   return lignes.map((ligne) => `• ${ligne}`).join("\n");
@@ -54,6 +54,8 @@ function creerServi(): ContainerBuilder {
           "**Défis, badges et paliers**, de Curieux à Ambassadeur de quartier",
           "**Les événements des lieux** : concerts, quiz, dégustations… avec « Ça m'intéresse »",
           "**Ta bande de potes** : ajoute-les par lien, QR code ou pseudo, et suis les lieux et les gens que tu aimes",
+          "**Les sorties entre potes** : proposer des lieux, voter et en discuter entre invités, plus les listes partagées et « envoyer un lieu à un pote »",
+          "**Les commentaires** : répondre, aimer et mentionner un pote",
           "**Miam Safe** 🚨 : si tu ne te sens pas en sécurité dans un lieu, la phrase « Le Capitaine est là ? » au comptoir, une alerte discrète à l'équipe dans les lieux engagés, et les numéros d'urgence en un geste",
           "**Les modes pro et ambassadeur**, directement dans l'app",
           "**Des notifications qui ne te harcèlent pas** : une par jour et quatre par semaine au plus, sauf celles que tu demandes",
@@ -70,8 +72,7 @@ function creerSurLeFeu(): ContainerBuilder {
       lister([
         "**La sortie de l'app sur iPhone et Android** : on fait les dernières vérifs et on prépare les premières versions d'essai sur de vrais téléphones",
         "**La messagerie entre potes** : messages privés, groupes, photos et notes vocales. Tout est prêt ; on finit le ménage automatique (les vieilles photos et les conversations endormies s'effacent toutes seules) avant d'ouvrir les portes",
-        "**Les sorties entre potes** : proposer des lieux, voter et en discuter entre invités, plus les listes partagées et « envoyer un lieu à un pote »",
-        "**Les commentaires** : répondre, aimer, mentionner un pote, et signaler ce qui dérape",
+        "**Les finitions entre potes** : signaler ce qui dérape en un geste, tes réglages, et les notifications qui vont avec",
         "**Des milliers de fiches de lieux** en préparation, partout en France, pour que l'app ne sonne pas creux le jour J",
       ]),
     ],
@@ -92,7 +93,7 @@ function creerAuMenuBientot(): ContainerBuilder {
       "### 🫶 L'Espace communauté\nL'onglet Potes devient **Communauté**. On le peaufine encore, donc rien n'est figé, mais voilà l'idée :\n" +
         lister([
           "**Des sorties ouvertes à tous les Miamis**, ou réservées à un public (entre filles, entre garçons, entre personnes d'autres genres, par tranche d'âge…), avec des étiquettes : vegan, LGBT+ friendly, petit budget, sans alcool…",
-          "**« Qui est là ? »** et ses petits coucous",
+          "**« Qui est là ? »** : les Miamis de ta ville qui ont choisi de se montrer (juste leur pseudo et leur avatar), et des coucous pour faire connaissance",
           "**Une boîte à idées** : les Miamis votent, la Brigade répond, et l'idée du mois est annoncée dans 📝・patch-notes",
           "**Des étiquettes sur les lieux**, pour trouver ton bonheur encore plus vite",
         ]),

@@ -47,9 +47,9 @@ export interface ServiceSocial {
   /** GET /app/personnes/suggestions : « Tu pourrais suivre », 10 au plus */
   suggerer(): Promise<ReponseApi<{ suggestions: SuggestionPersonneApi[] }>>;
   /**
-   * GET /app/social/export : tes données sociales et TES messages déchiffrés, jamais ceux des autres (2 par 24 h).
-   * « chiffrement-indisponible » sans la clé des données. ROUTE LIVRÉE PAR LE LOT L7 : ne pas la brancher dans l'app avant
-   * (d'ici là, l'API répond 404 « introuvable »)
+   * GET /app/social/export : tes données sociales et TES messages déchiffrés, jamais ceux des autres ni ton code
+   * d'invitation (2 par 24 h : « trop-de-demandes » au-delà). « chiffrement-indisponible » sans la clé des données. Sans
+   * profil social (Potes jamais ouvert), export.profil vaut null : rien n'est créé
    */
   exporter(): Promise<ReponseApi<{ export: ExportSocialApi }>>;
   /** GET /app/personnes/:personne : ce que ton niveau permet. « personne-inconnue » (inconnue, sans profil, ou elle t'a bloqué) */
