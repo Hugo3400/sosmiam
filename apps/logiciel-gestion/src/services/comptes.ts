@@ -70,3 +70,4 @@ export const lireDateNaissance = (id: number) => appeler<{ dateNaissance: string
 /** Correction sur demande de la personne ; refusée sous 18 ans (« trop-jeune ») : SOS Miam est réservé aux majeurs */
 export const corrigerDateNaissance = (id: number, date: string) =>
   appeler<{ ok: true }>("PUT", `/comptes/${id}/date-naissance`, { corps: { date } });
+export const lirePhotoCompte = (id: number) => appeler<Blob>("GET", `/comptes/${id}/photo`, { reponse: "blob" });

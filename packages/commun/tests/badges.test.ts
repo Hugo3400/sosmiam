@@ -131,3 +131,14 @@ test("avis : Première plume, Plume gourmande à 5 ; seuls les avis avec photo f
   assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(5, true) })), ["premiere-plume", "plume-gourmande", "oeil-de-chef"]);
   assert.deepEqual(listerBadgesAtteints(faits({ avis: avis(20, true) })), ["premiere-plume", "plume-gourmande", "plume-d-or", "oeil-de-chef", "objectif-gourmand"]);
 });
+
+test("bars : jamais comptés par un badge qui vise un type de lieu ; comptés, comme pour Noctambule, par ceux qui n'en visent aucun", () => {
+  const bars = repeter(52, (i) => visite(0, { le: LUNDI_MIDI + i * SEMAINE + ONZE_HEURES, typeLieu: "bar", lieuId: i, ville: `Ville ${i % 12}`, pendantSos: true }));
+  const atteints = listerBadgesAtteints(faits({ visites: bars }));
+  const avecTypeDeLieu = BADGES_AUTOMATIQUES.filter((b) => b.filtres?.typesLieu).map((b) => b.id);
+  assert.ok(atteints.every((id) => !avecTypeDeLieu.includes(id)));
+  assert.deepEqual(atteints, [
+    "coeur-sur-la-main", "bonne-etoile", "habitue", "mordu-de-miam", "serie-4", "saison-complete", "marathon-du-miam", "un-an-de-miam",
+    "noctambule", "curieux", "explorateur", "baroudeur",
+  ]);
+});

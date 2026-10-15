@@ -8,6 +8,7 @@ import { BoutonReponseType } from "~/composants/interface/BoutonReponseType.tsx"
 import { MailsRecusDe } from "~/ecrans/boite/MailsRecusDe.tsx";
 import { DateNaissanceCompte } from "./DateNaissanceCompte.tsx";
 import { LimitationCompte } from "./LimitationCompte.tsx";
+import { PhotoProfilCompte } from "./PhotoProfilCompte.tsx";
 import { ModaleIdentite } from "./ModaleIdentite.tsx";
 import { PastillesConnexion } from "./PastillesConnexion.tsx";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
@@ -76,6 +77,7 @@ export function FicheCompte({ id, onFermer, onChange }: { id: number; onFermer: 
             <dt className="text-gris">Activité</dt>
             <dd>{compte._count.demandesLieux} lieu(x) proposé(s) · {compte._count.missions} mission(s) · {compte._count.candidatures} candidature(s)</dd>
           </dl>
+          {compte.aUnePhoto && <PhotoProfilCompte compteId={compte.id} />}
           {compte.journalPoints.length > 0 && (
             <section className="grid gap-2">
               <h3 className="font-extrabold">Derniers points</h3>

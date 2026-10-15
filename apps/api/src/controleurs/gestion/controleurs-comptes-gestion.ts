@@ -64,6 +64,12 @@ export function creerControleursComptesGestion(s: ServicesGestion, comptes?: Out
       await noter(reponse, "Réinitialisation de mot de passe préparée", `compte n° ${id(requete)}`);
       reponse.json({ ok: true, envoye: false, lien, expireLe });
     },
+    photo: async (requete: Request, reponse: Response) => {
+      const photo = await s.lirePhotoProfilPourEquipe(id(requete));
+      if (!photo) return introuvable(reponse);
+      await noter(reponse, "Photo de profil regardée", `compte n° ${id(requete)}`);
+      reponse.set("Cache-Control", "no-store").set("X-Content-Type-Options", "nosniff").type("image/jpeg").send(photo);
+    },
     /** « Afficher » : la date de naissance en clair, et une ligne au journal (sans la date) */
     dateNaissance: async (requete: Request, reponse: Response) => {
       if (!(await s.lireCompteGestion(id(requete)))) return introuvable(reponse);

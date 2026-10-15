@@ -170,6 +170,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/comptes/:id", k.fiche);
   routes.get("/comptes/:id/donnees", k.exporter);
   routes.get("/comptes/:id/date-naissance", k.dateNaissance);
+  routes.get("/comptes/:id/photo", k.photo);
   routes.put("/comptes/:id/date-naissance", k.corrigerDateNaissance);
   routes.post("/comptes/:id/deconnecter", k.deconnecter);
   routes.get("/comptes/:id/identite", k.identite);
