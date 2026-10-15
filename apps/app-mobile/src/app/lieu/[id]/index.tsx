@@ -107,6 +107,31 @@ export default function FicheLieu() {
     <View className="flex-1 bg-creme">
       {/* Fiche préparée en coulisses depuis le fil : sa barre claire ne s'applique que quand elle est vraiment affichée */}
       {focus ? <StatusBar style="light" /> : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Retour"
+        hitSlop={8}
+        onPress={retour}
+        style={{ top: marges.top + 8 }}
+        className="absolute left-4 z-10 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+      >
+        <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
+      </Pressable>
+
+      {/* Miam Safe, toujours à portée de pouce, en miroir du retour : les secours, un pote, le comptoir (même sans compte, les
+          secours restent accessibles) */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Miam Safe"
+        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+        hitSlop={8}
+        onPress={ouvrirMiamSafe}
+        style={{ top: marges.top + 8 }}
+        className="absolute right-4 z-10 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+      >
+        <Text className="text-lg">🚨</Text>
+      </Pressable>
+
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
         <EnTeteFicheLieu
@@ -123,31 +148,6 @@ export default function FicheLieu() {
         <BlocEtiquettesLieu lieu={lieu} />
         <SuiteFicheLieu lieu={lieu} age={age} />
       </ScrollView>
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Retour"
-        hitSlop={8}
-        onPress={retour}
-        style={{ top: marges.top + 8 }}
-        className="absolute left-4 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
-      >
-        <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
-      </Pressable>
-
-      {/* Miam Safe, toujours à portée de pouce, en miroir du retour : les secours, un pote, le comptoir (même sans compte, les
-          secours restent accessibles) */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Miam Safe"
-        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
-        hitSlop={8}
-        onPress={ouvrirMiamSafe}
-        style={{ top: marges.top + 8 }}
-        className="absolute right-4 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
-      >
-        <Text className="text-lg">🚨</Text>
-      </Pressable>
 
       {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}
       <View style={{ paddingBottom: marges.bottom + 12 }} className="absolute inset-x-0 bottom-0 flex-row gap-3 border-t border-ligne bg-creme px-5 pt-3">
