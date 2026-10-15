@@ -50,19 +50,24 @@ export type Changements = {
 /** La table d'une colonne, d'un index, d'une contrainte ou d'un déclencheur (« colonne avis.note » → « avis ») */
 const tableDe = (cle: string) => /^(?:colonne|index|contrainte|déclencheur) ([^.]+)\./.exec(cle)?.[1];
 
-/** La colonne sans NOT NULL, défaut, identité ni calcul : son type seul (« character varying(80) ») */
-const typeDe = (colonne: string) => colonne.replace(/ (NOT NULL|DEFAULT|GENERATED) .*$| NOT NULL$/, "");
+/** Une colonne relevée, en morceaux : son type (collation comprise), NOT NULL, et si la base la remplit seule (défaut,
+ *  identité ou calcul) ; « character varying(80) NOT NULL DEFAULT 'x'::character varying » → type « character varying(80) » */
+const lireColonne = (definition: string) => {
+  const [, type, nonNul, remplie] = /^(.*?)( NOT NULL)?((?: DEFAULT| GENERATED) .*)?$/s.exec(definition)!;
+  return { type: type!, nonNul: nonNul !== undefined, remplie: remplie !== undefined };
+};
 
 const SORTES_CONTRAINTES: [RegExp, string][] = [[/^CHECK /, "CHECK"], [/^UNIQUE /, "UNIQUE"], [/^FOREIGN KEY /, "clé étrangère"], [/^PRIMARY KEY /, "clé primaire"], [/^EXCLUDE /, "EXCLUDE"]];
 
 /** Pourquoi `cle` (ajoutée ou modifiée, sur une table qui existait) peut échouer sur des lignes existantes ; null si rien */
 function risqueDe(cle: string, avant: string | undefined, apres: string, nouvellesContraintes: Set<string>): string | null {
   if (cle.startsWith("colonne ")) {
-    const remplie = / DEFAULT | GENERATED /.test(apres);
-    if (avant === undefined) return apres.includes(" NOT NULL") && !remplie ? "NOT NULL sans défaut (échouera si la table a des lignes)" : null;
+    const nouvelle = lireColonne(apres);
+    if (avant === undefined) return nouvelle.nonNul && !nouvelle.remplie ? "NOT NULL sans défaut (échouera si la table a des lignes)" : null;
+    const ancienne = lireColonne(avant);
     const morceaux: string[] = [];
-    if (typeDe(avant) !== typeDe(apres)) morceaux.push(`type ${typeDe(avant)} → ${typeDe(apres)} (une valeur existante qui n'y rentre pas, ou ne s'y convertit pas, le fera échouer)`);
-    if (!avant.includes(" NOT NULL") && apres.includes(" NOT NULL")) morceaux.push("devient NOT NULL (échouera si une ligne y a NULL)");
+    if (ancienne.type !== nouvelle.type) morceaux.push(`type ${ancienne.type} → ${nouvelle.type} (échouera si une valeur existante n'y rentre pas ou ne s'y convertit pas)`);
+    if (!ancienne.nonNul && nouvelle.nonNul) morceaux.push("devient NOT NULL (échouera si une ligne y a NULL)");
     return morceaux.length > 0 ? morceaux.join(" ; ") : null;
   }
   // Une contrainte NOT VALID ne vérifie pas les lignes déjà là
