@@ -5,8 +5,11 @@
 // Un fichier hors du dépôt (le cas normal : une migration pas encore ajoutée) passe après toutes celles du dépôt. Un fichier
 // du dépôt (prisma/migrations/<nom>/migration.sql) est rejoué À SA PLACE, jamais deux fois : celles d'avant, lui, puis celles
 // d'après (elles doivent passer encore). On dit aussi ce qu'il ajoute, retire ou modifie (règle des migrations additives,
-// docs/decisions.md) ; la base d'essai est vide : une colonne NOT NULL sans défaut ajoutée à une table existante est signalée.
-import "./socle/garde-fou.ts";
+// docs/decisions.md : un type, une taille, un NOT NULL ou un défaut qui change est une modification) ; la base d'essai est
+// vide : ce qui y passe mais échouera sur une table remplie est signalé (colonne NOT NULL sans défaut, contrainte CHECK,
+// UNIQUE, clé étrangère ou index UNIQUE ajoutés à une table qui existait, type rétréci, NOT NULL posé). Quand PostgreSQL ne
+// donne pas de position, l'instruction fautive est retrouvée en rejouant le fichier instruction par instruction (sa ligne).
+import { couperProcessusEnfants } from "./socle/garde-fou.ts";
 import { PGlite } from "@electric-sql/pglite";
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { relative, resolve } from "node:path";
@@ -34,6 +37,7 @@ const avant = place === -1 ? migrations : migrations.slice(0, place);
 const apres = place === -1 ? [] : migrations.slice(place + 1);
 const jumelle = place === -1 ? migrations.find((m) => existsSync(m.fichier) && readFileSync(m.fichier, "utf8") === texte) : undefined;
 
+couperProcessusEnfants();
 const db = new PGlite();
 const version = String(((await db.query("SELECT version() AS v")).rows[0] as { v: string }).v).replace(/ on wasm32.*$/, "");
 try {
@@ -61,7 +65,7 @@ console.log(place === -1
   ? `OK : ${avant.length} migration(s) du dépôt rejouée(s) dans PGlite, puis ${affiche} : il passe.`
   : `OK : ${affiche} est la migration ${place + 1} sur ${migrations.length} du dépôt ; rejouée à sa place (${avant.length} avant, ${apres.length} après) : tout passe.`);
 const liste = (lignes: string[]) => lignes.map((l) => `  - ${l}`).join("\n");
-const ajouts = resumerAjouts(changements.ajouts, schemaApres);
+const ajouts = resumerAjouts(changements.ajouts);
 if (ajouts.length > 0) console.log(`Ajoute :\n${liste(ajouts)}`);
 if (changements.retraits.length + changements.modifications.length === 0) {
   console.log(ajouts.length > 0 ? "Additive : oui, elle ne retire et ne modifie rien." : "Elle ne change pas le schéma (données seulement, ou rien).");
@@ -70,7 +74,7 @@ if (changements.retraits.length + changements.modifications.length === 0) {
     + `${changements.modifications.length > 0 ? `\nModifie :\n${liste(changements.modifications)}` : ""}`);
 }
 if (changements.risques.length > 0) {
-  console.log(`Attention, NOT NULL sans défaut sur une table qui existait : passe ici (base vide), échouera si la table a des lignes :\n${liste(changements.risques)}`);
+  console.log(`Attention, sur une table qui existait : passe ici (base vide), échouera si les lignes existantes ne respectent pas :\n${liste(changements.risques)}`);
 }
 const installees = existsSync("/usr/lib/postgresql") ? readdirSync("/usr/lib/postgresql").join(", ") : null;
 console.log(`(PGlite = ${version}${installees ? ` ; PostgreSQL installé sur cette machine : ${installees}` : ""} : une syntaxe plus récente que la vraie base passerait ici.)`);

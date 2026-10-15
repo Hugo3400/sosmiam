@@ -57,27 +57,37 @@ const lireColonne = (definition: string) => {
   return { type: type!, nonNul: nonNul !== undefined, remplie: remplie !== undefined };
 };
 
-const SORTES_CONTRAINTES: [RegExp, string][] = [[/^CHECK /, "CHECK"], [/^UNIQUE /, "UNIQUE"], [/^FOREIGN KEY /, "clé étrangère"], [/^PRIMARY KEY /, "clé primaire"], [/^EXCLUDE /, "EXCLUDE"]];
+/** varchar(40) → varchar(80), varchar ou text : aucune valeur existante ne peut casser */
+const elargit = (avant: string, apres: string) => {
+  const taille = (type: string) => /^character varying(?:\((\d+)\))?$/.exec(type);
+  const de = taille(avant);
+  if (de === null) return false;
+  if (apres === "text" || apres === "character varying") return true;
+  const vers = taille(apres)?.[1];
+  return de[1] !== undefined && vers !== undefined && Number(vers) >= Number(de[1]);
+};
+
+/** Les contraintes qui vérifient les lignes déjà là (une NOT VALID ne les vérifie pas) */
+const VERIFIE_LES_LIGNES = /^(CHECK|UNIQUE|FOREIGN KEY|PRIMARY KEY|EXCLUDE) (?!.* NOT VALID$)/s;
 
 /** Pourquoi `cle` (ajoutée ou modifiée, sur une table qui existait) peut échouer sur des lignes existantes ; null si rien */
-function risqueDe(cle: string, avant: string | undefined, apres: string, nouvellesContraintes: Set<string>): string | null {
+function risqueDe(cle: string, avant: string | undefined, apres: string, contraintesSignalees: Set<string>): string | null {
+  const geste = avant === undefined ? "ajouté" : "changé";
   if (cle.startsWith("colonne ")) {
     const nouvelle = lireColonne(apres);
     if (avant === undefined) return nouvelle.nonNul && !nouvelle.remplie ? "NOT NULL sans défaut (échouera si la table a des lignes)" : null;
     const ancienne = lireColonne(avant);
     const morceaux: string[] = [];
-    if (ancienne.type !== nouvelle.type) morceaux.push(`type ${ancienne.type} → ${nouvelle.type} (échouera si une valeur existante n'y rentre pas ou ne s'y convertit pas)`);
+    if (ancienne.type !== nouvelle.type && !elargit(ancienne.type, nouvelle.type)) {
+      morceaux.push(`type ${ancienne.type} → ${nouvelle.type} (échouera si une valeur existante n'y rentre pas ou ne s'y convertit pas)`);
+    }
     if (!ancienne.nonNul && nouvelle.nonNul) morceaux.push("devient NOT NULL (échouera si une ligne y a NULL)");
     return morceaux.length > 0 ? morceaux.join(" ; ") : null;
   }
-  // Une contrainte NOT VALID ne vérifie pas les lignes déjà là
-  if (cle.startsWith("contrainte ") && !apres.endsWith(" NOT VALID")) {
-    const sorte = SORTES_CONTRAINTES.find(([motif]) => motif.test(apres))?.[1];
-    return sorte ? `${sorte} ${avant === undefined ? "ajoutée" : "changée"} : ${apres}` : null;
-  }
+  if (cle.startsWith("contrainte ")) return VERIFIE_LES_LIGNES.test(apres) ? `${geste}e : ${apres}` : null;
   // L'index d'une contrainte UNIQUE ou de clé primaire porte son nom : signalé une fois, avec elle
-  if (cle.startsWith("index ") && /^CREATE UNIQUE INDEX /.test(apres) && !nouvellesContraintes.has(cle.replace(/^index /, "contrainte "))) {
-    return `index UNIQUE ${avant === undefined ? "ajouté" : "changé"} (échouera s'il y a des doublons) : ${apres}`;
+  if (cle.startsWith("index ") && /^CREATE UNIQUE INDEX /.test(apres) && !contraintesSignalees.has(cle.replace(/^index /, "contrainte "))) {
+    return `${geste} : ${apres.replace(/^CREATE UNIQUE INDEX \S+ ON \S+ USING btree /, "UNIQUE ")}`;
   }
   return null;
 }
@@ -85,11 +95,11 @@ function risqueDe(cle: string, avant: string | undefined, apres: string, nouvell
 export function comparerSchemas(avant: Schema, apres: Schema): Changements {
   const ajouts = [...apres.keys()].filter((cle) => !avant.has(cle)).sort();
   const modifiees = [...avant.keys()].filter((cle) => apres.has(cle) && apres.get(cle) !== avant.get(cle)).sort();
-  const nouvellesContraintes = new Set([...ajouts, ...modifiees].filter((cle) => cle.startsWith("contrainte ")));
+  const contraintesSignalees = new Set([...ajouts, ...modifiees].filter((cle) => cle.startsWith("contrainte ")));
   const risques = [...ajouts, ...modifiees].sort().flatMap((cle) => {
     const table = tableDe(cle);
     if (table === undefined || !avant.has(`table ${table}`)) return [];
-    const pourquoi = risqueDe(cle, avant.get(cle), apres.get(cle) ?? "", nouvellesContraintes);
+    const pourquoi = risqueDe(cle, avant.get(cle), apres.get(cle) ?? "", contraintesSignalees);
     return pourquoi ? [`${cle} : ${pourquoi}`] : [];
   });
   return {

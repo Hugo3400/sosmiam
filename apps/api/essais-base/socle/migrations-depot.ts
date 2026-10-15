@@ -57,7 +57,8 @@ async function trouverInstructionFautive(db: PGlite, texte: string, erreur: Erre
         await db.exec(instruction.texte);
       } catch (casse) {
         const c = casse as ErreurPostgres;
-        const apercu = instruction.texte.split("\n")[0]!.replace(/\s+/g, " ").slice(0, 90);
+        const ligne = instruction.texte.replace(/\s+/g, " ");
+        const apercu = ligne.length > 90 ? `${ligne.slice(0, 89)}…` : ligne;
         const autre = c.message !== erreur.message ? ` ; à elle seule, PostgreSQL y dit : ${c.message}` : "";
         return `${situer(c, texte, instruction.debut) ?? `ligne ${instruction.ligne}`} (instruction ${rang + 1} sur ${instructions.length} : « ${apercu} »${autre})`;
       }

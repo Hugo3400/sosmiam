@@ -1,4 +1,4 @@
-// Essai sur base (PGlite, toutes les migrations du dépôt) de l'arrêt du SOS du soir par le service Prisma (moment-lieu.ts) :
+// Essai sur base (PGlite, toutes les migrations du dépôt) de l'arrêt du SOS du soir, service Prisma moment-lieu.ts :
 // arreterSos(lieuId, maintenant, seulementDe) arrête les SOS en cours du lieu (pas arrêtés, pas finis). seulementDe : ceux
 // de ce compte seulement, jamais celui d'un compte supprimé depuis (compte_id à null) ; c'est la course de l'arrêt, pour
 // tous (controleurs/moment-lieu.ts : sans SOS d'un autre vu, le geste n'arrête que ce qu'il a vu). Absent : tous (Prisma
@@ -68,7 +68,7 @@ egal(await lireAuteurs(lieux.seulementMax), [null, nina], "restent en cours : Ni
 await moment.arreterSos(lieux.seulementMax, new Date(MAINTENANT.getTime() + 60_000), max);
 egal(await lireSos(lieux.seulementMax), [[max, M], [nina, null], [null, null], [max, null], [max, A]], "rejoué : rien ne bouge");
 
-// seulementDe absent : tous les SOS en cours s'arrêtent, celui du compte supprimé compris ; le fini et le déjà arrêté restent
+// seulementDe absent : tous ceux en cours s'arrêtent, celui du compte supprimé compris ; le fini et le déjà arrêté restent
 await moment.arreterSos(lieux.tous, MAINTENANT);
 egal(await lireSos(lieux.tous), [[max, M], [nina, M], [null, M], [max, null], [max, A]], "seulementDe absent : tous");
 egal(await lireAuteurs(lieux.tous), [], "plus rien en cours");
