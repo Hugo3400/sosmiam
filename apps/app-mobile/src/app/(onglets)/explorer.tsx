@@ -81,7 +81,7 @@ export default function Explorer() {
   const pointDeDepart = utiliserPointDeDepart();
   const { position, recherche, chercher, oublier } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
-  const [portee, setPortee] = useState<PorteeExplorer>("proche");
+  const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
   const [rayon, changerRayon] = utiliserRayonExplorer();
   const [selection, setSelection] = useState<number | null>(null);
   const [roulette, setRoulette] = useState(false);
@@ -131,6 +131,8 @@ export default function Explorer() {
   const barsPermis = age !== null;
   const villes = useMemo(() => [...new Set(lieuxPermis.map((l) => l.ville))].sort((a, b) => a.localeCompare(b, "fr")), [lieuxPermis]);
   const lieuxActuels = useMemo(() => lieuxDuMoment(lieuxPermis, maintenant), [lieuxPermis, maintenant]);
+  const distancesInconnues = useMemo(() => !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null), [lieuxActuels]);
+  const portee: PorteeExplorer = porteeChoisie ?? (pointDeDepart === null && distancesInconnues ? "france" : "proche");
   // La ville choisie (son centre, sinon l'un de ses lieux), sinon la tienne, où qu'elle soit en France ; null : la carte montre nos lieux
   const centre = useMemo((): PositionLieu | null => {
     if (!filtres.ville) return pointDeDepart;
@@ -169,10 +171,7 @@ export default function Explorer() {
   }, [lieuxActuels, zone, filtres, evenementsParLieu, maintenant, profil, position, pointDeDepart]);
   // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
   // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
-  const fauteDeDepart = useMemo(
-    () => zone?.portee === "proche" && zone.centre === null && !lieuxActuels.some((l) => calculerKmLieu(l, null) !== null),
-    [zone, lieuxActuels],
-  );
+  const fauteDeDepart = zone?.portee === "proche" && zone.centre === null && distancesInconnues;
   const choixZone = useMemo(
     (): ChoixZone => (filtres.ville ? { portee: null, rayonKm: rayon, ville: filtres.ville } : { portee, rayonKm: rayon, ville: null }),
     [filtres.ville, portee, rayon],
@@ -225,7 +224,7 @@ export default function Explorer() {
   async function basculerAutourDeMoi() {
     if (position) return oublier();
     // « Autour de moi » regarde autour de toi, dans le rayon réglé (plus dans une autre ville)
-    setPortee("proche");
+    setPorteeChoisie("proche");
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
     const resultat = await chercher();
     if (!("erreur" in resultat)) return;
@@ -273,7 +272,7 @@ export default function Explorer() {
       setFiltres((f) => ({ ...f, ville: choix.ville }));
       return;
     }
-    setPortee(choix.portee);
+    setPorteeChoisie(choix.portee);
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
   }
 
@@ -313,7 +312,7 @@ export default function Explorer() {
         {lierPonctuation("On ne sait pas où tu es : touche « Autour de moi » ou choisis une ville en haut, et on te trouve de bonnes tables à côté !")}
       </Text>
       <Bouton libelle="Autour de moi" indice="Demande ta position pour voir les lieux autour de toi" petit onPress={() => void basculerAutourDeMoi()} />
-      <Bouton libelle="Voir toute la France" variante="blanc" petit onPress={() => setPortee("france")} />
+      <Bouton libelle="Voir toute la France" variante="blanc" petit onPress={() => setPorteeChoisie("france")} />
     </View>
   ) : (
     <View className="items-center gap-3 px-6 py-6">
@@ -324,7 +323,7 @@ export default function Explorer() {
           {lierPonctuation(zone?.portee === "proche" ? `Tu regardes à moins de ${rayon} km ${autourDe}.` : `Tu regardes ${ouOnRegarde}.`)}
         </Text>
       ) : null}
-      {elargir ? <Bouton libelle={elargir.libelle} petit onPress={() => setPortee(elargir.portee)} /> : null}
+      {elargir ? <Bouton libelle={elargir.libelle} petit onPress={() => setPorteeChoisie(elargir.portee)} /> : null}
       <Text className="text-center font-texte text-base leading-6 text-gris">
         {lierPonctuation(
           !motRecherche
