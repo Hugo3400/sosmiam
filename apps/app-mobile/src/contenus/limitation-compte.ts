@@ -77,7 +77,6 @@ export const REFUS_LIMITATION = {
   evenement: "Ton compte est limité : publier ou modifier un événement attendra la fin de la limitation.",
   /** L'événement d'un collègue est aux autres ; les siens s'annulent toujours (choix de la session App du 15/10/2026) */
   annulerEvenement: "Ton compte est limité : annuler l'événement d'un collègue attendra la fin de la limitation. Les tiens, tu peux toujours les annuler.",
-  // Prêts pour l'écran d'avis et les réponses du mode pro, pas encore dans l'app (avis/[visiteId] est provisoire)
   avis: "Ton compte est limité : les avis (vérifiés ou non) sont en pause pour l'instant.",
   reponseAvis: "Ton compte est limité : répondre aux avis attendra la fin de la limitation.",
   // Prêt pour l'écran de réservation (lieu/[id]/reserver est provisoire) : le petit mot est un texte libre que lit le lieu,
