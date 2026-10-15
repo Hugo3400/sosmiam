@@ -87,6 +87,8 @@ export default function Explorer() {
   const [maintenant, setMaintenant] = useState(lireMinute);
   const refCompteur = useRef<Text>(null);
 
+  // L'heure avance : « Ouvert maintenant », Ouvert / Fermé et les SOS du soir se recalculent à chaque minute
+  // tant que l'onglet est affiché, et dès qu'on revient dans l'app
   useFocusEffect(
     useCallback(() => {
       let minuterie: ReturnType<typeof setTimeout> | undefined;
