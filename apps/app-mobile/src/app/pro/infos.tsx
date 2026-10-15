@@ -7,6 +7,7 @@ import { validerInfosPratiques, type ChampInfosPratiques } from "@sos-miam/commu
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 import { creerBrouillonInfosPratiques, type BrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -50,7 +51,10 @@ export default function EcranInfosPratiquesPro() {
     setEnregistrement(true);
     const r = await comptoir.reglerInfosPratiques(lieuPro.id, valide.infos);
     setEnregistrement(false);
-    if (!r.ok) return setAnnonce({ texte: "Les infos n'ont pas pu être enregistrées. Réessaie dans un instant ?", numero: Date.now() });
+    if (!r.ok) {
+      const texte = r.erreur === "compte-limite" ? REFUS_LIMITATION.ficheLieu : "Les infos n'ont pas pu être enregistrées. Réessaie dans un instant ?";
+      return setAnnonce({ texte, numero: Date.now() });
+    }
     vibrerLegerement();
     fermer();
   }

@@ -1,5 +1,6 @@
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import type { SurRefusGeste } from "~/hooks/utiliser-communaute";
 import { utiliserSuivisPersonnes, type ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
 
 export type EtatBoutonSuivi = {
@@ -10,8 +11,11 @@ export type EtatBoutonSuivi = {
   surDemande: boolean;
   /** Elle te suit : « Suivre en retour » */
   meSuit: boolean;
-  /** Pour un lieu ou un créateur : basculerSuivi, puis « suivi » (ou « deja »). Ne demande pas de compte : le bouton appelle utiliserCompteRequis avant */
-  suivre: () => ResultatSuivre;
+  /**
+   * Pour un lieu ou un créateur : basculerSuivi, puis « suivi » (ou « deja »). Ne demande pas de compte : le bouton appelle
+   * utiliserCompteRequis avant. Une personne, compte connecté : surRefus si le serveur refuse ensuite (compte limité…)
+   */
+  suivre: (surRefus?: SurRefusGeste) => ResultatSuivre;
   /** Sans effet si tu ne suis pas */
   nePlusSuivre: () => void;
   /** Sans effet s'il n'y a pas de demande en attente (et toujours pour un lieu ou un créateur) */
@@ -52,7 +56,7 @@ export function utiliserEtatSuivi(cle: string): EtatBoutonSuivi {
       etat: jeSuis,
       surDemande: verdict.surDemande,
       meSuit: relation.meSuit,
-      suivre: () => suivis.suivre(id),
+      suivre: (surRefus) => suivis.suivre(id, surRefus),
       nePlusSuivre: () => suivis.nePlusSuivre(id),
       annulerDemande: () => suivis.annulerDemande(id),
     };

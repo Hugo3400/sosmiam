@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { ProfilCommunautaireApi } from "@sos-miam/commun/types/social";
 import type { Confidentialite, VerdictSuivi, VisibiliteProfil } from "@sos-miam/commun/types/suivis";
+import type { SurRefusGeste } from "~/hooks/utiliser-communaute";
 import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
 
 /** Résultat d'un appui sur « Suivre » une personne. « pseudo-manquant » : pas encore de pseudo (voir Réglages › Mes infos). */
@@ -52,7 +53,8 @@ export type EtatSuivisPersonnes = {
   demandesEnvoyees: PersonneLiee[];
   /** null : personne inconnue, ou pas encore prêt */
   relationAvec: (id: string) => RelationPersonne | null;
-  suivre: (id: string) => ResultatSuivre;
+  /** Compte connecté : affiché tout de suite ; si le serveur refuse (compte limité…), c'est défait et surRefus dit pourquoi */
+  suivre: (id: string, surRefus?: SurRefusGeste) => ResultatSuivre;
   /** Sans effet si tu ne la suis pas (idem pour les suivantes : appeler deux fois ne casse rien) */
   nePlusSuivre: (id: string) => void;
   annulerDemande: (id: string) => void;

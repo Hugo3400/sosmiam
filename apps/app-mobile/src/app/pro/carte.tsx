@@ -16,6 +16,7 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { FeuilleElementCarte } from "~/composants/pro/FeuilleElementCarte";
 import { FeuilleSectionCarte } from "~/composants/pro/FeuilleSectionCarte";
 import { SectionCartePro } from "~/composants/pro/SectionCartePro";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -183,7 +184,7 @@ export default function EcranCartePro() {
     setEnregistrement(true);
     const r = await comptoir.reglerCarteDuLieu(lieuPro.id, valide.carte);
     setEnregistrement(false);
-    if (!r.ok) return annoncer(`${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
+    if (!r.ok) return annoncer(r.erreur === "compte-limite" ? REFUS_LIMITATION.ficheLieu : `${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
     vibrerLegerement();
     setDepart(r.carte);
     repartirDe(r.carte);

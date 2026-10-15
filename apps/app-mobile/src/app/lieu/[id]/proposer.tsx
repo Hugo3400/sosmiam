@@ -13,6 +13,7 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
 import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
@@ -80,6 +81,9 @@ export default function ProposerModification() {
     setRefus(null);
   };
   const parties = sujetsProposition.filter((s) => sujets.includes(s.sujet) && s.partie).map((s) => s.partie!);
+
+  // Compte limité : la phrase de l'app (le titre partagé attend une date que cet écran n'a pas)
+  const messageRefus = refus === "compte-limite" ? { emoji: "⏸️", titre: "Compte limité pour l'instant", texte: REFUS_LIMITATION.suggestion } : refus ? MESSAGES_SERVICE[refus] : null;
 
   async function envoyer() {
     if (envoi || !lieu) return;
@@ -186,12 +190,12 @@ export default function ProposerModification() {
               ) : null}
 
               {erreur === "vide" ? <Text className="font-texte-semi text-sm text-rouge-texte">{ERREURS.vide}</Text> : null}
-              {refus ? (
+              {messageRefus ? (
                 <View accessibilityLiveRegion="polite" className="gap-1 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
                   <Text className="font-texte-gras text-[15px] text-encre">
-                    {MESSAGES_SERVICE[refus].emoji} {MESSAGES_SERVICE[refus].titre}
+                    {messageRefus.emoji} {messageRefus.titre}
                   </Text>
-                  <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(MESSAGES_SERVICE[refus].texte)}</Text>
+                  <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(messageRefus.texte)}</Text>
                 </View>
               ) : null}
             </ScrollView>

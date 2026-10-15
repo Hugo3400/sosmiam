@@ -6,6 +6,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
@@ -69,7 +70,10 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     if (!exiger("suivre")) return;
     if (suivi) return setFeuille({ type: "ne-plus-suivre", visible: true });
     if (demande) return setFeuille({ type: "annuler-demande", visible: true });
-    const resultat = etatSuivi.suivre();
+    // Affiché tout de suite ; si le serveur refuse ensuite, le bouton revient à « Suivre » et on dit pourquoi
+    const resultat = etatSuivi.suivre((erreur) =>
+      onAnnoncer(erreur === "compte-limite" ? REFUS_LIMITATION.suivre : `Impossible de suivre ${nom} pour l'instant. Réessaie dans un instant ?`),
+    );
     if (resultat === "suivi") onAnnoncer(`🔔 Tu suis maintenant ${nom} !`);
     else if (resultat === "demande") onAnnoncer(`📨 Demande envoyée à ${nom}. Croisons les doigts (et les fourchettes) !`);
     else if (resultat === "interdit") onAnnoncer(`Impossible de suivre ${nom} pour l'instant.`);

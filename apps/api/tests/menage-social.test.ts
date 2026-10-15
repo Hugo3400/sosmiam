@@ -1,12 +1,11 @@
-// Tests du ménage social de la nuit (lot L7, spécification E.1) : seuils (fonction pure ; les lignes du journal sont dans
-// menage-social-journal.test.ts), rechiffrement
-// d'un texte et d'un fichier pendant un changement de clé (vraies clés de test, ancienne et nouvelle), protection de chaque
-// étape, de chaque paquet et de chaque sous-étape (ce qui échoue n'arrête pas la suite ; le journal ne garde que des noms et
-// des codes), liste du dossier des médias jusqu'à une page vide, ordre des verrous (sorties puis conversations ; compte puis
-// conversation pour un signalement de message), garde des fichiers signalés (ouvert, ou jugé depuis moins de 183 jours) aux
-// étapes 1, 2, 7 et 8, arrêt du rechiffrement quand le disque se remplit (et sa ligne au journal du logiciel), sur des
-// bases factices. Les requêtes SQL des étapes 1 à 9 sont essayées sur PGlite, hors de ces tests
-// (scratchpad essai-l7/essai-menage-l7.mts).
+// Tests du ménage social de la nuit (lot L7, spécification E.1) : seuils (fonction pure ; les lignes du journal sont
+// dans menage-social-journal.test.ts), rechiffrement d'un texte et d'un fichier pendant un changement de clé (vraies
+// clés de test, ancienne et nouvelle), protection de chaque étape, de chaque paquet et de chaque sous-étape (ce qui
+// échoue n'arrête pas la suite ; le journal ne garde que des noms et des codes), liste du dossier des médias jusqu'à
+// une page vide, ordre des verrous (sorties puis conversations ; compte puis conversation pour un signalement de
+// message), garde des fichiers signalés (ouvert, ou jugé depuis moins de 183 jours) aux étapes 1, 2, 7 et 8, arrêt du
+// rechiffrement quand le disque se remplit (et sa ligne au journal du logiciel), sur des bases factices. Les requêtes
+// SQL des étapes 1 à 9 sont essayées sur PGlite, hors de ces tests (scratchpad essai-l7/essai-menage-l7.mts).
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { test } from "node:test";

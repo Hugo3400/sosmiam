@@ -2,13 +2,14 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 
 import { calculerNiveauProfil } from "@sos-miam/commun/regles/calculer-niveau-profil";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { ProfilCommunautaireApi, RelationApi } from "@sos-miam/commun/types/social";
 import type { Confidentialite, LienSuiviApi, ResumeSuivisApi } from "@sos-miam/commun/types/suivis";
 import { convertirPersonneEnPote } from "~/fonctions/communaute/convertir-personne-en-pote";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
-import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCommunaute, type SurRefusGeste } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
@@ -57,10 +58,12 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
   // Les valeurs les plus récentes, lues au moment d'un geste
   const resumeCourant = useRef(resume);
   const pagesCourantes = useRef(pages);
+  const profilsCourants = useRef(profils);
   useLayoutEffect(() => {
     resumeCourant.current = resume;
     pagesCourantes.current = pages;
-  }, [resume, pages]);
+    profilsCourants.current = profils;
+  }, [resume, pages, profils]);
   const { noterPersonne } = communaute;
 
   const tant = useCallback((g: number) => g === generation.current, []);
@@ -112,9 +115,13 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
     if (change || (lu && resumeCourant.current === null)) void chargerTout();
   }, [actif, signature, lu, chargerTout]);
 
-  /** Le geste s'affiche tout de suite (gestes, listes, profil lu) ; la route part ; puis tout est relu et le geste oublié */
+  /**
+   * Le geste s'affiche tout de suite (gestes, listes, profil lu) ; la route part ; puis tout est relu et le geste oublié.
+   * Refusé (compte limité, réseau…) : le profil lu reprend la relation d'avant le geste, et surRefus dit pourquoi
+   */
   const faire = useCallback(
-    (id: string, geste: Geste, appliquer: () => void, route: () => Promise<{ ok: boolean }>) => {
+    (id: string, geste: Geste, appliquer: () => void, route: () => Promise<{ ok: true } | { ok: false; erreur: ErreurService }>, surRefus?: SurRefusGeste) => {
+      const ancienne = profilsCourants.current.get(id)?.relation;
       setGestes((avant) => new Map(avant).set(id, { ...avant.get(id), ...geste }));
       setProfils((avant) => {
         const p = avant.get(id);
@@ -123,8 +130,21 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
       appliquer();
       const g = generation.current;
       void route()
-        .catch(() => ({ ok: false }))
-        .then(() => (tant(g) ? chargerTout() : undefined))
+        .catch(() => ({ ok: false as const, erreur: "hors-ligne" as const }))
+        .then((r) => {
+          if (!tant(g)) return;
+          if (!r.ok) {
+            if (ancienne) {
+              const remise = Object.fromEntries(Object.keys(geste).map((cle) => [cle, ancienne[cle as keyof Geste]])) as Geste;
+              setProfils((avant) => {
+                const p = avant.get(id);
+                return p ? new Map(avant).set(id, { ...p, relation: { ...p.relation, ...remise } }) : avant;
+              });
+            }
+            surRefus?.(r.erreur);
+          }
+          return chargerTout();
+        })
         .finally(() => {
           if (!tant(g)) return;
           setGestes((avant) => {
@@ -261,7 +281,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
       return resumeDe ? { personne: resumeDe, depuis: new Date().toISOString() } : null;
     };
 
-    const suivre = (id: string): ResultatSuivre => {
+    const suivre = (id: string, surRefus?: SurRefusGeste): ResultatSuivre => {
       const relation = relationAvec(id);
       if (!relation || !relation.verdict.permis) return "interdit";
       if (!moi.pseudo.trim()) return "pseudo-manquant";
@@ -280,6 +300,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
           } else setResume((r) => (r ? { ...r, demandesEnvoyees: [lien, ...sans(r.demandesEnvoyees, id)] } : r));
         },
         () => sociaux.suivis.suivre(id, true),
+        surRefus,
       );
       return etat;
     };
