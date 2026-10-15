@@ -73,9 +73,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.CAMERA",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -130,7 +128,8 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "SOS Miam utilise le micro seulement quand tu enregistres une note vocale pour tes potes."
+          "microphonePermission": "SOS Miam utilise le micro seulement quand tu enregistres une note vocale pour tes potes.",
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-apple-authentication",
