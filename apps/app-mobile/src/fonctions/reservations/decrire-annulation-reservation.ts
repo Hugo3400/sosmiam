@@ -16,7 +16,7 @@ export function decrireAnnulationReservation(reservation: Reservation, tardive: 
   if (reservation.statut === "demandee") {
     return {
       titre: "Annuler ta demande ?",
-      detail: `${resume} Le lieu n'a pas encore répondu : il ne sera plus dérangé pour celle-ci.`,
+      detail: `${resume} Le lieu n'a pas encore répondu : il ne cherchera pas de table pour rien.`,
       libelleConfirmer: "Annuler la demande",
       libelleRester: "Je garde ma demande",
       annonce: "Demande annulée.",

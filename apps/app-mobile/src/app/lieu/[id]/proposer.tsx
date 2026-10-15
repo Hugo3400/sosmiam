@@ -95,6 +95,7 @@ export default function ProposerModification() {
     const r = validerPropositionLieu({ proposition, message });
     if (!r.ok) return setErreur(r.champ);
     setEnvoi(true);
+    setRefus(null);
     setRefusLimite(null);
     const reponse = await service.proposer(lieu.id, r.suggestion);
     setEnvoi(false);

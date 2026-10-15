@@ -6,6 +6,7 @@ import { Text, View } from "react-native";
 import { RondPote } from "~/composants/potes/RondPote";
 import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -97,7 +98,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
         cle,
         emoji: lieu.emoji,
         nom: lieu.nom,
-        sousTitre: `${lieu.info} · ${lieu.quartier}, ${lieu.ville}`,
+        sousTitre: `${lieu.info} · ${ecrireQuartierVille(lieu)}`,
         degrade: lieu.couleurs,
         indice: "Ouvre la fiche du lieu",
         suivi: activite.estSuivi(cle),

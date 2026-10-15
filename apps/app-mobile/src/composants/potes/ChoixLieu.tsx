@@ -5,6 +5,7 @@ import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
@@ -88,7 +89,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
               return (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.nom}, ${item.info}, ${item.quartier}, ${item.ville}`}
+                  accessibilityLabel={`${item.nom}, ${item.info}, ${ecrireQuartierVille(item)}`}
                   accessibilityState={{ disabled: deja }}
                   accessibilityHint={deja ? "Déjà choisi" : undefined}
                   disabled={deja}
@@ -106,7 +107,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                       {item.nom}
                     </Text>
                     <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                      {item.info} · {item.quartier}, {item.ville}
+                      {item.info} · {ecrireQuartierVille(item)}
                     </Text>
                   </View>
                   {deja ? <Text className="font-texte-semi text-xs text-gris">Déjà choisi</Text> : null}

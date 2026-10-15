@@ -21,6 +21,7 @@ import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -207,7 +208,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     lieu.alerte,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
     raison,
-    `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}${km === null ? "" : `, à ${formaterDistance(km)}`}, ${lieu.prix}`,
+    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${formaterDistance(km)}`}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
   const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
@@ -342,7 +343,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
               <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
-                📍 {lieu.quartier}, {lieu.ville}
+                📍 {ecrireQuartierVille(lieu)}
                 {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
               </Text>
             </View>

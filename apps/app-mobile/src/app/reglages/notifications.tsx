@@ -23,6 +23,9 @@ const HEURES_FIN = ["07:00", "08:00", "09:00", "10:00"];
 /** Heure affichée comme ailleurs dans l'app : « 23h », « 9h », et « minuit » plutôt que « 0h ». */
 const afficherHeure = (heure: string) => (heure === "00:00" ? "minuit" : formaterHeure(heure));
 
+const INTRODUCTION =
+  "Les SOS et les événements arrivent sur ton téléphone ; les offres des lieux, seulement si tu les allumes. Tes abonnés et tes demandes t'attendent aussi derrière la cloche du fil.";
+
 const MESSAGE_ECHEC = "Oups, ce choix n'a pas pu être gardé sur ton téléphone. Réessaie un peu plus tard.";
 
 /** Réglages > Notifications : tout couper, choisir les sortes d'alertes et le mode nuit. Chaque choix est gardé tout de suite. */
@@ -66,14 +69,12 @@ export default function ReglagesNotifications() {
     <EcranReglage titre="Notifications" sousTitre="Choisis ce qui mérite de faire vibrer ta poche.">
       <View
         accessible
-        accessibilityLabel="Les SOS, les offres et les événements arrivent sur ton téléphone. Tes abonnés et tes demandes t'attendent aussi derrière la cloche du fil."
+        accessibilityLabel={INTRODUCTION}
         className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4"
       >
         <Text className="text-xl">🔔</Text>
         <Text className="flex-1 font-texte text-sm leading-5 text-encre">
-          {lierPonctuation(
-            "Les SOS, les offres et les événements arrivent sur ton téléphone. Tes abonnés et tes demandes t'attendent aussi derrière la cloche du fil.",
-          )}
+          {lierPonctuation(INTRODUCTION)}
         </Text>
       </View>
 

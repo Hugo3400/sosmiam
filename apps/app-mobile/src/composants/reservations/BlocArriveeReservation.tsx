@@ -21,7 +21,7 @@ function dessinerSurPlace(reservation: Reservation, client: Props["client"]) {
     <View className="gap-3 rounded-2xl border-2 border-encre bg-jaune-clair p-3">
       <Text className="font-texte-gras text-base text-encre">{lierPonctuation("📍 C'est noté, tu es sur place !")}</Text>
       {reservation.code ? (
-        <CodeRapprochement code={reservation.code} prenom={client.prenom} avatar={client.avatar} legende="Donne ce code à l'équipe en arrivant" taille="moyen" />
+        <CodeRapprochement code={reservation.code} prenom={client.prenom} avatar={client.avatar} legende="Donne ce code à l'équipe" taille="moyen" />
       ) : null}
       {reservation.statut === "acceptee" ? (
         <Text className="font-texte text-sm leading-5 text-encre">

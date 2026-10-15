@@ -11,6 +11,7 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
@@ -135,7 +136,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
             Envoyer à un pote
           </Text>
           <Text numberOfLines={1} className="font-texte text-sm text-gris">
-            {lieu.nom} · {lieu.quartier}, {lieu.ville}
+            {lieu.nom} · {ecrireQuartierVille(lieu)}
           </Text>
         </View>
       </View>

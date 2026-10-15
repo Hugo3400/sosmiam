@@ -13,6 +13,7 @@ import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisit
 import { LigneLieuProche } from "~/composants/visites/LigneLieuProche";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
@@ -193,7 +194,7 @@ export default function TuEsChezQui() {
                     {lierPonctuation(`Tu es ${direChezLieu(evident.lieu.nom)} ?`)}
                   </Text>
                   <Text className="text-center font-texte-semi text-sm text-encre">
-                    {lierPonctuation(`À ${formaterDistance(evident.distanceM / 1000)} de toi · ${evident.lieu.quartier}`)}
+                    {lierPonctuation(`À ${formaterDistance(evident.distanceM / 1000)} de toi · ${ecrireQuartierVille(evident.lieu)}`)}
                   </Text>
                   <View className="self-stretch">
                     <BoutonDemanderAddition lieu={evident.lieu} variante="blanc" libelle="Oui, demander l'addition" />

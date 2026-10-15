@@ -22,7 +22,7 @@ export function CarteReservation({ reservation, maintenantMs, client, onAnnuler,
   const explication = expliquerReservation(reservation, gestes.presence);
   const enRetrait = reservation.statut === "annulee" || reservation.statut === "expiree";
   const enCours = reservation.statut === "acceptee" || gestes.presence;
-  const annulation = gestes.annuler ? (reservation.statut === "demandee" ? "demande" : "reservation") : null;
+  const annulation = gestes.annuler && !reservation.presenceLe ? (reservation.statut === "demandee" ? "demande" : "reservation") : null;
 
   return (
     <View className={`gap-3 rounded-carte border-2 bg-white p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>

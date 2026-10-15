@@ -7,23 +7,10 @@ import {
   RAISONS_AVEC_EXPLICATION_OBLIGATOIRE,
 } from "../regles/signalement.ts";
 import { RAISONS_SIGNALEMENT, type CibleSignalementSocial, type RaisonSignalement, type SignalementSocialValide } from "../types/signalement.ts";
-import { estTexteAffichable } from "./est-texte-affichable.ts";
-import { nettoyerTexteSocial } from "./nettoyer-texte-social.ts";
+import { nettoyerTexteSignalement } from "./nettoyer-texte-signalement.ts";
 
 /** Identifiant d'un commentaire, d'un message, d'une liste, d'une sortie ou d'un groupe, comme dans les adresses de l'API */
 const FORME_ID_CONTENU = /^[1-9]\d{0,8}$/;
-/** Les caractères de contrôle (\p{Cc}) sauf la tabulation et le retour à la ligne : ceux que refuse estTexteAffichable */
-const CONTROLES = /(?![\t\n])\p{Cc}/gu;
-
-/**
- * Une précision ou une explication telle qu'on la garde : fins de ligne \r\n et \r changées en \n, caractères de
- * contrôle retirés (un octet nul collé par mégarde ne fait jamais perdre un signalement), sans espaces autour ; "" s'il
- * ne reste rien de visible (estTexteAffichable).
- */
-function nettoyerTexteSignalement(brut: string): string {
-  const propre = nettoyerTexteSocial(brut).replace(CONTROLES, "").trim();
-  return estTexteAffichable(propre) ? propre : "";
-}
 
 /**
  * Vérifie un signalement de contenu social lu tel quel dans le corps de la demande (POST /app/signalements) et le rend

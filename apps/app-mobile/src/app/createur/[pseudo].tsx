@@ -11,6 +11,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -167,7 +168,7 @@ export default function PageCreateur() {
                   key={publication.id}
                   lieu={lieu}
                   image={trouverVignettePublication(publication) ?? trouverVignetteLieu(lieu.id, siennes)}
-                  libelle={`Publication de ${nom} sur ${lieu.nom}, ${lieu.quartier}`}
+                  libelle={`Publication de ${nom} sur ${lieu.nom}, ${ecrireQuartierVille(lieu)}`}
                   onPress={() => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } })}
                 />
               ))}

@@ -18,7 +18,7 @@ export type ReglagesNotifications = {
 
 export const REGLAGES_NOTIFICATIONS_PAR_DEFAUT: ReglagesNotifications = {
   actives: true,
-  types: { sos: true, calme: true, offre: true, evenement: true, nouveau: true, abonne: true, demande: true, "publication-suivie": true },
+  types: { sos: true, calme: true, offre: false, evenement: true, nouveau: true, abonne: true, demande: true, "publication-suivie": true },
   silence: { actif: true, de: "23:00", a: "09:00" },
 };
 

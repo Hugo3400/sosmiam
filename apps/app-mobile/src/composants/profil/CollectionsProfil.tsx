@@ -5,6 +5,7 @@ import { Platform, Pressable, Text, View, type ImageSourcePropType } from "react
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { trouverVignettePublication } from "~/fonctions/publications/trouver-vignette-publication";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -38,14 +39,14 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
   const vignettesGardes: Vignette[] = gardes.flatMap((id) => {
     const lieu = lieux.find((l) => l.id === id);
     if (!lieu) return [];
-    return [{ cle: `lieu-${id}`, lieu, image: trouverVignetteLieu(id, publications), libelle: `${lieu.nom}, ${lieu.quartier}, ${lieu.ville}` }];
+    return [{ cle: `lieu-${id}`, lieu, image: trouverVignetteLieu(id, publications), libelle: `${lieu.nom}, ${ecrireQuartierVille(lieu)}` }];
   });
   const vignettesJaimes: Vignette[] = jaimes.flatMap((idPublication) => {
     const publication = publications.find((p) => p.id === idPublication);
     const lieu = publication ? lieux.find((l) => l.id === publication.lieuId) : undefined;
     if (!publication || !lieu) return [];
     const image = trouverVignettePublication(publication) ?? trouverVignetteLieu(lieu.id, publications);
-    return [{ cle: publication.id, lieu, image, libelle: `Publication aimée de ${lieu.nom}, ${lieu.quartier}` }];
+    return [{ cle: publication.id, lieu, image, libelle: `Publication aimée de ${lieu.nom}, ${ecrireQuartierVille(lieu)}` }];
   });
 
   const onglets = [

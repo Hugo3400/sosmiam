@@ -102,7 +102,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
                   {pote.prenom}
                 </Text>
                 <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                  @{pote.pseudo} · {pote.ville}
+                  {[`@${pote.pseudo}`, pote.ville.trim()].filter(Boolean).join(" · ")}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />

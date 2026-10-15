@@ -6,6 +6,7 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -66,7 +67,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   const conversation = trouverConversation(conversationId);
   const participants = conversation?.participants ?? [monId];
   const sos = lieu.sos && estSosEnCours(lieu) ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
-  const lu = [`${contexte} : un lieu partagé`, `${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`, sos ? `SOS : ${sos}` : lieu.alerte].filter(Boolean).join(". ");
+  const lu = [`${contexte} : un lieu partagé`, `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}`, sos ? `SOS : ${sos}` : lieu.alerte].filter(Boolean).join(". ");
 
   function partir() {
     if (!lieu) return;

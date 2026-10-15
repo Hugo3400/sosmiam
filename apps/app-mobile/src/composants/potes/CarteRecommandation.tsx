@@ -6,6 +6,7 @@ import type { Pote, Recommandation } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -27,7 +28,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
   const nouveau = !recommandation.vue;
   const lu = [
     nouveau ? "Nouveau" : null,
-    `${de.prenom} t'envoie ${lieu.nom}, ${lieu.info}, ${lieu.quartier}, ${lieu.ville}`,
+    `${de.prenom} t'envoie ${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}`,
     recommandation.mot ? `Son mot : ${recommandation.mot}` : null,
   ]
     .filter(Boolean)
@@ -66,7 +67,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
               {lieu.nom}
             </Text>
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-              {lieu.info} · {lieu.quartier}, {lieu.ville}
+              {lieu.info} · {ecrireQuartierVille(lieu)}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />

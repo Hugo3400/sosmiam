@@ -4,6 +4,7 @@ import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calcule
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 
 type Props = {
@@ -19,7 +20,7 @@ type Props = {
 export function LigneLieuProche({ lieu, distanceM = null }: Props) {
   const sos = estSosEnCours(lieu);
   const distance = distanceM === null ? null : `à ${formaterDistance(distanceM / 1000)}`;
-  const infos = [lieu.nom, `${lieu.quartier}, ${lieu.ville}`, distance, sos ? `SOS en cours, ta visite vaut ${calculerPointsVisite(true)} points` : null];
+  const infos = [lieu.nom, ecrireQuartierVille(lieu), distance, sos ? `SOS en cours, ta visite vaut ${calculerPointsVisite(true)} points` : null];
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
       <View accessible accessibilityLabel={infos.filter(Boolean).join(", ")} className="flex-row items-center gap-3">
@@ -32,7 +33,7 @@ export function LigneLieuProche({ lieu, distanceM = null }: Props) {
         <View className="flex-1">
           <Text className="font-titre-gras text-lg leading-6 text-encre">{lieu.nom}</Text>
           <Text className="font-texte text-sm text-gris">
-            {lieu.quartier} · {lieu.ville}
+            {ecrireQuartierVille(lieu, " · ")}
           </Text>
         </View>
         {distance ? (

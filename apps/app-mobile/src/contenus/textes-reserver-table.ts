@@ -21,7 +21,7 @@ export const TEXTES_RESERVER_TABLE = {
   petitMotAide: "L'équipe le lit avec ta demande",
   recapTitre: "Ta demande",
   recapSansPetitMot: "Sans petit mot",
-  recapNote: `Gratuit, sans carte bancaire. Sans réponse ${MINUTES_AVANT_EXPIRATION} min avant le créneau, la demande s'endort toute seule.`,
+  recapNote: `Gratuit, sans carte bancaire. Sans réponse ${MINUTES_AVANT_EXPIRATION}\u00a0min avant le créneau, la demande s'endort toute seule.`,
   envoyer: "Envoyer ma demande",
   envoyerSansPetitMot: "Envoyer sans petit mot",
   indiceEnvoyer: "Envoie ta demande au lieu, qui te répond dans l'app",
@@ -43,7 +43,7 @@ export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; c
     court: "Trop tard",
     lu: "plus de créneau",
     titre: "Plus de créneau aujourd'hui",
-    texte: `On réserve au moins ${MINUTES_AVANCE} min à l'avance, et la dernière table du jour est déjà partie. Demain, ça te dit ?`,
+    texte: `On réserve au moins ${MINUTES_AVANCE}\u00a0min à l'avance, et la dernière table du jour est déjà partie. Demain, ça te dit ?`,
   },
 };
 

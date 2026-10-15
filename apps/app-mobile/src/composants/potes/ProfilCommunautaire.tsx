@@ -8,6 +8,7 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -171,7 +172,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
                   key={lieu.id}
                   lieu={lieu}
                   image={trouverVignetteLieu(lieu.id, publications)}
-                  libelle={`${lieu.nom}, ${lieu.quartier}, ${lieu.ville}`}
+                  libelle={`${lieu.nom}, ${ecrireQuartierVille(lieu)}`}
                   onPress={() => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } })}
                 />
               ))}

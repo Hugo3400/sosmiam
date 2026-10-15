@@ -4,6 +4,7 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -29,7 +30,7 @@ export function LieuChoisiSortie({ lieu, image, km, votes, onFiche, onItineraire
         </Text>
         <Text className="font-texte-gras text-lg text-encre">{lieu.nom}</Text>
         <Text className="font-texte text-[15px] text-gris">
-          {lieu.info} · {lieu.quartier}, {lieu.ville}
+          {lieu.info} · {ecrireQuartierVille(lieu)}
           {km === null ? "" : ` · ${formaterDistance(km)}`}
         </Text>
         <Text className="font-texte text-sm text-gris">{lierPonctuation(detailVotes)}</Text>

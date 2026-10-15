@@ -6,6 +6,7 @@ import {
   RAISONS_AVEC_EXPLICATION_OBLIGATOIRE,
   RAISONS_AVEC_MASQUAGE_IMMEDIAT,
 } from "@sos-miam/commun/regles/signalement";
+import { nettoyerTexteSignalement } from "@sos-miam/commun/validation/nettoyer-texte-signalement";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
@@ -28,7 +29,7 @@ type Props = {
 /** Deuxième étape du signalement : préciser la raison et expliquer pourquoi, avec ses mots. */
 export function DetailsSignalement({ raison, precision, onChoisirPrecision, explication, onChangerExplication, onEnvoyer }: Props) {
   const obligatoire = RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(raison.cle);
-  const manque = obligatoire && explication.trim().length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT;
+  const manque = obligatoire && nettoyerTexteSignalement(explication).length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT;
   const masqueePourTous = RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison.cle);
 
   return (

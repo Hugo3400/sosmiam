@@ -143,7 +143,8 @@
         "expo-notifications",
         {
           "color": "#FFD60A",
-          "defaultChannel": "notifications"
+          "defaultChannel": "notifications",
+          "icon": "./assets/icones/notification-android.png"
         }
       ],
       "expo-sharing",

@@ -9,6 +9,7 @@ import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { lirePositionMiamSafe } from "~/fonctions/miam-safe/lire-position-miam-safe";
+import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
@@ -53,7 +54,9 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
           <Text className="font-texte text-base leading-6 text-encre">
             {source === "attente" || !pret
               ? "Un instant. Si ça traîne, appelle plutôt un proche."
-              : `Pour prévenir un pote pour de vrai, il te faut ton compte et tes potes dans ta bande. Là, appelle plutôt un proche et dis-lui que tu es au ${nomLieu}.`}
+              : source === "visite"
+                ? `Prévenir un pote depuis SOS Miam, ça passe par ton compte et ta bande. Là, tout de suite, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`
+                : `En démo, aucune notification ne part pour de vrai. Là, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`}
           </Text>
         </View>
         <NumerosUrgence />
@@ -97,7 +100,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
       ) : (
         <>
           <Text className="font-texte text-base leading-6 text-gris">
-            Ton pote reçoit une notification : tu ne te sens pas en sécurité au {nomLieu}. Qui préviens-tu ?
+            Ton pote reçoit une notification : tu ne te sens pas en sécurité {direChezLieu(nomLieu)}. Qui préviens-tu ?
           </Text>
           <View accessibilityRole="radiogroup" className="gap-2">
             {potes.map((p) => {

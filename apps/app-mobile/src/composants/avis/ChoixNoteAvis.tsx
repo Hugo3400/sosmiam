@@ -41,13 +41,11 @@ export function ChoixNoteAvis({ note, onChoisir }: Props) {
           );
         })}
       </View>
-      <Text
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        className={`text-center ${note ? "font-titre-gras text-lg text-encre" : "font-texte text-sm text-gris"}`}
-      >
-        {lierPonctuation(note ? LIBELLES_NOTES_AVIS[note] : TEXTES_DONNER_AVIS.noteVide)}
-      </Text>
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="min-h-7 justify-center">
+        <Text className={`text-center ${note ? "font-titre-gras text-lg text-encre" : "font-texte text-sm text-gris"}`}>
+          {lierPonctuation(note ? LIBELLES_NOTES_AVIS[note] : TEXTES_DONNER_AVIS.noteVide)}
+        </Text>
+      </View>
     </View>
   );
 }
