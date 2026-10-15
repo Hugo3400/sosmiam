@@ -11,7 +11,8 @@ function memesChoix(a: readonly string[] | undefined, b: readonly string[] | und
 
 /**
  * Les champs où le téléphone et le serveur ne disent pas la même chose : prénom, nom, ville et envies (comparées comme des
- * ensembles, sans les régimes, qui ne vont jamais au serveur). Ni le pseudo (règles à part), ni la date de naissance.
+ * ensembles, sans les régimes, qui ne vont jamais au serveur). Ni le pseudo ni l'avatar (règles à part), ni la date de
+ * naissance.
  */
 export function listerChampsDifferents(local: Profil, serveur: ProfilServeur): ChampSynchro[] {
   const champs: ChampSynchro[] = [];

@@ -3,7 +3,8 @@ import { Platform } from "react-native";
 
 /**
  * Les canaux de notifications de l'app sur Android, créés à chaque lancement (sans risque : Android ne fait alors que
- * mettre à jour le nom et la description). Le serveur nomme toujours le canal (channel_id de expedier-push.ts) :
+ * mettre à jour le nom et la description, et ne baisse jamais une importance que la personne a réglée). Le serveur nomme
+ * toujours le canal (channel_id de expedier-push.ts) :
  * - « Miam Safe » (« miam-safe ») : les alertes urgentes (l'alerte du comptoir pour l'équipe du lieu, « Prévenir un pote »).
  *   Importance maximale, son et vibration.
  * - « Messages et sorties » (« messages ») : messages, groupes, sorties, bande. Importance haute : son, vibration et bannière.
@@ -12,13 +13,15 @@ import { Platform } from "react-native";
  *   sinon Android le rangerait dans les « Silencieuses », parfois cachées sur l'écran verrouillé), mais ni son, ni
  *   vibration, ni bannière : il reste dans les notifications normales, comme sur iPhone.
  * - « Nouvelles de SOS Miam » (« notifications ») : bons plans, visites, nouvelles. Importance haute, comme les messages
- *   (choix de Hugo, 15 octobre 2026) : son, vibration et bannière.
- *   C'est aussi le canal par défaut du manifeste (« defaultChannel » d'app.json), pour un canal pas encore créé ici.
- * Attention : une fois un canal créé sur un téléphone, l'app ne peut plus changer son importance, son son ni sa vibration (il
- * faudrait un nouvel identifiant). Aucune version Android n'est publiée le 15 octobre 2026 : ces réglages sont ceux qui
- * partiront. Pas de clé « sound » pour un canal qui sonne : sans elle, Android garde son son par défaut (« default » serait
- * cherché comme un fichier). Pas de « Ne pas déranger » contourné : c'est un accès spécial que seule la personne accorde.
- * Chaque canal reste réglable par la personne dans les réglages d'Android. Ailleurs qu'Android, rien à faire.
+ *   (choix de Hugo, 15 octobre 2026) : son, vibration et bannière. C'est aussi le canal par défaut du manifeste
+ *   (« defaultChannel » d'app.json), utilisé par Firebase app fermée si le canal demandé n'existe pas ; app ouverte, expo
+ *   prend alors son propre canal de repli « Miscellaneous ».
+ * Attention : une fois un canal créé sur un téléphone, l'app ne peut plus monter son importance, ni changer son son ou sa
+ * vibration (il faudrait un nouvel identifiant ; la baisser reste possible tant que la personne n'y a pas touché). Aucune
+ * version Android n'est publiée le 15 octobre 2026 : ces réglages sont ceux qui partiront. Pas de clé « sound » pour un
+ * canal qui sonne : sans elle, Android garde son son par défaut (« default » serait cherché comme un fichier). Pas de « Ne
+ * pas déranger » contourné : c'est un accès spécial que seule la personne accorde. Chaque canal reste réglable par la
+ * personne dans les réglages d'Android. Ailleurs qu'Android, rien à faire.
  */
 export async function creerCanauxAndroid(): Promise<void> {
   if (Platform.OS !== "android") return;

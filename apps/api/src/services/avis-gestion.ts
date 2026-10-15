@@ -5,16 +5,17 @@
 // photo partent (masquer) ou reviennent (rétablir) : si l'un rate, ou si l'API s'arrête en route, rien n'est écrit. Les
 // points se lisent dans le journal (raison « avis-photo ») : le masquage retire ceux de la règle (10), jamais plus que le
 // total du compte (il ne descend jamais sous 0) ni que ce que CET avis tient encore (la ligne « avis <id>, lieu <lieuId> »
-// posée à l'écriture par controleurs/avis.ts, plus ses masquages et ses retours en ligne : un ajout raté à l'écriture ne
-// retire rien), et le journal note ce retrait réel ; le retour en ligne rend ce que le journal dit retiré pour CET avis,
-// moins ce qui a déjà été rendu (jamais un point de plus). Seuls les défis sont relancés après (leur réévaluation ouvre sa
-// propre transaction ; un raté y est seulement noté au journal). Jamais de notification ni de cloche ici : la session du
+// posée avec l'avis, dans sa transaction, par avis-client.ts, plus ses masquages et ses retours en ligne : un avis écrit
+// avant le 15/10, dont l'ajout d'après coup a raté, ne retire rien), et le journal note ce retrait réel ; le retour en
+// ligne rend ce que le journal dit retiré pour CET avis, moins ce qui a déjà été rendu (jamais un point de plus). Seuls les
+// défis sont relancés après (leur réévaluation ouvre sa propre transaction ; un raté y est seulement noté au journal). Jamais de notification ni de cloche ici : la session du
 // logiciel écrit sa décision (motif, motivation) dans la même transaction par dansLaTransaction, prévient l'auteur après ;
 // quand une contestation lui donne raison, elle appelle retablirAvisDans / retablirReponseAvisDans dans la transaction de
 // son réexamen, puis apresRetablir une fois cette transaction validée.
 import type { StatutAvis, StatutReponseAvis } from "../../../../packages/commun/src/types/avis.ts";
 import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { calculerPointsPhotoAvis } from "../fonctions/avis/calculer-points-photo-avis.ts";
+import { ecrireDetailPointsAvis } from "../fonctions/avis/ecrire-detail-points-avis.ts";
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import type { DepotAvis, LigneAvis, TablesAvis } from "./avis-regles.ts";
 
@@ -65,12 +66,12 @@ const INTROUVABLE = { ok: false, erreur: "introuvable" } as const;
 const PAS_MASQUE = { ok: false, erreur: "pas-masque" } as const;
 
 /**
- * Le détail des lignes du journal des points (raison « avis-photo ») : il relie chaque mouvement à son avis. detailEcrit :
- * celui que pose controleurs/avis.ts à l'écriture (le même depuis la création des avis, le 09/10)
+ * Le détail des lignes du journal des points (raison « avis-photo ») : il relie chaque mouvement à son avis.
+ * detailEcrit : celui que pose avis-client.ts avec l'avis (le même format depuis la création des avis, le 09/10)
  */
-const detailEcrit = (a: LigneAvis) => `avis ${a.id}, lieu ${a.lieuId}`;
-const detailMasque = (a: LigneAvis) => `avis masqué ${a.id}, lieu ${a.lieuId}`;
-const detailRetabli = (a: LigneAvis) => `avis rétabli ${a.id}, lieu ${a.lieuId}`;
+const detailEcrit = (a: LigneAvis) => ecrireDetailPointsAvis(a);
+const detailMasque = (a: LigneAvis) => ecrireDetailPointsAvis(a, "masque");
+const detailRetabli = (a: LigneAvis) => ecrireDetailPointsAvis(a, "retabli");
 
 /**
  * Lit l'avis, verrouille le compte de son auteur (règle des appelants d'avis-regles.ts) et le relit sous le verrou ; null
@@ -94,9 +95,10 @@ async function lirePointsTenus(t: TablesAvis, a: LigneAvis): Promise<number> {
 }
 
 /**
- * Masquage, sous le verrou : retire les points de la photo (10), sans dépasser ni le total du compte (le plancher à 0
- * d'ajouterPointsDans ne mange alors rien, et le journal dit le vrai retrait) ni ce que l'avis tient encore (jamais deux
- * retraits pour un seul gain, rien si l'ajout de l'écriture a raté) ; rend ce qui a été retiré
+ * Masquage, sous le verrou : retire les points de la photo (la règle, 10 : jamais plus, même si le journal en dit davantage
+ * pour cet avis), sans dépasser ni le total du compte (le plancher à 0 d'ajouterPointsDans ne mange alors rien, et le
+ * journal dit le vrai retrait) ni ce que l'avis tient encore (jamais deux retraits pour un seul gain, rien pour un ancien
+ * avis dont l'ajout a raté) ; rend ce qui a été retiré
  */
 async function retirerPointsPhoto(t: TablesAvis, a: LigneAvis): Promise<number> {
   const prevus = calculerPointsPhotoAvis(a);

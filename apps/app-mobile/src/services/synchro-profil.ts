@@ -1,7 +1,8 @@
 // La synchro du profil d'un compte connecté, sans React : le serveur fait foi, le téléphone garde une copie pour s'ouvrir
 // hors ligne et ne gagne que pour un champ changé ici, pas encore parti (marque « à envoyer »). Les régimes ne partent
-// jamais (RGPD, article 9) ; la date de naissance non plus (seule l'équipe la corrige). Contrat : PATCH et GET
-// /comptes/moi/profil (packages/commun/src/client-api/contrat-compte.ts), un refus n'y écrit rien.
+// jamais (RGPD, article 9) ; la date de naissance non plus (seule l'équipe la corrige) ; ton avatar, seulement en emoji
+// ou en Miami (une photo reste sur le téléphone). Contrat : PATCH et GET /comptes/moi/profil
+// (packages/commun/src/client-api/contrat-compte.ts), un refus n'y écrit rien.
 import type { ServiceCompte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { ServiceModerationApp } from "@sos-miam/commun/client-api/contrat-moderation-app";
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
@@ -20,6 +21,8 @@ import { trierRefusProfil } from "~/fonctions/compte/trier-refus-profil";
 import { trouverDecisionProfil } from "~/fonctions/compte/trouver-decision-profil";
 import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+import { creerCopieAvatar } from "~/services/synchro-profil-avatar";
+import type { Avatar } from "~/stockage/avatar-local";
 import { enregistrerProfilLocal } from "~/stockage/profil-local";
 import {
   ATTENTES_MS,
@@ -45,6 +48,8 @@ export type OutilsSynchro = {
   rafraichirCompte: () => Promise<void>;
   /** Met le profil à l'écran (le moteur garde la copie à jour, relue au retour de chaque réponse) */
   afficherProfil: (profil: Profil | null) => void;
+  /** Met l'avatar à l'écran (gardé à part du profil ; le moteur en garde aussi la copie à jour) */
+  afficherAvatar: (avatar: Avatar) => void;
   montrer: (vue: VueSynchro) => void;
 };
 
@@ -54,8 +59,9 @@ export type OutilsSynchro = {
  * fusion ne passe jamais sur des envies cochées pendant le voyage). Démo : tout reste sur le téléphone.
  */
 export function creerMoteurSynchroProfil(o: OutilsSynchro) {
-  // Le profil à jour, même entre deux rendus (celui de l'écran le suit)
+  // Le profil à jour, même entre deux rendus (celui de l'écran le suit) ; l'avatar aussi, à part
   let profil: Profil | null = null;
+  const avatar = creerCopieAvatar(o.afficherAvatar);
   let memoire = memoireVide();
   // Chaque arrêt, effacement ou installation : une nouvelle génération, les réponses d'avant sont ignorées
   let generation = 0;
@@ -185,6 +191,9 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     const avant = lireProfil();
     if (!avant) return;
     const ancien = memoire.etat.pseudoServeur;
+    // Avant que le rattrapage pose premiereFaite : un avatar jamais lu sur ce téléphone part s'il manque au serveur (un
+    // refus du serveur, lui, rend sa valeur)
+    const rattrapageAvatar = (!memoire.etat.premiereFaite || memoire.etat.avatarServeur === undefined) && !memoire.avatarRefuse;
     if (!memoire.etat.premiereFaite) rattraperPremiereFois(ajuster ? ajuster(avant) : avant, serveur);
     else if (ancien !== undefined && serveur.pseudo && serveur.pseudo !== ancien && serveur.pseudo !== envoye) expliquerPseudo(ancien, serveur.pseudo, false);
     // Ville inconnue du serveur (compte du site, envoi raté) : celle du téléphone repart, une fois par lancement
@@ -198,9 +207,11 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       const local = ajuster ? ajuster(ecrit) : ecrit;
       const fusion = fusionnerProfilServeur(local, serveur, new Set(memoire.etat.aEnvoyer.map((m) => m.champ))) ?? (ajuster ? local : null);
       // Rien de changé : on n'écrit pas (le profil est à la racine, toute l'app se redessinerait)
-      if (!fusion || sontProfilsIdentiques(fusion, ecrit)) return;
-      await ecrireProfil(fusion);
-      if (fusion.prenom !== ecrit.prenom) void o.rafraichirCompte();
+      if (fusion && !sontProfilsIdentiques(fusion, ecrit)) {
+        await ecrireProfil(fusion);
+        if (fusion.prenom !== ecrit.prenom) void o.rafraichirCompte();
+      }
+      if (gen === generation) await avatar.recevoir(memoire, serveur.avatar, rattrapageAvatar);
     });
     if (gen !== generation) return;
     memoire.etat.pseudoServeur = serveur.pseudo;
@@ -212,6 +223,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   function refuserEnArrierePlan(r: Parameters<typeof trierRefusProfil>[0], partis: ChampSynchro[], depart: number) {
     const { retirer, annonce } = trierRefusProfil(r, partis);
     oublierMarques(memoire, retirer, depart);
+    if (retirer.includes("avatar") && partis.includes("avatar")) memoire.avatarRefuse = true;
     if (annonce) memoire.etat.annonce = annonce;
     memoire.relire = true;
     garder();
@@ -232,7 +244,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       if (!local || (partis.length === 0 && !memoire.relire)) return;
       memoire.relire = false;
       const depart = memoire.numero;
-      const r = partis.length > 0 ? await o.comptes.modifierProfil(preparerModificationsProfil(local, partis)) : await o.comptes.lireProfil();
+      const r = partis.length > 0 ? await o.comptes.modifierProfil(preparerModificationsProfil(local, partis, avatar.enPublic())) : await o.comptes.lireProfil();
       if (gen !== generation) return;
       if (r.ok) {
         memoire.essais = 0;
@@ -286,7 +298,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       const champs = [...demandes, ...enFile];
       const ajuster = (p: Profil) => appliquerChangementsInfos(p, changements);
       const depart = memoire.numero;
-      const r = await o.comptes.modifierProfil(preparerModificationsProfil(ajuster(local), champs));
+      const r = await o.comptes.modifierProfil(preparerModificationsProfil(ajuster(local), champs, avatar.enPublic()));
       if (gen !== generation) return { ok: false, refus: "connexion-requise" };
       if (r.ok) {
         memoire.essais = 0;
@@ -314,7 +326,10 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       const champ = r.champ as ChampSynchro | undefined;
       const surLaFile =
         (r.erreur === "champ-invalide" && champ !== undefined && enFile.includes(champ) && !demandes.includes(champ)) ||
-        (r.erreur === "compte-limite" && changements.prenom === undefined && changements.pseudo === undefined && enFile.some((c) => c === "prenom" || c === "pseudo")) ||
+        (r.erreur === "compte-limite" &&
+          changements.prenom === undefined &&
+          changements.pseudo === undefined &&
+          enFile.some((c) => c === "prenom" || c === "pseudo" || c === "avatar")) ||
         (r.erreur === "pseudo-pris" && changements.pseudo === undefined && enFile.includes("pseudo"));
       if (surLaFile) {
         refuserEnArrierePlan(r, enFile, depart);
@@ -423,6 +438,24 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       });
       lancer();
     },
+    /**
+     * Ton avatar (Réglages > Avatar) : tout de suite sur le téléphone. Un emoji ou un Miami part ensuite, avec un profil et
+     * hors démo, marque gardée avant l'écriture (comme Mes envies) ; sans profil (visite), rien ne part. Une photo ne quitte
+     * jamais le téléphone : pas de marque, et celle d'un emoji pas encore parti s'en va (les autres gardent le dernier
+     * emoji ou Miami du serveur)
+     */
+    async modifierAvatar(nouveau: Avatar) {
+      await sousVerrou(async () => {
+        if (nouveau.type === "photo") {
+          if (memoire.etat.aEnvoyer.some((m) => m.champ === "avatar")) {
+            oublierMarques(memoire, ["avatar"], memoire.numero);
+            garder();
+          }
+        } else if (lireProfil() && !DEMO_VISITES_ACTIVE) await marquerAvantEcriture(["avatar"]);
+        await avatar.ecrire(nouveau);
+      });
+      lancer();
+    },
     fermerAnnonce() {
       if (!memoire.etat.annonce) return;
       memoire.etat.annonce = null;
@@ -430,5 +463,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     },
     /** Le profil lu au démarrage, ou plus de profil (effacé) : rien n'est écrit sur le téléphone */
     poserProfil,
+    /** L'avatar lu au démarrage (avant le profil : la synchro ne tourne jamais sans lui), ou remis par défaut (effacé) */
+    poserAvatar: avatar.poser,
   };
 }

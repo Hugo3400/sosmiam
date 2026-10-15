@@ -76,7 +76,7 @@ export type ServicesLimitations = {
   leverLimitation: (id: number, maintenant: Date) => Promise<ResultatGesteLimitation>;
   /** Pour le logiciel de gestion : note le réexamen d'une contestation ; `lever` : levée en même temps (si elle court encore) */
   reexaminerLimitation: (id: number, maintenant: Date, options?: { lever?: boolean }) => Promise<ResultatGesteLimitation>;
-  /** Pour le logiciel de gestion : toutes les limitations d'un compte, les plus récentes d'abord */
+  /** Pour le logiciel de gestion et l'export de tes données sociales (GET /app/social/export) : toutes les limitations d'un compte, les plus récentes d'abord */
   listerLimitationsDuCompte: (compteId: number) => Promise<LimitationLue[]>;
   /** Pour le logiciel de gestion : les contestations pas encore réexaminées, les plus anciennes d'abord */
   listerContestationsAReexaminer: () => Promise<LimitationLue[]>;

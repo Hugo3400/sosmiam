@@ -141,8 +141,8 @@ test("Miam Safe : 3 alertes par compte toutes les 10 minutes", async () => {
 });
 
 test("Miam Safe : le texte de la notification dit où, jamais qui en entier", () => {
-  assert.equal(ecrireTexteAlerte("terrasse", "table 12"), "En terrasse · table 12. Va la voir discrètement.");
-  assert.equal(ecrireTexteAlerte("salle", ""), "En salle. Va la voir discrètement.");
+  assert.equal(ecrireTexteAlerte("terrasse", "table 12"), "En terrasse · table 12. Va discrètement à sa rencontre.");
+  assert.equal(ecrireTexteAlerte("salle", ""), "En salle. Va discrètement à sa rencontre.");
 });
 
 test("Miam Safe : l'alerte ne part que sur les téléphones encore connectés de l'équipe, jamais sur ceux de son auteur", async () => {

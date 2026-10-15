@@ -48,18 +48,22 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
 /**
  * Lit le profil, l'avatar et la visite sans compte au démarrage et les met à disposition de toute l'app (voir utiliserProfil).
  * Une visite sans compte ne reprend pas si un profil existe ou si un verrou d'âge est posé sur ce téléphone (retour à l'inscription).
- * Avec un compte connecté (hors démo), le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil).
+ * Avec un compte connecté (hors démo), le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil), et
+ * ton avatar avec (l'emoji ou le Miami : une photo reste sur le téléphone).
  */
 export function FournisseurProfil({ children }: { children: ReactNode }) {
   const session = utiliserSession();
   const [profil, setProfilAffiche] = useState<Profil | null>(null);
-  // La synchro garde la copie à jour du profil (relue au retour de chaque réponse du serveur) et l'écrit sur le téléphone
-  const { poserProfil: setProfil, installer, oublier, modifierInfos, modifierEnvies, annonce, fermerAnnonce, pseudoMisDeCote } = utiliserSynchroProfil({
+  const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
+  // La synchro garde la copie à jour du profil et de l'avatar (relue au retour de chaque réponse du serveur) et les écrit sur le téléphone
+  const synchro = utiliserSynchroProfil({
     actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
     afficherProfil: setProfilAffiche,
+    afficherAvatar: setAvatar,
   });
+  const { poserProfil: setProfil, poserAvatar, modifierAvatar: changerAvatar, installer, oublier, modifierInfos, modifierEnvies } = synchro;
+  const { annonce, fermerAnnonce, pseudoMisDeCote } = synchro;
 
-  const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
   const [inviteBrut, setInvite] = useState(false);
   const [chargement, setChargement] = useState(true);
   const invite = profil === null && inviteBrut;
@@ -76,13 +80,14 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
         if (lu || (await lireVerrouAge())) await oublierModeInvite();
         else inviteFinale = true;
       }
+      // L'avatar avant le profil : la synchro (qui démarre avec le profil) ne tourne jamais sans lui
+      poserAvatar(avatarFinal);
       setProfil(lu);
-      setAvatar(avatarFinal);
       setInvite(inviteFinale);
     })()
       .catch(() => {})
       .finally(() => setChargement(false));
-  }, [setProfil]);
+  }, [setProfil, poserAvatar]);
 
   // La visite est à l'écran (garde des écrans comprise) : on prévient ceux qui attendaient pour y naviguer
   useEffect(() => {
@@ -123,19 +128,10 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   const effacer = useCallback(async () => {
     await oublier();
     await Promise.all([effacerProfilLocal(), effacerAvatarLocal(), oublierModeInvite()]);
-    setAvatar(AVATAR_PAR_DEFAUT);
+    poserAvatar(AVATAR_PAR_DEFAUT);
     setInvite(false);
     setProfil(null);
-  }, [oublier, setProfil]);
-
-  const changerAvatar = useCallback(
-    async (nouveau: Avatar) => {
-      await enregistrerAvatarLocal(nouveau);
-      if (avatar.type === "photo" && !(nouveau.type === "photo" && nouveau.uri === avatar.uri)) supprimerPhotoAvatar(avatar.uri);
-      setAvatar(nouveau);
-    },
-    [avatar],
-  );
+  }, [oublier, setProfil, poserAvatar]);
 
   const valeur = useMemo(
     () => ({

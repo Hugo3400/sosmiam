@@ -34,12 +34,15 @@ export type Memoire = {
   infosEnAttente: number;
   /** La ville inconnue du serveur est déjà repartie une fois pendant ce lancement */
   villeReparee: boolean;
+  /** Le serveur vient de refuser l'avatar : la prochaine lecture lui rend la valeur du serveur, sans rattrapage */
+  avatarRefuse: boolean;
 };
 
 export type VueSynchro = { annonce: AnnonceSynchro | null; pseudoMisDeCote: string | null };
 
 export const memoireVide = (etat: SynchroProfil = creerSynchroProfil(false)): Memoire => ({
   pret: false, etat, numero: 0, essais: 0, pasAvant: 0, echecsServeur: 0, relire: false, pompePrevue: false, infosEnAttente: 0, villeReparee: false,
+  avatarRefuse: false,
 });
 
 /** Une marque par champ, avec un nouveau numéro (une marque d'avant est remplacée) */

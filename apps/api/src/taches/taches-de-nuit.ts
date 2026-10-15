@@ -61,24 +61,24 @@ async function faireLeMenage() {
     const desinscrits = await purgerDesinscritsAnciens();
     if (desinscrits > 0) await noterAction("serveur", "Liste des désinscrits allégée (plus de 3 ans, doublons)", `${desinscrits} ligne(s)`);
     const miamSafe = await effacerMiamSafeAncien();
-    if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (traités depuis plus d'un an, ou jamais traités en un an)", `${miamSafe.signalements} signalement(s)`);
+    if (miamSafe.signalements > 0) await noterAction("serveur", "Signalements Miam Safe effacés (anciens)", `${miamSafe.signalements} signalement(s) : traités depuis plus d'un an, ou jamais traités en un an`);
     if (miamSafe.alertes > 0) await noterAction("serveur", "Alertes Miam Safe effacées (plus de 30 jours)", `${miamSafe.alertes} alerte(s)`);
     if (miamSafe.partages > 0) await noterAction("serveur", "Partages de position Miam Safe effacés (finis)", `${miamSafe.partages} partage(s)`);
-    if (miamSafe.sentiBien > 0) await noterAction("serveur", "Réponses « Tu t'es senti·e bien ici ? » effacées (plus de 2 ans)", `${miamSafe.sentiBien} réponse(s)`);
+    if (miamSafe.sentiBien > 0) await noterAction("serveur", "« Tu t'es senti·e bien ici ? » effacés (plus de 2 ans)", `${miamSafe.sentiBien} réponse(s)`);
     // L'app : téléphones des notifications silencieux depuis 90 jours, « Ça m'intéresse » 30 jours après l'événement
     const appareils = await effacerAppareilsSilencieux();
-    if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés (90 jours sans signe de vie, ou jeton mort)", `${appareils} téléphone(s)`);
+    if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés", `${appareils} téléphone(s) : 90 jours sans signe de vie, ou jeton mort`);
     const interets = await effacerInteretsPasses();
     if (interets > 0) await noterAction("serveur", "« Ça m'intéresse » effacés (30 jours après l'événement)", `${interets} intérêt(s)`);
     // Connexion par QR code : les demandes expirées depuis plus d'un jour (un nombre seulement dans le journal)
     const demandesQr = await effacerDemandesQrExpirees();
-    if (demandesQr > 0) await noterAction("serveur", "Demandes de connexion par QR effacées (expirées depuis plus d'un jour)", `${demandesQr} demande(s)`);
+    if (demandesQr > 0) await noterAction("serveur", "Demandes de connexion par QR effacées (expirées)", `${demandesQr} demande(s), expirées depuis plus d'un jour`);
     // Pseudos libérés dont les 30 jours de réservation sont passés (un nombre seulement, jamais un pseudo)
     const pseudosReserves = await effacerPseudosReservesExpires();
     if (pseudosReserves > 0) await noterAction("serveur", "Réservations de pseudos libérés effacées (30 jours passés)", `${pseudosReserves} pseudo(s)`);
     // Limitations de comptes finies ou levées depuis plus d'un an (décision de Hugo du 15/10/2026 ; un nombre seulement)
     const limitations = await effacerLimitationsAnciennes(new Date());
-    if (limitations > 0) await noterAction("serveur", "Limitations de comptes effacées (finies ou levées depuis plus d'un an)", `${limitations} limitation(s)`);
+    if (limitations > 0) await noterAction("serveur", "Limitations de comptes effacées (plus d'un an)", `${limitations} limitation(s), finies ou levées depuis plus d'un an`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }
@@ -88,7 +88,7 @@ async function faireLeMenage() {
 async function prevenirLesComptesInactifs() {
   try {
     const { retraits, effacements } = await prevenirAvantEcheances();
-    if (retraits > 0) await noterAction("serveur", "Ambassadeurs prévenus du retrait de leur rôle (dans 30 jours)", `${retraits} mail(s)`);
+    if (retraits > 0) await noterAction("serveur", "Ambassadeurs prévenus du retrait de leur rôle (30 j)", `${retraits} mail(s) : retrait dans 30 jours`);
     if (effacements > 0) await noterAction("serveur", "Comptes prévenus de leur effacement (dans 30 jours)", `${effacements} mail(s)`);
   } catch (erreur) {
     console.error("Alerte avant effacement impossible :", resumerErreur(erreur));

@@ -1,5 +1,6 @@
 // Avatar de la personne : un emoji, un Miami (dessins de la marque), ou une photo gardée dans les fichiers de l'app.
-// La photo ne quitte pas le téléphone (pas encore d'API). Sur le web (aperçu de développement), on garde l'adresse donnée par le navigateur.
+// Avec un compte, l'emoji ou le Miami part au serveur par la synchro du profil (services/synchro-profil.ts) ; la photo ne quitte
+// jamais le téléphone. Sur le web (aperçu de développement), on garde l'adresse donnée par le navigateur.
 // Sur le téléphone, on ne garde que le nom du fichier : iOS peut changer le dossier de l'app (mise à jour), on refait l'adresse à chaque lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory, File, Paths } from "expo-file-system";

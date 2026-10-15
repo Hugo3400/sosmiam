@@ -57,7 +57,7 @@ export function AlertesMiamSafeComptoir({ lieuId, onRepondre }: Props) {
             <Text className={`font-texte-semi text-base ${prise ? "text-encre" : "text-creme"}`}>{ou}</Text>
             {prise ? null : (
               <>
-                <Text className="font-texte text-sm leading-5 text-gris-nuit">Va la voir discrètement. Pas d'annonce en salle.</Text>
+                <Text className="font-texte text-sm leading-5 text-gris-nuit">Va discrètement à sa rencontre. Pas d'annonce en salle.</Text>
                 <Bouton
                   libelle="On arrive"
                   variante="jaune"

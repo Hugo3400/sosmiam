@@ -1,5 +1,5 @@
-// Avis de l'app (voir routes/avis.ts) : lecture de la demande, réponse, et les points d'une photo posés une fois l'avis
-// écrit (ajouterPoints de services/comptes.ts, raison « avis-photo »).
+// Avis de l'app (voir routes/avis.ts) : lecture de la demande et réponse. Les points d'une photo sont posés AVEC l'avis,
+// dans sa transaction (services/avis-client.ts) ; seuls les défis sont relancés après, sans les attendre.
 import type { Request, Response } from "express";
 
 import { lireVerdictRelecture } from "../../../../packages/commun/src/fonctions/avis/lire-verdict-relecture.ts";
@@ -17,8 +17,16 @@ import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { champInvalide } from "./visites.ts";
 
 export type DependancesAvis = Omit<ContexteAvis, "horloge"> & {
-  /** ajouterPoints de services/comptes.ts */
-  ajouterPoints: (compteId: number, points: number, raison: "avis-photo", detail?: string) => Promise<unknown>;
+  /**
+   * Inutilisé : les points de la photo sont posés dans la transaction de l'avis (TablesAvis.poserPointsPhoto), plus jamais
+   * après. Accepté (et ignoré) pour ne pas casser un branchement qui le passe encore.
+   */
+  ajouterPoints?: (compteId: number, points: number, raison: "avis-photo", detail?: string) => Promise<unknown>;
+  /**
+   * reevaluer de services/defis.ts : relancé sans l'attendre après un avis qui rapporte des points, comme le faisait
+   * l'emballage d'ajouterPoints (un raté est seulement noté au journal). Absent : GET /app/defis rattrape (il réévalue d'abord)
+   */
+  reevaluerDefis?: (compteId: number, maintenant: Date) => Promise<unknown>;
   /**
    * La photo envoyée avant l'avis existe-t-elle, et vient-elle de ce compte ? Absent (pas encore d'envoi de photo) : un
    * avis avec photo est refusé, 400 avis-invalide { champ: "photo" }
@@ -55,15 +63,19 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
     return photo;
   }
 
-  /** Répond à l'écriture d'un avis, après avoir posé les points de sa photo (un raté est noté au journal, l'avis reste) */
-  async function rendreAvis(reponse: Response, compteId: number, r: ({ ok: true } & AvisEcrit) | EchecAvis) {
+  /**
+   * Répond à l'écriture d'un avis : ses points sont déjà posés avec lui (s'ils avaient raté, rien ne serait écrit et la
+   * demande serait partie en erreur) ; puis relance les défis, sans les attendre ni jamais lever
+   */
+  function rendreAvis(reponse: Response, compteId: number, r: ({ ok: true } & AvisEcrit) | EchecAvis) {
     if (!r.ok) return repondreEchecAvis(reponse, r);
-    if (r.pointsAPoser > 0) {
-      await d.ajouterPoints(compteId, r.pointsAPoser, "avis-photo", `avis ${r.avisId}, lieu ${r.lieuId}`).catch((erreur: unknown) => {
-        console.error("Avis : points non posés :", resumerErreur(erreur));
-      });
+    reponse.status(201).json({ ok: true, pointsGagnes: r.pointsGagnes, avis: r.avis });
+    const reevaluer = d.reevaluerDefis;
+    if (r.pointsGagnes > 0 && reevaluer) {
+      Promise.resolve()
+        .then(() => reevaluer(compteId, new Date(horloge())))
+        .catch((erreur: unknown) => console.error("Avis : défis non réévalués :", resumerErreur(erreur)));
     }
-    reponse.status(201).json({ ok: true, pointsGagnes: r.pointsAPoser, avis: r.avis });
   }
 
   return {
@@ -91,7 +103,7 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
       if (validerAvis(nouvel)) return avisInvalide(reponse);
       const photo = await lirePhoto(corps.photo, compteId, reponse);
       if (photo === undefined) return;
-      await rendreAvis(reponse, compteId, await client.donnerAvis(compteId, { ...nouvel, photo }));
+      rendreAvis(reponse, compteId, await client.donnerAvis(compteId, { ...nouvel, photo }));
     },
 
     /** POST /app/avis/non-verifie { lieuId, note, texte, photo? } */
@@ -102,7 +114,7 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
       if (validerAvisNonVerifie(nouvel)) return avisInvalide(reponse);
       const photo = await lirePhoto(corps.photo, compteId, reponse);
       if (photo === undefined) return;
-      await rendreAvis(reponse, compteId, await client.donnerAvisNonVerifie(compteId, { ...nouvel, photo }));
+      rendreAvis(reponse, compteId, await client.donnerAvisNonVerifie(compteId, { ...nouvel, photo }));
     },
 
     /** GET /app/avis/a-relire (ambassadeur actif) */

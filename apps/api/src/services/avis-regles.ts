@@ -161,8 +161,9 @@ export interface TablesAvis {
   changerStatutReponse(avisId: number, de: StatutReponseAvis, vers: StatutReponseAvis): Promise<boolean>;
   /**
    * Ajoute (négatif : retire) les points de la photo d'un avis, raison « avis-photo », DANS la transaction ouverte par
-   * ecrire, sous le verrou du compte : journal, total et palier partent ou restent avec ce qu'elle écrit (le statut de
-   * l'avis). En base : ajouterPointsDans de services/comptes.ts (le total ne descend jamais sous 0). Refusé en lecture.
+   * ecrire, sous le verrou du compte : journal, total et palier partent ou restent avec ce qu'elle écrit (l'avis lui-même à
+   * son écriture, son statut à une décision de l'équipe). En base : ajouterPointsDans de services/comptes.ts (le total ne
+   * descend jamais sous 0). Refusé en lecture.
    */
   poserPointsPhoto(compteId: number, points: number, detail: string): Promise<void>;
   /** Le total des points du compte (0 s'il n'existe pas) ; sous le verrou du compte, il ne bouge plus jusqu'à la fin */

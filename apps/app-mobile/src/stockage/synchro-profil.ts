@@ -1,12 +1,16 @@
 // L'état de la synchro du profil d'un compte connecté (utiliserSynchroProfil) : les champs changés sur ce téléphone qui
-// ne sont pas encore partis au serveur, le dernier pseudo lu sur le serveur, celui que l'équipe a mis de côté, et l'annonce
-// à montrer sur le profil. Rien de sensible : des noms de champs et des pseudos publics, jamais le nom, la date de
-// naissance ni la ville (ils restent dans le coffre-fort, avec le profil). AsyncStorage suffit, une seule clé.
+// ne sont pas encore partis au serveur, les derniers pseudo et avatar lus sur le serveur, le pseudo que l'équipe a mis de
+// côté, et l'annonce à montrer sur le profil. Rien de sensible : des noms de champs, des pseudos et des avatars publics,
+// jamais le nom, la date de naissance ni la ville (ils restent dans le coffre-fort, avec le profil). AsyncStorage suffit,
+// une seule clé.
 // Effacé avec le profil (déconnexion, suppression, démo) : les marques d'un compte ne suivent jamais le suivant.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-/** Les champs du profil que la synchro envoie (la date de naissance, jamais : seule l'équipe la corrige) */
-export type ChampSynchro = "prenom" | "nom" | "ville" | "envies" | "pseudo";
+/**
+ * Les champs du profil que la synchro envoie (la date de naissance, jamais : seule l'équipe la corrige). L'avatar vit à
+ * part du profil (stockage/avatar-local.ts), mais son emoji ou son Miami part par le même chemin.
+ */
+export type ChampSynchro = "prenom" | "nom" | "ville" | "envies" | "pseudo" | "avatar";
 
 /** Un champ à envoyer ; `numero` grandit à chaque marque : une marque posée après un départ n'est pas effacée par sa réponse */
 export type MarqueAEnvoyer = { champ: ChampSynchro; numero: number };
@@ -24,6 +28,11 @@ export type SynchroProfil = {
   aEnvoyer: MarqueAEnvoyer[];
   /** Le pseudo lu sur le serveur à la dernière lecture (null : pas de pseudo ; absent : jamais lu) */
   pseudoServeur?: string | null;
+  /**
+   * L'avatar lu sur le serveur à la dernière lecture (null : aucun ; absent : jamais lu sur ce téléphone, même par une
+   * version d'avant l'avatar : le rattrapage de l'avatar reste à faire)
+   */
+  avatarServeur?: string | null;
   /** Ton ancien pseudo, retiré par l'équipe : réservé pour personne jusqu'à `jusqua` (ISO) */
   pseudoMisDeCote: { pseudo: string; jusqua: string } | null;
   annonce: AnnonceSynchro | null;
@@ -32,7 +41,8 @@ export type SynchroProfil = {
 };
 
 const CLE = "sosmiam.synchro-profil";
-const CHAMPS: readonly ChampSynchro[] = ["prenom", "nom", "ville", "envies", "pseudo"];
+// Un état gardé par une version d'avant l'avatar n'a aucune marque « avatar » : il se relit tel quel
+const CHAMPS: readonly ChampSynchro[] = ["prenom", "nom", "ville", "envies", "pseudo", "avatar"];
 
 export const creerSynchroProfil = (premiereFaite: boolean): SynchroProfil => ({ version: 1, premiereFaite, aEnvoyer: [], pseudoMisDeCote: null, annonce: null, luLe: 0 });
 
@@ -79,6 +89,7 @@ export async function lireSynchroProfil(): Promise<SynchroProfil> {
       luLe: typeof lu.luLe === "number" && Number.isFinite(lu.luLe) ? lu.luLe : 0,
     };
     if (lu.pseudoServeur === null || texte(lu.pseudoServeur)) etat.pseudoServeur = lu.pseudoServeur;
+    if (lu.avatarServeur === null || texte(lu.avatarServeur)) etat.avatarServeur = lu.avatarServeur;
     return etat;
   } catch {
     return creerSynchroProfil(false);

@@ -2,6 +2,8 @@
 // 14 jours, un seul), avis non vérifié (lieu sans compte SOS Miam, un tous les 30 jours), lecture publique d'un lieu.
 // Signature figée à l'écriture (« Léa M. », prénom seul sans nom donné) ; jamais masqué automatiquement : certains
 // partent en relecture (compte neuf, rafale de notes, tirage au sort) et restent visibles, l'équipe tranche (avis-gestion.ts).
+// Les +10 de la photo d'un avis vérifié sont posés DANS la transaction de l'avis, sous le verrou du compte : un masquage ne
+// peut plus se glisser entre l'avis et ses points, et si les points ratent, l'avis n'est pas écrit (la visite reste à noter).
 import { signerAvis } from "../../../../packages/commun/src/fonctions/avis/signer-avis.ts";
 import type { AvisPublic, NouvelAvis, NouvelAvisNonVerifie, PageAvisLieu } from "../../../../packages/commun/src/types/avis.ts";
 import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
@@ -9,18 +11,19 @@ import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resu
 import type { Visite } from "../../../../packages/commun/src/types/visite.ts";
 import { calculerPointsPhotoAvis } from "../fonctions/avis/calculer-points-photo-avis.ts";
 import { choisirRaisonRelecture } from "../fonctions/avis/choisir-raison-relecture.ts";
+import { ecrireDetailPointsAvis } from "../fonctions/avis/ecrire-detail-points-avis.ts";
 import { lirePageAvis } from "../fonctions/avis/lire-page-avis.ts";
 import { presenterAvisPublic } from "../fonctions/avis/presenter-avis-public.ts";
 import { lireInitialeNom } from "../fonctions/visites/lire-initiale-nom.ts";
 import { presenterVisite } from "../fonctions/visites/presenter-visite.ts";
 import {
   DELAI_AVIS_NON_VERIFIE_MS, NOTES_TRANCHEES, RAFALE_FENETRE_MS,
-  type CompteAuteur, type ContexteAvis, type EchecAvis, type ErreurAvis, type LigneAvis, type TablesAvis,
+  type CompteAuteur, type ContexteAvis, type EchecAvis, type ErreurAvis, type TablesAvis,
 } from "./avis-regles.ts";
 
 type Reponse<T> = ({ ok: true } & T) | EchecAvis;
-/** Un avis écrit, et les points à poser ensuite (ajouterPoints, raison « avis-photo ») */
-export type AvisEcrit = { avis: AvisPublic; avisId: number; lieuId: number; pointsAPoser: number };
+/** Un avis écrit, et les points de sa photo, posés avec lui (raison « avis-photo ») */
+export type AvisEcrit = { avis: AvisPublic; pointsGagnes: number };
 
 export const echecAvis = (erreur: ErreurAvis, details?: DetailsErreur): EchecAvis => (details ? { ok: false, erreur, details } : { ok: false, erreur });
 
@@ -30,18 +33,21 @@ export const lieuDisparu = (id: number): LieuResume => ({ id, nom: "Lieu disparu
 export function creerAvisClient(c: ContexteAvis) {
   const maintenant = () => new Date(c.horloge());
 
-  /** Écrit l'avis (signature, relecture éventuelle) ; la visite a déjà été marquée « avis donné » */
+  /**
+   * Écrit l'avis (signature, relecture éventuelle) puis, dans la même transaction, les points de sa photo (détail « avis
+   * <id>, lieu <lieuId> », que relit le masquage) ; la visite a déjà été marquée « avis donné », le compte verrouillé
+   */
   async function ecrire(
     t: TablesAvis,
     compte: CompteAuteur,
     avis: { lieuId: number; visiteId: number | null; note: number; texte: string; photo: string | null; repasOffert: boolean },
     le: Date,
-  ): Promise<LigneAvis> {
+  ): Promise<AvisEcrit> {
     const tranchesRecents = NOTES_TRANCHEES.includes(avis.note)
       ? await t.compterAvisRecents(avis.lieuId, new Date(le.getTime() - RAFALE_FENETRE_MS), NOTES_TRANCHEES)
       : 0;
     const raison = choisirRaisonRelecture({ note: avis.note, tranchesRecents, compteCreeLe: compte.creeLe, maintenant: le, tirer: c.tirer });
-    return t.creerAvis({
+    const ligne = await t.creerAvis({
       ...avis,
       compteId: compte.id,
       texte: avis.texte.trim(),
@@ -50,6 +56,9 @@ export function creerAvisClient(c: ContexteAvis) {
       raisonRelecture: raison,
       creeLe: le,
     });
+    const pointsGagnes = calculerPointsPhotoAvis(ligne);
+    if (pointsGagnes > 0) await t.poserPointsPhoto(compte.id, pointsGagnes, ecrireDetailPointsAvis(ligne));
+    return { avis: presenterAvisPublic(ligne), pointsGagnes };
   }
 
   return {
@@ -79,9 +88,8 @@ export function creerAvisClient(c: ContexteAvis) {
         if (compte.lieuxLies.includes(lieu.id)) return echecAvis("membre-du-lieu");
         if (!(await t.marquerAvisDonne(visite.id))) return echecAvis("avis-deja-donne");
         const repasOffert = visite.reglement?.type === "offert";
-        const avis = await ecrire(t, compte, { lieuId: lieu.id, visiteId: visite.id, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert }, le);
         // Les points d'une photo suivent ceux de la visite : rien pour un repas offert
-        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser: calculerPointsPhotoAvis(avis) };
+        return { ok: true, ...(await ecrire(t, compte, { lieuId: lieu.id, visiteId: visite.id, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert }, le)) };
       });
     },
 
@@ -99,9 +107,8 @@ export function creerAvisClient(c: ContexteAvis) {
         if (dernier && le.getTime() - dernier.getTime() < DELAI_AVIS_NON_VERIFIE_MS) {
           return echecAvis("avis-recent", { jusqua: new Date(dernier.getTime() + DELAI_AVIS_NON_VERIFIE_MS).toISOString() });
         }
-        const avis = await ecrire(t, compte, { lieuId: lieu.id, visiteId: null, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert: false }, le);
         // Sans visite, jamais de points (même avec une photo)
-        return { ok: true, avis: presenterAvisPublic(avis), avisId: avis.id, lieuId: lieu.id, pointsAPoser: calculerPointsPhotoAvis(avis) };
+        return { ok: true, ...(await ecrire(t, compte, { lieuId: lieu.id, visiteId: null, note: nouvel.note, texte: nouvel.texte, photo: nouvel.photo, repasOffert: false }, le)) };
       });
     },
 

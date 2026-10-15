@@ -61,9 +61,12 @@ export type EtatProfil = {
   pseudoMisDeCote: string | null;
   /** Efface le profil, l'avatar, la synchro et la visite sans compte du téléphone (retour à la bienvenue) */
   effacer: () => Promise<void>;
-  /** Emoji ou photo de profil (gardé à part : ce n'est pas une donnée du compte) */
+  /** Emoji, Miami ou photo de profil (gardé à part du profil ; avec un compte, l'emoji ou le Miami suit sur le serveur) */
   avatar: Avatar;
-  /** Change d'avatar ; l'ancienne photo, s'il y en avait une, est supprimée du téléphone */
+  /**
+   * Change d'avatar, tout de suite sur le téléphone ; l'ancienne photo, s'il y en avait une, en est supprimée. Avec un
+   * compte (hors démo), un emoji ou un Miami part ensuite au serveur ; une photo, jamais
+   */
   changerAvatar: (avatar: Avatar) => Promise<void>;
 };
 

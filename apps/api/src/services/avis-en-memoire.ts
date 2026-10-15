@@ -1,10 +1,10 @@
 // Double en mémoire des avis, pour les tests (aucune base de données). Mêmes gestes que avis.ts ; une seule chose à la fois
 // en JavaScript, donc le verrou ne fait rien (deux écritures peuvent s'entrelacer à chaque await : les gestes conditionnels
 // tranchent, comme dans la base). ecrire est tout ou rien : chaque écriture note de quoi la défaire, et une erreur levée
-// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction. Les points de la photo : chaque
-// mouvement est noté (pointsPhoto, le journal) et le total du compte suit (pointsComptes, jamais sous 0, comme
-// ajouterPointsDans), défaits avec le reste. transaction joue la transaction d'un appelant (le logiciel de gestion) :
-// depot.dans(tx) y écrit, et tout est défait si son fn lève.
+// défait celles de cet appel (et d'aucun autre), comme le retour en arrière d'une transaction. Les points de la photo (posés
+// avec l'avis à son écriture, retirés ou rendus avec son statut) : chaque mouvement est noté (pointsPhoto, le journal) et
+// le total du compte suit (pointsComptes, jamais sous 0, comme ajouterPointsDans), défaits avec le reste. transaction joue
+// la transaction d'un appelant (le logiciel de gestion) : depot.dans(tx) y écrit, et tout est défait si son fn lève.
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { MotifAvisLouche } from "../../../../packages/commun/src/types/avis.ts";
 import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
