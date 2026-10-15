@@ -35,7 +35,7 @@ import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
+import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import couleurs from "~/theme/couleurs";
@@ -79,8 +79,7 @@ export default function PourToi() {
   // Stable : les gestes mémorisés l'appellent sans redessiner le fil
   const exiger = utiliserCompteRequis();
   const inviter = utiliserInviterLieu();
-  // Distances depuis le centre de ta ville (partout en France), pas depuis Montpellier
-  const depart = utiliserPointDeDepart();
+  const { depart, depuis } = utiliserDepartVille();
   const activite = utiliserActivite();
   const nombreCommentaires = utiliserNombresCommentaires();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
@@ -399,6 +398,7 @@ export default function PourToi() {
                   publication={item}
                   lieu={lieu}
                   km={km}
+                  depuis={depuis}
                   largeur={taille.largeur}
                   hauteur={taille.hauteur}
                   raison={profil ? trouverRaisonLieu(lieu, profil, km) : null}

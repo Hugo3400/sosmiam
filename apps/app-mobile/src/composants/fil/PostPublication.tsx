@@ -20,7 +20,7 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { INDICE_COMPTE } from "~/contenus/indice-compte";
 import type { Publication } from "~/contenus/type-publication";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -32,8 +32,8 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   publication: Publication;
   lieu: Lieu;
-  /** Distance du lieu depuis ta ville, en km (un nombre : la publication est mémorisée) ; null si on ne la connaît pas : rien ne s'affiche */
   km: number | null;
+  depuis: string | null;
   largeur: number;
   hauteur: number;
   /** « Parce que tu aimes les restos »… */
@@ -91,7 +91,7 @@ const DELAI_FOCUS_REDUCTION = 300;
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
-  const { publication, lieu, km, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
+  const { publication, lieu, km, depuis, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const pointSos = useSharedValue(1);
   const [enPause, setEnPause] = useState(false);
@@ -208,7 +208,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     lieu.alerte,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
     raison,
-    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${formaterDistance(km)}`}, ${lieu.prix}`,
+    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${ecrireDistanceDepuis(km, depuis)}`}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
   const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
@@ -344,7 +344,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
               <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
                 📍 {ecrireQuartierVille(lieu)}
-                {km === null ? "" : ` · ${formaterDistance(km)}`} · {lieu.prix}
+                {km === null ? "" : ` · ${ecrireDistanceDepuis(km, depuis)}`} · {lieu.prix}
               </Text>
             </View>
             {alcool ? <MentionPrevention variante="sur-image" /> : null}

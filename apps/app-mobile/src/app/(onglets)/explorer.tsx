@@ -34,6 +34,7 @@ import { utiliserAutourDeMoi } from "~/hooks/utiliser-autour-de-moi";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
 import couleurs from "~/theme/couleurs";
@@ -224,7 +225,7 @@ export default function Explorer() {
   // Ce qui est sous la feuille : la barre d'onglets, ou le clavier quand il est ouvert (il la recouvre)
   const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
   const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
-  const depuis = position ? "de toi" : depuisVille;
+  const depuis = position ? DEPUIS_TOI : depuisVille;
   const autourDe = depuis ?? (profil?.ville ? eliderDe(profil.ville) : "de ta ville");
   const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe);
   const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
