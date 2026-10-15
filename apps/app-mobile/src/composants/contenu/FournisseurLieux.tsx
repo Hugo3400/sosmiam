@@ -19,7 +19,7 @@ const RELECTURE_MS = 10 * 60_000;
 // Une zone lue il y a moins d'une minute est encore fraîche : la liste relue ne la redemande pas (ouverture de l'app)
 const ZONE_FRAICHE_MS = 60_000;
 // Les zones gardées : les 4 dernières demandées (autour de toi, de ta ville, d'une ville choisie, ta région) ; les plus
-// anciennes sont oubliées avec leurs lieux, pour ne pas grossir sans fin
+// anciennes sont oubliées avec leurs lieux, pour ne pas grossir sans fin (celle de ta ville, jamais)
 const ZONES_GARDEES = 4;
 
 /** La clé d'une zone arrondie à la grille (des multiples de 0,5 degré : deux cadrages voisins ne relisent pas le serveur) */
@@ -45,6 +45,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   // ancienne demande à la plus récente
   const [deZones, setDeZones] = useState<Record<string, LieuApi[]>>({});
   const zones = useRef(new Map<string, ZoneGardee>());
+  const cleDeTaVille = useRef<string | null>(null);
   const [horsLigne, setHorsLigne] = useState(false);
   const derniereLecture = useRef(0);
 
@@ -104,8 +105,9 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       zones.current.delete(cle);
       zones.current.set(cle, { zone, demandee: deja?.demandee ?? 0 });
       if (zones.current.size > ZONES_GARDEES) {
-        const oubliees = [...zones.current.keys()].slice(0, zones.current.size - ZONES_GARDEES);
-        for (const oubliee of oubliees) zones.current.delete(oubliee);
+        // Celle de ta ville reste : le fil et Explorer s'en servent dès l'ouverture
+        const oubliables = [...zones.current.keys()].filter((c) => c !== cleDeTaVille.current);
+        for (const oubliee of oubliables.slice(0, zones.current.size - ZONES_GARDEES)) zones.current.delete(oubliee);
         setDeZones((lieux) => Object.fromEntries(Object.entries(lieux).filter(([c]) => zones.current.has(c))));
       }
       if (deja && Date.now() - deja.demandee < RELECTURE_MS) return;
@@ -116,7 +118,9 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
 
   // Les lieux autour de ta ville, jusqu'au bout du curseur d'Explorer : là, même au-delà des 1 000 de la liste
   useEffect(() => {
-    if (depart) chargerZone(calculerZoneAutour(depart, RAYON_PROCHE_KM.max));
+    const autour = depart ? calculerZoneAutour(depart, RAYON_PROCHE_KM.max) : null;
+    cleDeTaVille.current = autour ? cleZone(arrondirZoneALaGrille(autour)) : null;
+    if (autour) chargerZone(autour);
   }, [depart, chargerZone]);
 
   useEffect(() => {
