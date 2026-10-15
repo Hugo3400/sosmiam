@@ -44,13 +44,15 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
       {potes.map((pote) => {
         const choisi = choisis.includes(pote.id);
         const bloque = complet && !choisi;
+        // Avec un compte, la ville d'un pote peut manquer : ni « · » ni virgule dans le vide
+        const ville = pote.ville.trim();
         return (
           <Pressable
             key={pote.id}
             // Sur iPhone, « coché » est lu en anglais : bouton « sélectionné » ; case à cocher ailleurs
             accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
             accessibilityState={Platform.OS === "ios" ? { selected: choisi, disabled: bloque } : { checked: choisi, disabled: bloque }}
-            accessibilityLabel={`${pote.prenom}, ${pote.ville}`}
+            accessibilityLabel={ville ? `${pote.prenom}, ${ville}` : pote.prenom}
             accessibilityHint={bloque ? (indiceMax ?? `${max} invités au plus par sortie`) : undefined}
             disabled={bloque}
             onPress={() => {
@@ -65,7 +67,8 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
                 {pote.prenom}
               </Text>
               <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                @{pote.pseudo} · {pote.ville}
+                @{pote.pseudo}
+                {ville ? ` · ${ville}` : null}
               </Text>
             </View>
             <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-encre" : "bg-white"}`}>

@@ -1,6 +1,7 @@
 // Textes de « Ton compte est limité » (Mon compte, sur les trois hôtes) : ce que la limitation change, ce qui reste
 // permis (décision de Hugo du 15 octobre 2026, docs/decisions.md, « Modération des avis et limitation d'un compte »), et
-// la contestation. Les mêmes listes que les CGU (contenus/legal/cgu-moderation.ts) : à garder en phase.
+// la contestation. Listes « coupe » et « reste » reprises mot pour mot de l'app (apps/app-mobile/src/contenus/limitation-compte.ts,
+// TEXTES_LIMITATION, liste finale de la session App du 15/10). Les mêmes listes que les CGU (contenus/legal/cgu-moderation.ts) : à garder en phase.
 // Aucun import ici : le test (tests/limitation-compte.test.ts) lance ce fichier directement avec Node. Les « {…} » se
 // remplissent avec remplirModele (packages/commun/src/fonctions/texte/remplir-modele.ts).
 
@@ -15,10 +16,10 @@ export const textesLimitation = {
   pourquoi: "Ce que l'équipe t'explique",
   coupeTitre: "Ce qui attend la fin",
   coupe:
-    "Tout ce que les autres verraient : messages, réactions et groupes, commentaires, avis, sorties, listes, lieux envoyés à tes potes, invitations et demandes, suggestions sur la fiche d'un lieu, la fiche et la carte de ton lieu, l'arrivée dans une équipe, et un nouveau prénom, pseudo ou avatar.",
+    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires (écrire, modifier), avis (vérifiés ou non), sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, un nouveau prénom, pseudo ou avatar, et le petit mot d'une demande de réservation. En mode pro, publier pour ton lieu : sa fiche, sa carte, le SOS du soir, le message du moment (l'afficher comme l'effacer), les événements (publier, modifier) et les réponses aux avis ; créer, rallumer ou modifier sa carte de fidélité ; arrêter le SOS ou annuler l'événement d'un collègue ; inviter dans ton équipe ou y entrer.",
   resteTitre: "Ce qui marche comme d'habitude",
   reste:
-    "Lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, candidater, demander à gérer un lieu, tes missions d'ambassadeur), « Mon compte », l'export de tes données et la suppression de ton compte.",
+    "Tout lire, valider tes visites, réserver une table (sans petit mot), Miam Safe, voter dans une sortie, mettre un J'aime à un commentaire, accepter ou refuser une invitation (sauf pour entrer dans une équipe) ou une demande, suivre une liste, signaler, bloquer, masquer, quitter, retirer quelqu'un de ta sortie ou de ton groupe, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, demander à gérer un lieu, tes missions d'ambassadeur…), l'export de tes données et la suppression de ton compte. En mode pro : le comptoir de ton lieu (valider les visites, répondre aux réservations), arrêter ton propre SOS, annuler tes propres événements et éteindre la carte de fidélité telle quelle.",
   contesterTitre: "Pas d'accord ?",
   contester:
     "Dis-nous pourquoi : une seule fois, tant que la limitation dure. Une autre personne de l'équipe que celle qui a décidé relit tout, et te répond dans l'app et par e-mail.",

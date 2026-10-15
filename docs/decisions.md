@@ -483,7 +483,7 @@
 - Un compte qui appartient à quelqu'un de moins de 18 ans (découvert, ou signalé par un parent) est supprimé avec ses données. La newsletter et « Préviens-moi » restent ouverts à tout âge, avec l'accord des parents sous 15 ans.
 - Aucun compte de 15-17 ans n'existait au moment du passage à 18 ans.
 - Un pseudo libéré (changement de pseudo ou compte supprimé) reste réservé **30 jours**, pour que personne ne le reprenne aussitôt pour se faire passer pour quelqu'un d'autre.
-- La messagerie n'ouvre aux vrais utilisateurs qu'**après** le ménage automatique (lot L7 : médias à 90 jours, conversations et sorties à 1 an…) ; ses textes légaux passent alors au présent.
+- La messagerie n'ouvre aux vrais utilisateurs qu'**après** le ménage automatique (lot L7 : médias à 90 jours, conversations et sorties à 1 an…) ; ses textes légaux passent alors au présent. **Ouverte le 15 octobre 2026** (go de Hugo) : le ménage tourne depuis le redémarrage de 12 h 59 et les textes légaux sont au présent depuis 13 h 16.
 - Signalements Miam Safe jamais traités : effacés **1 an** après leur envoi. Invitations de groupe sans réponse (ou refusées) : effacées après **30 jours** (on peut ensuite réinviter).
 - Bandeau de consentement aux cookies : prêt sur le site, mais affiché seulement quand une catégorie facultative (pub, vidéos…) est vraiment active ; aperçu avec `?apercu-cookies`.
 - Désinscrits de la newsletter : adresse et date gardées **3 ans** (voir plus haut). Comptes de l'app : case newsletter visible à l'inscription, cochée par défaut et décochable ; les comptes déjà créés sont inscrits par l'action du logiciel lancée par Hugo.

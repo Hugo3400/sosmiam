@@ -47,7 +47,9 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
     return (
       <View className="gap-4">
         <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
-          <Text className="font-texte-gras text-base text-encre">{source === "attente" || !pret ? "Ta bande arrive…" : "Rien ne part en démo"}</Text>
+          <Text className="font-texte-gras text-base text-encre">
+            {source === "attente" || !pret ? "Ta bande arrive…" : source === "visite" ? "Il te faut ton compte" : "Rien ne part en démo"}
+          </Text>
           <Text className="font-texte text-base leading-6 text-encre">
             {source === "attente" || !pret
               ? "Un instant. Si ça traîne, appelle plutôt un proche."

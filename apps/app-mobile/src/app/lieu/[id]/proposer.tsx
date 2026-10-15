@@ -7,13 +7,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { validerPropositionLieu, type ChampPropositionLieu } from "@sos-miam/commun/validation/valider-proposition-lieu";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
 import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { CARTE_REFUS_LIMITATION, REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
@@ -57,6 +58,9 @@ export default function ProposerModification() {
   const [envoi, setEnvoi] = useState(false);
   // Ce que le service a répondu (trop de propositions, rien à changer, pas de connexion…)
   const [refus, setRefus] = useState<ErreurService | null>(null);
+  // Compte limité : dit dans le bas fixe, au-dessus du bouton, jusqu'au prochain essai (au bout du contenu, la phrase
+  // tomberait hors de vue, et un 2e refus identique n'y changerait rien)
+  const [refusLimite, setRefusLimite] = useState<string | null>(null);
 
   if (!lieu || !actuel) {
     if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
@@ -82,8 +86,7 @@ export default function ProposerModification() {
   };
   const parties = sujetsProposition.filter((s) => sujets.includes(s.sujet) && s.partie).map((s) => s.partie!);
 
-  // Compte limité : la phrase de l'app (le titre partagé attend une date que cet écran n'a pas)
-  const messageRefus = refus === "compte-limite" ? { emoji: CARTE_REFUS_LIMITATION.emoji, titre: CARTE_REFUS_LIMITATION.titre, texte: REFUS_LIMITATION.suggestion } : refus ? MESSAGES_SERVICE[refus] : null;
+  const messageRefus = refus ? MESSAGES_SERVICE[refus] : null;
 
   async function envoyer() {
     if (envoi || !lieu) return;
@@ -92,8 +95,10 @@ export default function ProposerModification() {
     const r = validerPropositionLieu({ proposition, message });
     if (!r.ok) return setErreur(r.champ);
     setEnvoi(true);
+    setRefusLimite(null);
     const reponse = await service.proposer(lieu.id, r.suggestion);
     setEnvoi(false);
+    if (!reponse.ok && reponse.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.suggestion);
     if (!reponse.ok) return setRefus(reponse.erreur);
     vibrerLegerement();
     setEnvoyee(true);
@@ -200,7 +205,8 @@ export default function ProposerModification() {
               ) : null}
             </ScrollView>
 
-            <View className="border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+            <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+              <RefusLimitationEnPlace texte={refusLimite} />
               <Bouton
                 libelle={envoi ? "Envoi…" : "Envoyer ma proposition"}
                 desactive={sujets.length === 0 || envoi}
