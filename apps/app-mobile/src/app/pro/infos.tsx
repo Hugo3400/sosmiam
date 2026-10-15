@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { validerInfosPratiques, type ChampInfosPratiques } from "@sos-miam/commun/validation/valider-infos-pratiques";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
@@ -29,6 +30,8 @@ export default function EcranInfosPratiquesPro() {
   const [erreur, setErreur] = useState<ChampInfosPratiques | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  // Compte limité : dit au-dessus du bouton jusqu'au prochain essai (l'annonce du haut passerait sous celle de toute l'app)
+  const [refusLimite, setRefusLimite] = useState<string | null>(null);
 
   useEffect(() => {
     if (!lieuPro) return;
@@ -49,11 +52,12 @@ export default function EcranInfosPratiquesPro() {
     if (!valide.ok) return setErreur(valide.champ);
     if (!lieuPro) return;
     setEnregistrement(true);
+    setRefusLimite(null);
     const r = await comptoir.reglerInfosPratiques(lieuPro.id, valide.infos);
     setEnregistrement(false);
     if (!r.ok) {
-      const texte = r.erreur === "compte-limite" ? REFUS_LIMITATION.ficheLieu : "Les infos n'ont pas pu être enregistrées. Réessaie dans un instant ?";
-      return setAnnonce({ texte, numero: Date.now() });
+      if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.ficheLieu);
+      return setAnnonce({ texte: "Les infos n'ont pas pu être enregistrées. Réessaie dans un instant ?", numero: Date.now() });
     }
     vibrerLegerement();
     fermer();
@@ -88,7 +92,8 @@ export default function EcranInfosPratiquesPro() {
           </View>
         </ScrollView>
 
-        <View className="border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+        <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+          <RefusLimitationEnPlace texte={refusLimite} />
           <Bouton libelle={enregistrement ? "Enregistrement…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />
         </View>
       </KeyboardAvoidingView>

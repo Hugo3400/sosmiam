@@ -9,6 +9,7 @@ import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
 import type { CarteLieu, ElementCarte } from "@sos-miam/commun/types/carte";
 import { validerCarteDuLieu } from "@sos-miam/commun/validation/valider-carte-du-lieu";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
@@ -75,6 +76,8 @@ export default function EcranCartePro() {
   const derniere = useRef<FeuilleOuverte>(null);
   if (feuille) derniere.current = feuille;
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  // Compte limité : dit au-dessus d'« Enregistrer » jusqu'au prochain essai (l'annonce du haut passerait sous celle de toute l'app)
+  const [refusLimite, setRefusLimite] = useState<string | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const [departDemande, setDepartDemande] = useState(false);
   const actionDepart = useRef<(() => void) | null>(null);
@@ -182,9 +185,11 @@ export default function EcranCartePro() {
       return annoncer(`${ou}, ${SOUCIS[valide.champ] ?? "quelque chose ne passe pas"}.`);
     }
     setEnregistrement(true);
+    setRefusLimite(null);
     const r = await comptoir.reglerCarteDuLieu(lieuPro.id, valide.carte);
     setEnregistrement(false);
-    if (!r.ok) return annoncer(r.erreur === "compte-limite" ? REFUS_LIMITATION.ficheLieu : `${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
+    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.ficheLieu);
+    if (!r.ok) return annoncer(`${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
     vibrerLegerement();
     setDepart(r.carte);
     repartirDe(r.carte);
@@ -284,6 +289,7 @@ export default function EcranCartePro() {
             <Text accessibilityLiveRegion="polite" className="text-center font-texte-semi text-sm text-gris">
               Des changements pas encore enregistrés
             </Text>
+            <RefusLimitationEnPlace texte={refusLimite} />
             <View className="flex-row gap-3">
               <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" desactive={enregistrement} onPress={annulerTout} />
               <Bouton className="flex-1" libelle={enregistrement ? "Envoi…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />

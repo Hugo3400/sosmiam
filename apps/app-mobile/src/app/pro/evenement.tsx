@@ -6,6 +6,7 @@ import { TYPES_EVENEMENT_ECRITS } from "@sos-miam/commun/contenus/types-evenemen
 import { DESCRIPTION_EVENEMENT_MAX, TITRE_EVENEMENT_MAX, TITRE_EVENEMENT_MIN, TYPES_EVENEMENT } from "@sos-miam/commun/regles/evenements";
 import type { ChampEvenement, EvenementLieuPro } from "@sos-miam/commun/types/evenement";
 import { validerEvenement } from "@sos-miam/commun/validation/valider-evenement";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -52,6 +53,8 @@ export default function EcranEvenementPro() {
   const [enCours, setEnCours] = useState(false);
   const [annulation, setAnnulation] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  // Compte limité : il ne publie plus pour le lieu (annuler un événement, lui, reste permis) ; dit en bas, jusqu'au prochain essai
+  const [refusLimite, setRefusLimite] = useState<string | null>(null);
 
   // Modifier : l'événement est relu dans la liste du lieu (il n'existe pas de lecture d'un seul)
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function EcranEvenementPro() {
     const verifie = validerEvenement(reglage, new Date(), existant?.debut ?? null);
     if (!verifie.ok) return setErreur(verifie.champ);
     setEnCours(true);
+    setRefusLimite(null);
     const r = existant ? await service.modifierEvenement(lieuId, existant.id, verifie.evenement) : await service.creerEvenement(lieuId, verifie.evenement);
     setEnCours(false);
     if (r.ok) {
@@ -83,8 +87,8 @@ export default function EcranEvenementPro() {
       return router.back();
     }
     if (r.erreur === "evenement-invalide" && r.champ) return setErreur(r.champ as ChampEvenement);
-    // Compte limité : il ne publie plus pour le lieu (annuler un événement, lui, reste permis)
-    echouer(r.erreur === "compte-limite" ? REFUS_LIMITATION.evenement : decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.evenement);
+    echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
   }
 
   async function annuler() {
@@ -148,6 +152,7 @@ export default function EcranEvenementPro() {
       <SectionReglages titre="Prix et places">
         <ChampsTarifEvenement brouillon={b} onChanger={changer} erreurs={{ prixCentimes: message("prixCentimes"), places: message("places"), alcool: message("alcool") }} />
       </SectionReglages>
+      <RefusLimitationEnPlace texte={refusLimite} />
       {existant && existant.statut === "a-venir" ? (
         <View className="gap-2">
           <Text className="font-texte text-sm text-gris">{`${existant.interesses} personne${existant.interesses > 1 ? "s" : ""} intéressée${existant.interesses > 1 ? "s" : ""}${existant.publiePar ? ` · publié par ${existant.publiePar}` : ""}`}</Text>

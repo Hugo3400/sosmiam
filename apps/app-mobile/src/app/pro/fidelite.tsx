@@ -7,6 +7,7 @@ import { contientMotAlcool } from "@sos-miam/commun/fonctions/fidelite/contient-
 import { VISITES_FIDELITE_DEFAUT, VISITES_FIDELITE_MAX, VISITES_FIDELITE_MIN } from "@sos-miam/commun/regles/fidelite";
 import type { ReglageFidelite } from "@sos-miam/commun/types/fidelite";
 import { validerReglageFidelite } from "@sos-miam/commun/validation/valider-reglage-fidelite";
+import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -43,6 +44,8 @@ export default function EcranFidelitePro() {
   const [erreur, setErreur] = useState<keyof typeof ERREURS | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  // Compte limité : dit au-dessus du bouton jusqu'au prochain essai (l'annonce du haut passerait sous celle de toute l'app)
+  const [refusLimite, setRefusLimite] = useState<string | null>(null);
 
   useEffect(() => {
     if (!lieuPro) return;
@@ -69,11 +72,12 @@ export default function EcranFidelitePro() {
     if (!valide.ok) return setErreur(valide.champ);
     if (!lieuPro) return;
     setEnregistrement(true);
+    setRefusLimite(null);
     const r = await comptoir.reglerProgramme(lieuPro.id, valide.reglage);
     setEnregistrement(false);
     if (!r.ok) {
-      const texte = r.erreur === "compte-limite" ? REFUS_LIMITATION.fidelite : "La carte n'a pas pu être enregistrée. Réessaie dans un instant ?";
-      return setAnnonce({ texte, numero: Date.now() });
+      if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.fidelite);
+      return setAnnonce({ texte: "La carte n'a pas pu être enregistrée. Réessaie dans un instant ?", numero: Date.now() });
     }
     vibrerLegerement();
     fermer();
@@ -141,7 +145,8 @@ export default function EcranFidelitePro() {
           <ApercuCarteFidelite nomLieu={lieuPro.nom} emoji={lieuPro.emoji} visites={reglage.visitesRequises} recompense={reglage.recompense} actif={reglage.actif} />
         </ScrollView>
 
-        <View className="border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+        <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
+          <RefusLimitationEnPlace texte={refusLimite} />
           <Bouton libelle={enregistrement ? "Enregistrement…" : "Enregistrer la carte"} desactive={enregistrement} onPress={enregistrer} />
         </View>
       </KeyboardAvoidingView>
