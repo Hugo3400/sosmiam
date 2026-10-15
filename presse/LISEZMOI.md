@@ -13,4 +13,4 @@ Tous les contenus promo, exportés en fichiers pour l'Espace presse du logiciel 
 - `videos/` (environ 330 Mo, zip compris) n'est pas dans git (voir `.gitignore`) : il n'existe que sur le serveur, comme `kits/*.zip`.
 - Les kits médias du site (`apps/site-web/kit-media*`) ne sont pas recopiés ici : le logiciel les lit à leur place.
 
-Les maquettes sont à valider par Hugo : aucune date, aucun chiffre, aucune promesse au-delà de docs/decisions.md. Les documents les plus anciens (5 au 8 octobre) gardent leur état d'origine : relis-les avant de les envoyer.
+Pour le refaire : `scripts/presse/LISEZMOI.md`. Les maquettes ont été validées par Hugo le 14 octobre 2026 : aucune date, aucun chiffre, aucune promesse au-delà de docs/decisions.md. Les documents les plus anciens (5 au 8 octobre) gardent leur état d'origine : relis-les avant de les envoyer.

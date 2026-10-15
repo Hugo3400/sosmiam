@@ -58,7 +58,7 @@ test("tes messages déchiffrés, le titre de tes groupes, tes réactions ; jamai
   const e = r.corps.export;
   assert.equal(e.genereLe, date().toISOString());
   assert.deepEqual([e.profil.personne.id, e.profil.reglages.trouvable], [lea.idPublic, true]);
-  assert.deepEqual(e.bande.map((b: { personne: { id: string } }) => b.personne.id).sort(), [malo.idPublic, zoe.idPublic].sort());
+  assert.deepEqual(e.bande.map((b: { personne: { id: string } }) => b.personne.id).sort(), [malo.idPublic, zoe.idPublic, noe.idPublic].sort());
   const [conversationPrivee, conversationGroupe] = e.conversations;
   assert.deepEqual([conversationPrivee.id, conversationPrivee.type, conversationPrivee.titre, [...conversationPrivee.membres].sort()], [prive, "prive", null, ["lea.export", "malo.export"]]);
   assert.deepEqual(conversationPrivee.messages.map((m: { type: string; texte: string; lieuId: number | null; taille: number | null }) => [m.type, m.texte, m.lieuId, m.taille]), [
