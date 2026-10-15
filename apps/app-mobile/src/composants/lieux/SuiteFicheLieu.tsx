@@ -6,6 +6,7 @@ import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte-contient-alcool";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { SectionAvisLieu } from "~/composants/avis/SectionAvisLieu";
 import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { BlocEvenementsLieu } from "~/composants/lieux/BlocEvenementsLieu";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
@@ -119,6 +120,8 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
           </Text>
         ))}
       </View>
+
+      <SectionAvisLieu lieuId={lieu.id} nomLieu={lieu.nom} age={age} />
 
       {/* Une info a changé : le client la propose, l'équipe vérifie avant de toucher à la fiche */}
       <LienProposerModification lieu={lieu} />
