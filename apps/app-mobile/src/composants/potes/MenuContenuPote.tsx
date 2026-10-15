@@ -12,6 +12,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
 /** Ce qu'un pote a partagé avec toi : un lieu envoyé (identifiant de la recommandation) ou une liste, et ce pote */
@@ -56,6 +57,7 @@ const TEXTES = {
 export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(contenu !== null, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();

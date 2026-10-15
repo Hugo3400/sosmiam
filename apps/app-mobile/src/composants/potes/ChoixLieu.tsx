@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
 
@@ -21,6 +22,7 @@ type Props = {
 /** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). Réservé aux inscrits : tous les lieux. */
 export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height } = useWindowDimensions();

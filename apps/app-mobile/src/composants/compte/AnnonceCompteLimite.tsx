@@ -1,6 +1,6 @@
 import { usePathname, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, ToastAndroid, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,6 +11,7 @@ import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation"
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserFeuilleOuverte } from "~/hooks/utiliser-feuille-ouverte";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
 import { trouverFeuilleOuverte } from "~/services/feuilles-ouvertes";
 import { ecouterCompteLimite } from "~/services/refus-compte-limite";
@@ -23,18 +24,26 @@ const DUREE = 9_000;
 const DUREE_LECTEUR_ECRAN = 15_000;
 // L'écran qui a écrit dit souvent son propre refus : la phrase passe après lui
 const DELAI_LECTURE = 700;
+// Android : une feuille ouverte (Modal, une autre fenêtre) passe au-dessus de l'annonce, rien n'y peut rien sans module natif
+const ANDROID = Platform.OS === "android";
 
 /**
  * L'annonce de toute l'app quand l'API refuse une écriture parce que le compte est limité (403 « compte-limite », vu par
  * le client HTTP de la session) : « Ton compte est limité jusqu'au … : certaines actions sont en pause. », avec « Voir
  * pourquoi » qui ouvre Réglages › Décisions de la modération. Douce, en haut de l'écran, elle s'efface toute seule ; une par
  * minute au plus. Les écrans gardent leurs propres messages. Montée une fois, dans PileRacine.
+ * Android, feuille ouverte (inscrite dans services/feuilles-ouvertes) : la feuille recouvre l'annonce. Un toast du système
+ * (ToastAndroid, au-dessus des Modal) dit la phrase tout de suite, et l'annonce attend la fermeture de la feuille pour
+ * commencer ses secondes : elle est donc vue en entier, avec « Voir pourquoi ». iPhone et web : au-dessus de la feuille.
  */
 export function AnnonceCompteLimite() {
   const router = useRouter();
   const chemin = usePathname();
   const marges = useSafeAreaInsets();
   const lecteurEcran = utiliserLecteurEcran();
+  // Android seulement : tant qu'une feuille est ouverte, l'annonce (dessous) attend
+  const feuilleOuverte = utiliserFeuilleOuverte();
+  const enAttente = ANDROID && feuilleOuverte;
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const derniere = useRef(Number.NEGATIVE_INFINITY);
   // Déjà sur l'écran des décisions : pas de « Voir pourquoi » (relu sans relancer l'annonce quand on change d'écran)
@@ -52,12 +61,14 @@ export function AnnonceCompteLimite() {
         derniere.current = maintenant;
         const texte = remplirModele(TEXTES_LIMITATION.annonce, { fin: decrireFinLimitation(jusqua) });
         setAnnonce((avant) => ({ texte, numero: (avant?.numero ?? 0) + 1 }));
+        // Le toast passe au-dessus de la feuille ouverte (et TalkBack le lit) ; l'annonce, elle, attend sa fermeture
+        if (ANDROID && trouverFeuilleOuverte()) ToastAndroid.show(lierPonctuation(texte), ToastAndroid.LONG);
       }),
     [],
   );
 
   useEffect(() => {
-    if (!annonce) return;
+    if (!annonce || enAttente) return;
     const lecture = setTimeout(
       () => annoncerLecteurEcran(surDecisionsActuel.current ? annonce.texte : `${annonce.texte} Le pourquoi est dans Réglages, Décisions de la modération.`),
       DELAI_LECTURE,
@@ -67,7 +78,7 @@ export function AnnonceCompteLimite() {
       clearTimeout(lecture);
       clearTimeout(minuterie);
     };
-  }, [annonce, lecteurEcran]);
+  }, [annonce, lecteurEcran, enAttente]);
 
   if (!annonce) return null;
   return (
@@ -93,7 +104,7 @@ export function AnnonceCompteLimite() {
                 onPress={() => {
                   vibrerLegerement();
                   setAnnonce(null);
-                  // Une feuille ouverte (les commentaires) se referme d'abord : sinon la page s'ouvrirait dessous
+                  // Les feuilles ouvertes (commentaires, envoi à un pote, nouvelle liste…) se referment d'abord : sinon la page s'ouvrirait dessous
                   const feuille = trouverFeuilleOuverte();
                   if (feuille) feuille(CHEMIN_DECISIONS);
                   else router.push(CHEMIN_DECISIONS);

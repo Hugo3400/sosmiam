@@ -14,6 +14,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
@@ -40,6 +41,7 @@ const TAILLE_MEMBRE = 36;
  */
 export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { moi, potes, bloquer, estSignale } = utiliserCommunaute();

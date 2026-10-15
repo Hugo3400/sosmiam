@@ -16,6 +16,7 @@ import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ErreurNouvelleListe } from "~/hooks/utiliser-communaute";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
   visible: boolean;
@@ -57,6 +58,7 @@ const EMOJIS = [
  */
 export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null, onModifiee }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();

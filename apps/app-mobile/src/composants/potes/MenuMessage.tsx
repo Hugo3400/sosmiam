@@ -11,6 +11,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -29,6 +30,7 @@ type Vue = "options" | "signaler" | "bloquer";
 /** Le menu d'un message d'un pote, dans une feuille qui monte du bas : le signaler, ou bloquer son auteur (avec confirmation). */
 export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { bloquer, potes, estSignale } = utiliserCommunaute();

@@ -10,6 +10,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
 export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { potes } = utiliserCommunaute();

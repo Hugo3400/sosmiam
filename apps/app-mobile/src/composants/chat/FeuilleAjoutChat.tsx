@@ -10,6 +10,7 @@ import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -39,6 +40,7 @@ const surLeWeb = Platform.OS === "web";
 /** Le « + » du chat, dans une feuille qui monte du bas : partager un lieu, une photo de ta galerie, ou en prendre une. */
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const conversations = utiliserConversations();

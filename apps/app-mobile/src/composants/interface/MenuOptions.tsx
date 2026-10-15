@@ -9,6 +9,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
 export type OptionMenu = {
@@ -36,6 +37,7 @@ type Props = {
  */
 export function MenuOptions({ visible, titre, options, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
   const titreOptions = useRef<Text>(null);

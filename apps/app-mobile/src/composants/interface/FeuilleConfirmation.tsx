@@ -7,6 +7,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
   visible: boolean;
@@ -43,6 +44,7 @@ const DUREE_FERMETURE = 450;
  */
 export function FeuilleConfirmation({ visible, emoji, titre, detail, libelleConfirmer, libelleRester, indiceRester, onConfirmer, onRefermee, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);

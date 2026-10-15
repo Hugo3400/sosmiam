@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
   visible: boolean;
@@ -24,6 +25,8 @@ type Props = {
  */
 export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied }: Props) {
   const marges = useSafeAreaInsets();
+  // Inscrite parmi les feuilles ouvertes : l'annonce d'un compte limité la referme avant « Voir pourquoi » (et l'attend sur Android)
+  utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
