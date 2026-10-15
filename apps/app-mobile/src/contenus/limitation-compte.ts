@@ -49,8 +49,8 @@ export const TEXTES_LIMITATION = {
 export const REFUS_LIMITATION = {
   commentaire: "Ton compte est limité : les commentaires sont en pause pour l'instant.",
   message: "Ton compte est limité : les messages sont en pause pour l'instant.",
-  /** Sous une bulle qui n'est pas partie (ni « Réessaie » : touchée, elle ouvre le pourquoi) */
-  bulle: "En pause : ton compte est limité. Voir pourquoi",
+  /** Sous une bulle qui n'est pas partie, suivi de « Voir pourquoi » (pas de « Réessaie » : touchée, elle ouvre le pourquoi) */
+  bulle: "Pas parti : ton compte est limité.",
   groupe: "Ton compte est limité : créer un groupe attendra la fin de la limitation.",
   lieuEnvoye: "Ton compte est limité : envoyer un lieu à tes potes attendra la fin de la limitation.",
   liste: "Ton compte est limité : créer ou modifier une liste attendra la fin de la limitation.",

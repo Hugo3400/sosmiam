@@ -26,6 +26,7 @@ import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { ChoixQuandSortie } from "~/composants/potes/ChoixQuandSortie";
 import { LieuxProposesSortie } from "~/composants/potes/LieuxProposesSortie";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
@@ -159,6 +160,7 @@ export default function NouvelleSortie() {
       if (resultat.erreur === "quand")
         trouvees.quand = `L'horloge coince : la sortie doit commencer au moins ${DELAI_MIN_SORTIE_MINUTES} min plus tard, et le vote finir au moins ${DELAI_MIN_FIN_VOTE_MINUTES} min plus tard, avant la sortie. Ajuste l'heure ou la fin du vote.`;
       if (resultat.erreur === "trop") trouvees.envoi = `${MAX_SORTIES_A_VENIR} sorties à venir, c'est le maximum. Profite d'abord de celles-là, la prochaine t'attendra !`;
+      if (resultat.erreur === "compte-limite") trouvees.envoi = REFUS_LIMITATION.sortie;
       if (resultat.erreur === "reseau") trouvees.envoi = "Le réseau a fait des siennes : ta sortie n'est pas partie. Réessaie dans un instant.";
     }
 

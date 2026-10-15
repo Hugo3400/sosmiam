@@ -7,6 +7,7 @@ import type { Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -51,7 +52,7 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
     const erreur = await inviterASortie(sortie.id, choisis);
     setEnvoi(false);
     if (erreur) {
-      const texte = MESSAGES_SERVICE[erreur].texte;
+      const texte = erreur === "compte-limite" ? REFUS_LIMITATION.sortie : MESSAGES_SERVICE[erreur].texte;
       setSouci(texte);
       AccessibilityInfo.announceForAccessibility(texte);
       return;

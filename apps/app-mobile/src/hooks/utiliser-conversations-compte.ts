@@ -46,6 +46,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
   const [invitationsApi, setInvitationsApi] = useState<InvitationGroupeApi[]>([]);
   const [fils, setFils] = useState<Record<string, Fil>>({});
   const [envois, setEnvois] = useState<Record<string, Envoi>>({});
+  // Les envois refusés parce que le compte est limité (id du message à l'écran) : ils ne repartent plus
+  const [enPause, setEnPause] = useState<ReadonlySet<string>>(new Set());
   const [pret, setPret] = useState(false);
   const generation = useRef(0);
   const filsLus = useRef(fils);
@@ -129,6 +131,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       setInvitationsApi([]);
       setFils({});
       setEnvois({});
+      setEnPause(new Set());
       setPret(false);
       return;
     }
@@ -193,6 +196,11 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       if (!tant(g)) return;
       if (!r.ok) {
         setEnvois((avant) => (avant[idClient] ? { ...avant, [idClient]: { ...avant[idClient], message: { ...avant[idClient].message, etat: "echec" } } } : avant));
+        // Compte limité : pas une panne, il ne repart plus (sans départ, renvoyer ne fait rien) ; la bulle dit pourquoi
+        if (r.erreur === "compte-limite") {
+          departs.current.delete(idClient);
+          setEnPause((avant) => new Set(avant).add(`envoi:${idClient}`));
+        }
         return;
       }
       departs.current.delete(idClient);
@@ -288,6 +296,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         if (!r.ok) {
           if (r.erreur === "message-refuse" || r.champ === "titre") return { erreur: "titre" };
           if (r.erreur === "pas-dans-la-bande" || r.erreur === "groupe-plein" || r.champ === "invites") return { erreur: "participants" };
+          if (r.erreur === "compte-limite") return { erreur: "compte-limite" };
           return { erreur: "reseau" };
         }
         noterPersonnes(r.conversation);
@@ -348,6 +357,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         );
         return "ok";
       },
+      envoisEnPause: enPause,
       renvoyer: (_conversationId, messageId) => {
         const envoi = enCours.find((e) => e.message.id === messageId);
         if (envoi?.message.idClient) void essayer(envoi.message.idClient);
@@ -406,10 +416,11 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         departs.current.clear();
         setFils({});
         setEnvois({});
+        setEnPause(new Set());
         effacerMediasChatCompte();
       },
     };
   }, [
-    pret, liste, sorties, invitationsApi, fils, envois, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe,
+    pret, liste, sorties, invitationsApi, fils, envois, enPause, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe,
   ]);
 }

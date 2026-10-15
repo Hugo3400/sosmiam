@@ -153,6 +153,7 @@ export function utiliserSortiesCompte(actif: boolean, { monId, noterPersonne, es
         if ((r.erreur === "champ-invalide" || r.erreur === "message-refuse") && r.champ && r.champ in ERREUR_DU_CHAMP) return { erreur: ERREUR_DU_CHAMP[r.champ as ChampNouvelleSortie] };
         if (r.erreur === "pas-dans-la-bande") return { erreur: "participants" };
         if (r.erreur === "lieu-inconnu") return { erreur: "lieux" };
+        if (r.erreur === "compte-limite") return { erreur: "compte-limite" };
         return { erreur: r.erreur === "trop-de-sorties" ? "trop" : "reseau" };
       }
       remplacer(r.sortie);
@@ -195,16 +196,19 @@ export function utiliserSortiesCompte(actif: boolean, { monId, noterPersonne, es
           () => sociaux.sorties.voter(sortieId, lieuId, oui),
         );
       },
-      proposerLieu: (sortieId, lieuId) => {
+      proposerLieu: (sortieId, lieuId, surRefus) => {
         const s = trouver(sortieId);
         if (!s || s.voteTermine || !trouverLieu(lieuId)) return "interdit";
         if (s.propositions.some((p) => p.lieuId === lieuId)) return "deja";
         if (s.propositions.length >= MAX_PROPOSITIONS_SORTIE) return "max";
+        // Refusé : la relecture de faire retire la proposition, et l'écran qui l'avait annoncée dit pourquoi
         void faire(
           sortieId,
           () => changer(sortieId, (x) => ({ ...x, propositions: [...x.propositions, { lieuId, proposePar: moi, votes: [moi], nombreVotes: 1 }] })),
           () => sociaux.sorties.proposer(sortieId, lieuId),
-        );
+        ).then((r) => {
+          if (!r.ok) surRefus?.(r.erreur);
+        });
         return "ok";
       },
       terminerVote: (sortieId) => {

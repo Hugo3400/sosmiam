@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import type { DecisionModerationApi } from "@sos-miam/commun/types/signalement";
@@ -14,6 +15,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserDecisionsModeration } from "~/hooks/utiliser-decisions-moderation";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
+import { utiliserRetoursPremierPlan } from "~/hooks/utiliser-retours-premier-plan";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import couleurs from "~/theme/couleurs";
 
@@ -42,6 +44,24 @@ export default function DecisionsModeration() {
   // Une des deux lectures a raté : ce qu'on montre peut être incomplet (ou d'avant)
   const ratee = moderation.ratee || limitation.ratee;
   const rien = decisions.length === 0 && !limite;
+
+  // De retour sur l'écran ou dans l'app : la limitation a pu commencer, finir ou être levée entre-temps (la première lecture,
+  // elle, part toute seule à l'ouverture)
+  const relireLimitation = useRef(limitation.relire);
+  useEffect(() => {
+    relireLimitation.current = limitation.relire;
+  });
+  const dejaVu = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (dejaVu.current) void relireLimitation.current();
+      dejaVu.current = true;
+    }, []),
+  );
+  const retours = utiliserRetoursPremierPlan();
+  useEffect(() => {
+    if (retours > 0) void relireLimitation.current();
+  }, [retours]);
 
   async function relire() {
     if (relecture) return;

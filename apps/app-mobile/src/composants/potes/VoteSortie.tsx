@@ -9,6 +9,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { LieuChoisiSortie } from "~/composants/potes/LieuChoisiSortie";
 import { PropositionVote } from "~/composants/potes/PropositionVote";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -77,7 +78,10 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
   function proposer(lieuId: number) {
     const lieu = trouverLieu(lieuId);
-    const resultat = proposerLieu(sortie.id, lieuId);
+    // Affiché tout de suite ; si le serveur refuse, la proposition repart et on dit pourquoi
+    const resultat = proposerLieu(sortie.id, lieuId, (erreur) =>
+      onAnnoncer(erreur === "compte-limite" ? REFUS_LIMITATION.sortie : `${lieu?.nom ?? "Ce lieu"} n'a pas pu entrer dans la course. Réessaie dans un instant ?`),
+    );
     if (resultat === "ok") {
       setChoixOuvert(false);
       onAnnoncer(`📍 ${lieu?.nom ?? "Lieu"} proposé, et ton vote est déjà dedans !`);

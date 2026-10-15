@@ -70,7 +70,7 @@ test("lien valide : les deux bandes tout de suite, « bande-ajout » en cloche e
   assert.deepEqual(clocheDe(lea).map((n) => [n.type, n.acteurId]), [["bande-ajout", tom.compteId]]);
   await banc.attendreEnvois();
   assert.deepEqual(banc.pushs.filter((p) => p.compteId === lea.compteId).map((p) => p.message), [
-    { titre: "🤝 Tom a rejoint ta bande", texte: "Grâce à ton lien. Dis-lui bonjour !", lien: `/potes/profil/${tom.idPublic}` },
+    { titre: "🤝 Tom a rejoint ta bande", texte: "Grâce à ton lien. Dis-lui bonjour !", lien: `/potes/profil/${tom.idPublic}`, social: true },
   ]);
   assert.notEqual((await lea.demander("GET", "/app/social/pouls")).corps.pouls.bande.signature, avant, "le pouls de la bande bouge");
 

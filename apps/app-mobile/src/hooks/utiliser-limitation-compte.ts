@@ -42,11 +42,15 @@ export function utiliserLimitationCompte(): EtatLimitationCompte {
     if (!avecCompte) return true;
     const g = ++generation.current;
     const r = await comptes.lireLimitation().catch(() => null);
-    if (g !== generation.current) return !!r?.ok;
+    // Une API qui ne connaît pas encore la route (404 « introuvable », avant son redémarrage) ne limite personne : « Tout est
+    // calme », pas une panne
+    const lue = !!r?.ok || (r?.ok === false && r.erreur === "introuvable");
+    if (g !== generation.current) return lue;
     if (r?.ok) setLimitation(r.limitation ?? null);
-    setRatee(!r?.ok);
+    else if (lue) setLimitation(null);
+    setRatee(!lue);
     setPret(true);
-    return !!r?.ok;
+    return lue;
   }, [avecCompte, comptes]);
 
   useEffect(() => {

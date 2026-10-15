@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 import { creerCanauxAndroid } from "~/fonctions/notifications/creer-canaux-android";
 import { estAlerteMiamSafe } from "~/fonctions/notifications/est-alerte-miam-safe";
 import { estDejaSousTesYeux } from "~/fonctions/notifications/est-deja-sous-tes-yeux";
+import { estNotificationUrgente } from "~/fonctions/notifications/est-notification-urgente";
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -15,12 +16,13 @@ import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
 /**
  * Une notification reçue app ouverte s'affiche, sauf si son message est déjà sous tes yeux (son écran est ouvert, et à
- * jour) ; elle reste muette, sauf une alerte Miam Safe, qui doit s'entendre même si tu regardes un autre écran
+ * jour) ; elle reste muette, sauf une alerte Miam Safe, qui doit s'entendre même si tu regardes un autre écran : marquée
+ * urgente par le serveur ET avec le lien d'une alerte (l'un sans l'autre ne sonne pas)
  */
 const presenter = (notification: Notifications.Notification): { afficher: boolean; sonner: boolean } => {
   try {
     const lien = lireLienNotification(notification);
-    const sonner = estAlerteMiamSafe(lien);
+    const sonner = estNotificationUrgente(notification) && estAlerteMiamSafe(lien);
     return { afficher: sonner || !estDejaSousTesYeux(lien, lireEcranOuvert()), sonner };
   } catch {
     // Dans le doute, la notification s'affiche, sans son
@@ -36,7 +38,7 @@ if (Platform.OS !== "web") {
       return { shouldShowBanner: afficher, shouldShowList: afficher, shouldPlaySound: sonner, shouldSetBadge: false };
     },
   });
-  // Android : le canal « Miam Safe » des alertes urgentes, avant toute demande d'autorisation
+  // Android : les canaux de l'app (Miam Safe, messages, messages à la suite, nouvelles), avant toute demande d'autorisation
   void creerCanauxAndroid();
 }
 

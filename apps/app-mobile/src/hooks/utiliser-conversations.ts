@@ -23,9 +23,10 @@ export type EtatConversations = {
   ouvrirPrive: (poteId: string) => Promise<string | null>;
   /**
    * Crée un groupe avec ces potes (ceux avec qui tu ne peux pas discuter sont ignorés). Compte connecté : chacun reçoit une
-   * invitation à accepter (décision de Hugo du 14/10/2026) ; « reseau » : pas parti, réessaie
+   * invitation à accepter (décision de Hugo du 14/10/2026) ; « compte-limite » : ton compte est limité (rien à réessayer) ;
+   * « reseau » : pas parti, réessaie
    */
-  creerGroupe: (titre: string, emoji: string, potes: string[]) => Promise<{ id: string } | { erreur: "titre" | "participants" | "reseau" }>;
+  creerGroupe: (titre: string, emoji: string, potes: string[]) => Promise<{ id: string } | { erreur: "titre" | "participants" | "compte-limite" | "reseau" }>;
   /** Les invitations à rejoindre un groupe qui attendent ta réponse (compte connecté ; vides en démo) */
   invitations: InvitationGroupeChat[];
   /** « Rejoindre le groupe ? » : oui (tu vois la suite, pas l'historique) ou non (en silence). Faux si ça n'a pas marché */
@@ -34,8 +35,13 @@ export type EtatConversations = {
   suivreFil: (id: string) => () => void;
   /** Charge les messages plus anciens d'une discussion (compte connecté, s'il en reste : conversation.plusAnciens) */
   chargerPlusAnciens: (id: string) => void;
-  /** Renvoie un message qui n'est pas parti (état « echec ») */
+  /** Renvoie un message qui n'est pas parti (état « echec ») ; sans effet sur un message en pause (envoisEnPause) */
   renvoyer: (conversationId: string, messageId: string) => void;
+  /**
+   * Les messages (état « echec ») que le serveur a refusés parce que ton compte est limité : pas une panne, ils ne repartent
+   * pas (ni d'eux-mêmes, ni touchés) ; la bulle le dit et ouvre le pourquoi. Vide en démo
+   */
+  envoisEnPause: ReadonlySet<string>;
   /** Coupe (ou remet) les notifications d'une discussion (compte connecté) */
   couper: (conversationId: string, coupee: boolean) => void;
   /** Efface la discussion pour toi seul : tu ne vois plus les messages d'avant, les autres les gardent */

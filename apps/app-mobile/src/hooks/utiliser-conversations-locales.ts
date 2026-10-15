@@ -24,6 +24,8 @@ const auHasard = <T,>(liste: readonly T[]): T => liste[Math.floor(Math.random() 
 // Hors démo, on part de zéro : une conversation gardée par une ancienne démo (avec un pote d'exemple) est oubliée
 const idsPotesExemples = new Set(potesExemples.map((p) => p.id));
 const creerConversationsDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? creerConversationsExemples(maintenant) : []);
+// Rien ne part au serveur : aucun message en pause
+const AUCUN_EN_PAUSE: ReadonlySet<string> = new Set();
 
 
 /**
@@ -177,6 +179,7 @@ export function utiliserConversationsLocales(): EtatConversations {
       suivreFil: () => () => {},
       chargerPlusAnciens: () => {},
       renvoyer: () => {},
+      envoisEnPause: AUCUN_EN_PAUSE,
       couper: () => {},
       supprimerMessage: () => {},
       effacerPourMoi: (id) => {

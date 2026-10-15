@@ -129,7 +129,8 @@
       [
         "expo-notifications",
         {
-          "color": "#FFD60A"
+          "color": "#FFD60A",
+          "defaultChannel": "notifications"
         }
       ],
       "expo-sharing"

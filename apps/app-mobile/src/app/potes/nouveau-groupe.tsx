@@ -12,6 +12,7 @@ import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
@@ -57,6 +58,7 @@ export default function NouveauGroupe() {
       }
       if (resultat.erreur === "titre") trouvees.titre = `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_GROUPE} caractères au plus, et des mots gentils.`;
       else if (resultat.erreur === "participants") trouvees.membres = `Choisis entre 1 et ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande.`;
+      else if (resultat.erreur === "compte-limite") trouvees.membres = REFUS_LIMITATION.groupe;
       else trouvees.membres = "Le groupe n'a pas pu être créé (le réseau, sûrement). Réessaie dans un instant !";
     }
 

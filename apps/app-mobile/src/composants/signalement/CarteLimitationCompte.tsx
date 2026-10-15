@@ -19,13 +19,17 @@ type Props = {
 
 type Etat = "active" | "a-venir" | "finie";
 
-/** En cours, à venir (l'API rend aussi celle qui commence plus tard), ou finie / levée depuis la lecture */
+/**
+ * En cours, à venir (l'API rend aussi celle qui commence plus tard), ou finie / levée depuis la lecture. Lue « à venir » et
+ * commencée depuis (l'écran est resté ouvert) : en cours, sans « Contester » tant qu'une relecture ne l'a pas permis.
+ */
 function lireEtat(l: LimitationCompteApi, maintenant: Date): Etat {
   const fin = l.fin ? new Date(l.fin).getTime() : null;
   if (fin !== null && !Number.isNaN(fin) && fin <= maintenant.getTime()) return "finie";
   if (l.active) return "active";
   const debut = new Date(l.debut).getTime();
-  return !Number.isNaN(debut) && debut > maintenant.getTime() ? "a-venir" : "finie";
+  if (Number.isNaN(debut)) return "finie";
+  return debut > maintenant.getTime() ? "a-venir" : "active";
 }
 
 const capitale = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
