@@ -7,12 +7,13 @@ import { Directory, File, Paths } from "expo-file-system";
 import { Image } from "expo-image";
 import { Platform } from "react-native";
 
+import { EMOJI_AVATAR_PAR_DEFAUT } from "@sos-miam/commun/regles/avatar-par-defaut";
 import { AVATARS_MIAMIS, type IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
 
 /** Un Miami au choix seulement : le Capitaine, réservé au compte officiel, ne se choisit pas */
 export type Avatar = { type: "emoji"; emoji: string } | { type: "miami"; id: IdMiamiAuChoix } | { type: "photo"; uri: string };
 
-export const AVATAR_PAR_DEFAUT: Extract<Avatar, { type: "emoji" }> = { type: "emoji", emoji: "🦸" };
+export const AVATAR_PAR_DEFAUT: Extract<Avatar, { type: "emoji" }> = { type: "emoji", emoji: EMOJI_AVATAR_PAR_DEFAUT };
 
 const CLE = "sosmiam.avatar";
 const surLeWeb = Platform.OS === "web";

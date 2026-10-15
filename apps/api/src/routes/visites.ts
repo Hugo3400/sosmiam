@@ -45,10 +45,16 @@ export const LIMITE_GESTES_VISITES = { fenetre: 10 * 60_000, maximum: 40 };
  * POST   /app/fidelite/cartes/:lieuId/demande → 200 { ok, carte } : un code de 4 chiffres valable 15 min (la même
  *          demande tant qu'elle vaut) · 409 pas-de-recompense
  * DELETE /app/fidelite/cartes/:lieuId/demande → 200 { ok, carte } · 404 introuvable
+ * Compte limité par l'équipe : ses visites et sa fidélité restent permises (décision de Hugo du 15 octobre 2026).
  * Le comptoir de l'équipe : routes/comptoir.ts (/pro/comptoir).
  */
 /** `exigerMajeur` (middlewares/exiger-majeur.ts) : posé sur le comptoir, comme sur tout /pro (403 reserve-aux-majeurs) */
-export function creerRoutesVisites(d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number, exigerMajeur?: RequestHandler) {
+export function creerRoutesVisites(
+  d: DependancesVisites, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number, exigerMajeur?: RequestHandler,
+  /** Compte limité : refuse au comptoir ce que le lieu publie pour les autres (middlewares/refuser-si-limite.ts) ; absent :
+   *  rien n'est refusé */
+  refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
+) {
   const c = creerControleursVisites(d, horloge);
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const avant: RequestHandler[] = [limiteConnectee, protection.exigerCompte, (_q, reponse, suite) => {
@@ -87,5 +93,5 @@ export function creerRoutesVisites(d: DependancesVisites, protection: Protection
     avis: d.avis ? creerControleursAvisPro(d.avis, roleDe, horloge) : null,
   };
   const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
-  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), enPlus, avantComptoir, parCompte) };
+  return { visites, fidelite, comptoir: creerRoutesComptoir(creerControleursComptoir(c.comptoir, d.ajouterPoints), enPlus, avantComptoir, parCompte, refuserSiLimite) };
 }

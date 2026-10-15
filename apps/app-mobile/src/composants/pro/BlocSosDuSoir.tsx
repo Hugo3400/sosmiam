@@ -18,8 +18,8 @@ export type ChampSos = "places" | "offre" | "jusqua";
 type Props = {
   moment: MomentLieu;
   enCours: boolean;
-  /** Rend le champ refusé (ou null si c'est parti) */
-  onLancer: (sos: LancementSos) => Promise<ChampSos | null>;
+  /** Rend le champ refusé, « refuse » (pas parti, l'écran a dit pourquoi), ou null si c'est parti */
+  onLancer: (sos: LancementSos) => Promise<ChampSos | "refuse" | null>;
   onArreter: () => void;
 };
 
@@ -79,7 +79,7 @@ export function BlocSosDuSoir({ moment, enCours, onLancer, onArreter }: Props) {
   async function lancer() {
     if (!choixFin) return setErreur("jusqua");
     const refus = await onLancer({ places, offre: offre.trim() || null, jusqua: choixFin.jusqua });
-    setErreur(refus);
+    setErreur(refus === "refuse" ? null : refus);
   }
 
   return (

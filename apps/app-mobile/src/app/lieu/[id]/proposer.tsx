@@ -13,7 +13,7 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
 import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { CARTE_REFUS_LIMITATION, REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
@@ -83,7 +83,7 @@ export default function ProposerModification() {
   const parties = sujetsProposition.filter((s) => sujets.includes(s.sujet) && s.partie).map((s) => s.partie!);
 
   // Compte limité : la phrase de l'app (le titre partagé attend une date que cet écran n'a pas)
-  const messageRefus = refus === "compte-limite" ? { emoji: "⏸️", titre: "Compte limité pour l'instant", texte: REFUS_LIMITATION.suggestion } : refus ? MESSAGES_SERVICE[refus] : null;
+  const messageRefus = refus === "compte-limite" ? { emoji: CARTE_REFUS_LIMITATION.emoji, titre: CARTE_REFUS_LIMITATION.titre, texte: REFUS_LIMITATION.suggestion } : refus ? MESSAGES_SERVICE[refus] : null;
 
   async function envoyer() {
     if (envoi || !lieu) return;

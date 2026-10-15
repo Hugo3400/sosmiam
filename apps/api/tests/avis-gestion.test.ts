@@ -46,7 +46,7 @@ test("masquer : l'avis sort de la page publique, de la moyenne et du comptoir ; 
   assert.deepEqual(apres.resume, resumerAvis([5], []));
   assert.deepEqual((await b.comptoir()).map((a) => a.id), [garde]);
   assert.deepEqual(b.points, [{ compteId: AUTEUR, points: -10, raison: "avis-photo", detail: `avis masqué ${id}, lieu 1` }]);
-  assert.equal(b.total(), POINTS_DEPART + 10 - 10, "+10 à l'écriture (controleurs/avis.ts), −10 au masquage");
+  assert.equal(b.total(), POINTS_DEPART + 10 - 10, "+10 avec l'avis (avis-client.ts), −10 au masquage");
   assert.deepEqual(b.defis, []);
   assert.deepEqual(await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT), { ok: false, erreur: "deja-tranche", statut: "masque" });
   assert.equal(b.points.length, 1, "jamais retirés deux fois");

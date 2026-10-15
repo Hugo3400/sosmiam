@@ -32,7 +32,7 @@ export default function CoulissesDemo() {
   if (!outilsDemo) {
     return (
       <EcranReglage titre="Coulisses de la démo" sousTitre="Pas de coulisses ici : la démo des visites n'existe que sur les téléphones de l'équipe, en développement.">
-        <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation("Tes vraies visites arriveront avec les comptes. Promis, on garde les confettis pour ce jour-là.")}</Text>
+        <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation("Tes vraies visites, elles, se valident au comptoir avec ton compte. Et les confettis sont pour de vrai !")}</Text>
       </EcranReglage>
     );
   }

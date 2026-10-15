@@ -13,6 +13,7 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ApercuCarteFidelite } from "~/composants/pro/ApercuCarteFidelite";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
@@ -70,7 +71,10 @@ export default function EcranFidelitePro() {
     setEnregistrement(true);
     const r = await comptoir.reglerProgramme(lieuPro.id, valide.reglage);
     setEnregistrement(false);
-    if (!r.ok) return setAnnonce({ texte: "La carte n'a pas pu être enregistrée. Réessaie dans un instant ?", numero: Date.now() });
+    if (!r.ok) {
+      const texte = r.erreur === "compte-limite" ? REFUS_LIMITATION.fidelite : "La carte n'a pas pu être enregistrée. Réessaie dans un instant ?";
+      return setAnnonce({ texte, numero: Date.now() });
+    }
     vibrerLegerement();
     fermer();
   }

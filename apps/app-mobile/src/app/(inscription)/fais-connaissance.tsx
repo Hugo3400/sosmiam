@@ -33,8 +33,8 @@ const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible
 
 /**
  * Étape 2 sur 4 : prénom, pseudo (proposé à partir du prénom, modifiable), nom (facultatif), date de naissance et ville.
- * Tout est gardé dans le brouillon au fil de la saisie. L'unicité du pseudo ne se vérifie pour l'instant qu'avec les potes
- * d'exemple : elle se vérifiera pour de vrai avec les comptes (API).
+ * Tout est gardé dans le brouillon au fil de la saisie. L'unicité du pseudo ne se vérifie ici qu'avec les potes d'exemple
+ * (démo) : pour de vrai, l'API la vérifie à la création du compte (c-est-pret ramène ici si le pseudo est pris).
  * Âge minimum : rien ne l'annonce avant de continuer (on ne souffle pas la « bonne » année). Continuer avec une date trop
  * récente bloque l'inscription sur ce téléphone jusqu'à l'anniversaire (verrou d'âge), même si on revient changer la date.
  * Le verrou arrête aussi la visite sans compte : on reste sur cet écran, sans retour possible vers le fil.
@@ -60,7 +60,7 @@ export default function FaisConnaissance() {
     prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : nomPublicContientMotInterdit(prenom) ? PRENOM_INTERDIT : null;
   const prenomValable = erreurPrenom === null && prenom.length <= LONGUEUR_MAX_PRENOM;
   const pseudo = brouillon.pseudo.trim();
-  // Pour l'instant, « déjà pris » veut dire : le pseudo d'un pote d'exemple (les vrais se vérifieront avec les comptes)
+  // Ici, « déjà pris » veut dire : le pseudo d'un pote d'exemple (les vrais se vérifient à la création du compte, c-est-pret)
   const erreurPseudo =
     pseudo === ""
       ? "Choisis-toi un pseudo\u00a0: c'est grâce à lui que tes potes te trouveront."
@@ -180,7 +180,7 @@ export default function FaisConnaissance() {
             onChangeTexte={(texte) => modifier({ pseudo: texte.toLowerCase().replace(/^@+/, "") })}
             onBlur={() => setPseudoQuitte(true)}
             erreur={montrerErreurPseudo ? erreurPseudo : null}
-            aide={"C'est avec lui que tes potes te trouveront\u00a0: 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas. On vérifiera qu'il est bien libre quand les comptes arriveront."}
+            aide={"C'est avec lui que tes potes te trouveront\u00a0: 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas. On vérifie qu'il est bien libre à la création de ton compte."}
             placeholder="camille42"
             keyboardType={CLAVIER_PSEUDO}
             textContentType="none"

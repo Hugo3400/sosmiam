@@ -181,7 +181,7 @@ export function creerApplication({
     // Rôle pro (espace pro, comptoir de l'app, comptoir de Miam Safe) : réservé aux 18 ans et plus, vérifié à chaque demande
     const majorite = creerControleMajorite(comptes.services.lireCompte, comptes.chiffrement ?? null, comptes.horloge);
     if (visitesApp) {
-      const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, majorite.exigerMajeur);
+      const routesVisites = creerRoutesVisites(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now, majorite.exigerMajeur, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge));
       application.use("/app/visites", routesVisites.visites);
       application.use("/app/fidelite", routesVisites.fidelite);
       application.use("/app/reservations", creerRoutesReservationsApp(visitesApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
@@ -198,7 +198,7 @@ export function creerApplication({
     // Événements des lieux (dates publiques, « Ça m'intéresse » avec la même session) et avis (l'avis d'un lieu se lit sans
     // session), avant le routeur /app de l'heure et de la version
     if (evenementsApp) application.use("/app/evenements", creerRoutesEvenementsApp(evenementsApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
-    if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
+    if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
     // Téléphones inscrits aux notifications (session facultative : le compte vient d'elle si elle est valable)
     if (appareilsApp) application.use("/app/appareils", creerRoutesAppareils(appareilsApp, protection));
     if (espaceAmbassadeur) {

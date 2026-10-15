@@ -358,6 +358,20 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         return "ok";
       },
       envoisEnPause: enPause,
+      retirerEnPause: (messageId) => {
+        const envoi = enCours.find((e) => e.message.id === messageId);
+        const idClient = envoi?.message.idClient;
+        if (!envoi || !idClient || !enPause.has(messageId)) return;
+        // Jamais parti (le serveur l'a refusé) : rien à effacer chez les autres, seulement l'écran et la copie de la note vocale
+        if (envoi.message.fichier) oublierEnvoiChat(envoi.message.fichier);
+        departs.current.delete(idClient);
+        setEnvois(({ [idClient]: _retire, ...reste }) => reste);
+        setEnPause((avant) => {
+          const apres = new Set(avant);
+          apres.delete(messageId);
+          return apres;
+        });
+      },
       renvoyer: (_conversationId, messageId) => {
         const envoi = enCours.find((e) => e.message.id === messageId);
         if (envoi?.message.idClient) void essayer(envoi.message.idClient);

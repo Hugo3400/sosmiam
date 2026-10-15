@@ -9,6 +9,7 @@ import { BlocMessageMoment, type ChampMessage } from "~/composants/pro/BlocMessa
 import { BlocSosDuSoir, type ChampSos } from "~/composants/pro/BlocSosDuSoir";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserModes } from "~/hooks/utiliser-modes";
@@ -47,8 +48,11 @@ export default function EcranCeSoir() {
   if (!lieuPro) return null;
   const id = lieuPro.id;
 
-  /** Un geste : la réponse remplace l'état ; un refus de champ revient à l'appelant, les autres sont annoncés */
-  async function agir<C extends string>(geste: () => Promise<ReponseMoment>, champs: readonly C[], merci: string): Promise<C | null> {
+  /**
+   * Un geste : la réponse remplace l'état ; un refus de champ revient à l'appelant, les autres sont annoncés et rendent
+   * « refuse » (le bloc garde ce qui était écrit). `refusLimite` : la phrase d'un compte limité, qui ne publie plus pour le lieu
+   */
+  async function agir<C extends string>(geste: () => Promise<ReponseMoment>, champs: readonly C[], merci: string, refusLimite?: string): Promise<C | "refuse" | null> {
     setEnCours(true);
     const r = await geste();
     setEnCours(false);
@@ -59,8 +63,8 @@ export default function EcranCeSoir() {
       return null;
     }
     if (r.erreur === "champ-invalide" && champs.includes(r.champ as C)) return r.champ as C;
-    annoncer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
-    return null;
+    annoncer(r.erreur === "compte-limite" && refusLimite ? refusLimite : decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    return "refuse";
   }
 
   return (
@@ -75,7 +79,7 @@ export default function EcranCeSoir() {
             <BlocSosDuSoir
               moment={moment}
               enCours={enCours}
-              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !")}
+              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !", REFUS_LIMITATION.sosDuSoir)}
               onArreter={() => void agir(() => service.arreterSos(id), [], "SOS arrêté. À demain pour le prochain !")}
             />
           </SectionReglages>
@@ -83,7 +87,7 @@ export default function EcranCeSoir() {
             <BlocMessageMoment
               moment={moment}
               enCours={enCours}
-              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche")}
+              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche", REFUS_LIMITATION.messageMoment)}
               onEffacer={() => void agir(() => service.effacerMessage(id), [], "Message effacé")}
             />
           </SectionReglages>

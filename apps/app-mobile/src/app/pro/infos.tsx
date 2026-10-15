@@ -7,8 +7,8 @@ import { validerInfosPratiques, type ChampInfosPratiques } from "@sos-miam/commu
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { creerBrouillonInfosPratiques, type BrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";

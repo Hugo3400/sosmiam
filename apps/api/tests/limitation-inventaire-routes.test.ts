@@ -3,15 +3,27 @@
 // voient. Ce test parcourt la pile des routeurs sociaux de l'app (routes/social-app.ts) et range CHAQUE route d'écriture
 // (POST, PUT, PATCH, DELETE) : soit refusée (refuserSiLimite, après la session et la limite par compte, avant le profil
 // social et le corps d'un média), soit permise (liste explicite, avec la raison). Une route nouvelle et pas encore rangée
-// fait échouer le test : il faut la mettre dans l'une des deux listes. Les lectures ne sont jamais refusées.
+// fait échouer le test : il faut la mettre dans l'une des deux listes. Les lectures ne sont jamais refusées. Même inventaire,
+// plus bas, pour les routeurs montés à part par application.ts : les avis (routes/avis.ts), les visites, la fidélité et le
+// comptoir de l'équipe (routes/visites.ts et routes/comptoir.ts : ce que le lieu publie est refusé, le comptoir reste permis).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import express, { type RequestHandler } from "express";
 
+import { creerSignatureQr } from "../src/fonctions/securite/creer-signature-qr.ts";
 import { creerProtectionComptes, creerStockageSessionsComptesEnMemoire } from "../src/middlewares/proteger-comptes.ts";
+import { creerRefuserSiLimite } from "../src/middlewares/refuser-si-limite.ts";
+import { creerRoutesAvisApp } from "../src/routes/avis.ts";
 import { creerRoutesSocialesApp } from "../src/routes/social-app.ts";
+import { creerRoutesVisites } from "../src/routes/visites.ts";
+import { creerAvisEnMemoire } from "../src/services/avis-en-memoire.ts";
+import { creerChiffrementDonnees } from "../src/services/chiffrement-donnees.ts";
+import { creerEvenementsEnMemoire } from "../src/services/evenements-en-memoire.ts";
+import { creerMomentLieuEnMemoire } from "../src/services/moment-lieu-en-memoire.ts";
 import { creerSocialAppEnMemoire } from "../src/services/social-app-en-memoire.ts";
+import { creerStatistiquesLieuEnMemoire } from "../src/services/statistiques-lieu-en-memoire.ts";
+import { creerVisitesEnMemoire } from "../src/services/visites-en-memoire.ts";
 
 /** Les écritures que les autres voient : refusées à un compte limité (403 compte-limite) */
 const ECRITURES_REFUSEES = [
@@ -93,10 +105,45 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["POST /app/moderation/:id/contestation", "contester une décision"],
 ]);
 
-// À brancher plus tard : les avis (routes/avis.ts, montées sur /app/avis par application.ts, hors de la pile sociale) se
-// voient des autres, mais un autre chantier y travaille en ce moment. refuserSiLimite y sera posé avec lui ; ces deux routes
-// passeront alors dans un inventaire des avis.
-const A_BRANCHER_PLUS_TARD = ["POST /app/avis", "POST /app/avis/non-verifie"];
+/** Hors de la pile sociale (avis, visites, fidélité, comptoir) : ce que les autres verraient, refusé à un compte limité */
+const ECRITURES_REFUSEES_HORS_SOCIAL = [
+  // Un avis, vérifié ou non : il se lit sur la page du lieu
+  "POST /app/avis",
+  "POST /app/avis/non-verifie",
+  // Ce que le lieu publie (décision de Hugo du 15/10/2026, espace pro) : la récompense de fidélité que voient les clients,
+  // le SOS du soir, le message du moment, ses événements, sa réponse à un avis
+  "PUT /pro/comptoir/lieux/:id/programme",
+  "POST /pro/comptoir/lieux/:id/sos",
+  "PUT /pro/comptoir/lieux/:id/message",
+  "POST /pro/comptoir/lieux/:id/evenements",
+  "PUT /pro/comptoir/lieux/:id/evenements/:evenementId",
+  "POST /pro/comptoir/avis/:avisId/reponse",
+];
+
+/** Hors de la pile sociale : les écritures qui restent permises à un compte limité, et pourquoi */
+const ECRITURES_PERMISES_HORS_SOCIAL = new Map<string, string>([
+  ["POST /app/avis/:id/relecture", "verdict consultatif d'un ambassadeur, que seule l'équipe SOS Miam lit"],
+  ["POST /app/visites/addition", "demander l'addition : les visites restent permises"],
+  ["POST /app/visites/comptoir", "scanner le QR du comptoir : une visite"],
+  ["POST /app/visites/:id/annuler", "annuler sa demande d'addition"],
+  ["POST /app/visites/:id/contester", "contester un refus (seule l'équipe SOS Miam le lit)"],
+  ["POST /app/fidelite/cartes/:lieuId/demande", "demander sa récompense"],
+  ["DELETE /app/fidelite/cartes/:lieuId/demande", "annuler sa demande de récompense"],
+  ["POST /pro/comptoir/lieux/:id/qr", "le comptoir : montrer le QR qui valide les visites"],
+  ["DELETE /pro/comptoir/lieux/:id/qr", "le comptoir : éteindre ce QR"],
+  ["POST /pro/comptoir/visites/:visiteId/reglee", "le comptoir : valider une visite"],
+  ["POST /pro/comptoir/visites/:visiteId/refuser", "le comptoir : refuser une visite (motif d'une liste fermée)"],
+  ["POST /pro/comptoir/visites/:visiteId/annuler", "le comptoir : annuler une validation faite par erreur"],
+  ["POST /pro/comptoir/recompenses/:demandeId/offrir", "le comptoir : offrir la récompense d'un client"],
+  ["DELETE /pro/comptoir/lieux/:id/sos", "arrêter le SOS (retirer ce qui est publié)"],
+  ["DELETE /pro/comptoir/lieux/:id/message", "effacer le message du moment"],
+  ["DELETE /pro/comptoir/lieux/:id/evenements/:evenementId", "annuler un événement (retirer ce qui est publié)"],
+  ["POST /pro/comptoir/reservations/:reservationId/accepter", "répondre à une réservation"],
+  ["POST /pro/comptoir/reservations/:reservationId/refuser", "répondre à une réservation (motif d'une liste fermée)"],
+  ["POST /pro/comptoir/reservations/:reservationId/annuler", "annuler une réservation acceptée (motif d'une liste fermée)"],
+  ["POST /pro/comptoir/reservations/:reservationId/venu", "le client est arrivé : sa visite se valide"],
+  ["POST /pro/comptoir/reservations/:reservationId/absent", "« Pas venu »"],
+]);
 
 /** Les middlewares reconnus par leur nom (les limites et la clé 🔐 sont anonymes) */
 const SESSION = new Set(["limiteConnectee", "exigerCompte", "sansCache"]);
@@ -137,17 +184,22 @@ function construirePile() {
   }
 }
 
+/** Une route, une clé par méthode, avec sa propre pile de middlewares */
+function lireRoute(route: NonNullable<Couche["route"]>, prefixe: string, montage: string[]): RouteTrouvee[] {
+  const chemin = `${prefixe}${route.path === "/" ? "" : route.path}`;
+  return Object.keys(route.methods).map((methode) => ({
+    cle: `${methode.toUpperCase()} ${chemin}`, montage,
+    pile: route.stack.filter((c) => c.method === undefined || c.method === methode).map((c) => c.name),
+  }));
+}
+
 /** Toutes les routes de la pile, avec la chaîne de leur montage (session…) et leur propre pile de middlewares */
 function parcourir(routeur: { stack: Couche[] }, chemins: WeakMap<object, string>, prefixe: string, montage: string[] = []): RouteTrouvee[] {
   const trouvees: RouteTrouvee[] = [];
   let chaine: { chemin: string; noms: string[] } = { chemin: "", noms: [] };
   for (const couche of routeur.stack) {
     if (couche.route) {
-      const chemin = `${prefixe}${couche.route.path === "/" ? "" : couche.route.path}`;
-      for (const methode of Object.keys(couche.route.methods)) {
-        const pile = couche.route.stack.filter((c) => c.method === undefined || c.method === methode).map((c) => c.name);
-        trouvees.push({ cle: `${methode.toUpperCase()} ${chemin}`, montage, pile });
-      }
+      trouvees.push(...lireRoute(couche.route, prefixe, montage));
       continue;
     }
     const chemin = chemins.get(couche) ?? "";
@@ -181,7 +233,6 @@ test("inventaire : chaque écriture sociale est rangée, refusée ou permise, et
   assert.deepEqual(disparues, [], "route rangée qui n'existe plus : la retirer de la liste");
   assert.deepEqual(ECRITURES_REFUSEES.filter((cle) => ECRITURES_PERMISES.has(cle)), [], "jamais refusée ET permise");
   assert.equal(new Set(ECRITURES_REFUSEES).size, ECRITURES_REFUSEES.length);
-  assert.deepEqual(A_BRANCHER_PLUS_TARD.filter((cle) => cles.has(cle)), [], "les avis ne sont pas dans la pile sociale");
 });
 
 test("inventaire : les écritures refusées portent refuserSiLimite après la session et la limite, avant le profil social et le média", () => {
@@ -216,4 +267,88 @@ test("inventaire : rien d'autre n'est refusé (lectures, gestes permis, montages
     assert.ok(!route.pile.includes("refuserSiLimite"), `${route.cle} : ${ECRITURES_PERMISES.get(route.cle) ?? "une lecture"}, jamais refusée`);
   }
   assert.ok(routes.some((r) => r.cle === "GET /app/conversations/:id"), "les lectures sont bien parcourues");
+});
+
+/** Un routeur sans sous-routeur : chaque route, avec les middlewares posés avant elle sur tout le routeur (routes.use) */
+function parcourirPlat(routeur: { stack: Couche[] }, prefixe: string): RouteTrouvee[] {
+  const trouvees: RouteTrouvee[] = [];
+  const montage: string[] = [];
+  for (const couche of routeur.stack) {
+    assert.ok(!couche.handle.stack, `${prefixe} : un sous-routeur inattendu, à parcourir autrement`);
+    if (couche.route) trouvees.push(...lireRoute(couche.route, prefixe, [...montage]));
+    else montage.push(couche.name);
+  }
+  return trouvees;
+}
+
+/** Les routeurs des avis, des visites, de la fidélité et du comptoir, branchés comme application.ts (tout en mémoire) */
+function construireHorsSocial() {
+  const protection = creerProtectionComptes(creerStockageSessionsComptesEnMemoire(), Date.now);
+  const limiteConnectee: RequestHandler = function limiteConnectee(_q, _r, suite) {
+    suite();
+  };
+  const exigerMajeur: RequestHandler = function exigerMajeur(_q, _r, suite) {
+    suite();
+  };
+  const refuserSiLimite = creerRefuserSiLimite(async () => null);
+  const visites = creerVisitesEnMemoire();
+  const avis = creerAvisEnMemoire();
+  const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
+  const routesVisites = creerRoutesVisites({
+    depot: visites.depot, chiffrement, signerQr: creerSignatureQr(new Uint8Array(32).fill(3)), tirer: () => 1234,
+    lireRole: async () => null, ajouterPoints: async () => {}, moment: creerMomentLieuEnMemoire().services,
+    statistiques: creerStatistiquesLieuEnMemoire().services, evenements: creerEvenementsEnMemoire().services, avis: { depot: avis.depot },
+  }, protection, limiteConnectee, Date.now, exigerMajeur, refuserSiLimite);
+  const routeurs: [string, unknown][] = [
+    ["/app/avis", creerRoutesAvisApp({ depot: avis.depot, chiffrement, tirer: () => 0 }, protection, limiteConnectee, Date.now, refuserSiLimite)],
+    ["/app/visites", routesVisites.visites],
+    ["/app/fidelite", routesVisites.fidelite],
+    ["/pro/comptoir", routesVisites.comptoir],
+  ];
+  return routeurs.flatMap(([prefixe, routeur]) => parcourirPlat(routeur as { stack: Couche[] }, prefixe));
+}
+
+const routesHorsSocial = construireHorsSocial();
+const ecrituresHorsSocial = routesHorsSocial.filter((r) => estEcriture(r.cle));
+
+test("inventaire des avis, des visites et du comptoir : chaque écriture est rangée, refusée ou permise", () => {
+  assert.ok(ecrituresHorsSocial.length > 25, `les routeurs ont été trouvés (${ecrituresHorsSocial.length} écritures)`);
+  const cles = new Set(ecrituresHorsSocial.map((r) => r.cle));
+  assert.equal(cles.size, ecrituresHorsSocial.length, "aucune écriture en double");
+  const nonRangees = [...cles].filter((cle) => !ECRITURES_REFUSEES_HORS_SOCIAL.includes(cle) && !ECRITURES_PERMISES_HORS_SOCIAL.has(cle));
+  assert.deepEqual(nonRangees, [], "écriture pas encore rangée : l'ajouter à ECRITURES_REFUSEES_HORS_SOCIAL ou à ECRITURES_PERMISES_HORS_SOCIAL");
+  const disparues = [...ECRITURES_REFUSEES_HORS_SOCIAL, ...ECRITURES_PERMISES_HORS_SOCIAL.keys()].filter((cle) => !cles.has(cle));
+  assert.deepEqual(disparues, [], "route rangée qui n'existe plus : la retirer de la liste");
+  assert.deepEqual(ECRITURES_REFUSEES_HORS_SOCIAL.filter((cle) => ECRITURES_PERMISES_HORS_SOCIAL.has(cle)), [], "jamais refusée ET permise");
+  assert.equal(new Set(ECRITURES_REFUSEES_HORS_SOCIAL).size, ECRITURES_REFUSEES_HORS_SOCIAL.length);
+  // Les deux inventaires ne se recouvrent pas
+  assert.deepEqual(ecritures.filter((r) => cles.has(r.cle)), []);
+});
+
+test("inventaire des avis et du comptoir : refuserSiLimite après la session (et la majorité au comptoir) et la limite, juste devant le contrôleur", () => {
+  for (const cle of ECRITURES_REFUSEES_HORS_SOCIAL) {
+    const route = ecrituresHorsSocial.find((r) => r.cle === cle);
+    assert.ok(route, cle);
+    const { montage, pile: middlewares } = route;
+    const iRefus = middlewares.indexOf("refuserSiLimite");
+    assert.ok(iRefus >= 0, `${cle} : refuserSiLimite manque`);
+    assert.equal(middlewares.lastIndexOf("refuserSiLimite"), iRefus, `${cle} : refuserSiLimite une seule fois`);
+    assert.ok(montage.includes("limiteConnectee") && montage.includes("exigerCompte"), `${cle} : refuserSiLimite après la session`);
+    if (cle.includes(" /pro/")) assert.ok(montage.includes("exigerMajeur"), `${cle} : après la majorité`);
+    // Seulement la limite par compte (anonyme) avant, et le contrôleur juste après
+    assert.ok(iRefus >= 1 && middlewares.slice(0, iRefus).every((nom) => nom === "<anonymous>"), `${cle} : seulement des limites avant refuserSiLimite`);
+    assert.equal(iRefus, middlewares.length - 2, `${cle} : refuserSiLimite juste devant le contrôleur`);
+  }
+});
+
+test("inventaire des avis, des visites et du comptoir : rien d'autre n'est refusé (lectures, comptoir, retirer ce qui est publié)", () => {
+  for (const route of routesHorsSocial) {
+    assert.ok(!route.montage.includes("refuserSiLimite"), `${route.cle} : jamais sur tout un routeur`);
+    if (ECRITURES_REFUSEES_HORS_SOCIAL.includes(route.cle)) continue;
+    const pourquoi = ECRITURES_PERMISES_HORS_SOCIAL.get(route.cle) ?? "une lecture";
+    assert.ok(!route.pile.includes("refuserSiLimite"), `${route.cle} : ${pourquoi}, jamais refusée`);
+  }
+  for (const lecture of ["GET /app/avis/lieux/:lieuId", "GET /pro/comptoir/lieux/:id/moment", "GET /pro/comptoir/lieux/:id/evenements", "GET /pro/comptoir/lieux/:id/avis"]) {
+    assert.ok(routesHorsSocial.some((r) => r.cle === lecture), `${lecture} : les lectures sont bien parcourues`);
+  }
 });

@@ -1,11 +1,13 @@
 // Banc d'essai des décisions de l'équipe sur les avis (services/avis-gestion.ts), pour avis-gestion.test.ts et
 // avis-gestion-points.test.ts. Aucune base de données : avis en mémoire, mouvements de points notés par le double
 // (pointsPhoto, le journal ; pointsComptes, le total), transaction de l'appelant jouée par le double (transaction), défis
-// notés au lieu d'être réévalués, pannes à la demande. Comme la vraie écriture : un avis vérifié avec photo reçoit ses points
-// juste après (la ligne « avis <id>, lieu <lieuId> » que pose controleurs/avis.ts), sauf si le test dit que l'ajout a raté.
+// notés au lieu d'être réévalués, pannes à la demande. Comme la vraie écriture (avis-client.ts) : un avis vérifié avec
+// photo reçoit ses points dans la transaction qui l'écrit (la ligne « avis <id>, lieu <lieuId> »), sauf si le test joue un
+// avis écrit avant le 15/10 dont l'ajout d'après coup avait raté.
 import assert from "node:assert/strict";
 
 import { calculerPointsPhotoAvis } from "../../src/fonctions/avis/calculer-points-photo-avis.ts";
+import { ecrireDetailPointsAvis } from "../../src/fonctions/avis/ecrire-detail-points-avis.ts";
 import { creerAvisClient } from "../../src/services/avis-client.ts";
 import { creerAvisEnMemoire, type MouvementPointsEnMemoire } from "../../src/services/avis-en-memoire.ts";
 import { creerAvisGestion, type DependancesAvisGestion } from "../../src/services/avis-gestion.ts";
@@ -25,7 +27,7 @@ export function creerBancAvisGestion(o: { ajouterPoints?: DependancesAvisGestion
   const memoire = creerAvisEnMemoire();
   memoire.lieux.set(1, { id: 1, nom: "Chez Léa", emoji: "🍝", type: "resto", ville: "Montpellier", publie: true, verifie: true });
   memoire.pointsComptes.set(AUTEUR, POINTS_DEPART);
-  /** Les lignes posées à l'écriture des avis (comme controleurs/avis.ts), hors des décisions */
+  /** Les lignes posées à l'écriture des avis (comme avis-client.ts), hors des décisions */
   const ecritures = new Set<MouvementPointsEnMemoire>();
   const defis: { compteId: number; maintenant: Date }[] = [];
   /** Pannes à la demande : les points (dans la transaction) ou la réévaluation des défis (après) */
@@ -57,19 +59,21 @@ export function creerBancAvisGestion(o: { ajouterPoints?: DependancesAvisGestion
 
   /**
    * Un avis du lieu 1, en relecture par défaut ; verifie : écrit grâce à une visite (une nouvelle à chaque fois) ; ses
-   * points posés ensuite comme controleurs/avis.ts (pointsEcrits faux : cet ajout a raté, l'avis reste sans ses points)
+   * points posés dans la même transaction, comme avis-client.ts (pointsEcrits faux : un ancien avis, écrit avant le 15/10,
+   * dont l'ajout d'après coup avait raté : il est resté sans ses points)
    */
   const avis = async (champs: Partial<NouvelleLigneAvis> & { verifie?: boolean; pointsEcrits?: boolean } = {}) => {
     const { verifie = true, pointsEcrits = true, ...reste } = champs;
-    const cree = await memoire.depot.ecrire((t) => t.creerAvis({
-      compteId: AUTEUR, lieuId: 1, visiteId: verifie ? ++visites : null, note: 4, texte: "Très bonne adresse, on reviendra.", photo: null,
-      signature: "Léa M.", statut: "en-relecture", raisonRelecture: "tirage", repasOffert: false, creeLe: T0, ...reste,
-    }));
-    const gagnes = calculerPointsPhotoAvis(cree);
-    if (gagnes > 0 && pointsEcrits) {
-      await memoire.depot.ecrire((t) => t.poserPointsPhoto(cree.compteId, gagnes, `avis ${cree.id}, lieu ${cree.lieuId}`));
-      ecritures.add(memoire.pointsPhoto.at(-1)!);
-    }
+    const cree = await memoire.depot.ecrire(async (t) => {
+      const ligne = await t.creerAvis({
+        compteId: AUTEUR, lieuId: 1, visiteId: verifie ? ++visites : null, note: 4, texte: "Très bonne adresse, on reviendra.", photo: null,
+        signature: "Léa M.", statut: "en-relecture", raisonRelecture: "tirage", repasOffert: false, creeLe: T0, ...reste,
+      });
+      const gagnes = calculerPointsPhotoAvis(ligne);
+      if (gagnes > 0 && pointsEcrits) await t.poserPointsPhoto(ligne.compteId, gagnes, ecrireDetailPointsAvis(ligne));
+      return ligne;
+    });
+    if (calculerPointsPhotoAvis(cree) > 0 && pointsEcrits) ecritures.add(memoire.pointsPhoto.at(-1)!);
     return cree.id;
   };
   /** La ligne gardée (statut, réponse) */

@@ -180,6 +180,7 @@ export function utiliserConversationsLocales(): EtatConversations {
       chargerPlusAnciens: () => {},
       renvoyer: () => {},
       envoisEnPause: AUCUN_EN_PAUSE,
+      retirerEnPause: () => {},
       couper: () => {},
       supprimerMessage: () => {},
       effacerPourMoi: (id) => {

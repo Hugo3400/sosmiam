@@ -234,7 +234,7 @@ const serveur = creerApplication({
   evenementsApp: { services: evenements, chiffrement },
   // Avis des lieux : vérifiés (visite validée) ou non vérifiés (lieu sans compte), relus par les ambassadeurs. Pas encore
   // d'envoi de photo : sans verifierPhoto, un avis avec photo est refusé (400 avis-invalide { champ: "photo" })
-  avisApp: { depot: depotAvis, chiffrement, ajouterPoints: ajouterPointsEtDefis, tirer: (max) => randomInt(max) },
+  avisApp: { depot: depotAvis, chiffrement, reevaluerDefis: (id, le) => defis.reevaluer(id, le), tirer: (max) => randomInt(max) },
   // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
   defisApp: { services: defis },
   // Connexion par QR code, comme Discord : le site ou un nouveau téléphone affiche le QR, l'app connectée valide

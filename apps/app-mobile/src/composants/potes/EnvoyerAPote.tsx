@@ -42,7 +42,8 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
-  const { potes, envoyerLieu } = utiliserCommunaute();
+  // demo : les potes d'exemple, et l'envoi qui reste sur le téléphone (on le dit) ; avec un compte, il part pour de vrai
+  const { potes, envoyerLieu, demo } = utiliserCommunaute();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const [choisis, setChoisis] = useState<string[]>([]);
@@ -118,9 +119,11 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       <Text className="text-center font-texte text-base leading-6 text-encre">
         {lierPonctuation(`${joindrePrenoms(envoyesA)} ${envoyesA.length > 1 ? "vont" : "va"} saliver devant ${lieu.nom}.`)}
       </Text>
-      <Text className="text-center font-texte text-sm leading-5 text-gris">
-        {lierPonctuation("Démo : l'envoi reste sur ton téléphone, tes potes d'exemple ne le reçoivent pas pour de vrai. Avec les comptes, il partira chez eux.")}
-      </Text>
+      {demo ? (
+        <Text className="text-center font-texte text-sm leading-5 text-gris">
+          {lierPonctuation("Démo : l'envoi reste sur ton téléphone, tes potes d'exemple ne le reçoivent pas pour de vrai. Quitte la démo pour l'envoyer à ta vraie bande.")}
+        </Text>
+      ) : null}
       <Bouton libelle="Fermer" onPress={onFermer} className="mt-2 self-stretch" />
     </View>
   ) : (
@@ -137,15 +140,17 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
         </View>
       </View>
 
-      <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
-          🧪
-        </Text>
-        <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
-          <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
-          {lierPonctuation(" : tes vrais potes arriveront avec les comptes.")}
-        </Text>
-      </View>
+      {demo ? (
+        <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
+            🧪
+          </Text>
+          <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
+            <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
+            {lierPonctuation(" : quitte la démo pour retrouver ta vraie bande.")}
+          </Text>
+        </View>
+      ) : null}
 
       {potes.length === 0 ? (
         <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-5 py-6">

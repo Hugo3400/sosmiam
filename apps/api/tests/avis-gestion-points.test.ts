@@ -1,12 +1,20 @@
 // Tests des points de la photo d'un avis quand l'équipe le masque puis le remet en ligne (services/avis-gestion.ts) : posés
-// à l'écriture (la ligne « avis <id>, lieu <lieuId> » de controleurs/avis.ts, rejouée par le banc), retirés DANS la
-// transaction du statut sans jamais dépasser ni le total du compte (plancher à 0) ni ce que CET avis tient encore d'après le
-// journal, rendus au retour en ligne comme le journal les dit retirés (jamais un point de plus), tout ou rien. Aucune base
-// de données : le banc de tests/outils/creer-banc-avis-gestion.ts. La vraie base : essai PGlite hors ligne.
+// avec l'avis (la ligne « avis <id>, lieu <lieuId> » d'avis-client.ts, rejouée par le banc), retirés DANS la transaction du
+// statut sans jamais dépasser ni la règle (10), ni le total du compte (plancher à 0), ni ce que CET avis tient encore
+// d'après le journal, rendus au retour en ligne comme le journal les dit retirés (jamais un point de plus), tout ou rien ;
+// le format des détails du journal, épinglé. Aucune base de données : le banc de tests/outils/creer-banc-avis-gestion.ts.
+// La vraie base : essai PGlite hors ligne.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { ecrireDetailPointsAvis } from "../src/fonctions/avis/ecrire-detail-points-avis.ts";
 import { AUTEUR, creerBancAvisGestion as creerBanc, MAINTENANT, POINTS_DEPART } from "./outils/creer-banc-avis-gestion.ts";
+
+test("détails du journal : « avis <id>, lieu <lieuId> », « avis masqué … », « avis rétabli … » (des lignes existent en base)", () => {
+  const a = { id: 42, lieuId: 18 };
+  assert.deepEqual([ecrireDetailPointsAvis(a), ecrireDetailPointsAvis(a, "ecrit"), ecrireDetailPointsAvis(a, "masque"), ecrireDetailPointsAvis(a, "retabli")],
+    ["avis 42, lieu 18", "avis 42, lieu 18", "avis masqué 42, lieu 18", "avis rétabli 42, lieu 18"]);
+});
 
 test("masquer : points retirés seulement pour un avis vérifié, avec photo, d'un repas pas offert", async () => {
   const b = creerBanc();
@@ -93,7 +101,7 @@ test("deux rétablissements : un seul rend les points ; même un avis remasqué 
   assert.deepEqual([b.total(), b.points.map((p) => p.points)], [POINTS_DEPART + 10, [-10, 10]]);
 });
 
-test("l'ajout des points à l'écriture a raté : le masquage ne retire rien, le retour en ligne ne rend rien", async () => {
+test("ancien avis dont l'ajout d'après coup a raté : le masquage ne retire rien, le retour en ligne ne rend rien", async () => {
   const b = creerBanc();
   const sansSesPoints = await b.avis({ photo: "photo-7.jpg", pointsEcrits: false });
   const autre = await b.avis({ photo: "photo-8.jpg" });
@@ -155,4 +163,18 @@ test("plafond : masqué à 3 points (retrait 3), remis en relecture, le compte r
 
   assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true });
   assert.deepEqual([b.total(), b.points.map((p) => p.points)], [53, [-3, -7, 10]]);
+});
+
+test("plafond, terme « règle » : deux lignes « avis <id>, lieu 1 » de +10 au journal, le masquage retire 10, pas 20", async () => {
+  const b = creerBanc();
+  const id = await b.avis({ photo: "photo-7.jpg" });
+  // Une deuxième ligne d'écriture pour le même avis (rejouée, ou écrite à la main) : d'après le journal, il « tient » 20
+  await b.memoire.depot.ecrire((t) => t.poserPointsPhoto(AUTEUR, 10, `avis ${id}, lieu 1`));
+  assert.equal(b.total(), POINTS_DEPART + 20);
+  assert.deepEqual(await b.gestion.trancherAvis(id, { action: "masquer" }, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, statut: "masque", pointsRetires: 10 });
+  assert.deepEqual([b.total(), b.journal.map((m) => [m.points, m.detail])],
+    [POINTS_DEPART + 10, [[10, `avis ${id}, lieu 1`], [10, `avis ${id}, lieu 1`], [-10, `avis masqué ${id}, lieu 1`]]], "la règle plafonne : 10");
+  // Le retour en ligne rend ce qui a été retiré, pas plus
+  assert.deepEqual(await b.gestion.retablirAvis(id, MAINTENANT), { ok: true, avisId: id, compteId: AUTEUR, lieuId: 1, pointsRendus: 10, aReevaluer: true });
+  assert.equal(b.total(), POINTS_DEPART + 20);
 });

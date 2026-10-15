@@ -15,6 +15,7 @@ import { ChampsQuandEvenement } from "~/composants/pro/ChampsQuandEvenement";
 import { ChampsTarifEvenement } from "~/composants/pro/ChampsTarifEvenement";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { convertirBrouillonEvenement } from "~/fonctions/pro/convertir-brouillon-evenement";
 import { creerBrouillonEvenement, type BrouillonEvenement } from "~/fonctions/pro/creer-brouillon-evenement";
@@ -82,7 +83,8 @@ export default function EcranEvenementPro() {
       return router.back();
     }
     if (r.erreur === "evenement-invalide" && r.champ) return setErreur(r.champ as ChampEvenement);
-    echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    // Compte limité : il ne publie plus pour le lieu (annuler un événement, lui, reste permis)
+    echouer(r.erreur === "compte-limite" ? REFUS_LIMITATION.evenement : decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
   }
 
   async function annuler() {

@@ -52,10 +52,19 @@ export const LIMITE_RELECTURES_AVIS = { fenetre: 10 * 60_000, maximum: 120 };
  *        → 201 { ok } (consultatif : rien ne change pour l'avis) · 400 champ-invalide { champ: id | verdict }
  *        · 404 introuvable (pas ou plus à relire pour lui) · 409 deja-relu (un verdict par ambassadeur et par avis)
  *
+ * Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : ses avis se verraient
+ * des autres, donc POST /app/avis et POST /app/avis/non-verifie → 403 { ok: false, erreur: "compte-limite", details:
+ * { jusqua } } (ISO 8601, ou null : jusqu'à nouvel ordre), après la session et la limite par compte, et rien n'est écrit.
+ * Lire et relire (le verdict d'un ambassadeur n'est lu que par l'équipe) restent permis.
+ *
  * Les avis vus du comptoir (liste et réponse du gérant) : routes/comptoir.ts (/pro/comptoir/lieux/:id/avis,
  * /pro/comptoir/avis/:avisId/reponse).
  */
-export function creerRoutesAvisApp(d: DependancesAvis, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number) {
+export function creerRoutesAvisApp(
+  d: DependancesAvis, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number,
+  /** Compte limité : refuse ce qui se voit des autres (middlewares/refuser-si-limite.ts) ; absent : rien n'est refusé */
+  refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
+) {
   const c = creerControleursAvis(d, horloge);
   const parCompte = (r: { fenetre: number; maximum: number }) => limiterRequetes({ ...r, cle: (_q, reponse) => `compte:${lireCompteId(reponse)}` });
   const prive: RequestHandler = (_q, reponse, suite) => {
@@ -76,8 +85,8 @@ export function creerRoutesAvisApp(d: DependancesAvis, protection: ProtectionCom
   // Tout le reste : session obligatoire
   routes.use(limiteConnectee, protection.exigerCompte, prive);
   routes.get("/a-ecrire", lectures, c.listerAEcrire);
-  routes.post("/", ecritures, c.donner);
-  routes.post("/non-verifie", ecritures, c.donnerNonVerifie);
+  routes.post("/", ecritures, refuserSiLimite, c.donner);
+  routes.post("/non-verifie", ecritures, refuserSiLimite, c.donnerNonVerifie);
   routes.use(gererErreursComptes);
   return routes;
 }

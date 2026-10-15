@@ -19,14 +19,15 @@ export const TEXTES_LIMITATION = {
   coupeTitre: "Ce qui attend la fin",
   /**
    * Exactement ce que l'API refuse (ECRITURES_REFUSEES de apps/api/tests/limitation-inventaire-routes.test.ts, plus les
-   * suggestions, la fiche, la carte et l'équipe d'un lieu, le prénom, le pseudo et l'avatar). Pas les avis : leurs routes ne
-   * sont pas encore branchées (A_BRANCHER_PLUS_TARD) ; ils reviendront ici avec elles.
+   * avis vérifiés ou non (routes/avis.ts), les suggestions, le prénom, le pseudo et l'avatar, et dans l'espace pro ce que le
+   * lieu publie : fiche, carte, carte de fidélité, SOS du soir, message du moment, événements (créer, modifier), réponses aux
+   * avis, équipe). Arrêter le SOS, effacer le message et annuler un événement restent permis : c'est retirer, pas publier.
    */
   coupe:
-    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires, sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, la fiche et la carte de ton lieu, inviter dans ton équipe ou y entrer, et un nouveau prénom, pseudo ou avatar.",
+    "Tout ce que les autres verraient : messages (photos et notes vocales comprises) et réactions, groupes (créer, renommer, inviter, changer les admins), commentaires, avis (vérifiés ou non), sorties (créer, inviter, proposer un lieu), listes (créer, modifier, ajouter une adresse, inviter quelqu'un à la remplir), lieux envoyés à tes potes, rejoindre une bande ou demander à y entrer, suivre quelqu'un, suggestions sur la fiche d'un lieu, et un nouveau prénom, pseudo ou avatar. En mode pro, publier pour ton lieu : sa fiche, sa carte, sa carte de fidélité, le SOS du soir, le message du moment, les événements et les réponses aux avis, et inviter dans ton équipe ou y entrer.",
   resteTitre: "Ce qui marche comme d'habitude",
   reste:
-    "Tout lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, tes missions d'ambassadeur…), l'export de tes données et la suppression de ton compte.",
+    "Tout lire, valider tes visites, Miam Safe, signaler, bloquer, masquer, quitter, refuser, supprimer tes contenus, tes réglages, ce que seule l'équipe lit (proposer un lieu, tes missions d'ambassadeur…), le comptoir de ton lieu (valider les visites, répondre aux réservations), l'export de tes données et la suppression de ton compte.",
   contesterTitre: "Pas d'accord ?",
   contester: "Dis-nous pourquoi : une seule fois, tant que la limitation dure. Une autre personne de l'équipe que celle qui a décidé relit tout.",
   contestationAVenir: "Tu pourras la contester dès qu'elle commence.",
@@ -61,4 +62,20 @@ export const REFUS_LIMITATION = {
   suivre: "Ton compte est limité : suivre quelqu'un attendra la fin de la limitation.",
   suggestion: "Ton compte est limité : les suggestions sur la fiche d'un lieu sont en pause pour l'instant.",
   ficheLieu: "Ton compte est limité : la fiche et la carte de ton lieu attendront la fin de la limitation.",
+  fidelite: "Ton compte est limité : la carte de fidélité de ton lieu attendra la fin de la limitation.",
+  sosDuSoir: "Ton compte est limité : lancer le SOS du soir attendra la fin de la limitation.",
+  messageMoment: "Ton compte est limité : afficher un message du moment attendra la fin de la limitation.",
+  evenement: "Ton compte est limité : publier ou modifier un événement attendra la fin de la limitation.",
+  // Prêts pour l'écran d'avis et les réponses du mode pro, pas encore dans l'app (avis/[visiteId] est provisoire)
+  avis: "Ton compte est limité : les avis (vérifiés ou non) sont en pause pour l'instant.",
+  reponseAvis: "Ton compte est limité : répondre aux avis attendra la fin de la limitation.",
+} as const;
+
+/** Le haut d'un refus montré en carte (emoji, titre, puis la phrase du geste de REFUS_LIMITATION) */
+export const CARTE_REFUS_LIMITATION = {
+  emoji: "⏸️",
+  /** Pour un écran qui n'a pas la date de fin (le titre partagé, « Compte limité jusqu'au {date} », l'attend) */
+  titre: "Compte limité pour l'instant",
+  /** Après un scan ou un lien collé pour rejoindre une bande : la phrase dessous dit déjà que le compte est limité */
+  titreAjout: "Pas cette fois",
 } as const;

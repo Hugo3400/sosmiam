@@ -22,6 +22,14 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  * est relu sur la ressource, jamais pris dans la demande. Formes dans packages/commun (types/comptoir.ts).
  * Réponse des gestes : 200 { ok, etat: EtatComptoir } (l'écran à jour) ; l'équipe ne voit que le prénom, l'initiale du nom,
  * l'emoji, le code et les tampons chez elle. Le QR (qr.texte) est signé par l'API et change toutes les 30 s.
+ * Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : ce qu'il publierait pour
+ * le lieu et que les autres voient est refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou
+ * null : jusqu'à nouvel ordre), et rien n'est fait : PUT …/programme (la récompense que voient les clients), POST …/sos,
+ * PUT …/message, POST et PUT …/evenements, POST /avis/:avisId/reponse. Le refus passe après la session et la limite par
+ * compte, juste avant le contrôleur, donc avant le rôle (relu par le contrôleur) : un compte limité l'apprend même chez un
+ * lieu qui n'est pas le sien, et rien de plus. Les autres membres de l'équipe, non limités, publient toujours. Restent
+ * permis : lire, le QR, régler, refuser ou annuler une visite, offrir une récompense, répondre à une réservation, et
+ * retirer ce qui est publié (arrêter le SOS, effacer le message, annuler un événement).
  *
  * GET    /pro/comptoir/lieux                     → 200 { ok, lieux: LieuGere[] } (rattachements validés)
  * GET    /pro/comptoir/lieux/:id                 → 200 { ok, etat }
@@ -125,6 +133,8 @@ export function creerRoutesComptoir(
   { moment, reservations, statistiques, evenements, avis }: ControleursComptoirEnPlus,
   avant: RequestHandler[],
   parCompte: (r: { fenetre: number; maximum: number }) => RequestHandler,
+  /** Compte limité : 403 compte-limite sur ce que le lieu publie pour les autres (middlewares/refuser-si-limite.ts) */
+  refuserSiLimite: RequestHandler,
 ) {
   const lectures = parCompte(LIMITE_LECTURES_COMPTOIR);
   const gestes = parCompte(LIMITE_GESTES_COMPTOIR);
@@ -135,15 +145,15 @@ export function creerRoutesComptoir(
   routes.post("/lieux/:id/qr", gestes, c.montrerQr);
   routes.delete("/lieux/:id/qr", gestes, c.cacherQr);
   routes.get("/lieux/:id/programme", lectures, c.lireProgramme);
-  routes.put("/lieux/:id/programme", gestes, c.reglerProgramme);
+  routes.put("/lieux/:id/programme", gestes, refuserSiLimite, c.reglerProgramme);
   routes.post("/visites/:visiteId/reglee", gestes, c.marquerReglee);
   routes.post("/visites/:visiteId/refuser", gestes, c.refuser);
   routes.post("/visites/:visiteId/annuler", gestes, c.annulerValidation);
   routes.post("/recompenses/:demandeId/offrir", gestes, c.offrirRecompense);
   routes.get("/lieux/:id/moment", lectures, moment.lire);
-  routes.post("/lieux/:id/sos", gestes, moment.lancerSos);
+  routes.post("/lieux/:id/sos", gestes, refuserSiLimite, moment.lancerSos);
   routes.delete("/lieux/:id/sos", gestes, moment.arreterSos);
-  routes.put("/lieux/:id/message", gestes, moment.reglerMessage);
+  routes.put("/lieux/:id/message", gestes, refuserSiLimite, moment.reglerMessage);
   routes.delete("/lieux/:id/message", gestes, moment.effacerMessage);
   routes.get("/lieux/:id/reservations", lectures, reservations.lister);
   routes.post("/reservations/:reservationId/accepter", gestes, reservations.accepter);
@@ -154,13 +164,13 @@ export function creerRoutesComptoir(
   if (statistiques) routes.get("/lieux/:id/statistiques", lectures, statistiques.lire);
   if (evenements) {
     routes.get("/lieux/:id/evenements", lectures, evenements.lister);
-    routes.post("/lieux/:id/evenements", gestes, evenements.creer);
-    routes.put("/lieux/:id/evenements/:evenementId", gestes, evenements.modifier);
+    routes.post("/lieux/:id/evenements", gestes, refuserSiLimite, evenements.creer);
+    routes.put("/lieux/:id/evenements/:evenementId", gestes, refuserSiLimite, evenements.modifier);
     routes.delete("/lieux/:id/evenements/:evenementId", gestes, evenements.annuler);
   }
   if (avis) {
     routes.get("/lieux/:id/avis", lectures, avis.lister);
-    routes.post("/avis/:avisId/reponse", gestes, avis.repondre);
+    routes.post("/avis/:avisId/reponse", gestes, refuserSiLimite, avis.repondre);
   }
   routes.use(gererErreursComptes);
   return routes;

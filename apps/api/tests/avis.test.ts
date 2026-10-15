@@ -1,5 +1,6 @@
-// Tests des avis côté client (/app/avis) : fenêtre d'avis, un par visite, signature, points d'une photo, repas offert,
-// avis non vérifié, lecture publique (moyenne prudente, part de clients qui reviennent, pagination).
+// Tests des avis côté client (/app/avis) : fenêtre d'avis, un par visite, signature, points d'une photo (dans la
+// transaction de l'avis, tout ou rien), repas offert, avis non vérifié, lecture publique (moyenne prudente, part de
+// clients qui reviennent, pagination).
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 
@@ -91,13 +92,49 @@ test("photo : +10 points (avis-photo) pour un avis vérifié, rien pour un repas
 
   const avecPhoto = await donner(lea.jeton, { visiteId: payee, photo: `photo-${lea.id}.jpg` });
   assert.deepEqual([avecPhoto.statut, avecPhoto.corps.pointsGagnes, avecPhoto.corps.avis.photo], [201, 10, `photo-${lea.id}.jpg`]);
-  assert.deepEqual(b.points, [{ compteId: lea.id, valeur: 10, raison: "avis-photo", detail: `avis ${avecPhoto.corps.avis.id}, lieu 1` }]);
+  // Au journal, avec l'avis (le détail que relit le masquage) ; l'ancien ajouterPoints n'est plus appelé ; défis relancés
+  assert.deepEqual(b.donnees.pointsPhoto, [{ compteId: lea.id, points: 10, raison: "avis-photo", detail: `avis ${avecPhoto.corps.avis.id}, lieu 1` }]);
+  assert.deepEqual([b.donnees.pointsComptes.get(lea.id), b.points, b.defis], [10, [], [lea.id]]);
 
   const offert = await donner(lea.jeton, { visiteId: offerte, photo: `photo-${lea.id}.jpg` });
   assert.deepEqual([offert.corps.pointsGagnes, offert.corps.avis.repasOffert, offert.corps.avis.avecReduction], [0, true, false]);
   const reduit = await donner(lea.jeton, { visiteId: reduite, note: 3 });
   assert.deepEqual([reduit.corps.avis.repasOffert, reduit.corps.avis.avecReduction], [false, true]);
-  assert.equal(b.points.length, 1);
+  assert.deepEqual([b.donnees.pointsPhoto.length, b.defis], [1, [lea.id]], "sans points, pas de défis relancés");
+});
+
+test("photo : les +10 sont écrits DANS la transaction de l'avis ; s'ils ratent, ni avis ni points, la visite reste à noter", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const lea = await b.creerCompte({ nom: "Martin" });
+  const visite = b.creerVisite(lea.id, 1);
+  b.banc.horloge += 2 * HEURE;
+  const corps = { visiteId: visite, photo: `photo-${lea.id}.jpg` };
+  const rienEcrit = () => assert.deepEqual(
+    [b.donnees.avis, b.donnees.pointsPhoto, b.donnees.pointsComptes.has(lea.id), b.donnees.visites[0]!.avisDonne, b.defis],
+    [[], [], false, false, []],
+  );
+
+  // La transaction lève après tout ce qu'elle a écrit : l'avis et sa ligne de +10 y étaient, ils partent ensemble
+  b.panne.finTransaction = true;
+  const interrompu = await donner(lea.jeton, corps);
+  assert.deepEqual([interrompu.statut, interrompu.corps.erreur, b.vuEnFin.length], [500, "erreur-serveur", 1]);
+  const id = b.vuEnFin[0]!.avis[0];
+  assert.deepEqual(b.vuEnFin[0], { avis: [id], points: [`avis ${id}, lieu 1`] }, "dans la transaction : l'avis et ses +10");
+  rienEcrit();
+
+  // Une panne pendant les points : l'avis n'est pas écrit non plus, la visite reste à noter
+  b.panne.finTransaction = false;
+  b.panne.points = true;
+  assert.equal((await donner(lea.jeton, corps)).statut, 500);
+  rienEcrit();
+  assert.deepEqual((await b.demander("GET", "/app/avis/a-ecrire", lea.jeton)).corps.visites.map((v: { id: number }) => v.id), [visite]);
+
+  // La base revient : le même avis passe, avec ses points
+  b.panne.points = false;
+  const r = await donner(lea.jeton, corps);
+  assert.deepEqual([r.statut, r.corps.pointsGagnes], [201, 10]);
+  assert.deepEqual([b.donnees.avis.length, b.donnees.pointsPhoto.map((m) => [m.points, m.detail]), b.donnees.pointsComptes.get(lea.id)],
+    [1, [[10, `avis ${r.corps.avis.id}, lieu 1`]], 10]);
 });
 
 test("texte : 10 à 1000 caractères, sans insulte ; note de 1 à 5 ; l'équipe du lieu ne note pas chez elle", async () => {

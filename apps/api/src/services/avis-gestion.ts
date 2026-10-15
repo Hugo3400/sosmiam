@@ -6,12 +6,12 @@
 // points se lisent dans le journal (raison « avis-photo ») : le masquage retire ceux de la règle (10), jamais plus que le
 // total du compte (il ne descend jamais sous 0) ni que ce que CET avis tient encore (la ligne « avis <id>, lieu <lieuId> »
 // posée avec l'avis, dans sa transaction, par avis-client.ts, plus ses masquages et ses retours en ligne : un avis écrit
-// avant le 15/10, dont l'ajout d'après coup a raté, ne retire rien), et le journal note ce retrait réel ; le retour en
-// ligne rend ce que le journal dit retiré pour CET avis, moins ce qui a déjà été rendu (jamais un point de plus). Seuls les
-// défis sont relancés après (leur réévaluation ouvre sa propre transaction ; un raté y est seulement noté au journal). Jamais de notification ni de cloche ici : la session du
-// logiciel écrit sa décision (motif, motivation) dans la même transaction par dansLaTransaction, prévient l'auteur après ;
-// quand une contestation lui donne raison, elle appelle retablirAvisDans / retablirReponseAvisDans dans la transaction de
-// son réexamen, puis apresRetablir une fois cette transaction validée.
+// avant le 15/10, dont l'ajout d'après coup a raté, ne retire rien), et le journal note ce retrait réel ; le retour en ligne
+// rend ce que le journal dit retiré pour CET avis, moins ce qui a déjà été rendu (jamais un point de plus). Seuls les défis
+// sont relancés après (leur réévaluation ouvre sa propre transaction ; un raté y est seulement noté au journal). Jamais de
+// notification ni de cloche ici : la session du logiciel écrit sa décision (motif, motivation) dans la même transaction par
+// dansLaTransaction, prévient l'auteur après ; quand une contestation lui donne raison, elle appelle retablirAvisDans /
+// retablirReponseAvisDans dans la transaction de son réexamen, puis apresRetablir une fois cette transaction validée.
 import type { StatutAvis, StatutReponseAvis } from "../../../../packages/commun/src/types/avis.ts";
 import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { calculerPointsPhotoAvis } from "../fonctions/avis/calculer-points-photo-avis.ts";

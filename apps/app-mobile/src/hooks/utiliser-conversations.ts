@@ -42,6 +42,11 @@ export type EtatConversations = {
    * pas (ni d'eux-mêmes, ni touchés) ; la bulle le dit et ouvre le pourquoi. Vide en démo
    */
   envoisEnPause: ReadonlySet<string>;
+  /**
+   * Retire de l'écran un message en pause (envoisEnPause) : il n'est jamais parti, il disparaît du téléphone avec sa copie
+   * (note vocale). Sans effet sur les autres messages
+   */
+  retirerEnPause: (messageId: string) => void;
   /** Coupe (ou remet) les notifications d'une discussion (compte connecté) */
   couper: (conversationId: string, coupee: boolean) => void;
   /** Efface la discussion pour toi seul : tu ne vois plus les messages d'avant, les autres les gardent */

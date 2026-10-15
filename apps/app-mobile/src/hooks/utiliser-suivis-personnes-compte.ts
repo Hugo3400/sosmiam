@@ -117,11 +117,12 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
 
   /**
    * Le geste s'affiche tout de suite (gestes, listes, profil lu) ; la route part ; puis tout est relu et le geste oublié.
-   * Refusé (compte limité, réseau…) : le profil lu reprend la relation d'avant le geste, et surRefus dit pourquoi
+   * Refusé (compte limité, réseau…) : le profil lu reprend la relation et les compteurs d'avant le geste (relire les listes
+   * ne relit pas son profil), et surRefus dit pourquoi
    */
   const faire = useCallback(
     (id: string, geste: Geste, appliquer: () => void, route: () => Promise<{ ok: true } | { ok: false; erreur: ErreurService }>, surRefus?: SurRefusGeste) => {
-      const ancienne = profilsCourants.current.get(id)?.relation;
+      const avantGeste = profilsCourants.current.get(id);
       setGestes((avant) => new Map(avant).set(id, { ...avant.get(id), ...geste }));
       setProfils((avant) => {
         const p = avant.get(id);
@@ -134,11 +135,14 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
         .then((r) => {
           if (!tant(g)) return;
           if (!r.ok) {
-            if (ancienne) {
-              const remise = Object.fromEntries(Object.keys(geste).map((cle) => [cle, ancienne[cle as keyof Geste]])) as Geste;
+            if (avantGeste) {
+              const remise = Object.fromEntries(Object.keys(geste).map((cle) => [cle, avantGeste.relation[cle as keyof Geste]])) as Geste;
               setProfils((avant) => {
                 const p = avant.get(id);
-                return p ? new Map(avant).set(id, { ...p, relation: { ...p.relation, ...remise } }) : avant;
+                if (!p) return avant;
+                // Relu entre-temps (noterProfil) : ses compteurs viennent du serveur, ils sont déjà les bons
+                const compteurs = p.ordre === avantGeste.ordre ? avantGeste.compteurs : p.compteurs;
+                return new Map(avant).set(id, { ...p, compteurs, relation: { ...p.relation, ...remise } });
               });
             }
             surRefus?.(r.erreur);

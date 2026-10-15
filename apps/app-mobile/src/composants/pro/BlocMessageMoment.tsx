@@ -16,8 +16,8 @@ export type ChampMessage = "texte" | "jusqua";
 type Props = {
   moment: MomentLieu;
   enCours: boolean;
-  /** Rend le champ refusé (ou null si c'est affiché) */
-  onAfficher: (message: ReglageMessageMoment) => Promise<ChampMessage | null>;
+  /** Rend le champ refusé, « refuse » (pas affiché, l'écran a dit pourquoi : le texte reste), ou null si c'est affiché */
+  onAfficher: (message: ReglageMessageMoment) => Promise<ChampMessage | "refuse" | null>;
   onEffacer: () => void;
 };
 
@@ -36,8 +36,8 @@ export function BlocMessageMoment({ moment, enCours, onAfficher, onEffacer }: Pr
     const choix = durees.find((d) => d.cle === duree);
     if (!choix) return setErreur("jusqua");
     const refus = await onAfficher({ texte: texte.trim(), jusqua: choix.jusqua });
-    setErreur(refus);
-    if (!refus) setTexte("");
+    setErreur(refus === "refuse" ? null : refus);
+    if (refus === null) setTexte("");
   }
 
   return (

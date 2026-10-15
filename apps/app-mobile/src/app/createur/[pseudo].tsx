@@ -34,7 +34,7 @@ export default function PageCreateur() {
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
   const { lieux: tousLesLieux } = utiliserLieux();
-  const { publications: toutesLesPublications, pret } = utiliserPublications();
+  const { publications: toutesLesPublications, pret, source } = utiliserPublications();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
@@ -85,15 +85,18 @@ export default function PageCreateur() {
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
-        <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
-          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
-            🧪
-          </Text>
-          <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
-            <Text className="font-texte-gras text-encre">Créateurs d'exemple</Text>
-            {lierPonctuation(" : les vrais arriveront avec les comptes.")}
-          </Text>
-        </View>
+        {/* Démo seulement : hors démo, le créateur et ses publications viennent du serveur */}
+        {source === "demo" ? (
+          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+            <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
+              🧪
+            </Text>
+            <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
+              <Text className="font-texte-gras text-encre">Créateurs d'exemple</Text>
+              {lierPonctuation(" : quitte la démo pour retrouver les vrais.")}
+            </Text>
+          </View>
+        ) : null}
 
         <View className="items-center gap-1 pt-2">
           <View

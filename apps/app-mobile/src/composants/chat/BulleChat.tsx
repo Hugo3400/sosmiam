@@ -52,8 +52,8 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
-  const { basculerReaction, renvoyer, envoisEnPause } = utiliserConversations();
-  // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi
+  const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
+  // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, mais « Retirer »
   const enPause = message.etat === "echec" && envoisEnPause.has(message.id);
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
@@ -226,7 +226,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
         {bulle}
         <ReactionsMessage conversationId={conversationId} message={message} deMoi />
         {enPause ? (
-          <PauseMessageLimite />
+          <PauseMessageLimite onRetirer={() => retirerEnPause(message.id)} />
         ) : message.etat === "echec" ? (
           <Pressable
             accessibilityRole="button"

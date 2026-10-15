@@ -1,12 +1,13 @@
 import { Image } from "expo-image";
 import { Text, type TextProps } from "react-native";
 
+import { EMOJI_AVATAR_PAR_DEFAUT } from "@sos-miam/commun/regles/avatar-par-defaut";
 import { PREFIXE_AVATAR_MIAMI } from "@sos-miam/commun/regles/avatars-miamis";
 import { lireAvatarMiami } from "@sos-miam/commun/validation/lire-avatar-miami";
 import { IMAGES_MIAMIS } from "~/contenus/images-miamis";
 
-/** Ce qu'on montre pour un Miami que cette version de l'app ne connaît pas encore (ou un avatar vide) */
-const AVATAR_INCONNU = "🙂";
+/** Ce qu'on montre pour un Miami que cette version de l'app ne connaît pas encore */
+const MIAMI_INCONNU = "🙂";
 
 type Props = Pick<TextProps, "className" | "style" | "allowFontScaling"> & {
   /** Un avatar tel que les autres le voient : un emoji, ou un Miami (« miami:toque ») */
@@ -17,7 +18,8 @@ type Props = Pick<TextProps, "className" | "style" | "allowFontScaling"> & {
 
 /**
  * Un avatar : l'image du Miami s'il en est un, sinon l'emoji, dans le style de texte donné (comme avant les Miamis). Un
- * Miami inconnu (version plus récente de l'app) ou une valeur vide montre 🙂. Décoratif : le prénom est lu à côté.
+ * avatar vide montre l'avatar par défaut (🦸, comme chez la personne), un Miami inconnu (version plus récente de l'app) 🙂.
+ * Décoratif : le prénom est lu à côté.
  */
 export function EmojiOuMiami({ valeur, taille, ...texte }: Props) {
   const miami = lireAvatarMiami(valeur);
@@ -31,6 +33,6 @@ export function EmojiOuMiami({ valeur, taille, ...texte }: Props) {
       />
     );
   }
-  const emoji = !valeur || valeur.startsWith(PREFIXE_AVATAR_MIAMI) ? AVATAR_INCONNU : valeur;
+  const emoji = !valeur ? EMOJI_AVATAR_PAR_DEFAUT : valeur.startsWith(PREFIXE_AVATAR_MIAMI) ? MIAMI_INCONNU : valeur;
   return <Text {...texte}>{emoji}</Text>;
 }

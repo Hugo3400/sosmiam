@@ -244,14 +244,15 @@ export default function ProfilPote() {
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
-        {estMoi ? null : (
+        {/* Démo seulement : avec un compte, ce sont de vraies personnes */}
+        {estMoi || !communaute.demo ? null : (
           <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
               🧪
             </Text>
             <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
               <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
-              {lierPonctuation(" : tes vrais potes arriveront avec les comptes.")}
+              {lierPonctuation(" : quitte la démo pour retrouver ta vraie bande.")}
             </Text>
           </View>
         )}
@@ -270,7 +271,8 @@ export default function ProfilPote() {
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">
             <View className="gap-3 pt-1">
-              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : quand les comptes arriveront, tes potes t'ajouteront avec, sans chercher ton pseudo.")}</Text>
+              {/* En démo, CodeQrInvitation dit dessous que le lien ne sert que dans l'app */}
+              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : tes potes t'ajoutent avec, sans chercher ton pseudo.")}</Text>
               <CodeQrInvitation pseudo={pote.pseudo} libellePartage="Partager mon profil" />
             </View>
           </SectionReglages>

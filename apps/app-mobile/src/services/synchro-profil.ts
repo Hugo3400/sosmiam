@@ -9,18 +9,15 @@ import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ProfilServeur } from "@sos-miam/commun/types/compte-app";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Profil } from "@sos-miam/commun/types/profil";
-import type { DecisionModerationApi } from "@sos-miam/commun/types/signalement";
 import { appliquerChangementsInfos } from "~/fonctions/compte/appliquer-changements-infos";
-import { estPseudoNeutre } from "~/fonctions/compte/est-pseudo-neutre";
-import { expliquerPseudoServeur } from "~/fonctions/compte/expliquer-pseudo-serveur";
 import { fusionnerProfilServeur } from "~/fonctions/compte/fusionner-profil-serveur";
 import { listerChampsDifferents } from "~/fonctions/compte/lister-champs-differents";
 import { preparerModificationsProfil } from "~/fonctions/compte/preparer-modifications-profil";
 import { sontProfilsIdentiques } from "~/fonctions/compte/sont-profils-identiques";
 import { trierRefusProfil } from "~/fonctions/compte/trier-refus-profil";
-import { trouverDecisionProfil } from "~/fonctions/compte/trouver-decision-profil";
 import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
+import { creerExplicationPseudo } from "~/services/synchro-profil-pseudo";
 import { creerCopieAvatar } from "~/services/synchro-profil-avatar";
 import type { Avatar } from "~/stockage/avatar-local";
 import { enregistrerProfilLocal } from "~/stockage/profil-local";
@@ -29,7 +26,6 @@ import {
   ECHECS_SERVEUR_MAX,
   PASSAGERES,
   RELECTURE_MS,
-  RESERVATION_MS,
   TOURS_MAX,
   champsDe,
   marquer,
@@ -142,35 +138,14 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     if (memoire.echecsServeur < ECHECS_SERVEUR_MAX) minuterie = setTimeout(lancer, attente);
   }
 
-  /**
-   * Le serveur montre un autre pseudo que celui d'avant : l'équipe (profil retenu : décision dans « mes décisions », ou
-   * forme d'un pseudo neutre si la liste ne se lit pas) ou un autre téléphone du compte (sans bruit). À la première
-   * synchro, la liste n'est lue que pour un pseudo neutre. Hors du couloir (Mes infos n'attend jamais cette lecture), et
-   * l'annonce n'est posée que si rien n'a changé entre-temps (déconnexion, autre compte : elle est oubliée).
-   */
-  function expliquerPseudo(ancien: string | null, nouveau: string, premiere: boolean) {
-    const gen = generation;
-    const m = memoire;
-    const depuis = premiere || !m.etat.luLe ? Date.now() - RESERVATION_MS : m.etat.luLe;
-    void (async () => {
-      let decision: DecisionModerationApi | null | "illisible" = null;
-      if (!premiere || estPseudoNeutre(nouveau)) {
-        const r = await o.moderation.listerDecisions().catch(() => null);
-        decision = r?.ok ? trouverDecisionProfil(r.decisions, depuis) : "illisible";
-      }
-      const { annonce, misDeCote } = expliquerPseudoServeur(ancien, nouveau, decision, premiere, RESERVATION_MS);
-      if (!annonce && !misDeCote) return;
-      // Dans le verrou : après l'écriture du profil reçu (la fusion lancée juste après cette lecture)
-      await sousVerrou(async () => {
-        if (gen !== generation || m !== memoire) return;
-        if (misDeCote) m.etat.pseudoMisDeCote = misDeCote;
-        if (annonce) m.etat.annonce = annonce;
-        garder();
-        // Le pseudo du téléphone a pu rester un autre (changé pendant la lecture) : une annonce qui ne colle pas s'en va
-        suivrePseudo();
-      });
-    })();
-  }
+  const expliquerPseudo = creerExplicationPseudo({
+    listerDecisions: () => o.moderation.listerDecisions(),
+    lireGeneration: () => generation,
+    lireMemoire: () => memoire,
+    sousVerrou,
+    garder,
+    suivrePseudo,
+  });
 
   /** Téléphone d'avant la synchro : ce qui diffère vient de Mes infos ou Mes envies, jamais parti. Le téléphone gagne, une fois */
   function rattraperPremiereFois(local: Profil, serveur: ProfilServeur) {
@@ -229,6 +204,10 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     garder();
   }
 
+  /** Ce qui part, relu sous le verrou (après toute écriture en cours, avec ses marques) */
+  const prendreInstantane = () =>
+    sousVerrou(async () => ({ local: lireProfil(), partis: memoire.etat.aEnvoyer.map((m) => m.champ), depart: memoire.numero, avatarPublic: avatar.enPublic() }));
+
   async function pomper() {
     const gen = generation;
     for (let tour = 0; tour < TOURS_MAX; tour++) {
@@ -239,12 +218,15 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
         minuterie = setTimeout(lancer, patience);
         return;
       }
-      const local = lireProfil();
-      const partis = memoire.etat.aEnvoyer.map((m) => m.champ);
+      // L'instantané de ce qui part est pris sous le verrou : jamais entre une marque et l'écriture qu'elle annonce (sinon
+      // l'ancienne valeur partirait avec une marque déjà comptée, et la réponse effacerait le nouveau choix)
+      const { local, partis, depart, avatarPublic } = await prendreInstantane();
+      if (gen !== generation || !actif || memoire.infosEnAttente > 0) return;
       if (!local || (partis.length === 0 && !memoire.relire)) return;
       memoire.relire = false;
-      const depart = memoire.numero;
-      const r = partis.length > 0 ? await o.comptes.modifierProfil(preparerModificationsProfil(local, partis, avatar.enPublic())) : await o.comptes.lireProfil();
+      const corps = partis.length > 0 ? preparerModificationsProfil(local, partis, avatarPublic) : null;
+      // Rien à écrire (une marque d'avatar restée avec une photo, qui ne part jamais) : une simple lecture, qui l'efface
+      const r = corps && Object.keys(corps).length > 0 ? await o.comptes.modifierProfil(corps) : await o.comptes.lireProfil();
       if (gen !== generation) return;
       if (r.ok) {
         memoire.essais = 0;
@@ -292,13 +274,11 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     const gen = generation;
     const demandes = champsDe(changements);
     for (let essai = 0; essai < 3; essai++) {
-      const local = lireProfil();
+      const { local, partis: enFile, depart, avatarPublic } = await prendreInstantane();
       if (gen !== generation || !actif || !local) return { ok: false, refus: "connexion-requise" };
-      const enFile = memoire.etat.aEnvoyer.map((m) => m.champ);
       const champs = [...demandes, ...enFile];
       const ajuster = (p: Profil) => appliquerChangementsInfos(p, changements);
-      const depart = memoire.numero;
-      const r = await o.comptes.modifierProfil(preparerModificationsProfil(ajuster(local), champs, avatar.enPublic()));
+      const r = await o.comptes.modifierProfil(preparerModificationsProfil(ajuster(local), champs, avatarPublic));
       if (gen !== generation) return { ok: false, refus: "connexion-requise" };
       if (r.ok) {
         memoire.essais = 0;
@@ -446,13 +426,25 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
      */
     async modifierAvatar(nouveau: Avatar) {
       await sousVerrou(async () => {
+        const m = memoire;
+        const marquesAvant = m.etat.aEnvoyer;
         if (nouveau.type === "photo") {
-          if (memoire.etat.aEnvoyer.some((m) => m.champ === "avatar")) {
-            oublierMarques(memoire, ["avatar"], memoire.numero);
+          if (m.etat.aEnvoyer.some((x) => x.champ === "avatar")) {
+            oublierMarques(m, ["avatar"], m.numero);
             garder();
           }
         } else if (lireProfil() && !DEMO_VISITES_ACTIVE) await marquerAvantEcriture(["avatar"]);
-        await avatar.ecrire(nouveau);
+        try {
+          await avatar.ecrire(nouveau);
+        } catch (erreur) {
+          // Pas écrit (disque plein…) : les marques d'avant reviennent (un emoji qui attendait déjà reste), sinon l'ancien
+          // avatar repartirait et écraserait celui choisi sur un autre téléphone
+          if (m === memoire) {
+            m.etat.aEnvoyer = marquesAvant;
+            garder();
+          }
+          throw erreur;
+        }
       });
       lancer();
     },

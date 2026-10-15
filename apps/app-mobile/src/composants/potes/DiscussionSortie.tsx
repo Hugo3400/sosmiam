@@ -54,8 +54,8 @@ const PRES_DU_BAS = 120;
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
 export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer }: Props) {
   const animationsReduites = useReducedMotion();
-  // Tes messages refusés parce que ton compte est limité : la bulle le dit, sans « Réessaie »
-  const { envoisEnPause } = utiliserConversations();
+  // Tes messages refusés parce que ton compte est limité : la bulle le dit, sans « Réessaie », et peut être retirée
+  const { envoisEnPause, retirerEnPause } = utiliserConversations();
   const liste = useRef<FlatList<LigneDiscussion>>(null);
   const collerEnBas = useRef(true);
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
@@ -182,6 +182,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                 etat={item.message.etat}
                 onRenvoyer={() => renvoyer(item.message.id)}
                 enPause={envoisEnPause.has(item.message.id)}
+                onRetirer={() => retirerEnPause(item.message.id)}
                 onOptions={
                   item.deMoi || ETATS_CACHES.has(item.message.etat)
                     ? undefined

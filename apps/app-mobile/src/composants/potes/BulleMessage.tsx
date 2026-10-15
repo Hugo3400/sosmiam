@@ -25,6 +25,8 @@ type Props = {
   onRenvoyer?: () => void;
   /** Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, la ligne ouvre le pourquoi */
   enPause?: boolean;
+  /** Un de tes messages en pause : le retirer de l'écran */
+  onRetirer?: () => void;
 };
 
 const TAILLE_AVATAR = 32;
@@ -34,7 +36,7 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
  * Un message de la discussion d'une sortie : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar et leur
  * prénom. Compte connecté : « Envoi… » le temps qu'il parte, « Pas parti. Touche pour réessayer. » s'il n'est pas parti.
  */
-export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false }: Props) {
+export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false, onRetirer }: Props) {
   // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
   const cache = ETATS_CACHES.has(etat);
   const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : "font-texte text-base leading-[22px] text-encre"}>{lierPonctuation(texte)}</Text>;
@@ -59,7 +61,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
           ) : null}
         </View>
         {echec && enPause ? (
-          <PauseMessageLimite />
+          <PauseMessageLimite onRetirer={onRetirer} />
         ) : echec ? (
           <Pressable
             accessibilityRole="button"

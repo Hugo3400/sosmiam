@@ -1,7 +1,9 @@
 // Banc d'essai des avis : le routeur /app/avis et les deux routes des avis au comptoir, montés comme application.ts et
 // routes/comptoir.ts les monteront, avec les comptes (sessions) et les avis EN MÉMOIRE (aucune base), une horloge réglable,
-// une clé de chiffrement de test, un tirage au sort réglable, des rôles pro posés à la main et des points notés au lieu
-// d'être écrits. Chaque appel a sa propre IP.
+// une clé de chiffrement de test, un tirage au sort réglable et des rôles pro posés à la main. Les points de la photo vont
+// au journal du double (donnees.pointsPhoto, dans la transaction de l'avis) ; ajouterPoints (l'ancien branchement, qui ne
+// doit plus servir) et les défis relancés après sont notés ; pannes à la demande (les points, ou la fin de la transaction,
+// après tout ce qu'elle a écrit : ce qu'elle voyait est gardé dans vuEnFin). Chaque appel a sa propre IP.
 import type { AddressInfo } from "node:net";
 
 import express, { Router } from "express";
@@ -16,7 +18,7 @@ import { creerProtectionComptes, gererErreursComptes } from "../../src/middlewar
 import { creerRoutesAvisApp } from "../../src/routes/avis.ts";
 import { LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP } from "../../src/routes/comptes.ts";
 import { creerAvisEnMemoire } from "../../src/services/avis-en-memoire.ts";
-import type { LieuAvis, NouvelleLigneAvis } from "../../src/services/avis-regles.ts";
+import type { DepotAvis, LieuAvis, NouvelleLigneAvis, TablesAvis } from "../../src/services/avis-regles.ts";
 import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { creerComptesEnMemoire } from "../../src/services/comptes-en-memoire.ts";
 import type { RoleRattachement } from "../../src/services/pro-regles.ts";
@@ -41,13 +43,38 @@ export async function creerBancAvis() {
   const chiffrement = creerChiffrementDonnees(new Uint8Array(32).fill(9));
   const roles = new Map<string, RoleRattachement>();
   const points: { compteId: number; valeur: number; raison: string; detail?: string }[] = [];
+  const defis: number[] = [];
   const tirages: number[] = [];
   const horloge = () => banc.horloge;
 
+  const panne = { points: false, finTransaction: false };
+  /** Ce que la transaction voyait juste avant sa panne de fin : les avis et les détails des points de la photo écrits */
+  const vuEnFin: { avis: number[]; points: string[] }[] = [];
+  const avecPanne = (t: TablesAvis): TablesAvis => ({
+    ...t,
+    poserPointsPhoto: async (...args) => {
+      if (panne.points) throw new Error("base indisponible");
+      return t.poserPointsPhoto(...args);
+    },
+  });
+  const depot: DepotAvis = {
+    lire: donnees.depot.lire,
+    ecrire: (fn) => donnees.depot.ecrire(async (t) => {
+      const r = await fn(avecPanne(t));
+      if (panne.finTransaction) {
+        vuEnFin.push({ avis: donnees.avis.map((a) => a.id), points: donnees.pointsPhoto.map((m) => m.detail) });
+        throw new Error("transaction interrompue");
+      }
+      return r;
+    }),
+    dans: (tx) => avecPanne(donnees.depot.dans(tx)),
+  };
+
   const dependances = {
-    depot: donnees.depot, chiffrement,
+    depot, chiffrement,
     tirer: (max: number) => (tirages.push(max), banc.tirage),
-    ajouterPoints: async (compteId: number, valeur: number, raison: string, detail?: string) => void points.push({ compteId, valeur, raison, detail }),
+    ajouterPoints: async (compteId: number, valeur: number, raison: "avis-photo", detail?: string) => void points.push({ compteId, valeur, raison, detail }),
+    reevaluerDefis: async (compteId: number) => void defis.push(compteId),
     // Seule la photo « photo-<compte>.jpg » a été envoyée par ce compte
     verifierPhoto: async (fichier: string, compteId: number) => fichier === `photo-${compteId}.jpg`,
   };
@@ -144,11 +171,13 @@ export async function creerBancAvis() {
   function vider() {
     banc.horloge = DEBUT;
     banc.tirage = 7;
+    Object.assign(panne, { points: false, finTransaction: false });
     donnees.lieux.clear();
+    donnees.pointsComptes.clear();
     for (const lieu of LIEUX) donnees.lieux.set(lieu.id, { ...lieu });
-    for (const liste of [donnees.visites, donnees.avis, donnees.relectures, points, tirages]) liste.length = 0;
+    for (const liste of [donnees.visites, donnees.avis, donnees.relectures, donnees.pointsPhoto, points, defis, tirages, vuEnFin]) liste.length = 0;
   }
 
   const fermer = () => new Promise<void>((fini) => serveur.close(() => fini()));
-  return { banc, donnees, points, tirages, creerCompte, rattacher, creerVisite, ajouterAvis, demander, vider, fermer, JOUR };
+  return { banc, donnees, points, defis, panne, vuEnFin, tirages, creerCompte, rattacher, creerVisite, ajouterAvis, demander, vider, fermer, JOUR };
 }
