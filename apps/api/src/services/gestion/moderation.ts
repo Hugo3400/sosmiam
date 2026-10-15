@@ -3,14 +3,17 @@
 // on juge la publication, pas chaque signalement.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lireLieuxDesInstantanes, prevenirApresDecision, type ModerationSociale } from "./moderation-sociale.ts";
-import type { AvisGestion } from "../avis-gestion.ts";
+import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
+import type { AvisGestion, ResultatRetablir } from "../avis-gestion.ts";
 import { CIBLES_AVIS } from "./cibles-moderation.ts";
-import { retablirApresReexamen } from "./decisions-avis.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
 /** Même liste que RAISONS_AVEC_MASQUAGE_IMMEDIAT (packages/commun/src/regles/signalement.ts), que l'API ne peut pas encore importer */
 export const RAISONS_AVEC_MASQUAGE_IMMEDIAT = ["choquant"];
 
+
+/** Un autre poste a pris la décision pendant la nôtre : tout est annulé (rétablissement d'un avis compris) */
+class DejaDecide extends Error {}
 
 /** Contestée et pas encore réexaminée */
 const CONTESTES = { contesteLe: { not: null }, reexamineLe: null } as const;
@@ -80,7 +83,9 @@ export type DecisionModeration = { decision: "retenu" | "rejete"; note: string |
  * contestée). « retenu » : la publication, le commentaire, le message ou la liste est retiré pour de bon, avec la règle
  * enfreinte et le pourquoi pour l'auteur. « rejete » : il reste ou revient en ligne. Ensuite, la cloche prévient l'auteur et
  * ceux qui ont signalé (moderation-sociale.ts). Null si le signalement n'existe pas ; « deja-decide » si la décision est déjà
- * prise et pas contestée.
+ * prise et pas contestée, ou si un autre poste vient de la prendre (écriture conditionnelle dans la transaction : de deux
+ * décisions en même temps, une seule passe). Avis ou réponse masqués à la relecture : un réexamen qui donne raison à
+ * l'auteur les remet en ligne DANS la même transaction (verrous compte → avis → signalements, comme trancherAvis).
  */
 export async function deciderSignalement(
   id: number, { decision, note, motif, motivation }: DecisionModeration, social?: ModerationSociale, maintenant = new Date(), avis?: AvisGestion,
@@ -89,7 +94,18 @@ export async function deciderSignalement(
   if (!signalement) return null;
   const reexamen = signalement.statut !== "a-traiter";
   if (reexamen && !(signalement.contesteLe && !signalement.reexamineLe)) return "deja-decide" as const;
-  const resultat = await baseDeDonnees.$transaction(async (transaction) => {
+  const prendre = (transaction: Prisma.TransactionClient) => transaction.signalement
+    .updateMany({ where: reexamen ? { id, ...CONTESTES } : { id, statut: "a-traiter" }, data: { traiteLe: maintenant } })
+    .then(({ count }) => { if (count === 0) throw new DejaDecide(); });
+  let resultat;
+  try {
+    resultat = await baseDeDonnees.$transaction(async (transaction) => {
+    let retabli: ResultatRetablir | null = null;
+    const idAvis = Number(signalement.cibleId);
+    if (avis && decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible) && Number.isSafeInteger(idAvis)) {
+      retabli = signalement.cible === "avis" ? await avis.retablirAvisDans(transaction, idAvis, maintenant) : await avis.retablirReponseAvisDans(transaction, idAvis, maintenant);
+    }
+    await prendre(transaction);
     const idPublication = Number(signalement.cibleId);
     if (signalement.cible === "publication" && Number.isInteger(idPublication)) {
       await transaction.publication.updateMany({
@@ -111,12 +127,17 @@ export async function deciderSignalement(
         ...(reexamen ? { reexamineLe: maintenant } : {}),
       },
     });
-    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier };
-  });
-  const { decides, fichier, ...rendu } = resultat;
-  // Avis ou réponse masqués à la relecture : un réexamen qui donne raison à l'auteur les remet en ligne (points rendus)
-  if (decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible)) {
-    await retablirApresReexamen(avis, signalement.cible, signalement.cibleId, maintenant);
+    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier, retabli };
+    });
+  } catch (erreur) {
+    if (erreur instanceof DejaDecide) return "deja-decide" as const;
+    throw erreur;
+  }
+  const { decides, fichier, retabli, ...rendu } = resultat;
+  if (retabli) {
+    if (!retabli.ok) console.error(`Avis : réexamen sans effet sur ${signalement.cible} n° ${signalement.cibleId} (${retabli.erreur})`);
+    // Hors de la transaction : la réévaluation des défis ouvre la sienne (elle attendrait le verrou du compte)
+    await avis!.apresRetablir(retabli, maintenant);
   }
   await prevenirApresDecision(social, decides, decision, motif, fichier, maintenant);
   return rendu;
