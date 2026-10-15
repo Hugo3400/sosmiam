@@ -57,7 +57,10 @@ const serveur = creerApplication({
 }).listen(0, "127.0.0.1");
 await new Promise<void>((pret) => serveur.once("listening", () => pret()));
 const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
-after(() => new Promise<void>((fini) => serveur.close(() => fini())));
+after(() => new Promise<void>((fini) => {
+  serveur.close(() => fini());
+  serveur.closeAllConnections();
+}));
 
 /** Remet tout à zéro entre deux tests (les comptes et leurs sessions restent, les rôles partent) */
 beforeEach(() => {
@@ -307,17 +310,18 @@ for (const limite of [true, false]) {
       arret = demander("DELETE", "/pro/comptoir/lieux/1/sos", gerant.jeton);
       // Des auteurs jamais lus (le contrôleur ne les lit plus ?) : un échec net, pas un test pendu
       await attendreAuPlus(lus, 2_000, "les auteurs des SOS en cours ne sont jamais lus : la course n'est plus essayée");
-      assert.equal((await demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 })).statut, 201);
+      const sosNina = await attendreAuPlus(demander("POST", "/pro/comptoir/lieux/1/sos", serveuse.jeton, { places: 6 }), 1_000, "le SOS de Nina ne part jamais");
+      assert.equal(sosNina.statut, 201);
       reprendre();
       // Rien d'à lui à arrêter : 200, et seuls ses SOS auraient été arrêtés ; celui de Nina reste en cours
-      const r = await arret;
+      const r = await attendreAuPlus(arret, 1_500, "l'arrêt du SOS ne répond jamais");
       assert.deepEqual([r.statut, r.corps.moment?.sos?.enCours], [200, true], JSON.stringify(r.corps));
       assert.deepEqual(moment.sos.map((s) => [s.compteId, s.arreteLe]), [[serveuse.id, null]]);
     } finally {
       // Même en échec : le vrai double revient, et l'arrêt repart et finit ici (pas pendant le test suivant)
       moment.services.lireAuteursSosEnCours = lire;
       reprendre();
-      await arret?.catch(() => {});
+      if (arret) await attendreAuPlus(arret, 500, "l'arrêt du SOS ne répond toujours pas").catch(() => {});
     }
   });
 }

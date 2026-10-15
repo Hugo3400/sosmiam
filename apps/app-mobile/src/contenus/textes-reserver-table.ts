@@ -72,7 +72,7 @@ export const TEXTES_DEMANDE_ENVOYEE = {
   titre: "Demande envoyée !",
   sousTitre: "L'équipe {deLieu} te répond ici, dans l'app. Tu reçois une notif dès qu'elle a tranché.",
   titreAnnulee: "Demande annulée",
-  sousTitreAnnulee: "Pas de souci : le lieu ne sera plus dérangé pour celle-ci. Une autre date te tente ?",
+  sousTitreAnnulee: "Une autre date te tente ? Choisis un nouveau créneau, la table t'attend peut-être déjà.",
   etapesTitre: "Et ensuite ?",
   etapes: [
     { emoji: "📬", texte: "L'équipe regarde son planning et accepte, ou te dit si c'est complet (ça arrive aux meilleurs)." },

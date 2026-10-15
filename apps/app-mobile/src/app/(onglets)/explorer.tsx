@@ -184,11 +184,14 @@ export default function Explorer() {
     if (selection !== null && !lieux.some(({ lieu }) => lieu.id === selection)) setSelection(null);
   }, [lieux, selection]);
 
+  const motRecherche = filtres.texte.trim();
+  const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;
   // Ce que dira l'annonce du nombre de lieux (lu quand elle part, après l'attente)
-  const nombre = useRef({ lieux: lieux.length, recherche: false, fauteDeDepart: false, sauter: false });
+  const nombre = useRef({ lieux: lieux.length, recherche: false, filtres: false, fauteDeDepart: false, sauter: false });
   useEffect(() => {
     nombre.current.lieux = lieux.length;
-    nombre.current.recherche = filtres.texte.trim() !== "";
+    nombre.current.recherche = motRecherche !== "";
+    nombre.current.filtres = avecFiltres;
     nombre.current.fauteDeDepart = fauteDeDepart;
   });
   // Les filtres, la recherche ou la zone ont changé : le lecteur d'écran dit combien de lieux restent (rien au premier affichage)
@@ -202,7 +205,7 @@ export default function Explorer() {
     nombre.current.sauter = false;
     if (sauter) return;
     const minuterie = setTimeout(() => {
-      const { lieux: n, recherche: avecRecherche, fauteDeDepart: sansDepart } = nombre.current;
+      const { lieux: n, recherche: avecRecherche, filtres: filtresActifs, fauteDeDepart: sansDepart } = nombre.current;
       const texte =
         n > 0
           ? `${n} lieu${n > 1 ? "x" : ""}`
@@ -210,7 +213,9 @@ export default function Explorer() {
             ? "Aucun lieu : on ne sait pas où tu es"
             : avecRecherche
               ? "Aucun lieu pour cette recherche"
-              : "Aucun lieu avec ces filtres";
+              : filtresActifs
+                ? "Aucun lieu avec ces filtres"
+                : "Aucun lieu par ici pour l'instant";
       if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
       else AccessibilityInfo.announceForAccessibility(texte);
     }, DELAI_ANNONCE_NOMBRE);
@@ -302,8 +307,28 @@ export default function Explorer() {
 
   // Liste vide : on dit si c'est la recherche ou les filtres qui bloquent. « Effacer les filtres » garde toujours la recherche (comme la pastille).
   // Faute de point de départ, ce ne sont ni l'une ni les autres : on le dit, et on propose « Autour de moi » ou toute la France.
-  const motRecherche = filtres.texte.trim();
-  const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant;
+  const conseilSansFiltre =
+    zone?.portee === "proche"
+      ? `Personne dans ce rayon pour l'instant : pousse le curseur ou regarde ${region ? "ta région" : "toute la France"}, la bonne table n'est sûrement pas loin !`
+      : zone?.portee === "region"
+        ? "Personne dans ta région pour l'instant : jette un œil à toute la France, la bonne table t'attend peut-être ailleurs !"
+        : "Aucun lieu à te montrer pour l'instant : repasse un peu plus tard, le Capitaine Bouiboui est sur le pont !";
+  const conseil = motRecherche
+    ? avecFiltres
+      ? `Rien pour « ${motRecherche} » avec ces filtres : essaie un autre mot ou élargis un peu !`
+      : `Rien pour « ${motRecherche} » : essaie un autre mot, la bonne table n'est sûrement pas loin !`
+    : avecFiltres
+      ? "Aucun lieu avec ces filtres : élargis un peu, la bonne table n'est sûrement pas loin !"
+      : conseilSansFiltre;
+  const effacement = motRecherche ? (
+    avecFiltres ? (
+      <Bouton libelle="Tout effacer" indice="Efface la recherche et les filtres" variante="blanc" petit onPress={() => effacer(true)} />
+    ) : (
+      <Bouton libelle="Effacer la recherche" variante="blanc" petit onPress={() => effacer(true)} />
+    )
+  ) : avecFiltres ? (
+    <Bouton libelle="Effacer les filtres" variante="blanc" petit onPress={() => effacer(false)} />
+  ) : null;
   const vide = fauteDeDepart ? (
     <View className="items-center gap-3 px-6 py-6">
       <Mascotte expression="surprise" taille={96} />
@@ -324,22 +349,8 @@ export default function Explorer() {
         </Text>
       ) : null}
       {elargir ? <Bouton libelle={elargir.libelle} petit onPress={() => setPorteeChoisie(elargir.portee)} /> : null}
-      <Text className="text-center font-texte text-base leading-6 text-gris">
-        {lierPonctuation(
-          !motRecherche
-            ? "Aucun lieu avec ces filtres : élargis un peu, la bonne table n'est sûrement pas loin !"
-            : avecFiltres
-              ? `Rien pour « ${motRecherche} » avec ces filtres : essaie un autre mot ou élargis un peu !`
-              : `Rien pour « ${motRecherche} » : essaie un autre mot, la bonne table n'est sûrement pas loin !`,
-        )}
-      </Text>
-      {!motRecherche ? (
-        <Bouton libelle="Effacer les filtres" variante="blanc" petit onPress={() => effacer(false)} />
-      ) : avecFiltres ? (
-        <Bouton libelle="Tout effacer" indice="Efface la recherche et les filtres" variante="blanc" petit onPress={() => effacer(true)} />
-      ) : (
-        <Bouton libelle="Effacer la recherche" variante="blanc" petit onPress={() => effacer(true)} />
-      )}
+      <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(conseil)}</Text>
+      {effacement}
     </View>
   );
 
