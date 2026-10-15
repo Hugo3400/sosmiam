@@ -5,6 +5,7 @@ import type { CompteApp, ConnexionExterne, ConnexionsCompte, InscriptionEmail, P
 import type { ReponseApi } from "./reponse-api.ts";
 import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../types/connexion-qr.ts";
 import type { LimitationCompteApi } from "../types/limitation-compte.ts";
+import type { PhotoProfilEnvoyee, PhotoProfilRetiree } from "../types/photo-profil.ts";
 
 /** Une connexion réussie : le jeton à garder dans le coffre-fort du téléphone, et le compte */
 export type SessionOuverte = { session: string; compte: CompteApp; nouveau: boolean };
@@ -26,6 +27,8 @@ export interface ServiceCompte {
    */
   modifierProfil(modifs: Partial<Omit<ProfilServeur, "emailVerifie" | "age">>): Promise<ReponseApi<{ profil: ProfilServeur }>>;
   pseudoDisponible(pseudo: string): Promise<ReponseApi<{ disponible: boolean }>>;
+  envoyerPhotoProfil(fichier: Blob | ArrayBuffer | Uint8Array): Promise<ReponseApi<PhotoProfilEnvoyee>>;
+  retirerPhotoProfil(): Promise<ReponseApi<PhotoProfilRetiree>>;
   lireConnexions(): Promise<ReponseApi<{ connexions: ConnexionsCompte }>>;
   /**
    * Relie un compte Apple ou Google au compte connecté (nouveau jeton, comme à la connexion). Erreurs : « deja-relie » (une

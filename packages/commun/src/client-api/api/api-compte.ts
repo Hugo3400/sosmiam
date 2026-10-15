@@ -7,6 +7,8 @@ import type { ServiceCompte, SessionOuverte } from "../contrat-compte.ts";
 import type { ReponseApi } from "../reponse-api.ts";
 import type { DemandeConnexionQr, EtatConnexionQr, QrConnexion } from "../../types/connexion-qr.ts";
 import type { LimitationCompteApi } from "../../types/limitation-compte.ts";
+import { TYPE_PHOTO_PROFIL } from "../../regles/photo-profil.ts";
+import type { PhotoProfilEnvoyee, PhotoProfilRetiree } from "../../types/photo-profil.ts";
 
 export function creerCompteApi(client: ClientHttp): ServiceCompte {
   const ouvrir = async (chemin: string, corps: unknown): Promise<ReponseApi<SessionOuverte>> => {
@@ -38,6 +40,8 @@ export function creerCompteApi(client: ClientHttp): ServiceCompte {
     lireProfil: () => client.demander<{ profil: ProfilServeur }>("GET", "/comptes/moi/profil"),
     modifierProfil: (modifs) => client.demander<{ profil: ProfilServeur }>("PATCH", "/comptes/moi/profil", { corps: modifs }),
     pseudoDisponible: (pseudo) => client.demander<{ disponible: boolean }>("GET", `/comptes/pseudo-disponible?pseudo=${encodeURIComponent(pseudo)}`),
+    envoyerPhotoProfil: (fichier) => client.envoyerOctets<PhotoProfilEnvoyee>("/comptes/moi/photo", fichier, TYPE_PHOTO_PROFIL),
+    retirerPhotoProfil: () => client.demander<PhotoProfilRetiree>("DELETE", "/comptes/moi/photo"),
     lireConnexions: () => client.demander<{ connexions: ConnexionsCompte }>("GET", "/comptes/moi/connexions"),
     relierConnexion: ({ fournisseur, ...jetons }) =>
       client.demander<{ connexions: ConnexionsCompte }>("POST", `/comptes/moi/connexions/${fournisseur}`, { corps: jetons }),

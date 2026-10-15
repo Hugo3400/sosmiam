@@ -239,7 +239,21 @@ test("badges automatiques : donnés une fois, jamais retirés, jamais de points 
     g.visites.push(visite(`${lundis[i]}T10:00:00Z`, { typeLieu: "patisserie", ville, lieuId: i }));
   }
   await defis.services.reevaluer(autre.id, new Date("2026-11-03T10:00:00Z"));
-  assert.deepEqual(badgesDonnes.filter((b) => b.compteId === autre.id).map((b) => b.badge).sort(), ["bec-sucre", "explorateur", "premiere-rescousse", "serie-4"]);
+  assert.deepEqual(badgesDonnes.filter((b) => b.compteId === autre.id).map((b) => b.badge).sort(), ["as-du-gouter", "bec-sucre", "explorateur", "premiere-rescousse", "serie-4"]);
+});
+
+test("rattrapage : un compte qui remplit déjà le critère d'un nouveau badge le reçoit à sa prochaine lecture des défis, une seule fois, sans points", async () => {
+  const { id, jeton } = await creerCompte();
+  const f = defis.faitsDe(id);
+  f.rescousses.push(MIDI_14);
+  for (let i = 0; i < 25; i++) f.visites.push(visite("2026-10-13T10:00:00Z", { lieuId: i % 5 }));
+  defis.badges.set(id, new Set(["premiere-rescousse"]));
+  assert.equal((await lireDefis(jeton)).statut, 200);
+  assert.deepEqual(badgesDonnes.map((b) => [b.compteId, b.badge]), [[id, "fine-fourchette"], [id, "fourchette-d-or"], [id, "tour-de-table"], [id, "habitue"]]);
+  await lireDefis(jeton);
+  await defis.services.reevaluer(id, new Date(banc.horloge));
+  assert.equal(badgesDonnes.length, 4);
+  assert.equal(points.length, 0);
 });
 
 test("limite par compte : au-delà de LIMITE_DEFIS lectures en 10 minutes, 429", async () => {
