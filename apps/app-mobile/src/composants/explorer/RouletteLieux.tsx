@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Keyboard, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
-import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
+import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
@@ -30,6 +30,10 @@ const ETAPES = 16;
 const HAUTEUR_ROULEAU = 22;
 // Attente avant chaque étape : très rapide au début, puis de plus en plus lent (environ 2,5 secondes en tout)
 const attenteEtape = (i: number) => 55 + 380 * Math.pow(i / (ETAPES - 1), 2.4);
+
+function resterFermee(avant: Props, apres: Props): boolean {
+  return !avant.visible && !apres.visible;
+}
 
 /** Un lieu au hasard, en évitant si possible les identifiants exclus (le premier exclu compte le plus). */
 function piocher(lieux: LieuExplorer[], exclus: (number | null)[]): LieuExplorer {
@@ -56,12 +60,13 @@ function decrire({ lieu, km }: LieuExplorer, depuis: string | null): string {
  * La roulette d'Explorer : les lieux défilent vite, ralentissent et s'arrêtent sur un (direct si les animations sont réduites),
  * petite vibration à l'arrivée, résultat dit au lecteur d'écran. Jamais deux fois de suite le même lieu quand il y en a plusieurs.
  */
-export function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Props) {
+export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Props) {
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
+  const vignettes = useMemo(() => indexerVignettesLieux(toutesLesPublications, estMasquee), [toutesLesPublications, estMasquee]);
   const [affiche, setAffiche] = useState<LieuExplorer | null>(null);
   const [tourne, setTourne] = useState(false);
   const dernierTirage = useRef<number | null>(null);
@@ -156,7 +161,7 @@ export function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Pr
 
   const lieu = affiche?.lieu ?? null;
   // L'image seulement une fois arrêtée : pendant que ça tourne, le dégradé et l'emoji suffisent (et ne clignotent pas)
-  const image = lieu && !tourne ? trouverVignetteLieu(lieu.id, toutesLesPublications.filter((p) => !estMasquee(p.id))) : null;
+  const image = lieu && !tourne ? (vignettes.get(lieu.id) ?? null) : null;
   const seul = lieux.length === 1;
 
   return (
@@ -256,4 +261,4 @@ export function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Pr
       </View>
     </Modal>
   );
-}
+}, resterFermee);

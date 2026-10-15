@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Pressable, ScrollView, Text, View, type ImageSourcePropType } from "react-native";
 
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
@@ -5,6 +6,7 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { plafonnerCarrouselSos } from "~/fonctions/lieux/plafonner-carrousel-sos";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
@@ -19,11 +21,15 @@ type Props = {
 };
 
 const LARGEUR_CARTE = 208;
+const LARGEUR_AUTRES = 150;
 const SOUS_TITRE = "De la place et des bons plans : ta fourchette tombe à pic.";
+const PLAFOND_CARTES = 12;
 
 /** « 🛟 SOS ce soir » : les lieux qui ont de la place ou un bon plan ce soir, en cartes qui défilent de côté. */
-export function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
+export const CarrouselSos = memo(function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
   if (sos.length === 0) return null;
+  const cartes = plafonnerCarrouselSos(sos, PLAFOND_CARTES);
+  const autres = sos.length - cartes.length;
   return (
     <View className="gap-2 pb-4 pt-1">
       <View className="px-4">
@@ -32,7 +38,7 @@ export function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
-        {sos.map(({ lieu, km }) => {
+        {cartes.map(({ lieu, km }) => {
           const distance = km === null ? null : ecrireDistanceDepuis(km, depuis);
           const ligne = lieu.sos
             ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}`
@@ -68,7 +74,15 @@ export function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
             </Pressable>
           );
         })}
+        {autres > 0 ? (
+          <View style={{ width: LARGEUR_AUTRES }} className="items-center justify-center gap-1 rounded-carte border-2 border-ligne bg-creme px-3 py-4">
+            <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">👇</Text>
+            <Text className="text-center font-texte-semi text-[13px] text-encre">
+              {lierPonctuation(`Et ${autres} autre${autres > 1 ? "s" : ""} bon${autres > 1 ? "s" : ""} plan${autres > 1 ? "s" : ""} ${autres > 1 ? "t'attendent" : "t'attend"} plus bas dans la liste !`)}
+            </Text>
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
-}
+});

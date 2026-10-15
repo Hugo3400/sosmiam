@@ -19,7 +19,7 @@ export function creerMiamSafeEnMemoire(estPublie: (lieuId: number) => boolean, a
   const services: ServicesMiamSafe = {
     async lireLieu(lieuId) {
       if (!estPublie(lieuId)) return null;
-      const reponsesLieu = [...reponses].filter(([cle]) => cle.startsWith(`${lieuId}:`));
+      const reponsesLieu = [...reponses].filter(([cle]) => cle.startsWith(`${lieuId}:`) && aVisiteValidee(lieuId, Number(cle.slice(`${lieuId}:`.length))));
       const oui = reponsesLieu.filter(([, valeur]) => valeur).length;
       const charte = chartes.get(lieuId);
       return { engage: charte !== undefined && charte.retireeLe === null, repere: calculerRepereSentiBien(oui, reponsesLieu.length) };

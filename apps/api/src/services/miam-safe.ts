@@ -16,9 +16,10 @@ export const servicesMiamSafe: ServicesMiamSafe = {
     const lieu = await baseDeDonnees.lieu.findFirst({ where: { id: lieuId, statut: "publie" }, select: { miamSafe: { select: { retireeLe: true } } } });
     if (!lieu) return null;
     const engage = lieu.miamSafe !== null && lieu.miamSafe.retireeLe === null;
+    const apresVisite = { visites: { some: { lieuId, statut: "validee" } } };
     const [reponses, oui] = await Promise.all([
-      baseDeDonnees.reponseSentiBien.count({ where: { lieuId } }),
-      baseDeDonnees.reponseSentiBien.count({ where: { lieuId, oui: true } }),
+      baseDeDonnees.reponseSentiBien.count({ where: { lieuId, compte: apresVisite } }),
+      baseDeDonnees.reponseSentiBien.count({ where: { lieuId, oui: true, compte: apresVisite } }),
     ]);
     return { engage, repere: calculerRepereSentiBien(oui, reponses) };
   },
