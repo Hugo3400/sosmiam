@@ -11,6 +11,8 @@ type Props = {
   decision: "retenu" | "rejete";
   /** Le contenu jugé (« la publication », « le groupe »…) et, s'il est remis par défaut plutôt que retiré, ce qui change */
   cible: { le: string; remise?: string };
+  /** Remplace le texte expliquant ce qui se passe (avis, réponse d'un lieu) */
+  explication?: string;
   urgent: boolean;
   reexamen: boolean;
   enCours: boolean;
@@ -20,7 +22,7 @@ type Props = {
 };
 
 /** Confirmer une décision. Pour retirer un contenu : la règle enfreinte et l'explication pour l'auteur (obligatoires). */
-export function ModaleDecisionModeration({ decision, cible, urgent, reexamen, enCours, erreur, onFermer, onConfirmer }: Props) {
+export function ModaleDecisionModeration({ decision, cible, explication: explicationDonnee, urgent, reexamen, enCours, erreur, onFermer, onConfirmer }: Props) {
   const [motif, setMotif] = useState("");
   const [motivation, setMotivation] = useState("");
   const [note, setNote] = useState("");
@@ -55,7 +57,7 @@ export function ModaleDecisionModeration({ decision, cible, urgent, reexamen, en
       }
     >
       <div className="grid gap-4">
-        <p>{explication}</p>
+        <p>{explicationDonnee ?? explication}</p>
         {retirer && (
           <>
             <Selecteur

@@ -17,5 +17,5 @@ export type FileAvis = { compteurs: { avis: number; reponses: number }; parPage:
 export type DecisionAvis = { action: "publier" } | { action: "masquer"; motif: string; motivation: string };
 
 export const listerAvisARelire = (quoi: "avis" | "reponses", page: number) => appeler<FileAvis>("GET", `/avis/a-relire${parametres({ quoi, page })}`);
-export const trancherAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/decision`, decision);
-export const trancherReponseAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/reponse/decision`, decision);
+export const trancherAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/decision`, { corps: decision });
+export const trancherReponseAvis = (id: number, decision: DecisionAvis) => appeler<{ ok: true }>("POST", `/avis/${id}/reponse/decision`, { corps: decision });
