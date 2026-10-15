@@ -308,7 +308,7 @@ export default function Explorer() {
   const vide = fauteDeDepart ? (
     <View className="items-center gap-3 px-6 py-6">
       <Mascotte expression="surprise" taille={96} />
-      <Text className="text-center font-titre text-xl text-encre">Tu es où ?</Text>
+      <Text className="text-center font-titre text-xl text-encre">{lierPonctuation("Tu es où ?")}</Text>
       <Text className="text-center font-texte text-base leading-6 text-gris">
         {lierPonctuation("On ne sait pas où tu es : touche « Autour de moi » ou choisis une ville en haut, et on te trouve de bonnes tables à côté !")}
       </Text>

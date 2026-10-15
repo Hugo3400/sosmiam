@@ -29,3 +29,6 @@ __pycache__/
 kits/*.zip
 # Vidéos de l'Espace presse, décompressées depuis ces archives (même raison)
 presse/videos/
+
+# Fichiers privés de travail (compte de revue, fichiers des consoles) : jamais dans git ni envoyés à EAS
+/temporaire/
