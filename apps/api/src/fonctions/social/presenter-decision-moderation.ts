@@ -1,12 +1,13 @@
 import { DUREE_CONTESTATION_JOURS } from "../../../../../packages/commun/src/regles/signalement.ts";
-import type { CibleSignalementSocial, DecisionModerationApi } from "../../../../../packages/commun/src/types/signalement.ts";
+import type { CibleDecisionModeration, DecisionModerationApi } from "../../../../../packages/commun/src/types/signalement.ts";
 
 const JOUR_MS = 24 * 60 * 60 * 1000;
 
 /** Ce qu'on lit d'un signalement pour le montrer dans « Décisions de la modération » (jamais qui l'a fait, ni son explication) */
 export type LigneDecisionModeration = {
   id: number;
-  cible: CibleSignalementSocial;
+  /** Un contenu social, ou un avis et la réponse d'un lieu à un avis (masqués par l'équipe à la relecture) */
+  cible: CibleDecisionModeration;
   statut: string;
   motif: string | null;
   motivation: string | null;

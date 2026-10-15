@@ -12,7 +12,10 @@
 // - On ne dit jamais qui a signalé, ni son explication, à l'auteur.
 // La décision elle-même (retenu, rejeté, cloche « contenu-retire » et « signalement-decide ») est écrite par le logiciel de
 // gestion (session Logiciel, services/gestion/moderation.ts) ; la contestation venue de l'app passe par contesterSignalement.
-import type { CibleSignalementSocial, DecisionModerationApi, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
+// Un avis ou la réponse d'un lieu à un avis masqué par l'équipe à la relecture (décision du 15/10/2026) a aussi sa ligne
+// Signalement (cible « avis » ou « reponse-avis », cibleId : l'id de l'avis, statut « retenu », sans signaleParId), écrite par
+// le logiciel : elle entre dans les décisions de son auteur (auteurContenuId) et se conteste pareil.
+import type { CibleDecisionModeration, DecisionModerationApi, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
 import type { ContenuSignale } from "../fonctions/social/construire-instantane.ts";
 import { presenterDecisionModeration, type LigneDecisionModeration } from "../fonctions/social/presenter-decision-moderation.ts";
 import { DUREE_CONTESTATION_JOURS } from "../../../../packages/commun/src/regles/signalement.ts";
@@ -42,7 +45,8 @@ export type RefusContestation = "decision-inconnue" | "deja-contestee" | "contes
 export interface ServicesDecisionsModeration {
   /**
    * 50 au plus, les plus récentes d'abord : les décisions sur TES contenus (une ligne par contenu et par décision ; « masque »
-   * tant qu'il est masqué en attendant la modération) et sur TES signalements jugés. Jamais qui a signalé
+   * tant qu'il est masqué en attendant la modération ; tes avis et tes réponses d'un lieu masqués par l'équipe compris) et
+   * sur TES signalements jugés (contenus sociaux seulement). Jamais qui a signalé
    */
   listerDecisions(compteId: number, maintenant: Date): Promise<DecisionModerationApi[]>;
   /**
@@ -109,9 +113,10 @@ function lireDerniereDecision<T extends LigneSignalementDecision>(lignes: readon
  * - auteur : une ligne par contenu ; « masque » s'il est masqué maintenant et qu'un signalement attend (le plus ancien) ;
  *   sinon la dernière décision ;
  * - qui a signalé : chacun de ses signalements jugés.
- * `estMasque(cible, cibleId)` : l'état du contenu vivant (suspendu, ou masqué par le lieu).
+ * `estMasque(cible, cibleId)` : l'état du contenu vivant (suspendu, ou masqué par le lieu). Un avis ou une réponse d'un lieu
+ * n'attend jamais : l'équipe le masque en décidant (« retenu » d'emblée), on montre donc la décision.
  */
-export function choisirDecisions(lignes: readonly LigneSignalementDecision[], compteId: number, estMasque: (cible: CibleSignalementSocial, cibleId: string) => boolean): DecisionModerationApi[] {
+export function choisirDecisions(lignes: readonly LigneSignalementDecision[], compteId: number, estMasque: (cible: CibleDecisionModeration, cibleId: string) => boolean): DecisionModerationApi[] {
   const parContenu = new Map<string, LigneSignalementDecision[]>();
   for (const s of lignes) {
     if (s.auteurContenuId !== compteId) continue;
