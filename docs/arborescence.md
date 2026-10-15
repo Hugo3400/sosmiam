@@ -3,6 +3,7 @@
 ```
 sos-miam/
 ├── CLAUDE.md                  règles du projet
+├── .claude/workflows/         workflows réutilisables des sessions Claude : verifier-avant-redemarrage.js (avant un redémarrage de l'API, trois vérificateurs en lecture seule : tests et démarrage d'essai, migrations face à la base, ce qui part en ligne ; rend « stable » ou la liste de ce qui reste à régler)
 ├── docs/                      arborescence (ce fichier), décisions produit, idées pour plus tard (idees.md) et procédure de changement de la clé des données des comptes (procedure-changement-cle.md)
 ├── presse/                    Espace presse du logiciel de gestion : affiches (A4, A3, 40 × 60 cm), réseaux, campagne ambassadeurs fondateurs, imprimés, Capitaine, flyer, Miam Safe, documents, visuels stores, kit de marque, images, vidéos et sons (PNG, JPG, SVG, PDF, Markdown, MP4, sons), avec index.json, aperçus et un zip par famille ; kits/ : les zips que servent aussi les kits médias du site (contenus/maquettes-kits.ts) ; videos/ hors git (voir LISEZMOI.md)
 ├── kits/                      kit de marque (logos, mascotte Capitaine Bouiboui, pictos, bannières, couleurs, avatars des Miamis ; voir LISEZMOI.txt) et archives des vidéos
