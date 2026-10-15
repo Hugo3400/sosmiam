@@ -15,6 +15,7 @@ import { EntreeFidelite } from "~/composants/profil/EntreeFidelite";
 import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
 import { GrilleBadges } from "~/composants/profil/GrilleBadges";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
+import { EntreeReservations } from "~/composants/reservations/EntreeReservations";
 import type { MesuresActivite } from "~/contenus/type-mesure-activite";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
@@ -111,6 +112,7 @@ export default function Profil() {
         <AnnonceProfil />
         <EntreeSuivis suivis={activite.suivis} age={age} />
         <EntreeFidelite />
+        <EntreeReservations />
         {ambassadeur ? (
           <CartePalier points={ambassadeur.points} />
         ) : (

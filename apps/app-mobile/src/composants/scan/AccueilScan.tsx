@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MiniCarteFidelite } from "~/composants/fidelite/MiniCarteFidelite";
+import { SectionReservationsScan } from "~/composants/reservations/SectionReservationsScan";
 import { ApercuVisite } from "~/composants/scan/ApercuVisite";
 import { CarteDemandeEnCours } from "~/composants/scan/CarteDemandeEnCours";
 import { EnTeteScan } from "~/composants/scan/EnTeteScan";
@@ -26,7 +27,7 @@ const VISITES_AFFICHEES = 3;
 export function AccueilScan() {
   const router = useRouter();
   const hauteurBarreOnglets = useBottomTabBarHeight();
-  const { pret, source, enCours, visites, cartes } = utiliserVisites();
+  const { pret, source, enCours, visites, cartes, reservations } = utiliserVisites();
 
   const contenu = () => {
     if (source === "indisponible") {
@@ -121,6 +122,8 @@ export function AccueilScan() {
             <SectionVideScan emoji="🍽️" texte="Pas encore de visite : ton prochain resto indépendant n'attend que toi (et ton scan)." />
           )}
         </View>
+
+        <SectionReservationsScan reservations={reservations} />
 
         <EtapesCommentCaMarche />
       </>
