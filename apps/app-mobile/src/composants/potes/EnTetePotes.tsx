@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
@@ -19,15 +19,24 @@ type Props = {
 };
 
 /** Le haut de Potes : le titre, les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
+const LARGEUR_AJOUTER_COMPLET = 400;
+
 export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
   const router = useRouter();
+  const ajouterComplet = useWindowDimensions().width >= LARGEUR_AJOUTER_COMPLET;
   const { nonLus } = utiliserConversations();
   const monId = utiliserMonId();
 
   return (
     <View className="gap-3 pt-2">
       <View className="flex-row items-center gap-3">
-        <Text accessibilityRole="header" className="flex-1 font-titre text-[32px] leading-[36px] text-encre">
+        <Text
+          accessibilityRole="header"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+          className="min-w-0 flex-1 font-titre text-[32px] leading-[36px] text-encre"
+        >
           {TEXTES_ESPACE_COMMUNAUTE.titre}
         </Text>
         <Pressable
@@ -57,10 +66,10 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
             vibrerLegerement();
             router.push("/potes/ajouter");
           }}
-          className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
+          className={`items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${ajouterComplet ? "min-h-11 flex-row gap-1.5 px-4" : "h-11 w-11"}`}
         >
-          <Ionicons name="person-add" size={16} color={couleurs.encre} />
-          <Text className="font-texte-gras text-[15px] text-encre">Ajouter</Text>
+          <Ionicons name="person-add" size={ajouterComplet ? 16 : 18} color={couleurs.encre} />
+          {ajouterComplet ? <Text className="font-texte-gras text-[15px] text-encre">Ajouter</Text> : null}
         </Pressable>
       </View>
 
