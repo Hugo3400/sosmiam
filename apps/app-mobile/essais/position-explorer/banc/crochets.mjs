@@ -11,6 +11,7 @@ const DOUBLES = {
   "react-dom/client": "react-dom-client.mjs",
   "react-native": "react-native.mjs",
   "~/hooks/utiliser-profil": "utiliser-profil.mjs",
+  "~/hooks/utiliser-lieux": "utiliser-lieux.mjs",
   "~/fonctions/geo/lire-position-telephone": "lire-position-telephone.mjs",
   "~/hooks/utiliser-activite": "effacements.mjs",
   "~/hooks/utiliser-appareil-push": "effacements.mjs",
