@@ -20,7 +20,11 @@ export function CarteRemplissageJour({ reglages, reservations, maintenantMs }: P
         {T.titre}
       </Text>
       {message ? <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(message)}</Text> : null}
-      {remplissage.etat === "finis" ? null : remplissage.services.map((s) => <LigneRemplissageService key={`${s.service.premier}-${s.service.dernier}`} remplissage={s} services={reglages.services} />)}
+      {remplissage.services
+        .filter((s) => s.creneaux.length > 0)
+        .map((s) => (
+          <LigneRemplissageService key={`${s.service.premier}-${s.service.dernier}`} remplissage={s} services={reglages.services} />
+        ))}
     </View>
   );
 }

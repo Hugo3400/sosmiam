@@ -138,8 +138,13 @@ egal(await sorties.lire(1, prochaine, DEBUT), null, "retirée : plus visible");
 reussi(await sorties.annuler(6, Number(reservee.sortie.id), DEBUT), "annulée");
 egal(await nombre(`SELECT count(*) FROM conversations WHERE id = $1`, [Number(reservee.sortie.conversationId)]), 0, "discussion effacée");
 
+const masqueOublie = Number((await q(`INSERT INTO commentaires_idees_communaute (idee_id, auteur_id, texte, masque_le) VALUES ($1, 5, 'Masqué, sans contestation', $2) RETURNING id`, [ideeId, DEBUT]))[0]!.id);
+const masqueConteste = Number((await q(`INSERT INTO commentaires_idees_communaute (idee_id, auteur_id, texte, masque_le) VALUES ($1, 5, 'Masqué, contestation en attente', $2) RETURNING id`, [ideeId, DEBUT]))[0]!.id);
+await q(`INSERT INTO signalements (cible, cible_id, raison, source, statut, contestation, conteste_le) VALUES ('comment-idee', $1, 'choquant', 'app', 'traite', 'Je conteste', $2)`, [String(masqueConteste), plus(JOUR)]);
 const menage = await faireLeMenageCommunaute({ chiffrement: chiffrementDonnees, maintenant: plus(400 * JOUR) }, base);
 vrai(menage.sorties >= 2 && menage.presences === 2, `ménage : ${JSON.stringify(menage)}`);
+egal(await nombre(`SELECT count(*) FROM commentaires_idees_communaute WHERE id = $1`, [masqueOublie]), 0, "masqué depuis plus d'un an : effacé");
+egal(await nombre(`SELECT count(*) FROM commentaires_idees_communaute WHERE id = $1`, [masqueConteste]), 1, "contestation en attente : gardé");
 await q(`DELETE FROM comptes WHERE id = 4`);
 egal(await nombre(`SELECT count(*) FROM idees_communaute WHERE auteur_id IS NULL`), 1, "l'idée reste sans auteur");
 await terminerEssai(import.meta.url, essai, verifications.nombre);

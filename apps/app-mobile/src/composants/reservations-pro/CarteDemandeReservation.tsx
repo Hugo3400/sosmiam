@@ -82,7 +82,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
             desactive={!gestes.accepter}
             onPress={() => onAccepter(tient)}
           />
-          <View className="w-[38%] flex-row">
+          <View className="w-[34%] flex-row">
             <BoutonCarteComptoir libelle={T.refuser} libelleLu={remplirModele(T.refuserLu, { nom })} plein={false} desactive={!gestes.refuser} onPress={onRefuser} />
           </View>
         </View>

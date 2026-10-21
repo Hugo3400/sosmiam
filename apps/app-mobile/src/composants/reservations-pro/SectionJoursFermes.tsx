@@ -27,6 +27,7 @@ export function SectionJoursFermes({ joursFermes, aujourdhui, enCours, onBascule
       </Text>
       <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.joursFermesIntro)}</Text>
       <BoutonFermerJour ferme={joursFermes.includes(aujourdhui)} enCours={enCours.has(aujourdhui)} onBasculer={(ferme) => onBasculer(aujourdhui, ferme)} />
+      <Text className="mt-2 font-texte-semi text-base text-encre">{T.joursFermesProchains}</Text>
       {aVenir.length === 0 ? (
         <Text className="font-texte text-sm text-gris">{T.joursFermesVide}</Text>
       ) : (

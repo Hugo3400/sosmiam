@@ -40,6 +40,7 @@ export const TEXTES_REGLAGES_RESERVATIONS = {
   joursFermesTitre: "Jours sans résa",
   joursFermesIntro: "Congés, privatisation, soir complet… Ces jours-là, l'app ne propose aucun créneau. Ça part tout de suite, sans « Enregistrer ».",
   joursFermesVide: "Aucun pour l'instant.",
+  joursFermesProchains: "Les prochains jours sans résa",
   choisirJoursFermes: "Choisir des jours",
   indiceChoisirJoursFermes: "Ouvre le calendrier des trois prochains mois",
   rouvrirJourIndice: "Touche pour rouvrir les résas ce jour-là",
