@@ -60,8 +60,7 @@ const { createStaticHandler, createStaticRouter, StaticRouterProvider, useAction
 const service = await import("../src/services/securite.server.ts");
 const page = await import("../src/routes/public/securite.tsx");
 const { default: MiseEnPagePublique } = await import("../src/routes/public/mise-en-page-publique.tsx");
-const { loader: planDuSite } = await import("../src/routes/ressources/plan-du-site.ts");
-const { groupesPiedDePage } = await import("../src/contenus/liens-pied-de-page.ts");
+const { sectionChasseAuxBugs } = await import("../src/contenus/legal/confidentialite-securite.ts");
 const { PROMESSE_BONNE_FOI } = await import("../src/contenus/securite.ts");
 
 const avecDonnees = () => h(page.default as never, { loaderData: useLoaderData(), actionData: useActionData(), params: useParams(), matches: [] } as never);
@@ -254,10 +253,12 @@ test("envoi trop lourd annoncé (Content-Length) : refusé avant d'être lu", as
   assert.ok(!envoiAPI());
 });
 
-test("branchements : pied de page, plan du site, route de la page", async () => {
-  const liens = groupesPiedDePage.flatMap((groupe) => groupe.liens);
-  assert.ok(liens.some((lien) => lien.texte === "Chasse aux bugs" && lien.adresse === "/securite" && lien.site === "principal"));
-  const xml = await (await planDuSite({ request: new Request("https://sosmiam.fr/sitemap.xml") } as never)).text();
-  assert.match(xml, /<loc>https:\/\/sosmiam.fr\/securite<\/loc>/);
-  assert.match(readFileSync(`${dossierSrc}routes.ts`, "utf8"), /route\("securite", "routes\/public\/securite\.tsx"\)/);
+test("le fichier de la page ne se met jamais en noindex ; la section de confidentialité a son ancre et ses durées", () => {
+  assert.doesNotMatch(readFileSync(`${dossierSrc}routes/public/securite.tsx`, "utf8"), /noindex/);
+  assert.equal(sectionChasseAuxBugs.id, "chasse-aux-bugs");
+  const texte = JSON.stringify(sectionChasseAuxBugs.blocs);
+  assert.match(texte, /\*\*2 ans après sa clôture\*\*/);
+  assert.match(texte, /intérêt légitime à protéger SOS Miam et ses utilisateurs/);
+  assert.match(texte, /nettoyées de leurs métadonnées/);
+  assert.match(texte, /\[Chasse aux bugs\]\(\/securite\)/);
 });

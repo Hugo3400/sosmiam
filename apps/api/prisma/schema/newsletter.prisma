@@ -20,6 +20,24 @@ model InscriptionNewsletter {
   @@map("inscriptions_newsletter")
 }
 
+model ConfirmationNewsletter {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique @db.VarChar(254)
+  ville          String?  @db.VarChar(80)
+  ambassadeur    Boolean  @default(false)
+  telephone      String?  @db.VarChar(10)
+  beta           Boolean  @default(false)
+  source         String   @db.VarChar(40)
+  jetonEmpreinte String   @unique @map("jeton_empreinte") @db.VarChar(64)
+  expireLe       DateTime @map("expire_le") @db.Timestamptz(0)
+  envoyeLe       DateTime @map("envoye_le") @db.Timestamptz(0)
+  envois         Int      @default(1)
+  creeLe         DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@index([expireLe])
+  @@map("confirmations_newsletter")
+}
+
 /// Newsletter en cours de rédaction dans le logiciel de gestion (l'envoi arrivera avec Brevo).
 model BrouillonNewsletter {
   id        Int      @id @default(autoincrement())

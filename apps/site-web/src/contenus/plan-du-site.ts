@@ -6,7 +6,6 @@ export const pagesIndexees = [
   "/faq",
   "/inscrire-mon-lieu",
   "/carriere",
-  "/securite",
   "/mentions-legales",
   "/confidentialite",
   "/cookies",

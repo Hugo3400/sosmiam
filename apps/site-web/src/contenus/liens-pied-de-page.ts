@@ -25,7 +25,6 @@ export const groupesPiedDePage: GroupePiedDePage[] = [
       { texte: "Questions fréquentes", adresse: "/faq", site: "principal" },
       { texte: "J'inscris mon lieu", adresse: "/inscrire-mon-lieu", site: "principal" },
       { texte: "On recrute", adresse: "/carriere", site: "principal" },
-      { texte: "Chasse aux bugs", adresse: "/securite", site: "principal" },
       // Aperçus de ce qu'on prépare pour l'app (noindex, « ça peut encore changer »), ajouté à la demande de Hugo le 15/10
       { texte: "Ce qu'on prépare", adresse: "/preview", site: "principal" },
       { texte: "Espace pro", adresse: "/bienvenue", site: "pro" },

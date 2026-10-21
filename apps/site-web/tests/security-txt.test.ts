@@ -1,10 +1,21 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import { creerFichierSecurityTxt } from "../src/fonctions/securite/creer-fichier-security-txt.ts";
 import { repondreSecurityTxt } from "../src/fonctions/securite/repondre-security-txt.ts";
 import { choisirRedirectionHote } from "../src/fonctions/hotes/choisir-redirection-hote.ts";
+
+const racine = pathToFileURL(`${import.meta.dirname}/../src/`).href;
+registerHooks({
+  resolve(specificateur, contexte, suivant) {
+    if (specificateur.startsWith("~/")) return suivant(`${racine}${specificateur.slice(2)}.ts`, contexte);
+    return suivant(specificateur, contexte);
+  },
+});
+
+const { loader } = await import("../src/routes/ressources/fichier-security-txt.ts");
 
 const MAINTENANT = new Date("2026-10-22T09:30:15.123Z");
 const lignes = (texte: string) => texte.trimEnd().split("\n");
@@ -50,9 +61,10 @@ test("repondreSecurityTxt : les espaces ambassadeur et pro renvoient vers l'adre
   assert.equal(repondreSecurityTxt(new Request("http://127.0.0.1:5190/.well-known/security.txt")).status, 200);
 });
 
-test("/.well-known/security.txt : branché dans routes.ts, jamais redirigé par le partage des hôtes", () => {
-  const routes = readFileSync(`${import.meta.dirname}/../src/routes.ts`, "utf8");
-  assert.match(routes, /route\("\.well-known\/security\.txt", "routes\/ressources\/fichier-security-txt\.ts"\)/);
+test("route /.well-known/security.txt : le loader répond le fichier ; le partage des hôtes ne le redirige jamais", async () => {
+  const reponse = await loader({ request: new Request("https://sosmiam.fr/.well-known/security.txt") } as never);
+  assert.equal(reponse.status, 200);
+  assert.match(await reponse.text(), /^Contact: https:\/\/sosmiam\.fr\/securite$/m);
   for (const hote of ["sosmiam.fr", "ambassadeur.sosmiam.fr", "pro.sosmiam.fr"]) {
     assert.equal(choisirRedirectionHote(hote, "/.well-known/security.txt"), null, hote);
   }
