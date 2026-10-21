@@ -21,7 +21,7 @@ export type BlocCommunaute = {
 export const HAUT_COMMUNAUTE = {
   titreMeta: "Aperçu de l'Espace communauté",
   descriptionMeta:
-    "L'onglet Potes de l'app devient Communauté : ta bande, les sorties des Miamis, « Qui est là ? » et la boîte à idées. En préparation, ça peut encore changer.",
+    "L'onglet Potes de l'app devient Communauté : ta bande, les sorties des Miamis et « Qui est là ? ». La boîte à idées, elle, se range dans les paramètres. En préparation, ça peut encore changer.",
   retour: "Tous les aperçus",
   titre: "L'Espace communauté",
   chapo:

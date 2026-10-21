@@ -4,7 +4,7 @@ export const sectionCommunauteCgu: SectionLegale = {
   id: "communaute",
   titre: "Les Miamis et leurs sorties",
   blocs: [
-    "Dans l'onglet Communauté de l'app, la partie « Les Miamis » sert à rencontrer d'autres Miamis : des **sorties des Miamis**, ouvertes à des gens que tu ne connais pas encore, « Qui est là ? » et la boîte à idées. Comme tout le reste de l'app, c'est **dès 18 ans**, avec un compte et un pseudo, et les [règles de la communauté](#regles-communaute) s'y appliquent.",
+    "Dans l'onglet Communauté de l'app, la partie « Les Miamis » sert à rencontrer d'autres Miamis : des **sorties des Miamis**, ouvertes à des gens que tu ne connais pas encore, et « Qui est là ? ». La boîte à idées (Profil › ⚙️ Paramètres › La vie de SOS Miam) suit les mêmes règles. Comme tout le reste de l'app, c'est **dès 18 ans**, avec un compte et un pseudo, et les [règles de la communauté](#regles-communaute) s'y appliquent.",
     {
       liste: [
         "**Ton genre, honnêtement** : dans « Mon genre » (facultatif), choisis celui qui est le tien : « Femme », « Homme », « Autres » ou « Je préfère ne pas le dire ». Il ouvre les sorties réservées à ce genre, et se change **une fois par mois** (« Je préfère ne pas le dire » et l'effacement, quand tu veux). Te déclarer d'un autre genre pour entrer dans une sortie qui ne t'est pas destinée, c'est tromper les autres : c'est interdit.",
@@ -46,7 +46,7 @@ export const sectionBoiteAIdeesCgu: SectionLegale = {
   id: "boite-a-idees",
   titre: "La boîte à idées",
   blocs: [
-    "Une envie pour l'app ? Propose-la dans la boîte à idées, vote pour celles des autres (« Miam ! ») et commente-les. Une idée publiée et ses commentaires sont visibles de **tous les Miamis** connectés, avec ton @pseudo.",
+    "Une envie pour l'app ? Propose-la dans la boîte à idées (Profil › ⚙️ Paramètres › La vie de SOS Miam), vote pour celles des autres (« Miam ! ») et commente-les. Une idée publiée et ses commentaires sont visibles de **tous les Miamis** connectés, avec ton @pseudo.",
     {
       liste: [
         "**La Brigade relit chaque idée** (la Brigade, ici, c'est l'équipe de SOS Miam) avant qu'elle apparaisse aux autres : en attendant, elle est « en relecture », et seuls toi et la Brigade la voyez. Ensuite, la Brigade lui donne une étape (proposée, à l'étude, prévue, « C'est fait ! »), peut y répondre, et choisit chaque mois l'idée du mois.",

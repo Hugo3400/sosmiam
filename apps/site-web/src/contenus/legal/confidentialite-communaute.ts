@@ -4,7 +4,7 @@ export const sectionCommunaute: SectionLegale = {
   id: "communaute",
   titre: "Les Miamis : ton genre, « Qui est là ? » et le fil",
   blocs: [
-    "Dans l'onglet Communauté de l'app, la partie « Les Miamis » te fait croiser d'autres Miamis : des sorties ouvertes à des gens que tu ne connais pas encore (voir [Les sorties des Miamis](#sorties-miamis)), « Qui est là ? », la [boîte à idées](#boite-a-idees) et le fil « Ça bouge chez les Miamis ». Comme toute la partie sociale, il faut un compte (dès 18 ans) et, pour participer, un pseudo. Rien de tout ça ne se voit sans compte, ni sur le site. Ici, « la Brigade », c'est l'équipe de SOS Miam.",
+    "Dans l'onglet Communauté de l'app, la partie « Les Miamis » te fait croiser d'autres Miamis : des sorties ouvertes à des gens que tu ne connais pas encore (voir [Les sorties des Miamis](#sorties-miamis)), « Qui est là ? » et le fil « Ça bouge chez les Miamis ». La [boîte à idées](#boite-a-idees) (Profil › ⚙️ Paramètres › La vie de SOS Miam) suit les mêmes règles. Comme toute la partie sociale, il faut un compte (dès 18 ans) et, pour participer, un pseudo. Rien de tout ça ne se voit sans compte, ni sur le site. Ici, « la Brigade », c'est l'équipe de SOS Miam.",
     "**Ton genre**, si tu choisis de le donner :",
     {
       liste: [
@@ -66,7 +66,7 @@ export const sectionBoiteAIdees: SectionLegale = {
   id: "boite-a-idees",
   titre: "La boîte à idées",
   blocs: [
-    "Dans la boîte à idées, tu proposes des idées pour l'app, tu votes pour celles des autres et tu les commentes. La Brigade les relit, leur donne une étape et y répond, depuis notre logiciel de gestion.",
+    "Dans la boîte à idées (Profil › ⚙️ Paramètres › La vie de SOS Miam), tu proposes des idées pour l'app, tu votes pour celles des autres et tu les commentes. La Brigade les relit, leur donne une étape et y répond, depuis notre logiciel de gestion.",
     {
       liste: [
         "**Ce qu'on garde** (en clair, puisque c'est fait pour être lu) : le titre de ton idée et son détail, une version simplifiée du titre (pour repérer les doublons), sa date, son étape (en relecture, proposée, à l'étude, prévue, faite), la réponse de la Brigade et, le cas échéant, le mois où elle a été l'idée du mois ; qui a voté pour quelle idée, et quand ; les commentaires (texte, commentaire auquel ils répondent, date) et qui les a aimés.",
