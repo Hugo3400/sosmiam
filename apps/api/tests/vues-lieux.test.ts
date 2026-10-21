@@ -89,14 +89,55 @@ test("écriture ratée : 500, et la vue n'est pas retenue (un nouvel essai compt
   assert.equal(b.vues.lire(1, "2026-10-09"), 1);
 });
 
-test("plafond de la journée : au-delà, plus rien n'est compté jusqu'à minuit", async () => {
+test("plafond de la journée : les plus anciennes empreintes laissent la place, les nouveaux visiteurs comptent toujours", async () => {
   await b.fermer();
   b = await creerBancStatistiques({ retenuesMax: 2 });
   b.vider();
   for (const ip of ["192.0.2.80", "192.0.2.81", "192.0.2.82"]) assert.equal((await vue(1, ip)).statut, 204);
-  assert.equal(b.vues.lire(1, "2026-10-09"), 2);
-  // Le lendemain, tout est oublié : ça recompte
+  assert.equal(b.vues.lire(1, "2026-10-09"), 3);
+  await vue(1, "192.0.2.82");
+  await vue(1, "192.0.2.81");
+  assert.equal(b.vues.lire(1, "2026-10-09"), 3);
   b.banc.horloge = Date.parse("2026-10-10T08:00:00Z");
   await vue(1, "192.0.2.82");
   assert.equal(b.vues.lire(1, "2026-10-10"), 1);
+});
+
+test("un visiteur qui remplit le plafond n'empêche jamais les vues des autres", async () => {
+  await b.fermer();
+  b = await creerBancStatistiques({ retenuesMax: 3 });
+  b.vider();
+  b.vues.publies.add(3);
+  b.vues.publies.add(4);
+  for (const lieu of [2, 3, 4]) assert.equal((await vue(lieu, "2001:db8:aa00::1")).statut, 204);
+  for (const ip of ["198.51.100.1", "198.51.100.2", "198.51.100.3"]) assert.equal((await vue(1, ip)).statut, 204);
+  assert.equal(b.vues.lire(1, "2026-10-09"), 3);
+});
+
+test("plafond par visiteur : au-delà de son nombre de lieux du jour, ses vues ne comptent plus, celles des autres si", async () => {
+  await b.fermer();
+  b = await creerBancStatistiques({ parVisiteurMax: 2 });
+  b.vider();
+  b.vues.publies.add(3);
+  b.vues.publies.add(4);
+  assert.equal((await vue(4, "2001:db8:bb00::1")).statut, 204);
+  b.vues.publies.delete(4);
+  assert.equal((await vue(4, "2001:db8:bb00::1")).statut, 404);
+  for (const lieu of [1, 2, 3]) assert.equal((await vue(lieu, "2001:db8:bb00:ff::2")).statut, 204);
+  assert.deepEqual(b.vues.vues, [{ lieuId: 4, jour: "2026-10-09", nombre: 1 }, { lieuId: 1, jour: "2026-10-09", nombre: 1 }]);
+  assert.equal((await vue(3, "203.0.113.90")).statut, 204);
+  assert.equal(b.vues.lire(3, "2026-10-09"), 1);
+  b.banc.horloge = Date.parse("2026-10-10T08:00:00Z");
+  assert.equal((await vue(3, "2001:db8:bb00::1")).statut, 204);
+  assert.equal(b.vues.lire(3, "2026-10-10"), 1);
+});
+
+test("plafond par visiteur : une vue refusée (lieu non publié) ne compte pas dans son plafond", async () => {
+  await b.fermer();
+  b = await creerBancStatistiques({ parVisiteurMax: 1 });
+  b.vider();
+  b.vues.publies.delete(2);
+  assert.equal((await vue(2, "192.0.2.90")).statut, 404);
+  assert.equal((await vue(1, "192.0.2.90")).statut, 204);
+  assert.equal(b.vues.lire(1, "2026-10-09"), 1);
 });
