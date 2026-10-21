@@ -5,6 +5,7 @@ import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 import { Bouton } from "~/composants/interface/Bouton";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { EtiquetteStatutReservation } from "~/composants/reservations/EtiquetteStatutReservation";
 import { TEXTES_COMPTOIR_RESERVATIONS } from "~/contenus/textes-comptoir-reservations";
 import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
@@ -75,9 +76,7 @@ export function CarteReservationPro(props: Props) {
     <View className={`gap-3 rounded-carte border-2 bg-white p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
       <View accessible accessibilityLabel={`${nom}, ${personnes}, ${creneau.lu}. ${etiquette.lu}${auto ? `. ${ETIQUETTE_AUTO.lu}` : ""}`} className="flex-row items-start gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
-          <Text allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }}>
-            {reservation.avatar}
-          </Text>
+          <EmojiOuMiami valeur={reservation.avatar} taille={44} allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }} />
         </View>
         <View className="flex-1 gap-0.5">
           <Text className="font-texte-gras text-base text-encre">{`${nom} · ${personnes}`}</Text>

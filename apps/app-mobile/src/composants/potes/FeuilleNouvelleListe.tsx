@@ -1,7 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
@@ -11,11 +11,13 @@ import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { ChoixVisibiliteListe } from "~/composants/potes/ChoixVisibiliteListe";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ErreurNouvelleListe } from "~/hooks/utiliser-communaute";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 
 type Props = {
@@ -59,6 +61,7 @@ const EMOJIS = [
 export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null, onModifiee }: Props) {
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -129,90 +132,92 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.9, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: hauteurEcran * 0.9, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-2">
-            <View className="gap-1">
-              <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-                {liste ? "Modifier la liste" : "Nouvelle liste"}
-              </Text>
-              <Text className="font-texte text-base leading-6 text-gris">
-                {lierPonctuation(liste ? "Un nouveau nom, un autre emoji ? Les adresses, elles, restent bien au chaud." : "Range tes adresses chouchous par envie, et ta bande pourra la suivre.")}
-              </Text>
-            </View>
-
-            <View className="gap-2">
-              <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-encre">
-                Son emoji
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {emojis.map((e, i) => {
-                  const choisi = e.emoji === emoji;
-                  return (
-                    // Choix unique : bouton avec l'état « sélectionné » (VoiceOver lit « checked » en anglais), et la position dans le libellé
-                    <Pressable
-                      key={e.emoji}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Emoji ${e.nom}, ${i + 1} sur ${emojis.length}`}
-                      accessibilityState={{ selected: choisi }}
-                      onPress={() => {
-                        vibrerLegerement();
-                        setEmoji(e.emoji);
-                      }}
-                      className={`h-12 w-12 items-center justify-center rounded-full border-2 active:opacity-70 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
-                    >
-                      <Text allowFontScaling={false} className="text-2xl">
-                        {e.emoji}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-2">
+              <View className="gap-1">
+                <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
+                  {liste ? "Modifier la liste" : "Nouvelle liste"}
+                </Text>
+                <Text className="font-texte text-base leading-6 text-gris">
+                  {lierPonctuation(liste ? "Un nouveau nom, un autre emoji ? Les adresses, elles, restent bien au chaud." : "Range tes adresses chouchous par envie, et ta bande pourra la suivre.")}
+                </Text>
               </View>
-            </View>
 
-            <ChampTexte
-              libelle="Son nom"
-              valeur={titre}
-              onChangeTexte={setTitre}
-              placeholder="Brunchs du dimanche"
-              maxLength={LONGUEUR_MAX_TITRE_LISTE}
-              autoCapitalize="sentences"
-              returnKeyType="next"
-              erreur={erreurTitre}
-            />
-            <ChampTexte
-              libelle="Une petite description"
-              mention="facultatif"
-              valeur={description}
-              onChangeTexte={setDescription}
-              placeholder="Pour quoi, pour qui, pour quand ?"
-              maxLength={LONGUEUR_MAX_DESCRIPTION_LISTE}
-              multiline
-              autoCapitalize="sentences"
-              erreur={erreurDescription}
-            />
+              <View className="gap-2">
+                <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-encre">
+                  Son emoji
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {emojis.map((e, i) => {
+                    const choisi = e.emoji === emoji;
+                    return (
+                      // Choix unique : bouton avec l'état « sélectionné » (VoiceOver lit « checked » en anglais), et la position dans le libellé
+                      <Pressable
+                        key={e.emoji}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Emoji ${e.nom}, ${i + 1} sur ${emojis.length}`}
+                        accessibilityState={{ selected: choisi }}
+                        onPress={() => {
+                          vibrerLegerement();
+                          setEmoji(e.emoji);
+                        }}
+                        className={`h-12 w-12 items-center justify-center rounded-full border-2 active:opacity-70 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
+                      >
+                        <Text allowFontScaling={false} className="text-2xl">
+                          {e.emoji}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
 
-            <ChoixVisibiliteListe choisie={visibilite} onChoisir={setVisibilite} />
-
-            <View className="gap-3">
-              {souci ? (
-                <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(souci)}</Text>
-              ) : null}
-              <Bouton
-                libelle={envoi ? "Un instant…" : liste ? "Enregistrer" : "Créer la liste"}
-                desactive={titrePropre === "" || envoi}
-                indice={liste ? "Enregistre tes changements" : "Crée la liste et l'ouvre pour y ajouter des lieux"}
-                onPress={() => void valider()}
+              <ChampTexte
+                libelle="Son nom"
+                valeur={titre}
+                onChangeTexte={setTitre}
+                placeholder="Brunchs du dimanche"
+                maxLength={LONGUEUR_MAX_TITRE_LISTE}
+                autoCapitalize="sentences"
+                returnKeyType="next"
+                erreur={erreurTitre}
               />
-              <Bouton libelle="Annuler" variante="blanc" onPress={onFermer} />
-            </View>
-          </ScrollView>
-        </View>
+              <ChampTexte
+                libelle="Une petite description"
+                mention="facultatif"
+                valeur={description}
+                onChangeTexte={setDescription}
+                placeholder="Pour quoi, pour qui, pour quand ?"
+                maxLength={LONGUEUR_MAX_DESCRIPTION_LISTE}
+                multiline
+                autoCapitalize="sentences"
+                erreur={erreurDescription}
+              />
+
+              <ChoixVisibiliteListe choisie={visibilite} onChoisir={setVisibilite} />
+
+              <View className="gap-3">
+                {souci ? (
+                  <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(souci)}</Text>
+                ) : null}
+                <Bouton
+                  libelle={envoi ? "Un instant…" : liste ? "Enregistrer" : "Créer la liste"}
+                  desactive={titrePropre === "" || envoi}
+                  indice={liste ? "Enregistre tes changements" : "Crée la liste et l'ouvre pour y ajouter des lieux"}
+                  onPress={() => void valider()}
+                />
+                <Bouton libelle="Annuler" variante="blanc" onPress={onFermer} />
+              </View>
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

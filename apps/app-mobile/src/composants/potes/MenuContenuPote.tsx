@@ -2,16 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -58,6 +60,7 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(contenu !== null, onFermer);
+  const geste = utiliserGlisserPourFermer(contenu !== null, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -116,100 +119,102 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
     <Modal visible={contenu !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-            {vue === "signaler-contenu" ? (
-              <SignalerContenu cible={cible} cibleId={id} sujet={textes.sujet(pote.prenom)} onTermine={() => terminerSignalement(id)} />
-            ) : vue === "signaler-profil" ? (
-              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${pote.prenom}`} onTermine={() => terminerSignalement(pote.id)} />
-            ) : vue === "bloquer" ? (
-              <View className="gap-3">
-                <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                  {lierPonctuation(`Bloquer ${pote.prenom} ?`)}
-                </Text>
-                <Text className="font-texte text-base leading-6 text-encre">
-                  {lierPonctuation(
-                    dansBande
-                      ? `${pote.prenom} sortira de ta bande, et tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes.`
-                      : "Tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes. Tu restes tranquille, c'est tout ce qui compte.",
-                  )}
-                </Text>
-                <Bouton
-                  libelle={`Bloquer ${pote.prenom}`}
-                  variante="encre"
-                  onPress={() => {
-                    bloquer(pote.id);
-                    onFermer();
-                  }}
-                  className="mt-2"
-                />
-                <Bouton libelle="Non, je reviens" variante="blanc" onPress={() => aller("options")} />
-              </View>
-            ) : (
-              <>
-                <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                  {textes.titre(pote.prenom)}
-                </Text>
-                {actionsAffichees.map((a) => (
-                  <Pressable
-                    key={a.cle}
-                    accessibilityRole="button"
-                    accessibilityLabel={a.titre}
-                    accessibilityHint={a.detail}
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+              {vue === "signaler-contenu" ? (
+                <SignalerContenu cible={cible} cibleId={id} sujet={textes.sujet(pote.prenom)} onTermine={() => terminerSignalement(id)} />
+              ) : vue === "signaler-profil" ? (
+                <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${pote.prenom}`} onTermine={() => terminerSignalement(pote.id)} />
+              ) : vue === "bloquer" ? (
+                <View className="gap-3">
+                  <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
+                    {lierPonctuation(`Bloquer ${pote.prenom} ?`)}
+                  </Text>
+                  <Text className="font-texte text-base leading-6 text-encre">
+                    {lierPonctuation(
+                      dansBande
+                        ? `${pote.prenom} sortira de ta bande, et tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes.`
+                        : "Tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes. Tu restes tranquille, c'est tout ce qui compte.",
+                    )}
+                  </Text>
+                  <Bouton
+                    libelle={`Bloquer ${pote.prenom}`}
+                    variante="encre"
                     onPress={() => {
-                      vibrerLegerement();
+                      bloquer(pote.id);
                       onFermer();
-                      a.agir();
                     }}
-                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
-                  >
-                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
-                      {a.emoji}
-                    </Text>
-                    <View className="flex-1">
-                      <Text className="font-texte-gras text-base text-encre">{a.titre}</Text>
-                      <Text className="font-texte text-sm text-gris">{a.detail}</Text>
-                    </View>
-                  </Pressable>
-                ))}
-                {options.map((o) => (
-                  <Pressable
-                    key={o.cle}
-                    accessibilityRole="button"
-                    accessibilityLabel={o.titre}
-                    accessibilityHint={o.detail}
-                    onPress={() => {
-                      vibrerLegerement();
-                      if (o.cle === "profil") {
+                    className="mt-2"
+                  />
+                  <Bouton libelle="Non, je reviens" variante="blanc" onPress={() => aller("options")} />
+                </View>
+              ) : (
+                <>
+                  <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
+                    {textes.titre(pote.prenom)}
+                  </Text>
+                  {actionsAffichees.map((a) => (
+                    <Pressable
+                      key={a.cle}
+                      accessibilityRole="button"
+                      accessibilityLabel={a.titre}
+                      accessibilityHint={a.detail}
+                      onPress={() => {
+                        vibrerLegerement();
                         onFermer();
-                        router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
-                      } else aller(o.cle);
-                    }}
-                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
-                  >
-                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
-                      {o.emoji}
-                    </Text>
-                    <View className="flex-1">
-                      <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                      <Text className="font-texte text-sm text-gris">{o.detail}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                        a.agir();
+                      }}
+                      className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                    >
+                      <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
+                        {a.emoji}
+                      </Text>
+                      <View className="flex-1">
+                        <Text className="font-texte-gras text-base text-encre">{a.titre}</Text>
+                        <Text className="font-texte text-sm text-gris">{a.detail}</Text>
+                      </View>
+                    </Pressable>
+                  ))}
+                  {options.map((o) => (
+                    <Pressable
+                      key={o.cle}
+                      accessibilityRole="button"
+                      accessibilityLabel={o.titre}
+                      accessibilityHint={o.detail}
+                      onPress={() => {
+                        vibrerLegerement();
+                        if (o.cle === "profil") {
+                          onFermer();
+                          router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
+                        } else aller(o.cle);
+                      }}
+                      className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                    >
+                      <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
+                        {o.emoji}
+                      </Text>
+                      <View className="flex-1">
+                        <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                        <Text className="font-texte text-sm text-gris">{o.detail}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                    </Pressable>
+                  ))}
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
-                ))}
-                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-                </Pressable>
-              </>
-            )}
-          </ScrollView>
-        </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

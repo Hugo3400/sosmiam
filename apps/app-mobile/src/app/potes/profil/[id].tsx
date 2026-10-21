@@ -2,10 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { CodeQrInvitation } from "~/composants/potes/CodeQrInvitation";
 import { ListesDuProfil } from "~/composants/potes/ListesDuProfil";
 import { ProfilCommunautaire } from "~/composants/potes/ProfilCommunautaire";
@@ -23,6 +24,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -57,6 +59,7 @@ export default function ProfilPote() {
   const { ouvrirPrive } = utiliserConversations();
   const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const geste = utiliserGlisserPourFermer(signalementOuvert, () => setSignalementOuvert(false));
 
   // Compte connecté : son profil est lu sur le serveur (la communauté le connaît ensuite)
   const lecture = utiliserProfilCommunautaire(id);
@@ -289,17 +292,19 @@ export default function ProfilPote() {
         {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi du signalement */}
         <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => setSignalementOuvert(false)} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-          <View
+          <Animated.View
             accessibilityViewIsModal
             onAccessibilityEscape={() => setSignalementOuvert(false)}
-            style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-            className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+            onLayout={geste.mesurerFeuille}
+            style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
           >
-            <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-              <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil ${eliderDe(prenom)}`} onTermine={() => setSignalementOuvert(false)} />
-            </ScrollView>
-          </View>
+            <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+              <PoigneeFeuille geste={geste} />
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+                <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil ${eliderDe(prenom)}`} onTermine={() => setSignalementOuvert(false)} />
+              </ScrollView>
+            </View>
+          </Animated.View>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>

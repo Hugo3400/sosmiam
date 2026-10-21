@@ -6,6 +6,7 @@ import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jou
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { BoutonCarteComptoir } from "~/composants/pro/BoutonCarteComptoir";
+import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { OptionHoraireDemande } from "~/composants/reservations-pro/OptionHoraireDemande";
 import { TEXTES_COMPTOIR_RESERVATIONS as T } from "~/contenus/textes-comptoir-reservations";
 import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
@@ -50,9 +51,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
     <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
       <View accessible accessibilityLabel={`${resume.lu}. ${jour}`} className="flex-row items-start gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
-          <Text allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }}>
-            {reservation.avatar}
-          </Text>
+          <EmojiOuMiami valeur={reservation.avatar} taille={44} allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }} />
         </View>
         <View className="flex-1 gap-0.5">
           <Text className="font-texte-gras text-[16px] leading-[22px] text-encre">{resume.texte}</Text>

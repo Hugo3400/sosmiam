@@ -1,16 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -31,6 +33,7 @@ type Vue = "options" | "signaler" | "bloquer";
 export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Props) {
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { bloquer, potes, estSignale } = utiliserCommunaute();
@@ -82,78 +85,80 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
       {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-            {vue === "signaler" && message ? (
-              <SignalerContenu cible="message" cibleId={message.id} sujet={`ce message de ${prenom}`} onTermine={terminerSignalement} />
-            ) : vue === "bloquer" && auteur ? (
-              <View className="gap-4">
-                <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                  {lierPonctuation(`Bloquer ${prenom} ?`)}
-                </Text>
-                <Text className="font-texte text-base leading-6 text-encre">
-                  {lierPonctuation(
-                    dansBande
-                      ? `${prenom} sortira de ta bande, et ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.`
-                      : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
-                  )}
-                </Text>
-                <Bouton
-                  libelle={`Bloquer ${prenom}`}
-                  variante="encre"
-                  onPress={() => {
-                    bloquer(auteur.id);
-                    onBloque(prenom);
-                  }}
-                />
-                <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <>
-                <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                  {`Message de ${prenom}`}
-                </Text>
-                {message ? (
-                  <View className="mb-2 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
-                    <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-gris">
-                      {message.texte}
-                    </Text>
-                  </View>
-                ) : null}
-                {options.map((o) => (
-                  <Pressable
-                    key={o.cle}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${o.titre}, ${o.detail}`}
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+              {vue === "signaler" && message ? (
+                <SignalerContenu cible="message" cibleId={message.id} sujet={`ce message de ${prenom}`} onTermine={terminerSignalement} />
+              ) : vue === "bloquer" && auteur ? (
+                <View className="gap-4">
+                  <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
+                    {lierPonctuation(`Bloquer ${prenom} ?`)}
+                  </Text>
+                  <Text className="font-texte text-base leading-6 text-encre">
+                    {lierPonctuation(
+                      dansBande
+                        ? `${prenom} sortira de ta bande, et ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.`
+                        : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
+                    )}
+                  </Text>
+                  <Bouton
+                    libelle={`Bloquer ${prenom}`}
+                    variante="encre"
                     onPress={() => {
-                      vibrerLegerement();
-                      aller(o.cle);
+                      bloquer(auteur.id);
+                      onBloque(prenom);
                     }}
-                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
-                  >
-                    <Text className="text-2xl">{o.emoji}</Text>
-                    <View className="flex-1">
-                      <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
-                      <Text className="font-texte text-sm text-gris">{o.detail}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                  />
+                  <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                    <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
                   </Pressable>
-                ))}
-                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">Annuler</Text>
-                </Pressable>
-              </>
-            )}
-          </ScrollView>
-        </View>
+                </View>
+              ) : (
+                <>
+                  <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
+                    {`Message de ${prenom}`}
+                  </Text>
+                  {message ? (
+                    <View className="mb-2 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
+                      <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-gris">
+                        {message.texte}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {options.map((o) => (
+                    <Pressable
+                      key={o.cle}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${o.titre}, ${o.detail}`}
+                      onPress={() => {
+                        vibrerLegerement();
+                        aller(o.cle);
+                      }}
+                      className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                    >
+                      <Text className="text-2xl">{o.emoji}</Text>
+                      <View className="flex-1">
+                        <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                        <Text className="font-texte text-sm text-gris">{o.detail}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                    </Pressable>
+                  ))}
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                  </Pressable>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

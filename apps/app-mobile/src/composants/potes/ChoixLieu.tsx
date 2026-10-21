@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import couleurs from "~/theme/couleurs";
@@ -24,6 +26,7 @@ type Props = {
 export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFermer }: Props) {
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height } = useWindowDimensions();
@@ -44,78 +47,80 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           // VoiceOver ne voit que la feuille : le geste d'échappement (Z à deux doigts) la referme, en plus du bouton « Fermer sans choisir »
           onAccessibilityEscape={onFermer}
-          style={{ maxHeight: height * 0.85, paddingBottom: marges.bottom + 8, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: height * 0.85, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <View className="gap-3 px-5 pb-3">
-            <View className="flex-row items-center gap-2">
-              <Text accessibilityRole="header" className="flex-1 font-titre text-2xl text-encre">
-                {titre}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Fermer sans choisir"
-                onPress={onFermer}
-                className="-mr-2 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
-              >
-                <Ionicons name="close" size={24} color={couleurs.encre} />
-              </Pressable>
-            </View>
-            <TextInput
-              accessibilityLabel="Chercher un lieu"
-              value={texte}
-              onChangeText={setTexte}
-              placeholder="Un lieu, un plat, un quartier…"
-              placeholderTextColor={couleurs.gris}
-              autoCorrect={false}
-              returnKeyType="search"
-              className="min-h-12 rounded-full border-2 border-encre bg-white px-4 font-texte text-base text-encre"
-            />
-          </View>
-          <FlatList
-            data={lieux}
-            keyExtractor={(l) => String(l.id)}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            contentContainerClassName="px-5"
-            ListEmptyComponent={<Text className="py-6 text-center font-texte text-base text-gris">Aucun lieu ne correspond, essaie un autre mot.</Text>}
-            renderItem={({ item }) => {
-              const deja = dejaChoisis.includes(item.id);
-              return (
+          <View style={{ paddingBottom: marges.bottom + 8, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <View className="gap-3 px-5 pb-3">
+              <View className="flex-row items-center gap-2">
+                <Text accessibilityRole="header" className="flex-1 font-titre text-2xl text-encre">
+                  {titre}
+                </Text>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.nom}, ${item.info}, ${ecrireQuartierVille(item)}`}
-                  accessibilityState={{ disabled: deja }}
-                  accessibilityHint={deja ? "Déjà choisi" : undefined}
-                  disabled={deja}
-                  onPress={() => {
-                    vibrerLegerement();
-                    onChoisir(item.id);
-                  }}
-                  className={`min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70 ${deja ? "opacity-40" : ""}`}
+                  accessibilityLabel="Fermer sans choisir"
+                  onPress={onFermer}
+                  className="-mr-2 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
                 >
-                  <View style={{ backgroundColor: item.couleurs[0] }} className="h-10 w-10 items-center justify-center rounded-xl">
-                    <Text className="text-xl">{item.emoji}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
-                      {item.nom}
-                    </Text>
-                    <Text numberOfLines={1} className="font-texte text-sm text-gris">
-                      {item.info} · {ecrireQuartierVille(item)}
-                    </Text>
-                  </View>
-                  {deja ? <Text className="font-texte-semi text-xs text-gris">Déjà choisi</Text> : null}
+                  <Ionicons name="close" size={24} color={couleurs.encre} />
                 </Pressable>
-              );
-            }}
-          />
-        </View>
+              </View>
+              <TextInput
+                accessibilityLabel="Chercher un lieu"
+                value={texte}
+                onChangeText={setTexte}
+                placeholder="Un lieu, un plat, un quartier…"
+                placeholderTextColor={couleurs.gris}
+                autoCorrect={false}
+                returnKeyType="search"
+                className="min-h-12 rounded-full border-2 border-encre bg-white px-4 font-texte text-base text-encre"
+              />
+            </View>
+            <FlatList
+              data={lieux}
+              keyExtractor={(l) => String(l.id)}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerClassName="px-5"
+              ListEmptyComponent={<Text className="py-6 text-center font-texte text-base text-gris">Aucun lieu ne correspond, essaie un autre mot.</Text>}
+              renderItem={({ item }) => {
+                const deja = dejaChoisis.includes(item.id);
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.nom}, ${item.info}, ${ecrireQuartierVille(item)}`}
+                    accessibilityState={{ disabled: deja }}
+                    accessibilityHint={deja ? "Déjà choisi" : undefined}
+                    disabled={deja}
+                    onPress={() => {
+                      vibrerLegerement();
+                      onChoisir(item.id);
+                    }}
+                    className={`min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70 ${deja ? "opacity-40" : ""}`}
+                  >
+                    <View style={{ backgroundColor: item.couleurs[0] }} className="h-10 w-10 items-center justify-center rounded-xl">
+                      <Text className="text-xl">{item.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
+                        {item.nom}
+                      </Text>
+                      <Text numberOfLines={1} className="font-texte text-sm text-gris">
+                        {item.info} · {ecrireQuartierVille(item)}
+                      </Text>
+                    </View>
+                    {deja ? <Text className="font-texte-semi text-xs text-gris">Déjà choisi</Text> : null}
+                  </Pressable>
+                );
+              }}
+            />
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

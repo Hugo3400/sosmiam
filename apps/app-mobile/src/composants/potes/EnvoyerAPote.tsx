@@ -1,13 +1,14 @@
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LONGUEUR_MAX_MOT_RECOMMANDATION } from "@sos-miam/commun/regles/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { RondPote } from "~/composants/potes/RondPote";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -15,6 +16,7 @@ import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
@@ -59,6 +61,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     if (visible) envoiCourant.current++;
   }, [visible]);
   utiliserInscriptionFeuille(visible, onFermer);
+  const geste = utiliserGlisserPourFermer(visible, onFermer);
   // À chaque ouverture, on repart d'une feuille vierge (sans montrer l'ancien envoi le temps d'un rendu)
   const [ouvert, setOuvert] = useState(visible);
   if (visible !== ouvert) {
@@ -237,18 +240,20 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       {/* La feuille remonte au-dessus du clavier quand on écrit le petit mot */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
+          onLayout={geste.mesurerFeuille}
           // flexShrink : clavier ouvert, la feuille rétrécit et son contenu défile jusqu'au bouton « Envoyer »
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-            {contenu}
-          </ScrollView>
-        </View>
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+              {contenu}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
