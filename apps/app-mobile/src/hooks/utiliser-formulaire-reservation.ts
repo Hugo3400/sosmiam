@@ -20,6 +20,8 @@ const PERSONNES_PAR_DEFAUT = 2;
 const ATTENTE_PERSONNES_MS = 450;
 const AUCUN_CHOIX: ChoixHoraires = { principal: null, secours: [] };
 
+type ChoixDuJour = ChoixHoraires & { jour: string | null };
+
 export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) {
   const [personnes, setPersonnes] = useState(PERSONNES_PAR_DEFAUT);
   const personnesLues = utiliserValeurTemporisee(personnes, ATTENTE_PERSONNES_MS);
@@ -29,7 +31,9 @@ export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) 
   const premierOuvert = jours.jours.find((j) => j.etat === "ouvert")?.jour ?? jours.jours[0]?.jour ?? "";
   const jour = jourVoulu && jours.jours.some((j) => j.jour === jourVoulu) ? jourVoulu : premierOuvert;
   const creneaux = utiliserCreneauxReservation(lieu.id, jour, personnesLues, relecture);
-  const [choix, setChoix] = useState<ChoixHoraires>(AUCUN_CHOIX);
+  const [choixDuJour, setChoixDuJour] = useState<ChoixDuJour>({ jour: null, ...AUCUN_CHOIX });
+  const choix: ChoixHoraires = choixDuJour.jour === jour ? choixDuJour : AUCUN_CHOIX;
+  const setChoix = (suivant: ChoixHoraires) => setChoixDuJour({ jour, ...suivant });
   const [planBOuvert, setPlanBOuvert] = useState(false);
   const [ajustement, setAjustement] = useState<string | null>(null);
   const [planBPlein, setPlanBPlein] = useState(false);
@@ -47,16 +51,16 @@ export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) 
   }, [personnes, jours.personnesMax]);
 
   useEffect(() => {
-    if (!creneaux.frais) return;
-    const ajuste = ajusterChoixHoraires(choix, cleDisponibles === "" ? [] : cleDisponibles.split(","));
+    if (!creneaux.frais || choixDuJour.jour !== jour) return;
+    const ajuste = ajusterChoixHoraires(choixDuJour, cleDisponibles === "" ? [] : cleDisponibles.split(","));
     if (ajuste.principalParti === null && ajuste.secoursPartis.length === 0) return;
-    setChoix({ principal: ajuste.principal, secours: ajuste.secours });
+    setChoixDuJour({ jour, principal: ajuste.principal, secours: ajuste.secours });
     const texte = ajuste.principalParti
       ? remplirModele(TEXTES_PLAN_B.principalParti, { heure: formaterHeure(ajuste.principalParti), personnes: ecrireNombrePersonnes(personnesLues) })
       : remplirModele(ajuste.secoursPartis.length > 1 ? TEXTES_PLAN_B.secoursPartis : TEXTES_PLAN_B.secoursParti, { heures: ajuste.secoursPartis.map(formaterHeure).join(", ") });
     setAjustement(texte);
     annoncerLecteurEcran(texte);
-  }, [creneaux.frais, cleDisponibles, choix, personnesLues]);
+  }, [creneaux.frais, cleDisponibles, choixDuJour, jour, personnesLues]);
 
   const oublierAjustement = () => {
     setAjustement(null);
@@ -65,14 +69,15 @@ export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) 
 
   const choisirJour = useCallback((suivant: string) => {
     setJourVoulu(suivant);
-    setChoix(AUCUN_CHOIX);
+    setChoixDuJour({ jour: suivant, ...AUCUN_CHOIX });
     setPlanBOuvert(false);
     setAjustement(null);
     setPlanBPlein(false);
   }, []);
 
   function choisirHeure(heure: string) {
-    setChoix((avant) => ({ principal: heure, secours: avant.secours.filter((h) => h !== heure) }));
+    setJourVoulu(jour);
+    setChoix({ principal: heure, secours: choix.secours.filter((h) => h !== heure) });
     oublierAjustement();
   }
 
@@ -88,7 +93,7 @@ export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) 
   }
 
   function fermerPlanB() {
-    setChoix((avant) => ({ ...avant, secours: [] }));
+    setChoix({ ...choix, secours: [] });
     setPlanBOuvert(false);
     oublierAjustement();
   }

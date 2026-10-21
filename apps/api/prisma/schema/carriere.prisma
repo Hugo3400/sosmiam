@@ -1,0 +1,40 @@
+model OffreCarriere {
+  id           Int                   @id @default(autoincrement())
+  titre        String                @db.VarChar(120)
+  type         String                @db.VarChar(12)
+  domaine      String                @db.VarChar(20)
+  resume       String                @db.VarChar(300)
+  description  String
+  missions     Json                  @default("[]")
+  profil       Json                  @default("[]")
+  enEchange    Json                  @default("[]") @map("en_echange")
+  lieu         String                @default("À distance, partout en France") @db.VarChar(120)
+  publieeLe    DateTime?             @map("publiee_le") @db.Timestamptz(0)
+  fermeeLe     DateTime?             @map("fermee_le") @db.Timestamptz(0)
+  creeLe       DateTime              @default(now()) @map("cree_le") @db.Timestamptz(0)
+  modifieLe    DateTime              @default(now()) @map("modifie_le") @db.Timestamptz(3)
+  candidatures CandidatureCarriere[]
+
+  @@index([publieeLe])
+  @@map("offres_carriere")
+}
+
+model CandidatureCarriere {
+  id             String        @id @db.Uuid
+  offreId        Int           @map("offre_id")
+  offre          OffreCarriere @relation(fields: [offreId], references: [id], onDelete: Cascade)
+  nomChiffre     String        @map("nom_chiffre") @db.VarChar(400)
+  emailChiffre   String        @map("email_chiffre") @db.VarChar(1200)
+  emailEmpreinte String        @map("email_empreinte") @db.VarChar(64)
+  messageChiffre String        @map("message_chiffre")
+  lienChiffre    String?       @map("lien_chiffre") @db.VarChar(1300)
+  cvFichier      String?       @unique @map("cv_fichier") @db.VarChar(64)
+  statut         String        @default("nouvelle") @db.VarChar(12)
+  creeLe         DateTime      @default(now()) @map("cree_le") @db.Timestamptz(3)
+  lueLe          DateTime?     @map("lue_le") @db.Timestamptz(0)
+
+  @@index([offreId, creeLe])
+  @@index([creeLe])
+  @@index([emailEmpreinte, creeLe])
+  @@map("candidatures_carriere")
+}

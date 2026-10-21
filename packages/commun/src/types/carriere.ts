@@ -40,3 +40,25 @@ export type CandidatureGestion = {
   creeLe: string;
   effaceeLe: string;
 };
+
+export type DonneesOffreCarriere = {
+  titre: string;
+  type: TypeOffreCarriere;
+  domaine: DomaineOffreCarriere;
+  resume: string;
+  description: string;
+  missions: string[];
+  profil: string[];
+  enEchange: string[];
+  lieu: string;
+};
+
+export type OffreCarriereGestion = DonneesOffreCarriere & {
+  id: string;
+  publieeLe: string | null;
+  fermeeLe: string | null;
+  creeLe: string;
+  modifieLe: string;
+  candidatures: number;
+  nouvelles: number;
+};

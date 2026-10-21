@@ -41,6 +41,13 @@ type Props = {
 
 function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props) {
   const deLieu = direDeLieu(lieu.nom);
+  if (!f.jours.pret) {
+    return (
+      <View className="items-start py-2">
+        <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargementCreneaux} />
+      </View>
+    );
+  }
   if (f.jours.source === "local" && lieu.ouverture.length === 0) {
     return <EncadreReservation ton="doux" emoji="🕰️" titre={T.sansHorairesTitre} texte={remplirModele(T.sansHorairesTexte, { deLieu })} />;
   }

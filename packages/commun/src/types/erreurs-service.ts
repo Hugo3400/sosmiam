@@ -5,12 +5,14 @@ import type { ErreurServiceSociale } from "./erreurs-service-sociales.ts";
 import type { ErreurConnexionQr } from "./erreurs-connexion-qr.ts";
 import type { ErreurServiceCommunaute } from "./erreurs-service-communaute.ts";
 import type { ErreurServiceReservations } from "./erreurs-reservations.ts";
+import type { ErreurCarriere } from "./erreurs-carriere.ts";
 
 export type ErreurService =
   | ErreurServiceSociale
   | ErreurConnexionQr
   | ErreurServiceCommunaute
   | ErreurServiceReservations
+  | ErreurCarriere
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"

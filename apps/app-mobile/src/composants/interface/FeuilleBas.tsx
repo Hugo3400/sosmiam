@@ -34,7 +34,7 @@ export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
-  const titreDansPoignee = utiliserTitreDansPoignee();
+  const titreDansPoignee = utiliserTitreDansPoignee(visible);
 
   useEffect(() => {
     if (!visible) return;

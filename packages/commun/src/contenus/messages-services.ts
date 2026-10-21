@@ -8,6 +8,7 @@ import { MESSAGES_SERVICES_SOCIAUX } from "./messages-services-sociaux.ts";
 import { MESSAGES_CONNEXION_QR } from "./messages-connexion-qr.ts";
 import { MESSAGES_RESERVATIONS } from "./messages-reservations.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE } from "./messages-services-communaute.ts";
+import { MESSAGES_CARRIERE } from "./messages-carriere.ts";
 
 export type MessageService = { emoji: string; titre: string; texte: string };
 
@@ -470,4 +471,5 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   ...MESSAGES_CONNEXION_QR,
   ...MESSAGES_RESERVATIONS,
   ...MESSAGES_SERVICES_COMMUNAUTE,
+  ...MESSAGES_CARRIERE,
 };

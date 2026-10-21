@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
@@ -41,6 +40,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
   const options = reservation.propositions.map((p, rang) => decrireHorairePropose(p, rang, reservation.personnes));
   const choix = options.find((o) => o.creneau === choisi) ?? options[0];
   const tient = choix?.tient ?? true;
+  const aucunNeTient = options.length > 0 && options.every((o) => !o.tient);
   const heure = ecrireHeureParis(choisi);
   const gestes = calculerGestesReservationPro(reservation, maintenantMs);
   const accepter = remplirModele(tient ? T.accepter : T.accepterQuandMeme, { heure });
@@ -68,6 +68,9 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
         </View>
       ) : null}
 
+      {aucunNeTient ? (
+        <Text className="font-texte-semi text-[14px] leading-5 text-rouge-texte">{lierPonctuation(remplirModele(T.aucunQuiTient, { personnes: ecrireNombrePersonnes(reservation.personnes) }))}</Text>
+      ) : null}
       <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(decrireEndormissementDemande(reservation, maintenantMs))}</Text>
 
       {enCours ? (
@@ -95,10 +98,9 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
                   vibrerLegerement();
                   onBasculer();
                 }}
-                className="min-h-12 flex-1 flex-row items-center justify-center gap-1.5 rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+                className="min-h-12 flex-1 items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-80"
               >
                 <Text className="text-center font-texte-gras text-base text-encre">{deplie ? T.replierHoraires : T.autreHoraire}</Text>
-                <Ionicons name={deplie ? "chevron-up" : "chevron-down"} size={16} color={couleurs.encre} />
               </Pressable>
             ) : null}
           </View>

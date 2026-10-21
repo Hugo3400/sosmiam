@@ -14,6 +14,7 @@ export type RefusLectureReservation = { erreur: ErreurService; details?: Details
 export type JoursReservationLus = {
   jours: JourReservation[];
   source: "api" | "local";
+  pret: boolean;
   horsLigne: boolean;
   acceptation: ModeAcceptationReservation | null;
   delai: DelaiReservation;
@@ -30,6 +31,7 @@ export function utiliserJoursReservation(lieu: { id: number; ouverture: readonly
   const { reservations } = utiliserServices();
   const [lu, setLu] = useState<Lu | null>(null);
   const [source, setSource] = useState<"api" | "local">("api");
+  const [pret, setPret] = useState(false);
   const [horsLigne, setHorsLigne] = useState(false);
   const [refusLieu, setRefusLieu] = useState<RefusLectureReservation | null>(null);
   const aujourdhui = calculerJourParis(maintenantMs);
@@ -44,6 +46,7 @@ export function utiliserJoursReservation(lieu: { id: number; ouverture: readonly
     reservations.listerJours(lieu.id, personnes).then(
       (reponse) => {
         if (!actuel) return;
+        setPret(true);
         if (reponse.ok) {
           setLu({ jours: reponse.jours, acceptation: reponse.acceptation, delai: reponse.delai, personnesMax: reponse.personnesMax });
           setSource("api");
@@ -55,7 +58,11 @@ export function utiliserJoursReservation(lieu: { id: number; ouverture: readonly
         setSource("local");
         setHorsLigne(false);
       },
-      () => actuel && setHorsLigne(true),
+      () => {
+        if (!actuel) return;
+        setPret(true);
+        setHorsLigne(true);
+      },
     );
     return () => {
       actuel = false;
@@ -66,6 +73,7 @@ export function utiliserJoursReservation(lieu: { id: number; ouverture: readonly
   return {
     jours: source === "api" && valables ? lu.jours : locaux,
     source: source === "api" && valables ? "api" : "local",
+    pret,
     horsLigne,
     acceptation: lu?.acceptation ?? null,
     delai: lu?.delai ?? DELAI_SANS_REGLAGE,
