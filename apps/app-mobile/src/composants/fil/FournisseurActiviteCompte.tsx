@@ -7,6 +7,7 @@ import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { ContexteActivite, type EtatActivite, type FinRescousse, type ResultatRescousse } from "~/hooks/utiliser-activite";
 import { utiliserFileActivite } from "~/hooks/utiliser-file-activite";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import type { LectureListe } from "~/hooks/utiliser-visites";
 import { effacerActiviteCompte } from "~/stockage/activite-compte";
 import { effacerActiviteLocale } from "~/stockage/activite-locale";
 
@@ -133,6 +134,7 @@ export function FournisseurActiviteCompte({ children }: { children: ReactNode })
 
   const a = compte ? file.activite : ACTIVITE_VIDE;
   const chargee = source === "vide" || (compte && file.chargee);
+  const lectureActivite: LectureListe = source === "vide" ? "lue" : !compte || !file.chargee ? "attente" : file.serveur ? "lue" : "ratee";
   const horsLigne = compte && file.horsLigne;
   // Les compteurs de J'aime de l'API comptent déjà le tien : ceux de sa dernière réponse (sans compte : aucun)
   const jaimesServeur = source === "vide" ? AUCUN_JAIME : compte ? (file.serveur?.jaimes ?? null) : null;
@@ -148,6 +150,7 @@ export function FournisseurActiviteCompte({ children }: { children: ReactNode })
       jaimes: a.jaimes,
       suivis: a.suivis,
       chargee,
+      lectureActivite,
       horsLigne,
       jaimesServeur,
       aSauve: (lieuId) => a.rescoussesSemaine.includes(lieuId),
@@ -163,7 +166,7 @@ export function FournisseurActiviteCompte({ children }: { children: ReactNode })
       basculerSuivi,
       effacer,
     }),
-    [a, chargee, horsLigne, jaimesServeur, basculerRescousse, basculerGarde, basculerJaime, aimer, masquer, basculerSuivi, effacer],
+    [a, chargee, lectureActivite, horsLigne, jaimesServeur, basculerRescousse, basculerGarde, basculerJaime, aimer, masquer, basculerSuivi, effacer],
   );
   return <ContexteActivite.Provider value={valeur}>{children}</ContexteActivite.Provider>;
 }

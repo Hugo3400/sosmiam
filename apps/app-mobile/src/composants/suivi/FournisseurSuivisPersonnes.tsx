@@ -14,6 +14,6 @@ export function FournisseurSuivisPersonnes({ children }: { children: ReactNode }
   const source = utiliserSourceSociale();
   const locaux = utiliserSuivisPersonnesLocaux();
   const compte = utiliserSuivisPersonnesCompte(source === "compte");
-  const valeur = source === "compte" ? compte : source === "attente" ? { ...locaux, source, pret: false } : locaux;
+  const valeur = source === "compte" ? compte : source === "attente" ? { ...locaux, source, pret: false, lectureSuivis: "attente" as const } : locaux;
   return <ContexteSuivisPersonnes.Provider value={valeur}>{children}</ContexteSuivisPersonnes.Provider>;
 }

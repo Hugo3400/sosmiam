@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import type { LectureListe } from "~/hooks/utiliser-visites";
 
 /**
  * Résultat d'un appui sur « rescousse », décidé tout de suite avec l'activité affichée (« non-verifie » : le lieu n'a pas
@@ -38,6 +39,7 @@ export type EtatActivite = {
    * de l'API, même ratée ; tout de suite en visite sans compte. Avant : une activité vide.
    */
   chargee: boolean;
+  lectureActivite: LectureListe;
   /** Vrai quand la dernière demande à l'API n'a pas eu de réponse (les gestes attendent le réseau, sauf les rescousses) */
   horsLigne: boolean;
   /**

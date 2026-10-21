@@ -11,13 +11,19 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { EnTeteMesVisites } from "~/composants/visites/EnTeteMesVisites";
 import { LigneVisite } from "~/composants/visites/LigneVisite";
+import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
 import { grouperVisitesParMois } from "~/fonctions/visites/grouper-visites-par-mois";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import couleurs from "~/theme/couleurs";
 
 const TEXTE_VIDE =
   "Aucune visite validée pour l'instant. La prochaine fois que tu manges quelque part, demande l'addition dans l'app : c'est là que la magie opère.";
+
+const TITRE_RATEE = "Tes visites sont restées en cuisine";
+
+const TEXTE_RATEE = "La connexion fait des siennes, rien de grave : tout arrive dès que le réseau revient. Aucune visite ne se perd en route, promis.";
 
 /** Une carte d'explication au milieu de l'écran (rien à montrer, ou pas encore de comptes) */
 function CarteMessage({ emoji, titre, texte, enPlus }: { emoji: string; titre?: string; texte: string; enPlus?: ReactNode }) {
@@ -44,7 +50,8 @@ function CarteMessage({ emoji, titre, texte, enPlus }: { emoji: string; titre?: 
  */
 export default function MesVisites() {
   const router = useRouter();
-  const { pret, source, enCours, visites, rafraichir } = utiliserVisites();
+  const { source, enCours, visites, rafraichir } = utiliserVisites();
+  const lecture = utiliserLectureListe("visites");
   const groupes = useMemo(() => grouperVisitesParMois(visites), [visites]);
   const [relecture, setRelecture] = useState(false);
   const validees = visites.some((v) => v.statut === "validee");
@@ -66,12 +73,15 @@ export default function MesVisites() {
       const message = MESSAGES_SERVICE["service-indisponible"];
       return <CarteMessage emoji={message.emoji} titre={message.titre} texte={message.texte} />;
     }
-    if (!pret) {
+    if (lecture === "chargement") {
       return (
         <View className="items-center py-10">
           <ActivityIndicator color={couleurs.encre} accessibilityLabel="On rassemble tes visites…" />
         </View>
       );
+    }
+    if (lecture === "ratee") {
+      return <MessageLectureRatee titre={TITRE_RATEE} texte={TEXTE_RATEE} indice="Relit tes visites" onReessayer={rafraichir} />;
     }
     if (visites.length === 0 && !enCours) {
       return (

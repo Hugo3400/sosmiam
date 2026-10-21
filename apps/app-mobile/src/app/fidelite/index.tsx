@@ -6,8 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { CarteFideliteListe } from "~/composants/fidelite/CarteFideliteListe";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import couleurs from "~/theme/couleurs";
 
@@ -18,7 +20,8 @@ import couleurs from "~/theme/couleurs";
 export default function EcranMesCartesFidelite() {
   const router = useRouter();
   const fermer = utiliserFermerPile();
-  const { cartes, pret } = utiliserVisites();
+  const { cartes, rafraichir } = utiliserVisites();
+  const lecture = utiliserLectureListe("cartes");
   // Les récompenses prêtes d'abord, puis les cartes les plus avancées
   const triees = [...cartes].sort((a, b) => b.pretes.length - a.pretes.length || b.tampons / b.sur - a.tampons / a.sur);
 
@@ -40,8 +43,15 @@ export default function EcranMesCartesFidelite() {
       </View>
 
       <ScrollView contentContainerClassName="gap-4 px-5 pb-10 pt-2">
-        {!pret ? (
+        {lecture === "chargement" ? (
           <Text className="py-10 text-center font-texte text-base text-gris">On sort tes cartes…</Text>
+        ) : lecture === "ratee" ? (
+          <MessageLectureRatee
+            titre="Tes cartes sont restées en cuisine"
+            texte="La connexion fait des siennes, rien de grave : tout arrive dès que le réseau revient. Pas un tampon ne se perd en route, promis."
+            indice="Relit tes cartes de fidélité"
+            onReessayer={rafraichir}
+          />
         ) : triees.length === 0 ? (
           <View className="items-center gap-4 rounded-carte border-2 border-dashed border-ligne bg-white px-6 py-8">
             <Mascotte expression="clin" taille={110} />

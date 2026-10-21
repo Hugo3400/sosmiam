@@ -156,6 +156,7 @@ export function FournisseurActiviteLocale({ children }: { children: ReactNode })
       jaimes: [...activite.jaimes].reverse(),
       suivis: [...activite.suivis].reverse(),
       chargee: relue,
+      lectureActivite: relue ? "lue" : "attente",
       horsLigne: false,
       // Les compteurs de la démo ne comptent jamais ton J'aime
       jaimesServeur: AUCUN_JAIME,

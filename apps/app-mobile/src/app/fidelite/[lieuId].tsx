@@ -10,12 +10,14 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { BlocRecompensePrete } from "~/composants/fidelite/BlocRecompensePrete";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { LigneVisite } from "~/composants/visites/LigneVisite";
+import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
@@ -31,13 +33,14 @@ export default function EcranCarteFidelite() {
   const router = useRouter();
   const fermer = utiliserFermerPile();
   const { lieuId } = useLocalSearchParams<{ lieuId: string }>();
-  const { cartes, visites, pret } = utiliserVisites();
+  const { cartes, visites, rafraichir } = utiliserVisites();
+  const lecture = utiliserLectureListe("cartes");
   const { fidelite } = utiliserServices();
   const { profil, avatar } = utiliserProfil();
   const [envoi, setEnvoi] = useState(false);
   const [refus, setRefus] = useState<ErreurService | null>(null);
 
-  const carte = cartes.find((c) => String(c.lieu.id) === lieuId) ?? null;
+  const carte = lecture === "prete" ? (cartes.find((c) => String(c.lieu.id) === lieuId) ?? null) : null;
   const visitesIci = visites.filter((v) => String(v.lieu.id) === lieuId && v.statut === "validee");
   // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji ou Miami (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");
@@ -76,10 +79,21 @@ export default function EcranCarteFidelite() {
       <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
         {enTete}
         <View className="flex-1 items-center justify-center gap-4 px-8">
-          <Text className="text-center font-texte text-base leading-6 text-gris">
-            {pret ? "Pas de carte ici pour l'instant : elle naît avec ta première visite validée." : "On sort ta carte…"}
-          </Text>
-          {pret ? <Bouton libelle="Mes cartes de fidélité" variante="blanc" onPress={() => router.replace("/fidelite")} /> : null}
+          {lecture === "ratee" ? (
+            <MessageLectureRatee
+              titre="Ta carte est restée en cuisine"
+              texte="La connexion fait des siennes, rien de grave : elle arrive dès que le réseau revient. Pas un tampon ne se perd en route, promis."
+              indice="Relit tes cartes de fidélité"
+              onReessayer={rafraichir}
+            />
+          ) : (
+            <>
+              <Text className="text-center font-texte text-base leading-6 text-gris">
+                {lecture === "prete" ? "Pas de carte ici pour l'instant : elle naît avec ta première visite validée." : "On sort ta carte…"}
+              </Text>
+              {lecture === "prete" ? <Bouton libelle="Mes cartes de fidélité" variante="blanc" onPress={() => router.replace("/fidelite")} /> : null}
+            </>
+          )}
         </View>
       </SafeAreaView>
     );

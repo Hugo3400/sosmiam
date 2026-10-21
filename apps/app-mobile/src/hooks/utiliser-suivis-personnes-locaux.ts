@@ -279,6 +279,7 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
     return {
       source,
       pret,
+      lectureSuivis: pret ? "lue" : "attente",
       confidentialite,
       comptePrive: estComptePrive({ prive: confidentialite === "prive" }),
       changerConfidentialite: async (choix) => changerConfidentialite(choix),

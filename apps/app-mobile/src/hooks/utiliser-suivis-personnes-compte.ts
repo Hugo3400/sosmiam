@@ -16,6 +16,7 @@ import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import type { EtatSuivisPersonnes, PersonneLiee, RelationPersonne, ResultatSuivre, SensSuivi } from "~/hooks/utiliser-suivis-personnes";
+import type { LectureListe } from "~/hooks/utiliser-visites";
 import { effacerSuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
 type Page = { liens: LienSuiviApi[]; suite: string | null };
@@ -219,6 +220,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
   );
 
   const pret = actif && lu && communaute.pret;
+  const lectureSuivis: LectureListe = !actif ? "attente" : resume ? "lue" : lu ? "ratee" : "attente";
   const pagesSuivies = useMemo(() => listerSuivisAffichables(activite.suivis, tousLesLieux, toutesLesPublications).length, [activite.suivis, tousLesLieux, toutesLesPublications]);
 
   return useMemo((): EtatSuivisPersonnes => {
@@ -383,6 +385,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
     return {
       source: "compte",
       pret,
+      lectureSuivis,
       confidentialite: prive ? "prive" : "public",
       comptePrive: prive,
       changerConfidentialite,
@@ -413,5 +416,5 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
       // Tes suivis restent sur le serveur : seul ce que le téléphone gardait d'avant (démo, visite) part
       effacer: effacerSuivisPersonnesLocaux,
     };
-  }, [pret, communaute, monId, resume, pages, ordreListes, profils, gestes, masquees, pagesSuivies, sociaux, faire, changerCompteurs, changerConfidentialite, chargerSuite, noterProfil]);
+  }, [pret, lectureSuivis, communaute, monId, resume, pages, ordreListes, profils, gestes, masquees, pagesSuivies, sociaux, faire, changerCompteurs, changerConfidentialite, chargerSuite, noterProfil]);
 }

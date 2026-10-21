@@ -5,6 +5,7 @@ import type { ProfilCommunautaireApi } from "@sos-miam/commun/types/social";
 import type { Confidentialite, VerdictSuivi, VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import type { SurRefusGeste } from "~/hooks/utiliser-communaute";
 import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
+import type { LectureListe } from "~/hooks/utiliser-visites";
 
 /** Résultat d'un appui sur « Suivre » une personne. « pseudo-manquant » : pas encore de pseudo (voir Réglages › Mes infos). */
 export type ResultatSuivre = "suivi" | "demande" | "deja" | "interdit" | "pseudo-manquant";
@@ -31,6 +32,7 @@ export type EtatSuivisPersonnes = {
   source: SourceSociale;
   /** Faux tant que le stockage, la communauté et le profil ne sont pas relus (et toujours pendant la visite sans compte) : rien à afficher (ni bouton ni compteur) */
   pret: boolean;
+  lectureSuivis: LectureListe;
   confidentialite: Confidentialite;
   /** Ce qui s'applique (estComptePrive) */
   comptePrive: boolean;

@@ -11,8 +11,8 @@ import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 export function EntreeSuivis() {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
-  const { pret, nombreAbonnements: nombrePersonnes } = utiliserSuivisPersonnes();
-  const { suivis, chargee } = utiliserActivite();
+  const { pret, lectureSuivis, nombreAbonnements: nombrePersonnes } = utiliserSuivisPersonnes();
+  const { suivis, lectureActivite } = utiliserActivite();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore
@@ -27,7 +27,7 @@ export function EntreeSuivis() {
   ].filter((p) => p !== null);
   // « 2 personnes, 3 lieux et 1 créateur »
   const detail =
-    !pret || !chargee
+    !pret || lectureSuivis !== "lue" || lectureActivite !== "lue"
       ? TEXTES_RACCOURCIS.suivisEnLecture
       : parties.length > 1
         ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
