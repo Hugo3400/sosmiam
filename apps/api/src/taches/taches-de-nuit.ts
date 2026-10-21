@@ -14,6 +14,7 @@ import { effacerReceptionsAnciennes } from "../services/notifications/file-push.
 import { effacerContactsAnciens } from "../services/gestion/demandes.ts";
 import { effacerMiamSafeAncien } from "../services/gestion/miam-safe.ts";
 import { purgerDesinscritsAnciens } from "../services/gestion/newsletter.ts";
+import { effacerConfirmationsNewsletterExpirees } from "../services/confirmations-newsletter.ts";
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
 import { testerSauvegarde } from "../services/gestion/test-sauvegarde.ts";
@@ -85,6 +86,8 @@ async function faireLeMenage() {
     // Limitations de comptes finies ou levées depuis plus d'un an (décision de Hugo du 15/10/2026 ; un nombre seulement)
     const limitations = await effacerLimitationsAnciennes(new Date());
     if (limitations > 0) await noterAction("serveur", "Limitations de comptes effacées (plus d'un an)", `${limitations} limitation(s), finies ou levées depuis plus d'un an`);
+    const confirmations = await effacerConfirmationsNewsletterExpirees();
+    if (confirmations > 0) await noterAction("serveur", "Demandes de newsletter jamais confirmées effacées (7 jours passés)", `${confirmations} demande(s)`);
   } catch (erreur) {
     console.error("Ménage de nuit impossible :", resumerErreur(erreur));
   }

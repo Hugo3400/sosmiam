@@ -26,7 +26,9 @@ import { marquerMessageLu, messagesDuCompte, missionsDuCompte, noterPresence, te
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
 import { servicesGestion } from "./services/gestion/tous-les-services.ts";
-import { enregistrerInscription } from "./services/inscriptions.ts";
+import { creerDepotConfirmationsNewsletter } from "./services/confirmations-newsletter.ts";
+import { envoyerLienConfirmationNewsletter } from "./services/courriels/courriels-newsletter.ts";
+import { creerDemandesNewsletter } from "./services/demandes-newsletter.ts";
 import { creerSuggestionLieu, lireFichePourSuggestion } from "./services/suggestions-comptes.ts";
 import { lireFichePublique, listerLieuxPublics } from "./services/lieux-publics.ts";
 import { listerLieuxDuPlan } from "./services/lieux-publics.ts";
@@ -67,7 +69,7 @@ import { lireClesAnciennesDesinscription } from "./services/liens-desinscription
 import { brancherRechiffrementDeNuit } from "./taches/taches-de-nuit.ts";
 import { trouverInscritNewsletter } from "./services/desinscription-newsletter.ts";
 import { desinscrire, noterDesinscription } from "./services/gestion/newsletter.ts";
-import { inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
+import { estDesinscritNewsletter, inscrireCompteNewsletter } from "./services/gestion/newsletter.ts";
 import { desinscrireAppareil, inscrireAppareil } from "./services/appareils-push.ts";
 import { creerAvisGestion } from "./services/avis-gestion.ts";
 import { creerDefis } from "./services/defis.ts";
@@ -163,9 +165,13 @@ const photosProfil = creerPhotosProfil({
 });
 brancherPhotosProfil(photosProfil);
 const carriere = brancherCarriere(chiffrement);
+const confirmationsNewsletter = creerDepotConfirmationsNewsletter();
+const demandesNewsletter = creerDemandesNewsletter({
+  depot: confirmationsNewsletter, envoyerLien: envoyerLienConfirmationNewsletter, estDesinscrit: estDesinscritNewsletter,
+});
 
 const serveur = creerApplication({
-  enregistrerInscription,
+  enregistrerInscription: demandesNewsletter.demander,
   enregistrerVue: compteur.enregistrerVue,
   enregistrerClic: (cible: string) => compteur.enregistrerClic("site", cible),
   enregistrerSignalement,
@@ -208,8 +214,10 @@ const serveur = creerApplication({
       apple: creerVerificateurApple({ audiences: audiencesApple }),
       google: creerVerificateurGoogle({ audiences: audiencesGoogle }),
     },
-    // Case « newsletter » cochée à la création d'un compte de l'app (inscription, Apple, Google) : soft opt-in de la CNIL
+    // Case « newsletter » cochée à la création d'un compte de l'app : soft opt-in de la CNIL ; inscrit tout de suite avec
+    // Apple ou Google (e-mail vérifié par eux), lien de confirmation d'abord avec un e-mail et un mot de passe
     newsletter: { inscrireCompte: (email, ville) => inscrireCompteNewsletter(email, ville, "app"),
+      demanderConfirmation: (email, ville) => demandesNewsletter.demander({ email, ville, ambassadeur: false, telephone: null, beta: false, source: "app" }),
       // Case décochée (app, Apple, Google ou espace ambassadeur) : le « non » rejoint la liste des désinscrits (3 ans)
       noterRefus: (email) => noterDesinscription(email) },
     // Repasser en public par le profil accepte les demandes de suivi en attente, comme PUT /app/suivis-personnes/confidentialite
@@ -266,7 +274,8 @@ const serveur = creerApplication({
   // Téléphones inscrits aux notifications push (PUT/DELETE /app/appareils)
   appareilsApp: { inscrire: inscrireAppareil, desinscrire: desinscrireAppareil },
   annoncesApp: { lister: (filtres) => listerAnnoncesApp(filtres) },
-  newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
+  newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email),
+    confirmerInscription: confirmationsNewsletter.confirmer },
   // Potes, profils, masques, pouls et cloche de l'app (routes /app/social, /app/personnes, /app/masques, /app/cloche…)
   socialApp,
   carriere,

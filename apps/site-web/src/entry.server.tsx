@@ -39,9 +39,10 @@ export default function handleRequest(requete: Request, statut: number, entetes:
             fini();
           },
         });
+        const flux = createReadableStreamFromReadable(corps);
         entetes.set("Content-Type", "text/html");
         pipe(corps);
-        resoudre(new Response(createReadableStreamFromReadable(corps), { headers: entetes, status: statut }));
+        resoudre(new Response(flux, { headers: entetes, status: statut }));
       },
       onShellError(erreur: unknown) {
         rejeter(erreur);
