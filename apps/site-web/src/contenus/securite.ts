@@ -84,7 +84,7 @@ export const engagementsSecurite = {
 
 export const recompensesSecurite = {
   titre: "En échange d'une vraie faille",
-  chapo: "La Brigade te doit une fière chandelle. Pour une vraie faille, tu reçois :",
+  chapo: "La Brigade te doit une fière chandelle. Voilà ce que tu reçois :",
   recompenses: [
     { emoji: "🐞", texte: "**Le badge « Chasseur de bugs »** dans l'app. Il va au compte SOS Miam qui a la même adresse e-mail que ton signalement, si cette adresse y est confirmée." },
     { emoji: "🏆", texte: "**Ton nom au tableau d'honneur**, seulement si tu le veux (une case à cocher dans le formulaire)." },
@@ -111,6 +111,7 @@ export const commentSignaler = {
     "**Les étapes pour reproduire**, une par une, comme une recette.",
     "**L'impact** : ce qu'un petit malin pourrait faire avec, et à qui ça ferait du tort.",
     "**Une preuve** : une requête, la réponse du serveur, une capture.",
+    "**En français ou en anglais**, comme tu préfères.",
   ],
   captures: `**Tes captures** : en PNG ou en JPEG, ${IMAGES_SIGNALEMENT_MAX} au plus, ${MO_PAR_IMAGE} Mo chacune. Une vidéo ou un script ? Mets-les derrière un lien.`,
   donnees: `Ton signalement est gardé chiffré, puis effacé ${ANNEES_CONSERVATION_SECURITE} ans après sa clôture. `,

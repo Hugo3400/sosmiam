@@ -136,7 +136,7 @@ export function FormulaireSignalement() {
           <textarea id="signalement-description" name="description" rows={10} required maxLength={description.max} defaultValue={valeurs?.description}
             onChange={(evenement) => setLongueurDescription(evenement.currentTarget.value.length)}
             {...proprietesErreur("description", "signalement-description-aide", "signalement-description-compteur")} className={`${classeChamp} font-mono text-sm`} />
-          <p id="signalement-description-compteur" className="mt-1 text-right text-xs text-gris">{longueurDescription} / {description.max} caractères</p>
+          <p id="signalement-description-compteur" className="mt-1 text-right text-xs text-gris">{longueurDescription.toLocaleString("fr-FR")} / {description.max.toLocaleString("fr-FR")} caractères</p>
           {afficherErreur("description")}
         </div>
         <div className="sm:col-span-2">
