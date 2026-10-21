@@ -23,9 +23,8 @@ export type DefisDuProfil = {
 
 /**
  * Les défis du profil. Avec un compte : ceux du serveur (GET /app/defis), relus chaque fois que le profil revient à l'écran
- * ou que l'app revient au premier plan. Le serveur recompte l'avancée à chaque lecture et peut créditer un défi ou donner un
- * badge : le compte est relu après chaque lecture réussie (points, palier, badges). En
- * démo : les défis d'exemple, comptés sur le téléphone. Sans compte : rien (les défis demandent un compte).
+ * ou que l'app revient au premier plan. En démo : les défis d'exemple, comptés sur le téléphone. Sans compte : rien (les
+ * défis demandent un compte).
  */
 export function utiliserDefis(): DefisDuProfil {
   const { defis: service } = utiliserServices();

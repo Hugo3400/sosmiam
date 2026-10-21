@@ -32,6 +32,9 @@ export function calculerPastilles(alertes: Alertes | null, problemesServeur: num
       urgent: enRetard > 0 || sansReponse > 0,
     };
   }
+  if (alertes.communaute?.ideesARelire) {
+    pastilles.communaute = { nombre: alertes.communaute.ideesARelire, libelle: `${alertes.communaute.ideesARelire} idée(s) en relecture` };
+  }
   if (alertes.avis) {
     const { aRelire, reponses } = alertes.avis;
     pastilles.avis = { nombre: aRelire + reponses, libelle: `${aRelire} avis et ${reponses} réponse(s) de lieu à relire` };

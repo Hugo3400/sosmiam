@@ -18,6 +18,7 @@ export type Alertes = {
   avis?: { aRelire: number; reponses: number };
   /** Limitations de comptes contestées, pas encore réexaminées */
   limitations?: { contestees: number };
+  communaute?: { ideesARelire: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };

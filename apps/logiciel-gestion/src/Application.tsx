@@ -11,6 +11,7 @@ import { EcranEvenements } from "~/ecrans/evenements/EcranEvenements.tsx";
 import { EcranReservations } from "~/ecrans/reservations/EcranReservations.tsx";
 import { EcranAvis } from "~/ecrans/avis/EcranAvis.tsx";
 import { EcranPopUps } from "~/ecrans/pop-ups/EcranPopUps.tsx";
+import { EcranCommunaute } from "~/ecrans/communaute/EcranCommunaute.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
@@ -176,6 +177,7 @@ export function Application() {
           {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
           {ecran === "notifications" && <EcranNotifications />}
           {ecran === "pop-ups" && <EcranPopUps />}
+          {ecran === "communaute" && <EcranCommunaute />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "reglages" && (
             <EcranReglages
