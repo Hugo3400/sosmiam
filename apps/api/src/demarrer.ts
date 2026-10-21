@@ -86,6 +86,7 @@ import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profi
 import { creerDepotPhotosProfil } from "./services/photos-profil-base.ts";
 import { creerStockagePhotosProfil } from "./services/stockage-photos-profil.ts";
 import { brancherCarriere } from "./services/carriere.ts";
+import { arreterNettoyeurJpeg } from "./services/nettoyeur-jpeg.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -284,6 +285,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     arreterSortiesMiamis();
     arreterExpirations();
     serveur.close(() => {
+      void arreterNettoyeurJpeg();
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus
       compteur.vider(new Date(), true).catch(() => {}).finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));
     });

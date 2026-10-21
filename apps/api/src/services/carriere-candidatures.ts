@@ -11,7 +11,7 @@ import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import {
   CANDIDATURES_PAR_EMAIL, CANDIDATURES_PAR_LISTE, CV_OCTETS_MAX, DELAI_ORPHELIN_CV_MS, DUREE_CONSERVATION_CANDIDATURE_MS,
   FENETRE_CANDIDATURES_EMAIL_MS, FICHIERS_PAR_PASSAGE, FORME_ID_CANDIDATURE, STATUTS_CANDIDATURE, TEXTE_ILLISIBLE,
-  type BilanMenageCarriere, type CandidatureEnBase, type ChiffresCandidature, type DependancesCarriere, type FiltresCandidatures,
+  type BilanMenageCarriere, type CandidatureEnBase, type ChiffresCandidature, type DependancesCarriere, type FiltresCandidatures, type IssueAjoutCandidature,
   type ResultatDepotCandidature, type ResultatStatutCandidature,
 } from "./carriere-regles.ts";
 import type { ChampCandidature, ChiffrementCarriere } from "./chiffrement-carriere.ts";
@@ -110,7 +110,8 @@ export function creerCandidaturesCarriere({ depot, stockage, chiffrement, horlog
       if (cv && !cv.ok) return { ok: false, erreur: cv.erreur };
       if (!chiffrement) return { ok: false, erreur: "chiffrement-indisponible" };
       const emailEmpreinte = chiffrement.calculerEmpreinteEmail(candidature.email);
-      const recents = await depot.listerDepotsEmail(emailEmpreinte, new Date(quand.getTime() - FENETRE_CANDIDATURES_EMAIL_MS));
+      const limite = { depuis: new Date(quand.getTime() - FENETRE_CANDIDATURES_EMAIL_MS), maximum: CANDIDATURES_PAR_EMAIL };
+      const recents = await depot.listerDepotsEmail(emailEmpreinte, limite.depuis);
       if (recents.length >= CANDIDATURES_PAR_EMAIL) return { ok: false, erreur: "trop-de-demandes", reessayerDans: calculerAttente(recents, quand) };
       const candidatureId = randomUUID();
       let cvFichier: string | null = null;
@@ -119,8 +120,9 @@ export function creerCandidaturesCarriere({ depot, stockage, chiffrement, horlog
         cvFichier = stockage.tirerNom();
         await stockage.ecrire(cvFichier, chiffrement.chiffrerCv(cv.octets, candidatureId, cvFichier));
       }
+      let issue: IssueAjoutCandidature;
       try {
-        await depot.ajouterCandidature({
+        issue = await depot.ajouterCandidature({
           id: candidatureId,
           offreId: offre.id,
           nomChiffre: chiffrement.chiffrerTexte(candidature.nom, candidatureId, "nom"),
@@ -132,12 +134,14 @@ export function creerCandidaturesCarriere({ depot, stockage, chiffrement, horlog
           statut: "nouvelle",
           creeLe: quand,
           lueLe: null,
-        });
+        }, limite);
       } catch (erreur) {
         if (cvFichier) await stockage.supprimer([cvFichier]).catch(() => 0);
         throw new Error(`Candidature non enregistrée : ${resumerErreur(erreur)}`);
       }
-      return { ok: true };
+      if (issue.ok) return { ok: true };
+      if (cvFichier) await stockage.supprimer([cvFichier]).catch(() => 0);
+      return { ok: false, erreur: "trop-de-demandes", reessayerDans: calculerAttente(issue.depots, quand) };
     },
 
     async listerCandidatures(filtres: FiltresCandidatures = {}): Promise<CandidatureGestion[]> {

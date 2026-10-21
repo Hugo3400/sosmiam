@@ -22,9 +22,9 @@ export type DependancesVuesLieux = {
 
 const lieuInconnu = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "lieu-inconnu" });
 
-function faireDeLaPlace(retenues: Set<string> | Map<string, number>, maximum: number) {
+function garderLesPlusRecentes(retenues: Set<string> | Map<string, number>, maximum: number) {
   for (const cle of retenues.keys()) {
-    if (retenues.size < maximum) return;
+    if (retenues.size <= maximum) return;
     retenues.delete(cle);
   }
 }
@@ -66,9 +66,7 @@ export function creerControleursVuesLieux({
       // Déjà comptée aujourd'hui, ou assez de lieux comptés pour ce visiteur : rien de plus à écrire
       if (comptees.has(empreinte) || dejaVues >= parVisiteurMax) return reponse.status(204).end();
       // Retenue avant d'écrire : deux appels simultanés du même visiteur ne comptent qu'une vue
-      faireDeLaPlace(comptees, retenuesMax);
       comptees.add(empreinte);
-      if (dejaVues === 0) faireDeLaPlace(vuesParVisiteur, retenuesMax);
       vuesParVisiteur.set(signature, dejaVues + 1);
       let comptee = false;
       try {
@@ -81,6 +79,8 @@ export function creerControleursVuesLieux({
         }
       }
       if (!comptee) return lieuInconnu(reponse);
+      garderLesPlusRecentes(comptees, retenuesMax);
+      garderLesPlusRecentes(vuesParVisiteur, retenuesMax);
       reponse.status(204).end();
     },
   };

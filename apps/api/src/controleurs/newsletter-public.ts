@@ -2,7 +2,9 @@ import type { Request, RequestHandler, Response } from "express";
 
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { lireJetonDesinscription } from "../fonctions/newsletter/lire-jeton-desinscription.ts";
+import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { masquerEmail } from "../fonctions/texte/masquer-email.ts";
+import { FORME_JETON } from "../middlewares/proteger-comptes.ts";
 
 export type DependancesNewsletterPublic = {
   /** Sous-clé des liens (brancherCleDesinscription) ; null : clé des données absente, les routes répondent 503 */
@@ -17,6 +19,8 @@ export type DependancesNewsletterPublic = {
   /** Note une adresse qui n'est pas (ou plus) inscrite comme désinscrite, pour qu'un import ne la remette pas. Sans elle,
    * une adresse inconnue reçoit quand même 200, sans rien noter */
   noterDesinscrit?: (email: string) => Promise<void>;
+  confirmerInscription?: (jetonEmpreinte: string, maintenant: Date) => Promise<boolean>;
+  horloge?: () => number;
 };
 
 /** Le jeton, dans l'adresse (?jeton=) ou dans le corps (JSON ou formulaire), sinon null. */
@@ -62,5 +66,24 @@ export function creerControleursNewsletterPublic(dependances: DependancesNewslet
     }
   };
 
-  return { lireDesinscription, desinscrire };
+  const confirmer: RequestHandler = async (requete, reponse) => {
+    const { confirmerInscription, horloge = Date.now } = dependances;
+    if (!confirmerInscription) {
+      reponse.status(503).json({ ok: false, erreur: "indisponible" });
+      return;
+    }
+    const corps: unknown = requete.body;
+    const champ = typeof corps === "object" && corps !== null && "jeton" in corps ? corps.jeton : null;
+    const jeton = typeof champ === "string" ? champ.trim() : "";
+    try {
+      const confirme = FORME_JETON.test(jeton) && (await confirmerInscription(calculerEmpreinteJeton(jeton), new Date(horloge())));
+      if (confirme) reponse.json({ ok: true });
+      else reponse.status(400).json({ ok: false, erreur: "jeton-invalide" });
+    } catch (erreur) {
+      console.error("Confirmation de la newsletter impossible :", resumerErreur(erreur));
+      reponse.status(500).json({ ok: false, erreur: "erreur-serveur" });
+    }
+  };
+
+  return { lireDesinscription, desinscrire, confirmer };
 }

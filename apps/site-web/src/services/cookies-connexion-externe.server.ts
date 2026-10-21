@@ -15,6 +15,7 @@ const CLE = randomBytes(32);
 const prefixe = enProduction ? "__Host-" : "";
 export const NOM_COOKIE_ETAT = `${prefixe}sosmiam-connexion-externe`;
 export const NOM_COOKIE_ATTENTE = `${prefixe}sosmiam-inscription-externe`;
+export const NOM_COOKIE_CONFIRMATION = `${prefixe}sosmiam-confirmation-externe`;
 const DUREE = 600;
 
 function chiffrer(objet: unknown, usage: string): string {
@@ -63,19 +64,28 @@ export function lireCookieEtat(requete: Request): EtatConnexion | null {
   return typeof lu === "object" && lu !== null ? (lu as EtatConnexion) : null;
 }
 
-/** Set-Cookie de l'attente (au plus jusqu'à son expiration) */
-export function poserCookieAttente(attente: AttenteConnexion, maintenant: number): string {
-  return ecrireCookie(NOM_COOKIE_ATTENTE, chiffrer(attente, "attente"), "Lax", Math.max(1, Math.ceil((attente.expire - maintenant) / 1000)));
+function poserAttenteDans(nom: string, usage: string, attente: AttenteConnexion, maintenant: number): string {
+  return ecrireCookie(nom, chiffrer(attente, usage), "Lax", Math.max(1, Math.ceil((attente.expire - maintenant) / 1000)));
 }
-export const effacerCookieAttente = () => ecrireCookie(NOM_COOKIE_ATTENTE, "", "Lax", 0);
 
-/** L'attente en cours (null : absente, illisible ou expirée) */
-export function lireCookieAttente(requete: Request, maintenant: number): AttenteConnexion | null {
-  const lu = dechiffrer(lireCookie(requete, NOM_COOKIE_ATTENTE), "attente");
+function lireAttenteDans(requete: Request, nom: string, usage: string, maintenant: number): AttenteConnexion | null {
+  const lu = dechiffrer(lireCookie(requete, nom), usage);
   if (typeof lu !== "object" || lu === null) return null;
   const attente = lu as AttenteConnexion;
   return typeof attente.expire === "number" && maintenant <= attente.expire ? attente : null;
 }
+
+/** Set-Cookie de l'attente (au plus jusqu'à son expiration) */
+export const poserCookieAttente = (attente: AttenteConnexion, maintenant: number) => poserAttenteDans(NOM_COOKIE_ATTENTE, "attente", attente, maintenant);
+export const effacerCookieAttente = () => ecrireCookie(NOM_COOKIE_ATTENTE, "", "Lax", 0);
+
+/** L'attente en cours (null : absente, illisible ou expirée) */
+export const lireCookieAttente = (requete: Request, maintenant: number) => lireAttenteDans(requete, NOM_COOKIE_ATTENTE, "attente", maintenant);
+
+export const poserCookieConfirmation = (attente: AttenteConnexion, maintenant: number) =>
+  poserAttenteDans(NOM_COOKIE_CONFIRMATION, "confirmation", attente, maintenant);
+export const effacerCookieConfirmation = () => ecrireCookie(NOM_COOKIE_CONFIRMATION, "", "Lax", 0);
+export const lireCookieConfirmation = (requete: Request, maintenant: number) => lireAttenteDans(requete, NOM_COOKIE_CONFIRMATION, "confirmation", maintenant);
 
 // ─── Connexion par QR code : le secret du QR affiché (2 minutes au plus, SameSite=Lax), même chiffrement ───
 export const NOM_COOKIE_QR = `${prefixe}sosmiam-connexion-qr`;

@@ -60,7 +60,7 @@ export function creerPhotosProfil({ stockage, depot, preuves, horloge = Date.now
 
   return {
     async envoyer(compteId: number, octets: Uint8Array): Promise<PhotoEnvoyee | RefusPhotoProfil> {
-      const preparee = preparerPhotoProfil(octets);
+      const preparee = await preparerPhotoProfil(octets);
       if (!preparee.ok) return preparee;
       if (!((await stockage.lirePartLibre()) >= PART_LIBRE_MIN_DISQUE)) return { ok: false, erreur: "stockage-plein" };
       const quand = maintenant();

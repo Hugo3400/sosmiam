@@ -68,12 +68,12 @@ test("Adobe (APP14) réécrit en ses 12 octets utiles, segments JPG et JPG0 à J
   assert.deepEqual(retirerMetadonneesJpeg(propre), propre, "rien d'autre ne bouge");
 });
 
-test("preparerPhotoAvis : 320 px au moins de petit côté, sinon pas de +10 pour une vignette", () => {
+test("preparerPhotoAvis : 320 px au moins de petit côté, sinon pas de +10 pour une vignette", async () => {
   for (const [largeur, hauteur] of [[319, 2000], [2000, 319], [1, 1], [64, 48]]) {
-    assert.deepEqual(preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur)), { ok: false, erreur: "media-invalide", champ: "dimensions" }, `${largeur} × ${hauteur}`);
+    assert.deepEqual(await preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur)), { ok: false, erreur: "media-invalide", champ: "dimensions" }, `${largeur} × ${hauteur}`);
   }
   for (const [largeur, hauteur] of [[320, 320], [4096, 320], [320, 4096]]) {
-    const r = preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur));
+    const r = await preparerPhotoAvis(avecDimensions(VIGNETTE, largeur, hauteur));
     assert.deepEqual(r.ok && [r.largeur, r.hauteur], [largeur, hauteur], `${largeur} × ${hauteur}`);
   }
 });
@@ -87,19 +87,19 @@ test("6 Mo pile : 201 (le remplissage après la fin de l'image est jeté) ; un o
   assert.deepEqual(b.stockage.fichiers.get(r.corps!.photo)!.octets, retirerMetadonneesJpeg(PHOTO));
   const trop = await envoyer(lea.jeton, Buffer.concat([pile, Buffer.from([0x47])]));
   assert.deepEqual([trop.statut, trop.corps], [413, { ok: false, erreur: "media-trop-lourd" }]);
-  assert.deepEqual(preparerPhotoAvis(Buffer.concat([pile, Buffer.from([0x47])])), { ok: false, erreur: "media-trop-lourd" });
+  assert.deepEqual(await preparerPhotoAvis(Buffer.concat([pile, Buffer.from([0x47])])), { ok: false, erreur: "media-trop-lourd" });
   assert.equal(b.stockage.fichiers.size, 1);
 });
 
-test("preparerPhotoAvis : JPEG seulement, 6 Mo et 4 096 px au plus, fichier entier", () => {
-  assert.deepEqual(preparerPhotoAvis(HEIC), { ok: false, erreur: "format-refuse" });
-  assert.deepEqual(preparerPhotoAvis(PNG), { ok: false, erreur: "format-refuse" });
-  assert.deepEqual(preparerPhotoAvis(Buffer.alloc(0)), { ok: false, erreur: "format-refuse" });
+test("preparerPhotoAvis : JPEG seulement, 6 Mo et 4 096 px au plus, fichier entier", async () => {
+  assert.deepEqual(await preparerPhotoAvis(HEIC), { ok: false, erreur: "format-refuse" });
+  assert.deepEqual(await preparerPhotoAvis(PNG), { ok: false, erreur: "format-refuse" });
+  assert.deepEqual(await preparerPhotoAvis(Buffer.alloc(0)), { ok: false, erreur: "format-refuse" });
   const lourde = Buffer.concat([PHOTO.subarray(0, 4), Buffer.alloc(TAILLE_MAX_PHOTO_AVIS)]);
-  assert.deepEqual(preparerPhotoAvis(lourde), { ok: false, erreur: "media-trop-lourd" });
-  assert.deepEqual(preparerPhotoAvis(avecDimensions(PHOTO, 5000, 300)), { ok: false, erreur: "media-invalide", champ: "dimensions" });
-  assert.deepEqual(preparerPhotoAvis(PHOTO.subarray(0, PHOTO.length - 40)), { ok: false, erreur: "media-invalide", champ: "format" });
-  const bonne = preparerPhotoAvis(PHOTO);
+  assert.deepEqual(await preparerPhotoAvis(lourde), { ok: false, erreur: "media-trop-lourd" });
+  assert.deepEqual(await preparerPhotoAvis(avecDimensions(PHOTO, 5000, 300)), { ok: false, erreur: "media-invalide", champ: "dimensions" });
+  assert.deepEqual(await preparerPhotoAvis(PHOTO.subarray(0, PHOTO.length - 40)), { ok: false, erreur: "media-invalide", champ: "format" });
+  const bonne = await preparerPhotoAvis(PHOTO);
   assert.deepEqual(bonne.ok && [bonne.largeur, bonne.hauteur], [640, 480]);
 });
 

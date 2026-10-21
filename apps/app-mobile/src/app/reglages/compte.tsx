@@ -10,6 +10,7 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionMesConnexions } from "~/composants/reglages/SectionMesConnexions";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { VueDelierConnexion } from "~/composants/reglages/VueDelierConnexion";
+import { VueRelierConnexion } from "~/composants/reglages/VueRelierConnexion";
 import { type FournisseurConnexion, messagesMesConnexions } from "~/contenus/mes-connexions";
 import { lancerConnexionApple } from "~/fonctions/compte/lancer-connexion-apple";
 import { lancerConnexionGoogle } from "~/fonctions/compte/lancer-connexion-google";
@@ -20,7 +21,7 @@ import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { type ResultatMesConnexions, utiliserMesConnexions } from "~/hooks/utiliser-mes-connexions";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
-type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier";
+type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier" | "relier";
 type Confirmation = "deconnecter" | "partout" | null;
 
 const MOT_DE_PASSE_MIN = 12;
@@ -42,6 +43,7 @@ export default function MonCompte() {
   const { connexions } = mesConnexions;
   const [vue, setVue] = useState<Vue>("principal");
   const [aDelier, setADelier] = useState<FournisseurConnexion>("apple");
+  const [aRelier, setARelier] = useState<FournisseurConnexion>("apple");
   const [lienMotDePasse, setLienMotDePasse] = useState(false);
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   const [lienEnvoye, setLienEnvoye] = useState(false);
@@ -154,6 +156,27 @@ export default function MonCompte() {
         }}
         onConfirmer={(motDePasse) => {
           void mesConnexions.delier(aDelier, motDePasse).then((r) => {
+            if (montrerResultat(r)) setVue("principal");
+          });
+        }}
+        onAnnuler={() => setVue("principal")}
+      />
+    );
+  }
+
+  if (vue === "relier" && connexions) {
+    return (
+      <VueRelierConnexion
+        fournisseur={aRelier}
+        avecMotDePasse={connexions.motDePasse}
+        enCours={mesConnexions.enCours !== null}
+        lienEnvoye={lienMotDePasse}
+        onAjouterMotDePasse={() => {
+          setVue("principal");
+          void ajouterMotDePasse();
+        }}
+        onConfirmer={(motDePasse) => {
+          void mesConnexions.relier(aRelier, motDePasse).then((r) => {
             if (montrerResultat(r)) setVue("principal");
           });
         }}
@@ -275,7 +298,10 @@ export default function MonCompte() {
         lienEnvoye={lienMotDePasse}
         onChangerMotDePasse={() => setVue("mot-de-passe")}
         onAjouterMotDePasse={() => void ajouterMotDePasse()}
-        onRelier={(fournisseur) => void mesConnexions.relier(fournisseur).then(montrerResultat)}
+        onRelier={(fournisseur) => {
+          setARelier(fournisseur);
+          setVue("relier");
+        }}
         onDelier={demanderDelier}
       />
 

@@ -84,15 +84,18 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         const { ligne, participations } = lue;
         const mienne = participations.find((p) => p.compteId === moi);
         if (mienne?.statut === "renonce") await t.ecrireParticipation({ ...mienne, statut: "refuse" });
-        if (mienne && ["organise", "accepte", "attente", "demande", "refuse", "renonce"].includes(mienne.statut)) return rien();
+        if (mienne && ["organise", "accepte", "attente", "demande", "refuse", "renonce"].includes(mienne.statut)) return rien(true);
         if (ligne.quand.getTime() <= maintenant.getTime()) return refus("sortie-passee");
         if (mienne && estInvitationHabitueValable(mienne, maintenant)) {
           await entrer(t, ligne, mienne, maintenant);
           return rien();
         }
-        const [profils, caches, lieux] = await Promise.all([lireProfilsVisibilite(c, t, [moi], maintenant), t.listerCaches(moi), t.lireLieux([ligne.lieuId])]);
+        const [profils, caches, lieux, comptes] = await Promise.all([lireProfilsVisibilite(c, t, [moi], maintenant), t.listerCaches(moi), t.lireLieux([ligne.lieuId]), t.lireComptes([moi])]);
         const autres = participations.filter((p) => p.compteId !== moi);
-        const visible = estSortieVisible({ moi, ligne, participations: autres, profil: profils.get(moi) ?? null, caches, lieuPublie: lieux.get(ligne.lieuId)?.publie ?? false });
+        const visible = estSortieVisible({
+          moi, ligne, participations: autres, profil: profils.get(moi) ?? null, villeCle: normaliserVilleCle(comptes.get(moi)?.ville), caches,
+          lieuPublie: lieux.get(ligne.lieuId)?.publie ?? false, maintenant,
+        });
         if (!visible) return refus("sortie-inconnue");
         await t.ecrireParticipation({ sortieId: id, compteId: moi, statut: "demande", habitue: mienne?.habitue ?? false, creeLe: maintenant, decideLe: null, presentLe: null });
         return {
@@ -113,7 +116,7 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         if (!lue || !mienne) return rien(true);
         if (mienne.statut === "demande") await t.effacerParticipation(id, moi);
         if (mienne.statut === "refuse") await t.ecrireParticipation({ ...mienne, statut: "renonce" });
-        return rien();
+        return rien(true);
       });
       return rendreApres(moi, id, maintenant, issue);
     },
@@ -126,15 +129,15 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         if (!lue || !mienne) return rien(true);
         const { ligne } = lue;
         const avant = ligne.quand.getTime() - maintenant.getTime();
-        if (avant <= 0 || mienne.statut === "organise") return rien();
+        if (avant <= 0 || mienne.statut === "organise") return rien(true);
         if (mienne.statut === "refuse") {
           await t.ecrireParticipation({ ...mienne, statut: "renonce" });
-          return rien();
+          return rien(true);
         }
-        if (!["accepte", "attente", "invite", "demande"].includes(mienne.statut)) return rien();
+        if (!["accepte", "attente", "invite", "demande"].includes(mienne.statut)) return rien(true);
         const tardif = mienne.statut === "accepte" && avant < HEURES_DESISTEMENT_TARDIF * 3_600_000;
         await sortir(t, ligne, mienne, tardif ? "desiste" : null, maintenant);
-        return { annonces: await remplirDepuisAttente(t, ligne, maintenant) };
+        return { annonces: await remplirDepuisAttente(t, ligne, maintenant), selonVisibilite: true };
       });
       return rendreApres(moi, id, maintenant, issue);
     },

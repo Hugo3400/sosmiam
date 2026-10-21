@@ -4,6 +4,7 @@ import { creerControleursConversations } from "../controleurs/conversations.ts";
 import { creerControleursMediasChat, ERREURS_MEDIAS_CHAT, TYPES_MEDIAS_CHAT } from "../controleurs/conversations-medias.ts";
 import { refuserSocial } from "../controleurs/social-champs.ts";
 import { exigerChiffrementSocial } from "../middlewares/exiger-chiffrement-social.ts";
+import { limiterEnvoisMedias } from "../middlewares/limiter-envois-medias.ts";
 import type { ContexteRoutesSociales, DependancesSocialApp } from "./social-app.ts";
 
 /** Messages texte et lieu, par compte */
@@ -112,7 +113,7 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
   routes.put("/:id/lu", gestes, exigerProfilSocial, c.marquerLu);
   routes.post("/:id/effacer", gestes, exigerProfilSocial, c.effacerPourMoi);
   routes.post("/:id/messages", parCompte(LIMITE_MESSAGES), refuserSiLimite, exigerProfilSocial, cle, c.envoyer);
-  routes.post("/:id/medias", parCompte(LIMITE_MEDIAS), refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
+  routes.post("/:id/medias", limiterEnvoisMedias(), parCompte(LIMITE_MEDIAS), refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
   routes.get("/:id/messages/:messageId/media", lectures, lireProfilSocial, cle, m.lireMedia);
   routes.delete("/:id/messages/:messageId", gestes, exigerProfilSocial, c.supprimerMessage);
   routes.put("/:id/messages/:messageId/reactions/:reaction", gestes, refuserSiLimite, exigerProfilSocial, c.reagir(true));

@@ -29,17 +29,17 @@ const compter = (o: Buffer, motif: string | Buffer) => {
   return n;
 };
 
-test("preparerPhotoProfil : JPEG carré de 512 px seulement, 5 Mo au plus, sans métadonnées", () => {
-  assert.deepEqual(preparerPhotoProfil(HEIC), { ok: false, erreur: "format-refuse" });
-  assert.deepEqual(preparerPhotoProfil(PNG), { ok: false, erreur: "format-refuse" });
-  assert.deepEqual(preparerPhotoProfil(Buffer.alloc(0)), { ok: false, erreur: "format-refuse" });
+test("preparerPhotoProfil : JPEG carré de 512 px seulement, 5 Mo au plus, sans métadonnées", async () => {
+  assert.deepEqual(await preparerPhotoProfil(HEIC), { ok: false, erreur: "format-refuse" });
+  assert.deepEqual(await preparerPhotoProfil(PNG), { ok: false, erreur: "format-refuse" });
+  assert.deepEqual(await preparerPhotoProfil(Buffer.alloc(0)), { ok: false, erreur: "format-refuse" });
   const lourde = Buffer.concat([PHOTO.subarray(0, 4), Buffer.alloc(TAILLE_MAX_PHOTO_PROFIL)]);
-  assert.deepEqual(preparerPhotoProfil(lourde), { ok: false, erreur: "media-trop-lourd" });
+  assert.deepEqual(await preparerPhotoProfil(lourde), { ok: false, erreur: "media-trop-lourd" });
   for (const [largeur, hauteur] of [[64, 48], [512, 511], [1024, 1024], [256, 256]]) {
-    assert.deepEqual(preparerPhotoProfil(avecDimensions(BRUTE, largeur!, hauteur!)), { ok: false, erreur: "media-invalide", champ: "dimensions" });
+    assert.deepEqual(await preparerPhotoProfil(avecDimensions(BRUTE, largeur!, hauteur!)), { ok: false, erreur: "media-invalide", champ: "dimensions" });
   }
-  assert.deepEqual(preparerPhotoProfil(PHOTO.subarray(0, PHOTO.length - 40)), { ok: false, erreur: "media-invalide", champ: "format" });
-  const bonne = preparerPhotoProfil(PHOTO);
+  assert.deepEqual(await preparerPhotoProfil(PHOTO.subarray(0, PHOTO.length - 40)), { ok: false, erreur: "media-invalide", champ: "format" });
+  const bonne = await preparerPhotoProfil(PHOTO);
   assert.ok(bonne.ok);
   assert.deepEqual(bonne.octets, retirerMetadonneesJpeg(PHOTO));
 });

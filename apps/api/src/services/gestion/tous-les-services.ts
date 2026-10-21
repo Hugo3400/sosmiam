@@ -42,6 +42,7 @@ import { chercherAdresse } from "./geocodage.ts";
 import { noterAction, listerJournal } from "./journal.ts";
 import { creerLieu, lireLieu, listerLieux, modifierLieu, modifierLieuxEnLot, supprimerLieu, supprimerLieuxEnLot } from "./lieux.ts";
 import { lireEtatServeur, relancerProcessus } from "./maintenance.ts";
+import { creerPiloteServeurs } from "./serveurs-dev.ts";
 import { lireMenageManuel } from "./menage-manuel.ts";
 import {
   changerStatutMission, creerMission, envoyerMessage, listerMessages, listerMissions, supprimerMessage, supprimerMission,
@@ -77,6 +78,8 @@ import { prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMainte
 import { lireBilanMois } from "./bilan-mois.ts";
 import { lireTableauDeBord } from "./tableau-de-bord.ts";
 
+const piloteServeurs = creerPiloteServeurs();
+
 export const servicesGestion = {
   noterAction, listerJournal,
   lireTableauDeBord, lireAlertes, rechercherPartout, lireCalendrier, lireStatistiques, lireStatistiquesCommunaute, lireActiviteApp, lireBilanMois,
@@ -88,6 +91,7 @@ export const servicesGestion = {
   listerSignalements, deciderSignalement, contesterSignalement, lireMediaSignale,
   listerMiamSafe, deciderSignalementMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe,
   lireEtatServeur, relancerProcessus, lireMenageManuel,
+  lireServeursDev: piloteServeurs.lireServeurs, piloterServeurDev: piloteServeurs.piloterServeur,
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,

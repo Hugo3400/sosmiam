@@ -17,7 +17,7 @@ import { lireUtilisateurApple } from "../fonctions/connexion-externe/lire-utilis
 import { verifierEtatConnexion } from "../fonctions/connexion-externe/verifier-etat-connexion.ts";
 import { lireRetourSur } from "../fonctions/navigation/lire-retour-sur.ts";
 import type { AttenteConnexion, FournisseurExterne, PageDepart } from "../types/connexion-externe.ts";
-import { effacerCookieEtat, lireCookieEtat, poserCookieAttente, poserCookieEtat } from "./cookies-connexion-externe.server.ts";
+import { effacerCookieEtat, lireCookieEtat, poserCookieAttente, poserCookieConfirmation, poserCookieEtat } from "./cookies-connexion-externe.server.ts";
 import { lireReglagesConnexionExterne } from "./reglages-connexion-externe.server.ts";
 
 /** Adresse de « Finir ton inscription » (compte inexistant : date de naissance, ville, conditions) */
@@ -91,7 +91,7 @@ export async function terminerConnexionExterne(requete: Request, fournisseur: Fo
   }
   const { depart, retour, nonce, intention } = etat;
   // Relier ou délier : le message va à « Mes façons de me connecter »
-  const mesConnexions = intention === "relier" || intention === "delier";
+  const mesConnexions = intention === "relier" || intention === "delier" || intention === "confirmer-relier";
   const echec = (code: "annule" | "refuse") =>
     mesConnexions ? rediriger(`${depart}?connexions=${code}&avec=${fournisseur}#mes-connexions`, cookies) : versDepart(depart, code, cookies);
   // Annulé chez Apple (« user_cancelled_authorize ») ou chez Google (« access_denied ») : rien n'a changé
@@ -108,7 +108,8 @@ export async function terminerConnexionExterne(requete: Request, fournisseur: Fo
 
   if (intention !== "connexion") {
     const ancre = intention === "suppression" ? "supprimer-mon-compte" : "mes-connexions";
-    return rediriger(`${depart}#${ancre}`, [...cookies, poserCookieAttente(attente(), maintenant)]);
+    const garde = intention === "confirmer-relier" ? poserCookieConfirmation(attente(), maintenant) : poserCookieAttente(attente(), maintenant);
+    return rediriger(`${depart}#${ancre}`, [...cookies, garde]);
   }
   const corps = {
     [fournisseur === "apple" ? "identityToken" : "idToken"]: jeton, nonce, support: "site",

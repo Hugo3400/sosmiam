@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
-import type { ActionServeur, ResultatPilotage } from "../../services/gestion/serveurs-dev.ts";
+import { ACTIONS_SERVEUR, type ActionServeur, type ResultatPilotage } from "../../services/gestion/serveurs-dev.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 
 const corpsDe = (requete: Request): Record<string, unknown> =>
@@ -48,7 +48,7 @@ export function creerControleursServeursDev(s: ServicesGestion) {
       }
       if (resultat.erreur === "action-inconnue") return void reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ: "action" });
       if (resultat.erreur === "lecture-seule") {
-        await noter(reponse, "Serveur : action refusée", `${resultat.serveur.processus} · ${String(demande).slice(0, 20)} (lecture seule)`);
+        await noter(reponse, "Serveur : action refusée", `${resultat.serveur.processus} · ${ACTIONS_SERVEUR.find((action) => action === demande) ?? "action inconnue"} (lecture seule)`);
       }
       if ("action" in resultat) {
         await noter(reponse, JOURNAL_ECHEC[resultat.action], `${resultat.serveur.processus} · ${resultat.erreur}${resultat.message ? ` · ${resultat.message}` : ""}`);

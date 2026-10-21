@@ -6,9 +6,10 @@ export type FournisseurExterne = "apple" | "google";
 /**
  * « connexion » : se connecter (ou créer son compte) ; « suppression » : confirmer la suppression d'un compte sans mot de
  * passe ; « relier » : relier ce compte Apple ou Google au compte connecté (« Mon compte ») ; « delier » : confirmer avec
- * CE fournisseur pour délier l'AUTRE, quand le compte n'a pas de mot de passe
+ * CE fournisseur pour délier l'AUTRE, quand le compte n'a pas de mot de passe ; « confirmer-relier » : confirmer avec CE
+ * fournisseur pour relier l'AUTRE, quand le compte n'a pas de mot de passe
  */
-export type IntentionConnexion = "connexion" | "suppression" | "relier" | "delier";
+export type IntentionConnexion = "connexion" | "suppression" | "relier" | "delier" | "confirmer-relier";
 
 /** Les pages qui montrent les boutons : on y revient en cas de refus, d'annulation ou de panne */
 export type PageDepart = "/connexion" | "/inscription" | "/mon-compte" | "/espace/mon-compte";

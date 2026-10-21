@@ -1,3 +1,4 @@
+import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 
 export type Telephone = "iphone" | "android";
@@ -18,12 +19,16 @@ export type NouvelleInscription = {
  * la dernière. Une nouvelle ville ou un nouveau téléphone remplacent l'ancien (une réponse vide n'efface rien),
  * et les cases ambassadeur et bêta restent cochées une fois cochées.
  */
-export async function enregistrerInscription({ email, ville, ambassadeur, telephone, beta, source }: NouvelleInscription): Promise<void> {
-  await baseDeDonnees.inscriptionNewsletter.upsert({
+export async function enregistrerInscription(
+  { email, ville, ambassadeur, telephone, beta, source }: NouvelleInscription,
+  client: Prisma.TransactionClient | typeof baseDeDonnees = baseDeDonnees,
+  maintenant = new Date(),
+): Promise<void> {
+  await client.inscriptionNewsletter.upsert({
     where: { email },
-    create: { email, ville, ambassadeur, telephone, beta, source },
+    create: { email, ville, ambassadeur, telephone, beta, source, premiereInscription: maintenant, derniereInscription: maintenant },
     update: {
-      derniereInscription: new Date(),
+      derniereInscription: maintenant,
       ...(ville ? { ville } : {}),
       ...(telephone ? { telephone } : {}),
       ...(ambassadeur ? { ambassadeur: true } : {}),

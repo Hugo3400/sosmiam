@@ -3,6 +3,7 @@ import express, { Router, type RequestHandler } from "express";
 import { creerControleursPhotosAvis, repondreRefusPhotoAvis } from "../controleurs/avis-photos.ts";
 import { creerControleursAvis, type DependancesAvis } from "../controleurs/avis.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
+import { limiterEnvoisMedias } from "../middlewares/limiter-envois-medias.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import { TAILLE_MAX_PHOTO_AVIS } from "../services/photos-avis-regles.ts";
@@ -106,7 +107,7 @@ export function creerRoutesAvisApp(
   routes.get("/a-ecrire", lectures, c.listerAEcrire);
   routes.post("/", ecritures, refuserSiLimite, c.donner);
   routes.post("/non-verifie", ecritures, refuserSiLimite, c.donnerNonVerifie);
-  if (photos) routes.post("/photos", parCompte(LIMITE_ENVOIS_PHOTOS_AVIS), refuserSiLimite, corpsPhoto, photos.deposer);
+  if (photos) routes.post("/photos", limiterEnvoisMedias(), parCompte(LIMITE_ENVOIS_PHOTOS_AVIS), refuserSiLimite, corpsPhoto, photos.deposer);
   routes.use(gererErreursComptes);
   return routes;
 }

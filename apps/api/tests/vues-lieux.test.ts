@@ -98,6 +98,10 @@ test("plafond de la journée : les plus anciennes empreintes laissent la place, 
   await vue(1, "192.0.2.82");
   await vue(1, "192.0.2.81");
   assert.equal(b.vues.lire(1, "2026-10-09"), 3);
+  b.vues.publies.delete(2);
+  for (const ip of ["192.0.2.83", "192.0.2.84"]) assert.equal((await vue(2, ip)).statut, 404);
+  await vue(1, "192.0.2.81");
+  assert.equal(b.vues.lire(1, "2026-10-09"), 3);
   b.banc.horloge = Date.parse("2026-10-10T08:00:00Z");
   await vue(1, "192.0.2.82");
   assert.equal(b.vues.lire(1, "2026-10-10"), 1);

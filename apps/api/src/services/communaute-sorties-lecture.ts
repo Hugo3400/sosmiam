@@ -69,13 +69,16 @@ export function creerLectureSortiesMiamis(c: ContexteCommunaute) {
 
   async function filtrerVisibles(t: TablesCommunaute, moi: number, lues: readonly SortieLue[], maintenant: Date): Promise<SortieLue[]> {
     if (lues.length === 0) return [];
-    const [profils, blocages, lieux] = await Promise.all([
+    const [profils, blocages, lieux, comptes] = await Promise.all([
       lireProfilsVisibilite(c, t, [moi], maintenant),
       c.relations.listerBlocages(moi),
       t.lireLieux([...new Set(lues.map((l) => l.ligne.lieuId))]),
+      t.lireComptes([moi]),
     ]);
+    const villeCle = normaliserVilleCle(comptes.get(moi)?.ville);
     return lues.filter((l) => estSortieVisible({
-      moi, ligne: l.ligne, participations: l.participations, profil: profils.get(moi) ?? null, caches: blocages.caches, lieuPublie: lieux.get(l.ligne.lieuId)?.publie ?? false,
+      moi, ligne: l.ligne, participations: l.participations, profil: profils.get(moi) ?? null, villeCle, caches: blocages.caches,
+      lieuPublie: lieux.get(l.ligne.lieuId)?.publie ?? false, maintenant,
     }));
   }
 

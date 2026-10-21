@@ -43,6 +43,10 @@ export type CandidatureEnBase = {
 
 export type ChiffresCandidature = Pick<CandidatureEnBase, "nomChiffre" | "emailChiffre" | "messageChiffre" | "lienChiffre" | "cvFichier">;
 
+export type LimiteDepotsEmail = { depuis: Date; maximum: number };
+
+export type IssueAjoutCandidature = { ok: true } | { ok: false; depots: Date[] };
+
 export type ChangementsOffre = Partial<DonneesOffreCarriere> & { publieeLe?: Date | null; fermeeLe?: Date | null };
 
 export type DepotCarriere = {
@@ -54,7 +58,7 @@ export type DepotCarriere = {
   modifierOffre: (id: number, changements: ChangementsOffre, maintenant: Date) => Promise<OffreEnBase | null>;
   supprimerOffre: (id: number) => Promise<{ cvFichiers: string[] } | null>;
   listerDepotsEmail: (empreinte: string, depuis: Date) => Promise<Date[]>;
-  ajouterCandidature: (candidature: CandidatureEnBase) => Promise<void>;
+  ajouterCandidature: (candidature: CandidatureEnBase, limite: LimiteDepotsEmail) => Promise<IssueAjoutCandidature>;
   listerCandidatures: (filtres: { offreId?: number; statut?: StatutCandidature }, nombre: number) => Promise<(CandidatureEnBase & { offreTitre: string })[]>;
   listerCandidaturesApres: (apres: string | null, nombre: number) => Promise<CandidatureEnBase[]>;
   lireCandidature: (id: string) => Promise<CandidatureEnBase | null>;

@@ -14,11 +14,11 @@ import {
 import { lireDureeMp4 } from "../fonctions/medias/lire-duree-mp4.ts";
 import { lireTailleJpeg } from "../fonctions/medias/lire-taille-jpeg.ts";
 import { neutraliserMetadonneesMp4 } from "../fonctions/medias/neutraliser-metadonnees-mp4.ts";
-import { retirerMetadonneesJpeg } from "../fonctions/medias/retirer-metadonnees-jpeg.ts";
 import { verifierVocalMp4 } from "../fonctions/medias/verifier-vocal-mp4.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import type { ContexteRoutesSociales, DependancesSocialApp } from "../routes/social-app.ts";
 import type { MediaRecu } from "../services/messagerie-regles.ts";
+import { nettoyerJpeg, type NettoyerJpeg } from "../services/nettoyeur-jpeg.ts";
 import { lireNumero, rendreRefus } from "./conversations.ts";
 import { lireIdClient, refuserSocial } from "./social-champs.ts";
 
@@ -32,22 +32,21 @@ export const ERREURS_MEDIAS_CHAT: Readonly<Record<string, number>> = {
 export const TYPES_MEDIAS_CHAT = ["image/jpeg", "audio/mp4", "audio/x-m4a"];
 
 type Media = MediaRecu extends infer M ? (M extends unknown ? Omit<M, "idClient"> : never) : never;
+export type ControleMediaChat = { type: "photo"; largeur: number; hauteur: number } | { type: "vocal"; dureeSecondes: number };
 
 const estJpeg = (o: Buffer) => o.length >= 4 && o[0] === 0xff && o[1] === 0xd8 && o[2] === 0xff;
 const estMp4 = (o: Buffer) => o.length >= 12 && o.toString("latin1", 4, 8) === "ftyp";
 const invalide = (champ: "format" | "dimensions" | "duree") => refuserSocial("media-invalide", ERREURS_MEDIAS_CHAT, champ);
 
 /** Le fichier reçu, reconnu, vérifié et nettoyé ; lance le refus qui convient (415, 413, 400 media-invalide) */
-export function preparerMediaChat(octets: Buffer, typeAnnonce: string): Media {
+export function controlerMediaChat(octets: Buffer, typeAnnonce: string): ControleMediaChat {
   if (typeAnnonce === "image/jpeg") {
     if (!estJpeg(octets)) throw refuserSocial("format-refuse", ERREURS_MEDIAS_CHAT);
     if (octets.length > TAILLE_MAX_PHOTO_CHAT) throw refuserSocial("media-trop-lourd", ERREURS_MEDIAS_CHAT);
     const taille = lireTailleJpeg(octets);
     if (!taille) throw invalide("format");
     if (taille.largeur > COTE_MAX_PHOTO_CHAT || taille.hauteur > COTE_MAX_PHOTO_CHAT) throw invalide("dimensions");
-    const propre = retirerMetadonneesJpeg(octets);
-    if (!propre) throw invalide("format");
-    return { type: "photo", octets: propre, largeur: taille.largeur, hauteur: taille.hauteur };
+    return { type: "photo", largeur: taille.largeur, hauteur: taille.hauteur };
   }
   if (typeAnnonce === "audio/mp4" || typeAnnonce === "audio/x-m4a") {
     if (!estMp4(octets)) throw refuserSocial("format-refuse", ERREURS_MEDIAS_CHAT);
@@ -56,9 +55,16 @@ export function preparerMediaChat(octets: Buffer, typeAnnonce: string): Media {
     const duree = lireDureeMp4(octets);
     if (duree === null) throw invalide("format");
     if (duree > DUREE_MAX_VOCAL_SECONDES + TOLERANCE_DUREE_VOCAL_SECONDES) throw invalide("duree");
-    return { type: "vocal", octets: neutraliserMetadonneesMp4(octets), dureeSecondes: Math.max(1, Math.round(duree)) };
+    return { type: "vocal", dureeSecondes: Math.max(1, Math.round(duree)) };
   }
   throw refuserSocial("format-refuse", ERREURS_MEDIAS_CHAT);
+}
+
+export async function preparerMediaChat(octets: Buffer, controle: ControleMediaChat, nettoyer: NettoyerJpeg = nettoyerJpeg): Promise<Media> {
+  if (controle.type === "vocal") return { ...controle, octets: neutraliserMetadonneesMp4(octets) };
+  const propre = await nettoyer(octets);
+  if (!propre) throw invalide("format");
+  return { ...controle, octets: propre };
 }
 
 export function creerControleursMediasChat(d: Pick<DependancesSocialApp, "messagerie">, contexte: Pick<ContexteRoutesSociales, "horloge" | "appliquer">) {
@@ -73,7 +79,10 @@ export function creerControleursMediasChat(d: Pick<DependancesSocialApp, "messag
       const corps: unknown = requete.body;
       if (!Buffer.isBuffer(corps) || corps.length === 0) throw refuserSocial("format-refuse", ERREURS_MEDIAS_CHAT);
       const typeAnnonce = (requete.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
-      const media = { ...preparerMediaChat(corps, typeAnnonce), idClient } as MediaRecu;
+      const controle = controlerMediaChat(corps, typeAnnonce);
+      const verdict = await d.messagerie.verifierEnvoiMedia(moi(reponse), id, idClient, corps.length, maintenant());
+      if (verdict !== "ok") rendreRefus(reponse, verdict, ERREURS_MEDIAS_CHAT);
+      const media = { ...(await preparerMediaChat(corps, controle)), idClient } as MediaRecu;
       const r = await d.messagerie.envoyerMedia(moi(reponse), id, media, maintenant());
       if (!r.ok) rendreRefus(reponse, r.erreur, ERREURS_MEDIAS_CHAT);
       await contexte.appliquer(r.effets);

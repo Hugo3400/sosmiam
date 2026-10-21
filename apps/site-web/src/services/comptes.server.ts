@@ -253,9 +253,14 @@ const champJeton = (fournisseur: "apple" | "google", jetonExterne: string, nonce
 /**
  * Relie au compte connecté le compte Apple ou Google qui vient de confirmer (jeton et nonce brut) : « identite-deja-reliee »
  * s'il appartient à un autre compte SOS Miam, « deja-relie » si une autre identité de ce fournisseur est déjà là.
+ * Confirmé comme pour délier : le mot de passe, ou (compte sans mot de passe) un nouveau jeton de l'AUTRE fournisseur.
  */
-export function relierConnexion(jeton: string, ip: string | null, fournisseur: "apple" | "google", jetonExterne: string, nonce: string) {
-  return appelerApiComptes<ConnexionsLues>(`/comptes/moi/connexions/${fournisseur}`, { methode: "POST", jeton, ip, corps: champJeton(fournisseur, jetonExterne, nonce) });
+export function relierConnexion(
+  jeton: string, ip: string | null, fournisseur: "apple" | "google", jetonExterne: string, nonce: string,
+  confirmation: { motDePasse: string } | { fournisseur: "apple" | "google"; jeton: string; nonce: string },
+) {
+  const preuve = "motDePasse" in confirmation ? confirmation : { confirmation: champJeton(confirmation.fournisseur, confirmation.jeton, confirmation.nonce) };
+  return appelerApiComptes<ConnexionsLues>(`/comptes/moi/connexions/${fournisseur}`, { methode: "POST", jeton, ip, corps: { ...champJeton(fournisseur, jetonExterne, nonce), ...preuve } });
 }
 
 /**

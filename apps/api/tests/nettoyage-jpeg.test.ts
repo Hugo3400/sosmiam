@@ -49,10 +49,10 @@ test("APP14 « Adobe » trop court, suivi d'un DQT : retiré, rien n'est lu au-d
   assert.deepEqual(retirerMetadonneesJpeg(court), PROPRE);
 });
 
-test("octets parasites dans les données compressées : refusés, à la fin d'un passage comme avant un RST", () => {
+test("octets parasites dans les données compressées : refusés, à la fin d'un passage comme avant un RST", async () => {
   const avantFin = (o: Buffer, ajout: Buffer) => inserer(o, o.length - 2, ajout);
   assert.equal(retirerMetadonneesJpeg(avantFin(PHOTO, latin1(`QUEUE ${GPS}`))), null);
-  assert.deepEqual(preparerPhotoAvis(avantFin(PHOTO, latin1(GPS))), { ok: false, erreur: "media-invalide", champ: "format" });
+  assert.deepEqual(await preparerPhotoAvis(avantFin(PHOTO, latin1(GPS))), { ok: false, erreur: "media-invalide", champ: "format" });
   assert.ok(retirerMetadonneesJpeg(avantFin(PHOTO, Buffer.from([0xff, 0xff]))), "du remplissage (FF) avant la fin reste permis");
   for (const [nom, photo] of [["séquentielle", PHOTO], ["progressive", PROGRESSIVE], ["avec RST", INTERVALLES]] as const) {
     const passages = listerPassagesJpeg(photo);

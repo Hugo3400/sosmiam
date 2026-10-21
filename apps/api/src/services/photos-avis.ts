@@ -35,7 +35,7 @@ export function creerPhotosAvis({ stockage, citations, horloge = Date.now }: Dep
 
   return {
     async deposer(compteId: number, octets: Uint8Array): Promise<PhotoAvisDeposee | RefusPhotoAvis> {
-      const preparee = preparerPhotoAvis(octets);
+      const preparee = await preparerPhotoAvis(octets);
       if (!preparee.ok) return preparee;
       if (!((await stockage.lirePartLibre()) >= PART_LIBRE_MIN_DISQUE)) return { ok: false, erreur: "stockage-plein" };
       const photo = stockage.tirerNom();

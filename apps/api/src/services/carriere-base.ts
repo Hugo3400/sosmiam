@@ -27,6 +27,16 @@ const versCandidature = (ligne: CandidatureCarriere): CandidatureEnBase => ({ ..
 
 const estAbsente = (erreur: unknown) => (erreur as { code?: unknown } | null)?.code === "P2025";
 
+const ESPACE_VERROU_CANDIDATURES = 0x43_56_00_01;
+
+const lireCleVerrouEmail = (empreinte: string) => Number.parseInt(empreinte.slice(0, 8).padEnd(8, "0"), 16) | 0;
+
+const lireDepotsEmail = async (b: Pick<BaseCarriere, "candidatureCarriere">, empreinte: string, depuis: Date) => (await b.candidatureCarriere.findMany({
+  where: { emailEmpreinte: empreinte, creeLe: { gt: depuis } },
+  select: { creeLe: true },
+  take: 50,
+})).map((l) => l.creeLe);
+
 export function creerDepotCarriere(base: BaseCarriere = baseDeDonnees): DepotCarriere {
   const lireOffre = async (id: number) => {
     const ligne = await base.offreCarriere.findUnique({ where: { id } });
@@ -70,15 +80,15 @@ export function creerDepotCarriere(base: BaseCarriere = baseDeDonnees): DepotCar
       return count === 0 ? null : { cvFichiers: lignes.flatMap((l) => (l.cvFichier ? [l.cvFichier] : [])) };
     }),
 
-    listerDepotsEmail: async (empreinte, depuis) => (await base.candidatureCarriere.findMany({
-      where: { emailEmpreinte: empreinte, creeLe: { gt: depuis } },
-      select: { creeLe: true },
-      take: 50,
-    })).map((l) => l.creeLe),
+    listerDepotsEmail: (empreinte, depuis) => lireDepotsEmail(base, empreinte, depuis),
 
-    ajouterCandidature: async (candidature) => {
-      await base.candidatureCarriere.create({ data: candidature });
-    },
+    ajouterCandidature: (candidature, { depuis, maximum }) => base.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ESPACE_VERROU_CANDIDATURES}::int4, ${lireCleVerrouEmail(candidature.emailEmpreinte)}::int4)`;
+      const depots = await lireDepotsEmail(tx, candidature.emailEmpreinte, depuis);
+      if (depots.length >= maximum) return { ok: false as const, depots };
+      await tx.candidatureCarriere.create({ data: candidature });
+      return { ok: true as const };
+    }),
 
     listerCandidatures: async ({ offreId, statut }, nombre) => (await base.candidatureCarriere.findMany({
       where: { offreId, statut },

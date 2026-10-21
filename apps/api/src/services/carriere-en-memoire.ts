@@ -24,6 +24,9 @@ export function creerDepotCarriereEnMemoire(): DepotCarriereEnMemoire {
     return retirees;
   };
   const fichiersDe = (liste: CandidatureEnBase[]) => liste.flatMap((c) => (c.cvFichier ? [c.cvFichier] : []));
+  const lireDepotsEmail = (empreinte: string, depuis: Date) => [...candidatures.values()]
+    .filter((c) => c.emailEmpreinte === empreinte && c.creeLe.getTime() > depuis.getTime())
+    .map((c) => c.creeLe);
 
   return {
     offres,
@@ -68,15 +71,16 @@ export function creerDepotCarriereEnMemoire(): DepotCarriereEnMemoire {
       return { cvFichiers: fichiersDe(retirer((c) => c.offreId === id)) };
     },
 
-    listerDepotsEmail: async (empreinte, depuis) => [...candidatures.values()]
-      .filter((c) => c.emailEmpreinte === empreinte && c.creeLe.getTime() > depuis.getTime())
-      .map((c) => c.creeLe),
+    listerDepotsEmail: async (empreinte, depuis) => lireDepotsEmail(empreinte, depuis),
 
-    ajouterCandidature: async (candidature) => {
+    ajouterCandidature: async (candidature, { depuis, maximum }) => {
+      const depots = lireDepotsEmail(candidature.emailEmpreinte, depuis);
+      if (depots.length >= maximum) return { ok: false, depots };
       if (!offres.has(candidature.offreId)) throw new Error("Clé étrangère : offre absente");
       if (candidatures.has(candidature.id)) throw new Error("Clé primaire déjà prise");
       if (candidature.cvFichier && [...candidatures.values()].some((c) => c.cvFichier === candidature.cvFichier)) throw new Error("CV déjà cité");
       candidatures.set(candidature.id, { ...candidature });
+      return { ok: true };
     },
 
     listerCandidatures: async ({ offreId, statut }, nombre) => [...candidatures.values()]

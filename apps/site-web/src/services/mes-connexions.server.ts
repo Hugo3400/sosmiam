@@ -12,7 +12,7 @@ import { estAdresseRelaisApple } from "../../../../packages/commun/src/fonctions
 import { lireMessageMesConnexions } from "~/fonctions/connexion-externe/lire-message-mes-connexions";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireAttente, delierConnexion, demanderNouveauMotDePasse, MESSAGE_OCCUPE, relierConnexion } from "~/services/comptes.server";
-import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
+import { effacerCookieAttente, effacerCookieConfirmation, lireCookieAttente, lireCookieConfirmation } from "~/services/cookies-connexion-externe.server";
 import { redirigerSiSessionFermee } from "~/services/session-compte.server";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 import type { MesConnexions } from "~/types/mes-connexions";
@@ -24,6 +24,11 @@ export const FORMULAIRES_MES_CONNEXIONS = ["ajouter-mot-de-passe", "relier-exter
 
 type ConnexionsLues = { ok: true; connexions: { motDePasse: boolean; apple: boolean; google: boolean } } | { ok: false };
 
+function lireConfirmationRelier(request: Request, fournisseur: FournisseurExterne) {
+  const confirmation = lireCookieConfirmation(request, Date.now());
+  return confirmation && confirmation.intention === "confirmer-relier" && confirmation.fournisseur === AUTRE[fournisseur] ? confirmation : null;
+}
+
 /** Ce que la partie montre ; null si l'API n'a pas pu dire comment le compte se connecte (la partie l'annonce simplement). */
 export function preparerMesConnexions(
   request: Request, lues: ConnexionsLues, email: string, depart: MesConnexions["depart"], actifs: Record<FournisseurExterne, boolean>,
@@ -31,7 +36,9 @@ export function preparerMesConnexions(
   if (!lues.ok) return null;
   const url = new URL(request.url);
   const attente = lireCookieAttente(request, Date.now());
-  const pret = attente && (attente.intention === "relier" || attente.intention === "delier") ? { intention: attente.intention, fournisseur: attente.fournisseur } : null;
+  const pret = attente && (attente.intention === "relier" || attente.intention === "delier")
+    ? { intention: attente.intention, fournisseur: attente.fournisseur, confirme: attente.intention === "relier" && lireConfirmationRelier(request, attente.fournisseur) !== null }
+    : null;
   return {
     ...lues.connexions, actifs, pret, depart, email, relaisApple: estAdresseRelaisApple(email),
     message: lireMessageMesConnexions(url.searchParams.get("connexions"), url.searchParams.get("avec")),
@@ -42,7 +49,9 @@ type Contexte = { jeton: string; email: string; ip: string | null; chemin: strin
 
 /** Retour à la partie avec un message, et le jeton en attente effacé */
 function revenir(chemin: string, code: string, fournisseur: FournisseurExterne): never {
-  throw redirect(`${chemin}?connexions=${code}&avec=${fournisseur}#mes-connexions`, { headers: { "Set-Cookie": effacerCookieAttente() } });
+  throw redirect(`${chemin}?connexions=${code}&avec=${fournisseur}#mes-connexions`, {
+    headers: [["Set-Cookie", effacerCookieAttente()], ["Set-Cookie", effacerCookieConfirmation()]],
+  });
 }
 
 const expliquerPanne = (erreur: string, attente?: number) =>
@@ -69,16 +78,33 @@ export async function traiterMesConnexions(request: Request, formulaire: FormDat
   const attente = lireCookieAttente(request, Date.now());
   if (nom === "connexion-annuler") revenir(chemin, "annule", attente?.fournisseur ?? "google");
 
-  if (nom === "relier-externe" || nom === "delier-externe") {
-    const intention = nom === "relier-externe" ? "relier" : "delier";
-    if (!attente || attente.intention !== intention) revenir(chemin, "expire", attente?.fournisseur ?? "google");
+  if (nom === "relier-externe") {
+    if (!attente || attente.intention !== "relier") revenir(chemin, "expire", attente?.fournisseur ?? "google");
     const { fournisseur } = attente;
-    const reponse = intention === "relier"
-      ? await relierConnexion(jeton, ip, fournisseur, attente.jeton, attente.nonce)
-      : await delierConnexion(jeton, ip, AUTRE[fournisseur], { fournisseur, jeton: attente.jeton, nonce: attente.nonce });
-    // Le message parle du fournisseur relié ou délié (pour délier, c'est l'autre qui a confirmé)
-    const cible = intention === "relier" ? fournisseur : AUTRE[fournisseur];
-    if (reponse.ok) revenir(chemin, intention === "relier" ? "relie" : "delie", cible);
+    const autre = AUTRE[fournisseur];
+    const avecMotDePasse = formulaire.has("motDePasse");
+    const motDePasse = String(formulaire.get("motDePasse") ?? "");
+    if (avecMotDePasse && !motDePasse) return { ok: false, formulaire: nom, erreurs: { motDePasse: "Indique ton mot de passe pour confirmer." } };
+    const confirmee = avecMotDePasse ? null : lireConfirmationRelier(request, fournisseur);
+    if (!avecMotDePasse && !confirmee) revenir(chemin, "expire", autre);
+    const preuve = confirmee ? { fournisseur: autre, jeton: confirmee.jeton, nonce: confirmee.nonce } : { motDePasse };
+    const reponse = await relierConnexion(jeton, ip, fournisseur, attente.jeton, attente.nonce, preuve);
+    if (reponse.ok) revenir(chemin, "relie", fournisseur);
+    await redirigerSiSessionFermee(request, reponse.erreur);
+    if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { motDePasse: "Ce n'est pas ton mot de passe." } };
+    if (avecMotDePasse && (reponse.erreur === "trop-de-demandes" || reponse.erreur === "occupe")) {
+      return { ok: false, formulaire: nom, message: expliquerPanne(reponse.erreur, reponse.attente) };
+    }
+    revenir(chemin, choisirCodeMesConnexions(reponse.erreur), reponse.erreur === "confirmation-incorrecte" ? autre : fournisseur);
+  }
+
+  if (nom === "delier-externe") {
+    if (!attente || attente.intention !== "delier") revenir(chemin, "expire", attente?.fournisseur ?? "google");
+    const { fournisseur } = attente;
+    const reponse = await delierConnexion(jeton, ip, AUTRE[fournisseur], { fournisseur, jeton: attente.jeton, nonce: attente.nonce });
+    // Le message parle du fournisseur délié (c'est l'autre qui a confirmé)
+    const cible = AUTRE[fournisseur];
+    if (reponse.ok) revenir(chemin, "delie", cible);
     await redirigerSiSessionFermee(request, reponse.erreur);
     // « confirmation-incorrecte » parle du fournisseur qui a confirmé
     revenir(chemin, choisirCodeMesConnexions(reponse.erreur), reponse.erreur === "confirmation-incorrecte" ? fournisseur : cible);

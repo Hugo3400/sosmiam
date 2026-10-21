@@ -19,6 +19,7 @@ import { creerControleursConnexionsCompte } from "../controleurs/comptes-connexi
 import type { InscriptionNewsletterComptes } from "../controleurs/comptes-newsletter.ts";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleMajorite } from "../middlewares/exiger-majeur.ts";
+import { limiterEnvoisMedias } from "../middlewares/limiter-envois-medias.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { creerRefuserSiLimite } from "../middlewares/refuser-si-limite.ts";
 import { gererErreursComptes, type ProtectionComptes, type StockageSessionsComptes } from "../middlewares/proteger-comptes.ts";
@@ -462,7 +463,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.post("/moi/limitation/contestation", protection.exigerCompte, parCompte(LIMITE_CONTESTATION_LIMITATION), limitation.contester);
   if (dependances.photos) {
     const photo = creerControleursPhotoProfil(dependances.photos);
-    routes.post("/moi/photo", protection.exigerCompte, refuserSiLimite, parCompte(LIMITE_PHOTOS_PROFIL), lireCorpsPhotoProfil, photo.envoyer);
+    routes.post("/moi/photo", limiterEnvoisMedias(), protection.exigerCompte, refuserSiLimite, parCompte(LIMITE_PHOTOS_PROFIL), lireCorpsPhotoProfil, photo.envoyer);
     routes.delete("/moi/photo", protection.exigerCompte, photo.retirer);
   }
   if (dependances.pro) {

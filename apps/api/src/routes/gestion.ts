@@ -17,6 +17,7 @@ import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-
 import { creerControleursCommunaute } from "../controleurs/gestion/controleurs-communaute.ts";
 import { creerControleursCarriere } from "../controleurs/gestion/controleurs-carriere.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
+import { creerControleursServeursDev } from "../controleurs/gestion/controleurs-serveurs-dev.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
 import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
@@ -90,6 +91,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
   const safe = creerControleursMiamSafe(services);
+  const serveurs = creerControleursServeursDev(services);
   const r = creerControleursReponsesTypes(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
@@ -343,6 +345,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/maintenance", c.maintenance);
   routes.get("/maintenance/menage-manuel", c.menageManuel);
   routes.post("/maintenance/relancer", c.relancer);
+  routes.get("/serveurs", serveurs.liste);
+  routes.post("/serveurs/:id/action", serveurs.agir);
 
   routes.use((_requete, reponse) => {
     reponse.status(404).json({ ok: false, erreur: "introuvable" });

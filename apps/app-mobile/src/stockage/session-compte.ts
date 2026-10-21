@@ -5,6 +5,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { OPTIONS_COFFRE_FORT, preparerCoffreFort } from "~/stockage/coffre-fort";
+
 const CLE = "sosmiam.session";
 const surLeWeb = Platform.OS === "web";
 /** Forme d'un jeton de l'API (FORME_JETON de l'API) : un jeton abîmé est oublié */
@@ -13,6 +15,7 @@ const FORME_JETON = /^[A-Za-z0-9_-]{32,128}$/;
 /** Le jeton gardé, ou null (pas connecté, ou illisible). */
 export async function lireJetonSession(): Promise<string | null> {
   try {
+    if (!(await preparerCoffreFort())) return null;
     const jeton = surLeWeb ? await AsyncStorage.getItem(CLE) : await SecureStore.getItemAsync(CLE);
     return jeton && FORME_JETON.test(jeton) ? jeton : null;
   } catch {
@@ -22,8 +25,9 @@ export async function lireJetonSession(): Promise<string | null> {
 
 /** Garde le jeton reçu à la connexion (ou le nouveau, après un changement de mot de passe). */
 export async function enregistrerJetonSession(jeton: string): Promise<void> {
-  if (surLeWeb) await AsyncStorage.setItem(CLE, jeton);
-  else await SecureStore.setItemAsync(CLE, jeton, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK });
+  if (surLeWeb) return AsyncStorage.setItem(CLE, jeton);
+  await preparerCoffreFort();
+  await SecureStore.setItemAsync(CLE, jeton, OPTIONS_COFFRE_FORT);
 }
 
 /** Oublie le jeton (déconnexion, session expirée, compte supprimé). */
