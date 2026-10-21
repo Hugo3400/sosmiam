@@ -26,6 +26,8 @@ type Position = { latitude: number; longitude: number };
 
 type Choix = { x: number; y: number; fixe: number; libre: number };
 
+type MarqueursEcartes = { groupes: GroupeCarte[]; seuls: LieuSeulCarte[] };
+
 function ecartFixeMin(obstacles: PlaceEcran[], x: number, y: number): number {
   let min = Infinity;
   for (const o of obstacles) {
@@ -122,14 +124,14 @@ function chercherPlace(ici: PlaceEcran, obstacles: PlaceEcran[], voisins: PlaceE
   return meilleure;
 }
 
-export function ecarterGroupesCarte(
+export function ecarterMarqueursCarte(
   groupes: GroupeCarte[],
   fixes: LieuSeulCarte[],
   seuls: LieuSeulCarte[],
   echelle: EchelleCarte,
   lireMembres: (groupe: GroupeCarte) => Position[],
-): GroupeCarte[] {
-  if (groupes.length === 0) return groupes;
+): MarqueursEcartes {
+  if (groupes.length + seuls.length === 0) return { groupes, seuls };
   const versEcran = (p: Position): PlaceEcran => ({
     x: p.longitude / echelle.degresParPoint,
     y: -p.latitude / (echelle.degresParPoint * echelle.cosLatitude),
@@ -158,20 +160,27 @@ export function ecarterGroupesCarte(
   const diametre = (groupe: GroupeCarte) => (groupe.nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS);
   const relachees = relacherMarqueursCarte(
     [
-      ...places.map((place, rang) => ({ ...place, diametre: diametre(groupes[rang]), mobile: !poses[rang] })),
-      ...immobiles.map((place) => ({ ...place, diametre: DIAMETRE_MARQUEUR_POINTS, mobile: false })),
+      ...places.map((place, rang) => ({ ...place, diametre: diametre(groupes[rang]), deplacementMax: poses[rang] ? 0 : ECART_MARQUEURS_POINTS * PART_DEPLACEMENT })),
+      ...immobiles.map((place) => ({ ...place, diametre: DIAMETRE_MARQUEUR_POINTS, deplacementMax: DIAMETRE_MARQUEUR_POINTS / 2 })),
+      ...obstacles.map((place) => ({ ...place, diametre: DIAMETRE_MARQUEUR_POINTS, deplacementMax: 0 })),
     ],
-    ECART_MARQUEURS_POINTS * PART_DEPLACEMENT,
-    (_, avant, apres) => obstacles.length === 0 || ecartFixeMin(obstacles, apres.x, apres.y) >= Math.min(ECART_FIXE_POINTS, ecartFixeMin(obstacles, avant.x, avant.y)),
+    (rang, avant, apres) =>
+      rang >= groupes.length || obstacles.length === 0 || ecartFixeMin(obstacles, apres.x, apres.y) >= Math.min(ECART_FIXE_POINTS, ecartFixeMin(obstacles, avant.x, avant.y)),
   );
+  const versCarte = ({ x, y }: PlaceEcran) => ({ longitude: x * echelle.degresParPoint, latitude: -y * echelle.degresParPoint * echelle.cosLatitude });
+  const bouge = (avant: PlaceEcran, apres: PlaceEcran) => Math.abs(avant.x - apres.x) >= 1e-6 || Math.abs(avant.y - apres.y) >= 1e-6;
 
-  return groupes.map((groupe, rang) => {
-    const avant = versEcran(groupe);
-    const place = relachees[rang];
-    devant[rang] ||= obstacles.length > 0 && calculerPartCachee(place, diametre(groupe) / 2, obstacles) > PART_CACHEE_MAX;
-    const bouge = Math.abs(avant.x - place.x) >= 1e-6 || Math.abs(avant.y - place.y) >= 1e-6;
-    if (!bouge && !devant[rang]) return groupe;
-    const deplace = bouge ? { longitude: place.x * echelle.degresParPoint, latitude: -place.y * echelle.degresParPoint * echelle.cosLatitude } : {};
-    return { ...groupe, ...deplace, ...(devant[rang] ? { devant: true } : {}) };
-  });
+  return {
+    groupes: groupes.map((groupe, rang) => {
+      const place = relachees[rang];
+      devant[rang] ||= obstacles.length > 0 && calculerPartCachee(place, diametre(groupe) / 2, obstacles) > PART_CACHEE_MAX;
+      const deplace = bouge(versEcran(groupe), place);
+      if (!deplace && !devant[rang]) return groupe;
+      return { ...groupe, ...(deplace ? versCarte(place) : {}), ...(devant[rang] ? { devant: true } : {}) };
+    }),
+    seuls: seuls.map((seul, rang) => {
+      const place = relachees[groupes.length + rang];
+      return bouge(immobiles[rang], place) ? { id: seul.id, ...versCarte(place) } : seul;
+    }),
+  };
 }

@@ -22,7 +22,10 @@ export function preparerPointsCarte(points: PointCarte[]): PreparationCarte {
     parNiveau: new Map(),
   };
   parContenu.unshift({ points: valides, preparation });
-  if (parContenu.length > CONTENUS_GARDES) parContenu.pop();
+  if (parContenu.length > CONTENUS_GARDES) {
+    const plusGrande = parContenu.reduce((a, b) => (b.points.length > a.points.length ? b : a));
+    parContenu.splice(parContenu[parContenu.length - 1] === plusGrande ? parContenu.length - 2 : parContenu.length - 1, 1);
+  }
   parTableau.set(points, preparation);
   return preparation;
 }

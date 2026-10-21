@@ -86,6 +86,7 @@ export function versEcran(region, point, taille = TAILLE_TELEPHONE) {
 }
 
 export function verifierSortie(resultat, message = "") {
+  if (!(typeof resultat.marge === "number" && resultat.marge >= 0 && resultat.marge <= MARGE_VUE_CARTE)) throw new Error(`${message} : marge ${resultat.marge} impossible`);
   const vus = new Set();
   for (const seul of resultat.seuls) {
     if (!Number.isFinite(seul.latitude) || !Number.isFinite(seul.longitude)) throw new Error(`${message} : lieu seul ${seul.id} sans position valable`);
@@ -94,6 +95,7 @@ export function verifierSortie(resultat, message = "") {
   }
   for (const groupe of resultat.groupes) {
     if (groupe.nombre < 2) throw new Error(`${message} : bulle ${groupe.cle} de ${groupe.nombre} lieu`);
+    if (groupe.devant !== undefined && groupe.devant !== true) throw new Error(`${message} : bulle ${groupe.cle} avec devant à ${groupe.devant}`);
     if (groupe.ids.length !== groupe.nombre) throw new Error(`${message} : bulle ${groupe.cle} annonce ${groupe.nombre} lieux pour ${groupe.ids.length} ids`);
     if (!Number.isFinite(groupe.latitude) || !Number.isFinite(groupe.longitude)) throw new Error(`${message} : bulle ${groupe.cle} sans position valable`);
     for (let rang = 1; rang < groupe.ids.length; rang++) if (groupe.ids[rang - 1] >= groupe.ids[rang]) throw new Error(`${message} : ids de la bulle ${groupe.cle} pas triés`);

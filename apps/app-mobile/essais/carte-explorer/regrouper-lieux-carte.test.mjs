@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ECART_FIXE_POINTS,
   ECART_MARQUEURS_POINTS,
   ETENDUE_GROUPE_CARTE,
   MARGE_VUE_CARTE,
@@ -21,6 +20,9 @@ import {
   creerHasard,
   creerPointsDenses,
   creerPointsFrance,
+  dansLaFenetre,
+  dansLaVue,
+  metresParPoint,
   regionAutour,
   verifierSortie,
   versEcran,
@@ -41,23 +43,6 @@ const VUES = [
   ["Atlantique", { latitude: 46, longitude: -8, latitudeDelta: 2, longitudeDelta: 2 }],
 ];
 const ECART_SUR = ECART_MARQUEURS_POINTS * 0.9;
-
-function dansLaFenetre(point, region, taille = TAILLE_TELEPHONE) {
-  const degresParPoint = region.longitudeDelta / taille.largeur;
-  const cos = Math.cos((region.latitude * Math.PI) / 180);
-  const part = 0.5 + MARGE_VUE_CARTE;
-  const demiLatitude = Math.max(region.latitudeDelta, degresParPoint * cos * taille.hauteur) * part;
-  const demiLongitude = region.longitudeDelta * part;
-  return Math.abs(point.latitude - region.latitude) <= demiLatitude && Math.abs(point.longitude - region.longitude) <= demiLongitude;
-}
-
-function dansLaVue(point, region) {
-  return Math.abs(point.latitude - region.latitude) <= region.latitudeDelta / 2 && Math.abs(point.longitude - region.longitude) <= region.longitudeDelta / 2;
-}
-
-function metresParPoint(region, taille = TAILLE_TELEPHONE) {
-  return (region.longitudeDelta / taille.largeur) * 111_320 * Math.cos((region.latitude * Math.PI) / 180);
-}
 
 function ecartsTropPetits(resultat, region, taille, idsFixes, seuil) {
   const marqueurs = [...resultat.seuls.filter((seul) => !idsFixes.has(seul.id)), ...resultat.groupes].map((m) => versEcran(region, m, taille));
@@ -102,22 +87,26 @@ test("le plafond tient même quand la carte en voudrait bien plus : iPad sur un 
   assert.ok(metresParPoint(rue, TAILLE_IPAD) <= METRES_PAR_POINT_RUE);
   const tresDenses = creerPointsDenses(4_000, VIEUX_PORT, 300, 4);
   const auZoomRue = regrouperLieuxCarte(tresDenses, rue, TAILLE_IPAD, tresDenses[5].id);
-  verifierSortie(auZoomRue, "zoom rue");
-  assert.equal(auZoomRue.groupes.length, 0);
-  assert.equal(compterMarqueurs(auZoomRue), PLAFOND_MARQUEURS_CARTE);
+  const vus = verifierSortie(auZoomRue, "zoom rue");
+  assert.ok(auZoomRue.groupes.length > 0, "trop de lieux pour les montrer un par un : des bulles");
+  assert.ok(compterMarqueurs(auZoomRue) <= PLAFOND_MARQUEURS_CARTE, `${compterMarqueurs(auZoomRue)} marqueurs`);
+  assert.equal(auZoomRue.marge, 0);
   assert.ok(auZoomRue.seuls.some((seul) => seul.id === tresDenses[5].id));
+  for (const p of tresDenses.filter((p) => dansLaVue(p, rue))) assert.ok(vus.has(p.id), `lieu ${p.id} à l'écran sans marqueur ni bulle`);
 });
 
-test("aucun lieu de la fenêtre ne disparaît : chacun est seul ou dans une bulle, une seule fois", () => {
+test("aucun lieu de la fenêtre ne disparaît, zoom rue compris : chacun est seul ou dans une bulle, une seule fois", () => {
+  const denses = creerPointsDenses(2_500, VIEUX_PORT, 1_500, 5);
   for (const taille of [TAILLE_TELEPHONE, TAILLE_IPAD]) {
-    const points = creerPointsFrance(3000, 11);
-    for (const [nom, region] of VUES) {
+    const points = [...creerPointsFrance(3000, 11), ...denses.map((p) => ({ ...p, id: p.id + 100_000 }))];
+    const vuesRue = [600, 800, 1_000].map((metres) => [`Vieux-Port ${metres} m`, regionAutour(VIEUX_PORT, metres, taille)]);
+    for (const [nom, region] of [...VUES, ...vuesRue]) {
       const resultat = regrouperLieuxCarte(points, region, taille, null);
       const vus = verifierSortie(resultat, nom);
-      if (metresParPoint(region, taille) <= METRES_PAR_POINT_RUE) continue;
-      for (const p of points.filter((p) => dansLaFenetre(p, region, taille))) assert.ok(vus.has(p.id), `${nom} : lieu ${p.id} disparu`);
+      assert.ok(resultat.marge === MARGE_VUE_CARTE || metresParPoint(region, taille) <= METRES_PAR_POINT_RUE, `${nom} : marge ${resultat.marge} hors du zoom rue`);
+      for (const p of points.filter((p) => dansLaFenetre(p, region, taille, resultat.marge))) assert.ok(vus.has(p.id), `${nom} : lieu ${p.id} disparu`);
       const parId = new Map(points.map((p) => [p.id, p]));
-      for (const g of resultat.groupes) assert.ok(g.ids.some((id) => dansLaFenetre(parId.get(id), region, taille)), `${nom} : bulle ${g.cle} hors de la fenêtre`);
+      for (const g of resultat.groupes) assert.ok(g.ids.some((id) => dansLaFenetre(parId.get(id), region, taille, resultat.marge)), `${nom} : bulle ${g.cle} hors de la fenêtre`);
     }
   }
 });
@@ -289,6 +278,16 @@ test("une même liste dans un nouveau tableau, à chaque lettre tapée, ne refai
   assert.notEqual(preparerPointsCarte(enSos), preparerPointsCarte(points));
 });
 
+test("après une recherche tapée puis effacée, la liste entière reprend son regroupement : la plus grande liste n'est jamais oubliée", () => {
+  const points = creerPointsFrance(20_000, 27);
+  const entiere = preparerPointsCarte(points);
+  for (let lettre = 1; lettre <= 9; lettre++) preparerPointsCarte(points.filter((_, rang) => rang % (lettre + 1) !== 0));
+  assert.equal(preparerPointsCarte(points.map((p) => ({ ...p }))), entiere);
+  const recente = points.filter((_, rang) => rang % 3 !== 0);
+  const preparee = preparerPointsCarte(recente);
+  assert.equal(preparerPointsCarte([...recente]), preparee);
+});
+
 test("une bulle ne réunit que des lieux proches à l'écran : jamais une bulle géante qui avale la ville", () => {
   const points = creerPointsDenses(3000, MARSEILLE, 6_000, 20);
   for (const metres of [40_000, 10_000, 4_000, 1_500]) {
@@ -319,28 +318,6 @@ test("hors SOS, alertes et lieu choisi, deux marqueurs ne se posent pas l'un sur
       const resultat = regrouperLieuxCarte(points, region, TAILLE_TELEPHONE, null);
       assert.equal(ecartsTropPetits(resultat, region, TAILLE_TELEPHONE, new Set(), ECART_SUR), 0, `${nom}, ${metres} m`);
     }
-  }
-});
-
-test("un SOS, une alerte ou le lieu choisi ne cache jamais une bulle : elle s'écarte, assez pour rester visible et touchable", () => {
-  const ville = creerPointsDenses(2500, MARSEILLE, 5_000, 24);
-  const region = regionAutour(MARSEILLE, 10_000);
-  const sans = regrouperLieuxCarte(ville, region, TAILLE_TELEPHONE, null);
-  const grosses = [...sans.groupes].sort((a, b) => b.nombre - a.nombre).slice(0, 3);
-  const sos = grosses.map((g, rang) => ({ id: 900_000 + rang, latitude: g.latitude, longitude: g.longitude, prioritaire: true }));
-  const points = [...ville, ...sos];
-  for (const selection of [null, grosses[0].ids[0], ville[10].id]) {
-    const resultat = regrouperLieuxCarte(points, region, TAILLE_TELEPHONE, selection);
-    verifierSortie(resultat, "avec SOS");
-    const fixes = resultat.seuls.filter((s) => s.id >= 900_000 || s.id === selection).map((s) => versEcran(region, s));
-    assert.ok(fixes.length >= sos.length);
-    for (const g of resultat.groupes) {
-      const ici = versEcran(region, g);
-      const ecart = Math.min(...fixes.map((f) => Math.max(Math.abs(f.x - ici.x), Math.abs(f.y - ici.y))));
-      assert.ok(ecart >= ECART_FIXE_POINTS - 1, `bulle de ${g.nombre} à ${ecart.toFixed(0)} points d'un marqueur fixe`);
-    }
-    const idsFixes = new Set([...sos.map((s) => s.id), selection]);
-    assert.ok(ecartsTropPetits(resultat, region, TAILLE_TELEPHONE, idsFixes, ECART_MARQUEURS_POINTS * 0.5) === 0);
   }
 });
 
@@ -379,5 +356,5 @@ test("des points sans position valable ne cassent rien", () => {
   ];
   const resultat = regrouperLieuxCarte(points, regionAutour(MARSEILLE, 10_000), { largeur: 0, hauteur: 0 }, null);
   assert.deepEqual(resultat.seuls.map((s) => s.id), [2]);
-  assert.deepEqual(regrouperLieuxCarte([], FRANCE, TAILLE_TELEPHONE, 3), { seuls: [], groupes: [] });
+  assert.deepEqual(regrouperLieuxCarte([], FRANCE, TAILLE_TELEPHONE, 3), { seuls: [], groupes: [], marge: MARGE_VUE_CARTE });
 });

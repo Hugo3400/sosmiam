@@ -1,6 +1,4 @@
 import {
-  DEPLACEMENT_MAX_LIEU_RUE_POINTS,
-  DIAMETRE_MARQUEUR_POINTS,
   ECART_MARQUEURS_POINTS,
   MARGE_VUE_CARTE,
   METRES_PAR_DEGRE,
@@ -19,10 +17,9 @@ import {
   type RegionCarte,
   type TailleCarte,
 } from "~/contenus/regroupement-carte";
-import { ecarterGroupesCarte } from "~/fonctions/geo/ecarter-groupes-carte";
+import { ecarterMarqueursCarte } from "~/fonctions/geo/ecarter-marqueurs-carte";
 import { formerAmasCarte } from "~/fonctions/geo/former-amas-carte";
 import { preparerPointsCarte } from "~/fonctions/geo/preparer-points-carte";
-import { relacherMarqueursCarte } from "~/fonctions/geo/relacher-marqueurs-carte";
 
 const LARGEUR_PAR_DEFAUT = 390;
 const HAUTEUR_PAR_DEFAUT = 800;
@@ -93,7 +90,6 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
       break;
     }
   }
-  const sansBulle = regroupement !== null;
   if (!regroupement) {
     if (rue) marge = 0;
     regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, choisi?.id ?? null, fenetreAvec(marge), surplus, rue ? FINESSE_RUE : 0);
@@ -103,36 +99,14 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
   const ecartes = ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle);
   const idsObstacles = new Set([...fixes, ...surplus].map((point) => point.id));
   const obstacles = ecartes.filter((seul) => idsObstacles.has(seul.id));
-  const autresSeuls = ecartes.filter((seul) => !idsObstacles.has(seul.id));
-  const seuls = sansBulle ? [...obstacles, ...relacherLieuxRue(autresSeuls, obstacles, echelle)] : ecartes;
-  const groupes = ecarterGroupesCarte(
+  const places = ecarterMarqueursCarte(
     [...regroupement.groupes].sort((a, b) => (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0)),
     obstacles,
-    autresSeuls,
+    ecartes.filter((seul) => !idsObstacles.has(seul.id)),
     echelle,
     (groupe) => (membres.get(groupe) ?? []).map(({ point }) => point),
   );
-  return { seuls: seuls.sort((a, b) => a.id - b.id), groupes, marge };
-}
-
-function relacherLieuxRue(seuls: LieuSeulCarte[], fixes: LieuSeulCarte[], echelle: EchelleCarte): LieuSeulCarte[] {
-  if (seuls.length === 0) return seuls;
-  const hauteurPoint = echelle.degresParPoint * echelle.cosLatitude;
-  const places = relacherMarqueursCarte(
-    [...seuls, ...fixes].map((seul, rang) => ({
-      x: seul.longitude / echelle.degresParPoint,
-      y: -seul.latitude / hauteurPoint,
-      diametre: DIAMETRE_MARQUEUR_POINTS,
-      mobile: rang < seuls.length,
-    })),
-    DEPLACEMENT_MAX_LIEU_RUE_POINTS,
-  );
-  return seuls.map((seul, rang) => {
-    const { x, y } = places[rang];
-    const longitude = x * echelle.degresParPoint;
-    const latitude = -y * hauteurPoint;
-    return Math.abs(longitude - seul.longitude) < 1e-12 && Math.abs(latitude - seul.latitude) < 1e-12 ? seul : { id: seul.id, latitude, longitude };
-  });
+  return { seuls: [...obstacles, ...places.seuls].sort((a, b) => a.id - b.id), groupes: places.groupes, marge };
 }
 
 function projeterLatitude(latitude: number): number {
