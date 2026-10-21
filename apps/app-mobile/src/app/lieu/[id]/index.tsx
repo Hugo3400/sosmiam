@@ -33,7 +33,7 @@ import couleurs from "~/theme/couleurs";
 /** Une feuille (« Envoyer à un pote », « Miam Safe ») : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
 
-const DEBORD_GAUCHE_LU_EN_PREMIER = 1;
+const DEBORD_LU_EN_PREMIER = 1;
 
 /**
  * Fiche d'un lieu (première version) : ses infos, ses horaires, son plat signature, de quoi y faire compter sa visite
@@ -109,11 +109,28 @@ export default function FicheLieu() {
     <View className="flex-1 bg-creme">
       {/* Fiche préparée en coulisses depuis le fil : sa barre claire ne s'applique que quand elle est vraiment affichée */}
       {focus ? <StatusBar style="light" /> : null}
+      <ScrollView contentContainerStyle={contenuDefilant}>
+        {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
+        <EnTeteFicheLieu
+          lieu={lieu}
+          km={calculerKmLieu(lieu, origine.depart)}
+          depuis={origine.depuis}
+          margeHaut={marges.top}
+          onEnvoyer={ouvrirEnvoi}
+          onAnnoncer={annoncer}
+        />
+        {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
+        {/* Sans compte SOS Miam, pas de visite validée : la fiche dit pourquoi (CarteLieuNonVerifie, dans le haut) */}
+        {verifie ? <BlocVisiteLieu lieu={lieu} /> : null}
+        <BlocEtiquettesLieu lieu={lieu} />
+        <SuiteFicheLieu lieu={lieu} age={age} />
+      </ScrollView>
+
       <View
         collapsable={false}
         pointerEvents="box-none"
-        style={{ top: marges.top, left: -DEBORD_GAUCHE_LU_EN_PREMIER, paddingLeft: 16 + DEBORD_GAUCHE_LU_EN_PREMIER }}
-        className="absolute right-2 z-10 flex-row justify-between py-2 pr-2"
+        style={{ top: -DEBORD_LU_EN_PREMIER, left: -DEBORD_LU_EN_PREMIER, paddingTop: marges.top + 8 + DEBORD_LU_EN_PREMIER, paddingLeft: 16 + DEBORD_LU_EN_PREMIER }}
+        className="absolute right-2 flex-row justify-between pb-2 pr-2"
       >
         <Pressable
           accessibilityRole="button"
@@ -138,23 +155,6 @@ export default function FicheLieu() {
           <Text className="text-lg">🚨</Text>
         </Pressable>
       </View>
-
-      <ScrollView contentContainerStyle={contenuDefilant}>
-        {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}
-        <EnTeteFicheLieu
-          lieu={lieu}
-          km={calculerKmLieu(lieu, origine.depart)}
-          depuis={origine.depuis}
-          margeHaut={marges.top}
-          onEnvoyer={ouvrirEnvoi}
-          onAnnoncer={annoncer}
-        />
-        {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
-        {/* Sans compte SOS Miam, pas de visite validée : la fiche dit pourquoi (CarteLieuNonVerifie, dans le haut) */}
-        {verifie ? <BlocVisiteLieu lieu={lieu} /> : null}
-        <BlocEtiquettesLieu lieu={lieu} />
-        <SuiteFicheLieu lieu={lieu} age={age} />
-      </ScrollView>
 
       {/* Libellés sans emoji : Bouton les fait lire tels quels, VoiceOver et TalkBack diraient « bouée de sauvetage » ; l'état (donnée ou pas) est dans le libellé */}
       <View style={{ paddingBottom: marges.bottom + 12 }} className="absolute inset-x-0 bottom-0 flex-row gap-3 border-t border-ligne bg-creme px-5 pt-3">

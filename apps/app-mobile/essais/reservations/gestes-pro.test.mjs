@@ -12,7 +12,7 @@ const resa = (id, statut, creneau, plus = {}) => ({ id, prenom: "Karim", initial
 test("accepter jusqu'à 30 min avant le créneau, refuser tant que c'est une demande", () => {
   const creneau = iso("2026-10-15", "20:00");
   const avant = calculerGestesReservationPro(resa(1, "demandee", creneau), calculerInstantParis("2026-10-15", "19:29"));
-  assert.deepEqual(avant, { accepter: true, refuser: true, venu: false, absent: false });
+  assert.deepEqual(avant, { accepter: true, refuser: true, venu: false, absent: false, annuler: false });
   const tard = calculerGestesReservationPro(resa(1, "demandee", creneau), calculerInstantParis("2026-10-15", "19:30"));
   assert.equal(tard.accepter, false);
 });
@@ -20,10 +20,23 @@ test("accepter jusqu'à 30 min avant le créneau, refuser tant que c'est une dem
 test("« Venu » de 30 min avant à 4 h après ; « Pas venu » à partir de 30 min après", () => {
   const r = resa(2, "acceptee", iso("2026-10-15", "20:00"));
   const a = (heure, jour = "2026-10-15") => calculerGestesReservationPro(r, calculerInstantParis(jour, heure));
-  assert.deepEqual(a("19:29"), { accepter: false, refuser: false, venu: false, absent: false });
-  assert.deepEqual(a("19:30"), { accepter: false, refuser: false, venu: true, absent: false });
-  assert.deepEqual(a("20:30"), { accepter: false, refuser: false, venu: true, absent: true });
-  assert.deepEqual(a("00:01", "2026-10-16"), { accepter: false, refuser: false, venu: false, absent: true });
+  assert.deepEqual(a("19:29"), { accepter: false, refuser: false, venu: false, absent: false, annuler: true });
+  assert.deepEqual(a("19:30"), { accepter: false, refuser: false, venu: true, absent: false, annuler: true });
+  assert.deepEqual(a("20:30"), { accepter: false, refuser: false, venu: true, absent: true, annuler: false });
+  assert.deepEqual(a("00:01", "2026-10-16"), { accepter: false, refuser: false, venu: false, absent: true, annuler: false });
+});
+
+test("à la main avec 30 min de délai : la demande s'accepte jusqu'à 10 min avant, comme le dit limiteReponse", () => {
+  const creneau = iso("2026-10-15", "20:00");
+  const r = resa(3, "demandee", creneau, { limiteReponse: iso("2026-10-15", "19:50") });
+  assert.equal(calculerGestesReservationPro(r, calculerInstantParis("2026-10-15", "19:45")).accepter, true);
+  assert.equal(calculerGestesReservationPro(r, calculerInstantParis("2026-10-15", "19:50")).accepter, false);
+});
+
+test("le lieu annule une table seulement avant son créneau, jamais 3 h après", () => {
+  const r = resa(4, "acceptee", iso("2026-10-15", "20:00"));
+  assert.equal(calculerGestesReservationPro(r, calculerInstantParis("2026-10-15", "19:59")).annuler, true);
+  assert.equal(calculerGestesReservationPro(r, calculerInstantParis("2026-10-15", "23:00")).annuler, false);
 });
 
 test("rangement : à répondre, aujourd'hui (jusqu'à minuit, heure de Paris), puis les jours qui viennent", () => {

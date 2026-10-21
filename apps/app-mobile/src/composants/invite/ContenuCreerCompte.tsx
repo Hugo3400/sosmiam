@@ -7,6 +7,7 @@ import { raisonsCompte } from "~/contenus/raisons-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import type { GlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
+import { utiliserTitreDansPoignee } from "~/hooks/utiliser-titre-dans-poignee";
 
 type Props = {
   /** Le geste qui demande un compte : il donne l'emoji, le titre et la phrase */
@@ -33,22 +34,29 @@ const AVANTAGES = [
  */
 export function ContenuCreerCompte({ raison, refTitre, geste, onInscrire, onPlusTard }: Props) {
   const { emoji, titre, phrase } = raisonsCompte[raison];
+  const titreDansPoignee = utiliserTitreDansPoignee();
+  const enTete = (
+    <>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
+      >
+        <Text className="text-3xl">{emoji}</Text>
+      </View>
+      <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
+        {lierPonctuation(titre)}
+      </Text>
+    </>
+  );
 
   return (
     <>
       <PoigneeFeuille geste={geste} ecart="grand" className="px-5">
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
-        >
-          <Text className="text-3xl">{emoji}</Text>
-        </View>
-        <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-          {lierPonctuation(titre)}
-        </Text>
+        {titreDansPoignee ? enTete : null}
       </PoigneeFeuille>
       <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
+        {titreDansPoignee ? null : enTete}
         <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(phrase)}</Text>
         <View className="mt-5 gap-2 rounded-carte border-2 border-encre bg-white p-4">
           {AVANTAGES.map((avantage) => (

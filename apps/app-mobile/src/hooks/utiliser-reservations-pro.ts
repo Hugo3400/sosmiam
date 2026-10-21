@@ -1,5 +1,4 @@
-import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import type { ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
@@ -8,14 +7,24 @@ import { utiliserServices } from "~/hooks/utiliser-services";
 
 export type LectureReservationsPro = { etat: "attente" } | { etat: "lu"; reservations: ReservationPro[] } | { etat: "erreur"; erreur: ErreurService };
 
-type ReponseGeste = ReponseApi<{ reservation: ReservationPro }>;
+export type SuiviReservationsPro = {
+  lieuId: number | null;
+  lecture: LectureReservationsPro;
+  relire: () => Promise<void>;
+  remplacer: (reservation: ReservationPro) => void;
+};
+
+export type ReponseGesteReservationPro = ReponseApi<{ reservation: ReservationPro }>;
+
+export const ContexteReservationsPro = createContext<SuiviReservationsPro | null>(null);
 
 const HORS_LIGNE: Extract<ReponseApi, { ok: false }> = { ok: false, erreur: "hors-ligne" };
-const RELECTURE_MS = 30_000;
 
-export function utiliserReservationsPro(lieuId: number | null) {
+export function utiliserReservationsPro() {
+  const suivi = useContext(ContexteReservationsPro);
+  if (!suivi) throw new Error("utiliserReservationsPro doit être appelé sous <FournisseurReservationsPro>.");
   const { comptoir } = utiliserServices();
-  const [lecture, setLecture] = useState<LectureReservationsPro>({ etat: "attente" });
+  const { relire, remplacer } = suivi;
   const [enCours, setEnCours] = useState<number | null>(null);
   const monte = useRef(true);
 
@@ -26,51 +35,29 @@ export function utiliserReservationsPro(lieuId: number | null) {
     [],
   );
 
-  const relire = useCallback(async () => {
-    if (lieuId === null) return;
-    const reponse = await comptoir.listerReservations(lieuId).catch(() => HORS_LIGNE);
-    if (!monte.current) return;
-    setLecture((avant) => {
-      if (reponse.ok) return { etat: "lu", reservations: reponse.reservations };
-      return avant.etat === "lu" ? avant : { etat: "erreur", erreur: reponse.erreur };
-    });
-  }, [comptoir, lieuId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      void relire();
-      const desabonner = comptoir.ecouter(() => void relire());
-      const minuterie = setInterval(() => void relire(), RELECTURE_MS);
-      return () => {
-        desabonner();
-        clearInterval(minuterie);
-      };
-    }, [comptoir, relire]),
-  );
-
   const agir = useCallback(
-    async (id: number, geste: () => Promise<ReponseGeste>): Promise<ReponseGeste> => {
+    async (id: number, geste: () => Promise<ReponseGesteReservationPro>): Promise<ReponseGesteReservationPro> => {
       setEnCours(id);
       try {
         const reponse = await geste().catch(() => HORS_LIGNE);
-        if (reponse.ok && monte.current) {
-          setLecture((avant) => (avant.etat === "lu" ? { etat: "lu", reservations: avant.reservations.map((r) => (r.id === id ? reponse.reservation : r)) } : avant));
-        }
+        if (reponse.ok) remplacer(reponse.reservation);
         void relire();
         return reponse;
       } finally {
         if (monte.current) setEnCours(null);
       }
     },
-    [relire],
+    [relire, remplacer],
   );
 
   return {
-    lecture,
-    enCours,
+    lecture: suivi.lecture,
     relire,
-    accepter: (id: number) => agir(id, () => comptoir.repondreReservation(id, { accepter: true })),
+    enCours,
+    accepter: (id: number, choix: { creneau: string | null; depasser: boolean }) =>
+      agir(id, () => comptoir.repondreReservation(id, { accepter: true, creneau: choix.creneau, depasser: choix.depasser })),
     refuser: (id: number, motif: MotifRefusReservation) => agir(id, () => comptoir.repondreReservation(id, { accepter: false, motif })),
+    annuler: (id: number, motif: MotifRefusReservation) => agir(id, () => comptoir.annulerReservation(id, motif)),
     marquerArrivee: (id: number, venu: boolean) => agir(id, () => comptoir.marquerArrivee(id, venu)),
   };
 }

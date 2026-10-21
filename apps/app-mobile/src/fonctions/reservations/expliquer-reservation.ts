@@ -1,11 +1,10 @@
 import { LIBELLES_MOTIF_REFUS_RESERVATION } from "@sos-miam/commun/contenus/motifs-refus";
-import { ANNULATION_TARDIVE_MS, EXPIRATION_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
+import { ANNULATION_TARDIVE_MS } from "@sos-miam/commun/regles/reservations";
 import type { MotifRefusReservation, Reservation } from "@sos-miam/commun/types/reservation";
 
 import { estReservationNonPointee } from "~/fonctions/reservations/est-reservation-non-pointee";
 import { nommerPlaceReservation } from "~/fonctions/reservations/nommer-place-reservation";
 
-const MINUTES_AVANT_EXPIRATION = Math.round(EXPIRATION_AVANT_CRENEAU_MS / 60_000);
 const HEURES_ANNULATION_TARDIVE = Math.round(ANNULATION_TARDIVE_MS / 3_600_000);
 const JE_SUIS_LA = "« Je suis là »";
 
@@ -43,7 +42,9 @@ function expliquerHonoree(reservation: Reservation, presencePossible: boolean): 
 export function expliquerReservation(reservation: Reservation, presencePossible: boolean, maintenantMs: number): string | null {
   switch (reservation.statut) {
     case "demandee":
-      return `Le lieu te répond ici. Sans réponse ${MINUTES_AVANT_EXPIRATION} min avant le créneau, la demande s'endort toute seule.`;
+      return reservation.creneauxProposes.length > 1
+        ? "Le lieu choisit l'horaire qui l'arrange parmi les tiens et te répond ici. Sans réponse à temps, la demande s'endort toute seule : rien n'est compté contre toi."
+        : "Le lieu te répond ici, avant ton créneau. Sans réponse à temps, la demande s'endort toute seule : rien n'est compté contre toi.";
     case "acceptee":
       return expliquerAcceptee(reservation, maintenantMs);
     case "refusee":

@@ -8,6 +8,7 @@ import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
+import { choisirCranFeuille } from "~/fonctions/interaction/choisir-cran-feuille";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerFenetreListeLieux } from "~/fonctions/lieux/calculer-fenetre-liste-lieux";
@@ -57,11 +58,10 @@ const HAUTEUR_APERCU = 84;
 const HAUTEUR_SELECTION_ESTIMEE = 96;
 /** Déplacement (en points) à partir duquel un toucher devient un glissement de la feuille */
 const SEUIL_GLISSEMENT = 6;
-/** Élan d'un lancer : on projette la feuille de vitesse × ce temps (ms) avant de choisir où elle s'arrête */
-const ELAN = 180;
 const DUREE = 280;
 
 const CRAN_SUIVANT: Record<Cran, Cran> = { carte: "repliee", repliee: "moitie", moitie: "depliee", depliee: "repliee" };
+const ORDRE_CRANS: readonly Cran[] = ["carte", "repliee", "moitie", "depliee"];
 const BORDURE_HAUT = 2;
 const MARGE_BAS_LISTE = 24;
 const HAUTEUR_EN_TETE_LISTE_ESTIMEE = 300;
@@ -179,7 +179,7 @@ export function FeuilleLieux(props: Props) {
   }
 
   // Glisser la feuille : la poignée et l'en-tête toujours, la liste seulement quand elle est repliée (elle ne défile pas alors)
-  const glissement = useRef<{ depart: number; actuelle: number } | null>(null);
+  const glissement = useRef<{ depart: number; actuelle: number; cran: Cran } | null>(null);
   // Créés une seule fois : ils lisent l'état du moment dans « etat »
   const [[glissementEnTete, glissementApercu]] = useState(() => {
     const vertical = (dx: number, dy: number) => Math.abs(dy) > SEUIL_GLISSEMENT && Math.abs(dy) > Math.abs(dx);
@@ -188,7 +188,7 @@ export function FeuilleLieux(props: Props) {
         enGlissement.current = true;
         // Repart de la hauteur affichée, même si la feuille était encore en train de bouger
         const depart = hauteur.value;
-        glissement.current = { depart, actuelle: depart };
+        glissement.current = { depart, actuelle: depart, cran: etat.current.cran };
       },
       onPanResponderMove: (_: unknown, g: { dy: number }) => {
         if (!glissement.current) return;
@@ -202,14 +202,11 @@ export function FeuilleLieux(props: Props) {
     };
     function terminer(vitesse: number) {
       enGlissement.current = false;
-      const actuelle = glissement.current?.actuelle ?? etat.current.hauteurs[etat.current.cran];
+      const enCours = glissement.current;
       glissement.current = null;
-      // Vers le bas, la vitesse est positive et la feuille rétrécit
-      const projetee = actuelle - vitesse * ELAN;
-      const { hauteurs: h } = etat.current;
-      const crans: Cran[] = ["carte", "repliee", "moitie", "depliee"];
-      const proche = crans.reduce((a, b) => (Math.abs(h[b] - projetee) < Math.abs(h[a] - projetee) ? b : a));
-      choisirCran(proche);
+      const depuis = enCours?.cran ?? etat.current.cran;
+      const actuelle = enCours?.actuelle ?? etat.current.hauteurs[depuis];
+      choisirCran(choisirCranFeuille(etat.current.hauteurs, ORDRE_CRANS, depuis, actuelle, vitesse));
     }
     return [
       PanResponder.create({

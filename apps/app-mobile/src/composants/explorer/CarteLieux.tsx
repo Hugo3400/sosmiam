@@ -9,16 +9,17 @@ import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 import { MarqueurGroupe } from "~/composants/explorer/MarqueurGroupe";
 import { MarqueurLieu } from "~/composants/explorer/MarqueurLieu";
 import { MarqueurPosition } from "~/composants/explorer/MarqueurPosition";
-import type { PointCarte } from "~/contenus/regroupement-carte";
+import { MARGE_CADRE_CARTE, type PointCarte } from "~/contenus/regroupement-carte";
+import { calculerCoinsAutour } from "~/fonctions/geo/calculer-coins-autour";
 import { calculerDemiCoteRue } from "~/fonctions/geo/calculer-demi-cote-rue";
 import { estRegionAssezChangee } from "~/fonctions/geo/est-region-assez-changee";
-import { regrouperLieuxParGrille } from "~/fonctions/geo/regrouper-lieux-par-grille";
+import { regrouperLieuxCarte } from "~/fonctions/geo/regrouper-lieux-carte";
 import { decrireLieuCarte } from "~/fonctions/lieux/decrire-lieu-carte";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 
 type Props = {
-  /** Lieux filtrés et triés (seuls ceux qui ont une position s'affichent) */
+  /** Lieux filtrés et triés */
   lieux: LieuExplorer[];
   /** Ville à montrer : celle choisie dans les filtres, sinon la tienne (partout en France) ; null si on ne la connaît pas (on montre alors nos lieux) */
   centre: PositionLieu | null;
@@ -50,8 +51,6 @@ const ECART_MAX_SELECTION = 0.25;
 const DEMI_SELECTION = 0.01;
 /** Avec « Autour de moi », un changement de filtres cadre ta position et les lieux les plus proches */
 const PLUS_PROCHES = 5;
-/** Espace laissé autour des marqueurs en cadrant (ils font ~74 points de large) */
-const MARGE_CADRE = 40;
 /** Les marges ne prennent jamais plus que cette part de la hauteur de la carte */
 const PART_MAX_MARGES = 0.7;
 /** Sur iPhone, toucher un marqueur touche aussi la carte un peu après : ce toucher-là ne désélectionne pas */
@@ -59,23 +58,6 @@ const DELAI_APPUI_MARQUEUR = 700;
 const DUREE_CENTRAGE = 450;
 /** Toute la France, si on n'a ni ta ville ni aucun lieu à montrer */
 const REGION_FRANCE = { latitude: 46.6, longitude: 2.4, latitudeDelta: 10, longitudeDelta: 12 };
-
-/** Deux coins opposés d'une zone qui contient tous les points, jamais plus petite qu'un carré de demi-côté « demiMin » */
-function coinsAutour(points: LatLng[], demiMin: number): LatLng[] {
-  const latitudes = points.map((p) => p.latitude);
-  const longitudes = points.map((p) => p.longitude);
-  const centre = {
-    latitude: (Math.min(...latitudes) + Math.max(...latitudes)) / 2,
-    longitude: (Math.min(...longitudes) + Math.max(...longitudes)) / 2,
-  };
-  // Un degré de longitude rétrécit loin de l'équateur : on corrige pour garder un carré
-  const demiLatitude = Math.max((Math.max(...latitudes) - Math.min(...latitudes)) / 2, demiMin);
-  const demiLongitude = Math.max((Math.max(...longitudes) - Math.min(...longitudes)) / 2, demiMin / Math.cos((centre.latitude * Math.PI) / 180));
-  return [
-    { latitude: centre.latitude + demiLatitude, longitude: centre.longitude - demiLongitude },
-    { latitude: centre.latitude - demiLatitude, longitude: centre.longitude + demiLongitude },
-  ];
-}
 
 /** Les deux coins opposés d'un rectangle (nord-ouest, sud-est) */
 function coinsZone(z: ZoneGeo): LatLng[] {
@@ -87,8 +69,8 @@ function coinsZone(z: ZoneGeo): LatLng[] {
 
 /** Ce qu'on montre sans « Autour de moi » ni filtre qui vient de changer : la ville, sinon tous nos lieux (null s'il n'y a rien à montrer) */
 function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu }[]): LatLng[] | null {
-  if (ville) return coinsAutour([ville], DEMI_VILLE);
-  return places.length > 0 ? coinsAutour(places.map((p) => p.position), DEMI_VILLE) : null;
+  if (ville) return calculerCoinsAutour([ville], DEMI_VILLE);
+  return places.length > 0 ? calculerCoinsAutour(places.map((p) => p.position), DEMI_VILLE) : null;
 }
 
 /**
@@ -156,7 +138,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
 
   const [regionVue, setRegionVue] = useState<Region>(regionDepart);
   const regroupement = useMemo(
-    () => regrouperLieuxParGrille(points, regionVue, { largeur, hauteur }, selection),
+    () => regrouperLieuxCarte(points, regionVue, { largeur, hauteur }, selection),
     [points, regionVue, largeur, hauteur, selection],
   );
 
@@ -185,8 +167,8 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
     // Android décale déjà le cadrage de mapPadding ; Apple Plans non : on lui donne les marges en plus
     const bords =
       Platform.OS === "android"
-        ? { top: MARGE_CADRE, right: MARGE_CADRE, bottom: MARGE_CADRE, left: MARGE_CADRE }
-        : { top: h + MARGE_CADRE, right: MARGE_CADRE, bottom: b + MARGE_CADRE, left: MARGE_CADRE };
+        ? { top: MARGE_CADRE_CARTE, right: MARGE_CADRE_CARTE, bottom: MARGE_CADRE_CARTE, left: MARGE_CADRE_CARTE }
+        : { top: h + MARGE_CADRE_CARTE, right: MARGE_CADRE_CARTE, bottom: b + MARGE_CADRE_CARTE, left: MARGE_CADRE_CARTE };
     carte.current?.fitToCoordinates(coins, { edgePadding: bords, animated: anime && !reduites });
   }
 
@@ -203,7 +185,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
     // Un autre lieu a été choisi entre-temps, ou l'écran est parti
     if (numero !== numeroCentrage.current || !carte.current) return;
     if (ecart === null || ecart > ECART_MAX_SELECTION) {
-      cadrer(coinsAutour([point], DEMI_SELECTION));
+      cadrer(calculerCoinsAutour([point], DEMI_SELECTION));
       return;
     }
     const { haut: h, bas: b, hauteur: hauteurCarte, animationsReduites: reduites } = etat.current;
@@ -227,17 +209,17 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
     const { places: trouves, position: ici, centre: ville, cadre: zone } = etat.current;
     // Premier cadrage, sans animation : la zone choisie, sinon ta position si on l'a déjà, sinon ta ville (ou nos lieux)
     if (!avant) {
-      const coins = zone ? coinsZone(zone) : ici ? coinsAutour([ici], DEMI_AUTOUR) : zoneVille(ville, trouves);
+      const coins = zone ? coinsZone(zone) : ici ? calculerCoinsAutour([ici], DEMI_AUTOUR) : zoneVille(ville, trouves);
       if (coins) cadrer(coins, false);
       return;
     }
     if (zone && avant.cadre !== cleCadre) {
       cadrer(coinsZone(zone));
     } else if (ici && avant.position !== clePosition) {
-      cadrer(coinsAutour([ici], DEMI_AUTOUR));
+      cadrer(calculerCoinsAutour([ici], DEMI_AUTOUR));
     } else if (avant.lieux !== cleLieux && trouves.length > 0) {
       const points = ici ? [ici, ...trouves.slice(0, PLUS_PROCHES).map((p) => p.position)] : trouves.map((p) => p.position);
-      cadrer(coinsAutour(points, DEMI_MIN_LIEUX));
+      cadrer(calculerCoinsAutour(points, DEMI_MIN_LIEUX));
     } else if (avant.centre !== cleCentre && !ici) {
       // Sauf si on suit ta position (« Autour de moi »)
       const coins = zoneVille(ville, trouves);
@@ -266,8 +248,8 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
       const membres = groupe ? groupe.ids.flatMap((id) => parId.get(id)?.position ?? []) : [];
       if (membres.length === 0) return;
       const { haut: h, bas: b, hauteur: hauteurCarte, largeur: largeurCarte } = etat.current;
-      const cote = Math.min(largeurCarte - MARGE_CADRE * 2, hauteurCarte - h - b - MARGE_CADRE * 2);
-      cadrer(coinsAutour(membres, calculerDemiCoteRue(cote)));
+      const cote = Math.min(largeurCarte - MARGE_CADRE_CARTE * 2, hauteurCarte - h - b - MARGE_CADRE_CARTE * 2);
+      cadrer(calculerCoinsAutour(membres, calculerDemiCoteRue(cote)));
     },
   });
 

@@ -28,7 +28,7 @@ test("qui est là : seulement ceux qui l'ont choisi, dans ta ville, le pseudo et
   const vue = await lire(lea);
   assert.equal(vue.total, 1);
   assert.deepEqual(vue.presents[0], {
-    personne: { id: sam.idPublic, pseudo: "miami.2", prenom: "Miami2", avatar: "🦀" }, dansTaBande: false, ambassadeur: false, nouveauDansLaVille: false,
+    personne: { id: sam.idPublic, pseudo: "miami.2", prenom: "", avatar: "🦀" }, dansTaBande: false, ambassadeur: false, nouveauDansLaVille: false,
     rescousses: 0, titreBadge: null, organise: null, enviesEnCommun: [], coucou: "aucun",
   });
   assert.equal(/latitude|longitude|position/.test(JSON.stringify(vue)), false);

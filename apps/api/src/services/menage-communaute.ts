@@ -50,8 +50,16 @@ export async function faireLeMenageCommunaute(o: { chiffrement: ChiffrementDonne
   });
   const sorties = await base.sortieDesMiamis.deleteMany({ where: { quand: { lt: il(JOURS_CONSERVATION_SORTIES_MIAMIS * 24) } } });
   const ilYAUnAn = il(JOURS_CONSERVATION_SORTIES_MIAMIS * 24);
-  const commentairesRetires = await base.commentaireIdeeCommunaute.deleteMany({ where: { retireLe: { lt: ilYAUnAn } } });
-  const ideesRetirees = await base.ideeCommunaute.deleteMany({ where: { retireeLe: { lt: ilYAUnAn } } });
+  const contestes = await base.signalement.findMany({
+    where: { cible: { in: ["idee", "comment-idee"] }, contesteLe: { not: null }, reexamineLe: null },
+    select: { cible: true, cibleId: true },
+  });
+  const commentairesContestes = contestes.filter((c) => c.cible === "comment-idee").map((c) => Number(c.cibleId)).filter(Number.isInteger);
+  const ideesContestees = contestes.filter((c) => c.cible === "idee").map((c) => Number(c.cibleId)).filter(Number.isInteger);
+  const commentairesRetires = await base.commentaireIdeeCommunaute.deleteMany({
+    where: { OR: [{ retireLe: { lt: ilYAUnAn } }, { masqueLe: { lt: ilYAUnAn } }], id: { notIn: commentairesContestes } },
+  });
+  const ideesRetirees = await base.ideeCommunaute.deleteMany({ where: { retireeLe: { lt: ilYAUnAn }, id: { notIn: ideesContestees } } });
   const genres = await rechiffrerGenres(o.chiffrement, base);
   return {
     presences: presences.count, coucous: coucous.count, sorties: sorties.count, invitations: invitations.count, demandes: demandes.count,

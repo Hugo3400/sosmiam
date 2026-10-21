@@ -15,7 +15,7 @@ export const TEXTES_GENRE = {
   indiceEnregistrer: "Ensuite, un seul changement par mois.",
   annonceEnregistre: "✅ C'est noté, et ça reste entre nous.",
   effacer: "Effacer mon genre",
-  effacerTexte: "On ne garde plus rien, pas même « Je préfère ne pas le dire ». Tu vois alors les sorties ouvertes à tous.",
+  effacerTexte: "On ne garde plus ton genre, pas même « Je préfère ne pas le dire » : seulement la date de ton dernier choix, pour la règle d'un changement par mois. Tu vois alors les sorties ouvertes à tous.",
   annonceEfface: "🧽 C'est effacé : on ne garde plus ton genre.",
   rien: "Rien de choisi pour l'instant : tu vois les sorties ouvertes à tous. Et c'est très bien comme ça aussi.",
   envoiRate: "Ça n'est pas parti. Vérifie ta connexion et réessaie dans un instant ?",

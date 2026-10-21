@@ -1,21 +1,25 @@
 import {
+  ECART_MARQUEURS_POINTS,
   MARGE_VUE_CARTE,
   METRES_PAR_DEGRE,
   METRES_PAR_POINT_RUE,
   PLAFOND_MARQUEURS_CARTE,
   PLAFOND_PRIORITAIRES_CARTE,
-  RAYON_GROUPE_POINTS,
-  SEUIL_SANS_GROUPE_CARTE,
   type AmasCarte,
   type CarteRegroupee,
+  type EchelleCarte,
+  type EtageCarte,
   type GroupeCarte,
   type LieuSeulCarte,
   type PointCarte,
   type PointProjete,
+  type PreparationCarte,
   type RegionCarte,
   type TailleCarte,
 } from "~/contenus/regroupement-carte";
+import { ecarterGroupesCarte } from "~/fonctions/geo/ecarter-groupes-carte";
 import { formerAmasCarte } from "~/fonctions/geo/former-amas-carte";
+import { preparerPointsCarte } from "~/fonctions/geo/preparer-points-carte";
 
 const LARGEUR_PAR_DEFAUT = 390;
 const HAUTEUR_PAR_DEFAUT = 800;
@@ -23,27 +27,19 @@ const RAYON_ECART_POINTS = 22;
 const DECIMALES_MEME_PLACE = 5;
 const NIVEAU_MIN = 1;
 const NIVEAU_MAX = 24;
-const PAS_NIVEAU = 0.5;
-const NIVEAUX_GARDES = 12;
+const PAS_NIVEAU = 0.25;
+const NIVEAUX_GARDES = 16;
 const LATITUDE_MAX = 85;
 const RAYONS_PAR_ZONE = 128;
 
-type Echelle = { degresParPoint: number; cosLatitude: number; latitude: number; longitude: number };
-
 type Regroupement = { seuls: PointCarte[]; groupes: GroupeCarte[] };
-
-type Etage = { cote: number; parZone: Map<string, AmasCarte[]>; parId: Map<number, AmasCarte> };
-
-type Preparation = { projetes: PointProjete[]; parNiveau: Map<number, Etage> };
 
 type Rectangle = { ouest: number; est: number; nord: number; sud: number };
 
-const preparations = new WeakMap<PointCarte[], Preparation>();
-
-export function regrouperLieuxParGrille(points: PointCarte[], region: RegionCarte, taille: TailleCarte, selection: number | null): CarteRegroupee {
+export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, taille: TailleCarte, selection: number | null): CarteRegroupee {
   const largeur = taille.largeur > 0 ? taille.largeur : LARGEUR_PAR_DEFAUT;
   const hauteur = taille.hauteur > 0 ? taille.hauteur : HAUTEUR_PAR_DEFAUT;
-  const echelle: Echelle = {
+  const echelle: EchelleCarte = {
     degresParPoint: Math.max(region.longitudeDelta, 1e-9) / largeur,
     cosLatitude: Math.max(Math.cos((region.latitude * Math.PI) / 180), 0.01),
     latitude: region.latitude,
@@ -58,27 +54,22 @@ export function regrouperLieuxParGrille(points: PointCarte[], region: RegionCart
     sud: region.latitude - demiLatitude,
   };
 
-  const preparation = preparer(points);
+  const preparation = preparerPointsCarte(points);
   let choisi: PointCarte | null = null;
   const prioritaires: PointCarte[] = [];
-  const autres: PointCarte[] = [];
   for (const { point } of preparation.projetes) {
-    if (point.id === selection) {
-      choisi = point;
-      continue;
-    }
-    if (!estDansBornes(point, bornes)) continue;
-    if (point.prioritaire) prioritaires.push(point);
-    else autres.push(point);
+    if (point.id === selection) choisi = point;
+    else if (point.prioritaire && estDansBornes(point, bornes)) prioritaires.push(point);
   }
 
   const tete = choisi ? [choisi] : [];
   let enAvant = prioritaires;
+  let surplus: PointCarte[] = [];
   const placesEnAvant = PLAFOND_PRIORITAIRES_CARTE - tete.length;
   if (prioritaires.length > placesEnAvant) {
     const tries = trierParProximite(prioritaires, echelle);
     enAvant = tries.slice(0, placesEnAvant);
-    autres.push(...tries.slice(placesEnAvant));
+    surplus = tries.slice(placesEnAvant).sort((a, b) => a.id - b.id);
   }
   const fixes = [...tete, ...enAvant];
   const budget = PLAFOND_MARQUEURS_CARTE - fixes.length;
@@ -86,43 +77,22 @@ export function regrouperLieuxParGrille(points: PointCarte[], region: RegionCart
 
   let regroupement: Regroupement;
   if (metresParPoint <= METRES_PAR_POINT_RUE) {
-    regroupement = { seuls: autres.length > budget ? trierParProximite(autres, echelle).slice(0, budget) : autres, groupes: [] };
-  } else if (fixes.length + autres.length <= SEUIL_SANS_GROUPE_CARTE) {
-    regroupement = empilerMemesPlaces(autres);
+    const autres = preparation.projetes.flatMap(({ point }) => (!point.prioritaire && point.id !== selection && estDansBornes(point, bornes) ? [point] : []));
+    const visibles = [...autres, ...surplus];
+    regroupement = { seuls: visibles.length > budget ? trierParProximite(visibles, echelle).slice(0, budget) : visibles, groupes: [] };
   } else {
-    const exclus = new Set(fixes.map((point) => point.id));
-    const fenetre: Rectangle = {
-      ouest: (bornes.ouest + 180) / 360,
-      est: (bornes.est + 180) / 360,
-      nord: projeterLatitude(bornes.nord),
-      sud: projeterLatitude(bornes.sud),
-    };
-    regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, exclus, fenetre, bornes);
+    regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, choisi?.id ?? null, bornes, surplus);
   }
 
-  return {
-    seuls: ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle).sort((a, b) => a.id - b.id),
-    groupes: regroupement.groupes.sort((a, b) => (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0)),
-  };
-}
-
-function preparer(points: PointCarte[]): Preparation {
-  const deja = preparations.get(points);
-  if (deja) return deja;
-  const projetes = trierParId(points.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))).map((point) => ({
-    point,
-    x: (point.longitude + 180) / 360,
-    y: projeterLatitude(point.latitude),
-  }));
-  const preparation = { projetes, parNiveau: new Map<number, Etage>() };
-  preparations.set(points, preparation);
-  return preparation;
-}
-
-function trierParId(points: PointCarte[]): PointCarte[] {
-  const nombre = points.length;
-  const cles = Float64Array.from(points, (point, rang) => point.id * nombre + rang).sort();
-  return Array.from(cles, (cle) => points[cle - Math.floor(cle / nombre) * nombre]);
+  const seuls = ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle);
+  const idsFixes = new Set(fixes.map((point) => point.id));
+  const groupes = ecarterGroupesCarte(
+    [...regroupement.groupes].sort((a, b) => (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0)),
+    seuls.filter((seul) => idsFixes.has(seul.id)),
+    seuls.filter((seul) => !idsFixes.has(seul.id)),
+    echelle,
+  );
+  return { seuls: seuls.sort((a, b) => a.id - b.id), groupes };
 }
 
 function projeterLatitude(latitude: number): number {
@@ -130,8 +100,8 @@ function projeterLatitude(latitude: number): number {
   return 0.5 - Math.log((1 + sinus) / (1 - sinus)) / (4 * Math.PI);
 }
 
-function lireAmas(preparation: Preparation, niveau: number, fenetre: Rectangle): { amas: AmasCarte[]; parId: Map<number, AmasCarte> } {
-  let etage = preparation.parNiveau.get(niveau);
+function lireAmas(preparation: PreparationCarte, niveau: number, fenetre: Rectangle): { amas: AmasCarte[]; parId: Map<number, AmasCarte> } {
+  let etage: EtageCarte | undefined = preparation.parNiveau.get(niveau);
   if (!etage) {
     if (preparation.parNiveau.size >= NIVEAUX_GARDES) preparation.parNiveau.clear();
     etage = { cote: 2 ** -niveau * RAYONS_PAR_ZONE, parZone: new Map(), parId: new Map() };
@@ -146,6 +116,7 @@ function lireAmas(preparation: Preparation, niveau: number, fenetre: Rectangle):
   const manquantes = cles.map((cle) => (parZone.has(cle) ? null : ([] as PointProjete[])));
   if (manquantes.some(Boolean)) {
     for (const projete of preparation.projetes) {
+      if (projete.point.prioritaire) continue;
       const colonne = Math.floor(projete.x / cote) - premiereColonne;
       const ligne = Math.floor(projete.y / cote) - premiereLigne;
       if (colonne < 0 || colonne >= colonnes || ligne < 0 || ligne >= lignes) continue;
@@ -162,27 +133,26 @@ function lireAmas(preparation: Preparation, niveau: number, fenetre: Rectangle):
 }
 
 function regrouperAuMeilleurNiveau(
-  preparation: Preparation,
-  echelle: Echelle,
+  preparation: PreparationCarte,
+  echelle: EchelleCarte,
   budget: number,
-  exclus: Set<number>,
-  fenetre: Rectangle,
+  exclu: number | null,
   bornes: Rectangle,
+  surplus: PointCarte[],
 ): Regroupement {
-  const ideal = Math.log2(360 / (RAYON_GROUPE_POINTS * echelle.degresParPoint));
-  let niveau = Math.min(NIVEAU_MAX, Math.max(NIVEAU_MIN, Math.round(ideal / PAS_NIVEAU) * PAS_NIVEAU));
+  const fenetre: Rectangle = { ouest: (bornes.ouest + 180) / 360, est: (bornes.est + 180) / 360, nord: projeterLatitude(bornes.nord), sud: projeterLatitude(bornes.sud) };
+  const surplusProjete = surplus.map((point) => ({ point, x: (point.longitude + 180) / 360, y: projeterLatitude(point.latitude) }));
+  const ideal = Math.log2(360 / (ECART_MARQUEURS_POINTS * echelle.degresParPoint));
+  let niveau = Math.min(NIVEAU_MAX, Math.max(NIVEAU_MIN, Math.floor(ideal / PAS_NIVEAU) * PAS_NIVEAU));
   for (;;) {
-    const { amas, parId } = lireAmas(preparation, niveau, fenetre);
-    const touches = new Set<AmasCarte>();
-    for (const id of exclus) {
-      const un = parId.get(id);
-      if (un) touches.add(un);
-    }
+    const lus = lireAmas(preparation, niveau, fenetre);
+    const touche = exclu === null ? undefined : lus.parId.get(exclu);
+    const amas = surplusProjete.length > 0 ? [...lus.amas, ...formerAmasCarte(surplusProjete, niveau)] : lus.amas;
     const seuls: PointCarte[] = [];
     const groupes: GroupeCarte[] = [];
     for (const un of amas) {
       if (un.nord < bornes.sud || un.sud > bornes.nord || un.est < bornes.ouest || un.ouest > bornes.est) continue;
-      const restants = touches.has(un) ? un.membres.filter(({ point }) => !exclus.has(point.id)) : un.membres;
+      const restants = un === touche ? un.membres.filter(({ point }) => point.id !== exclu) : un.membres;
       const entier = un.sud >= bornes.sud && un.nord <= bornes.nord && un.ouest >= bornes.ouest && un.est <= bornes.est;
       if (restants.length === 0 || (!entier && !restants.some(({ point }) => estDansBornes(point, bornes)))) continue;
       if (restants.length === 1) seuls.push(restants[0].point);
@@ -197,11 +167,7 @@ function estDansBornes(point: PointCarte, bornes: Rectangle): boolean {
   return point.latitude >= bornes.sud && point.latitude <= bornes.nord && point.longitude >= bornes.ouest && point.longitude <= bornes.est;
 }
 
-function lirePlace(point: PointCarte): string {
-  return `${point.latitude.toFixed(DECIMALES_MEME_PLACE)}:${point.longitude.toFixed(DECIMALES_MEME_PLACE)}`;
-}
-
-function trierParProximite(points: PointCarte[], echelle: Echelle): PointCarte[] {
+function trierParProximite(points: PointCarte[], echelle: EchelleCarte): PointCarte[] {
   const ecart = (p: PointCarte) => {
     const dx = p.longitude - echelle.longitude;
     const dy = (p.latitude - echelle.latitude) / echelle.cosLatitude;
@@ -221,36 +187,13 @@ function former(cle: string, membres: PointCarte[]): GroupeCarte {
     latitude += membre.latitude;
     longitude += membre.longitude;
   }
-  return {
-    cle,
-    nombre: tries.length,
-    latitude: latitude / tries.length,
-    longitude: longitude / tries.length,
-    ids: tries.map((membre) => membre.id),
-  };
+  return { cle, nombre: tries.length, latitude: latitude / tries.length, longitude: longitude / tries.length, ids: tries.map((membre) => membre.id) };
 }
 
-function empilerMemesPlaces(points: PointCarte[]): Regroupement {
+function ecarterMemesPlaces(points: PointCarte[], echelle: EchelleCarte): LieuSeulCarte[] {
   const parPlace = new Map<string, PointCarte[]>();
   for (const point of points) {
-    const cle = `place:${lirePlace(point)}`;
-    const memePlace = parPlace.get(cle);
-    if (memePlace) memePlace.push(point);
-    else parPlace.set(cle, [point]);
-  }
-  const seuls: PointCarte[] = [];
-  const groupes: GroupeCarte[] = [];
-  for (const [cle, membres] of parPlace) {
-    if (membres.length === 1) seuls.push(membres[0]);
-    else groupes.push(former(cle, membres));
-  }
-  return { seuls, groupes };
-}
-
-function ecarterMemesPlaces(points: PointCarte[], echelle: Echelle): LieuSeulCarte[] {
-  const parPlace = new Map<string, PointCarte[]>();
-  for (const point of points) {
-    const place = lirePlace(point);
+    const place = `${point.latitude.toFixed(DECIMALES_MEME_PLACE)}:${point.longitude.toFixed(DECIMALES_MEME_PLACE)}`;
     const memePlace = parPlace.get(place);
     if (memePlace) memePlace.push(point);
     else parPlace.set(place, [point]);

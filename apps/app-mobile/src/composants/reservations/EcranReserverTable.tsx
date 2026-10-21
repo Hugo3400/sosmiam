@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo } from "react-native";
 
+import { ERREURS_RESERVATION_A_RELIRE } from "@sos-miam/commun/regles/reglages-reservations";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { DemandeReservation } from "@sos-miam/commun/types/reservation";
@@ -17,16 +18,12 @@ import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { TEXTES_ECHEC_GESTE_RESERVATION } from "~/contenus/textes-mes-reservations";
 import { ACTIONS_REFUS_RESERVATION, PETIT_MOT_REFUSE, TEXTES_REFUS_RESERVATION, TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
 import { calculerGestesReservation } from "~/fonctions/reservations/calculer-gestes-reservation";
-import { calculerJoursReservation } from "~/fonctions/reservations/calculer-jours-reservation";
 import { decrireAnnulationReservation } from "~/fonctions/reservations/decrire-annulation-reservation";
-import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { decrireEtapeReserver } from "~/fonctions/reservations/decrire-etape-reserver";
-import { ecrireCreneauIso } from "~/fonctions/reservations/ecrire-creneau-iso";
-import { garderCreneauxATemps } from "~/fonctions/reservations/garder-creneaux-a-temps";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserClientReservation } from "~/hooks/utiliser-client-reservation";
-import { utiliserCreneauxReservation } from "~/hooks/utiliser-creneaux-reservation";
 import { utiliserEnvoiReservation, type RefusReservation } from "~/hooks/utiliser-envoi-reservation";
+import { utiliserFormulaireReservation } from "~/hooks/utiliser-formulaire-reservation";
 import { utiliserGestesReservation } from "~/hooks/utiliser-gestes-reservation";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 
@@ -34,18 +31,13 @@ type Props = {
   lieu: Lieu;
 };
 
-const PERSONNES_PAR_DEFAUT = 2;
 const REFUS_BLOQUANTS: readonly ErreurService[] = ["lieu-non-reservable", "membre-du-lieu", "introuvable"];
 
 export function EcranReserverTable({ lieu }: Props) {
   const router = useRouter();
   const client = utiliserClientReservation();
   const horloge = utiliserHorlogeMinute();
-  const jours = useMemo(() => calculerJoursReservation(lieu.ouverture, new Date(horloge.maintenantMs)), [lieu.ouverture, horloge.maintenantMs]);
-  const aujourdhui = jours[0].jour;
-  const [jourChoisi, setJourChoisi] = useState(() => (jours.find((j) => j.creneaux.length > 0) ?? jours[0]).jour);
-  const [heureChoisie, setHeure] = useState<string | null>(null);
-  const [personnes, setPersonnes] = useState(PERSONNES_PAR_DEFAUT);
+  const formulaire = utiliserFormulaireReservation(lieu, horloge.maintenantMs);
   const [petitMot, setPetitMot] = useState("");
   const [annulationOuverte, setAnnulationOuverte] = useState(false);
   const resultatAnnulation = useRef<Promise<boolean> | null>(null);
@@ -57,38 +49,41 @@ export function EcranReserverTable({ lieu }: Props) {
     },
     actualiser: envoi.relire,
   });
-  const { creneauxLus, refusLieu } = utiliserCreneauxReservation(lieu.id, jourChoisi);
-
-  const jourLocal = jours.find((j) => j.jour === jourChoisi) ?? jours[0];
-  const lus = creneauxLus[jourLocal.jour];
-  const jour = { ...jourLocal, creneaux: lus ? garderCreneauxATemps(jourLocal.jour, lus, horloge.maintenantMs) : jourLocal.creneaux };
-  const heure = heureChoisie && jour.creneaux.includes(heureChoisie) ? heureChoisie : null;
-  const prochainOuvert = jours.find((j) => j.jour > jour.jour && j.creneaux.length > 0) ?? null;
-  const quand = heure ? decrireCreneauReservation(ecrireCreneauIso(jour.jour, heure), horloge.maintenantMs).lu : null;
   const { reservation } = envoi;
+  const { relire } = formulaire;
 
+  const refusLieu = formulaire.jours.refusLieu ?? formulaire.creneaux.refusLieu;
   const refus: RefusReservation | null = envoi.refus ?? (refusLieu ? { ...refusLieu, numero: 0 } : null);
   const refusLimite = refus?.erreur === "compte-limite";
   const petitMotRefuse = refus?.erreur === "message-refuse";
-  const encadreRefus = refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(refus.erreur, refus.details, lieu.nom, TEXTES_REFUS_RESERVATION[refus.erreur]) : null;
+  const aRelire = refus !== null && ERREURS_RESERVATION_A_RELIRE.includes(refus.erreur);
+  const encadreRefus =
+    refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(aRelire ? "creneau-complet" : refus.erreur, refus.details, lieu.nom, TEXTES_REFUS_RESERVATION[refus.erreur]) : null;
   const bloque = refusLieu !== null && REFUS_BLOQUANTS.includes(refusLieu.erreur);
-  const etape = decrireEtapeReserver(reservation, lieu);
+  const automatique = formulaire.acceptation === "automatique";
+  const etape = decrireEtapeReserver(reservation, lieu, automatique);
+  const numeroRelu = useRef(0);
+
+  useEffect(() => {
+    if (!envoi.refus || !ERREURS_RESERVATION_A_RELIRE.includes(envoi.refus.erreur) || numeroRelu.current === envoi.refus.numero) return;
+    numeroRelu.current = envoi.refus.numero;
+    relire();
+  }, [envoi.refus, relire]);
 
   const revenirFiche = () => (router.canGoBack() ? router.back() : router.replace({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } }));
 
-  function changer(action: () => void) {
-    action();
-    envoi.effacerRefus();
-  }
-
-  function choisirJour(suivant: string) {
-    changer(() => setJourChoisi(suivant));
-  }
-
   function envoyer(message: string) {
+    const heure = formulaire.choix.principal;
     if (!heure) return;
     const texte = message.trim();
-    const demande: DemandeReservation = { lieuId: lieu.id, personnes, jour: jour.jour, heure, message: texte === "" ? null : texte };
+    const demande: DemandeReservation = {
+      lieuId: lieu.id,
+      personnes: formulaire.personnes,
+      jour: formulaire.jour,
+      heure,
+      ...(formulaire.choix.secours.length > 0 ? { autresHeures: formulaire.choix.secours } : {}),
+      message: texte === "" ? null : texte,
+    };
     void envoi.envoyer(demande);
   }
 
@@ -100,7 +95,7 @@ export function EcranReserverTable({ lieu }: Props) {
   function lireActionRefus(erreur: ErreurService): ActionEncadreReservation | undefined {
     if (erreur === "lieu-non-reservable") return { libelle: ACTIONS_REFUS_RESERVATION.retourFiche, onPress: revenirFiche };
     if (erreur === "introuvable") return { libelle: ACTIONS_REFUS_RESERVATION.voirExplorer, onPress: () => router.navigate("/explorer") };
-    if (erreur === "reservation-en-cours" || erreur === "trop-de-reservations") {
+    if (erreur === "reservation-en-cours" || erreur === "trop-de-reservations" || erreur === "reservation-en-double") {
       return { libelle: ACTIONS_REFUS_RESERVATION.voirReservations, onPress: () => router.push("/reservations") };
     }
     if (erreur === "email-non-verifie") return { libelle: ACTIONS_REFUS_RESERVATION.confirmerEmail, onPress: () => router.push("/reglages/compte") };
@@ -128,7 +123,10 @@ export function EcranReserverTable({ lieu }: Props) {
   const annulation = reservation
     ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, horloge.maintenantMs).annulationTardive, horloge.maintenantMs)
     : null;
-  const libelleEnvoyer = envoi.envoi ? TEXTES_RESERVER_TABLE.envoi : refusLimite ? TEXTES_RESERVER_TABLE.envoyerSansPetitMot : TEXTES_RESERVER_TABLE.envoyer;
+  const libelleAuto = lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.envoyerAutoPlace : TEXTES_RESERVER_TABLE.envoyerAutoTable;
+  const libelleEnvoi = automatique ? TEXTES_RESERVER_TABLE.envoiAuto : TEXTES_RESERVER_TABLE.envoi;
+  const libelleEnvoyer = envoi.envoi ? libelleEnvoi : refusLimite ? TEXTES_RESERVER_TABLE.envoyerSansPetitMot : automatique ? libelleAuto : TEXTES_RESERVER_TABLE.envoyer;
+  const pret = formulaire.choix.principal !== null;
 
   return (
     <EcranReglage
@@ -142,8 +140,8 @@ export function EcranReserverTable({ lieu }: Props) {
           : {
               libelle: libelleEnvoyer,
               onPress: refusLimite ? envoyerSansPetitMot : () => envoyer(petitMot),
-              desactive: heure === null || envoi.envoi || bloque,
-              indice: heure === null ? TEXTES_RESERVER_TABLE.indiceSansHeure : TEXTES_RESERVER_TABLE.indiceEnvoyer,
+              desactive: !pret || envoi.envoi || bloque,
+              indice: !pret ? TEXTES_RESERVER_TABLE.indiceSansHeure : automatique ? TEXTES_RESERVER_TABLE.indiceEnvoyerAuto : TEXTES_RESERVER_TABLE.indiceEnvoyer,
             }
       }
       auDessusDuBouton={reservation ? null : dessinerAuDessusDuBouton()}
@@ -161,25 +159,36 @@ export function EcranReserverTable({ lieu }: Props) {
           onSignalerPresence={(r) => void gestes.signalerPresence(r)}
           onVoirReservations={() => router.push("/reservations")}
           onRetourFiche={revenirFiche}
-          onAutreCreneau={envoi.recommencer}
+          onAutreCreneau={() => {
+            envoi.recommencer();
+            relire();
+          }}
         />
       ) : (
         <FormulaireReservation
           lieu={lieu}
-          jours={jours}
-          aujourdhui={aujourdhui}
-          jour={jour}
-          heure={heure}
+          formulaire={{
+            ...formulaire,
+            changerPersonnes: (nombre: number) => {
+              envoi.effacerRefus();
+              formulaire.changerPersonnes(nombre);
+            },
+            choisirJour: (jour: string) => {
+              envoi.effacerRefus();
+              formulaire.choisirJour(jour);
+            },
+            choisirHeure: (heure: string) => {
+              envoi.effacerRefus();
+              formulaire.choisirHeure(heure);
+            },
+          }}
           maintenantMs={horloge.maintenantMs}
-          personnes={personnes}
           petitMot={petitMot}
           erreurPetitMot={petitMotRefuse ? PETIT_MOT_REFUSE.sousLeChamp : null}
-          quand={quand}
-          onChoisirJour={choisirJour}
-          onChoisirHeure={(suivante) => changer(() => setHeure(suivante))}
-          onChangerPersonnes={(nombre) => changer(() => setPersonnes(nombre))}
-          onChangerPetitMot={(texte) => changer(() => setPetitMot(texte))}
-          onProchainJourOuvert={prochainOuvert ? () => choisirJour(prochainOuvert.jour) : null}
+          onChangerPetitMot={(texte) => {
+            envoi.effacerRefus();
+            setPetitMot(texte);
+          }}
         />
       )}
 

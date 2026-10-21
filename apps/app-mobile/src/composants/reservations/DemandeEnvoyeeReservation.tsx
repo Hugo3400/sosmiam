@@ -1,12 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { CarteReservation } from "~/composants/reservations/CarteReservation";
+import { EncadreReservation } from "~/composants/reservations/EncadreReservation";
 import { TitreEtapeReservation } from "~/composants/reservations/TitreEtapeReservation";
 import { TEXTES_DEMANDE_ENVOYEE } from "~/contenus/textes-reserver-table";
+import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
+import { lireHorairesReservation } from "~/fonctions/reservations/lire-horaires-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -45,9 +49,12 @@ export function DemandeEnvoyeeReservation(props: Props) {
   const { reservation, maintenantMs, client, presenceEnCours, onVoirReservations, onRetourFiche, onAutreCreneau } = props;
   const enAttente = reservation.statut === "demandee";
   const tientToujours = enAttente || reservation.statut === "acceptee" || reservation.statut === "honoree";
+  const { planB } = lireHorairesReservation(reservation);
+  const accepteeDesLEnvoi = reservation.statut === "acceptee";
+  const annonceDepart = useRef(accepteeDesLEnvoi ? TEXTES_DEMANDE_ENVOYEE.annonceAcceptee : TEXTES_DEMANDE_ENVOYEE.annonce);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(TEXTES_DEMANDE_ENVOYEE.annonce);
+    AccessibilityInfo.announceForAccessibility(annonceDepart.current);
   }, []);
 
   return (
@@ -56,6 +63,15 @@ export function DemandeEnvoyeeReservation(props: Props) {
         <View className="items-center">
           <Mascotte expression="clin" taille={120} flotte />
         </View>
+      ) : null}
+
+      {planB ? (
+        <EncadreReservation
+          ton="doux"
+          emoji="🔁"
+          titre={TEXTES_DEMANDE_ENVOYEE.planBRetenuTitre}
+          texte={remplirModele(TEXTES_DEMANDE_ENVOYEE.planBRetenu, { premier: ecrireHeureParis(planB.premier), retenu: ecrireHeureParis(reservation.creneau) })}
+        />
       ) : null}
 
       <CarteReservation

@@ -8,6 +8,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTitreDansPoignee } from "~/hooks/utiliser-titre-dans-poignee";
 
 type Props = {
   visible: boolean;
@@ -33,12 +34,21 @@ export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
+  const titreDansPoignee = utiliserTitreDansPoignee();
 
   useEffect(() => {
     if (!visible) return;
     const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refTitre.current), animationsReduites ? 150 : 400);
     return () => clearTimeout(minuterie);
   }, [visible, animationsReduites]);
+
+  const enTete = (
+    <Text ref={refTitre} accessibilityRole="header" className="font-titre text-2xl text-encre">
+      {lierPonctuation(titre)}
+    </Text>
+  );
+  const texteSousTitre = sousTitre ? <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(sousTitre)}</Text> : null;
+  const margeHaut = titreDansPoignee ? (sousTitre ? "pt-1.5" : "pt-5") : "";
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
@@ -52,12 +62,17 @@ export function FeuilleBas({ visible, titre, sousTitre, onFermer, children, pied
         >
           <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
             <PoigneeFeuille geste={geste} ecart="grand" className="px-5">
-              <Text ref={refTitre} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                {lierPonctuation(titre)}
-              </Text>
+              {titreDansPoignee ? enTete : null}
             </PoigneeFeuille>
-            <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" contentContainerClassName={`gap-5 px-5 pb-2 ${sousTitre ? "pt-1.5" : "pt-5"}`}>
-              {sousTitre ? <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(sousTitre)}</Text> : null}
+            <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" contentContainerClassName={`gap-5 px-5 pb-2 ${margeHaut}`}>
+              {titreDansPoignee ? (
+                texteSousTitre
+              ) : (
+                <View className="gap-1.5">
+                  {enTete}
+                  {texteSousTitre}
+                </View>
+              )}
               {children}
             </ScrollView>
             <View className="mt-4 gap-3 px-5">{pied}</View>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Platform, Pressable, ScrollView, Text } from "react-native";
 
-import type { JourReservation } from "~/contenus/type-jour-reservation";
+import type { JourReservation } from "@sos-miam/commun/types/reglages-reservations";
 import { SANS_CRENEAU } from "~/contenus/textes-reserver-table";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireJourReservation } from "~/fonctions/reservations/decrire-jour-reservation";
@@ -66,7 +66,7 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
     >
       {jours.map((jour, index) => {
         const decrit = decrireJourReservation(jour.jour, aujourdhui);
-        const raison = lireRaisonSansCreneau(jour, aujourdhui);
+        const raison = lireRaisonSansCreneau(jour.etat);
         const estChoisi = jour.jour === choisi;
         const couleurs = lireCouleurs(estChoisi, raison !== null);
         const etat = raison ? `, ${SANS_CRENEAU[raison].lu}` : "";

@@ -46,8 +46,9 @@ export function creerQuiEstLa(c: ContexteCommunaute, lecture: LectureSortiesMiam
         const presents: MiamiPresent[] = candidats.flatMap((id) => {
           const personne = personnes.get(id);
           if (!personne) return [];
+          const dansTaBande = liens.get(id)?.pote ?? false;
           return [{
-            personne, dansTaBande: liens.get(id)?.pote ?? false, ambassadeur: false, nouveauDansLaVille: false, rescousses: 0, titreBadge: null,
+            personne: dansTaBande ? personne : { ...personne, prenom: "" }, dansTaBande, ambassadeur: false, nouveauDansLaVille: false, rescousses: 0, titreBadge: null,
             organise: organisent.get(id) ?? null, enviesEnCommun: [], coucou: lireCoucou(coucous.envoyes.has(id), coucous.recus.has(id)),
           }];
         });

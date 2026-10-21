@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef, type ReactNode } from "react";
+import { Platform, StyleSheet, View, type GestureResponderEvent } from "react-native";
 import Animated from "react-native-reanimated";
 
 import type { GlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
@@ -17,8 +17,42 @@ const FONDS = { sombre: "rgba(0,0,0,0.4)", leger: "rgba(0,0,0,0.2)" } as const;
 const BORDURE_HAUT = 2;
 
 export function PoigneeFeuille({ geste, ecart = "moyen", fond = "sombre", className = "", children }: Props) {
+  const zone = useRef<View>(null);
+  const aGlisse = useRef(false);
+  const sansEnTete = children === undefined || children === null || children === false;
+
+  useEffect(() => {
+    const element = zone.current as unknown as HTMLElement | null;
+    if (Platform.OS !== "web" || typeof element?.addEventListener !== "function") return;
+    const repartir = () => {
+      aGlisse.current = false;
+    };
+    const avalerClic = (evenement: MouseEvent) => {
+      if (!aGlisse.current) return;
+      aGlisse.current = false;
+      evenement.stopPropagation();
+      evenement.preventDefault();
+    };
+    element.addEventListener("pointerdown", repartir, true);
+    element.addEventListener("click", avalerClic, true);
+    return () => {
+      element.removeEventListener("pointerdown", repartir, true);
+      element.removeEventListener("click", avalerClic, true);
+    };
+  }, []);
+
+  function saisir(evenement: GestureResponderEvent) {
+    aGlisse.current = true;
+    return geste.panHandlers.onResponderGrant?.(evenement);
+  }
+
   return (
-    <View {...geste.panHandlers} className={`pt-3 web:cursor-grab web:touch-none web:select-none ${className}`}>
+    <View
+      ref={zone}
+      {...geste.panHandlers}
+      onResponderGrant={saisir}
+      className={`pt-3 web:cursor-grab web:touch-none web:select-none ${sansEnTete ? "min-h-11" : ""} ${className}`}
+    >
       {geste.styleJupe ? <Animated.View style={[styles.jupe, { backgroundColor: FONDS[fond] }, geste.styleJupe]} /> : null}
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className={`${ECARTS[ecart]} h-1.5 w-12 self-center rounded-full bg-ligne`} />
       {children}

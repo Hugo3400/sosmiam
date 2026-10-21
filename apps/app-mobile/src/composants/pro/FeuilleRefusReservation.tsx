@@ -12,11 +12,13 @@ import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
 type Props = {
   visible: boolean;
   titre: string;
+  sousTitre?: string;
+  libelleConfirmer?: string;
   onConfirmer: (motif: MotifRefusReservation) => void;
   onFermer: () => void;
 };
 
-export function FeuilleRefusReservation({ visible, titre, onConfirmer, onFermer }: Props) {
+export function FeuilleRefusReservation({ visible, titre, sousTitre = TEXTES_RESERVATIONS_PRO.refusDetail, libelleConfirmer = TEXTES_RESERVATIONS_PRO.refusConfirmer, onConfirmer, onFermer }: Props) {
   const [motif, setMotif] = useState<MotifRefusReservation | null>(null);
   const fermer = () => {
     setMotif(null);
@@ -31,12 +33,12 @@ export function FeuilleRefusReservation({ visible, titre, onConfirmer, onFermer 
     <FeuilleBas
       visible={visible}
       titre={titre}
-      sousTitre={TEXTES_RESERVATIONS_PRO.refusDetail}
+      sousTitre={sousTitre}
       onFermer={fermer}
       pied={
         <>
           <Bouton
-            libelle={TEXTES_RESERVATIONS_PRO.refusConfirmer}
+            libelle={libelleConfirmer}
             variante="encre"
             desactive={motif === null}
             indice={motif === null ? "Choisis d'abord un motif" : undefined}

@@ -9,7 +9,7 @@ export type EtatPositionActuelle = {
   position: PositionLieu | null;
   approximative: boolean;
   recherche: boolean;
-  oublisApresAbsence: number;
+  oubliApresAbsence: number | null;
   chercher: () => Promise<LecturePosition | null>;
   oublier: () => void;
 };

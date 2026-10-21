@@ -15,6 +15,7 @@ import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
@@ -64,6 +65,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
+  utiliserInscriptionFeuille(visible, onFermer);
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const vignettes = useMemo(() => indexerVignettesLieux(toutesLesPublications, estMasquee), [toutesLesPublications, estMasquee]);

@@ -3,6 +3,7 @@ import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 
 type Props = {
   cle: string;
@@ -12,7 +13,7 @@ type Props = {
   onPress: (cle: string) => void;
 };
 
-const COTE = 64;
+const COTE = 50;
 const DUREE_SUIVI = 500;
 const DECALAGE_OMBRE = 3;
 
@@ -24,9 +25,10 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
     return () => clearTimeout(minuterie);
   }, [nombre]);
 
-  const texte = nombre > 999 ? "999+" : String(nombre);
-  const diametre = nombre >= 100 ? 52 : 44;
+  const texte = formaterNombreCourt(nombre).replace(" ", "\u202f");
+  const diametre = nombre >= 100 ? 44 : 40;
   const autour = (COTE - diametre) / 2;
+  const police = texte.length <= 2 ? "text-base" : texte.length === 3 ? "text-[15px]" : "text-xs";
 
   return (
     <Marker
@@ -53,7 +55,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
           style={{ width: diametre, height: diametre, borderRadius: diametre / 2, borderWidth: 2 }}
           className="items-center justify-center overflow-hidden border-encre bg-jaune"
         >
-          <Text allowFontScaling={false} className={`font-titre text-encre ${texte.length > 3 ? "text-sm" : "text-base"}`}>
+          <Text allowFontScaling={false} className={`font-titre text-encre ${police}`}>
             {texte}
           </Text>
         </View>

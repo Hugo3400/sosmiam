@@ -1,8 +1,7 @@
-import { ABSENT_APRES_CRENEAU_MS, EXPIRATION_AVANT_CRENEAU_MS, VENU_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
+import { ABSENT_APRES_CRENEAU_MS, VENU_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
 
 import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
 
-const AVANT_EXPIRATION = ecrireAttente(EXPIRATION_AVANT_CRENEAU_MS);
 const AVANT_VENU = ecrireAttente(VENU_AVANT_CRENEAU_MS);
 const APRES_ABSENT = ecrireAttente(ABSENT_APRES_CRENEAU_MS);
 
@@ -12,7 +11,7 @@ export const TEXTES_RESERVATIONS_PRO = {
   titre: "Réservations",
   sansLieuTitre: "Aucun lieu à gérer pour l'instant",
   sansLieuTexte: "Les réservations s'affichent ici dès que ton rattachement à un lieu est validé.",
-  sousTitre: `Réponds d'un geste : le client voit ta réponse dans l'app. Sans réponse ${AVANT_EXPIRATION} avant le créneau, la demande s'endort toute seule.`,
+  sousTitre: "Réponds d'un geste : le client voit ta réponse tout de suite dans l'app. Sans réponse à temps, la demande s'endort toute seule.",
   chargement: "On rassemble les réservations…",
   reessayer: "Réessayer",
   indiceReessayer: "Relit les réservations du lieu",

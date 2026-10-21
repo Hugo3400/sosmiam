@@ -26,7 +26,7 @@ const COTE = 54 + BORD * 2;
 const DUREE_SUIVI = 500;
 
 /**
- * Un lieu sur la carte d'Explorer : un rond avec son emoji, bord encre et ombre décalée.
+ * Un lieu sur la carte d'Explorer : un rond avec son emoji.
  * Jaune quand le lieu lance un SOS, tomate clair quand il a une alerte ; plus grand, avec un halo, quand il est sélectionné.
  * Mémorisé : seuls les marqueurs qui changent se redessinent.
  */

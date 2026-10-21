@@ -20,7 +20,7 @@ const AVEC_UN_COMPTE = "prévenir un pote, alerter le comptoir en silence ou nou
 const TEXTE_SANS_COMPTE = lierPonctuation(`Pour ${AVEC_UN_COMPTE}, il te faut un compte : c'est ce qui nous permet de prendre chaque alerte au sérieux.`);
 
 const TEXTE_COMPTOIR = lierPonctuation(
-  "Montre cet écran à quelqu'un de l'équipe : il lui dit en clair que tu as besoin d'aide, et quoi faire, même si elle ne connaît pas Miam Safe.",
+  "Montre cet écran à quelqu'un de l'équipe : il dit en clair que tu as besoin d'aide, et quoi faire, même à une équipe qui ne connaît pas Miam Safe.",
 );
 
 const SANS_INTERNET = "Ces numéros marchent sans Internet, comme l'écran à montrer à l'équipe.";

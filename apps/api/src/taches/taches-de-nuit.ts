@@ -173,7 +173,7 @@ async function nettoyerCommunaute() {
 async function nettoyerPhotosAvis() {
   try {
     const effacees = await faireLeMenagePhotosAvis();
-    if (effacees > 0) await noterAction("serveur", "Photos d'avis effacées (jamais utilisées, avis effacé, ou masqué depuis plus de 183 jours)", `${effacees} photo(s)`);
+    if (effacees > 0) await noterAction("serveur", "Photos d'avis effacées (inutilisées ou masquées)", `${effacees} photo(s)`);
   } catch (erreur) {
     console.error("Ménage des photos d'avis impossible :", resumerErreur(erreur));
   }

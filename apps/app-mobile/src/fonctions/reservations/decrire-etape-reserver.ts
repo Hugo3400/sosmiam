@@ -7,10 +7,12 @@ import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 type EtapeReserver = { titre: string; sousTitre: string };
 
-export function decrireEtapeReserver(reservation: Reservation | null, lieu: Pick<Lieu, "nom" | "type">): EtapeReserver {
+export function decrireEtapeReserver(reservation: Reservation | null, lieu: Pick<Lieu, "nom" | "type">, automatique = false): EtapeReserver {
   const valeurs = { deLieu: direDeLieu(lieu.nom) };
   const remplir = (titre: string, sousTitre: string) => ({ titre, sousTitre: remplirModele(sousTitre, valeurs) });
-  if (!reservation) return remplir(lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.titreSortie : TEXTES_RESERVER_TABLE.titre, TEXTES_RESERVER_TABLE.sousTitre);
+  if (!reservation) {
+    return remplir(lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.titreSortie : TEXTES_RESERVER_TABLE.titre, automatique ? TEXTES_RESERVER_TABLE.sousTitreAuto : TEXTES_RESERVER_TABLE.sousTitre);
+  }
   switch (reservation.statut) {
     case "demandee":
       return remplir(TEXTES_DEMANDE_ENVOYEE.titre, TEXTES_DEMANDE_ENVOYEE.sousTitre);

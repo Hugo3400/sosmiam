@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { AnnonceAppOuverture } from "~/composants/annonces-app/AnnonceAppOuverture";
 import { AnnonceCompteLimite } from "~/composants/compte/AnnonceCompteLimite";
+import { AnnonceOubliPosition } from "~/composants/explorer/AnnonceOubliPosition";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
 import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
@@ -101,6 +102,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
         </Stack.Protected>
       </Stack>
       <AnnonceAppOuverture />
+      <AnnonceOubliPosition />
       {/* Une écriture refusée parce que le compte est limité, n'importe où : une seule annonce douce, au-dessus de tout */}
       <AnnonceCompteLimite />
     </>

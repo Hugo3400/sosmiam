@@ -10,6 +10,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTitreDansPoignee } from "~/hooks/utiliser-titre-dans-poignee";
 
 type Props = {
   visible: boolean;
@@ -52,6 +53,7 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
   const animationsReduites = useReducedMotion();
   const refTitre = useRef<Text>(null);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
+  const titreDansPoignee = utiliserTitreDansPoignee();
   // Confirmation touchée, feuille pas encore refermée
   const confirmee = useRef(false);
   const minuterieFermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -85,6 +87,21 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
     onRefermee?.();
   }
 
+  const enTete = (
+    <>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
+      >
+        <EmojiOuMiami valeur={emoji} personneId={personneId} taille={60} className="text-3xl" />
+      </View>
+      <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
+        {lierPonctuation(titre)}
+      </Text>
+    </>
+  );
+
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
       {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
@@ -97,18 +114,10 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
       >
         <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
           <PoigneeFeuille geste={geste} ecart="grand" className="px-5">
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full border-2 border-encre bg-jaune"
-            >
-              <EmojiOuMiami valeur={emoji} personneId={personneId} taille={60} className="text-3xl" />
-            </View>
-            <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-              {lierPonctuation(titre)}
-            </Text>
+            {titreDansPoignee ? enTete : null}
           </PoigneeFeuille>
           <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
+            {titreDansPoignee ? null : enTete}
             <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(detail)}</Text>
           </ScrollView>
           <View className="mt-5 gap-3 px-5">

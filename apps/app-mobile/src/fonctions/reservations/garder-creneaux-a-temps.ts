@@ -1,6 +1,6 @@
-import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
-import { DELAI_MIN_RESERVATION_MS } from "@sos-miam/commun/regles/reservations";
+import { verifierDelaiReservation } from "@sos-miam/commun/fonctions/reservations/verifier-delai-reservation";
+import type { CreneauDisponible, DelaiReservation } from "@sos-miam/commun/types/reglages-reservations";
 
-export function garderCreneauxATemps(jour: string, creneaux: readonly string[], maintenantMs: number): string[] {
-  return creneaux.filter((heure) => calculerInstantParis(jour, heure) - maintenantMs >= DELAI_MIN_RESERVATION_MS);
+export function garderCreneauxATemps(jour: string, creneaux: readonly CreneauDisponible[], delai: DelaiReservation, maintenantMs: number): CreneauDisponible[] {
+  return creneaux.filter((creneau) => verifierDelaiReservation(delai, jour, creneau.heure, maintenantMs));
 }

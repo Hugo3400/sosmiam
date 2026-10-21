@@ -1,49 +1,40 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { calculerMargeExpirationReservation } from "@sos-miam/commun/fonctions/reservations/calculer-marge-expiration-reservation";
+import { listerJoursReservation } from "@sos-miam/commun/fonctions/reservations/lister-jours-reservation";
 import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
-import { DELAI_MIN_RESERVATION_MS, EXPIRATION_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
-import { calculerJoursReservation } from "~/fonctions/reservations/calculer-jours-reservation";
+import { DELAIS_RESERVATION_MS } from "@sos-miam/commun/regles/reglages-reservations";
 import { garderCreneauxATemps } from "~/fonctions/reservations/garder-creneaux-a-temps";
 
 const MINUTE = 60_000;
 const TOUS_LES_JOURS = [0, 1, 2, 3, 4, 5, 6];
 const OUVERTURE = [{ jours: TOUS_LES_JOURS, de: "12:00", a: "14:30" }, { jours: TOUS_LES_JOURS, de: "19:00", a: "23:00" }];
+const libres = (...heures) => heures.map((heure) => ({ heure, peuDePlaces: false }));
 
-test("règle partagée : le lieu a toujours au moins 30 min pour répondre avant l'expiration", () => {
-  assert.ok(
-    DELAI_MIN_RESERVATION_MS - EXPIRATION_AVANT_CRENEAU_MS >= 30 * MINUTE,
-    `DELAI_MIN_RESERVATION_MS (${DELAI_MIN_RESERVATION_MS / MINUTE} min) − EXPIRATION_AVANT_CRENEAU_MS (${EXPIRATION_AVANT_CRENEAU_MS / MINUTE} min) < 30 min`,
-  );
-});
-
-test("le premier créneau proposé tombe au moins DELAI_MIN_RESERVATION_MS après maintenant (lu dans commun)", () => {
-  for (const heure of ["17:29", "17:31", "18:00", "18:59", "19:00", "21:40"]) {
-    const maintenantMs = calculerInstantParis("2026-10-15", heure);
-    const [aujourdhui] = calculerJoursReservation(OUVERTURE, new Date(maintenantMs));
-    for (const creneau of aujourdhui.creneaux) {
-      assert.ok(calculerInstantParis(aujourdhui.jour, creneau) - maintenantMs >= DELAI_MIN_RESERVATION_MS, `${heure} → ${creneau}`);
-    }
-    const premierPossible = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"].find(
-      (c) => calculerInstantParis("2026-10-15", c) - maintenantMs >= DELAI_MIN_RESERVATION_MS,
-    );
-    assert.equal(aujourdhui.creneaux.find((c) => c >= "19:00"), premierPossible, heure);
+test("règle partagée : à la main, le lieu a toujours au moins 20 min pour répondre avant que la demande s'endorme", () => {
+  for (const delai of ["30-min", "1-h", "2-h"]) {
+    const marge = calculerMargeExpirationReservation({ acceptation: "manuelle", delai });
+    assert.ok(DELAIS_RESERVATION_MS[delai] - marge >= 20 * MINUTE, `${delai} : ${(DELAIS_RESERVATION_MS[delai] - marge) / MINUTE} min`);
   }
 });
 
-test("à 17 h 29, 18 h n'est proposé que si le lieu a encore le temps de répondre", () => {
-  const maintenantMs = calculerInstantParis("2026-10-15", "17:29");
-  const [aujourdhui] = calculerJoursReservation([{ jours: TOUS_LES_JOURS, de: "18:00", a: "22:00" }], new Date(maintenantMs));
-  const propose18h = aujourdhui.creneaux.includes("18:00");
-  assert.equal(propose18h, 31 * MINUTE >= DELAI_MIN_RESERVATION_MS);
-  if (DELAI_MIN_RESERVATION_MS >= 60 * MINUTE) assert.equal(aujourdhui.creneaux[0], "18:30");
+test("repli sans l'API (démo) : les jours viennent des horaires de la fiche, le dernier créneau passé fait « trop tard »", () => {
+  const jours = listerJoursReservation({ ouverture: OUVERTURE, reglages: null, maintenant: new Date(calculerInstantParis("2026-10-15", "22:10")) });
+  assert.equal(jours.length, 31);
+  assert.deepEqual(jours[0], { jour: "2026-10-15", etat: "trop-tard" });
+  assert.deepEqual(jours[1], { jour: "2026-10-16", etat: "ouvert" });
+  const ferme = listerJoursReservation({ ouverture: [{ jours: [1, 2, 3, 4, 5], de: "12:00", a: "14:00" }], reglages: null, maintenant: new Date(calculerInstantParis("2026-10-16", "09:00")) });
+  assert.deepEqual(ferme.slice(0, 3).map((j) => j.etat), ["ouvert", "ferme", "ferme"]);
 });
 
-test("garderCreneauxATemps : les créneaux lus sur le serveur repassent par la règle quand l'écran reste ouvert", () => {
-  const ouvertA = calculerInstantParis("2026-10-15", "18:00");
-  const lus = ["19:00", "19:30", "20:00"];
-  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, ouvertA - DELAI_MIN_RESERVATION_MS + 60 * MINUTE), lus);
-  const plusTard = calculerInstantParis("2026-10-15", "19:00") - DELAI_MIN_RESERVATION_MS + 1;
-  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, plusTard), ["19:30", "20:00"]);
-  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, calculerInstantParis("2026-10-15", "19:00") - DELAI_MIN_RESERVATION_MS), lus);
+test("garderCreneauxATemps : les horaires lus sur le serveur repassent par le délai du lieu quand l'écran reste ouvert", () => {
+  const lus = libres("19:00", "19:30", "20:00");
+  const a = (heure) => calculerInstantParis("2026-10-15", heure);
+  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, "1-h", a("18:00")), lus);
+  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, "1-h", a("18:01")).map((c) => c.heure), ["19:30", "20:00"]);
+  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, "30-min", a("18:31")).map((c) => c.heure), ["19:30", "20:00"]);
+  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, "2-h", a("17:30")).map((c) => c.heure), ["19:30", "20:00"]);
+  assert.deepEqual(garderCreneauxATemps("2026-10-15", lus, "veille", a("09:00")), []);
+  assert.deepEqual(garderCreneauxATemps("2026-10-16", lus, "veille", a("23:59")), lus);
 });

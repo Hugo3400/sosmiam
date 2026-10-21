@@ -16,11 +16,13 @@ import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { VideExplorer } from "~/composants/explorer/VideExplorer";
 import { Annonce } from "~/composants/interface/Annonce";
 import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
+import { ANNONCE_POSITION_OUBLIEE } from "~/contenus/textes-position";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { alerterErreurPosition } from "~/fonctions/geo/alerter-erreur-position";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
 import { decrireZoneRegardee } from "~/fonctions/geo/decrire-zone-regardee";
+import { direDeVille } from "~/fonctions/geo/dire-de-ville";
 import { ecrireDepuisVille } from "~/fonctions/geo/ecrire-depuis-ville";
 import { ecrireErreurPosition } from "~/fonctions/geo/ecrire-erreur-position";
 import { ecrireRepliDistances } from "~/fonctions/geo/ecrire-repli-distances";
@@ -33,8 +35,8 @@ import { estDansPortee } from "~/fonctions/lieux/est-dans-portee";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { filtrerLieuxTriesExplorer } from "~/fonctions/lieux/filtrer-lieux-tries-explorer";
 import { retirerSosFinis } from "~/fonctions/lieux/retirer-sos-finis";
+import { retrouverPorteeSansPosition } from "~/fonctions/lieux/retrouver-portee-sans-position";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
-import { eliderDe } from "~/fonctions/texte/elider-de";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
@@ -70,12 +72,13 @@ export default function Explorer() {
   const focus = useIsFocused();
   const { profil } = utiliserProfil();
   const pointDeDepart = utiliserPointDeDepart();
-  const { position, approximative, recherche, chercher, oublier, oublisApresAbsence } = utiliserPositionActuelle();
+  const { position, approximative, recherche, chercher, oublier, oubliApresAbsence } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
   const [porteeAvantAutour, setPorteeAvantAutour] = useState<{ portee: PorteeExplorer | null } | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
-  const [oublisDits, setOublisDits] = useState(oublisApresAbsence);
+  const [oubliDit, setOubliDit] = useState(oubliApresAbsence);
+  const [avecPosition, setAvecPosition] = useState(position !== null);
   const [avisApproximativeVu, setAvisApproximativeVu] = useState(false);
   const [rayon, changerRayon] = utiliserRayonExplorer();
   const [selection, setSelection] = useState<number | null>(null);
@@ -186,13 +189,16 @@ export default function Explorer() {
 
   const selectionRetiree = useMemo(() => selection !== null && !lieux.some(({ lieu }) => lieu.id === selection), [lieux, selection]);
   if (selectionRetiree) setSelection(null);
-  if (position === null && porteeAvantAutour !== null) {
-    setPorteeAvantAutour(null);
-    if (porteeChoisie === "proche") setPorteeChoisie(porteeAvantAutour.portee);
+  if (avecPosition !== (position !== null)) {
+    setAvecPosition(position !== null);
+    if (position === null) {
+      setPorteeChoisie(retrouverPorteeSansPosition(porteeChoisie, porteeAvantAutour, pointDeDepart === null && distancesInconnues));
+      setPorteeAvantAutour(null);
+    }
   }
-  if (focus && oublisDits !== oublisApresAbsence) {
-    setOublisDits(oublisApresAbsence);
-    setAnnonce({ texte: "Plus de 5 min hors de l'app : ta position est oubliée 📍", numero: oublisApresAbsence });
+  if (focus && oubliApresAbsence !== null && oubliDit !== oubliApresAbsence) {
+    setOubliDit(oubliApresAbsence);
+    setAnnonce({ texte: ANNONCE_POSITION_OUBLIEE, numero: oubliApresAbsence });
   }
 
   const motRecherche = texteRecherche.trim();
@@ -270,14 +276,14 @@ export default function Explorer() {
   const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
   const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
   const depuis = position ? DEPUIS_TOI : depuisVille;
-  const autourDe = depuis ?? (profil?.ville ? eliderDe(profil.ville) : "de ta ville");
+  const autourDe = depuis ?? (profil?.ville ? direDeVille(profil.ville) : DEPUIS_TOI);
   const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe);
   const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
   const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
   const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");
 
   function choisirPortee(portee: PorteeExplorer | null) {
-    setPorteeAvantAutour(null);
+    if (portee !== "proche" || position === null) setPorteeAvantAutour(null);
     setPorteeChoisie(portee);
   }
 

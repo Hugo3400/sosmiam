@@ -1,11 +1,14 @@
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
+import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 import { Bouton } from "~/composants/interface/Bouton";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EtiquetteStatutReservation } from "~/composants/reservations/EtiquetteStatutReservation";
+import { TEXTES_COMPTOIR_RESERVATIONS } from "~/contenus/textes-comptoir-reservations";
 import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerGestesReservationPro } from "~/fonctions/reservations/calculer-gestes-reservation-pro";
 import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { decrireStatutReservationPro } from "~/fonctions/reservations/decrire-statut-reservation-pro";
@@ -18,24 +21,17 @@ type Props = {
   reservation: ReservationPro;
   maintenantMs: number;
   enCours: boolean;
-  onAccepter: () => void;
-  onRefuser: () => void;
   onMarquerArrivee: (venu: boolean) => void;
+  onAnnuler: () => void;
 };
 
-function dessinerActions({ reservation, maintenantMs, enCours, onAccepter, onRefuser, onMarquerArrivee }: Props) {
-  if (enCours) return <ActivityIndicator color={couleurs.encre} accessibilityLabel="On prévient le client…" />;
+const ETIQUETTE_AUTO = { texte: TEXTES_COMPTOIR_RESERVATIONS.accepteeAuto, lu: TEXTES_COMPTOIR_RESERVATIONS.accepteeAutoLu, ton: "attente" } as const;
+
+function dessinerActions({ reservation, maintenantMs, enCours, onMarquerArrivee, onAnnuler }: Props) {
+  if (enCours) return <ActivityIndicator color={couleurs.encre} accessibilityLabel={TEXTES_COMPTOIR_RESERVATIONS.enCours} />;
+  if (reservation.statut !== "acceptee") return null;
   const gestes = calculerGestesReservationPro(reservation, maintenantMs);
   const nom = nommerClientReservation(reservation);
-  if (reservation.statut === "demandee") {
-    return (
-      <View className="flex-row gap-3">
-        <Bouton libelle={TEXTES_RESERVATIONS_PRO.accepter} libelleLu={`Accepter la réservation de ${nom}`} petit className="flex-1" desactive={!gestes.accepter} onPress={onAccepter} />
-        <Bouton libelle={TEXTES_RESERVATIONS_PRO.refuser} libelleLu={`Refuser la réservation de ${nom}`} variante="blanc" petit className="flex-1" desactive={!gestes.refuser} onPress={onRefuser} />
-      </View>
-    );
-  }
-  if (reservation.statut !== "acceptee") return null;
   const aide = !gestes.venu && !gestes.absent ? TEXTES_RESERVATIONS_PRO.attendreVenu : !gestes.absent ? TEXTES_RESERVATIONS_PRO.attendreAbsent : null;
   return (
     <View className="gap-2">
@@ -49,6 +45,19 @@ function dessinerActions({ reservation, maintenantMs, enCours, onAccepter, onRef
       ) : null}
       {aide ? <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(aide)}</Text> : null}
       {gestes.venu && !reservation.presence ? <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(TEXTES_RESERVATIONS_PRO.venuSansPresence)}</Text> : null}
+      {gestes.annuler ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={remplirModele(TEXTES_COMPTOIR_RESERVATIONS.annulerLu, { nom })}
+          onPress={() => {
+            vibrerLegerement();
+            onAnnuler();
+          }}
+          className="min-h-11 justify-center self-start active:opacity-60"
+        >
+          <Text className="font-texte-gras text-[14px] text-rouge-texte underline">{TEXTES_COMPTOIR_RESERVATIONS.annuler}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -60,10 +69,11 @@ export function CarteReservationPro(props: Props) {
   const creneau = decrireCreneauReservation(reservation.creneau, maintenantMs);
   const etiquette = decrireStatutReservationPro(reservation);
   const enRetrait = reservation.statut === "refusee" || reservation.statut === "annulee" || reservation.statut === "expiree";
+  const auto = reservation.automatique && reservation.statut !== "refusee";
 
   return (
     <View className={`gap-3 rounded-carte border-2 bg-white p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
-      <View accessible accessibilityLabel={`${nom}, ${personnes}, ${creneau.lu}. ${etiquette.lu}`} className="flex-row items-start gap-3">
+      <View accessible accessibilityLabel={`${nom}, ${personnes}, ${creneau.lu}. ${etiquette.lu}${auto ? `. ${ETIQUETTE_AUTO.lu}` : ""}`} className="flex-row items-start gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
           <Text allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }}>
             {reservation.avatar}
@@ -72,8 +82,9 @@ export function CarteReservationPro(props: Props) {
         <View className="flex-1 gap-0.5">
           <Text className="font-texte-gras text-base text-encre">{`${nom} · ${personnes}`}</Text>
           <Text className="font-texte-semi text-[15px] leading-5 text-encre">{creneau.court}</Text>
-          <View className="mt-1.5 flex-row">
+          <View className="mt-1.5 flex-row flex-wrap gap-1.5">
             <EtiquetteStatutReservation etiquette={etiquette} />
+            {auto ? <EtiquetteStatutReservation etiquette={ETIQUETTE_AUTO} /> : null}
           </View>
         </View>
       </View>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 import { DELAI_RELANCE_ALERTE_SECONDES, ENDROITS_ALERTE, LONGUEUR_MAX_DETAIL_ALERTE, type EndroitAlerte } from "@sos-miam/commun/regles/miam-safe";
@@ -10,6 +10,7 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { ECHEC_ALERTE_MIAM_SAFE, ECHECS_ALERTE_MIAM_SAFE, LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { garderAlerteMiamSafe, type AlerteGardeeMiamSafe } from "~/services/memoire-alertes-miam-safe";
@@ -28,6 +29,7 @@ type Props = {
 const MINUTES_RELANCE = DELAI_RELANCE_ALERTE_SECONDES / 60;
 const SOUCI_EQUIPE = lierPonctuation("Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.");
 const PAS_SEUL = "Ne reste pas seul·e : appelle les secours, ou préviens un pote.";
+const DELAI_FOCUS_ECHEC_MS = 200;
 
 function decrireEnvoi(telephones: number | null, heure: string): string {
   if (telephones === null) return lierPonctuation(`Elle est partie à ${heure} vers l'équipe du lieu, avec ton prénom et où tu es. Rien ne sonne de ton côté.`);
@@ -41,6 +43,13 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
   const [detail, setDetail] = useState("");
   const [echec, setEchec] = useState<ErreurService | null>(null);
   const [envoi, setEnvoi] = useState(false);
+  const refEchec = useRef<View>(null);
+
+  useEffect(() => {
+    if (!echec) return;
+    const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refEchec.current), DELAI_FOCUS_ECHEC_MS);
+    return () => clearTimeout(minuterie);
+  }, [echec]);
 
   const suivie = renvoi === null ? alerte : null;
   const etat = suivie?.statut ?? "a-envoyer";
@@ -129,7 +138,7 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
     <View className="gap-4">
       {echec ? (
         <>
-          <View accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
+          <View ref={refEchec} accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
             <Text className="font-texte-gras text-base text-encre">{"⚠️ L'alerte n'est pas partie"}</Text>
             <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(`${ECHECS_ALERTE_MIAM_SAFE[echec] ?? ECHEC_ALERTE_MIAM_SAFE} ${PAS_SEUL}`)}</Text>
           </View>

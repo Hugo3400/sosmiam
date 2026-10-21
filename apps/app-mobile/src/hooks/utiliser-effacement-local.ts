@@ -5,6 +5,7 @@ import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
+import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
@@ -27,6 +28,7 @@ export function utiliserEffacementLocal() {
   const suivisPersonnes = utiliserSuivisPersonnes();
   const notifications = utiliserNotifications();
   const telephone = utiliserAppareilPush();
+  const { oublier: oublierPosition } = utiliserPositionActuelle();
   // Les outils de la démo des visites (en développement seulement) ; null dans une version publiée
   const outilsDemo = utiliserOutilsDemo();
   const [enCours, setEnCours] = useState(false);
@@ -36,6 +38,7 @@ export function utiliserEffacementLocal() {
     if (occupe.current) return false;
     occupe.current = true;
     setEnCours(true);
+    oublierPosition();
     try {
       await activite.effacer();
       await communaute.effacer();

@@ -27,7 +27,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
   }, [actif]);
 
   const libelle = recherche ? "On te cherche…" : "Autour de moi";
-  const libelleLu = recherche ? libelle : actif ? "Actualiser ta position" : libelle;
+  const libelleLu = recherche ? libelle : actif ? "Autour de moi, actualiser ta position" : libelle;
   const couleurIcone = actif ? couleurs.jaune : couleurs.encre;
 
   function arreter() {
@@ -51,7 +51,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
             vibrerLegerement();
             onToucher();
           }}
-          className={`min-h-11 flex-row items-center gap-2 rounded-full active:opacity-70 ${actif ? "pl-4 pr-1.5" : "px-4"}`}
+          className={`min-h-11 flex-row items-center gap-2 rounded-full active:opacity-70 ${actif ? "pl-4 pr-0.5" : "px-4"}`}
         >
           {recherche ? (
             <ActivityIndicator size="small" color={couleurIcone} />
@@ -65,9 +65,8 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
             accessibilityRole="button"
             accessibilityLabel="Arrêter Autour de moi"
             accessibilityHint="Oublie ta position : les distances ne partiront plus de toi"
-            hitSlop={{ top: 4, bottom: 4, right: 6 }}
             onPress={arreter}
-            className="h-10 w-9 items-center justify-center rounded-r-full active:opacity-60"
+            className="h-11 w-11 items-center justify-center rounded-r-full active:opacity-60"
           >
             <View className="h-6 w-6 items-center justify-center rounded-full bg-jaune">
               <Ionicons name="close" size={16} color={couleurs.encre} />

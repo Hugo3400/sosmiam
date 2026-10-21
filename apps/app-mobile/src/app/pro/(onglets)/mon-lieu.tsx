@@ -9,7 +9,9 @@ import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
+import { resumerReglagesReservations } from "~/fonctions/reservations/resumer-reglages-reservations";
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
 import couleurs from "~/theme/couleurs";
 
@@ -48,6 +50,7 @@ export default function EcranMonLieu() {
   const [programme, setProgramme] = useState<ProgrammeFidelite | null | undefined>(undefined);
   const [carte, setCarte] = useState<CarteLieu | null | undefined>(undefined);
   const [charte, setCharte] = useState<CharteMiamSafe | null | undefined>(undefined);
+  const reglagesReservations = utiliserReglagesReservations(lieuPro?.id ?? null).lecture;
 
   // Relu à chaque retour sur l'onglet (après avoir réglé la carte du lieu ou celle de fidélité)
   useFocusEffect(
@@ -88,7 +91,12 @@ export default function EcranMonLieu() {
           <LigneMonLieu emoji="👥" titre="Équipe et appareils" detail="Invite tes serveurs : chacun son compte, on sait qui a validé quoi" />
           <LigneMonLieu emoji="🛟" titre="Ce soir" detail="SOS du soir et message du moment : préviens les gourmands du coin" onPress={() => router.push("/pro/ce-soir")} />
           <LigneMonLieu emoji="🎸" titre="Événements" detail="Concert, quiz, atelier : sur ta fiche et chez qui te suit" onPress={() => router.push("/pro/evenements")} />
-          <LigneMonLieu emoji="📅" titre="Réservations" detail="Les tables que te demandent les Miamis : accepte ou refuse en un geste" onPress={() => router.push("/pro/reservations")} />
+          <LigneMonLieu
+            emoji="🗓️"
+            titre="Réglages des réservations"
+            detail={reglagesReservations.etat === "attente" ? "…" : resumerReglagesReservations(reglagesReservations.etat === "lu" ? reglagesReservations.lus : null)}
+            onPress={() => router.push("/pro/reglages-reservations")}
+          />
           <LigneMonLieu emoji="⭐" titre="Les avis" detail="Ce que disent les Miamis, et ta réponse publique sous chacun" onPress={() => router.push("/pro/avis")} />
           <LigneMonLieu emoji="📈" titre="Statistiques de la semaine" detail="Vues de ta fiche, rescousses, visites validées, nouveaux clients" onPress={() => router.push("/pro/statistiques")} />
         </View>
