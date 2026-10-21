@@ -19,7 +19,7 @@ export function LigneEspace({ emoji, titre, detail, indice, separation, onPress 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${titre}, ${retirerEmoji(detail).replace(" · ", ", ")}`}
+      accessibilityLabel={`${titre}, ${retirerEmoji(detail).replace(/ · /g, ", ")}`}
       accessibilityHint={indice}
       onPress={() => {
         vibrerLegerement();

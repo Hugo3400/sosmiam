@@ -8,7 +8,7 @@ export type LieuSeulCarte = { id: number; latitude: number; longitude: number };
 
 export type GroupeCarte = { cle: string; nombre: number; latitude: number; longitude: number; ids: number[]; devant?: boolean };
 
-export type CarteRegroupee = { seuls: LieuSeulCarte[]; groupes: GroupeCarte[] };
+export type CarteRegroupee = { seuls: LieuSeulCarte[]; groupes: GroupeCarte[]; marge: number };
 
 export const PLAFOND_MARQUEURS_CARTE = 160;
 
@@ -21,6 +21,8 @@ export const ECART_MARQUEURS_POINTS = 38;
 export const ETENDUE_GROUPE_CARTE = 1;
 
 export const ECART_FIXE_POINTS = 40;
+
+export const DEMI_CADRE_LIEU_POINTS = 37;
 
 export const DEPLACEMENT_MAX_BULLE_POINTS = 44;
 

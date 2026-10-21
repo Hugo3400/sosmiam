@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
+import { DIAMETRE_GROSSE_BULLE_POINTS, DIAMETRE_MARQUEUR_POINTS, NOMBRE_GROSSE_BULLE } from "~/contenus/regroupement-carte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 
@@ -10,14 +11,16 @@ type Props = {
   nombre: number;
   latitude: number;
   longitude: number;
+  devant: boolean;
   onPress: (cle: string) => void;
 };
 
 const COTE = 50;
 const DUREE_SUIVI = 500;
 const DECALAGE_OMBRE = 3;
+const PLAN_DEVANT = 4;
 
-export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitude, longitude, onPress }: Props) {
+export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitude, longitude, devant, onPress }: Props) {
   const [nombreFige, setNombreFige] = useState<number | null>(null);
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -26,7 +29,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
   }, [nombre]);
 
   const texte = formaterNombreCourt(nombre).replace(" ", "\u202f");
-  const diametre = nombre >= 100 ? 44 : 40;
+  const diametre = nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS;
   const autour = (COTE - diametre) / 2;
   const police = texte.length <= 2 ? "text-base" : texte.length === 3 ? "text-[15px]" : "text-xs";
 
@@ -35,7 +38,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
       identifier={`groupe-${cle}`}
       coordinate={{ latitude, longitude }}
       anchor={{ x: 0.5, y: 0.5 }}
-      zIndex={0}
+      zIndex={devant ? PLAN_DEVANT : 0}
       tracksViewChanges={nombre !== nombreFige}
       stopPropagation
       onPress={() => {

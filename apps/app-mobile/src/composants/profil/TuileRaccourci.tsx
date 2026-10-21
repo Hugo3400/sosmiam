@@ -16,7 +16,7 @@ export function TuileRaccourci({ emoji, titre, detail, indice, onPress }: Props)
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${titre}, ${retirerEmoji(detail)}`}
+      accessibilityLabel={`${titre}, ${retirerEmoji(detail).replace(/ · /g, ", ")}`}
       accessibilityHint={indice}
       onPress={() => {
         vibrerLegerement();

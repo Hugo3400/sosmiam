@@ -15,13 +15,13 @@ function estRegionValide(region: RegionCarte | null): region is RegionCarte {
   );
 }
 
-export function estRegionAssezChangee(avant: RegionCarte | null, apres: RegionCarte): boolean {
+export function estRegionAssezChangee(avant: RegionCarte | null, apres: RegionCarte, marge = MARGE_VUE_CARTE): boolean {
   if (!estRegionValide(apres)) return false;
   if (!estRegionValide(avant)) return true;
   if (Math.abs(Math.log2(apres.longitudeDelta / avant.longitudeDelta)) >= ECART_NIVEAU) return true;
   const ecartLatitude = Math.abs(apres.latitude - avant.latitude);
   const ecartLongitude = Math.abs(apres.longitude - avant.longitude);
   if (ecartLatitude > avant.latitudeDelta * PART_GLISSEMENT || ecartLongitude > avant.longitudeDelta * PART_GLISSEMENT) return true;
-  const part = 0.5 + MARGE_VUE_CARTE;
+  const part = 0.5 + Math.max(0, Math.min(marge, MARGE_VUE_CARTE));
   return ecartLatitude + apres.latitudeDelta / 2 > avant.latitudeDelta * part || ecartLongitude + apres.longitudeDelta / 2 > avant.longitudeDelta * part;
 }

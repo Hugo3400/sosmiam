@@ -9,7 +9,7 @@ import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 import { MarqueurGroupe } from "~/composants/explorer/MarqueurGroupe";
 import { MarqueurLieu } from "~/composants/explorer/MarqueurLieu";
 import { MarqueurPosition } from "~/composants/explorer/MarqueurPosition";
-import { MARGE_CADRE_CARTE, type PointCarte } from "~/contenus/regroupement-carte";
+import { MARGE_CADRE_CARTE, METRES_PAR_DEGRE, type PointCarte } from "~/contenus/regroupement-carte";
 import { calculerCoinsAutour } from "~/fonctions/geo/calculer-coins-autour";
 import { calculerDemiCoteRue } from "~/fonctions/geo/calculer-demi-cote-rue";
 import { estRegionAssezChangee } from "~/fonctions/geo/est-region-assez-changee";
@@ -143,7 +143,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
   );
 
   function suivreRegion(region: Region) {
-    if (estRegionAssezChangee(regionVue, region)) setRegionVue(region);
+    if (estRegionAssezChangee(regionVue, region, regroupement.marge)) setRegionVue(region);
   }
 
   // VoiceOver ou TalkBack : la carte leur est cachée (voir plus bas)
@@ -249,7 +249,8 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
       if (membres.length === 0) return;
       const { haut: h, bas: b, hauteur: hauteurCarte, largeur: largeurCarte } = etat.current;
       const cote = Math.min(largeurCarte - MARGE_CADRE_CARTE * 2, hauteurCarte - h - b - MARGE_CADRE_CARTE * 2);
-      cadrer(calculerCoinsAutour(membres, calculerDemiCoteRue(cote)));
+      const metresParPoint = (regionVue.longitudeDelta / Math.max(1, largeurCarte)) * METRES_PAR_DEGRE * Math.cos((regionVue.latitude * Math.PI) / 180);
+      cadrer(calculerCoinsAutour(membres, calculerDemiCoteRue(cote, metresParPoint)));
     },
   });
 
@@ -281,6 +282,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
           nombre={groupe.nombre}
           latitude={groupe.latitude}
           longitude={groupe.longitude}
+          devant={!!groupe.devant}
           onPress={gestes.ouvrirGroupe}
         />
       )),

@@ -1,4 +1,6 @@
 import {
+  DEPLACEMENT_MAX_LIEU_RUE_POINTS,
+  DIAMETRE_MARQUEUR_POINTS,
   ECART_MARQUEURS_POINTS,
   MARGE_VUE_CARTE,
   METRES_PAR_DEGRE,
@@ -20,6 +22,7 @@ import {
 import { ecarterGroupesCarte } from "~/fonctions/geo/ecarter-groupes-carte";
 import { formerAmasCarte } from "~/fonctions/geo/former-amas-carte";
 import { preparerPointsCarte } from "~/fonctions/geo/preparer-points-carte";
+import { relacherMarqueursCarte } from "~/fonctions/geo/relacher-marqueurs-carte";
 
 const LARGEUR_PAR_DEFAUT = 390;
 const HAUTEUR_PAR_DEFAUT = 800;
@@ -31,6 +34,8 @@ const PAS_NIVEAU = 0.25;
 const NIVEAUX_GARDES = 16;
 const LATITUDE_MAX = 85;
 const RAYONS_PAR_ZONE = 128;
+const MARGES_RUE = [MARGE_VUE_CARTE, 0.15, 0.08, 0];
+const FINESSE_RUE = 2;
 
 type Regroupement = { seuls: PointCarte[]; groupes: GroupeCarte[] };
 
@@ -45,14 +50,14 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
     latitude: region.latitude,
     longitude: region.longitude,
   };
-  const demiLongitude = region.longitudeDelta * (0.5 + MARGE_VUE_CARTE);
-  const demiLatitude = Math.max(region.latitudeDelta, echelle.degresParPoint * echelle.cosLatitude * hauteur) * (0.5 + MARGE_VUE_CARTE);
-  const bornes: Rectangle = {
-    ouest: region.longitude - demiLongitude,
-    est: region.longitude + demiLongitude,
-    nord: region.latitude + demiLatitude,
-    sud: region.latitude - demiLatitude,
-  };
+  const hauteurVue = Math.max(region.latitudeDelta, echelle.degresParPoint * echelle.cosLatitude * hauteur);
+  const fenetreAvec = (marge: number): Rectangle => ({
+    ouest: region.longitude - region.longitudeDelta * (0.5 + marge),
+    est: region.longitude + region.longitudeDelta * (0.5 + marge),
+    nord: region.latitude + hauteurVue * (0.5 + marge),
+    sud: region.latitude - hauteurVue * (0.5 + marge),
+  });
+  const bornes = fenetreAvec(MARGE_VUE_CARTE);
 
   const preparation = preparerPointsCarte(points);
   let choisi: PointCarte | null = null;
@@ -75,24 +80,71 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
   const budget = PLAFOND_MARQUEURS_CARTE - fixes.length;
   const metresParPoint = echelle.degresParPoint * METRES_PAR_DEGRE * echelle.cosLatitude;
 
-  let regroupement: Regroupement;
-  if (metresParPoint <= METRES_PAR_POINT_RUE) {
-    const autres = preparation.projetes.flatMap(({ point }) => (!point.prioritaire && point.id !== selection && estDansBornes(point, bornes) ? [point] : []));
-    const visibles = [...autres, ...surplus];
-    regroupement = { seuls: visibles.length > budget ? trierParProximite(visibles, echelle).slice(0, budget) : visibles, groupes: [] };
-  } else {
-    regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, choisi?.id ?? null, bornes, surplus);
+  const rue = metresParPoint <= METRES_PAR_POINT_RUE;
+  let marge = MARGE_VUE_CARTE;
+  let regroupement: Regroupement | null = null;
+  if (rue) {
+    for (const essai of MARGES_RUE) {
+      const fenetre = fenetreAvec(essai);
+      const autres = preparation.projetes.flatMap(({ point }) => (!point.prioritaire && point.id !== selection && estDansBornes(point, fenetre) ? [point] : []));
+      if (autres.length + surplus.length > budget) continue;
+      regroupement = { seuls: [...autres, ...surplus], groupes: [] };
+      marge = essai;
+      break;
+    }
+  }
+  const sansBulle = regroupement !== null;
+  if (!regroupement) {
+    if (rue) marge = 0;
+    regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, choisi?.id ?? null, fenetreAvec(marge), surplus, rue ? FINESSE_RUE : 0);
   }
 
-  const seuls = ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle);
-  const idsFixes = new Set(fixes.map((point) => point.id));
+  const ecartes = ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle);
+  const idsObstacles = new Set([...fixes, ...surplus].map((point) => point.id));
+  const obstacles = ecartes.filter((seul) => idsObstacles.has(seul.id));
+  const autresSeuls = ecartes.filter((seul) => !idsObstacles.has(seul.id));
+  const seuls = sansBulle ? [...obstacles, ...relacherLieuxRue(autresSeuls, obstacles, echelle)] : ecartes;
   const groupes = ecarterGroupesCarte(
     [...regroupement.groupes].sort((a, b) => (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0)),
-    seuls.filter((seul) => idsFixes.has(seul.id)),
-    seuls.filter((seul) => !idsFixes.has(seul.id)),
+    obstacles,
+    autresSeuls,
     echelle,
+    (groupe) => groupe.ids.flatMap((id) => trouverParId(preparation.projetes, id) ?? []),
   );
-  return { seuls: seuls.sort((a, b) => a.id - b.id), groupes };
+  return { seuls: seuls.sort((a, b) => a.id - b.id), groupes, marge };
+}
+
+function trouverParId(projetes: PointProjete[], id: number): PointCarte | null {
+  let bas = 0;
+  let haut = projetes.length - 1;
+  while (bas <= haut) {
+    const milieu = (bas + haut) >> 1;
+    const ici = projetes[milieu].point.id;
+    if (ici === id) return projetes[milieu].point;
+    if (ici < id) bas = milieu + 1;
+    else haut = milieu - 1;
+  }
+  return null;
+}
+
+function relacherLieuxRue(seuls: LieuSeulCarte[], fixes: LieuSeulCarte[], echelle: EchelleCarte): LieuSeulCarte[] {
+  if (seuls.length === 0) return seuls;
+  const hauteurPoint = echelle.degresParPoint * echelle.cosLatitude;
+  const places = relacherMarqueursCarte(
+    [...seuls, ...fixes].map((seul, rang) => ({
+      x: seul.longitude / echelle.degresParPoint,
+      y: -seul.latitude / hauteurPoint,
+      diametre: DIAMETRE_MARQUEUR_POINTS,
+      mobile: rang < seuls.length,
+    })),
+    DEPLACEMENT_MAX_LIEU_RUE_POINTS,
+  );
+  return seuls.map((seul, rang) => {
+    const { x, y } = places[rang];
+    const longitude = x * echelle.degresParPoint;
+    const latitude = -y * hauteurPoint;
+    return Math.abs(longitude - seul.longitude) < 1e-12 && Math.abs(latitude - seul.latitude) < 1e-12 ? seul : { id: seul.id, latitude, longitude };
+  });
 }
 
 function projeterLatitude(latitude: number): number {
@@ -139,11 +191,12 @@ function regrouperAuMeilleurNiveau(
   exclu: number | null,
   bornes: Rectangle,
   surplus: PointCarte[],
+  finesse: number,
 ): Regroupement {
   const fenetre: Rectangle = { ouest: (bornes.ouest + 180) / 360, est: (bornes.est + 180) / 360, nord: projeterLatitude(bornes.nord), sud: projeterLatitude(bornes.sud) };
   const surplusProjete = surplus.map((point) => ({ point, x: (point.longitude + 180) / 360, y: projeterLatitude(point.latitude) }));
   const ideal = Math.log2(360 / (ECART_MARQUEURS_POINTS * echelle.degresParPoint));
-  let niveau = Math.min(NIVEAU_MAX, Math.max(NIVEAU_MIN, Math.floor(ideal / PAS_NIVEAU) * PAS_NIVEAU));
+  let niveau = Math.min(NIVEAU_MAX, Math.max(NIVEAU_MIN, Math.floor(ideal / PAS_NIVEAU) * PAS_NIVEAU + finesse));
   for (;;) {
     const lus = lireAmas(preparation, niveau, fenetre);
     const touche = exclu === null ? undefined : lus.parId.get(exclu);

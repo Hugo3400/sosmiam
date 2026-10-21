@@ -1,105 +1,155 @@
-import { ECART_FIXE_POINTS, ECART_MARQUEURS_POINTS, type EchelleCarte, type GroupeCarte, type LieuSeulCarte } from "~/contenus/regroupement-carte";
+import {
+  DEMI_CADRE_LIEU_POINTS,
+  DEPLACEMENT_MAX_BULLE_POINTS,
+  DIAMETRE_GROSSE_BULLE_POINTS,
+  DIAMETRE_MARQUEUR_POINTS,
+  ECART_FIXE_POINTS,
+  ECART_MARQUEURS_POINTS,
+  NOMBRE_GROSSE_BULLE,
+  PORTEE_LIEUX_BULLE_POINTS,
+  type EchelleCarte,
+  type GroupeCarte,
+  type LieuSeulCarte,
+  type PlaceEcran,
+} from "~/contenus/regroupement-carte";
+import { relacherMarqueursCarte } from "~/fonctions/geo/relacher-marqueurs-carte";
 
 const DIRECTIONS = 16;
-const PAS_RECHERCHE = 6;
-const PORTEE_RECHERCHE = 3;
+const PAS_RECHERCHE = 4;
 const PART_LIBRE = 0.9;
 const PART_DEPLACEMENT = 0.4;
-const PASSES = 4;
-const ANGLE_DOR = 2.399963;
+const MARGE_FIXE = 0.5;
+const PAS_ECHANTILLON = 3;
+const PART_CACHEE_MAX = 0.5;
 
-type Place = { x: number; y: number };
+type Position = { latitude: number; longitude: number };
 
-export function ecarterGroupesCarte(groupes: GroupeCarte[], fixes: LieuSeulCarte[], seuls: LieuSeulCarte[], echelle: EchelleCarte): GroupeCarte[] {
+type Choix = { place: PlaceEcran; fixe: number; libre: number };
+
+const ecartCarre = (a: PlaceEcran, b: PlaceEcran) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+function plusPres(parmi: PlaceEcran[], ici: PlaceEcran, ecart: (a: PlaceEcran, b: PlaceEcran) => number): number {
+  let min = Infinity;
+  for (const autre of parmi) min = Math.min(min, ecart(autre, ici));
+  return min;
+}
+
+function creerCouverture(membres: PlaceEcran[], ici: PlaceEcran): (place: PlaceEcran) => boolean {
+  if (membres.length === 0) return () => true;
+  const portee = Math.max(PORTEE_LIEUX_BULLE_POINTS, plusPres(membres, ici, (a, b) => Math.hypot(a.x - b.x, a.y - b.y))) + 1e-6;
+  const demi = Math.ceil((DEPLACEMENT_MAX_BULLE_POINTS + portee) / portee) + 1;
+  const cote = demi * 2 + 1;
+  const cases: PlaceEcran[][] = Array.from({ length: cote * cote }, () => []);
+  const caseDe = (place: PlaceEcran) => {
+    const colonne = Math.floor((place.x - ici.x) / portee) + demi;
+    const ligne = Math.floor((place.y - ici.y) / portee) + demi;
+    return colonne < 0 || colonne >= cote || ligne < 0 || ligne >= cote ? -1 : colonne * cote + ligne;
+  };
+  for (const membre of membres) {
+    const rang = caseDe(membre);
+    if (rang >= 0) cases[rang].push(membre);
+  }
+  return (place) => {
+    const colonne = Math.floor((place.x - ici.x) / portee) + demi;
+    const ligne = Math.floor((place.y - ici.y) / portee) + demi;
+    for (let c = Math.max(0, colonne - 1); c <= Math.min(cote - 1, colonne + 1); c++) {
+      for (let l = Math.max(0, ligne - 1); l <= Math.min(cote - 1, ligne + 1); l++) {
+        for (const membre of cases[c * cote + l]) if (Math.hypot(membre.x - place.x, membre.y - place.y) <= portee) return true;
+      }
+    }
+    return false;
+  };
+}
+
+function calculerPartCachee(place: PlaceEcran, rayon: number, obstacles: PlaceEcran[]): number {
+  const proches = obstacles.filter((o) => ecartCarre(o, place) < DEMI_CADRE_LIEU_POINTS + rayon);
+  if (proches.length === 0) return 0;
+  let total = 0;
+  let cachees = 0;
+  for (let i = -PAS_ECHANTILLON; i <= PAS_ECHANTILLON; i++) {
+    for (let j = -PAS_ECHANTILLON; j <= PAS_ECHANTILLON; j++) {
+      if (i * i + j * j > PAS_ECHANTILLON * PAS_ECHANTILLON) continue;
+      const point = { x: place.x + (i / PAS_ECHANTILLON) * rayon, y: place.y + (j / PAS_ECHANTILLON) * rayon };
+      total += 1;
+      if (proches.some((o) => ecartCarre(o, point) < DEMI_CADRE_LIEU_POINTS)) cachees += 1;
+    }
+  }
+  return cachees / total;
+}
+
+function chercherPlace(ici: PlaceEcran, obstacles: PlaceEcran[], voisins: PlaceEcran[], couvre: (place: PlaceEcran) => boolean): Choix {
+  const proche = obstacles.reduce((a, b) => (Math.hypot(b.x - ici.x, b.y - ici.y) < Math.hypot(a.x - ici.x, a.y - ici.y) ? b : a));
+  const naturel = Math.hypot(ici.x - proche.x, ici.y - proche.y) > 0.5 ? Math.atan2(ici.y - proche.y, ici.x - proche.x) : -Math.PI / 2;
+  const directions = Array.from({ length: DIRECTIONS }, (_, pas) => {
+    const angle = naturel + ((2 * Math.PI) / DIRECTIONS) * (pas % 2 === 0 ? pas / 2 : -(pas + 1) / 2);
+    return { x: Math.cos(angle), y: Math.sin(angle) };
+  });
+  const libreA = (place: PlaceEcran) => plusPres(voisins, place, (a, b) => Math.hypot(a.x - b.x, a.y - b.y));
+  let meilleure: Choix = { place: ici, fixe: Math.min(plusPres(obstacles, ici, ecartCarre), ECART_FIXE_POINTS), libre: libreA(ici) };
+  for (let distance = PAS_RECHERCHE; distance <= DEPLACEMENT_MAX_BULLE_POINTS; distance += PAS_RECHERCHE) {
+    for (const direction of directions) {
+      const place = { x: ici.x + distance * direction.x, y: ici.y + distance * direction.y };
+      const fixe = Math.min(plusPres(obstacles, place, ecartCarre), ECART_FIXE_POINTS);
+      if (fixe < meilleure.fixe || !couvre(place)) continue;
+      const libre = libreA(place);
+      if (fixe >= ECART_FIXE_POINTS - MARGE_FIXE && libre >= ECART_MARQUEURS_POINTS * PART_LIBRE) return { place, fixe, libre };
+      if (fixe > meilleure.fixe || libre > meilleure.libre) meilleure = { place, fixe, libre };
+    }
+    if (meilleure.fixe >= ECART_FIXE_POINTS - MARGE_FIXE) return meilleure;
+  }
+  return meilleure;
+}
+
+export function ecarterGroupesCarte(
+  groupes: GroupeCarte[],
+  fixes: LieuSeulCarte[],
+  seuls: LieuSeulCarte[],
+  echelle: EchelleCarte,
+  lireMembres: (groupe: GroupeCarte) => Position[],
+): GroupeCarte[] {
   if (groupes.length === 0) return groupes;
-  const versEcran = (p: { latitude: number; longitude: number }): Place => ({
+  const versEcran = (p: Position): PlaceEcran => ({
     x: p.longitude / echelle.degresParPoint,
     y: -p.latitude / (echelle.degresParPoint * echelle.cosLatitude),
   });
   const obstacles = fixes.map(versEcran);
   const immobiles = seuls.map(versEcran);
   const places = groupes.map(versEcran);
-  const ecartFixe = ({ x, y }: Place) => obstacles.reduce((min, o) => Math.min(min, Math.max(Math.abs(o.x - x), Math.abs(o.y - y))), Infinity);
-  const ecartAutres = (place: Place, sauf: number) => {
-    let ecart = Infinity;
-    for (const autre of immobiles) ecart = Math.min(ecart, Math.hypot(autre.x - place.x, autre.y - place.y));
-    places.forEach((autre, rang) => {
-      if (rang !== sauf) ecart = Math.min(ecart, Math.hypot(autre.x - place.x, autre.y - place.y));
-    });
-    return ecart;
-  };
+  const poses = groupes.map(() => false);
+  const devant = groupes.map(() => false);
+  const portee = ECART_FIXE_POINTS + DEPLACEMENT_MAX_BULLE_POINTS;
 
   places.forEach((ici, rang) => {
-    if (obstacles.length === 0 || ecartFixe(ici) >= ECART_FIXE_POINTS) return;
-    const proche = obstacles.reduce((a, b) => (Math.hypot(b.x - ici.x, b.y - ici.y) < Math.hypot(a.x - ici.x, a.y - ici.y) ? b : a));
-    const naturel = Math.hypot(ici.x - proche.x, ici.y - proche.y) > 0.5 ? Math.atan2(ici.y - proche.y, ici.x - proche.x) : -Math.PI / 2;
-    let meilleure: { place: Place; fixe: number; libre: number } | null = null;
-    recherche: for (let distance = PAS_RECHERCHE; distance <= ECART_FIXE_POINTS * PORTEE_RECHERCHE; distance += PAS_RECHERCHE) {
-      for (let pas = 0; pas < DIRECTIONS; pas++) {
-        const angle = naturel + ((2 * Math.PI) / DIRECTIONS) * (pas % 2 === 0 ? pas / 2 : -(pas + 1) / 2);
-        const place = { x: ici.x + distance * Math.cos(angle), y: ici.y + distance * Math.sin(angle) };
-        const fixe = Math.min(ecartFixe(place), ECART_FIXE_POINTS);
-        const libre = fixe >= ECART_FIXE_POINTS - 0.5 ? ecartAutres(place, rang) : 0;
-        if (fixe >= ECART_FIXE_POINTS - 0.5 && libre >= ECART_MARQUEURS_POINTS * PART_LIBRE) {
-          meilleure = { place, fixe, libre };
-          break recherche;
-        }
-        if (!meilleure || fixe > meilleure.fixe || (fixe === meilleure.fixe && libre > meilleure.libre)) meilleure = { place, fixe, libre };
-      }
-    }
-    if (meilleure) places[rang] = meilleure.place;
+    const proches = obstacles.filter((o) => ecartCarre(o, ici) < portee);
+    if (proches.length === 0 || plusPres(proches, ici, ecartCarre) >= ECART_FIXE_POINTS) return;
+    const voisins: PlaceEcran[] = [];
+    for (const immobile of immobiles) if (ecartCarre(immobile, ici) < portee) voisins.push(immobile);
+    places.forEach((autre, rangAutre) => {
+      if (rangAutre !== rang && ecartCarre(autre, ici) < portee) voisins.push(autre);
+    });
+    const choix = chercherPlace(ici, proches, voisins, creerCouverture(lireMembres(groupes[rang]).map(versEcran), ici));
+    places[rang] = choix.place;
+    poses[rang] = true;
+    devant[rang] = choix.fixe < ECART_FIXE_POINTS - MARGE_FIXE;
   });
 
-  const departs = places.map((place) => ({ ...place }));
-  const deplacementMax = ECART_MARQUEURS_POINTS * PART_DEPLACEMENT;
-  const bouger = (rang: number, dx: number, dy: number) => {
-    const suivante = { x: places[rang].x + dx, y: places[rang].y + dy };
-    const depuis = Math.sqrt((suivante.x - departs[rang].x) ** 2 + (suivante.y - departs[rang].y) ** 2);
-    if (depuis > deplacementMax) {
-      suivante.x = departs[rang].x + ((suivante.x - departs[rang].x) * deplacementMax) / depuis;
-      suivante.y = departs[rang].y + ((suivante.y - departs[rang].y) * deplacementMax) / depuis;
-    }
-    if (obstacles.length > 0 && ecartFixe(suivante) < Math.min(ECART_FIXE_POINTS, ecartFixe(places[rang]))) return;
-    places[rang] = suivante;
-  };
-  const separer = (de: Place, vers: Place, graine: number) => {
-    const dx = vers.x - de.x;
-    const dy = vers.y - de.y;
-    if (dx >= ECART_MARQUEURS_POINTS || dx <= -ECART_MARQUEURS_POINTS || dy >= ECART_MARQUEURS_POINTS || dy <= -ECART_MARQUEURS_POINTS) return null;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance >= ECART_MARQUEURS_POINTS) return null;
-    if (distance > 0.01) return { ux: dx / distance, uy: dy / distance, manque: ECART_MARQUEURS_POINTS - distance };
-    return { ux: Math.cos(graine * ANGLE_DOR), uy: Math.sin(graine * ANGLE_DOR), manque: ECART_MARQUEURS_POINTS - distance };
-  };
-  const tous = [...places.map((place, rang) => ({ rang, place })), ...immobiles.map((place) => ({ rang: -1, place }))];
-  for (let passe = 0; passe < PASSES; passe++) {
-    let bouge = false;
-    for (const marqueur of tous) if (marqueur.rang >= 0) marqueur.place = places[marqueur.rang];
-    tous.sort((a, b) => a.place.x - b.place.x);
-    for (let i = 0; i < tous.length; i++) {
-      const premier = tous[i];
-      for (let j = i + 1; j < tous.length && tous[j].place.x - premier.place.x < ECART_MARQUEURS_POINTS; j++) {
-        const second = tous[j];
-        if (premier.rang < 0 && second.rang < 0) continue;
-        const mobile = premier.rang >= 0 ? premier : second;
-        const autre = mobile === premier ? second : premier;
-        const ecart = separer(autre.rang >= 0 ? places[autre.rang] : autre.place, places[mobile.rang], mobile.rang + Math.max(0, autre.rang));
-        if (!ecart) continue;
-        bouge = true;
-        if (autre.rang < 0) {
-          bouger(mobile.rang, ecart.ux * ecart.manque, ecart.uy * ecart.manque);
-          continue;
-        }
-        bouger(mobile.rang, (ecart.ux * ecart.manque) / 2, (ecart.uy * ecart.manque) / 2);
-        bouger(autre.rang, (-ecart.ux * ecart.manque) / 2, (-ecart.uy * ecart.manque) / 2);
-      }
-    }
-    if (!bouge) break;
-  }
+  const diametre = (groupe: GroupeCarte) => (groupe.nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS);
+  const relachees = relacherMarqueursCarte(
+    [
+      ...places.map((place, rang) => ({ ...place, diametre: diametre(groupes[rang]), mobile: !poses[rang] })),
+      ...immobiles.map((place) => ({ ...place, diametre: DIAMETRE_MARQUEUR_POINTS, mobile: false })),
+    ],
+    ECART_MARQUEURS_POINTS * PART_DEPLACEMENT,
+    (_, avant, apres) => obstacles.length === 0 || plusPres(obstacles, apres, ecartCarre) >= Math.min(ECART_FIXE_POINTS, plusPres(obstacles, avant, ecartCarre)),
+  );
 
   return groupes.map((groupe, rang) => {
     const avant = versEcran(groupe);
-    if (Math.abs(avant.x - places[rang].x) < 1e-6 && Math.abs(avant.y - places[rang].y) < 1e-6) return groupe;
-    return { ...groupe, longitude: places[rang].x * echelle.degresParPoint, latitude: -places[rang].y * echelle.degresParPoint * echelle.cosLatitude };
+    const place = relachees[rang];
+    devant[rang] ||= obstacles.length > 0 && calculerPartCachee(place, diametre(groupe) / 2, obstacles) > PART_CACHEE_MAX;
+    const bouge = Math.abs(avant.x - place.x) >= 1e-6 || Math.abs(avant.y - place.y) >= 1e-6;
+    if (!bouge && !devant[rang]) return groupe;
+    const deplace = bouge ? { longitude: place.x * echelle.degresParPoint, latitude: -place.y * echelle.degresParPoint * echelle.cosLatitude } : {};
+    return { ...groupe, ...deplace, ...(devant[rang] ? { devant: true } : {}) };
   });
 }
