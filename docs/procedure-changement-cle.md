@@ -99,6 +99,12 @@ Au prochain changement, même chemin avec la version 3, et ainsi de suite.
   `nettoyerCarriere` dans `taches/taches-de-nuit.ts`). Le journal du logiciel dit « Candidatures rechiffrées (changement de clé) » et,
   s'il y en a, « Candidatures illisibles pendant le rechiffrement », des nombres seulement. Une nuit sans ligne « rechiffrées » : il
   n'en reste plus. Elles sont de toute façon effacées 6 mois après leur envoi.
+- Les signalements de la page « Chasse aux bugs » (sous-clés `sos-miam/securite/…` : nom, e-mail, titre, description, lien, nom
+  pour le tableau d'honneur et captures, fichiers du dossier `/var/lib/sos-miam/signalements-securite`) : **rechiffrés la nuit**,
+  tous en une fois (`services/securite-menage.ts`, lancé par le ménage de la sécurité dans `taches/taches-de-nuit.ts`). Le journal
+  du logiciel dit « Signalements de sécurité rechiffrés (changement de clé) » et, s'il y en a, « Signalements illisibles pendant le
+  rechiffrement », des nombres seulement. Un signalement ouvert est gardé sans limite : attendre la ligne avant de retirer
+  l'ancienne clé.
 - Les partages de position de Miam Safe (« Prévenir un pote », sous-clé `miam-safe:position`) : **rien à rechiffrer**. Une
   position est effacée au bout d'1 heure au plus (fin ou arrêt du partage), et une position illisible s'affiche comme
   « pas de position », sans erreur.

@@ -1,0 +1,36 @@
+model SignalementSecurite {
+  id                  String                         @id @db.Uuid
+  nomChiffre          String                         @map("nom_chiffre") @db.VarChar(400)
+  emailChiffre        String                         @map("email_chiffre") @db.VarChar(1200)
+  emailEmpreinte      String                         @map("email_empreinte") @db.VarChar(64)
+  cible               String                         @db.VarChar(12)
+  titreChiffre        String                         @map("titre_chiffre") @db.VarChar(700)
+  descriptionChiffree String                         @map("description_chiffree")
+  lienChiffre         String?                        @map("lien_chiffre") @db.VarChar(1300)
+  images              String[]                       @default([]) @db.VarChar(64)
+  nomTableauChiffre   String?                        @map("nom_tableau_chiffre") @db.VarChar(300)
+  statut              String                         @default("nouveau") @db.VarChar(12)
+  gravite             String?                        @db.VarChar(10)
+  creeLe              DateTime                       @default(now()) @map("cree_le") @db.Timestamptz(3)
+  clotureLe           DateTime?                      @map("cloture_le") @db.Timestamptz(0)
+  badgeDonneLe        DateTime?                      @map("badge_donne_le") @db.Timestamptz(0)
+  entreeTableau       EntreeTableauHonneurSecurite?
+
+  @@index([creeLe])
+  @@index([statut, creeLe])
+  @@index([clotureLe])
+  @@index([emailEmpreinte, creeLe])
+  @@map("signalements_securite")
+}
+
+model EntreeTableauHonneurSecurite {
+  id            Int                  @id @default(autoincrement())
+  nom           String               @db.VarChar(40)
+  mois          String               @db.VarChar(7)
+  signalementId String?              @unique @map("signalement_id") @db.Uuid
+  signalement   SignalementSecurite? @relation(fields: [signalementId], references: [id], onDelete: SetNull)
+  creeLe        DateTime             @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@index([mois, id])
+  @@map("tableau_honneur_securite")
+}
