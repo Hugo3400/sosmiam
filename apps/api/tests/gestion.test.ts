@@ -121,11 +121,11 @@ test("une demande rejouée, falsifiée ou trop vieille est refusée", async () =
   assert.equal((await demander("GET", "/tableau-de-bord", { session, horodatage: horloge - 5 * 60_000 })).status, 401);
 });
 
-test("une session s'éteint après 24 heures sans activité", async () => {
+test("une session dure 30 jours, même sans activité, puis le code est redemandé", async () => {
   const session = await ouvrirSession();
-  horloge += 23 * 3600_000;
+  horloge += 20 * 24 * 3600_000;
   assert.equal((await demander("GET", "/tableau-de-bord", { session })).status, 200);
-  horloge += 24 * 3600_000 + 1000;
+  horloge += 10 * 24 * 3600_000 + 1000;
   const reponse = await demander("GET", "/tableau-de-bord", { session });
   assert.equal(reponse.status, 401);
 });

@@ -1,7 +1,7 @@
 // Protection des routes du logiciel de gestion : elles ne servent qu'aux postes autorisés de Hugo.
 // Chaque demande est signée par la clé Ed25519 du poste (gardée chiffrée par son mot de passe sur l'ordinateur) :
 // sans elle, rien ne passe, même en connaissant l'adresse. Une session s'ouvre en plus avec le code à 6 chiffres
-// de l'application d'authentification, et se ferme après 24 heures sans activité (7 jours au plus). Les sessions sont
+// de l'application d'authentification, et dure 30 jours (le code est redemandé tous les 30 jours). Les sessions sont
 // gardées dans la base (leur empreinte seulement) : un redémarrage de l'API ne redemande pas le code.
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import type { NextFunction, Request, Response } from "express";
@@ -13,8 +13,8 @@ import type { AccesGestion, PosteAutorise } from "../services/gestion/acces.ts";
 
 export const PREFIXE_GESTION = "/api-gestion";
 const ECART_HORLOGE = 60_000;
-const INACTIVITE_MAX = 24 * 3600_000;
-const DUREE_MAX = 7 * 24 * 3600_000;
+const DUREE_MAX = 30 * 24 * 3600_000;
+const INACTIVITE_MAX = DUREE_MAX;
 /** L'heure de dernière activité n'est réécrite dans la base qu'au plus toutes les 5 minutes */
 const ECRITURE_ACTIVITE = 5 * 60_000;
 const FENETRE_ECHECS = 10 * 60_000;
