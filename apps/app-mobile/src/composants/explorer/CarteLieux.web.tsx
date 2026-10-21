@@ -1,12 +1,14 @@
+import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 
 // Même contrat que CarteLieux.tsx (iPhone et Android) : à garder identique
 type Props = {
-  /** Lieux filtrés et triés (seuls ceux qui ont une position s'affichent) */
+  /** Lieux filtrés et triés */
   lieux: LieuExplorer[];
   /** Ville à montrer : celle choisie dans les filtres, sinon la tienne (partout en France) ; null si on ne la connaît pas (on montre alors nos lieux) */
   centre: PositionLieu | null;
+  cadre: (ZoneGeo & { cle: string }) | null;
   /** « Autour de moi » (sinon null) */
   position: PositionLieu | null;
   /** Id du lieu sélectionné */

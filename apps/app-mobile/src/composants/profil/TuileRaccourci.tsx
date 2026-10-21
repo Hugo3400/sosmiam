@@ -28,7 +28,7 @@ export function TuileRaccourci({ emoji, titre, detail, indice, onPress }: Props)
         <Text className="text-lg">{emoji}</Text>
       </View>
       <Text className="font-texte-gras text-[15px] leading-5 text-encre">{titre}</Text>
-      <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.85} className="min-h-9 font-texte text-[13px] leading-[18px] text-gris">
+      <Text numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.85} className="min-h-9 font-texte text-[13px] leading-[18px] text-gris">
         {lierPonctuation(detail)}
       </Text>
     </Pressable>

@@ -47,7 +47,7 @@ const EXPLICATION_DATE_COMPTE = lierPonctuation(
 );
 // Sans compte connecté (la démo), le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
 const EXPLICATION_DATE_TELEPHONE = lierPonctuation(
-  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Ce profil n'existe que sur ton téléphone, on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », tout en bas des Paramètres (le reste repart aussi à zéro).",
+  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Ce profil n'existe que sur ton téléphone, on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », dans Paramètres › Tes données (le reste repart aussi à zéro).",
 );
 
 /** Un refus du serveur montré sous sa case, tant que la case garde la valeur refusée ; `bloquant` : Enregistrer reste grisé */
@@ -217,7 +217,7 @@ export default function ReglagesInfos() {
         libelle: enregistrementEnCours ? "Un instant…" : "Enregistrer",
         onPress: () => void sauver(),
         desactive: !prenomValable || !pseudoValable || !nomValable || !change || !ville || enregistrementEnCours,
-        indice: "Enregistre tes infos et revient à Mon profil",
+        indice: "Enregistre tes infos et revient à l'écran d'avant",
       }}
     >
       <View className="gap-6">

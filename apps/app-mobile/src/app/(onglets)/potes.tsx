@@ -80,7 +80,7 @@ export default function Potes() {
           "Des sorties où tout le monde vote pour le lieu (fini les débats sans fin)",
           "Un chat entre potes pour caler l'heure du rendez-vous",
           "Des listes partagées de bonnes adresses",
-          "Les Miamis : des sorties ouvertes à ta ville et une boîte à idées pour l'app",
+          "Les Miamis : des sorties ouvertes à ta ville",
         ]}
       />
     );

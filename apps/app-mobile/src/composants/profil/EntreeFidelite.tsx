@@ -6,12 +6,14 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeFidelite() {
   const router = useRouter();
-  const { cartes } = utiliserVisites();
+  const { pret, source, cartes } = utiliserVisites();
   const pretes = cartes.reduce((somme, c) => somme + c.pretes.length, 0);
   const detail =
-    cartes.length === 0
-      ? TEXTES_RACCOURCIS.pasDeCarte
-      : `${TEXTES_RACCOURCIS.cartes(cartes.length)}${pretes > 0 ? ` · ${TEXTES_RACCOURCIS.cadeaux(pretes)}` : ""}`;
+    !pret || source === "indisponible"
+      ? TEXTES_RACCOURCIS.fideliteEnLecture
+      : cartes.length === 0
+        ? TEXTES_RACCOURCIS.pasDeCarte
+        : `${TEXTES_RACCOURCIS.cartes(cartes.length)}${pretes > 0 ? ` · ${TEXTES_RACCOURCIS.cadeaux(pretes)}` : ""}`;
 
   return (
     <TuileRaccourci

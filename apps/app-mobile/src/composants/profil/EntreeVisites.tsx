@@ -6,14 +6,16 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeVisites() {
   const router = useRouter();
-  const { visites, aEcrire, enCours } = utiliserVisites();
+  const { pret, source, visites, aEcrire, enCours } = utiliserVisites();
   const validees = visites.filter((v) => v.statut === "validee").length;
   const detail =
-    validees > 0
-      ? [TEXTES_RACCOURCIS.visitesValidees(validees), aEcrire.length > 0 ? TEXTES_RACCOURCIS.avisAEcrire(aEcrire.length) : null].filter(Boolean).join(" · ")
-      : enCours
-        ? TEXTES_RACCOURCIS.additionEnAttente
-        : TEXTES_RACCOURCIS.pasDeVisite;
+    !pret || source === "indisponible"
+      ? TEXTES_RACCOURCIS.visitesEnLecture
+      : validees > 0
+        ? [TEXTES_RACCOURCIS.visitesValidees(validees), aEcrire.length > 0 ? TEXTES_RACCOURCIS.avisAEcrire(aEcrire.length) : null].filter(Boolean).join(" · ")
+        : enCours
+          ? TEXTES_RACCOURCIS.additionEnAttente
+          : TEXTES_RACCOURCIS.pasDeVisite;
 
   return (
     <TuileRaccourci

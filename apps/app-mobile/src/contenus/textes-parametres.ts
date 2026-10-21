@@ -28,6 +28,7 @@ export const TEXTES_PARAMETRES = {
   donnees: {
     titre: "Tes données",
     resume: "Les télécharger, ou tout effacer de ce téléphone",
+    resumeSansExport: "Savoir où elles sont, ou tout effacer de ce téléphone",
   },
 } as const;
 

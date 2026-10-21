@@ -27,9 +27,10 @@ export default function MonProfil() {
   const detailEnvies =
     nombreEnvies === 0 ? "Rien de coché pour l'instant" : `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} cochée${nombreEnvies > 1 ? "s" : ""}`;
   const detailAvatar = avatar.type === "photo" ? "Ta photo pour l'instant, ou un Miami" : `En ${nommerAvatar(avatar)} pour l'instant, ou en photo`;
+  const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
 
   return (
-    <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour}>
+    <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour} onRetour={revenir}>
       <SectionReglages titre={T.sectionProfil}>
         <LigneReglage
           emoji="🎭"

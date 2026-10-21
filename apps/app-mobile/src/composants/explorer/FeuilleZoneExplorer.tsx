@@ -16,7 +16,7 @@ type Props = {
   choix: ChoixZone;
   /** Ta région (null si on ne la connaît pas : elle n'est pas proposée) */
   region: string | null;
-  /** « de toi » avec « Autour de moi », sinon « de Montpellier » (ou « de ta ville ») */
+  /** « de toi » avec « Autour de moi », sinon « de Montpellier » */
   autourDe: string;
   /** Villes proposées */
   villes: string[];

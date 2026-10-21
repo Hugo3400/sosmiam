@@ -27,7 +27,7 @@ export const TEXTES_ACCUEIL_MIAMIS = {
   astuceGenre: "Les sorties réservées (entre filles, entre garçons, autres genres) se débloquent avec Mon genre : facultatif, et personne ne le voit.",
   astuceGenreLien: "Choisir mon genre",
   filTitre: "Ça bouge chez les Miamis",
-  filVide: "C'est calme… trop calme. Lance une sortie ou une idée pour réveiller la Brigade !",
+  filVide: "C'est calme… trop calme. Lance une sortie pour réveiller la Brigade !",
 } as const;
 
 export const TEXTES_MES_ENVIES = {

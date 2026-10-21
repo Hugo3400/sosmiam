@@ -21,7 +21,7 @@ type Props = {
   zone: ChoixZone;
   /** Ta région (null si on ne la connaît pas) */
   region: string | null;
-  /** « de toi » avec « Autour de moi », sinon « de Montpellier » (ou « de ta ville ») */
+  /** « de toi » avec « Autour de moi », sinon « de Montpellier » */
   autourDe: string;
   onChangerZone: (zone: ChoixZone) => void;
 };

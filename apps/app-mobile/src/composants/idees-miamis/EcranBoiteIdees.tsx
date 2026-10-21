@@ -49,6 +49,7 @@ export function EcranBoiteIdees() {
   const ideeDuMois = useMemo(() => (idees ? trouverIdeeDuMois(idees) : null), [idees]);
 
   const ouvrir = useCallback((id: string) => router.push({ pathname: "/potes/miamis/idee/[id]", params: { id } }), [router]);
+  const revenir = () => (router.canGoBack() ? router.back() : router.replace("/reglages"));
 
   const voterIdee = useCallback(
     async (id: string, oui: boolean) => {
@@ -102,7 +103,7 @@ export function EcranBoiteIdees() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
-      <BarreEcranMiamis titre={TEXTES_IDEES.titre} grand libelleRetour={TEXTES_IDEES.retour} />
+      <BarreEcranMiamis titre={TEXTES_IDEES.titre} grand libelleRetour={TEXTES_IDEES.retour} onRetour={revenir} />
       {idees === null && erreur ? (
         <View className="px-5 pt-6">
           <ErreurMiamis erreur={erreur} onReessayer={() => void relire()} />

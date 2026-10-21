@@ -230,7 +230,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
                         {lieu ? `${lieu.info} · ${lieu.prix}${lieu.sos?.offre ? ` · ${lieu.sos.offre}` : ""}` : " "}
                       </Text>
                       <Text numberOfLines={1} className="font-texte-moyen text-sm text-encre">
-                        {affiche && lieu ? `📍 ${[ecrireQuartierVille(lieu), affiche.km === null ? null : ecrireDistanceDepuis(affiche.km, depuis)].filter(Boolean).join(" · ")}` : " "}
+                        {affiche && lieu ? `📍 ${[affiche.km === null ? null : ecrireDistanceDepuis(affiche.km, depuis), ecrireQuartierVille(lieu)].filter(Boolean).join(" · ")}` : " "}
                       </Text>
                     </View>
                   </Animated.View>

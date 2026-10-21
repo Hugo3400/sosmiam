@@ -66,6 +66,7 @@ export default function Parametres() {
   const resumeSecurite = `${etatCompte} · ${communaute.pret ? T.securite.bloques(nombreBloques) : T.securite.bloquesEnLecture}`;
 
   const version = Constants.expoConfig?.version;
+  const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
 
   async function toutEffacer() {
     // Le téléphone oublie aussi le compte (il reste sur le serveur : on s'y reconnecte quand on veut)
@@ -96,7 +97,7 @@ export default function Parametres() {
 
   return (
     <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
-      <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour}>
+      <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour} onRetour={revenir}>
         <SectionReglages titre={T.compte.titre} section="parametres-compte" resume={connecte ? T.compte.resume : T.compte.resumeSansCompte}>
           {connecte ? (
             <LigneReglage

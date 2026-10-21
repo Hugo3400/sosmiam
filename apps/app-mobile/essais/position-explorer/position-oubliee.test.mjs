@@ -168,34 +168,40 @@ test("plus de 5 minutes en arrière-plan : la position est oubliée sans attendr
   await monter();
   await trouverPosition();
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  AppState.changerPourEssai("background");
-  t.mock.timers.tick(4 * 60_000);
-  await laisserReactRendre();
-  assert.deepEqual(monde.position.position, ICI, "4 minutes : toujours là");
-  t.mock.timers.tick(61_000);
-  await laisserReactRendre();
-  assert.equal(monde.position.position, null, "toujours tenue après 5 minutes en arrière-plan");
-  avance += 6 * 60_000;
-  AppState.changerPourEssai("active");
-  await laisserReactRendre();
-  assert.ok(typeof monde.position.oubliApresAbsence === "number", "rien n'annonce l'oubli au retour");
-  t.mock.timers.reset();
+  try {
+    AppState.changerPourEssai("background");
+    t.mock.timers.tick(4 * 60_000);
+    await laisserReactRendre();
+    assert.deepEqual(monde.position.position, ICI, "4 minutes : toujours là");
+    t.mock.timers.tick(61_000);
+    await laisserReactRendre();
+    assert.equal(monde.position.position, null, "toujours tenue après 5 minutes en arrière-plan");
+    avance += 6 * 60_000;
+    AppState.changerPourEssai("active");
+    await laisserReactRendre();
+    assert.ok(typeof monde.position.oubliApresAbsence === "number", "rien n'annonce l'oubli au retour");
+  } finally {
+    t.mock.timers.reset();
+  }
 });
 
 test("revenir avant 5 minutes garde la position, même si l'app est repartie en arrière-plan entre-temps", async (t) => {
   await monter();
   await trouverPosition();
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  AppState.changerPourEssai("background");
-  t.mock.timers.tick(3 * 60_000);
-  AppState.changerPourEssai("active");
-  AppState.changerPourEssai("background");
-  t.mock.timers.tick(3 * 60_000);
-  AppState.changerPourEssai("active");
-  await laisserReactRendre();
-  assert.deepEqual(monde.position.position, ICI);
-  assert.equal(monde.position.oubliApresAbsence, null);
-  t.mock.timers.reset();
+  try {
+    AppState.changerPourEssai("background");
+    t.mock.timers.tick(3 * 60_000);
+    AppState.changerPourEssai("active");
+    AppState.changerPourEssai("background");
+    t.mock.timers.tick(3 * 60_000);
+    AppState.changerPourEssai("active");
+    await laisserReactRendre();
+    assert.deepEqual(monde.position.position, ICI);
+    assert.equal(monde.position.oubliApresAbsence, null);
+  } finally {
+    t.mock.timers.reset();
+  }
 });
 
 test("l'oubli n'est annoncé qu'une fois : l'écran qui l'a dit l'éteint pour les autres", async () => {

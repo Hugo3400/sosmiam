@@ -49,7 +49,11 @@ export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
   }
 
   return (
-    <SectionReglages titre={TEXTES_PARAMETRES.donnees.titre} section="parametres-donnees" resume={TEXTES_PARAMETRES.donnees.resume}>
+    <SectionReglages
+      titre={TEXTES_PARAMETRES.donnees.titre}
+      section="parametres-donnees"
+      resume={exportSocial.disponible ? TEXTES_PARAMETRES.donnees.resume : TEXTES_PARAMETRES.donnees.resumeSansExport}
+    >
       {exportSocial.disponible ? (
         <LigneReglage
           emoji="📦"
@@ -69,11 +73,8 @@ export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
           }
         />
       ) : null}
-      <View className="flex-row gap-3 py-3">
-        <Text accessibilityElementsHidden importantForAccessibility="no" className="text-base leading-5">
-          🔒
-        </Text>
-        <Text className="flex-1 font-texte text-sm leading-5 text-gris">
+      <View className="border-b border-ligne py-3">
+        <Text className="font-texte text-sm leading-5 text-gris">
           {lierPonctuation(
             connecte
               ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés), ta photo de profil aussi quand tu la montres. Ton régime particulier reste sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."

@@ -24,22 +24,25 @@ export const DETAILS_MODE_AMBASSADEUR: Readonly<Record<StatutAmbassadeur, string
 };
 
 export const TEXTES_RACCOURCIS = {
-  pasDeTable: "Pas encore de table en vue",
-  rienDePrevu: "Rien de prévu pour l'instant",
+  pasDeTable: "Réserve depuis la fiche d'une pépite",
+  rienDePrevu: "Rien de prévu : une pépite te tente ?",
   fidelite: "Cartes de fidélité",
   indiceFidelite: "Ouvre tes cartes de fidélité",
-  pasDeCarte: "Pas encore de carte",
+  fideliteEnLecture: "Tes tampons et tes cadeaux",
+  pasDeCarte: "Un tampon à chaque visite validée",
   cartes: (nombre: number) => `${nombre} carte${nombre > 1 ? "s" : ""}`,
   cadeaux: (nombre: number) => (nombre > 1 ? `${nombre} cadeaux t'attendent 🎁` : "1 cadeau t'attend 🎁"),
   suivis: "Tu suis",
   indiceSuivis: "Ouvre la liste des personnes, lieux et créateurs que tu suis",
-  personne: "Personne pour l'instant",
+  suivisEnLecture: "Des Miamis, des lieux et des créateurs",
+  personne: "Personne : touche « Suivre »",
   visites: "Mes visites",
   indiceVisites: "Ouvre la liste de tes visites",
+  visitesEnLecture: "Tes visites et tes avis à écrire",
   visitesValidees: (nombre: number) => `${nombre} validée${nombre > 1 ? "s" : ""}`,
   avisAEcrire: (nombre: number) => `${nombre} avis à écrire`,
   additionEnAttente: "Une addition en attente",
-  pasDeVisite: "Pas encore de visite",
+  pasDeVisite: "Scanne le QR d'un comptoir",
 } as const;
 
 export const TEXTES_PALIER = {
@@ -57,17 +60,28 @@ export const TEXTES_PALIER = {
   palierRempli: "Palier rempli",
   commentGagner: "Comment gagner des points ?",
   indiceCommentGagner: "Ouvre l'explication des points",
-  explication: `Pour l'instant, chaque rescousse te rapporte +${POINTS_AMBASSADEUR.rescousse} points, être le premier sauveteur d'un lieu +${POINTS_AMBASSADEUR.premierSauveteur}, et chaque défi réussi ses propres points. Les visites validées arrivent bientôt !`,
+  introPoints: "Tout ce que tu fais pour les lieux du coin te rapporte des points :",
+  bareme: [
+    { emoji: "🧾", action: "Une visite validée", gain: `+${POINTS_AMBASSADEUR.visite} points, et même +${POINTS_AMBASSADEUR.visiteSos} pendant un SOS` },
+    { emoji: "📸", action: "Un avis vérifié avec une photo de ton assiette", gain: `+${POINTS_AMBASSADEUR.avisPhoto} points` },
+    { emoji: "🔎", action: "Un lieu que tu proposes et qui rejoint SOS Miam", gain: `+${POINTS_AMBASSADEUR.proposerLieu} points` },
+    { emoji: "🚀", action: "La toute première rescousse d'un lieu qui vient d'arriver", gain: `+${POINTS_AMBASSADEUR.premierSauveteur} points` },
+    { emoji: "🛟", action: "Chaque rescousse", gain: `+${POINTS_AMBASSADEUR.rescousse} points` },
+    { emoji: "🎯", action: "Un défi réussi", gain: "les points qu'il annonce" },
+  ],
+  repasOffert: "Un repas offert par le lieu ne rapporte pas de points, photo comprise : le cadeau, c'est déjà l'assiette !",
   compris: "Compris",
 } as const;
 
 export const TEXTES_DEFIS_PROFIL = {
   voirAutres: (nombre: number) => (nombre === 1 ? "Voir l'autre défi" : `Voir les ${nombre} autres défis`),
+  voirMoinsLu: "Voir moins de défis",
 } as const;
 
 export const TEXTES_BADGES_PROFIL = {
   titre: "Tes badges",
   derniers: (nombre: number) => (nombre === 1 ? "Ton tout premier" : `Tes ${nombre} derniers`),
+  apercuLu: (nombre: number, noms: string) => (nombre === 1 ? `Ton tout premier badge : ${noms}` : `Tes ${nombre} derniers badges : ${noms}`),
   encore: (nombre: number) => `Encore ${nombre} à débloquer : la chasse est ouverte !`,
   complete: "Collection complète : la Brigade en reste bouche bée !",
   dernier: (emoji: string, nom: string) => `Le dernier : ${emoji} ${nom}`,
@@ -84,4 +98,6 @@ export const TEXTES_COLLECTION = {
   dernierGarde: (nom: string) => `Le dernier gardé : ${nom}`,
   voirGardes: (nombre: number) => `Voir tes ${nombre} lieux gardés`,
   voirJaimes: (nombre: number) => `Voir tes ${nombre} J'aime`,
+  voirMoinsGardesLu: "Voir moins de lieux gardés",
+  voirMoinsJaimesLu: "Voir moins de J'aime",
 } as const;
