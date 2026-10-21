@@ -126,6 +126,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
     }
     if (reglages.lecture.etat === "erreur") {
       if (reglages.lecture.erreur === "service-indisponible") return <CarteMessageReservations emoji="🧪" titre={T.demoTitre} texte={T.demoTexte} />;
+      if (reglages.lecture.erreur === "introuvable") return <CarteMessageReservations emoji="🛠️" titre={T.bientotTitre} texte={T.bientotTexte} />;
       const action = { libelle: T.reessayer, indice: T.indiceReessayer, onPress: () => void reglages.relire() };
       return <CarteMessageReservations emoji="📒" titre={T.lectureEchecTitre} texte={T.lectureEchecTexte} action={action} />;
     }
