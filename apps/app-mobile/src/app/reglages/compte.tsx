@@ -85,9 +85,12 @@ export default function MonCompte() {
   }
 
   /** Le téléphone oublie le compte et tout le reste : l'app repart à la bienvenue */
-  async function partir(prevenirServeur: boolean) {
-    await fermer({ prevenirServeur });
-    await effacement.toutEffacer();
+  function partir(prevenirServeur: boolean, avant?: () => Promise<boolean>) {
+    return effacement.toutEffacer(async () => {
+      if (avant && !(await avant())) return false;
+      await fermer({ prevenirServeur });
+      return true;
+    });
   }
 
   async function renvoyerLien() {
@@ -125,10 +128,13 @@ export default function MonCompte() {
         }
         confirmationSuppression = "identityToken" in natif ? { identityToken: natif.identityToken, nonce: natif.nonce } : { idToken: natif.idToken };
       }
-      const r = await comptes.supprimerCompte(confirmationSuppression);
-      if (!r.ok) return montrerErreurCompte(r.erreur, r.details);
+      const preuve = confirmationSuppression;
       // Le compte n'existe plus : rien à prévenir côté serveur
-      await partir(false);
+      await partir(false, async () => {
+        const r = await comptes.supprimerCompte(preuve);
+        if (!r.ok) montrerErreurCompte(r.erreur, r.details);
+        return r.ok;
+      });
     } finally {
       setEnCours(false);
     }
@@ -303,9 +309,12 @@ export default function MonCompte() {
           const quoi = confirmation;
           void (async () => {
             if (quoi === "partout") {
-              const r = await comptes.deconnecterPartout();
-              if (!r.ok && r.erreur !== "connexion-requise") return montrerErreurCompte(r.erreur, r.details);
-              await partir(false);
+              await partir(false, async () => {
+                const r = await comptes.deconnecterPartout();
+                if (r.ok || r.erreur === "connexion-requise") return true;
+                montrerErreurCompte(r.erreur, r.details);
+                return false;
+              });
             } else await partir(true);
           })();
         }}

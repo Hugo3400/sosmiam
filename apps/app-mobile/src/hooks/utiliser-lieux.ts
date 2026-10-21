@@ -27,7 +27,8 @@ export type EtatLieux = {
    * serveur n'en rend que 1 000. La zone part arrondie à la grille de 0,5 degré (jamais une position exacte) ; une zone lue
    * il y a moins de 10 minutes n'est pas relue ; seules les 4 dernières sont gardées ; rien en démo (liste complète).
    */
-  chargerZone: (zone: ZoneGeo) => void;
+  chargerZone: (zone: ZoneGeo, depuisTaPosition?: boolean) => void;
+  oublierZonesDeTaPosition: () => void;
 };
 
 export const ContexteLieux = createContext<EtatLieux | null>(null);

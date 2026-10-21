@@ -161,9 +161,10 @@ export default function Explorer() {
     const autourDe = zone?.portee === "proche" ? zone.centre : filtres.ville ? centre : null;
     return autourDe ? calculerZoneAutour(autourDe, RAYON_PROCHE_KM.max) : null;
   }, [zone, cadre, filtres.ville, centre]);
+  const zoneDepuisTaPosition = zone?.portee === "proche" && position !== null;
   useEffect(() => {
-    if (zoneALire) chargerZone(zoneALire);
-  }, [zoneALire, chargerZone]);
+    if (zoneALire) chargerZone(zoneALire, zoneDepuisTaPosition);
+  }, [zoneALire, zoneDepuisTaPosition, chargerZone]);
   // Filtre « Événements » : seulement les lieux qui en ont un sur la période (null tant que c'est coupé ou pas encore lu)
   const evenementsParLieu = utiliserEvenementsExplorer(filtres.evenement, age);
   const lieuxTries = useMemo(() => {

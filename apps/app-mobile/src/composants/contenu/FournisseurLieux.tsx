@@ -31,7 +31,7 @@ const cleZone = (z: ZoneGeo) => [z.nord, z.sud, z.ouest, z.est].map((b) => b.toF
 const estLieuDisparu = (erreur: ErreurService) => erreur === "lieu-inconnu" || erreur === "introuvable";
 
 /** Une zone gardée : ses bords arrondis, et quand elle a été demandée au serveur pour la dernière fois (0 : à redemander) */
-type ZoneGardee = { zone: ZoneGeo; demandee: number };
+type ZoneGardee = { zone: ZoneGeo; demandee: number; depuisTaPosition: boolean };
 
 /**
  * La source des lieux de toute l'app. Mode démo : les lieux d'exemple. Sinon : les lieux publiés sur le serveur (GET
@@ -124,7 +124,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   );
 
   const chargerZone = useCallback(
-    (demandee: ZoneGeo) => {
+    (demandee: ZoneGeo, depuisTaPosition = false) => {
       if (DEMO_VISITES_ACTIVE) return;
       // Ici, et pas chez qui appelle : aucune zone ne part sans être arrondie à la grille
       const zone = arrondirZoneALaGrille(demandee);
@@ -132,7 +132,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       const deja = zones.current.get(cle);
       // La plus récente en dernier : ce sont les plus anciennes qu'on oublie, avec leurs lieux
       zones.current.delete(cle);
-      zones.current.set(cle, { zone, demandee: deja?.demandee ?? 0 });
+      zones.current.set(cle, { zone, demandee: deja?.demandee ?? 0, depuisTaPosition });
       if (zones.current.size > ZONES_GARDEES) {
         // Celle de ta ville reste : le fil et Explorer s'en servent dès l'ouverture
         const oubliables = [...zones.current.keys()].filter((c) => c !== cleDeTaVille.current);
@@ -144,6 +144,13 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     },
     [lireZone],
   );
+
+  const oublierZonesDeTaPosition = useCallback(() => {
+    const oubliees = [...zones.current].filter(([cle, gardee]) => gardee.depuisTaPosition && cle !== cleDeTaVille.current);
+    if (oubliees.length === 0) return;
+    for (const [cle] of oubliees) zones.current.delete(cle);
+    setDeZones((lieux) => Object.fromEntries(Object.entries(lieux).filter(([c]) => zones.current.has(c))));
+  }, []);
 
   // Les lieux autour de ta ville, jusqu'au bout du curseur d'Explorer : là, même au-delà des 1 000 de la liste
   useEffect(() => {
@@ -193,8 +200,9 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
       recharger,
       chargerLieu,
       chargerZone,
+      oublierZonesDeTaPosition,
     }),
-    [lieux, parId, lus, horsLigne, recharger, chargerLieu, chargerZone],
+    [lieux, parId, lus, horsLigne, recharger, chargerLieu, chargerZone, oublierZonesDeTaPosition],
   );
   return <ContexteLieux.Provider value={valeur}>{children}</ContexteLieux.Provider>;
 }

@@ -69,9 +69,14 @@ export default function Parametres() {
 
   async function toutEffacer() {
     // Le téléphone oublie aussi le compte (il reste sur le serveur : on s'y reconnecte quand on veut)
-    if (connecte) await fermer();
+    const fermerSession = connecte
+      ? async () => {
+          await fermer();
+          return true;
+        }
+      : undefined;
     // Sans profil, l'app repart toute seule à la bienvenue ; un échec est dit (Alert n'existe pas sur le web)
-    if (!(await effacement.toutEffacer()) && Platform.OS !== "web") {
+    if (!(await effacement.toutEffacer(fermerSession)) && Platform.OS !== "web") {
       Alert.alert("Oups, ça a coincé", "Une partie de tes données n'a pas pu être effacée. Réessaie dans un instant.");
     }
   }
