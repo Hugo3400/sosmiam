@@ -60,6 +60,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
   const [departDemande, setDepartDemande] = useState(false);
   const actionDepart = useRef<(() => void) | null>(null);
   const initialise = useRef(false);
+  const defilement = useRef<ScrollView>(null);
   const aujourdhui = calculerJourParis(maintenantMs);
   const lus = reglages.lecture.etat === "lu" ? reglages.lecture.lus : null;
   const jours = utiliserJoursFermesPro({ fermerJour: reglages.fermerJour, joursFermes: lus?.reglages.joursFermes ?? [], aujourdhui, annoncer });
@@ -70,6 +71,10 @@ export function EcranReglagesReservations({ lieu }: Props) {
     initialise.current = true;
     repartirDe(lus.reglages);
   }, [lus, repartirDe]);
+
+  useEffect(() => {
+    if (enregistrement.aRevoir > 0) defilement.current?.scrollTo({ y: 0, animated: true });
+  }, [enregistrement.aRevoir]);
 
   usePreventRemove(brouillon.modifie, ({ data }) => {
     actionDepart.current = () => navigation.dispatch(data.action);
@@ -169,7 +174,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-7 px-5 pb-10 pt-2" keyboardShouldPersistTaps="handled">
+      <ScrollView ref={defilement} contentContainerClassName="gap-7 px-5 pb-10 pt-2" keyboardShouldPersistTaps="handled">
         <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(T.intro)}</Text>
         {contenu()}
       </ScrollView>
