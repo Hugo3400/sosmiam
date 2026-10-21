@@ -1,6 +1,7 @@
 // Connexion avec Apple ou Google en mémoire (tests, API de démonstration) : mêmes règles que comptes-externes.ts, sur les
 // comptes de comptes-en-memoire.ts.
 import { estSansMotDePasse } from "../fonctions/comptes/est-sans-mot-de-passe.ts";
+import { creerEmpreinteSansMotDePasse } from "../fonctions/securite/creer-empreinte-sans-mot-de-passe.ts";
 import type { CompteEnMemoire } from "./comptes-en-memoire.ts";
 import { CHAMP_SUB, type ServicesComptesExternes } from "./comptes-externes-regles.ts";
 
@@ -18,6 +19,17 @@ export function creerComptesExternesEnMemoire(comptes: Map<number, CompteEnMemoi
       if (trouver(champ, sub)) return "sub-pris";
       compte[champ] = sub;
       if (confirmerEmail) compte.emailVerifieLe ??= maintenant.getTime();
+      return "ok";
+    },
+    async reprendreCompteNonConfirme(compteId, fournisseur, sub, maintenant) {
+      const compte = comptes.get(compteId);
+      if (!compte) return "introuvable";
+      if (compte.emailVerifieLe !== null) return "confirme";
+      if (trouver(CHAMP_SUB[fournisseur], sub)) return "sub-pris";
+      Object.assign(compte, {
+        [CHAMP_SUB[fournisseur]]: sub, [CHAMP_SUB[fournisseur === "apple" ? "google" : "apple"]]: null,
+        motDePasse: creerEmpreinteSansMotDePasse(), emailVerifieLe: maintenant.getTime(), reinitialisation: null,
+      });
       return "ok";
     },
     async delierSub(compteId, fournisseur) {

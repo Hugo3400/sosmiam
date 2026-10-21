@@ -8,7 +8,7 @@ const HEURE_MS = 3600_000;
 export const DELAI_ORPHELIN_PHOTO_PROFIL_MS = 24 * HEURE_MS;
 export const PHOTOS_PROFIL_PAR_PASSAGE_DE_MENAGE = 200;
 export const ATTENTE_STOCKAGE_PLEIN_PHOTO_PROFIL_SECONDES = 3600;
-export const CACHE_PHOTO_PROFIL_PUBLIQUE = "public, max-age=31536000, immutable";
+export const CACHE_PHOTO_PROFIL_PUBLIQUE = "private, max-age=3600";
 
 export type ErreurPhotoProfil = "format-refuse" | "media-trop-lourd" | "media-invalide" | "stockage-plein" | "chiffrement-indisponible" | "compte-inconnu";
 export type RefusPhotoProfil = { ok: false; erreur: ErreurPhotoProfil; champ?: "format" | "dimensions" };

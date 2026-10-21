@@ -14,6 +14,8 @@ export type ResultatRattachement = "ok" | "deja-rattache" | "sub-pris" | "introu
 
 /** « derniere-connexion » : ce serait la seule façon de se connecter (ni vrai mot de passe ni l'autre fournisseur) ;
  * « non-relie » : rien à délier chez ce fournisseur ; « introuvable » : le compte n'existe plus */
+export type ResultatReprise = "ok" | "confirme" | "sub-pris" | "introuvable";
+
 export type ResultatDeliement = "ok" | "derniere-connexion" | "non-relie" | "introuvable";
 
 export type ServicesComptesExternes = {
@@ -25,6 +27,7 @@ export type ServicesComptesExternes = {
    * n'est pas celui du compte)
    */
   rattacherSub: (compteId: number, fournisseur: FournisseurExterne, sub: string, maintenant: Date, confirmerEmail?: boolean) => Promise<ResultatRattachement>;
+  reprendreCompteNonConfirme: (compteId: number, fournisseur: FournisseurExterne, sub: string, maintenant: Date) => Promise<ResultatReprise>;
   /** Délie l'identifiant de ce fournisseur, d'un seul coup et seulement s'il reste une autre façon de se connecter */
   delierSub: (compteId: number, fournisseur: FournisseurExterne) => Promise<ResultatDeliement>;
   lireConnexions: (compteId: number) => Promise<ConnexionsCompte | null>;

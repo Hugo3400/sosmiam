@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -49,7 +50,7 @@ export default function PageCreateur() {
     return (
       <EcranReglage
         titre="Ce créateur s'est éclipsé"
-        sousTitre={`On ne trouve personne${pseudo ? ` qui s'appelle @${pseudo}` : ""} : le pseudo a peut-être changé, ou le lien s'est emmêlé les pinceaux.`}
+        sousTitre={`On ne trouve personne${estPseudoValide(pseudo) ? ` qui s'appelle @${pseudo}` : ""} : le pseudo a peut-être changé, ou le lien s'est emmêlé les pinceaux.`}
       >
         <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
       </EcranReglage>

@@ -136,7 +136,10 @@ export function creerControleursBande(d: Pick<DependancesSocialApp, "bande" | "r
     bloquer(oui: boolean) {
       return async (requete: Request, reponse: Response) => {
         const compteId = moi(reponse);
-        const autre = await lirePersonne(requete, d.relations, compteId, { memeSiBloque: true });
+        const idPublic = lireIdentifiantPublic(requete.params.personne);
+        if (!idPublic) throw new ChampInvalide("personne");
+        const autre = await d.relations.trouverCompte(idPublic, undefined);
+        if (autre === null) return reponse.json({ ok: true });
         if (autre === compteId) throw new ChampInvalide("personne");
         if (!oui) {
           await d.bande.debloquer(compteId, autre);

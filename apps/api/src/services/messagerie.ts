@@ -20,6 +20,7 @@ import { creerLieuxEnvoyes, type AssurerPrive } from "./lieux-envoyes.ts";
 import { creerLectureMessagerie, exigerChiffrement, lireTitre, type AccesConversation } from "./messagerie-lecture.ts";
 import { creerMediasMessagerie } from "./messagerie-medias.ts";
 import { creerMessagesMessagerie } from "./messagerie-messages.ts";
+import { creerMemoireSonsInvitations } from "./sorties-regles.ts";
 import {
   CONVERSATIONS_PAR_PAGE, MAX_INVITATIONS_LUES, MESSAGES_PAR_PAGE, type ContexteMessagerie, type LigneMembre, type RefusGroupe,
   type ServicesMessagerie,
@@ -36,10 +37,12 @@ class ClePrise extends Error {}
  * téléphone (décidé par Hugo le 14/10/2026 : comme une invitation à une sortie, hors anti-spam ; l'applicateur ne la fait
  * partir que si l'invité veut les notifications sociales)
  */
-const inviterDansLaCloche = (moi: number, conversationId: number, invites: readonly number[], prenom: string, titre: string | null): EffetSocial[] =>
+const inviterDansLaCloche = (
+  moi: number, conversationId: number, invites: readonly number[], prenom: string, titre: string | null, sonnent: ReadonlySet<number>,
+): EffetSocial[] =>
   invites.flatMap((compteId): EffetSocial[] => [
     { quoi: "cloche", notification: { compteId, type: "invitation-groupe", acteurId: moi, cible: { type: "conversation", id: String(conversationId) } } },
-    { quoi: "push", compteId, sorte: "invitation-groupe", message: ecrirePushGroupe({ prenom, titre }) },
+    ...(sonnent.has(compteId) ? [{ quoi: "push" as const, compteId, sorte: "invitation-groupe" as const, message: ecrirePushGroupe({ prenom, titre }) }] : []),
   ]);
 
 /** Le plus ancien membre (à égalité, le plus petit compte) */
@@ -51,6 +54,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
   const lecture = creerLectureMessagerie(c);
   const messages = creerMessagesMessagerie(c, lecture);
   const medias = creerMediasMessagerie(c, lecture, messages);
+  const sons = creerMemoireSonsInvitations();
 
   /** Membre d'un GROUPE (privé : conversation-inconnue ; sortie : geree-par-la-sortie), et admin si demandé */
   async function lireAccesGroupe(moi: number, conversationId: number, admin: boolean): Promise<{ acces: AccesConversation } | { refus: RefusGroupe }> {
@@ -169,7 +173,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       if (!conversation) return refus("conversation-inconnue");
       const retenus = new Set(issue.invites);
       const prenom = (await c.relations.presenter([moi])).get(moi)?.prenom ?? "Un pote";
-      return { ok: true, conversation, cree: true, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, issue.id, issue.invites, prenom, g.titre) };
+      return { ok: true, conversation, cree: true, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, issue.id, issue.invites, prenom, g.titre, sons.retenir(issue.id, issue.invites, maintenant)) };
     },
 
     async modifierGroupe(moi, conversationId, m, maintenant) {
@@ -217,7 +221,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const retenus = new Set(issue.nouveaux);
       const prenom = issue.nouveaux.length > 0 ? ((await c.relations.presenter([moi])).get(moi)?.prenom ?? "Un pote") : "";
       const titre = issue.nouveaux.length > 0 ? lireTitre(exigerChiffrement(c), g.acces.conversation) : null;
-      return { ok: true, conversation, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, conversationId, issue.nouveaux, prenom, titre) };
+      return { ok: true, conversation, ignores: candidats.filter((id) => !retenus.has(id)), effets: inviterDansLaCloche(moi, conversationId, issue.nouveaux, prenom, titre, sons.retenir(conversationId, issue.nouveaux, maintenant)) };
     },
 
     async repondreInvitation(moi, conversationId, rejoint, maintenant) {

@@ -38,7 +38,7 @@ export const LIMITE_SIGNALEMENTS_SOCIAUX = { fenetre: 24 * 60 * 60_000, maximum:
  * depuis moins de 183 jours : signalementsGardantLeurFichier). Ce qu'on a signalé reste caché pour soi tant que le
  * signalement existe (1 an après la décision).
  */
-export function creerRoutesSignalementsSociaux(d: Pick<DependancesSocialApp, "signalements" | "chiffrement">, contexte: ContexteRoutesSociales) {
+export function creerRoutesSignalementsSociaux(d: Pick<DependancesSocialApp, "signalements" | "chiffrement" | "estLimite">, contexte: ContexteRoutesSociales) {
   const c = creerControleursSignalementsSociaux(d, contexte.horloge, contexte.appliquer);
   const { lireProfilSocial } = contexte.profils;
   const routes = Router();

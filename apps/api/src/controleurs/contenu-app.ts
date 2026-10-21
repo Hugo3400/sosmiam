@@ -98,10 +98,10 @@ export function creerControleursContenuApp({ lieux, publications, dossierMedias,
     async lireMedia(requete: Request, reponse: Response) {
       const fichier = String(requete.params.fichier);
       const media = await publications!.lireMedia(fichier, maintenant());
-      if (!media) return reponse.status(404).json({ ok: false, erreur: "media-inconnu" });
+      if (!media) return reponse.status(404).set("Cache-Control", "no-store").json({ ok: false, erreur: "media-inconnu" });
       // Cache court : une publication suspendue ne doit pas rester servie longtemps (Cloudflare garde aussi les fichiers)
       reponse.sendFile(join(dossierMedias, fichier), { headers: { "Content-Type": media.typeMime, "Cache-Control": "public, max-age=300" } }, (erreur) => {
-        if (erreur && !reponse.headersSent) reponse.status(404).json({ ok: false, erreur: "media-inconnu" });
+        if (erreur && !reponse.headersSent) reponse.status(404).set("Cache-Control", "no-store").json({ ok: false, erreur: "media-inconnu" });
       });
     },
   };

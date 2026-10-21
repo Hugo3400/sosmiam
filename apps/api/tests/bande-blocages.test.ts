@@ -88,7 +88,8 @@ test("bloquer coupe tout dans les deux sens, et sort le bloqué des sorties que 
 
   const sansPseudo = await banc.creerPersonne({ sansPseudo: true });
   assert.equal((await sansPseudo.demander("PUT", `/app/blocages/${moi.idPublic}`)).statut, 200, "pas besoin de pseudo pour bloquer");
-  assert.equal((await moi.demander("PUT", "/app/blocages/zzzzzzzzzz")).corps.erreur, "personne-inconnue");
+  assert.deepEqual((await moi.demander("PUT", "/app/blocages/zzzzzzzzzz")).corps, { ok: true }, "inconnu : 200, comme qui nous a bloqués");
+  assert.deepEqual((await moi.demander("DELETE", "/app/blocages/zzzzzzzzzz")).corps, { ok: true });
   assert.equal((await moi.demander("PUT", `/app/blocages/${moi.idPublic}`)).corps.champ, "personne");
   const collectionneur = await banc.creerPersonne();
   for (let i = 0; i < 1000; i++) banc.tables.blocages.push({ bloqueurId: collectionneur.compteId, bloqueId: 700_000 + i, creeLe: date() });

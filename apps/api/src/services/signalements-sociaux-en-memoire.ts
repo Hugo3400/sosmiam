@@ -182,13 +182,13 @@ export function creerSignalementsSociauxEnMemoire(tables: TablesSociales, relati
   const miens = (compteId: number, cible: string) =>
     [...tables.signalements.values()].filter((s) => s.signaleParId === compteId && s.cible === cible && s.source === "app").sort((a, b) => b.id - a.id);
   return {
-    async signaler(compteId, s, maintenant) {
+    async signaler(compteId, s, maintenant, peutMasquer = true) {
       if (!chiffrement) throw new Error("Signalement social sans clé des données");
       if (miens(compteId, s.cible).some((x) => x.cibleId === s.cibleId)) return { ok: true, deja: true, masquePourTous: false, effets: [] };
       const lu = await lireContenuSignaleEnMemoire(tables, { chiffrement, relations, voitLaSortieMiamis }, compteId, s.cible, s.cibleId, maintenant);
       if (!lu || lu.auteurContenuId === compteId) return { ok: false, erreur: "contenu-inconnu" };
       let masquer = false;
-      if (CIBLES_AVEC_MASQUAGE_IMMEDIAT.includes(s.cible) && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(s.raison)) {
+      if (peutMasquer && CIBLES_AVEC_MASQUAGE_IMMEDIAT.includes(s.cible) && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(s.raison)) {
         const compte = tables.comptes.get(compteId);
         masquer = !!compte && peutMasquerToutDeSuite(
           { emailVerifie: compte.emailVerifieLe !== null, creeLe: new Date(compte.creeLe) }, compterRejetsEnMemoire(tables, s.cible, s.cibleId) > 0, maintenant,

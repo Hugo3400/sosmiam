@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 import { lireLienInvitation } from "@sos-miam/commun/fonctions/potes/lire-lien-invitation";
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { Bouton } from "~/composants/interface/Bouton";
+import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { CodeQrInvitation } from "~/composants/potes/CodeQrInvitation";
 import { RecherchePseudo } from "~/composants/potes/RecherchePseudo";
@@ -36,10 +37,14 @@ export default function AjouterPote() {
   // Ouvert par un lien d'invitation (sosmiam.fr/invitation/…) : on l'ajoute tout de suite, comme un lien collé
   const { lien } = useLocalSearchParams<{ lien?: string }>();
   const lienTraite = useRef(false);
+  const [aConfirmer, setAConfirmer] = useState<{ lien: string; pseudo: string; avecCode: boolean } | null>(null);
   useEffect(() => {
     if (!lien || lienTraite.current || !communaute.pret) return;
     lienTraite.current = true;
-    void ajouterDepuis(lien, "champ");
+    const invitation = lireLienInvitation(lien);
+    const pseudo = invitation?.pseudo ?? lirePseudoSeul(lien);
+    if (!pseudo) return void ajouterDepuis(lien, "champ");
+    setAConfirmer({ lien, pseudo, avecCode: Boolean(invitation?.code) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lien, communaute.pret]);
 
@@ -138,6 +143,23 @@ export default function AjouterPote() {
           <RecherchePseudo />
         </View>
       </SectionReglages>
+      <FeuilleConfirmation
+        visible={aConfirmer !== null}
+        emoji="🤝"
+        titre={aConfirmer?.avecCode ? `Rejoindre la bande de @${aConfirmer.pseudo} ?` : `Demander @${aConfirmer?.pseudo ?? ""} en pote ?`}
+        detail={
+          aConfirmer?.avecCode
+            ? "Ce lien vient de l'extérieur de l'app. Dans une bande, vous voyez chacun la ville, les points et les lieux gardés de l'autre : rejoins seulement quelqu'un que tu connais."
+            : "Ce lien vient de l'extérieur de l'app. Une demande partira : cette personne pourra l'accepter ou non."
+        }
+        libelleConfirmer={aConfirmer?.avecCode ? "Rejoindre sa bande" : "Envoyer la demande"}
+        libelleRester="Non merci"
+        indiceRester="Rien ne part, tu restes sur cet écran"
+        onConfirmer={() => {
+          if (aConfirmer) void ajouterDepuis(aConfirmer.lien, "champ");
+        }}
+        onFermer={() => setAConfirmer(null)}
+      />
     </EcranReglage>
   );
 }

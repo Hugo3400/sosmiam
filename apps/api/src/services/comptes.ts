@@ -295,11 +295,15 @@ export async function trouverCompteParJeton(empreinteJeton: string, maintenant: 
  * s'il est encore celui du compte et valable : il ne sert qu'une fois, même avec deux envois en même temps.
  */
 export async function reinitialiserMotDePasse(id: number, empreinteJeton: string, empreinte: string, maintenant: Date): Promise<boolean> {
-  const { count } = await baseDeDonnees.compte.updateMany({
-    where: { id, jetonReinitialisation: empreinteJeton, jetonExpireLe: { gt: maintenant } },
-    data: { motDePasse: empreinte, jetonReinitialisation: null, jetonExpireLe: null },
+  return baseDeDonnees.$transaction(async (transaction) => {
+    const { count } = await transaction.compte.updateMany({
+      where: { id, jetonReinitialisation: empreinteJeton, jetonExpireLe: { gt: maintenant } },
+      data: { motDePasse: empreinte, jetonReinitialisation: null, jetonExpireLe: null },
+    });
+    if (count !== 1) return false;
+    await transaction.compte.updateMany({ where: { id, emailVerifieLe: null }, data: { appleSub: null, googleSub: null, emailVerifieLe: maintenant } });
+    return true;
   });
-  return count === 1;
 }
 
 /**

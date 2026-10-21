@@ -141,6 +141,9 @@ test("Google : e-mail vérifié d'un compte du site → ce compte reçoit le sub
     corps: { email: "lea@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Léa", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true },
   });
   assert.equal(site.statut, 201);
+  const compteSite = trouver("lea@exemple.fr");
+  assert.ok(compteSite);
+  compteSite.emailVerifieLe = banc.horloge;
   const nombre = memoire.comptes.size;
   const lie = await viaGoogle("google-lea", "Lea@Exemple.fr");
   assert.equal(lie.statut, 200);
@@ -192,6 +195,9 @@ test("supprimer un compte sans vrai mot de passe : nouveau jeton du même compte
   const site = await demander("POST", "/comptes", {
     corps: { email: "mdp@exemple.fr", motDePasse: "mon chat adore les croissants", prenom: "Mo", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true },
   });
+  const compteMdp = trouver("mdp@exemple.fr");
+  assert.ok(compteMdp);
+  compteMdp.emailVerifieLe = banc.horloge;
   await viaApple("apple-mdp", "mdp@exemple.fr");
   const parJeton = await demander("DELETE", "/comptes/moi", { jeton: site.corps.session, corps: { identityToken: apple.jeton("apple-mdp", null, NONCE), nonce: NONCE } });
   assert.deepEqual([parJeton.statut, parJeton.corps.erreur], [403, "mot-de-passe-incorrect"]);
@@ -217,4 +223,36 @@ test("pannes et réglages : clés injoignables → 503 verification-indisponible
   const statuts: number[] = [];
   for (let i = 0; i < 21; i++) statuts.push((await demander("POST", "/comptes/google", { corps: { idToken: "x.y.z" }, ip: "198.51.100.77" })).statut);
   assert.deepEqual([statuts.slice(0, 20).every((statut) => statut === 401), statuts[20]], [true, 429]);
+});
+
+test("e-mail jamais confirmé : Apple ou Google reprend le compte (mot de passe retiré, autre identité déliée, sessions fermées)", async () => {
+  const email = "victime@gmail.com";
+  const motDePasse = "le mot de passe du pirate 2026";
+  const pirate = await demander("POST", "/comptes", { corps: { email, motDePasse, prenom: "Pirate", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true } });
+  assert.equal(pirate.statut, 201);
+  assert.equal(pirate.corps.compte.emailVerifie, false);
+  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate", "pirate@icloud.com", NONCE), nonce: NONCE } })).statut, 200);
+  const victime = await viaGoogle("google-victime", email);
+  assert.deepEqual([victime.statut, victime.corps.rattache, victime.corps.compte.emailVerifie], [200, true, true]);
+  assert.equal((await demander("GET", "/comptes/session", { jeton: pirate.corps.session })).statut, 401);
+  assert.equal((await demander("POST", "/comptes/session", { corps: { email, motDePasse } })).statut, 401);
+  assert.equal((await viaApple("apple-pirate", "pirate@icloud.com")).statut, 409);
+  const garde = trouver(email);
+  assert.deepEqual([garde?.googleSub, garde?.appleSub ?? null], ["google-victime", null]);
+  assert.match(garde?.motDePasse ?? "", /^aucun\$/);
+  assert.equal((await demander("GET", "/comptes/session", { jeton: victime.corps.session })).statut, 200);
+});
+
+test("e-mail jamais confirmé : le lien « mot de passe oublié » délie Apple et Google et confirme l'e-mail", async () => {
+  const email = "victime2@gmail.com";
+  const pirate = await demander("POST", "/comptes", { corps: { email, motDePasse: "le mot de passe du pirate 2026", prenom: "Pirate", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true } });
+  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate-2", "pirate2@icloud.com", NONCE), nonce: NONCE } })).statut, 200);
+  const garde = trouver(email);
+  assert.ok(garde);
+  const lien = memoire.preparerReinitialisation(garde.id);
+  assert.deepEqual((await demander("POST", "/comptes/nouveau-mot-de-passe", { corps: { jeton: lien, motDePasse: "le vrai mot de passe de la victime" } })).corps, { ok: true });
+  assert.deepEqual([garde.appleSub, garde.googleSub ?? null, garde.emailVerifieLe !== null], [null, null, true]);
+  const apresApple = await viaApple("apple-pirate-2", "pirate2@icloud.com");
+  assert.notEqual(apresApple.corps.compte?.email, email);
+  assert.equal((await demander("POST", "/comptes/session", { corps: { email, motDePasse: "le vrai mot de passe de la victime" } })).statut, 201);
 });

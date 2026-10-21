@@ -30,7 +30,7 @@ async function verrouillerCompteQuiSignale(tx: Pick<Prisma.TransactionClient, "$
 export function creerSignalementsSociaux(o: { relations: RelationsSociales; chiffrement: ChiffrementSocial | null; voitLaSortieMiamis?: VoirSortieMiamis }, base = baseDeDonnees): ServicesSignalementsSociaux {
   const { relations } = o;
   return {
-    async signaler(compteId, s, maintenant) {
+    async signaler(compteId, s, maintenant, peutMasquer = true) {
       // La route est 🔐 (503 sans clé) : l'instantané ne s'écrit jamais en clair
       const chiffrement = o.chiffrement;
       if (!chiffrement) throw new Error("Signalement social sans clé des données");
@@ -44,7 +44,7 @@ export function creerSignalementsSociaux(o: { relations: RelationsSociales; chif
         // Son propre contenu ne se signale pas (on le supprime) : même réponse qu'un contenu invisible
         if (!lu || lu.auteurContenuId === compteId) return { ok: false as const, erreur: "contenu-inconnu" as const };
         let masquer = false;
-        if (CIBLES_AVEC_MASQUAGE_IMMEDIAT.includes(s.cible) && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(s.raison)) {
+        if (peutMasquer && CIBLES_AVEC_MASQUAGE_IMMEDIAT.includes(s.cible) && RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(s.raison)) {
           const [signaleur, rejets] = await Promise.all([
             tx.compte.findUnique({ where: { id: compteId }, select: { emailVerifieLe: true, creeLe: true } }),
             compterRejets(tx, s.cible, s.cibleId),

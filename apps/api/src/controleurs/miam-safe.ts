@@ -2,6 +2,7 @@
 // (alertes, « On arrive », charte). Contrat : routes/miam-safe.ts.
 import type { Request, Response } from "express";
 
+import { contientMotInterdit } from "../../../../packages/commun/src/validation/contient-mot-interdit.ts";
 import { nettoyerLigne } from "../fonctions/comptes/nettoyer-ligne.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import { lireIdentifiant, type AccesPro } from "../middlewares/proteger-pro.ts";
@@ -63,10 +64,11 @@ export function creerControleursMiamSafe({ services, prevenirEquipe }: Dependanc
     async envoyerAlerte(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       const { id: compteId, prenom } = compte(reponse);
+      const detail = lireTexteLibre(corps, "detail", DETAIL_MAX, true);
       const alerte: NouvelleAlerte = {
         lieuId: lireLieuId(corps), compteId, prenom,
         endroit: lireChoixParmi<EndroitAlerte>(corps, "endroit", ENDROITS_ALERTE),
-        detail: lireTexteLibre(corps, "detail", DETAIL_MAX, true),
+        detail: contientMotInterdit(detail) ? "" : detail,
       };
       const resultat = await services.creerAlerte(alerte, maintenant());
       if (!resultat.ok) return reponse.status(resultat.erreur === "lieu-inconnu" ? 404 : 409).json({ ok: false, erreur: resultat.erreur });

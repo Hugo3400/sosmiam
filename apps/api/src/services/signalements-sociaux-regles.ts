@@ -32,7 +32,7 @@ export interface ServicesSignalementsSociaux {
    * sinon contenu-inconnu. Un signalement par personne et par contenu (sous le verrou de son compte) : deja. Trouve
    * auteurContenuId ; écrit l'instantané et fichierMedia dans la même transaction ; jamais d'ElementMasque.
    */
-  signaler(compteId: number, s: SignalementSocialValide, maintenant: Date): Promise<
+  signaler(compteId: number, s: SignalementSocialValide, maintenant: Date, peutMasquer?: boolean): Promise<
     { ok: true; deja: boolean; masquePourTous: boolean; effets: EffetSocial[] } | { ok: false; erreur: "contenu-inconnu" }>;
   /** Les cibleId que j'ai signalés (commentaire, message ou liste), 500 au plus, les plus récents d'abord : cachés pour moi */
   listerMiens(compteId: number, cible: CibleCacheeSiSignalee): Promise<string[]>;

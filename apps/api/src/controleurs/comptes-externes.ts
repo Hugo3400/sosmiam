@@ -136,9 +136,15 @@ export function creerControleursComptesExternes(contexte: ContexteComptes) {
     // Même e-mail, vérifié par Apple ou Google : c'est la même personne, le compte reste unique
     const existant = identite.email !== null && identite.emailVerifie ? await services.trouverCompteParEmail(identite.email) : null;
     if (existant) {
-      const resultat = await externes.services.rattacherSub(existant.id, identite.fournisseur, identite.sub, new Date(horloge()));
-      if (resultat === "deja-rattache") return reponse.status(409).json({ ok: false, erreur: "compte-deja-rattache" });
-      if (resultat !== "ok") return "recommencer" as const;
+      const maintenant = new Date(horloge());
+      const repris = await externes.services.reprendreCompteNonConfirme(existant.id, identite.fournisseur, identite.sub, maintenant);
+      if (repris === "ok") await protection.fermerSessionsDuCompte(existant.id);
+      else if (repris !== "confirme") return "recommencer" as const;
+      else {
+        const resultat = await externes.services.rattacherSub(existant.id, identite.fournisseur, identite.sub, maintenant);
+        if (resultat === "deja-rattache") return reponse.status(409).json({ ok: false, erreur: "compte-deja-rattache" });
+        if (resultat !== "ok") return "recommencer" as const;
+      }
       // L'e-mail est prouvé : l'attente de la connexion par mot de passe repart de zéro
       attente.oublier(identite.email ?? "");
       return repondreSession(reponse, existant.id, support, 200, true);

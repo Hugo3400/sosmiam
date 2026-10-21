@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Text, View } from "react-native";
 
+import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -29,7 +30,7 @@ export default function OuvrirInvitation() {
 
   if (profil) return null;
   return (
-    <EcranReglage titre={`@${pseudo} t'invite dans sa bande !`} sousTitre="Pour la rejoindre, il te faut un compte SOS Miam (gratuit, une minute).">
+    <EcranReglage titre={estPseudoValide(pseudo) ? `@${pseudo} t'invite dans sa bande !` : "Une invitation t'attend !"} sousTitre="Pour la rejoindre, il te faut un compte SOS Miam (gratuit, une minute).">
       <View className="items-center gap-4 py-4">
         <Mascotte expression="clin" taille={120} />
         <Text className="text-center font-texte text-base leading-6 text-gris">

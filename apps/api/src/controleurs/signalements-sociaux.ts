@@ -13,14 +13,16 @@ import { refuserSocial } from "./social-champs.ts";
 /** Statut HTTP des refus métier de ce contrôleur */
 const ERREURS: Readonly<Record<string, number>> = { "signalement-invalide": 400, "contenu-inconnu": 404 };
 
-export function creerControleursSignalementsSociaux(d: Pick<DependancesSocialApp, "signalements">, horloge: () => number, appliquer: AppliquerEffetsSociaux) {
+export function creerControleursSignalementsSociaux(d: Pick<DependancesSocialApp, "signalements" | "estLimite">, horloge: () => number, appliquer: AppliquerEffetsSociaux) {
   const moi = (reponse: Response) => lireProfilSocialPose(reponse).compteId;
   return {
     /** POST /app/signalements { cible, cibleId, raison, precision, explication } */
     async signaler(requete: Request, reponse: Response) {
       const signalement = validerSignalementContenu(requete.body);
       if (!signalement) throw refuserSocial("signalement-invalide", ERREURS);
-      const r = await d.signalements.signaler(moi(reponse), signalement, new Date(horloge()));
+      const maintenant = new Date(horloge());
+      const limite = d.estLimite ? await d.estLimite(moi(reponse), maintenant) : null;
+      const r = await d.signalements.signaler(moi(reponse), signalement, maintenant, limite === null);
       if (!r.ok) throw refuserSocial(r.erreur, ERREURS);
       if (r.deja) return void reponse.json({ ok: true, deja: true });
       await appliquer(r.effets);

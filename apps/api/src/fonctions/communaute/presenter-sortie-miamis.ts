@@ -35,6 +35,7 @@ export function presenterSortieMiamis(v: VueSortieMiamis): SortieMiamisApi | nul
   if (!organisateur) return null;
   const mienne = v.participations.find((p) => p.compteId === moi) ?? null;
   const jeSuisOrganisateur = ligne.organisateurId === moi;
+  const voitLesPresences = jeSuisOrganisateur || mienne?.statut === "accepte";
   const visible = (p: LigneParticipationMiamis) => p.compteId === moi || (!v.caches.has(p.compteId) && v.personnes.has(p.compteId));
   const avecStatut = (statut: string) => v.participations.filter((p) => p.statut === statut).sort(ordre);
   const dedans = [...avecStatut("organise"), ...avecStatut("accepte")];
@@ -61,7 +62,7 @@ export function presenterSortieMiamis(v: VueSortieMiamis): SortieMiamisApi | nul
       habitue: p.habitue,
       dansTaBande: v.potes.has(p.compteId),
       nouveau: v.nouveaux.has(p.compteId),
-      present: p.presentLe !== null,
+      present: voitLesPresences && p.presentLe !== null,
     })),
     nombreEnAttente: attente.length,
     listeAttente: jeSuisOrganisateur ? attente.filter(visible).map((p) => v.personnes.get(p.compteId)!) : [],

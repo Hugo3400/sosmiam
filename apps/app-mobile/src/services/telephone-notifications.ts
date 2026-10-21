@@ -49,9 +49,8 @@ export function creerTelephoneNotifications(o: OutilsTelephone) {
       await choisir(deduireChoixTelephone(reglages.actives, reglages.types.offre));
     },
     async effacerReglages() {
-      const avant = await lireReglagesNotifications();
       await effacerReglagesNotifications();
-      void choisir(deduireChoixTelephone(avant.actives, false)).catch(() => undefined);
+      void choisir("couper").catch(() => undefined);
     },
   };
 }

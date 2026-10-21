@@ -1,0 +1,55 @@
+### temporaire/ (premier niveau)
+total 488
+drwxr-xr-x  8 root root   4096 21 oct.  23:13 .
+drwxr-xr-x 12 root root   4096 21 oct.  23:17 ..
+drwxr-xr-x  3 root root   4096 21 oct.  22:46 captures
+-rw-------  1 root root    165 14 oct.  21:01 compte-revue-stores.txt
+-rw-r--r--  1 root root 221740 14 oct.  21:28 data_safety_sample.csv
+-rw-r--r--  1 root root 222091 14 oct.  22:08 data_safety_sosmiam.csv
+-rw-r--r--  1 root root  11963 15 oct.  13:07 demande-alertes-critiques-apple.md
+drwxr-xr-x  2 root root   4096 21 oct.  22:45 detecteur-mise-a-jour
+drwxr-xr-x  2 root root   4096 21 oct.  22:49 outils
+drwxr-xr-x  3 root root   4096 21 oct.  23:11 reservations-v2-api-21-10
+drwxr-xr-x  7 root root   4096 21 oct.  23:15 securite
+drwxr-xr-x  2 root root   4096 21 oct.  15:16 workflows
+### noms évoquant un secret, lisibles par tous (hors node_modules)
+-rw-r--r-- root:root 656 /var/www/sos-miam/apps/app-mobile/google-services.json
+-rw-r--r-- root:root 16729 /var/www/sos-miam/apps/api/tests/mots-de-passe.test.ts
+-rw-r--r-- root:root 2160 /var/www/sos-miam/temporaire/securite/serveur/07-droits-secrets.txt
+-rw-r--r-- root:root 8293 /var/www/sos-miam/apps/api/prisma/migrations/20261014180739_ajouter-sorties-et-listes/migration.sql
+-rw-r--r-- root:root 732 /var/www/sos-miam/apps/api/prisma/migrations/20261015164505_ajouter-annonces-app/migration.sql
+-rw-r--r-- root:root 256 /var/www/sos-miam/apps/api/prisma/migrations/20261009002716_ajouter-motifs-moderation/migration.sql
+-rw-r--r-- root:root 1539 /var/www/sos-miam/apps/api/prisma/migrations/20261014215034_ajouter-partage-position-miam-safe/migration.sql
+-rw-r--r-- root:root 1118 /var/www/sos-miam/apps/api/prisma/migrations/20261009121002_ajouter-suggestions-lieux/migration.sql
+-rw-r--r-- root:root 3124 /var/www/sos-miam/apps/api/prisma/migrations/20261014180914_ajouter-commentaires/migration.sql
+-rw-r--r-- root:root 951 /var/www/sos-miam/apps/api/prisma/migrations/20261015102206_ajouter-limitations-comptes/migration.sql
+-rw-r--r-- root:root 436 /var/www/sos-miam/apps/api/prisma/migrations/20261009010703_ajouter-reponses-types/migration.sql
+-rw-r--r-- root:root 1515 /var/www/sos-miam/apps/api/prisma/migrations/20261008205808_ajouter-big-sos/migration.sql
+-rw-r--r-- root:root 411 /var/www/sos-miam/apps/api/prisma/migrations/20261009164048_ajouter-profil-app/migration.sql
+-rw-r--r-- root:root 146 /var/www/sos-miam/apps/api/prisma/migrations/20261008153834_ajouter-telephone-beta-inscriptions/migration.sql
+-rw-r--r-- root:root 13781 /var/www/sos-miam/apps/api/prisma/migrations/20261009170852_ajouter-activite-visites-fidelite/migration.sql
+-rw-r--r-- root:root 8215 /var/www/sos-miam/apps/api/prisma/migrations/20261021161822_ajouter-carriere/migration.sql
+-rw-r--r-- root:root 3294 /var/www/sos-miam/apps/api/prisma/migrations/20261014154550_ajouter-defis-et-presence-missions/migration.sql
+-rw-r--r-- root:root 2759 /var/www/sos-miam/apps/api/prisma/migrations/20261008210339_ajouter-notifications-push/migration.sql
+-rw-r--r-- root:root 573 /var/www/sos-miam/apps/api/prisma/migrations/20261008171358_statistiques-detaillees/migration.sql
+-rw-r--r-- root:root 4948 /var/www/sos-miam/apps/api/prisma/migrations/20261008180232_ajouter-comptes-ambassadeurs/migration.sql
+-rw-r--r-- root:root 491 /var/www/sos-miam/apps/api/prisma/migrations/20261014192054_relancer-connexion-qr/migration.sql
+-rw-r--r-- root:root 448 /var/www/sos-miam/apps/api/prisma/migrations/20261008170422_garder-sessions-gestion/migration.sql
+-rw-r--r-- root:root 8094 /var/www/sos-miam/apps/api/prisma/migrations/20261014180240_ajouter-potes-et-suivis/migration.sql
+-rw-r--r-- root:root 159 /var/www/sos-miam/apps/api/prisma/migrations/20261014225212_retirer-position-en-clair-miam-safe/migration.sql
+-rw-r--r-- root:root 1218 /var/www/sos-miam/apps/api/prisma/migrations/20261009132211_ajouter-rattachements-lieux/migration.sql
+-rw-r--r-- root:root 97 /var/www/sos-miam/apps/api/prisma/migrations/20261014215448_chiffrer-position-miam-safe/migration.sql
+-rw-r--r-- root:root 6775 /var/www/sos-miam/apps/api/prisma/migrations/20261014180604_ajouter-messagerie/migration.sql
+-rw-r--r-- root:root 302 /var/www/sos-miam/apps/api/prisma/migrations/20261009110411_ajouter-verification-email/migration.sql
+-rw-r--r-- root:root 179 /var/www/sos-miam/apps/api/prisma/migrations/20261008193851_ajouter-public-campagnes/migration.sql
+-rw-r--r-- root:root 1258 /var/www/sos-miam/apps/api/prisma/migrations/20261014182012_ajouter-connexion-qr/migration.sql
+-rw-r--r-- root:root 843 /var/www/sos-miam/apps/api/prisma/migrations/20261014211738_reserver-pseudos/migration.sql
+-rw-r--r-- root:root 267 /var/www/sos-miam/apps/api/prisma/migrations/20261008153254_aligner-signalements/migration.sql
+-rw-r--r-- root:root 118 /var/www/sos-miam/apps/api/prisma/migrations/20261014224608_ajouter-avec-position-miam-safe/migration.sql
+-rw-r--r-- root:root 172 /var/www/sos-miam/apps/api/prisma/migrations/20261015164948_ajouter-photo-profil/migration.sql
+-rw-r--r-- root:root 344 /var/www/sos-miam/apps/api/prisma/migrations/20261009121819_ajouter-infos-pratiques-lieux/migration.sql
+-rw-r--r-- root:root 563 /var/www/sos-miam/apps/api/prisma/migrations/20261008150600_creer-inscriptions-newsletter/migration.sql
+-rw-r--r-- root:root 5133 /var/www/sos-miam/apps/api/prisma/migrations/20261008152647_ajouter-gestion-et-statistiques/migration.sql
+-rw-r--r-- root:root 3910 /var/www/sos-miam/apps/api/prisma/migrations/20261009150000_ajouter-miam-safe/migration.sql
+-rw-r--r-- root:root 148 /var/www/sos-miam/apps/api/prisma/migrations/20261015165805_accepter-offres-push/migration.sql
+-rw-r--r-- root:root 824 /var/www/sos-miam/apps/api/prisma/migrations/20261015204001_reservations-services-capacite/migration.sql

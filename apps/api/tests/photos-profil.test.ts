@@ -122,19 +122,19 @@ test("profil : l'avatar « photo:… » renvoyé tel quel ne change rien ; un em
   assert.deepEqual(faux.corps, { ok: false, erreur: "champ-invalide", champ: "avatar" });
 });
 
-test("lecture : seulement la photo actuelle, en JPEG, cache public immuable, nosniff ; 404 sinon, jamais la liste", async () => {
+test("lecture : seulement la photo actuelle, en JPEG, cache privé d'une heure (jamais chez Cloudflare), nosniff ; 404 sinon, jamais la liste", async () => {
   const zoe = await b.inscrire();
   const nom = nomDe(await envoyer(zoe.jeton));
   const r = await lire(nom);
   assert.equal(r.statut, 200);
   assert.equal(r.entetes.get("content-type"), "image/jpeg");
-  assert.equal(r.entetes.get("cache-control"), "public, max-age=31536000, immutable");
+  assert.equal(r.entetes.get("cache-control"), "private, max-age=3600");
   assert.equal(r.entetes.get("x-content-type-options"), "nosniff");
   assert.deepEqual(r.octets, b.stockage.fichiers.get(nom)!.octets);
   for (const chemin of [NOM_INCONNU, nom.toUpperCase(), `..%2F${nom}`, nom.replace(".jpg", ".json"), `${nom}.json`]) {
     const refus = await lire(chemin);
     assert.equal(refus.statut, 404, chemin);
-    assert.notEqual(refus.entetes.get("cache-control"), "public, max-age=31536000, immutable");
+    assert.notEqual(refus.entetes.get("cache-control"), "private, max-age=3600");
   }
   const dossier = await b.demander("GET", "/app/medias/profils/");
   assert.equal(dossier.statut, 404);

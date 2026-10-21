@@ -204,6 +204,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       const lien = compte?.reinitialisation;
       if (!compte || !lien || lien.empreinte !== empreinteJeton || lien.expireLe <= maintenant.getTime()) return false;
       Object.assign(compte, { motDePasse: empreinte, reinitialisation: null });
+      if (compte.emailVerifieLe === null) Object.assign(compte, { appleSub: null, googleSub: null, emailVerifieLe: maintenant.getTime() });
       return true;
     },
     async preparerReinitialisation(id) {
