@@ -167,6 +167,9 @@ const ECRITURES_PERMISES_HORS_SOCIAL = new Map<string, string>([
   ["POST /pro/comptoir/reservations/:reservationId/annuler", "annuler une réservation acceptée (motif d'une liste fermée)"],
   ["POST /pro/comptoir/reservations/:reservationId/venu", "le client est arrivé : sa visite se valide"],
   ["POST /pro/comptoir/reservations/:reservationId/absent", "« Pas venu »"],
+  ["PUT /pro/comptoir/lieux/:id/reservations/reglages", "régler les services, l'acceptation et le délai des réservations, sans texte libre"],
+  ["PUT /pro/comptoir/lieux/:id/reservations/jours-fermes/:jour", "fermer un jour à la réservation, sans texte libre"],
+  ["DELETE /pro/comptoir/lieux/:id/reservations/jours-fermes/:jour", "rouvrir un jour à la réservation"],
   ["POST /app/reservations/:id/annuler", "annuler sa réservation"],
   ["POST /app/reservations/:id/presence", "« Je suis là » : une visite"],
 ]);

@@ -90,12 +90,12 @@ export function creerReservationsClient(c: ContexteVisites) {
         const maintenant = o.maintenant();
         await t.verrouillerCompte(compteId);
         await t.expirerReservations(maintenant, { compteId });
-        await t.verrouillerLieu(demande.lieuId);
         const lieu = await t.lireLieu(demande.lieuId, maintenant);
         if (!lieu) return o.echec("introuvable");
         const visiteur = await o.lireVisiteur(t, compteId);
         const refus = outils.verifierLieu(lieu, visiteur) ?? o.verifierEmail(visiteur);
         if (refus) return refus;
+        await t.verrouillerLieu(lieu.id);
         const { reglages, occupees } = await outils.lireCapacite(t, lieu.id, typeof demande.jour === "string" ? demande.jour : "", maintenant);
         const erreur = validerDemandeReservation(demande, lieu.ouverture, maintenant, { reglages, occupees });
         if (erreur) return o.echec(erreur);

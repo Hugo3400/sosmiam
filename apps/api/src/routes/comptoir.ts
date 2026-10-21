@@ -39,7 +39,8 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  *   limitation n'y passe après le rôle que quand la demande éteint (actif: false) ; avec actif: true, elle passe avant,
  *   comme sur la route (un membre limité de l'équipe reçoit alors compte-limite, pas role-requis).
  * Les autres membres de l'équipe, non limités, publient et retirent toujours. Restent permis : lire, le QR, régler, refuser
- * ou annuler une visite, offrir une récompense, répondre à une réservation.
+ * ou annuler une visite, offrir une récompense, répondre à une réservation, régler les réservations du lieu et fermer ou
+ * rouvrir un jour (sans texte libre).
  *
  * GET    /pro/comptoir/lieux                     → 200 { ok, lieux: LieuGere[] } (rattachements validés)
  * GET    /pro/comptoir/lieux/:id                 → 200 { ok, etat }
@@ -110,19 +111,28 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  *
  * Réservations faites dans l'app (gérant ET équipe ; le lieu est relu sur la réservation, jamais pris dans la demande).
  * Réponse des gestes : 200 { ok, reservation: ReservationPro } (types/reservation.ts : prénom, initiale, emoji, personnes,
- * créneau, petit mot, statut, presence (« Je suis là » fait), code d'arrivée une fois acceptée ; jamais l'âge) ; 400
- * champ-invalide { champ: id | reservationId } ; 403 role-requis ; 404 introuvable (réservation inconnue). Accepter, refuser
- * et annuler préviennent le client sur son téléphone (une fois, jamais le membre de l'équipe qui répond).
+ * créneau, propositions (les horaires du client dans son ordre, avec les places restantes pour une demande), automatique
+ * (acceptée toute seule), limiteReponse (ISO, pour une demande), petit mot, statut, presence (« Je suis là » fait), code
+ * d'arrivée une fois acceptée ; jamais l'âge) ; 400 champ-invalide { champ: id | reservationId } ; 403 role-requis ; 404
+ * introuvable (réservation inconnue). Accepter, refuser et annuler préviennent le client sur son téléphone (une fois, jamais
+ * le membre de l'équipe qui répond). Chaque nouvelle table (demande à traiter, ou acceptée toute seule) prévient l'équipe du
+ * lieu sur ses téléphones (membres validés, lien « /pro/reservations », message sanitaire pour un bar ou un nom qui parle
+ * d'alcool). Sans réponse, une demande expire 30 min avant le plus tôt de ses horaires (10 min pour un lieu qui répond à la
+ * main avec 30 min de délai). Verrous d'un geste : le compte du client, la réservation (FOR UPDATE), l'expiration, puis le
+ * lieu (FOR NO KEY UPDATE) pour accepter ; l'acceptation ne s'écrit que si la réservation est encore « demandee ».
  * GET    /pro/comptoir/lieux/:id/reservations    → 200 { ok, reservations: ReservationPro[] } : depuis minuit (heure de Paris),
  *          ou depuis 4 h si c'est plus tôt (après minuit, la soirée reste visible), et à venir ; tous statuts, créneau
  *          croissant, 300 au plus
- * POST   /pro/comptoir/reservations/:reservationId/accepter → statut « acceptee », code d'arrivée à 4 chiffres (jamais celui
- *          d'une addition, d'une récompense ou d'une autre table attendue chez le lieu) · 409 delai-depasse (sans réponse
- *          jusqu'à 30 min du créneau : expirée) | transition-interdite
+ * POST   /pro/comptoir/reservations/:reservationId/accepter { creneau?: ISO | null (un des horaires du client ; null ou absent :
+ *          le premier qui a de la place, sinon le premier), depasser?: boolean } → statut « acceptee » à l'horaire retenu, code
+ *          d'arrivée à 4 chiffres (jamais celui d'une addition, d'une récompense ou d'une autre table attendue chez le lieu)
+ *          · 400 champ-invalide { champ: creneau | depasser } · 409 horaire-non-propose | capacite-depassee { details: places }
+ *          | jour-ferme { details: places? } (depasser: true accepte quand même) | delai-depasse (expirée) | transition-interdite
  * POST   /pro/comptoir/reservations/:reservationId/refuser { motif: "complet"|"ferme"|"groupe-trop-grand"|"autre" }
  *          · 400 champ-invalide { champ: motif } · 409 delai-depasse | transition-interdite
  * POST   /pro/comptoir/reservations/:reservationId/annuler { motif } → une réservation acceptée que le lieu ne peut plus
- *          honorer (le client voit le motif) · 400 champ-invalide { champ: motif } · 409 transition-interdite
+ *          honorer, avant l'heure de la table (le client voit le motif) · 400 champ-invalide { champ: motif } · 409
+ *          transition-interdite | delai-depasse (l'heure est passée : « Venu » ou « Pas venu »)
  * POST   /pro/comptoir/reservations/:reservationId/venu → de 30 min avant le créneau à 4 h après. Si le client a déjà fait
  *          « Je suis là », la visite est validée tout de suite (mode « reservation », « payée » : +15, ou +25 si la demande a
  *          été faite pendant un SOS du lieu pour un créneau avant sa fin ; tampon ; avis dans 1 h ; annulable 15 min comme
@@ -132,6 +142,19 @@ export const LIMITE_GESTES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 300 };
  *          réservation) · 409 transition-interdite
  * L'écran du comptoir (etat) donne aussi arrivees (réservations acceptées du jour, la plus proche d'abord) et
  * reservationsARepondre (demandes en attente).
+ *
+ * Réglages des réservations du lieu, réponses 200 { ok, reglages: ReglagesReservations (sans réglage : aucun service, à la
+ * main, 1 h, aucun jour fermé), regle (déjà enregistrés une fois), aRevoir: ReservationARevoir[] (demandes et tables à
+ * venir hors service, un jour fermé ou au-delà des couverts), reservable, ouverture (horaires de la fiche) } :
+ * GET    /pro/comptoir/lieux/:id/reservations/reglages (gérant ET équipe)
+ * PUT    /pro/comptoir/lieux/:id/reservations/reglages (GÉRANT) { services, acceptation, delai } : les jours fermés n'y changent
+ *          jamais (un joursFermes envoyé est ignoré) · 400 reglages-invalides { champ: « services.1.premier »… } · 403
+ *          role-requis (équipe)
+ * PUT    /pro/comptoir/lieux/:id/reservations/jours-fermes/:jour (« AAAA-MM-JJ », d'aujourd'hui à dans 365 jours ; gérant ET
+ *          équipe) : ce jour est fermé à la réservation (seule la colonne des jours fermés est écrite) ; les tables déjà prises
+ *          ce jour-là passent dans aRevoir · 400 champ-invalide { champ: jour } | reglages-invalides { champ: joursFermes }
+ *          (120 jours fermés au plus)
+ * DELETE /pro/comptoir/lieux/:id/reservations/jours-fermes/:jour → le rouvre · 400 champ-invalide { champ: jour }
  */
 /** Les autres gestes de l'équipe au comptoir ; null : routes absentes (non fournies) */
 export type ControleursComptoirEnPlus = {
@@ -171,6 +194,10 @@ export function creerRoutesComptoir(
   routes.put("/lieux/:id/message", gestes, refuserSiLimite, moment.reglerMessage);
   routes.delete("/lieux/:id/message", gestes, refuserSiLimite, moment.effacerMessage);
   routes.get("/lieux/:id/reservations", lectures, reservations.lister);
+  routes.get("/lieux/:id/reservations/reglages", lectures, reservations.lireReglages);
+  routes.put("/lieux/:id/reservations/reglages", gestes, reservations.reglerReservations);
+  routes.put("/lieux/:id/reservations/jours-fermes/:jour", gestes, reservations.fermerJour);
+  routes.delete("/lieux/:id/reservations/jours-fermes/:jour", gestes, reservations.rouvrirJour);
   routes.post("/reservations/:reservationId/accepter", gestes, reservations.accepter);
   routes.post("/reservations/:reservationId/refuser", gestes, reservations.refuser);
   routes.post("/reservations/:reservationId/annuler", gestes, reservations.annuler);

@@ -1,5 +1,7 @@
 // Les réservations vues par l'équipe : le bilan de chaque lieu sur une période (demandées, en attente, refusées, sans
 // réponse, absences), pour repérer les lieux qui ne répondent jamais. Des nombres seulement, jamais un client.
+import { calculerMargeExpirationReservation } from "../../../../../packages/commun/src/fonctions/reservations/calculer-marge-expiration-reservation.ts";
+import type { DelaiReservation, ModeAcceptationReservation } from "../../../../../packages/commun/src/types/reglages-reservations.ts";
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { normaliserNomCommune } from "../../fonctions/geo/normaliser-nom-commune.ts";
 import { repondPas, resumerReservationsLieux } from "../../fonctions/reservations/resumer-reservations-lieux.ts";
@@ -17,7 +19,11 @@ export async function lireReservationsGestion({ jours, ville }: { jours: number;
     select: { id: true, nom: true, ville: true, statut: true },
   });
   const gardes = new Map(lieux.filter((l) => !cle || normaliserNomCommune(l.ville) === cle).map((l) => [l.id, l]));
-  const { parLieu, tout } = resumerReservationsLieux(lignes.filter((l) => gardes.has(l.lieuId)), maintenant);
+  const reglages = await baseDeDonnees.reglagesReservations.findMany({ where: { lieuId: { in: [...gardes.keys()] } }, select: { lieuId: true, acceptation: true, delai: true } });
+  const marges = new Map(reglages.map((r) => [r.lieuId, calculerMargeExpirationReservation({
+    acceptation: r.acceptation as ModeAcceptationReservation, delai: r.delai as DelaiReservation,
+  })]));
+  const { parLieu, tout } = resumerReservationsLieux(lignes.filter((l) => gardes.has(l.lieuId)), maintenant, marges);
   const resultats = [...parLieu].map(([id, bilan]) => ({ lieu: gardes.get(id)!, ...bilan, repondPas: repondPas(bilan) }));
   resultats.sort((a, b) => Number(b.repondPas) - Number(a.repondPas) || b.sansReponse - a.sansReponse || b.demandes - a.demandes);
   return { jours, totaux: { ...tout, lieux: resultats.length, lieuxQuiRepondentPas: resultats.filter((r) => r.repondPas).length }, lieux: resultats.slice(0, LIEUX_MAX) };

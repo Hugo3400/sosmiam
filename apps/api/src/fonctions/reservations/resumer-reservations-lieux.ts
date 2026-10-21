@@ -1,6 +1,5 @@
 // Le bilan des réservations de chaque lieu pour le logiciel de gestion : des NOMBRES seulement (jamais le client, son petit
-// mot ni le code), pour repérer les lieux qui ne répondent pas. Une demande restée sans réponse jusqu'à 30 min avant le
-// créneau compte « sans réponse », même si le passage qui l'écrit « expirée » n'a pas encore eu lieu.
+// mot ni le code), pour repérer les lieux qui ne répondent pas.
 import { EXPIRATION_AVANT_CRENEAU_MS } from "../../../../../packages/commun/src/regles/reservations.ts";
 
 export type LigneReservation = { lieuId: number; statut: string; motifRefus: string | null; tardive: boolean; creeLe: Date; reponduLe: Date | null; creneau: Date };
@@ -27,8 +26,8 @@ export type BilanReservations = {
 const SANS_REPONSE_MIN = 3;
 const TAUX_REPONSE_FAIBLE = 0.5;
 
-export const estSansReponse = (r: LigneReservation, maintenant: Date) =>
-  r.statut === "expiree" || (r.statut === "demandee" && r.creneau.getTime() - EXPIRATION_AVANT_CRENEAU_MS <= maintenant.getTime());
+export const estSansReponse = (r: LigneReservation, maintenant: Date, margeMs = EXPIRATION_AVANT_CRENEAU_MS) =>
+  r.statut === "expiree" || (r.statut === "demandee" && r.creneau.getTime() - margeMs <= maintenant.getTime());
 
 export const repondPas = (b: BilanReservations) => b.sansReponse >= SANS_REPONSE_MIN && (b.tauxReponse ?? 1) <= TAUX_REPONSE_FAIBLE;
 
@@ -44,7 +43,7 @@ function mediane(valeurs: number[]) {
 }
 
 /** Bilan par lieu (clé : lieuId) et bilan de l'ensemble, à partir des réservations d'une période. */
-export function resumerReservationsLieux(lignes: LigneReservation[], maintenant: Date) {
+export function resumerReservationsLieux(lignes: LigneReservation[], maintenant: Date, marges: ReadonlyMap<number, number> = new Map()) {
   const parLieu = new Map<number, { bilan: BilanReservations; delais: number[]; aJuger: number }>();
   const tout = { bilan: bilanVide(), delais: [] as number[], aJuger: 0 };
   for (const r of lignes) {
@@ -53,7 +52,7 @@ export function resumerReservationsLieux(lignes: LigneReservation[], maintenant:
     for (const cible of [lieu, tout]) {
       const b = cible.bilan;
       b.demandes++;
-      const sansReponse = estSansReponse(r, maintenant);
+      const sansReponse = estSansReponse(r, maintenant, marges.get(r.lieuId));
       if (sansReponse) b.sansReponse++;
       else if (r.statut === "demandee") b.enAttente++;
       if (r.statut === "refusee") {

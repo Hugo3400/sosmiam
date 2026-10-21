@@ -23,16 +23,30 @@ export const LIMITE_DEMANDES_RESERVATIONS = { fenetre: 60 * 60_000, maximum: 20 
  * 18 ans ou plus : un bar se réserve comme les autres lieux. Un lieu réservable est publié, vérifié (un compte pro)
  * et prend les réservations dans l'app ; sinon 409 lieu-non-reservable { details.lieu }. Lieu non publié : 404 introuvable.
  *
- * GET  /app/reservations/creneaux?lieuId&jour (« AAAA-MM-JJ ») → 200 { ok, creneaux: string[] } (« HH:MM » toutes les
- *          30 min dans les horaires, au moins 1 h après maintenant, d'aujourd'hui à dans 30 jours ; sinon []) · 400
- *          champ-invalide { champ: lieuId | jour } · 403 membre-du-lieu · 409 lieu-non-reservable
- * POST /app/reservations { lieuId, personnes (1 à 12), jour, heure (un des créneaux), message? (140 caractères, filtre de
- *          mots) } → 201 { ok, reservation: Reservation } (statut « demandee » ; sans réponse, elle expire 30 min avant le
- *          créneau ; le client est prévenu sur son téléphone, lien « /reservations », quand le lieu accepte, refuse ou
- *          annule, et quand sa demande expire avant le créneau) · 400 champ-invalide { champ: lieuId } | personnes-invalides
- *          | creneau-invalide (pas un des créneaux, ou moins d'1 h avant) | message-refuse ·
- *          403 membre-du-lieu | email-non-verifie · 409 lieu-non-reservable | reservation-en-cours { details:
- *          lieu, lieuId } (une demande en attente par lieu) | trop-de-reservations (3 à venir au plus, demandées ou acceptées)
+ * GET  /app/reservations/jours?lieuId&personnes (1 à 12) → 200 { ok, jours: JourReservation[] (31 : d'aujourd'hui à dans 30
+ *          jours, chacun « ouvert », « ferme », « sans-resa », « complet » ou « trop-tard »), acceptation, delai, personnesMax }
+ *          · 400 champ-invalide { champ: lieuId | personnes } · 403 membre-du-lieu · 409 lieu-non-reservable
+ * GET  /app/reservations/creneaux?lieuId&jour (« AAAA-MM-JJ »)[&personnes (1 à 12, 1 par défaut)] → 200 { ok, creneaux:
+ *          string[] (« HH:MM », pour les anciennes apps), disponibles: { heure, peuDePlaces }[], services: ServiceDuJour[],
+ *          acceptation }. Un lieu sans réglage garde ses horaires de la fiche, toutes les 30 min, 1 h après maintenant ; un
+ *          lieu réglé donne ses services du jour (pas de 15 ou 30 min, délai minimum, jours fermés), et seulement les
+ *          créneaux qui accueillent le groupe (couverts du service, puis arrivées par créneau) ; jamais un nombre de places ni
+ *          rien des autres clients ; d'aujourd'hui à dans 30 jours, sinon [] · 400 champ-invalide { champ: lieuId | jour |
+ *          personnes } · 403 membre-du-lieu · 409 lieu-non-reservable
+ * POST /app/reservations { lieuId, personnes (1 à 12), jour, heure (un des créneaux), autresHeures? (0 à 2 autres créneaux du
+ *          même jour, sans doublon : le plan B), message? (140 caractères, filtre de mots) } → 201 { ok, reservation:
+ *          Reservation } (creneauxProposes dans l'ordre du client). Lieu qui répond à la main : statut « demandee », créneau
+ *          = le plus tôt des horaires ; sans réponse, elle expire 30 min avant (10 min pour un délai de 30 min). Lieu en
+ *          acceptation automatique : « acceptee » tout de suite au premier horaire qui a de la place, avec son code
+ *          d'arrivée (automatique: true), et le client reçoit « C'est réservé » ; s'il n'y en a aucun, 409 creneau-complet.
+ *          Verrous : le compte, l'expiration de ses demandes, puis le lieu (FOR NO KEY UPDATE) : deux demandes sur les
+ *          dernières places se suivent. L'équipe du lieu est prévenue de chaque nouvelle table (lien « /pro/reservations ») ;
+ *          le client est prévenu sur son téléphone, lien « /reservations », quand le lieu accepte, refuse ou annule, et
+ *          quand sa demande expire avant le créneau · 400 champ-invalide { champ: lieuId } | personnes-invalides |
+ *          creneau-invalide (pas un des créneaux, plus de 3 horaires, un doublon, ou trop tard) | message-refuse ·
+ *          403 membre-du-lieu | email-non-verifie · 409 lieu-non-reservable | creneau-complet (aucun horaire n'a la place)
+ *          | reservation-en-double (mêmes horaires chez ce lieu en moins de 2 min) | reservation-en-cours { details: lieu,
+ *          lieuId } (une demande en attente par lieu) | trop-de-reservations (3 à venir au plus, demandées ou acceptées)
  *          · Compte LIMITÉ par l'équipe (décision de Hugo du 15 octobre 2026 ; GET /comptes/moi/limitation) : le petit mot
  *          est un texte libre que l'équipe du lieu lit, donc un message non vide (après les espaces) → 403 { ok: false,
  *          erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou null), et rien n'est écrit ; sans mot (absent, null,
@@ -73,6 +87,7 @@ export function creerRoutesReservationsApp(
     reponse.set("Cache-Control", "private, no-store");
     suite();
   });
+  routes.get("/jours", lectures, c.listerJours);
   routes.get("/creneaux", lectures, c.listerCreneaux);
   routes.get("/", lectures, c.lister);
   routes.post("/", demandes, refuserSiPetitMot, c.reserver);

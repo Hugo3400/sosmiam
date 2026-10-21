@@ -78,6 +78,7 @@ import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 import { planifierTachesSortiesMiamis } from "./taches/sorties-miamis.ts";
+import { planifierExpirationReservations } from "./taches/expirer-reservations.ts";
 import { noterAction } from "./services/gestion/journal.ts";
 import { servicesLimitations } from "./services/limitations-comptes.ts";
 import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profil.ts";
@@ -154,6 +155,7 @@ const arreterSortiesMiamis = process.env.SCHEMA_BASE || !socialApp.communaute ? 
   sorties: socialApp.communaute.sorties,
   appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
 });
+const arreterExpirations = process.env.SCHEMA_BASE ? () => {} : planifierExpirationReservations({ depot: creerDepotVisites(), prevenirCompte });
 const photosProfil = creerPhotosProfil({
   stockage: creerStockagePhotosProfil(), depot: creerDepotPhotosProfil(), preuves: { chiffrement: socialApp.chiffrement, medias: socialApp.medias },
 });
@@ -279,6 +281,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     arreterSauvegardes();
     arreterVotes();
     arreterSortiesMiamis();
+    arreterExpirations();
     serveur.close(() => {
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus
       compteur.vider(new Date(), true).catch(() => {}).finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));

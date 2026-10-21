@@ -7,12 +7,14 @@ import { DELAI_RETOUR_ANNONCE_APP_MS } from "@sos-miam/commun/regles/annonces-ap
 import type { AnnonceApp } from "@sos-miam/commun/types/annonce-app";
 import { choisirAnnonceApp } from "~/fonctions/annonces-app/choisir-annonce-app";
 import { estSurOngletsPrincipaux } from "~/fonctions/annonces-app/est-sur-onglets-principaux";
+import { utiliserFenetreDouce } from "~/hooks/utiliser-fenetre-douce";
 import { utiliserFeuilleOuverte } from "~/hooks/utiliser-feuille-ouverte";
 import { utiliserPremierPlan } from "~/hooks/utiliser-premier-plan";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { annoncesAppSansCompte } from "~/services/annonces-app-sans-compte";
+import { estFenetreDouceLibre, prendreFenetreDouce, rendreFenetreDouce } from "~/services/fenetre-douce-ouverte";
 import { lireNotificationOuverteLe } from "~/services/notification-ouverte";
 import { lireAnnoncesAppVues, noterAnnonceAppVue } from "~/stockage/annonces-app-vues";
 
@@ -36,6 +38,7 @@ export function utiliserAnnonceApp(): EtatAnnonceApp {
   const { profil, invite } = utiliserProfil();
   const chemin = usePathname();
   const feuilleOuverte = utiliserFeuilleOuverte();
+  const fenetreDouce = utiliserFenetreDouce();
   const { auPremierPlan, retoursApresAbsence } = utiliserPremierPlan(DELAI_RETOUR_ANNONCE_APP_MS);
   const [affichage, setAffichage] = useState<{ annonce: AnnonceApp; ouverte: boolean } | null>(null);
   const [prochaine, setProchaine] = useState<Prochaine | null>(null);
@@ -49,7 +52,8 @@ export function utiliserAnnonceApp(): EtatAnnonceApp {
   const annonceAffichee = affichage?.annonce ?? null;
   const ouverte = affichage?.ouverte ?? false;
   const surOnglets = estSurOngletsPrincipaux(chemin);
-  const libre = sessionPrete && auPremierPlan && (profil !== null || invite) && surOnglets && !feuilleOuverte && !ouverte;
+  const fenetreLibre = fenetreDouce === null || fenetreDouce === "annonce-app";
+  const libre = sessionPrete && auPremierPlan && (profil !== null || invite) && surOnglets && !feuilleOuverte && fenetreLibre && !ouverte;
 
   const fermer = useCallback(() => setAffichage((avant) => (avant ? { ...avant, ouverte: false } : null)), []);
 
@@ -63,8 +67,13 @@ export function utiliserAnnonceApp(): EtatAnnonceApp {
     monte.current = true;
     return () => {
       monte.current = false;
+      rendreFenetreDouce("annonce-app");
     };
   }, []);
+
+  useEffect(() => {
+    if (!ouverte) rendreFenetreDouce("annonce-app");
+  }, [ouverte]);
 
   useEffect(() => {
     if (!libre || enAttente !== null || occasionLue.current === retoursApresAbsence) return;
@@ -86,10 +95,12 @@ export function utiliserAnnonceApp(): EtatAnnonceApp {
   useEffect(() => {
     if (!libre || enAttente === null) return;
     const minuterie = setTimeout(() => {
+      if (!estFenetreDouceLibre("annonce-app")) return;
       occasionLue.current = retoursApresAbsence;
       setProchaine(null);
       if (estNotificationOuverteDepuis(enAttente.demandeeLe - NOTIFICATION_RECENTE_MS)) return;
       if (choisirAnnonceApp([enAttente.annonce], [], Date.now()) === null) return;
+      prendreFenetreDouce("annonce-app");
       montree.current = false;
       setAffichage({ annonce: enAttente.annonce, ouverte: true });
     }, DELAI_AFFICHAGE_MS);

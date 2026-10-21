@@ -2,11 +2,12 @@
 // visite écrite (« Je suis là » quand le lieu a déjà touché « Venu »).
 import type { Request, Response } from "express";
 
+import { PERSONNES_RESERVATION_MAX, PERSONNES_RESERVATION_MIN } from "../../../../packages/commun/src/regles/reservations.ts";
 import type { DemandeReservation } from "../../../../packages/commun/src/types/reservation.ts";
 import { estLecturePositionValide } from "../../../../packages/commun/src/validation/est-lecture-position-valide.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import { creerReservationsClient } from "../services/reservations-client.ts";
-import { brancherReponsesReservations } from "../services/reponses-reservations.ts";
+import { brancherReponsesReservations, creerPrevenirNouvellesTables } from "../services/reponses-reservations.ts";
 import type { EchecReservation, ErreurReservation } from "../services/reservations-regles.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { champInvalide, poserPoints, type DependancesVisites } from "./visites.ts";
@@ -17,6 +18,7 @@ const STATUTS: Partial<Record<ErreurReservation, number>> = {
   "membre-du-lieu": 403, "compte-limite": 403, "validations-en-pause": 403, "email-non-verifie": 403, "role-requis": 403,
   "lieu-non-reservable": 409, "reservation-en-cours": 409, "trop-de-reservations": 409, "transition-interdite": 409,
   "delai-depasse": 409, "hors-fenetre-presence": 409, "lieu-sans-validation": 409,
+  "creneau-complet": 409, "reservation-en-double": 409, "horaire-non-propose": 409, "capacite-depassee": 409, "jour-ferme": 409,
   "hors-zone": 422, "position-imprecise": 422, "position-perimee": 422, "position-simulee": 422,
 };
 
@@ -29,8 +31,18 @@ export function repondreEchecReservation(reponse: Response, e: EchecReservation)
 /** Un jour « AAAA-MM-JJ » (la date elle-même est vérifiée par les règles de packages/commun) */
 const FORME_JOUR = /^\d{4}-\d{2}-\d{2}$/;
 
+const FORME_PERSONNES = /^\d{1,2}$/;
+
+function lirePersonnes(brut: unknown, defaut: number | null): number | null {
+  if (brut === undefined) return defaut;
+  if (typeof brut !== "string" || !FORME_PERSONNES.test(brut)) return null;
+  const personnes = Number(brut);
+  return personnes >= PERSONNES_RESERVATION_MIN && personnes <= PERSONNES_RESERVATION_MAX ? personnes : null;
+}
+
 export function creerControleursReservations(d: DependancesVisites, horloge: () => number) {
   const reservations = creerReservationsClient({ ...d, depot: brancherReponsesReservations(d, horloge).depot, horloge });
+  const prevenirNouvelleTable = d.prevenirCompte ? creerPrevenirNouvellesTables(d.prevenirCompte, horloge) : () => {};
   /** Rend { ok, … } (sans les points, déjà posés) ou le refus */
   const rendre = (reponse: Response, r: ({ ok: true } & Record<string, unknown>) | EchecReservation, statut = 200) => {
     if (!r.ok) return repondreEchecReservation(reponse, r);
@@ -45,23 +57,39 @@ export function creerControleursReservations(d: DependancesVisites, horloge: () 
   };
 
   return {
+    async listerJours(requete: Request, reponse: Response) {
+      const lieuId = lireIdentifiant(requete.query.lieuId);
+      if (lieuId === null) return champInvalide(reponse, "lieuId");
+      const personnes = lirePersonnes(requete.query.personnes, null);
+      if (personnes === null) return champInvalide(reponse, "personnes");
+      rendre(reponse, await reservations.listerJours(lireCompteId(reponse), lieuId, personnes));
+    },
+
     /** GET /app/reservations/creneaux?lieuId&jour */
     async listerCreneaux(requete: Request, reponse: Response) {
       const lieuId = lireIdentifiant(requete.query.lieuId);
       if (lieuId === null) return champInvalide(reponse, "lieuId");
       const jour = requete.query.jour;
       if (typeof jour !== "string" || !FORME_JOUR.test(jour)) return champInvalide(reponse, "jour");
-      rendre(reponse, await reservations.listerCreneaux(lireCompteId(reponse), lieuId, jour));
+      const personnes = lirePersonnes(requete.query.personnes, PERSONNES_RESERVATION_MIN);
+      if (personnes === null) return champInvalide(reponse, "personnes");
+      rendre(reponse, await reservations.listerCreneaux(lireCompteId(reponse), lieuId, jour, personnes));
     },
 
-    /** POST /app/reservations { lieuId, personnes, jour, heure, message? } */
     async reserver(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
       const lieuId = typeof corps.lieuId === "number" && Number.isInteger(corps.lieuId) && corps.lieuId > 0 && corps.lieuId < 1e9 ? corps.lieuId : null;
       if (lieuId === null) return champInvalide(reponse, "lieuId");
       // Personnes, créneau et petit mot : revérifiés par validerDemandeReservation (packages/commun), forme comprise
-      const demande = { lieuId, personnes: corps.personnes, jour: corps.jour, heure: corps.heure, message: corps.message ?? null } as DemandeReservation;
-      rendre(reponse, await reservations.reserver(lireCompteId(reponse), demande), 201);
+      const demande = {
+        lieuId, personnes: corps.personnes, jour: corps.jour, heure: corps.heure,
+        ...(corps.autresHeures === undefined ? {} : { autresHeures: corps.autresHeures }), message: corps.message ?? null,
+      } as DemandeReservation;
+      const r = await reservations.reserver(lireCompteId(reponse), demande);
+      if (!r.ok) return repondreEchecReservation(reponse, r);
+      const { nouvelleTable, ...corpsReponse } = r;
+      reponse.status(201).json(corpsReponse);
+      prevenirNouvelleTable(nouvelleTable);
     },
 
     /** GET /app/reservations */

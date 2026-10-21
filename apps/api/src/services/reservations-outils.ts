@@ -39,9 +39,10 @@ export function creerOutilsReservations(c: ContexteVisites) {
       return lireCapaciteEntre(t, lieuId, debut, fin, maintenant);
     },
 
-    lireCapaciteAVenir(t: TablesVisites, lieuId: number, maintenant: Date): Promise<CapaciteLue> {
+    lireCapaciteAVenir(t: TablesVisites, lieuId: number, maintenant: Date, depuis?: Date): Promise<CapaciteLue> {
       const aujourdhui = calculerJourParis(maintenant.getTime());
-      return lireCapaciteEntre(t, lieuId, minuitParis(aujourdhui), minuitParis(decalerJour(aujourdhui, JOURS_RESERVATION_MAX + 1)), maintenant);
+      const fin = minuitParis(decalerJour(aujourdhui, JOURS_RESERVATION_MAX + 1));
+      return lireCapaciteEntre(t, lieuId, depuis ?? minuitParis(aujourdhui), fin, maintenant);
     },
 
     /**

@@ -51,11 +51,19 @@ async function prevenus() {
   return b.prevenus.map((p) => ({ compteId: p.compteId, ...p.message }));
 }
 
+async function prevenusClients() {
+  return (await prevenus()).filter((p) => p.lien === LIEN);
+}
+
 test("accepter : le client est prévenu une fois (lieu, heure de Paris, lien), jamais celui qui répond", async () => {
   const serveur = await equipe();
   const lea = await b.creerCompte();
   const id = await reserver(lea.jeton);
-  assert.deepEqual(await prevenus(), [], "une demande ne prévient personne");
+  assert.deepEqual(await prevenus(), [{
+    compteId: serveur.id, titre: "Nouvelle demande de résa 🛎️", texte: "Chez Léa : 2 gourmands demandent une table ce soir à 20h. À toi de répondre au comptoir !",
+    lien: "/pro/reservations",
+  }], "une demande ne prévient que l'équipe du lieu");
+  b.prevenus.length = 0;
   assert.equal((await geste(id, "accepter", serveur.jeton)).statut, 200);
   assert.deepEqual(await prevenus(), [{
     compteId: lea.id, titre: "C'est réservé ! 🎉", texte: "Chez Léa t'attend ce soir à 20h. Ton code d'arrivée est dans Mes réservations.", lien: LIEN,
@@ -78,7 +86,7 @@ test("refuser et annuler côté lieu : le motif fermé, la table ou la place ; r
   assert.equal((await geste(annulee, "annuler", serveur.jeton, { motif: "ferme" })).statut, 409);
   const parLeClient = await reserver(zoe.jeton);
   assert.equal((await b.demander("POST", `/app/reservations/${parLeClient}/annuler`, zoe.jeton)).statut, 200);
-  assert.deepEqual(await prevenus(), [
+  assert.deepEqual(await prevenusClients(), [
     { compteId: lea.id, titre: "Pas cette fois 😕", texte: "Chez Léa a répondu pour demain à 12h30 : « C'est complet ». Plein d'autres créneaux (et d'autres pépites) t'attendent !", lien: LIEN },
     { compteId: sam.id, titre: "C'est réservé ! 🎉", texte: "Chez Léa t'attend ce soir à 20h. Ton code d'arrivée est dans Mes réservations.", lien: LIEN },
     { compteId: sam.id, titre: "Changement de programme 😕", texte: "Chez Léa a dû annuler ta table pour ce soir à 20h : « On est fermés à ce moment-là ». Désolé pour le contretemps, tu n'y es pour rien.", lien: LIEN },
@@ -90,7 +98,7 @@ test("refuser et annuler côté lieu : le motif fermé, la table ou la place ; r
   const noe = await b.creerCompte({ prenom: "Noé" });
   const absent = await reserver(noe.jeton, { heure: "19:00" });
   for (const id of [venu, absent]) await geste(id, "accepter", serveur.jeton);
-  assert.equal((await prevenus()).length, 2);
+  assert.equal((await prevenusClients()).length, 2);
   b.prevenus.length = 0;
   b.banc.horloge = Date.parse("2026-10-09T19:00:00.000Z");
   assert.equal((await geste(venu, "venu", serveur.jeton)).statut, 200);
@@ -99,12 +107,13 @@ test("refuser et annuler côté lieu : le motif fermé, la table ou la place ; r
 });
 
 test("le membre de l'équipe qui répond à sa propre demande n'est jamais prévenu", async () => {
-  await equipe();
+  const serveur = await equipe();
   const lea = await b.creerCompte();
   const id = await reserver(lea.jeton);
   b.rattacher(lea.id, 1, "equipe");
   assert.equal((await geste(id, "accepter", lea.jeton)).statut, 200);
-  assert.deepEqual(await prevenus(), []);
+  assert.deepEqual(await prevenusClients(), []);
+  assert.deepEqual((await prevenus()).map((p) => [p.compteId, p.lien]), [[serveur.id, "/pro/reservations"]], "sa demande n'a prévenu que l'équipe d'alors");
 });
 
 test("expiration : prévenu une seule fois, quelle que soit la lecture qui la fait expirer", async () => {
@@ -117,23 +126,23 @@ test("expiration : prévenu une seule fois, quelle que soit la lecture qui la fa
   await reserver(zoe.jeton, { heure: "21:00" });
   b.banc.horloge = VINGT_HEURES - 31 * MINUTE;
   await b.demander("GET", "/app/reservations", lea.jeton);
-  assert.deepEqual(await prevenus(), []);
+  assert.deepEqual(await prevenusClients(), []);
 
   b.banc.horloge = VINGT_HEURES - 30 * MINUTE;
   assert.equal((await b.demander("GET", "/app/reservations", lea.jeton)).corps.reservations[0].statut, "expiree");
   await b.demander("GET", "/app/reservations", lea.jeton);
   await b.demander("GET", "/pro/comptoir/lieux/1/reservations", serveur.jeton);
-  assert.deepEqual(await prevenus(), [{
+  assert.deepEqual(await prevenusClients(), [{
     compteId: lea.id, titre: "Pas de réponse à temps 😴",
     texte: "Chez Léa n'a pas pu répondre à temps pour ce soir à 20h. Ta demande s'est endormie, pas ton appétit : tente un autre créneau !", lien: LIEN,
   }]);
 
   b.banc.horloge = VINGT_HEURES;
   assert.equal((await b.demander("GET", "/pro/comptoir/lieux/1", serveur.jeton)).corps.etat.reservationsARepondre, 1);
-  assert.deepEqual((await prevenus()).map((p) => p.compteId), [lea.id, sam.id], "l'écran du comptoir fait expirer aussi");
+  assert.deepEqual((await prevenusClients()).map((p) => p.compteId), [lea.id, sam.id], "l'écran du comptoir fait expirer aussi");
   b.banc.horloge = VINGT_HEURES + 30 * MINUTE;
   assert.equal((await geste(b.visites.reservations[2]!.id, "accepter", serveur.jeton)).corps.erreur, "delai-depasse");
-  assert.deepEqual((await prevenus()).map((p) => p.compteId), [lea.id, sam.id, zoe.id], "le geste trop tard fait expirer, sans « réservé »");
+  assert.deepEqual((await prevenusClients()).map((p) => p.compteId), [lea.id, sam.id, zoe.id], "le geste trop tard fait expirer, sans « réservé »");
 });
 
 test("expiration découverte après le créneau (serveur arrêté) : endormie sans notification", async () => {
@@ -168,6 +177,7 @@ test("suivreExpirations : après une transaction réussie seulement ; une lectur
   const ligne = (id: number): LigneReservation => ({
     id, compteId: 7, lieuId: 1, personnes: 2, creneau: new Date(VINGT_HEURES), message: null, statut: "demandee", motifRefus: null, tardive: false,
     creeLe: new Date(VINGT_HEURES - 5 * 3600_000), reponduLe: null, reponduParId: null, presenceLe: null, code: null,
+    creneauxProposes: [], automatique: false,
   });
   memoire.reservations.push(ligne(1), ligne(2));
   const recues: ReponseReservation[][] = [];

@@ -6,6 +6,7 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
+import { SectionApercusMiseAJour } from "~/composants/reglages/SectionApercusMiseAJour";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionRolesDemo } from "~/composants/reglages/SectionRolesDemo";
 import { SectionSimulationDemo } from "~/composants/reglages/SectionSimulationDemo";
@@ -55,6 +56,7 @@ export default function CoulissesDemo() {
 
         <SectionRolesDemo onAnnoncer={annoncer} />
         <SectionSimulationDemo onAnnoncer={annoncer} />
+        <SectionApercusMiseAJour />
 
         <SectionReglages titre="Tout recommencer">
           <LigneReglage

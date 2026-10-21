@@ -97,6 +97,9 @@ export async function creerBancVisites() {
     visites.lieux.clear();
     for (const liste of [visites.visites, visites.presentations, visites.cartes, visites.recompenses, visites.demandes, visites.reservations, visites.sos]) liste.length = 0;
     visites.programmes.clear();
+    visites.reglagesReservations.clear();
+    roles.clear();
+    for (const compte of visites.comptes.values()) compte.rattachements.length = 0;
     points.length = 0;
     prevenus.length = 0;
     visites.lieux.set(1, { ...LIEU_TEST, position: { ...LIEU_TEST.position! }, ouverture: OUVERTURE_TEST.map((c) => ({ ...c, jours: [...c.jours] })) });

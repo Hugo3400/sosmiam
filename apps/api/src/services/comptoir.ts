@@ -34,11 +34,15 @@ const memeRecompense = (a: ReglageFidelite, b: ReglageFidelite) =>
 export function creerComptoir(c: ContexteComptoir) {
   const o = creerOutilsVisites(c);
 
+  async function expirerAuComptoir(t: TablesVisites, lieuId: number): Promise<void> {
+    const maintenant = o.maintenant();
+    await t.expirerDemandes(maintenant);
+    await t.expirerReservations(maintenant, { lieuId });
+  }
+
   /** L'écran du comptoir à cet instant (lecture seule) */
   async function lireEtat(t: TablesVisites, lieuId: number): Promise<EtatComptoir> {
     const maintenant = o.maintenant();
-    await t.expirerDemandes(maintenant);
-    await t.expirerReservations(maintenant);
     const fenetre = calculerFenetreArrivees(maintenant);
     const [lieu, resumes, presentation, enAttente, cartes, validees, arrivees, reservationsARepondre] = await Promise.all([
       t.lireLieu(lieuId, maintenant),
@@ -96,6 +100,7 @@ export function creerComptoir(c: ContexteComptoir) {
   function surLeLieu(compteId: number, lieuId: number, geste?: (t: TablesVisites) => Promise<EchecVisite | null>): Promise<ReponseComptoir> {
     return c.depot.ecrire(async (t) => {
       if (!(await c.lireRole(compteId, lieuId))) return o.echec("role-requis");
+      await expirerAuComptoir(t, lieuId);
       const refus = geste ? await geste(t) : null;
       return refus ?? { ok: true, etat: await lireEtat(t, lieuId) };
     });
@@ -114,6 +119,7 @@ export function creerComptoir(c: ContexteComptoir) {
       if (refus) return refus;
       const decision = await deciderVisite(t, v, evenement, o.maintenant(), compteId);
       if (!decision.ok) return o.echec(decision.erreur);
+      await expirerAuComptoir(t, v.lieuId);
       return { ok: true, etat: await lireEtat(t, v.lieuId), pointsAPoser: { compteId: v.compteId, points: decision.points } };
     });
   }
@@ -141,6 +147,7 @@ export function creerComptoir(c: ContexteComptoir) {
     lireComptoir(compteId: number, lieuId: number): Promise<ReponseComptoir> {
       return c.depot.lire(async (t) => {
         if (!(await c.lireRole(compteId, lieuId))) return o.echec("role-requis");
+        await expirerAuComptoir(t, lieuId);
         return { ok: true, etat: await lireEtat(t, lieuId) };
       });
     },
@@ -202,6 +209,7 @@ export function creerComptoir(c: ContexteComptoir) {
         await t.verrouillerCompte(demande.compteId);
         if (!(await t.offrirRecompense(demande.recompenseId, compteId, maintenant))) return o.echec("introuvable");
         await t.supprimerDemandes(demande.carteId);
+        await expirerAuComptoir(t, demande.lieuId);
         return { ok: true, etat: await lireEtat(t, demande.lieuId) };
       });
     },

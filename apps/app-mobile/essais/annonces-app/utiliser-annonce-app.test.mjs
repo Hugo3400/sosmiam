@@ -9,6 +9,7 @@ import { changer, monde } from "./doublures/monde.mjs";
 import { utiliserAnnonceApp } from "~/hooks/utiliser-annonce-app";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { poserFeuilleOuverte } from "~/services/feuilles-ouvertes";
+import { lireFenetreDouce, prendreFenetreDouce, rendreFenetreDouce } from "~/services/fenetre-douce-ouverte";
 import { noterNotificationOuverte } from "~/services/notification-ouverte";
 
 const CLE = "sosmiam.annonces-app-deja-vues";
@@ -267,4 +268,20 @@ test("nouveau lancement de l'app : une pop-up vue ne revient pas", async () => {
   await pause(2_200);
   assert.equal(service.appels.length, 2);
   assert.equal(ouverte(), null);
+});
+
+test("la proposition de nouvelle version est à l'écran : la pop-up attend sa fermeture, puis vient, et tient sa place", async () => {
+  const service = creerService([annonce(1)]);
+  assert.equal(prendreFenetreDouce("nouvelle-version"), true);
+  demarrer(service);
+  await pause(APRES_AFFICHAGE_MS + 400);
+  assert.equal(ouverte(), null);
+  rendreFenetreDouce("nouvelle-version");
+  await pause(APRES_AFFICHAGE_MS);
+  assert.equal(ouverte(), 1);
+  assert.equal(lireFenetreDouce(), "annonce-app");
+  assert.equal(prendreFenetreDouce("nouvelle-version"), false, "la proposition attend à son tour");
+  monde.etatHook.fermer();
+  await pause(50);
+  assert.equal(lireFenetreDouce(), null);
 });

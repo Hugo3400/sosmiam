@@ -40,6 +40,13 @@ test("bilan : sans réponse, refus, absences, annulations et délai médian", ()
   assert.equal(parLieu.get(2)!.tauxReponse, 1);
 });
 
+test("bilan : la marge d'expiration de chaque lieu (10 min à la main avec 30 min de délai)", () => {
+  const dansVingt = { creneau: new Date(maintenant.getTime() + heure / 3) };
+  const { parLieu } = resumerReservationsLieux([ligne(1, "demandee", dansVingt), ligne(2, "demandee", dansVingt)], maintenant, new Map([[2, 10 * 60_000]]));
+  assert.deepEqual([parLieu.get(1)!.sansReponse, parLieu.get(1)!.enAttente], [1, 0]);
+  assert.deepEqual([parLieu.get(2)!.sansReponse, parLieu.get(2)!.enAttente], [0, 1]);
+});
+
 test("« ne répond pas » : au moins 3 sans réponse et une demande sur deux au plus traitée", () => {
   const trois = resumerReservationsLieux([ligne(1, "expiree"), ligne(1, "expiree"), ligne(1, "expiree"), ligne(1, "refusee", { reponduLe: maintenant })], maintenant);
   assert.equal(repondPas(trois.parLieu.get(1)!), true);

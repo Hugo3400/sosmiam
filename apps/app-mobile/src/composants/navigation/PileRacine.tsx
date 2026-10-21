@@ -6,8 +6,11 @@ import { useEffect } from "react";
 import { AnnonceAppOuverture } from "~/composants/annonces-app/AnnonceAppOuverture";
 import { AnnonceCompteLimite } from "~/composants/compte/AnnonceCompteLimite";
 import { AnnonceOubliPosition } from "~/composants/explorer/AnnonceOubliPosition";
+import { EcranMiseAJourObligatoire } from "~/composants/mise-a-jour/EcranMiseAJourObligatoire";
+import { NouvelleVersionOuverture } from "~/composants/mise-a-jour/NouvelleVersionOuverture";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
+import { utiliserEtatVersion } from "~/hooks/utiliser-etat-version";
 import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
 import { utiliserInvitationEnAttente } from "~/hooks/utiliser-invitation-en-attente";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
@@ -28,6 +31,8 @@ import { SuiviEcranOuvert } from "~/composants/navigation/SuiviEcranOuvert";
 export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const { profil, invite, chargement } = utiliserProfil();
   const modes = utiliserModes();
+  const etatVersion = utiliserEtatVersion();
+  const versionBloquee = etatVersion.etat === "obligatoire";
   // Après « Quitter la démo » : le compte mis de côté se rouvre avant d'afficher quoi que ce soit
   const reprise = utiliserRepriseCompte();
   const pret = policesChargees && !chargement && modes.pret && !reprise;
@@ -102,10 +107,12 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="q/[code]" />
         </Stack.Protected>
       </Stack>
-      <AnnonceAppOuverture />
+      {versionBloquee ? null : <AnnonceAppOuverture />}
+      {versionBloquee ? null : <NouvelleVersionOuverture etat={etatVersion} />}
       <AnnonceOubliPosition />
       {/* Une écriture refusée parce que le compte est limité, n'importe où : une seule annonce douce, au-dessus de tout */}
       <AnnonceCompteLimite />
+      {versionBloquee ? <EcranMiseAJourObligatoire /> : null}
     </>
   );
 }
