@@ -31,6 +31,7 @@ export const servicesPro: ServicesPro = {
   async demanderRattachement(compteId, { lieuId, preuve, siret }, maintenant) {
     try {
       return await baseDeDonnees.$transaction(async (transaction) => {
+        await transaction.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR NO KEY UPDATE`;
         const lieu = await transaction.lieu.findFirst({ where: { id: lieuId, statut: { in: ["publie", "brouillon"] } }, select: { id: true } });
         if (!lieu) return { ok: false, erreur: "lieu-inconnu" } as const;
         const existant = await transaction.rattachementLieu.findUnique({ where: { lieuId_compteId: { lieuId, compteId } }, select: { id: true, statut: true } });
@@ -104,6 +105,7 @@ export const servicesPro: ServicesPro = {
     return baseDeDonnees.$transaction(async (transaction) => {
       let suggestionId: number | null = null;
       if (suggestion) {
+        await transaction.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR NO KEY UPDATE`;
         const [duJour, enAttente] = await Promise.all([
           transaction.suggestionLieu.count({ where: { compteId, creeLe: { gt: new Date(maintenant.getTime() - UN_JOUR) } } }),
           transaction.suggestionLieu.count({ where: { compteId, lieuId, statut: "en-attente" } }),
@@ -174,6 +176,9 @@ export const servicesPro: ServicesPro = {
       return await baseDeDonnees.$transaction(async (transaction) => {
         const compte = await transaction.compte.findUnique({ where: { email }, select: { id: true, dateNaissanceChiffree: true } });
         if (!compte) return { ok: false, erreur: "compte-inconnu" } as const;
+        const verrou = await transaction.$queryRaw<{ id: number }[]>`SELECT id FROM comptes WHERE id = ${compte.id} FOR NO KEY UPDATE`;
+        if (verrou.length === 0) return { ok: false, erreur: "compte-inconnu" } as const;
+        await transaction.$queryRaw`SELECT id FROM lieux WHERE id = ${lieuId} FOR NO KEY UPDATE`;
         const majorite = lireMajorite(compte.dateNaissanceChiffree);
         if (majorite === "mineur") return { ok: false, erreur: "compte-mineur" } as const;
         if (majorite === "illisible") return { ok: false, erreur: "chiffrement-indisponible" } as const;
