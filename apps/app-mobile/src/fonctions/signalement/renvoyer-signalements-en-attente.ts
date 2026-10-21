@@ -1,4 +1,4 @@
-import { clientApiPublic } from "~/services/client-api-public";
+import { clientApiSignalements } from "~/services/client-api-signalements";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { lireSignalementsAEnvoyer, remplacerSignalementsAEnvoyer } from "~/stockage/signalements-a-envoyer";
 
@@ -10,7 +10,7 @@ export async function renvoyerSignalementsEnAttente(): Promise<void> {
   const restants = [];
   for (const signalement of enAttente) {
     const { date: _date, ...corps } = signalement;
-    const r = await clientApiPublic.demander("POST", "/signalements", { corps, session: false });
+    const r = await clientApiSignalements.demander("POST", "/signalements", { corps });
     // Refus définitif (mal formé : « signalement-invalide », ou « champ-invalide » d'un ancien serveur) : abandonné ; pas
     // de réseau, serveur occupé : il attend encore
     if (!r.ok && r.erreur !== "signalement-invalide" && r.erreur !== "champ-invalide") restants.push(signalement);

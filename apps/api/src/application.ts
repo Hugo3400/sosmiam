@@ -48,6 +48,7 @@ import { creerRoutesNewsletterPublic } from "./routes/newsletter-public.ts";
 import type { DependancesNewsletterPublic } from "./controleurs/newsletter-public.ts";
 import type { NouvelleDemandeLieu } from "./services/demandes-lieux.ts";
 import type { SignalementRecu } from "./services/gestion/moderation.ts";
+import { creerJugeSignaleurPublication } from "./services/juge-signaleur-publication.ts";
 import type { NouvelleInscription } from "./services/inscriptions.ts";
 import type { FichePublique, LieuPublic } from "./services/lieux-publics.ts";
 import type { LieuDuPlan } from "./services/lieux-publics.ts";
@@ -168,7 +169,7 @@ export function creerApplication({
   if (enregistrerDemandeLieu) application.use("/demandes-lieux", creerRoutesDemandesLieux(enregistrerDemandeLieu));
   if (bot) application.use("/bot", creerRoutesBot(bot));
   if (enregistrerVue) application.use("/mesure", creerRoutesMesure(enregistrerVue, enregistrerClic));
-  if (enregistrerSignalement) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
+  if (enregistrerSignalement && !comptes) application.use("/signalements", creerRoutesSignalements(enregistrerSignalement));
   // Désinscription de la newsletter (lien signé des mails ; « un clic » des messageries par api.sosmiam.fr)
   if (newsletter) application.use("/newsletter", creerRoutesNewsletterPublic(newsletter));
   // Sans session : recherche de commune et places de fondateurs (GET /communes, /fondateurs/zone, /fondateurs/zones)
@@ -177,6 +178,10 @@ export function creerApplication({
     // Une seule protection (sessions) et une seule limite « connecté » pour /comptes et /espace-ambassadeur
     const protection = creerProtectionComptes(comptes.sessions, comptes.horloge);
     const limiteConnectee = creerLimiteConnectes(LIMITE_CONNECTEE, LIMITE_CONNECTEE_IP);
+    if (enregistrerSignalement) {
+      const jugerSignaleur = creerJugeSignaleurPublication(comptes.services.lireCompte, comptes.limitations?.estLimite, comptes.horloge ?? Date.now);
+      application.use("/signalements", creerRoutesSignalements(enregistrerSignalement, { protection, jugerSignaleur }));
+    }
     // Connexion par QR code : avant le routeur /comptes (sa limite « connecté » ne doit pas compter l'attente) et avant les
     // routeurs /app
     if (connexionQr) {

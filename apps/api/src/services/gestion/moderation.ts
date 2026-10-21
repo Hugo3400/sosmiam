@@ -178,18 +178,19 @@ export type SignalementRecu = {
   raison: string;
   precision: string | null;
   explication: string;
+  masquageAutorise: boolean;
 };
 
 /**
  * Enregistre un signalement envoyé depuis l'app (déjà vérifié par le contrôleur). Pour une raison grave
  * (RAISONS_AVEC_MASQUAGE_IMMEDIAT), la publication est suspendue pour tout le monde dès ce premier signalement.
  */
-export async function enregistrerSignalement({ publicationId, lieuId, raison, precision, explication }: SignalementRecu) {
+export async function enregistrerSignalement({ publicationId, lieuId, raison, precision, explication, masquageAutorise }: SignalementRecu) {
   await baseDeDonnees.signalement.create({
     data: { cible: "publication", cibleId: publicationId, lieuId, raison, precision, explication, source: "app" },
   });
   const idPublication = Number(publicationId);
-  if (RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison) && Number.isInteger(idPublication)) {
-    await baseDeDonnees.publication.updateMany({ where: { id: idPublication }, data: { suspendue: true } });
-  }
+  if (!masquageAutorise || !RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison) || !Number.isInteger(idPublication)) return;
+  const rejets = await baseDeDonnees.signalement.count({ where: { cible: "publication", cibleId: publicationId, statut: "rejete" } });
+  if (rejets === 0) await baseDeDonnees.publication.updateMany({ where: { id: idPublication }, data: { suspendue: true } });
 }
