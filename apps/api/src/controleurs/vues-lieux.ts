@@ -9,7 +9,7 @@ import type { Request, Response } from "express";
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
 import { calculerCleVisiteur } from "../fonctions/securite/calculer-cle-visiteur.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
-import { VUES_RETENUES_MAX, type ServicesVuesLieux } from "../services/vues-lieux-regles.ts";
+import { VUES_PAR_VISITEUR_MAX, VUES_RETENUES_MAX, type ServicesVuesLieux } from "../services/vues-lieux-regles.ts";
 
 export type DependancesVuesLieux = {
   services: ServicesVuesLieux;
@@ -17,15 +17,34 @@ export type DependancesVuesLieux = {
   horloge?: () => number;
   /** Visiteurs × lieux reconnus pour la journée, au plus (VUES_RETENUES_MAX par défaut ; plus petit dans les tests) */
   retenuesMax?: number;
+  parVisiteurMax?: number;
 };
 
 const lieuInconnu = (reponse: Response) => reponse.status(404).json({ ok: false, erreur: "lieu-inconnu" });
 
-export function creerControleursVuesLieux({ services, horloge = Date.now, retenuesMax = VUES_RETENUES_MAX }: DependancesVuesLieux) {
+function faireDeLaPlace(retenues: Set<string> | Map<string, number>, maximum: number) {
+  for (const cle of retenues.keys()) {
+    if (retenues.size < maximum) return;
+    retenues.delete(cle);
+  }
+}
+
+function oublierUneVue(vuesParVisiteur: Map<string, number>, signature: string) {
+  const nombre = vuesParVisiteur.get(signature);
+  if (nombre === undefined) return;
+  if (nombre > 1) vuesParVisiteur.set(signature, nombre - 1);
+  else vuesParVisiteur.delete(signature);
+}
+
+export function creerControleursVuesLieux({
+  services, horloge = Date.now, retenuesMax = VUES_RETENUES_MAX, parVisiteurMax = VUES_PAR_VISITEUR_MAX,
+}: DependancesVuesLieux) {
   let jour = "";
   let secret = randomBytes(32);
   /** Les empreintes des vues déjà comptées aujourd'hui */
   const comptees = new Set<string>();
+  const vuesParVisiteur = new Map<string, number>();
+  const signer = (texte: string) => createHmac("sha256", secret).update(texte).digest("base64url").slice(0, 22);
 
   return {
     /** POST /app/lieux/:id/vue */
@@ -38,19 +57,28 @@ export function creerControleursVuesLieux({ services, horloge = Date.now, retenu
         jour = aujourdhui;
         secret = randomBytes(32);
         comptees.clear();
+        vuesParVisiteur.clear();
       }
       const visiteur = calculerCleVisiteur(requete.get("x-ip-visiteur") || requete.socket.remoteAddress || "inconnu");
-      const empreinte = createHmac("sha256", secret).update(`${visiteur}\n${jour}\n${lieuId}`).digest("base64url").slice(0, 22);
-      // Déjà comptée aujourd'hui, ou plus de place pour s'en souvenir : rien de plus à écrire
-      if (comptees.has(empreinte) || comptees.size >= retenuesMax) return reponse.status(204).end();
+      const empreinte = signer(`${visiteur}\n${jour}\n${lieuId}`);
+      const signature = signer(`${visiteur}\n${jour}`);
+      const dejaVues = vuesParVisiteur.get(signature) ?? 0;
+      // Déjà comptée aujourd'hui, ou assez de lieux comptés pour ce visiteur : rien de plus à écrire
+      if (comptees.has(empreinte) || dejaVues >= parVisiteurMax) return reponse.status(204).end();
       // Retenue avant d'écrire : deux appels simultanés du même visiteur ne comptent qu'une vue
+      faireDeLaPlace(comptees, retenuesMax);
       comptees.add(empreinte);
+      if (dejaVues === 0) faireDeLaPlace(vuesParVisiteur, retenuesMax);
+      vuesParVisiteur.set(signature, dejaVues + 1);
       let comptee = false;
       try {
         comptee = await services.ajouterVue(lieuId, jour);
       } finally {
         // Lieu non publié ou écriture ratée : on l'oublie (un nouvel essai pourra compter)
-        if (!comptee) comptees.delete(empreinte);
+        if (!comptee) {
+          comptees.delete(empreinte);
+          oublierUneVue(vuesParVisiteur, signature);
+        }
       }
       if (!comptee) return lieuInconnu(reponse);
       reponse.status(204).end();

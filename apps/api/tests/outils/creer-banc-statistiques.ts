@@ -26,7 +26,7 @@ export type Reponse = { statut: number; corps: Record<string, any> | null; entet
 /** Vendredi 9 octobre 2026, 12 h à Paris (semaine 2026-S41, qui commence le lundi 5) */
 export const DEBUT_BANC = Date.parse("2026-10-09T10:00:00Z");
 
-export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
+export async function creerBancStatistiques(o: { retenuesMax?: number; parVisiteurMax?: number } = {}) {
   const banc = { horloge: DEBUT_BANC };
   const horloge = () => banc.horloge;
   const memoire = creerComptesEnMemoire(horloge);
@@ -43,7 +43,7 @@ export async function creerBancStatistiques(o: { retenuesMax?: number } = {}) {
   const application = express();
   application.use(express.json({ limit: "4kb" }));
   // Comme dans application.ts : monté sur /app, avant les autres routeurs /app (ce qu'il ne connaît pas passe)
-  application.use("/app", creerRoutesVuesLieux({ services: vues.services, horloge, retenuesMax: o.retenuesMax }));
+  application.use("/app", creerRoutesVuesLieux({ services: vues.services, horloge, retenuesMax: o.retenuesMax, parVisiteurMax: o.parVisiteurMax }));
   // Comme la route ajoutée à routes/comptoir.ts : session obligatoire, jamais en cache
   const protection = creerProtectionComptes(memoire.sessions, horloge);
   const controleur = creerControleursStatistiques(statistiques.services, (compteId, lieuId) => comptoir.roleDe(compteId, lieuId), horloge);

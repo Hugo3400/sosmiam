@@ -211,6 +211,16 @@ export type DependancesComptes = {
  *                                        verification-indisponible. L'e-mail du compte ne change JAMAIS (une adresse Google
  *                                        différente est acceptée) ; il compte comme confirmé seulement si le jeton porte le
  *                                        même, vérifié.
+ *                                        Confirmation, comme pour délier (une session seule ne suffit jamais : volée, elle
+ *                                        servirait à relier SA clé au compte, qui survivrait au nouveau mot de passe et à
+ *                                        « déconnecter partout ») : compte avec un vrai mot de passe → { motDePasse } en plus
+ *                                        (403 mot-de-passe-incorrect, 429 {attente} : la même attente que « Mon compte ») ;
+ *                                        compte sans mot de passe → { confirmation: NOUVEAU jeton de l'AUTRE fournisseur,
+ *                                        celui déjà relié } ({ idToken, nonce? } pour relier Apple, { identityToken, nonce }
+ *                                        pour relier Google ; à part, car le corps porte déjà le jeton à relier et son nonce
+ *                                        · 403 confirmation-incorrecte s'il est refusé ou d'un autre compte). Sans
+ *                                        confirmation : 400 {champ: confirmation}. Vérifiée après le jeton à relier et les
+ *                                        refus 409 (rien n'a changé), avant tout changement.
  * DELETE /comptes/moi/connexions/:fournisseur (apple | google) → 200 { ok, connexions } · 400 champ-invalide {champ:
  *                                        fournisseur} · 409 derniere-connexion (ni vrai mot de passe ni l'autre fournisseur :
  *                                        refusé avant toute confirmation) · 401 · 429. Rien de relié chez ce fournisseur :

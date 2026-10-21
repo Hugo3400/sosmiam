@@ -14,8 +14,8 @@ export const LIMITE_VUES_LIEUX = { fenetre: 10 * 60_000, maximum: 120 };
  * IPv6), du jour et du lieu, gardée en mémoire et oubliée à minuit. Le routeur ne répond qu'à cette adresse : tout le reste
  * passe au routeur /app suivant.
  *
- * POST /app/lieux/:id/vue (sans corps) → 204 : vue comptée, déjà comptée aujourd'hui, ou plafond du jour atteint (200 000
- *        visiteurs × lieux retenus : au-delà, plus rien n'est compté jusqu'à minuit) · 404 lieu-inconnu (absent, brouillon ou
+ * POST /app/lieux/:id/vue (sans corps) → 204 : vue comptée, déjà comptée aujourd'hui, ou plafond du visiteur atteint (1 000
+ *        lieux par jour ; 200 000 visiteurs × lieux retenus en tout, les plus anciens oubliés d'abord) · 404 lieu-inconnu (absent, brouillon ou
  *        masqué) · 429 trop-de-demandes (Retry-After) au-delà de 120 vues en 10 minutes par visiteur. Jamais en cache.
  */
 export function creerRoutesVuesLieux(dependances: DependancesVuesLieux) {
