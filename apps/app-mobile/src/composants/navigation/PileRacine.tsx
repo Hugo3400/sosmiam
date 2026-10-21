@@ -60,6 +60,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="lieu/[id]/index" />
           <Stack.Screen name="lieu/[id]/carte" />
           <Stack.Screen name="createur/[pseudo]" />
+          <Stack.Screen name="miam-safe/comptoir" options={{ presentation: "fullScreenModal", animation: "fade" }} />
         </Stack.Protected>
         {/* Réservé aux inscrits */}
         <Stack.Protected guard={inscrit}>
@@ -77,8 +78,6 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="fidelite" />
           <Stack.Screen name="reservations" />
           <Stack.Screen name="avis/[visiteId]" />
-          {/* Miam Safe : l'écran discret à montrer au comptoir */}
-          <Stack.Screen name="miam-safe/comptoir" options={{ presentation: "fullScreenModal", animation: "fade" }} />
           {/* « Prévenir un pote » : l'écran d'un partage de position (celui qui partage, ou le pote prévenu) */}
           <Stack.Screen name="miam-safe/partage/[id]" />
         </Stack.Protected>
