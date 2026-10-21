@@ -44,6 +44,7 @@ const ancresHistoriques: Record<string, string[]> = {
     "securite", "droits", "exercer-tes-droits", "cnil", "mineurs", "a-venir", "mises-a-jour",
     // Partie sociale et Miam Safe (15 octobre 2026)
     "donnees-app", "potes", "messagerie", "signalements-sociaux", "prevenir-un-pote",
+    "communaute", "sorties-miamis", "boite-a-idees",
   ],
   "/cookies": ["definition", "aujourd-hui", "cloudflare", "plus-tard", "ton-choix", "navigateur", "contact"],
   "/cgu": [
@@ -52,6 +53,7 @@ const ancresHistoriques: Record<string, string[]> = {
     "droit-applicable", "contact",
     // Partie sociale (15 octobre 2026)
     "potes", "messagerie", "commentaires", "pseudos", "bloquer",
+    "communaute", "qui-est-la", "boite-a-idees",
   ],
   "/accessibilite": ["app", "prevu", "site", "audit", "contact"],
   "/age": ["dix-huit-ans", "sans-compte", "contenus", "securite", "parents", "contact"],

@@ -6,11 +6,9 @@ import type { ProgrammeFidelite } from "../../../../packages/commun/src/types/fi
 import type { CreneauOuverture, TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
 import type { ResultatPosition } from "../../../../packages/commun/src/types/position.ts";
-import type { OccupationReservation, ReglagesReservations, ReglagesServicesReservations } from "../../../../packages/commun/src/types/reglages-reservations.ts";
-import type { StatutReservation } from "../../../../packages/commun/src/types/reservation.ts";
 import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } from "../../../../packages/commun/src/types/visite.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
-import type { ChampsReservation, FiltreReservations, LigneReservation, NouvelleReservation, PorteeExpiration } from "./reservations-regles.ts";
+import type { ChampsReservation, FiltreReservations, LigneReservation, NouvelleReservation } from "./reservations-regles.ts";
 
 /** Le petit mot d'une contestation (lu par l'équipe SOS Miam, jamais par le lieu) */
 export const MOT_CONTESTATION_MAX = 500;
@@ -112,7 +110,6 @@ export interface TablesVisites {
   verrouillerCompte(compteId: number): Promise<void>;
   /** Verrou sur le lieu : codes à 4 chiffres et QR montrés se suivent */
   verrouillerLieu(lieuId: number): Promise<void>;
-  verrouillerReservation(id: number): Promise<void>;
 
   lireLieu(lieuId: number, maintenant: Date): Promise<LieuVisite | null>;
   trouverLieuParCode(codePublic: string, maintenant: Date): Promise<LieuVisite | null>;
@@ -160,16 +157,11 @@ export interface TablesVisites {
   listerReservations(filtre: FiltreReservations): Promise<LigneReservation[]>;
   compterReservations(filtre: Omit<FiltreReservations, "limite" | "ordre">): Promise<number>;
   creerReservation(reservation: NouvelleReservation): Promise<LigneReservation>;
-  modifierReservation(id: number, champs: ChampsReservation, statutAttendu?: StatutReservation): Promise<boolean>;
-  /** Les demandes sans réponse deviennent « expiree » (sans effet) */
-  expirerReservations(maintenant: Date, portee?: PorteeExpiration): Promise<LigneReservation[]>;
+  modifierReservation(id: number, champs: ChampsReservation): Promise<void>;
+  /** Les demandes sans réponse à 30 min du créneau (ou moins) deviennent « expiree » (sans effet) */
+  expirerReservations(maintenant: Date): Promise<LigneReservation[]>;
   /** Le SOS du soir qui était en cours à cet instant chez ce lieu vérifié (arrêté depuis ou non), avec sa fin prévue */
   lireSosA(lieuId: number, instant: Date): Promise<{ jusqua: Date } | null>;
-  lireReglagesReservations(lieuId: number, maintenant: Date): Promise<ReglagesReservations | null>;
-  ecrireReglagesReservations(lieuId: number, reglages: ReglagesServicesReservations, maintenant: Date): Promise<void>;
-  ecrireJoursFermes(lieuId: number, joursFermes: readonly string[], maintenant: Date): Promise<void>;
-  listerOccupation(lieuId: number, depuis: Date, avant: Date): Promise<OccupationReservation[]>;
-  listerEquipeLieu(lieuId: number): Promise<number[]>;
 }
 
 /** lire : sans transaction ; ecrire : tout ou rien, verrous compris */

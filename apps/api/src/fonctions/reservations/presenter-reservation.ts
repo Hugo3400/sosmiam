@@ -1,4 +1,3 @@
-import { lireCreneauxProposes } from "../../../../../packages/commun/src/fonctions/reservations/lire-creneaux-proposes.ts";
 import type { LieuResume } from "../../../../../packages/commun/src/types/lieu-resume.ts";
 import type { Reservation } from "../../../../../packages/commun/src/types/reservation.ts";
 import type { LigneReservation } from "../../services/reservations-regles.ts";
@@ -16,8 +15,8 @@ export function presenterReservation(r: LigneReservation, lieu: LieuResume, visi
     lieu,
     personnes: r.personnes,
     creneau: r.creneau.toISOString(),
-    creneauxProposes: lireCreneauxProposes({ creneau: r.creneau.toISOString(), creneauxProposes: r.creneauxProposes.map((c) => c.toISOString()) }),
-    automatique: r.automatique,
+    creneauxProposes: [r.creneau.toISOString()],
+    automatique: false,
     message: r.message,
     statut: r.statut,
     motifRefus: r.statut === "refusee" || r.statut === "annulee" ? r.motifRefus : null,

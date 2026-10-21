@@ -1,11 +1,6 @@
 // Ce que partagent les réservations côté client et côté équipe : les refus propres aux réservations, et la visite créée
 // quand « Venu » et « Je suis là » sont réunis (mêmes effets qu'une visite validée au comptoir).
 import type { DetailsErreur } from "../../../../packages/commun/src/client-api/reponse-api.ts";
-import { calculerInstantParis } from "../../../../packages/commun/src/fonctions/temps/calculer-instant-paris.ts";
-import { calculerJourParis } from "../../../../packages/commun/src/fonctions/temps/calculer-jour-paris.ts";
-import { decalerJour } from "../../../../packages/commun/src/fonctions/temps/decaler-jour.ts";
-import { JOURS_RESERVATION_MAX } from "../../../../packages/commun/src/regles/reservations.ts";
-import type { OccupationReservation, ReglagesReservations } from "../../../../packages/commun/src/types/reglages-reservations.ts";
 import type { ReglementVisite } from "../../../../packages/commun/src/types/visite.ts";
 import { creerVisiteValidee, type VisiteValidee } from "../fonctions/visites/creer-visite-validee.ts";
 import type { EchecReservation, ErreurReservation, LigneReservation } from "./reservations-regles.ts";
@@ -15,34 +10,12 @@ import { creerOutilsVisites, type ContexteVisites, type Visiteur } from "./visit
 /** Une réservation honorée se lit « payée » : « Venu » se touche à l'arrivée, avant l'addition (voir docs/decisions.md) */
 const payee = (): ReglementVisite => ({ type: "paye", reductionPourcent: null, avantages: [] });
 
-export type CapaciteLue = { reglages: ReglagesReservations | null; occupees: OccupationReservation[] };
-
-const minuitParis = (jour: string) => new Date(calculerInstantParis(jour, "00:00"));
-
-async function lireCapaciteEntre(t: TablesVisites, lieuId: number, depuis: Date, avant: Date, maintenant: Date): Promise<CapaciteLue> {
-  const reglages = await t.lireReglagesReservations(lieuId, maintenant);
-  const utile = reglages !== null && reglages.services.length > 0 && depuis.getTime() < avant.getTime();
-  return { reglages, occupees: utile ? await t.listerOccupation(lieuId, depuis, avant) : [] };
-}
-
 export function creerOutilsReservations(c: ContexteVisites) {
   const o = creerOutilsVisites(c);
   const echec = (erreur: ErreurReservation, details?: DetailsErreur): EchecReservation => (details ? { ok: false, erreur, details } : { ok: false, erreur });
 
   return {
     echec,
-
-    lireCapacite(t: TablesVisites, lieuId: number, jour: string, maintenant: Date): Promise<CapaciteLue> {
-      const debut = minuitParis(jour);
-      const fin = minuitParis(decalerJour(jour, 1));
-      if (Number.isNaN(debut.getTime()) || Number.isNaN(fin.getTime())) return lireCapaciteEntre(t, lieuId, new Date(0), new Date(0), maintenant);
-      return lireCapaciteEntre(t, lieuId, debut, fin, maintenant);
-    },
-
-    lireCapaciteAVenir(t: TablesVisites, lieuId: number, maintenant: Date): Promise<CapaciteLue> {
-      const aujourdhui = calculerJourParis(maintenant.getTime());
-      return lireCapaciteEntre(t, lieuId, minuitParis(aujourdhui), minuitParis(decalerJour(aujourdhui, JOURS_RESERVATION_MAX + 1)), maintenant);
-    },
 
     /**
      * Peut-on réserver chez ce lieu ? Le lieu prend les réservations dans l'app et il est vérifié (un compte pro pour

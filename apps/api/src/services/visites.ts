@@ -1,7 +1,6 @@
 // Les visites, la fidélité, le comptoir et les réservations dans la base : seulement lire et écrire (les règles sont dans
 // visites-client.ts, fidelite-client.ts, comptoir.ts, reservations-client.ts et reservations-pro.ts). ecrire passe par une transaction ; les verrous portent sur la ligne du compte ou
-// du lieu, et ne font rien en lecture.
-import { EXPIRATION_DELAI_COURT_MS, STATUTS_QUI_OCCUPENT } from "../../../../packages/commun/src/regles/reglages-reservations.ts";
+// du lieu (SELECT … FOR UPDATE), et ne font rien en lecture.
 import { EXPIRATION_AVANT_CRENEAU_MS, VENU_APRES_CRENEAU_MS } from "../../../../packages/commun/src/regles/reservations.ts";
 import type { CreneauOuverture, TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
@@ -10,10 +9,8 @@ import type { MotifRefusReservation, StatutReservation } from "../../../../packa
 import type { ModeValidation, MotifRefusVisite, ReglementVisite, StatutVisite } from "../../../../packages/commun/src/types/visite.ts";
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
-import { choisirReservationsAExpirer } from "../fonctions/reservations/choisir-reservations-a-expirer.ts";
-import { lireReglagesEnregistres } from "../fonctions/reservations/lire-reglages-enregistres.ts";
 import type { RoleRattachement } from "./pro-regles.ts";
-import type { FiltreReservations, LigneReservation, PorteeExpiration } from "./reservations-regles.ts";
+import type { FiltreReservations, LigneReservation } from "./reservations-regles.ts";
 import type { ChampsVisite, DepotVisites, LieuVisite, LigneCarte, LignePresentation, LigneVisite, TablesVisites } from "./visites-regles.ts";
 
 type Client = Prisma.TransactionClient;
@@ -36,20 +33,8 @@ const versVisite = (v: VisiteBrute): LigneVisite => ({
 const versPresentation = (p: PresentationBrute): LignePresentation => ({ ...p, reglement: (p.reglement ?? null) as ReglementVisite | null });
 
 const versReservation = (r: ReservationBrute): LigneReservation => ({
-  ...r, statut: r.statut as StatutReservation, motifRefus: r.motifRefus as MotifRefusReservation | null, creneauxProposes: r.creneauxProposes ?? [],
+  ...r, statut: r.statut as StatutReservation, motifRefus: r.motifRefus as MotifRefusReservation | null,
 });
-
-const MARGE_EXPIRATION_MAX_MS = Math.max(EXPIRATION_AVANT_CRENEAU_MS, EXPIRATION_DELAI_COURT_MS);
-
-const versPortee = (portee: PorteeExpiration | undefined) =>
-  portee === undefined ? {} : "compteId" in portee ? { compteId: portee.compteId } : "lieuId" in portee ? { lieuId: portee.lieuId } : { id: portee.reservationId };
-
-async function expirerDans(tx: Client, ids: number[]): Promise<LigneReservation[]> {
-  const tenues = await tx.$queryRaw<{ id: number }[]>`SELECT id FROM reservations WHERE id IN (${Prisma.join(ids)}) AND statut = 'demandee' ORDER BY id FOR UPDATE`;
-  if (tenues.length === 0) return [];
-  const lignes = await tx.reservation.updateManyAndReturn({ where: { id: { in: tenues.map((l) => Number(l.id)) }, statut: "demandee" }, data: { statut: "expiree" } });
-  return lignes.map(versReservation).sort((a, b) => a.id - b.id);
-}
 
 /** Le filtre des réservations (créneau : depuis compris, avant exclu) */
 const ouReservations = ({ compteId, lieuId, statuts, creneauDepuis, creneauAvant }: FiltreReservations) => ({
@@ -107,10 +92,7 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
       if (enTransaction) await b.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR UPDATE`;
     },
     async verrouillerLieu(lieuId) {
-      if (enTransaction) await b.$queryRaw`SELECT id FROM lieux WHERE id = ${lieuId} FOR NO KEY UPDATE`;
-    },
-    async verrouillerReservation(id) {
-      if (enTransaction) await b.$queryRaw`SELECT id FROM reservations WHERE id = ${id} FOR UPDATE`;
+      if (enTransaction) await b.$queryRaw`SELECT id FROM lieux WHERE id = ${lieuId} FOR UPDATE`;
     },
 
     async lireLieu(lieuId, maintenant) {
@@ -251,20 +233,14 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
     async creerReservation(reservation) {
       return versReservation(await b.reservation.create({ data: reservation }));
     },
-    async modifierReservation(id, champs, statutAttendu) {
-      const { count } = await b.reservation.updateMany({ where: { id, ...(statutAttendu ? { statut: statutAttendu } : {}) }, data: champs });
-      return count === 1;
+    async modifierReservation(id, champs) {
+      await b.reservation.update({ where: { id }, data: champs });
     },
-    async expirerReservations(maintenant, portee) {
-      const candidates = await b.reservation.findMany({
-        where: { ...versPortee(portee), statut: "demandee", creneau: { lte: new Date(maintenant.getTime() + MARGE_EXPIRATION_MAX_MS) } },
-        select: { id: true, lieuId: true, creneau: true },
+    async expirerReservations(maintenant) {
+      const expirees = await b.reservation.updateManyAndReturn({
+        where: { statut: "demandee", creneau: { lte: new Date(maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS) } }, data: { statut: "expiree" },
       });
-      if (candidates.length === 0) return [];
-      const lignes = await b.reglagesReservations.findMany({ where: { lieuId: { in: [...new Set(candidates.map((r) => r.lieuId))] } } });
-      const ids = choisirReservationsAExpirer(candidates, new Map(lignes.map((l) => [l.lieuId, lireReglagesEnregistres(l, maintenant)])), maintenant);
-      if (ids.length === 0) return [];
-      return enTransaction ? expirerDans(b, ids) : baseDeDonnees.$transaction((tx) => expirerDans(tx, ids));
+      return expirees.map(versReservation);
     },
     async lireSosA(lieuId, instant) {
       return b.sosLieu.findFirst({
@@ -275,30 +251,6 @@ function creerTables(b: Client, enTransaction: boolean): TablesVisites {
         orderBy: { creeLe: "desc" },
         select: { jusqua: true },
       });
-    },
-    async lireReglagesReservations(lieuId, maintenant) {
-      const r = await b.reglagesReservations.findUnique({ where: { lieuId } });
-      return r ? lireReglagesEnregistres(r, maintenant) : null;
-    },
-    async ecrireReglagesReservations(lieuId, reglages, maintenant) {
-      const donnees = {
-        services: reglages.services as unknown as Prisma.InputJsonValue, acceptation: reglages.acceptation, delai: reglages.delai, modifieLe: maintenant,
-      };
-      await b.reglagesReservations.upsert({ where: { lieuId }, create: { lieuId, ...donnees }, update: donnees });
-    },
-    async ecrireJoursFermes(lieuId, joursFermes, maintenant) {
-      const donnees = { joursFermes: [...joursFermes], modifieLe: maintenant };
-      await b.reglagesReservations.upsert({ where: { lieuId }, create: { lieuId, ...donnees }, update: donnees });
-    },
-    async listerOccupation(lieuId, depuis, avant) {
-      const lignes = await b.reservation.findMany({
-        where: { lieuId, statut: { in: [...STATUTS_QUI_OCCUPENT] }, creneau: { gte: depuis, lt: avant } }, select: { creneau: true, personnes: true },
-      });
-      return lignes.map((l) => ({ creneau: l.creneau.toISOString(), personnes: l.personnes }));
-    },
-    async listerEquipeLieu(lieuId) {
-      const lignes = await b.rattachementLieu.findMany({ where: { lieuId, statut: "valide" }, select: { compteId: true }, orderBy: { compteId: "asc" } });
-      return [...new Set(lignes.map((l) => l.compteId))];
     },
   };
 }

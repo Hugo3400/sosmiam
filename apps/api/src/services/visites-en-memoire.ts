@@ -1,16 +1,11 @@
 // Double en mémoire des visites, de la fidélité, du comptoir et des réservations, pour les tests (aucune base de données).
-// Mêmes gestes que visites.ts.
-import { STATUTS_QUI_OCCUPENT } from "../../../../packages/commun/src/regles/reglages-reservations.ts";
-import { VENU_APRES_CRENEAU_MS } from "../../../../packages/commun/src/regles/reservations.ts";
+// Mêmes gestes que visites.ts ; une seule chose à la fois en JavaScript, donc les verrous ne font rien.
+import { EXPIRATION_AVANT_CRENEAU_MS, VENU_APRES_CRENEAU_MS } from "../../../../packages/commun/src/regles/reservations.ts";
 import type { LieuResume } from "../../../../packages/commun/src/types/lieu-resume.ts";
-import type { ReglagesReservations } from "../../../../packages/commun/src/types/reglages-reservations.ts";
-import { choisirReservationsAExpirer } from "../fonctions/reservations/choisir-reservations-a-expirer.ts";
-import { lireReglagesEnregistres } from "../fonctions/reservations/lire-reglages-enregistres.ts";
 import type {
   CompteVisiteur, DepotVisites, LieuVisite, LigneCarte, LigneDemande, LignePresentation, LigneProgramme, LigneRecompense, LigneVisite, TablesVisites,
 } from "./visites-regles.ts";
-import type { FiltreReservations, LigneReservation, PorteeExpiration } from "./reservations-regles.ts";
-import { creerVerrousEnMemoire, type PrendreVerrou } from "./verrous-en-memoire.ts";
+import type { FiltreReservations, LigneReservation } from "./reservations-regles.ts";
 
 /** Un lieu des tests : publié ou non (un lieu non publié garde son résumé pour l'historique) */
 export type LieuVisiteEnMemoire = LieuVisite & { publie: boolean };
@@ -21,9 +16,6 @@ type DemandeEnMemoire = LigneDemande & { carteId: number };
 export type SosEnMemoire = { lieuId: number; creeLe: Date; jusqua: Date; arreteLe: Date | null };
 
 const copier = <T extends object>(ligne: T): T => ({ ...ligne });
-const copierReservation = (r: LigneReservation): LigneReservation => ({ ...r, creneauxProposes: [...r.creneauxProposes] });
-const dansPortee = (r: LigneReservation, portee: PorteeExpiration | undefined) =>
-  portee === undefined || ("compteId" in portee ? r.compteId === portee.compteId : "lieuId" in portee ? r.lieuId === portee.lieuId : r.id === portee.reservationId);
 
 export function creerVisitesEnMemoire() {
   const lieux = new Map<number, LieuVisiteEnMemoire>();
@@ -36,8 +28,6 @@ export function creerVisitesEnMemoire() {
   const demandes: DemandeEnMemoire[] = [];
   const reservations: LigneReservation[] = [];
   const sos: SosEnMemoire[] = [];
-  const reglagesReservations = new Map<number, ReglagesReservations>();
-  const verrous = creerVerrousEnMemoire();
   let prochainId = 1;
 
   const resumer = (l: LieuVisiteEnMemoire): LieuResume => ({ id: l.id, nom: l.nom, emoji: l.emoji, type: l.type, ville: l.ville });
@@ -60,24 +50,9 @@ export function creerVisitesEnMemoire() {
     demande: demandes.filter((d) => d.carteId === c.id && d.expireLe > maintenant).map(({ carteId: _c, ...d }) => d).at(-1) ?? null,
   });
 
-  async function expirer(maintenant: Date, portee: PorteeExpiration | undefined, prendre: PrendreVerrou): Promise<LigneReservation[]> {
-    const candidates = reservations.filter((r) => r.statut === "demandee" && dansPortee(r, portee));
-    const ids = choisirReservationsAExpirer(candidates, reglagesReservations, maintenant);
-    const expirees: LigneReservation[] = [];
-    for (const id of ids) {
-      await prendre(`reservation:${id}`);
-      const r = reservations.find((x) => x.id === id);
-      if (!r || r.statut !== "demandee") continue;
-      r.statut = "expiree";
-      expirees.push(copierReservation(r));
-    }
-    return expirees;
-  }
-
   const tables: TablesVisites = {
     async verrouillerCompte() {},
     async verrouillerLieu() {},
-    async verrouillerReservation() {},
 
     async lireLieu(lieuId) {
       return lieuPublie(lieuId);
@@ -218,29 +193,30 @@ export function creerVisitesEnMemoire() {
 
     async lireReservation(id) {
       const r = reservations.find((x) => x.id === id);
-      return r ? copierReservation(r) : null;
+      return r ? copier(r) : null;
     },
     async listerReservations(filtre) {
       const sens = filtre.ordre === "creneau-decroissant" ? -1 : 1;
-      const trouvees = filtrerReservations(filtre).sort((a, b) => sens * (a.creneau.getTime() - b.creneau.getTime() || a.id - b.id)).map(copierReservation);
+      const trouvees = filtrerReservations(filtre).sort((a, b) => sens * (a.creneau.getTime() - b.creneau.getTime() || a.id - b.id)).map(copier);
       return filtre.limite === undefined ? trouvees : trouvees.slice(0, filtre.limite);
     },
     async compterReservations(filtre) {
       return filtrerReservations(filtre).length;
     },
     async creerReservation(reservation) {
-      const ligne = { ...reservation, creneauxProposes: [...reservation.creneauxProposes], id: prochainId++ };
+      const ligne = { ...reservation, id: prochainId++ };
       reservations.push(ligne);
-      return copierReservation(ligne);
+      return copier(ligne);
     },
-    async modifierReservation(id, champs, statutAttendu) {
+    async modifierReservation(id, champs) {
       const r = reservations.find((x) => x.id === id);
-      if (!r || (statutAttendu !== undefined && r.statut !== statutAttendu)) return false;
-      Object.assign(r, champs, champs.creneauxProposes ? { creneauxProposes: [...champs.creneauxProposes] } : {});
-      return true;
+      if (r) Object.assign(r, champs);
     },
-    async expirerReservations(maintenant, portee) {
-      return verrous.dans((prendre) => expirer(maintenant, portee, prendre));
+    async expirerReservations(maintenant) {
+      const limite = maintenant.getTime() + EXPIRATION_AVANT_CRENEAU_MS;
+      const expirees = reservations.filter((r) => r.statut === "demandee" && r.creneau.getTime() <= limite);
+      for (const r of expirees) r.statut = "expiree";
+      return expirees.map(copier);
     },
     async lireSosA(lieuId, instant) {
       if (!lieux.get(lieuId)?.verifie) return null;
@@ -249,40 +225,8 @@ export function creerVisitesEnMemoire() {
         .sort((a, b) => b.creeLe.getTime() - a.creeLe.getTime())[0];
       return trouve ? { jusqua: trouve.jusqua } : null;
     },
-    async lireReglagesReservations(lieuId, maintenant) {
-      const r = reglagesReservations.get(lieuId);
-      return r ? lireReglagesEnregistres(structuredClone(r), maintenant) : null;
-    },
-    async ecrireReglagesReservations(lieuId, reglages) {
-      const avant = reglagesReservations.get(lieuId);
-      reglagesReservations.set(lieuId, {
-        services: structuredClone(reglages.services), acceptation: reglages.acceptation, delai: reglages.delai, joursFermes: [...(avant?.joursFermes ?? [])],
-      });
-    },
-    async ecrireJoursFermes(lieuId, joursFermes) {
-      const avant = reglagesReservations.get(lieuId);
-      reglagesReservations.set(lieuId, {
-        services: structuredClone(avant?.services ?? []), acceptation: avant?.acceptation ?? "manuelle", delai: avant?.delai ?? "1-h", joursFermes: [...joursFermes],
-      });
-    },
-    async listerOccupation(lieuId, depuis, avant) {
-      return filtrerReservations({ lieuId, statuts: [...STATUTS_QUI_OCCUPENT], creneauDepuis: depuis, creneauAvant: avant })
-        .map((r) => ({ creneau: r.creneau.toISOString(), personnes: r.personnes }));
-    },
-    async listerEquipeLieu(lieuId) {
-      return [...comptes.values()].filter((c) => c.rattachements.some((r) => r.lieuId === lieuId)).map((c) => c.id).sort((a, b) => a - b);
-    },
   };
 
-  const depot: DepotVisites = {
-    lire: (fn) => fn(tables),
-    ecrire: (fn) => verrous.dans((prendre) => fn({
-      ...tables,
-      verrouillerCompte: (id) => prendre(`compte:${id}`),
-      verrouillerLieu: (id) => prendre(`lieu:${id}`),
-      verrouillerReservation: (id) => prendre(`reservation:${id}`),
-      expirerReservations: (maintenant, portee) => expirer(maintenant, portee, prendre),
-    })),
-  };
-  return { depot, lieux, comptes, visites, presentations, programmes, cartes, recompenses, demandes, reservations, sos, reglagesReservations };
+  const depot: DepotVisites = { lire: (fn) => fn(tables), ecrire: (fn) => fn(tables) };
+  return { depot, lieux, comptes, visites, presentations, programmes, cartes, recompenses, demandes, reservations, sos };
 }

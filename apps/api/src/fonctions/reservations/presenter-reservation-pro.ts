@@ -14,14 +14,14 @@ export function presenterReservationPro(
   client: ClientComptoir,
   capacite: CapaciteDemande = { reglages: null, occupees: [] },
 ): ReservationPro {
-  const etat = { statut: r.statut, creneau: r.creneau.toISOString(), creneauxProposes: r.creneauxProposes.map((c) => c.toISOString()) };
+  const etat = { statut: r.statut, creneau: r.creneau.toISOString() };
   return {
     id: r.id,
     ...client,
     personnes: r.personnes,
     creneau: r.creneau.toISOString(),
     propositions: calculerPropositionsReservation(etat, capacite.reglages, capacite.occupees),
-    automatique: r.automatique,
+    automatique: false,
     limiteReponse: calculerLimiteReponseReservation(etat, capacite.reglages),
     message: r.message,
     statut: r.statut,

@@ -14,6 +14,7 @@
 // Espace pro (9 octobre 2026, pro.sosmiam.fr) : section « pro » dans cgu-pro.ts.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { sectionAmbassadeursCgu } from "~/contenus/legal/cgu-ambassadeurs";
+import { sectionBoiteAIdeesCgu, sectionCommunauteCgu, sectionQuiEstLaCgu } from "~/contenus/legal/cgu-communaute";
 import { sectionModerationCgu } from "~/contenus/legal/cgu-moderation";
 import { sectionProCgu } from "~/contenus/legal/cgu-pro";
 import {
@@ -27,8 +28,8 @@ const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
 export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
-    "Les règles du site et de l'app SOS Miam : gratuits, un compte dès 18 ans, ta bande et la messagerie, ce que tu peux publier, comment on modère, et comment nous joindre.",
-  miseAJour: "15 octobre 2026",
+    "Les règles du site et de l'app SOS Miam : gratuits, un compte dès 18 ans, ta bande et la messagerie, les Miamis et leurs sorties, ce que tu peux publier, comment on modère, et comment nous joindre.",
+  miseAJour: "21 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
   ],
@@ -40,6 +41,7 @@ export const documentCgu: DocumentLegal = {
         "Dans tous les cas, un compte, c'est **dès 18 ans**.",
         "Ce que tu publies **reste à toi**, et on ne vend jamais tes données.",
         "Dans la messagerie comme ailleurs, **on est bienveillant** : pas de harcèlement, pas de contenu choquant, et tu peux toujours signaler ou bloquer.",
+        "Chez **les Miamis**, l'organisateur d'une sortie accepte chaque arrivée, ton genre (facultatif) se déclare honnêtement, et un public réservé sert à se sentir à l'aise, **jamais à exclure**.",
       ],
     },
   ],
@@ -50,7 +52,7 @@ export const documentCgu: DocumentLegal = {
       blocs: [
         `Les présentes conditions d'utilisation (ci-après « les conditions ») encadrent l'accès et l'utilisation du site ${site.nom}, accessible à l'adresse ${site.adresse} et sur ses sous-domaines (ci-après « le site »), et de l'application mobile ${site.nom} pour iPhone et Android (ci-après « l'app »).`,
         `Le site et l'app sont édités par ${editeur.nom}, ${editeur.statut} (ci-après « l'éditeur »). Dans ces conditions, « SOS Miam », « on » et « nous » désignent l'éditeur ; « tu » désigne toute personne qui utilise le site ou l'app, ou qui nous écrit. Les informations sur l'éditeur et l'hébergeur sont dans les [mentions légales](/mentions-legales).`,
-        `Le site te permet de découvrir le projet SOS Miam, de nous écrire et, dès 18 ans, de devenir ambassadeur avec un compte sur ${adresseEspaceAmbassadeur.replace("https://", "")} (voir « Le programme Ambassadeurs »). L'app te fait découvrir des lieux indépendants près de chez toi, valider tes visites, donner ton avis, garder tes lieux préférés et sortir avec tes potes (ta bande, la messagerie, les sorties et les listes). Rien n'y est vendu : il n'y a ni paiement, ni abonnement, ni achat dans l'app, ni conditions générales de vente.`,
+        `Le site te permet de découvrir le projet SOS Miam, de nous écrire et, dès 18 ans, de devenir ambassadeur avec un compte sur ${adresseEspaceAmbassadeur.replace("https://", "")} (voir « Le programme Ambassadeurs »). L'app te fait découvrir des lieux indépendants près de chez toi, valider tes visites, donner ton avis, garder tes lieux préférés, sortir avec tes potes (ta bande, la messagerie, les sorties et les listes) et rencontrer d'autres Miamis (les sorties des Miamis, « Qui est là ? » et la boîte à idées). Rien n'y est vendu : il n'y a ni paiement, ni abonnement, ni achat dans l'app, ni conditions générales de vente.`,
       ],
     },
     {
@@ -95,7 +97,7 @@ export const documentCgu: DocumentLegal = {
       titre: "À partir de 18 ans",
       blocs: [
         "Pour créer un compte SOS Miam (dans l'app, dans l'espace ambassadeur ou dans l'espace pro), il faut être **majeur** : **18 ans** en France, le seul pays où SOS Miam est ouvert pour l'instant. Le site, lui, se visite sans compte, à tout âge.",
-        "Sans compte, l'app reste tout public : tu peux regarder le fil, Explorer, les fiches des lieux et leur carte, et les pages des créateurs, mais les bars et tout ce qui touche à l'alcool n'y apparaissent pas. Tout le reste (rescousse, J'aime, suivre, commenter, visites, réservations, avis, Potes, défis, Miam Safe…) demande un compte.",
+        "Sans compte, l'app reste tout public : tu peux regarder le fil, Explorer, les fiches des lieux et leur carte, et les pages des créateurs, mais les bars et tout ce qui touche à l'alcool n'y apparaissent pas. Tout le reste (rescousse, J'aime, suivre, commenter, visites, réservations, avis, Communauté, défis, Miam Safe…) demande un compte.",
         "Ta date de naissance doit être exacte : elle sert à vérifier que tu as 18 ans. Mentir sur ton âge est interdit. Si on apprend qu'un compte a été créé en mentant sur l'âge, on le supprime avec ses données.",
         "Tous les détails, pour toi comme pour les parents, sont sur la page [SOS Miam et l'âge](/age).",
       ],
@@ -106,7 +108,7 @@ export const documentCgu: DocumentLegal = {
       blocs: [
         "Dans l'app, tu peux créer ton compte avec Apple, Google ou une adresse e-mail. Il est gratuit et personnel : **un seul compte par personne**, et tu gardes tes accès pour toi.",
         `Tu es responsable de ce qui se fait depuis ton compte. Si tu penses que quelqu'un l'utilise à ta place, préviens-nous vite à ${lienContact}.`,
-        "Tu peux **supprimer ton compte à tout moment**, depuis l'app, sur [sosmiam.fr/mon-compte](/mon-compte) ou en nous écrivant. On efface alors vraiment tes données, sauf ce que la loi nous oblige à garder. Tes messages restent chez les potes à qui tu les as envoyés, signés « Compte supprimé », jusqu'à l'effacement de la conversation, et ton pseudo reste réservé 30 jours (voir « Ton pseudo »).",
+        "Tu peux **supprimer ton compte à tout moment**, depuis l'app, sur [sosmiam.fr/mon-compte](/mon-compte) ou en nous écrivant. On efface alors vraiment tes données, sauf ce que la loi nous oblige à garder. Tes messages restent chez les potes à qui tu les as envoyés, signés « Compte supprimé », jusqu'à l'effacement de la conversation, tes idées restent dans la boîte à idées, sans ton nom, et ton pseudo reste réservé 30 jours (voir « Ton pseudo »).",
         "Si tu ne respectes pas ces conditions, on peut, selon la gravité : masquer ou retirer un contenu (publication, commentaire, message, liste…), t'empêcher de publier pendant un temps, suspendre ton compte ou le supprimer. Dans tous les cas, on te dit pourquoi (voir « Signalements et modération »).",
       ],
     },
@@ -127,11 +129,14 @@ export const documentCgu: DocumentLegal = {
     sectionPseudosCgu,
     sectionPhotoProfilCgu,
     sectionBloquerCgu,
+    sectionCommunauteCgu,
+    sectionQuiEstLaCgu,
+    sectionBoiteAIdeesCgu,
     {
       id: "publications",
       titre: "Ce que tu publies dans l'app",
       blocs: [
-        "Dans l'app, tu peux publier des contenus : avis, photos, vidéos, commentaires, listes et, si tu représentes un lieu, sa fiche, ses SOS ou son histoire de BIG SOS (ci-après « tes publications »). Ce que tu envoies dans la messagerie (messages, photos, notes vocales) n'est montré qu'aux personnes de la conversation.",
+        "Dans l'app, tu peux publier des contenus : avis, photos, vidéos, commentaires, listes, sorties des Miamis, idées et, si tu représentes un lieu, sa fiche, ses SOS ou son histoire de BIG SOS (ci-après « tes publications »). Ce que tu envoies dans la messagerie (messages, photos, notes vocales) n'est montré qu'aux personnes de la conversation.",
         "**Tes publications restent à toi.** Pour qu'on puisse les montrer, tu nous autorises, gratuitement et sans exclusivité, à les héberger, à les adapter au format de l'app (recadrage, compression…) et à les afficher dans l'app et sur le site, tant qu'elles sont en ligne. Tu restes libre de les publier ailleurs.",
         "Si tu supprimes une publication, ou ton compte, on arrête de la montrer. Pour toute autre utilisation, par exemple sur nos réseaux sociaux (TikTok, Instagram…), **on te demande d'abord ton accord**.",
         "En publiant, tu garantis :",
@@ -151,7 +156,7 @@ export const documentCgu: DocumentLegal = {
       id: "regles-communaute",
       titre: "Les règles de la communauté",
       blocs: [
-        "SOS Miam, c'est un endroit pour se donner envie de sortir et s'entraider. On y est bienveillant, et pour les contenus choquants et les comportements abusifs, c'est **tolérance zéro**. Dans tout ce que tu partages dans l'app (publications, avis, commentaires, listes, profil, pseudo, messages privés, groupes et sorties), il est interdit de publier ou de faire :",
+        "SOS Miam, c'est un endroit pour se donner envie de sortir et s'entraider. On y est bienveillant, et pour les contenus choquants et les comportements abusifs, c'est **tolérance zéro**. Dans tout ce que tu partages dans l'app (publications, avis, commentaires, listes, profil, pseudo, messages privés, groupes, sorties, étiquettes et idées), il est interdit de publier ou de faire :",
         {
           liste: [
             "de **fausses infos** : un lieu inventé ou fermé, un faux SOS, des prix ou des horaires trompeurs, un avis sans visite, payé ou écrit pour nuire à un concurrent ;",
@@ -252,7 +257,7 @@ export const documentCgu: DocumentLegal = {
             "d'un usage du site ou de l'app contraire à ces conditions ou à la loi ;",
             "d'une interruption qui ne résulte pas d'un manquement ou d'une faute de notre part (panne chez un prestataire, attaque informatique, force majeure…) ;",
             "de ce qui se passe dans un lieu (accueil, repas, prix, sécurité), qui relève de la responsabilité du lieu ;",
-            "de ce qui se passe pendant une sortie entre potes, organisée entre vous dans l'app ;",
+            "de ce qui se passe pendant une sortie entre potes ou une sortie des Miamis, organisée entre vous dans l'app ;",
             "du contenu des sites extérieurs vers lesquels le site ou l'app renvoient ;",
             "de ton propre matériel ou de ta connexion à internet (virus présent sur ton appareil, réseau défaillant…).",
           ],
@@ -267,8 +272,8 @@ export const documentCgu: DocumentLegal = {
       titre: "Données personnelles et cookies",
       blocs: [
         "On ne collecte que ce qui est utile pour faire tourner et protéger SOS Miam, te répondre, étudier tes demandes, faire vivre ton compte ambassadeur si tu en as un et, si tu l'as demandé, te prévenir du lancement. On ne vend jamais tes données, et on ne les loue pas non plus.",
-        "Dans l'app, ta date de naissance et ton nom sont chiffrés, comme le texte de tes messages, tes photos et tes notes vocales ; et ton régime particulier (végétarien, sans gluten, allergies…) reste sur ton téléphone : il n'est jamais envoyé à notre serveur.",
-        "La [politique de confidentialité](/confidentialite) explique quelles données, pourquoi, combien de temps, et comment exercer tes droits, pour le site comme pour l'app (ton compte, ta bande, ta messagerie et Miam Safe).",
+        "Dans l'app, ta date de naissance, ton nom et ton genre (si tu le donnes) sont chiffrés, comme le texte de tes messages, tes photos et tes notes vocales ; et ton régime particulier (végétarien, sans gluten, allergies…) reste sur ton téléphone : il n'est jamais envoyé à notre serveur.",
+        "La [politique de confidentialité](/confidentialite) explique quelles données, pourquoi, combien de temps, et comment exercer tes droits, pour le site comme pour l'app (ton compte, ta bande, ta messagerie, les Miamis et Miam Safe).",
         "Sur le site, aucun **cookie de suivi** aujourd'hui : pas de pub, et des statistiques de visite comptées par notre serveur, sans cookie (tu peux refuser d'être compté sur la page [statistiques](/statistiques)). Les seuls cookies posés sont strictement nécessaires : un cookie de sécurité de notre prestataire Cloudflare, le cookie qui retient ton refus des statistiques si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro) et, le temps d'une connexion avec Apple ou Google, deux cookies de 10 minutes. Si ça change, rien de facultatif ne sera déposé sans ton accord. Le détail est sur la [page cookies](/cookies).",
       ],
     },
@@ -304,6 +309,7 @@ export const documentCgu: DocumentLegal = {
     { id: "sos-miam-et-ton-compte", titre: "SOS Miam et ton compte", sections: ["contenu", "age", "compte", "rescousses"] },
     { id: "ambassadeurs-et-pros", titre: "Ambassadeurs et pros", sections: ["ambassadeurs", "pro"] },
     { id: "ta-bande-et-tes-messages", titre: "Ta bande et la messagerie", sections: ["potes", "messagerie", "commentaires", "pseudos", "photo-profil", "bloquer"] },
+    { id: "les-miamis", titre: "Les Miamis", sections: ["communaute", "qui-est-la", "boite-a-idees"] },
     { id: "publier", titre: "Publier, et vivre ensemble", sections: ["publications", "regles-communaute", "moderation"] },
     { id: "bon-usage-et-responsabilites", titre: "Bon usage et responsabilités", sections: ["propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite"] },
     { id: "tes-donnees", titre: "Tes données et les cookies", sections: ["donnees-cookies"] },
