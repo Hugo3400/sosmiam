@@ -73,36 +73,37 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
       {enCours ? (
         <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.enCours} />
       ) : (
-        <View className="flex-row gap-3">
-          <BoutonCarteComptoir
-            libelle={accepter}
-            libelleLu={remplirModele(T.accepterLu, { nom, heure, personnes: ecrireNombrePersonnes(reservation.personnes) })}
-            plein
-            icone="checkmark"
-            desactive={!gestes.accepter}
-            onPress={() => onAccepter(tient)}
-          />
-          <View className="w-[34%] flex-row">
+        <View className="gap-3">
+          <View className="flex-row">
+            <BoutonCarteComptoir
+              libelle={accepter}
+              libelleLu={remplirModele(T.accepterLu, { nom, heure, personnes: ecrireNombrePersonnes(reservation.personnes) })}
+              plein
+              icone="checkmark"
+              desactive={!gestes.accepter}
+              onPress={() => onAccepter(tient)}
+            />
+          </View>
+          <View className="flex-row gap-3">
             <BoutonCarteComptoir libelle={T.refuser} libelleLu={remplirModele(T.refuserLu, { nom })} plein={false} desactive={!gestes.refuser} onPress={onRefuser} />
+            {plusieurs ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={remplirModele(deplie ? T.replierHorairesLu : T.autreHoraireLu, { nom })}
+                accessibilityState={{ expanded: deplie }}
+                onPress={() => {
+                  vibrerLegerement();
+                  onBasculer();
+                }}
+                className="min-h-12 flex-1 flex-row items-center justify-center gap-1.5 rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+              >
+                <Text className="text-center font-texte-gras text-base text-encre">{deplie ? T.replierHoraires : T.autreHoraire}</Text>
+                <Ionicons name={deplie ? "chevron-up" : "chevron-down"} size={16} color={couleurs.encre} />
+              </Pressable>
+            ) : null}
           </View>
         </View>
       )}
-
-      {plusieurs ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={deplie ? T.replierHoraires : remplirModele(T.autreHoraireLu, { nom })}
-          accessibilityState={{ expanded: deplie }}
-          onPress={() => {
-            vibrerLegerement();
-            onBasculer();
-          }}
-          className="min-h-11 flex-row items-center gap-1.5 self-start active:opacity-60"
-        >
-          <Text className="font-texte-gras text-[15px] text-encre underline">{deplie ? T.replierHoraires : T.autreHoraire}</Text>
-          <Ionicons name={deplie ? "chevron-up" : "chevron-down"} size={16} color={couleurs.encre} />
-        </Pressable>
-      ) : null}
 
       {plusieurs && deplie ? (
         <View accessibilityRole="radiogroup" accessibilityLabel={T.horairesProposes} className="gap-2">
