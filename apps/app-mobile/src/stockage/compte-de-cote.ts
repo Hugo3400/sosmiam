@@ -5,6 +5,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { OPTIONS_COFFRE_FORT, preparerCoffreFort } from "~/stockage/coffre-fort";
+
 const CLE = "sosmiam.compte-de-cote";
 const CLE_REPRISE = "sosmiam.reprise-compte";
 const surLeWeb = Platform.OS === "web";
@@ -14,6 +16,7 @@ export type CompteDeCote = { jeton: string; email: string };
 
 export async function lireCompteDeCote(): Promise<CompteDeCote | null> {
   try {
+    if (!(await preparerCoffreFort())) return null;
     const brut = surLeWeb ? await AsyncStorage.getItem(CLE) : await SecureStore.getItemAsync(CLE);
     const lu = brut ? (JSON.parse(brut) as Partial<CompteDeCote>) : null;
     return lu && typeof lu.jeton === "string" && FORME_JETON.test(lu.jeton) && typeof lu.email === "string" ? { jeton: lu.jeton, email: lu.email } : null;
@@ -24,8 +27,9 @@ export async function lireCompteDeCote(): Promise<CompteDeCote | null> {
 
 export async function garderCompteDeCote(compte: CompteDeCote): Promise<void> {
   const brut = JSON.stringify(compte);
-  if (surLeWeb) await AsyncStorage.setItem(CLE, brut);
-  else await SecureStore.setItemAsync(CLE, brut, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK });
+  if (surLeWeb) return AsyncStorage.setItem(CLE, brut);
+  await preparerCoffreFort();
+  await SecureStore.setItemAsync(CLE, brut, OPTIONS_COFFRE_FORT);
 }
 
 export async function effacerCompteDeCote(): Promise<void> {

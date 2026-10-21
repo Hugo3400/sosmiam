@@ -2,6 +2,7 @@ import * as SecureStore from "expo-secure-store";
 import { DevSettings, Platform } from "react-native";
 
 import { CLE_MODE_DEMO, DEMO_POSSIBLE } from "~/services/demo/demo-visites-active";
+import { OPTIONS_COFFRE_FORT } from "~/stockage/coffre-fort";
 
 /**
  * Allume ou éteint le mode démo, puis relance l'app (le drapeau n'est lu qu'au lancement). L'appelant a déjà effacé les
@@ -15,7 +16,7 @@ export function basculerModeDemo(actif: boolean): void {
     globalThis.location?.reload();
     return;
   }
-  if (actif) SecureStore.setItem(CLE_MODE_DEMO, "1");
+  if (actif) SecureStore.setItem(CLE_MODE_DEMO, "1", OPTIONS_COFFRE_FORT);
   else void SecureStore.deleteItemAsync(CLE_MODE_DEMO);
   // En développement (le seul endroit où la démo existe), React Native sait se relancer tout seul
   DevSettings.reload();

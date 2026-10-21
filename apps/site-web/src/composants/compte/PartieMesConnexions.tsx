@@ -15,6 +15,7 @@ import type { FournisseurExterne } from "~/types/connexion-externe";
 import type { MesConnexions } from "~/types/mes-connexions";
 
 const noms = { apple: "Apple", google: "Google" } as const;
+const autres = { apple: "google", google: "apple" } as const;
 const logos = { apple: <LogoApple className="h-5 w-5" />, google: <LogoGoogle className="h-5 w-5" /> };
 
 /**
@@ -37,14 +38,19 @@ export function PartieMesConnexions({ connexions }: { connexions: MesConnexions 
 
   const ligneFournisseur = (fournisseur: FournisseurExterne) => {
     const relie = connexions[fournisseur];
-    const relier = !relie && actifs[fournisseur] && (
+    const confirmable = motDePasse || actifs[autres[fournisseur]];
+    const relier = !relie && actifs[fournisseur] && confirmable && (
       <Bouton href={construireAdresseDepart(fournisseur, depart, null, "relier")} variante="blanc" petit>
         Relier<span className="sr-only"> mon compte {noms[fournisseur]}</span>
       </Bouton>
     );
     return (
       <LigneConnexion key={fournisseur} icone={logos[fournisseur]} nom={noms[fournisseur]} actif={relie} etat={relie ? "Relié" : "Pas relié"} action={relier || undefined}>
-        {relie ? <DelierConnexion fournisseur={fournisseur} connexions={connexions} /> : undefined}
+        {relie ? (
+          <DelierConnexion fournisseur={fournisseur} connexions={connexions} />
+        ) : confirmable ? undefined : (
+          <p className="text-gris">{lierPonctuation(`Pour relier ${noms[fournisseur]} ici, ajoute d'abord un mot de passe : c'est lui qui confirmera que c'est bien toi.`)}</p>
+        )}
       </LigneConnexion>
     );
   };
@@ -57,7 +63,7 @@ export function PartieMesConnexions({ connexions }: { connexions: MesConnexions 
           {message.reussite && <span aria-hidden="true">✓ </span>}{lierPonctuation(message.texte)}
         </p>
       )}
-      {pret && <ConfirmationConnexion intention={pret.intention} fournisseur={pret.fournisseur} />}
+      {pret && <ConfirmationConnexion intention={pret.intention} fournisseur={pret.fournisseur} confirme={pret.confirme} connexions={connexions} />}
       <ul className="grid gap-4">
         <LigneConnexion icone={<span aria-hidden="true">✉️</span>} nom="E-mail et mot de passe" actif={motDePasse} etat={motDePasse ? "Activé" : "Pas encore de mot de passe"}>
           {!motDePasse && (

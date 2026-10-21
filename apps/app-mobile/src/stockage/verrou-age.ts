@@ -10,6 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
+import { OPTIONS_COFFRE_FORT } from "~/stockage/coffre-fort";
 
 const CLE = "sosmiam.verrou-age";
 const surLeWeb = Platform.OS === "web";
@@ -34,7 +35,7 @@ export async function lireVerrouAge(aujourdhui: Date = new Date()): Promise<stri
 export async function poserVerrouAge(jusqua: string): Promise<void> {
   const actuel = await lireVerrouAge();
   if (actuel && actuel >= jusqua) return;
-  await (surLeWeb ? AsyncStorage.setItem(CLE, jusqua) : SecureStore.setItemAsync(CLE, jusqua));
+  await (surLeWeb ? AsyncStorage.setItem(CLE, jusqua) : SecureStore.setItemAsync(CLE, jusqua, OPTIONS_COFFRE_FORT));
 }
 
 /** Lève le verrou. Réservé au mode développement (bouton de l'écran bloqué, pour les tests) : en production, rien ne le lève avant la date. */

@@ -8,6 +8,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 import { creerCodeInvitation } from "~/fonctions/communaute/creer-code-invitation";
+import { OPTIONS_COFFRE_FORT, preparerCoffreFort } from "~/stockage/coffre-fort";
 
 const CLE = "sosmiam.code-invitation";
 const FORME = /^[a-z0-9]{12}$/;
@@ -16,6 +17,7 @@ const surLeWeb = Platform.OS === "web";
 /** Ton code d'invitation ; créé et rangé la première fois. Si le coffre-fort ne répond pas, un code neuf sert le temps de cette ouverture. */
 export async function lireCodeInvitation(): Promise<string> {
   try {
+    if (!(await preparerCoffreFort())) return creerCodeInvitation();
     const lu = surLeWeb ? await AsyncStorage.getItem(CLE) : await SecureStore.getItemAsync(CLE);
     if (lu && FORME.test(lu)) return lu;
   } catch {
@@ -23,7 +25,7 @@ export async function lireCodeInvitation(): Promise<string> {
   }
   const code = creerCodeInvitation();
   try {
-    await (surLeWeb ? AsyncStorage.setItem(CLE, code) : SecureStore.setItemAsync(CLE, code));
+    await (surLeWeb ? AsyncStorage.setItem(CLE, code) : SecureStore.setItemAsync(CLE, code, OPTIONS_COFFRE_FORT));
   } catch {
     // Pas rangé : le lien changera à la prochaine ouverture, rien de grave dans la démo
   }
