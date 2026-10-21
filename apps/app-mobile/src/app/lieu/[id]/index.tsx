@@ -33,6 +33,8 @@ import couleurs from "~/theme/couleurs";
 /** Une feuille (« Envoyer à un pote », « Miam Safe ») : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
 
+const DEBORD_GAUCHE_LU_EN_PREMIER = 1;
+
 /**
  * Fiche d'un lieu (première version) : ses infos, ses horaires, son plat signature, de quoi y faire compter sa visite
  * (addition, QR du comptoir, fidélité, réserver), et de quoi y aller ou l'aider.
@@ -107,30 +109,35 @@ export default function FicheLieu() {
     <View className="flex-1 bg-creme">
       {/* Fiche préparée en coulisses depuis le fil : sa barre claire ne s'applique que quand elle est vraiment affichée */}
       {focus ? <StatusBar style="light" /> : null}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Retour"
-        hitSlop={8}
-        onPress={retour}
-        style={{ top: marges.top + 8 }}
-        className="absolute left-4 z-10 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+      <View
+        collapsable={false}
+        pointerEvents="box-none"
+        style={{ top: marges.top, left: -DEBORD_GAUCHE_LU_EN_PREMIER, paddingLeft: 16 + DEBORD_GAUCHE_LU_EN_PREMIER }}
+        className="absolute right-2 z-10 flex-row justify-between py-2 pr-2"
       >
-        <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          hitSlop={8}
+          onPress={retour}
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        >
+          <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
+        </Pressable>
 
-      {/* Miam Safe, toujours à portée de pouce, en miroir du retour : les secours, un pote, le comptoir (même sans compte, les
-          secours restent accessibles) */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Miam Safe"
-        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
-        hitSlop={8}
-        onPress={ouvrirMiamSafe}
-        style={{ top: marges.top + 8 }}
-        className="absolute right-4 z-10 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
-      >
-        <Text className="text-lg">🚨</Text>
-      </Pressable>
+        {/* Miam Safe, toujours à portée de pouce, en miroir du retour : les secours, un pote, le comptoir (même sans compte, les
+            secours restent accessibles) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Miam Safe"
+          accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+          hitSlop={8}
+          onPress={ouvrirMiamSafe}
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        >
+          <Text className="text-lg">🚨</Text>
+        </Pressable>
+      </View>
 
       <ScrollView contentContainerStyle={contenuDefilant}>
         {/* Haut (mémorisé) tout de suite, suite (mémorisée) après l'animation d'arrivée : une rescousse ne redessine ni l'un ni l'autre */}

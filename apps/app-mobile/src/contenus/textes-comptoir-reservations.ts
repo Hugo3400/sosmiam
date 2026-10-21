@@ -1,0 +1,88 @@
+export const TEXTES_COMPTOIR_RESERVATIONS = {
+  changer: "Changer",
+  changerIndice: "Ouvre les réglages des réservations",
+  voirReglages: "Jours sans résa",
+  voirReglagesIndice: "Ouvre les réglages des réservations, où tu peux fermer un jour",
+  bandeauAuto: "Les demandes s'acceptent toutes seules tant qu'il reste de la place. Un imprévu ? Tu peux toujours annuler une table : le client est prévenu.",
+  aRepondreVideAuto: "Rien à répondre : les nouvelles tables s'acceptent toutes seules.",
+  pourQuand: "pour {quand}",
+  premierChoix: "son 1er choix",
+  planB: "son plan B",
+  restePlaces: { un: "il reste 1 place", plusieurs: "il reste {nombre} places" },
+  complet: "complet pour {personnes}",
+  horsReglages: "hors de tes services",
+  jourFerme: "jour sans résa",
+  aucunQuiTient: "Aucun horaire n'a la place pour {personnes}.",
+  endormissement: "Sans réponse, la demande s'endort à {heure}.",
+  endormissementJour: "Sans réponse, la demande s'endort {quand}.",
+  accepter: "Accepter à {heure}",
+  accepterQuandMeme: "Accepter à {heure} quand même",
+  accepterLu: "Accepter {nom} à {heure}, {personnes}",
+  refuser: "Refuser",
+  refuserLu: "Refuser la demande de {nom}",
+  autreHoraire: "Autre horaire",
+  autreHoraireLu: "Voir les autres horaires proposés par {nom}",
+  replierHoraires: "Replier les horaires",
+  horairesProposes: "Horaires proposés",
+  accepteeAuto: "⚡ Acceptée toute seule",
+  accepteeAutoLu: "Acceptée automatiquement",
+  annuler: "Annuler la table",
+  annulerLu: "Annuler la table de {nom}",
+  enCours: "On prévient le client…",
+} as const;
+
+export const CONFIRMATIONS_COMPTOIR_RESERVATIONS = {
+  depasser: {
+    titre: "Accepter quand même ?",
+    detailPlaces: "À {heure}, il ne reste que {places} pour {personnes} : ça déborde de {depassement}. Tu as la place quand même ? C'est toi le capitaine !",
+    detailComplet: "À {heure}, c'est déjà complet : la table de {nom} ajoute {personnes}. Tu as la place quand même ? C'est toi le capitaine !",
+    detailJourFerme: "Tu as fermé les résas ce jour-là. Tu as quand même la place pour {nom} à {heure} ? C'est toi le capitaine !",
+    confirmer: "Accepter quand même",
+    rester: "Finalement non",
+  },
+  annuler: {
+    titre: "Annuler la table de {nom} ?",
+    detail: "On prévient {nom} tout de suite, avec le motif que tu choisis. Pas de texte libre : c'est plus simple pour tout le monde.",
+    confirmer: "Annuler la table",
+  },
+} as const;
+
+export const ANNONCES_COMPTOIR_RESERVATIONS = {
+  acceptee: "✅ Table de {nom} acceptée à {heure} · code {code}",
+  annulee: "Table de {nom} annulée : on l'a prévenu",
+  nouvelleDemande: "📬 Nouvelle demande de {nom}, {personnes}, {quand}",
+  nouvelleAuto: "⚡ Nouvelle table : {nom}, {personnes}, {quand}",
+  nouvelles: "📬 {nombre} nouvelles tables à voir",
+} as const;
+
+export const TEXTES_FERMER_JOUR = {
+  fermer: "🛑 Plus de résa aujourd'hui",
+  fermerIndice: "Les créneaux d'aujourd'hui disparaissent de l'app ; les tables déjà prises restent",
+  rouvrir: "Rouvrir les résas d'aujourd'hui",
+  rouvrirIndice: "Les créneaux d'aujourd'hui reviennent dans l'app",
+  ferme: "Aujourd'hui, c'est sans résa : l'app ne propose plus rien pour ce jour.",
+  confirmationTitre: "Plus de résa aujourd'hui ?",
+  confirmationDetail: "Les créneaux d'aujourd'hui disparaissent de l'app. Les tables déjà prises restent : rien n'est annulé.",
+  confirmationConfirmer: "Fermer pour aujourd'hui",
+  confirmationRester: "Finalement non",
+  annonceFerme: "🛑 Plus de résa aujourd'hui : c'est noté",
+  annonceRouvert: "✅ Les résas d'aujourd'hui sont rouvertes",
+} as const;
+
+export const TEXTES_REMPLISSAGE = {
+  titre: "Aujourd'hui, côté places",
+  service: "{acceptes} sur {capacite} couverts",
+  serviceLu: "{service}, {acceptes} sur {capacite} couverts",
+  creneauReste: { un: "reste 1 place", plusieurs: "reste {nombre} places" },
+  creneauComplet: "complet",
+  creneauDemandes: { un: "+ 1 demande ({personnes})", plusieurs: "+ {nombre} demandes ({personnes})" },
+  creneauLu: "{heure}, {acceptes} sur {capacite} arrivées",
+  deplier: "Voir créneau par créneau",
+  replier: "Replier",
+  sansService: "Pas de service aujourd'hui : rien à remplir, profite.",
+  jourSansResa: "Aujourd'hui, c'est jour sans résa : les tables déjà prises restent.",
+  finis: "Les services du jour sont passés. À demain, la Brigade !",
+  invitationTitre: "Tu veux voir tes places ici ?",
+  invitationTexte: "Règle tes services et tes couverts : tu verras ce qu'il te reste, créneau par créneau.",
+  invitationBouton: "Régler mes réservations",
+} as const;
