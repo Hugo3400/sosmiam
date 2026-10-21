@@ -58,6 +58,58 @@ async fn enregistrer_fichier_binaire(app: tauri::AppHandle, nom: String, contenu
     demander_et_ecrire(&app, &nom, &EXTENSIONS_BINAIRES, &contenu).await
 }
 
+const ENTROPIE_DPAPI: &[u8] = b"sos-miam-gestion:deverrouillage-retenu";
+
+#[cfg(windows)]
+fn passer_par_dpapi(entree: &[u8], proteger: bool) -> Result<Vec<u8>, String> {
+    use windows_sys::Win32::Foundation::LocalFree;
+    use windows_sys::Win32::Security::Cryptography::{CryptProtectData, CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB};
+    let mut donnees = entree.to_vec();
+    let mut entropie = ENTROPIE_DPAPI.to_vec();
+    let blob = CRYPT_INTEGER_BLOB { cbData: donnees.len() as u32, pbData: donnees.as_mut_ptr() };
+    let sel = CRYPT_INTEGER_BLOB { cbData: entropie.len() as u32, pbData: entropie.as_mut_ptr() };
+    let mut sortie = CRYPT_INTEGER_BLOB { cbData: 0, pbData: std::ptr::null_mut() };
+    let reussi = unsafe {
+        if proteger {
+            CryptProtectData(&blob, std::ptr::null(), &sel, std::ptr::null(), std::ptr::null(), CRYPTPROTECT_UI_FORBIDDEN, &mut sortie)
+        } else {
+            CryptUnprotectData(&blob, std::ptr::null_mut(), &sel, std::ptr::null(), std::ptr::null(), CRYPTPROTECT_UI_FORBIDDEN, &mut sortie)
+        }
+    };
+    donnees.fill(0);
+    if reussi == 0 || sortie.pbData.is_null() {
+        return Err("dpapi".into());
+    }
+    let resultat = unsafe { std::slice::from_raw_parts(sortie.pbData, sortie.cbData as usize) }.to_vec();
+    unsafe {
+        std::ptr::write_bytes(sortie.pbData, 0, sortie.cbData as usize);
+        LocalFree(sortie.pbData as _);
+    }
+    Ok(resultat)
+}
+
+#[cfg(not(windows))]
+fn passer_par_dpapi(_entree: &[u8], _proteger: bool) -> Result<Vec<u8>, String> {
+    Err("indisponible".into())
+}
+
+#[tauri::command]
+fn proteger_secret(contenu_base64: String) -> Result<String, String> {
+    let mut contenu = base64::engine::general_purpose::STANDARD.decode(contenu_base64).map_err(|e| e.to_string())?;
+    let protege = passer_par_dpapi(&contenu, true);
+    contenu.fill(0);
+    Ok(base64::engine::general_purpose::STANDARD.encode(protege?))
+}
+
+#[tauri::command]
+fn deproteger_secret(contenu_base64: String) -> Result<String, String> {
+    let contenu = base64::engine::general_purpose::STANDARD.decode(contenu_base64).map_err(|e| e.to_string())?;
+    let mut clair = passer_par_dpapi(&contenu, false)?;
+    let texte = base64::engine::general_purpose::STANDARD.encode(&clair);
+    clair.fill(0);
+    Ok(texte)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut application = tauri::Builder::default();
@@ -76,7 +128,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![enregistrer_fichier, enregistrer_fichier_binaire])
+        .invoke_handler(tauri::generate_handler![enregistrer_fichier, enregistrer_fichier_binaire, proteger_secret, deproteger_secret])
         .run(tauri::generate_context!())
         .expect("impossible de lancer le logiciel de gestion");
 }

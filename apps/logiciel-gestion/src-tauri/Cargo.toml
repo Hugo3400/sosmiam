@@ -28,6 +28,9 @@ tauri-plugin-single-instance = "2"
 # Mises à jour automatiques (installateurs signés par la clé de mise à jour, servis par l'API avec un jeton)
 tauri-plugin-updater = "2"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.60", features = ["Win32_Foundation", "Win32_Security_Cryptography"] }
+
 [profile.release]
 codegen-units = 1
 lto = true
