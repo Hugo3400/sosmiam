@@ -1,7 +1,18 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
-import { creerControleurFichePublique, creerControleurLieuxDuPlan, creerControleurLieuxPublics } from "../controleurs/lieux-publics.ts";
+import {
+  creerControleurFichePublique, creerControleurLieuxDuPlan, creerControleurLieuxPublics, type ReglagesCachePlan,
+} from "../controleurs/lieux-publics.ts";
+import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import type { FichePublique, LieuDuPlan, LieuPublic } from "../services/lieux-publics.ts";
+
+export const LIMITE_LIEUX_PUBLICS = { fenetre: 60_000, maximum: 120 };
+export const LIMITE_PLAN_LIEUX = { fenetre: 10 * 60_000, maximum: 30 };
+
+function limiterVisiteursTransmis(reglages: { fenetre: number; maximum: number }): RequestHandler {
+  const limiter = limiterRequetes(reglages);
+  return (requete, reponse, suite) => (requete.get("x-ip-visiteur") ? limiter(requete, reponse, suite) : suite());
+}
 
 /**
  * /lieux/… : lecture publique, sans session (chaque adresse n'existe que si son service est fourni).
@@ -23,14 +34,14 @@ import type { FichePublique, LieuDuPlan, LieuPublic } from "../services/lieux-pu
  */
 export function creerRoutesLieuxPublics(lister?: () => Promise<LieuPublic[]>, lireFiche?: (id: number) => Promise<FichePublique | null>) {
   const routes = Router();
-  if (lister) routes.get("/", creerControleurLieuxPublics(lister));
+  if (lister) routes.get("/", limiterVisiteursTransmis(LIMITE_LIEUX_PUBLICS), creerControleurLieuxPublics(lister));
   if (lireFiche) routes.get("/publics/:id", creerControleurFichePublique(lireFiche));
   return routes;
 }
 
 /** GET /lieux/plan (voir le contrat ci-dessus) */
-export function creerRoutePlanLieux(lister: () => Promise<LieuDuPlan[]>) {
+export function creerRoutePlanLieux(lister: () => Promise<LieuDuPlan[]>, cache?: ReglagesCachePlan) {
   const routes = Router();
-  routes.get("/plan", creerControleurLieuxDuPlan(lister));
+  routes.get("/plan", limiterVisiteursTransmis(LIMITE_PLAN_LIEUX), creerControleurLieuxDuPlan(lister, cache));
   return routes;
 }

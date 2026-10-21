@@ -22,6 +22,18 @@ async function demanderJeton(fournisseur: FournisseurConnexion): Promise<{ ok: t
   return { ok: false, erreur: natif.raison === "indisponible" ? `${fournisseur}-indisponible` : "jeton-externe-invalide" };
 }
 
+async function preparerConfirmation(
+  autre: FournisseurConnexion,
+  motDePasse?: string,
+): Promise<{ ok: true; confirmation: { motDePasse: string } | Jeton } | { ok: false; erreur: ErreurService | null }> {
+  if (motDePasse !== undefined) return { ok: true, confirmation: { motDePasse } };
+  const demande = await demanderJeton(autre);
+  return demande.ok ? { ok: true, confirmation: demande.jeton } : demande;
+}
+
+const expliquerRefus = (erreur: ErreurService, autre: FournisseurConnexion): ResultatMesConnexions =>
+  erreur === "confirmation-incorrecte" ? { ok: false, erreur, texte: messagesMesConnexions.autreCompte(NOMS_FOURNISSEURS[autre]) } : { ok: false, erreur };
+
 /**
  * « Tes clés pour entrer » (Mon compte) : les façons de se connecter au compte (mot de passe, Apple, Google), relier ou
  * délier Apple et Google, et ajouter un mot de passe (par le lien de « Mot de passe oublié », valable 24 heures). Jamais de
@@ -67,13 +79,19 @@ export function utiliserMesConnexions() {
   }, []);
 
   const relier = useCallback(
-    (fournisseur: FournisseurConnexion) =>
+    (fournisseur: FournisseurConnexion, motDePasse?: string) =>
       enUnSeulGeste(fournisseur, async () => {
+        const autre = AUTRE[fournisseur];
+        const preuve = await preparerConfirmation(autre, motDePasse);
+        if (!preuve.ok) return preuve;
         const demande = await demanderJeton(fournisseur);
         if (!demande.ok) return demande;
         const { jeton } = demande;
-        const r = await comptes.relierConnexion("identityToken" in jeton ? { fournisseur: "apple", ...jeton } : { fournisseur: "google", ...jeton });
-        if (!r.ok) return { ok: false, erreur: r.erreur };
+        const r = await comptes.relierConnexion(
+          "identityToken" in jeton ? { fournisseur: "apple", ...jeton } : { fournisseur: "google", ...jeton },
+          preuve.confirmation,
+        );
+        if (!r.ok) return expliquerRefus(r.erreur, autre);
         setConnexions(r.connexions);
         // Le même e-mail, confirmé par Apple ou Google, peut confirmer celui du compte
         void rafraichir();
@@ -87,19 +105,10 @@ export function utiliserMesConnexions() {
     (fournisseur: FournisseurConnexion, motDePasse?: string) =>
       enUnSeulGeste(fournisseur, async () => {
         const autre = AUTRE[fournisseur];
-        let confirmation: Parameters<typeof comptes.delierConnexion>[1];
-        if (motDePasse !== undefined) confirmation = { motDePasse };
-        else {
-          const demande = await demanderJeton(autre);
-          if (!demande.ok) return demande;
-          confirmation = demande.jeton;
-        }
-        const r = await comptes.delierConnexion(fournisseur, confirmation);
-        if (!r.ok) {
-          return r.erreur === "confirmation-incorrecte"
-            ? { ok: false, erreur: r.erreur, texte: messagesMesConnexions.autreCompte(NOMS_FOURNISSEURS[autre]) }
-            : { ok: false, erreur: r.erreur };
-        }
+        const preuve = await preparerConfirmation(autre, motDePasse);
+        if (!preuve.ok) return preuve;
+        const r = await comptes.delierConnexion(fournisseur, preuve.confirmation);
+        if (!r.ok) return expliquerRefus(r.erreur, autre);
         setConnexions(r.connexions);
         return { ok: true, message: messagesMesConnexions.delie(NOMS_FOURNISSEURS[fournisseur]) };
       }),

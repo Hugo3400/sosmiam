@@ -293,6 +293,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
     marquerLu: messages.marquerLu,
     effacerPourMoi: messages.effacerPourMoi,
     envoyer: messages.envoyer,
+    verifierEnvoiMedia: medias.verifierEnvoiMedia,
     envoyerMedia: medias.envoyerMedia,
     lireMedia: medias.lireMedia,
     supprimerMessage: messages.supprimerMessage,

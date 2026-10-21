@@ -6,15 +6,39 @@
 // le ménage de nuit le retire comme orphelin. Lecture : seulement un membre qui voit le message (B.0), en clair, jamais en
 // cache ; « expire » pour un média supprimé, suspendu ou retiré, même si son fichier est gardé pour la modération.
 import { DUREE_MEDIAS_CHAT_JOURS } from "../../../../packages/commun/src/regles/chat.ts";
+import { creerJournalEnvoisMedias } from "./journal-envois-medias.ts";
 import { exigerChiffrement, type LectureMessagerie } from "./messagerie-lecture.ts";
 import { relireEnvoi, type IssueEnvoi, type MessagesMessagerie } from "./messagerie-messages.ts";
-import type { ContexteMessagerie, MediaRecu, ResultatEnvoi } from "./messagerie-regles.ts";
-import { verifierQuotasMediasChat } from "./stockage-medias-chat.ts";
+import type { ContexteMessagerie, MediaRecu, RefusEnvoi, ResultatEnvoi, TablesMessagerie } from "./messagerie-regles.ts";
+import { verifierQuotasMediasChat, type CompteursMediasChat } from "./stockage-medias-chat.ts";
 
 const JOUR_MS = 24 * 60 * 60 * 1000;
 
 export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMessagerie, messages: Pick<MessagesMessagerie, "terminerEnvoi">) {
+  const journal = creerJournalEnvoisMedias();
+
+  async function lireCompteurs(t: TablesMessagerie, moi: number, maintenant: Date): Promise<CompteursMediasChat> {
+    const base = await t.compterMedias(moi, new Date(maintenant.getTime() - JOUR_MS));
+    const recents = journal.lire(moi, maintenant);
+    return {
+      envoisCompte24h: Math.max(base.envoisCompte24h, recents.envoisCompte24h),
+      octetsCompte: Math.max(base.octetsCompte, recents.octetsCompte24h),
+      octetsServeur24h: Math.max(base.octetsServeur24h, recents.octetsServeur24h),
+      partLibre: await c.medias.lirePartLibre(),
+    };
+  }
+
   return {
+    async verifierEnvoiMedia(moi: number, conversationId: number, idClient: string, taille: number, maintenant: Date): Promise<"ok" | RefusEnvoi> {
+      exigerChiffrement(c);
+      const acces = await lecture.lireAcces(moi, conversationId);
+      if (!acces) return "conversation-inconnue";
+      const deja = relireEnvoi(moi, await c.depot.lire.lireMessageParIdClient(conversationId, idClient));
+      if (deja) return "refus" in deja ? deja.refus : "ok";
+      if (!(await lecture.estOuverte(c.depot.lire, moi, acces))) return "conversation-fermee";
+      return verifierQuotasMediasChat(taille, await lireCompteurs(c.depot.lire, moi, maintenant));
+    },
+
     async envoyerMedia(moi: number, conversationId: number, media: MediaRecu, maintenant: Date): Promise<ResultatEnvoi> {
       const chiffrement = exigerChiffrement(c);
       const acces = await lecture.lireAcces(moi, conversationId);
@@ -31,8 +55,7 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
           const deja = relireEnvoi(moi, await t.lireMessageParIdClient(conversationId, media.idClient));
           if (deja) return deja;
           if (!(await lecture.estOuverte(t, moi, acces))) return { refus: "conversation-fermee" };
-          const compteurs = await t.compterMedias(moi, new Date(maintenant.getTime() - JOUR_MS));
-          const verdict = verifierQuotasMediasChat(media.octets.length, { ...compteurs, partLibre: await c.medias.lirePartLibre() });
+          const verdict = verifierQuotasMediasChat(media.octets.length, await lireCompteurs(t, moi, maintenant));
           if (verdict !== "ok") return { refus: verdict };
           const fichier = c.medias.tirerNom();
           await c.medias.ecrire(fichier, chiffrement.chiffrerOctets(media.octets, fichier));
@@ -56,8 +79,10 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
         if (ecrit.fichier) await c.medias.supprimer([ecrit.fichier]).catch(() => 0);
         throw erreur;
       }
+      const garde = ecrit.fichier !== null && "message" in issue && issue.message.fichier === ecrit.fichier;
+      if (garde) journal.noter(moi, media.octets.length, maintenant);
       // Écrit, mais pas gardé (refus, ou l'autre envoi avec le même idClient a gagné) : il part tout de suite
-      if (ecrit.fichier && !("message" in issue && issue.message.fichier === ecrit.fichier)) await c.medias.supprimer([ecrit.fichier]).catch(() => 0);
+      if (ecrit.fichier && !garde) await c.medias.supprimer([ecrit.fichier]).catch(() => 0);
       return messages.terminerEnvoi(moi, acces, issue, maintenant);
     },
 

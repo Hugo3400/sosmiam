@@ -226,6 +226,7 @@ export interface ServicesMessagerie {
   marquerLu(compteId: number, conversationId: number, jusqua: number): Promise<boolean>;
   effacerPourMoi(compteId: number, conversationId: number): Promise<boolean>;
   envoyer(compteId: number, conversationId: number, message: MessageAEnvoyer, maintenant: Date): Promise<ResultatEnvoi>;
+  verifierEnvoiMedia(compteId: number, conversationId: number, idClient: string, taille: number, maintenant: Date): Promise<"ok" | RefusEnvoi>;
   envoyerMedia(compteId: number, conversationId: number, media: MediaRecu, maintenant: Date): Promise<ResultatEnvoi>;
   /** null : message inconnu pour toi ; "expire" : expiré, supprimé, suspendu ou retiré, même gardé pour la modération */
   lireMedia(compteId: number, conversationId: number, messageId: number, maintenant: Date): Promise<{ octets: Buffer; typeMime: string } | "expire" | null>;

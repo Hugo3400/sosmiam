@@ -10,11 +10,38 @@ export function creerControleurLieuxPublics(lister: () => Promise<LieuPublic[]>)
   };
 }
 
+export const DUREE_CACHE_PLAN_LIEUX = 60_000;
+
+export type ReglagesCachePlan = { horloge?: () => number; duree?: number };
+
 /** Les fiches publiées pour le plan du site (/sitemap.xml) : identifiant et date de modification (ISO 8601). */
-export function creerControleurLieuxDuPlan(lister: () => Promise<LieuDuPlan[]>) {
-  return async (_requete: Request, reponse: Response) => {
+export function creerControleurLieuxDuPlan(lister: () => Promise<LieuDuPlan[]>, { horloge = Date.now, duree = DUREE_CACHE_PLAN_LIEUX }: ReglagesCachePlan = {}) {
+  let corps: string | null = null;
+  let finCache = 0;
+  let enCours: Promise<string> | null = null;
+
+  const preparerCorps = async () => {
     const lieux = (await lister()).map(({ id, modifieLe }) => ({ id, modifieLe: modifieLe.toISOString() }));
-    reponse.set("Cache-Control", "public, max-age=300").json({ ok: true, lieux });
+    return JSON.stringify({ ok: true, lieux });
+  };
+
+  const lireCorps = () => {
+    if (corps !== null && horloge() < finCache) return corps;
+    enCours ??= preparerCorps()
+      .then((texte) => {
+        corps = texte;
+        finCache = horloge() + duree;
+        return texte;
+      })
+      .finally(() => {
+        enCours = null;
+      });
+    return enCours;
+  };
+
+  return async (_requete: Request, reponse: Response) => {
+    const texte = await lireCorps();
+    reponse.set("Cache-Control", "public, max-age=300").type("json").send(texte);
   };
 }
 
