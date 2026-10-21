@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { listerModesOuverts } from "@sos-miam/commun/fonctions/roles/lister-modes-ouverts";
 import type { ModeApp, RolesCompte } from "@sos-miam/commun/types/roles";
+import { choisirModeARestaurer } from "~/fonctions/modes/choisir-mode-a-restaurer";
 import { ContexteModes, type EtatModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
@@ -51,7 +52,8 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
   }, []);
 
   // Un vrai compte connecté : ses rôles à lui (rattachements validés, statut d'ambassadeur), relus par le serveur, jamais ceux de la démo
-  const { compte } = utiliserSession();
+  const { compte, connecte, pret: sessionPrete } = utiliserSession();
+  const rolesConnus = relu && sessionPrete && (!connecte || compte !== null);
   const roles = useMemo<RolesCompte>(
     () =>
       compte
@@ -86,19 +88,28 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
 
   // Le dernier mode n'est plus ouvert (rôle retiré, profil effacé…) : retour au mode perso
   useEffect(() => {
-    if (pret && profil && garde.dernierMode !== "perso" && !modesOuverts.includes(garde.dernierMode)) {
+    if (pret && rolesConnus && profil && garde.dernierMode !== "perso" && !modesOuverts.includes(garde.dernierMode)) {
       memoriser({ ...garde, dernierMode: "perso" });
     }
-  }, [pret, profil, garde, modesOuverts, memoriser]);
+  }, [pret, rolesConnus, profil, garde, modesOuverts, memoriser]);
 
   // Au lancement, une seule fois : le mode à rouvrir (s'il est encore ouvert)
   const [aRestaurer, setARestaurer] = useState<"pro" | "ambassadeur" | null>(null);
   const decide = useRef(false);
+  const debutPret = useRef<number | null>(null);
   useEffect(() => {
     if (!pret || decide.current) return;
+    debutPret.current ??= Date.now();
+    if (!rolesConnus) return;
     decide.current = true;
-    if (profil && garde.dernierMode !== "perso" && modesOuverts.includes(garde.dernierMode)) setARestaurer(garde.dernierMode);
-  }, [pret, profil, garde.dernierMode, modesOuverts]);
+    const mode = choisirModeARestaurer(garde.dernierMode, modesOuverts, profil !== null, Date.now() - debutPret.current);
+    if (mode) setARestaurer(mode);
+  }, [pret, rolesConnus, profil, garde.dernierMode, modesOuverts]);
+
+  const annulerRestauration = useCallback(() => {
+    decide.current = true;
+    setARestaurer(null);
+  }, []);
 
   // … rouvert dès que la pile d'écrans est montée (sinon la navigation ne connaît pas encore les écrans du mode)
   useEffect(() => {
@@ -175,8 +186,10 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
       entrerEnModeAmbassadeur,
       revenirAuModePerso,
       changerRolesDemo,
+      rolesConnus,
+      annulerRestauration,
     }),
-    [pret, roles, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, changerRolesDemo],
+    [pret, roles, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, changerRolesDemo, rolesConnus, annulerRestauration],
   );
 
   return <ContexteModes.Provider value={valeur}>{children}</ContexteModes.Provider>;

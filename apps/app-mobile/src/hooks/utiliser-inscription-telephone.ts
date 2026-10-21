@@ -1,6 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useRouter, type Href } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 
 import { creerCanauxAndroid } from "~/fonctions/notifications/creer-canaux-android";
@@ -8,7 +8,9 @@ import { estAlerteMiamSafe } from "~/fonctions/notifications/est-alerte-miam-saf
 import { estDejaSousTesYeux } from "~/fonctions/notifications/est-deja-sous-tes-yeux";
 import { estNotificationUrgente } from "~/fonctions/notifications/est-notification-urgente";
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
+import { lireModeDuLien } from "~/fonctions/notifications/lire-mode-du-lien";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
+import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres";
 import { utiliserSession } from "~/hooks/utiliser-session";
@@ -93,7 +95,14 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
   const { pret, connecte } = utiliserSession();
   const { profil } = utiliserProfil();
   const { inscrire } = utiliserAppareilPush();
+  const modes = utiliserModes();
+  const modesActuels = useRef(modes);
+  const [lienEnAttente, setLienEnAttente] = useState<string | null>(null);
   const avecProfil = profil !== null;
+
+  useEffect(() => {
+    modesActuels.current = modes;
+  });
   utiliserRenvoiChoixOffres(pret);
 
   useEffect(() => {
@@ -123,7 +132,10 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
         // Pas disponible ici : l'identifiant gardé suffit
       }
       const lien = lireLienNotification(reponse.notification);
-      if (lien && lien !== lireEcranOuvert()) router.push(lien as Href);
+      modesActuels.current.annulerRestauration();
+      if (!lien || lien === lireEcranOuvert()) return;
+      if (lireModeDuLien(lien) && !modesActuels.current.rolesConnus) return void setLienEnAttente(lien);
+      router.push(lien as Href);
     };
     try {
       ouvrir(Notifications.getLastNotificationResponse());
@@ -133,4 +145,12 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
     const abonnement = Notifications.addNotificationResponseReceivedListener(ouvrir);
     return () => abonnement.remove();
   }, [router, pileAffichee]);
+
+  useEffect(() => {
+    if (!lienEnAttente || !modes.rolesConnus) return;
+    setLienEnAttente(null);
+    const mode = lireModeDuLien(lienEnAttente);
+    if (mode && !modes.modesOuverts.includes(mode)) return;
+    if (lienEnAttente !== lireEcranOuvert()) router.push(lienEnAttente as Href);
+  }, [lienEnAttente, modes.rolesConnus, modes.modesOuverts, router]);
 }

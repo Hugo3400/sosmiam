@@ -21,6 +21,8 @@ export type EtatModes = {
   revenirAuModePerso: () => void;
   /** Change les rôles joués dans la démo (Coulisses) ; null hors démo */
   changerRolesDemo: ((roles: RolesCompte) => Promise<void>) | null;
+  rolesConnus: boolean;
+  annulerRestauration: () => void;
 };
 
 export const ContexteModes = createContext<EtatModes | null>(null);
