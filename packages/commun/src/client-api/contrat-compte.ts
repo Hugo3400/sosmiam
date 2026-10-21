@@ -31,12 +31,15 @@ export interface ServiceCompte {
   retirerPhotoProfil(): Promise<ReponseApi<PhotoProfilRetiree>>;
   lireConnexions(): Promise<ReponseApi<{ connexions: ConnexionsCompte }>>;
   /**
-   * Relie un compte Apple ou Google au compte connecté (nouveau jeton, comme à la connexion). Erreurs : « deja-relie » (une
-   * autre identité de ce fournisseur est déjà là), « identite-deja-reliee » (elle appartient à un autre compte : jamais
-   * de fusion), « jeton-externe-invalide », « trop-de-demandes ». L'e-mail du compte ne change pas.
+   * Relie un compte Apple ou Google au compte connecté (nouveau jeton, comme à la connexion). Confirmation, comme pour
+   * délier : le mot de passe si le compte en a un, sinon un NOUVEAU jeton de l'AUTRE fournisseur, celui déjà relié. Erreurs :
+   * « deja-relie » (une autre identité de ce fournisseur est déjà là), « identite-deja-reliee » (elle appartient à un autre
+   * compte : jamais de fusion), « jeton-externe-invalide », « mot-de-passe-incorrect », « confirmation-incorrecte »,
+   * « trop-de-demandes ». L'e-mail du compte ne change pas.
    */
   relierConnexion(
     connexion: { fournisseur: "apple"; identityToken: string; nonce: string } | { fournisseur: "google"; idToken: string; nonce?: string },
+    confirmation: { motDePasse: string } | { identityToken: string; nonce: string } | { idToken: string; nonce?: string },
   ): Promise<ReponseApi<{ connexions: ConnexionsCompte }>>;
   /**
    * Délie Apple ou Google. Confirmation : le mot de passe si le compte en a un, sinon un NOUVEAU jeton de l'AUTRE

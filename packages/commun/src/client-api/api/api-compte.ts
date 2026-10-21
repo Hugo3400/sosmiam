@@ -43,8 +43,10 @@ export function creerCompteApi(client: ClientHttp): ServiceCompte {
     envoyerPhotoProfil: (fichier) => client.envoyerOctets<PhotoProfilEnvoyee>("/comptes/moi/photo", fichier, TYPE_PHOTO_PROFIL),
     retirerPhotoProfil: () => client.demander<PhotoProfilRetiree>("DELETE", "/comptes/moi/photo"),
     lireConnexions: () => client.demander<{ connexions: ConnexionsCompte }>("GET", "/comptes/moi/connexions"),
-    relierConnexion: ({ fournisseur, ...jetons }) =>
-      client.demander<{ connexions: ConnexionsCompte }>("POST", `/comptes/moi/connexions/${fournisseur}`, { corps: jetons }),
+    relierConnexion: ({ fournisseur, ...jetons }, confirmation) =>
+      client.demander<{ connexions: ConnexionsCompte }>("POST", `/comptes/moi/connexions/${fournisseur}`, {
+        corps: { ...jetons, ...("motDePasse" in confirmation ? confirmation : { confirmation }) },
+      }),
     delierConnexion: (fournisseur, confirmation) =>
       client.demander<{ connexions: ConnexionsCompte }>("DELETE", `/comptes/moi/connexions/${fournisseur}`, { corps: confirmation }),
     changerMotDePasse: (actuel, nouveau) => client.demander<{ session: string }>("POST", "/comptes/moi/mot-de-passe", { corps: { actuel, nouveau } }),
