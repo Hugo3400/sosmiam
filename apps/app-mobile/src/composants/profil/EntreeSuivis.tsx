@@ -1,26 +1,17 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
 
-import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { TuileRaccourci } from "~/composants/profil/TuileRaccourci";
+import { TEXTES_RACCOURCIS } from "~/contenus/textes-profil";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Clés des lieux et créateurs suivis (calculerCleSuivi) */
   suivis: readonly string[];
-  /** Plus lu : tout compte a 18 ans ou plus (à retirer de l'onglet Profil, qui le passe encore) */
-  age?: number;
 };
 
-/**
- * La rangée « 🔔 Tu suis » du profil, avec le compte des personnes, lieux et créateurs suivis (« 2 personnes, 3 lieux et 1 créateur ») ;
- * elle ouvre la liste pour les retrouver ou ne plus les suivre.
- */
 export function EntreeSuivis({ suivis }: Props) {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
@@ -44,24 +35,12 @@ export function EntreeSuivis({ suivis }: Props) {
       : (parties[0] ?? "Personne pour l'instant : touche « Suivre » sur une fiche, une vidéo ou un profil");
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={parties.length > 0 ? `Tu suis ${detail}` : `Tu suis, personne pour l'instant`}
-      accessibilityHint="Ouvre la liste des personnes, lieux et créateurs que tu suis"
-      onPress={() => {
-        vibrerLegerement();
-        router.push("/suivis");
-      }}
-      className="min-h-16 flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white px-4 py-3 active:opacity-80"
-    >
-      <View className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-        <Text className="text-xl">🔔</Text>
-      </View>
-      <View className="flex-1">
-        <Text className="font-texte-gras text-base text-encre">Tu suis</Text>
-        <Text className="font-texte text-sm text-gris">{lierPonctuation(detail)}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
-    </Pressable>
+    <TuileRaccourci
+      emoji="👀"
+      titre={TEXTES_RACCOURCIS.suivis}
+      detail={detail}
+      indice={TEXTES_RACCOURCIS.indiceSuivis}
+      onPress={() => router.push("/suivis")}
+    />
   );
 }

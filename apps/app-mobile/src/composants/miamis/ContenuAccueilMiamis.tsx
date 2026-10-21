@@ -3,7 +3,6 @@ import { View } from "react-native";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
-import { ApercuIdeesAccueil } from "~/composants/miamis/ApercuIdeesAccueil";
 import { CarteQuiEstLaAccueil } from "~/composants/miamis/CarteQuiEstLaAccueil";
 import { ErreurMiamis } from "~/composants/miamis/ErreurMiamis";
 import { FeuilleMesEnvies } from "~/composants/miamis/FeuilleMesEnvies";
@@ -22,7 +21,7 @@ export function ContenuAccueilMiamis() {
   const { genre, genreLu } = utiliserProfilVisibiliteMiamis();
   const [feuilleEnvies, setFeuilleEnvies] = useState(false);
   const [refus, setRefus] = useState<{ texte: string; limite: boolean } | null>(null);
-  const { sorties, quiEstLa, idees, fil } = accueil;
+  const { sorties, quiEstLa, fil } = accueil;
 
   if (sorties.erreur && !sorties.donnees) {
     return (
@@ -36,11 +35,6 @@ export function ContenuAccueilMiamis() {
     setRefus(null);
     const erreur = await accueil.demanderAVenir(id);
     if (erreur) setRefus({ texte: decrireRefus(erreur), limite: erreur === "compte-limite" });
-  }
-
-  async function voter(id: string, oui: boolean) {
-    const erreur = await accueil.voterIdee(id, oui);
-    if (erreur) setRefus({ texte: MESSAGES_SERVICE[erreur].texte, limite: false });
   }
 
   return (
@@ -60,7 +54,6 @@ export function ContenuAccueilMiamis() {
         onDemander={(id) => void demander(id)}
         onModifierEnvies={() => setFeuilleEnvies(true)}
       />
-      {idees.donnees ? <ApercuIdeesAccueil idees={idees.donnees.idees} onVoter={(id, oui) => void voter(id, oui)} /> : null}
       {fil.donnees ? <SectionFilMiamis evenements={fil.donnees.evenements} /> : null}
       <FeuilleMesEnvies
         visible={feuilleEnvies}

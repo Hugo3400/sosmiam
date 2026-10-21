@@ -1,0 +1,40 @@
+export const TEXTES_PARAMETRES = {
+  titre: "Paramètres",
+  sousTitre: "Ton compte, tes alertes et tes données : ici, c'est toi qui décides.",
+  retour: "Retour au profil",
+  compte: {
+    titre: "Ton compte et tes alertes",
+    resume: "Ton e-mail, ton mot de passe et tes notifications",
+    resumeSansCompte: "Tes notifications",
+  },
+  securite: {
+    titre: "Confidentialité et sécurité",
+    comptePrive: "Compte privé",
+    comptePublic: "Compte public",
+    compteEnLecture: "Compte privé ou public",
+    bloques: (n: number) => (n === 0 ? "personne de bloqué" : `${n} personne${n > 1 ? "s" : ""} bloquée${n > 1 ? "s" : ""}`),
+    bloquesEnLecture: "personnes bloquées",
+  },
+  vie: {
+    titre: "La vie de SOS Miam",
+    resume: "Boîte à idées et Nous écrire",
+    boiteIdees: "Boîte à idées",
+    boiteIdeesDetail: "Propose, vote et commente : la Brigade lit tout et te répond",
+  },
+  aide: {
+    titre: "Aide et infos légales",
+    resume: "Santé, confidentialité, conditions, mentions légales",
+  },
+  donnees: {
+    titre: "Tes données",
+    resume: "Les télécharger, ou tout effacer de ce téléphone",
+  },
+} as const;
+
+export const TEXTES_MON_PROFIL = {
+  titre: "Mon profil",
+  sousTitre: "Ta tête, tes infos et tes envies : tout se change ici, juste à côté de ton profil.",
+  retour: "Retour au profil",
+  sectionProfil: "Ton profil",
+  sectionPreferences: "Tes préférences",
+} as const;

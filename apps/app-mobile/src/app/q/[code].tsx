@@ -43,7 +43,7 @@ export default function OuvrirQrConnexion() {
   return (
     <EcranReglage
       titre="Ce QR sert à connecter un appareil"
-      sousTitre="Scanne-le avec un téléphone où tu es déjà connecté à SOS Miam : Profil → ⚙️ Réglages → Mon compte → « Connecter un appareil »."
+      sousTitre="Scanne-le avec un téléphone où tu es déjà connecté à SOS Miam : Profil → ⚙️ Paramètres → Mon compte → « Connecter un appareil »."
     >
       <Bouton libelle="Compris" variante="blanc" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} />
     </EcranReglage>

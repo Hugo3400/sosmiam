@@ -26,10 +26,6 @@ export const TEXTES_ACCUEIL_MIAMIS = {
   organiserBouton: "Organiser la première",
   astuceGenre: "Les sorties réservées (entre filles, entre garçons, autres genres) se débloquent avec Mon genre : facultatif, et personne ne le voit.",
   astuceGenreLien: "Choisir mon genre",
-  ideesTitre: "Boîte à idées",
-  ideesLien: "Toutes les idées",
-  ideesIntro: "Tu votes, la Brigade lit tout. Les plus miam passent devant.",
-  ideesVide: "La boîte est encore vide. Une envie pour l'app ? Sois la première idée de la Brigade !",
   filTitre: "Ça bouge chez les Miamis",
   filVide: "C'est calme… trop calme. Lance une sortie ou une idée pour réveiller la Brigade !",
 } as const;

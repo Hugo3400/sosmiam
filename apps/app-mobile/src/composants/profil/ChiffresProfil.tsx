@@ -30,11 +30,11 @@ export function ChiffresProfil({ lieuxSauves, premiersSauvetages, badgesObtenus,
   ];
 
   return (
-    <View className="flex-row rounded-carte border-2 border-encre bg-white py-4">
+    <View className="flex-row border-t border-ligne pt-4">
       {chiffres.map((c, i) => (
         <View key={c.libelle} accessible accessibilityLabel={c.lu} className={`flex-1 items-center px-1 ${i > 0 ? "border-l-2 border-ligne" : ""}`}>
           <Text className="font-titre text-2xl text-encre">{c.valeur}</Text>
-          <Text className="text-center font-texte text-sm text-gris">{c.libelle}</Text>
+          <Text className="text-center font-texte text-[13px] leading-[18px] text-gris">{c.libelle}</Text>
         </View>
       ))}
     </View>

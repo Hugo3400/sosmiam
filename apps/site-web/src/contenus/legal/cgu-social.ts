@@ -21,7 +21,7 @@ export const sectionPotesCgu: SectionLegale = {
       liste: [
         "**Ta bande** (200 potes au plus) : tes potes y entrent par ton **lien ou ton QR code d'invitation** (vous êtes alors ajoutés tout de suite, chacun dans la bande de l'autre), ou par une **demande** envoyée depuis ton pseudo, que tu acceptes ou non. Refuser une demande ne prévient personne, et retirer quelqu'un de ta bande vaut des deux côtés, sans le prévenir.",
         "**Ton lien d'invitation** fait entrer dans ta bande toute personne qui l'a : donne-le seulement aux gens que tu connais. S'il a circulé plus loin que prévu, « Changer mon lien » le remplace ; il change aussi tout seul après 10 arrivées qui se suivent de près (moins de 24 heures entre deux).",
-        "**« Qu'on me trouve par mon pseudo »** (dans l'app, Réglages › Confidentialité) : si tu le coupes, personne ne te trouve dans la recherche, et une demande vers toi est refusée avec ce message : « Cette personne ne reçoit pas de demandes ». Ton lien d'invitation, lui, marche toujours.",
+        "**« Qu'on me trouve par mon pseudo »** (dans l'app, Profil › ⚙️ Paramètres › Confidentialité et sécurité › « Confidentialité », bloc « Ta bande ») : si tu le coupes, personne ne te trouve dans la recherche, et une demande vers toi est refusée avec ce message : « Cette personne ne reçoit pas de demandes ». Ton lien d'invitation, lui, marche toujours.",
         "**Suivre quelqu'un** est à sens unique : tu vois passer ses listes et ses lieux. Ton compte est **public** par défaut ; en **privé**, chaque abonnement est une demande que tu acceptes ou non. Suivre quelqu'un n'ouvre **jamais** la messagerie : on ne s'écrit qu'entre potes de la même bande.",
         "**Ce que les autres voient de ton profil** dépend de ce lien (inconnu, abonné ou pote de ta bande) et de tes réglages : tout est détaillé dans la [politique de confidentialité](/confidentialite#potes).",
       ],
@@ -110,6 +110,6 @@ export const sectionBloquerCgu: SectionLegale = {
   blocs: [
     "Bloquer quelqu'un coupe le lien **dans les deux sens** : vous sortez de vos bandes, et vos demandes, vos abonnements, vos invitations en attente, vos co-écritures de listes et vos notifications entre vous sont effacés. Il quitte les sorties que tu organises. Vous ne vous trouvez plus par vos pseudos, l'app ne vous propose plus l'un à l'autre, et ses messages, ses listes et son activité te sont cachés, comme les tiens à lui. Il n'en est pas prévenu.",
     "Deux limites, pour être clair : tes commentaires sont publics, donc lisibles par tout le monde, lui compris (l'app te cache les siens, et vous ne pouvez plus vous répondre, vous aimer ni vous citer) ; et dans une sortie organisée par quelqu'un d'autre, vous restez tous les deux participants. Si quelqu'un t'importune, tu peux aussi le signaler.",
-    "Tu retrouves les personnes bloquées dans les réglages de l'app (« Personnes bloquées »), 1 000 au plus. Débloquer ne rétablit rien : il faudra vous ajouter à nouveau.",
+    "Tu retrouves les personnes bloquées dans l'app (Profil › ⚙️ Paramètres › Confidentialité et sécurité › « Personnes bloquées »), 1 000 au plus. Débloquer ne rétablit rien : il faudra vous ajouter à nouveau.",
   ],
 };

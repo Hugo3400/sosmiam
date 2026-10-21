@@ -34,7 +34,7 @@ const INTERRUPTEURS: readonly { cle: keyof ReglagesSociaux; emoji: string; titre
 
 /** Pourquoi le réglage n'a pas changé */
 function expliquerRefus(erreur: ErreurService): string {
-  if (erreur === "pseudo-requis") return "🏷️ Choisis d'abord ton pseudo dans Réglages › Mes infos";
+  if (erreur === "pseudo-requis") return "🏷️ Choisis d'abord ton pseudo dans Profil › Modifier mon profil › Mes infos";
   if (erreur === "hors-ligne") return "📶 Pas de réseau : ton réglage n'a pas changé. Réessaie dans un instant.";
   if (erreur === "trop-de-demandes") return "🐢 Doucement ! Beaucoup d'essais d'un coup : réessaie dans quelques minutes.";
   return "Ça n'a pas marché cette fois : ton réglage n'a pas changé. Réessaie dans un instant.";

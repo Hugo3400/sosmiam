@@ -70,7 +70,7 @@ export function AnnonceCompteLimite() {
   useEffect(() => {
     if (!annonce || enAttente) return;
     const lecture = setTimeout(
-      () => annoncerLecteurEcran(surDecisionsActuel.current ? annonce.texte : `${annonce.texte} Le pourquoi est dans Réglages, Décisions de la modération.`),
+      () => annoncerLecteurEcran(surDecisionsActuel.current ? annonce.texte : `${annonce.texte} Le pourquoi est dans Paramètres, Décisions de la modération.`),
       DELAI_LECTURE,
     );
     const minuterie = setTimeout(() => setAnnonce(null), lecteurEcran ? DUREE_LECTEUR_ECRAN : DUREE);

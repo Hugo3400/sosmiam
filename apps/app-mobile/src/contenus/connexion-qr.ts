@@ -46,7 +46,7 @@ export const textesConnexionQr = {
   // Nouveau téléphone : montrer le QR et attendre
   titreAfficher: "Me connecter avec un QR code",
   sousTitreAfficher: "Ton autre téléphone, déjà connecté, n'a plus qu'à le scanner.",
-  aideAfficher: "Sur ton téléphone déjà connecté : Profil → ⚙️ Réglages → Mon compte → « Connecter un appareil », puis vise ce QR.",
+  aideAfficher: "Sur ton téléphone déjà connecté : Profil → ⚙️ Paramètres → Mon compte → « Connecter un appareil », puis vise ce QR.",
   scanne: "Bien vu ! Confirme maintenant sur ton autre téléphone…",
   accepteIci: "C'est accepté ! On ouvre ton compte…",
   entreeRatee: "C'est accepté, mais ton compte n'a pas pu s'ouvrir (le réseau, sûrement). Rien n'est perdu : touche « Réessayer ».",

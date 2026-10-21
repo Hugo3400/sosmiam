@@ -49,7 +49,7 @@ const refus: Record<Exclude<ResultatCommentaire, "ok" | "introuvable">, string> 
   "mot-interdit": "On garde ça bienveillant ici 💛",
   "trop-long": `Un poil trop long : ${LONGUEUR_MAX_COMMENTAIRE} caractères maximum ✂️`,
   vide: "Écris quelques mots avant d'envoyer 😉",
-  "pseudo-requis": "Choisis d'abord ton pseudo dans Réglages › Mes infos, et ça repart 🏷️",
+  "pseudo-requis": "Choisis d'abord ton pseudo dans Profil › Modifier mon profil › Mes infos, et ça repart 🏷️",
   "compte-limite": REFUS_LIMITATION.commentaire,
   reseau: "Pas parti : ta connexion fait la sieste. Réessaie dans un instant 📡",
 };

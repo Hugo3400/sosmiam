@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { SectionPliable } from "~/composants/interface/SectionPliable";
+import { BoutonContour } from "~/composants/profil/BoutonContour";
 import { CarteDefi } from "~/composants/profil/CarteDefi";
+import { TEXTES_DEFIS_PROFIL, TEXTES_PROFIL } from "~/contenus/textes-profil";
 import { resumerDefis } from "~/fonctions/defis/resumer-defis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserDefis } from "~/hooks/utiliser-defis";
+
+const DEFIS_VISIBLES = 2;
 
 /**
  * Les défis du moment, chacun avec son avancée : ceux du serveur avec un compte, ceux d'exemple en démo (utiliserDefis).
@@ -12,6 +17,7 @@ import { utiliserDefis } from "~/hooks/utiliser-defis";
  */
 export function ListeDefis() {
   const { defis, erreur } = utiliserDefis();
+  const [tousVisibles, setTousVisibles] = useState(false);
   if (defis === null && erreur === null) return null;
 
   // Un mot à la place des cartes
@@ -25,6 +31,8 @@ export function ListeDefis() {
         : null;
 
   const resume = !mot && defis ? resumerDefis(defis) : null;
+  const liste = defis ?? [];
+  const autres = liste.length - DEFIS_VISIBLES;
 
   return (
     <SectionPliable
@@ -42,7 +50,17 @@ export function ListeDefis() {
           <Text className="flex-1 font-texte text-sm leading-5 text-encre">{lierPonctuation(mot.texte)}</Text>
         </View>
       ) : (
-        (defis ?? []).map((defi) => <CarteDefi key={defi.id} defi={defi} />)
+        <>
+          {(tousVisibles ? liste : liste.slice(0, DEFIS_VISIBLES)).map((defi) => (
+            <CarteDefi key={defi.id} defi={defi} />
+          ))}
+          {autres > 0 ? (
+            <BoutonContour
+              libelle={tousVisibles ? TEXTES_PROFIL.voirMoins : TEXTES_DEFIS_PROFIL.voirAutres(autres)}
+              onPress={() => setTousVisibles(!tousVisibles)}
+            />
+          ) : null}
+        </>
       )}
     </SectionPliable>
   );

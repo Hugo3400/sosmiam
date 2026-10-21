@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -7,14 +6,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
 import { Annonce } from "~/composants/interface/Annonce";
-import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
-import { etapesEnvies } from "~/contenus/inscription/envies";
-import { TEXTES_GENRE } from "~/contenus/textes-genre";
-import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
+import { TEXTES_PARAMETRES as T } from "~/contenus/textes-parametres";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
@@ -34,14 +30,9 @@ function ouvrirLien(adresse: string) {
   });
 }
 
-/**
- * Réglages, ouverts depuis le profil (⚙️) : ton profil, tes notifications, ta confidentialité (compte privé et « Ta bande »),
- * les personnes bloquées, les pages légales, les Coulisses de la démo (en développement seulement) et tes données : avec un
- * compte, les télécharger et voir les décisions de la modération ; et de quoi tout effacer.
- */
-export default function Reglages() {
+export default function Parametres() {
   const router = useRouter();
-  const { profil, avatar } = utiliserProfil();
+  const { profil } = utiliserProfil();
   const communaute = utiliserCommunaute();
   const suivisPersonnes = utiliserSuivisPersonnes();
   const effacement = utiliserEffacementLocal();
@@ -53,16 +44,6 @@ export default function Reglages() {
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
   if (!profil) return null;
-
-  // Seules les envies que l'app connaît encore sont comptées
-  const nombreEnvies = etapesEnvies.reduce((total, etape) => {
-    const coches = profil.envies[etape.categorie] ?? [];
-    return total + etape.choix.filter((choix) => coches.includes(choix.id)).length;
-  }, 0);
-  const detailEnvies =
-    nombreEnvies === 0 ? "Rien de coché pour l'instant" : `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} cochée${nombreEnvies > 1 ? "s" : ""}`;
-  // L'avatar actuel est dit en toutes lettres (l'image à droite n'est pas lue par le lecteur d'écran)
-  const detailAvatar = avatar.type === "photo" ? "Ta photo pour l'instant, ou un Miami" : `En ${nommerAvatar(avatar)} pour l'instant, ou en photo`;
 
   const nombreBloques = communaute.bloques.length;
   const detailBloques = !communaute.pret
@@ -80,6 +61,9 @@ export default function Reglages() {
       : suivisPersonnes.comptePrive
         ? "Activé : chaque abonné te demande d'abord"
         : "Désactivé : tout le monde peut te suivre";
+
+  const etatCompte = !suivisPersonnes.pret ? T.securite.compteEnLecture : suivisPersonnes.comptePrive ? T.securite.comptePrive : T.securite.comptePublic;
+  const resumeSecurite = `${etatCompte} · ${communaute.pret ? T.securite.bloques(nombreBloques) : T.securite.bloquesEnLecture}`;
 
   const version = Constants.expoConfig?.version;
 
@@ -107,46 +91,16 @@ export default function Reglages() {
 
   return (
     <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
-      <EcranReglage titre="Réglages" sousTitre="Ton profil, tes alertes et tes données : ici, c'est toi qui décides.">
-        {connecte ? (
-          <SectionReglages titre="Ton compte">
+      <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour}>
+        <SectionReglages titre={T.compte.titre} section="parametres-compte" resume={connecte ? T.compte.resume : T.compte.resumeSansCompte}>
+          {connecte ? (
             <LigneReglage
               emoji="🔑"
               titre="Mon compte"
               detail={compte ? `${compte.email}${compte.emailVerifie ? "" : " · e-mail à confirmer"}` : "E-mail, mot de passe, déconnexion"}
               onPress={() => router.push("/reglages/compte")}
             />
-          </SectionReglages>
-        ) : null}
-        <SectionReglages titre="Ton profil">
-          <LigneReglage
-            emoji="🎭"
-            titre="Avatar"
-            detail={detailAvatar}
-            onPress={() => router.push("/reglages/avatar")}
-            droite={
-              <View className="flex-row items-center gap-2">
-                <ImageAvatar avatar={avatar} taille={40} />
-                <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
-              </View>
-            }
-          />
-          <LigneReglage
-            emoji="🪪"
-            titre="Mes infos"
-            detail={`${profil.prenom}${profil.nom ? ` ${profil.nom}` : ""} · ${profil.ville}`}
-            onPress={() => router.push("/reglages/infos")}
-          />
-          <LigneReglage emoji="😋" titre="Mes envies" detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
-        </SectionReglages>
-
-        {connecte ? (
-          <SectionReglages titre={TEXTES_GENRE.ligneSection}>
-            <LigneReglage emoji="🙋" titre={TEXTES_GENRE.ligneReglage} detail={TEXTES_GENRE.ligneVide} onPress={() => router.push("/reglages/genre")} />
-          </SectionReglages>
-        ) : null}
-
-        <SectionReglages titre="Notifications">
+          ) : null}
           <LigneReglage
             emoji="🔔"
             titre="Mes notifications"
@@ -155,7 +109,7 @@ export default function Reglages() {
           />
         </SectionReglages>
 
-        <SectionReglages titre="Ta tranquillité">
+        <SectionReglages titre={T.securite.titre} section="parametres-securite" resume={resumeSecurite}>
           <LigneReglage
             emoji="🔒"
             titre={avecTaBande ? "Confidentialité" : "Compte privé"}
@@ -163,13 +117,39 @@ export default function Reglages() {
             onPress={() => router.push("/reglages/confidentialite")}
           />
           <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
+          {connecte ? (
+            <LigneReglage
+              emoji="🧑‍⚖️"
+              titre="Décisions de la modération"
+              detail="Ce que l'équipe a décidé sur tes contenus et tes signalements"
+              onPress={() => router.push("/reglages/decisions-moderation")}
+            />
+          ) : null}
         </SectionReglages>
 
-        <SectionReglages titre="Confidentialité et aide">
+        <SectionReglages titre={T.vie.titre} section="parametres-vie" resume={T.vie.resume}>
+          <LigneReglage emoji="💡" titre={T.vie.boiteIdees} detail={T.vie.boiteIdeesDetail} onPress={() => router.push("/potes/miamis/idees")} />
+          <LigneReglage
+            emoji="💌"
+            titre="Nous écrire"
+            detail={`Une question, une idée, un bug\u00a0: ${ADRESSE_CONTACT}`}
+            role="lien"
+            onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
+          />
+        </SectionReglages>
+
+        <SectionReglages titre={T.aide.titre} section="parametres-aide" resume={T.aide.resume}>
+          <LigneReglage
+            emoji="🩺"
+            titre="Santé et prévention"
+            detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
+            role="lien"
+            onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
+          />
           <LigneReglage
             emoji="🔐"
             titre="Politique de confidentialité"
-            detail="Celle du site ; la partie de l'app arrive avant sa sortie"
+            detail="Ce qu'on garde, pourquoi, et tes droits"
             role="lien"
             onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite")}
           />
@@ -187,21 +167,9 @@ export default function Reglages() {
             role="lien"
             onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales")}
           />
-          <LigneReglage
-            emoji="🩺"
-            titre="Santé et prévention"
-            detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
-            role="lien"
-            onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
-          />
-          <LigneReglage
-            emoji="💌"
-            titre="Nous écrire"
-            detail={`Une question, une idée, un bug\u00a0: ${ADRESSE_CONTACT}`}
-            role="lien"
-            onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
-          />
         </SectionReglages>
+
+        <SectionTesDonnees connecte={connecte} onEffacer={demanderEffacement} onAnnoncer={annoncer} />
 
         {demo.possible ? (
           <SectionReglages titre="Démo">
@@ -236,8 +204,6 @@ export default function Reglages() {
             />
           </SectionReglages>
         ) : null}
-
-        <SectionTesDonnees connecte={connecte} onEffacer={demanderEffacement} onAnnoncer={annoncer} />
 
         {version ? <Text className="text-center font-texte text-xs text-gris">SOS Miam · version {version}</Text> : null}
       </EcranReglage>

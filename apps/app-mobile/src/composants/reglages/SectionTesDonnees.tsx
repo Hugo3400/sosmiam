@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { TEXTES_PARAMETRES } from "~/contenus/textes-parametres";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserExportSocial } from "~/hooks/utiliser-export-social";
 import couleurs from "~/theme/couleurs";
@@ -40,12 +40,7 @@ function annoncerExport(resultat: "ok" | "indisponible" | ErreurService): string
   }
 }
 
-/**
- * Réglages › Tes données : avec un compte, « Télécharger mes données sociales » (2 fois par jour au plus) et « Décisions de
- * la modération » ; puis ce qui est gardé où, et « Effacer mes données et recommencer ».
- */
 export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
-  const router = useRouter();
   const exportSocial = utiliserExportSocial();
 
   async function telecharger() {
@@ -54,33 +49,25 @@ export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
   }
 
   return (
-    <SectionReglages titre="Tes données">
+    <SectionReglages titre={TEXTES_PARAMETRES.donnees.titre} section="parametres-donnees" resume={TEXTES_PARAMETRES.donnees.resume}>
       {exportSocial.disponible ? (
-        <>
-          <LigneReglage
-            emoji="📦"
-            titre="Télécharger mes données sociales"
-            detail={
-              exportSocial.enCours
-                ? "On rassemble tout ça…"
-                : "Tes potes, tes listes, tes sorties et tes messages, rien que pour toi. Deux fois par jour au plus."
-            }
-            onPress={() => void telecharger()}
-            droite={
-              exportSocial.enCours ? (
-                <ActivityIndicator color={couleurs.encre} />
-              ) : (
-                <Ionicons name="download-outline" size={20} color={couleurs.gris} />
-              )
-            }
-          />
-          <LigneReglage
-            emoji="🛡️"
-            titre="Décisions de la modération"
-            detail="Ce que l'équipe a décidé sur tes contenus et tes signalements"
-            onPress={() => router.push("/reglages/decisions-moderation")}
-          />
-        </>
+        <LigneReglage
+          emoji="📦"
+          titre="Télécharger mes données sociales"
+          detail={
+            exportSocial.enCours
+              ? "On rassemble tout ça…"
+              : "Tes potes, tes listes, tes sorties et tes messages, rien que pour toi. Deux fois par jour au plus."
+          }
+          onPress={() => void telecharger()}
+          droite={
+            exportSocial.enCours ? (
+              <ActivityIndicator color={couleurs.encre} />
+            ) : (
+              <Ionicons name="download-outline" size={20} color={couleurs.gris} />
+            )
+          }
+        />
       ) : null}
       <View className="flex-row gap-3 py-3">
         <Text accessibilityElementsHidden importantForAccessibility="no" className="text-base leading-5">

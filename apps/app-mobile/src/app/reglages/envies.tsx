@@ -53,7 +53,7 @@ export default function ReglagesEnvies() {
         libelle: "Enregistrer",
         onPress: () => void sauver(),
         desactive: !change || enregistrementEnCours,
-        indice: "Enregistre tes envies et revient aux réglages",
+        indice: "Enregistre tes envies et revient à Mon profil",
       }}
     >
       <View className="gap-10">

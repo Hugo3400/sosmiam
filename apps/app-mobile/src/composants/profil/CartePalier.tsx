@@ -1,56 +1,74 @@
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
-import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import { Jauge } from "~/composants/interface/Jauge";
+import { BoueesSemaine } from "~/composants/profil/BoueesSemaine";
+import { ChiffresProfil } from "~/composants/profil/ChiffresProfil";
+import { FeuillePoints } from "~/composants/profil/FeuillePoints";
+import { TEXTES_PALIER } from "~/contenus/textes-profil";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireProchaineEtape } from "~/fonctions/profil/ecrire-prochaine-etape";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
-  /** Points gagnés avec ce que le téléphone sait mesurer (calculerPointsLocaux) */
   points: number;
+  lieuxSauves: number;
+  premiersSauvetages: number;
+  badgesObtenus: number;
+  badgesTotal: number;
+  restantes: number | null;
 };
 
-/** Ton palier du programme Ambassadeurs : où tu en es, ce qu'il manque pour le suivant, et comment gagner des points aujourd'hui. */
-export function CartePalier({ points }: Props) {
-  const { actuel, suivant, reste, avancee } = calculerPalier(points);
-  const pourcentage = Math.round(Math.min(1, Math.max(0, avancee)) * 100);
-
-  const prochaineEtape = !suivant
-    ? "Tu es tout en haut. Chapeau bas, la ville te doit une fière chandelle !"
-    : reste !== null
-      ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.emoji} ${suivant.nom}`
-      : `Prochaine étape : ${suivant.nom}, nommé par l'équipe parmi les fondateurs de ta ville`;
-  // Même phrase sans l'emoji, que le lecteur d'écran prononcerait
-  const prochaineEtapeLue = suivant && reste !== null ? `${reste} point${reste > 1 ? "s" : ""} avant ${suivant.nom}` : prochaineEtape;
-  const valeurJauge = reste !== null && suivant?.seuil != null
-    ? `${points - (actuel.seuil ?? 0)} points sur ${suivant.seuil - (actuel.seuil ?? 0)}`
-    : "Palier rempli";
+export function CartePalier({ points, lieuxSauves, premiersSauvetages, badgesObtenus, badgesTotal, restantes }: Props) {
+  const [explication, setExplication] = useState(false);
+  const progression = calculerPalier(points);
+  const { actuel, suivant, reste, avancee } = progression;
+  const depart = actuel.seuil ?? 0;
+  const objectif = reste !== null && suivant?.seuil != null ? suivant.seuil - depart : null;
+  const fait = points - depart;
+  const etape = ecrireProchaineEtape(progression);
 
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-5">
-      <View className="flex-row items-center gap-3">
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
-          {actuel.emoji}
-        </Text>
-        <View className="flex-1">
-          <Text className="font-texte-semi text-sm text-gris">Ton palier Ambassadeur</Text>
-          <Text accessibilityRole="header" className="font-titre text-2xl text-encre">{actuel.nom}</Text>
-        </View>
+    <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+      <View accessible accessibilityLabel={`${actuel.nom}, ${TEXTES_PALIER.points(points)}`} className="flex-row items-center gap-3">
+        <Text className="text-4xl">{actuel.emoji}</Text>
+        <Text className="flex-1 font-titre text-2xl text-encre">{actuel.nom}</Text>
         <View className="rounded-full border-2 border-encre bg-jaune px-3 py-1">
-          <Text accessibilityLabel={`${points} point${points > 1 ? "s" : ""}`} className="font-texte-gras text-sm text-encre">
-            {points} pts
-          </Text>
+          <Text className="font-texte-gras text-sm text-encre">{TEXTES_PALIER.points(points)}</Text>
         </View>
       </View>
 
-      <Jauge avancee={pourcentage / 100} libelle={suivant ? `Vers ${suivant.nom}` : "Palier"} texteValeur={valeurJauge} />
-      <Text accessibilityLabel={prochaineEtapeLue} className="font-texte-semi text-base text-encre">{lierPonctuation(prochaineEtape)}</Text>
+      <View className="gap-1.5">
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row justify-between gap-2">
+          <Text className="flex-1 font-texte-semi text-sm text-encre">
+            {suivant ? TEXTES_PALIER.vers(suivant.emoji, suivant.nom) : `${actuel.emoji} ${actuel.nom}`}
+          </Text>
+          <Text className="font-texte text-sm text-gris">{objectif !== null ? TEXTES_PALIER.avancee(fait, objectif) : TEXTES_PALIER.palierRempli}</Text>
+        </View>
+        <Jauge
+          avancee={avancee}
+          libelle={suivant ? TEXTES_PALIER.versLu(suivant.nom) : actuel.nom}
+          texteValeur={objectif !== null ? TEXTES_PALIER.avanceeLue(fait, objectif) : TEXTES_PALIER.palierRempli}
+        />
+        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(etape.endsWith("!") ? etape : `${etape}.`)}</Text>
+      </View>
 
-      <Text className="font-texte text-sm leading-5 text-gris">
-        {lierPonctuation(
-          `Pour l'instant, chaque rescousse te rapporte +${POINTS_AMBASSADEUR.rescousse} points, être le premier sauveteur d'un lieu +${POINTS_AMBASSADEUR.premierSauveteur}, et chaque défi réussi ses propres points. Les visites validées arrivent bientôt !`,
-        )}
-      </Text>
+      <ChiffresProfil lieuxSauves={lieuxSauves} premiersSauvetages={premiersSauvetages} badgesObtenus={badgesObtenus} badgesTotal={badgesTotal} />
+      {restantes !== null ? <BoueesSemaine restantes={restantes} /> : null}
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityHint={TEXTES_PALIER.indiceCommentGagner}
+        onPress={() => {
+          vibrerLegerement();
+          setExplication(true);
+        }}
+        className="min-h-11 justify-center self-start active:opacity-70"
+      >
+        <Text className="font-texte-semi text-sm text-encre underline">{TEXTES_PALIER.commentGagner}</Text>
+      </Pressable>
+      <FeuillePoints visible={explication} onFermer={() => setExplication(false)} />
     </View>
   );
 }

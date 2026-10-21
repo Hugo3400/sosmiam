@@ -8,14 +8,14 @@ export const ANNONCES_PROFIL = {
   "pseudo-neutre": {
     emoji: "🏷️",
     titre: "Petit changement de pseudo",
-    texte: "L'équipe a remplacé ton pseudo par un pseudo neutre, @{pseudo}. Tu peux en choisir un autre dans Réglages › Mes infos.",
+    texte: "L'équipe a remplacé ton pseudo par un pseudo neutre, @{pseudo}. Tu peux en choisir un autre dans Profil › Modifier mon profil › Mes infos.",
     bouton: "Choisir un autre pseudo",
     vers: "/reglages/infos",
   },
   "pseudo-du-serveur": {
     emoji: "🏷️",
     titre: "Petit changement de pseudo",
-    texte: "Ton pseudo pour tes potes, c'est @{pseudo} : le changement fait sur ce téléphone n'était jamais parti. Tu peux le refaire dans Réglages › Mes infos.",
+    texte: "Ton pseudo pour tes potes, c'est @{pseudo} : le changement fait sur ce téléphone n'était jamais parti. Tu peux le refaire dans Profil › Modifier mon profil › Mes infos.",
     bouton: "Changer de pseudo",
     vers: "/reglages/infos",
   },
@@ -23,7 +23,7 @@ export const ANNONCES_PROFIL = {
     emoji: "⏸️",
     // Le titre vient de MESSAGES_SERVICE["compte-limite"] (« Compte limité jusqu'au {date} », ou « pour l'instant »)
     titre: "",
-    texte: "Ton prénom n'a pas pu changer, alors on a gardé celui de ton compte. On t'explique pourquoi dans Réglages › Décisions de la modération : si c'est une erreur, conteste, un humain relira.",
+    texte: "Ton prénom n'a pas pu changer, alors on a gardé celui de ton compte. On t'explique pourquoi dans Paramètres › Décisions de la modération : si c'est une erreur, conteste, un humain relira.",
     bouton: "Voir les décisions",
     vers: "/reglages/decisions-moderation",
   },

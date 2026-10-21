@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "expo-router/tabs";
 import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,20 +7,20 @@ import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { AnnonceProfil } from "~/composants/profil/AnnonceProfil";
-import { BoueesSemaine } from "~/composants/profil/BoueesSemaine";
-import { CartePalier } from "~/composants/profil/CartePalier";
-import { ChiffresProfil } from "~/composants/profil/ChiffresProfil";
+import { ApercuBadges } from "~/composants/profil/ApercuBadges";
+import { BoutonContour } from "~/composants/profil/BoutonContour";
 import { CollectionsProfil } from "~/composants/profil/CollectionsProfil";
 import { EnTeteProfil } from "~/composants/profil/EnTeteProfil";
-import { EntreeFidelite } from "~/composants/profil/EntreeFidelite";
-import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
-import { GrilleBadges } from "~/composants/profil/GrilleBadges";
+import { EspacesProfil } from "~/composants/profil/EspacesProfil";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
-import { EntreeReservations } from "~/composants/reservations/EntreeReservations";
+import { RaccourcisProfil } from "~/composants/profil/RaccourcisProfil";
+import { SectionPalier } from "~/composants/profil/SectionPalier";
+import { TEXTES_PROFIL } from "~/contenus/textes-profil";
 import type { MesuresActivite } from "~/contenus/type-mesure-activite";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { listerBadgesDuCompte } from "~/fonctions/profil/lister-badges-du-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -44,17 +45,13 @@ function ouvrirPageLegale(adresse: string) {
   });
 }
 
-/** Les badges du compte, tous donnés par le serveur, dans l'ordre du catalogue partagé (un badge inconnu de l'app est laissé de côté). */
-function listerBadgesDuCompte(badgesCompte: string[]): string[] {
-  return BADGES.filter((b) => badgesCompte.includes(b.id)).map((b) => b.id);
-}
-
 /**
  * Onglet « Profil » : toi, qui tu suis, ton palier Ambassadeur, tes bouées de la semaine, tes défis, tes badges et tes adresses.
  * Avec un compte, points, palier, défis et badges sont ceux du serveur ; en démo, ils sont comptés sur ce téléphone.
  * Sans compte, on montre ce qui t'attend, avec les pages légales (elles restent ouvertes à tout le monde).
  */
 export default function Profil() {
+  const router = useRouter();
   const { profil, avatar, invite } = utiliserProfil();
   const activite = utiliserActivite();
   const { connecte, compte } = utiliserSession();
@@ -72,7 +69,7 @@ export default function Profil() {
           "Tes points et ton palier, de Curieux à Ambassadeur de quartier",
           "Tes badges et des défis à relever",
           "Tes lieux gardés pour plus tard",
-          "Tes réglages (avatar, envies, notifications)",
+          "Tes paramètres (avatar, envies, notifications)",
         ]}
         enPlus={
           <View className="flex-row flex-wrap justify-center gap-x-5">
@@ -110,11 +107,25 @@ export default function Profil() {
         <EnTeteProfil profil={profil} avatar={avatar} age={age} />
         {/* Pseudo remplacé par l'équipe, pseudo jamais parti de ce téléphone, prénom gelé : une annonce douce, une fois */}
         <AnnonceProfil />
-        <EntreeSuivis suivis={activite.suivis} age={age} />
-        <EntreeFidelite />
-        <EntreeReservations />
+        <BoutonContour
+          libelle={TEXTES_PROFIL.modifier}
+          indice={TEXTES_PROFIL.indiceModifier}
+          icone="pencil"
+          fond="blanc"
+          grand
+          onPress={() => router.push("/reglages/profil")}
+        />
+        <EspacesProfil />
+        <RaccourcisProfil suivis={activite.suivis} />
         {ambassadeur ? (
-          <CartePalier points={ambassadeur.points} />
+          <SectionPalier
+            points={ambassadeur.points}
+            lieuxSauves={activite.lieuxSauves.length}
+            premiersSauvetages={activite.premiersSauvetages.length}
+            badgesObtenus={ambassadeur.obtenus.length}
+            badgesTotal={BADGES.length}
+            restantes={activiteConnue ? activite.restantes : null}
+          />
         ) : (
           <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
@@ -129,18 +140,9 @@ export default function Profil() {
             </Text>
           </View>
         )}
-        {activiteConnue ? <BoueesSemaine restantes={activite.restantes} /> : null}
-        {ambassadeur ? (
-          <ChiffresProfil
-            lieuxSauves={activite.lieuxSauves.length}
-            premiersSauvetages={activite.premiersSauvetages.length}
-            badgesObtenus={ambassadeur.obtenus.length}
-            badgesTotal={BADGES.length}
-          />
-        ) : null}
         {activiteConnue ? <ListeDefis /> : null}
-        {ambassadeur ? <GrilleBadges obtenus={ambassadeur.obtenus} demo={DEMO_VISITES_ACTIVE} /> : null}
-        <CollectionsProfil gardes={activite.gardes} jaimes={activite.jaimes} age={age} />
+        {ambassadeur ? <ApercuBadges obtenus={ambassadeur.obtenus} /> : null}
+        <CollectionsProfil gardes={activite.gardes} jaimes={activite.jaimes} />
       </ScrollView>
     </SafeAreaView>
   );

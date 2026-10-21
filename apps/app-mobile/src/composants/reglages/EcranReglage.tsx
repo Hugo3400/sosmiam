@@ -17,11 +17,12 @@ type Props = {
   /** Dans le bas fixe, juste au-dessus du bouton principal (ex. le refus d'un compte limité) : toujours en vue, même quand le contenu défile */
   auDessusDuBouton?: ReactNode;
   onRetour?: () => void;
+  libelleRetour?: string;
   children: ReactNode;
 };
 
 /** Cadre des écrans de réglages : bouton retour, grand titre, contenu qui défile et bouton principal fixé en bas. */
-export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, children }: Props) {
+export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, libelleRetour = "Retour", children }: Props) {
   const router = useRouter();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -29,7 +30,7 @@ export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal
         <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={libelleRetour}
             hitSlop={12}
             onPress={onRetour ?? (() => router.back())}
             className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"

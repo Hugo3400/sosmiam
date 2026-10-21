@@ -68,7 +68,7 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
         <Text className="text-center font-texte text-sm leading-5 text-gris">
           {lierPonctuation(
             avecCompte
-              ? `${cache ? "L'équipe te dira ce qu'elle a décidé" : "Tu retrouveras sa décision"} dans Réglages › Décisions de la modération. La personne concernée ne saura jamais que c'est toi.`
+              ? `${cache ? "L'équipe te dira ce qu'elle a décidé" : "Tu retrouveras sa décision"} dans Paramètres › Décisions de la modération. La personne concernée ne saura jamais que c'est toi.`
               : "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur.",
           )}
         </Text>

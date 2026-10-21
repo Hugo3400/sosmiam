@@ -107,7 +107,7 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
   };
   const details: Record<Exclude<Confirmation, null>, string> = {
     supprimer: "Il disparaîtra de la publication, et ses J'aime avec. Pas de retour en arrière possible.",
-    bloquer: `${dansBande ? `${nomAuteur} sortira de ta bande, et tu` : "Tu"} ne verras plus ses commentaires ni ses messages. Si tu changes d'avis, ça se passe dans Réglages, « Personnes bloquées ».`,
+    bloquer: `${dansBande ? `${nomAuteur} sortira de ta bande, et tu` : "Tu"} ne verras plus ses commentaires ni ses messages. Si tu changes d'avis, ça se passe dans Paramètres, « Personnes bloquées ».`,
     masquer:
       "Il disparaît de ta publication pour tout le monde et part en modération : l'équipe SOS Miam le relit. Son auteur est prévenu, et lui seul le voit encore. Tu pourras annuler juste après.",
   };

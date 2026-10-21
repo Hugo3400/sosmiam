@@ -23,7 +23,7 @@ const votesEnMots = (n: number) => (n > 1 ? `${n} votes` : `${n} vote`);
 
 export const TEXTES_IDEES = {
   titre: "Boîte à idées",
-  retour: "Retour à la communauté",
+  retour: "Retour aux Paramètres",
   intro: "Une envie pour l'app ? Propose-la. Vote pour celles des autres. La Brigade lit tout et répond ici.",
   chargement: "On ouvre la boîte à idées…",
   chargementIdee: "On déplie l'idée…",

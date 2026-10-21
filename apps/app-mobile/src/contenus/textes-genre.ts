@@ -21,7 +21,6 @@ export const TEXTES_GENRE = {
   envoiRate: "Ça n'est pas parti. Vérifie ta connexion et réessaie dans un instant ?",
   indisponible: "Option en pause jusqu'au prochain changement possible.",
   ligneReglage: "Mon genre",
-  ligneSection: "Communauté",
   ligneVide: "Facultatif, et invisible pour les autres",
 } as const;
 

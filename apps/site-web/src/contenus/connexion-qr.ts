@@ -11,7 +11,7 @@ export const PRUDENCE_QR = "Ce code n'est que pour toi : ne l'envoie à personne
 
 /** Le texte sous le QR, selon où il en est */
 export const MESSAGES_QR: Record<EtatQrSite, string> = {
-  attente: "Scanne ce code avec l'app SOS Miam (Mon compte → Connecter un appareil).",
+  attente: "Scanne ce code avec l'app SOS Miam (Profil → ⚙️ Paramètres → Mon compte → Connecter un appareil).",
   scanne: "Confirme sur ton téléphone…",
   accepte: "C'est validé : on t'ouvre la porte !",
   refuse: "Refusé depuis le téléphone : rien n'a été ouvert. Tu peux refaire un code.",
@@ -23,7 +23,7 @@ export const MESSAGES_QR: Record<EtatQrSite, string> = {
 /** Page /q/:code (le QR scanné avec l'appareil photo, sans passer par l'app) */
 export const PAGE_Q = {
   titre: "Ouvre l'app SOS Miam pour te connecter",
-  chapo: "Ce QR code se scanne depuis l'app SOS Miam, déjà connectée à ton compte : Mon compte → Connecter un appareil.",
+  chapo: "Ce QR code se scanne depuis l'app SOS Miam, déjà connectée à ton compte : Profil → ⚙️ Paramètres → Mon compte → Connecter un appareil.",
   bouton: "Ouvrir l'app",
   aide: "Pas encore l'app ? Elle arrive bientôt sur les stores. En attendant, connecte-toi avec ton e-mail sur l'écran qui t'a montré ce code.",
   introuvableTitre: "Ce QR code a pris l'eau",

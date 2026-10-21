@@ -43,6 +43,6 @@ export const sectionDonneesApp: SectionLegale = {
         ],
       },
     },
-    "**Tout effacer** : tu peux supprimer ton compte dans l'app (réglages, « Mon compte ») ou sur [sosmiam.fr/mon-compte](/mon-compte) ; il est alors effacé de notre serveur tout de suite, et de nos sauvegardes au plus tard 30 jours après. « Mes envies » des Miamis ne sont pas dans ce tableau : elles restent sur ton téléphone. Pas de suivi des plantages, pas d'outil de mesure d'audience, pas de publicité dans l'app.",
+    "**Tout effacer** : tu peux supprimer ton compte dans l'app (Profil › ⚙️ Paramètres › Ton compte et tes alertes › « Mon compte ») ou sur [sosmiam.fr/mon-compte](/mon-compte) ; il est alors effacé de notre serveur tout de suite, et de nos sauvegardes au plus tard 30 jours après. « Mes envies » des Miamis ne sont pas dans ce tableau : elles restent sur ton téléphone. Pas de suivi des plantages, pas d'outil de mesure d'audience, pas de publicité dans l'app.",
   ],
 };

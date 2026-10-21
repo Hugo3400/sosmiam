@@ -3,7 +3,10 @@ import { useState } from "react";
 import { Platform, Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { SectionPliable } from "~/composants/interface/SectionPliable";
+import { BoutonContour } from "~/composants/profil/BoutonContour";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
+import { TEXTES_COLLECTION, TEXTES_PROFIL } from "~/contenus/textes-profil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -18,12 +21,12 @@ type Props = {
   gardes: number[];
   /** Publications aimées (❤️), de la plus récente à la plus ancienne */
   jaimes: string[];
-  /** Plus lu : tout compte a 18 ans ou plus (à retirer de l'onglet Profil, qui le passe encore) */
-  age?: number;
 };
 
 type Onglet = "gardes" | "jaimes";
 type Vignette = { cle: string; lieu: Lieu; image: ImageSourcePropType | null; libelle: string };
+
+const VIGNETTES_VISIBLES = 3;
 
 /** Tes adresses gardées et tes publications aimées, en deux onglets et en grille de 3 colonnes. */
 export function CollectionsProfil({ gardes, jaimes }: Props) {
@@ -33,6 +36,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
   // Seulement les lieux qui existent encore (tout compte a 18 ans ou plus : aucun n'est filtré par l'âge)
   const { lieux } = utiliserLieux();
   const [onglet, setOnglet] = useState<Onglet>("gardes");
+  const [toutesVisibles, setToutesVisibles] = useState(false);
   // Une publication signalée ou « Pas intéressé » ne revient ni dans J'aime ni en vignette
   const publications = toutesLesPublications.filter((p) => !estMasquee(p.id));
 
@@ -67,10 +71,16 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
           texte: "Double-touche une vidéo pour l'aimer : tes coups de cœur t'attendront ici.",
           lu: "Touche « J'aime » sur une publication du fil : tes coups de cœur t'attendront ici.",
         };
+  const dernierGarde = vignettesGardes[0]?.lieu.nom;
+  const resume =
+    vignettesGardes.length + vignettesJaimes.length === 0
+      ? [TEXTES_COLLECTION.vide]
+      : [TEXTES_COLLECTION.compte(vignettesGardes.length, vignettesJaimes.length), ...(dernierGarde ? [TEXTES_COLLECTION.dernierGarde(dernierGarde)] : [])];
+  const autres = vignettes.length - VIGNETTES_VISIBLES;
+  const voirTout = onglet === "gardes" ? TEXTES_COLLECTION.voirGardes(vignettes.length) : TEXTES_COLLECTION.voirJaimes(vignettes.length);
 
   return (
-    <View className="gap-3">
-      <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">Ta collection</Text>
+    <SectionPliable section="collection" titre={TEXTES_COLLECTION.titre} sousTitre={TEXTES_COLLECTION.sousTitre} resume={resume}>
       <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne">
         {onglets.map((o, i) => {
           const actif = o.cle === onglet;
@@ -84,6 +94,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
               onPress={() => {
                 vibrerLegerement();
                 setOnglet(o.cle);
+                setToutesVisibles(false);
               }}
               className={`-mb-0.5 min-h-11 flex-1 items-center justify-center border-b-2 py-2 active:opacity-70 ${actif ? "border-encre" : "border-transparent"}`}
             >
@@ -102,7 +113,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
         </View>
       ) : (
         <View className="-mx-0.5 flex-row flex-wrap">
-          {vignettes.map((v) => (
+          {(toutesVisibles ? vignettes : vignettes.slice(0, VIGNETTES_VISIBLES)).map((v) => (
             <VignetteCollection
               key={v.cle}
               lieu={v.lieu}
@@ -113,6 +124,9 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
           ))}
         </View>
       )}
-    </View>
+      {autres > 0 ? (
+        <BoutonContour fond="blanc" libelle={toutesVisibles ? TEXTES_PROFIL.voirMoins : voirTout} onPress={() => setToutesVisibles(!toutesVisibles)} />
+      ) : null}
+    </SectionPliable>
   );
 }
