@@ -115,7 +115,7 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
       {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" && charte === "signee" ? (
         <View className="gap-4">
-          <Text className="font-texte text-base leading-6 text-gris">Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres.</Text>
+          <Text className="font-texte text-base leading-6 text-gris">{"Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres."}</Text>
           <Text className="font-titre-gras text-3xl text-encre">{PHRASE_ENTRE_GUILLEMETS}</Text>
           <Text className="font-texte text-base leading-6 text-gris">
             {lierPonctuation("Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit.")}

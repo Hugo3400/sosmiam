@@ -1,11 +1,13 @@
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
+import { ecrireNotificationNouvelleTable } from "../fonctions/reservations/ecrire-notification-nouvelle-table.ts";
 import { ecrireNotificationReservation } from "../fonctions/reservations/ecrire-notification-reservation.ts";
 import type { MessagePush } from "./notifications/expedier-push.ts";
-import type { LigneReservation, ReponseReservation } from "./reservations-regles.ts";
+import type { LigneReservation, NouvelleTable, ReponseReservation } from "./reservations-regles.ts";
 import type { DepotVisites, TablesVisites } from "./visites-regles.ts";
 
 export type PrevenirCompte = (compteId: number, message: MessagePush) => Promise<void>;
 export type PrevenirReponses = (reponses: readonly ReponseReservation[]) => void;
+export type PrevenirNouvelleTable = (table: NouvelleTable) => void;
 
 export function creerPrevenirReponses(prevenirCompte: PrevenirCompte, horloge: () => number): PrevenirReponses {
   return (reponses) => {
@@ -16,6 +18,24 @@ export function creerPrevenirReponses(prevenirCompte: PrevenirCompte, horloge: (
       for (const r of utiles) {
         prevenirCompte(r.compteId, ecrireNotificationReservation(r, maintenant)).catch((erreur: unknown) => {
           console.error("Réservations : client non prévenu :", resumerErreur(erreur));
+        });
+      }
+    });
+  };
+}
+
+export function creerPrevenirNouvellesTables(prevenirCompte: PrevenirCompte, horloge: () => number): PrevenirNouvelleTable {
+  return ({ reservation: r, lieu, equipe }) => {
+    const maintenant = new Date(horloge());
+    const envois: [number, MessagePush][] = equipe.filter((id) => id !== r.compteId).map((id) => [id, ecrireNotificationNouvelleTable(r, lieu, maintenant)]);
+    if (r.statut === "acceptee") {
+      envois.push([r.compteId, ecrireNotificationReservation({ compteId: r.compteId, lieu, creneau: r.creneau, statut: "acceptee", motif: null }, maintenant)]);
+    }
+    if (envois.length === 0) return;
+    setImmediate(() => {
+      for (const [compteId, message] of envois) {
+        prevenirCompte(compteId, message).catch((erreur: unknown) => {
+          console.error("Réservations : nouvelle table non annoncée :", resumerErreur(erreur));
         });
       }
     });
@@ -38,8 +58,8 @@ export function suivreExpirations(depot: DepotVisites, prevenir: PrevenirReponse
       try {
         const resultat = await passer((t) => fn({
           ...t,
-          async expirerReservations(maintenant) {
-            const expirees = await t.expirerReservations(maintenant);
+          async expirerReservations(maintenant, portee) {
+            const expirees = await t.expirerReservations(maintenant, portee);
             if (expirees.length > 0) reponses.push(...(await decrireExpirees(t, expirees)));
             return expirees;
           },
