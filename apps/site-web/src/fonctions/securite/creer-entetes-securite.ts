@@ -1,6 +1,5 @@
 const PERMISSIONS: Record<string, string> = {
   accelerometer: "()",
-  bluetooth: "()",
   camera: "()",
   "display-capture": "()",
   geolocation: "(self)",

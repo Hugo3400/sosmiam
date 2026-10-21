@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
+import { utiliserNonce } from "~/hooks/utiliser-nonce";
 import { GestionnaireConsentement } from "~/composants/cookies/GestionnaireConsentement";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
@@ -49,6 +50,7 @@ export function loader({ request }: Route.LoaderArgs) {
 }
 
 export function Layout({ children }: { children: ReactNode }) {
+  const nonce = utiliserNonce();
   return (
     <html lang="fr">
       <head>
@@ -56,12 +58,12 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#FFD60A" />
         <Meta />
-        <Links />
+        <Links nonce={nonce} />
       </head>
       <body>
         {children}
-        <ScrollRestoration />
-        <Scripts />
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
       </body>
     </html>
   );

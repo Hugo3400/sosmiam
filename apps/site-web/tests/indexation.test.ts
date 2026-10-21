@@ -66,7 +66,7 @@ test("adresse canonique : absolue, sans paramètres ni « / » final", () => {
 
 test("chaque page privée est en noindex (mon compte, espaces, désinscription, fin d'inscription…)", () => {
   const privees = [
-    "/mon-compte", "/desinscription", "/connexion/finir-inscription", "/deconnexion", "/l/ABC123",
+    "/mon-compte", "/desinscription", "/confirmer-newsletter", "/connexion/finir-inscription", "/deconnexion", "/l/ABC123",
     "/connexion", "/inscription", "/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/verifier-email",
     "/espace", "/espace/mon-compte", "/espace/kit-media", "/espace/kit-media-pro", "/espace/proposer-un-lieu", "/espace/fondateur",
     "/espace/certification", "/espace/missions", "/espace/messages",
@@ -79,6 +79,7 @@ test("chaque page privée est en noindex (mon compte, espaces, désinscription, 
   }
   // En plus de la balise, l'en-tête HTTP pour les pages aux liens personnels
   assert.match(lire("routes/public/desinscription.tsx"), /"X-Robots-Tag": "noindex"/);
+  assert.match(lire("routes/public/confirmer-newsletter.tsx"), /"X-Robots-Tag": "noindex"/);
   assert.match(lire("routes/public/invitation.tsx"), /"X-Robots-Tag": "noindex"/);
   assert.match(lire("routes/compte/mise-en-page-mon-compte.tsx"), /"X-Robots-Tag", "noindex"/);
 });
@@ -90,6 +91,7 @@ test("robots.txt : le plan du site est déclaré en adresse absolue sur chaque h
     assert.match(texte, new RegExp(`^Sitemap: https://${hote.replace(/\./g, "\\.")}/sitemap\\.xml$`, "m"), hote);
   }
   assert.match(await lireRobots("sosmiam.fr"), /^Allow: \/$/m);
+  assert.match(await lireRobots("sosmiam.fr"), /^Disallow: \/confirmer-newsletter$/m);
   assert.equal(await lireRobots("apercu.sosmiam.fr"), "User-agent: *\nDisallow: /\n");
 });
 

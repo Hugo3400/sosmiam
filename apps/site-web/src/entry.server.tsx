@@ -9,6 +9,7 @@ import type { RenderToPipeableStreamOptions } from "react-dom/server";
 import { renderToPipeableStream } from "react-dom/server";
 
 import { creerEntetesSecurite } from "~/fonctions/securite/creer-entetes-securite";
+import { ContexteNonce } from "~/hooks/utiliser-nonce";
 
 export const streamTimeout = 5_000;
 
@@ -28,7 +29,12 @@ export default function handleRequest(requete: Request, statut: number, entetes:
 
     let minuteur: ReturnType<typeof setTimeout> | undefined = setTimeout(() => abort(), streamTimeout + 1000);
 
-    const { pipe, abort } = renderToPipeableStream(<ServerRouter context={contexteRouteur} url={requete.url} nonce={nonce} />, {
+    const page = (
+      <ContexteNonce value={nonce}>
+        <ServerRouter context={contexteRouteur} url={requete.url} nonce={nonce} />
+      </ContexteNonce>
+    );
+    const { pipe, abort } = renderToPipeableStream(page, {
       nonce,
       [attente]() {
         enveloppeRendue = true;
