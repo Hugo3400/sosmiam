@@ -20,41 +20,60 @@ const PART_LIBRE = 0.9;
 const PART_DEPLACEMENT = 0.4;
 const MARGE_FIXE = 0.5;
 const PAS_ECHANTILLON = 3;
-const PART_CACHEE_MAX = 0.5;
+const PART_CACHEE_MAX = 0.35;
 
 type Position = { latitude: number; longitude: number };
 
-type Choix = { place: PlaceEcran; fixe: number; libre: number };
+type Choix = { x: number; y: number; fixe: number; libre: number };
 
-const ecartCarre = (a: PlaceEcran, b: PlaceEcran) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
-
-function plusPres(parmi: PlaceEcran[], ici: PlaceEcran, ecart: (a: PlaceEcran, b: PlaceEcran) => number): number {
+function ecartFixeMin(obstacles: PlaceEcran[], x: number, y: number): number {
   let min = Infinity;
-  for (const autre of parmi) min = Math.min(min, ecart(autre, ici));
+  for (const o of obstacles) {
+    const ecart = Math.max(Math.abs(o.x - x), Math.abs(o.y - y));
+    if (ecart < min) min = ecart;
+  }
   return min;
 }
 
-function creerCouverture(membres: PlaceEcran[], ici: PlaceEcran): (place: PlaceEcran) => boolean {
+function distanceMin(voisins: PlaceEcran[], x: number, y: number): number {
+  let min = Infinity;
+  for (const v of voisins) {
+    const carre = (v.x - x) * (v.x - x) + (v.y - y) * (v.y - y);
+    if (carre < min) min = carre;
+  }
+  return Math.sqrt(min);
+}
+
+function creerCouverture(membres: PlaceEcran[], ici: PlaceEcran): (x: number, y: number) => boolean {
   if (membres.length === 0) return () => true;
-  const portee = Math.max(PORTEE_LIEUX_BULLE_POINTS, plusPres(membres, ici, (a, b) => Math.hypot(a.x - b.x, a.y - b.y))) + 1e-6;
+  const portee = Math.max(PORTEE_LIEUX_BULLE_POINTS, distanceMin(membres, ici.x, ici.y)) + 1e-6;
+  const porteeCarre = portee * portee;
   const demi = Math.ceil((DEPLACEMENT_MAX_BULLE_POINTS + portee) / portee) + 1;
   const cote = demi * 2 + 1;
-  const cases: PlaceEcran[][] = Array.from({ length: cote * cote }, () => []);
-  const caseDe = (place: PlaceEcran) => {
-    const colonne = Math.floor((place.x - ici.x) / portee) + demi;
-    const ligne = Math.floor((place.y - ici.y) / portee) + demi;
+  const caseDe = (x: number, y: number) => {
+    const colonne = Math.floor((x - ici.x) / portee) + demi;
+    const ligne = Math.floor((y - ici.y) / portee) + demi;
     return colonne < 0 || colonne >= cote || ligne < 0 || ligne >= cote ? -1 : colonne * cote + ligne;
   };
-  for (const membre of membres) {
-    const rang = caseDe(membre);
-    if (rang >= 0) cases[rang].push(membre);
-  }
-  return (place) => {
-    const colonne = Math.floor((place.x - ici.x) / portee) + demi;
-    const ligne = Math.floor((place.y - ici.y) / portee) + demi;
+  const debuts = new Int32Array(cote * cote + 1);
+  const cases = Int32Array.from(membres, (membre) => caseDe(membre.x, membre.y));
+  for (const rang of cases) if (rang >= 0) debuts[rang + 1] += 1;
+  for (let rang = 0; rang < cote * cote; rang++) debuts[rang + 1] += debuts[rang];
+  const remplis = debuts.slice(0, cote * cote);
+  const ordre = new Int32Array(debuts[cote * cote]);
+  cases.forEach((rang, membre) => {
+    if (rang >= 0) ordre[remplis[rang]++] = membre;
+  });
+  return (x, y) => {
+    const colonne = Math.floor((x - ici.x) / portee) + demi;
+    const ligne = Math.floor((y - ici.y) / portee) + demi;
     for (let c = Math.max(0, colonne - 1); c <= Math.min(cote - 1, colonne + 1); c++) {
       for (let l = Math.max(0, ligne - 1); l <= Math.min(cote - 1, ligne + 1); l++) {
-        for (const membre of cases[c * cote + l]) if (Math.hypot(membre.x - place.x, membre.y - place.y) <= portee) return true;
+        const rang = c * cote + l;
+        for (let k = debuts[rang]; k < debuts[rang + 1]; k++) {
+          const membre = membres[ordre[k]];
+          if ((membre.x - x) * (membre.x - x) + (membre.y - y) * (membre.y - y) <= porteeCarre) return true;
+        }
       }
     }
     return false;
@@ -62,38 +81,41 @@ function creerCouverture(membres: PlaceEcran[], ici: PlaceEcran): (place: PlaceE
 }
 
 function calculerPartCachee(place: PlaceEcran, rayon: number, obstacles: PlaceEcran[]): number {
-  const proches = obstacles.filter((o) => ecartCarre(o, place) < DEMI_CADRE_LIEU_POINTS + rayon);
+  const proches = obstacles.filter((o) => Math.max(Math.abs(o.x - place.x), Math.abs(o.y - place.y)) < DEMI_CADRE_LIEU_POINTS + rayon);
   if (proches.length === 0) return 0;
   let total = 0;
   let cachees = 0;
   for (let i = -PAS_ECHANTILLON; i <= PAS_ECHANTILLON; i++) {
     for (let j = -PAS_ECHANTILLON; j <= PAS_ECHANTILLON; j++) {
       if (i * i + j * j > PAS_ECHANTILLON * PAS_ECHANTILLON) continue;
-      const point = { x: place.x + (i / PAS_ECHANTILLON) * rayon, y: place.y + (j / PAS_ECHANTILLON) * rayon };
       total += 1;
-      if (proches.some((o) => ecartCarre(o, point) < DEMI_CADRE_LIEU_POINTS)) cachees += 1;
+      if (ecartFixeMin(proches, place.x + (i / PAS_ECHANTILLON) * rayon, place.y + (j / PAS_ECHANTILLON) * rayon) < DEMI_CADRE_LIEU_POINTS) cachees += 1;
     }
   }
   return cachees / total;
 }
 
-function chercherPlace(ici: PlaceEcran, obstacles: PlaceEcran[], voisins: PlaceEcran[], couvre: (place: PlaceEcran) => boolean): Choix {
-  const proche = obstacles.reduce((a, b) => (Math.hypot(b.x - ici.x, b.y - ici.y) < Math.hypot(a.x - ici.x, a.y - ici.y) ? b : a));
+function chercherPlace(ici: PlaceEcran, obstacles: PlaceEcran[], voisins: PlaceEcran[], couvre: (x: number, y: number) => boolean): Choix {
+  let proche = obstacles[0];
+  for (const o of obstacles) if (Math.hypot(o.x - ici.x, o.y - ici.y) < Math.hypot(proche.x - ici.x, proche.y - ici.y)) proche = o;
   const naturel = Math.hypot(ici.x - proche.x, ici.y - proche.y) > 0.5 ? Math.atan2(ici.y - proche.y, ici.x - proche.x) : -Math.PI / 2;
-  const directions = Array.from({ length: DIRECTIONS }, (_, pas) => {
+  const cosinus = new Float64Array(DIRECTIONS);
+  const sinus = new Float64Array(DIRECTIONS);
+  for (let pas = 0; pas < DIRECTIONS; pas++) {
     const angle = naturel + ((2 * Math.PI) / DIRECTIONS) * (pas % 2 === 0 ? pas / 2 : -(pas + 1) / 2);
-    return { x: Math.cos(angle), y: Math.sin(angle) };
-  });
-  const libreA = (place: PlaceEcran) => plusPres(voisins, place, (a, b) => Math.hypot(a.x - b.x, a.y - b.y));
-  let meilleure: Choix = { place: ici, fixe: Math.min(plusPres(obstacles, ici, ecartCarre), ECART_FIXE_POINTS), libre: libreA(ici) };
+    cosinus[pas] = Math.cos(angle);
+    sinus[pas] = Math.sin(angle);
+  }
+  let meilleure: Choix = { x: ici.x, y: ici.y, fixe: Math.min(ecartFixeMin(obstacles, ici.x, ici.y), ECART_FIXE_POINTS), libre: distanceMin(voisins, ici.x, ici.y) };
   for (let distance = PAS_RECHERCHE; distance <= DEPLACEMENT_MAX_BULLE_POINTS; distance += PAS_RECHERCHE) {
-    for (const direction of directions) {
-      const place = { x: ici.x + distance * direction.x, y: ici.y + distance * direction.y };
-      const fixe = Math.min(plusPres(obstacles, place, ecartCarre), ECART_FIXE_POINTS);
-      if (fixe < meilleure.fixe || !couvre(place)) continue;
-      const libre = libreA(place);
-      if (fixe >= ECART_FIXE_POINTS - MARGE_FIXE && libre >= ECART_MARQUEURS_POINTS * PART_LIBRE) return { place, fixe, libre };
-      if (fixe > meilleure.fixe || libre > meilleure.libre) meilleure = { place, fixe, libre };
+    for (let pas = 0; pas < DIRECTIONS; pas++) {
+      const x = ici.x + distance * cosinus[pas];
+      const y = ici.y + distance * sinus[pas];
+      const fixe = Math.min(ecartFixeMin(obstacles, x, y), ECART_FIXE_POINTS);
+      if (fixe < meilleure.fixe || !couvre(x, y)) continue;
+      const libre = distanceMin(voisins, x, y);
+      if (fixe >= ECART_FIXE_POINTS - MARGE_FIXE && libre >= ECART_MARQUEURS_POINTS * PART_LIBRE) return { x, y, fixe, libre };
+      if (fixe > meilleure.fixe || libre > meilleure.libre) meilleure = { x, y, fixe, libre };
     }
     if (meilleure.fixe >= ECART_FIXE_POINTS - MARGE_FIXE) return meilleure;
   }
@@ -118,17 +140,17 @@ export function ecarterGroupesCarte(
   const poses = groupes.map(() => false);
   const devant = groupes.map(() => false);
   const portee = ECART_FIXE_POINTS + DEPLACEMENT_MAX_BULLE_POINTS;
+  const pres = (a: PlaceEcran, b: PlaceEcran) => Math.abs(a.x - b.x) < portee && Math.abs(a.y - b.y) < portee;
 
   places.forEach((ici, rang) => {
-    const proches = obstacles.filter((o) => ecartCarre(o, ici) < portee);
-    if (proches.length === 0 || plusPres(proches, ici, ecartCarre) >= ECART_FIXE_POINTS) return;
-    const voisins: PlaceEcran[] = [];
-    for (const immobile of immobiles) if (ecartCarre(immobile, ici) < portee) voisins.push(immobile);
+    const proches = obstacles.filter((o) => pres(o, ici));
+    if (proches.length === 0 || ecartFixeMin(proches, ici.x, ici.y) >= ECART_FIXE_POINTS) return;
+    const voisins = immobiles.filter((immobile) => pres(immobile, ici));
     places.forEach((autre, rangAutre) => {
-      if (rangAutre !== rang && ecartCarre(autre, ici) < portee) voisins.push(autre);
+      if (rangAutre !== rang && pres(autre, ici)) voisins.push(autre);
     });
     const choix = chercherPlace(ici, proches, voisins, creerCouverture(lireMembres(groupes[rang]).map(versEcran), ici));
-    places[rang] = choix.place;
+    places[rang] = { x: choix.x, y: choix.y };
     poses[rang] = true;
     devant[rang] = choix.fixe < ECART_FIXE_POINTS - MARGE_FIXE;
   });
@@ -140,7 +162,7 @@ export function ecarterGroupesCarte(
       ...immobiles.map((place) => ({ ...place, diametre: DIAMETRE_MARQUEUR_POINTS, mobile: false })),
     ],
     ECART_MARQUEURS_POINTS * PART_DEPLACEMENT,
-    (_, avant, apres) => obstacles.length === 0 || plusPres(obstacles, apres, ecartCarre) >= Math.min(ECART_FIXE_POINTS, plusPres(obstacles, avant, ecartCarre)),
+    (_, avant, apres) => obstacles.length === 0 || ecartFixeMin(obstacles, apres.x, apres.y) >= Math.min(ECART_FIXE_POINTS, ecartFixeMin(obstacles, avant.x, avant.y)),
   );
 
   return groupes.map((groupe, rang) => {

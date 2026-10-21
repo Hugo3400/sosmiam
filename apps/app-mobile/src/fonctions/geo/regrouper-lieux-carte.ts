@@ -37,7 +37,7 @@ const RAYONS_PAR_ZONE = 128;
 const MARGES_RUE = [MARGE_VUE_CARTE, 0.15, 0.08, 0];
 const FINESSE_RUE = 2;
 
-type Regroupement = { seuls: PointCarte[]; groupes: GroupeCarte[] };
+type Regroupement = { seuls: PointCarte[]; groupes: GroupeCarte[]; membres: Map<GroupeCarte, PointProjete[]> };
 
 type Rectangle = { ouest: number; est: number; nord: number; sud: number };
 
@@ -88,7 +88,7 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
       const fenetre = fenetreAvec(essai);
       const autres = preparation.projetes.flatMap(({ point }) => (!point.prioritaire && point.id !== selection && estDansBornes(point, fenetre) ? [point] : []));
       if (autres.length + surplus.length > budget) continue;
-      regroupement = { seuls: [...autres, ...surplus], groupes: [] };
+      regroupement = { seuls: [...autres, ...surplus], groupes: [], membres: new Map() };
       marge = essai;
       break;
     }
@@ -99,6 +99,7 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
     regroupement = regrouperAuMeilleurNiveau(preparation, echelle, budget, choisi?.id ?? null, fenetreAvec(marge), surplus, rue ? FINESSE_RUE : 0);
   }
 
+  const { membres } = regroupement;
   const ecartes = ecarterMemesPlaces([...fixes, ...regroupement.seuls], echelle);
   const idsObstacles = new Set([...fixes, ...surplus].map((point) => point.id));
   const obstacles = ecartes.filter((seul) => idsObstacles.has(seul.id));
@@ -109,22 +110,9 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
     obstacles,
     autresSeuls,
     echelle,
-    (groupe) => groupe.ids.flatMap((id) => trouverParId(preparation.projetes, id) ?? []),
+    (groupe) => (membres.get(groupe) ?? []).map(({ point }) => point),
   );
   return { seuls: seuls.sort((a, b) => a.id - b.id), groupes, marge };
-}
-
-function trouverParId(projetes: PointProjete[], id: number): PointCarte | null {
-  let bas = 0;
-  let haut = projetes.length - 1;
-  while (bas <= haut) {
-    const milieu = (bas + haut) >> 1;
-    const ici = projetes[milieu].point.id;
-    if (ici === id) return projetes[milieu].point;
-    if (ici < id) bas = milieu + 1;
-    else haut = milieu - 1;
-  }
-  return null;
 }
 
 function relacherLieuxRue(seuls: LieuSeulCarte[], fixes: LieuSeulCarte[], echelle: EchelleCarte): LieuSeulCarte[] {
@@ -203,15 +191,21 @@ function regrouperAuMeilleurNiveau(
     const amas = surplusProjete.length > 0 ? [...lus.amas, ...formerAmasCarte(surplusProjete, niveau)] : lus.amas;
     const seuls: PointCarte[] = [];
     const groupes: GroupeCarte[] = [];
+    const membres = new Map<GroupeCarte, PointProjete[]>();
     for (const un of amas) {
       if (un.nord < bornes.sud || un.sud > bornes.nord || un.est < bornes.ouest || un.ouest > bornes.est) continue;
       const restants = un === touche ? un.membres.filter(({ point }) => point.id !== exclu) : un.membres;
       const entier = un.sud >= bornes.sud && un.nord <= bornes.nord && un.ouest >= bornes.ouest && un.est <= bornes.est;
       if (restants.length === 0 || (!entier && !restants.some(({ point }) => estDansBornes(point, bornes)))) continue;
-      if (restants.length === 1) seuls.push(restants[0].point);
-      else groupes.push(restants === un.membres ? un.groupe : former(un.groupe.cle, restants.map(({ point }) => point)));
+      if (restants.length === 1) {
+        seuls.push(restants[0].point);
+        continue;
+      }
+      const groupe = restants === un.membres ? un.groupe : former(un.groupe.cle, restants.map(({ point }) => point));
+      groupes.push(groupe);
+      membres.set(groupe, restants);
     }
-    if (seuls.length + groupes.length <= budget || niveau <= NIVEAU_MIN) return { seuls, groupes };
+    if (seuls.length + groupes.length <= budget || niveau <= NIVEAU_MIN) return { seuls, groupes, membres };
     niveau -= PAS_NIVEAU;
   }
 }

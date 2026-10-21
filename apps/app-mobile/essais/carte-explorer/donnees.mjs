@@ -1,4 +1,5 @@
 import { villesFrance } from "@sos-miam/commun/contenus/villes-france";
+import { MARGE_VUE_CARTE } from "~/contenus/regroupement-carte";
 
 export function creerHasard(graine) {
   let a = graine >>> 0;
@@ -102,4 +103,26 @@ export function verifierSortie(resultat, message = "") {
     }
   }
   return vus;
+}
+
+export function dansLaFenetre(point, region, taille = TAILLE_TELEPHONE, marge = MARGE_VUE_CARTE) {
+  const degresParPoint = region.longitudeDelta / taille.largeur;
+  const cos = Math.cos((region.latitude * Math.PI) / 180);
+  const part = 0.5 + marge;
+  const demiLatitude = Math.max(region.latitudeDelta, degresParPoint * cos * taille.hauteur) * part;
+  const demiLongitude = region.longitudeDelta * part;
+  return Math.abs(point.latitude - region.latitude) <= demiLatitude && Math.abs(point.longitude - region.longitude) <= demiLongitude;
+}
+
+export function dansLaVue(point, region) {
+  return Math.abs(point.latitude - region.latitude) <= region.latitudeDelta / 2 && Math.abs(point.longitude - region.longitude) <= region.longitudeDelta / 2;
+}
+
+export function metresParPoint(region, taille = TAILLE_TELEPHONE) {
+  return (region.longitudeDelta / taille.largeur) * 111_320 * Math.cos((region.latitude * Math.PI) / 180);
+}
+
+export function barycentreEcran(groupe, parId, region, taille = TAILLE_TELEPHONE) {
+  const membres = groupe.ids.map((id) => versEcran(region, parId.get(id), taille));
+  return { x: membres.reduce((somme, m) => somme + m.x, 0) / membres.length, y: membres.reduce((somme, m) => somme + m.y, 0) / membres.length, membres };
 }
