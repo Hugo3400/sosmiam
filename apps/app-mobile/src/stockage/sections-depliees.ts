@@ -1,11 +1,31 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type IdSectionPliable = "defis" | "badges";
+export type IdSectionPliable =
+  | "defis"
+  | "badges"
+  | "palier"
+  | "collection"
+  | "parametres-compte"
+  | "parametres-securite"
+  | "parametres-vie"
+  | "parametres-aide"
+  | "parametres-donnees";
 
 type SectionsDepliees = Partial<Record<IdSectionPliable, boolean>>;
 
 const CLE = "sosmiam.sections-depliees";
-const SECTIONS: readonly IdSectionPliable[] = ["defis", "badges"];
+const DEPLIEES_PAR_DEFAUT: Record<IdSectionPliable, boolean> = {
+  defis: false,
+  badges: false,
+  palier: true,
+  collection: true,
+  "parametres-compte": true,
+  "parametres-securite": true,
+  "parametres-vie": true,
+  "parametres-aide": true,
+  "parametres-donnees": true,
+};
+const SECTIONS = Object.keys(DEPLIEES_PAR_DEFAUT) as IdSectionPliable[];
 
 let enMemoire: SectionsDepliees | null = null;
 
@@ -26,12 +46,12 @@ async function lireToutes(): Promise<SectionsDepliees> {
   return enMemoire;
 }
 
-export function lireSectionDeplieeEnMemoire(section: IdSectionPliable): boolean | null {
-  return enMemoire?.[section] ?? null;
+export function lireSectionDeplieeEnMemoire(section: IdSectionPliable): boolean {
+  return enMemoire?.[section] ?? DEPLIEES_PAR_DEFAUT[section];
 }
 
 export async function lireSectionDepliee(section: IdSectionPliable): Promise<boolean> {
-  return (await lireToutes())[section] ?? false;
+  return (await lireToutes())[section] ?? DEPLIEES_PAR_DEFAUT[section];
 }
 
 export async function enregistrerSectionDepliee(section: IdSectionPliable, deplie: boolean): Promise<void> {

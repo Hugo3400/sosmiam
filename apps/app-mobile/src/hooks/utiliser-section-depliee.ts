@@ -8,7 +8,7 @@ import {
 } from "~/stockage/sections-depliees";
 
 export function utiliserSectionDepliee(section: IdSectionPliable): { deplie: boolean; basculer: () => boolean } {
-  const [deplie, setDeplie] = useState(() => lireSectionDeplieeEnMemoire(section) ?? false);
+  const [deplie, setDeplie] = useState(() => lireSectionDeplieeEnMemoire(section));
   const choisiIci = useRef(false);
 
   useEffect(() => {
