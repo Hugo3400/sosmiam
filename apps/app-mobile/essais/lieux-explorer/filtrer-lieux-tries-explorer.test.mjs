@@ -69,3 +69,20 @@ test("le texte cherché d'un lieu : normalisé une fois, gardé tant que c'est l
   const copie = { ...lieu, nom: "Chez Gégé" };
   assert.ok(lireTexteRechercheLieu(copie).startsWith("chez gege"));
 });
+
+test("filtre « étiquette » : ne garde que les lieux qui la portent (confirmée), sans tenir compte des accents ni de la casse", () => {
+  const lieux = trierLieuxExplorer(LIEUX.slice(0, 30), null, null, null);
+  const etiquettes = new Map([
+    [lieux[0].lieu.id, [{ nom: "Végétarien", statut: "confirmee", propositions: 0, parToi: false }]],
+    [lieux[3].lieu.id, [{ nom: "Vegan", statut: "confirmee", propositions: 0, parToi: false }, { nom: "végétarien", statut: "confirmee", propositions: 0, parToi: false }]],
+  ]);
+  const lire = (id) => etiquettes.get(id) ?? [];
+  const base = { texte: "", type: "tous", ville: null, budgets: [], ouvertA: null };
+  assert.deepEqual(
+    filtrerLieuxTriesExplorer(lieux, { ...base, etiquette: "Vegetarien" }, lire).map(({ lieu }) => lieu.id),
+    [lieux[0].lieu.id, lieux[3].lieu.id],
+  );
+  assert.deepEqual(filtrerLieuxTriesExplorer(lieux, { ...base, etiquette: "Halal" }, lire), []);
+  assert.equal(filtrerLieuxTriesExplorer(lieux, { ...base, etiquette: null }, lire), lieux);
+  assert.deepEqual(filtrerLieuxTriesExplorer(lieux, { ...base, etiquette: "Vegan" }), []);
+});

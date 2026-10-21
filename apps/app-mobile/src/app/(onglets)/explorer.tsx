@@ -25,6 +25,8 @@ import { decrireZoneRegardee } from "~/fonctions/geo/decrire-zone-regardee";
 import { direDeVille } from "~/fonctions/geo/dire-de-ville";
 import { ecrireDepuisVille } from "~/fonctions/geo/ecrire-depuis-ville";
 import { ecrireErreurPosition } from "~/fonctions/geo/ecrire-erreur-position";
+import { choisirEtiquettesLigne } from "~/fonctions/etiquettes/choisir-etiquettes-ligne";
+import { lireEtiquettesConfirmeesDemo } from "~/fonctions/etiquettes/lire-etiquettes-confirmees-demo";
 import { ecrireRepliDistances } from "~/fonctions/geo/ecrire-repli-distances";
 import { trouverRegionFrance } from "~/fonctions/geo/trouver-region-france";
 import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
@@ -44,6 +46,7 @@ import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
+import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import couleurs from "~/theme/couleurs";
 
 // Sur l'aperçu web, pas de carte : la liste prend toute la place
@@ -175,9 +178,25 @@ export default function Explorer() {
   const texteRecherche = useDeferredValue(filtres.texte);
   const ouvertA = filtres.ouvertMaintenant ? maintenant : null;
   const lieux = useMemo(
-    () => filtrerLieuxTriesExplorer(lieuxTries, { texte: texteRecherche, type: filtres.type, ville: filtres.ville, budgets: filtres.budgets, ouvertA }),
-    [lieuxTries, texteRecherche, filtres.type, filtres.ville, filtres.budgets, ouvertA],
+    () =>
+      filtrerLieuxTriesExplorer(
+        lieuxTries,
+        { texte: texteRecherche, type: filtres.type, ville: filtres.ville, budgets: filtres.budgets, ouvertA, etiquette: filtres.etiquette },
+        DEMO_VISITES_ACTIVE ? lireEtiquettesConfirmeesDemo : undefined,
+      ),
+    [lieuxTries, texteRecherche, filtres.type, filtres.ville, filtres.budgets, ouvertA, filtres.etiquette],
   );
+  const etiquettesLigne = useMemo(() => {
+    if (!DEMO_VISITES_ACTIVE) return undefined;
+    const dejaChoisies = new Map<number, ReturnType<typeof choisirEtiquettesLigne>>();
+    return (lieuId: number) => {
+      const deja = dejaChoisies.get(lieuId);
+      if (deja) return deja;
+      const choisies = choisirEtiquettesLigne(lireEtiquettesConfirmeesDemo(lieuId), filtres.etiquette);
+      dejaChoisies.set(lieuId, choisies);
+      return choisies;
+    };
+  }, [filtres.etiquette]);
   // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
   // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
   const fauteDeDepart = zone?.portee === "proche" && zone.centre === null && distancesInconnues;
@@ -206,7 +225,8 @@ export default function Explorer() {
   }, [oubliDit, marquerOubliDit]);
 
   const motRecherche = texteRecherche.trim();
-  const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;
+  const avecFiltres =
+    filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null || filtres.etiquette !== null;
   // Ce que dira l'annonce du nombre de lieux (lu quand elle part, après l'attente)
   const nombre = useRef({ lieux: lieux.length, recherche: false, filtres: false, fauteDeDepart: false, sauter: false });
   useEffect(() => {
@@ -363,6 +383,7 @@ export default function Explorer() {
           region={region}
           autourDe={autourDe}
           onChangerZone={changerZone}
+          etiquettesPossibles={DEMO_VISITES_ACTIVE}
         />
       </View>
 
@@ -382,6 +403,7 @@ export default function Explorer() {
             evenements={evenementsParLieu}
             depuis={depuis}
             maintenant={maintenant}
+            etiquettesLigne={etiquettesLigne}
           />
         </View>
       ) : null}

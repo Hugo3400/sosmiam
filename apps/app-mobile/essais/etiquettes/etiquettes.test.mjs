@@ -42,3 +42,26 @@ test("démo : chaque étiquette d'exemple est officielle, sans alcool, sans doub
     assert.equal(new Set(etiquettes.map((e) => e.nom)).size, etiquettes.length, `lieu ${id}`);
   }
 });
+
+test("Explorer : seules les étiquettes confirmées par le lieu comptent, lues une fois par lieu", async () => {
+  const { lireEtiquettesConfirmeesDemo } = await import("~/fonctions/etiquettes/lire-etiquettes-confirmees-demo");
+  const lues = lireEtiquettesConfirmeesDemo(0);
+  assert.deepEqual(lues.map((e) => e.nom), ["Fait maison", "Végétarien", "Accessible en fauteuil"]);
+  assert.ok(lues.every((e) => e.statut === "confirmee"));
+  assert.equal(lireEtiquettesConfirmeesDemo(0), lues);
+  assert.deepEqual(lireEtiquettesConfirmeesDemo(5), []);
+  assert.deepEqual(lireEtiquettesConfirmeesDemo(9999), []);
+  assert.equal(lireEtiquettesConfirmeesDemo(5), lireEtiquettesConfirmeesDemo(9999));
+});
+
+test("Explorer : la ligne montre l'étiquette du filtre d'abord, puis celles du filtre officiel, deux au plus", async () => {
+  const { choisirEtiquettesLigne } = await import("~/fonctions/etiquettes/choisir-etiquettes-ligne");
+  const etiquettes = [confirmee("Fait maison"), confirmee("Vegan"), confirmee("Sans alcool"), confirmee("Calme"), confirmee("LGBT+ friendly")];
+  assert.deepEqual(choisirEtiquettesLigne(etiquettes, null).map((e) => e.nom), ["Vegan", "LGBT+ friendly"]);
+  assert.deepEqual(choisirEtiquettesLigne(etiquettes, "calme").map((e) => e.nom), ["Calme", "Vegan"]);
+  assert.deepEqual(choisirEtiquettesLigne(etiquettes, "Fait maison", 3).map((e) => e.nom), ["Fait maison", "Vegan", "LGBT+ friendly"]);
+  assert.deepEqual(choisirEtiquettesLigne([confirmee("Brunch"), confirmee("Festif")], null).map((e) => e.nom), ["Brunch", "Festif"]);
+  const vide = [];
+  assert.equal(choisirEtiquettesLigne(vide, "Vegan"), vide);
+  assert.deepEqual(etiquettes.map((e) => e.nom), ["Fait maison", "Vegan", "Sans alcool", "Calme", "LGBT+ friendly"]);
+});

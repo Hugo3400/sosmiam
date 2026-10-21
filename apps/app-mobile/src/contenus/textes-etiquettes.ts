@@ -19,6 +19,14 @@ export const TEXTES_ETIQUETTES = {
   dejaProposee: "Tu l'as déjà proposée, merci !",
   voirPlus: (n: number) => (n === 1 ? "Voir l'autre" : `Voir les ${n} autres`),
   voirMoins: "Voir moins",
+  filtre: "Étiquette",
+  filtreLu: (nom: string) => `Étiquette : ${nom}`,
+  filtreIndice: "Vegan, halal, accessible en fauteuil… : ne garde que les lieux qui l'ont",
+  filtreTitre: "Filtrer par étiquette",
+  filtreSousTitre: "Seulement les étiquettes confirmées par les lieux.",
+  filtreToutes: "Toutes les étiquettes",
+  filtreFermer: "Fermer",
+  ligneLu: (noms: readonly string[]) => `Étiquettes : ${noms.join(", ")}`,
 } as const;
 
 export const REFUS_ETIQUETTE: Readonly<Record<RefusEtiquetteLibre, string>> = {

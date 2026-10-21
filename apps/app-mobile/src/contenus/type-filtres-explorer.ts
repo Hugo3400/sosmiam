@@ -12,9 +12,10 @@ export type FiltresExplorer = {
   ouvertMaintenant: boolean;
   /** Seulement les lieux qui ont un événement ce soir ou ce week-end (null : pas de filtre) */
   evenement: PeriodeEvenements | null;
+  etiquette: string | null;
 };
 
 /** « Ce soir » : jusqu'à 4 h du matin ; « ce week-end » : du vendredi 18 h au lundi 4 h */
 export type PeriodeEvenements = "ce-soir" | "ce-week-end";
 
-export const FILTRES_EXPLORER_PAR_DEFAUT: FiltresExplorer = { texte: "", type: "tous", ville: null, budgets: [], ouvertMaintenant: false, evenement: null };
+export const FILTRES_EXPLORER_PAR_DEFAUT: FiltresExplorer = { texte: "", type: "tous", ville: null, budgets: [], ouvertMaintenant: false, evenement: null, etiquette: null };
