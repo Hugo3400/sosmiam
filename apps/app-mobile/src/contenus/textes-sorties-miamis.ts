@@ -111,6 +111,8 @@ export const TEXTES_SORTIE_MIAMIS = {
   rappelPasse: "C'est bientôt ! Tu pourras quitter la sortie à tout moment.",
   nePlusVenir: "Je ne peux plus venir (ta place passe à la liste d'attente)",
   annulerSortie: "Annuler la sortie",
+  signalerSortie: "Signaler cette sortie",
+  signalerSortieIndice: "Un titre qui blesse, une arnaque, une fausse sortie : l'équipe regarde ça de près",
   carteJeViens: "Je viens",
   carteDemande: "Demande envoyée",
   carteAccepte: "Tu y vas !",

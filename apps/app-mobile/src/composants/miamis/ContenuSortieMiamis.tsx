@@ -15,6 +15,7 @@ import { CarteLieuSortieMiamis } from "~/composants/miamis/CarteLieuSortieMiamis
 import { DemandesArriveeMiamis } from "~/composants/miamis/DemandesArriveeMiamis";
 import { EnTeteSortieMiamis } from "~/composants/miamis/EnTeteSortieMiamis";
 import { ErreurMiamis } from "~/composants/miamis/ErreurMiamis";
+import { FeuilleSignalerSortieMiamis } from "~/composants/miamis/FeuilleSignalerSortieMiamis";
 import { EtatMiamis } from "~/composants/miamis/EtatMiamis";
 import { LienDiscretMiamis } from "~/composants/miamis/LienDiscretMiamis";
 import { ListeAttenteSortieMiamis } from "~/composants/miamis/ListeAttenteSortieMiamis";
@@ -46,6 +47,7 @@ export function ContenuSortieMiamis({ id }: Props) {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const [refusLimite, setRefusLimite] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
+  const [signalement, setSignalement] = useState(false);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const revenir = () => (router.canGoBack() ? router.back() : router.replace({ pathname: "/potes", params: { espace: "miamis" } }));
@@ -104,6 +106,7 @@ export function ContenuSortieMiamis({ id }: Props) {
         {organisateur ? <ListeAttenteSortieMiamis personnes={sortie.listeAttente} onRetirer={(personne) => void faire(() => s.retirer(personne), null, null)} /> : null}
         <ReglesSortieMiamis />
         {organisateur ? <LienDiscretMiamis libelle={TEXTES_SORTIE_MIAMIS.annulerSortie} danger onPress={() => setConfirmation("annuler")} indice="Après confirmation" /> : null}
+        {organisateur ? null : <LienDiscretMiamis libelle={TEXTES_SORTIE_MIAMIS.signalerSortie} onPress={() => setSignalement(true)} indice={TEXTES_SORTIE_MIAMIS.signalerSortieIndice} />}
       </ScrollView>
 
       <View style={{ paddingBottom: marges.bottom + 12 }} className="gap-3 border-t border-ligne bg-creme px-5 pt-3">
@@ -151,6 +154,7 @@ export function ContenuSortieMiamis({ id }: Props) {
         onConfirmer={() => router.push("/scan/camera")}
         onFermer={() => setConfirmation(null)}
       />
+      <FeuilleSignalerSortieMiamis sortieId={signalement ? sortie.id : null} titre={sortie.titre} onFermer={() => setSignalement(false)} />
       <Annonce annonce={annonce} haut={marges.top + 8} onFin={finAnnonce} />
     </View>
   );
