@@ -36,7 +36,8 @@ export type IdBadge =
   | "plume-de-la-brigade"
   | "plume-d-or"
   | "oeil-de-chef"
-  | "objectif-gourmand";
+  | "objectif-gourmand"
+  | "chasseur-de-bugs";
 
 /** Un badge tel qu'on le montre (app, logiciel de gestion, et plus tard le site) */
 export type BadgeCatalogue = {
