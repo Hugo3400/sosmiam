@@ -8,6 +8,6 @@ import { utiliserAccesMiamis } from "~/hooks/utiliser-acces-miamis";
 export default function IdeeMiamis() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const acces = utiliserAccesMiamis();
-  if (!acces.ouvert) return <EcranMiamisFerme raison={acces.raison} titre={TEXTES_IDEES.barre} />;
+  if (!acces.ouvert) return <EcranMiamisFerme raison={acces.raison} titre={TEXTES_IDEES.barre} retourSansHistorique="/reglages" />;
   return <EcranIdee key={String(id)} id={String(id)} />;
 }
