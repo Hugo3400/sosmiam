@@ -11,8 +11,8 @@ type Props = {
 };
 
 const ESPACES: { cle: EspaceCommunaute; nom: string }[] = [
-  { cle: "bande", nom: TEXTES_ESPACE_COMMUNAUTE.bande },
   { cle: "miamis", nom: TEXTES_ESPACE_COMMUNAUTE.miamis },
+  { cle: "bande", nom: TEXTES_ESPACE_COMMUNAUTE.bande },
 ];
 
 export function SelecteurEspaceCommunaute({ espace, onChoisir }: Props) {

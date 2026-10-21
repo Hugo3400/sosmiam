@@ -38,8 +38,10 @@ function listerChoix(signee: boolean): Choix[] {
 }
 
 function decrireSuivi(alerte: AlerteGardeeMiamSafe, aRelire: boolean): string {
+  if (alerte.statut === "en-route") {
+    return lierPonctuation(`Ton alerte au comptoir : l'équipe a répondu « On arrive » à ${ecrireHeure(new Date(alerte.reponduLe ?? alerte.envoyeeLe))}.`);
+  }
   const debut = `Ton alerte au comptoir de ${ecrireHeure(new Date(alerte.envoyeeLe))}`;
-  if (alerte.statut === "en-route") return lierPonctuation(`${debut} : l'équipe a répondu « On arrive ».`);
   if (aRelire) return lierPonctuation(`${debut} : on regarde si l'équipe a répondu…`);
   if (alerte.statut === "sans-reponse") return lierPonctuation(`${debut} : l'équipe n'a pas encore répondu.`);
   if (alerte.telephones === 0) return lierPonctuation(`${debut} : aucun téléphone de l'équipe ne l'a reçue.`);

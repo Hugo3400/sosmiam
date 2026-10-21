@@ -38,7 +38,7 @@ export default function Potes() {
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { onglet: ongletDemande, espace: espaceDemande } = useLocalSearchParams<{ onglet?: string; espace?: string }>();
   const [onglet, setOnglet] = useState<OngletPotes>(() => lireOnglet(ongletDemande) ?? "sorties");
-  const [espace, setEspace] = useState<EspaceCommunaute>(() => lireEspace(espaceDemande) ?? "bande");
+  const [espace, setEspace] = useState<EspaceCommunaute>(() => (lireOnglet(ongletDemande) ? "bande" : (lireEspace(espaceDemande) ?? "miamis")));
   const defilement = useRef<ScrollView>(null);
   const hautOnglets = useRef(0);
   const position = useRef(0);

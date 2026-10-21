@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text } from "react-native";
 
@@ -15,16 +15,16 @@ export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = 
   const router = useRouter();
   const [etat, setEtat] = useState<"jamais" | "ouvert" | "ferme">("jamais");
   const fermer = () => setEtat("ferme");
-  const creerCompte = () => {
+  const ouvrirApresFermeture = (chemin: Href) => {
     setEtat("ferme");
-    setTimeout(() => router.push("/compte"), DELAI_FERMETURE_FEUILLE_MS);
+    setTimeout(() => router.push(chemin), DELAI_FERMETURE_FEUILLE_MS);
   };
   return (
     <>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Miam Safe"
-        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les numéros d'urgence"
+        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, et un écran à montrer à l'équipe"
         hitSlop={8}
         onPress={() => setEtat("ouvert")}
         className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
@@ -32,7 +32,13 @@ export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = 
         <Text className="text-lg">🚨</Text>
       </Pressable>
       {etat !== "jamais" ? (
-        <FeuilleSecoursMiamSafe visible={etat === "ouvert"} sansInternet={sansInternet} onFermer={fermer} onCreerCompte={avecCreerCompte ? creerCompte : undefined} />
+        <FeuilleSecoursMiamSafe
+          visible={etat === "ouvert"}
+          sansInternet={sansInternet}
+          onFermer={fermer}
+          onMontrerEcran={() => ouvrirApresFermeture("/miam-safe/comptoir")}
+          onCreerCompte={avecCreerCompte ? () => ouvrirApresFermeture("/compte") : undefined}
+        />
       ) : null}
     </>
   );
