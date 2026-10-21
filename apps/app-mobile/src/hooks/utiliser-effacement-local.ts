@@ -34,12 +34,13 @@ export function utiliserEffacementLocal() {
   const [enCours, setEnCours] = useState(false);
   const occupe = useRef(false);
 
-  async function toutEffacer(): Promise<boolean> {
+  async function toutEffacer(fermerSession?: () => Promise<boolean>): Promise<boolean> {
     if (occupe.current) return false;
     occupe.current = true;
     setEnCours(true);
     oublierPosition();
     try {
+      if (fermerSession && !(await fermerSession())) return false;
       await activite.effacer();
       await communaute.effacer();
       await conversations.effacer();
