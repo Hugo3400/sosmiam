@@ -10,8 +10,8 @@ export function EntreeFidelite() {
   const pretes = cartes.reduce((somme, c) => somme + c.pretes.length, 0);
   const detail =
     cartes.length === 0
-      ? "Pas encore de carte : un tampon à chaque visite validée"
-      : `${cartes.length} carte${cartes.length > 1 ? "s" : ""}${pretes > 0 ? ` · ${pretes} récompense${pretes > 1 ? "s" : ""} t'attend${pretes > 1 ? "ent" : ""} 🎁` : ""}`;
+      ? TEXTES_RACCOURCIS.pasDeCarte
+      : `${TEXTES_RACCOURCIS.cartes(cartes.length)}${pretes > 0 ? ` · ${TEXTES_RACCOURCIS.cadeaux(pretes)}` : ""}`;
 
   return (
     <TuileRaccourci

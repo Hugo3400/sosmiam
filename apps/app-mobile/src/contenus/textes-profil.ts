@@ -24,16 +24,22 @@ export const DETAILS_MODE_AMBASSADEUR: Readonly<Record<StatutAmbassadeur, string
 };
 
 export const TEXTES_RACCOURCIS = {
+  pasDeTable: "Pas encore de table en vue",
+  rienDePrevu: "Rien de prévu pour l'instant",
   fidelite: "Cartes de fidélité",
   indiceFidelite: "Ouvre tes cartes de fidélité",
+  pasDeCarte: "Pas encore de carte",
+  cartes: (nombre: number) => `${nombre} carte${nombre > 1 ? "s" : ""}`,
+  cadeaux: (nombre: number) => (nombre > 1 ? `${nombre} cadeaux t'attendent 🎁` : "1 cadeau t'attend 🎁"),
   suivis: "Tu suis",
   indiceSuivis: "Ouvre la liste des personnes, lieux et créateurs que tu suis",
+  personne: "Personne pour l'instant",
   visites: "Mes visites",
   indiceVisites: "Ouvre la liste de tes visites",
   visitesValidees: (nombre: number) => `${nombre} validée${nombre > 1 ? "s" : ""}`,
   avisAEcrire: (nombre: number) => `${nombre} avis à écrire`,
   additionEnAttente: "Une addition en attente",
-  pasDeVisite: "Pas encore de visite : scanne le QR d'un comptoir",
+  pasDeVisite: "Pas encore de visite",
 } as const;
 
 export const TEXTES_PALIER = {

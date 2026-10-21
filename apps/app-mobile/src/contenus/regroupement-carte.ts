@@ -6,7 +6,7 @@ export type TailleCarte = { largeur: number; hauteur: number };
 
 export type LieuSeulCarte = { id: number; latitude: number; longitude: number };
 
-export type GroupeCarte = { cle: string; nombre: number; latitude: number; longitude: number; ids: number[] };
+export type GroupeCarte = { cle: string; nombre: number; latitude: number; longitude: number; ids: number[]; devant?: boolean };
 
 export type CarteRegroupee = { seuls: LieuSeulCarte[]; groupes: GroupeCarte[] };
 
@@ -21,6 +21,18 @@ export const ECART_MARQUEURS_POINTS = 38;
 export const ETENDUE_GROUPE_CARTE = 1;
 
 export const ECART_FIXE_POINTS = 40;
+
+export const DEPLACEMENT_MAX_BULLE_POINTS = 44;
+
+export const PORTEE_LIEUX_BULLE_POINTS = 22;
+
+export const DEPLACEMENT_MAX_LIEU_RUE_POINTS = 16;
+
+export const DIAMETRE_MARQUEUR_POINTS = 40;
+
+export const DIAMETRE_GROSSE_BULLE_POINTS = 44;
+
+export const NOMBRE_GROSSE_BULLE = 100;
 
 export const MARGE_VUE_CARTE = 0.25;
 
@@ -37,3 +49,7 @@ export type EchelleCarte = { degresParPoint: number; cosLatitude: number; latitu
 export type EtageCarte = { cote: number; parZone: Map<string, AmasCarte[]>; parId: Map<number, AmasCarte> };
 
 export type PreparationCarte = { projetes: PointProjete[]; parNiveau: Map<number, EtageCarte> };
+
+export type PlaceEcran = { x: number; y: number };
+
+export type MarqueurARelacher = PlaceEcran & { diametre: number; mobile: boolean };

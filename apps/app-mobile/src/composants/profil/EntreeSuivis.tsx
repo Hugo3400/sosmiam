@@ -32,7 +32,7 @@ export function EntreeSuivis({ suivis }: Props) {
   const detail =
     parties.length > 1
       ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
-      : (parties[0] ?? "Personne pour l'instant : touche « Suivre » sur une fiche, une vidéo ou un profil");
+      : (parties[0] ?? TEXTES_RACCOURCIS.personne);
 
   return (
     <TuileRaccourci
