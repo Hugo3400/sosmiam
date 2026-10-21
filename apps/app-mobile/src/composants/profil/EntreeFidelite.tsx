@@ -6,10 +6,10 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeFidelite() {
   const router = useRouter();
-  const { pret, source, cartes } = utiliserVisites();
+  const { lectureCartes, source, cartes } = utiliserVisites();
   const pretes = cartes.reduce((somme, c) => somme + c.pretes.length, 0);
   const detail =
-    !pret || source === "indisponible"
+    lectureCartes !== "lue" || source === "indisponible"
       ? TEXTES_RACCOURCIS.fideliteEnLecture
       : cartes.length === 0
         ? TEXTES_RACCOURCIS.pasDeCarte

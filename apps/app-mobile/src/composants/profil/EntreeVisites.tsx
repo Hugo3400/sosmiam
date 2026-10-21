@@ -6,10 +6,10 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeVisites() {
   const router = useRouter();
-  const { pret, source, visites, aEcrire, enCours } = utiliserVisites();
+  const { lectureVisites, source, visites, aEcrire, enCours } = utiliserVisites();
   const validees = visites.filter((v) => v.statut === "validee").length;
   const detail =
-    !pret || source === "indisponible"
+    lectureVisites !== "lue" || source === "indisponible"
       ? TEXTES_RACCOURCIS.visitesEnLecture
       : validees > 0
         ? [TEXTES_RACCOURCIS.visitesValidees(validees), aEcrire.length > 0 ? TEXTES_RACCOURCIS.avisAEcrire(aEcrire.length) : null].filter(Boolean).join(" · ")

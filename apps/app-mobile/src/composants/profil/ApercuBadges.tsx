@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { SectionPliable } from "~/composants/interface/SectionPliable";
 import { BoutonContour } from "~/composants/profil/BoutonContour";
-import { VignetteBadge } from "~/composants/profil/VignetteBadge";
+import { CaseBadge } from "~/composants/profil/CaseBadge";
 import { TEXTES_BADGES_PROFIL } from "~/contenus/textes-profil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { choisirDerniersBadges } from "~/fonctions/profil/choisir-derniers-badges";
@@ -47,7 +47,7 @@ export function ApercuBadges({ obtenus }: Props) {
         >
           <View aria-hidden className="-m-1 flex-row flex-wrap">
             {derniers.map((badge) => (
-              <VignetteBadge key={badge.id} badge={badge} />
+              <CaseBadge key={badge.id} badge={badge} obtenu />
             ))}
           </View>
         </Pressable>

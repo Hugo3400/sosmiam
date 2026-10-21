@@ -5,6 +5,8 @@ import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import type { Visite } from "@sos-miam/commun/types/visite";
 
+export type LectureListe = "attente" | "lue" | "ratee";
+
 export type EtatVisites = {
   /** Faux jusqu'à la première lecture (vrai tout de suite sans compte : il n'y a rien à lire) */
   pret: boolean;
@@ -19,6 +21,8 @@ export type EtatVisites = {
   cartes: CarteFidelite[];
   reservations: Reservation[];
   lecturesReservations: number;
+  lectureVisites: LectureListe;
+  lectureCartes: LectureListe;
   /** Points des visites et des avis avec photo (à ajouter aux points comptés sur le téléphone, voir utiliserPointsTotaux) */
   points: number;
   /** Relit tout ; ce qui n'a pas pu être relu (pas de réseau…) garde sa dernière valeur */
