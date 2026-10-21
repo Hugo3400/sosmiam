@@ -36,6 +36,7 @@ export default [
     route("statistiques", "routes/public/statistiques.tsx"),
     // Lien « Me désinscrire » des mails de la newsletter (noindex) : ouvrir la page ne désinscrit pas, le bouton si
     route("desinscription", "routes/public/desinscription.tsx"),
+    route("confirmer-newsletter", "routes/public/confirmer-newsletter.tsx"),
   ]),
   // Pages du compte, servies sur ambassadeur.sosmiam.fr ET sur pro.sosmiam.fr : leur cadre suit l'hôte. Le partage des
   // adresses entre sosmiam.fr et les deux espaces est fait par fonctions/hotes/choisir-redirection-hote.ts

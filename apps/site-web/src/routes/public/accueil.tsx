@@ -89,7 +89,8 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     // Pas de promesse « fondateur » : on invite à créer un compte (dès 18 ans), la candidature se fait depuis l'espace
     ambassadeur ? "On t'écrira aussi pour t'inviter dans l'espace ambassadeur (dès 18\u00a0ans).\u00a0🎖️" : "",
   ].filter(Boolean);
-  return { ok: true, message: lierPonctuation([`C'est noté ! On te prévient dès que SOS Miam arrive ${ou}.\u00a0🛟`, ...suites].join(" ")) };
+  const confirmation = `Presque fini ! Un lien de confirmation t'attend dans ta boîte mail (jette un œil aux spams) : un clic, et on te prévient dès que SOS Miam arrive ${ou}.\u00a0🛟`;
+  return { ok: true, message: lierPonctuation([confirmation, ...suites].join(" ")) };
 }
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */
