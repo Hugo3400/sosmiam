@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { SelecteurEspaceCommunaute, type EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
-import { TEXTES_ESPACE_COMMUNAUTE } from "~/contenus/textes-miamis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
@@ -18,27 +17,18 @@ type Props = {
   onChoisirEspace: (espace: EspaceCommunaute) => void;
 };
 
-/** Le haut de Potes : le titre, les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
-const LARGEUR_AJOUTER_COMPLET = 400;
-
+/** Le haut de Communauté : « Ma bande / Les Miamis », les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
 export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
   const router = useRouter();
-  const ajouterComplet = useWindowDimensions().width >= LARGEUR_AJOUTER_COMPLET;
   const { nonLus } = utiliserConversations();
   const monId = utiliserMonId();
 
   return (
     <View className="gap-3 pt-2">
       <View className="flex-row items-center gap-3">
-        <Text
-          accessibilityRole="header"
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.6}
-          className="min-w-0 flex-1 font-titre text-[32px] leading-[36px] text-encre"
-        >
-          {TEXTES_ESPACE_COMMUNAUTE.titre}
-        </Text>
+        <View className="min-w-0 flex-1">
+          <SelecteurEspaceCommunaute espace={espace} onChoisir={onChoisirEspace} />
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={nonLus > 0 ? `Messages, ${nonLus} non lu${nonLus > 1 ? "s" : ""}` : "Messages"}
@@ -66,14 +56,12 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
             vibrerLegerement();
             router.push("/potes/ajouter");
           }}
-          className={`items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${ajouterComplet ? "min-h-11 flex-row gap-1.5 px-4" : "h-11 w-11"}`}
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
         >
-          <Ionicons name="person-add" size={ajouterComplet ? 16 : 18} color={couleurs.encre} />
-          {ajouterComplet ? <Text className="font-texte-gras text-[15px] text-encre">Ajouter</Text> : null}
+          <Ionicons name="person-add" size={18} color={couleurs.encre} />
         </Pressable>
       </View>
 
-      <SelecteurEspaceCommunaute espace={espace} onChoisir={onChoisirEspace} />
 
       {espace === "bande" ? (
         <Pressable

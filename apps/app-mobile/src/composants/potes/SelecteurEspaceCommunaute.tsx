@@ -33,7 +33,7 @@ export function SelecteurEspaceCommunaute({ espace, onChoisir }: Props) {
             }}
             className={`min-h-11 flex-1 items-center justify-center rounded-xl active:opacity-80 ${actif ? "bg-jaune" : ""}`}
           >
-            <Text className={`text-[15px] ${actif ? "font-texte-gras text-encre" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`text-[15px] ${actif ? "font-texte-gras text-encre" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
           </Pressable>
         );
       })}
