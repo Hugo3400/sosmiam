@@ -72,12 +72,12 @@ export default function Explorer() {
   const focus = useIsFocused();
   const { profil } = utiliserProfil();
   const pointDeDepart = utiliserPointDeDepart();
-  const { position, approximative, recherche, chercher, oublier, oubliApresAbsence } = utiliserPositionActuelle();
+  const { position, approximative, recherche, chercher, oublier, oubliApresAbsence, marquerOubliDit } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
   const [porteeChoisie, setPorteeChoisie] = useState<PorteeExplorer | null>(null);
   const [porteeAvantAutour, setPorteeAvantAutour] = useState<{ portee: PorteeExplorer | null } | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
-  const [oubliDit, setOubliDit] = useState(oubliApresAbsence);
+  const [oubliDit, setOubliDit] = useState<number | null>(null);
   const [avecPosition, setAvecPosition] = useState(position !== null);
   const [avisApproximativeVu, setAvisApproximativeVu] = useState(false);
   const [rayon, changerRayon] = utiliserRayonExplorer();
@@ -161,7 +161,7 @@ export default function Explorer() {
     const autourDe = zone?.portee === "proche" ? zone.centre : filtres.ville ? centre : null;
     return autourDe ? calculerZoneAutour(autourDe, RAYON_PROCHE_KM.max) : null;
   }, [zone, cadre, filtres.ville, centre]);
-  const zoneDepuisTaPosition = zone?.portee === "proche" && position !== null;
+  const zoneDepuisTaPosition = position !== null && zone !== null;
   useEffect(() => {
     if (zoneALire) chargerZone(zoneALire, zoneDepuisTaPosition);
   }, [zoneALire, zoneDepuisTaPosition, chargerZone]);
@@ -201,6 +201,9 @@ export default function Explorer() {
     setOubliDit(oubliApresAbsence);
     setAnnonce({ texte: ANNONCE_POSITION_OUBLIEE, numero: oubliApresAbsence });
   }
+  useEffect(() => {
+    if (oubliDit !== null) marquerOubliDit(oubliDit);
+  }, [oubliDit, marquerOubliDit]);
 
   const motRecherche = texteRecherche.trim();
   const avecFiltres = filtres.type !== "tous" || filtres.ville !== null || filtres.budgets.length > 0 || filtres.ouvertMaintenant || filtres.evenement !== null;

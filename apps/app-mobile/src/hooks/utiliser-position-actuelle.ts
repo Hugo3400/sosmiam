@@ -12,6 +12,7 @@ export type EtatPositionActuelle = {
   oubliApresAbsence: number | null;
   chercher: () => Promise<LecturePosition | null>;
   oublier: () => void;
+  marquerOubliDit: (quand: number) => void;
 };
 
 export const ContextePositionActuelle = createContext<EtatPositionActuelle | null>(null);
