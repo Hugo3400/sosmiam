@@ -3,7 +3,7 @@ import { decoderNomPdf } from "./decoder-nom-pdf.ts";
 export type FluxObjetsPdf = { debut: number; compresse: boolean };
 
 type Jeton = { sorte: "nom" | "ouvre-tableau" | "ferme-tableau" | "autre"; valeur: string };
-type Dictionnaire = { jetons: Jeton[]; fin: number };
+type Dictionnaire = { jetons: Jeton[] | null; fin: number };
 
 const BLANCS = new Set(["\x00", "\t", "\n", "\f", "\r", " "]);
 const DELIMITEURS = new Set(["(", ")", "<", ">", "[", "]", "{", "}", "/", "%"]);
@@ -12,14 +12,13 @@ const CLES_D_UN_FLUX_D_OBJETS = ["ObjStm", "N", "First"];
 const CLES_ILLISIBLES = ["DecodeParms", "DP", "F", "FFilter", "FDecodeParms"];
 const FILTRES_LISIBLES: ReadonlySet<string> = new Set(["FlateDecode", "Fl"]);
 const AUTRE: Jeton = { sorte: "autre", valeur: "" };
-const TROP = "trop";
 
 const estRegulier = (c: string) => !BLANCS.has(c) && !DELIMITEURS.has(c);
 
-function sauterBlancs(t: string, i: number): number {
-  while (i < t.length) {
+function sauterBlancs(t: string, i: number, borne: number): number {
+  while (i < borne) {
     if (BLANCS.has(t[i]!)) i++;
-    else if (t[i] === "%") while (i < t.length && t[i] !== "\r" && t[i] !== "\n") i++;
+    else if (t[i] === "%") while (i < borne && t[i] !== "\r" && t[i] !== "\n") i++;
     else return i;
   }
   return i;
@@ -40,16 +39,20 @@ function finDeChaine(t: string, i: number, borne: number): number {
   return -1;
 }
 
+function finDeChaineHexa(t: string, i: number, borne: number): number {
+  for (i++; i < borne; i++) if (t[i] === ">") return i + 1;
+  return -1;
+}
+
 function finDeMot(t: string, i: number, borne: number): number {
   while (i < borne && estRegulier(t[i]!)) i++;
   return i;
 }
 
-function lireDictionnaire(t: string, debut: number, budget: number): Dictionnaire | typeof TROP | null {
-  const borne = Math.min(t.length, debut + budget);
+function lireDictionnaire(t: string, debut: number, borne: number): Dictionnaire {
   const jetons: Jeton[] = [];
   let profondeur = 0;
-  for (let i = debut; i < borne; i = sauterBlancs(t, i)) {
+  for (let i = debut; i < borne; i = sauterBlancs(t, i, borne)) {
     if (t.startsWith("<<", i)) {
       profondeur++;
       i += 2;
@@ -57,10 +60,10 @@ function lireDictionnaire(t: string, debut: number, budget: number): Dictionnair
       i += 2;
       if (--profondeur === 0) return { jetons, fin: i };
     } else if (t[i] === "(" || t[i] === "<") {
-      const fin = t[i] === "(" ? finDeChaine(t, i, borne) : t.indexOf(">", i);
-      if (fin < 0 || fin > borne) return borne < t.length ? TROP : null;
+      const fin = t[i] === "(" ? finDeChaine(t, i, borne) : finDeChaineHexa(t, i, borne);
+      if (fin < 0) return { jetons: null, fin: borne };
       jetons.push(AUTRE);
-      i = t[i] === "(" ? fin : fin + 1;
+      i = fin;
     } else if (t[i] === "[" || t[i] === "]") {
       jetons.push({ sorte: t[i] === "[" ? "ouvre-tableau" : "ferme-tableau", valeur: t[i]! });
       i++;
@@ -76,7 +79,7 @@ function lireDictionnaire(t: string, debut: number, budget: number): Dictionnair
       i++;
     }
   }
-  return borne < t.length ? TROP : null;
+  return { jetons: null, fin: borne };
 }
 
 function lireFiltres(jetons: readonly Jeton[], i: number): string[] | null {
@@ -109,18 +112,22 @@ function lireFluxObjets(jetons: readonly Jeton[]): { compresse: boolean } | "ill
 export function listerFluxObjetsPdf(t: string): FluxObjetsPdf[] | null {
   const flux: FluxObjetsPdf[] = [];
   let budget = 4 * t.length + 65_536;
+  const borner = (de: number) => Math.min(t.length, de + Math.max(budget, 0));
   for (const trouve of t.matchAll(MOT_OBJ)) {
-    const debutDico = sauterBlancs(t, trouve.index + 3);
-    if (!t.startsWith("<<", debutDico)) continue;
-    const dico = lireDictionnaire(t, debutDico, budget);
-    if (dico === TROP) return null;
-    if (dico === null) continue;
+    if (budget <= 0) return null;
+    const depart = trouve.index + 3;
+    const debutDico = sauterBlancs(t, depart, borner(depart));
+    budget -= debutDico - depart;
+    if (!t.startsWith("<<", debutDico) || budget <= 0) continue;
+    const dico = lireDictionnaire(t, debutDico, borner(debutDico));
     budget -= dico.fin - debutDico;
-    const apres = sauterBlancs(t, dico.fin);
+    if (dico.jetons === null) continue;
+    const apres = sauterBlancs(t, dico.fin, borner(dico.fin));
+    budget -= apres - dico.fin;
     if (!t.startsWith("stream", apres) || (apres + 6 < t.length && estRegulier(t[apres + 6]!))) continue;
     const lu = lireFluxObjets(dico.jetons);
     if (lu === "illisible") return null;
     if (lu !== null) flux.push({ debut: sauterFinDeLigne(t, apres + 6), compresse: lu.compresse });
   }
-  return flux;
+  return budget > 0 ? flux : null;
 }

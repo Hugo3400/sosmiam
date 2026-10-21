@@ -12,7 +12,7 @@ const TOUT = { debut: null, fin: null };
 const LUNDI_MIDI = Date.parse("2026-10-12T10:00:00Z");
 const SEMAINE = 7 * 24 * 3600 * 1000;
 const ONZE_HEURES = 11 * 3600 * 1000;
-const BADGES_DONNES_AILLEURS = ["premier-sauveteur", "deniche-par-toi", "fondateur", "iode", "bande"];
+const BADGES_DONNES_AILLEURS = ["premier-sauveteur", "deniche-par-toi", "fondateur", "iode", "bande", "chasseur-de-bugs"];
 
 const faits = (f: Partial<FaitsDefi>): FaitsDefi => ({ rescousses: [], premiersSauvetages: [], visites: [], avis: [], ...f });
 const visite = (minute: number, v: Partial<VisiteDefi> = {}): VisiteDefi => ({

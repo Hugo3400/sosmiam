@@ -6,6 +6,7 @@ import type { ErreurConnexionQr } from "./erreurs-connexion-qr.ts";
 import type { ErreurServiceCommunaute } from "./erreurs-service-communaute.ts";
 import type { ErreurServiceReservations } from "./erreurs-reservations.ts";
 import type { ErreurCarriere } from "./erreurs-carriere.ts";
+import type { ErreurSecurite } from "./erreurs-securite.ts";
 
 export type ErreurService =
   | ErreurServiceSociale
@@ -13,6 +14,7 @@ export type ErreurService =
   | ErreurServiceCommunaute
   | ErreurServiceReservations
   | ErreurCarriere
+  | ErreurSecurite
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"

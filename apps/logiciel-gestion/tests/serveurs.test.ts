@@ -5,7 +5,9 @@ import { TEXTES_SERVEURS } from "../src/contenus/serveurs-dev.ts";
 import { decrireEtatServeur } from "../src/fonctions/maintenance/decrire-etat-serveur.ts";
 import { expliquerErreurServeur } from "../src/fonctions/maintenance/expliquer-erreur-serveur.ts";
 import { listerActionsServeur } from "../src/fonctions/maintenance/lister-actions-serveur.ts";
-import { ErreurApi } from "../src/services/client-gestion.ts";
+import type { ErreurApi } from "../src/services/client-gestion.ts";
+
+const erreurApi = (code: string, detail: string | null = null) => ({ code, statut: 0, champ: null, detail }) as unknown as ErreurApi;
 
 test("boutons des serveurs : éteindre et redémarrer s'il tourne, allumer s'il est éteint ou planté, rien pour la production", () => {
   assert.deepEqual(listerActionsServeur({ pilotable: true, etat: "en-ligne" }), ["eteindre", "redemarrer"]);
@@ -26,12 +28,12 @@ test("pastilles d'état : un serveur de dev éteint est normal, la production é
 });
 
 test("erreurs des serveurs en phrases, avec la ligne de pm2 quand il y en a une", () => {
-  assert.equal(expliquerErreurServeur(new ErreurApi("lecture-seule", 403)), "Celui-là reste en lecture seule : on ne coupe pas la production d'un clic.");
+  assert.equal(expliquerErreurServeur(erreurApi("lecture-seule")), "Celui-là reste en lecture seule : on ne coupe pas la production d'un clic.");
   assert.equal(
-    expliquerErreurServeur(new ErreurApi("pm2-erreur", 503, null, "Script not found")),
+    expliquerErreurServeur(erreurApi("pm2-erreur", "Script not found")),
     "pm2 a refusé. Sa réponse : « Script not found »",
   );
-  assert.equal(expliquerErreurServeur(new ErreurApi("reseau", 0)), "Le serveur ne répond pas. Vérifie ta connexion, ou l'état du serveur.");
+  assert.equal(expliquerErreurServeur(erreurApi("reseau")), "Le serveur ne répond pas. Vérifie ta connexion, ou l'état du serveur.");
   assert.equal(expliquerErreurServeur(null), "");
 });
 

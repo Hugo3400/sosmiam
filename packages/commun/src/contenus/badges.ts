@@ -44,4 +44,5 @@ export const BADGES: readonly BadgeCatalogue[] = [
   { id: "plume-d-or", emoji: "🖋️", nom: "Plume d'or", texte: "Publie 20 avis après tes visites validées : les lieux te lisent avec gourmandise" },
   { id: "oeil-de-chef", emoji: "📸", nom: "Œil de chef", texte: "Publie 5 avis avec une photo de ce que tu as dégusté" },
   { id: "objectif-gourmand", emoji: "🖼️", nom: "Objectif gourmand", texte: "Publie 20 avis avec une photo : ton assiette a trouvé son photographe" },
+  { id: "chasseur-de-bugs", emoji: "🐞", nom: "Chasseur de bugs", texte: "Signale une vraie faille de sécurité sur la page Chasse aux bugs : la Brigade te doit une fière chandelle" },
 ];
