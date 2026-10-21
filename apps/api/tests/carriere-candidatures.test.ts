@@ -168,3 +168,15 @@ test("la sous-clé des candidatures n'est pas la clé des comptes, et l'empreint
   assert.equal(chiffrement.dechiffrerTexte(chiffre, "3f2b8c1e-7a4b-4c1d-9e2f-3a4b5c6d7e8f", "nom"), "Zoé");
   assert.throws(() => chiffrement.dechiffrerTexte(chiffre, "0f2b8c1e-7a4b-4c1d-9e2f-3a4b5c6d7e8f", "nom"));
 });
+
+test("3 candidatures par e-mail et par 24 h, même envoyées toutes en même temps ; les CV refusés ne restent pas", async () => {
+  const s = await preparer();
+  const quand = new Date(s.horloge());
+  const resultats = await Promise.all(Array.from({ length: 10 }, (_, i) => s.carriere.deposerCandidature(s.offreId, nouvelle({ cv: fabriquerPdf(`Malo ${i}`) }), quand)));
+  assert.equal(resultats.filter((r) => r.ok).length, 3);
+  assert.ok(resultats.filter((r) => !r.ok).every((r) => !r.ok && r.erreur === "trop-de-demandes" && r.reessayerDans === 86_400));
+  assert.equal(s.memoire.candidatures.size, 3);
+  assert.equal(s.stockage.fichiers.size, 3, "seuls les CV des candidatures gardées restent");
+  const apres = await s.carriere.deposerCandidature(s.offreId, nouvelle({ email: " Malo.Lefevre@Exemple.fr" }), quand);
+  assert.equal(apres.ok, false);
+});

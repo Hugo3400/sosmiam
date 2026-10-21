@@ -98,4 +98,18 @@ egal(await baseDeDonnees.candidatureCarriere.count(), 0);
 egal(stockage.fichiers.size, 0);
 egal((await essai.sql("SELECT count(*) AS n FROM offres_carriere"))[0]?.n, "4", "l'offre reste, seules les candidatures partent");
 
+const requetes: string[] = [];
+const queryReelle = essai.db.query.bind(essai.db);
+essai.db.query = ((texte: string, ...reste: unknown[]) => {
+  requetes.push(texte);
+  return (queryReelle as (...a: unknown[]) => unknown)(texte, ...reste);
+}) as typeof essai.db.query;
+const enMemeTemps = await Promise.all(Array.from({ length: 10 }, () => seule2.deposerCandidature(benevolat.id, candidature("malo@exemple.fr"))));
+essai.db.query = queryReelle;
+egal(enMemeTemps.filter((r) => r.ok).length, 3, "10 dépôts en même temps : 3 gardés");
+egal(enMemeTemps.filter((r) => !r.ok).map((r) => !r.ok && r.erreur), Array(7).fill("trop-de-demandes"));
+egal(await baseDeDonnees.candidatureCarriere.count(), 3);
+egal(stockage.fichiers.size, 3, "les CV des dépôts refusés sont effacés");
+vrai(requetes.some((q) => /pg_advisory_xact_lock\(\$1::int4, \$2::int4\)/.test(q)), "le verrou de l'empreinte est pris dans la transaction");
+
 await terminerEssai(import.meta.url, essai, verifications.nombre);

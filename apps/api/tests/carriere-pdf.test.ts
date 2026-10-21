@@ -74,7 +74,7 @@ test("bombes : plafond de décompression, de flux et de lecture, sans bloquer lo
   assert.equal(verifierPdf(pdf(Buffer.concat(Array.from({ length: 1001 }, () => petit)))), false, "plus de 1 000 flux d'objets");
   assert.equal(verifierPdf(pdf(Buffer.concat(Array.from({ length: 300 }, () => petit)))), true);
   assert.equal(verifierPdf(pdf("1 0 obj <<(".repeat(400_000))), false, "des dictionnaires jamais fermés");
-  assert.equal(verifierPdf(pdf(`1 0 obj %${"obj %".repeat(800_000)}\n<< >>`)), true, "des commentaires sans fin");
+  assert.equal(verifierPdf(pdf(`1 0 obj %${"obj %".repeat(800_000)}\n<< >>`)), false, "des « obj » en cascade dans un commentaire : budget de lecture épuisé");
   assert.ok(performance.now() - debut < 8000, `${Math.round(performance.now() - debut)} ms`);
 });
 

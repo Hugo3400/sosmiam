@@ -103,6 +103,10 @@ test("verdicts : ok, louche avec motif, déporté ; un par ambassadeur ; 3 verdi
   assert.equal(ligne(avisId).statut, "en-relecture");
   const cinquieme = await b.creerCompte({ prenom: "Lina", ambassadeur: true });
   assert.deepEqual((await b.demander("GET", "/app/avis/a-relire", cinquieme.jeton)).corps.avis, []);
+  const quatrieme = await b.demander("POST", `/app/avis/${avisId}/relecture`, cinquieme.jeton, { verdict: { type: "ok" } });
+  assert.deepEqual([quatrieme.statut, quatrieme.corps.erreur], [404, "introuvable"], "pas de 4e verdict, même en visant l'avis par son numéro");
+  assert.equal((await b.demander("POST", `/app/avis/${avisId}/relecture`, cinquieme.jeton, { verdict: { type: "deporte" } })).statut, 404);
+  assert.equal(b.donnees.relectures.length, 4);
 });
 
 test("relecture : seulement pour un ambassadeur actif", async () => {

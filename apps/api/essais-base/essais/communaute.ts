@@ -74,12 +74,18 @@ egal(await nombre(`SELECT count(*) FROM participations_sorties_des_miamis WHERE 
 reussi(await sorties.demander(5, id, DEBUT), "demande 5");
 reussi(await sorties.refuser(1, id, 5, DEBUT), "refus");
 egal((await sorties.lire(5, id, DEBUT))?.moi.place, "demande", "refus silencieux");
+await q(`UPDATE comptes SET ville = 'Brest' WHERE id = 8`);
+egal(await sorties.lire(8, id, DEBUT), null, "une autre ville : rien par le numéro");
+await q(`UPDATE comptes SET ville = 'Nantes' WHERE id = 8`);
+vrai((await sorties.lire(8, id, DEBUT)) !== null, "sa ville, à venir : comme dans la liste");
 
 const quand = plus(3 * JOUR);
 const pendant = new Date(quand.getTime() + 30 * 60_000);
 egal(await sorties.validerPresence(3, id, pendant), { ok: false, erreur: "presence-non-validee" }, "sans visite");
 await q(`INSERT INTO visites (compte_id, lieu_id, mode, statut, cree_le, valide_le) VALUES (3, 1, 'comptoir', 'validee', $1, $1)`, [pendant]);
 egal(reussi(await sorties.validerPresence(3, id, pendant), "présence").sortie.moi.present, true, "présence validée au QR");
+egal([await sorties.lire(5, id, pendant), await sorties.lire(8, id, pendant)], [null, null], "commencée : ni le refusé ni les autres");
+egal((await sorties.lire(3, id, plus(30 * JOUR)))?.participants.find((p) => p.personne.id === "miamidxyzw")?.present, true, "l'accepté garde son historique");
 
 const taches = await sorties.passerTaches(new Date("2026-10-16T16:00:00Z"));
 egal(taches.rappels, 1, "rappel la veille à 18 h");
