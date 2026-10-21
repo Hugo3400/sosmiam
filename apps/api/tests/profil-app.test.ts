@@ -7,7 +7,7 @@ import { after, test } from "node:test";
 import { lireVersionApp } from "../src/fonctions/texte/lire-version-app.ts";
 import { creerBancApp } from "./outils/creer-banc-app.ts";
 
-const { banc, memoire, demander, inscrireApp, inscrireAncienMineur, rendrePro, poserRattachementValide, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" } });
+const { banc, memoire, demander, inscrireApp, inscrireAncienMineur, rendrePro, poserRattachementValide, fermer } = await creerBancApp({ versionMinimale: { ios: "1.2.0", android: "1.1.3" }, versionDerniere: { ios: "1.4.0", android: "1.3.1" } });
 const sansCle = await creerBancApp({ sansCle: true });
 after(async () => {
   await fermer();
@@ -160,7 +160,7 @@ test("GET /app/temps : l'heure du serveur et le jour à Paris, sans session ni c
 });
 
 test("GET /app/version : versions minimales réglées, « 0.0.0 » par défaut ; lireVersionApp écarte les valeurs mal écrites", async () => {
-  assert.deepEqual((await demander("GET", "/app/version")).corps, { ok: true, minimale: { ios: "1.2.0", android: "1.1.3" } });
-  assert.deepEqual((await sansCle.demander("GET", "/app/version")).corps, { ok: true, minimale: { ios: "0.0.0", android: "0.0.0" } });
+  assert.deepEqual((await demander("GET", "/app/version")).corps, { ok: true, minimale: { ios: "1.2.0", android: "1.1.3" }, derniere: { ios: "1.4.0", android: "1.3.1" } });
+  assert.deepEqual((await sansCle.demander("GET", "/app/version")).corps, { ok: true, minimale: { ios: "0.0.0", android: "0.0.0" }, derniere: { ios: "0.0.0", android: "0.0.0" } });
   assert.deepEqual([" 1.4.0 ", "1.4", "v1.4.0", undefined, "", "10.20.30"].map((v) => lireVersionApp(v)), ["1.4.0", "0.0.0", "0.0.0", "0.0.0", "0.0.0", "10.20.30"]);
 });

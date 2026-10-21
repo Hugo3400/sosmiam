@@ -46,6 +46,7 @@ import { creerLieuxApp } from "./services/lieux-app.ts";
 import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
 import { creerDepotVisites } from "./services/visites.ts";
+import { creerVersionsApp, FICHIER_VERSIONS_APP } from "./services/versions-app.ts";
 import { creerMomentLieu } from "./services/moment-lieu.ts";
 import { creerVuesLieux } from "./services/vues-lieux.ts";
 import { creerStatistiquesLieu } from "./services/statistiques-lieu.ts";
@@ -109,10 +110,10 @@ const photosAvis = creerPhotosAvis({ stockage: creerStockagePhotosAvis(), citati
 const defis = creerDefis({ ajouterPointsDans, donnerBadge });
 const ajouterPointsEtDefis = brancherReevaluationDefis(ajouterPoints, defis.reevaluer);
 // Version minimale de l'app (écran « mets à jour ») : « 0.0.0 » si rien n'est réglé
-const versionMinimale = {
-  ios: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_IOS),
-  android: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_ANDROID),
-};
+const versionsApp = creerVersionsApp(FICHIER_VERSIONS_APP, {
+  minimale: { ios: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_IOS), android: lireVersionApp(process.env.SOS_MIAM_VERSION_MIN_ANDROID) },
+  derniere: { ios: lireVersionApp(process.env.SOS_MIAM_VERSION_DERNIERE_IOS), android: lireVersionApp(process.env.SOS_MIAM_VERSION_DERNIERE_ANDROID) },
+});
 const zones = { trouverZoneDeCommune, listerZones, lireZone };
 // Limitations des comptes (décision de Hugo du 15 octobre 2026) : un seul service pour tous. Les comptes et l'espace pro
 // refusent ce qui se voit des autres (comptes.limitations ci-dessous) ; le logiciel de gestion limite, lève, réexamine et
@@ -235,7 +236,7 @@ const serveur = creerApplication({
     },
   },
   // L'app, sans session : heure du serveur et version minimale
-  app: { versionMinimale: () => versionMinimale },
+  app: { versionMinimale: versionsApp.minimale, versionDerniere: versionsApp.derniere },
   // Adresse publique des médias du fil, telle que l'app la lit (SOS_MIAM_ADRESSE_MEDIAS, par défaut celle de api.sosmiam.fr)
   contenuApp: {
     lieux: creerLieuxApp(),

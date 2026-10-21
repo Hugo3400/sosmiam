@@ -12,10 +12,13 @@ export const LIMITE_APP = { fenetre: 10 * 60_000, maximum: 120 };
  *
  * GET /app/temps    → 200 { ok, maintenant: "2026-10-09T22:30:00.000Z" (ISO 8601, UTC), jourParis: "2026-10-10" (le
  *                     jour qu'il est à Paris : c'est lui qui compte pour l'âge) } · jamais en cache
- * GET /app/version  → 200 { ok, minimale: { ios: "1.2.0", android: "1.2.0" } } : versions « a.b.c » en dessous desquelles
- *                     l'app affiche l'écran « mets à jour » (lien vers le store) ; « 0.0.0 » : rien à demander. Réglées
- *                     par SOS_MIAM_VERSION_MIN_IOS et SOS_MIAM_VERSION_MIN_ANDROID (lues au démarrage de l'API ; une valeur
- *                     mal écrite compte comme « 0.0.0 »). L'app compare elle-même, nombre par nombre.
+ * GET /app/version  → 200 { ok, minimale: { ios: "1.2.0", android: "1.2.0" }, derniere: { ios: "1.4.0", android: "1.4.0" } } :
+ *                     sous minimale, l'app affiche l'écran bloquant « mets à jour » (lien vers le store) ; sous derniere, la
+ *                     fenêtre douce « une nouvelle version t'attend », une fois par version ; « 0.0.0 » : rien à demander.
+ *                     Lues dans /var/lib/sos-miam/versions-app.json ({ minimale: { ios, android }, derniere: { ios, android } },
+ *                     écrit par le logiciel de gestion, relu dès qu'il change), sinon dans SOS_MIAM_VERSION_MIN_IOS,
+ *                     SOS_MIAM_VERSION_MIN_ANDROID, SOS_MIAM_VERSION_DERNIERE_IOS et SOS_MIAM_VERSION_DERNIERE_ANDROID ; une
+ *                     valeur mal écrite compte comme « 0.0.0 ». L'app compare elle-même, nombre par nombre.
  */
 export function creerRoutesApp(dependances: DependancesApp) {
   const c = creerControleursApp(dependances);

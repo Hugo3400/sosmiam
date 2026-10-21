@@ -13,9 +13,9 @@ import { FICHE_TEST, type Reponse } from "./creer-banc-pro.ts";
 
 export const MOT_DE_PASSE_TEST = "mon chat adore les croissants";
 
-type OptionsBanc = { sansCle?: boolean; versionMinimale?: VersionMinimaleApp };
+type OptionsBanc = { sansCle?: boolean; versionMinimale?: VersionMinimaleApp; versionDerniere?: VersionMinimaleApp };
 
-export async function creerBancApp({ sansCle = false, versionMinimale }: OptionsBanc = {}) {
+export async function creerBancApp({ sansCle = false, versionMinimale, versionDerniere }: OptionsBanc = {}) {
   const banc = { horloge: Date.parse("2026-10-09T10:00:00Z") };
   const cleTest = randomBytes(32);
   const chiffrement = sansCle ? null : creerChiffrementDonnees(cleTest);
@@ -32,7 +32,7 @@ export async function creerBancApp({ sansCle = false, versionMinimale }: Options
       services: memoire.services, sessions, zones: memoire.zones, courriels: memoire.courriels, pro: memoire.pro,
       horloge: () => banc.horloge, chiffrement,
     },
-    app: { horloge: () => banc.horloge, ...(versionMinimale ? { versionMinimale: () => versionMinimale } : {}) },
+    app: { horloge: () => banc.horloge, ...(versionMinimale ? { versionMinimale: () => versionMinimale } : {}), ...(versionDerniere ? { versionDerniere: () => versionDerniere } : {}) },
   }).listen(0, "127.0.0.1");
   await new Promise<void>((pret) => serveur.once("listening", () => pret()));
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;

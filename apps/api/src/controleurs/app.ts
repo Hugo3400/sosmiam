@@ -10,11 +10,14 @@ export type VersionMinimaleApp = { ios: string; android: string };
 export type DependancesApp = {
   /** Lue au démarrage (demarrer.ts : SOS_MIAM_VERSION_MIN_IOS et SOS_MIAM_VERSION_MIN_ANDROID) ; absente : « 0.0.0 » */
   versionMinimale?: () => VersionMinimaleApp;
+  versionDerniere?: () => VersionMinimaleApp;
   /** Pour les tests : une fausse horloge */
   horloge?: () => number;
 };
 
-export function creerControleursApp({ versionMinimale = () => ({ ios: "0.0.0", android: "0.0.0" }), horloge = Date.now }: DependancesApp) {
+const SANS_VERSION = (): VersionMinimaleApp => ({ ios: "0.0.0", android: "0.0.0" });
+
+export function creerControleursApp({ versionMinimale = SANS_VERSION, versionDerniere = SANS_VERSION, horloge = Date.now }: DependancesApp) {
   return {
     /** GET /app/temps → { ok, maintenant (ISO 8601, UTC), jourParis: "AAAA-MM-JJ" } */
     temps(_requete: Request, reponse: Response) {
@@ -22,10 +25,13 @@ export function creerControleursApp({ versionMinimale = () => ({ ios: "0.0.0", a
       reponse.set("Cache-Control", "no-store").json({ ok: true, maintenant: maintenant.toISOString(), jourParis: calculerClesPeriodes(maintenant).jour });
     },
 
-    /** GET /app/version → { ok, minimale: { ios, android } } : l'app compare elle-même avec sa version */
+    /** GET /app/version → { ok, minimale: { ios, android }, derniere: { ios, android } } : l'app compare elle-même avec sa version */
     version(_requete: Request, reponse: Response) {
-      const { ios, android } = versionMinimale();
-      reponse.set("Cache-Control", "no-cache").json({ ok: true, minimale: { ios, android } });
+      const minimale = versionMinimale();
+      const derniere = versionDerniere();
+      reponse
+        .set("Cache-Control", "no-cache")
+        .json({ ok: true, minimale: { ios: minimale.ios, android: minimale.android }, derniere: { ios: derniere.ios, android: derniere.android } });
     },
   };
 }
