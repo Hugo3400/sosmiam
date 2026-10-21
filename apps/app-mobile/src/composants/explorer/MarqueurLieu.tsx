@@ -53,7 +53,7 @@ export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, lo
       coordinate={{ latitude, longitude }}
       // Le centre du rond sur le lieu (Android ; sur iPhone, Apple Plans centre déjà la vue)
       anchor={{ x: 0.5, y: 0.5 }}
-      zIndex={selectionne ? 3 : sos ? 2 : alerte ? 1 : 0}
+      zIndex={selectionne ? 5 : sos ? 2 : alerte ? 1 : 0}
       tracksViewChanges={apparence !== apparenceFigee}
       // Sur iPhone, sans ça, toucher le marqueur toucherait aussi la carte (et désélectionnerait le lieu)
       stopPropagation

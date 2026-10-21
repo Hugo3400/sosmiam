@@ -9,7 +9,6 @@ type Props = {
 
 type Chiffre = { valeur: string; libelle: string; lu: string };
 
-/** Trois chiffres honnêtes, comptés sur ce téléphone : lieux sauvés, lieux sauvés en premier (« Premier sauveteur ») et badges obtenus. */
 export function ChiffresProfil({ lieuxSauves, premiersSauvetages, badgesObtenus, badgesTotal }: Props) {
   const chiffres: Chiffre[] = [
     {

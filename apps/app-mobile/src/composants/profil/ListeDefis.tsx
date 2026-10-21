@@ -57,6 +57,7 @@ export function ListeDefis() {
           {autres > 0 ? (
             <BoutonContour
               libelle={tousVisibles ? TEXTES_PROFIL.voirMoins : TEXTES_DEFIS_PROFIL.voirAutres(autres)}
+              libelleLu={tousVisibles ? TEXTES_DEFIS_PROFIL.voirMoinsLu : undefined}
               onPress={() => setTousVisibles(!tousVisibles)}
             />
           ) : null}

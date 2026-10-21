@@ -3,19 +3,16 @@ import { useRouter } from "expo-router";
 import { TuileRaccourci } from "~/composants/profil/TuileRaccourci";
 import { TEXTES_RACCOURCIS } from "~/contenus/textes-profil";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
+import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
-type Props = {
-  /** Clés des lieux et créateurs suivis (calculerCleSuivi) */
-  suivis: readonly string[];
-};
-
-export function EntreeSuivis({ suivis }: Props) {
+export function EntreeSuivis() {
   const router = useRouter();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
-  const nombrePersonnes = utiliserSuivisPersonnes().nombreAbonnements;
+  const { pret, nombreAbonnements: nombrePersonnes } = utiliserSuivisPersonnes();
+  const { suivis, chargee } = utiliserActivite();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Comptés comme dans la liste « Tu suis » : ce qui existe encore
@@ -30,9 +27,11 @@ export function EntreeSuivis({ suivis }: Props) {
   ].filter((p) => p !== null);
   // « 2 personnes, 3 lieux et 1 créateur »
   const detail =
-    parties.length > 1
-      ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
-      : (parties[0] ?? TEXTES_RACCOURCIS.personne);
+    !pret || !chargee
+      ? TEXTES_RACCOURCIS.suivisEnLecture
+      : parties.length > 1
+        ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
+        : (parties[0] ?? TEXTES_RACCOURCIS.personne);
 
   return (
     <TuileRaccourci

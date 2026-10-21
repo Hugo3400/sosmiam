@@ -20,10 +20,6 @@ type Props = {
 
 const TAILLE_AVATAR = 88;
 
-/**
- * Le haut du profil, façon réseau social : la cloche des notifications et la roue des réglages, l'avatar à toucher pour le
- * changer, ton nom et ton @pseudo (avec « 🔒 Privé » si ton compte l'est), ta ville et ton âge, puis tes abonnés et abonnements.
- */
 export function EnTeteProfil({ profil, avatar, age }: Props) {
   const router = useRouter();
   const { pret, comptePrive } = utiliserSuivisPersonnes();

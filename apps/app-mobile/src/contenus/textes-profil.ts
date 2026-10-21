@@ -81,7 +81,8 @@ export const TEXTES_DEFIS_PROFIL = {
 export const TEXTES_BADGES_PROFIL = {
   titre: "Tes badges",
   derniers: (nombre: number) => (nombre === 1 ? "Ton tout premier" : `Tes ${nombre} derniers`),
-  apercuLu: (nombre: number, noms: string) => (nombre === 1 ? `Ton tout premier badge : ${noms}` : `Tes ${nombre} derniers badges : ${noms}`),
+  apercuLu: (noms: readonly string[]) =>
+    noms.length > 1 ? `Tes ${noms.length} derniers badges : ${noms.slice(0, -1).join(", ")} et ${noms[noms.length - 1]}` : `Ton tout premier badge : ${noms[0] ?? ""}`,
   encore: (nombre: number) => `Encore ${nombre} à débloquer : la chasse est ouverte !`,
   complete: "Collection complète : la Brigade en reste bouche bée !",
   dernier: (emoji: string, nom: string) => `Le dernier : ${emoji} ${nom}`,

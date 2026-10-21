@@ -5,11 +5,7 @@ import { EntreeSuivis } from "~/composants/profil/EntreeSuivis";
 import { EntreeVisites } from "~/composants/profil/EntreeVisites";
 import { EntreeReservations } from "~/composants/reservations/EntreeReservations";
 
-type Props = {
-  suivis: readonly string[];
-};
-
-export function RaccourcisProfil({ suivis }: Props) {
+export function RaccourcisProfil() {
   return (
     <View className="gap-3">
       <View className="flex-row gap-3">
@@ -17,7 +13,7 @@ export function RaccourcisProfil({ suivis }: Props) {
         <EntreeFidelite />
       </View>
       <View className="flex-row gap-3">
-        <EntreeSuivis suivis={suivis} />
+        <EntreeSuivis />
         <EntreeVisites />
       </View>
     </View>

@@ -25,10 +25,10 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserVisites } from "~/hooks/utiliser-visites";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import couleurs from "~/theme/couleurs";
 
-/** Pages légales, les mêmes que dans les réglages : accessibles même sans compte */
 const PAGES_LEGALES = [
   { titre: "Conditions d'utilisation", adresse: "https://sosmiam.fr/cgu" },
   { titre: "Confidentialité", adresse: "https://sosmiam.fr/confidentialite" },
@@ -54,6 +54,7 @@ export default function Profil() {
   const router = useRouter();
   const { profil, avatar, invite } = utiliserProfil();
   const activite = utiliserActivite();
+  const { points: pointsVisites } = utiliserVisites();
   const { connecte, compte } = utiliserSession();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
@@ -94,7 +95,7 @@ export default function Profil() {
   const mesures: MesuresActivite = { rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length };
   // null : le compte n'est pas encore relu (hors ligne), ou sa session a expiré : on ne montre pas de faux chiffres
   const ambassadeur = DEMO_VISITES_ACTIVE
-    ? { points: calculerPointsLocaux(mesures), obtenus: listerBadgesObtenus(mesures) }
+    ? { points: calculerPointsLocaux(mesures) + pointsVisites, obtenus: listerBadgesObtenus(mesures) }
     : compte
       ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges) }
       : null;
@@ -116,7 +117,7 @@ export default function Profil() {
           onPress={() => router.push("/reglages/profil")}
         />
         <EspacesProfil />
-        <RaccourcisProfil suivis={activite.suivis} />
+        <RaccourcisProfil />
         {ambassadeur ? (
           <SectionPalier
             points={ambassadeur.points}

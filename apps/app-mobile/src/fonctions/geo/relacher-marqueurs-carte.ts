@@ -10,7 +10,7 @@ export function relacherMarqueursCarte(marqueurs: MarqueurARelacher[], accepter:
   const places = marqueurs.map(({ x, y }) => ({ x, y }));
   const mobile = (rang: number) => marqueurs[rang].deplacementMax > 0;
   if (!marqueurs.some((_, rang) => mobile(rang))) return places;
-  const departs = marqueurs.map(({ x, y }) => ({ x, y }));
+  const departs = marqueurs.map(({ x, y, ancre }) => ancre ?? { x, y });
   const portee = Math.max(...marqueurs.map((marqueur) => marqueur.diametre)) - CHEVAUCHEMENT_PERMIS;
   const bouger = (rang: number, dx: number, dy: number) => {
     const suivante = { x: places[rang].x + dx, y: places[rang].y + dy };

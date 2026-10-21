@@ -52,4 +52,4 @@ export type PreparationCarte = { projetes: PointProjete[]; parNiveau: Map<number
 
 export type PlaceEcran = { x: number; y: number };
 
-export type MarqueurARelacher = PlaceEcran & { diametre: number; deplacementMax: number };
+export type MarqueurARelacher = PlaceEcran & { diametre: number; deplacementMax: number; ancre?: PlaceEcran };

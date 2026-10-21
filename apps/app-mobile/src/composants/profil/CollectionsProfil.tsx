@@ -78,6 +78,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
       : [TEXTES_COLLECTION.compte(vignettesGardes.length, vignettesJaimes.length), ...(dernierGarde ? [TEXTES_COLLECTION.dernierGarde(dernierGarde)] : [])];
   const autres = vignettes.length - VIGNETTES_VISIBLES;
   const voirTout = onglet === "gardes" ? TEXTES_COLLECTION.voirGardes(vignettes.length) : TEXTES_COLLECTION.voirJaimes(vignettes.length);
+  const voirMoinsLu = onglet === "gardes" ? TEXTES_COLLECTION.voirMoinsGardesLu : TEXTES_COLLECTION.voirMoinsJaimesLu;
 
   return (
     <SectionPliable section="collection" titre={TEXTES_COLLECTION.titre} sousTitre={TEXTES_COLLECTION.sousTitre} resume={resume}>
@@ -125,7 +126,12 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
         </View>
       )}
       {autres > 0 ? (
-        <BoutonContour fond="blanc" libelle={toutesVisibles ? TEXTES_PROFIL.voirMoins : voirTout} onPress={() => setToutesVisibles(!toutesVisibles)} />
+        <BoutonContour
+          fond="blanc"
+          libelle={toutesVisibles ? TEXTES_PROFIL.voirMoins : voirTout}
+          libelleLu={toutesVisibles ? voirMoinsLu : undefined}
+          onPress={() => setToutesVisibles(!toutesVisibles)}
+        />
       ) : null}
     </SectionPliable>
   );

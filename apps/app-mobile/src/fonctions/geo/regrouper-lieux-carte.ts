@@ -105,6 +105,7 @@ export function regrouperLieuxCarte(points: PointCarte[], region: RegionCarte, t
     ecartes.filter((seul) => !idsObstacles.has(seul.id)),
     echelle,
     (groupe) => (membres.get(groupe) ?? []).map(({ point }) => point),
+    selection,
   );
   return { seuls: [...obstacles, ...places.seuls].sort((a, b) => a.id - b.id), groupes: places.groupes, marge };
 }

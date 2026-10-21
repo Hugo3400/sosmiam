@@ -10,10 +10,10 @@ import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeReservations() {
   const router = useRouter();
-  const { reservations, lecturesReservations } = utiliserVisites();
+  const { source, reservations, lecturesReservations } = utiliserVisites();
   const { maintenantMs } = utiliserHorlogeMinute();
   const detail =
-    lecturesReservations === 0
+    lecturesReservations === 0 || source === "indisponible"
       ? ENTREE_MES_RESERVATIONS.pasEncoreLues
       : reservations.length === 0
         ? TEXTES_RACCOURCIS.pasDeTable

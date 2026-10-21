@@ -8,6 +8,7 @@ import couleurs from "~/theme/couleurs";
 type Props = {
   libelle: string;
   onPress: () => void;
+  libelleLu?: string;
   indice?: string;
   icone?: ComponentProps<typeof Ionicons>["name"];
   fond?: "creme" | "blanc";
@@ -16,11 +17,11 @@ type Props = {
 
 const FONDS = { creme: "bg-creme", blanc: "bg-white" } as const;
 
-export function BoutonContour({ libelle, onPress, indice, icone, fond = "creme", grand = false }: Props) {
+export function BoutonContour({ libelle, onPress, libelleLu, indice, icone, fond = "creme", grand = false }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={libelle}
+      accessibilityLabel={libelleLu ?? libelle}
       accessibilityHint={indice}
       onPress={() => {
         vibrerLegerement();

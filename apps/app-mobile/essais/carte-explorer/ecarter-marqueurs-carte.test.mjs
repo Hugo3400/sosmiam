@@ -44,8 +44,21 @@ function verifierBulles(points, region, taille, selection, nom) {
   const fixes = resultat.seuls.filter((s) => parId.get(s.id).prioritaire || s.id === selection).map((s) => versEcran(region, s, taille));
   let posees = 0;
   let devant = 0;
+  const rayonDe = (g) => (g.nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS / 2 : 20);
+  const ecrans = resultat.groupes.map((g) => versEcran(region, g, taille));
+  for (let a = 0; a < ecrans.length; a++) {
+    for (let b = a + 1; b < ecrans.length; b++) {
+      const ecart = Math.hypot(ecrans[a].x - ecrans[b].x, ecrans[a].y - ecrans[b].y);
+      assert.ok(ecart >= 0.6 * (rayonDe(resultat.groupes[a]) + rayonDe(resultat.groupes[b])), `${nom} : deux bulles l'une sur l'autre (${ecart.toFixed(0)} points)`);
+    }
+  }
+  const choisi = selection === null ? null : resultat.seuls.find((s) => s.id === selection);
   for (const g of resultat.groupes) {
     const ici = versEcran(region, g, taille);
+    if (choisi) {
+      const c = versEcran(region, choisi, taille);
+      assert.ok(Math.max(Math.abs(c.x - ici.x), Math.abs(c.y - ici.y)) >= DEMI_CADRE_LIEU_POINTS, `${nom} : une bulle de ${g.nombre} sous le lieu choisi`);
+    }
     const { x, y, membres } = barycentreEcran(g, parId, region, taille);
     const deplacement = Math.hypot(ici.x - x, ici.y - y);
     const plusProche = (px, py) => Math.min(...membres.map((m) => Math.hypot(m.x - px, m.y - py)));
@@ -64,8 +77,7 @@ function verifierBulles(points, region, taille, selection, nom) {
     }
     const ecart = Math.min(Infinity, ...fixes.map((f) => Math.max(Math.abs(f.x - ici.x), Math.abs(f.y - ici.y))));
     assert.ok(ecart >= DEMI_CADRE_LIEU_POINTS, `${nom} : bulle de ${g.nombre} sous un marqueur fixe (${ecart.toFixed(0)} points)`);
-    const rayon = g.nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS / 2 : 20;
-    assert.ok(partCachee(ici, rayon, fixes) <= 0.5, `${nom} : bulle de ${g.nombre} touchable sur moins de la moitié de son rond`);
+    assert.ok(partCachee(ici, rayonDe(g), fixes) <= 0.5, `${nom} : bulle de ${g.nombre} touchable sur moins de la moitié de son rond`);
   }
   return { resultat, posees, devant };
 }

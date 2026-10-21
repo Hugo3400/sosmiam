@@ -83,6 +83,12 @@ test("le plafond tient même quand la carte en voudrait bien plus : iPad sur un 
     assert.ok(compterMarqueurs(resultat) <= PLAFOND_MARQUEURS_CARTE, `iPad ${metres} m : ${compterMarqueurs(resultat)}`);
   }
   assert.ok(maximum >= PLAFOND_MARQUEURS_CARTE * 0.9, `au plus ${maximum} marqueurs : le plafond ne sert jamais`);
+  for (let metres = 1_000; metres <= 2_100; metres += 25) {
+    for (const selection of [null, denses[17].id]) {
+      const resultat = regrouperLieuxCarte(denses, regionAutour(VIEUX_PORT, metres, TAILLE_IPAD), TAILLE_IPAD, selection);
+      assert.ok(compterMarqueurs(resultat) <= PLAFOND_MARQUEURS_CARTE, `iPad ${metres} m${selection ? ", un lieu choisi" : ""} : ${compterMarqueurs(resultat)} marqueurs`);
+    }
+  }
   const rue = regionAutour(VIEUX_PORT, 400, TAILLE_IPAD);
   assert.ok(metresParPoint(rue, TAILLE_IPAD) <= METRES_PAR_POINT_RUE);
   const tresDenses = creerPointsDenses(4_000, VIEUX_PORT, 300, 4);
