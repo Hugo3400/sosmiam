@@ -60,3 +60,14 @@ export async function ouvrirLien(url: string): Promise<void> {
 export async function copier(texte: string): Promise<void> {
   await navigator.clipboard.writeText(texte);
 }
+
+export const peutRetenirMotDePasse = () => isTauri();
+
+export async function protegerSecret(octets: Uint8Array): Promise<string> {
+  return invoke<string>("proteger_secret", { contenuBase64: btoa(String.fromCharCode(...octets)) });
+}
+
+export async function deprotegerSecret(protege: string): Promise<Uint8Array<ArrayBuffer>> {
+  const texte = await invoke<string>("deproteger_secret", { contenuBase64: protege });
+  return Uint8Array.from(atob(texte), (c) => c.charCodeAt(0));
+}

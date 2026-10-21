@@ -48,6 +48,8 @@ import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts
 import { definirCleCoffre, fermerSession } from "~/services/session.ts";
 import { oublierSessionLocale } from "~/stockage/session-locale.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
+import { oublierDeverrouillageRetenu } from "~/stockage/deverrouillage-retenu.ts";
+import { deverrouillageRetenuValable } from "~/services/deverrouillage.ts";
 import { ecrireMinutesVerrou, lireMinutesVerrou } from "~/stockage/reglages-poste.ts";
 
 type Phase = "premier-lancement" | "autorisation" | "deverrouillage" | "connecte";
@@ -96,13 +98,16 @@ export function Application() {
 
   /** Oublie la clé (mot de passe redemandé) ; `fermer` ferme aussi la session (code redemandé). */
   function verrouiller(fermer: boolean) {
-    if (fermer) void fermerSession().catch(() => {});
+    if (fermer) {
+      oublierDeverrouillageRetenu();
+      void fermerSession().catch(() => {});
+    }
     configurerClient(null, null);
     void definirCleCoffre(null);
     setCleEnMemoire(false);
     setPhase("deverrouillage");
   }
-  utiliserInactivite(minutesVerrou ?? 0, () => verrouiller(false), connecte && minutesVerrou !== null);
+  utiliserInactivite(minutesVerrou ?? 0, () => verrouiller(false), connecte && minutesVerrou !== null && !deverrouillageRetenuValable());
 
   if (phase === "premier-lancement" || !coffre) {
     return (
@@ -133,6 +138,7 @@ export function Application() {
         onOublierPoste={() => {
           oublierCoffre();
           oublierSessionLocale();
+          oublierDeverrouillageRetenu();
           configurerClient(null, null);
           setCoffre(null);
           setPhase("premier-lancement");

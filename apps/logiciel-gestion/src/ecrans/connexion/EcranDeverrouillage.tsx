@@ -1,9 +1,15 @@
 import { LogIn } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Champ } from "~/composants/interface/Champ.tsx";
-import { ouvrirCoffre } from "~/fonctions/securite/ouvrir-coffre.ts";
+import { Selecteur } from "~/composants/interface/Selecteur.tsx";
+import { decoderBase64Url } from "~/fonctions/securite/decoder-base64url.ts";
+import { deriverOctetsMotDePasse } from "~/fonctions/securite/deriver-octets-mot-de-passe.ts";
+import { ouvrirCoffreAvecOctets } from "~/fonctions/securite/ouvrir-coffre-avec-octets.ts";
+import { retenirDeverrouillage, rouvrirDeverrouillageRetenu } from "~/services/deverrouillage.ts";
+import { peutRetenirMotDePasse } from "~/services/systeme.ts";
+import { CHOIX_RETENUE, ecrireChoixRetenue, lireChoixRetenue } from "~/stockage/deverrouillage-retenu.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { aUneSession, configurerClient, ErreurApi } from "~/services/client-gestion.ts";
 import { aUneSessionGardee, definirCleCoffre, ouvrirSession, reprendreSessionGardee } from "~/services/session.ts";
@@ -28,6 +34,37 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
   const [cleOuverte, setCleOuverte] = useState(cleEnMemoire);
   // Le code n'est demandé que s'il n'y a pas de session valable (en mémoire, ou gardée sur ce PC)
   const [demanderCode, setDemanderCode] = useState(() => !aUneSession() && (cleEnMemoire || !aUneSessionGardee()));
+  const [retenue, setRetenue] = useState(lireChoixRetenue);
+
+  async function ouvrirAvec(cles: { cleSecrete: CryptoKey; cleCoffre: CryptoKey }): Promise<boolean> {
+    configurerClient(cles.cleSecrete, coffre.idPoste);
+    await definirCleCoffre(cles.cleCoffre);
+    setCleOuverte(true);
+    if (aUneSession()) {
+      onConnecte("");
+      return true;
+    }
+    if (demanderCode) return false;
+    const poste = await reprendreSessionGardee();
+    if (poste) {
+      onConnecte(poste);
+      return true;
+    }
+    setDemanderCode(true);
+    setErreur({ texte: "Ta session a expiré (30 jours) : tape ton code." });
+    return false;
+  }
+
+  useEffect(() => {
+    if (cleEnMemoire) return;
+    let annule = false;
+    setEnCours(true);
+    void rouvrirDeverrouillageRetenu(coffre)
+      .then((cles) => (cles && !annule ? ouvrirAvec(cles) : false))
+      .catch(() => false)
+      .finally(() => !annule && setEnCours(false));
+    return () => void (annule = true);
+  }, []);
 
   async function entrer(evenement: FormEvent) {
     evenement.preventDefault();
@@ -35,24 +72,21 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
     setErreur(null);
     try {
       if (!cleOuverte) {
+        const octets = await deriverOctetsMotDePasse(motDePasse, decoderBase64Url(coffre.sel), coffre.iterations);
+        let cles: { cleSecrete: CryptoKey; cleCoffre: CryptoKey };
         try {
-          const { cleSecrete, cleCoffre } = await ouvrirCoffre(coffre, motDePasse);
-          configurerClient(cleSecrete, coffre.idPoste);
-          await definirCleCoffre(cleCoffre);
-          setCleOuverte(true);
-          setMotDePasse("");
+          cles = await ouvrirCoffreAvecOctets(coffre, octets);
+          ecrireChoixRetenue(retenue);
+          await retenirDeverrouillage(octets, CHOIX_RETENUE.find((c) => c.valeur === retenue)?.heures ?? 0);
         } catch {
           setErreur({ texte: "Mauvais mot de passe." });
           return;
+        } finally {
+          octets.fill(0);
         }
-        // Session gardée sur ce PC : si le serveur la reconnaît, le mot de passe suffit
-        if (!aUneSession() && !demanderCode) {
-          const poste = await reprendreSessionGardee();
-          if (poste) return onConnecte(poste);
-          setDemanderCode(true);
-          setErreur({ texte: "Ta session a expiré (24 h sans t'en servir, ou 7 jours) : tape ton code." });
-          return;
-        }
+        setMotDePasse("");
+        if (await ouvrirAvec(cles)) return;
+        if (!demanderCode && !aUneSession()) return;
       }
       if (demanderCode) {
         const { poste } = await ouvrirSession(code.replace(/\s/g, ""));
@@ -74,6 +108,9 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
       <form onSubmit={entrer} className="grid gap-4">
         {!cleOuverte && (
           <Champ libelle="Mot de passe de ce PC" type="password" autoComplete="current-password" autoFocus valeur={motDePasse} onChange={setMotDePasse} />
+        )}
+        {!cleOuverte && peutRetenirMotDePasse() && (
+          <Selecteur libelle="Retenir le mot de passe sur ce PC" valeur={retenue} onChange={setRetenue} options={CHOIX_RETENUE.map(({ valeur, libelle }) => ({ valeur, libelle }))} className="w-full" />
         )}
         {demanderCode && (
           <Champ
