@@ -2,6 +2,7 @@ import { PowerOff } from "lucide-react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
+import { TEXTES_SERVEURS } from "~/contenus/serveurs-dev.ts";
 import type { ServeurSuivi } from "~/services/serveurs.ts";
 
 type Props = { serveur: ServeurSuivi | null; onConfirmer: () => void; onFermer: () => void };
@@ -14,7 +15,7 @@ const CONSEQUENCES: Record<string, string> = {
 export function ModaleEteindreServeur({ serveur, onConfirmer, onFermer }: Props) {
   return (
     <Modale
-      titre={serveur ? `Éteindre « ${serveur.nom} » ?` : "Éteindre ?"}
+      titre={`Éteindre ${(serveur && TEXTES_SERVEURS[serveur.id]?.nomCourt) ?? "ce serveur"} ?`}
       ouverte={serveur !== null}
       onFermer={onFermer}
       actions={

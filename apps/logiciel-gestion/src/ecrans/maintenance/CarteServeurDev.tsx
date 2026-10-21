@@ -1,4 +1,4 @@
-import { Globe, Info, Power, PowerOff, RotateCw, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
+import { Globe, Info, Power, PowerOff, RotateCw, ShieldCheck, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
 
 import { Badge } from "~/composants/interface/Badge.tsx";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -60,15 +60,15 @@ export function CarteServeurDev({ serveur, actionEnCours, occupe, onAction }: Pr
       <p className="chiffres text-[13px] text-gris">{decrireDetails(serveur)}</p>
       {textes && textes.notes.length > 0 && (
         <ul className="grid gap-2">
-          {textes.notes.map((note) => (
-            <li
-              key={note.texte}
-              className={`flex items-start gap-2 rounded-xl px-3 py-2 text-[13px] ${note.ton === "alerte" ? (allume ? "bg-jaune-clair font-semibold" : "bg-creme text-gris") : "text-gris"}`}
-            >
-              {note.ton === "alerte" ? <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden /> : <Info className="mt-0.5 size-4 shrink-0" aria-hidden />}
-              <span>{note.texte}</span>
-            </li>
-          ))}
+          {textes.notes.map((note) => {
+            const alerte = note.ton === "alerte" && (allume || !note.texteEteint);
+            return (
+              <li key={note.texte} className={`flex items-start gap-2 rounded-xl px-3 py-2 text-[13px] ${alerte ? "bg-jaune-clair font-semibold" : note.ton === "alerte" ? "bg-vert-clair text-vert" : "text-gris"}`}>
+                {alerte ? <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden /> : note.ton === "alerte" ? <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden /> : <Info className="mt-0.5 size-4 shrink-0" aria-hidden />}
+                <span>{note.ton === "alerte" && !allume && note.texteEteint ? note.texteEteint : note.texte}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
       <div className="flex flex-wrap items-center gap-2 pt-1">

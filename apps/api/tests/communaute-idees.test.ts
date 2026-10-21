@@ -99,8 +99,10 @@ test("« Ça bouge chez les Miamis » : idées publiées, réponses de la Brigad
   assert.ok(types.includes(`idee-proposee:idee:${idee.id}`));
   assert.ok(types.includes(`reponse-brigade:reponse:${idee.id}`));
   assert.ok(types.includes(`sortie-organisee:sortie:${s.id}`));
-  assert.ok(types.includes(`sortie-rejointe:arrivee:${s.id}:${lea.compteId}`));
-  assert.ok(types.includes(`votes-idees:votes:${lea.compteId}`));
+  assert.ok(types.includes(`sortie-rejointe:arrivee:${s.id}:${lea.idPublic}`));
+  assert.ok(types.includes(`votes-idees:votes:${lea.idPublic}`));
+  const parPersonne = fil.filter((e: { type: string }) => e.type === "votes-idees" || e.type === "sortie-rejointe");
+  assert.ok(parPersonne.every((e: { id: string; auteur: { id: string } }) => e.id.endsWith(`:${e.auteur.id}`)), "l'id public, jamais l'identifiant interne du compte");
   assert.equal(types.some((t: string) => t.includes(`sortie:${autre.id}`)), false);
   assert.equal(fil.find((e: { type: string }) => e.type === "reponse-brigade").auteur, null);
 });

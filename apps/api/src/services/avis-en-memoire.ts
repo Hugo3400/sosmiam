@@ -49,6 +49,7 @@ export function creerAvisEnMemoire() {
     brut: null,
 
     async verrouillerCompte() {},
+    async verrouillerAvis() {},
 
     async lireLieu(lieuId) {
       const lieu = lieux.get(lieuId);
@@ -141,6 +142,9 @@ export function creerAvisEnMemoire() {
       relectures.push(relecture);
       annuler(() => retirer(relectures, relecture));
       return "ok";
+    },
+    async compterVerdicts(avisId) {
+      return relectures.filter((r) => r.avisId === avisId && r.verdict !== "deporte").length;
     },
     async poserReponse(avisId, { texte, le, parId }) {
       const a = avis.find((ligne) => ligne.id === avisId);

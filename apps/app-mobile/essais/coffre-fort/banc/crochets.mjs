@@ -9,6 +9,7 @@ const DOUBLES = {
 
 export async function resolve(specifier, context, next) {
   if (DOUBLES[specifier]) return { url: new URL(DOUBLES[specifier], DOUBLURES).href, shortCircuit: true };
-  if (specifier === "~/stockage/profil-local") return { url: new URL("profil-local.ts", STOCKAGE).href, shortCircuit: true };
+  const remplace = (process.env.ESSAIS_SYNCHRO_REMPLACER ?? "").includes(`${specifier}=`);
+  if (specifier === "~/stockage/profil-local" && !remplace) return { url: new URL("profil-local.ts", STOCKAGE).href, shortCircuit: true };
   return next(specifier, context);
 }

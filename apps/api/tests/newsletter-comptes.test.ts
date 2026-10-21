@@ -21,9 +21,12 @@ const apple = creerFauxFournisseur("apple", horloge);
 const google = creerFauxFournisseur("google", horloge);
 
 /** La fausse newsletter : garde chaque appel (inscriptions et refus) ; `enPanne` la fait rejeter */
-const newsletter = { appels: [] as { email: string; ville: string | null }[], refus: [] as string[], enPanne: false };
+const newsletter = {
+  appels: [] as { email: string; ville: string | null }[], demandes: [] as { email: string; ville: string | null }[], refus: [] as string[], enPanne: false,
+};
 beforeEach(() => {
   newsletter.appels = [];
+  newsletter.demandes = [];
   newsletter.refus = [];
   newsletter.enPanne = false;
 });
@@ -47,6 +50,10 @@ const serveur = creerApplication({
       async noterRefus(email) {
         newsletter.refus.push(email);
         if (newsletter.enPanne) throw new Error("disque plein");
+      },
+      async demanderConfirmation(email, ville) {
+        newsletter.demandes.push({ email, ville });
+        if (newsletter.enPanne) throw new Error("boîte injoignable");
       },
     },
   },
@@ -79,12 +86,13 @@ const viaApple = (sub: string, email: string, corps: Record<string, unknown> = {
 const viaGoogle = (sub: string, email: string, corps: Record<string, unknown> = {}) =>
   demander("/comptes/google", { idToken: google.jeton(sub, email, null), ...corps });
 
-test("inscription « app » avec newsletter: true : inscrite une fois, e-mail en minuscules et ville du profil", async () => {
+test("inscription « app » avec newsletter: true : pas inscrite tout de suite, un lien de confirmation demandé une fois (minuscules, ville du profil)", async () => {
   const corps = inscriptionApp({ newsletter: true, ville: " Lille " });
   const { statut } = await demander("/comptes", corps);
   assert.equal(statut, 201);
   await laisserPasser();
-  assert.deepEqual(newsletter.appels, [{ email: corps.email.toLowerCase(), ville: "Lille" }]);
+  assert.deepEqual(newsletter.demandes, [{ email: corps.email.toLowerCase(), ville: "Lille" }]);
+  assert.deepEqual(newsletter.appels, []);
 });
 
 test("inscription « app » : false retient le refus une fois (en minuscules) ; null ou absente : rien ; l'espace pro ignore la case", async () => {
@@ -98,7 +106,7 @@ test("inscription « app » : false retient le refus une fois (en minuscules) ; 
     assert.equal((await demander("/comptes", inscriptionApp({ espace: "pro", newsletter: valeur }))).statut, 201, String(valeur));
   }
   await laisserPasser();
-  assert.deepEqual(newsletter.appels, []);
+  assert.deepEqual([newsletter.appels, newsletter.demandes], [[], []]);
   assert.deepEqual(newsletter.refus, [refuse.email.toLowerCase()]);
 });
 
@@ -182,7 +190,7 @@ test("newsletter en panne : l'inscription réussit quand même (session ouverte)
     assert.equal(statut, 201);
     assert.ok(reponse.session);
     await laisserPasser();
-    assert.equal(newsletter.appels.length, 1);
+    assert.equal(newsletter.demandes.length, 1);
     // La panne est journalisée, sans l'e-mail
     const texte = JSON.stringify(erreurs.map((morceaux) => morceaux.map(String)));
     assert.match(texte, /newsletter/);
@@ -202,6 +210,7 @@ test("Apple et Google : la création avec newsletter: true inscrit ; une connexi
     { email: "zoe.apple@privaterelay.appleid.com", ville: "Lyon" },
     { email: "zoe.google@gmail.com", ville: "Brest" },
   ]);
+  assert.deepEqual(newsletter.demandes, [], "Apple et Google ont déjà vérifié l'e-mail : pas de lien de confirmation");
   newsletter.appels = [];
   // Connexion d'un compte déjà lié (b), puis rattachement d'un compte qui a le même e-mail (c) : jamais d'inscription
   const connexion = await viaApple("apple-newsletter", "zoe.apple@privaterelay.appleid.com", { newsletter: true });

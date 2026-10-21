@@ -40,7 +40,7 @@ export function EcranServeurs() {
     setMessage(null);
     try {
       await agirSurServeur(serveur.id, action);
-      const suite = serveur.id === "app-dev" && action === "eteindre" ? " Metro n'est plus joignable par le tunnel." : "";
+      const suite = serveur.id !== "app-dev" ? "" : action === "eteindre" ? " Metro n'est plus joignable par le tunnel." : " Le tunnel peut mettre quelques secondes à répondre.";
       setMessage({ reussi: true, texte: `${serveur.nom} : ${LIBELLES_ACTIONS[action].fait} ✅${suite}` });
     } catch (probleme) {
       setMessage({ reussi: false, texte: expliquerErreurServeur(probleme instanceof ErreurApi ? probleme : new ErreurApi("erreur-inattendue", 0)) });

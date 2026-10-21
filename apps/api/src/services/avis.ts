@@ -52,6 +52,9 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
     async verrouillerCompte(compteId) {
       if (enTransaction) await b.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR UPDATE`;
     },
+    async verrouillerAvis(avisId) {
+      if (enTransaction) await b.$queryRaw`SELECT id FROM avis WHERE id = ${avisId} FOR NO KEY UPDATE`;
+    },
 
     async lireLieu(lieuId) {
       const lieu = await b.lieu.findUnique({
@@ -155,6 +158,9 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
         skipDuplicates: true,
       });
       return count === 1 ? "ok" : "deja";
+    },
+    async compterVerdicts(avisId) {
+      return b.relectureAvis.count({ where: { avisId, verdict: { in: ["ok", "louche"] } } });
     },
     async poserReponse(avisId, { texte, le, parId }) {
       const { count } = await b.avis.updateMany({

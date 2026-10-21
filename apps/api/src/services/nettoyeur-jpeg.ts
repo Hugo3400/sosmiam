@@ -45,7 +45,14 @@ export function creerNettoyeurJpeg({
   }
 
   function relancerAttente() {
-    while (!arrete && attente.length > 0 && fils.size < travailleurs) confier(lancer(), attente.shift()!);
+    while (!arrete && attente.length > 0 && fils.size < travailleurs) {
+      const tache = attente.shift()!;
+      try {
+        confier(lancer(), tache);
+      } catch (erreur) {
+        tache.echouer(erreur instanceof Error ? erreur : new Error(String(erreur)));
+      }
+    }
   }
 
   function perdre(t: Travailleur): Tache | null {

@@ -14,8 +14,8 @@ export function creerAvisRelecture(c: ContexteAvis) {
   /** Cet avis peut-il être relu par cet ambassadeur (même règle que listerARelire) ? */
   async function estRelisable(t: TablesAvis, a: LigneAvis, ambassadeurId: number): Promise<boolean> {
     if (a.statut !== "en-relecture" || a.compteId === ambassadeurId) return false;
-    const [exclus, lieu] = await Promise.all([lieuxExclus(t, ambassadeurId), t.lireLieu(a.lieuId)]);
-    return !exclus.includes(a.lieuId) && (lieu?.publie ?? false);
+    const [exclus, lieu, verdicts] = await Promise.all([lieuxExclus(t, ambassadeurId), t.lireLieu(a.lieuId), t.compterVerdicts(a.id)]);
+    return !exclus.includes(a.lieuId) && (lieu?.publie ?? false) && verdicts < VERDICTS_PAR_AVIS;
   }
 
   return {
@@ -30,7 +30,8 @@ export function creerAvisRelecture(c: ContexteAvis) {
 
     /** POST /app/avis/:id/relecture : 404 si l'avis n'est pas (ou plus) à relire pour lui, 409 deja-relu */
     relire(ambassadeurId: number, avisId: number, verdict: VerdictRelecture): Promise<{ ok: true } | EchecAvis> {
-      return c.depot.lire(async (t) => {
+      return c.depot.ecrire(async (t) => {
+        await t.verrouillerAvis(avisId);
         const avis = await t.lireAvis(avisId);
         if (!avis || !(await estRelisable(t, avis, ambassadeurId))) return echecAvis("introuvable");
         const resultat = await t.ajouterRelecture(avisId, ambassadeurId, verdict, new Date(c.horloge()));

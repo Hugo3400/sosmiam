@@ -1,14 +1,16 @@
 import type { ActionServeur } from "../services/serveurs.ts";
 
-export type NoteServeur = { ton: "alerte" | "conseil"; texte: string };
+export type NoteServeur = { ton: "alerte" | "conseil"; texte: string; texteEteint?: string };
 
-export const TEXTES_SERVEURS: Record<string, { role: string; notes: NoteServeur[] }> = {
+export const TEXTES_SERVEURS: Record<string, { nomCourt: string; role: string; notes: NoteServeur[] }> = {
   "app-dev": {
+    nomCourt: "le serveur Expo",
     role: "Il envoie l'app à Expo Go sur ton téléphone, à travers un tunnel public.",
     notes: [
       {
         ton: "alerte",
         texte: "Allumé, Metro (le serveur qui donne le code de l'app à Expo Go) est joignable par Internet à travers le tunnel. Tu ne testes pas sur ton téléphone ? Éteins-le : une porte ouverte de moins.",
+        texteEteint: "Éteint, Metro n'est plus joignable par le tunnel. Rallume-le juste avant de tester sur ton téléphone, et éteins-le après.",
       },
       {
         ton: "conseil",
@@ -21,6 +23,7 @@ export const TEXTES_SERVEURS: Record<string, { role: string; notes: NoteServeur[
     ],
   },
   "site-dev": {
+    nomCourt: "le site de dev",
     role: "Le site en mode développement (127.0.0.1:5190), que tu ouvres avec le transfert de port de VS Code.",
     notes: [
       {
@@ -29,9 +32,9 @@ export const TEXTES_SERVEURS: Record<string, { role: string; notes: NoteServeur[
       },
     ],
   },
-  api: { role: "Le cœur : le site, l'app, le bot et ce logiciel passent par elle. Elle ne peut pas s'éteindre elle-même.", notes: [] },
-  site: { role: "Le vrai site, sosmiam.fr. Pas un serveur de dev : il reste allumé.", notes: [] },
-  "bot-discord": { role: "Le bot du serveur Discord SOS Miam.", notes: [] },
+  api: { nomCourt: "l'API", role: "Le cœur : le site, l'app, le bot et ce logiciel passent par elle. Elle ne peut pas s'éteindre elle-même.", notes: [] },
+  site: { nomCourt: "le site en ligne", role: "Le vrai site, sosmiam.fr. Pas un serveur de dev : il reste allumé.", notes: [] },
+  "bot-discord": { nomCourt: "le bot Discord", role: "Le bot du serveur Discord SOS Miam.", notes: [] },
 };
 
 export const LIBELLES_ACTIONS: Record<ActionServeur, { bouton: string; fait: string; enCours: string }> = {

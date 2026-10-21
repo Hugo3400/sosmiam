@@ -115,6 +115,7 @@ export interface TablesAvis {
 
   /** Verrou sur la ligne du compte (rien en lecture) : deux avis du même compte se suivent */
   verrouillerCompte(compteId: number): Promise<void>;
+  verrouillerAvis(avisId: number): Promise<void>;
 
   lireLieu(lieuId: number): Promise<LieuAvis | null>;
   /** Résumés des lieux (même plus publiés) */
@@ -148,6 +149,7 @@ export interface TablesAvis {
   listerARelire(ambassadeurId: number, lieuxExclus: number[], verdictsMax: number, limite: number): Promise<LigneAvis[]>;
   /** « deja » : cet ambassadeur a déjà rendu son verdict sur cet avis */
   ajouterRelecture(avisId: number, ambassadeurId: number, verdict: VerdictRelecture, le: Date): Promise<"ok" | "deja">;
+  compterVerdicts(avisId: number): Promise<number>;
   /**
    * Pose la réponse publique du lieu, seulement s'il n'y en a pas déjà une ; vrai si elle est posée. Elle est posée
    * « en-relecture » : visible tout de suite, relue ensuite par l'équipe
