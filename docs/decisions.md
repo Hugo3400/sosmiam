@@ -558,6 +558,7 @@
 - **Ajouts retenus** : rappel la veille, « Je ne peux plus venir », liste d'attente, « Sorties tenues », présence au QR du comptoir, habitués, place gardée pour un nouveau, « Mes envies ». **Refusé pour l'instant** : la « sortie de rescousse ».
 - Comme le reste de l'app : réservé aux 18 ans et plus ; un compte limité ne publie rien que les autres voient (sorties des Miamis, idées, commentaires, étiquettes libres).
 
+- Précisé le 21 octobre 2026 : public « ambassadeurs » = tous les ambassadeurs validés (actifs) ; « un nouveau » (place gardée) = un compte de moins de 30 jours ; annuler une sortie qui revient chaque semaine arrête aussi les semaines suivantes (dit dans la confirmation) ; pas de modification d'une sortie après sa publication (on annule et on recrée, les inscrits sont prévenus) ; 5 sorties à venir par personne, et des limites anti-abus (10 créations par 24 h, 30 demandes par 24 h, 30 coucous par heure, 5 idées par 24 h, 30 commentaires par heure) ; pas de notification pour les commentaires d'une idée ; « Mes envies » restent sur le téléphone ; « Qui est là ? » ne montre que le pseudo et l'avatar.
 ## Page « Carrière » (décidé par Hugo le 21 octobre 2026)
 - Offres publiées depuis le logiciel de gestion, affichées sur sosmiam.fr.
 - Types : **bénévolat**, et **freelance ou mission**. Pas encore de structure : ni stage, ni alternance, ni emploi tant qu'il n'y en a pas.

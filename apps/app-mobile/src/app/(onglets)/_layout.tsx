@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 import { BottomTabBar } from "expo-router/tabs";
 import type { ComponentProps } from "react";
 
+import { LibelleOnglet } from "~/composants/interface/LibelleOnglet";
 import { BandeauxOnglets } from "~/composants/visites/BandeauxOnglets";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import couleurs from "~/theme/couleurs";
@@ -62,6 +63,7 @@ export default function MiseEnPageOnglets() {
             // Sinon VoiceOver dit la position en anglais (« tab, 2 of 5 »)
             tabBarAccessibilityLabel: `${onglet.titre}, onglet ${index + 1} sur ${onglets.length}${onglet.nom === "scan" && infoScan ? `, ${infoScan}` : ""}`,
             tabBarIcon: ({ color, size }) => <Ionicons name={onglet.icone} color={color} size={size} />,
+            tabBarLabel: ({ color, position }) => <LibelleOnglet titre={onglet.titre} color={color} position={position} />,
             // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
             ...(onglet.nom === "index" ? ongletTransparent : {}),
             ...(onglet.nom === "scan" ? { tabBarBadge: badgeScan, tabBarBadgeStyle: badgeScan === "" ? STYLE_POINT : STYLE_BADGE } : {}),

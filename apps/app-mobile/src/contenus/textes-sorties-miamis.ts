@@ -126,7 +126,7 @@ export const TEXTES_SORTIE_MIAMIS = {
   introuvableTitre: "Sortie introuvable",
   introuvableTexte: "Elle a peut-être été annulée, ou elle ne t'est pas ouverte. Pas grave : la prochaine, c'est toi qui l'organises ?",
   annulationTitre: (titre: string) => `Annuler « ${titre} » ?`,
-  annulationDetail: "La sortie et sa discussion disparaissent pour tout le monde, sans retour possible. Les Miamis inscrits sont prévenus gentiment.",
+  annulationDetail: "La sortie et sa discussion disparaissent pour tout le monde, sans retour possible. Les Miamis inscrits sont prévenus gentiment. Si elle revient chaque semaine, les semaines suivantes s'arrêtent aussi.",
   annulationGarder: "Je la garde",
   departTitre: "Tu ne peux plus venir ?",
   departDetail: "Pas de souci, ça arrive. Ta place passe au premier de la liste d'attente.",
