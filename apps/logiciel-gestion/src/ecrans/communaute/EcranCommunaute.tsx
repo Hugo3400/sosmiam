@@ -32,7 +32,7 @@ export function EcranCommunaute() {
       />
       <div className="mb-5 flex flex-wrap gap-3">
         <Onglets libelle="Partie" valeur={partie} onChange={setPartie} options={[{ valeur: "idees", libelle: "Idées" }, { valeur: "etiquettes", libelle: "Étiquettes libres" }]} />
-        {partie === "idees" && <Onglets libelle="Statut" valeur={statut} onChange={setStatut} options={[...STATUTS_IDEE, { valeur: "", libelle: "Toutes" }]} />}
+        {partie === "idees" && <Onglets libelle="Filtrer par statut" valeur={statut} onChange={setStatut} options={[...STATUTS_IDEE, { valeur: "", libelle: "Toutes" }]} />}
       </div>
       {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
       {partie === "etiquettes" ? (
