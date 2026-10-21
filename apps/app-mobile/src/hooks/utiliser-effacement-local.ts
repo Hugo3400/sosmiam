@@ -13,6 +13,7 @@ import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
 import { effacerEnviesMiamis } from "~/stockage/envies-miamis";
 import { effacerModeApp } from "~/stockage/mode-app";
 import { effacerRolesDemo } from "~/stockage/roles-demo";
+import { effacerSectionsDepliees } from "~/stockage/sections-depliees";
 import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 
 /**
@@ -57,6 +58,7 @@ export function utiliserEffacementLocal() {
         await effacerRolesDemo();
       }
       await effacerModeApp();
+      await effacerSectionsDepliees();
       // En dernier : sans profil, l'app repart toute seule à la bienvenue
       await effacer();
       return true;

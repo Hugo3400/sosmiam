@@ -58,3 +58,8 @@ export async function enregistrerSectionDepliee(section: IdSectionPliable, depli
   enMemoire = { ...(await lireToutes()), [section]: deplie };
   await AsyncStorage.setItem(CLE, JSON.stringify(enMemoire));
 }
+
+export async function effacerSectionsDepliees(): Promise<void> {
+  enMemoire = null;
+  await AsyncStorage.removeItem(CLE);
+}

@@ -1,5 +1,6 @@
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import type { StatutAmbassadeur } from "@sos-miam/commun/types/roles";
+import { TEXTES_BADGES } from "~/contenus/textes-badges";
 
 export const TEXTES_PROFIL = {
   modifier: "Modifier mon profil",
@@ -84,7 +85,7 @@ export const TEXTES_BADGES_PROFIL = {
   apercuLu: (noms: readonly string[]) =>
     noms.length > 1 ? `Tes ${noms.length} derniers badges : ${noms.slice(0, -1).join(", ")} et ${noms[noms.length - 1]}` : `Ton tout premier badge : ${noms[0] ?? ""}`,
   encore: (nombre: number) => `Encore ${nombre} à débloquer : la chasse est ouverte !`,
-  complete: "Collection complète : la Brigade en reste bouche bée !",
+  complete: TEXTES_BADGES.collectionComplete,
   dernier: (emoji: string, nom: string) => `Le dernier : ${emoji} ${nom}`,
   aucun: "Ton premier badge t'attend : une rescousse suffit !",
   voirTout: "Voir tous tes badges",
