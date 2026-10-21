@@ -13,17 +13,15 @@ type Props = {
   /** La valeur dite en entier : « 3 personnes », « 5 visites » */
   unite: (valeur: number) => string;
   onChanger: (valeur: number) => void;
-  pas?: number;
 };
 
 /**
  * Un compteur − / + (boutons de 48 pt). Pour VoiceOver, c'est un seul élément réglable : on balaie vers le haut ou le bas
  * pour changer la valeur, qui est dite en entier.
  */
-export function CompteurPlusMoins({ libelle, valeur, min, max, unite, onChanger, pas = 1 }: Props) {
-  const changer = (sens: number) => {
-    const visee = sens > 0 ? Math.floor(valeur / pas) * pas + pas : Math.ceil(valeur / pas) * pas - pas;
-    const suivante = Math.min(max, Math.max(min, visee));
+export function CompteurPlusMoins({ libelle, valeur, min, max, unite, onChanger }: Props) {
+  const changer = (delta: number) => {
+    const suivante = Math.min(max, Math.max(min, valeur + delta));
     if (suivante === valeur) return;
     vibrerLegerement();
     onChanger(suivante);
