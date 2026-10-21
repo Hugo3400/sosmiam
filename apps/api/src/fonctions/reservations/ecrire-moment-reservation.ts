@@ -1,6 +1,7 @@
 import { calculerDecalageParis } from "../../../../../packages/commun/src/fonctions/temps/calculer-decalage-paris.ts";
 import { calculerJourParis } from "../../../../../packages/commun/src/fonctions/temps/calculer-jour-paris.ts";
 import { decalerJour } from "../../../../../packages/commun/src/fonctions/temps/decaler-jour.ts";
+import { ecrireHeureReservation } from "./ecrire-heure-reservation.ts";
 
 const HEURE_DU_SOIR = 18;
 const jourEnLettres = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long" });
@@ -14,10 +15,8 @@ function ecrireJour(creneau: Date): string {
 
 export function ecrireMomentReservation(creneau: Date, maintenant: Date): string {
   const instant = creneau.getTime();
-  const aParis = new Date(instant + calculerDecalageParis(instant));
-  const heures = aParis.getUTCHours();
-  const minutes = aParis.getUTCMinutes();
-  const heure = `${heures}h${minutes === 0 ? "" : String(minutes).padStart(2, "0")}`;
+  const heures = new Date(instant + calculerDecalageParis(instant)).getUTCHours();
+  const heure = ecrireHeureReservation(creneau);
   const jour = calculerJourParis(instant);
   const aujourdhui = calculerJourParis(maintenant.getTime());
   if (jour === aujourdhui) return `${heures >= HEURE_DU_SOIR ? "ce soir" : "aujourd'hui"} à ${heure}`;

@@ -1,5 +1,5 @@
 import { faireEvoluerReservation } from "../../../../../packages/commun/src/fonctions/reservations/faire-evoluer-reservation.ts";
-import type { EvenementReservation } from "../../../../../packages/commun/src/types/reservation.ts";
+import type { EvenementReservation, ReglesTransitionReservation } from "../../../../../packages/commun/src/types/reservation.ts";
 import type { ChampsReservation, LigneReservation } from "../../services/reservations-regles.ts";
 import type { TablesVisites } from "../../services/visites-regles.ts";
 
@@ -15,11 +15,13 @@ export type ReservationDecidee =
  */
 export async function deciderReservation(
   t: TablesVisites, r: LigneReservation, evenement: EvenementReservation, maintenant: Date, parId: number | null, enPlus: ChampsReservation = {},
+  regles: ReglesTransitionReservation = {},
 ): Promise<ReservationDecidee> {
   const transition = faireEvoluerReservation(
-    { statut: r.statut, creneau: r.creneau.toISOString(), presenceLe: r.presenceLe?.toISOString() ?? null },
+    { statut: r.statut, creneau: r.creneau.toISOString(), presenceLe: r.presenceLe?.toISOString() ?? null, reponduLe: r.reponduLe?.toISOString() ?? null },
     evenement,
     maintenant.getTime(),
+    regles,
   );
   if (!transition.ok) return transition;
   const champs: ChampsReservation = {
@@ -31,6 +33,6 @@ export async function deciderReservation(
     ...(parId !== null ? { reponduParId: parId } : {}),
     ...enPlus,
   };
-  await t.modifierReservation(r.id, champs);
+  if (!(await t.modifierReservation(r.id, champs, r.statut))) return { ok: false, erreur: evenement.type === "accepter" ? "delai-depasse" : "transition-interdite" };
   return { ok: true, reservation: { ...r, ...champs }, creerVisite: transition.effets.some((e) => e.type === "creer-visite") };
 }
