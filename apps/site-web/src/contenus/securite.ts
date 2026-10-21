@@ -94,7 +94,7 @@ export const recompensesSecurite = {
   premier: "**Premier arrivé, premier servi** : si deux personnes signalent la même faille, c'est le premier signalement qui compte.",
 };
 
-export const tableauHonneur = {
+export const textesTableauHonneur = {
   ancre: "tableau-d-honneur",
   titre: "Le tableau d'honneur",
   chapo: "Elles et ils ont rendu SOS Miam plus sûr. Casquette bas !",

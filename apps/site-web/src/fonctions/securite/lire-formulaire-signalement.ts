@@ -1,4 +1,3 @@
-import { MESSAGES_SERVICE } from "../../../../../packages/commun/src/contenus/messages-services.ts";
 import { CIBLES_SIGNALEMENT_SECURITE } from "../../../../../packages/commun/src/regles/securite.ts";
 import type { CibleSignalementSecurite, NouveauSignalementSecurite } from "../../../../../packages/commun/src/types/securite.ts";
 import { champsSignalement, type ChampSignalement } from "~/contenus/formulaire-securite";
@@ -56,7 +55,8 @@ export async function lireFormulaireSignalement(formulaire: FormData): Promise<L
   const erreurs: Partial<Record<ChampSignalement, string>> = {};
   if (horsLimites(valeurs.nom, nom)) erreurs.nom = nom.erreur;
   if (valeurs.email.length > email.max || !verifierEmail(valeurs.email)) erreurs.email = email.erreur;
-  if (!estCible(valeurs.cible)) erreurs.cible = cible.erreur;
+  const cibleChoisie = estCible(valeurs.cible) ? valeurs.cible : null;
+  if (!cibleChoisie) erreurs.cible = cible.erreur;
   if (horsLimites(valeurs.titre, titre)) erreurs.titre = titre.erreur;
   if (horsLimites(valeurs.description, description)) erreurs.description = description.erreur;
   if (valeurs.lien && (valeurs.lien.length > lien.max || !/^https:\/\/[^\s/?#]+\.[^\s]+$/i.test(valeurs.lien))) erreurs.lien = lien.erreur;
@@ -73,7 +73,7 @@ export async function lireFormulaireSignalement(formulaire: FormData): Promise<L
   }
 
   for (const cle of Object.keys(erreurs) as ChampSignalement[]) erreurs[cle] = lierPonctuation(erreurs[cle] ?? "");
-  if (Object.keys(erreurs).length > 0) return { ok: false, erreurs, valeurs, imagesEnvoyees: fichiers.length > 0 };
+  if (Object.keys(erreurs).length > 0 || !cibleChoisie) return { ok: false, erreurs, valeurs, imagesEnvoyees: fichiers.length > 0 };
 
   const piege = formulaire.get("site_web");
   return {
@@ -81,7 +81,7 @@ export async function lireFormulaireSignalement(formulaire: FormData): Promise<L
     signalement: {
       nom: valeurs.nom,
       email: valeurs.email,
-      cible: valeurs.cible as CibleSignalementSecurite,
+      cible: cibleChoisie,
       titre: valeurs.titre,
       description: valeurs.description,
       lien: valeurs.lien || null,
