@@ -1,4 +1,5 @@
 import type { EndroitAlerte, RaisonSignalementMiamSafe } from "@sos-miam/commun/regles/miam-safe";
+import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
 export type NumeroUrgence = { numero: string; libelle: string; lien: string; lu: string };
 
@@ -16,6 +17,14 @@ export const LIBELLES_ENDROIT_ALERTE: Record<EndroitAlerte, string> = {
   toilettes: "Aux toilettes",
   ailleurs: "Ailleurs",
 };
+
+export const ECHECS_ALERTE_MIAM_SAFE: Partial<Record<ErreurService, string>> = {
+  "hors-ligne": "Pas de réseau ici. Les numéros d'urgence, eux, marchent sans Internet.",
+  "trop-de-demandes": "Trop de demandes en peu de temps : elle ne peut pas partir tout de suite.",
+  "pas-miam-safe": "Ce lieu ne reçoit pas les alertes : il n'a pas signé la charte Miam Safe.",
+};
+
+export const ECHEC_ALERTE_MIAM_SAFE = "On n'a pas pu l'envoyer.";
 
 export const LIBELLES_RAISON_MIAM_SAFE: Record<RaisonSignalementMiamSafe, { titre: string; detail: string }> = {
   harcelement: { titre: "Harcèlement", detail: "Quelqu'un a insisté, suivi, fait des remarques ou des gestes déplacés." },
