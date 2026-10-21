@@ -58,7 +58,8 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
     );
   }
 
-  const lu = enchainerPhrases([titre, surIphone ? (deplie ? "déplié" : "plié") : null, ...lignes.map(retirerEmoji), compteur?.lu]);
+  const lignesLues = lignes.map((ligne) => retirerEmoji(ligne).replace(/ · /g, ", "));
+  const lu = enchainerPhrases([titre, surIphone ? (deplie ? "déplié" : "plié") : null, ...lignesLues, compteur?.lu]);
   const toucher = () => {
     vibrerLegerement();
     const maintenant = basculer();
@@ -67,23 +68,21 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
 
   return (
     <View className="gap-3">
-      <View accessibilityRole="header">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={lu}
-          accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
-          aria-expanded={surIphone ? undefined : deplie}
-          onPress={toucher}
-          className="min-h-11 flex-row items-center gap-3 active:opacity-70"
-        >
-          <View className="flex-1">
-            <Text className="font-titre-gras text-xl text-encre">{titre}</Text>
-            {textesLignes}
-          </View>
-          {valeurCompteur}
-          <ChevronPliable deplie={deplie} />
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityRole={surIphone ? "header" : "button"}
+        accessibilityLabel={lu}
+        accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
+        aria-expanded={surIphone ? undefined : deplie}
+        onPress={toucher}
+        className="min-h-11 flex-row items-center gap-3 active:opacity-70"
+      >
+        <View className="flex-1">
+          <Text className="font-titre-gras text-xl text-encre">{titre}</Text>
+          {textesLignes}
+        </View>
+        {valeurCompteur}
+        <ChevronPliable deplie={deplie} />
+      </Pressable>
       {deplie ? children : apercu}
     </View>
   );
