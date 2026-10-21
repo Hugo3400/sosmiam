@@ -1,4 +1,4 @@
-// Un client de l'API sans session, pour les envois publics qui ne dépendent pas du compte (signalements de publications) :
+// Un client de l'API sans session, pour les lectures publiques qui ne dépendent pas du compte :
 // utilisable hors des écrans, et jamais avec le jeton de session.
 import { creerClientHttp } from "@sos-miam/commun/client-api/client-http";
 

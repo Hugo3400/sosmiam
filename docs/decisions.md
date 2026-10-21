@@ -136,7 +136,8 @@
 - Les autres raisons ne masquent la publication que pour la personne qui signale, en attendant la modération.
 - Pour les contenus graves (haine, violence, danger), l'app rappelle le 17, le 112 et Pharos.
 - **Promis dans les CGU (8 octobre 2026), à coder avant la sortie de l'app** : quand une publication est masquée ou retirée, ou un compte limité, on prévient l'auteur et on lui dit pourquoi ; s'il conteste, on réexamine la décision ; la personne qui a signalé apprend ce qu'on a décidé (règlement européen sur les services numériques).
-- Points ouverts : garde-fous contre les signalements abusifs (un concurrent qui ferait masquer les vidéos d'un lieu) ; délai de traitement.
+- **Garde-fou contre les signalements abusifs (décidé par Hugo le 22 octobre 2026)** : une publication n'est masquée pour tout le monde dès le premier signalement « violence ou contenu sexuel » que si la personne qui signale est connectée, avec un e-mail confirmé, un compte d'au moins 7 jours, sans limitation, et si cette publication n'a jamais eu de signalement rejeté — la même règle que pour les commentaires, messages et listes. Sinon, le signalement passe en tête de la file sans rien masquer. Le serveur ne garde toujours pas qui a signalé une publication.
+- Point ouvert : délai de traitement.
 
 ## Miam Safe : se sentir en sécurité dans un lieu (concept posé le 9 octobre 2026, construit depuis dans l'app, l'API et le site)
 - **Compte obligatoire** pour tout Miam Safe. **En cas de danger réel, l'app renvoie d'abord vers le 17 (police), le 18 (pompiers), le 15 (Samu), le 112 ou le 114 (urgences par SMS, pour les personnes sourdes ou qui ne peuvent pas parler)**, accessibles en un appui. Sur ces écrans, le ton reste doux et sérieux : pas de blague ni d'easter egg.

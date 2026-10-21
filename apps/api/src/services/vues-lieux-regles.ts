@@ -4,9 +4,10 @@
 
 /**
  * Visiteurs × lieux reconnus en mémoire pour la journée (une empreinte de 22 caractères chacun, quelques dizaines de Mo au
- * plus). Au-delà, plus aucune nouvelle vue n'est comptée jusqu'à minuit : mieux vaut sous-compter que gonfler les chiffres.
+ * plus). Au-delà, les plus anciennes sont oubliées pour faire de la place : un visiteur ne bloque jamais les vues des autres.
  */
 export const VUES_RETENUES_MAX = 200_000;
+export const VUES_PAR_VISITEUR_MAX = 1_000;
 
 export interface ServicesVuesLieux {
   /**

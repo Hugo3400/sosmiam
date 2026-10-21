@@ -16,6 +16,8 @@ import { ChampInvalide } from "./gestion/lire-champs.ts";
 const AUTRE: Record<FournisseurExterne, FournisseurExterne> = { apple: "google", google: "apple" };
 const estFournisseur = (valeur: unknown): valeur is FournisseurExterne => valeur === "apple" || valeur === "google";
 const subDe = (connexions: ConnexionsCompte, fournisseur: FournisseurExterne) => (fournisseur === "apple" ? connexions.appleSub : connexions.googleSub);
+const lireConfirmation = (corps: Record<string, unknown>): Record<string, unknown> =>
+  typeof corps.confirmation === "object" && corps.confirmation !== null && !Array.isArray(corps.confirmation) ? (corps.confirmation as Record<string, unknown>) : {};
 
 /** Ce que les pages voient : des booléens, jamais les identifiants eux-mêmes */
 const presenter = (connexions: ConnexionsCompte) => ({
@@ -39,8 +41,9 @@ export function creerControleursConnexionsCompte(contexte: ContexteComptes) {
 
   /**
    * POST /comptes/moi/connexions/<fournisseur> : relie l'identité du jeton (même vérification qu'à la connexion) au
-   * compte connecté. L'e-mail du compte ne change jamais ; il compte comme confirmé seulement si le jeton porte le même,
-   * vérifié.
+   * compte connecté, confirmé comme pour délier : { motDePasse } si le compte a un vrai mot de passe, sinon
+   * { confirmation: nouveau jeton de l'autre fournisseur }. L'e-mail du compte ne change jamais ; il compte comme
+   * confirmé seulement si le jeton porte le même, vérifié.
    */
   async function relier(fournisseur: FournisseurExterne, requete: Request, reponse: Response) {
     const corps = lireCorps(requete);
@@ -59,6 +62,12 @@ export function creerControleursConnexionsCompte(contexte: ContexteComptes) {
     if (dejaLa !== null) return reponse.status(409).json({ ok: false, erreur: "deja-relie" });
     const ailleurs = await externes.services.trouverCompteParSub(fournisseur, identite.sub);
     if (ailleurs !== null && ailleurs !== id) return reponse.status(409).json({ ok: false, erreur: "identite-deja-reliee" });
+    const autre = AUTRE[fournisseur];
+    const motDePasse = lireMotDePasse(corps, "motDePasse");
+    if (connexions.sansMotDePasse) {
+      if (!(await confirmerAvecAutreFournisseur(reponse, lireConfirmation(corps), autre, subDe(connexions, autre)))) return;
+    } else if (motDePasse === "") throw new ChampInvalide("confirmation");
+    else if (!(await verifierMotDePasseActuel(reponse, id, identifiants, motDePasse))) return;
     const memeEmail = identite.email !== null && identite.emailVerifie && identite.email.toLowerCase() === identifiants.email.toLowerCase();
     const resultat = await externes.services.rattacherSub(id, fournisseur, identite.sub, new Date(horloge()), memeEmail);
     if (resultat === "introuvable") return sessionExpiree(reponse);
@@ -73,7 +82,7 @@ export function creerControleursConnexionsCompte(contexte: ContexteComptes) {
    * prouve à la fois que c'est bien la personne, et que sa dernière façon de se connecter marche. Faux si la réponse est
    * déjà partie (400 {champ: confirmation}, 403 confirmation-incorrecte, 503).
    */
-  async function confirmerAvecAutreFournisseur(reponse: Response, corps: Record<string, unknown>, autre: FournisseurExterne, attendu: string) {
+  async function confirmerAvecAutreFournisseur(reponse: Response, corps: Record<string, unknown>, autre: FournisseurExterne, attendu: string | null) {
     if (corps[CHAMP_JETON[autre]] === undefined || corps[CHAMP_JETON[autre]] === null || corps[CHAMP_JETON[autre]] === "") {
       throw new ChampInvalide("confirmation");
     }
@@ -87,9 +96,9 @@ export function creerControleursConnexionsCompte(contexte: ContexteComptes) {
   }
 
   return {
-    /** POST /comptes/moi/connexions/apple : { identityToken, nonce } */
+    /** POST /comptes/moi/connexions/apple : { identityToken, nonce, motDePasse | confirmation: { idToken, nonce? } } */
     relierApple: (requete: Request, reponse: Response) => relier("apple", requete, reponse),
-    /** POST /comptes/moi/connexions/google : { idToken, nonce? } */
+    /** POST /comptes/moi/connexions/google : { idToken, nonce?, motDePasse | confirmation: { identityToken, nonce } } */
     relierGoogle: (requete: Request, reponse: Response) => relier("google", requete, reponse),
 
     /**
