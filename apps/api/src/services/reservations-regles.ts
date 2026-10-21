@@ -28,6 +28,8 @@ export type LigneReservation = {
   reponduParId: number | null;
   presenceLe: Date | null;
   code: string | null;
+  creneauxProposes: Date[];
+  automatique: boolean;
 };
 export type NouvelleReservation = Omit<LigneReservation, "id">;
 export type ChampsReservation = Partial<Omit<LigneReservation, "id" | "compteId" | "lieuId" | "creeLe">>;
@@ -43,6 +45,8 @@ export type FiltreReservations = {
   ordre?: "creneau-croissant" | "creneau-decroissant";
 };
 
+export type PorteeExpiration = { compteId: number } | { lieuId: number } | { reservationId: number };
+
 /** « trop-de-reservations » : à ajouter à ErreurService (packages/commun) avec son message */
 export type ErreurReservation = ErreurService;
 export type EchecReservation = { ok: false; erreur: ErreurReservation; details?: DetailsErreur; champ?: string };
@@ -54,3 +58,5 @@ export type ReponseReservation = {
   statut: "acceptee" | "refusee" | "annulee" | "expiree";
   motif: MotifRefusReservation | null;
 };
+
+export type NouvelleTable = { reservation: LigneReservation; lieu: LieuResume; equipe: number[] };
