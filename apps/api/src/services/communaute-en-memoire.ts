@@ -4,7 +4,7 @@ import type {
 import { creerTablesIdeesEnMemoire, type CommentaireEnMemoire, type IdeeEnMemoire } from "./communaute-en-memoire-idees.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
-import { effacerConversationsEnMemoire, prendreId, type CompteSocialEnMemoire, type LieuSocialEnMemoire, type TablesSociales } from "./tables-sociales-en-memoire.ts";
+import { effacerConversationsEnMemoire, listerCachesEnMemoire, prendreId, type CompteSocialEnMemoire, type LieuSocialEnMemoire, type TablesSociales } from "./tables-sociales-en-memoire.ts";
 
 export type SortieEnMemoire = Omit<LigneSortieMiamis, "etiquettes"> & { etiquettes: { nom: string; officielle: boolean; retireeLe: Date | null }[] };
 
@@ -80,6 +80,7 @@ export function creerTablesCommunauteEnMemoire(social: TablesSociales, relations
       return s ? versLigne(s) : null;
     },
     bloqueEntre: (a, b) => relations.bloqueEntre(a, b),
+    listerCaches: async (moi) => listerCachesEnMemoire(social, moi),
     async listerPairesBloquees(ids) {
       const dans = new Set(ids);
       return social.blocages.filter((b) => dans.has(b.bloqueurId) && dans.has(b.bloqueId)).map((b) => [b.bloqueurId, b.bloqueId] as [number, number]);

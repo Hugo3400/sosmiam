@@ -30,6 +30,10 @@ export function creerTablesCommunaute(base: Client, relations: RelationsSociales
       return lignes.length > 0 ? ((await lire({ id }))[0] ?? null) : null;
     },
     bloqueEntre: (a, b) => relations.bloqueEntre(a, b, tx),
+    async listerCaches(moi) {
+      const lignes = await base.blocage.findMany({ where: { OR: [{ bloqueurId: moi }, { bloqueId: moi }] }, select: { bloqueurId: true, bloqueId: true } });
+      return new Set(lignes.map((l) => (l.bloqueurId === moi ? l.bloqueId : l.bloqueurId)));
+    },
     async listerPairesBloquees(ids) {
       if (ids.length < 2) return [];
       const lignes = await base.blocage.findMany({ where: { bloqueurId: { in: [...ids] }, bloqueId: { in: [...ids] } }, select: { bloqueurId: true, bloqueId: true } });

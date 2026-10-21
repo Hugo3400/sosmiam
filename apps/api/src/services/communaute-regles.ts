@@ -109,6 +109,7 @@ export interface TablesCommunaute {
   verrouillerComptes(compteIds: readonly number[]): Promise<void>;
   verrouillerSortie(id: number): Promise<LigneSortieMiamis | null>;
   bloqueEntre(a: number, b: number): Promise<boolean>;
+  listerCaches(moi: number): Promise<Set<number>>;
   listerPairesBloquees(ids: readonly number[]): Promise<[number, number][]>;
   lireIdempotence(compteId: number, cle: string, ressource: "miamis" | "idee"): Promise<number | null>;
   noterIdempotence(compteId: number, cle: string, ressource: "miamis" | "idee", ressourceId: number, maintenant: Date): Promise<boolean>;

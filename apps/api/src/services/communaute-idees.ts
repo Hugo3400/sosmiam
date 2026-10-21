@@ -104,7 +104,7 @@ export function creerIdees(c: ContexteCommunaute): ServicesIdees {
     },
 
     async retirer(moi, id) {
-      return c.depot.ecrire(async (t) => {
+      return c.depot.lire(async (t) => {
         const lue = await lireVisible(t, moi, id);
         if (!lue) return refus("idee-inconnue");
         if (lue.ligne.auteurId !== moi) return refus("reserve-a-l-auteur");
@@ -114,7 +114,7 @@ export function creerIdees(c: ContexteCommunaute): ServicesIdees {
     },
 
     async voter(moi, id, oui, maintenant) {
-      return c.depot.ecrire(async (t) => {
+      return c.depot.lire(async (t) => {
         const lue = await lireVisible(t, moi, id);
         if (!lue) return refus("idee-inconnue");
         if (lue.ligne.statut === "en-relecture") return refus("idee-en-relecture");
@@ -125,7 +125,7 @@ export function creerIdees(c: ContexteCommunaute): ServicesIdees {
     },
 
     async commenter(moi, id, texte, reponseA, maintenant) {
-      return c.depot.ecrire(async (t) => {
+      return c.depot.lire(async (t) => {
         const lue = await lireVisible(t, moi, id);
         if (!lue) return refus("idee-inconnue");
         if (lue.ligne.statut === "en-relecture") return refus("idee-en-relecture");
@@ -142,7 +142,7 @@ export function creerIdees(c: ContexteCommunaute): ServicesIdees {
     },
 
     async supprimerCommentaire(moi, commentaireId) {
-      return c.depot.ecrire(async (t) => {
+      return c.depot.lire(async (t) => {
         const commentaire = await lireCommentaireVisible(t, moi, commentaireId);
         if (!commentaire) return refus("commentaire-inconnu");
         if (commentaire.auteurId !== moi) return refus("reserve-a-l-auteur");
@@ -152,7 +152,7 @@ export function creerIdees(c: ContexteCommunaute): ServicesIdees {
     },
 
     async aimerCommentaire(moi, commentaireId, oui, maintenant) {
-      return c.depot.ecrire(async (t) => {
+      return c.depot.lire(async (t) => {
         if (!(await lireCommentaireVisible(t, moi, commentaireId))) return refus("commentaire-inconnu");
         await t.aimerCommentaire(commentaireId, moi, oui, maintenant);
         const relu = await t.lireCommentaire(commentaireId, moi);

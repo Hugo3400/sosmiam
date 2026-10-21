@@ -15,3 +15,7 @@ export async function annoncer(relations: Pick<RelationsSociales, "lirePushSocia
   const prenom = a.acteurId !== null ? (personnes.get(a.acteurId)?.prenom ?? "Un Miami") : "";
   return construireEffetsCommunaute({ ...a, destinataires, push: a.push ? { evenement: a.push(prenom), autorises } : undefined });
 }
+
+export async function annoncerTout(relations: Pick<RelationsSociales, "lirePushSocial" | "presenter">, annonces: readonly AnnonceCommunaute[]): Promise<EffetSocial[]> {
+  return (await Promise.all(annonces.map((a) => annoncer(relations, a)))).flat();
+}

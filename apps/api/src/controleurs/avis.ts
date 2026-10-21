@@ -24,8 +24,8 @@ export type DependancesAvis = Omit<ContexteAvis, "horloge"> & {
    */
   ajouterPoints?: (compteId: number, points: number, raison: "avis-photo", detail?: string) => Promise<unknown>;
   /**
-   * reevaluer de services/defis.ts : relancé sans l'attendre après un avis qui rapporte des points, comme le faisait
-   * l'emballage d'ajouterPoints (un raté est seulement noté au journal). Absent : GET /app/defis rattrape (il réévalue d'abord)
+   * reevaluer de services/defis.ts : relancé sans l'attendre après chaque avis écrit (un raté est seulement noté au
+   * journal). Absent : GET /app/defis rattrape (il réévalue d'abord)
    */
   reevaluerDefis?: (compteId: number, maintenant: Date) => Promise<unknown>;
   /**
@@ -80,7 +80,7 @@ export function creerControleursAvis(d: DependancesAvis, horloge: () => number) 
     if (!r.ok) return repondreEchecAvis(reponse, r);
     reponse.status(201).json({ ok: true, pointsGagnes: r.pointsGagnes, avis: r.avis });
     const reevaluer = d.reevaluerDefis;
-    if (r.pointsGagnes > 0 && reevaluer) {
+    if (reevaluer) {
       Promise.resolve()
         .then(() => reevaluer(compteId, new Date(horloge())))
         .catch((erreur: unknown) => console.error("Avis : défis non réévalués :", resumerErreur(erreur)));

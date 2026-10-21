@@ -2,7 +2,7 @@ import { JOURS_RECURRENCE_SORTIE_MIAMIS } from "../../../../packages/commun/src/
 import { DELAI_MIN_SORTIE_MINUTES } from "../../../../packages/commun/src/regles/potes.ts";
 import { PRESENCE_OUVERTE_MINUTES_APRES } from "../../../../packages/commun/src/regles/sorties-miamis.ts";
 import { calculerRappelVeille } from "../../../../packages/commun/src/fonctions/sorties-miamis/calculer-rappel-veille.ts";
-import { annoncer } from "./communaute-effets.ts";
+import { annoncerTout, type AnnonceCommunaute } from "./communaute-effets.ts";
 import type { ContexteCommunaute, LigneSortieMiamis, ServicesSortiesMiamis, TablesCommunaute } from "./communaute-regles.ts";
 import { avecStatut } from "./communaute-sorties-outils.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
@@ -18,7 +18,7 @@ function calculerProchaineDate(quand: Date, maintenant: Date): Date {
 }
 
 export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSortiesMiamis, "passerTaches"> {
-  async function rappeler(t: TablesCommunaute, id: number, maintenant: Date): Promise<EffetSocial[] | null> {
+  async function rappeler(t: TablesCommunaute, id: number, maintenant: Date): Promise<AnnonceCommunaute[] | null> {
     const ligne = await t.verrouillerSortie(id);
     if (!ligne || ligne.annuleeLe !== null || ligne.retireeLe !== null || ligne.rappelEnvoyeLe !== null || ligne.quand <= maintenant) return null;
     const moment = calculerRappelVeille(ligne.quand.getTime());
@@ -27,22 +27,22 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
     if (ligne.creeLe.getTime() >= moment) return [];
     const participations = await t.lireParticipations([id]);
     const lieu = (await t.lireLieux([ligne.lieuId])).get(ligne.lieuId);
-    return annoncer(c.relations, {
+    return [{
       type: "rappel-sortie-miamis", acteurId: null, cible: { type: "miamis", id }, detail: ligne.titre, destinataires: avecStatut(participations, "organise", "accepte"),
       push: () => ({ quoi: "rappel", titre: ligne.titre, lieu: lieu?.nom ?? "le lieu prévu", sortieId: id }),
-    });
+    }];
   }
 
-  async function continuer(t: TablesCommunaute, id: number, maintenant: Date): Promise<EffetSocial[] | null> {
+  async function continuer(t: TablesCommunaute, id: number, limite: boolean, maintenant: Date): Promise<AnnonceCommunaute[] | null> {
     const ligne = await t.verrouillerSortie(id);
     if (!ligne || ligne.annuleeLe !== null || ligne.retireeLe !== null || ligne.suiteTraiteeLe !== null || !ligne.recurrente) return null;
     await t.changerSortie(id, { suiteTraiteeLe: maintenant }, maintenant);
     const lieu = (await t.lireLieux([ligne.lieuId])).get(ligne.lieuId);
-    if (!lieu?.publie || (c.estLimite && (await c.estLimite(ligne.organisateurId, maintenant)))) return [];
+    if (!lieu?.publie || limite) return [];
     return creerLaSuite(t, ligne, maintenant);
   }
 
-  async function creerLaSuite(t: TablesCommunaute, ligne: LigneSortieMiamis, maintenant: Date): Promise<EffetSocial[]> {
+  async function creerLaSuite(t: TablesCommunaute, ligne: LigneSortieMiamis, maintenant: Date): Promise<AnnonceCommunaute[]> {
     const organisateur = ligne.organisateurId;
     await t.verrouillerComptes([organisateur]);
     const conversationId = await t.creerConversation(organisateur, maintenant);
@@ -56,20 +56,20 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
       await t.ecrireParticipation({ sortieId: id, compteId, statut: "invite", habitue: true, creeLe: maintenant, decideLe: null });
       habitues.push(compteId);
     }
-    return annoncer(c.relations, {
+    return [{
       type: "invitation-habitue", acteurId: organisateur, cible: { type: "miamis", id }, detail: ligne.titre, destinataires: habitues,
       push: (prenom) => ({ quoi: "habitue", prenom, titre: ligne.titre, sortieId: id }),
-    });
+    }];
   }
 
-  async function passer(ids: readonly number[], geste: (t: TablesCommunaute, id: number) => Promise<EffetSocial[] | null>) {
+  async function passer(lignes: readonly LigneSortieMiamis[], geste: (t: TablesCommunaute, ligne: LigneSortieMiamis) => Promise<AnnonceCommunaute[] | null>) {
     const bilan = { faites: 0, echecs: 0, effets: [] as EffetSocial[] };
-    for (const id of ids) {
+    for (const ligne of lignes) {
       try {
-        const effets = await c.depot.ecrire((t) => geste(t, id));
-        if (effets === null) continue;
+        const annonces = await c.depot.ecrire((t) => geste(t, ligne));
+        if (annonces === null) continue;
         bilan.faites += 1;
-        bilan.effets.push(...effets);
+        bilan.effets.push(...(await annoncerTout(c.relations, annonces)));
       } catch {
         bilan.echecs += 1;
       }
@@ -85,8 +85,10 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
         t.listerSortiesARappeler(maintenant, jusqua, SORTIES_PAR_PASSAGE),
         t.listerSortiesAContinuer(avant, SORTIES_PAR_PASSAGE),
       ]));
-      const rappels = await passer(aRappeler.map((l) => l.id), (t, id) => rappeler(t, id, maintenant));
-      const suites = await passer(aContinuer.map((l) => l.id), (t, id) => continuer(t, id, maintenant));
+      const limites = new Set<number>();
+      for (const l of aContinuer) if (c.estLimite && (await c.estLimite(l.organisateurId, maintenant))) limites.add(l.organisateurId);
+      const rappels = await passer(aRappeler, (t, l) => rappeler(t, l.id, maintenant));
+      const suites = await passer(aContinuer, (t, l) => continuer(t, l.id, limites.has(l.organisateurId), maintenant));
       return { rappels: rappels.faites, suites: suites.faites, echecs: rappels.echecs + suites.echecs, effets: [...rappels.effets, ...suites.effets] };
     },
   };

@@ -5,10 +5,9 @@ import { ecrirePublicSortie } from "../fonctions/communaute/ecrire-public-sortie
 import { estInvitationHabitueValable } from "../fonctions/communaute/est-invitation-habitue-valable.ts";
 import { estSortieVisible } from "../fonctions/communaute/est-sortie-visible.ts";
 import { normaliserVilleCle } from "../fonctions/communaute/normaliser-ville-cle.ts";
-import type { EffetSocial } from "./effets-sociaux-regles.ts";
-import { annoncer } from "./communaute-effets.ts";
+import { annoncerTout, type AnnonceCommunaute } from "./communaute-effets.ts";
 import { lireProfilsVisibilite } from "./communaute-profils.ts";
-import { refus, type ContexteCommunaute, type Refus, type ServicesSortiesMiamis, type TablesCommunaute } from "./communaute-regles.ts";
+import { refus, type ContexteCommunaute, type Refus, type ServicesSortiesMiamis } from "./communaute-regles.ts";
 import { creerLectureSortiesMiamis } from "./communaute-sorties-lecture.ts";
 import { creerGestesOrganisateur } from "./communaute-sorties-organisateur.ts";
 import { avecStatut, entrer, ouvrirSortie, remplirDepuisAttente, sortir } from "./communaute-sorties-outils.ts";
@@ -16,7 +15,9 @@ import { creerTachesSortiesMiamis } from "./communaute-sorties-taches.ts";
 
 class CleDejaNotee extends Error {}
 
-type Issue = Refus | { effets: EffetSocial[]; apres?: () => Promise<void> };
+type Issue = Refus | { annonces: AnnonceCommunaute[]; apres?: () => Promise<void>; selonVisibilite?: boolean };
+
+const rien = (selonVisibilite = false): Issue => ({ annonces: [], selonVisibilite });
 
 export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis {
   const lecture = creerLectureSortiesMiamis(c);
@@ -24,13 +25,8 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
   async function rendreApres(moi: number, id: number, maintenant: Date, issue: Issue) {
     if ("ok" in issue) return issue;
     if (issue.apres) await issue.apres();
-    const sortie = await lecture.rendre(moi, id, maintenant);
-    return sortie ? { ok: true as const, sortie, effets: issue.effets } : refus("sortie-inconnue");
-  }
-
-  async function estVisiblePourMoi(t: TablesCommunaute, moi: number, id: number, maintenant: Date): Promise<boolean> {
-    const lues = await lecture.filtrerVisibles(t, moi, await lecture.lireAvecParticipations(t, await t.lireSorties([id])), maintenant);
-    return lues.length > 0;
+    const sortie = issue.selonVisibilite ? await lecture.lire(moi, id, maintenant) : await lecture.rendre(moi, id, maintenant);
+    return sortie ? { ok: true as const, sortie, effets: await annoncerTout(c.relations, issue.annonces) } : refus("sortie-inconnue");
   }
 
   async function creerDansLaBase(moi: number, s: Parameters<ServicesSortiesMiamis["creer"]>[1], cle: string, villeCle: string, maintenant: Date) {
@@ -88,22 +84,22 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         const { ligne, participations } = lue;
         const mienne = participations.find((p) => p.compteId === moi);
         if (mienne?.statut === "renonce") await t.ecrireParticipation({ ...mienne, statut: "refuse" });
-        if (mienne && ["organise", "accepte", "attente", "demande", "refuse", "renonce"].includes(mienne.statut)) return { effets: [] };
+        if (mienne && ["organise", "accepte", "attente", "demande", "refuse", "renonce"].includes(mienne.statut)) return rien();
         if (ligne.quand.getTime() <= maintenant.getTime()) return refus("sortie-passee");
         if (mienne && estInvitationHabitueValable(mienne, maintenant)) {
           await entrer(t, ligne, mienne, maintenant);
-          return { effets: [] };
+          return rien();
         }
-        const [profils, blocages, lieux] = await Promise.all([lireProfilsVisibilite(c, t, [moi], maintenant), c.relations.listerBlocages(moi), t.lireLieux([ligne.lieuId])]);
+        const [profils, caches, lieux] = await Promise.all([lireProfilsVisibilite(c, t, [moi], maintenant), t.listerCaches(moi), t.lireLieux([ligne.lieuId])]);
         const autres = participations.filter((p) => p.compteId !== moi);
-        const visible = estSortieVisible({ moi, ligne, participations: autres, profil: profils.get(moi) ?? null, caches: blocages.caches, lieuPublie: lieux.get(ligne.lieuId)?.publie ?? false });
+        const visible = estSortieVisible({ moi, ligne, participations: autres, profil: profils.get(moi) ?? null, caches, lieuPublie: lieux.get(ligne.lieuId)?.publie ?? false });
         if (!visible) return refus("sortie-inconnue");
         await t.ecrireParticipation({ sortieId: id, compteId: moi, statut: "demande", habitue: mienne?.habitue ?? false, creeLe: maintenant, decideLe: null, presentLe: null });
         return {
-          effets: await annoncer(c.relations, {
+          annonces: [{
             type: "demande-sortie-miamis", acteurId: moi, cible: { type: "miamis", id }, detail: ligne.titre, destinataires: [ligne.organisateurId],
             push: (prenom) => ({ quoi: "demande", prenom, titre: ligne.titre, sortieId: id }),
-          }),
+          }],
         };
       });
       return rendreApres(moi, id, maintenant, issue);
@@ -114,10 +110,10 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         await t.verrouillerComptes([moi]);
         const lue = await ouvrirSortie(t, id, maintenant);
         const mienne = lue?.participations.find((p) => p.compteId === moi);
-        if (!lue || !mienne) return (await estVisiblePourMoi(t, moi, id, maintenant)) ? { effets: [] } : refus("sortie-inconnue");
+        if (!lue || !mienne) return rien(true);
         if (mienne.statut === "demande") await t.effacerParticipation(id, moi);
         if (mienne.statut === "refuse") await t.ecrireParticipation({ ...mienne, statut: "renonce" });
-        return { effets: [] };
+        return rien();
       });
       return rendreApres(moi, id, maintenant, issue);
     },
@@ -127,18 +123,18 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         await t.verrouillerComptes([moi]);
         const lue = await ouvrirSortie(t, id, maintenant);
         const mienne = lue?.participations.find((p) => p.compteId === moi);
-        if (!lue || !mienne) return (await estVisiblePourMoi(t, moi, id, maintenant)) ? { effets: [] } : refus("sortie-inconnue");
+        if (!lue || !mienne) return rien(true);
         const { ligne } = lue;
         const avant = ligne.quand.getTime() - maintenant.getTime();
-        if (avant <= 0 || mienne.statut === "organise") return { effets: [] };
+        if (avant <= 0 || mienne.statut === "organise") return rien();
         if (mienne.statut === "refuse") {
           await t.ecrireParticipation({ ...mienne, statut: "renonce" });
-          return { effets: [] };
+          return rien();
         }
-        if (!["accepte", "attente", "invite", "demande"].includes(mienne.statut)) return { effets: [] };
+        if (!["accepte", "attente", "invite", "demande"].includes(mienne.statut)) return rien();
         const tardif = mienne.statut === "accepte" && avant < HEURES_DESISTEMENT_TARDIF * 3_600_000;
         await sortir(t, ligne, mienne, tardif ? "desiste" : null, maintenant);
-        return { effets: await remplirDepuisAttente(c, t, ligne, maintenant) };
+        return { annonces: await remplirDepuisAttente(t, ligne, maintenant) };
       });
       return rendreApres(moi, id, maintenant, issue);
     },
@@ -150,12 +146,12 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         const mienne = lue?.participations.find((p) => p.compteId === moi);
         if (!lue || !mienne) return refus("sortie-inconnue");
         if (mienne.statut !== "organise" && mienne.statut !== "accepte") return refus("presence-non-validee");
-        if (mienne.presentLe !== null) return { effets: [] };
+        if (mienne.presentLe !== null) return rien();
         const fenetre = calculerFenetrePresence(lue.ligne.quand);
         if (maintenant < fenetre.de || maintenant > fenetre.a) return refus("presence-fermee");
         if (!(await t.aUneVisiteValidee(moi, lue.ligne.lieuId, fenetre.de, maintenant))) return refus("presence-non-validee");
         await t.ecrireParticipation({ ...mienne, presentLe: maintenant });
-        return { effets: [] };
+        return rien();
       });
       return rendreApres(moi, id, maintenant, issue);
     },
@@ -173,14 +169,11 @@ export function creerSortiesMiamis(c: ContexteCommunaute): ServicesSortiesMiamis
         const apres = ligne.conversationId !== null ? await t.effacerConversation(ligne.conversationId) : undefined;
         await t.changerSortie(id, { annuleeLe: maintenant, annulationTardive: tardive, conversationId: null }, maintenant);
         const destinataires = [...acceptes, ...avecStatut(participations, "attente", "demande"), ...participations.filter((p) => estInvitationHabitueValable(p, maintenant)).map((p) => p.compteId)];
-        return {
-          apres,
-          effets: await annoncer(c.relations, { type: "sortie-miamis-annulee", acteurId: moi, cible: { type: "miamis", id }, detail: ligne.titre, destinataires }),
-        };
+        return { apres, annonces: [{ type: "sortie-miamis-annulee", acteurId: moi, cible: { type: "miamis", id }, detail: ligne.titre, destinataires }] };
       });
       if ("ok" in issue) return issue;
       if (issue.apres) await issue.apres();
-      return { ok: true, effets: issue.effets };
+      return { ok: true, effets: await annoncerTout(c.relations, issue.annonces) };
     },
 
     ...creerGestesOrganisateur(c, lecture),

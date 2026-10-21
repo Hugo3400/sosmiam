@@ -1,8 +1,7 @@
 import { choisirArriveesDepuisAttente } from "../fonctions/communaute/choisir-arrivees-depuis-attente.ts";
-import type { EffetSocial } from "./effets-sociaux-regles.ts";
-import { annoncer } from "./communaute-effets.ts";
+import type { AnnonceCommunaute } from "./communaute-effets.ts";
 import { lireNouveaux } from "./communaute-profils.ts";
-import type { ContexteCommunaute, LigneParticipationMiamis, LigneSortieMiamis, TablesCommunaute } from "./communaute-regles.ts";
+import type { LigneParticipationMiamis, LigneSortieMiamis, TablesCommunaute } from "./communaute-regles.ts";
 import { retirerExclus, type SortieLue } from "./communaute-sorties-lecture.ts";
 
 export async function ouvrirSortie(t: TablesCommunaute, id: number, maintenant: Date): Promise<SortieLue | null> {
@@ -30,15 +29,15 @@ export async function lireNouveauxDe(t: TablesCommunaute, participations: readon
   return lireNouveaux(await t.lireComptes([...new Set([...participations.map((p) => p.compteId), ...enPlus])]), maintenant);
 }
 
-export async function remplirDepuisAttente(c: ContexteCommunaute, t: TablesCommunaute, ligne: LigneSortieMiamis, maintenant: Date): Promise<EffetSocial[]> {
+export async function remplirDepuisAttente(t: TablesCommunaute, ligne: LigneSortieMiamis, maintenant: Date): Promise<AnnonceCommunaute[]> {
   const participations = await t.lireParticipations([ligne.id]);
   const nouveaux = await lireNouveauxDe(t, participations, [], maintenant);
   const arrivees = choisirArriveesDepuisAttente(ligne, participations, nouveaux, maintenant);
   for (const compteId of arrivees) await entrer(t, ligne, participations.find((p) => p.compteId === compteId)!, maintenant);
-  return annoncer(c.relations, {
+  return [{
     type: "place-liberee-miamis", acteurId: null, cible: { type: "miamis", id: ligne.id }, detail: ligne.titre, destinataires: arrivees,
     push: () => ({ quoi: "place", titre: ligne.titre, sortieId: ligne.id }),
-  });
+  }];
 }
 
 export const avecStatut = (participations: readonly LigneParticipationMiamis[], ...statuts: string[]) =>

@@ -112,7 +112,7 @@ test("photo : +10 points (avis-photo) pour un avis vérifié, rien pour un repas
   assert.deepEqual([offert.corps.pointsGagnes, offert.corps.avis.repasOffert, offert.corps.avis.avecReduction], [0, true, false]);
   const reduit = await donner(lea.jeton, { visiteId: reduite, note: 3 });
   assert.deepEqual([reduit.corps.avis.repasOffert, reduit.corps.avis.avecReduction], [false, true]);
-  assert.deepEqual([b.donnees.pointsPhoto.length, b.defis], [1, [lea.id]], "sans points, pas de défis relancés");
+  assert.deepEqual([b.donnees.pointsPhoto.length, b.defis], [1, [lea.id, lea.id, lea.id]], "chaque avis relance les défis, même sans points");
 });
 
 test("photo : les +10 sont écrits DANS la transaction de l'avis ; s'ils ratent, ni avis ni points, la visite reste à noter", async (t) => {

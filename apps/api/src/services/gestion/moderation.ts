@@ -6,7 +6,9 @@ import { appliquerDecisionSociale, lireHistoriqueSignaleurs, lireInstantane, lir
 import type { Prisma } from "../../base-de-donnees/client-genere/client.ts";
 import type { AvisGestion, ResultatRetablir } from "../avis-gestion.ts";
 import { PREFIXE_AVATAR_PHOTO } from "../../../../../packages/commun/src/regles/photo-profil.ts";
-import { CIBLES_AVIS } from "./cibles-moderation.ts";
+import { appliquerDecisionCommunaute } from "../communaute-moderation.ts";
+import { creerStockageMediasChat } from "../stockage-medias-chat.ts";
+import { CIBLES_AVIS, CIBLES_COMMUNAUTE } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
 /** Même liste que RAISONS_AVEC_MASQUAGE_IMMEDIAT (packages/commun/src/regles/signalement.ts), que l'API ne peut pas encore importer */
@@ -118,6 +120,9 @@ export async function deciderSignalement(
       if (decision === "rejete" && reexamen) await transaction.publication.updateMany({ where: { id: idPublication, statut: "masquee" }, data: { statut: "publiee" } });
     }
     const { fichier } = await appliquerDecisionSociale(transaction, signalement, decision, reexamen, maintenant);
+    const communaute = (CIBLES_COMMUNAUTE as readonly string[]).includes(signalement.cible)
+      ? await appliquerDecisionCommunaute(transaction, signalement, decision, reexamen, maintenant, social?.medias ?? creerStockageMediasChat())
+      : null;
     const memeContenu = { cible: signalement.cible, cibleId: signalement.cibleId };
     const concernes = { OR: [{ id }, { ...memeContenu, statut: "a-traiter" }, ...(reexamen ? [{ ...memeContenu, ...CONTESTES }] : [])] };
     const decides = await transaction.signalement.findMany({ where: concernes, select: { id: true, signaleParId: true, auteurContenuId: true } });
@@ -129,7 +134,7 @@ export async function deciderSignalement(
         ...(reexamen ? { reexamineLe: maintenant } : {}),
       },
     });
-    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier, retabli };
+    return { cible: signalement.cible, cibleId: signalement.cibleId, regles: count, reexamen, decides, fichier, retabli, communaute };
   };
   let resultat: Awaited<ReturnType<typeof decider>>;
   try {
@@ -138,7 +143,13 @@ export async function deciderSignalement(
     if (erreur instanceof DejaDecide) return "deja-decide" as const;
     throw erreur;
   }
-  const { decides, fichier, retabli, ...rendu } = resultat;
+  const { decides, fichier, retabli, communaute, ...rendu } = resultat;
+  if (communaute) {
+    if (communaute.notifications.length && social) {
+      await social.cloche.noter(communaute.notifications, maintenant).catch((erreur: unknown) => console.error("Modération : cloche de la communauté non écrite :", (erreur as Error).message));
+    }
+    await communaute.apresTransaction().catch((erreur: unknown) => console.error("Modération : suite de la décision communauté ratée :", (erreur as Error).message));
+  }
   if (retabli) {
     if (!retabli.ok) console.error(`Avis : réexamen sans effet sur ${signalement.cible} n° ${signalement.cibleId} (${retabli.erreur})`);
     // Hors de la transaction : la réévaluation des défis ouvre la sienne (elle attendrait le verrou du compte)
