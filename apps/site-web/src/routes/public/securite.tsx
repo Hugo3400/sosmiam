@@ -1,6 +1,4 @@
-import { data, type ShouldRevalidateFunctionArgs } from "react-router";
-
-import type { Route } from "./+types/securite";
+import { data, type ActionFunctionArgs, type LoaderFunctionArgs, type ShouldRevalidateFunctionArgs } from "react-router";
 
 import type { NouveauSignalementSecurite } from "../../../../../packages/commun/src/types/securite.ts";
 import { EngagementsSecurite } from "~/composants/securite/EngagementsSecurite";
@@ -22,11 +20,11 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { envoyerSignalementSecurite, listerTableauHonneur } from "~/services/securite.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
-export function meta(_: Route.MetaArgs) {
+export function meta() {
   return creerMeta({ titre: `${pageSecurite.titre} : signale une faille de sécurité`, description: pageSecurite.description });
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   return { entrees: await listerTableauHonneur(lireIpVisiteur(request)) };
 }
 
@@ -61,7 +59,7 @@ function relireValeurs(signalement: NouveauSignalementSecurite): ValeursSignalem
   };
 }
 
-export async function action({ request }: Route.ActionArgs): Promise<ReponseSignalement> {
+export async function action({ request }: ActionFunctionArgs): Promise<ReponseSignalement> {
   if (Number(request.headers.get("content-length")) > LIMITE_ENVOI_SIGNALEMENT) {
     return repondreErreurs({ images: lierPonctuation(ecrireMessageService("image-trop-lourde")) }, undefined, true);
   }
@@ -90,7 +88,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseSign
   return { ok: false, message: lierPonctuation(ecrireMessageService(resultat.erreur)), valeurs, imagesARemettre };
 }
 
-export default function PageSecurite({ loaderData, actionData }: Route.ComponentProps) {
+type Props = { loaderData: Awaited<ReturnType<typeof loader>>; actionData?: ReponseSignalement };
+
+export default function PageSecurite({ loaderData, actionData }: Props) {
   if (actionData?.ok) return <MerciSignalement />;
   return (
     <>

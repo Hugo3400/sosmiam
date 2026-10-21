@@ -150,7 +150,7 @@ test("/securite : titre, périmètre, règles, engagements, récompenses, lien c
   assert.match(html, /pas de montant affiché, et rien de garanti/);
   assert.match(html, /c'est le premier signalement qui compte/);
   assert.doesNotMatch(html, /\d+ ?(€|euros)/);
-  const meta = page.meta({} as never);
+  const meta = page.meta();
   assert.equal(meta[0]?.title, "Chasse aux bugs : signale une faille de sécurité — SOS Miam");
   assert.ok(!meta.some((balise) => "name" in balise && balise.name === "robots"));
 });

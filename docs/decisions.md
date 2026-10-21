@@ -563,6 +563,8 @@
 - Comme le reste de l'app : réservé aux 18 ans et plus ; un compte limité ne publie rien que les autres voient (sorties des Miamis, idées, commentaires, étiquettes libres).
 
 - Précisé le 21 octobre 2026 : public « ambassadeurs » = tous les ambassadeurs validés (actifs) ; « un nouveau » (place gardée) = un compte de moins de 30 jours ; annuler une sortie qui revient chaque semaine arrête aussi les semaines suivantes (dit dans la confirmation) ; pas de modification d'une sortie après sa publication (on annule et on recrée, les inscrits sont prévenus) ; 5 sorties à venir par personne, et des limites anti-abus (10 créations par 24 h, 30 demandes par 24 h, 30 coucous par heure, 5 idées par 24 h, 30 commentaires par heure) ; pas de notification pour les commentaires d'une idée ; « Mes envies » restent sur le téléphone ; « Qui est là ? » ne montre que le pseudo et l'avatar.
+- **Qui voit une sortie des Miamis** (audit de sécurité, 22 octobre 2026) : l'organisateur et les acceptés, toujours (même après un déménagement) ; une demande ou une place en liste d'attente, ou une invitation d'habitué encore valable, jusqu'à l'heure de la sortie (après, un refus ne se distingue pas d'une demande restée sans réponse) ; tous les autres, seulement une sortie à venir dans leur ville, au lieu publié, ouverte à leur public et sans personne de bloqué dedans. Sinon, « sortie introuvable ».
+
 ## Page « Carrière » (décidé par Hugo le 21 octobre 2026)
 - Offres publiées depuis le logiciel de gestion, affichées sur sosmiam.fr.
 - Types : **bénévolat**, et **freelance ou mission**. Pas encore de structure : ni stage, ni alternance, ni emploi tant qu'il n'y en a pas.
