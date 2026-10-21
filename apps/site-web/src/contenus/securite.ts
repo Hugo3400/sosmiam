@@ -37,7 +37,7 @@ export const perimetreSecurite = {
     "**Avec tes propres comptes seulement.** Pour tester ce qui se passe entre deux personnes (bande, messages, réservations…), crée-toi deux comptes et joue les deux rôles.",
   horsJeuTitre: "Hors jeu",
   horsJeu: [
-    "Le logiciel de gestion de l'équipe.",
+    "Le logiciel de gestion de l'équipe, et ses adresses en /api-gestion/ (même sur sosmiam.fr).",
     "Le bot et le serveur Discord de SOS Miam.",
     "Les services de nos prestataires : Cloudflare, Apple, Google, notre hébergeur et notre messagerie. Ils ont leurs propres programmes : passe par eux.",
     "Tout autre site ou service présent sur la même machine, son adresse IP et ses ports en dehors des adresses listées ici.",

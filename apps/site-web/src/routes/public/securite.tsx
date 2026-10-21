@@ -85,7 +85,8 @@ export async function action({ request }: ActionFunctionArgs): Promise<ReponseSi
   if (resultat.erreur === "trop-d-images" || resultat.erreur === "image-trop-lourde" || resultat.erreur === "image-format") {
     return repondreErreurs({ images: lierPonctuation(ecrireMessageService(resultat.erreur)) }, valeurs, imagesARemettre);
   }
-  return { ok: false, message: lierPonctuation(ecrireMessageService(resultat.erreur)), valeurs, imagesARemettre };
+  const message = resultat.erreur === "stockage-plein" ? messagesSignalement.stockagePlein : ecrireMessageService(resultat.erreur);
+  return { ok: false, message: lierPonctuation(message), valeurs, imagesARemettre };
 }
 
 type Props = { loaderData: Awaited<ReturnType<typeof loader>>; actionData?: ReponseSignalement };

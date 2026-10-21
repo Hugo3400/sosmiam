@@ -138,7 +138,7 @@ test("/securite : titre, périmètre, règles, engagements, récompenses, lien c
   assert.match(html, /<h1[^>]*>Chasse aux bugs<span aria-hidden="true"> 🐞<\/span><\/h1>/);
   assert.match(html, /Dis-le-nous avant les petits malins : on la corrige, et on te remercie\./);
   for (const domaine of ["sosmiam.fr", "ambassadeur.sosmiam.fr", "pro.sosmiam.fr", "api.sosmiam.fr"]) assert.match(html, new RegExp(`<strong[^>]*>${domaine}</strong>`));
-  assert.match(html, /Le logiciel de gestion de l'équipe\./);
+  assert.match(html, /Le logiciel de gestion de l'équipe, et ses adresses en \/api-gestion\//);
   assert.match(html, /Tout autre site ou service présent sur la même machine/);
   assert.match(html, /Pas de déni de service/);
   assert.match(html, /self-XSS/);

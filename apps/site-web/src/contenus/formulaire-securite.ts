@@ -88,4 +88,5 @@ export const messagesSignalement = {
   plusieursChamps: (nombre: number) => `${nombre} champs sont à corriger.`,
   envoyer: "Envoyer mon signalement",
   envoi: "Envoi…",
+  stockagePlein: "Nos placards débordent. On fait un peu de place sur le serveur : réessaie dans un moment, ton signalement nous intéresse.",
 };
