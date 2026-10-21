@@ -1,6 +1,6 @@
 // La session ouverte avec le code à 6 chiffres, gardée sur ce PC, chiffrée par la clé tirée du mot de passe : en rouvrant
 // le logiciel (ou après un verrouillage), le mot de passe suffit tant que la session est valable sur le serveur
-// (24 h sans activité, 7 jours au plus). Le cadenas du menu l'efface : le code est alors redemandé.
+// (30 jours). Le cadenas du menu l'efface : le code est alors redemandé.
 const CLE = "sosmiam-gestion:session";
 
 export type SessionChiffree = { iv: string; chiffre: string };
