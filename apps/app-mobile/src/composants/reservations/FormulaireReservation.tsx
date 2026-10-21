@@ -84,7 +84,7 @@ function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props) {
       <ChoixCreneauReservation groupes={groupes} choisi={f.choix.principal} personnes={f.personnes} delai={f.jours.delai} onChoisir={f.choisirHeure} />
       {f.ajustement ? <Text accessibilityLiveRegion="polite" className="font-texte-semi text-[14px] leading-5 text-encre">{lierPonctuation(f.ajustement)}</Text> : null}
       {f.creneaux.horsLigne ? <Text className="font-texte text-[13px] text-gris">{lierPonctuation(T.horsLigneCourt)}</Text> : null}
-      {f.choix.principal ? (
+      {f.choix.principal && f.jours.source === "api" ? (
         <ChoixHorairesSecours
           groupes={groupes}
           principal={f.choix.principal}

@@ -83,6 +83,7 @@ import { servicesLimitations } from "./services/limitations-comptes.ts";
 import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profil.ts";
 import { creerDepotPhotosProfil } from "./services/photos-profil-base.ts";
 import { creerStockagePhotosProfil } from "./services/stockage-photos-profil.ts";
+import { brancherCarriere } from "./services/carriere.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
 const adresseMedias = (process.env.SOS_MIAM_ADRESSE_MEDIAS || "https://api.sosmiam.fr/app/medias").replace(/\/+$/, "");
@@ -157,6 +158,7 @@ const photosProfil = creerPhotosProfil({
   stockage: creerStockagePhotosProfil(), depot: creerDepotPhotosProfil(), preuves: { chiffrement: socialApp.chiffrement, medias: socialApp.medias },
 });
 brancherPhotosProfil(photosProfil);
+const carriere = brancherCarriere(chiffrement);
 
 const serveur = creerApplication({
   enregistrerInscription,
@@ -263,6 +265,7 @@ const serveur = creerApplication({
   newsletter: { cle: cleDesinscription, clesAnciennes: clesAnciennesDesinscription, trouverInscrit: trouverInscritNewsletter, desinscrire: (id) => desinscrire(id), noterDesinscrit: (email) => noterDesinscription(email) },
   // Potes, profils, masques, pouls et cloche de l'app (routes /app/social, /app/personnes, /app/masques, /app/cloche…)
   socialApp,
+  carriere,
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

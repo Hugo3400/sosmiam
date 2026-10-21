@@ -42,17 +42,18 @@ test("les cadres des pages publiques posent la balise canonique", () => {
 });
 
 test("chaque page publique a une adresse canonique, et la page elle-même ne se met pas en noindex", () => {
-  const publiques = [...pagesIndexees, "/lieux/2810", "/liens", "/programme", "/bienvenue"];
+  const publiques = [...pagesIndexees, "/lieux/2810", "/carriere/moderation-brigade", "/liens", "/programme", "/bienvenue"];
   for (const chemin of publiques) {
     const fichiers = fichiersDe(chemin);
     const sources = fichiers.map(lire);
     const avecCanonique = sources.some((source) => /<LienCanonique\b|<Cadre(Public|Ambassadeur|Pro)\b/.test(source));
     assert.ok(avecCanonique, `${chemin} (${fichiers.join(", ")}) sans adresse canonique`);
     // La fiche d'un lieu ne met « noindex » que quand elle est introuvable (404) : la condition est vérifiée à part
-    if (chemin.startsWith("/lieux/")) continue;
+    if (chemin.startsWith("/lieux/") || chemin.startsWith("/carriere/")) continue;
     for (const [rang, source] of sources.entries()) assert.doesNotMatch(source, /noindex/, `${chemin} : ${fichiers[rang]}`);
   }
   assert.match(lire("routes/public/fiche-lieu.tsx"), /if \(!loaderData\) return \[[^\n]*noindex/);
+  assert.match(lire("routes/public/offre-carriere.tsx"), /if \(!loaderData\) return \[[^\n]*noindex/);
 });
 
 test("adresse canonique : absolue, sans paramètres ni « / » final", () => {

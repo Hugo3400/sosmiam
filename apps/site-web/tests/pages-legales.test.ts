@@ -45,6 +45,7 @@ const ancresHistoriques: Record<string, string[]> = {
     // Partie sociale et Miam Safe (15 octobre 2026)
     "donnees-app", "potes", "messagerie", "signalements-sociaux", "prevenir-un-pote",
     "communaute", "sorties-miamis", "boite-a-idees",
+    "candidatures",
   ],
   "/cookies": ["definition", "aujourd-hui", "cloudflare", "plus-tard", "ton-choix", "navigateur", "contact"],
   "/cgu": [

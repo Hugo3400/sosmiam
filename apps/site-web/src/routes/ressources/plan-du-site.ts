@@ -5,6 +5,7 @@ import { pagesIndexees } from "~/contenus/plan-du-site";
 import { construirePlanDuSite, type AdressePlan } from "~/fonctions/seo/construire-plan-du-site";
 import { HOTE_AMBASSADEUR, HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
 import { LIEUX_NON_INDEXES } from "~/contenus/lieux-non-indexes";
+import { listerOffresCarriere } from "~/services/carriere.server";
 import { listerLieuxDuPlan } from "~/services/lieux.server";
 
 /**
@@ -21,10 +22,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   else if (hote === HOTE_PRO) adresses = [{ adresse: `https://${HOTE_PRO}/bienvenue` }];
   else {
     cache = "public, max-age=300";
-    const lieux = await listerLieuxDuPlan();
-    if (lieux === null) cache = "public, max-age=60";
+    const [lieux, offres] = await Promise.all([listerLieuxDuPlan(), listerOffresCarriere(null, 2000)]);
+    if (lieux === null || offres === null) cache = "public, max-age=60";
     adresses = [
       ...pagesIndexees.map((chemin) => ({ adresse: `https://${site.adresse}${chemin}` })),
+      ...(offres ?? []).map(({ id, publieeLe }) => ({ adresse: `https://${site.adresse}/carriere/${id}`, modifieLe: publieeLe })),
       ...(lieux ?? []).filter(({ id }) => !LIEUX_NON_INDEXES.has(id)).map(({ id, modifieLe }) => ({ adresse: `https://${site.adresse}/lieux/${id}`, modifieLe })),
     ];
   }

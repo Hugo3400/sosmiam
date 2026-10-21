@@ -94,6 +94,11 @@ Au prochain changement, même chemin avec la version 3, et ainsi de suite.
 - La partie sociale (messagerie chiffrée, bande, signalements) se sert des sous-clés de la clé des données : chaque chiffré
   porte la version de sa clé et se relit avec l'une ou l'autre. Confirmé par la session App le 15 octobre 2026 : elle se
   **rechiffre la nuit**, voir « La partie sociale » plus bas (sa ligne compte dans la règle de fin de l'étape 6).
+- Les candidatures de la page « Carrière » (sous-clés `sos-miam/carriere/…` : nom, e-mail, message, lien et CV, fichiers du dossier
+  `/var/lib/sos-miam/candidatures`) : **rechiffrées la nuit**, toutes en une fois (`services/carriere-candidatures.ts`, lancé par
+  `nettoyerCarriere` dans `taches/taches-de-nuit.ts`). Le journal du logiciel dit « Candidatures rechiffrées (changement de clé) » et,
+  s'il y en a, « Candidatures illisibles pendant le rechiffrement », des nombres seulement. Une nuit sans ligne « rechiffrées » : il
+  n'en reste plus. Elles sont de toute façon effacées 6 mois après leur envoi.
 - Les partages de position de Miam Safe (« Prévenir un pote », sous-clé `miam-safe:position`) : **rien à rechiffrer**. Une
   position est effacée au bout d'1 heure au plus (fin ou arrêt du partage), et une position illisible s'affiche comme
   « pas de position », sans erreur.

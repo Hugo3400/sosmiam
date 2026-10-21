@@ -11,6 +11,7 @@ import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-cren
 import { decrireStatutReservation } from "~/fonctions/reservations/decrire-statut-reservation";
 import { doitPrevenirAlcoolReservation } from "~/fonctions/reservations/doit-prevenir-alcool-reservation";
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
+import { lireHorairesReservation } from "~/fonctions/reservations/lire-horaires-reservation";
 import couleurs from "~/theme/couleurs";
 
 type Props = {
@@ -20,7 +21,7 @@ type Props = {
 };
 
 export function ApercuReservation({ reservation, maintenantMs, onPress }: Props) {
-  const creneau = decrireCreneauReservation(reservation.creneau, maintenantMs);
+  const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs);
   const etiquette = decrireStatutReservation(reservation, maintenantMs);
   const personnes = ecrireNombrePersonnes(reservation.personnes);
   const alcool = doitPrevenirAlcoolReservation(reservation.lieu.type, reservation.message);

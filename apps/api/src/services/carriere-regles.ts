@@ -15,6 +15,7 @@ export const STATUTS_CANDIDATURE: readonly StatutCandidature[] = ["nouvelle", "l
 export const CANDIDATURES_PAR_LISTE = 500;
 export const FICHIERS_PAR_PASSAGE = 200;
 export const TEXTE_ILLISIBLE = "🔒 Illisible (clé de chiffrement absente)";
+export const FORME_ID_CANDIDATURE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 export type OffreEnBase = DonneesOffreCarriere & {
   id: number;
@@ -80,7 +81,10 @@ export type ErreurDepotCandidature =
   | "chiffrement-indisponible"
   | "stockage-plein";
 
-export type ResultatDepotCandidature = { ok: true } | { ok: false; erreur: ErreurDepotCandidature; reessayerDans?: number };
+export type ResultatDepotCandidature =
+  | { ok: true }
+  | { ok: false; erreur: ErreurDepotCandidature; reessayerDans?: number }
+  | { ok: false; erreur: "champ-invalide"; champ: string };
 
 export type ResultatOffreGestion =
   | { ok: true; offre: OffreCarriereGestion }
@@ -102,7 +106,7 @@ export type BilanMenageCarriere = {
 export type ServicesCarrierePublics = {
   listerOffresPubliees: () => Promise<OffreCarriere[]>;
   lireOffrePubliee: (id: string) => Promise<OffreCarriere | null>;
-  deposerCandidature: (offreId: string, candidature: NouvelleCandidature, maintenant: Date) => Promise<ResultatDepotCandidature>;
+  deposerCandidature: (offreId: string, candidature: NouvelleCandidature, maintenant?: Date) => Promise<ResultatDepotCandidature>;
 };
 
 export type ServicesCarriereGestion = {

@@ -180,7 +180,15 @@ export function EcranReglagesReservations({ lieu }: Props) {
       </ScrollView>
 
       {modifiable ? (
-        <PiedReglagesReservations modifie={brouillon.modifie} enregistrement={enregistrement.enCours} onToutAnnuler={brouillon.toutAnnuler} onEnregistrer={() => void enregistrement.demander()} />
+        <PiedReglagesReservations
+          modifie={brouillon.modifie}
+          enregistrement={enregistrement.enCours}
+          onToutAnnuler={() => {
+            brouillon.toutAnnuler();
+            enregistrement.oublierErreur();
+          }}
+          onEnregistrer={() => void enregistrement.demander()}
+        />
       ) : null}
 
       <FeuilleServiceReservation

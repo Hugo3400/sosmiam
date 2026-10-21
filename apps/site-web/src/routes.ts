@@ -7,6 +7,8 @@ export default [
     index("routes/public/accueil.tsx"),
     route("faq", "routes/public/faq.tsx"),
     route("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
+    route("carriere", "routes/public/carriere.tsx"),
+    route("carriere/:id", "routes/public/offre-carriere.tsx"),
     // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)

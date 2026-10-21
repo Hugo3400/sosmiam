@@ -32,6 +32,8 @@ import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
 import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
 import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
 import { decrireBilanMenageCommunaute } from "../fonctions/communaute/decrire-bilan-menage-communaute.ts";
+import { faireLeMenageCarriere } from "../services/carriere.ts";
+import { decrireBilanMenageCarriere } from "../fonctions/carriere/decrire-bilan-menage-carriere.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -170,6 +172,15 @@ async function nettoyerCommunaute() {
   }
 }
 
+async function nettoyerCarriere() {
+  try {
+    const bilan = await faireLeMenageCarriere();
+    for (const [nombre, quoi] of decrireBilanMenageCarriere(bilan)) await noterAction("serveur", quoi, `${nombre}`);
+  } catch (erreur) {
+    console.error("Ménage des candidatures impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerPhotosAvis() {
   try {
     const effacees = await faireLeMenagePhotosAvis();
@@ -196,6 +207,7 @@ async function nettoyerPuisSauvegarder() {
   await nettoyerCommunaute();
   await nettoyerPhotosProfil();
   await nettoyerPhotosAvis();
+  await nettoyerCarriere();
   await prevenirLesComptesInactifs();
   await rechiffrerLesComptes();
   await sauvegarder();

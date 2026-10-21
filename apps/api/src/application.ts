@@ -56,6 +56,8 @@ import type { Vue } from "./services/mesure.ts";
 import type { ServicesZones } from "./services/zones-fondateurs.ts";
 import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/social-app.ts";
 import { creerRoutesPhotosProfil } from "./routes/photos-profil.ts";
+import { creerRoutesCarriere } from "./routes/carriere.ts";
+import type { ServicesCarrierePublics } from "./services/carriere-regles.ts";
 
 type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
@@ -120,6 +122,7 @@ type Dependances = {
    * messagerie, sorties, listes, commentaires et signalements sociaux (routes /app/social, /app/personnes, /app/masques,
    * /app/cloche… ; seulement avec `comptes`). Les commentaires se liront sans session */
   socialApp?: DependancesSocialApp;
+  carriere?: ServicesCarrierePublics;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -139,6 +142,7 @@ export function creerApplication({
   defisApp,
   connexionQr,
   socialApp,
+  carriere,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -151,6 +155,7 @@ export function creerApplication({
   if (comptes) application.use(PREFIXES_COMPTES, interdireCache, express.json({ limit: "16kb" }));
   // Un avis peut faire 1 000 caractères pleins d'accents ou d'emojis : un peu plus de marge
   if (comptes && avisApp) application.use("/app/avis", express.json({ limit: "8kb" }));
+  if (carriere) application.use("/carriere", creerRoutesCarriere(carriere));
   application.use(express.json({ limit: "4kb" }));
 
   application.get("/sante", (_requete, reponse) => {

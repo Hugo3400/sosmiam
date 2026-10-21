@@ -32,7 +32,7 @@ export function utiliserFormulaireReservation(lieu: Lieu, maintenantMs: number) 
   const jour = jourVoulu && jours.jours.some((j) => j.jour === jourVoulu) ? jourVoulu : premierOuvert;
   const creneaux = utiliserCreneauxReservation(lieu.id, jour, personnesLues, relecture);
   const [choixDuJour, setChoixDuJour] = useState<ChoixDuJour>({ jour: null, ...AUCUN_CHOIX });
-  const choix: ChoixHoraires = choixDuJour.jour === jour ? choixDuJour : AUCUN_CHOIX;
+  const choix: ChoixHoraires = choixDuJour.jour !== jour ? AUCUN_CHOIX : jours.source === "api" ? choixDuJour : { principal: choixDuJour.principal, secours: [] };
   const setChoix = (suivant: ChoixHoraires) => setChoixDuJour({ jour, ...suivant });
   const [planBOuvert, setPlanBOuvert] = useState(false);
   const [ajustement, setAjustement] = useState<string | null>(null);
