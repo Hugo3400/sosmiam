@@ -175,9 +175,49 @@ test("limite : 10 demandes par compte et par heure pour relier et délier ensemb
   assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton: autre, corps: avecMotDePasse(jetonGoogle("g-limite")) })).statut, 200);
 });
 
+test("relier avec mot de passe : une session seule ne suffit plus (session volée), et la même attente que « Mon compte »", async () => {
+  const email = "session-volee@exemple.fr";
+  const jeton = await creerCompteSite(email);
+  const seule = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: jetonApple("a-voleur", "voleur@icloud.com") });
+  assert.deepEqual([seule.statut, seule.corps.erreur, seule.corps.champ], [400, "champ-invalide", "confirmation"]);
+  const vide = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: { ...jetonApple("a-voleur"), motDePasse: "" } });
+  assert.deepEqual([vide.statut, vide.corps.champ], [400, "confirmation"]);
+  const parJeton = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: { ...jetonApple("a-voleur"), confirmation: jetonGoogle("g-voleur") } });
+  assert.deepEqual([parJeton.statut, parJeton.corps.champ], [400, "confirmation"], "un jeton ne remplace pas le mot de passe");
+  const statuts: number[] = [];
+  for (let i = 0; i < 5; i++) {
+    statuts.push((await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: { ...jetonApple("a-voleur"), motDePasse: "pas le bon du tout" } })).statut);
+  }
+  assert.deepEqual(statuts, [403, 403, 403, 403, 403]);
+  const patiente = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: avecMotDePasse(jetonApple("a-voleur")) });
+  assert.deepEqual([patiente.statut, patiente.corps.erreur, patiente.corps.attente > 0], [429, "trop-de-demandes", true]);
+  const change = await demander("POST", "/comptes/moi/mot-de-passe", { jeton, corps: { actuel: MOT_DE_PASSE, nouveau: "une toute nouvelle phrase" } });
+  assert.equal(change.statut, 429, "même attente que changer de mot de passe");
+  assert.equal(trouver(email)?.appleSub ?? null, null, "rien n'est relié");
+  assert.equal((await demander("POST", "/comptes/apple", { corps: jetonApple("a-voleur", "voleur@icloud.com") })).corps.erreur, "profil-a-completer", "son Apple n'ouvre pas ce compte");
+});
+
+test("relier sans mot de passe : un NOUVEAU jeton de l'autre fournisseur, à part dans « confirmation » avec son propre nonce", async () => {
+  const cree = await demander("POST", "/comptes/google", { corps: { ...jetonGoogle("g-sans", "sans@gmail.com"), ...PROFIL } });
+  assert.equal(cree.statut, 201);
+  const jeton = cree.corps.session as string;
+  const relierApple = (corps: Record<string, unknown>) => demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: { ...jetonApple("a-sans"), ...corps } });
+  for (const corps of [{}, { motDePasse: "nimporte quoi du tout" }, { confirmation: jetonApple("a-sans") }, jetonGoogle("g-sans"), { confirmation: "g-sans" }]) {
+    const refus = await relierApple(corps);
+    assert.deepEqual([refus.statut, refus.corps.champ], [400, "confirmation"], JSON.stringify(Object.keys(corps)));
+  }
+  const autreGoogle = await relierApple({ confirmation: jetonGoogle("g-inconnu") });
+  assert.deepEqual([autreGoogle.statut, autreGoogle.corps.erreur], [403, "confirmation-incorrecte"]);
+  assert.equal(trouver("sans@gmail.com")?.appleSub ?? null, null);
+  const nonceGoogle = "nonce-a-part-pour-google-02";
+  const bon = await relierApple({ confirmation: { idToken: google.jeton("g-sans", "sans@gmail.com", nonceGoogle), nonce: nonceGoogle } });
+  assert.deepEqual(bon.corps, { ok: true, connexions: { motDePasse: false, apple: true, google: true } });
+  assert.equal(trouver("sans@gmail.com")?.appleSub, "a-sans");
+});
+
 test("journaux : jamais de jeton, d'e-mail ni de « sub »", () => {
   const tout = journaux.join("\n");
-  for (const interdit of ["@exemple.fr", "@gmail.com", "privaterelay", "g-relier", "a-relier", "g-pris", "a-seul", "eyJ"]) {
+  for (const interdit of ["@exemple.fr", "@gmail.com", "privaterelay", "g-relier", "a-relier", "g-pris", "a-seul", "a-voleur", "g-sans", "eyJ"]) {
     assert.ok(!tout.includes(interdit), `les journaux ne contiennent pas « ${interdit} »`);
   }
 });

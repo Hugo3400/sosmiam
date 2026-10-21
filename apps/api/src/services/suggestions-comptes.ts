@@ -22,6 +22,7 @@ export async function creerSuggestionLieu(
   compteId: number, { lieuId, proposition, avant, message }: NouvelleSuggestionCompte, maintenant = new Date(),
 ): Promise<ResultatSuggestionCompte> {
   return baseDeDonnees.$transaction(async (transaction) => {
+    await transaction.$queryRaw`SELECT id FROM comptes WHERE id = ${compteId} FOR NO KEY UPDATE`;
     const [duJour, enAttente] = await Promise.all([
       transaction.suggestionLieu.count({ where: { compteId, creeLe: { gt: new Date(maintenant.getTime() - UN_JOUR) } } }),
       transaction.suggestionLieu.count({ where: { compteId, lieuId, statut: "en-attente" } }),
