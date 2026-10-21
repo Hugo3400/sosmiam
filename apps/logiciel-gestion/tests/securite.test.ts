@@ -65,3 +65,35 @@ test("la session gardée sur le PC ne se relit qu'avec la clé du bon mot de pas
   const { cleCoffre: autre } = await creerClePoste("un autre mot de passe");
   await assert.rejects(() => dechiffrerTexte(autre, gardee));
 });
+
+test("mot de passe retenu : un coffre existant s'ouvre avec les octets tirés du mot de passe, jamais avec d'autres", async () => {
+  const { deriverOctetsMotDePasse } = await import("../src/fonctions/securite/deriver-octets-mot-de-passe.ts");
+  const { ouvrirCoffreAvecOctets } = await import("../src/fonctions/securite/ouvrir-coffre-avec-octets.ts");
+  const { coffre } = await creerClePoste("mot de passe retenu");
+  const octets = await deriverOctetsMotDePasse("mot de passe retenu", decoderBase64Url(coffre.sel), coffre.iterations);
+  assert.equal(octets.length, 32);
+  const { cleSecrete } = await ouvrirCoffreAvecOctets(coffre, octets);
+  const message = "SOSMIAM-GESTION-1\nGET\n/tableau-de-bord\n1\nnonce\n-\ne3b0";
+  const signature = await signerMessage(cleSecrete, message);
+  const clePublique = createPublicKey({ key: { kty: "OKP", crv: "Ed25519", x: coffre.clePublique }, format: "jwk" });
+  assert.ok(verify(null, Buffer.from(message), clePublique, Buffer.from(signature, "base64url")));
+  const mauvais = await deriverOctetsMotDePasse("pas le bon", decoderBase64Url(coffre.sel), coffre.iterations);
+  await assert.rejects(() => ouvrirCoffreAvecOctets(coffre, mauvais));
+});
+
+test("mot de passe retenu : 5 jours au plus, et une durée expirée est oubliée", async () => {
+  const memoire = new Map<string, string>();
+  (globalThis as { localStorage?: unknown }).localStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  const { ecrireDeverrouillageRetenu, lireDeverrouillageRetenu, DUREE_RETENUE_MAX_MS, CHOIX_RETENUE } = await import("../src/stockage/deverrouillage-retenu.ts");
+  assert.ok(CHOIX_RETENUE.every((c) => c.heures * 3600_000 <= DUREE_RETENUE_MAX_MS));
+  const maintenant = Date.now();
+  ecrireDeverrouillageRetenu({ protegee: "x", expireLe: maintenant + 3600_000 });
+  assert.ok(lireDeverrouillageRetenu(maintenant));
+  assert.equal(lireDeverrouillageRetenu(maintenant + 2 * 3600_000), null);
+  ecrireDeverrouillageRetenu({ protegee: "x", expireLe: maintenant + DUREE_RETENUE_MAX_MS + 60_000 });
+  assert.equal(lireDeverrouillageRetenu(maintenant), null);
+});
