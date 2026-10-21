@@ -5,6 +5,6 @@ import { utiliserAccesMiamis } from "~/hooks/utiliser-acces-miamis";
 
 export default function Genre() {
   const acces = utiliserAccesMiamis();
-  if (!acces.ouvert) return <EcranMiamisFerme raison={acces.raison} titre={TEXTES_GENRE.titre} />;
+  if (!acces.ouvert) return <EcranMiamisFerme raison={acces.raison} titre={TEXTES_GENRE.titre} retourSansHistorique="/reglages/profil" />;
   return <ReglageGenre />;
 }
