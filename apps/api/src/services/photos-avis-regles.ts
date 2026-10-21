@@ -5,7 +5,7 @@ import type { Signalement } from "../base-de-donnees/client-genere/client.ts";
 
 const HEURE_MS = 3600_000;
 
-export const TAILLE_MAX_PHOTO_AVIS = 6 * 1024 * 1024;
+export const TAILLE_MAX_PHOTO_AVIS = 5 * 1024 * 1024;
 export const COTE_MAX_PHOTO_AVIS = COTE_MAX_PHOTO_CHAT;
 export const DELAI_UTILISATION_PHOTO_AVIS_MS = 24 * HEURE_MS;
 export const DELAI_MENAGE_PHOTO_AVIS_MS = 25 * HEURE_MS;

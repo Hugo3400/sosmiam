@@ -34,7 +34,7 @@ export default function AjouterPote() {
   const [enCours, setEnCours] = useState(false);
   const [lienColle, setLienColle] = useState("");
   const [retour, setRetour] = useState<RetourAjout | null>(null);
-  // Ouvert par un lien d'invitation (sosmiam.fr/invitation/…) : on l'ajoute tout de suite, comme un lien collé
+  // Ouvert par un lien d'invitation (sosmiam.fr/invitation/…) : rien ne se fait sans « Rejoindre sa bande » ou « Envoyer la demande »
   const { lien } = useLocalSearchParams<{ lien?: string }>();
   const lienTraite = useRef(false);
   const [aConfirmer, setAConfirmer] = useState<{ lien: string; pseudo: string; avecCode: boolean } | null>(null);

@@ -29,13 +29,14 @@ test("en ligne : scripts du site et du nonce de la page seulement, ni eval ni sc
   }
 });
 
-test("en développement : eval et rechargement à chaud de Vite (ws:) en plus, le reste ne bouge pas", () => {
+test("en développement : seulement la websocket du rechargement à chaud de Vite (ws:) en plus, ni eval ni script en ligne", () => {
   const enLigne = lireDirectives(creerEntetesSecurite("YWJj", false)["Content-Security-Policy"]);
   const developpement = lireDirectives(creerEntetesSecurite("YWJj", true)["Content-Security-Policy"]);
-  assert.deepEqual(developpement.get("script-src"), ["'self'", "'nonce-YWJj'", "'unsafe-eval'"]);
   assert.deepEqual(developpement.get("connect-src"), ["'self'", "ws:"]);
+  assert.deepEqual(developpement.get("script-src"), ["'self'", "'nonce-YWJj'"]);
+  assert.deepEqual([...developpement.keys()], [...enLigne.keys()]);
   for (const nom of enLigne.keys()) {
-    if (nom !== "script-src" && nom !== "connect-src") assert.deepEqual(developpement.get(nom), enLigne.get(nom), nom);
+    if (nom !== "connect-src") assert.deepEqual(developpement.get(nom), enLigne.get(nom), nom);
   }
 });
 

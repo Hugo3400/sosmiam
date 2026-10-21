@@ -1,10 +1,12 @@
 import { decoderNomPdf } from "./decoder-nom-pdf.ts";
 
-const NOM = /\/([^\x00\t\n\f\r ()<>[\]{}/%]*)/g;
+const FIN_DE_NOM = new Uint8Array(256);
+for (const c of "\x00\t\n\f\r ()<>[]{}/%") FIN_DE_NOM[c.charCodeAt(0)] = 1;
 const BLANCS = new Set(["\x00", "\t", "\n", "\f", "\r", " "]);
 const NOMS_ACTIFS: ReadonlySet<string> = new Set([
   "JavaScript", "Launch", "EmbeddedFile", "EmbeddedFiles", "RichMedia", "XFA", "GoToE", "GoToR", "SubmitForm", "ImportData", "OnInstantiate",
 ]);
+const LONGUEUR_ECRITE_MAX = 3 * Math.max(...[...NOMS_ACTIFS].map((nom) => nom.length));
 
 function suitUnCodeJs(texte: string, i: number): boolean {
   while (i < texte.length) {
@@ -17,10 +19,14 @@ function suitUnCodeJs(texte: string, i: number): boolean {
 }
 
 export function chercherContenuActifPdf(texte: string): boolean {
-  for (const trouve of texte.matchAll(NOM)) {
-    const nom = decoderNomPdf(trouve[1]!);
-    if (NOMS_ACTIFS.has(nom)) return true;
-    if (nom === "JS" && suitUnCodeJs(texte, trouve.index + trouve[0].length)) return true;
+  for (let i = texte.indexOf("/"); i >= 0; i = texte.indexOf("/", i)) {
+    let fin = i + 1;
+    while (fin < texte.length && FIN_DE_NOM[texte.charCodeAt(fin)] !== 1) fin++;
+    if (fin - i - 1 >= 2 && fin - i - 1 <= LONGUEUR_ECRITE_MAX) {
+      const nom = decoderNomPdf(texte.slice(i + 1, fin));
+      if (NOMS_ACTIFS.has(nom) || (nom === "JS" && suitUnCodeJs(texte, fin))) return true;
+    }
+    i = fin;
   }
   return false;
 }

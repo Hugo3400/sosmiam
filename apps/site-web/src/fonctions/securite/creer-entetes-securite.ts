@@ -17,11 +17,10 @@ const PERMISSIONS: Record<string, string> = {
 };
 
 export function creerEntetesSecurite(nonce: string, developpement: boolean): Record<string, string> {
-  const scripts = ["'self'", `'nonce-${nonce}'`, ...(developpement ? ["'unsafe-eval'"] : [])];
   const connexions = ["'self'", ...(developpement ? ["ws:"] : [])];
   const politique = [
     "default-src 'self'",
-    `script-src ${scripts.join(" ")}`,
+    `script-src 'self' 'nonce-${nonce}'`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self'",
     "font-src 'self'",

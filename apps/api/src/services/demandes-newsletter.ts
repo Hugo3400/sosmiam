@@ -32,7 +32,7 @@ export function creerDemandesNewsletter({ depot, envoyerLien, estDesinscrit, hor
     if (choix === "attendre") return;
     const jeton = creerJeton();
     const nouvelle: NouvelleAttenteConfirmation = {
-      email, ville, ambassadeur, telephone, beta, source,
+      email, ville: ville || null, ambassadeur, telephone, beta, source,
       jetonEmpreinte: calculerEmpreinteJeton(jeton),
       envoyeLe: maintenant,
       expireLe: new Date(maintenant.getTime() + DUREE_LIEN_CONFIRMATION_NEWSLETTER),

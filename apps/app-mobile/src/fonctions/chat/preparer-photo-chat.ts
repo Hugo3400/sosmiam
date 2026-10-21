@@ -1,11 +1,13 @@
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { ImageManipulator } from "expo-image-manipulator";
+
+import { compresserPhoto } from "~/fonctions/photos/compresser-photo";
 
 /** Le plus grand côté d'une photo envoyée dans le chat */
 const COTE_MAX = 2048;
 
 /**
  * Prépare une photo avant de l'envoyer dans le chat : redressée (l'orientation de l'appareil photo est appliquée), réduite à
- * 2 048 px au plus grand côté, en JPEG à 0,7, et réécrite sans ses métadonnées (position GPS, appareil…). Le serveur les
+ * 2 048 px au plus grand côté, en JPEG d'1 Mo au plus, et réécrite sans ses métadonnées (position GPS, appareil…). Le serveur les
  * retire de toute façon : c'est pour envoyer moins lourd et ne rien laisser partir. Rend l'adresse du fichier préparé.
  */
 export async function preparerPhotoChat(uri: string): Promise<{ uri: string; largeur: number; hauteur: number }> {
@@ -16,6 +18,5 @@ export async function preparerPhotoChat(uri: string): Promise<{ uri: string; lar
     contexte.resize(avant.width >= avant.height ? { width: COTE_MAX } : { height: COTE_MAX });
   }
   const image = grand > COTE_MAX ? await contexte.renderAsync() : avant;
-  const resultat = await image.saveAsync({ compress: 0.7, format: SaveFormat.JPEG });
-  return { uri: resultat.uri, largeur: resultat.width, hauteur: resultat.height };
+  return compresserPhoto(image, [1, 0.75, 0.5]);
 }

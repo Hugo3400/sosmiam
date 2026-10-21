@@ -81,7 +81,7 @@ test("preparerPhotoAvis : 320 px au moins de petit côté, sinon pas de +10 pour
 test("6 Mo pile : 201 (le remplissage après la fin de l'image est jeté) ; un octet de plus : 413", async () => {
   const lea = await b.creerCompte();
   const pile = Buffer.concat([PHOTO, Buffer.alloc(TAILLE_MAX_PHOTO_AVIS - PHOTO.length, 0x47)]);
-  assert.equal(pile.length, 6 * 1024 * 1024);
+  assert.equal(pile.length, 5 * 1024 * 1024);
   const r = await envoyer(lea.jeton, pile);
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   assert.deepEqual(b.stockage.fichiers.get(r.corps!.photo)!.octets, retirerMetadonneesJpeg(PHOTO));

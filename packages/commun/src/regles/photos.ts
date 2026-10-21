@@ -1,0 +1,1 @@
+export const POIDS_MAX_PHOTO_ENVOYEE = 1024 * 1024;
