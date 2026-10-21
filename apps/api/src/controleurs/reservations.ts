@@ -7,7 +7,7 @@ import type { DemandeReservation } from "../../../../packages/commun/src/types/r
 import { estLecturePositionValide } from "../../../../packages/commun/src/validation/est-lecture-position-valide.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import { creerReservationsClient } from "../services/reservations-client.ts";
-import { brancherReponsesReservations, creerPrevenirNouvellesTables } from "../services/reponses-reservations.ts";
+import { brancherReponsesReservations, creerPrevenirNouvellesTables, creerPrevenirTablesAnnulees } from "../services/reponses-reservations.ts";
 import type { EchecReservation, ErreurReservation } from "../services/reservations-regles.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 import { champInvalide, poserPoints, type DependancesVisites } from "./visites.ts";
@@ -43,6 +43,7 @@ function lirePersonnes(brut: unknown, defaut: number | null): number | null {
 export function creerControleursReservations(d: DependancesVisites, horloge: () => number) {
   const reservations = creerReservationsClient({ ...d, depot: brancherReponsesReservations(d, horloge).depot, horloge });
   const prevenirNouvelleTable = d.prevenirCompte ? creerPrevenirNouvellesTables(d.prevenirCompte, horloge) : () => {};
+  const prevenirTableAnnulee = d.prevenirCompte ? creerPrevenirTablesAnnulees(d.prevenirCompte, horloge) : () => {};
   /** Rend { ok, … } (sans les points, déjà posés) ou le refus */
   const rendre = (reponse: Response, r: ({ ok: true } & Record<string, unknown>) | EchecReservation, statut = 200) => {
     if (!r.ok) return repondreEchecReservation(reponse, r);
@@ -106,7 +107,12 @@ export function creerControleursReservations(d: DependancesVisites, horloge: () 
     /** POST /app/reservations/:id/annuler */
     async annuler(requete: Request, reponse: Response) {
       const id = lireId(requete, reponse);
-      if (id !== null) rendre(reponse, await reservations.annulerReservation(lireCompteId(reponse), id));
+      if (id === null) return;
+      const r = await reservations.annulerReservation(lireCompteId(reponse), id);
+      if (!r.ok) return repondreEchecReservation(reponse, r);
+      const { tableAnnulee, ...corpsReponse } = r;
+      rendre(reponse, corpsReponse);
+      if (tableAnnulee) prevenirTableAnnulee(tableAnnulee);
     },
 
     /** POST /app/reservations/:id/presence { position } */

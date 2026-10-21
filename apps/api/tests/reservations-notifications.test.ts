@@ -227,3 +227,19 @@ test("textes : aujourd'hui, ce soir, demain ou la date, toujours à l'heure de P
     lien: LIEN,
   });
 });
+
+test("un client annule une table acceptée : l'équipe est prévenue une fois (place à redonner) ; rien pour une simple demande ni pour le client", async () => {
+  const serveur = await equipe();
+  const lea = await b.creerCompte();
+  const acceptee = await reserver(lea.jeton);
+  assert.equal((await geste(acceptee, "accepter", serveur.jeton)).statut, 200);
+  const sam = await b.creerCompte({ prenom: "Sam" });
+  const demande = await reserver(sam.jeton, { heure: "21:00" });
+  await b.attendreEnvois();
+  b.prevenus.length = 0;
+  assert.equal((await b.demander("POST", `/app/reservations/${acceptee}/annuler`, lea.jeton)).statut, 200);
+  assert.equal((await b.demander("POST", `/app/reservations/${demande}/annuler`, sam.jeton)).statut, 200);
+  assert.deepEqual(await prevenus(), [
+    { compteId: serveur.id, titre: "Une table se libère 🪑", texte: "Chez Léa : 2 gourmands annulent leur table ce soir à 20h. De la place à redonner !", lien: "/pro/reservations" },
+  ]);
+});

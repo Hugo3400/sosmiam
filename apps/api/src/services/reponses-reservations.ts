@@ -1,6 +1,7 @@
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
 import { ecrireNotificationNouvelleTable } from "../fonctions/reservations/ecrire-notification-nouvelle-table.ts";
 import { ecrireNotificationReservation } from "../fonctions/reservations/ecrire-notification-reservation.ts";
+import { ecrireNotificationTableAnnulee } from "../fonctions/reservations/ecrire-notification-table-annulee.ts";
 import type { MessagePush } from "./notifications/expedier-push.ts";
 import type { LigneReservation, NouvelleTable, ReponseReservation } from "./reservations-regles.ts";
 import type { DepotVisites, TablesVisites } from "./visites-regles.ts";
@@ -8,6 +9,7 @@ import type { DepotVisites, TablesVisites } from "./visites-regles.ts";
 export type PrevenirCompte = (compteId: number, message: MessagePush) => Promise<void>;
 export type PrevenirReponses = (reponses: readonly ReponseReservation[]) => void;
 export type PrevenirNouvelleTable = (table: NouvelleTable) => void;
+export type PrevenirTableAnnulee = (table: NouvelleTable) => void;
 
 export function creerPrevenirReponses(prevenirCompte: PrevenirCompte, horloge: () => number): PrevenirReponses {
   return (reponses) => {
@@ -36,6 +38,22 @@ export function creerPrevenirNouvellesTables(prevenirCompte: PrevenirCompte, hor
       for (const [compteId, message] of envois) {
         prevenirCompte(compteId, message).catch((erreur: unknown) => {
           console.error("Réservations : nouvelle table non annoncée :", resumerErreur(erreur));
+        });
+      }
+    });
+  };
+}
+
+export function creerPrevenirTablesAnnulees(prevenirCompte: PrevenirCompte, horloge: () => number): PrevenirTableAnnulee {
+  return ({ reservation: r, lieu, equipe }) => {
+    const maintenant = new Date(horloge());
+    const destinataires = equipe.filter((id) => id !== r.compteId);
+    if (destinataires.length === 0) return;
+    const message = ecrireNotificationTableAnnulee(r, lieu, maintenant);
+    setImmediate(() => {
+      for (const compteId of destinataires) {
+        prevenirCompte(compteId, message).catch((erreur: unknown) => {
+          console.error("Réservations : table annulée non annoncée :", resumerErreur(erreur));
         });
       }
     });

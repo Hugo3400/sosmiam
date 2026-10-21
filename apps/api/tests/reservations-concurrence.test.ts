@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { after, before, beforeEach, test } from "node:test";
+import { after, before, beforeEach, mock, test } from "node:test";
 
 import type { TablesVisites } from "../src/services/visites-regles.ts";
 import { creerPassageExpirationReservations } from "../src/taches/expirer-reservations.ts";
 import { creerBancVisites, SUR_PLACE } from "./outils/creer-banc-visites.ts";
+
+mock.method(console, "log", () => {});
 
 let b: Awaited<ReturnType<typeof creerBancVisites>>;
 before(async () => { b = await creerBancVisites(); });

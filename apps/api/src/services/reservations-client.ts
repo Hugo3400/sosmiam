@@ -146,7 +146,7 @@ export function creerReservationsClient(c: ContexteVisites) {
     },
 
     /** POST /app/reservations/:id/annuler : moins de 2 h avant le créneau, l'annulation d'une réservation acceptée est tardive */
-    annulerReservation(compteId: number, id: number): Promise<Reponse<{ reservation: Reservation }>> {
+    annulerReservation(compteId: number, id: number): Promise<Reponse<{ reservation: Reservation; tableAnnulee: NouvelleTable | null }>> {
       return c.depot.ecrire(async (t) => {
         const maintenant = o.maintenant();
         await t.verrouillerCompte(compteId);
@@ -157,7 +157,9 @@ export function creerReservationsClient(c: ContexteVisites) {
         if (!r) return o.echec("introuvable");
         const decision = await deciderReservation(t, r, { type: "annuler-client" }, maintenant, null);
         if (!decision.ok) return o.echec(decision.erreur);
-        return { ok: true, reservation: await presenter(t, decision.reservation) };
+        const lieu = r.statut === "acceptee" ? await t.lireLieu(r.lieuId, maintenant) : null;
+        const tableAnnulee = lieu ? { reservation: decision.reservation, lieu: o.resumer(lieu), equipe: await t.listerEquipeLieu(r.lieuId) } : null;
+        return { ok: true, reservation: await presenter(t, decision.reservation), tableAnnulee };
       });
     },
 
