@@ -66,6 +66,8 @@ import { lirePhotoAvisGestion, listerAvisARelire } from "./avis-a-relire.ts";
 import { deciderAvis } from "./decisions-avis.ts";
 import { listerLimitationsEnCours } from "./limitations-gestion.ts";
 import { lirePhotoProfilPourEquipe } from "../photos-profil.ts";
+import { changerStatutIdee, choisirIdeeDuMois, listerEtiquettesLibres, listerIdeesGestion, masquerCommentaireIdee, repondreIdee, retirerEtiquetteLibre, retirerSortieMiamis, supprimerIdee } from "../communaute-gestion.ts";
+import { listerCommentairesIdeeGestion } from "./communaute-lectures.ts";
 import { creerAnnonceApp, listerAnnoncesAppGestion, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp } from "./annonces-app-gestion.ts";
 import { prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue } from "../courriels/courriels-limitations.ts";
 import { lireBilanMois } from "./bilan-mois.ts";
@@ -102,7 +104,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
-  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, lirePhotoAvisGestion, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
+  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, lirePhotoAvisGestion, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerIdeesGestion, listerCommentairesIdeeGestion, changerStatutIdee, repondreIdee, choisirIdeeDuMois, supprimerIdee, masquerCommentaireIdee, listerEtiquettesLibres, retirerEtiquetteLibre, retirerSortieMiamis, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

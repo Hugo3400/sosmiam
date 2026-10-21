@@ -563,3 +563,7 @@
 - Types : **bénévolat**, et **freelance ou mission**. Pas encore de structure : ni stage, ni alternance, ni emploi tant qu'il n'y en a pas.
 - Candidature par un formulaire sur le site : nom, e-mail, message, CV en **PDF seulement, 5 Mo au plus**, vérifié, gardé chiffré, ouvert seulement dans le logiciel.
 - Une candidature est effacée **6 mois** après son envoi, dans tous les cas.
+- **Bénévolat** : modération (avec la Brigade, depuis le logiciel) et réseaux sociaux (TikTok, Instagram, Discord). À son rythme, sans minimum d'heures. En échange : un badge « Brigade » dans l'app et un rôle sur le Discord, une attestation de bénévolat, et son nom au générique (page « Merci à la Brigade » ou crédits).
+- **Freelance ou mission** : graphisme et illustration, vidéo et montage, développement. Rémunération « sur devis » : pas de montant affiché, la personne propose son tarif.
+- **À distance, partout en France.** Candidature **dès 18 ans**.
+- **Diffusion** : la page Carrière du site (lien dans le pied de page) et l'app (lien « On recrute »).

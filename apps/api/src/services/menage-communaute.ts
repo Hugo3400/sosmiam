@@ -9,6 +9,7 @@ export type BilanMenageCommunaute = {
   sorties: number;
   invitations: number;
   demandes: number;
+  retires: number;
   genresRechiffres: number;
   genresIllisibles: number;
 };
@@ -48,9 +49,13 @@ export async function faireLeMenageCommunaute(o: { chiffrement: ChiffrementDonne
     where: { statut: { in: ["demande", "attente", "refuse", "renonce", "invite"] }, sortie: { quand: { lt: maintenant } } },
   });
   const sorties = await base.sortieDesMiamis.deleteMany({ where: { quand: { lt: il(JOURS_CONSERVATION_SORTIES_MIAMIS * 24) } } });
+  const ilYAUnAn = il(JOURS_CONSERVATION_SORTIES_MIAMIS * 24);
+  const commentairesRetires = await base.commentaireIdeeCommunaute.deleteMany({ where: { retireLe: { lt: ilYAUnAn } } });
+  const ideesRetirees = await base.ideeCommunaute.deleteMany({ where: { retireeLe: { lt: ilYAUnAn } } });
   const genres = await rechiffrerGenres(o.chiffrement, base);
   return {
     presences: presences.count, coucous: coucous.count, sorties: sorties.count, invitations: invitations.count, demandes: demandes.count,
+    retires: commentairesRetires.count + ideesRetirees.count,
     genresRechiffres: genres.rechiffres, genresIllisibles: genres.illisibles,
   };
 }

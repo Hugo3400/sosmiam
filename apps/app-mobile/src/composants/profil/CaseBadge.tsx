@@ -3,7 +3,7 @@ import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import type { BadgeCatalogue } from "@sos-miam/commun/types/badge";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 
-const LARGEUR_PETIT_ECRAN = 350;
+const LARGEUR_PETIT_ECRAN = 370;
 
 type Props = {
   badge: BadgeCatalogue;
@@ -33,7 +33,7 @@ export function CaseBadge({ badge, obtenu, selectionne, commentObtenir, onTouche
       <View className={`min-h-24 flex-1 items-center justify-center gap-1 rounded-2xl border-2 px-0.5 py-1.5 ${selectionne ? "border-tomate" : "border-encre"} ${obtenu ? "bg-jaune-clair" : "bg-white"}`}>
         <View className="items-center gap-1">
           <Text className={`text-3xl ${obtenu ? "" : "opacity-40"}`}>{badge.emoji}</Text>
-          <Text numberOfLines={3} className={`text-center font-texte-semi ${taille} ${obtenu ? "text-encre" : "text-gris"}`}>
+          <Text numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.85} className={`text-center font-texte-semi ${taille} ${obtenu ? "text-encre" : "text-gris"}`}>
             {badge.nom}
           </Text>
         </View>

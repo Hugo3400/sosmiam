@@ -14,6 +14,7 @@ import { creerControleursReservationsGestion } from "../controleurs/gestion/cont
 import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-avis-gestion.ts";
 import { creerControleursLimitations } from "../controleurs/gestion/controleurs-limitations.ts";
 import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-annonces-app.ts";
+import { creerControleursCommunaute } from "../controleurs/gestion/controleurs-communaute.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
@@ -82,6 +83,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const avis = creerControleursAvisGestion(services, avisGestion, moderationSociale);
   const lim = creerControleursLimitations(services, limitations, moderationSociale);
   const popups = creerControleursAnnoncesApp(services);
+  const communaute = creerControleursCommunaute(services, moderationSociale);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -202,6 +204,16 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.put("/annonces-app/:id", popups.modifier);
   routes.post("/annonces-app/:id/publication", popups.publier);
   routes.delete("/annonces-app/:id", popups.supprimer);
+  routes.get("/communaute/idees", communaute.idees);
+  routes.get("/communaute/idees/:id/commentaires", communaute.commentaires);
+  routes.post("/communaute/idees/:id/statut", communaute.statut);
+  routes.post("/communaute/idees/:id/reponse", communaute.reponse);
+  routes.post("/communaute/idees/:id/idee-du-mois", communaute.ideeDuMois);
+  routes.delete("/communaute/idees/:id", communaute.supprimer);
+  routes.post("/communaute/commentaires/:id/masque", communaute.masquerCommentaire);
+  routes.get("/communaute/etiquettes", communaute.etiquettes);
+  routes.post("/communaute/etiquettes/retrait", communaute.retirerEtiquette);
+  routes.post("/communaute/sorties-miamis/:id/retrait", communaute.retirerSortie);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);
