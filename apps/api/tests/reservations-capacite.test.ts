@@ -40,8 +40,11 @@ async function prevenus() {
 }
 
 test("jours : 31 jours et leur état, le mode et le délai, les personnes vérifiées", async () => {
-  await equipe({ acceptation: "automatique" });
   const lea = await b.creerCompte();
+  const sansReglage = await b.demander("GET", "/app/reservations/jours?lieuId=1&personnes=12", lea.jeton);
+  assert.deepEqual([sansReglage.statut, sansReglage.corps.acceptation, sansReglage.corps.delai, sansReglage.corps.personnesMax, sansReglage.corps.jours[0]],
+    [200, "manuelle", "1-h", 12, { jour: "2026-10-09", etat: "ouvert" }], "sans réglage : les horaires de la fiche");
+  await equipe({ acceptation: "automatique" });
   const fermeture = await b.demander("PUT", "/pro/comptoir/lieux/1/reservations/jours-fermes/2026-10-11", (await b.creerCompte({ prenom: "Bob" })).jeton);
   assert.equal(fermeture.statut, 403);
   b.visites.reglagesReservations.get(1)!.joursFermes.push("2026-10-11");

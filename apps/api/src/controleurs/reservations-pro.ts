@@ -85,6 +85,7 @@ export function creerControleursReservationsPro(
     },
     fermerJour: jourFerme(true),
     rouvrirJour: jourFerme(false),
+    /** POST /pro/comptoir/reservations/:reservationId/accepter */
     async accepter(requete: Request, reponse: Response) {
       const id = lire(requete, reponse, "reservationId");
       if (id === null) return;
