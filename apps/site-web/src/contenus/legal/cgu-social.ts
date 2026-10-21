@@ -16,7 +16,7 @@ export const sectionPotesCgu: SectionLegale = {
   id: "potes",
   titre: "Ta bande, tes abonnés et ton profil",
   blocs: [
-    "Dans l'app, l'onglet Potes te sert à sortir avec tes vrais potes : ta **bande**, la messagerie, les sorties et les listes. Il te faut pour ça un **pseudo** (voir « Ton pseudo », plus bas).",
+    "Dans l'app, l'onglet Communauté a deux parties. « Ma bande » te sert à sortir avec tes vrais potes : ta **bande**, la messagerie, les sorties entre potes et les listes ; « Les Miamis », à en rencontrer de nouveaux (voir [Les Miamis et leurs sorties](#communaute)). Il te faut pour ça un **pseudo** (voir « Ton pseudo », plus bas).",
     {
       liste: [
         "**Ta bande** (200 potes au plus) : tes potes y entrent par ton **lien ou ton QR code d'invitation** (vous êtes alors ajoutés tout de suite, chacun dans la bande de l'autre), ou par une **demande** envoyée depuis ton pseudo, que tu acceptes ou non. Refuser une demande ne prévient personne, et retirer quelqu'un de ta bande vaut des deux côtés, sans le prévenir.",
@@ -37,7 +37,7 @@ export const sectionMessagerieCgu: SectionLegale = {
     {
       liste: [
         "**Les groupes** : seul un pote de ta bande peut t'inviter dans un groupe, et tu n'y entres qu'en **acceptant** l'invitation (refuser ne prévient personne). En arrivant, tu ne vois pas les messages écrits avant toi. Tu peux le quitter quand tu veux ; tu ne peux alors pas y être réinvité pendant 30 jours.",
-        "**Les sorties** : l'organisateur invite des potes de sa bande (15 personnes au plus). Chacun répond à « Tu viens ? » avant d'entrer dans le vote et la discussion, qu'il lit alors depuis le début ; on vote pour un ou plusieurs lieux proposés (8 au plus), et à la fin du vote, le lieu qui a le plus de voix est retenu (à égalité, le premier proposé). Une sortie ne réserve rien dans le lieu : c'est une proposition entre potes.",
+        "**Les sorties entre potes** : l'organisateur invite des potes de sa bande (15 personnes au plus). Chacun répond à « Tu viens ? » avant d'entrer dans le vote et la discussion, qu'il lit alors depuis le début ; on vote pour un ou plusieurs lieux proposés (8 au plus), et à la fin du vote, le lieu qui a le plus de voix est retenu (à égalité, le premier proposé). Une sortie ne réserve rien dans le lieu : c'est une proposition entre potes. Les sorties des Miamis ont leurs propres règles (voir [Les Miamis et leurs sorties](#communaute)).",
         "**Tes messages** : tu peux supprimer un de tes messages pour tout le monde (« Message supprimé » s'affiche), effacer une discussion pour toi seul, ou couper ses notifications. Il n'y a pas d'accusé de lecture : personne ne sait quand tu as lu.",
         "**Les photos et les notes vocales** ne s'ouvrent que pendant **90 jours** : ensuite, « Ce média a expiré », et elles sont effacées de notre serveur (sauf celles d'un message signalé, gardées un temps pour la modération). Une conversation sans message depuis **1 an** est effacée, elle aussi. Garde de ton côté ce que tu tiens à garder.",
       ],

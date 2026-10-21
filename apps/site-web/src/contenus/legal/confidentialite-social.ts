@@ -19,7 +19,7 @@ export const sectionPotes: SectionLegale = {
   id: "potes",
   titre: "Ta bande, tes abonnés et ton profil",
   blocs: [
-    "La partie sociale de l'app (l'onglet Potes) ne démarre que si tu le décides : ton profil social est créé la première fois que tu ouvres Potes ou fais un geste social, avec ton pseudo. Tant qu'il n'existe pas, personne ne peut te trouver.",
+    "La partie sociale de l'app (l'onglet Communauté : « Ma bande » et « Les Miamis ») ne démarre que si tu le décides : ton profil social est créé la première fois que tu ouvres Communauté ou fais un geste social, avec ton pseudo. Tant qu'il n'existe pas, personne ne peut te trouver.",
     {
       liste: [
         "**Ton profil social** : un **identifiant public** de 10 caractères tiré au hasard (il sert aux liens vers ton profil et ne change jamais, même si tu changes de pseudo), ton **code d'invitation** (créé par notre serveur, gardé **chiffré**, sans date de fin : tu peux le changer quand tu veux, et il change tout seul après 10 arrivées dans ta bande qui se suivent de près, à moins de 24 heures d'intervalle) et tes réglages : « Qu'on me trouve par mon pseudo », « Me proposer à d'autres », « Montrer mon activité à ma bande » et « Notifications de ma bande » (gardés sur notre serveur ; tu les changes dans l'app, Réglages › Confidentialité).",

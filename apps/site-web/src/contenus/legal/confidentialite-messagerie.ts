@@ -22,7 +22,7 @@ export const sectionMessagerie: SectionLegale = {
   id: "messagerie",
   titre: "Ta messagerie : messages, photos, notes vocales, groupes et sorties",
   blocs: [
-    "Dans l'onglet Potes, tu peux écrire à un pote de ta bande, en groupe ou dans la discussion d'une sortie, et y envoyer du texte, des réactions, des lieux, des photos et des notes vocales. Voici ce que notre serveur en garde, ce qui est chiffré et ce qui reste en clair.",
+    "Dans l'onglet Communauté, tu peux écrire à un pote de ta bande, en groupe ou dans la discussion d'une sortie (entre potes, ou des Miamis : voir [Les sorties des Miamis](#sorties-miamis)), et y envoyer du texte, des réactions, des lieux, des photos et des notes vocales. Voici ce que notre serveur en garde, ce qui est chiffré et ce qui reste en clair.",
     {
       tableau: {
         legende: "Ce que notre serveur garde de la messagerie : ce qui est chiffré, ce qui reste en clair, et pourquoi.",
