@@ -77,6 +77,7 @@ import { creerApresPassageEnPublic } from "./controleurs/suivis-personnes.ts";
 import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
+import { planifierTachesSortiesMiamis } from "./taches/sorties-miamis.ts";
 import { noterAction } from "./services/gestion/journal.ts";
 import { servicesLimitations } from "./services/limitations-comptes.ts";
 import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profil.ts";
@@ -146,6 +147,10 @@ const socialApp = creerDependancesSociales({
 // téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma
 const arreterVotes = process.env.SCHEMA_BASE ? () => {} : planifierFinDesVotes({
   sorties: socialApp.sorties,
+  appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
+});
+const arreterSortiesMiamis = process.env.SCHEMA_BASE || !socialApp.communaute ? () => {} : planifierTachesSortiesMiamis({
+  sorties: socialApp.communaute.sorties,
   appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
 });
 const photosProfil = creerPhotosProfil({
@@ -270,6 +275,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     clearInterval(minuteurNotifications);
     arreterSauvegardes();
     arreterVotes();
+    arreterSortiesMiamis();
     serveur.close(() => {
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus
       compteur.vider(new Date(), true).catch(() => {}).finally(() => baseDeDonnees.$disconnect().finally(() => process.exit(0)));

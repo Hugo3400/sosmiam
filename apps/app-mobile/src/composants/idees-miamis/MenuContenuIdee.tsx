@@ -15,7 +15,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
-export type ContenuIdeeAuMenu = { type: "idee" | "commentaire"; auteur: PersonneResume | null; mien: boolean };
+export type ContenuIdeeAuMenu = { type: "idee" | "commentaire"; id: string; auteur: PersonneResume | null; mien: boolean };
 
 type Props = {
   contenu: ContenuIdeeAuMenu | null;
@@ -42,7 +42,7 @@ function lireChoix({ type, auteur, mien }: ContenuIdeeAuMenu): Choix[] {
   if (!auteur) return [];
   return [
     { cle: "profil", emoji: "👀", titre: MENU.voirProfil(auteur.pseudo), detail: MENU.voirProfilDetail },
-    { cle: "signaler", emoji: "🚩", titre: MENU.signaler(auteur.pseudo), detail: MENU.signalerDetail },
+    { cle: "signaler", emoji: "🚩", titre: type === "idee" ? MENU.signalerIdee : MENU.signalerCommentaire, detail: MENU.signalerDetail },
   ];
 }
 
@@ -92,7 +92,12 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
           <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
             {vue === "signaler" && affiche.auteur ? (
-              <SignalerContenu cible="profil" cibleId={affiche.auteur.id} sujet={MENU.sujetSignalement(affiche.auteur.pseudo)} onTermine={onFermer} />
+              <SignalerContenu
+                cible={affiche.type === "idee" ? "idee" : "comment-idee"}
+                cibleId={affiche.id}
+                sujet={affiche.type === "idee" ? MENU.sujetSignalementIdee : MENU.sujetSignalementCommentaire(affiche.auteur.pseudo)}
+                onTermine={onFermer}
+              />
             ) : vue === "confirmer" ? (
               <View className="gap-3">
                 <Text ref={titreVue} accessibilityRole="header" className="font-titre text-2xl text-encre">

@@ -22,7 +22,7 @@ type Props = {
 };
 
 /** Ce qui disparaît de ton écran dès le signalement ; un profil, une sortie ou un groupe restent visibles jusqu'à la décision */
-const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "message", "liste", "recommandation"];
+const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "message", "liste", "recommandation", "idee", "comment-idee"];
 
 /**
  * Signaler un commentaire, un message, un lieu envoyé par un pote, une liste, un profil, une sortie ou un groupe, à placer

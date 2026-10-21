@@ -87,7 +87,7 @@ export function EcranIdee({ id }: Props) {
   }
 
   const ouvrirMenuIdee = () => {
-    if (idee) setMenu({ contenu: { type: "idee", auteur: idee.auteur, mien: idee.auteur?.id === monId }, commentaireId: null });
+    if (idee) setMenu({ contenu: { type: "idee", id: idee.id, auteur: idee.auteur, mien: idee.auteur?.id === monId }, commentaireId: null });
   };
   const boutonMenu =
     idee && idee.auteur ? (
@@ -142,7 +142,7 @@ export function EcranIdee({ id }: Props) {
   );
 
   function ouvrirMenuCommentaire(commentaire: CommentaireIdee) {
-    setMenu({ contenu: { type: "commentaire", auteur: commentaire.auteur, mien: commentaire.auteur.id === monId }, commentaireId: commentaire.id });
+    setMenu({ contenu: { type: "commentaire", id: commentaire.id, auteur: commentaire.auteur, mien: commentaire.auteur.id === monId }, commentaireId: commentaire.id });
   }
 
   function supprimerDepuisMenu() {

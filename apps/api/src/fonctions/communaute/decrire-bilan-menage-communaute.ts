@@ -5,7 +5,7 @@ const LIBELLES: Readonly<Record<keyof BilanMenageCommunaute, string>> = {
   coucous: "Coucous de plus de 24 h effacés",
   sorties: "Sorties des Miamis effacées (1 an après leur date)",
   invitations: "Invitations d'habitués expirées (48 h) effacées",
-  demandes: "Demandes, listes d'attente et refus de sorties des Miamis passées effacés",
+  demandes: "Demandes des sorties des Miamis passées effacées",
   genresRechiffres: "Genres rechiffrés (changement de clé des données)",
   genresIllisibles: "Genres illisibles pendant le rechiffrement",
 };

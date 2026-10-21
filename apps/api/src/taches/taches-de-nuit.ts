@@ -30,6 +30,8 @@ import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
 import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
 import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
+import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
+import { decrireBilanMenageCommunaute } from "../fonctions/communaute/decrire-bilan-menage-communaute.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -159,6 +161,15 @@ async function nettoyerSocial() {
   }
 }
 
+async function nettoyerCommunaute() {
+  try {
+    const bilan = await faireLeMenageCommunaute({ chiffrement: chiffrementDeNuit });
+    for (const [nombre, quoi] of decrireBilanMenageCommunaute(bilan)) await noterAction("serveur", quoi, `${nombre}`);
+  } catch (erreur) {
+    console.error("Ménage de la communauté impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerPhotosAvis() {
   try {
     const effacees = await faireLeMenagePhotosAvis();
@@ -182,6 +193,7 @@ async function nettoyerPuisSauvegarder() {
   await faireLeMenage();
   await nettoyerComptes();
   await nettoyerSocial();
+  await nettoyerCommunaute();
   await nettoyerPhotosProfil();
   await nettoyerPhotosAvis();
   await prevenirLesComptesInactifs();

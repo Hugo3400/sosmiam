@@ -118,8 +118,12 @@ export const TEXTES_IDEES = {
     voirProfil: (pseudo: string) => `Voir le profil de @${pseudo}`,
     voirProfilDetail: "Ses listes, ses badges, et de quoi le bloquer si besoin",
     signaler: (pseudo: string) => `Signaler @${pseudo}`,
+    signalerIdee: "Signaler cette idée",
+    signalerCommentaire: "Signaler ce commentaire",
     signalerDetail: "Un mot qui blesse, une arnaque, de la pub cachée ? On regarde ça de près",
     sujetSignalement: (pseudo: string) => `le profil de @${pseudo}`,
+    sujetSignalementIdee: "cette idée",
+    sujetSignalementCommentaire: (pseudo: string) => `le commentaire de @${pseudo}`,
     supprimerCommentaire: "Supprimer mon commentaire",
     supprimerCommentaireDetail: "Il disparaît pour tout le monde",
     supprimerCommentaireConfirmation: {
