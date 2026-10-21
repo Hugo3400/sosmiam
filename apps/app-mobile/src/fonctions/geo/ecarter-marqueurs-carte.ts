@@ -140,7 +140,6 @@ export function ecarterMarqueursCarte(
   const immobiles = seuls.map(versEcran);
   const places = groupes.map(versEcran);
   const poses = groupes.map(() => false);
-  const devant = groupes.map(() => false);
   const portee = ECART_FIXE_POINTS + DEPLACEMENT_MAX_BULLE_POINTS;
   const pres = (a: PlaceEcran, b: PlaceEcran) => Math.abs(a.x - b.x) < portee && Math.abs(a.y - b.y) < portee;
 
@@ -154,7 +153,6 @@ export function ecarterMarqueursCarte(
     const choix = chercherPlace(ici, proches, voisins, creerCouverture(lireMembres(groupes[rang]).map(versEcran), ici));
     places[rang] = { x: choix.x, y: choix.y };
     poses[rang] = true;
-    devant[rang] = choix.fixe < ECART_FIXE_POINTS - MARGE_FIXE;
   });
 
   const diametre = (groupe: GroupeCarte) => (groupe.nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS);
@@ -173,10 +171,10 @@ export function ecarterMarqueursCarte(
   return {
     groupes: groupes.map((groupe, rang) => {
       const place = relachees[rang];
-      devant[rang] ||= obstacles.length > 0 && calculerPartCachee(place, diametre(groupe) / 2, obstacles) > PART_CACHEE_MAX;
+      const devant = obstacles.length > 0 && calculerPartCachee(place, diametre(groupe) / 2, obstacles) > PART_CACHEE_MAX;
       const deplace = bouge(versEcran(groupe), place);
-      if (!deplace && !devant[rang]) return groupe;
-      return { ...groupe, ...(deplace ? versCarte(place) : {}), ...(devant[rang] ? { devant: true } : {}) };
+      if (!deplace && !devant) return groupe;
+      return { ...groupe, ...(deplace ? versCarte(place) : {}), ...(devant ? { devant: true } : {}) };
     }),
     seuls: seuls.map((seul, rang) => {
       const place = relachees[groupes.length + rang];

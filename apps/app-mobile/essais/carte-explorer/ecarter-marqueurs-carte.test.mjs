@@ -11,6 +11,7 @@ import {
   PLAFOND_PRIORITAIRES_CARTE,
   PORTEE_LIEUX_BULLE_POINTS,
 } from "~/contenus/regroupement-carte";
+import { ecarterMarqueursCarte } from "~/fonctions/geo/ecarter-marqueurs-carte";
 import { regrouperLieuxCarte } from "~/fonctions/geo/regrouper-lieux-carte";
 import { relacherMarqueursCarte } from "~/fonctions/geo/relacher-marqueurs-carte";
 
@@ -182,4 +183,18 @@ test("écarter les marqueurs : chacun bouge au plus de son écart permis, les fi
     { x: 0, y: 0 },
     { x: 5, y: 0 },
   ]);
+});
+
+test("en s'écartant l'une de l'autre, deux bulles ne se glissent jamais sous un SOS, et un lieu collé à un SOS s'en écarte d'un rayon", () => {
+  const echelle = { degresParPoint: 1e-5, cosLatitude: 1, latitude: 0, longitude: 0 };
+  const aLEcran = (x, y) => ({ latitude: -y * 1e-5, longitude: x * 1e-5 });
+  const enPoints = (p) => ({ x: p.longitude / 1e-5, y: -p.latitude / 1e-5 });
+  const sos = { id: 1, ...aLEcran(0, 0) };
+  const bulle = (cle, x) => ({ cle, nombre: 3, ids: [10, 11, 12], ...aLEcran(x, 0) });
+  const { groupes } = ecarterMarqueursCarte([bulle("a", 41), bulle("b", 66)], [sos], [], echelle, () => []);
+  const [a, b] = groupes.map(enPoints);
+  assert.ok(Math.abs(a.x) >= 39.5, `la bulle collée au SOS s'en rapproche (${a.x.toFixed(1)} points)`);
+  assert.ok(b.x - a.x >= 38 - 0.5, `les deux bulles restent l'une sur l'autre (${(b.x - a.x).toFixed(1)} points)`);
+  const { seuls } = ecarterMarqueursCarte([], [sos], [{ id: 2, ...aLEcran(5, 0) }], echelle, () => []);
+  assert.ok(Math.abs(enPoints(seuls[0]).x - 25) < 1e-6, `le lieu voisin du SOS à ${enPoints(seuls[0]).x.toFixed(1)} points`);
 });

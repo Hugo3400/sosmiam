@@ -34,7 +34,7 @@ test("au zoom rue sur iPad, à la densité du centre de Marseille (300 lieux sur
       if (resultat.groupes.length > 0) {
         avecBulles += 1;
         assert.equal(resultat.marge, 0, `${nom} : des bulles avant d'avoir resserré la fenêtre`);
-        assert.ok(compterMarqueurs(resultat) >= PLAFOND_MARQUEURS_CARTE * 0.75, `${nom} : ${compterMarqueurs(resultat)} marqueurs, trop regroupé pour un zoom rue`);
+        assert.ok(compterMarqueurs(resultat) >= PLAFOND_MARQUEURS_CARTE * 0.85, `${nom} : ${compterMarqueurs(resultat)} marqueurs, trop regroupé pour un zoom rue`);
       }
     }
   }
