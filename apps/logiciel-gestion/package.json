@@ -25,6 +25,7 @@
     "@tiptap/starter-kit": "^3.31.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.53.0",
+    "pdfjs-dist": "4.10.38",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "uqr": "^0.1.3"

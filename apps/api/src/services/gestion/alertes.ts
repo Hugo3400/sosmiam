@@ -11,7 +11,7 @@ import { compterSurveillance } from "./surveillance-visites.ts";
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire, candidaturesNouvelles] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -41,6 +41,7 @@ export async function lireAlertes(maintenant = new Date()) {
     // Limitations de comptes contestées, pas encore réexaminées
     baseDeDonnees.limitationCompte.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
     baseDeDonnees.ideeCommunaute.count({ where: { statut: "en-relecture", retireeLe: null } }),
+    baseDeDonnees.candidatureCarriere.count({ where: { statut: "nouvelle" } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
@@ -53,6 +54,7 @@ export async function lireAlertes(maintenant = new Date()) {
     avis: { aRelire: avisARelire, reponses: reponsesARelire },
     limitations: { contestees: limitationsContestees },
     communaute: { ideesARelire },
+    carriere: { nouvelles: candidaturesNouvelles },
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };

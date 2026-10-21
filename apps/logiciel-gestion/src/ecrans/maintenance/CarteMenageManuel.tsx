@@ -16,6 +16,11 @@ export function CarteMenageManuel() {
       faire: "À effacer dans le webmail de la boîte (dossier Reçus).",
     },
     {
+      nombre: donnees.candidaturesMail ?? null,
+      titre: "Candidatures reçues par mail de plus de 6 mois",
+      faire: "À effacer dans le webmail (objet avec « candidature » ou « CV ») : une candidature ne se garde pas plus de 6 mois, CV compris.",
+    },
+    {
       nombre: donnees.aRelancer,
       titre: "Inscrits à la newsletter sans nouvelles depuis 3 ans",
       faire: "Newsletter → Inscrits, filtre « À relancer » : leur redemander s'ils veulent rester, sinon les désinscrire.",

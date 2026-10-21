@@ -2,16 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { PersonneResume } from "@sos-miam/commun/types/social";
 import { Bouton } from "~/composants/interface/Bouton";
+import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
 import { TEXTES_IDEES } from "~/contenus/textes-idees";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import couleurs from "~/theme/couleurs";
 
@@ -52,6 +54,7 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
   utiliserInscriptionFeuille(contenu !== null, onFermer);
+  const geste = utiliserGlisserPourFermer(contenu !== null, onFermer);
   const titreVue = useRef<Text>(null);
   const [vue, setVue] = useState<Vue>("options");
   const [affiche, setAffiche] = useState<ContenuIdeeAuMenu | null>(contenu);
@@ -83,69 +86,71 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
     <Modal visible={contenu !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
-        <View
+        <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
-          style={{ paddingBottom: marges.bottom + 12, maxHeight: hauteurEcran * 0.88, flexShrink: 1 }}
-          className="rounded-t-3xl border-t-2 border-encre bg-creme pt-3"
+          onLayout={geste.mesurerFeuille}
+          style={[{ maxHeight: hauteurEcran * 0.88, flexShrink: 1 }, geste.styleFeuille]}
         >
-          <View className="mb-3 h-1.5 w-12 self-center rounded-full bg-ligne" />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-            {vue === "signaler" && affiche.auteur ? (
-              <SignalerContenu
-                cible={affiche.type === "idee" ? "idee" : "comment-idee"}
-                cibleId={affiche.id}
-                sujet={affiche.type === "idee" ? MENU.sujetSignalementIdee : MENU.sujetSignalementCommentaire(affiche.auteur.pseudo)}
-                onTermine={onFermer}
-              />
-            ) : vue === "confirmer" ? (
-              <View className="gap-3">
-                <Text ref={titreVue} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                  {lierPonctuation(confirmation.titre)}
-                </Text>
-                <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(confirmation.detail)}</Text>
-                <Bouton
-                  libelle={confirmation.confirmer}
-                  variante="encre"
-                  onPress={() => {
-                    onFermer();
-                    onSupprimer();
-                  }}
-                  className="mt-2"
+          <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
+            <PoigneeFeuille geste={geste} />
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
+              {vue === "signaler" && affiche.auteur ? (
+                <SignalerContenu
+                  cible={affiche.type === "idee" ? "idee" : "comment-idee"}
+                  cibleId={affiche.id}
+                  sujet={affiche.type === "idee" ? MENU.sujetSignalementIdee : MENU.sujetSignalementCommentaire(affiche.auteur.pseudo)}
+                  onTermine={onFermer}
                 />
-                <Bouton libelle={confirmation.rester} variante="blanc" onPress={() => setVue("options")} />
-              </View>
-            ) : (
-              <>
-                <Text ref={titreVue} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                  {lireTitre(affiche)}
-                </Text>
-                {lireChoix(affiche).map((choix) => (
-                  <Pressable
-                    key={choix.cle}
-                    accessibilityRole="button"
-                    accessibilityLabel={choix.titre}
-                    accessibilityHint={choix.detail}
-                    onPress={() => choisir(choix)}
-                    className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
-                  >
-                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
-                      {choix.emoji}
-                    </Text>
-                    <View className="flex-1">
-                      <Text className="font-texte-gras text-base text-encre">{choix.titre}</Text>
-                      <Text className="font-texte text-sm text-gris">{choix.detail}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+              ) : vue === "confirmer" ? (
+                <View className="gap-3">
+                  <Text ref={titreVue} accessibilityRole="header" className="font-titre text-2xl text-encre">
+                    {lierPonctuation(confirmation.titre)}
+                  </Text>
+                  <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(confirmation.detail)}</Text>
+                  <Bouton
+                    libelle={confirmation.confirmer}
+                    variante="encre"
+                    onPress={() => {
+                      onFermer();
+                      onSupprimer();
+                    }}
+                    className="mt-2"
+                  />
+                  <Bouton libelle={confirmation.rester} variante="blanc" onPress={() => setVue("options")} />
+                </View>
+              ) : (
+                <>
+                  <Text ref={titreVue} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
+                    {lireTitre(affiche)}
+                  </Text>
+                  {lireChoix(affiche).map((choix) => (
+                    <Pressable
+                      key={choix.cle}
+                      accessibilityRole="button"
+                      accessibilityLabel={choix.titre}
+                      accessibilityHint={choix.detail}
+                      onPress={() => choisir(choix)}
+                      className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
+                    >
+                      <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
+                        {choix.emoji}
+                      </Text>
+                      <View className="flex-1">
+                        <Text className="font-texte-gras text-base text-encre">{choix.titre}</Text>
+                        <Text className="font-texte text-sm text-gris">{choix.detail}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
+                    </Pressable>
+                  ))}
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                    <Text className="font-texte-gras text-base text-encre">{MENU.annuler}</Text>
                   </Pressable>
-                ))}
-                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">{MENU.annuler}</Text>
-                </Pressable>
-              </>
-            )}
-          </ScrollView>
-        </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

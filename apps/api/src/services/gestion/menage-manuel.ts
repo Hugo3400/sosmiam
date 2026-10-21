@@ -14,10 +14,12 @@ const SCRIPT = join(import.meta.dirname, "..", "..", "..", "..", "..", "scripts"
 const FICHIER_DESINSCRITS = process.env.FICHIER_DESINSCRITS || "/root/sos-miam-donnees/desinscrits.txt";
 const TROIS_ANS_JOURS = 3 * 365;
 
-async function compterMailsAnciens(): Promise<number | null> {
+const SIX_MOIS_JOURS = 183;
+
+async function compterDansLaBoite(commande: string, jours: number, cle: string): Promise<number | null> {
   try {
-    const { stdout } = await executer("python3", ["-I", SCRIPT, "compter-anciens", String(TROIS_ANS_JOURS)], { timeout: 60_000, env: { ...process.env, FICHIER_BOITE_MAIL } });
-    return (JSON.parse(stdout) as { anciens: number }).anciens;
+    const { stdout } = await executer("python3", ["-I", SCRIPT, commande, String(jours)], { timeout: 60_000, env: { ...process.env, FICHIER_BOITE_MAIL } });
+    return (JSON.parse(stdout) as Record<string, number>)[cle] ?? null;
   } catch {
     return null;
   }
@@ -26,8 +28,9 @@ async function compterMailsAnciens(): Promise<number | null> {
 /** GET /maintenance/menage-manuel : ce qui attend un geste de l'équipe (null : la boîte ne répond pas) */
 export async function lireMenageManuel(maintenant = new Date()) {
   const limite = new Date(maintenant.getTime() - TROIS_ANS_JOURS * 86_400_000);
-  const [mailsAnciens, aRelancer, desinscrits] = await Promise.all([
-    compterMailsAnciens(),
+  const [mailsAnciens, candidaturesMail, aRelancer, desinscrits] = await Promise.all([
+    compterDansLaBoite("compter-anciens", TROIS_ANS_JOURS, "anciens"),
+    compterDansLaBoite("compter-candidatures", SIX_MOIS_JOURS, "candidatures"),
     baseDeDonnees.inscriptionNewsletter.count({ where: { derniereInscription: { lt: limite } } }),
     readFile(FICHIER_DESINSCRITS, "utf8").catch(() => ""),
   ]);
@@ -35,5 +38,5 @@ export async function lireMenageManuel(maintenant = new Date()) {
     const [adresse, date] = ligne.trim().split(/\s+/);
     return Boolean(adresse) && !/^\d{4}-\d{2}-\d{2}$/.test(date ?? "");
   }).length;
-  return { mailsAnciens, aRelancer, desinscritsSansDate };
+  return { mailsAnciens, candidaturesMail, aRelancer, desinscritsSansDate };
 }

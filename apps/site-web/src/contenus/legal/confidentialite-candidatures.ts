@@ -18,6 +18,7 @@ export const sectionCandidatures: SectionLegale = {
         "**Combien de temps** : **6 mois après son envoi**, ta candidature est effacée automatiquement, CV compris, quelle que soit la réponse. Une copie peut encore dormir dans nos sauvegardes chiffrées, **30 jours au plus**, puis elle disparaît aussi.",
         "**Ton adresse IP** : comme pour les autres formulaires, elle sert seulement à limiter le nombre d'envois, et n'est jamais enregistrée avec ta candidature.",
         `**Tes droits** : tu peux consulter ta candidature, la corriger, la retirer ou la faire effacer avant la fin des 6 mois, d'un simple mail à ${lienEmail} (voir « [Tes droits](#droits) »).`,
+        "**Par mail** : si tu nous envoies ta candidature par mail plutôt que par le formulaire, on la garde aussi **6 mois** après l'envoi, puis on l'efface de notre boîte, pièces jointes comprises.",
         "**Obligatoire ?** Ton nom, ton e-mail, ton message et la case « J'ai 18 ans ou plus » : sans eux, on ne peut ni étudier ta candidature ni te répondre. Le lien et le CV sont facultatifs.",
       ],
     },

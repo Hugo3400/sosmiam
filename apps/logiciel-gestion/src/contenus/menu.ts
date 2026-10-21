@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  AppWindow, Bell, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
+  AppWindow, Bell, Briefcase, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute" | "carriere";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -55,6 +55,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
       { ecran: "utilisateurs", libelle: "Comptes", icone: Users },
       { ecran: "ambassadeurs", libelle: "Ambassadeurs", icone: HeartHandshake },
       { ecran: "communaute", libelle: "Idées et sorties", icone: Lightbulb },
+      { ecran: "carriere", libelle: "Carrière", icone: Briefcase },
     ],
   },
   {

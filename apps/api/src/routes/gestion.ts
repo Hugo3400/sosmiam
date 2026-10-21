@@ -15,6 +15,7 @@ import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-
 import { creerControleursLimitations } from "../controleurs/gestion/controleurs-limitations.ts";
 import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-annonces-app.ts";
 import { creerControleursCommunaute } from "../controleurs/gestion/controleurs-communaute.ts";
+import { creerControleursCarriere } from "../controleurs/gestion/controleurs-carriere.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
@@ -84,6 +85,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const lim = creerControleursLimitations(services, limitations, moderationSociale);
   const popups = creerControleursAnnoncesApp(services);
   const communaute = creerControleursCommunaute(services, moderationSociale);
+  const carriere = creerControleursCarriere(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -214,6 +216,16 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/communaute/etiquettes", communaute.etiquettes);
   routes.post("/communaute/etiquettes/retrait", communaute.retirerEtiquette);
   routes.post("/communaute/sorties-miamis/:id/retrait", communaute.retirerSortie);
+  routes.get("/carriere/offres", carriere.offres);
+  routes.post("/carriere/offres", carriere.creerOffre);
+  routes.put("/carriere/offres/:id", carriere.modifierOffre);
+  routes.post("/carriere/offres/:id/publication", carriere.publierOffre);
+  routes.post("/carriere/offres/:id/fermeture", carriere.fermerOffre);
+  routes.delete("/carriere/offres/:id", carriere.supprimerOffre);
+  routes.get("/carriere/candidatures", carriere.candidatures);
+  routes.get("/carriere/candidatures/:id/cv", carriere.cv);
+  routes.post("/carriere/candidatures/:id/statut", carriere.statutCandidature);
+  routes.delete("/carriere/candidatures/:id", carriere.supprimerCandidature);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

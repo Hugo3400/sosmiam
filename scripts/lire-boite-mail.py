@@ -12,6 +12,7 @@ facultatif : recus (par défaut), envoyes ou indesirables :
     purger-envoyes <jours>              efface de « Envoyés » les copies rangées par l'API (en-tête X-SOS-Miam-Copie, ou
                                         mail automatique) plus vieilles que <jours> ; jamais un mail écrit dans le webmail
     compter-anciens <jours>             le nombre de mails reçus plus vieux que <jours> (ménage à faire à la main)
+    compter-candidatures <jours>        le nombre de candidatures reçues par mail (objet « candidature » ou « CV ») plus vieilles que <jours>
 Connexion : le fichier de la boîte (FICHIER_BOITE_MAIL, par défaut /root/sos-miam-secrets/boite-bonjour.env), lignes
 IMAP_SERVEUR, IMAP_UTILISATEUR, IMAP_MOT_DE_PASSE (les mêmes que pour l'envoi et les désinscriptions).
 """
@@ -248,6 +249,13 @@ def compter_anciens(jours):
     return {"anciens": len((donnees[0] or b"").split())}
 
 
+def compter_candidatures(jours):
+    boite = connecter(True)
+    _, donnees = boite.uid("search", None, "BEFORE", date_imap(jours), "OR", "SUBJECT", '"candidature"', "SUBJECT", '"CV"')
+    boite.logout()
+    return {"candidatures": len((donnees[0] or b"").split())}
+
+
 def marquer_repondu(uid):
     boite = connecter(False)
     boite.uid("store", str(uid), "+FLAGS", "(\\Answered)")
@@ -277,13 +285,15 @@ def principal(arguments):
         return purger_envoyes(int(reste[0]))
     if commande == "compter-anciens" and reste and reste[0].isdigit():
         return compter_anciens(int(reste[0]))
+    if commande == "compter-candidatures" and reste and reste[0].isdigit():
+        return compter_candidatures(int(reste[0]))
     if commande == "ranger-envoye":
         return ranger_envoye(sys.stdin.buffer.read())
     if commande == "repondu" and len(arguments) > 1 and arguments[1].isdigit():
         return marquer_repondu(int(arguments[1]))
     if commande == "non-lus":
         return non_lus()
-    raise SystemExit("Usage : lire-boite-mail.py liste [dossier] <nombre> [adresse] | message [dossier] <uid> | piece [dossier] <uid> <numero> | repondu <uid> | non-lus | ranger-envoye | purger-envoyes <jours> | compter-anciens <jours>")
+    raise SystemExit("Usage : lire-boite-mail.py liste [dossier] <nombre> [adresse] | message [dossier] <uid> | piece [dossier] <uid> <numero> | repondu <uid> | non-lus | ranger-envoye | purger-envoyes <jours> | compter-anciens <jours> | compter-candidatures <jours>")
 
 
 if __name__ == "__main__":

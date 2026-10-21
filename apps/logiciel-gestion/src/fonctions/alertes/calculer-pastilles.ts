@@ -32,6 +32,9 @@ export function calculerPastilles(alertes: Alertes | null, problemesServeur: num
       urgent: enRetard > 0 || sansReponse > 0,
     };
   }
+  if (alertes.carriere?.nouvelles) {
+    pastilles.carriere = { nombre: alertes.carriere.nouvelles, libelle: `${alertes.carriere.nouvelles} candidature(s) à lire` };
+  }
   if (alertes.communaute?.ideesARelire) {
     pastilles.communaute = { nombre: alertes.communaute.ideesARelire, libelle: `${alertes.communaute.ideesARelire} idée(s) en relecture` };
   }

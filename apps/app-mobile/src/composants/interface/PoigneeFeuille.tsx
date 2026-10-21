@@ -49,6 +49,7 @@ export function PoigneeFeuille({ geste, ecart = "moyen", fond = "sombre", classN
   return (
     <View
       ref={zone}
+      collapsable={false}
       {...geste.panHandlers}
       onResponderGrant={saisir}
       className={`pt-3 web:cursor-grab web:touch-none web:select-none ${sansEnTete ? "min-h-11" : ""} ${className}`}
