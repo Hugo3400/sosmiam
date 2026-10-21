@@ -272,7 +272,7 @@ export function FeuilleLieux(props: Props) {
   return (
     <Animated.View style={styleHauteur}>
       <View className={`flex-1 overflow-hidden bg-creme ${pleinEcran ? "" : "rounded-t-3xl border-t-2 border-encre"}`}>
-        <View onLayout={(e) => setHauteurHaut(Math.round(e.nativeEvent.layout.height))} {...(pleinEcran ? {} : glissementEnTete.panHandlers)}>
+        <View collapsable={false} onLayout={(e) => setHauteurHaut(Math.round(e.nativeEvent.layout.height))} {...(pleinEcran ? {} : glissementEnTete.panHandlers)}>
           {pleinEcran ? (
             <View className="h-2" />
           ) : carteSeule ? (
@@ -360,7 +360,7 @@ export function FeuilleLieux(props: Props) {
           ) : null}
         </View>
 
-        <View style={styleListe} {...(pleinEcran ? {} : glissementApercu.panHandlers)}>
+        <View collapsable={false} style={styleListe} {...(pleinEcran ? {} : glissementApercu.panHandlers)}>
           <FlatList
             ref={refListe}
             data={lieux}
