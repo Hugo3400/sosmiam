@@ -66,6 +66,27 @@ export function InstantaneSignale({ signalement, lieux }: { signalement: Signale
           <p className="text-[13px] text-gris">Organisée par {nomAuteur(c.organisateur)}{typeof c.quand === "string" ? ` · ${formaterDate(c.quand, true)}` : ""}{Array.isArray(c.lieux) && c.lieux.length ? ` · ${c.lieux.map(nomLieu).join(", ")}` : ""}</p>
         </>
       )}
+      {c.cible === "idee" && (
+        <>
+          <p className="text-[13px] text-gris">Par {nomAuteur(c.auteur)} · statut « {texte(c.statut)} »{typeof c.date === "string" ? ` · ${formaterDate(c.date, true)}` : ""}</p>
+          <p className="text-sm font-semibold">{texte(c.titre)}</p>
+          {texte(c.detail) && <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{texte(c.detail)}</p>}
+        </>
+      )}
+      {c.cible === "comment-idee" && (
+        <>
+          <p className="text-[13px] text-gris">Par {nomAuteur(c.auteur)} · sous l'idée n° {String(c.ideeId)}{c.reponseA ? ` · en réponse au commentaire n° ${String(c.reponseA)}` : ""}</p>
+          <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{texte(c.texte)}</p>
+        </>
+      )}
+      {c.cible === "miamis" && (
+        <>
+          <p className="text-sm font-semibold">{texte(c.titre)}</p>
+          <p className="text-[13px] text-gris">Organisée par {nomAuteur(c.organisateur)}{typeof c.quand === "string" ? ` · ${formaterDate(c.quand, true)}` : ""} · {nomLieu(c.lieuId)}</p>
+          {texte(c.description) && <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{texte(c.description)}</p>}
+          {Array.isArray(c.etiquettesLibres) && c.etiquettesLibres.length > 0 && <p className="text-[13px] text-gris">Étiquettes : {c.etiquettesLibres.map(texte).join(", ")}</p>}
+        </>
+      )}
       {c.cible === "groupe" && <p className="text-sm">{texte(c.emoji)} <strong>{texte(c.titre) || "Groupe sans titre"}</strong> · créé par {nomAuteur(c.createur)}</p>}
     </div>
   );

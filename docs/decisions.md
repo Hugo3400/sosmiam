@@ -557,3 +557,9 @@
 - **Boîte à idées** : les Miamis proposent et commentent ; la Brigade fixe le statut et répond depuis le logiciel de gestion ; l'idée du mois est annoncée dans le salon patch-notes du Discord ; anti-doublons.
 - **Ajouts retenus** : rappel la veille, « Je ne peux plus venir », liste d'attente, « Sorties tenues », présence au QR du comptoir, habitués, place gardée pour un nouveau, « Mes envies ». **Refusé pour l'instant** : la « sortie de rescousse ».
 - Comme le reste de l'app : réservé aux 18 ans et plus ; un compte limité ne publie rien que les autres voient (sorties des Miamis, idées, commentaires, étiquettes libres).
+
+## Page « Carrière » (décidé par Hugo le 21 octobre 2026)
+- Offres publiées depuis le logiciel de gestion, affichées sur sosmiam.fr.
+- Types : **bénévolat**, et **freelance ou mission**. Pas encore de structure : ni stage, ni alternance, ni emploi tant qu'il n'y en a pas.
+- Candidature par un formulaire sur le site : nom, e-mail, message, CV en **PDF seulement, 5 Mo au plus**, vérifié, gardé chiffré, ouvert seulement dans le logiciel.
+- Une candidature est effacée **6 mois** après son envoi, dans tous les cas.

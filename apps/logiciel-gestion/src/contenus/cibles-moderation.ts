@@ -5,6 +5,9 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   commentaire: { libelle: "Commentaires", le: "le commentaire", emoji: "💬" },
   message: { libelle: "Messages", le: "le message", emoji: "✉️" },
   liste: { libelle: "Listes", le: "la liste", emoji: "📋" },
+  idee: { libelle: "Idées", le: "l'idée", emoji: "💡" },
+  "comment-idee": { libelle: "Commentaires d'idées", le: "le commentaire sur une idée", emoji: "🗨️" },
+  miamis: { libelle: "Sorties des Miamis", le: "la sortie des Miamis", emoji: "🧭" },
   // Avis et réponses des lieux : masqués à la relecture (écran « Avis à relire »), ils n'arrivent ici que contestés
   avis: { libelle: "Avis", le: "l'avis", emoji: "⭐" },
   "reponse-avis": { libelle: "Réponses aux avis", le: "la réponse du lieu", emoji: "💬" },

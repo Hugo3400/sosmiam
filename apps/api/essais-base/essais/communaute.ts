@@ -124,7 +124,9 @@ egal((await creerDecisionsModerationApp({ contesterSignalement: async () => true
 await base.$transaction((tx) => appliquerDecisionCommunaute(tx, { cible: "comment-idee", cibleId: commentaire.id }, "rejete", false, DEBUT, medias));
 egal((await idees.lire(4, ideeId))?.commentaires.length, 1, "rejeté : remis en ligne");
 const surSortie = await signalements.signaler(6, { cible: "miamis", cibleId: String(id), raison: "choquant", precision: null, explication: "" }, DEBUT);
-egal(surSortie.ok, false, "une sortie qu'on ne voit pas ne se signale pas");
+egal([surSortie.ok, surSortie.ok && surSortie.masquePourTous], [true, false], "une sortie visible se signale, sans masquage d'office");
+const cachee = await signalements.signaler(7, { cible: "miamis", cibleId: reservee.sortie.id, raison: "danger", precision: null, explication: "" }, DEBUT);
+egal(cachee, { ok: false, erreur: "contenu-inconnu" }, "une sortie réservée à un autre public ne se signale pas");
 
 egal((await listerEtiquettesLibres({}, base)).filter((e) => e.sortieId === id).map((e) => e.nom), ["Fans de ramen"]);
 reussi(await retirerEtiquetteLibre(id, "Fans de ramen", DEBUT, base), "étiquette retirée");

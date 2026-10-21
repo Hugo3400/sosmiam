@@ -23,7 +23,7 @@ const potesQuiPartagent = (compteId: number) => Prisma.sql`
     )`;
 
 /**
- * « Quoi de neuf » (B.2) : rescousses et lieux gardés (lieux encore publiés), badges et nouvelles listes (ni suspendues, ni
+ * « Quoi de neuf » (B.2) : rescousses et lieux gardés (lieux encore publiés), le dernier badge du jour de chaque pote, nouvelles listes (ni suspendues, ni
  * retirées, ni signalées par moi) des potes qui partagent leur activité, depuis `depuis`, sans les lignes que j'ai retirées
  * de ma vue (masque « activite », par l'identifiant de la ligne). Les identifiants des lignes ne portent jamais l'id d'un
  * compte : l'identifiant public pour un lieu gardé.
@@ -41,9 +41,13 @@ export function construireRequeteActivite(compteId: number, depuis: Date): Prism
       FROM lieux_gardes g JOIN potes ON potes.id = g.compte_id JOIN lieux l ON l.id = g.lieu_id
       WHERE g.cree_le >= ${depuis}::timestamptz AND l.statut = 'publie'
       UNION ALL
-      SELECT 'badge', bc.compte_id, 'badge:' || bc.id, NULL, bc.badge, NULL, bc.obtenu_le
-      FROM badges_comptes bc JOIN potes ON potes.id = bc.compte_id
-      WHERE bc.obtenu_le >= ${depuis}::timestamptz
+      SELECT * FROM (
+        SELECT DISTINCT ON (bc.compte_id, (bc.obtenu_le AT TIME ZONE 'Europe/Paris')::date)
+          'badge'::text, bc.compte_id, 'badge:' || bc.id, NULL::int, bc.badge::text, NULL::int, bc.obtenu_le
+        FROM badges_comptes bc JOIN potes ON potes.id = bc.compte_id
+        WHERE bc.obtenu_le >= ${depuis}::timestamptz
+        ORDER BY bc.compte_id, (bc.obtenu_le AT TIME ZONE 'Europe/Paris')::date, bc.obtenu_le DESC, bc.id DESC
+      ) AS badges_du_jour
       UNION ALL
       SELECT 'liste', li.auteur_id, 'liste:' || li.id, NULL, li.titre, li.id, li.cree_le
       FROM listes_lieux li JOIN potes ON potes.id = li.auteur_id

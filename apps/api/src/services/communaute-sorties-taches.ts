@@ -33,10 +33,11 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
     }];
   }
 
-  async function continuer(t: TablesCommunaute, id: number, limite: boolean, maintenant: Date): Promise<AnnonceCommunaute[] | null> {
-    const ligne = await t.verrouillerSortie(id);
+  async function continuer(t: TablesCommunaute, listee: LigneSortieMiamis, limite: boolean, maintenant: Date): Promise<AnnonceCommunaute[] | null> {
+    await t.verrouillerComptes([listee.organisateurId]);
+    const ligne = await t.verrouillerSortie(listee.id);
     if (!ligne || ligne.annuleeLe !== null || ligne.retireeLe !== null || ligne.suiteTraiteeLe !== null || !ligne.recurrente) return null;
-    await t.changerSortie(id, { suiteTraiteeLe: maintenant }, maintenant);
+    await t.changerSortie(ligne.id, { suiteTraiteeLe: maintenant }, maintenant);
     const lieu = (await t.lireLieux([ligne.lieuId])).get(ligne.lieuId);
     if (!lieu?.publie || limite) return [];
     return creerLaSuite(t, ligne, maintenant);
@@ -44,7 +45,6 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
 
   async function creerLaSuite(t: TablesCommunaute, ligne: LigneSortieMiamis, maintenant: Date): Promise<AnnonceCommunaute[]> {
     const organisateur = ligne.organisateurId;
-    await t.verrouillerComptes([organisateur]);
     const conversationId = await t.creerConversation(organisateur, maintenant);
     const id = await t.creerSortie({
       ...ligne, conversationId, quand: calculerProchaineDate(ligne.quand, maintenant), serieId: ligne.serieId ?? ligne.id,
@@ -88,7 +88,7 @@ export function creerTachesSortiesMiamis(c: ContexteCommunaute): Pick<ServicesSo
       const limites = new Set<number>();
       for (const l of aContinuer) if (c.estLimite && (await c.estLimite(l.organisateurId, maintenant))) limites.add(l.organisateurId);
       const rappels = await passer(aRappeler, (t, l) => rappeler(t, l.id, maintenant));
-      const suites = await passer(aContinuer, (t, l) => continuer(t, l.id, limites.has(l.organisateurId), maintenant));
+      const suites = await passer(aContinuer, (t, l) => continuer(t, l, limites.has(l.organisateurId), maintenant));
       return { rappels: rappels.faites, suites: suites.faites, echecs: rappels.echecs + suites.echecs, effets: [...rappels.effets, ...suites.effets] };
     },
   };

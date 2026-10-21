@@ -46,7 +46,11 @@ await creer("rescousses", { compte_id: lea, lieu_id: lieuRetire, semaine: "2026-
 await creer("rescousses", { compte_id: lea, lieu_id: lieu, semaine: "2026-S40", cree_le: ilYa(40) });
 for (const qui of [sam, zoe, inconnu]) await creer("rescousses", { compte_id: qui, lieu_id: lieu, semaine: "2026-S44", cree_le: ilYa(1) });
 await creer("lieux_gardes", { compte_id: lea, lieu_id: lieu, cree_le: ilYa(2) });
-const badge = await creer("badges_comptes", { compte_id: lea, badge: "premier-sauveteur", obtenu_le: ilYa(4) });
+const jourBadges = new Date(ilYa(4));
+jourBadges.setUTCHours(10, 0, 0, 0);
+const badge = await creer("badges_comptes", { compte_id: lea, badge: "premier-sauveteur", obtenu_le: jourBadges });
+await creer("badges_comptes", { compte_id: lea, badge: "premiere-rescousse", obtenu_le: new Date(jourBadges.getTime() - 3_600_000) });
+await creer("badges_comptes", { compte_id: lea, badge: "fureteur", obtenu_le: new Date(jourBadges.getTime() - 7_200_000) });
 const liste = await creer("listes_lieux", { auteur_id: lea, titre: "Pizzas du jeudi", emoji: "🍕", cree_le: ilYa(5) });
 const signalee = await creer("listes_lieux", { auteur_id: lea, titre: "Signalée", emoji: "🍕", cree_le: ilYa(5) });
 await creer("listes_lieux", { auteur_id: lea, titre: "Suspendue", emoji: "🍕", cree_le: ilYa(5), suspendue_le: ilYa(1) });
@@ -59,7 +63,7 @@ await creer("elements_masques", { compte_id: moi, cible: "activite", cible_id: `
 type Ligne = { id: string; type: string; compteId: number; lieuId: number | null; detail: string | null; listeId: number | null; date: Date };
 const activite = await base.$queryRaw<Ligne[]>(construireRequeteActivite(moi, ilYa(30)));
 egal(activite.map((l) => l.id), [`rescousse:${r1}`, `garde:${idLea}:${lieu}`, `badge:${badge}`, `liste:${liste}`],
-  "Quoi de neuf : Léa seulement, fenêtre de 30 jours, lieux publiés, sans le masqué ni la liste signalée ou suspendue");
+  "Quoi de neuf : Léa seulement, fenêtre de 30 jours, lieux publiés, un seul badge par jour (le dernier), sans le masqué ni la liste signalée ou suspendue");
 egal(activite.map((l) => l.type), ["rescousse", "garde", "badge", "liste"]);
 egal(activite[0]!.compteId, lea);
 egal(activite[0]!.lieuId, lieu);
