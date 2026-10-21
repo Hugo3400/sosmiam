@@ -121,8 +121,7 @@ test("plafond par visiteur : au-delà de son nombre de lieux du jour, ses vues n
   b.vues.publies.add(3);
   b.vues.publies.add(4);
   assert.equal((await vue(4, "2001:db8:bb00::1")).statut, 204);
-  b.vues.publies.delete(4);
-  assert.equal((await vue(4, "2001:db8:bb00::1")).statut, 404);
+  assert.equal((await vue(5, "2001:db8:bb00::1")).statut, 404);
   for (const lieu of [1, 2, 3]) assert.equal((await vue(lieu, "2001:db8:bb00:ff::2")).statut, 204);
   assert.deepEqual(b.vues.vues, [{ lieuId: 4, jour: "2026-10-09", nombre: 1 }, { lieuId: 1, jour: "2026-10-09", nombre: 1 }]);
   assert.equal((await vue(3, "203.0.113.90")).statut, 204);

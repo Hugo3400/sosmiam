@@ -231,7 +231,7 @@ test("e-mail jamais confirmé : Apple ou Google reprend le compte (mot de passe 
   const pirate = await demander("POST", "/comptes", { corps: { email, motDePasse, prenom: "Pirate", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true } });
   assert.equal(pirate.statut, 201);
   assert.equal(pirate.corps.compte.emailVerifie, false);
-  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate", "pirate@icloud.com", NONCE), nonce: NONCE } })).statut, 200);
+  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate", "pirate@icloud.com", NONCE), nonce: NONCE, motDePasse } })).statut, 200);
   const victime = await viaGoogle("google-victime", email);
   assert.deepEqual([victime.statut, victime.corps.rattache, victime.corps.compte.emailVerifie], [200, true, true]);
   assert.equal((await demander("GET", "/comptes/session", { jeton: pirate.corps.session })).statut, 401);
@@ -246,7 +246,7 @@ test("e-mail jamais confirmé : Apple ou Google reprend le compte (mot de passe 
 test("e-mail jamais confirmé : le lien « mot de passe oublié » délie Apple et Google et confirme l'e-mail", async () => {
   const email = "victime2@gmail.com";
   const pirate = await demander("POST", "/comptes", { corps: { email, motDePasse: "le mot de passe du pirate 2026", prenom: "Pirate", ville: "Lyon", dateNaissance: "1990-01-01", cgu: true } });
-  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate-2", "pirate2@icloud.com", NONCE), nonce: NONCE } })).statut, 200);
+  assert.equal((await demander("POST", "/comptes/moi/connexions/apple", { jeton: pirate.corps.session, corps: { identityToken: apple.jeton("apple-pirate-2", "pirate2@icloud.com", NONCE), nonce: NONCE, motDePasse: "le mot de passe du pirate 2026" } })).statut, 200);
   const garde = trouver(email);
   assert.ok(garde);
   const lien = memoire.preparerReinitialisation(garde.id);

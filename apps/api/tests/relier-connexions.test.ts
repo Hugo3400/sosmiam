@@ -63,6 +63,7 @@ const PROFIL = { prenom: "Zoé", dateNaissance: "1995-03-14", ville: "Nantes", c
 const jetonApple = (sub: string, email: string | null = null) => ({ identityToken: apple.jeton(sub, email, NONCE), nonce: NONCE });
 const jetonGoogle = (sub: string, email = `${sub}@gmail.com`) => ({ idToken: google.jeton(sub, email, null) });
 const trouver = (email: string) => [...memoire.comptes.values()].find((compte) => compte.email === email);
+const avecMotDePasse = (jetons: Record<string, unknown>) => ({ ...jetons, motDePasse: MOT_DE_PASSE });
 
 /** Un compte du site avec un vrai mot de passe : sa session */
 async function creerCompteSite(email: string) {
@@ -74,14 +75,14 @@ const connexions = async (jeton: string) => (await demander("GET", "/comptes/moi
 
 test("relier : Google (autre e-mail, celui du compte gardé) puis Apple sur un compte avec mot de passe", async () => {
   const jeton = await creerCompteSite("relier@exemple.fr");
-  const relie = await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-relier", "autre.adresse@gmail.com") });
+  const relie = await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: avecMotDePasse(jetonGoogle("g-relier", "autre.adresse@gmail.com")) });
   assert.deepEqual(relie.corps, { ok: true, connexions: { motDePasse: true, apple: false, google: true } });
   const garde = trouver("relier@exemple.fr");
   assert.equal(garde?.googleSub, "g-relier");
   assert.equal(garde?.emailVerifieLe, null, "une autre adresse ne confirme pas celle du compte");
   // La même identité une deuxième fois : rien ne change
   assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-relier", "autre.adresse@gmail.com") })).statut, 200);
-  const pomme = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: jetonApple("a-relier", "Relier@Exemple.fr") });
+  const pomme = await demander("POST", "/comptes/moi/connexions/apple", { jeton, corps: avecMotDePasse(jetonApple("a-relier", "Relier@Exemple.fr")) });
   assert.deepEqual(pomme.corps.connexions, { motDePasse: true, apple: true, google: true });
   assert.ok(trouver("relier@exemple.fr")?.emailVerifieLe, "même e-mail, vérifié par Apple : confirmé");
   // Les deux identités connectent bien CE compte, et l'e-mail n'a pas bougé
@@ -97,7 +98,7 @@ test("relier : identité d'un AUTRE compte → 409 identite-deja-reliee (jamais 
   assert.deepEqual([pris.statut, pris.corps.erreur], [409, "identite-deja-reliee"]);
   assert.equal(trouver("second@exemple.fr")?.googleSub ?? null, null);
   assert.equal(trouver("pris@gmail.com")?.googleSub, "g-pris", "l'autre compte garde son identité");
-  assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-second") })).statut, 200);
+  assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: avecMotDePasse(jetonGoogle("g-second")) })).statut, 200);
   const deuxieme = await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-encore-un") });
   assert.deepEqual([deuxieme.statut, deuxieme.corps.erreur], [409, "deja-relie"]);
   // Jeton refusé, champ manquant, sans session
@@ -109,7 +110,7 @@ test("relier : identité d'un AUTRE compte → 409 identite-deja-reliee (jamais 
 
 test("délier avec mot de passe : bon mot de passe → délié ; mauvais → 403 ; rien de relié → 200", async () => {
   const jeton = await creerCompteSite("delier@exemple.fr");
-  await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-delier") });
+  await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: avecMotDePasse(jetonGoogle("g-delier")) });
   const mauvais = await demander("DELETE", "/comptes/moi/connexions/google", { jeton, corps: { motDePasse: "pas le bon du tout" } });
   assert.deepEqual([mauvais.statut, mauvais.corps.erreur], [403, "mot-de-passe-incorrect"]);
   const sansRien = await demander("DELETE", "/comptes/moi/connexions/google", { jeton, corps: {} });
@@ -132,7 +133,7 @@ test("dernière connexion : un compte Apple seul ne délie jamais Apple ; avec G
   const jeton = cree.corps.session as string;
   const seule = await demander("DELETE", "/comptes/moi/connexions/apple", { jeton, corps: jetonApple("a-seul") });
   assert.deepEqual([seule.statut, seule.corps.erreur], [409, "derniere-connexion"]);
-  await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: jetonGoogle("g-seul") });
+  await demander("POST", "/comptes/moi/connexions/google", { jeton, corps: { ...jetonGoogle("g-seul"), confirmation: jetonApple("a-seul") } });
   assert.deepEqual(await connexions(jeton), { motDePasse: false, apple: true, google: true });
   // Confirmation : un jeton frais de l'AUTRE fournisseur (Google), du compte relié
   const sansJeton = await demander("DELETE", "/comptes/moi/connexions/apple", { jeton, corps: {} });
@@ -155,7 +156,7 @@ test("délier : la règle « dernière connexion » tient aussi dans les donnée
   const cree = await demander("POST", "/comptes/google", { corps: { ...jetonGoogle("g-course", "course@gmail.com"), ...PROFIL } });
   const compte = trouver("course@gmail.com");
   assert.ok(compte);
-  await demander("POST", "/comptes/moi/connexions/apple", { jeton: cree.corps.session, corps: jetonApple("a-course") });
+  await demander("POST", "/comptes/moi/connexions/apple", { jeton: cree.corps.session, corps: { ...jetonApple("a-course"), confirmation: jetonGoogle("g-course", "course@gmail.com") } });
   const [un, deux] = await Promise.all([memoire.externes.delierSub(compte.id, "apple"), memoire.externes.delierSub(compte.id, "google")]);
   assert.deepEqual([un, deux], ["ok", "derniere-connexion"]);
   assert.equal(await memoire.externes.delierSub(compte.id, "apple"), "non-relie");
@@ -171,7 +172,7 @@ test("limite : 10 demandes par compte et par heure pour relier et délier ensemb
   assert.ok(Number(trop.entetes.get("retry-after")) > 0);
   // Un autre compte n'est pas gêné
   const autre = await creerCompteSite("limite-autre@exemple.fr");
-  assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton: autre, corps: jetonGoogle("g-limite") })).statut, 200);
+  assert.equal((await demander("POST", "/comptes/moi/connexions/google", { jeton: autre, corps: avecMotDePasse(jetonGoogle("g-limite")) })).statut, 200);
 });
 
 test("journaux : jamais de jeton, d'e-mail ni de « sub »", () => {
