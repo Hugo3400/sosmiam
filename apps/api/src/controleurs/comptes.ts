@@ -29,7 +29,7 @@ import type { FicheSuggerable, NouvelleSuggestionCompte, ResultatSuggestionCompt
 import type { ServicesZones } from "../services/zones-fondateurs.ts";
 import { faireAttendre, verifierEnComptant, type AttenteParCompte } from "./comptes-attente.ts";
 import { creerControleursLiens, type CourrielsComptes } from "./comptes-liens.ts";
-import { inscrireNewsletterSansAttendre, lireChoixNewsletter, noterRefusNewsletterSansAttendre, type InscriptionNewsletterComptes } from "./comptes-newsletter.ts";
+import { demanderNewsletterSansAttendre, lireChoixNewsletter, noterRefusNewsletterSansAttendre, type InscriptionNewsletterComptes } from "./comptes-newsletter.ts";
 import type { DependancesConnexionExterne } from "./comptes-externes.ts";
 import { lireEnvies, lireNomChiffre, lirePseudo } from "./comptes-profil-champs.ts";
 import type { LimiteEnvois } from "./comptes-limite-envois.ts";
@@ -213,9 +213,10 @@ export function creerControleursComptes(contexte: ContexteComptes) {
       // Impossible à cacher sans envoyer de mail ; la limite d'essais par visiteur freine qui voudrait s'en servir
       if (id === null) return reponse.status(409).json({ ok: false, erreur: "email-deja-utilise" });
       if (id === "pseudo-pris") return reponse.status(409).json({ ok: false, erreur: "pseudo-pris" });
-      // Cochée : un compte de l'app est inscrit tout de suite, un ambassadeur à la validation de sa candidature (logiciel).
+      // Cochée : un compte de l'app reçoit le lien de confirmation de la newsletter (double confirmation), un ambassadeur
+      // est inscrit à la validation de sa candidature (logiciel).
       // Décochée : le « non » est retenu (liste des désinscrits), pour qu'on ne l'inscrive jamais par erreur
-      if (newsletter === true && espace === "app") inscrireNewsletterSansAttendre(contexte.newsletter, email, profil?.ville ?? null);
+      if (newsletter === true && espace === "app") demanderNewsletterSansAttendre(contexte.newsletter, email, profil?.ville ?? null);
       if (newsletter === false) noterRefusNewsletterSansAttendre(contexte.newsletter, email);
       // Le lien de confirmation de l'e-mail : préparé ici, envoyé sans attendre ; un raté n'empêche pas l'inscription
       // (la personne peut le redemander depuis son espace)

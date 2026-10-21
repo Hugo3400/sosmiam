@@ -1,6 +1,8 @@
 // Case « newsletter » à la création d'un compte : dans l'app (inscription « app », Apple ou Google) et à l'inscription de
 // l'espace ambassadeur. « Soft opt-in » de la CNIL : une case claire, cochée d'avance, que la personne peut décocher.
-// - true : un compte de l'app est inscrit tout de suite ; un ambassadeur, à la validation de sa candidature (logiciel).
+// - true : un compte de l'app créé avec Apple ou Google (e-mail déjà vérifié par eux) est inscrit tout de suite ; créé avec
+//   un e-mail et un mot de passe, il reçoit d'abord le lien de confirmation de la newsletter (demanderConfirmation, double
+//   confirmation) ; un ambassadeur, à la validation de sa candidature (logiciel).
 // - false : le « non » est retenu (noterRefus : liste des désinscrits, 3 ans), pour qu'aucune inscription automatique ne
 //   le reprenne par erreur.
 // - absent ou null (anciennes versions de l'app) : rien. Contrat : routes/comptes.ts. Jamais d'e-mail dans un journal.
@@ -13,6 +15,7 @@ export type InscriptionNewsletterComptes = {
   inscrireCompte(email: string, ville: string | null): Promise<unknown>;
   /** Retient le « non » (case décochée) : noterDesinscription en vrai ; absente, le refus n'est pas retenu */
   noterRefus?(email: string): Promise<unknown>;
+  demanderConfirmation?(email: string, ville: string | null): Promise<unknown>;
 };
 
 /** Le choix de la case : true ou false ; absent ou null : null (pas de case) ; présent mais pas booléen : 400 {champ: newsletter} */
@@ -28,6 +31,14 @@ export function inscrireNewsletterSansAttendre(newsletter: InscriptionNewsletter
   Promise.resolve()
     .then(() => newsletter.inscrireCompte(email.toLowerCase(), ville))
     .catch((erreur: unknown) => console.error("Comptes : inscription à la newsletter impossible :", resumerErreur(erreur)));
+}
+
+export function demanderNewsletterSansAttendre(newsletter: InscriptionNewsletterComptes | undefined, email: string, ville: string | null) {
+  const demanderConfirmation = newsletter?.demanderConfirmation;
+  if (!demanderConfirmation) return;
+  Promise.resolve()
+    .then(() => demanderConfirmation.call(newsletter, email.toLowerCase(), ville))
+    .catch((erreur: unknown) => console.error("Comptes : lien de confirmation de la newsletter impossible :", resumerErreur(erreur)));
 }
 
 /** Retient le refus sans attendre la réponse : une panne est journalisée (sans l'e-mail) et ne fait jamais échouer la création */

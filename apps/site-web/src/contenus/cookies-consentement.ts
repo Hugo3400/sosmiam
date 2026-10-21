@@ -91,6 +91,7 @@ export const categoriesConsentement: CategorieConsentement[] = [
           { nom: "__Host-sosmiam-session", finalite: "Te garder connecté.", duree: "90 jours au plus" },
           { nom: "__Host-sosmiam-connexion-externe", finalite: "Vérifier la réponse d'Apple ou de Google.", duree: "10 minutes au plus" },
           { nom: "__Host-sosmiam-inscription-externe", finalite: "Finir une inscription avec Apple ou Google.", duree: "10 minutes au plus" },
+          { nom: "__Host-sosmiam-confirmation-externe", finalite: "Relier Apple ou Google à un compte sans mot de passe.", duree: "10 minutes au plus" },
           { nom: "__Host-sosmiam-connexion-qr", finalite: "Attendre que l'app valide « Me connecter avec l'app ».", duree: "2 minutes au plus" },
           { nom: "sosmiam-sans-statistiques", finalite: "Retenir ton refus d'être compté.", duree: "13 mois" },
           { nom: NOM_COOKIE_CONSENTEMENT, finalite: "Retenir tes choix de cookies.", duree: "6 mois" },

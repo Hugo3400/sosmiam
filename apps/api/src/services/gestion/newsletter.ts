@@ -118,6 +118,12 @@ export function inscrireAmbassadeurNewsletter(email: string, ville: string | nul
   return inscrireCompteNewsletter(email, ville, "ambassadeur", maintenant);
 }
 
+export async function estDesinscritNewsletter(email: string): Promise<boolean> {
+  const adresse = email.trim().toLowerCase();
+  const desinscrits = await readFile(FICHIER_DESINSCRITS, "utf8").catch(() => "");
+  return desinscrits.split("\n").some((ligne) => ligne.split(" ")[0]?.trim().toLowerCase() === adresse);
+}
+
 /**
  * Inscrit un compte à la newsletter : ambassadeur validé (par défaut), ou compte de l'app qui l'a demandé (décidé par Hugo
  * le 14 octobre 2026). Jamais une adresse qui s'est désinscrite un jour. Une adresse déjà inscrite garde sa fiche : seule
@@ -125,8 +131,7 @@ export function inscrireAmbassadeurNewsletter(email: string, ville: string | nul
  */
 export async function inscrireCompteNewsletter(email: string, ville: string | null, source: "app" | "ambassadeur", maintenant = new Date()): Promise<boolean> {
   const adresse = email.trim().toLowerCase();
-  const desinscrits = await readFile(FICHIER_DESINSCRITS, "utf8").catch(() => "");
-  if (desinscrits.split("\n").some((ligne) => ligne.split(" ")[0]?.trim().toLowerCase() === adresse)) return false;
+  if (await estDesinscritNewsletter(adresse)) return false;
   const ambassadeur = source === "ambassadeur";
   await baseDeDonnees.inscriptionNewsletter.upsert({
     where: { email: adresse },
@@ -143,7 +148,7 @@ export async function inscrireCompteNewsletter(email: string, ville: string | nu
  */
 export async function inscrireComptesAppNewsletter(maintenant = new Date()) {
   const comptes = await baseDeDonnees.compte.findMany({
-    where: { OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }] },
+    where: { emailVerifieLe: { not: null }, OR: [{ sessions: { some: { support: "app" } } }, { appareils: { some: {} } }] },
     select: { email: true, ville: true },
   });
   let inscrits = 0;

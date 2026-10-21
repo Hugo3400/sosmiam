@@ -82,8 +82,8 @@ export type DependancesComptes = {
   /** Connexion avec Apple et Google : données (services/comptes-externes.ts, ou la mémoire) et vérificateurs des jetons
    * (services/connexion-externe.ts) ; absent : POST /comptes/apple et /comptes/google répondent 503 */
   externes?: DependancesConnexionExterne;
-  /** Case « newsletter » à la création d'un compte : cochée dans l'app (inscription « app », Apple, Google),
-   * inscrireCompteNewsletter ; décochée (app, Apple, Google, espace ambassadeur), noterRefus : noterDesinscription
+  /** Case « newsletter » à la création d'un compte : cochée dans l'app avec Apple ou Google, inscrireCompteNewsletter ;
+   * cochée à l'inscription « app » (e-mail et mot de passe), demanderConfirmation ; décochée (app, Apple, Google, espace ambassadeur), noterRefus : noterDesinscription
    * (services/gestion/newsletter.ts) en vrai ; absente : la case est lue et vérifiée, mais rien n'est fait */
   newsletter?: InscriptionNewsletterComptes;
   /** Pour les tests : une fausse horloge */
@@ -147,7 +147,9 @@ export type DependancesComptes = {
  *                                        newsletter? (booléen ; « soft opt-in » de la CNIL : l'app, et le formulaire de
  *                                        l'espace ambassadeur, montrent à l'inscription une case claire, cochée, que la
  *                                        personne peut décocher) : true → espace « app » : après la création, l'e-mail (en
- *                                        minuscules) et la ville du profil sont inscrits à la newsletter ; espace
+ *                                        minuscules) et la ville du profil reçoivent le lien de confirmation de la
+ *                                        newsletter (demanderConfirmation, double confirmation : inscrits seulement après
+ *                                        le clic, comme le formulaire « Préviens-moi ») ; espace
  *                                        « ambassadeur » : rien ici (l'inscription se fait à la validation, dans le logiciel
  *                                        de gestion). false → après la création, le refus est retenu (noterRefus : l'e-mail
  *                                        rejoint la liste des désinscrits, 3 ans), pour qu'aucune inscription automatique ne
@@ -322,8 +324,8 @@ export type DependancesComptes = {
  *      compte Apple (ou Google) ;
  *   d) sinon, création d'un compte de l'app, avec les mêmes champs et règles que l'inscription « app » : prenom,
  *      dateNaissance, ville et cgu: true obligatoires (comme l'inscription ; la version du jour est gardée) ; nom?,
- *      envies?, pseudo?, newsletter? (comme l'inscription « app » : true inscrit l'e-mail du jeton à la newsletter
- *      après la création, false retient le refus, sans attendre ; autre valeur qu'un booléen → 400 {champ: newsletter} ; lu SEULEMENT à la
+ *      envies?, pseudo?, newsletter? (comme l'inscription « app », sauf que true inscrit l'e-mail du jeton à la newsletter
+ *      tout de suite après la création, sans lien de confirmation : Apple et Google l'ont déjà vérifié ; false retient le refus, sans attendre ; autre valeur qu'un booléen → 400 {champ: newsletter} ; lu SEULEMENT à la
  *      création : en b et c, il est ignoré). D'abord l'âge : dateNaissance sous 18 ans → 403 age-minimum, rien n'est gardé. Sans clé de
  *      chiffrement : 503 chiffrement-indisponible. cgu envoyé mais pas true : 400 champ-invalide {champ: cgu}. Si
  *      prenom, dateNaissance, ville ou cgu manquent → 409 { ok: false, erreur: "profil-a-completer", manque: [ces champs,

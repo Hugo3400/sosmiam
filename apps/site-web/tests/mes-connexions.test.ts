@@ -24,14 +24,15 @@ const { demarrerConnexionExterne, terminerConnexionExterne } = await import("../
 const MAINTENANT = Date.parse("2026-10-14T10:00:00Z");
 const enCookie = (reponse: Response) => reponse.headers.getSetCookie().map((ligne) => ligne.split(";")[0]).join("; ");
 
-test("intentions : connexion, suppression, relier, delier ; tout le reste → connexion", () => {
-  for (const intention of ["connexion", "suppression", "relier", "delier"]) assert.equal(lireIntentionConnexion(intention), intention);
+test("intentions : connexion, suppression, relier, delier, confirmer-relier ; tout le reste → connexion", () => {
+  for (const intention of ["connexion", "suppression", "relier", "delier", "confirmer-relier"]) assert.equal(lireIntentionConnexion(intention), intention);
   for (const autre of [null, "", "RELIER", "fusionner", 42]) assert.equal(lireIntentionConnexion(autre), "connexion");
 });
 
 test("adresses des boutons : « Relier » et « Délier » passent par le départ existant, avec leur intention", () => {
   assert.equal(construireAdresseDepart("google", "/mon-compte", null, "relier"), "/connexion/google?depart=%2Fmon-compte&intention=relier");
   assert.equal(construireAdresseDepart("apple", "/espace/mon-compte", null, "delier"), "/connexion/apple?depart=%2Fespace%2Fmon-compte&intention=delier");
+  assert.equal(construireAdresseDepart("google", "/mon-compte", null, "confirmer-relier"), "/connexion/google?depart=%2Fmon-compte&intention=confirmer-relier");
   assert.equal(construireAdresseDepart("google", "/connexion"), "/connexion/google?depart=%2Fconnexion", "la connexion ne change pas");
 });
 
@@ -107,4 +108,22 @@ test("retour « relier » annulé ou sans jeton : message dans « Mes façons de
   assert.ok(!annule.reponse.headers.getSetCookie().some((ligne) => ligne.startsWith(`${cookies.NOM_COOKIE_ATTENTE}=`)));
   const sansJeton = await allerRetour("apple", "delier", "sosmiam.fr", "/mon-compte", { id_token: "" });
   assert.equal(sansJeton.reponse.headers.get("Location"), "/mon-compte?connexions=refuse&avec=apple#mes-connexions");
+});
+
+test("retour « confirmer-relier » (compte sans mot de passe) : la clé actuelle attend à part, l'attente de « relier » reste", async () => {
+  const { reponse, appels } = await allerRetour("google", "confirmer-relier", "sosmiam.fr", "/mon-compte");
+  assert.equal(appels, 0);
+  assert.equal(reponse.headers.get("Location"), "/mon-compte#mes-connexions");
+  const poses = reponse.headers.getSetCookie();
+  assert.ok(!poses.some((ligne) => ligne.startsWith(`${cookies.NOM_COOKIE_ATTENTE}=`)), "l'attente de « relier » n'est pas touchée");
+  const ligne = poses.find((l) => l.startsWith(`${cookies.NOM_COOKIE_CONFIRMATION}=`)) ?? "";
+  assert.ok(ligne.includes("HttpOnly") && ligne.includes("SameSite=Lax") && !ligne.includes("jeton.frais.signe"));
+  const valeur = ligne.split(";")[0].slice(cookies.NOM_COOKIE_CONFIRMATION.length + 1);
+  const confirmation = cookies.lireCookieConfirmation(new Request("http://sosmiam.fr/", { headers: { Cookie: ligne.split(";")[0] } }), MAINTENANT);
+  assert.deepEqual([confirmation?.intention, confirmation?.fournisseur, confirmation?.jeton], ["confirmer-relier", "google", "jeton.frais.signe"]);
+  const deguise = new Request("http://sosmiam.fr/", { headers: { Cookie: `${cookies.NOM_COOKIE_ATTENTE}=${valeur}` } });
+  assert.equal(cookies.lireCookieAttente(deguise, MAINTENANT), null, "chiffré pour son seul usage");
+  const annule = await allerRetour("google", "confirmer-relier", "sosmiam.fr", "/mon-compte", { error: "access_denied" });
+  assert.equal(annule.reponse.headers.get("Location"), "/mon-compte?connexions=annule&avec=google#mes-connexions");
+  assert.ok(!annule.reponse.headers.getSetCookie().some((l) => l.startsWith(`${cookies.NOM_COOKIE_CONFIRMATION}=`)));
 });

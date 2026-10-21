@@ -571,3 +571,13 @@
 - **Freelance ou mission** : graphisme et illustration, vidéo et montage, développement. Rémunération « sur devis » : pas de montant affiché, la personne propose son tarif.
 - **À distance, partout en France.** Candidature **dès 18 ans**.
 - **Diffusion** : la page Carrière du site (lien dans le pied de page) et l'app (lien « On recrute »).
+
+## Page « Chasse aux bugs » (sécurité, décidé par Hugo le 22 octobre 2026)
+- Adresse : **sosmiam.fr/securite**, titre « Chasse aux bugs ». Indiquée dans le fichier `/.well-known/security.txt` (contact et règles).
+- **Ce qu'on peut tester** : le site et les espaces (sosmiam.fr, ambassadeur.sosmiam.fr, pro.sosmiam.fr), l'API (api.sosmiam.fr) et l'app iOS et Android, avec ses propres comptes seulement. **Hors jeu** : le logiciel de gestion, le bot et le serveur Discord, et les services des prestataires (Cloudflare, Apple, Google, l'hébergeur, la messagerie).
+- **Signalement par un formulaire seulement** (pas d'adresse e-mail dédiée) : gardé chiffré, lu dans le logiciel de gestion. Captures d'écran en pièces jointes : **images PNG ou JPEG, 3 au plus, 5 Mo chacune**, vérifiées, gardées chiffrées, ouvertes seulement dans le logiciel ; une vidéo passe par un lien.
+- **Réponse sous 7 jours** (accusé de réception), puis des nouvelles régulières.
+- **En échange** d'une vraie faille : un badge « Chasseur de bugs » dans l'app, son nom au tableau d'honneur de la page (seulement si la personne le veut) et une attestation. **Pour certaines failles, une prime en argent est possible**, au cas par cas : aucun montant affiché ni garanti.
+- **Publication** : la personne peut parler de la faille une fois corrigée, ou **90 jours** après son signalement si rien n'a été fait, en nous prévenant avant.
+- **Conservation** : un signalement est effacé **2 ans après sa clôture** (corrigé ou non retenu). Le nom au tableau d'honneur reste tant que la personne le veut.
+- Signalement **dès 18 ans**, comme le reste de SOS Miam.
