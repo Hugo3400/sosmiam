@@ -38,11 +38,8 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
   const [recherche, setRecherche] = useState("");
 
   const maintenant = useMemo(() => new Date(maintenantMs), [maintenantMs]);
-  const idsBloques = useMemo(() => new Set(bloques.map((b) => b.id)), [bloques]);
-  const affichees = useMemo(
-    () => filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques)),
-    [conversations, recherche, monId, trouverPote, idsBloques],
-  );
+  const idsBloques = new Set(bloques.map((b) => b.id));
+  const affichees = filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques));
   const pretes = pret && communautePrete;
   const cherche = recherche.trim();
 

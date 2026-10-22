@@ -18,7 +18,7 @@ const DELAIS_TRANSACTION = { maxWait: 5_000, timeout: 15_000 };
 
 const CHAMPS_CONVERSATION = {
   id: true, type: true, clePrive: true, titreChiffre: true, emoji: true, creeParId: true, version: true, dernierMessageLe: true,
-  modifieLe: true, creeLe: true, sortie: { select: { id: true, titre: true, emoji: true } },
+  modifieLe: true, creeLe: true, photo: true, sortie: { select: { id: true, titre: true, emoji: true } },
 } as const satisfies Prisma.ConversationSelect;
 
 type ConversationLue = Prisma.ConversationGetPayload<{ select: typeof CHAMPS_CONVERSATION }>;
@@ -75,7 +75,7 @@ export function creerTablesMessagerie(base: Client, relations: RelationsSociales
       return ligne?.id ?? null;
     },
     async ecrireGroupe(id, m) {
-      if (m.titreChiffre === undefined && m.emoji === undefined) return;
+      if (m.titreChiffre === undefined && m.emoji === undefined && m.photo === undefined) return;
       await base.conversation.update({ where: { id }, data: m });
     },
     effacerConversations: (ids) => effacerConversations(base, ids, medias),
@@ -101,6 +101,22 @@ export function creerTablesMessagerie(base: Client, relations: RelationsSociales
     },
     async retirerMembre(conversationId, compteId) {
       await base.membreConversation.deleteMany({ where: { conversationId, compteId } });
+    },
+    async listerMesEpinglees(compteId) {
+      const lignes = await base.membreConversation.findMany({
+        where: { compteId, epingleeLe: { not: null }, conversation: { type: { in: ["prive", "groupe"] } } },
+        orderBy: [{ epingleeLe: "desc" }, { conversationId: "desc" }],
+        select: { conversation: { select: CHAMPS_CONVERSATION } },
+      });
+      return lignes.map((l) => versConversation(l.conversation));
+    },
+    async compterEpinglees(compteId) {
+      return base.membreConversation.count({ where: { compteId, epingleeLe: { not: null } } });
+    },
+    async lireAccusesLecture(compteIds) {
+      if (compteIds.length === 0) return new Set();
+      const lignes = await base.profilSocial.findMany({ where: { compteId: { in: [...new Set(compteIds)] }, accusesLecture: true }, select: { compteId: true } });
+      return new Set(lignes.map((l) => l.compteId));
     },
 
     async lireInvitations(conversationIds) {

@@ -40,10 +40,10 @@ export type ClientHttp = {
    */
   demanderBrut(methode: MethodeHttp, chemin: string, options?: OptionsDemande): Promise<{ statut: number; corps: Record<string, unknown> } | null>;
   /**
-   * Un corps brut (photo, note vocale du chat) en POST, avec son type (« image/jpeg », « audio/mp4 ») ; délai de 60 s ; même
+   * Un corps brut (photo, note vocale du chat) en POST (ou PUT si demandé), avec son type (« image/jpeg », « audio/mp4 ») ; délai de 60 s ; même
    * lecture de la réponse que demander. entetes : « Idempotency-Key » (l'idClient de l'envoi), sans jamais remplacer la session
    */
-  envoyerOctets<T extends object = Record<never, never>>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>): Promise<ReponseApi<T>>;
+  envoyerOctets<T extends object = Record<never, never>>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>, methode?: "POST" | "PUT"): Promise<ReponseApi<T>>;
   /**
    * L'adresse complète et les en-têtes (session comprise) pour télécharger un fichier privé avec l'outil du téléphone
    * (File.downloadFileAsync d'expo-file-system). Le jeton n'est JAMAIS mis dans l'adresse : les journaux la gardent
@@ -170,8 +170,8 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
       return { statut: reponse.status, corps };
     },
 
-    async envoyerOctets<T extends object>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>): Promise<ReponseApi<T>> {
-      return traduire<T>(await envoyer("POST", chemin, { entetes, brut: { corps, type: typeMime }, delaiMs: DELAI_OCTETS_MS }));
+    async envoyerOctets<T extends object>(chemin: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: string, entetes?: Readonly<Record<string, string>>, methode: "POST" | "PUT" = "POST"): Promise<ReponseApi<T>> {
+      return traduire<T>(await envoyer(methode, chemin, { entetes, brut: { corps, type: typeMime }, delaiMs: DELAI_OCTETS_MS }));
     },
 
     async preparerTelechargement(chemin: string) {

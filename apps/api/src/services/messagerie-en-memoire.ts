@@ -79,7 +79,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
       if (c.clePrive && [...tables.conversations.values()].some((x) => x.clePrive === c.clePrive)) return null;
       const id = prendreId(tables, "conversations");
       tables.conversations.set(id, {
-        id, type: c.type, clePrive: c.clePrive, titreChiffre: null, emoji: c.emoji, creeParId: c.creeParId, version: 0,
+        id, type: c.type, clePrive: c.clePrive, titreChiffre: null, emoji: c.emoji, photo: null, creeParId: c.creeParId, version: 0,
         dernierMessageLe: c.maintenant, modifieLe: c.maintenant, creeLe: c.maintenant,
       });
       return id;
@@ -95,7 +95,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
       return tables.membres.filter((m) => ids.has(m.conversationId)).map(versMembre);
     },
     async ajouterMembre(m) {
-      if (!membreDe(m.conversationId, m.compteId)) tables.membres.push({ ...m });
+      if (!membreDe(m.conversationId, m.compteId)) tables.membres.push({ ...m, epingleeLe: null });
     },
     async modifierMembre(conversationId, compteId, m) {
       const membre = membreDe(conversationId, compteId);
@@ -110,6 +110,21 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
     },
     async retirerMembre(conversationId, compteId) {
       retirer(tables.membres, (m) => m.conversationId === conversationId && m.compteId === compteId);
+    },
+    async listerMesEpinglees(compteId) {
+      return tables.membres
+        .filter((m) => m.compteId === compteId && m.epingleeLe !== null && tables.conversations.get(m.conversationId)?.type !== "sortie")
+        .sort((a, b) => b.epingleeLe!.getTime() - a.epingleeLe!.getTime() || b.conversationId - a.conversationId)
+        .flatMap((m) => {
+          const c = tables.conversations.get(m.conversationId);
+          return c ? [versConversation(c)] : [];
+        });
+    },
+    async compterEpinglees(compteId) {
+      return tables.membres.filter((m) => m.compteId === compteId && m.epingleeLe !== null).length;
+    },
+    async lireAccusesLecture(compteIds) {
+      return new Set(compteIds.filter((id) => tables.profils.get(id)?.accusesLecture === true));
     },
 
     async lireInvitations(conversationIds) {
@@ -164,6 +179,18 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
     },
     async listerMessages(conversationId, f, avant, nombre) {
       return messagesDe(conversationId)
+        .filter((m) => m.id > f.apres && (avant === null || m.id < avant) && estVisible(m, f))
+        .sort((a, b) => b.id - a.id)
+        .slice(0, nombre)
+        .map(versMessage);
+    },
+    async listerAlbum(conversationId, album, nombre) {
+      return messagesDe(conversationId).filter((m) => m.album === album).sort((a, b) => a.id - b.id).slice(0, nombre).map(versMessage);
+    },
+    async listerPartages(conversationId, type, f, avant, nombre, maintenant) {
+      return messagesDe(conversationId)
+        .filter((m) => m.type === type && !m.supprimeLe && !m.suspenduLe && !m.retireLe
+          && (type !== "photo" || (m.fichier !== null && (m.mediaExpireLe?.getTime() ?? 0) > maintenant.getTime())))
         .filter((m) => m.id > f.apres && (avant === null || m.id < avant) && estVisible(m, f))
         .sort((a, b) => b.id - a.id)
         .slice(0, nombre)

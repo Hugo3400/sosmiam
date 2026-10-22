@@ -7,7 +7,7 @@
 
 import type {
   CodeReaction, ConversationApi, FilMessagesApi, InvitationGroupeApi, LieuEnvoyeApi, MessageApi, NouveauGroupeApi,
-  PageConversationsApi, RoleConversation,
+  PageConversationsApi, PagePartagesApi, RoleConversation, TypePartage,
 } from "../types/messagerie.ts";
 import type { ReponseApi } from "./reponse-api.ts";
 
@@ -40,22 +40,30 @@ export interface ServiceMessagerie {
   retirerMembre(id: string, personne: string | "moi"): Promise<ReponseApi>;
   changerRole(id: string, personne: string, role: RoleConversation): Promise<ReponseApi<{ conversation: ConversationApi }>>;
   couper(id: string, coupees: boolean): Promise<ReponseApi>;
-  /** PUT /app/conversations/:id/lu : ne recule jamais, jamais montré aux autres */
+  /** PUT /app/conversations/:id/lu : ne recule jamais ; montré aux autres membres (« Vu ») seulement si vous avez tous les deux les accusés de lecture */
   marquerLu(id: string, jusqua: string): Promise<ReponseApi>;
   effacerPourMoi(id: string): Promise<ReponseApi>;
   /** idClient : tiré une fois par message, renvoyé tel quel à chaque essai. « conversation-fermee », « message-refuse » */
-  envoyerTexte(id: string, idClient: string, texte: string): Promise<ReponseMessage>;
+  envoyerTexte(id: string, idClient: string, texte: string, o?: { reponseA?: string }): Promise<ReponseMessage>;
+  modifierMessage(id: string, messageId: string, texte: string): Promise<ReponseMessage>;
   /** Un lieu publié dans la discussion, avec un petit mot (140 caractères). « lieu-inconnu » */
   envoyerLieu(id: string, idClient: string, lieuId: number, texte?: string | null): Promise<ReponseMessage>;
   /**
    * POST /app/conversations/:id/medias : photo JPEG (réduite à 2 048 px par l'app) ou note vocale M4A, jamais mise en attente.
    * « media-trop-lourd », « media-invalide » { champ }, « format-refuse », « trop-de-medias », « stockage-plein »
    */
-  envoyerMedia(id: string, idClient: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: "image/jpeg" | "audio/mp4"): Promise<ReponseMessage>;
+  envoyerMedia(
+    id: string, idClient: string, corps: Blob | ArrayBuffer | Uint8Array, typeMime: "image/jpeg" | "audio/mp4", o?: { album?: string; legende?: string; onde?: string },
+  ): Promise<ReponseMessage>;
   /** Adresse et en-têtes (session comprise) pour que le téléphone télécharge le média lui-même ; 410 : « media-expire » */
   preparerLectureMedia(id: string, messageId: string): Promise<{ url: string; entetes: Record<string, string> }>;
   supprimerMessage(id: string, messageId: string): Promise<ReponseApi<{ version: number }>>;
   reagir(id: string, messageId: string, reaction: CodeReaction, oui: boolean): Promise<ReponseApi<{ version: number }>>;
+  epingler(id: string, epinglee: boolean): Promise<ReponseApi>;
+  envoyerPhotoGroupe(id: string, corps: Blob | ArrayBuffer | Uint8Array): Promise<ReponseApi<{ conversation: ConversationApi }>>;
+  retirerPhotoGroupe(id: string): Promise<ReponseApi<{ conversation: ConversationApi }>>;
+  preparerLecturePhotoGroupe(id: string): Promise<{ url: string; entetes: Record<string, string> }>;
+  listerPartages(id: string, type: TypePartage, avant?: string): Promise<ReponseApi<PagePartagesApi>>;
   /** POST /app/lieux-envoyes : un message « lieu » dans le privé de chaque pote (1 à 20) ; même idClient pour tous */
   envoyerLieuAPotes(idClient: string, lieuId: number, a: string[], mot?: string | null): Promise<ReponseApi<{ envoyes: LieuEnvoyeApi[]; ignores: string[] }>>;
   listerLieuxRecus(apres?: string): Promise<ReponseApi<PageLieuxEnvoyes>>;

@@ -17,15 +17,17 @@ const DUREE_MEDIAS_MS = 90 * JOUR_MS;
 const COLONNES = Prisma.sql`m.id, m.conversation_id AS "conversationId", m.auteur_id AS "auteurId", m.type, m.id_client AS "idClient",
   m.texte_chiffre AS "texteChiffre", m.fichier, m.type_mime AS "typeMime", m.taille, m.largeur, m.hauteur,
   m.duree_secondes AS "dureeSecondes", m.media_expire_le AS "mediaExpireLe", m.cree_le AS "creeLe", m.supprime_le AS "supprimeLe",
-  m.suspendu_le AS "suspenduLe", m.retire_le AS "retireLe"`;
+  m.suspendu_le AS "suspenduLe", m.retire_le AS "retireLe", m.reponse_a_id AS "reponseAId", m.modifie_le AS "modifieLe", m.album,
+  m.onde, m.systeme`;
 
-type LigneBrute = Omit<LigneMessage, "mediaExpireLe" | "creeLe" | "supprimeLe" | "suspenduLe" | "retireLe" | "type"> & {
+type LigneBrute = Omit<LigneMessage, "mediaExpireLe" | "creeLe" | "supprimeLe" | "suspenduLe" | "retireLe" | "modifieLe" | "type"> & {
   type: string;
   mediaExpireLe: Date | string | null;
   creeLe: Date | string;
   supprimeLe: Date | string | null;
   suspenduLe: Date | string | null;
   retireLe: Date | string | null;
+  modifieLe: Date | string | null;
 };
 const enDate = (d: Date | string | null) => (d === null ? null : new Date(d));
 /** Une ligne brute (ou de Prisma) en LigneMessage : dates en Date, type resserré */
@@ -38,6 +40,7 @@ function convertirLigneMessage(l: LigneBrute): LigneMessage {
     supprimeLe: enDate(l.supprimeLe),
     suspenduLe: enDate(l.suspenduLe),
     retireLe: enDate(l.retireLe),
+    modifieLe: enDate(l.modifieLe),
   };
 }
 
@@ -47,6 +50,13 @@ const liste = (ids: Iterable<number>) => Prisma.join([...ids].length > 0 ? [...i
 /** Le filtre d'un message visible : auteur sans blocage (un compte supprimé reste visible), pas signalé par moi */
 const filtreVisible = (f: Omit<FiltreMessages, "apres">) => Prisma.sql`(m.auteur_id IS NULL OR m.auteur_id NOT IN (${liste(f.caches)}))
   AND m.id NOT IN (${liste(f.exclus)})`;
+
+const filtrePage = (f: FiltreMessages, avant: number | null): Prisma.MessageConversationWhereInput[] => [
+  { id: { gt: f.apres } },
+  avant === null ? {} : { id: { lt: avant } },
+  f.exclus.size > 0 ? { id: { notIn: [...f.exclus] } } : {},
+  f.caches.size > 0 ? { OR: [{ auteurId: null }, { auteurId: { notIn: [...f.caches] } }] } : {},
+];
 
 /** Lieux des privés dont je suis membre, après mon « Effacer pour moi », dans un privé sans personne de bloqué */
 const lieuxDesPrives = (moi: number, caches: ReadonlySet<number>) => Prisma.sql`
@@ -60,7 +70,8 @@ const lieuxDesPrives = (moi: number, caches: ReadonlySet<number>) => Prisma.sql`
 type Messages = Pick<TablesMessagerie,
   | "lireMessage" | "lireMessages" | "lireMessageParIdClient" | "listerMessages" | "lireDerniersMessages" | "lireDerniersIds"
   | "compterNonLus" | "insererMessage" | "modifierMessage" | "lireMessagesSignales" | "lireReactions" | "basculerReaction"
-  | "compterMedias" | "estLieuPublie" | "listerLieuxEnvoyes" | "lireDernierLieuRecu" | "lireLieuxVus" | "ecrireLieuxVus">;
+  | "compterMedias" | "estLieuPublie" | "listerLieuxEnvoyes" | "lireDernierLieuRecu" | "lireLieuxVus" | "ecrireLieuxVus"
+  | "listerAlbum" | "listerPartages">;
 
 export function creerTablesMessages(base: Client): Messages {
   return {
@@ -79,14 +90,22 @@ export function creerTablesMessages(base: Client): Messages {
     },
     async listerMessages(conversationId, f, avant, nombre) {
       const lignes = await base.messageConversation.findMany({
+        where: { conversationId, AND: filtrePage(f, avant) },
+        orderBy: { id: "desc" },
+        take: nombre,
+      });
+      return lignes.map(convertirLigneMessage);
+    },
+    async listerAlbum(conversationId, album, nombre) {
+      const lignes = await base.messageConversation.findMany({ where: { conversationId, album }, orderBy: { id: "asc" }, take: nombre });
+      return lignes.map(convertirLigneMessage);
+    },
+    async listerPartages(conversationId, type, f, avant, nombre, maintenant) {
+      const lignes = await base.messageConversation.findMany({
         where: {
-          conversationId,
-          AND: [
-            { id: { gt: f.apres } },
-            avant === null ? {} : { id: { lt: avant } },
-            f.exclus.size > 0 ? { id: { notIn: [...f.exclus] } } : {},
-            f.caches.size > 0 ? { OR: [{ auteurId: null }, { auteurId: { notIn: [...f.caches] } }] } : {},
-          ],
+          conversationId, type, supprimeLe: null, suspenduLe: null, retireLe: null,
+          ...(type === "photo" ? { fichier: { not: null }, mediaExpireLe: { gt: maintenant } } : {}),
+          AND: filtrePage(f, avant),
         },
         orderBy: { id: "desc" },
         take: nombre,

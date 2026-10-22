@@ -56,7 +56,9 @@ export type ProfilCommunautaireApi = PersonneResume & {
 
 export type ReglagesSociaux = { trouvable: boolean; suggerable: boolean; activitePartagee: boolean; pushSocial: boolean };
 
-export type MoiSocial = { personne: PersonneResume; prive: boolean; reglages: ReglagesSociaux };
+export type ReglagesMessagerie = { accusesLecture: boolean; apercuMessages: boolean };
+
+export type MoiSocial = { personne: PersonneResume; prive: boolean; reglages: ReglagesSociaux & ReglagesMessagerie };
 
 export type PoulsSocial = {
   /**

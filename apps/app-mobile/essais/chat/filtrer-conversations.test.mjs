@@ -33,15 +33,16 @@ test("recherche vide ou faite d'espaces : toutes les conversations, la même lis
   assert.equal(filtrerConversations(CONVERSATIONS, "@", noms()), CONVERSATIONS);
 });
 
-test("sans accents ni majuscules : « LEA », « léa » et « Lé » trouvent Léa (et le groupe où elle est)", () => {
+test("sans accents ni majuscules : « LEA » et « léa » trouvent Léa (et le groupe où elle est), « Lé » aussi « Les gourmands »", () => {
   assert.deepEqual(chercher("LEA"), ["p-lea", "g-sans-titre"]);
   assert.deepEqual(chercher("léa"), ["p-lea", "g-sans-titre"]);
-  assert.deepEqual(chercher("Lé"), ["p-lea", "g-sans-titre"]);
+  assert.deepEqual(chercher("Lé"), ["p-lea", "g-sete", "g-sans-titre"]);
 });
 
 test("titre d'un groupe : « sete », « coeur de pate », « Groupe » quand il n'a pas de titre", () => {
   assert.deepEqual(chercher("sete"), ["g-sete"]);
-  assert.deepEqual(chercher("coeur de pate"), ["g-coeur", "g-sete"].filter((id) => id === "g-coeur"));
+  assert.deepEqual(chercher("coeur de pate"), ["g-coeur"]);
+  assert.deepEqual(chercher("CŒUR"), ["g-sete", "g-coeur"]);
   assert.deepEqual(chercher("GOURMANDS"), ["g-sete"]);
   assert.deepEqual(chercher("groupe"), ["g-sans-titre"]);
 });

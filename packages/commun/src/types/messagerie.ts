@@ -19,13 +19,22 @@ export type MediaMessageApi = {
   hauteur: number | null;
   dureeSecondes: number | null;
   expireLe: string;
+  onde?: string;
+};
+
+export type MessageCiteApi = {
+  id: string;
+  auteurId: string | null;
+  type: MessageApi["type"];
+  extrait: string | null;
+  etat: MessageApi["etat"];
 };
 
 export type MessageApi = {
   id: string;
   /** L'idClient de l'envoi : l'app retrouve ainsi son message « en cours d'envoi » */
   idClient: string;
-  /** null : compte supprimé (« Compte supprimé ») */
+  /** null : compte supprimé (« Compte supprimé »), ou message de SOS Miam (systeme présent) */
   auteur: PersonneResume | null;
   date: string;
   type: "texte" | "lieu" | "photo" | "vocal";
@@ -37,10 +46,16 @@ export type MessageApi = {
   /** Qui a réagi (identifiants publics), par réaction */
   reactions: Partial<Record<CodeReaction, string[]>>;
   etat: "visible" | "supprime" | "masque" | "retire" | "illisible";
+  reponseA?: MessageCiteApi;
+  modifieLe?: string;
+  album?: string;
+  legende?: string;
+  systeme?: string;
+  mentions?: string[];
 };
 
 /** Un membre qui a accepté (ou le créateur) ; depuis : son arrivée, c'est-à-dire le moment où il a accepté */
-export type MembreConversationApi = { personne: PersonneResume; role: RoleConversation; depuis: string };
+export type MembreConversationApi = { personne: PersonneResume; role: RoleConversation; depuis: string; luJusqua?: string };
 
 export type ConversationApi = {
   id: string;
@@ -65,6 +80,8 @@ export type ConversationApi = {
   moi: { role: RoleConversation };
   sortieId: string | null;
   version: number;
+  epinglee?: boolean;
+  photo?: boolean;
 };
 
 /**
@@ -95,7 +112,11 @@ export type ReponseInvitationGroupeApi = { rejoint: boolean };
 export type FilMessagesApi = { conversation: ConversationApi; messages: MessageApi[]; suite: string | null; version: number };
 
 /** invitations : les invitations à des groupes qui attendent ta réponse (première page seulement ; [] ensuite) */
-export type PageConversationsApi = { conversations: ConversationApi[]; invitations: InvitationGroupeApi[]; suite: string | null };
+export type PageConversationsApi = { conversations: ConversationApi[]; invitations: InvitationGroupeApi[]; suite: string | null; epinglees?: ConversationApi[] };
+
+export type TypePartage = "photo" | "lieu";
+
+export type PagePartagesApi = { messages: MessageApi[]; suite: string | null };
 
 /** Un lieu envoyé = un message « lieu » d'une discussion privée */
 export type LieuEnvoyeApi = {

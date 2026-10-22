@@ -64,3 +64,10 @@ export const DUREE_INVITATION_GROUPE_JOURS = 30;
 
 /** idClient d'un envoi (message, média, lieu envoyé, création) : un UUID v4 en minuscules, tiré par l'app */
 export const FORME_ID_CLIENT = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+export const DELAI_MODIFICATION_MESSAGE_MINUTES = 15;
+export const MAX_PHOTOS_ALBUM = 10;
+export const MAX_CONVERSATIONS_EPINGLEES = 3;
+export const MAX_MENTIONS_MESSAGE = 5;
+export const LONGUEUR_MAX_EXTRAIT_CITATION = 120;
+export const FORME_ONDE_VOCAL = /^[0-9]{16,48}$/;

@@ -2,7 +2,7 @@
 // personnel dans les adresses : un message, un titre ou un mot partent toujours dans le corps ; une photo ou une note
 // vocale en corps brut, avec leur idClient dans l'en-tête Idempotency-Key.
 
-import type { CodeReaction, ConversationApi, LieuEnvoyeApi, MessageApi, PageConversationsApi } from "../../types/messagerie.ts";
+import type { CodeReaction, ConversationApi, LieuEnvoyeApi, MessageApi, PageConversationsApi, PagePartagesApi } from "../../types/messagerie.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { PageLieuxEnvoyes, ReponseFil, ServiceMessagerie } from "../contrat-messagerie.ts";
 
@@ -34,14 +34,31 @@ export function creerMessagerieApi(client: ClientHttp): ServiceMessagerie {
     couper: (id, coupees) => client.demander("PUT", `${conversation(id)}/notifications`, { corps: { coupees } }),
     marquerLu: (id, jusqua) => client.demander("PUT", `${conversation(id)}/lu`, { corps: { jusqua } }),
     effacerPourMoi: (id) => client.demander("POST", `${conversation(id)}/effacer`),
-    envoyerTexte: (id, idClient, texte) => client.demander<AvecMessage>("POST", `${conversation(id)}/messages`, { corps: { idClient, type: "texte", texte } }),
+    envoyerTexte: (id, idClient, texte, o = {}) =>
+      client.demander<AvecMessage>("POST", `${conversation(id)}/messages`, { corps: { idClient, type: "texte", texte, ...(o.reponseA !== undefined ? { reponseA: o.reponseA } : {}) } }),
+    modifierMessage: (id, messageId, texte) => client.demander<AvecMessage>("PATCH", message(id, messageId), { corps: { texte } }),
     envoyerLieu: (id, idClient, lieuId, texte) =>
       client.demander<AvecMessage>("POST", `${conversation(id)}/messages`, { corps: { idClient, type: "lieu", lieuId, texte: texte ?? null } }),
-    envoyerMedia: (id, idClient, corps, typeMime) => client.envoyerOctets<AvecMessage>(`${conversation(id)}/medias`, corps, typeMime, { "Idempotency-Key": idClient }),
+    envoyerMedia: (id, idClient, corps, typeMime, o = {}) =>
+      client.envoyerOctets<AvecMessage>(`${conversation(id)}/medias`, corps, typeMime, {
+        "Idempotency-Key": idClient,
+        ...(o.album !== undefined ? { "X-Album": o.album } : {}),
+        ...(o.legende ? { "X-Legende": encodeURIComponent(o.legende) } : {}),
+        ...(o.onde !== undefined ? { "X-Onde": o.onde } : {}),
+      }),
     preparerLectureMedia: (id, messageId) => client.preparerTelechargement(`${message(id, messageId)}/media`),
     supprimerMessage: (id, messageId) => client.demander<{ version: number }>("DELETE", message(id, messageId)),
     reagir: (id, messageId, reaction: CodeReaction, oui) =>
       client.demander<{ version: number }>(oui ? "PUT" : "DELETE", `${message(id, messageId)}/reactions/${encodeURIComponent(reaction)}`),
+    epingler: (id, epinglee) => client.demander("PUT", `${conversation(id)}/epingle`, { corps: { epinglee } }),
+    envoyerPhotoGroupe: (id, corps) => client.envoyerOctets<{ conversation: ConversationApi }>(`${conversation(id)}/photo`, corps, "image/jpeg", {}, "PUT"),
+    retirerPhotoGroupe: (id) => client.demander<{ conversation: ConversationApi }>("DELETE", `${conversation(id)}/photo`),
+    preparerLecturePhotoGroupe: (id) => client.preparerTelechargement(`${conversation(id)}/photo`),
+    listerPartages: (id, type, avant) => {
+      const parametres = new URLSearchParams({ type });
+      if (avant !== undefined) parametres.set("avant", avant);
+      return client.demander<PagePartagesApi>("GET", `${conversation(id)}/partages?${parametres.toString()}`);
+    },
     envoyerLieuAPotes: (idClient, lieuId, a, mot) =>
       client.demander<{ envoyes: LieuEnvoyeApi[]; ignores: string[] }>("POST", "/app/lieux-envoyes", { corps: { idClient, lieuId, a, mot: mot ?? null } }),
     listerLieuxRecus: (apres) => client.demander<PageLieuxEnvoyes>("GET", `/app/lieux-envoyes/recus${ecrireApres(apres)}`),

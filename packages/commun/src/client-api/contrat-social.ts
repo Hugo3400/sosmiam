@@ -12,6 +12,7 @@ import type {
   PersonneResume,
   PoulsSocial,
   ProfilCommunautaireApi,
+  ReglagesMessagerie,
   ReglagesSociaux,
   SuggestionPersonneApi,
 } from "../types/social.ts";
@@ -33,7 +34,7 @@ export interface ServiceSocial {
   /** POST /app/social/moi, à l'ouverture de Potes : crée le profil social s'il manque. « pseudo-requis » sans pseudo */
   ouvrirProfil(): Promise<ReponseApi<{ moi: MoiSocial }>>;
   /** PATCH /app/social/moi : seuls les réglages donnés changent. « pseudo-requis », « champ-invalide » { champ } */
-  modifierReglages(r: Partial<ReglagesSociaux>): Promise<ReponseApi<{ moi: MoiSocial }>>;
+  modifierReglages(r: Partial<ReglagesSociaux & ReglagesMessagerie>): Promise<ReponseApi<{ moi: MoiSocial }>>;
   /**
    * GET /app/social/pouls, toutes les 30 s app ouverte : sans profil social, tout vaut zéro et les signatures sont vides, sauf
    * la signature de la cloche (cloche.nonVues vaut 0 : voir ServiceCloche.marquerVu)

@@ -3,7 +3,7 @@
 // conversations vides). DANS la transaction de l'appelant : les lignes des conversations sont verrouillées (dans l'ordre
 // des id, contre les interblocages ; un message qui arrive attend, puis trouve la conversation absente : 404 ; l'appelant
 // qui touche des sorties a verrouillé les sorties AVANT, comme sorties.ts et le ménage de nuit), les fichiers
-// de leurs messages sont lus, puis les conversations effacées : la base efface en cascade membres, invitations, messages,
+// de leurs messages et la photo des groupes sont lus, puis les conversations effacées : la base efface en cascade membres, invitations, messages,
 // réactions, départs, et la sortie avec ses invitations, propositions et votes. APRÈS la transaction (apresTransaction) :
 // les photos et notes vocales partent du disque, SAUF celles qu'un signalement garde (fichier_media, A.7 : ouvert, ou jugé
 // depuis moins de 183 jours, décision de Hugo du 15/10/2026). Les signalements et leurs instantanés restent : la preuve ne
@@ -44,7 +44,7 @@ const seuilFichiersSignales = (maintenant = new Date()) => calculerSeuilsMenageS
 export type ConversationsEffacees = {
   /** Conversations vraiment effacées (celles déjà parties ne comptent pas) */
   conversations: number;
-  /** Les fichiers de leurs messages, déjà oubliés par la base */
+  /** Les fichiers de leurs messages et la photo des groupes, déjà oubliés par la base */
   fichiers: string[];
   /**
    * À appeler une fois la transaction VALIDÉE : supprime du disque les fichiers qu'aucun signalement ne garde
@@ -58,13 +58,13 @@ export type ConversationsEffacees = {
 export async function effacerConversations(tx: ClientTransaction, ids: readonly number[], medias: StockageMediasChat): Promise<ConversationsEffacees> {
   const cibles = [...new Set(ids)].filter((id) => Number.isSafeInteger(id) && id > 0).sort((a, b) => a - b);
   if (cibles.length === 0) return { conversations: 0, fichiers: [], apresTransaction: async () => 0 };
-  await tx.$queryRaw`SELECT id FROM conversations WHERE id IN (${Prisma.join(cibles)}) ORDER BY id FOR UPDATE`;
+  const verrous = await tx.$queryRaw<{ id: number; photo?: string | null }[]>`SELECT id, photo FROM conversations WHERE id IN (${Prisma.join(cibles)}) ORDER BY id FOR UPDATE`;
   const lignes = await tx.messageConversation.findMany({
     where: { conversationId: { in: cibles }, fichier: { not: null } },
     select: { fichier: true },
   });
   const { count } = await tx.conversation.deleteMany({ where: { id: { in: cibles } } });
-  const fichiers = lignes.flatMap(({ fichier }) => (fichier ? [fichier] : []));
+  const fichiers = [...lignes.flatMap(({ fichier }) => (fichier ? [fichier] : [])), ...verrous.flatMap(({ photo }) => (photo ? [photo] : []))];
   return { conversations: count, fichiers, apresTransaction: (base, seuil) => supprimerMediasLibres(fichiers, medias, base, seuil) };
 }
 

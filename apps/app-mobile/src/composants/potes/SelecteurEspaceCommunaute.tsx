@@ -36,7 +36,7 @@ export function SelecteurEspaceCommunaute({ espace, onChoisir, nonLus }: Props) 
               vibrerLegerement();
               onChoisir(e.cle);
             }}
-            className={`min-h-11 flex-row items-center justify-center gap-1 rounded-xl px-0.5 active:opacity-80 ${e.cle === "messages" ? "flex-[1.15]" : "flex-1"} ${actif ? "bg-jaune" : ""}`}
+            className={`min-h-11 shrink grow flex-row items-center justify-center gap-1 rounded-xl px-1 active:opacity-80 ${actif ? "bg-jaune" : ""}`}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink text-[15px] ${actif ? "font-texte-gras text-nuit" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
             {pastille ? (

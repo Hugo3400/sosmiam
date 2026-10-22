@@ -225,7 +225,7 @@ export function lireFichiersGardesEnMemoire(tables: Pick<TablesSociales, "signal
 /**
  * effacerConversations (effacer-conversations.ts) sur les tables en mémoire, avec les mêmes cascades que la base : membres,
  * invitations aux groupes, messages et leurs réactions, départs, et la sortie avec ses invitations, propositions et votes.
- * Les fichiers des messages sont rendus ; apresTransaction() les retire du stockage, sauf ceux qu'un signalement garde
+ * Les fichiers des messages et la photo du groupe sont rendus ; apresTransaction() les retire du stockage, sauf ceux qu'un signalement garde
  * (lireFichiersGardesEnMemoire : ouvert, ou jugé depuis moins de 183 jours). Les signalements restent.
  */
 export async function effacerConversationsEnMemoire(
@@ -234,7 +234,10 @@ export async function effacerConversationsEnMemoire(
   const cibles = new Set(ids.filter((id) => tables.conversations.has(id)));
   if (cibles.size === 0) return { conversations: 0, fichiers: [], apresTransaction: async () => 0 };
   const dans = (l: { conversationId: number }) => cibles.has(l.conversationId);
-  const fichiers = [...tables.messages.values()].flatMap((m) => (dans(m) && m.fichier ? [m.fichier] : []));
+  const fichiers = [
+    ...[...tables.messages.values()].flatMap((m) => (dans(m) && m.fichier ? [m.fichier] : [])),
+    ...[...cibles].flatMap((id) => tables.conversations.get(id)?.photo ?? []),
+  ];
   const messages = new Set(retirerDeMap(tables.messages, dans));
   retirer(tables.reactions, (r) => messages.has(r.messageId));
   retirer(tables.membres, dans);
