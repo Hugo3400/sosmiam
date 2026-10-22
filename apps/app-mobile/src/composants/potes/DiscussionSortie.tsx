@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, FlatList, Keyboard, Platform, Pressable, Text, TextInput, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";

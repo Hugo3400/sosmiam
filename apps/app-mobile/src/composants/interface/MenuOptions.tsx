@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";

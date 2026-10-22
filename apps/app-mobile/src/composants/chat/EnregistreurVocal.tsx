@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder, useAudioRecorderState, type RecordingOptions } from "expo-audio";
 import { File } from "expo-file-system";
 import { useEffect, useRef, useState } from "react";

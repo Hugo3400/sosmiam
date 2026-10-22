@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";

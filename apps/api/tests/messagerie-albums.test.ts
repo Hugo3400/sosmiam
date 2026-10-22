@@ -131,7 +131,7 @@ test("photo du groupe : admins seulement, nettoyée, chiffrée, remplacée puis 
   assert.equal((await photoGroupe(a, prive)).statut, 404);
 });
 
-test("photo du groupe : discussion d'une sortie refusée, quotas d'un média, effacée avec le groupe, jamais prise pour un orphelin", async () => {
+test("photo du groupe : discussion d'une sortie refusée, quotas d'un média, effacée avec le groupe", async () => {
   const { admin, membre, id } = await groupe();
   const sortieConversation = Number(id) + 100_000;
   banc.tables.conversations.set(sortieConversation, {

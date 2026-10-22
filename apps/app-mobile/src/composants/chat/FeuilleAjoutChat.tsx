@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";

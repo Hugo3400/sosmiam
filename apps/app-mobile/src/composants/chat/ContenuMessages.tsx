@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useMemo, useState, type ReactElement } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";

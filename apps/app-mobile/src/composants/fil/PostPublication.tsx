@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { memo, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type AccessibilityActionEvent } from "react-native";

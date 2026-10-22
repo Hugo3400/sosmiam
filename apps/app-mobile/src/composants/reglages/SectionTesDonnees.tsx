@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";

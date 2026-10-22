@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";

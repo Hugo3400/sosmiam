@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { FlatList, Modal, Pressable, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";

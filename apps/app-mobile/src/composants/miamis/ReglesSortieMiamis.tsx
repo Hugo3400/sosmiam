@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Text, View } from "react-native";
 
 import { REGLES_SORTIE_MIAMIS, TEXTES_SORTIE_MIAMIS } from "~/contenus/textes-sorties-miamis";

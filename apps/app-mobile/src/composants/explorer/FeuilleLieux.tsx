@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, FlatList, PanResponder, Pressable, Text, View, type ListRenderItem } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";

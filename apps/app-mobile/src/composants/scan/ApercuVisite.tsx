@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
 import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";

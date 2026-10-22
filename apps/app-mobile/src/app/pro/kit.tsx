@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
 import { TEXTES_FEUILLE_SERVICE as T } from "~/contenus/textes-reglages-reservations";

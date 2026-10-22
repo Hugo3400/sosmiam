@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
 import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";

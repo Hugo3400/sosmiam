@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Platform, Pressable, Text, View } from "react-native";

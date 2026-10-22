@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useRouter } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
