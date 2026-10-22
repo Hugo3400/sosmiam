@@ -1,0 +1,136 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useMemo, useState, type ReactElement } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
+
+import { CarteInvitationGroupe } from "~/composants/chat/CarteInvitationGroupe";
+import { FeuilleNouveauMessage } from "~/composants/chat/FeuilleNouveauMessage";
+import { LigneConversation } from "~/composants/chat/LigneConversation";
+import { RechercheDiscussions } from "~/composants/chat/RechercheDiscussions";
+import { Bouton } from "~/composants/interface/Bouton";
+import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
+import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { filtrerConversations } from "~/fonctions/chat/filtrer-conversations";
+import { listerNomsConversation } from "~/fonctions/chat/lister-noms-conversation";
+import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserBrouillonsChat } from "~/hooks/utiliser-brouillons-chat";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+
+type Props = {
+  enTete: ReactElement;
+  margeBas: number;
+};
+
+export function ContenuMessages({ enTete, margeBas }: Props) {
+  const couleurs = utiliserCouleurs();
+  const router = useRouter();
+  const { pret, conversations, invitations } = utiliserConversations();
+  const { pret: communautePrete, potes, trouverPote, bloques } = utiliserCommunaute();
+  const monId = utiliserMonId();
+  const brouillons = utiliserBrouillonsChat();
+  const { maintenantMs } = utiliserHorlogeMinute();
+  const [feuilleOuverte, setFeuilleOuverte] = useState(false);
+  const [recherche, setRecherche] = useState("");
+
+  const maintenant = useMemo(() => new Date(maintenantMs), [maintenantMs]);
+  const idsBloques = useMemo(() => new Set(bloques.map((b) => b.id)), [bloques]);
+  const affichees = useMemo(
+    () => filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques)),
+    [conversations, recherche, monId, trouverPote, idsBloques],
+  );
+  const pretes = pret && communautePrete;
+  const cherche = recherche.trim();
+
+  const actions = [
+    { cle: "message", libelle: TEXTES_MESSAGES.nouveauMessage, icone: "create" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, indice: TEXTES_MESSAGES.indiceNouveauMessage, faire: () => setFeuilleOuverte(true) },
+    { cle: "groupe", libelle: TEXTES_MESSAGES.nouveauGroupe, icone: "people" as const, fond: "bg-carte", texte: "text-encre", teinte: couleurs.encre, indice: TEXTES_MESSAGES.indiceNouveauGroupe, faire: () => router.push("/potes/nouveau-groupe") },
+  ];
+
+  if (!pretes) return <View className="px-5">{enTete}</View>;
+
+  return (
+    <>
+      <FlatList
+        data={affichees}
+        keyExtractor={(c) => c.id}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerClassName="px-5"
+        contentContainerStyle={{ paddingBottom: margeBas }}
+        renderItem={({ item }) => <LigneConversation conversation={item} maintenant={maintenant} brouillon={brouillons.get(item.id)?.texte} />}
+        ListHeaderComponent={
+          <View className="gap-4 pb-3">
+            {enTete}
+            <View className="flex-row gap-2.5">
+              {actions.map((a) => (
+                <View key={a.cle} className="relative flex-1">
+                  <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={a.libelle}
+                    accessibilityHint={a.indice}
+                    onPress={() => {
+                      vibrerLegerement();
+                      a.faire();
+                    }}
+                    className={`min-h-12 flex-row items-center justify-center gap-1.5 rounded-full border-2 border-encre px-2 active:translate-x-0.5 active:translate-y-0.5 ${a.fond}`}
+                  >
+                    <Ionicons name={a.icone} size={16} color={a.teinte} />
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink font-texte-gras text-[15px] ${a.texte}`}>
+                      {a.libelle}
+                    </Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+            {conversations.length > 0 ? <RechercheDiscussions valeur={recherche} onChange={setRecherche} /> : null}
+            <BandeauDemoPotes />
+            {invitations.map((invitation) => (
+              <CarteInvitationGroupe key={invitation.id} invitation={invitation} />
+            ))}
+          </View>
+        }
+        ListEmptyComponent={
+          cherche ? (
+            <View accessibilityLiveRegion="polite" className="mt-2 items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
+              <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
+                🔍
+              </Text>
+              <Text className="text-center font-texte-gras text-base text-encre">{TEXTES_MESSAGES.aucunResultatTitre}</Text>
+              <Text className="text-center font-texte text-[15px] leading-6 text-gris">{lierPonctuation(TEXTES_MESSAGES.aucunResultat(cherche))}</Text>
+            </View>
+          ) : (
+            <View className="mt-2 items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
+              <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
+                💬
+              </Text>
+              <Text className="text-center font-texte-gras text-base text-encre">Pas encore de discussion</Text>
+              <Text className="text-center font-texte text-base leading-6 text-gris">
+                {lierPonctuation(
+                  potes.length > 0
+                    ? "Ta messagerie est plus calme qu'une cuisine à 16h. Écris à un pote ou monte un groupe : le prochain resto se décide ici."
+                    : "Ajoute d'abord un pote ou deux : parler tout seul, ça marche moins bien par écrit.",
+                )}
+              </Text>
+              {potes.length === 0 ? <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} /> : null}
+            </View>
+          )
+        }
+        ListFooterComponent={
+          <Text
+            accessibilityLabel="Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message, ou ses options, pour le signaler."
+            className="mt-6 text-center font-texte text-[13px] leading-[18px] text-gris"
+          >
+            {lierPonctuation("🔒 Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message pour le signaler.")}
+          </Text>
+        }
+      />
+      <FeuilleNouveauMessage visible={feuilleOuverte} onFermer={() => setFeuilleOuverte(false)} />
+    </>
+  );
+}

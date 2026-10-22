@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ContenuMessages } from "~/composants/chat/ContenuMessages";
 import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { AccueilMiamis } from "~/composants/miamis/AccueilMiamis";
@@ -24,7 +25,8 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
 const lireOnglet = (valeur: string | string[] | undefined) => ONGLETS.find((o) => o === valeur) ?? null;
-const lireEspace = (valeur: string | string[] | undefined): EspaceCommunaute | null => (valeur === "miamis" || valeur === "bande" ? valeur : null);
+const ESPACES: readonly EspaceCommunaute[] = ["messages", "bande", "miamis"];
+const lireEspace = (valeur: string | string[] | undefined) => ESPACES.find((e) => e === valeur) ?? null;
 
 /**
  * Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées, par
@@ -39,7 +41,7 @@ export default function Potes() {
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { onglet: ongletDemande, espace: espaceDemande } = useLocalSearchParams<{ onglet?: string; espace?: string }>();
   const [onglet, setOnglet] = useState<OngletPotes>(() => lireOnglet(ongletDemande) ?? "sorties");
-  const [espace, setEspace] = useState<EspaceCommunaute>(() => (lireOnglet(ongletDemande) ? "bande" : (lireEspace(espaceDemande) ?? "miamis")));
+  const [espace, setEspace] = useState<EspaceCommunaute>(() => (lireOnglet(ongletDemande) ? "bande" : (lireEspace(espaceDemande) ?? "messages")));
   const defilement = useRef<ScrollView>(null);
   const hautOnglets = useRef(0);
   const position = useRef(0);
@@ -99,6 +101,22 @@ export default function Potes() {
   function choisirEspace(nouveau: EspaceCommunaute) {
     setEspace(nouveau);
     defilement.current?.scrollTo({ y: 0, animated: false });
+  }
+
+  if (espace === "messages") {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
+        <ContenuMessages
+          margeBas={hauteurBarreOnglets + 32}
+          enTete={
+            <View className="gap-5 pt-4">
+              <EnTetePotes moi={moi} espace={espace} onChoisirEspace={choisirEspace} />
+              {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
+            </View>
+          }
+        />
+      </SafeAreaView>
+    );
   }
 
   if (espace === "miamis") {
