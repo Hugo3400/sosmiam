@@ -95,8 +95,6 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
       ...suivi,
     });
   }
-  const mesuresLues = useRef(mesures);
-  mesuresLues.current = mesures;
   // Durée gardée à l'écran pendant l'envoi (l'arrêt remet le compteur de l'enregistreur à zéro)
   const [dureeFigee, setDureeFigee] = useState<number | null>(null);
   const chrono = useRef<View>(null);
@@ -108,8 +106,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   const fichierEnCours = useRef<string | null>(null);
   const alerteFaite = useRef(false);
   // Les derniers rappels, pour les appels qui arrivent après une attente (autorisation, arrêt, copie du fichier)
-  const rappels = useRef({ conversations, onEnvoye, onAbandon });
-  rappels.current = { conversations, onEnvoye, onAbandon };
+  const rappels = useRef({ conversations, onEnvoye, onAbandon, mesures });
+  rappels.current = { conversations, onEnvoye, onAbandon, mesures };
 
   useEffect(() => {
     let quitte = false;
@@ -198,7 +196,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     }
     // Tu as demandé l'envoi : la note part, même si tu quittes l'écran entre-temps
     const { envoyerVocal } = rappels.current.conversations;
-    const onde = calculerOndeVocal(mesuresLues.current.toutes) ?? undefined;
+    const onde = calculerOndeVocal(rappels.current.mesures.toutes) ?? undefined;
     const resultat = await envoyerVocal(conversationId, uri, duree / 1000, onde);
     jeterFichierTemporaire(uri);
     if (!monte.current) return;

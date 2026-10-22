@@ -236,6 +236,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
           conversationId={conversationId}
           message={item.message}
           album={item.album}
+          participants={conversation.participants}
           auteur={item.auteur}
           deMoi={item.deMoi}
           heure={item.heure}
@@ -254,7 +255,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
         />
       </View>
     ),
-    [conversationId, groupe, ouvrirMenu, maintenant, deplie, dernierDeMoi, basculerDetail, masquerAstuce, onRepondre, allerAuMessage, pseudos, vu, surligne],
+    [conversationId, conversation.participants, groupe, ouvrirMenu, maintenant, deplie, dernierDeMoi, basculerDetail, masquerAstuce, onRepondre, allerAuMessage, pseudos, vu, surligne],
   );
 
   const prive = groupe ? null : (membres[0]?.prenom ?? null);

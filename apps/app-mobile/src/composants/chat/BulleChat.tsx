@@ -37,6 +37,7 @@ type Props = {
   conversationId: string;
   message: MessageChatEnrichi;
   album: MessageChatEnrichi[] | null;
+  participants: string[];
   /** Qui l'a écrit (null si on ne le connaît plus) */
   auteur: Pote | null;
   deMoi: boolean;
@@ -75,10 +76,10 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un 😋 ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat(props: Props) {
-  const { conversationId, message, album, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
+  const { conversationId, message, album, participants, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
   const { onRepondre, onVoirCitation, pseudos, vu } = props;
   const couleurs = utiliserCouleurs();
-  const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause, trouverConversation } = utiliserConversations();
+  const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
   const serie = album ?? [message];
   const echecs = serie.filter((m) => m.etat === "echec");
@@ -285,7 +286,7 @@ export function BulleChat(props: Props) {
         messageId={message.id}
         vote={message.vote}
         deMoi={deMoi}
-        participants={trouverConversation(conversationId)?.participants ?? []}
+        participants={participants}
         maintenant={maintenant}
         onAppuiLong={ouvrirOptions}
         actionsLecteur={actionsLecteur}
