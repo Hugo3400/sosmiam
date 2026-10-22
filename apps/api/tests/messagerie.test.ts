@@ -43,7 +43,7 @@ test("fonctions : clé d'un privé, notification sans contenu, états d'un messa
   const base: LigneMessage = {
     id: 7, conversationId: 3, auteurId: 1, type: "photo", idClient: randomUUID(), texteChiffre: null, fichier: "x.bin", typeMime: "image/jpeg",
     taille: 10, largeur: 4, hauteur: 3, dureeSecondes: null, mediaExpireLe: new Date("2027-01-01T00:00:00Z"), creeLe: new Date("2026-10-14T10:00:00Z"),
-    supprimeLe: null, suspenduLe: null, retireLe: null,
+    supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null,
   };
   const o = { auteur: null, contenu: { texte: null, lieuId: null }, reactions: { coeur: ["abcdefghij"] }, maintenant: new Date("2026-10-15T00:00:00Z") };
   assert.equal(presenterMessage(base, o).media?.etat, "disponible");

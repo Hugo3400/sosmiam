@@ -32,6 +32,9 @@ const ARGUMENTS: Record<string, () => unknown[]> = {
   "messagerie.envoyerTexte": () => ["1", randomUUID(), "Coucou"], "messagerie.envoyerLieu": () => ["1", randomUUID(), 1, null],
   "messagerie.envoyerMedia": () => ["1", randomUUID(), new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), "image/jpeg"],
   "messagerie.preparerLectureMedia": () => ["1", "1"], "messagerie.supprimerMessage": () => ["1", "1"], "messagerie.reagir": () => ["1", "1", "coeur", true],
+  "messagerie.modifierMessage": () => ["1", "1", "Coucou"], "messagerie.epingler": () => ["1", true],
+  "messagerie.envoyerPhotoGroupe": () => ["1", new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], "messagerie.retirerPhotoGroupe": () => ["1"],
+  "messagerie.preparerLecturePhotoGroupe": () => ["1"], "messagerie.listerPartages": () => ["1", "photo"],
   "messagerie.envoyerLieuAPotes": () => [randomUUID(), 1, [ID], null], "messagerie.listerLieuxRecus": () => [], "messagerie.listerLieuxEnvoyes": () => [],
   "sorties.creer": () => [{ titre: "Pizza du jeudi", emoji: "🍕", quand: demain(), finVote: demain(), invites: [], lieux: [] }, randomUUID()],
   "sorties.lire": () => ["1"], "sorties.repondre": () => ["1", true], "sorties.inviter": () => ["1", [ID]], "sorties.proposer": () => ["1", 1],
@@ -65,7 +68,7 @@ test("chaque méthode des clients sociaux de commun trouve sa route dans l'API",
       const avant = demandes.length;
       const r = await methode(...(ARGUMENTS[appel]?.() ?? ["1"]));
       // La lecture d'un média n'envoie rien : elle prépare l'adresse et les en-têtes pour l'outil du téléphone
-      if (appel === "messagerie.preparerLectureMedia") {
+      if (appel === "messagerie.preparerLectureMedia" || appel === "messagerie.preparerLecturePhotoGroupe") {
         const { pathname } = new URL((r as { url: string }).url);
         const lu = await banc.demander("GET", pathname, { jeton: moi.jeton });
         demandes.push({ appel, adresse: `GET ${pathname}`, statut: lu.statut, erreur: lu.corps?.erreur });

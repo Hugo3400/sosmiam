@@ -34,14 +34,16 @@ const ECRITURES_REFUSEES = [
   "POST /app/bande/rejoindre",
   "POST /app/bande/demandes",
   "PUT /app/suivis-personnes/abonnements/:personne",
-  // Messagerie : créer, renommer, inviter, écrire, envoyer une photo ou une note vocale, réagir
+  // Messagerie : créer, renommer, inviter, écrire, modifier son message, envoyer une photo ou une note vocale, la photo du groupe, réagir
   "POST /app/conversations/groupes",
   "PATCH /app/conversations/:id",
   "POST /app/conversations/:id/invites",
   // Décision de Hugo du 15/10/2026 : un compte limité ne redistribue pas les pouvoirs d'un groupe (retirer quelqu'un reste permis)
   "PUT /app/conversations/:id/membres/:personne/role",
   "POST /app/conversations/:id/messages",
+  "PATCH /app/conversations/:id/messages/:messageId",
   "POST /app/conversations/:id/medias",
+  "PUT /app/conversations/:id/photo",
   "PUT /app/conversations/:id/messages/:messageId/reactions/:reaction",
   "POST /app/lieux-envoyes",
   // Sorties : créer, inviter, proposer un lieu
@@ -89,6 +91,8 @@ const ECRITURES_PERMISES = new Map<string, string>([
   ["DELETE /app/conversations/:id/membres/:personne", "quitter un groupe, ou un admin retire un membre"],
   ["PUT /app/conversations/:id/notifications", "couper les notifications"],
   ["PUT /app/conversations/:id/lu", "marquer lu"],
+  ["PUT /app/conversations/:id/epingle", "épingler pour soi (comme couper)"],
+  ["DELETE /app/conversations/:id/photo", "un admin retire la photo du groupe (supprimer du contenu)"],
   ["POST /app/conversations/:id/effacer", "effacer la discussion pour soi"],
   ["DELETE /app/conversations/:id/messages/:messageId", "supprimer son message"],
   ["DELETE /app/conversations/:id/messages/:messageId/reactions/:reaction", "retirer sa réaction"],

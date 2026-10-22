@@ -46,12 +46,12 @@ function preparerMessage(auteur: PersonneDeTest, membres: PersonneDeTest[], o: {
   const type = o.type ?? "prive";
   if (o.dans === undefined) {
     banc.tables.conversations.set(conversationId, {
-      id: conversationId, type, clePrive: null, titreChiffre: o.titre ? chiffrement().chiffrerTitre(o.titre, conversationId) : null, emoji: type === "groupe" ? "🍕" : null,
+      id: conversationId, type, clePrive: null, titreChiffre: o.titre ? chiffrement().chiffrerTitre(o.titre, conversationId) : null, emoji: type === "groupe" ? "🍕" : null, photo: null,
       creeParId: auteur.compteId, version: 3, dernierMessageLe: maintenant(), modifieLe: maintenant(), creeLe: maintenant(),
     });
   }
   for (const m of [auteur, ...membres]) {
-    banc.tables.membres.push({ conversationId, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant() });
+    banc.tables.membres.push({ conversationId, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant(), epingleeLe: null });
   }
   const id = prendreId(banc.tables, "messages");
   const idClient = randomUUID();
@@ -59,7 +59,7 @@ function preparerMessage(auteur: PersonneDeTest, membres: PersonneDeTest[], o: {
     id, conversationId, auteurId: auteur.compteId, type: o.photo ? "photo" : "texte", idClient,
     texteChiffre: o.photo ? null : chiffrement().chiffrerMessage(o.texte ?? "Salut toi", conversationId, idClient),
     fichier: o.photo ? `${randomUUID()}.bin` : null, typeMime: o.photo ? "image/jpeg" : null, taille: o.photo ? 1234 : null, largeur: null, hauteur: null,
-    dureeSecondes: null, mediaExpireLe: o.photo ? new Date(banc.horloge.maintenant + 90 * JOUR) : null, creeLe: maintenant(), supprimeLe: null, suspenduLe: null, retireLe: null,
+    dureeSecondes: null, mediaExpireLe: o.photo ? new Date(banc.horloge.maintenant + 90 * JOUR) : null, creeLe: maintenant(), supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null,
   });
   return { conversationId, id: String(id) };
 }
@@ -77,13 +77,13 @@ function preparerListe(auteur: PersonneDeTest, visibilite: "tous" | "bande" = "t
 function preparerSortie(organisateur: PersonneDeTest, invites: PersonneDeTest[]) {
   const conversationId = prendreId(banc.tables, "conversations");
   banc.tables.conversations.set(conversationId, {
-    id: conversationId, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, creeParId: organisateur.compteId, version: 0,
+    id: conversationId, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: organisateur.compteId, version: 0,
     dernierMessageLe: maintenant(), modifieLe: maintenant(), creeLe: maintenant(),
   });
   const id = prendreId(banc.tables, "sorties");
   banc.tables.sorties.set(id, {
     id, conversationId, organisateurId: organisateur.compteId, titre: "Pizza du jeudi", emoji: "🍕", quand: new Date(banc.horloge.maintenant + 3 * JOUR),
-    finVote: new Date(banc.horloge.maintenant + JOUR), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: maintenant(), creeLe: maintenant(),
+    finVote: new Date(banc.horloge.maintenant + JOUR), lieuChoisiId: null, voteTermineLe: null, rappelEnvoyeLe: null, version: 0, modifieLe: maintenant(), creeLe: maintenant(),
   });
   banc.tables.invitationsSorties.push({ sortieId: id, compteId: organisateur.compteId, inviteParId: null, statut: "accepte", creeLe: maintenant(), reponduLe: maintenant() });
   for (const p of invites) banc.tables.invitationsSorties.push({ sortieId: id, compteId: p.compteId, inviteParId: organisateur.compteId, statut: "invite", creeLe: maintenant(), reponduLe: null });

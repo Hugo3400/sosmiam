@@ -136,7 +136,7 @@ function sortie(organisateur: PersonneDeTest, invites: [PersonneDeTest, "invite"
   const id = prendreId(banc.tables, "sorties");
   banc.tables.sorties.set(id, {
     id, conversationId, organisateurId: organisateur.compteId, titre: "Pizza du jeudi", emoji: "🍕", quand: date(7 * JOUR), finVote: date(6 * JOUR),
-    lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
+    lieuChoisiId: null, voteTermineLe: null, rappelEnvoyeLe: null, version: 0, modifieLe: date(), creeLe: date(),
   });
   banc.tables.invitationsSorties.push({ sortieId: id, compteId: organisateur.compteId, inviteParId: null, statut: "accepte", creeLe: date(), reponduLe: date() });
   for (const [p, statut] of invites) banc.tables.invitationsSorties.push({ sortieId: id, compteId: p.compteId, inviteParId: organisateur.compteId, statut, creeLe: date(), reponduLe: null });
@@ -145,8 +145,8 @@ function sortie(organisateur: PersonneDeTest, invites: [PersonneDeTest, "invite"
 /** Une conversation et ses membres, dans les tables en mémoire */
 function conversation(type: "prive" | "groupe" | "sortie", membres: PersonneDeTest[]) {
   const id = prendreId(banc.tables, "conversations");
-  banc.tables.conversations.set(id, { id, type, clePrive: null, titreChiffre: null, emoji: null, creeParId: null, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
-  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date() });
+  banc.tables.conversations.set(id, { id, type, clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: null, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
+  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
   return id;
 }
 /** Une liste de lieux */

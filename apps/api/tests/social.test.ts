@@ -330,14 +330,14 @@ test("le pouls bouge : bande, demandes, cloche, non-lus (blocages dans les deux 
   banc.rendrePotes(moi, lea);
   banc.tables.demandes.push({ deId: bloque.compteId, aId: moi.compteId, creeLe: date(), refuseeLe: null });
   banc.suivre(lea, moi, "demande");
-  const conversation = { id: 900, type: "groupe", clePrive: null, titreChiffre: null, emoji: "🍕", creeParId: lea.compteId, version: 3, dernierMessageLe: date(), modifieLe: date(), creeLe: date() };
+  const conversation = { id: 900, type: "groupe", clePrive: null, titreChiffre: null, emoji: "🍕", photo: null, creeParId: lea.compteId, version: 3, dernierMessageLe: date(), modifieLe: date(), creeLe: date() };
   banc.tables.conversations.set(900, conversation);
   for (const p of [moi, lea, bloque]) {
-    banc.tables.membres.push({ conversationId: 900, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date() });
+    banc.tables.membres.push({ conversationId: 900, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
   }
   const message = (id: number, auteurId: number | null, enPlus: Record<string, unknown> = {}) => banc.tables.messages.set(id, {
     id, conversationId: 900, auteurId, type: "texte", idClient: `id-${id}`, texteChiffre: "v1:x", fichier: null, typeMime: null, taille: null,
-    largeur: null, hauteur: null, dureeSecondes: null, mediaExpireLe: null, creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null, ...enPlus,
+    largeur: null, hauteur: null, dureeSecondes: null, mediaExpireLe: null, creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null, ...enPlus,
   });
   message(1, lea.compteId);
   message(2, lea.compteId, { supprimeLe: date() });
@@ -436,7 +436,7 @@ test("compte supprimé : ses lignes sociales partent avec lui (cascades), ses me
   banc.rendrePotes(a, b);
   banc.suivre(b, a);
   await banc.social.dependances.cloche.noter([{ compteId: a.compteId, type: "bande-ajout", acteurId: b.compteId }], date());
-  banc.tables.conversations.set(950, { id: 950, type: "prive", clePrive: null, titreChiffre: null, emoji: null, creeParId: b.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() } as never);
+  banc.tables.conversations.set(950, { id: 950, type: "prive", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: b.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() } as never);
   banc.tables.messages.set(9501, { id: 9501, conversationId: 950, auteurId: b.compteId, fichier: null } as never);
   banc.tables.reactions.push({ messageId: 9501, compteId: b.compteId, code: "miam", creeLe: date() } as never);
   const avant = (await a.demander("GET", "/app/social/pouls")).corps.pouls;

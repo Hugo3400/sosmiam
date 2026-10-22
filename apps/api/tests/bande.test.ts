@@ -448,8 +448,8 @@ test("version Prisma : « Changer mon lien » prend le verrou de mon compte (cel
 /** Une conversation et ses membres, dans les tables en mémoire */
 function conversation(type: "prive" | "groupe" | "sortie", membres: PersonneDeTest[]) {
   const id = prendreId(banc.tables, "conversations");
-  banc.tables.conversations.set(id, { id, type, clePrive: null, titreChiffre: null, emoji: null, creeParId: null, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
-  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date() });
+  banc.tables.conversations.set(id, { id, type, clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: null, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
+  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
   return id;
 }
 /** Une liste de lieux */

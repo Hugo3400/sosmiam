@@ -161,7 +161,7 @@ test("quotas : 50 médias par 24 h, 1 Go gardé par compte, envois simultanés q
     banc.tables.messages.set(mid, {
       id: mid, conversationId: Number(id), auteurId: a.compteId, type: "photo", idClient: randomUUID(), texteChiffre: null, typeMime: "image/jpeg",
       largeur: 1, hauteur: 1, dureeSecondes: null, mediaExpireLe: new Date(maintenant.getTime() + 90 * JOUR), creeLe: maintenant,
-      supprimeLe: null, suspenduLe: null, retireLe: null, ...champs,
+      supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null, ...champs,
     });
     return mid;
   };

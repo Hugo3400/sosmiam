@@ -154,7 +154,7 @@ test("invitations qu'un blocage te cache : un groupe sans son titre, une sortie 
   const t = banc.tables;
   const sortie = (id: number, titre: string, organisateurId: number | null, inviteParId: number | null, jours: number) => {
     t.sorties.set(id, {
-      id, conversationId: id, organisateurId, titre, emoji: "🍕", quand: date(jours * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
+      id, conversationId: id, organisateurId, titre, emoji: "🍕", quand: date(jours * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, rappelEnvoyeLe: null, version: 0, modifieLe: date(), creeLe: date(),
     });
     if (organisateurId !== null) t.invitationsSorties.push({ sortieId: id, compteId: organisateurId, inviteParId: null, statut: "accepte", creeLe: date(-9_000), reponduLe: null });
     t.invitationsSorties.push({ sortieId: id, compteId: moi.compteId, inviteParId, statut: "invite", creeLe: date(), reponduLe: null });
@@ -178,15 +178,15 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
   const autre = await banc.creerPersonne();
   const t = banc.tables;
   const c = 9100;
-  t.conversations.set(c, { id: c, type: "groupe", clePrive: null, titreChiffre: null, emoji: "📷", creeParId: moi.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
-  t.membres.push({ conversationId: c, compteId: moi.compteId, role: "admin", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date() });
+  t.conversations.set(c, { id: c, type: "groupe", clePrive: null, titreChiffre: null, emoji: "📷", photo: null, creeParId: moi.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
+  t.membres.push({ conversationId: c, compteId: moi.compteId, role: "admin", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
   t.messages.set(9101, {
     id: 9101, conversationId: c, auteurId: moi.compteId, type: "photo", idClient: randomUUID(), texteChiffre: null, fichier: null, typeMime: "image/jpeg", taille: 1234,
-    largeur: 10, hauteur: 10, dureeSecondes: null, mediaExpireLe: date(), creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null,
+    largeur: 10, hauteur: 10, dureeSecondes: null, mediaExpireLe: date(), creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null,
   });
   const sortie = (id: number, titre: string, organisateurId: number, statut: string | null, joursAvant: number) => {
     t.sorties.set(id, {
-      id, conversationId: id, organisateurId, titre, emoji: "🍝", quand: date(-joursAvant * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: date(), creeLe: date(),
+      id, conversationId: id, organisateurId, titre, emoji: "🍝", quand: date(-joursAvant * 86_400_000), finVote: date(), lieuChoisiId: null, voteTermineLe: null, rappelEnvoyeLe: null, version: 0, modifieLe: date(), creeLe: date(),
     });
     // Comme dans la vraie base : l'organisateur participe à sa sortie (son invitation « accepte »)
     if (organisateurId !== moi.compteId) t.invitationsSorties.push({ sortieId: id, compteId: organisateurId, inviteParId: null, statut: "accepte", creeLe: date(-9_000), reponduLe: null });
