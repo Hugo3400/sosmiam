@@ -596,3 +596,9 @@
 - **Historique : 30 jours** (une mesure par minute sur 24 h, puis une moyenne par heure), dans un fichier du serveur, sans la base.
 - **Alertes** (pastille du menu et notification Windows) : processeur au-dessus de 90 % pendant 10 minutes, mémoire ou disque pleins à 90 %, processeur à 80 °C, relevé muet depuis 3 minutes, un service du système ou un programme de SOS Miam arrêté, sauvegarde de plus de 30 heures.
 - **Journaux** : lus par Hugo seul pour l'instant ; les e-mails, les IP et les jetons sont masqués avant de quitter le serveur.
+
+## Les nouveautés de l'app (décidé le 22 octobre 2026)
+- **Un pop-up à chaque nouvelle version**, une seule fois, à la première ouverture après la mise à jour : « Voir les nouveautés » ou « Fermer ». Il ne s'ouvre jamais en même temps qu'une autre fenêtre (annonces du logiciel, nouvelle version disponible) et passe avant elles.
+- **Une page « Les nouveautés »** dans Paramètres › La vie de SOS Miam, version après version (seulement les versions déjà sorties).
+- **Les textes sont écrits dans l'app**, avec le code de chaque version (pas de réseau ; le même texte peut servir au salon patch-notes du Discord). Une installation neuve ne voit pas de pop-up.
+

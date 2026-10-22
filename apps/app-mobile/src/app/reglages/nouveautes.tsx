@@ -13,10 +13,12 @@ const T = TEXTES_NOUVEAUTES.page;
 function TitreVersion({ nouveautes, taVersion }: { nouveautes: NouveautesVersion; taVersion: boolean }) {
   return (
     <View className="flex-row items-center gap-2">
-      <Text accessibilityRole="header" className="flex-1 font-titre-gras text-xl text-encre">
-        {T.version(nouveautes.libelle)}
-        {nouveautes.date ? <Text className="font-texte text-[13px] text-gris">{` · ${nouveautes.date}`}</Text> : null}
-      </Text>
+      <View className="flex-1">
+        <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
+          {T.version(nouveautes.libelle)}
+        </Text>
+        {nouveautes.date ? <Text className="font-texte text-[13px] text-gris">{nouveautes.date}</Text> : null}
+      </View>
       {taVersion ? (
         <View className="rounded-full border-[1.5px] border-encre bg-jaune px-2.5 py-0.5">
           <Text className="font-texte-gras text-xs text-nuit">{T.taVersion}</Text>
@@ -56,11 +58,13 @@ export default function Nouveautes() {
             <View key={nouveautes.version} className="gap-2 px-1">
               <TitreVersion nouveautes={nouveautes} taVersion={taVersion} />
               {nouveautes.points.map((point) => (
-                <Text key={point.titre} className="font-texte text-sm leading-5 text-encre">
-                  <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{`${point.emoji} `}</Text>
-                  <Text className="font-texte-semi">{lierPonctuation(point.titre)}</Text>
-                  {` : ${lierPonctuation(point.detail)}`}
-                </Text>
+                <View key={point.titre} accessible className="gap-0.5">
+                  <Text className="font-texte-semi text-sm leading-5 text-encre">
+                    <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{`${point.emoji} `}</Text>
+                    {lierPonctuation(point.titre)}
+                  </Text>
+                  <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(point.detail)}</Text>
+                </View>
               ))}
             </View>
           );
