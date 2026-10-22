@@ -15,6 +15,9 @@ const banc = await creerBancGestion({
       : { ok: true, signalement: { id } },
   lireImageSignalementSecurite: async (id: string, numero: number) => (id === "s1" && numero === 0 ? { octets: Buffer.from("PNG"), typeMime: "image/png" } : null),
   donnerBadgeSignalementSecurite: async (id: string) => (id === "s1" ? { ok: true, nouveau: true } : { ok: false, erreur: "compte-introuvable" }),
+  supprimerSignalementSecurite: async (id: string) => id === "s1",
+  listerEntreesTableauHonneur: async () => [{ id: "e1", nom: "Zoé M.", mois: "2026-10", signalementId: null }],
+  retirerEntreeTableauHonneur: async (id: string) => id === "e1",
 } as never);
 let session = "";
 before(async () => void (session = await banc.ouvrirSession()));
@@ -40,4 +43,15 @@ test("captures servies sandboxées et notées au journal ; badge seulement avec 
   assert.equal((await banc.demander("GET", "/securite/signalements/s1/images/5", { session })).status, 404);
   assert.equal((await banc.demander("POST", "/securite/signalements/s1/badge", { session, corps: {} })).status, 200);
   assert.equal((await banc.demander("POST", "/securite/signalements/s2/badge", { session, corps: {} })).status, 409);
+});
+
+test("suppression d'un signalement et tableau d'honneur : 200 puis 404, notés au journal", async () => {
+  assert.equal((await banc.demander("DELETE", "/securite/signalements/s1", { session })).status, 200);
+  assert.equal(journal.at(-1), "Signalement de sécurité supprimé · signalement n° s1");
+  assert.equal((await banc.demander("DELETE", "/securite/signalements/s2", { session })).status, 404);
+  const tableau = await banc.demander("GET", "/securite/tableau-honneur", { session });
+  assert.deepEqual(await tableau.json(), { entrees: [{ id: "e1", nom: "Zoé M.", mois: "2026-10", signalementId: null }] });
+  assert.equal((await banc.demander("DELETE", "/securite/tableau-honneur/e1", { session })).status, 200);
+  assert.equal(journal.at(-1), "Nom retiré du tableau d'honneur · entrée n° e1");
+  assert.equal((await banc.demander("DELETE", "/securite/tableau-honneur/e2", { session })).status, 404);
 });
