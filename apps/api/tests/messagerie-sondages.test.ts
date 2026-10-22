@@ -23,7 +23,7 @@ function lieu(statut = "publie", nom?: string): number {
   return dernierLieu;
 }
 const dans = (minutes: number) => new Date(banc.horloge.maintenant + minutes * MINUTE).toISOString();
-const lancer = (p: PersonneDeTest, id: string, lieux: unknown, finLe: unknown = dans(60), idClient = randomUUID()) =>
+const lancer = (p: PersonneDeTest, id: string, lieux: unknown, finLe: unknown = dans(60), idClient: string = randomUUID()) =>
   p.demander("POST", `/app/conversations/${id}/messages`, { idClient, type: "vote", lieux, finLe });
 const voter = (p: PersonneDeTest, id: string, messageId: string, ordre?: unknown) =>
   ordre === undefined ? p.demander("DELETE", `/app/conversations/${id}/sondages/${messageId}/vote`) : p.demander("PUT", `/app/conversations/${id}/sondages/${messageId}/vote`, { ordre });

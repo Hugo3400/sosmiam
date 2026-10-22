@@ -195,7 +195,7 @@ async function prive() {
   banc.rendrePotes(a, b);
   return { a, b, id: (await a.demander("POST", "/app/conversations/prive", { personne: b.idPublic })).corps.conversation.id as string };
 }
-const envoyerGif = (p: PersonneDeTest, id: string, gifId: unknown, idClient = randomUUID()) =>
+const envoyerGif = (p: PersonneDeTest, id: string, gifId: unknown, idClient: string = randomUUID()) =>
   p.demander("POST", `/app/conversations/${id}/messages`, { idClient, type: "gif", gifId });
 
 test("routes /app/gif : session, pages de 24 par notre serveur, champs vérifiés, 30 par minute ; sans clé, 503 gif-indisponible", async () => {

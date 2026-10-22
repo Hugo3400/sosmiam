@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Keyboard, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 import { DELAI_MODIFICATION_MESSAGE_MINUTES } from "@sos-miam/commun/regles/chat";
@@ -79,15 +79,17 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
   const champ = useRef<TextInput>(null);
   const { texte: brouillon, changer: changerBrouillon, vider: viderTexte } = utiliserBrouillonChat(conversationId);
   const [texteEdition, setTexteEdition] = useState(edition?.texte ?? "");
-  const [editionSuivie, setEditionSuivie] = useState(edition?.id ?? null);
-  if ((edition?.id ?? null) !== editionSuivie) {
-    setEditionSuivie(edition?.id ?? null);
+  const [erreur, setErreur] = useState<ProblemeEnregistrement | null>(null);
+  const cible = reponseA?.id ?? edition?.id ?? null;
+  const [cibleSuivie, setCibleSuivie] = useState(cible);
+  if (cible !== cibleSuivie) {
+    setCibleSuivie(cible);
     setTexteEdition(edition?.texte ?? "");
+    setErreur(null);
   }
   const texte = edition ? texteEdition : brouillon;
   const changerTexte = edition ? setTexteEdition : changerBrouillon;
   const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
-  const [erreur, setErreur] = useState<ProblemeEnregistrement | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
   const [enregistrement, setEnregistrement] = useState(false);
@@ -113,25 +115,22 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
     return () => clearTimeout(minuterie);
   }, [enregistrement]);
 
-  const cible = reponseA?.id ?? edition?.id ?? null;
   useEffect(() => {
     if (!cible) return;
-    setErreur(null);
     const minuterie = setTimeout(() => champ.current?.focus(), 80);
     return () => clearTimeout(minuterie);
   }, [cible]);
 
   const conversation = trouverConversation(conversationId);
   const groupe = conversation?.type === "groupe";
-  const participants = conversation?.participants;
-  const aMentionner = useMemo(() => {
-    if (!groupe || !participants) return [];
-    const bloquesIds = new Set(bloques.map((b) => b.id));
-    return participants
-      .filter((id) => id !== monId && !bloquesIds.has(id))
-      .map(trouverPote)
-      .filter((p): p is Pote => p !== null && !!p.pseudo);
-  }, [groupe, participants, bloques, trouverPote, monId]);
+  const bloquesIds = new Set(bloques.map((b) => b.id));
+  const aMentionner =
+    groupe && conversation
+      ? conversation.participants
+          .filter((id) => id !== monId && !bloquesIds.has(id))
+          .map(trouverPote)
+          .filter((p): p is Pote => p !== null && !!p.pseudo)
+      : [];
   const mentions = utiliserMentionsChamp(texte, aMentionner, (nouveau) => {
     changerTexte(nouveau);
     if (erreur) setErreur(null);
