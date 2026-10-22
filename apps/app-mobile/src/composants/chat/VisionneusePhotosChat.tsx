@@ -14,6 +14,7 @@ import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 
 type Props = {
   visible: boolean;
@@ -26,6 +27,7 @@ type Props = {
 };
 
 const DELAI_DOUBLE_APPUI = 300;
+const lireInstant = () => Date.now();
 const HAUT_ENTETE = 68;
 const BAS_PIED = 112;
 const HAUT_VIGNETTES = 48;
@@ -35,6 +37,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
   const marges = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
+  const { maintenantMs } = utiliserHorlogeMinute();
   const liste = useRef<FlatList<MessageChatEnrichi>>(null);
   const pages = useRef(new Map<string, PoigneePagePhoto>());
   const [index, setIndex] = useState(Math.min(depart, Math.max(0, photos.length - 1)));
@@ -63,7 +66,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
   const hauteurPage = Math.max(200, height - marges.top - marges.bottom - HAUT_ENTETE - (total > 1 ? BAS_PIED : BAS_PIED - HAUT_VIGNETTES));
 
   function appui(message: MessageChatEnrichi) {
-    const maintenant = Date.now();
+    const maintenant = lireInstant();
     if (maintenant - dernierAppui.current >= DELAI_DOUBLE_APPUI) {
       dernierAppui.current = maintenant;
       return;
@@ -93,7 +96,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
   }
 
   if (!courante) return null;
-  const moment = formaterIlYA(courante.date).court;
+  const moment = formaterIlYA(courante.date, new Date(maintenantMs)).court;
   const libelle = `${T.voirPhoto(index + 1, total)}, ${prenomDe(courante)}, ${moment}`;
 
   return (
