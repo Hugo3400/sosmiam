@@ -1,8 +1,8 @@
 // Rechiffrement de la partie sociale après un changement de la clé des données (spécification sociale D.1 « Rotation »,
 // étape 9 du ménage de nuit ; docs/procedure-changement-cle.md, « La partie sociale »). Ne fait rien tant qu'il n'y a pas
 // d'ancienne clé (chiffrement.versionsAnciennes vide). Sinon, ce qui porte une ancienne version (« v<N>: ») est relu puis
-// réécrit avec la clé courante : codes d'invitation, titres de groupes, textes des messages, instantanés des signalements,
-// puis les photos et notes vocales. Un chiffré modifié entre la lecture et l'écriture est laissé tel quel (déjà réécrit avec
+// réécrit avec la clé courante : codes d'invitation, titres de groupes, textes des messages, lieux des sondages, instantanés
+// des signalements, puis les photos et notes vocales. Un chiffré modifié entre la lecture et l'écriture est laissé tel quel (déjà réécrit avec
 // la clé courante, ou repris la nuit suivante). Seulement des nombres en sortie : jamais un texte, un fichier ni une clé. Un
 // chiffré illisible va au journal du serveur par sa table et son id (ou le nom tiré au hasard de son fichier), jamais par son
 // contenu : c'est là qu'on les retrouve (docs/procedure-changement-cle.md, « La partie sociale »).
@@ -39,7 +39,7 @@ export type OptionsRechiffrementSocial = {
   fichiersParNuit?: number;
 };
 
-type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string };
+type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string; ordre?: number };
 
 /**
  * Avant chaque fichier réécrit, la part libre du disque doit rester au-dessus de PART_LIBRE_MIN_DISQUE (15 %, sous laquelle
@@ -76,6 +76,12 @@ const TABLES: readonly TableChiffree[] = [
   {
     table: "messages_conversations", cle: "id", colonne: "texte_chiffre", plus: `, conversation_id AS "conversationId", id_client AS "idClient"`, usage: "textes",
     contexte: (l) => CONTEXTES_SOCIAUX.message(Number(l.conversationId), String(l.idClient ?? "")),
+  },
+  {
+    table: "options_sondages", cle: "id", colonne: "lieu_chiffre", usage: "textes",
+    plus: `, (SELECT m.conversation_id FROM messages_conversations m WHERE m.id = options_sondages.message_id) AS "conversationId",
+      (SELECT m.id_client FROM messages_conversations m WHERE m.id = options_sondages.message_id) AS "idClient", ordre`,
+    contexte: (l) => CONTEXTES_SOCIAUX.optionSondage(Number(l.conversationId), String(l.idClient ?? ""), Number(l.ordre)),
   },
   { table: "signalements", cle: "id", colonne: "instantane_chiffre", plus: "", usage: "instantanes", contexte: (l) => CONTEXTES_SOCIAUX.instantane(l.id) },
 ];
