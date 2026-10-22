@@ -20,6 +20,9 @@ import { creerLieuxEnvoyes, type AssurerPrive } from "./lieux-envoyes.ts";
 import { creerLectureMessagerie, exigerChiffrement, lireTitre, type AccesConversation } from "./messagerie-lecture.ts";
 import { creerMediasMessagerie } from "./messagerie-medias.ts";
 import { creerMessagesMessagerie } from "./messagerie-messages.ts";
+import { creerPartagesMessagerie } from "./messagerie-partages.ts";
+import { creerPhotoGroupe } from "./messagerie-photo-groupe.ts";
+import { ecrireMessageSysteme } from "./messagerie-systeme.ts";
 import { creerMemoireSonsInvitations } from "./sorties-regles.ts";
 import {
   CONVERSATIONS_PAR_PAGE, MAX_INVITATIONS_LUES, MESSAGES_PAR_PAGE, type ContexteMessagerie, type LigneMembre, type RefusGroupe,
@@ -54,6 +57,8 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
   const lecture = creerLectureMessagerie(c);
   const messages = creerMessagesMessagerie(c, lecture);
   const medias = creerMediasMessagerie(c, lecture, messages);
+  const photo = creerPhotoGroupe(c, lecture, medias);
+  const partages = creerPartagesMessagerie(c, lecture);
   const sons = creerMemoireSonsInvitations();
 
   /** Membre d'un GROUPE (privé : conversation-inconnue ; sortie : geree-par-la-sortie), et admin si demandé */
@@ -109,8 +114,12 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const suite = lignes.length > CONVERSATIONS_PAR_PAGE && dernier ? ecrireCurseurDate(dernier.dernierMessageLe, dernier.id) : null;
       // Effacées pour moi et privés bloqués : sautés après lecture (une page peut être plus courte, la suite reste juste)
       const conversations = await lecture.presenterConversations(moi, page, maintenant, { sansEffacees: true });
-      const invitations = apres ? [] : await lecture.presenterInvitations(moi, await lire.listerMesInvitations(moi, MAX_INVITATIONS_LUES));
-      return { conversations, invitations, suite };
+      if (apres) return { conversations, invitations: [], suite };
+      const [invitations, epinglees] = await Promise.all([
+        lire.listerMesInvitations(moi, MAX_INVITATIONS_LUES).then((lues) => lecture.presenterInvitations(moi, lues)),
+        lire.listerMesEpinglees(moi).then((lues) => lecture.presenterConversations(moi, lues, maintenant, { sansEffacees: true })),
+      ]);
+      return { conversations, invitations, suite, epinglees };
     },
 
     async lireFil(moi, conversationId, o, maintenant) {
@@ -129,7 +138,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const [presentee] = await lecture.presenterConversations(moi, [conversation], maintenant);
       if (!presentee) return null;
       const suite = lignes.length > MESSAGES_PAR_PAGE && page.length > 0 ? String(page[page.length - 1]!.id) : null;
-      const messagesApi = (await lecture.presenterMessages(moi, page, caches, maintenant)).reverse();
+      const messagesApi = (await lecture.presenterMessages(moi, page, caches, maintenant, exclus)).reverse();
       return { conversation: presentee, messages: messagesApi, suite, version: conversation.version };
     },
 
@@ -291,12 +300,20 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
 
     couper: messages.couper,
     marquerLu: messages.marquerLu,
+    epingler: messages.epingler,
     effacerPourMoi: messages.effacerPourMoi,
     envoyer: messages.envoyer,
     verifierEnvoiMedia: medias.verifierEnvoiMedia,
     envoyerMedia: medias.envoyerMedia,
     lireMedia: medias.lireMedia,
     supprimerMessage: messages.supprimerMessage,
+    modifierMessage: messages.modifierMessage,
+    poserMessageSysteme: (conversationId, systeme, texte, maintenant) =>
+      c.depot.ecrire((t) => ecrireMessageSysteme(t, exigerChiffrement(c), { conversationId, systeme, texte, maintenant })),
+    verifierPhotoGroupe: photo.verifierPhotoGroupe,
+    changerPhotoGroupe: photo.changerPhotoGroupe,
+    lirePhotoGroupe: photo.lirePhotoGroupe,
+    listerPartages: partages.listerPartages,
     basculerReaction: messages.basculerReaction,
     lireMessageVisible: lecture.lireMessageVisible,
   };

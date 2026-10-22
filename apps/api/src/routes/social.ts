@@ -25,7 +25,7 @@ export const LIMITE_EXPORT_SOCIAL = { fenetre: 24 * 60 * 60_000, maximum: 2 };
  *          n'est créé)
  * POST   /app/social/moi           → 201 { ok, moi } (créé : identifiant public tiré au hasard, 10 caractères) | 200 { ok, moi }
  *          (il existait) : l'app l'appelle à l'ouverture de l'onglet Potes · 409 pseudo-requis
- * PATCH  /app/social/moi { trouvable?, suggerable?, activitePartagee?, pushSocial?: boolean } → 200 { ok, moi }
+ * PATCH  /app/social/moi { trouvable?, suggerable?, activitePartagee?, pushSocial?, accusesLecture?, apercuMessages?: boolean } → 200 { ok, moi }
  *          · 400 champ-invalide { champ } · 409 pseudo-requis
  * GET    /app/social/pouls         → 200 { ok, pouls: PoulsSocial } : ce qui a changé (relu toutes les 30 s par l'app
  *          ouverte) ; sans profil social : tout à zéro, sauf la signature de la cloche (nonVues 0 : voir routes/cloche.ts)

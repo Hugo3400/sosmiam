@@ -4,7 +4,7 @@
 // lecture ne le crée, et sans lui personne ne trouve le compte. Aucune règle d'âge : l'app est réservée aux majeurs.
 import type { ListeResumeApi } from "../../../../packages/commun/src/types/listes.ts";
 import type {
-  CibleMasque, MoiSocial, PersonneResume, PoulsSocial, ProfilCommunautaireApi, ReglagesSociaux, SuggestionPersonneApi,
+  CibleMasque, MoiSocial, PersonneResume, PoulsSocial, ProfilCommunautaireApi, ReglagesMessagerie, ReglagesSociaux, SuggestionPersonneApi,
 } from "../../../../packages/commun/src/types/social.ts";
 import type { PageLiensSuiviApi } from "../../../../packages/commun/src/types/suivis.ts";
 
@@ -24,7 +24,7 @@ export interface ServicesSocial {
   /** null : pas de profil social */
   lireMoi(compteId: number): Promise<MoiSocial | null>;
   /** Le profil existe (exigerProfilSocial est passé avant) ; seuls les réglages donnés changent */
-  modifierReglages(compteId: number, reglages: Partial<ReglagesSociaux>): Promise<MoiSocial>;
+  modifierReglages(compteId: number, reglages: Partial<ReglagesSociaux & ReglagesMessagerie>): Promise<MoiSocial>;
   /**
    * Le pseudo commence par `debut` (déjà nettoyé : sans « @ », en minuscules, 2 à 20 caractères), l'exact en tête, 10 au
    * plus. Jamais : soi, un blocage dans un sens ou dans l'autre, un compte sans profil social ou « trouvable: false »

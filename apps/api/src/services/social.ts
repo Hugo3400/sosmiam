@@ -97,7 +97,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
       const profil = await base.profilSocial.findUnique({
         where: { compteId },
         select: {
-          idPublic: true, trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true,
+          idPublic: true, trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true, accusesLecture: true, apercuMessages: true,
           compte: { select: { pseudo: true, prenom: true, avatar: true, photoProfil: true, prive: true } },
         },
       });

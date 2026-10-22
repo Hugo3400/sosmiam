@@ -118,3 +118,5 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
     },
   };
 }
+
+export type MediasMessagerie = ReturnType<typeof creerMediasMessagerie>;

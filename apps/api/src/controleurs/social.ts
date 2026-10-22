@@ -3,7 +3,7 @@
 import type { Request, Response } from "express";
 
 import { CIBLES_MASQUE } from "../../../../packages/commun/src/regles/potes.ts";
-import type { CibleMasque, ReglagesSociaux } from "../../../../packages/commun/src/types/social.ts";
+import type { CibleMasque, ReglagesMessagerie, ReglagesSociaux } from "../../../../packages/commun/src/types/social.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import { FORME_CIBLE_ID_MASQUE, FORME_DEBUT_PSEUDO } from "../services/social-regles.ts";
 import type { DependancesSocialApp } from "../routes/social-app.ts";
@@ -15,7 +15,9 @@ import { lireCurseurApres, lirePersonne, refuserSocial } from "./social-champs.t
 /** Statut HTTP des refus métier de ce contrôleur (spécification sociale D.0, D.3) */
 const ERREURS: Readonly<Record<string, number>> = { "pseudo-requis": 409, "personne-inconnue": 404, "profil-prive": 403, "trop-de-masques": 409 };
 
-const REGLAGES = ["trouvable", "suggerable", "activitePartagee", "pushSocial"] as const satisfies readonly (keyof ReglagesSociaux)[];
+const REGLAGES = [
+  "trouvable", "suggerable", "activitePartagee", "pushSocial", "accusesLecture", "apercuMessages",
+] as const satisfies readonly (keyof (ReglagesSociaux & ReglagesMessagerie))[];
 const estCibleMasque = (brut: unknown): brut is CibleMasque => typeof brut === "string" && (CIBLES_MASQUE as readonly string[]).includes(brut);
 
 export function creerControleursSocial(d: DependancesSocialApp, horloge: () => number) {
@@ -36,10 +38,10 @@ export function creerControleursSocial(d: DependancesSocialApp, horloge: () => n
       reponse.status(pose.cree ? 201 : 200).json({ ok: true, moi: profil });
     },
 
-    /** PATCH /app/social/moi { trouvable?, suggerable?, activitePartagee?, pushSocial? } */
+    /** PATCH /app/social/moi { trouvable?, suggerable?, activitePartagee?, pushSocial?, accusesLecture?, apercuMessages? } */
     async modifierReglages(requete: Request, reponse: Response) {
       const corps = lireCorps(requete);
-      const reglages: Partial<ReglagesSociaux> = {};
+      const reglages: Partial<ReglagesSociaux & ReglagesMessagerie> = {};
       for (const champ of REGLAGES) {
         const valeur = corps[champ];
         if (valeur === undefined) continue;

@@ -97,7 +97,8 @@ export function creerSocialEnMemoire(tables: TablesSociales, relations: Relation
       }
       tables.profils.set(compteId, {
         compteId, idPublic, codeInvitationChiffre: null, codeInvitationLe: null, arriveesParLien: 0, arriveesDepuis: null,
-        trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true, clocheVueLe: null, lieuxRecusVusJusqua: 0,
+        trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true, accusesLecture: true, apercuMessages: true, clocheVueLe: null,
+        lieuxRecusVusJusqua: 0,
         creeLe: new Date(),
       });
       return { compteId, idPublic, cree: true };
@@ -108,8 +109,8 @@ export function creerSocialEnMemoire(tables: TablesSociales, relations: Relation
       const compte = tables.comptes.get(compteId);
       const personne = (await relations.presenter([compteId])).get(compteId);
       if (!profil || !compte || !personne) return null;
-      const { trouvable, suggerable, activitePartagee, pushSocial } = profil;
-      return { personne, prive: compte.prive, reglages: { trouvable, suggerable, activitePartagee, pushSocial } };
+      const { trouvable, suggerable, activitePartagee, pushSocial, accusesLecture, apercuMessages } = profil;
+      return { personne, prive: compte.prive, reglages: { trouvable, suggerable, activitePartagee, pushSocial, accusesLecture, apercuMessages } };
     },
 
     async modifierReglages(compteId, reglages) {

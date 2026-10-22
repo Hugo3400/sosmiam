@@ -165,14 +165,14 @@ export function creerTablesCommunauteEnMemoire(social: TablesSociales, relations
     async creerConversation(organisateurId, maintenant) {
       const id = prendreId(social, "conversations");
       social.conversations.set(id, {
-        id, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, creeParId: organisateurId, version: 0, dernierMessageLe: maintenant, modifieLe: maintenant, creeLe: maintenant,
+        id, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: organisateurId, version: 0, dernierMessageLe: maintenant, modifieLe: maintenant, creeLe: maintenant,
       });
-      social.membres.push({ conversationId: id, compteId: organisateurId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant });
+      social.membres.push({ conversationId: id, compteId: organisateurId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
       return id;
     },
     async ajouterMembre(conversationId, compteId, maintenant) {
       if (social.membres.some((m) => m.conversationId === conversationId && m.compteId === compteId)) return;
-      social.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant });
+      social.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
       toucherConversation(conversationId, maintenant);
     },
     async retirerMembre(conversationId, compteId, maintenant) {

@@ -166,14 +166,14 @@ export function creerSortiesEnMemoire(tables: TablesSociales, relations: Relatio
 
       const conversationId = prendreId(tables, "conversations");
       tables.conversations.set(conversationId, {
-        id: conversationId, type: "sortie", clePrive: null, titreChiffre: null, emoji: s.emoji, creeParId: compteId, version: 0,
+        id: conversationId, type: "sortie", clePrive: null, titreChiffre: null, emoji: s.emoji, photo: null, creeParId: compteId, version: 0,
         dernierMessageLe: maintenant, modifieLe: maintenant, creeLe: maintenant,
       });
-      tables.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant });
+      tables.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
       const sortieId = prendreId(tables, "sorties");
       const sortie: Sortie = {
         id: sortieId, conversationId, organisateurId: compteId, titre: s.titre, emoji: s.emoji, quand: s.quand, finVote: s.finVote,
-        lieuChoisiId: null, voteTermineLe: null, version: 0, modifieLe: maintenant, creeLe: maintenant,
+        lieuChoisiId: null, voteTermineLe: null, rappelEnvoyeLe: null, version: 0, modifieLe: maintenant, creeLe: maintenant,
       };
       tables.sorties.set(sortieId, sortie);
       tables.invitationsSorties.push(
@@ -212,7 +212,7 @@ export function creerSortiesEnMemoire(tables: TablesSociales, relations: Relatio
       if (!vient) return { ok: true, sortie: null };
       // Il lit toute la discussion, depuis le début (visibleApres 0)
       if (!tables.membres.some((m) => m.conversationId === sortie.conversationId && m.compteId === compteId)) {
-        tables.membres.push({ conversationId: sortie.conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant });
+        tables.membres.push({ conversationId: sortie.conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
       }
       marquerConversation(sortie.conversationId, maintenant);
       return { ok: true, sortie: await presenter(compteId, lireDonnees(sortie), maintenant) };

@@ -7,7 +7,7 @@ import type { Request, Response } from "express";
 
 import { CODES_REACTIONS, LONGUEUR_MAX_TITRE_GROUPE } from "../../../../packages/commun/src/regles/chat.ts";
 import { LONGUEUR_MAX_MESSAGE, LONGUEUR_MAX_MOT_RECOMMANDATION } from "../../../../packages/commun/src/regles/potes.ts";
-import type { CodeReaction, RoleConversation } from "../../../../packages/commun/src/types/messagerie.ts";
+import type { CodeReaction, RoleConversation, TypePartage } from "../../../../packages/commun/src/types/messagerie.ts";
 import { estEmojiSeul } from "../../../../packages/commun/src/validation/est-emoji-seul.ts";
 import { validerNouveauGroupe } from "../../../../packages/commun/src/validation/valider-nouveau-groupe.ts";
 import { lireIdentifiantPublic } from "../fonctions/social/lire-identifiant-public.ts";
@@ -24,12 +24,14 @@ import { lireCurseurApres, lireIdClient, lireListeIdentifiantsPublics, lirePerso
 export const ERREURS_MESSAGERIE: Readonly<Record<string, number>> = {
   "conversation-inconnue": 404, "conversation-fermee": 403, "pas-dans-la-bande": 409, "groupe-plein": 409, "reserve-aux-admins": 403,
   "geree-par-la-sortie": 409, "personne-inconnue": 404, "invitation-inconnue": 404, "message-inconnu": 404, "reserve-a-l-auteur": 403,
-  "lieu-inconnu": 404,
+  "lieu-inconnu": 404, "reponse-introuvable": 400, "pas-l-auteur": 403, "trop-tard": 409, "non-modifiable": 409, "trop-d-epinglees": 409,
+  "album-plein": 409,
 };
 
 /** Invités d'un groupe : 1 à 19 (avec toi, 20 personnes) */
 const MAX_INVITES = 19;
 const ROLES: readonly RoleConversation[] = ["admin", "membre"];
+const TYPES_PARTAGES: readonly TypePartage[] = ["photo", "lieu"];
 const estCodeReaction = (brut: unknown): brut is CodeReaction => typeof brut === "string" && (CODES_REACTIONS as readonly string[]).includes(brut);
 
 /**
@@ -38,6 +40,7 @@ const estCodeReaction = (brut: unknown): brut is CodeReaction => typeof brut ===
  */
 export function rendreRefus(reponse: Response, erreur: string, erreurs: Readonly<Record<string, number>> = ERREURS_MESSAGERIE): never {
   if (erreur === "id-client-pris") throw new ChampInvalide("idClient");
+  if (erreur === "album-invalide") throw new ChampInvalide("album");
   if (erreur === "stockage-plein") reponse.set("Retry-After", String(ATTENTE_STOCKAGE_PLEIN_SECONDES));
   throw refuserSocial(erreur, erreurs);
 }
@@ -75,11 +78,14 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
   function lireMessage(requete: Request): MessageAEnvoyer {
     const corps = lireCorps(requete);
     const idClient = lireIdClient(requete);
-    if (corps.type === "texte") return { idClient, type: "texte", texte: lireTexteSocial(corps, "texte", LONGUEUR_MAX_MESSAGE, true) };
+    const reponseA = corps.reponseA === undefined || corps.reponseA === null ? undefined : lireIdentifiant(corps.reponseA);
+    if (reponseA === null) throw new ChampInvalide("reponseA");
+    const commun = { idClient, ...(reponseA !== undefined ? { reponseA } : {}) };
+    if (corps.type === "texte") return { ...commun, type: "texte", texte: lireTexteSocial(corps, "texte", LONGUEUR_MAX_MESSAGE, true) };
     if (corps.type !== "lieu") throw new ChampInvalide("type");
     const lieuId = corps.lieuId;
     if (typeof lieuId !== "number" || !Number.isSafeInteger(lieuId) || lieuId < 1) throw new ChampInvalide("lieuId");
-    return { idClient, type: "lieu", lieuId, texte: lireTexteSocial(corps, "texte", LONGUEUR_MAX_MOT_RECOMMANDATION, false) };
+    return { ...commun, type: "lieu", lieuId, texte: lireTexteSocial(corps, "texte", LONGUEUR_MAX_MOT_RECOMMANDATION, false) };
   }
 
   return {
@@ -198,8 +204,28 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       const id = lireNumero(requete, "id");
       const jusqua = lireIdentifiant(lireCorps(requete).jusqua);
       if (jusqua === null) throw new ChampInvalide("jusqua");
-      if (!(await d.messagerie.marquerLu(moi(reponse), id, jusqua))) rendreRefus(reponse, "conversation-inconnue");
+      if (!(await d.messagerie.marquerLu(moi(reponse), id, jusqua, maintenant()))) rendreRefus(reponse, "conversation-inconnue");
       reponse.json({ ok: true });
+    },
+
+    async epingler(requete: Request, reponse: Response) {
+      const id = lireNumero(requete, "id");
+      const { epinglee } = lireCorps(requete);
+      if (typeof epinglee !== "boolean") throw new ChampInvalide("epinglee");
+      const r = await d.messagerie.epingler(moi(reponse), id, epinglee, maintenant());
+      if (!r.ok) rendreRefus(reponse, r.erreur);
+      reponse.json({ ok: true });
+    },
+
+    async listerPartages(requete: Request, reponse: Response) {
+      const id = lireNumero(requete, "id");
+      const { type, avant: brutAvant } = requete.query;
+      if (!TYPES_PARTAGES.includes(type as TypePartage)) throw new ChampInvalide("type");
+      const avant = brutAvant === undefined ? null : lireIdentifiant(brutAvant);
+      if (avant === null && brutAvant !== undefined) throw new ChampInvalide("avant");
+      const page = await d.messagerie.listerPartages(moi(reponse), id, type as TypePartage, avant, maintenant());
+      if (!page) rendreRefus(reponse, "conversation-inconnue");
+      reponse.json({ ok: true, ...page });
     },
 
     /** POST /app/conversations/:id/effacer */
@@ -217,6 +243,15 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       if (!r.ok) rendreRefus(reponse, r.erreur);
       await contexte.appliquer(r.effets);
       reponse.status(r.rejoue ? 200 : 201).json({ ok: true, message: r.message, version: r.version });
+    },
+
+    async modifierMessage(requete: Request, reponse: Response) {
+      const id = lireNumero(requete, "id");
+      const messageId = lireNumero(requete, "messageId");
+      const texte = lireTexteSocial(lireCorps(requete), "texte", LONGUEUR_MAX_MESSAGE, true);
+      const r = await d.messagerie.modifierMessage(moi(reponse), id, messageId, texte, maintenant());
+      if (!r.ok) rendreRefus(reponse, r.erreur);
+      reponse.json({ ok: true, message: r.message, version: r.version });
     },
 
     /** DELETE /app/conversations/:id/messages/:messageId */

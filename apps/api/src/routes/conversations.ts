@@ -7,9 +7,9 @@ import { exigerChiffrementSocial } from "../middlewares/exiger-chiffrement-socia
 import { limiterEnvoisMedias } from "../middlewares/limiter-envois-medias.ts";
 import type { ContexteRoutesSociales, DependancesSocialApp } from "./social-app.ts";
 
-/** Messages texte et lieu, par compte */
+/** Messages texte et lieu, et leurs modifications, par compte */
 export const LIMITE_MESSAGES = { fenetre: 60_000, maximum: 30 };
-/** Photos et notes vocales, par compte (en plus des quotas en base : 50 par 24 h, 1 Go gardé) */
+/** Photos et notes vocales (et photo d'un groupe), par compte (en plus des quotas en base : 50 par 24 h, 1 Go gardé) */
 export const LIMITE_MEDIAS = { fenetre: 10 * 60_000, maximum: 20 };
 /** Créations de groupes, par compte */
 export const LIMITE_CREATIONS_GROUPES = { fenetre: 24 * 60 * 60_000, maximum: 20 };
@@ -23,9 +23,10 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * chiffrement-indisponible sans la clé). Erreurs { ok: false, erreur, champ? } : 401 session-expiree ; 429 trop-de-demandes
  * (Retry-After) ; 400 champ-invalide { champ } ; 400 message-refuse { champ } (filtre de mots). Compte limité par l'équipe
  * (refuserSiLimite, avant le profil social, la clé et le corps d'un média) : 403 compte-limite { details: { jusqua } } sur
- * POST /groupes, PATCH /:id, POST /:id/invites, PUT /:id/membres/:personne/role, POST /:id/messages, POST /:id/medias et
- * PUT des réactions ; le reste passe
- * (répondre à une invitation, quitter, couper, lu, effacer pour moi, supprimer son message, retirer sa réaction…).
+ * POST /groupes, PATCH /:id, POST /:id/invites, PUT /:id/membres/:personne/role, POST /:id/messages, PATCH
+ * /:id/messages/:messageId, POST /:id/medias, PUT /:id/photo et PUT des réactions ; le reste passe
+ * (répondre à une invitation, quitter, couper, épingler, lu, effacer pour moi, supprimer son message ou la photo du groupe,
+ * retirer sa réaction…).
  * - Ce que tu vois : les conversations dont tu es MEMBRE ; dans un groupe, on n'entre qu'en acceptant une invitation (avant :
  *   seulement l'invitation, ni les messages ni les membres). Les messages après ton arrivée (ou ton « Effacer pour moi »),
  *   sans ceux d'une personne avec qui il y a un blocage (dans un sens ou dans l'autre), ni ceux que tu as signalés. Un privé
@@ -34,9 +35,10 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * - 404 avant 403 : une conversation dont tu n'es pas membre répond 404 conversation-inconnue, même aux gestes d'un admin.
  * - Toute route avec :messageId passe par lireMessageVisible : sinon 404 message-inconnu.
  *
- * GET    /app/conversations[?apres=] 🔐 → 200 { ok, conversations: ConversationApi[], invitations: InvitationGroupeApi[], suite }
- *          30 par page, la plus récente d'abord, sans les discussions des sorties, sans celles effacées pour toi tant qu'aucun
- *          message n'est arrivé ; invitations : les groupes qui attendent ta réponse (première page seulement)
+ * GET    /app/conversations[?apres=] 🔐 → 200 { ok, conversations: ConversationApi[], invitations: InvitationGroupeApi[], suite,
+ *          epinglees? } 30 par page, la plus récente d'abord, sans les discussions des sorties, sans celles effacées pour toi
+ *          tant qu'aucun message n'est arrivé ; invitations et epinglees (les 3 épinglées au plus, la dernière épinglée
+ *          d'abord) : première page seulement
  * GET    /app/conversations/:id[?version=<n>][&avant=<messageId>] 🔐 → 200 { ok, fil: FilMessagesApi } (50 derniers messages,
  *          ou les 50 d'avant `avant`, du plus ancien au plus récent ; suite : à passer dans `avant` pour les plus anciens)
  *          | 200 { ok, inchange: true, version } (même version, sans avant) | 200 { ok, invitation: InvitationGroupeApi } (tu es
@@ -64,19 +66,29 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  *          · 409 geree-par-la-sortie · 403 reserve-aux-admins
  * PUT    /app/conversations/:id/notifications { coupees: boolean } → 200 { ok }
  * PUT    /app/conversations/:id/lu { jusqua: string } → 200 { ok } : ne recule jamais, ramené au dernier message visible pour
- *          toi ; jamais montré aux autres
+ *          toi ; montré aux autres membres (membres[].luJusqua, « Vu ») seulement entre deux personnes qui ont toutes les deux
+ *          les accusés de lecture (la version monte alors)
+ * PUT    /app/conversations/:id/epingle { epinglee: boolean } → 200 { ok } : 3 au plus · 409 trop-d-epinglees | geree-par-la-sortie
  * POST   /app/conversations/:id/effacer → 200 { ok } : « Effacer la discussion pour moi »
- * POST   /app/conversations/:id/messages { idClient, type: "texte" | "lieu", texte?, lieuId? } 🔐 → 201 { ok, message, version }
+ * POST   /app/conversations/:id/messages { idClient, type: "texte" | "lieu", texte?, lieuId?, reponseA? } 🔐 → 201 { ok, message, version }
  *          (texte de 1 à 500 caractères ; lieu publié et son mot de 140 au plus, chiffrés ensemble ; chaque autre membre est
  *          prévenu sur son téléphone) | 200 (même idClient : rien de nouveau, aucune notification)
  *          · 400 champ-invalide | message-refuse { champ: "idClient" | "type" | "texte" | "lieuId" } · 404 conversation-inconnue
- *          | lieu-inconnu · 403 conversation-fermee · 429 (30 par minute)
+ *          | lieu-inconnu · 403 conversation-fermee · 400 reponse-introuvable · 429 (30 par minute)
+ * PATCH  /app/conversations/:id/messages/:messageId { texte } 🔐 → 200 { ok, message, version } : ton texte, 15 min au plus
+ *          après l'envoi · 404 message-inconnu · 403 pas-l-auteur | conversation-fermee · 409 trop-tard | non-modifiable
  * POST   /app/conversations/:id/medias 🔐 : corps brut (Content-Type image/jpeg, audio/mp4 ou audio/x-m4a ; 6 Mo au plus),
- *          en-tête Idempotency-Key → 201 { ok, message, version } | 200 (déjà reçu) · 400 champ-invalide { champ: "idClient" }
+ *          en-têtes Idempotency-Key, X-Album, X-Legende et X-Onde → 201 { ok, message, version } | 200 (déjà reçu)
+ *          · 400 champ-invalide { champ: "idClient" | "album" | "legende" } | onde-invalide · 409 album-plein
  *          · 400 media-invalide { champ: "format" | "dimensions" | "duree" } · 413 media-trop-lourd · 415 format-refuse
  *          · 404 · 403 conversation-fermee · 409 trop-de-medias (50 par 24 h, ou 1 Go gardé) · 503 stockage-plein (Retry-After)
  * GET    /app/conversations/:id/messages/:messageId/media 🔐 → 200 les octets (Content-Type du média, private, no-store)
  *          · 404 message-inconnu · 410 media-expire (expiré, supprimé, suspendu ou retiré)
+ * PUT    /app/conversations/:id/photo 🔐 : corps brut JPEG → 200 { ok, conversation } ; DELETE (même adresse) 🔐 → 200 { ok,
+ *          conversation } : admins d'un groupe · 404 · 409 geree-par-la-sortie · 403 reserve-aux-admins · mêmes refus qu'un média
+ * GET    /app/conversations/:id/photo 🔐 → 200 les octets (image/jpeg, private, no-store) · 404 conversation-inconnue | photo-inconnue
+ * GET    /app/conversations/:id/partages?type=photo|lieu[&avant=<messageId>] 🔐 → 200 { ok, messages, suite } : 30 par page,
+ *          le plus récent d'abord
  * DELETE /app/conversations/:id/messages/:messageId → 200 { ok, version } : ton message, pour tout le monde · 404
  *          message-inconnu · 403 reserve-a-l-auteur
  * PUT    /app/conversations/:id/messages/:messageId/reactions/:reaction ; DELETE (même adresse) → 200 { ok, version } :
@@ -98,6 +110,10 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
     });
   };
 
+  const limiteMessages = parCompte(LIMITE_MESSAGES);
+  const limiteMedias = parCompte(LIMITE_MEDIAS);
+  const limiteMediasIp = limiterEnvoisMedias();
+
   const routes = Router();
   routes.get("/", lectures, lireProfilSocial, cle, c.lister);
   routes.post("/prive", gestes, exigerProfilSocial, cle, c.ouvrirPrive);
@@ -111,10 +127,16 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
   routes.put("/:id/membres/:personne/role", gestes, refuserSiLimite, exigerProfilSocial, cle, c.changerRole);
   routes.put("/:id/notifications", gestes, exigerProfilSocial, c.couper);
   routes.put("/:id/lu", gestes, exigerProfilSocial, c.marquerLu);
+  routes.put("/:id/epingle", gestes, exigerProfilSocial, c.epingler);
   routes.post("/:id/effacer", gestes, exigerProfilSocial, c.effacerPourMoi);
-  routes.post("/:id/messages", parCompte(LIMITE_MESSAGES), refuserSiLimite, exigerProfilSocial, cle, c.envoyer);
-  routes.post("/:id/medias", limiterEnvoisMedias(), parCompte(LIMITE_MEDIAS), refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
+  routes.post("/:id/messages", limiteMessages, refuserSiLimite, exigerProfilSocial, cle, c.envoyer);
+  routes.patch("/:id/messages/:messageId", limiteMessages, refuserSiLimite, exigerProfilSocial, cle, c.modifierMessage);
+  routes.post("/:id/medias", limiteMediasIp, limiteMedias, refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.envoyerMedia);
   routes.get("/:id/messages/:messageId/media", lectures, lireProfilSocial, cle, m.lireMedia);
+  routes.put("/:id/photo", limiteMediasIp, limiteMedias, refuserSiLimite, exigerProfilSocial, cle, corpsMedia, m.changerPhoto);
+  routes.delete("/:id/photo", gestes, exigerProfilSocial, cle, m.retirerPhoto);
+  routes.get("/:id/photo", lectures, lireProfilSocial, cle, m.lirePhoto);
+  routes.get("/:id/partages", lectures, lireProfilSocial, cle, c.listerPartages);
   routes.delete("/:id/messages/:messageId", gestes, exigerProfilSocial, c.supprimerMessage);
   routes.put("/:id/messages/:messageId/reactions/:reaction", gestes, refuserSiLimite, exigerProfilSocial, c.reagir(true));
   routes.delete("/:id/messages/:messageId/reactions/:reaction", gestes, exigerProfilSocial, c.reagir(false));
