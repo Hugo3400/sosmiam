@@ -17,6 +17,7 @@ model AppareilPush {
   actif             Boolean         @default(true)
   offresAcceptees   Boolean         @default(false) @map("offres_acceptees")
   offresAccepteesLe DateTime?       @map("offres_acceptees_le") @db.Timestamptz(0)
+  cleApercuChiffree String?         @map("cle_apercu_chiffree") @db.VarChar(200)
   creeLe            DateTime        @default(now()) @map("cree_le") @db.Timestamptz(0)
   /// Dernière fois que l'app a confirmé ce jeton
   vuLe              DateTime        @default(now()) @map("vu_le") @db.Timestamptz(0)

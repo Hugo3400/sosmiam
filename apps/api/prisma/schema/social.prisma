@@ -27,6 +27,8 @@ model ProfilSocial {
   activitePartagee      Boolean   @default(true) @map("activite_partagee")
   /// Notifications sur le téléphone pour la bande, les sorties et les messages (la cloche se remplit quand même)
   pushSocial            Boolean   @default(true) @map("push_social")
+  accusesLecture        Boolean   @default(true) @map("accuses_lecture")
+  apercuMessages        Boolean   @default(true) @map("apercu_messages")
   /// La cloche est vue jusqu'à ce moment : le même sur tous les téléphones du compte
   clocheVueLe           DateTime? @map("cloche_vue_le") @db.Timestamptz(3)
   /// « Lieux reçus » vus jusqu'à ce message (id de MessageConversation)

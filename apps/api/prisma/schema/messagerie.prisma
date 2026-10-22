@@ -18,6 +18,7 @@ model Conversation {
   /// 40 unités UTF-16 font 120 octets au plus, 160 caractères en base64url, plus 45 pour « v<N>: », l'iv et le tag : 256
   titreChiffre     String?               @map("titre_chiffre") @db.VarChar(512)
   emoji            String?               @db.VarChar(16)
+  photo            String?               @db.VarChar(80)
   creeParId        Int?                  @map("cree_par_id")
   creePar          Compte?               @relation("ConversationsCreees", fields: [creeParId], references: [id], onDelete: SetNull)
   /// Monte à chaque changement que voient les membres (message, réaction, suppression, membre, rôle, titre)
@@ -52,10 +53,11 @@ model MembreConversation {
   /// Messages cachés pour ce membre jusqu'à cet id compris : ceux d'avant son arrivée (pour un groupe, le moment où il a
   /// accepté l'invitation), ou « Effacer la discussion pour moi »
   visibleApres   Int          @default(0) @map("visible_apres")
-  /// Lu jusqu'à ce message (id) ; jamais montré aux autres (pas d'accusé de lecture)
+  /// Lu jusqu'à ce message (id)
   luJusqua       Int          @default(0) @map("lu_jusqua")
   /// « Couper les notifications » de cette conversation
   coupee         Boolean      @default(false)
+  epingleeLe     DateTime?    @map("epinglee_le") @db.Timestamptz(3)
   arriveLe       DateTime     @default(now()) @map("arrive_le") @db.Timestamptz(3)
 
   @@id([conversationId, compteId])
@@ -70,7 +72,7 @@ model MessageConversation {
   /// null : compte supprimé (« Compte supprimé ») ; le message reste jusqu'à l'effacement de la conversation
   auteurId       Int?              @map("auteur_id")
   auteur         Compte?           @relation("MessagesEcrits", fields: [auteurId], references: [id], onDelete: SetNull)
-  /// « texte », « lieu », « photo » ou « vocal »
+  /// « texte », « lieu », « photo », « vocal » ou « vote »
   type           String            @db.VarChar(6)
   /// UUID v4 tiré par l'app pour cet envoi : un même envoi rejoué ne crée pas de doublon (ni de notification). Sert aussi
   /// au contexte authentifié du chiffré ; il ne change jamais
@@ -100,10 +102,20 @@ model MessageConversation {
   suspenduLe     DateTime?         @map("suspendu_le") @db.Timestamptz(0)
   /// Retiré par la modération (signalement retenu)
   retireLe       DateTime?         @map("retire_le") @db.Timestamptz(0)
+  reponseAId     Int?              @map("reponse_a_id")
+  reponseA       MessageConversation?  @relation("ReponsesMessages", fields: [reponseAId], references: [id], onDelete: SetNull)
+  reponses       MessageConversation[] @relation("ReponsesMessages")
+  modifieLe      DateTime?         @map("modifie_le") @db.Timestamptz(0)
+  album          String?           @db.VarChar(36)
+  onde           String?           @db.VarChar(64)
+  systeme        String?           @db.VarChar(16)
   reactions      ReactionMessage[]
+  sondage        SondageMessage?
 
   @@unique([conversationId, idClient])
   @@index([conversationId, id])
+  @@index([conversationId, album])
+  @@index([reponseAId])
   @@index([auteurId, creeLe])
   @@index([mediaExpireLe])
   @@map("messages_conversations")
@@ -163,4 +175,44 @@ model InvitationGroupe {
   @@index([inviteParId])
   @@index([creeLe])
   @@map("invitations_groupes")
+}
+
+model SondageMessage {
+  messageId Int                 @id @map("message_id")
+  message   MessageConversation @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  finLe     DateTime            @map("fin_le") @db.Timestamptz(0)
+  closLe    DateTime?           @map("clos_le") @db.Timestamptz(0)
+  gagnant   Int?                @db.SmallInt
+  options   OptionSondage[]
+  votes     VoteSondage[]
+
+  @@index([closLe, finLe])
+  @@map("sondages_messages")
+}
+
+model OptionSondage {
+  id          Int            @id @default(autoincrement())
+  messageId   Int            @map("message_id")
+  sondage     SondageMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+  ordre       Int            @db.SmallInt
+  lieuChiffre String         @map("lieu_chiffre") @db.VarChar(256)
+  votes       VoteSondage[]
+
+  @@unique([messageId, ordre])
+  @@map("options_sondages")
+}
+
+model VoteSondage {
+  messageId Int            @map("message_id")
+  sondage   SondageMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+  compteId  Int            @map("compte_id")
+  compte    Compte         @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  optionId  Int            @map("option_id")
+  option    OptionSondage  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  voteLe    DateTime       @default(now()) @map("vote_le") @db.Timestamptz(0)
+
+  @@id([messageId, compteId])
+  @@index([compteId])
+  @@index([optionId])
+  @@map("votes_sondages")
 }

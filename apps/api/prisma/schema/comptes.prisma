@@ -125,6 +125,7 @@ model Compte {
   invitationsSortiesEnvoyees InvitationSortie[]       @relation("InvitationsEnvoyees")
   propositionsSorties        PropositionSortie[]
   votesSorties               VoteSortie[]
+  votesSondages              VoteSondage[]
   listesEcrites              ListeLieux[]             @relation("ListesEcrites")
   lieuxAjoutesListes         LieuDeListe[]
   coAuteurListes             CoAuteurListe[]

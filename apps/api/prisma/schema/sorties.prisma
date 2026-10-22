@@ -18,6 +18,7 @@ model Sortie {
   lieuChoisi     Lieu?               @relation("SortiesRetenues", fields: [lieuChoisiId], references: [id], onDelete: SetNull)
   /// Vote fini : par l'organisateur, ou par la tâche de la minute à finVote (taches/terminer-votes-sorties.ts)
   voteTermineLe  DateTime?           @map("vote_termine_le") @db.Timestamptz(0)
+  rappelEnvoyeLe DateTime?           @map("rappel_envoye_le") @db.Timestamptz(0)
   version        Int                 @default(0)
   modifieLe      DateTime            @default(now()) @map("modifie_le") @db.Timestamptz(3)
   creeLe         DateTime            @default(now()) @map("cree_le") @db.Timestamptz(0)
