@@ -16,7 +16,8 @@ export type ComplementsMessages = {
 
 const AUCUN: ComplementsMessages = { comptes: [], citation: () => undefined, mentions: () => undefined };
 
-const texteDe = (contenu: Contenu | undefined) => (contenu && contenu !== "illisible" ? contenu.texte : null);
+const texteDe = (l: LigneMessage, contenu: Contenu | undefined) =>
+  ((l.type === "texte" || l.type === "photo") && l.systeme === null && contenu && contenu !== "illisible" ? contenu.texte : null);
 
 export async function lireComplementsMessages(
   c: ContexteMessagerie, moi: number, lignes: readonly LigneMessage[], contenus: ReadonlyMap<number, Contenu>,
@@ -24,7 +25,7 @@ export async function lireComplementsMessages(
 ): Promise<ComplementsMessages> {
   const lire = c.depot.lire;
   const avecCitation = lignes.filter((l) => l.reponseAId !== null);
-  const avecMention = lignes.filter((l) => l.systeme === null && (texteDe(contenus.get(l.id))?.includes("@") ?? false));
+  const avecMention = lignes.filter((l) => texteDe(l, contenus.get(l.id))?.includes("@") ?? false);
   if (avecCitation.length === 0 && avecMention.length === 0) return AUCUN;
   const [cites, membres, conversations, exclus] = await Promise.all([
     lire.lireMessages(avecCitation.map((l) => l.reponseAId!)),
@@ -49,8 +50,8 @@ export async function lireComplementsMessages(
       return presenterCitation(cite, { auteurId, contenu: cache ? "illisible" : o.lireContenu(cite), cache });
     },
     mentions(l, personnes) {
-      const texte = texteDe(contenus.get(l.id));
-      if (!texte || l.systeme !== null || !groupes.has(l.conversationId)) return undefined;
+      const texte = texteDe(l, contenus.get(l.id));
+      if (!texte || !groupes.has(l.conversationId)) return undefined;
       const candidats = membres.flatMap((m) => {
         const p = m.conversationId === l.conversationId && m.compteId !== l.auteurId ? personnes.get(m.compteId) : undefined;
         return p ? [{ compteId: m.compteId, pseudo: p.pseudo }] : [];

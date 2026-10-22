@@ -36,11 +36,11 @@ export function SelecteurEspaceCommunaute({ espace, onChoisir, nonLus }: Props) 
               vibrerLegerement();
               onChoisir(e.cle);
             }}
-            className={`min-h-11 shrink grow flex-row items-center justify-center gap-1 rounded-xl px-1 active:opacity-80 ${actif ? "bg-jaune" : ""}`}
+            className={`min-h-11 shrink grow flex-row items-center justify-center gap-1 rounded-xl px-0.5 active:opacity-80 ${actif ? "bg-jaune" : ""}`}
           >
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink text-[15px] ${actif ? "font-texte-gras text-nuit" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink text-sm ${actif ? "font-texte-gras text-nuit" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
             {pastille ? (
-              <View className="min-w-5 items-center rounded-full bg-rouge-sos px-1.5 py-0.5">
+              <View className="min-w-5 items-center rounded-full bg-rouge-sos px-1 py-0.5">
                 <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
                   {pastille}
                 </Text>

@@ -5,10 +5,10 @@
 // écrit dont le message n'a pas été enregistré (refus, envoi rejoué en même temps, panne) est supprimé tout de suite ; sinon
 // le ménage de nuit le retire comme orphelin. Lecture : seulement un membre qui voit le message (B.0), en clair, jamais en
 // cache ; « expire » pour un média supprimé, suspendu ou retiré, même si son fichier est gardé pour la modération.
-import { DUREE_MEDIAS_CHAT_JOURS } from "../../../../packages/commun/src/regles/chat.ts";
+import { DUREE_MEDIAS_CHAT_JOURS, MAX_PHOTOS_ALBUM } from "../../../../packages/commun/src/regles/chat.ts";
 import { creerJournalEnvoisMedias } from "./journal-envois-medias.ts";
 import { exigerChiffrement, type LectureMessagerie } from "./messagerie-lecture.ts";
-import { relireEnvoi, type IssueEnvoi, type MessagesMessagerie } from "./messagerie-messages.ts";
+import { relireEnvoi, SANS_AJOUTS, type IssueEnvoi, type MessagesMessagerie } from "./messagerie-messages.ts";
 import type { ContexteMessagerie, MediaRecu, RefusEnvoi, ResultatEnvoi, TablesMessagerie } from "./messagerie-regles.ts";
 import { verifierQuotasMediasChat, type CompteursMediasChat } from "./stockage-medias-chat.ts";
 
@@ -28,7 +28,14 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
     };
   }
 
+  async function verifierQuotas(t: TablesMessagerie, moi: number, taille: number, maintenant: Date) {
+    return verifierQuotasMediasChat(taille, await lireCompteurs(t, moi, maintenant));
+  }
+
   return {
+    verifierQuotas,
+    noterEnvoi: (moi: number, taille: number, maintenant: Date) => journal.noter(moi, taille, maintenant),
+
     async verifierEnvoiMedia(moi: number, conversationId: number, idClient: string, taille: number, maintenant: Date): Promise<"ok" | RefusEnvoi> {
       exigerChiffrement(c);
       const acces = await lecture.lireAcces(moi, conversationId);
@@ -55,15 +62,23 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
           const deja = relireEnvoi(moi, await t.lireMessageParIdClient(conversationId, media.idClient));
           if (deja) return deja;
           if (!(await lecture.estOuverte(t, moi, acces))) return { refus: "conversation-fermee" };
-          const verdict = verifierQuotasMediasChat(media.octets.length, await lireCompteurs(t, moi, maintenant));
+          const album = media.type === "photo" && media.album ? await t.listerAlbum(conversationId, media.album, MAX_PHOTOS_ALBUM) : [];
+          if (album.some((m) => m.auteurId !== moi)) return { refus: "album-invalide" };
+          if (album.length >= MAX_PHOTOS_ALBUM) return { refus: "album-plein" };
+          const verdict = await verifierQuotas(t, moi, media.octets.length, maintenant);
           if (verdict !== "ok") return { refus: verdict };
+          const legende = media.type === "photo" ? (media.legende ?? null) : null;
           const fichier = c.medias.tirerNom();
           await c.medias.ecrire(fichier, chiffrement.chiffrerOctets(media.octets, fichier));
           ecrit.fichier = fichier;
           const version = await t.toucherConversation(conversationId, maintenant, true);
           if (version === null) return { refus: "conversation-inconnue" };
           const message = await t.insererMessage({
-            conversationId, auteurId: moi, type: media.type, idClient: media.idClient, texteChiffre: null, fichier,
+            ...SANS_AJOUTS,
+            conversationId, auteurId: moi, type: media.type, idClient: media.idClient, fichier,
+            texteChiffre: legende ? chiffrement.chiffrerMessage(legende, conversationId, media.idClient) : null,
+            album: media.type === "photo" ? (media.album ?? null) : null,
+            onde: media.type === "vocal" ? (media.onde ?? null) : null,
             typeMime: media.type === "photo" ? "image/jpeg" : "audio/mp4",
             taille: media.octets.length,
             largeur: media.type === "photo" ? media.largeur : null,
@@ -73,7 +88,7 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
             creeLe: maintenant, supprimeLe: null, suspenduLe: null, retireLe: null,
           });
           if (!message) return relireEnvoi(moi, await t.lireMessageParIdClient(conversationId, media.idClient)) ?? { refus: "conversation-inconnue" };
-          return { message, version, membres: await t.lireMembres([conversationId]) };
+          return { message, version, membres: await t.lireMembres([conversationId]), discret: album.length > 0 };
         });
       } catch (erreur) {
         if (ecrit.fichier) await c.medias.supprimer([ecrit.fichier]).catch(() => 0);
@@ -83,7 +98,7 @@ export function creerMediasMessagerie(c: ContexteMessagerie, lecture: LectureMes
       if (garde) journal.noter(moi, media.octets.length, maintenant);
       // Écrit, mais pas gardé (refus, ou l'autre envoi avec le même idClient a gagné) : il part tout de suite
       if (ecrit.fichier && !garde) await c.medias.supprimer([ecrit.fichier]).catch(() => 0);
-      return messages.terminerEnvoi(moi, acces, issue, maintenant);
+      return messages.terminerEnvoi(moi, acces, issue, maintenant, media.type === "photo" ? (media.legende ?? null) : null);
     },
 
     async lireMedia(moi: number, conversationId: number, messageId: number, maintenant: Date): Promise<{ octets: Buffer; typeMime: string } | "expire" | null> {
