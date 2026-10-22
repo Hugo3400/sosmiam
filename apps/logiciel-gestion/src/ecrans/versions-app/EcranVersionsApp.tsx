@@ -26,7 +26,11 @@ export function EcranVersionsApp() {
     if (donnees) setSaisie({ minimale: { ...donnees.minimale }, derniere: { ...donnees.derniere } });
   }, [donnees]);
 
-  if (!donnees || !saisie) return chargement ? <Chargement /> : <MessageErreur erreur={erreur} reessayer={recharger} />;
+  if (!donnees || !saisie) {
+    if (chargement) return <Chargement />;
+    if (erreur?.code === "introuvable") return <p className="rounded-xl bg-jaune-clair px-4 py-3 text-sm">Pas encore branché sur le serveur : cet écran marchera après le prochain redémarrage de l'API.</p>;
+    return <MessageErreur erreur={erreur} reessayer={recharger} />;
+  }
   const changer = (quoi: "minimale" | "derniere", systeme: "ios" | "android", valeur: string) => setSaisie({ ...saisie, [quoi]: { ...saisie[quoi], [systeme]: valeur.trim() } });
   const toutesValides = SYSTEMES.every(({ cle }) => FORME.test(saisie.minimale[cle]) && FORME.test(saisie.derniere[cle]));
   const trop = SYSTEMES.find(({ cle }) => toutesValides && comparerVersionsApp(saisie.minimale[cle], saisie.derniere[cle]) > 0);
